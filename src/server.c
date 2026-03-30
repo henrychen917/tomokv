@@ -1854,6 +1854,8 @@ extern int ProcessingEventsWhileBlocked;
  *
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
+
+//ee451 edit
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
@@ -2048,6 +2050,15 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /********************* WARNING ********************
      * Do NOT add anything below moduleReleaseGIL !!! *
      ***************************** ********************/
+    listIter li;
+    listNode *ln;
+    listRewind(server.active_clients, &li);
+    while ((ln = listNext(&li)) != NULL) {
+        client *c = ln->value;
+        commitReply(c);
+        if (c->dispatch_seq == c->commit_seq)
+            listDelNode(server.active_clients, ln);  // back to idle, remove
+    }
 }
 
 /* This function is called immediately after the event loop multiplexing
@@ -3827,6 +3838,11 @@ static bool commandVisibleForClient(client *c, struct redisCommand *cmd) {
  * preventCommandReplication(client *c);
  *
  */
+
+
+
+
+//ee451 edit
 void call(client *c, int flags) {
     long long dirty;
     uint64_t client_old_flags = c->flags;
@@ -4656,8 +4672,12 @@ int processCommand(client *c) {
         blockPostponeClient(c);
         return C_OK;       
     }
-
+    //ee451 edit
     /* Exec the command */
+
+        printf("[processCommand] c=%p argc=%d argv=%p cmd=%p\n",
+       (void*)c, c->argc, (void*)c->argv, (void*)c->cmd);
+    fflush(stdout);
     if (c->flags & CLIENT_MULTI &&
         c->cmd->proc != execCommand &&
         c->cmd->proc != discardCommand &&
@@ -4669,11 +4689,51 @@ int processCommand(client *c) {
         queueMultiCommand(c, cmd_flags);
         addReply(c,shared.queued);
     } else {
-        int flags = CMD_CALL_FULL;
-        call(c,flags);
-        if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
-            handleClientsBlockedOnKeys();
+        // int flags = CMD_CALL_FULL;
+        // call(c,flags);
+        // if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
+        //     handleClientsBlockedOnKeys();
+
+
+        // int seq = c->dispatch_seq++;
+        
+        // // add to active clients if first in flight command
+        // if (c->dispatch_seq - c->commit_seq == 1)
+        //     listAddNodeTail(server.active_clients, c);
+        
+        // workerJob *job = zmalloc(sizeof(workerJob));
+        // job->c = c;
+        // job->seq = seq;
+        
+        // enqueueJob(&server.workers[server.worker_cycle], job);
+        // server.worker_cycle = (server.worker_cycle + 1) & 3;
+            if (c->cmd->proc == getCommand ||
+            c->cmd->proc == setCommand ||
+            c->cmd->proc == delCommand) {
+            int seq = c->dispatch_seq++;
+            listAddNodeTail(server.active_clients, c);
+
+            workerJob *job = zmalloc(sizeof(workerJob));
+            job->c = c;
+            job->seq = seq;
+            job->argc = c->argc;
+            job->cmd = c->cmd;
+            job->argv = zmalloc(sizeof(robj*) * c->argc);
+            for (int i = 0; i < c->argc; i++)
+                job->argv[i] = dupStringObject(c->argv[i]);
+
+            enqueueJob(&server.workers[server.worker_cycle], job);
+            server.worker_cycle = (server.worker_cycle + 1) & 3;
+        } else {
+            c->is_worker_cmd = 0;
+            call(c, CMD_CALL_FULL);
+            if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
+                handleClientsBlockedOnKeys();
+        }
     }
+
+
+
     return C_OK;
 }
 
@@ -7680,6 +7740,101 @@ redisTestProc *getTestProcByName(const char *name) {
 }
 #endif
 
+
+//ee451 edit
+void enqueueJob(workerThread *worker, workerJob *job) {
+    pthread_mutex_lock(&worker->mutex);
+    
+    // wait if queue is full
+    while (worker->head - worker->tail >= WORKER_QUEUE_SIZE)
+        pthread_cond_wait(&worker->ready, &worker->mutex);
+    
+    worker->queue[worker->head & WORKER_QUEUE_MASK] = job;
+    worker->head++;
+    
+    pthread_cond_signal(&worker->cond);  // wake worker
+    pthread_mutex_unlock(&worker->mutex);
+}
+
+void *workerMain(void *arg) {
+    workerThread *me = (workerThread *)arg;
+    while (1) {
+        pthread_mutex_lock(&me->mutex);
+        while (me->head == me->tail)
+            pthread_cond_wait(&me->cond, &me->mutex);
+
+        workerJob *job = me->queue[me->tail & WORKER_QUEUE_MASK];
+        me->tail++;
+        pthread_cond_signal(&me->ready);
+        pthread_mutex_unlock(&me->mutex);
+
+        if (job->argv == NULL || job->argc == 0 || job->cmd == NULL) {
+            zfree(job);
+            continue;
+        }
+
+        redisDb *db = job->c->db;
+        sds reply = NULL;
+
+        if (job->cmd->proc == getCommand) {
+            kvobj *val = dbFind(db, job->argv[1]->ptr);
+            printf("[worker %d] GET %s\n", me->id, (char*)job->argv[1]->ptr);
+            fflush(stdout);
+            if (val == NULL) {
+                reply = sdsnew("$-1\r\n");
+            } else if (val->type != OBJ_STRING) {
+                reply = sdsnew("-WRONGTYPE Operation against a key"
+                               " holding the wrong kind of value\r\n");
+            } else if (val->encoding == OBJ_ENCODING_INT) {
+                char buf[LONG_STR_SIZE];
+                int len = ll2string(buf, sizeof(buf), (long)val->ptr);
+                reply = sdscatprintf(sdsempty(), "$%d\r\n", len);
+                reply = sdscatlen(reply, buf, len);
+                reply = sdscatlen(reply, "\r\n", 2);
+            } else {
+                sds s = val->ptr;
+                size_t slen = sdslen(s);
+                reply = sdscatprintf(sdsempty(), "$%zu\r\n", slen);
+                reply = sdscatlen(reply, s, slen);
+                reply = sdscatlen(reply, "\r\n", 2);
+            }
+
+        } else if (job->cmd->proc == setCommand) {
+            printf("[worker %d] SET %s\n", me->id, (char*)job->argv[1]->ptr);
+            fflush(stdout);
+            robj *val = dupStringObject(job->argv[2]);
+            val = tryObjectEncoding(val);
+            setKey(NULL, db, job->argv[1], &val, 0);
+            reply = sdsnew("+OK\r\n");
+
+        } else if (job->cmd->proc == delCommand) {
+            printf("[worker %d] DEL %s\n", me->id, (char*)job->argv[1]->ptr);
+            fflush(stdout);
+            int deleted = 0;
+            for (int i = 1; i < job->argc; i++) {
+                if (dbSyncDelete(db, job->argv[i]))
+                    deleted++;
+            }
+            reply = sdscatprintf(sdsempty(), ":%d\r\n", deleted);
+        }
+
+        // store directly into the client's pending slot
+        __atomic_store_n(
+            &job->c->pending[job->seq & PENDING_MASK],
+            reply,
+            __ATOMIC_RELEASE
+        );
+
+        for (int i = 0; i < job->argc; i++)
+            decrRefCount(job->argv[i]);
+        zfree(job->argv);
+        zfree(job);
+    }
+    return NULL;
+}
+
+
+
 int main(int argc, char **argv) {
     struct timeval tv;
     int j;
@@ -8023,6 +8178,23 @@ int main(int argc, char **argv) {
 
     redisSetCpuAffinity(server.server_cpulist);
     setOOMScoreAdj(-1);
+
+    for (int i = 0; i < NUM_WORKERS; i++) {
+        server.workers[i].id = i;
+        server.workers[i].head = 0;
+        server.workers[i].tail = 0;
+        pthread_mutex_init(&server.workers[i].mutex, NULL);
+        pthread_cond_init(&server.workers[i].cond, NULL);
+        pthread_cond_init(&server.workers[i].ready, NULL);
+        memset(server.workers[i].queue, 0, sizeof(server.workers[i].queue));
+    }
+    server.worker_cycle = 0;
+    server.active_clients = listCreate();
+    // in main(), just before aeMain():
+    for (int i = 0; i < NUM_WORKERS; i++) {
+        pthread_create(&server.workers[i].thread, NULL, 
+                       workerMain, &server.workers[i]);
+    }
 
     aeMain(server.el);
     aeDeleteEventLoop(server.el);

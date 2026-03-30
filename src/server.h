@@ -1418,8 +1418,19 @@ typedef struct {
     } offset;
 } clientReqResInfo;
 #endif
+//ee451 edit
+
+#define MAX_PENDING 64
+#define PENDING_MASK (MAX_PENDING - 1)
+
 
 typedef struct client {
+    int is_worker_cmd;
+    uint64_t dispatch_seq;
+    uint64_t commit_seq;
+    uint64_t current_seq;
+    sds pending[MAX_PENDING];
+
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
     connection *conn;
@@ -1914,7 +1925,44 @@ typedef enum childInfoType {
 
 typedef struct hotkeyStats hotkeyStats;
 
+//ee451 edit
+
+
+
+#define WORKER_QUEUE_SIZE 64
+#define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
+
+
+#define NUM_WORKERS 4
+
+typedef struct workerJob {
+    client *c;
+    int seq;
+    robj **argv;
+    int argc;
+    struct redisCommand *cmd;
+} workerJob;
+
+typedef struct workerThread {
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int id;
+    pthread_cond_t ready;      // missing
+    // ring buffer queue
+    workerJob *queue[WORKER_QUEUE_SIZE];
+    uint64_t head;  // main thread writes here
+    uint64_t tail;  // worker reads here
+} workerThread;
+
+
+
+//ee451 edit
 struct redisServer {
+    /* THredis */
+    int worker_cycle;
+    list *active_clients;
+    workerThread workers[NUM_WORKERS];
     /* General */
     pid_t pid;                  /* Main process pid. */
     pthread_t main_thread_id;         /* Main thread id */
@@ -3000,6 +3048,13 @@ extern EbucketsType hashFieldExpireBucketsType; /* local per hash */
 /*-----------------------------------------------------------------------------
  * Functions prototypes
  *----------------------------------------------------------------------------*/
+
+//ee451 edit
+void enqueueJob(workerThread *worker, workerJob *job);
+void *workerMain(void *arg);
+void commitReply(client *c);
+
+
 
 /* Command metadata */
 void populateCommandLegacyRangeSpec(struct redisCommand *c);

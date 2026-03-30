@@ -117,10 +117,14 @@ int authRequired(client *c) {
                         !c->authenticated;
     return auth_required;
 }
-
+//ee451 edit
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
-
+    // in createClient(), after zmalloc:
+    c->dispatch_seq = 0;
+    c->commit_seq = 0;
+    c->current_seq = 0;
+    memset(c->pending, 0, sizeof(c->pending));
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
      * in the context of a client. When commands are executed in other
@@ -481,32 +485,54 @@ static size_t _addBulkStrRefToBuffer(client *c, const void *payload, size_t len)
     }
     return _addReplyPayloadToBuffer(c, payload, len, BULK_STR_REF);
 }
-
+//ee451 edit
 void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
-    if (c->flags & CLIENT_CLOSE_AFTER_REPLY) return;
+    // if (c->flags & CLIENT_CLOSE_AFTER_REPLY) return;
 
-    /* Replicas should normally not cause any writes to the reply buffer. In case a rogue replica sent a command on the
-     * replication link that caused a reply to be generated we'll simply disconnect it.
-     * Note this is the simplest way to check a command added a response. Replication links are used to write data but
-     * not for responses, so we should normally never get here on a replica client. */
+    // /* Replicas should normally not cause any writes to the reply buffer. In case a rogue replica sent a command on the
+    //  * replication link that caused a reply to be generated we'll simply disconnect it.
+    //  * Note this is the simplest way to check a command added a response. Replication links are used to write data but
+    //  * not for responses, so we should normally never get here on a replica client. */
+    // if (unlikely(clientTypeIsSlave(c))) {
+    //     sds cmdname = c->lastcmd ? c->lastcmd->fullname : NULL;
+    //     logInvalidUseAndFreeClientAsync(c, "Replica generated a reply to command '%s'",
+    //                                     cmdname ? cmdname : "<unknown>");
+    //     return;
+    // }
+
+    // c->net_output_bytes_curr_cmd += len;
+    // /* We call it here because this function may affect the reply
+    //  * buffer offset (see function comment) */
+    // reqresSaveClientReplyOffset(c);
+
+    // /* If we're processing a push message into the current client (i.e. executing PUBLISH
+    //  * to a channel which we are subscribed to, then we wanna postpone that message to be added
+    //  * after the command's reply (specifically important during multi-exec). the exception is
+    //  * the SUBSCRIBE command family, which (currently) have a push message instead of a proper reply.
+    //  * The check for executing_client also avoids affecting push messages that are part of eviction.
+    //  * Check CLIENT_PUSHING first to avoid race conditions, as it's absent in module's fake client. */
+    // if ((c->flags & CLIENT_PUSHING) && c == server.current_client &&
+    //     server.executing_client && !cmdHasPushAsReply(server.executing_client->cmd))
+    // {
+    //     _addReplyPayloadToList(c,server.pending_push_messages,s,len,PLAIN_REPLY);
+    //     return;
+    // }
+
+    // size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
+    // if (len > reply_len)
+    //     _addReplyPayloadToList(c, c->reply, s + reply_len, len - reply_len, PLAIN_REPLY);
+
+
+
+    if (c->flags & CLIENT_CLOSE_AFTER_REPLY) return;
     if (unlikely(clientTypeIsSlave(c))) {
         sds cmdname = c->lastcmd ? c->lastcmd->fullname : NULL;
         logInvalidUseAndFreeClientAsync(c, "Replica generated a reply to command '%s'",
                                         cmdname ? cmdname : "<unknown>");
         return;
     }
-
     c->net_output_bytes_curr_cmd += len;
-    /* We call it here because this function may affect the reply
-     * buffer offset (see function comment) */
     reqresSaveClientReplyOffset(c);
-
-    /* If we're processing a push message into the current client (i.e. executing PUBLISH
-     * to a channel which we are subscribed to, then we wanna postpone that message to be added
-     * after the command's reply (specifically important during multi-exec). the exception is
-     * the SUBSCRIBE command family, which (currently) have a push message instead of a proper reply.
-     * The check for executing_client also avoids affecting push messages that are part of eviction.
-     * Check CLIENT_PUSHING first to avoid race conditions, as it's absent in module's fake client. */
     if ((c->flags & CLIENT_PUSHING) && c == server.current_client &&
         server.executing_client && !cmdHasPushAsReply(server.executing_client->cmd))
     {
@@ -514,6 +540,25 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
         return;
     }
 
+if (c->is_worker_cmd) {
+    sds current = __atomic_load_n(
+        &c->pending[c->current_seq & PENDING_MASK],
+        __ATOMIC_ACQUIRE
+    );
+    if (current == NULL) {
+        current = sdsnewlen(s, len);
+    } else {
+        current = sdscatlen(current, s, len);
+    }
+    __atomic_store_n(
+        &c->pending[c->current_seq & PENDING_MASK],
+        current,
+        __ATOMIC_RELEASE
+    );
+    return;
+}
+
+    // original code untouched for main thread commands
     size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
     if (len > reply_len)
         _addReplyPayloadToList(c, c->reply, s + reply_len, len - reply_len, PLAIN_REPLY);
@@ -567,9 +612,43 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
  * Higher level functions to queue data on the client output buffer.
  * The following functions are the ones that commands implementations will call.
  * -------------------------------------------------------------------------- */
-
+//ee451 edit
 /* Add the object 'obj' string representation to the client output buffer. */
-void addReply(client *c, robj *obj) {
+
+void commitReply(client *c){ //new function
+    c->is_worker_cmd = 0;  // MUST be before the while loop
+    // printf("[commitReply] dispatch=%lu commit=%lu\n",
+    //        c->dispatch_seq, c->commit_seq);
+    // fflush(stdout);
+    
+    while (1) {
+        sds reply = __atomic_load_n(
+            &c->pending[c->commit_seq & PENDING_MASK],
+            __ATOMIC_ACQUIRE
+        );
+        
+        if (reply == NULL) break;
+        
+        printf("[commit] client=%lu seq=%lu reply=%.*s",
+               (unsigned long)c->id, (unsigned long)c->commit_seq,
+               (int)sdslen(reply), reply);
+        fflush(stdout);
+        
+        if (_prepareClientToWrite(c) != C_OK) return;
+        _addReplyToBufferOrList(c, reply, sdslen(reply));
+        
+        sdsfree(reply);
+        __atomic_store_n(
+            &c->pending[c->commit_seq & PENDING_MASK],
+            NULL,
+            __ATOMIC_RELEASE
+        );
+        c->commit_seq++;
+    }
+}
+
+
+void addReply(client *c, robj *obj) { //redirect to adding item to client reply queue
     if (_prepareClientToWrite(c) != C_OK) return;
 
     if (sdsEncodedObject(obj)) {
