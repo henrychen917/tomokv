@@ -117,7 +117,7 @@ int authRequired(client *c) {
                         !c->authenticated;
     return auth_required;
 }
-
+//ee451
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
 
@@ -137,6 +137,7 @@ client *createClient(connection *conn) {
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
     c->id = client_id;
+    c->reply_ready = 0;
     c->tid = IOTHREAD_MAIN_THREAD_ID;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
@@ -326,6 +327,8 @@ static inline int _prepareClientToWrite(client *c) {
      * If the client runs in an IO thread, we should not put the client in the
      * pending write queue. Instead, we will install the write handler to the
      * corresponding IO thread’s event loop and let it handle the reply. */
+    if (_flags & CLIENT_WORKER_PENDING) return C_OK;
+
     if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
         putClientInPendingWriteQueue(c);
 
@@ -2922,6 +2925,7 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
 
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c, int num_pcmds_to_free) {
+    if (c->flags & CLIENT_WORKER_PENDING) return;
     resetClientInternal(c, num_pcmds_to_free);
 }
 
@@ -3396,24 +3400,26 @@ int processCommandAndResetClient(client *c) {
     client *old_client = server.current_client;
     server.current_client = c;
     if (processCommand(c) == C_OK) {
-        commandProcessed(c);
-        /* Update the client's memory to include output buffer growth following the
-         * processed command. */
-        if (c->conn) updateClientMemUsageAndBucket(c);
+        if (!(c->flags & CLIENT_WORKER_PENDING)) {
+            commandProcessed(c);
+            if (c->conn) updateClientMemUsageAndBucket(c);
+        }
+    }
+    if (server.current_client == NULL) deadclient = 1;
+    server.current_client = old_client;
+
+    /* If dispatched to worker, return C_ERR to stop
+     * processInputBuffer from looping on the same command */
+    if (c->flags & CLIENT_WORKER_PENDING) {
+        /* Advance querybuf past the parsed command so leftover
+         * bytes don't corrupt the next read */
+        if (c->querybuf && c->qb_pos > 0) {
+            sdsrange(c->querybuf, c->qb_pos, -1);
+            c->qb_pos = 0;
+        }
+        return C_ERR;
     }
 
-    if (server.current_client == NULL) deadclient = 1;
-    /*
-     * Restore the old client, this is needed because when a script
-     * times out, we will get into this code from processEventsWhileBlocked.
-     * Which will cause to set the server.current_client. If not restored
-     * we will return 1 to our caller which will falsely indicate the client
-     * is dead and will stop reading from its buffer.
-     */
-    server.current_client = old_client;
-    /* performEvictions may flush slave output buffers. This may
-     * result in a slave, that may be the active client, to be
-     * freed. */
     return deadclient ? C_ERR : C_OK;
 }
 

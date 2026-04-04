@@ -442,6 +442,9 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 #define CLIENT_ASM_MIGRATING (1ULL<<53) /* Client is migrating RDB/stream data during atomic slot migration. */
 #define CLIENT_ASM_IMPORTING (1ULL<<54) /* Client is importing RDB/stream data during atomic slot migration. */
 
+//ee451 new flag
+#define CLIENT_WORKER_PENDING (1ULL << 55) //new ee451
+
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -455,6 +458,8 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 #define CLIENT_IO_REUSABLE_QUERYBUFFER (1ULL<<3) /* The client is using the reusable query buffer. */
 #define CLIENT_IO_CLOSE_ASAP (1ULL<<4) /* Close this client ASAP in IO thread. */
 #define CLIENT_IO_PENDING_CRON (1ULL<<5)  /* The client is pending cron job, to be processed in main thread. */
+
+
 
 /* Definitions for client read errors. These error codes are used to indicate
  * various issues that can occur while reading or parsing data from a client. */
@@ -1418,8 +1423,9 @@ typedef struct {
     } offset;
 } clientReqResInfo;
 #endif
-
+//ee451
 typedef struct client {
+    int reply_ready;
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
     connection *conn;
@@ -1603,6 +1609,24 @@ typedef struct client {
     redisAtomic int pending_read; /* Flag indicating an IO thread client residing
                                    * in main thread has received a read event. */
 } client;
+//ee451
+#define WORKER_QUEUE_SIZE 1024  /* must be power of 2 */
+#define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
+
+typedef struct workerQueue {
+    client *jobs[WORKER_QUEUE_SIZE];
+    unsigned int head;  /* consumer reads from here */
+    unsigned int tail;  /* producer writes here */
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} workerQueue;
+
+typedef struct workerThread {
+    int id;
+    pthread_t thread;
+    workerQueue queue;
+    redisDb *db;
+} workerThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     uint8_t id;                                 /* The unique ID assigned, if IO_THREADS_MAX_NUM is more
@@ -1913,7 +1937,7 @@ typedef enum childInfoType {
 } childInfoType;
 
 typedef struct hotkeyStats hotkeyStats;
-
+//ee451
 struct redisServer {
     /* General */
     pid_t pid;                  /* Main process pid. */
@@ -1928,6 +1952,10 @@ struct redisServer {
     mode_t umask;               /* The umask value of the process on startup */
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
+    workerThread *workers;  
+    list *clients_pending_worker;
+    int num_workers;
+    redisDb **worker_dbs;
     redisDb *db;
     dict *commands;             /* Command table */
     dict *orig_commands;        /* Command table before command renaming. */
@@ -4462,6 +4490,19 @@ void makeThreadKillable(void);
 void swapMainDbWithTempDb(redisDb *tempDb);
 sds getVersion(void);
 void debugPauseProcess(void);
+
+//ee451 new
+
+/* Worker thread functions */
+void workerQueueInit(workerQueue *q);
+int workerQueuePush(workerQueue *q, client *c);
+client *workerQueuePop(workerQueue *q);
+void queueToWorker(client *c, int worker_id);
+void *workerThreadMain(void *arg);
+void initWorkers(void);
+void handleWorkerReplies(void);
+int canDispatchToWorker(client *c);
+int getWorkerForCommand(client *c);
 
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {

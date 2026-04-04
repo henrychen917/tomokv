@@ -1854,16 +1854,30 @@ extern int ProcessingEventsWhileBlocked;
  *
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
+void handleWorkerReplies(void) {
+    listIter li;
+    listNode *ln;
+    listRewind(server.clients_pending_worker, &li);
+    while ((ln = listNext(&li))) {
+        client *c = listNodeValue(ln);
+        int ready;
+        atomicGet(c->reply_ready, ready);
+        if (ready) {
+            atomicSet(c->reply_ready, 0);
+            c->flags &= ~CLIENT_WORKER_PENDING;
+            commandProcessed(c);
+            connSetReadHandler(c->conn, readQueryFromClient);
+            putClientInPendingWriteQueue(c);
+            listDelNode(server.clients_pending_worker, ln);
+        }
+    }
+}
+
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
     updatePeakMemory();
 
-    /* Just call a subset of vital functions in case we are re-entering
-     * the event loop from processEventsWhileBlocked(). Note that in this
-     * case we keep track of the number of events we are processing, since
-     * processEventsWhileBlocked() wants to stop ASAP if there are no longer
-     * events to handle. */
     if (ProcessingEventsWhileBlocked) {
         uint64_t processed = 0;
         processed += connTypeProcessPendingData(server.el);
@@ -1872,44 +1886,26 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         processed += handleClientsWithPendingWrites();
         processed += freeClientsInAsyncFreeQueue();
 
-        /* Let the clients after the blocking call be processed. */
         processClientsOfAllIOThreads();
-        /* New connections may have been established while blocked, clients from
-         * IO thread may have replies to write, ensure they are promptly sent to
-         * IO threads. */
         processed += sendPendingClientsToIOThreads();
 
         server.events_processed_while_blocked += processed;
         return;
     }
 
-    /* Handle pending data(typical TLS). (must be done before flushAppendOnlyFile) */
     connTypeProcessPendingData(server.el);
 
-    /* If any connection type(typical TLS) still has pending unread data don't sleep at all. */
     int dont_sleep = connTypeHasPendingData(server.el);
 
-    /* Call the Redis Cluster before sleep function. Note that this function
-     * may change the state of Redis Cluster (from ok to fail or vice versa),
-     * so it's a good idea to call it before serving the unblocked clients
-     * later in this function, must be done before blockedBeforeSleep. */
     if (server.cluster_enabled) {
         clusterBeforeSleep();
         asmBeforeSleep();
     }
 
-    /* Handle blocked clients.
-     * must be done before flushAppendOnlyFile, in case of appendfsync=always,
-     * since the unblocked clients may write data. */
     blockedBeforeSleep();
 
-    /* Record cron time in beforeSleep, which is the sum of active-expire, active-defrag and all other
-     * tasks done by cron and beforeSleep, but excluding read, write and AOF, that are counted by other
-     * sets of metrics. */
     monotime cron_start_time_before_aof = getMonotonicUs();
 
-    /* Run a fast expire cycle (the called function will return
-     * ASAP if a fast cycle is not needed). */
     if (server.active_expire_enabled && iAmMaster())
         activeExpireCycle(ACTIVE_EXPIRE_CYCLE_FAST);
 
@@ -1919,109 +1915,73 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
                               NULL);
     }
 
-    /* Send all the slaves an ACK request if at least one client blocked
-     * during the previous event loop iteration. Note that we do this after
-     * processUnblockedClients(), so if there are multiple pipelined WAITs
-     * and the just unblocked WAIT gets blocked again, we don't have to wait
-     * a server cron cycle in absence of other event loop events. See #6623.
-     * 
-     * We also don't send the ACKs while clients are paused, since it can
-     * increment the replication backlog, they'll be sent after the pause
-     * if we are still the master. */
     if (server.get_ack_from_slaves && !isPausedActionsWithUpdate(PAUSE_ACTION_REPLICA)) {
         sendGetackToReplicas();
         server.get_ack_from_slaves = 0;
     }
 
-    /* We may have received updates from clients about their current offset. NOTE:
-     * this can't be done where the ACK is received since failover will disconnect 
-     * our clients. */
     updateFailoverStatus();
 
-    /* Since we rely on current_client to send scheduled invalidation messages
-     * we have to flush them after each command, so when we get here, the list
-     * must be empty. */
     serverAssert(listLength(server.tracking_pending_keys) == 0);
     serverAssert(listLength(server.pending_push_messages) == 0);
 
-    /* Send the invalidation messages to clients participating to the
-     * client side caching protocol in broadcasting (BCAST) mode. */
     trackingBroadcastInvalidationMessages();
 
-    /* Record time consumption of AOF writing. */
     monotime aof_start_time = getMonotonicUs();
-    /* Record cron time in beforeSleep. This does not include the time consumed by AOF writing and IO writing below. */
     monotime duration_before_aof = aof_start_time - cron_start_time_before_aof;
-    /* Record the fsync'd offset before flushAppendOnly */
     long long prev_fsynced_reploff = server.fsynced_reploff;
 
-    /* Write the AOF buffer on disk,
-     * must be done before handleClientsWithPendingWrites and
-     * sendPendingClientsToIOThreads, in case of appendfsync=always. */
     if (server.aof_state == AOF_ON || server.aof_state == AOF_WAIT_REWRITE)
         flushAppendOnlyFile(0);
 
-    /* Record time consumption of AOF writing. */
     durationAddSample(EL_DURATION_TYPE_AOF, getMonotonicUs() - aof_start_time);
 
-    /* Update the fsynced replica offset.
-     * If an initial rewrite is in progress then not all data is guaranteed to have actually been
-     * persisted to disk yet, so we cannot update the field. We will wait for the rewrite to complete. */
     if (server.aof_state == AOF_ON && server.fsynced_reploff != -1) {
         long long fsynced_reploff_pending;
         atomicGet(server.fsynced_reploff_pending, fsynced_reploff_pending);
         server.fsynced_reploff = fsynced_reploff_pending;
 
-        /* If we have blocked [WAIT]AOF clients, and fsynced_reploff changed, we want to try to
-         * wake them up ASAP. */
         if (listLength(server.clients_waiting_acks) && prev_fsynced_reploff != server.fsynced_reploff)
             dont_sleep = 1;
     }
 
     if (server.io_threads_num > 1) {
-        /* Corresponding to IOThreadBeforeSleep, process the clients from IO threads
-         * without notification. */
         if (processClientsOfAllIOThreads() > 0) {
-            /* If there are clients that are processed, it means IO thread is busy to
-             * trafer clients to main thread, so the main thread does not sleep. */
             dont_sleep = 1;
         }
         if (!dont_sleep) {
-            atomicSetWithSync(server.running, 0); /* Not running if going to sleep. */
-            /* Try to process the clients from IO threads again, since before setting running
-             * to 0, some clients may be transferred without notification. */
+            atomicSetWithSync(server.running, 0);
             processClientsOfAllIOThreads();
         }
     }
 
+    /* Check for completed worker replies and feed them into
+     * the pending write queue for flushing. */
+    handleWorkerReplies();
+
+    /* If workers still have commands in flight, don't sleep —
+     * we need to check reply_ready again ASAP. */
+    if (listLength(server.clients_pending_worker) > 0)
+        dont_sleep = 1;
+
     /* Handle writes with pending output buffers. */
     handleClientsWithPendingWrites();
 
-    /* Check if IO thread replicas have any pending read or writes and send them
-     * back to their threads if so. */
     putReplicasInPendingClientsToIOThreads();
 
-    /* Let io thread to handle its pending clients. */
     sendPendingClientsToIOThreads();
 
-    /* Record cron time in beforeSleep. This does not include the time consumed by AOF writing and IO writing above. */
     monotime cron_start_time_after_write = getMonotonicUs();
 
-    /* Close clients that need to be closed asynchronous */
     freeClientsInAsyncFreeQueue();
 
-    /* Incrementally trim replication backlog, 10 times the normal speed is
-     * to free replication backlog as much as possible. */
     if (server.repl_backlog)
         incrementalTrimReplicationBacklog(10*REPL_BACKLOG_TRIM_BLOCKS_PER_CALL);
 
-    /* Disconnect some clients if they are consuming too much memory. */
     evictClients();
 
-    /* Record cron time in beforeSleep. */
     monotime duration_after_write = getMonotonicUs() - cron_start_time_after_write;
 
-    /* Record eventloop latency. */
     if (server.el_start > 0) {
         monotime el_duration = getMonotonicUs() - server.el_start;
         durationAddSample(EL_DURATION_TYPE_EL, el_duration);
@@ -2029,7 +1989,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     server.el_cron_duration += duration_before_aof + duration_after_write;
     durationAddSample(EL_DURATION_TYPE_CRON, server.el_cron_duration);
     server.el_cron_duration = 0;
-    /* Record max command count per cycle. */
     if (server.stat_numcommands > server.el_cmd_cnt_start) {
         long long el_command_cnt = server.stat_numcommands - server.el_cmd_cnt_start;
         if (el_command_cnt > server.el_cmd_cnt_max) {
@@ -2037,17 +1996,9 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         }
     }
 
-    /* Don't sleep at all before the next beforeSleep() if needed (e.g. a
-     * connection has pending data) */
     aeSetDontWait(server.el, dont_sleep);
 
-    /* Before we are going to sleep, let the threads access the dataset by
-     * releasing the GIL. Redis main thread will not touch anything at this
-     * time. */
     if (moduleCount()) moduleReleaseGIL();
-    /********************* WARNING ********************
-     * Do NOT add anything below moduleReleaseGIL !!! *
-     ***************************** ********************/
 }
 
 /* This function is called immediately after the event loop multiplexing
@@ -2858,7 +2809,7 @@ void makeThreadKillable(void) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 }
-
+//ee451
 void initServer(void) {
     int j;
 
@@ -2896,7 +2847,7 @@ void initServer(void) {
     server.clients_with_pending_ref_reply = listCreate();
     server.clients_timeout_table = raxNew();
     server.replication_allowed = 1;
-    server.slaveseldb = -1; /* Force to emit the first SELECT command. */
+    server.slaveseldb = -1;
     server.unblocked_clients = listCreate();
     server.ready_keys = listCreate();
     server.tracking_pending_keys = listCreate();
@@ -2917,14 +2868,9 @@ void initServer(void) {
     server.reply_buffer_resizing_enabled = 1;
     server.reply_copy_avoidance_enabled = 1;
     server.client_mem_usage_buckets = NULL;
-    /* Enable memory accounting only if key-memory-histograms or cluster-slot-stats-enabled
-     * includes 'mem' at startup. Memory tracking can be disabled at runtime
-     * but cannot be re-enabled, to avoid situation where we would need to
-     * catch up or iterate over all slots and kvobjs. */
     server.memory_tracking_enabled = server.key_memory_histograms || clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_MEM);
     resetReplicationBuffer();
 
-    /* Make sure the locale is set on startup based on the config file. */
     if (setlocale(LC_COLLATE,server.locale_collate) == NULL) {
         serverLog(LL_WARNING, "Failed to configure LOCALE for invalid locale name.");
         exit(1);
@@ -2941,15 +2887,20 @@ void initServer(void) {
             strerror(errno));
         exit(1);
     }
-    server.db = zmalloc(sizeof(redisDb)*server.dbnum);
 
-    /* Create the Redis databases, and initialize other internal state. */
+    /* Create per-worker Redis databases. Each worker owns its own
+     * independent set of databases (0..dbnum-1). Keys are partitioned
+     * across workers by hash, so worker N only ever touches worker_dbs[N]. */
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
     }
+    //ee451
+    /* Keep server.db allocated so legacy code paths don't crash.
+     * These dbs are empty - real data lives in worker_dbs. */
+    server.db = zmalloc(sizeof(redisDb)*server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
         server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
         server.db[j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
@@ -2964,10 +2915,28 @@ void initServer(void) {
         server.db[j].id = j;
         server.db[j].avg_ttl = 0;
     }
-    evictionPoolAlloc(); /* Initialize the LRU keys pool. */
-    /* Note that server.pubsub_channels was chosen to be a kvstore (with only one dict, which
-     * seems odd) just to make the code cleaner by making it be the same type as server.pubsubshard_channels
-     * (which has to be kvstore), see pubsubtype.serverPubSubChannels */
+    server.clients_pending_worker = listCreate();
+    server.num_workers = 4;
+    server.worker_dbs = zmalloc(sizeof(redisDb*) * server.num_workers);
+    for (int w = 0; w < server.num_workers; w++) {
+        server.worker_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
+        for (j = 0; j < server.dbnum; j++) {
+            server.worker_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+            server.worker_dbs[w][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
+            server.worker_dbs[w][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+            server.worker_dbs[w][j].expires_cursor = 0;
+            server.worker_dbs[w][j].blocking_keys = dictCreate(&keylistDictType);
+            server.worker_dbs[w][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
+            server.worker_dbs[w][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.worker_dbs[w][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.worker_dbs[w][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.worker_dbs[w][j].watched_keys = dictCreate(&keylistDictType);
+            server.worker_dbs[w][j].id = j;
+            server.worker_dbs[w][j].avg_ttl = 0;
+        }
+    }
+
+    evictionPoolAlloc();
     server.pubsub_channels = kvstoreCreate(
         &kvstoreBaseType, &objToDictDictType,
         0, KVSTORE_ALLOCATE_DICTS_ON_DEMAND);
@@ -2995,15 +2964,14 @@ void initServer(void) {
     server.child_info_pipe[1] = -1;
     server.child_info_nread = 0;
     server.aof_buf = sdsempty();
-    server.lastsave = time(NULL); /* At startup we consider the DB saved. */
-    server.lastbgsave_try = 0;    /* At startup we never tried to BGSAVE. */
+    server.lastsave = time(NULL);
+    server.lastbgsave_try = 0;
     server.rdb_save_time_last = -1;
     server.rdb_save_time_start = -1;
     server.rdb_last_load_keys_expired = 0;
     server.rdb_last_load_keys_loaded = 0;
     server.dirty = 0;
     resetServerStats();
-    /* A few stats we don't want to reset: server startup time, and peak mem. */
     server.stat_starttime = time(NULL);
     server.stat_peak_memory = 0;
     server.stat_peak_memory_time = server.unixtime;
@@ -3035,47 +3003,34 @@ void initServer(void) {
     server.accum_call_count_since_ustime = 0;
     server.monotonic_us_when_ustime = 0;
 
-    /* Initiate acl info struct */
     server.acl_info.invalid_cmd_accesses = 0;
     server.acl_info.invalid_key_accesses  = 0;
     server.acl_info.user_auth_failures = 0;
     server.acl_info.invalid_channel_accesses = 0;
     server.acl_info.acl_access_denied_tls_cert = 0;
 
-    /* Initialize the shared pending command pool. */
     server.cmd_pool.size = 0;
     server.cmd_pool.capacity = PENDING_COMMAND_POOL_SIZE;
     server.cmd_pool.pool = zmalloc(sizeof(pendingCommand*) * PENDING_COMMAND_POOL_SIZE);
     server.cmd_pool.min_size = 0;
 
-    /* Create the timer callback, this is our way to process many background
-     * operations incrementally, like clients timeout, eviction of unaccessed
-     * expired keys and so forth. */
     if (aeCreateTimeEvent(server.el, 1, serverCron, NULL, NULL) == AE_ERR) {
         serverPanic("Can't create event loop timers.");
         exit(1);
     }
 
-    /* Register a readable event for the pipe used to awake the event loop
-     * from module threads. */
     if (aeCreateFileEvent(server.el, server.module_pipe[0], AE_READABLE,
         modulePipeReadable,NULL) == AE_ERR) {
             serverPanic(
                 "Error registering the readable event for the module pipe.");
     }
 
-    /* Register before and after sleep handlers (note this needs to be done
-     * before loading persistence since it is used by processEventsWhileBlocked. */
     aeSetBeforeSleepProc(server.el,beforeSleep);
     aeSetAfterSleepProc(server.el,afterSleep);
 
-    /* 32 bit instances are limited to 4GB of address space, so if there is
-     * no explicit limit in the user provided configuration we set a limit
-     * at 3 GB using maxmemory with 'noeviction' policy'. This avoids
-     * useless crashes of the Redis instance for out of memory. */
     if (server.arch_bits == 32 && server.maxmemory == 0) {
         serverLog(LL_WARNING,"Warning: 32 bit instance detected but no memory limit set. Setting 3 GB maxmemory limit with 'noeviction' policy now.");
-        server.maxmemory = 3072LL*(1024*1024); /* 3 GB */
+        server.maxmemory = 3072LL*(1024*1024);
         server.maxmemory_policy = MAXMEMORY_NO_EVICTION;
     }
 
@@ -3088,7 +3043,6 @@ void initServer(void) {
     slowlogInit();
     latencyMonitorInit();
 
-    /* Initialize ACL default password if it exists */
     ACLUpdateDefaultUserPassword(server.requirepass);
 
     applyWatchdogPeriod();
@@ -3098,7 +3052,6 @@ void initServer(void) {
 
     prefetchCommandsBatchInit();
 }
-
 void initListeners(void) {
     /* Setup listeners from server config for TCP/TLS/Unix */
     int conn_index;
@@ -4669,12 +4622,36 @@ int processCommand(client *c) {
         queueMultiCommand(c, cmd_flags);
         addReply(c,shared.queued);
     } else {
+        /* Check if this is a simple single-key data command we can
+         * dispatch to a worker thread. */
+        if (canDispatchToWorker(c)) {
+            int worker_id = getWorkerForCommand(c);
+            queueToWorker(c, worker_id);
+            /* Don't read more from this client until reply_ready */
+            aeDeleteFileEvent(server.el, c->conn->fd, AE_READABLE);
+            return C_OK;
+        }
+
+        /* Everything else runs on main thread as before */
         int flags = CMD_CALL_FULL;
         call(c,flags);
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
     }
     return C_OK;
+}
+
+int canDispatchToWorker(client *c) {
+    return (c->cmd->proc == getCommand ||
+            c->cmd->proc == setCommand ||
+            c->cmd->proc == delCommand);
+}
+
+int getWorkerForCommand(client *c) {
+    /* Key is always argv[1] for GET/SET/DEL */
+    robj *key = c->argv[1];
+    uint64_t hash = dictGenHashFunction(key->ptr, sdslen(key->ptr));
+    return hash % server.num_workers;
 }
 
 /* Checks if all keys in a command (or a MULTI-EXEC) belong to the same hash slot.
@@ -7679,7 +7656,93 @@ redisTestProc *getTestProcByName(const char *name) {
     return NULL;
 }
 #endif
+//ee451
+/* Returns 0 on success, -1 if full */
 
+void workerQueueInit(workerQueue *q) {
+    q->head = q->tail = NULL;
+    pthread_mutex_init(&q->lock, NULL);
+    pthread_cond_init(&q->cond, NULL);
+}
+
+int workerQueuePush(workerQueue *q, client *c) {
+    pthread_mutex_lock(&q->lock);
+    unsigned int next_tail = (q->tail + 1) & WORKER_QUEUE_MASK;
+    if (next_tail == q->head) {
+        pthread_mutex_unlock(&q->lock);
+        return -1;  /* queue full */
+    }
+    q->jobs[q->tail] = c;
+    q->tail = next_tail;
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->lock);
+    return 0;
+}
+
+client *workerQueuePop(workerQueue *q) {
+    pthread_mutex_lock(&q->lock);
+    while (q->head == q->tail) {
+        pthread_cond_wait(&q->cond, &q->lock);
+    }
+    client *c = q->jobs[q->head];
+    q->head = (q->head + 1) & WORKER_QUEUE_MASK;
+    pthread_mutex_unlock(&q->lock);
+    return c;
+}
+
+/* ============== Dispatch to Worker ============== */
+
+void queueToWorker(client *c, int worker_id) {
+    fprintf(stderr, "[dispatch] client %p cmd %p to worker %d\n", (void*)c, (void*)c->cmd, worker_id);
+    fprintf(stderr, "[dispatch] cmd->proc = %p\n", (void*)c->cmd->proc);
+    fprintf(stderr, "[dispatch] key = %s\n", (char*)c->argv[1]->ptr);
+    c->db = &server.workers[worker_id].db[c->db->id];
+    c->flags |= CLIENT_WORKER_PENDING;
+    connSetReadHandler(c->conn, NULL);
+    listAddNodeTail(server.clients_pending_worker, c);
+    workerQueuePush(&server.workers[worker_id].queue, c);
+    fprintf(stderr, "[dispatch] queued OK\n");
+}
+
+/* ============== Worker Thread ============== */
+
+void *workerThreadMain(void *arg) {
+    workerThread *worker = (workerThread *)arg;
+    fprintf(stderr, "[worker %d] started\n", worker->id);
+
+    while (1) {
+        client *c = workerQueuePop(&worker->queue);
+        fprintf(stderr, "[worker %d] got client %p\n", worker->id, (void*)c);
+        fprintf(stderr, "[worker %d] c->cmd = %p\n", worker->id, (void*)c->cmd);
+        fprintf(stderr, "[worker %d] c->argv = %p, c->argc = %d\n", worker->id, (void*)c->argv, c->argc);
+        if (c->cmd) {
+            fprintf(stderr, "[worker %d] c->cmd->proc = %p\n", worker->id, (void*)c->cmd->proc);
+            fprintf(stderr, "[worker %d] c->db = %p\n", worker->id, (void*)c->db);
+            c->cmd->proc(c);
+            fprintf(stderr, "[worker %d] proc() done\n", worker->id);
+        } else {
+            fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
+        }
+
+        atomicSet(c->reply_ready, 1);
+    }
+    return NULL;
+}
+
+/* ============== Init Workers ============== */
+
+void initWorkers(void) {
+    server.workers = zmalloc(sizeof(workerThread) * server.num_workers);
+    for (int i = 0; i < server.num_workers; i++) {
+        server.workers[i].id = i;
+        server.workers[i].db = server.worker_dbs[i];
+        workerQueueInit(&server.workers[i].queue);
+        pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
+    }
+}
+
+
+//ee451
 int main(int argc, char **argv) {
     struct timeval tv;
     int j;
@@ -7959,7 +8022,6 @@ int main(int argc, char **argv) {
     redisAsciiArt();
     checkTcpBacklogSettings();
     if (server.cluster_enabled) {
-        /* clusterCommonInit() initializes slot-stats required by clusterInit() */
         clusterCommonInit();
         clusterInit();
     }
@@ -7974,17 +8036,16 @@ int main(int argc, char **argv) {
         clusterInitLast();
     }
     InitServerLast();
+    if (!server.sentinel_mode) {
+        initWorkers();
+    }
 
     if (!server.sentinel_mode) {
-        /* Things not needed when running in Sentinel mode. */
         serverLog(LL_NOTICE,"Server initialized");
         aofLoadManifestFromDisk();
         loadDataFromDisk();
         aofOpenIfNeededOnServerStart();
         aofDelHistoryFiles();
-        /* While loading data, we delay applying "appendonly" config change.
-         * If there was a config change while we were inside loadDataFromDisk()
-         * above, we'll apply it here. */
         applyAppendOnlyConfig();
 
         if (server.cluster_enabled) {
@@ -7995,7 +8056,6 @@ int main(int argc, char **argv) {
             connListener *listener = &server.listeners[j];
             if (listener->ct == NULL)
                 continue;
-
             serverLog(LL_NOTICE,"Ready to accept connections %s", listener->ct->get_type(NULL));
         }
 
@@ -8016,7 +8076,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* Warning the user about suspicious maxmemory setting. */
     if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {
         serverLog(LL_WARNING,"WARNING: You specified a maxmemory value that is less than 1MB (current value is %llu bytes). Are you sure this is what you really want?", server.maxmemory);
     }
