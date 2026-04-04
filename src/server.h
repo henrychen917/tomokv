@@ -1915,7 +1915,7 @@ typedef struct {
 #define CHILD_TYPE_AOF 2
 #define CHILD_TYPE_LDB 3
 #define CHILD_TYPE_MODULE 4
-
+#define MAX_INLINE_ARGS 4
 typedef enum childInfoType {
     CHILD_INFO_TYPE_CURRENT_INFO,
     CHILD_INFO_TYPE_AOF_COW_SIZE,
@@ -1935,24 +1935,24 @@ typedef struct hotkeyStats hotkeyStats;
 
 #define NUM_WORKERS 4
 
-typedef struct workerJob {
+typedef struct {
     client *c;
     int seq;
-    robj **argv;
     int argc;
     struct redisCommand *cmd;
+    robj *inline_argv[MAX_INLINE_ARGS]; 
+    robj **argv;                        
 } workerJob;
 
-typedef struct workerThread {
+typedef struct {
+    int id;
     pthread_t thread;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-    int id;
-    pthread_cond_t ready;      // missing
-    // ring buffer queue
-    workerJob *queue[WORKER_QUEUE_SIZE];
-    uint64_t head;  // main thread writes here
-    uint64_t tail;  // worker reads here
+    pthread_cond_t ready;
+    int head;
+    int tail;
+    workerJob queue[WORKER_QUEUE_SIZE]; 
 } workerThread;
 
 
