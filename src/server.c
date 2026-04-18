@@ -7693,15 +7693,15 @@ client *workerQueuePop(workerQueue *q) {
 /* ============== Dispatch to Worker ============== */
 
 void queueToWorker(client *c, int worker_id) {
-    fprintf(stderr, "[dispatch] client %p cmd %p to worker %d\n", (void*)c, (void*)c->cmd, worker_id);
-    fprintf(stderr, "[dispatch] cmd->proc = %p\n", (void*)c->cmd->proc);
-    fprintf(stderr, "[dispatch] key = %s\n", (char*)c->argv[1]->ptr);
+    //fprintf(stderr, "[dispatch] client %p cmd %p to worker %d\n", (void*)c, (void*)c->cmd, worker_id);
+    //fprintf(stderr, "[dispatch] cmd->proc = %p\n", (void*)c->cmd->proc);
+    //fprintf(stderr, "[dispatch] key = %s\n", (char*)c->argv[1]->ptr);
     c->db = &server.workers[worker_id].db[c->db->id];
     c->flags |= CLIENT_WORKER_PENDING;
     connSetReadHandler(c->conn, NULL);
     listAddNodeTail(server.clients_pending_worker, c);
     workerQueuePush(&server.workers[worker_id].queue, c);
-    fprintf(stderr, "[dispatch] queued OK\n");
+    //fprintf(stderr, "[dispatch] queued OK\n");
 }
 
 /* ============== Worker Thread ============== */
@@ -7712,14 +7712,14 @@ void *workerThreadMain(void *arg) {
 
     while (1) {
         client *c = workerQueuePop(&worker->queue);
-        fprintf(stderr, "[worker %d] got client %p\n", worker->id, (void*)c);
-        fprintf(stderr, "[worker %d] c->cmd = %p\n", worker->id, (void*)c->cmd);
-        fprintf(stderr, "[worker %d] c->argv = %p, c->argc = %d\n", worker->id, (void*)c->argv, c->argc);
+        //fprintf(stderr, "[worker %d] got client %p\n", worker->id, (void*)c);
+        //fprintf(stderr, "[worker %d] c->cmd = %p\n", worker->id, (void*)c->cmd);
+        //fprintf(stderr, "[worker %d] c->argv = %p, c->argc = %d\n", worker->id, (void*)c->argv, c->argc);
         if (c->cmd) {
-            fprintf(stderr, "[worker %d] c->cmd->proc = %p\n", worker->id, (void*)c->cmd->proc);
-            fprintf(stderr, "[worker %d] c->db = %p\n", worker->id, (void*)c->db);
+            //fprintf(stderr, "[worker %d] c->cmd->proc = %p\n", worker->id, (void*)c->cmd->proc);
+            //fprintf(stderr, "[worker %d] c->db = %p\n", worker->id, (void*)c->db);
             c->cmd->proc(c);
-            fprintf(stderr, "[worker %d] proc() done\n", worker->id);
+            //fprintf(stderr, "[worker %d] proc() done\n", worker->id);
         } else {
             fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
         }
