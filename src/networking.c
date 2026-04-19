@@ -138,6 +138,7 @@ client *createClient(connection *conn) {
     atomicGetIncr(server.next_client_id, client_id, 1);
     c->id = client_id;
     c->reply_ready = 0;
+    c->worker_id = -1;
     c->tid = IOTHREAD_MAIN_THREAD_ID;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
@@ -148,6 +149,14 @@ client *createClient(connection *conn) {
     c->resp = 2;
 #endif
     c->conn = conn;
+    c->worker_owner = NULL;
+    c->worker_ctxs = NULL;
+    c->next_dispatch_seq = 0;
+    c->next_reply_seq = 0;
+    c->completed_seqno = UINT64_MAX;
+    c->worker_inflight_count = 0;
+    atomicSet(c->worker_enqueued, 0);
+    pthread_mutex_init(&c->worker_state_lock, NULL);
     c->name = NULL;
     c->lib_name = NULL;
     c->lib_ver = NULL;
@@ -256,6 +265,32 @@ client *createClient(connection *conn) {
     return c;
 }
 
+client *createWorkerContextClient(client *owner, int worker_id) {
+    client *c = createClient(NULL);
+
+    c->flags |= CLIENT_WORKER_CONTEXT;
+    c->worker_owner = owner;
+    c->worker_id = worker_id;
+    c->resp = owner->resp;
+    c->user = owner->user;
+    c->authenticated = owner->authenticated;
+    c->db = &server.workers[worker_id].db[owner->db->id];
+    return c;
+}
+
+void freeClientWorkerContexts(client *c) {
+    if (!c->worker_ctxs) return;
+
+    for (int i = 0; i < server.num_workers; i++) {
+        client *wc = c->worker_ctxs[i];
+        if (!wc) continue;
+        wc->worker_owner = NULL;
+        freeClient(wc);
+    }
+    zfree(c->worker_ctxs);
+    c->worker_ctxs = NULL;
+}
+
 void installClientWriteHandler(client *c) {
     int ae_barrier = 0;
     /* For the fsync=always policy, we want that a given FD is never
@@ -304,7 +339,7 @@ static inline int _prepareClientToWrite(client *c) {
     const uint64_t _flags = c->flags;
     /* If it's the Lua client we always return ok without installing any
      * handler since there is no socket at all. */
-    if (unlikely(_flags & (CLIENT_SCRIPT|CLIENT_MODULE))) return C_OK;
+    if (unlikely(_flags & (CLIENT_SCRIPT|CLIENT_MODULE|CLIENT_WORKER_CONTEXT))) return C_OK;
 
     /* If CLIENT_CLOSE_ASAP flag is set, we need not write anything. */
     if (unlikely(_flags & CLIENT_CLOSE_ASAP)) return C_ERR;
@@ -320,6 +355,7 @@ static inline int _prepareClientToWrite(client *c) {
         !(_flags & CLIENT_MASTER_FORCE_REPLY))) return C_ERR;
 
     if (unlikely(!c->conn)) return C_ERR; /* Fake client for AOF loading. */
+    if (unlikely(_flags & CLIENT_PROTECTED)) return C_OK;
 
     /* Schedule the client to write the output buffers to the socket, unless
      * it should already be setup to do so (it has already pending data).
@@ -327,8 +363,6 @@ static inline int _prepareClientToWrite(client *c) {
      * If the client runs in an IO thread, we should not put the client in the
      * pending write queue. Instead, we will install the write handler to the
      * corresponding IO thread’s event loop and let it handle the reply. */
-    if (_flags & CLIENT_WORKER_PENDING) return C_OK;
-
     if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
         putClientInPendingWriteQueue(c);
 
@@ -2245,6 +2279,9 @@ void freeClient(client *c) {
         listDelNode(c->mem_usage_bucket->clients, c->mem_usage_bucket_node);
     }
 
+    if (!(c->flags & CLIENT_WORKER_CONTEXT))
+        freeClientWorkerContexts(c);
+
     /* Release other dynamically allocated client structure fields,
      * and finally release the client structure itself. */
     if (c->name) decrRefCount(c->name);
@@ -2255,6 +2292,7 @@ void freeClient(client *c) {
     sdsfree(c->sockname);
     sdsfree(c->slave_addr);
     sdsfree(c->node_id);
+    pthread_mutex_destroy(&c->worker_state_lock);
     zfree(c);
 }
 
@@ -2923,9 +2961,28 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->net_output_bytes_curr_cmd = 0;
 }
 
+static void resetDispatchedClientState(client *c) {
+    c->argc = 0;
+    c->cmd = NULL;
+    c->lookedcmd = NULL;
+    c->realcmd = NULL;
+    c->argv_len = 0;
+    c->argv = NULL;
+    c->cur_script = NULL;
+    c->slot = -1;
+    c->cluster_compatibility_check_slot = -2;
+    c->read_error = 0;
+    c->current_pending_cmd = NULL;
+    c->net_input_bytes_curr_cmd = 0;
+    c->net_output_bytes_curr_cmd = 0;
+    c->duration = 0;
+    if (c->flags & CLIENT_EXECUTING_COMMAND)
+        c->flags &= ~CLIENT_EXECUTING_COMMAND;
+}
+
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c, int num_pcmds_to_free) {
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_WORKER_DISPATCHED) return;
     resetClientInternal(c, num_pcmds_to_free);
 }
 
@@ -3400,25 +3457,15 @@ int processCommandAndResetClient(client *c) {
     client *old_client = server.current_client;
     server.current_client = c;
     if (processCommand(c) == C_OK) {
-        if (!(c->flags & CLIENT_WORKER_PENDING)) {
+        if (c->flags & CLIENT_WORKER_DISPATCHED) {
+            resetDispatchedClientState(c);
+        } else {
             commandProcessed(c);
             if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
     if (server.current_client == NULL) deadclient = 1;
     server.current_client = old_client;
-
-    /* If dispatched to worker, return C_ERR to stop
-     * processInputBuffer from looping on the same command */
-    if (c->flags & CLIENT_WORKER_PENDING) {
-        /* Advance querybuf past the parsed command so leftover
-         * bytes don't corrupt the next read */
-        if (c->querybuf && c->qb_pos > 0) {
-            sdsrange(c->querybuf, c->qb_pos, -1);
-            c->qb_pos = 0;
-        }
-        return C_ERR;
-    }
 
     return deadclient ? C_ERR : C_OK;
 }
@@ -3626,6 +3673,7 @@ int processInputBuffer(client *c) {
         if (!c->pending_cmds.ready_len)
             break;
         pendingCommand *curcmd = c->pending_cmds.head;
+        serverAssert(curcmd != NULL);
 
         /* We populate the old client fields so we don't have to modify all existing logic to work with pendingCommands */
         c->argc = curcmd->argc;
@@ -3680,6 +3728,10 @@ int processInputBuffer(client *c) {
                  * loop and trimming the client buffer later. So we return
                  * ASAP in that case. */
                 return C_ERR;
+            }
+            if (c->flags & CLIENT_WORKER_DISPATCHED) {
+                c->flags &= ~CLIENT_WORKER_DISPATCHED;
+                break;
             }
         }
     }
@@ -5564,6 +5616,7 @@ static pendingCommand *acquirePendingCommand(void) {
         pcmd = zmalloc(sizeof(pendingCommand));
         initPendingCommand(pcmd);
     }
+    serverAssert(pcmd != NULL);
     return pcmd;
 }
 
@@ -5595,6 +5648,10 @@ static int tryExpandPendingCommandPool(void) {
  * between multiple clients. Additionally, pool reuse provides minimal benefit in
  * multi-threaded scenarios, so we only use it in single-threaded mode. */
 static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
+    if (c && (c->flags & CLIENT_WORKER_CONTEXT)) {
+        goto free_command;
+    }
+
     if (!server.io_threads_active) {
         /* Try to add to shared pool for reuse if argv isn't too large */
         if (likely(pcmd->argv_len < 64)) {

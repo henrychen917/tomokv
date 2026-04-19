@@ -443,7 +443,9 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 #define CLIENT_ASM_IMPORTING (1ULL<<54) /* Client is importing RDB/stream data during atomic slot migration. */
 
 //ee451 new flag
-#define CLIENT_WORKER_PENDING (1ULL << 55) //new ee451
+#define CLIENT_WORKER_CONTEXT (1ULL << 55) /* Non connected client used as a worker subcontext. */
+#define CLIENT_WORKER_DISPATCHED (1ULL << 56) /* Current command was dispatched to a worker subcontext. */
+#define CLIENT_WORKER_REPLY_TRACKED (1ULL << 57) /* Owner client is tracked in clients_pending_worker. */
 
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
@@ -1426,8 +1428,17 @@ typedef struct {
 //ee451
 typedef struct client {
     int reply_ready;
+    int worker_id;          /* Worker ID for worker subcontext clients, -1 for regular clients. */
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
+    struct client *worker_owner; /* Owner connection client if this is a worker subcontext. */
+    struct client **worker_ctxs; /* Owner's per-worker subcontexts. Length is server.num_workers. */
+    uint64_t next_dispatch_seq;  /* Sequence number assigned to the next dispatched command. */
+    uint64_t next_reply_seq;     /* Next sequence number expected to merge back to the owner. */
+    uint64_t completed_seqno;    /* Sequence number of the completed command in a worker subcontext. */
+    int worker_inflight_count;   /* Number of dispatched commands not yet merged back. */
+    redisAtomic int worker_enqueued; /* Worker subcontext is queued or running on a worker thread. */
+    pthread_mutex_t worker_state_lock; /* Protects worker subcontext state shared with the main thread. */
     connection *conn;
     uint8_t tid;            /* Thread assigned ID this client is bound to. */
     uint8_t running_tid;    /* Thread assigned ID this client is running on. */
@@ -2618,6 +2629,11 @@ struct pendingCommand {
     struct redisCommand *cmd;
     getKeysResult keys_result;
     long long reploff;        /* c->reploff should be set to this value when the command is processed */
+    uint64_t seqno;           /* Owner client sequence number for ordered reply merge. */
+    int dbid;                 /* Logical DB selected by the owner when the command was dispatched. */
+    int resp;                 /* RESP version snapshot from the owner. */
+    user *user;               /* ACL user snapshot from the owner. */
+    uint8_t authenticated;    /* Auth state snapshot from the owner. */
     int flags;
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
@@ -4497,10 +4513,12 @@ void debugPauseProcess(void);
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
 client *workerQueuePop(workerQueue *q);
-void queueToWorker(client *c, int worker_id);
+int queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
 void initWorkers(void);
 void handleWorkerReplies(void);
+client *createWorkerContextClient(client *owner, int worker_id);
+void freeClientWorkerContexts(client *c);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 

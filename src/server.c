@@ -1854,20 +1854,111 @@ extern int ProcessingEventsWhileBlocked;
  *
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
+static client *getWorkerContextForOwner(client *owner, int worker_id) {
+    if (!owner->worker_ctxs) {
+        owner->worker_ctxs = zcalloc(sizeof(client *) * server.num_workers);
+    }
+
+    if (!owner->worker_ctxs[worker_id]) {
+        owner->worker_ctxs[worker_id] = createWorkerContextClient(owner, worker_id);
+    }
+
+    return owner->worker_ctxs[worker_id];
+}
+
+static void populateClientFromPendingCommand(client *c, pendingCommand *pcmd) {
+    c->argc = pcmd->argc;
+    c->argv = pcmd->argv;
+    c->argv_len = pcmd->argv_len;
+    c->cmd = c->lastcmd = c->realcmd = c->lookedcmd = pcmd->cmd;
+    c->current_pending_cmd = pcmd;
+    c->reploff_next = pcmd->reploff;
+    c->slot = pcmd->slot;
+    c->read_error = pcmd->read_error;
+    c->net_input_bytes_curr_cmd = pcmd->input_bytes;
+    c->net_output_bytes_curr_cmd = 0;
+}
+
+static void applyWorkerCommandContext(client *wc, pendingCommand *pcmd) {
+    wc->resp = pcmd->resp;
+    wc->user = pcmd->user;
+    wc->authenticated = pcmd->authenticated;
+    wc->db = &server.workers[wc->worker_id].db[pcmd->dbid];
+}
+
+static int scheduleWorkerContext(client *wc) {
+    int queued;
+    atomicGet(wc->worker_enqueued, queued);
+    if (queued) return C_OK;
+
+    atomicSet(wc->worker_enqueued, 1);
+    if (workerQueuePush(&server.workers[wc->worker_id].queue, wc) == C_ERR) {
+        atomicSet(wc->worker_enqueued, 0);
+        return C_ERR;
+    }
+    return C_OK;
+}
+
+static void prependPendingCommand(pendingCommandList *list, pendingCommand *pcmd) {
+    pcmd->prev = NULL;
+    pcmd->next = list->head;
+    if (list->head) list->head->prev = pcmd;
+    else list->tail = pcmd;
+    list->head = pcmd;
+    list->len++;
+    if (!(pcmd->flags & PENDING_CMD_FLAG_INCOMPLETE)) list->ready_len++;
+}
+
 void handleWorkerReplies(void) {
     listIter li;
     listNode *ln;
+
     listRewind(server.clients_pending_worker, &li);
     while ((ln = listNext(&li))) {
-        client *c = listNodeValue(ln);
-        int ready;
-        atomicGet(c->reply_ready, ready);
-        if (ready) {
-            atomicSet(c->reply_ready, 0);
-            c->flags &= ~CLIENT_WORKER_PENDING;
-            commandProcessed(c);
-            connSetReadHandler(c->conn, readQueryFromClient);
-            putClientInPendingWriteQueue(c);
+        client *owner = listNodeValue(ln);
+        int merged = 0;
+
+        while (owner->worker_ctxs) {
+            client *ready_ctx = NULL;
+            int ready_ctx_has_more = 0;
+
+            for (int i = 0; i < server.num_workers; i++) {
+                client *wc = owner->worker_ctxs[i];
+                int ready;
+
+                if (!wc) continue;
+                pthread_mutex_lock(&wc->worker_state_lock);
+                atomicGet(wc->reply_ready, ready);
+                if (ready && wc->completed_seqno == owner->next_reply_seq) {
+                    ready_ctx = wc;
+                    break;
+                }
+                pthread_mutex_unlock(&wc->worker_state_lock);
+            }
+
+            if (!ready_ctx) break;
+
+            atomicSet(ready_ctx->reply_ready, 0);
+            AddReplyFromClient(owner, ready_ctx);
+            ready_ctx_has_more = ready_ctx->pending_cmds.ready_len > 0;
+            ready_ctx->completed_seqno = UINT64_MAX;
+            pthread_mutex_unlock(&ready_ctx->worker_state_lock);
+            owner->next_reply_seq++;
+            owner->worker_inflight_count--;
+            merged = 1;
+
+            if (ready_ctx_has_more) {
+                scheduleWorkerContext(ready_ctx);
+            }
+        }
+
+        if (owner->worker_inflight_count == 0) {
+            owner->flags &= ~(CLIENT_PROTECTED | CLIENT_WORKER_REPLY_TRACKED);
+            if (merged && owner->conn && !(owner->flags & CLIENT_CLOSE_ASAP) &&
+                clientHasPendingReplies(owner))
+            {
+                putClientInPendingWriteQueue(owner);
+            }
             listDelNode(server.clients_pending_worker, ln);
         }
     }
@@ -4626,10 +4717,8 @@ int processCommand(client *c) {
          * dispatch to a worker thread. */
         if (canDispatchToWorker(c)) {
             int worker_id = getWorkerForCommand(c);
-            queueToWorker(c, worker_id);
-            /* Don't read more from this client until reply_ready */
-            aeDeleteFileEvent(server.el, c->conn->fd, AE_READABLE);
-            return C_OK;
+            if (queueToWorker(c, worker_id) == C_OK)
+                return C_OK;
         }
 
         /* Everything else runs on main thread as before */
@@ -7660,7 +7749,7 @@ redisTestProc *getTestProcByName(const char *name) {
 /* Returns 0 on success, -1 if full */
 
 void workerQueueInit(workerQueue *q) {
-    q->head = q->tail = NULL;
+    q->head = q->tail = 0;
     pthread_mutex_init(&q->lock, NULL);
     pthread_cond_init(&q->cond, NULL);
 }
@@ -7692,39 +7781,93 @@ client *workerQueuePop(workerQueue *q) {
 
 /* ============== Dispatch to Worker ============== */
 
-void queueToWorker(client *c, int worker_id) {
-    //fprintf(stderr, "[dispatch] client %p cmd %p to worker %d\n", (void*)c, (void*)c->cmd, worker_id);
-    //fprintf(stderr, "[dispatch] cmd->proc = %p\n", (void*)c->cmd->proc);
-    //fprintf(stderr, "[dispatch] key = %s\n", (char*)c->argv[1]->ptr);
-    c->db = &server.workers[worker_id].db[c->db->id];
-    c->flags |= CLIENT_WORKER_PENDING;
-    connSetReadHandler(c->conn, NULL);
-    listAddNodeTail(server.clients_pending_worker, c);
-    workerQueuePush(&server.workers[worker_id].queue, c);
-    //fprintf(stderr, "[dispatch] queued OK\n");
+int queueToWorker(client *owner, int worker_id) {
+    pendingCommand *pcmd = owner->current_pending_cmd;
+    client *wc;
+    int ready;
+    int schedule_result = C_OK;
+
+    if (!pcmd) return C_ERR;
+
+    wc = getWorkerContextForOwner(owner, worker_id);
+
+    popPendingCommandFromHead(&owner->pending_cmds);
+    owner->current_pending_cmd = NULL;
+
+    pcmd->seqno = owner->next_dispatch_seq++;
+    pcmd->dbid = owner->db->id;
+    pcmd->resp = owner->resp;
+    pcmd->user = owner->user;
+    pcmd->authenticated = owner->authenticated;
+    serverAssert(owner->all_argv_len_sum >= pcmd->argv_len_sum);
+    owner->all_argv_len_sum -= pcmd->argv_len_sum;
+
+    pthread_mutex_lock(&wc->worker_state_lock);
+    atomicGet(wc->reply_ready, ready);
+    wc->all_argv_len_sum += pcmd->argv_len_sum;
+    addPendingCommand(&wc->pending_cmds, pcmd);
+    if (!ready) {
+        schedule_result = scheduleWorkerContext(wc);
+    }
+    if (schedule_result == C_ERR) {
+        popPendingCommandFromTail(&wc->pending_cmds);
+        serverAssert(wc->all_argv_len_sum >= pcmd->argv_len_sum);
+        wc->all_argv_len_sum -= pcmd->argv_len_sum;
+    }
+    pthread_mutex_unlock(&wc->worker_state_lock);
+
+    if (schedule_result == C_ERR) {
+        owner->all_argv_len_sum += pcmd->argv_len_sum;
+        prependPendingCommand(&owner->pending_cmds, pcmd);
+        owner->current_pending_cmd = pcmd;
+        populateClientFromPendingCommand(owner, pcmd);
+        owner->next_dispatch_seq--;
+        return C_ERR;
+    }
+
+    owner->flags |= (CLIENT_WORKER_DISPATCHED | CLIENT_PROTECTED);
+    owner->worker_inflight_count++;
+    if (!(owner->flags & CLIENT_WORKER_REPLY_TRACKED)) {
+        owner->flags |= CLIENT_WORKER_REPLY_TRACKED;
+        listAddNodeTail(server.clients_pending_worker, owner);
+    }
+    return C_OK;
 }
 
 /* ============== Worker Thread ============== */
 
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
-    fprintf(stderr, "[worker %d] started\n", worker->id);
 
     while (1) {
-        client *c = workerQueuePop(&worker->queue);
-        //fprintf(stderr, "[worker %d] got client %p\n", worker->id, (void*)c);
-        //fprintf(stderr, "[worker %d] c->cmd = %p\n", worker->id, (void*)c->cmd);
-        //fprintf(stderr, "[worker %d] c->argv = %p, c->argc = %d\n", worker->id, (void*)c->argv, c->argc);
-        if (c->cmd) {
-            //fprintf(stderr, "[worker %d] c->cmd->proc = %p\n", worker->id, (void*)c->cmd->proc);
-            //fprintf(stderr, "[worker %d] c->db = %p\n", worker->id, (void*)c->db);
-            c->cmd->proc(c);
-            //fprintf(stderr, "[worker %d] proc() done\n", worker->id);
-        } else {
-            fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
+        client *wc = workerQueuePop(&worker->queue);
+        pendingCommand *pcmd;
+        uint64_t seqno;
+        int ready;
+
+        atomicSet(wc->worker_enqueued, 0);
+        if (!wc->worker_owner) continue;
+
+        pthread_mutex_lock(&wc->worker_state_lock);
+        atomicGet(wc->reply_ready, ready);
+        if (ready || wc->pending_cmds.ready_len == 0) {
+            pthread_mutex_unlock(&wc->worker_state_lock);
+            continue;
         }
 
-        atomicSet(c->reply_ready, 1);
+        pcmd = wc->pending_cmds.head;
+        populateClientFromPendingCommand(wc, pcmd);
+        applyWorkerCommandContext(wc, pcmd);
+        seqno = pcmd->seqno;
+
+        if (wc->cmd) {
+            wc->cmd->proc(wc);
+            prepareForNextCommand(wc, 0);
+        }
+
+        wc->completed_seqno = seqno;
+        atomicSet(wc->reply_ready, 1);
+        pthread_mutex_unlock(&wc->worker_state_lock);
     }
     return NULL;
 }
