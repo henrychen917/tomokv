@@ -2888,6 +2888,9 @@ void initServer(void) {
     server.aof_state = server.aof_enabled ? AOF_ON : AOF_OFF;
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
+    for (int i = 0; i < NUM_LOCK_STRIPES; i++) {
+        pthread_mutex_init(&server.dict_locks[i], NULL);
+    }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
     server.rdb_pipe_read = -1;
@@ -7863,28 +7866,40 @@ void enqueueJob(workerThread *worker, workerJob *incoming_job_data) {
 //     }
 //     return NULL;
 // }
-
+unsigned int getLockIndex(robj *key) {
+    if (key == NULL || key->ptr == NULL) return 0;
+    uint64_t hash = dictGenHashFunction(key->ptr, sdslen(key->ptr));
+    return hash & (NUM_LOCK_STRIPES - 1);
+}
 void *workerMain(void *arg) {
     workerThread *me = (workerThread *)arg;
     while (1) {
+        // 1. THE QUEUE LOCK (Leave this alone, it works perfectly)
         pthread_mutex_lock(&me->mutex);
         while (me->head == me->tail)
             pthread_cond_wait(&me->cond, &me->mutex);
 
-        // Copy the job OUT of the ring buffer slot
         workerJob job = me->queue[me->tail & WORKER_QUEUE_MASK];
         me->tail++;
         pthread_cond_signal(&me->ready);
         pthread_mutex_unlock(&me->mutex);
 
         if (job.argv == NULL || job.argc == 0 || job.cmd == NULL) {
-            continue; // Notice: No zfree(job) here anymore!
+            continue; 
         }
 
         redisDb *db = job.c->db;
         sds reply = NULL;
+        unsigned int stripe; // Store our lock index here
 
+        // 2. THE STRIPED DATABASE LOCKS
         if (job.cmd->proc == getCommand) {
+            // Find the right lane for the key
+            stripe = getLockIndex(job.argv[1]);
+            
+            // Lock the lane BEFORE reading the database
+            pthread_mutex_lock(&server.dict_locks[stripe]);
+            
             kvobj *val = dbFind(db, job.argv[1]->ptr);
             if (val == NULL) {
                 reply = sdsnew("$-1\r\n");
@@ -7903,22 +7918,41 @@ void *workerMain(void *arg) {
                 reply = sdscatlen(reply, s, slen);
                 reply = sdscatlen(reply, "\r\n", 2);
             }
+            
+            // Unlock the lane AFTER we are done reading
+            pthread_mutex_unlock(&server.dict_locks[stripe]);
 
         } else if (job.cmd->proc == setCommand) {
             robj *val = dupStringObject(job.argv[2]);
             val = tryObjectEncoding(val);
+            
+            stripe = getLockIndex(job.argv[1]);
+            
+            // Lock the lane BEFORE modifying the database
+            pthread_mutex_lock(&server.dict_locks[stripe]);
             setKey(NULL, db, job.argv[1], &val, 0);
+            pthread_mutex_unlock(&server.dict_locks[stripe]);
+            
             reply = sdsnew("+OK\r\n");
 
         } else if (job.cmd->proc == delCommand) {
             int deleted = 0;
+            // DEL can receive multiple keys (e.g., DEL key1 key2)
+            // We lock, delete, and unlock EACH key one by one to prevent deadlocks!
             for (int i = 1; i < job.argc; i++) {
-                if (dbSyncDelete(db, job.argv[i]))
+                stripe = getLockIndex(job.argv[i]);
+                
+                pthread_mutex_lock(&server.dict_locks[stripe]);
+                if (dbSyncDelete(db, job.argv[i])) {
                     deleted++;
+                }
+                pthread_mutex_unlock(&server.dict_locks[stripe]);
             }
             reply = sdscatprintf(sdsempty(), ":%d\r\n", deleted);
         }
 
+        // --- The rest of your cleanup code stays the same ---
+        
         // Store the reply into the client's pending array
         __atomic_store_n(
             &job.c->pending[job.seq & PENDING_MASK],
@@ -7926,20 +7960,15 @@ void *workerMain(void *arg) {
             __ATOMIC_RELEASE
         );
 
-        // Clean up the strings
         for (int i = 0; i < job.argc; i++)
             decrRefCount(job.argv[i]);
             
-        // Only free the array if it was too big for our inline buffer
         if (job.argc > MAX_INLINE_ARGS) {
             zfree(job.argv);
         }
-        
-        // Again: NO zfree(job)! The memory stays right there in the ring buffer.
     }
     return NULL;
 }
-
 
 int main(int argc, char **argv) {
     struct timeval tv;

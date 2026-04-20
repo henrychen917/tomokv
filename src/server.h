@@ -1928,7 +1928,7 @@ typedef struct hotkeyStats hotkeyStats;
 //ee451 edit
 
 
-
+#define NUM_LOCK_STRIPES 128
 #define WORKER_QUEUE_SIZE 64
 #define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
 
@@ -1963,6 +1963,7 @@ struct redisServer {
     int worker_cycle;
     list *active_clients;
     workerThread workers[NUM_WORKERS];
+    pthread_mutex_t dict_locks[NUM_LOCK_STRIPES];
     /* General */
     pid_t pid;                  /* Main process pid. */
     pthread_t main_thread_id;         /* Main thread id */

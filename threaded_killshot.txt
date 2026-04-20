@@ -1,0 +1,79 @@
+ LRANGE mylist:__rand_int__ 0 499: rps=0.0 (overall: 1000.0) avg_msec=0.580 (overall: 0.127)                                                                                            LRANGE mylist:__rand_int__ 0 499: rps=53247.0 (overall: 53039.7) avg_msec=1.969 (overall: 1.969)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61176.0 (overall: 57091.6) avg_msec=1.749 (overall: 1.852)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=55772.0 (overall: 56652.9) avg_msec=1.889 (overall: 1.864)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61438.2 (overall: 57850.4) avg_msec=1.662 (overall: 1.811)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=57060.0 (overall: 57692.7) avg_msec=1.889 (overall: 1.826)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=56132.0 (overall: 57433.1) avg_msec=1.863 (overall: 1.832)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=43888.4 (overall: 55494.9) avg_msec=2.446 (overall: 1.902)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=56589.6 (overall: 55631.9) avg_msec=1.850 (overall: 1.895)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=54725.1 (overall: 55531.0) avg_msec=1.895 (overall: 1.895)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=59428.0 (overall: 55919.8) avg_msec=1.702 (overall: 1.875)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=60800.0 (overall: 56362.5) avg_msec=1.740 (overall: 1.862)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=55055.8 (overall: 56253.4) avg_msec=1.905 (overall: 1.865)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=55864.0 (overall: 56223.5) avg_msec=1.774 (overall: 1.858)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61155.4 (overall: 56576.4) avg_msec=1.715 (overall: 1.847)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=62380.0 (overall: 56962.5) avg_msec=1.682 (overall: 1.835)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61844.6 (overall: 57268.1) avg_msec=1.675 (overall: 1.824)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=62184.0 (overall: 57556.7) avg_msec=1.717 (overall: 1.818)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=62171.3 (overall: 57813.5) avg_msec=1.684 (overall: 1.810)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=48350.6 (overall: 57314.6) avg_msec=2.154 (overall: 1.825)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=56288.0 (overall: 57263.4) avg_msec=1.879 (overall: 1.828)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=43099.6 (overall: 56587.8) avg_msec=2.471 (overall: 1.851)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=60076.0 (overall: 56746.0) avg_msec=1.770 (overall: 1.847)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=65350.6 (overall: 57120.8) avg_msec=1.526 (overall: 1.831)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=70088.0 (overall: 57659.9) avg_msec=1.409 (overall: 1.810)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61516.0 (overall: 57813.8) avg_msec=1.597 (overall: 1.801)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=63210.3 (overall: 58022.6) avg_msec=1.605 (overall: 1.793)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=61332.0 (overall: 58144.9) avg_msec=1.676 (overall: 1.788)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=58392.0 (overall: 58153.7) avg_msec=1.795 (overall: 1.788)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=57714.3 (overall: 58138.4) avg_msec=1.769 (overall: 1.788)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=53490.0 (overall: 57983.2) avg_msec=1.926 (overall: 1.792)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=62633.5 (overall: 58133.5) avg_msec=1.668 (overall: 1.788)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=62764.0 (overall: 58277.8) avg_msec=1.615 (overall: 1.782)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=60240.0 (overall: 58337.2) avg_msec=1.695 (overall: 1.779)                                                                                                 LRANGE mylist:__rand_int__ 0 499: rps=64263.0 (overall: 58511.7) avg_msec=1.536 (overall: 1.771)                                                                                                 ====== LRANGE mylist:__rand_int__ 0 499 ======
+  500000 requests completed in 8.77 seconds
+  128 parallel clients
+  58 bytes payload
+  keep alive: 1
+  host configuration "save": 
+  host configuration "appendonly": no
+  multi-thread: yes
+  threads: 4
+
+Latency by percentile distribution:
+0.000% <= 0.095 milliseconds (cumulative count 1)
+50.000% <= 1.671 milliseconds (cumulative count 251494)
+75.000% <= 2.047 milliseconds (cumulative count 375023)
+87.500% <= 2.407 milliseconds (cumulative count 438366)
+93.750% <= 2.767 milliseconds (cumulative count 469077)
+96.875% <= 3.143 milliseconds (cumulative count 484476)
+98.438% <= 3.591 milliseconds (cumulative count 492202)
+99.219% <= 4.159 milliseconds (cumulative count 496096)
+99.609% <= 5.143 milliseconds (cumulative count 498055)
+99.805% <= 6.367 milliseconds (cumulative count 499024)
+99.902% <= 9.647 milliseconds (cumulative count 499512)
+99.951% <= 15.223 milliseconds (cumulative count 499756)
+99.976% <= 16.191 milliseconds (cumulative count 499878)
+99.988% <= 16.703 milliseconds (cumulative count 499941)
+99.994% <= 16.991 milliseconds (cumulative count 499971)
+99.997% <= 18.271 milliseconds (cumulative count 499985)
+99.998% <= 18.719 milliseconds (cumulative count 499993)
+99.999% <= 21.567 milliseconds (cumulative count 499997)
+100.000% <= 21.647 milliseconds (cumulative count 499999)
+100.000% <= 21.727 milliseconds (cumulative count 500000)
+100.000% <= 21.727 milliseconds (cumulative count 500000)
+
+Cumulative distribution of latencies:
+0.000% <= 0.103 milliseconds (cumulative count 2)
+0.011% <= 0.207 milliseconds (cumulative count 56)
+0.053% <= 0.303 milliseconds (cumulative count 264)
+0.155% <= 0.407 milliseconds (cumulative count 773)
+0.349% <= 0.503 milliseconds (cumulative count 1746)
+0.759% <= 0.607 milliseconds (cumulative count 3794)
+1.473% <= 0.703 milliseconds (cumulative count 7365)
+2.770% <= 0.807 milliseconds (cumulative count 13849)
+4.589% <= 0.903 milliseconds (cumulative count 22945)
+7.420% <= 1.007 milliseconds (cumulative count 37100)
+11.031% <= 1.103 milliseconds (cumulative count 55157)
+16.149% <= 1.207 milliseconds (cumulative count 80747)
+21.934% <= 1.303 milliseconds (cumulative count 109668)
+29.255% <= 1.407 milliseconds (cumulative count 146274)
+36.719% <= 1.503 milliseconds (cumulative count 183594)
+45.150% <= 1.607 milliseconds (cumulative count 225748)
+52.833% <= 1.703 milliseconds (cumulative count 264166)
+60.637% <= 1.807 milliseconds (cumulative count 303187)
+67.034% <= 1.903 milliseconds (cumulative count 335172)
+72.990% <= 2.007 milliseconds (cumulative count 364951)
+77.598% <= 2.103 milliseconds (cumulative count 387990)
+96.670% <= 3.103 milliseconds (cumulative count 483348)
+99.171% <= 4.103 milliseconds (cumulative count 495857)
+99.602% <= 5.103 milliseconds (cumulative count 498010)
+99.771% <= 6.103 milliseconds (cumulative count 498857)
+99.852% <= 7.103 milliseconds (cumulative count 499262)
+99.883% <= 8.103 milliseconds (cumulative count 499414)
+99.894% <= 9.103 milliseconds (cumulative count 499469)
+99.908% <= 10.103 milliseconds (cumulative count 499541)
+99.912% <= 11.103 milliseconds (cumulative count 499558)
+99.913% <= 12.103 milliseconds (cumulative count 499567)
+99.914% <= 13.103 milliseconds (cumulative count 499572)
+99.915% <= 14.103 milliseconds (cumulative count 499575)
+99.947% <= 15.103 milliseconds (cumulative count 499734)
+99.974% <= 16.103 milliseconds (cumulative count 499869)
+99.996% <= 17.103 milliseconds (cumulative count 499979)
+99.996% <= 18.111 milliseconds (cumulative count 499982)
+99.999% <= 19.103 milliseconds (cumulative count 499995)
+100.000% <= 22.111 milliseconds (cumulative count 500000)
+
+Summary:
+  throughput summary: 57012.54 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        1.770     0.088     1.671     2.887     3.951    21.727
