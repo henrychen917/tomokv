@@ -552,6 +552,18 @@ static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backl
 
         if (af == AF_INET6 && anetV6Only(err,s) == ANET_ERR) goto error;
         if (anetSetReuseAddr(err,s) == ANET_ERR) goto error;
+
+        /* SO_REUSEPORT: allows each io thread to bind its own socket to the
+         * same port. The kernel load-balances incoming connections across all
+         * of them, eliminating accept() contention. Must be set before bind(). */
+
+        int yes = 1;
+        if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) == -1) {
+            anetSetError(err, "setsockopt SO_REUSEPORT: %s", strerror(errno));
+            goto error;
+        }
+        
+
         if (anetListen(err,s,p->ai_addr,p->ai_addrlen,backlog,0) == ANET_ERR) s = ANET_ERR;
         goto end;
     }

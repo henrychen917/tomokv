@@ -133,7 +133,7 @@ void enqueuePendingClienstToIOThreads(client *c) {
 
     if (c->flags & CLIENT_PENDING_WRITE) {
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
     }
     if (c->flags & CLIENT_SLAVE) {
         serverAssert(c->ref_repl_buf_node != NULL);
@@ -638,7 +638,7 @@ int processClientsFromIOThread(IOThread *t) {
          * And some clients may do not have reply if CLIENT REPLY OFF/SKIP. */
         if (c->flags & CLIENT_PENDING_WRITE) {
             c->flags &= ~CLIENT_PENDING_WRITE;
-            listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+            listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
         }
         c->running_tid = c->tid;
         listLinkNodeHead(mainThreadPendingClientsToIOThreads[c->tid], node);

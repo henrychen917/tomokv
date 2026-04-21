@@ -1424,6 +1424,12 @@ typedef struct {
 } clientReqResInfo;
 #endif
 //ee451
+
+
+
+
+
+
 typedef struct client {
     int reply_ready;
     uint64_t id;            /* Client incremental unique ID. */
@@ -1612,19 +1618,19 @@ typedef struct client {
 //ee451
 #define WORKER_QUEUE_SIZE 1024  /* must be power of 2 */
 #define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
-
+#define IO_THREADS_NUM 4
 typedef struct workerQueue {
+  //testing
     client *jobs[WORKER_QUEUE_SIZE];
     unsigned int head;  /* consumer reads from here */
     unsigned int tail;  /* producer writes here */
     pthread_mutex_t lock;
-    pthread_cond_t cond;
 } workerQueue;
 
 typedef struct workerThread {
     int id;
     pthread_t thread;
-    workerQueue queue;
+    workerQueue queues[IO_THREADS_NUM + 1];
     redisDb *db;
 } workerThread;
 
@@ -1938,7 +1944,22 @@ typedef enum childInfoType {
 
 typedef struct hotkeyStats hotkeyStats;
 //ee451
+
+typedef struct {
+    int id;
+    pthread_t tid;
+    aeEventLoop *el;
+    int fd;
+} ioThreadArgs;
+
+
+
 struct redisServer {
+    /* new front end io */
+    int ioThreadsNum;
+    ioThreadArgs *ioThreads;
+    int replyWorking[IO_THREADS_NUM + 1];
+    int custom_io_threads_active;
     /* General */
     pid_t pid;                  /* Main process pid. */
     pthread_t main_thread_id;         /* Main thread id */
@@ -1952,8 +1973,8 @@ struct redisServer {
     mode_t umask;               /* The umask value of the process on startup */
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
-    workerThread *workers;  
-    list *clients_pending_worker;
+    workerThread *workers;
+    list *clients_pending_worker[IO_THREADS_NUM + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
     redisDb **worker_dbs;
     redisDb *db;
@@ -2007,14 +2028,16 @@ struct redisServer {
     connListener listeners[CONN_TYPE_MAX]; /* TCP/Unix/TLS even more types */
     uint32_t socket_mark_id;    /* ID for listen socket marking */
     connListener clistener;     /* Cluster bus listener */
-    list *clients;              /* List of active clients */
-    list *clients_to_close;     /* Clients to close asynchronously */
-    list *clients_pending_write; /* There is to write or install handler. */
-    list *clients_pending_read;  /* Client has pending read socket buffers. */
-    list *clients_with_pending_ref_reply; /* Clients with referenced reply objects. */
+    //ee451 per-thread client lists, index 0 = main thread, 1..N = io threads
+    list *clients[IO_THREADS_NUM + 1];
+    list *clients_to_close[IO_THREADS_NUM + 1];
+    list *clients_pending_write[IO_THREADS_NUM + 1];
+    list *clients_pending_read[IO_THREADS_NUM + 1];
+    list *clients_with_pending_ref_reply[IO_THREADS_NUM + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
-    client *current_client;     /* The client that triggered the command execution (External or AOF). */
-    client *executing_client;   /* The client executing the current command (possibly script or module). */
+    //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads
+    client *current_client[IO_THREADS_NUM + 1];
+    client *executing_client[IO_THREADS_NUM + 1];
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */
@@ -2028,7 +2051,7 @@ struct redisServer {
     int execution_nesting;      /* Execution nesting level.
                                  * e.g. call(), async module stuff (timers, events, etc.),
                                  * cron stuff (active expire, eviction) */
-    rax *clients_index;         /* Active clients dictionary by client ID. */
+    rax *clients_index[IO_THREADS_NUM + 1];         /* Active clients dictionary by client ID. */
     uint32_t paused_actions;   /* Bitmask of actions that are currently paused */
     list *postponed_clients;       /* List of postponed clients */
     pause_event client_pause_per_purpose[NUM_PAUSE_PURPOSES];
@@ -2385,7 +2408,7 @@ struct redisServer {
     /* Blocked clients */
     unsigned int blocked_clients;   /* # of clients executing a blocking cmd.*/
     unsigned int blocked_clients_by_type[BLOCKED_NUM];
-    list *unblocked_clients; /* list of clients to unblock before next loop */
+    list *unblocked_clients[IO_THREADS_NUM + 1]; /* list of clients to unblock before next loop */
     list *ready_keys;        /* List of readyList structures for BLPOP & co */
     /* Client side caching. */
     unsigned int tracking_clients;  /* # of clients with tracking enabled.*/
@@ -3024,6 +3047,8 @@ extern dict *modules;
 
 extern EbucketsType subexpiresBucketsType;  /* global expires */
 extern EbucketsType hashFieldExpireBucketsType; /* local per hash */
+
+//extern __thread int iotid;
 
 /*-----------------------------------------------------------------------------
  * Functions prototypes
@@ -4492,6 +4517,7 @@ sds getVersion(void);
 void debugPauseProcess(void);
 
 //ee451 new
+void initIOThreads(void);
 
 /* Worker thread functions */
 void workerQueueInit(workerQueue *q);
@@ -4503,7 +4529,7 @@ void initWorkers(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
-
+void *ioThreadMain(void *arg);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

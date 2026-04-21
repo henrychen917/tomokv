@@ -82,7 +82,9 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 
 /* Global vars */
 struct redisServer server; /* Server global state */
-
+/* thread vars */
+__thread int iotid = 0;
+__thread int replyWorking = 0;
 /*============================ Internal prototypes ========================== */
 
 static inline int isShutdownInitiated(void);
@@ -107,7 +109,7 @@ static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg) 
 
 /* This macro tells if we are in the context of loading an AOF. */
 #define isAOFLoadingContext() \
-    ((server.current_client && server.current_client->id == CLIENT_ID_AOF) ? 1 : 0)
+    ((server.current_client[iotid] && server.current_client[iotid]->id == CLIENT_ID_AOF) ? 1 : 0)
 
 /* We use a private localtime implementation which is fork-safe. The logging
  * function of Redis may be called from other threads. */
@@ -1197,7 +1199,7 @@ void clientsCron(void) {
      * per call. Since normally (if there are no big latency events) this
      * function is called server.hz times per second, in the average case we
      * process all the clients in 1 second. */
-    int numclients = listLength(server.clients);
+    int numclients = listLength(server.clients[iotid]);
     int iterations = numclients/server.hz;
 
     /* Process at least a few clients while we are at it, even if we need
@@ -1224,15 +1226,15 @@ void clientsCron(void) {
     ClientsPeakMemInput[zeroidx] = 0;
     ClientsPeakMemOutput[zeroidx] = 0;
 
-    while(listLength(server.clients) && iterations--) {
+    while(listLength(server.clients[iotid]) && iterations--) {
         client *c;
         listNode *head;
 
         /* Take the current head, process, and then rotate the head to tail.
          * This way we can fairly iterate all clients step by step. */
-        head = listFirst(server.clients);
+        head = listFirst(server.clients[iotid]);
         c = listNodeValue(head);
-        listRotateHeadToTail(server.clients);
+        listRotateHeadToTail(server.clients[iotid]);
 
         /* Clients handled by IO threads will be processed by IOThreadClientsCron. */
         if (c->tid != IOTHREAD_MAIN_THREAD_ID) continue;
@@ -1494,7 +1496,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     /* Adapt the server.hz value to the number of configured clients. If we have
      * many clients, we want to call serverCron() with an higher frequency. */
     if (server.dynamic_hz) {
-        while (listLength(server.clients) / server.hz >
+        while (listLength(server.clients[iotid]) / server.hz >
                MAX_CLIENTS_PER_CLOCK_TICK)
         {
             server.hz *= 2;
@@ -1589,7 +1591,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         run_with_period(5000) {
             serverLog(LL_DEBUG,
                 "%lu clients connected (%lu replicas), %zu bytes in use",
-                listLength(server.clients)-listLength(server.slaves),
+                listLength(server.clients[iotid])-listLength(server.slaves),
                 replicationLogicalReplicaCount(),
                 zmalloc_used_memory());
         }
@@ -1857,20 +1859,36 @@ extern int ProcessingEventsWhileBlocked;
 void handleWorkerReplies(void) {
     listIter li;
     listNode *ln;
-    listRewind(server.clients_pending_worker, &li);
+    listRewind(server.clients_pending_worker[iotid], &li);
     while ((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
         int ready;
         atomicGet(c->reply_ready, ready);
         if (ready) {
+            replyWorking--;
+            //fprintf(stderr, "replyWOrking%d\n", replyWorking);
             atomicSet(c->reply_ready, 0);
             c->flags &= ~CLIENT_WORKER_PENDING;
             commandProcessed(c);
-            connSetReadHandler(c->conn, readQueryFromClient);
+
             putClientInPendingWriteQueue(c);
-            listDelNode(server.clients_pending_worker, ln);
+            listDelNode(server.clients_pending_worker[iotid], ln);
+            connSetReadHandler(c->conn, readQueryFromClient);
         }
     }
+}
+
+void beforeSleepIO(struct aeEventLoop *eventLoop) {
+    UNUSED(eventLoop);
+    connTypeProcessPendingData(eventLoop);
+    handleWorkerReplies();
+    handleClientsWithPendingWrites();
+    freeClientsInAsyncFreeQueue();
+}
+
+void afterSleepIO(struct aeEventLoop *eventLoop) {
+    UNUSED(eventLoop);
+    updateCachedTime(1);
 }
 
 void beforeSleep(struct aeEventLoop *eventLoop) {
@@ -1961,7 +1979,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     /* If workers still have commands in flight, don't sleep —
      * we need to check reply_ready again ASAP. */
-    if (listLength(server.clients_pending_worker) > 0)
+    if (listLength(server.clients_pending_worker[iotid]) > 0)
         dont_sleep = 1;
 
     /* Handle writes with pending output buffers. */
@@ -2702,10 +2720,10 @@ int listenToPort(connListener *sfd) {
         if (optional) addr++;
         if (strchr(addr,':')) {
             /* Bind IPv6 address. */
-            sfd->fd[sfd->count] = anetTcp6Server(server.neterr,port,addr,server.tcp_backlog);
+            sfd->fd[sfd->count] = anetTcp6Server(server.neterr,port,NULL,server.tcp_backlog);
         } else {
             /* Bind IPv4 address. */
-            sfd->fd[sfd->count] = anetTcpServer(server.neterr,port,addr,server.tcp_backlog);
+            sfd->fd[sfd->count] = anetTcpServer(server.neterr,port,NULL,server.tcp_backlog);
         }
         if (sfd->fd[sfd->count] == ANET_ERR) {
             int net_errno = errno;
@@ -2767,7 +2785,7 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < IO_THREADS_MAX_NUM; j++) {
+    for (j = 0; j < IO_THREADS_NUM; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -2833,22 +2851,19 @@ void initServer(void) {
     server.rdb_pipe_read = -1;
     server.rdb_child_exit_pipe = -1;
     server.main_thread_id = pthread_self();
-    server.current_client = NULL;
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
-    server.clients = listCreate();
-    server.clients_index = raxNew();
-    server.clients_to_close = listCreate();
+    //server.clients_index = raxNew();
+
+
+
     server.slaves = listCreate();
     server.monitors = listCreate();
-    server.clients_pending_write = listCreate();
-    server.clients_pending_read = listCreate();
-    server.clients_with_pending_ref_reply = listCreate();
     server.clients_timeout_table = raxNew();
     server.replication_allowed = 1;
     server.slaveseldb = -1;
-    server.unblocked_clients = listCreate();
+    //server.unblocked_clients = listCreate();
     server.ready_keys = listCreate();
     server.tracking_pending_keys = listCreate();
     server.pending_push_messages = listCreate();
@@ -2871,7 +2886,21 @@ void initServer(void) {
     server.memory_tracking_enabled = server.key_memory_histograms || clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_MEM);
     resetReplicationBuffer();
 
-    if (setlocale(LC_COLLATE,server.locale_collate) == NULL) {
+    /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
+    for (int t = 0; t <= IO_THREADS_NUM; t++) {
+        server.unblocked_clients[t] = listCreate();
+        server.clients_index[t]                  = raxNew();
+        server.clients[t]                        = listCreate();
+        server.clients_to_close[t]               = listCreate();
+        server.clients_pending_write[t]          = listCreate();
+        server.clients_pending_read[t]           = listCreate();
+        server.clients_with_pending_ref_reply[t] = listCreate();
+        server.clients_pending_worker[t]         = listCreate();
+        server.current_client[t]                 = NULL;
+        server.executing_client[t]               = NULL;
+    }
+
+    if (setlocale(LC_COLLATE, server.locale_collate) == NULL) {
         serverLog(LL_WARNING, "Failed to configure LOCALE for invalid locale name.");
         exit(1);
     }
@@ -2880,7 +2909,7 @@ void initServer(void) {
     adjustOpenFilesLimit();
     const char *clk_msg = monotonicInit();
     serverLog(LL_NOTICE, "monotonic clock: %s", clk_msg);
-    server.el = aeCreateEventLoop(server.maxclients+CONFIG_FDSET_INCR);
+    server.el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
     if (server.el == NULL) {
         serverLog(LL_WARNING,
             "Failed creating the event loop. Error message: '%s'",
@@ -2897,10 +2926,10 @@ void initServer(void) {
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
     }
-    //ee451
+
     /* Keep server.db allocated so legacy code paths don't crash.
      * These dbs are empty - real data lives in worker_dbs. */
-    server.db = zmalloc(sizeof(redisDb)*server.dbnum);
+    server.db = zmalloc(sizeof(redisDb) * server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
         server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
         server.db[j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
@@ -2915,9 +2944,9 @@ void initServer(void) {
         server.db[j].id = j;
         server.db[j].avg_ttl = 0;
     }
-    server.clients_pending_worker = listCreate();
+
     server.num_workers = 4;
-    server.worker_dbs = zmalloc(sizeof(redisDb*) * server.num_workers);
+    server.worker_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
     for (int w = 0; w < server.num_workers; w++) {
         server.worker_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
         for (j = 0; j < server.dbnum; j++) {
@@ -3011,7 +3040,7 @@ void initServer(void) {
 
     server.cmd_pool.size = 0;
     server.cmd_pool.capacity = PENDING_COMMAND_POOL_SIZE;
-    server.cmd_pool.pool = zmalloc(sizeof(pendingCommand*) * PENDING_COMMAND_POOL_SIZE);
+    server.cmd_pool.pool = zmalloc(sizeof(pendingCommand *) * PENDING_COMMAND_POOL_SIZE);
     server.cmd_pool.min_size = 0;
 
     if (aeCreateTimeEvent(server.el, 1, serverCron, NULL, NULL) == AE_ERR) {
@@ -3025,12 +3054,12 @@ void initServer(void) {
                 "Error registering the readable event for the module pipe.");
     }
 
-    aeSetBeforeSleepProc(server.el,beforeSleep);
-    aeSetAfterSleepProc(server.el,afterSleep);
+    aeSetBeforeSleepProc(server.el, beforeSleep);
+    aeSetAfterSleepProc(server.el, afterSleep);
 
     if (server.arch_bits == 32 && server.maxmemory == 0) {
-        serverLog(LL_WARNING,"Warning: 32 bit instance detected but no memory limit set. Setting 3 GB maxmemory limit with 'noeviction' policy now.");
-        server.maxmemory = 3072LL*(1024*1024);
+        serverLog(LL_WARNING, "Warning: 32 bit instance detected but no memory limit set. Setting 3 GB maxmemory limit with 'noeviction' policy now.");
+        server.maxmemory = 3072LL * (1024 * 1024);
         server.maxmemory_policy = MAXMEMORY_NO_EVICTION;
     }
 
@@ -3657,9 +3686,9 @@ static void propagatePendingCommands(void) {
     /* In case a command that may modify random keys was run *directly*
      * (i.e. not from within a script, MULTI/EXEC, RM_Call, etc.) we want
      * to avoid using a transaction (much like active-expire) */
-    if (server.current_client &&
-        server.current_client->cmd &&
-        server.current_client->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS)
+    if (server.current_client[iotid] &&
+        server.current_client[iotid]->cmd &&
+        server.current_client[iotid]->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS)
     {
         transaction = 0;
     }
@@ -3784,8 +3813,8 @@ void call(client *c, int flags) {
     long long dirty;
     uint64_t client_old_flags = c->flags;
     struct redisCommand *real_cmd = c->realcmd;
-    client *prev_client = server.executing_client;
-    server.executing_client = c;
+    client *prev_client = server.executing_client[iotid];
+    server.executing_client[iotid] = c;
 
     /* When call() is issued during loading the AOF we don't want commands called
      * from module, exec or LUA to go into the slowlog or to populate statistics. */
@@ -4002,19 +4031,19 @@ void call(client *c, int flags) {
         /* We use the tracking flag of the original external client that
          * triggered the command, but we take the keys from the actual command
          * being executed. */
-        if (server.current_client &&
-            (server.current_client->flags & CLIENT_TRACKING) &&
-            !(server.current_client->flags & CLIENT_TRACKING_BCAST))
+        if (server.current_client[iotid] &&
+            (server.current_client[iotid]->flags & CLIENT_TRACKING) &&
+            !(server.current_client[iotid]->flags & CLIENT_TRACKING_BCAST))
         {
-            trackingRememberKeys(server.current_client, c);
+            trackingRememberKeys(server.current_client[iotid], c);
         }
     }
 
     if (!(c->flags & CLIENT_BLOCKED)) {
-        /* Modules may call commands in cron, in which case server.current_client
+        /* Modules may call commands in cron, in which case server.current_client[iotid]
          * is not set. */
-        if (server.current_client) {
-            server.current_client->commands_processed++;
+        if (server.current_client[iotid]) {
+            server.current_client[iotid]->commands_processed++;
         }
         server.stat_numcommands++;
     }
@@ -4056,7 +4085,7 @@ void call(client *c, int flags) {
         server.client_pause_in_transaction = 0;
     }
 
-    server.executing_client = prev_client;
+    server.executing_client[iotid] = prev_client;
 }
 
 /* Used when a command that is ready for execution needs to be rejected, due to
@@ -4248,6 +4277,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * other operations can be performed by the caller. Otherwise
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
 int processCommand(client *c) {
+
     if (!scriptIsTimedout()) {
         /* Both EXEC and scripts call call() directly so there should be
          * no way in_exec or scriptIsRunning() is 1.
@@ -4423,7 +4453,7 @@ int processCommand(client *c) {
      * before key eviction, after the last command was executed and consumed
      * some client output buffer memory. */
     evictClients();
-    if (server.current_client == NULL) {
+    if (server.current_client[iotid] == NULL) {
         /* If we evicted ourself then abort processing the command */
         return C_ERR;
     }
@@ -4445,7 +4475,7 @@ int processCommand(client *c) {
 
         /* performEvictions may flush slave output buffers. This may result
          * in a slave, that may be the active client, to be freed. */
-        if (server.current_client == NULL) return C_ERR;
+        if (server.current_client[iotid] == NULL) return C_ERR;
 
         if (out_of_memory && is_denyoom_command) {
             rejectCommand(c, shared.oomerr);
@@ -6207,7 +6237,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         totalNumberOfStatefulKeys(&blocking_keys, &blocking_keys_on_nokey, &watched_keys);
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscatprintf(info, "# Clients\r\n" FMTARGS(
-            "connected_clients:%lu\r\n", listLength(server.clients) - listLength(server.slaves),
+            "connected_clients:%lu\r\n", listLength(server.clients[iotid]) - listLength(server.slaves),
             "cluster_connections:%lu\r\n", getClusterConnectionsCount(),
             "maxclients:%u\r\n", server.maxclients,
             "client_recent_max_input_buffer:%zu\r\n", maxin,
@@ -7351,7 +7381,7 @@ void dismissMemoryInChild(void) {
     }
 
     /* Dismiss all clients memory. */
-    listRewind(server.clients, &li);
+    listRewind(server.clients[iotid], &li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
         dismissClientMemory(c);
@@ -7660,9 +7690,9 @@ redisTestProc *getTestProcByName(const char *name) {
 /* Returns 0 on success, -1 if full */
 
 void workerQueueInit(workerQueue *q) {
-    q->head = q->tail = NULL;
-    pthread_mutex_init(&q->lock, NULL);
-    pthread_cond_init(&q->cond, NULL);
+    atomic_store(&q->head, 0);
+    atomic_store(&q->tail, 0);
+    memset(q->jobs, 0, sizeof(q->jobs));
 }
 
 int workerQueuePush(workerQueue *q, client *c) {
@@ -7670,19 +7700,21 @@ int workerQueuePush(workerQueue *q, client *c) {
     unsigned int next_tail = (q->tail + 1) & WORKER_QUEUE_MASK;
     if (next_tail == q->head) {
         pthread_mutex_unlock(&q->lock);
-        return -1;  /* queue full */
+        fprintf(stderr, "worker queue full\n");
+        return -1;
     }
     q->jobs[q->tail] = c;
     q->tail = next_tail;
-    pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     return 0;
 }
 
 client *workerQueuePop(workerQueue *q) {
-    pthread_mutex_lock(&q->lock);
-    while (q->head == q->tail) {
-        pthread_cond_wait(&q->cond, &q->lock);
+    if (pthread_mutex_trylock(&q->lock) != 0)
+        return NULL; /* IO thread is pushing, skip this queue */
+    if (q->head == q->tail) {
+        pthread_mutex_unlock(&q->lock);
+        return NULL; /* empty */
     }
     client *c = q->jobs[q->head];
     q->head = (q->head + 1) & WORKER_QUEUE_MASK;
@@ -7690,57 +7722,109 @@ client *workerQueuePop(workerQueue *q) {
     return c;
 }
 
-/* ============== Dispatch to Worker ============== */
+
 
 void queueToWorker(client *c, int worker_id) {
-    fprintf(stderr, "[dispatch] client %p cmd %p to worker %d\n", (void*)c, (void*)c->cmd, worker_id);
-    fprintf(stderr, "[dispatch] cmd->proc = %p\n", (void*)c->cmd->proc);
-    fprintf(stderr, "[dispatch] key = %s\n", (char*)c->argv[1]->ptr);
+    replyWorking++;
     c->db = &server.workers[worker_id].db[c->db->id];
     c->flags |= CLIENT_WORKER_PENDING;
     connSetReadHandler(c->conn, NULL);
-    listAddNodeTail(server.clients_pending_worker, c);
-    workerQueuePush(&server.workers[worker_id].queue, c);
-    fprintf(stderr, "[dispatch] queued OK\n");
+    listAddNodeTail(server.clients_pending_worker[iotid], c);
+    workerQueuePush(&server.workers[worker_id].queues[iotid], c);
+
 }
 
-/* ============== Worker Thread ============== */
 
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
     fprintf(stderr, "[worker %d] started\n", worker->id);
-
     while (1) {
-        client *c = workerQueuePop(&worker->queue);
-        fprintf(stderr, "[worker %d] got client %p\n", worker->id, (void*)c);
-        fprintf(stderr, "[worker %d] c->cmd = %p\n", worker->id, (void*)c->cmd);
-        fprintf(stderr, "[worker %d] c->argv = %p, c->argc = %d\n", worker->id, (void*)c->argv, c->argc);
-        if (c->cmd) {
-            fprintf(stderr, "[worker %d] c->cmd->proc = %p\n", worker->id, (void*)c->cmd->proc);
-            fprintf(stderr, "[worker %d] c->db = %p\n", worker->id, (void*)c->db);
-            c->cmd->proc(c);
-            fprintf(stderr, "[worker %d] proc() done\n", worker->id);
-        } else {
-            fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
+        int found = 0;
+        for (int i = 0; i <= IO_THREADS_NUM; i++) {
+            client *c = workerQueuePop(&worker->queues[i]);
+            if (c) {
+                if (c->cmd) {
+                    c->cmd->proc(c);
+                } else {
+                    fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
+                }
+                atomicSet(c->reply_ready, 1);
+                found = 1;
+            }
         }
-
-        atomicSet(c->reply_ready, 1);
+        if (!found) sched_yield();
     }
     return NULL;
 }
-
-/* ============== Init Workers ============== */
 
 void initWorkers(void) {
     server.workers = zmalloc(sizeof(workerThread) * server.num_workers);
     for (int i = 0; i < server.num_workers; i++) {
         server.workers[i].id = i;
         server.workers[i].db = server.worker_dbs[i];
-        workerQueueInit(&server.workers[i].queue);
+        for (int t = 0; t <= IO_THREADS_NUM; t++) {
+            workerQueueInit(&server.workers[i].queues[t]);
+        }
         pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
     }
 }
 
+
+
+void initIOThreads(void) {
+    server.ioThreadsNum = IO_THREADS_NUM;
+    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * IO_THREADS_NUM);
+    server.custom_io_threads_active = 1;
+    /* Thread 0 is the main thread, start from 1 */
+    for (int i = 1; i < IO_THREADS_NUM; i++) {
+        ioThreadArgs *t = &server.ioThreads[i];
+        t->id = i;
+
+        /* Create the event loop for this IO thread */
+        t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
+        if (t->el == NULL) {
+            serverLog(LL_WARNING, "Failed creating event loop for IO thread %d", i);
+            exit(1);
+        }
+
+        /* Create a SO_REUSEPORT listening socket for this thread */
+        t->fd = anetTcpServer(server.neterr, server.port, NULL, server.tcp_backlog);
+        if (t->fd == ANET_ERR) {
+            serverLog(LL_WARNING, "Failed creating listening socket for IO thread %d: %s", i, server.neterr);
+            exit(1);
+        }
+        anetNonBlock(NULL, t->fd);
+
+        /* Register the accept handler on this thread's event loop */
+        if (aeCreateFileEvent(t->el, t->fd, AE_READABLE,
+            connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
+            serverLog(LL_WARNING, "Failed registering accept handler for IO thread %d", i);
+            exit(1);
+        }
+
+        /* Stripped down before/after sleep for IO threads */
+        aeSetBeforeSleepProc(t->el, beforeSleepIO);
+        aeSetAfterSleepProc(t->el, afterSleepIO);
+
+        /* Spin up the thread */
+        if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
+            serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
+            exit(1);
+        }
+    }
+}
+void *ioThreadMain(void *arg) {
+    ioThreadArgs *t = (ioThreadArgs *)arg;
+    iotid = t->id;
+
+    serverLog(LL_NOTICE, "IO thread %d started", t->id);
+
+    while (1) {
+        aeProcessEventsIO(t->el);
+    }
+
+    return NULL;
+}
 
 //ee451
 int main(int argc, char **argv) {
@@ -8017,6 +8101,7 @@ int main(int argc, char **argv) {
     }
 
     initServer();
+    initIOThreads();
     if (background || server.pidfile) createPidFile();
     if (server.set_proc_title) redisSetProcTitle(NULL);
     redisAsciiArt();
@@ -8082,8 +8167,8 @@ int main(int argc, char **argv) {
 
     redisSetCpuAffinity(server.server_cpulist);
     setOOMScoreAdj(-1);
-
     aeMain(server.el);
+
     aeDeleteEventLoop(server.el);
     return 0;
 }
