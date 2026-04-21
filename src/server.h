@@ -443,8 +443,8 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 #define CLIENT_ASM_IMPORTING (1ULL<<54) /* Client is importing RDB/stream data during atomic slot migration. */
 
 //ee451 new flag
-#define CLIENT_WORKER_CONTEXT (1ULL << 55) /* Non connected client used as a worker subcontext. */
-#define CLIENT_WORKER_DISPATCHED (1ULL << 56) /* Current command was dispatched to a worker subcontext. */
+#define CLIENT_WORKER_CONTEXT (1ULL << 55) /* Non connected fake client used for a worker job. */
+#define CLIENT_WORKER_DISPATCHED (1ULL << 56) /* Current command was dispatched to a worker fake client. */
 #define CLIENT_WORKER_REPLY_TRACKED (1ULL << 57) /* Owner client is tracked in clients_pending_worker. */
 
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
@@ -1428,17 +1428,16 @@ typedef struct {
 //ee451
 typedef struct client {
     int reply_ready;
-    int worker_id;          /* Worker ID for worker subcontext clients, -1 for regular clients. */
+    int worker_id;          /* Worker ID for worker fake clients, -1 for regular clients. */
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
-    struct client *worker_owner; /* Owner connection client if this is a worker subcontext. */
-    struct client **worker_ctxs; /* Owner's per-worker subcontexts. Length is server.num_workers. */
+    struct client *worker_owner; /* Owner connection client if this is a worker fake client. */
+    list *worker_fakeclients;    /* Owner's free fake-client pool. */
+    dict *worker_completed;      /* Owner's completed fake clients keyed by seqno. */
     uint64_t next_dispatch_seq;  /* Sequence number assigned to the next dispatched command. */
     uint64_t next_reply_seq;     /* Next sequence number expected to merge back to the owner. */
-    uint64_t completed_seqno;    /* Sequence number of the completed command in a worker subcontext. */
+    uint64_t completed_seqno;    /* Sequence number of the completed command in a worker fake client. */
     int worker_inflight_count;   /* Number of dispatched commands not yet merged back. */
-    redisAtomic int worker_enqueued; /* Worker subcontext is queued or running on a worker thread. */
-    pthread_mutex_t worker_state_lock; /* Protects worker subcontext state shared with the main thread. */
     connection *conn;
     uint8_t tid;            /* Thread assigned ID this client is bound to. */
     uint8_t running_tid;    /* Thread assigned ID this client is running on. */
@@ -1964,6 +1963,7 @@ struct redisServer {
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
     workerThread *workers;  
+    workerQueue worker_done_queue;
     list *clients_pending_worker;
     int num_workers;
     redisDb **worker_dbs;
@@ -4513,12 +4513,13 @@ void debugPauseProcess(void);
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
 client *workerQueuePop(workerQueue *q);
+client *workerQueueTryPop(workerQueue *q);
 int queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
 void initWorkers(void);
 void handleWorkerReplies(void);
-client *createWorkerContextClient(client *owner, int worker_id);
-void freeClientWorkerContexts(client *c);
+client *createWorkerFakeClient(client *owner);
+void freeClientWorkerState(client *c);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 

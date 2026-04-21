@@ -150,13 +150,12 @@ client *createClient(connection *conn) {
 #endif
     c->conn = conn;
     c->worker_owner = NULL;
-    c->worker_ctxs = NULL;
+    c->worker_fakeclients = NULL;
+    c->worker_completed = NULL;
     c->next_dispatch_seq = 0;
     c->next_reply_seq = 0;
     c->completed_seqno = UINT64_MAX;
     c->worker_inflight_count = 0;
-    atomicSet(c->worker_enqueued, 0);
-    pthread_mutex_init(&c->worker_state_lock, NULL);
     c->name = NULL;
     c->lib_name = NULL;
     c->lib_ver = NULL;
@@ -265,30 +264,40 @@ client *createClient(connection *conn) {
     return c;
 }
 
-client *createWorkerContextClient(client *owner, int worker_id) {
+client *createWorkerFakeClient(client *owner) {
     client *c = createClient(NULL);
 
     c->flags |= CLIENT_WORKER_CONTEXT;
     c->worker_owner = owner;
-    c->worker_id = worker_id;
-    c->resp = owner->resp;
-    c->user = owner->user;
-    c->authenticated = owner->authenticated;
-    c->db = &server.workers[worker_id].db[owner->db->id];
     return c;
 }
 
-void freeClientWorkerContexts(client *c) {
-    if (!c->worker_ctxs) return;
+void freeClientWorkerState(client *c) {
+    if (c->worker_fakeclients) {
+        listIter li;
+        listNode *ln;
 
-    for (int i = 0; i < server.num_workers; i++) {
-        client *wc = c->worker_ctxs[i];
-        if (!wc) continue;
-        wc->worker_owner = NULL;
-        freeClient(wc);
+        listRewind(c->worker_fakeclients, &li);
+        while ((ln = listNext(&li)) != NULL) {
+            client *fc = listNodeValue(ln);
+            if (fc) freeClient(fc);
+        }
+        listRelease(c->worker_fakeclients);
+        c->worker_fakeclients = NULL;
     }
-    zfree(c->worker_ctxs);
-    c->worker_ctxs = NULL;
+
+    if (c->worker_completed) {
+        dictIterator *di = dictGetSafeIterator(c->worker_completed);
+        dictEntry *de;
+
+        while ((de = dictNext(di)) != NULL) {
+            client *fc = dictGetVal(de);
+            if (fc) freeClient(fc);
+        }
+        dictReleaseIterator(di);
+        dictRelease(c->worker_completed);
+        c->worker_completed = NULL;
+    }
 }
 
 void installClientWriteHandler(client *c) {
@@ -2280,7 +2289,7 @@ void freeClient(client *c) {
     }
 
     if (!(c->flags & CLIENT_WORKER_CONTEXT))
-        freeClientWorkerContexts(c);
+        freeClientWorkerState(c);
 
     /* Release other dynamically allocated client structure fields,
      * and finally release the client structure itself. */
@@ -2292,7 +2301,6 @@ void freeClient(client *c) {
     sdsfree(c->sockname);
     sdsfree(c->slave_addr);
     sdsfree(c->node_id);
-    pthread_mutex_destroy(&c->worker_state_lock);
     zfree(c);
 }
 
