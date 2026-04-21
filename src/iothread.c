@@ -20,6 +20,16 @@ static list *mainThreadPendingClients[IO_THREADS_MAX_NUM]; /* Pending clients fr
 static pthread_mutex_t mainThreadPendingClientsMutexes[IO_THREADS_MAX_NUM]; /* Mutex for pending clients */
 static eventNotifier* mainThreadPendingClientsNotifiers[IO_THREADS_MAX_NUM]; /* Notifier for pending clients */
 
+static inline int enterIOThreadSlotContext(int slot) {
+    int prev = iotid;
+    iotid = slot;
+    return prev;
+}
+
+static inline void leaveIOThreadSlotContext(int prev) {
+    iotid = prev;
+}
+
 /* Send the clients to the main thread for processing when the number of clients
  * in pending list reaches IO_THREAD_MAX_PENDING_CLIENTS, or check_size is 0. */
 static inline void sendPendingClientsToMainThreadIfNeeded(IOThread *t, int check_size) {
@@ -133,7 +143,7 @@ void enqueuePendingClienstToIOThreads(client *c) {
 
     if (c->flags & CLIENT_PENDING_WRITE) {
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
     }
     if (c->flags & CLIENT_SLAVE) {
         serverAssert(c->ref_repl_buf_node != NULL);
@@ -548,12 +558,16 @@ static inline void sendPendingClientsToIOThreadIfNeeded(IOThread *t, int size_ch
  * process new events, if the clients with fired events from the same io thread,
  * it may call this function reentrantly. */
 int processClientsFromIOThread(IOThread *t) {
+    int prev_iotid = enterIOThreadSlotContext(t->id);
     /* Get the list of clients to process. */
     pthread_mutex_lock(&mainThreadPendingClientsMutexes[t->id]);
     listJoin(mainThreadProcessingClients[t->id], mainThreadPendingClients[t->id]);
     pthread_mutex_unlock(&mainThreadPendingClientsMutexes[t->id]);
     size_t processed = listLength(mainThreadProcessingClients[t->id]);
-    if (processed == 0) return 0;
+    if (processed == 0) {
+        leaveIOThreadSlotContext(prev_iotid);
+        return 0;
+    }
 
     int prefetch_clients = 0;
     /* We may call processClientsFromIOThread reentrantly, so we need to
@@ -638,7 +652,7 @@ int processClientsFromIOThread(IOThread *t) {
          * And some clients may do not have reply if CLIENT REPLY OFF/SKIP. */
         if (c->flags & CLIENT_PENDING_WRITE) {
             c->flags &= ~CLIENT_PENDING_WRITE;
-            listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+            listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
         }
         c->running_tid = c->tid;
         listLinkNodeHead(mainThreadPendingClientsToIOThreads[c->tid], node);
@@ -654,6 +668,7 @@ int processClientsFromIOThread(IOThread *t) {
      * io thread to process in prallel. */
     sendPendingClientsToIOThreadIfNeeded(t, 0);
 
+    leaveIOThreadSlotContext(prev_iotid);
     return processed;
 }
 
@@ -854,6 +869,7 @@ int IOThreadCron(struct aeEventLoop *eventLoop, long long id, void *clientData) 
 void *IOThreadMain(void *ptr) {
     IOThread *t = ptr;
     char thdname[16];
+    iotid = t->id;
     snprintf(thdname, sizeof(thdname), "io_thd_%d", t->id);
     redis_set_thread_title(thdname);
     redisSetCpuAffinity(server.server_cpulist);

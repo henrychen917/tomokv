@@ -1539,10 +1539,10 @@ int loadSingleAppendOnlyFile(char *filename) {
      * to the same file we're about to read. */
     server.aof_state = AOF_OFF;
 
-    client *old_cur_client = server.current_client;
-    client *old_exec_client = server.executing_client;
+    client *old_cur_client = server.current_client[iotid];
+    client *old_exec_client = server.executing_client[iotid];
     fakeClient = createAOFClient();
-    server.current_client = server.executing_client = fakeClient;
+    server.current_client[iotid] = server.executing_client[iotid] = fakeClient;
 
     /* Check if the AOF file is in RDB format (it may be RDB encoded base AOF
      * or old style RDB-preamble AOF). In that case we need to load the RDB file 
@@ -1761,8 +1761,8 @@ fmterr: /* Format error. */
 
 cleanup:
     if (fakeClient) freeClient(fakeClient);
-    server.current_client = old_cur_client;
-    server.executing_client = old_exec_client;
+    server.current_client[iotid] = old_cur_client;
+    server.executing_client[iotid] = old_exec_client;
     int fd = dup(fileno(fp));
     fclose(fp);
     /* Reclaim page cache memory used by the AOF file in background. */

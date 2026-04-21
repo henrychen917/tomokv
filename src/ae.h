@@ -91,7 +91,8 @@ typedef struct aeEventLoop {
     int flags;
     void *privdata[2];
 } aeEventLoop;
-
+extern __thread int iotid;
+extern __thread int replyWorking;
 /* Prototypes */
 aeEventLoop *aeCreateEventLoop(int setsize);
 void aeDeleteEventLoop(aeEventLoop *eventLoop);
@@ -106,6 +107,8 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeEventFinalizerProc *finalizerProc);
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
+int aeProcessEventsIO(aeEventLoop *eventLoop);
+
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);

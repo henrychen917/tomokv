@@ -205,7 +205,7 @@ void freeObjAsync(robj *key, robj *obj, int dbid) {
  * create independent copies of the string objects to avoid concurrent access. */
 static void protectClientReplyObjects(void) {
     /* If there are no clients with pending ref replies, exit ASAP. */
-    if (!listLength(server.clients_with_pending_ref_reply))
+    if (!listLength(server.clients_with_pending_ref_reply[iotid]))
         return;
 
     /* Pause all IO threads to safely duplicate string objects. */
@@ -218,7 +218,7 @@ static void protectClientReplyObjects(void) {
 
     listNode *ln;
     listIter li;
-    listRewind(server.clients_with_pending_ref_reply, &li);
+    listRewind(server.clients_with_pending_ref_reply[iotid], &li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 

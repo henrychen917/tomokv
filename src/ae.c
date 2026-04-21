@@ -27,6 +27,12 @@
 #include "zmalloc.h"
 #include "config.h"
 
+/* Thread-local event-loop context shared by server-side users of ae.c.
+ * Define it here so binaries like redis-cli that link ae.c resolve the
+ * symbols even though they do not link server.c. */
+__thread int iotid = 0;
+__thread int replyWorking = 0;
+
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT
@@ -466,6 +472,50 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
+int aeProcessEventsIO(aeEventLoop *eventLoop) {
+    int processed = 0, numevents;
+    if (eventLoop->maxfd == -1) return 0;
+
+    if (eventLoop->beforesleep != NULL)
+        eventLoop->beforesleep(eventLoop);
+    struct timeval tv, *tvp = NULL;
+    if (replyWorking == 0){
+
+    }else{
+        tv.tv_sec = 0;
+        tv.tv_usec = 100;
+        tvp = &tv;
+    }
+
+
+    numevents = aeApiPoll(eventLoop, tvp);
+
+    for (int j = 0; j < numevents; j++) {
+        int fd = eventLoop->fired[j].fd;
+        aeFileEvent *fe = &eventLoop->events[fd];
+        int mask = eventLoop->fired[j].mask;
+        int fired = 0;
+
+        if (fe->mask & mask & AE_READABLE) {
+            fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+            fired++;
+
+            fe = &eventLoop->events[fd];
+            //fprintf(stderr, "[IO thread %d] handled read event on fd %d\n", iotid, fd);
+        }
+
+        if (fe->mask & mask & AE_WRITABLE) {
+            if (!fired || fe->wfileProc != fe->rfileProc) {
+                fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+            }
+        }
+
+        processed++;
+    }
+
+    return processed;
+}
+
 
 /* Wait for milliseconds until the given file descriptor becomes
  * writable/readable/exception */

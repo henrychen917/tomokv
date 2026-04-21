@@ -1,0 +1,75 @@
+1931033:X -1118452326 Jan 1970 00:-17:-31.027 # Redis 8.6.2 crashed by signal: 11, si_code: 2
+1931033:X -1118452326 Jan 1970 00:-17:-31.027 # Accessing address: 0x57e3e37d03e0
+1931033:X -1118452326 Jan 1970 00:-17:-31.027 # Crashed running the instruction at: 0x57e3e37d03e0
+
+------ STACK TRACE ------
+EIP:
+./redis-server 127.0.0.1:6379(+0x47c3e0)[0x57e3e37d03e0]
+
+1931045 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__pthread_mutex_unlock+0x50)[0x7a29b52a1ac0]
+./redis-server 127.0.0.1:6379(workerThreadMain+0x118)[0x57e3e341f5d8]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931041 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x7a29b530e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x57e3e341f59d]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931042 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x7a29b530e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x57e3e341f59d]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931044 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x7a29b530e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x57e3e341f59d]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931035 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(epoll_wait+0x52)[0x7a29b532a072]
+./redis-server 127.0.0.1:6379(+0x9a6f4)[0x57e3e33ee6f4]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0x55)[0x57e3e33eea85]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x57e3e34299c9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931033 redis-server
+./redis-server 127.0.0.1:6379(+0x29ac4c)[0x57e3e35eec4c]
+./redis-server 127.0.0.1:6379(memtest_test_linux_anonymous_maps+0x23a)[0x57e3e34d4d7a]
+./redis-server 127.0.0.1:6379(printCrashReport+0xf0)[0x57e3e34d8150]
+./redis-server 127.0.0.1:6379(+0x18862d)[0x57e3e34dc62d]
+/lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x7a29b5245330]
+./redis-server 127.0.0.1:6379(processInputBuffer+0x2d3)[0x57e3e343e6d3]
+./redis-server 127.0.0.1:6379(readQueryFromClient+0xb8)[0x57e3e34407a8]
+./redis-server 127.0.0.1:6379(+0x25aea4)[0x57e3e35aeea4]
+./redis-server 127.0.0.1:6379(aeMain+0xf9)[0x57e3e33eefb9]
+./redis-server 127.0.0.1:6379(main+0x3a5)[0x57e3e33e8ca5]
+/lib/x86_64-linux-gnu/libc.so.6(+0x2a1ca)[0x7a29b522a1ca]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x8b)[0x7a29b522a28b]
+./redis-server 127.0.0.1:6379(_start+0x25)[0x57e3e33ea625]
+
+1931036 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(epoll_wait+0x52)[0x7a29b532a072]
+./redis-server 127.0.0.1:6379(+0x9a6f4)[0x57e3e33ee6f4]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0x55)[0x57e3e33eea85]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x57e3e34299c9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+1931034 redis-server *
+/lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x7a29b5245330]
+./redis-server 127.0.0.1:6379(invalidFunctionWasCalled+0x0)[0x57e3e34d4350]
+./redis-server 127.0.0.1:6379(beforeSleepIO+0x39)[0x57e3e340acf9]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0x3b)[0x57e3e33eea6b]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x57e3e34299c9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x7a29b529caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x7a29b5329c6c]
+
+8/8 expected stacktraces.
+
+------ STACK TRACE DONE ------

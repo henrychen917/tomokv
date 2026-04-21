@@ -1,0 +1,85 @@
+
+------ STACK TRACE ------
+
+1879387 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x72a944d0e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x5b6270a9c5cd]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879383 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x72a944d0e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x5b6270a9c5cd]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879385 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x72a944d0e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x5b6270a9c5cd]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879386 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(__sched_yield+0xb)[0x72a944d0e80b]
+./redis-server 127.0.0.1:6379(workerThreadMain+0xdd)[0x5b6270a9c5cd]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879375 redis-server
+./redis-server 127.0.0.1:6379(+0x29ad30)[0x5b6270c6bd30]
+./redis-server 127.0.0.1:6379(memtest_test_linux_anonymous_maps+0x23a)[0x5b6270b51bfa]
+./redis-server 127.0.0.1:6379(printCrashReport+0xf0)[0x5b6270b54fd0]
+./redis-server 127.0.0.1:6379(+0x1884ad)[0x5b6270b594ad]
+/lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x72a944c45330]
+./redis-server 127.0.0.1:6379(processInputBuffer+0x2d3)[0x5b6270abbf93]
+./redis-server 127.0.0.1:6379(readQueryFromClient+0xb8)[0x5b6270abe018]
+./redis-server 127.0.0.1:6379(+0x25af44)[0x5b6270c2bf44]
+./redis-server 127.0.0.1:6379(aeMain+0xf9)[0x5b6270a6bfb9]
+./redis-server 127.0.0.1:6379(main+0x3a5)[0x5b6270a65ca5]
+/lib/x86_64-linux-gnu/libc.so.6(+0x2a1ca)[0x72a944c2a1ca]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x8b)[0x72a944c2a28b]
+./redis-server 127.0.0.1:6379(_start+0x25)[0x5b6270a67625]
+
+1879377 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(+0x98f70)[0x72a944c98f70]
+/lib/x86_64-linux-gnu/libc.so.6(pthread_mutex_lock+0x111)[0x72a944ca0101]
+./redis-server 127.0.0.1:6379(+0x18833a)[0x5b6270b5933a]
+/lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x72a944c45330]
+./redis-server 127.0.0.1:6379(setGetKeys+0xb0)[0x5b6270adcc80]
+./redis-server 127.0.0.1:6379(preprocessCommand+0x210)[0x5b6270a8f910]
+./redis-server 127.0.0.1:6379(processInputBuffer+0x9ce)[0x5b6270abc68e]
+./redis-server 127.0.0.1:6379(readQueryFromClient+0xb8)[0x5b6270abe018]
+./redis-server 127.0.0.1:6379(+0x25af44)[0x5b6270c2bf44]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0xc3)[0x5b6270a6baf3]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x5b6270aa69f9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879378 redis-server
+/lib/x86_64-linux-gnu/libc.so.6(+0x98f70)[0x72a944c98f70]
+/lib/x86_64-linux-gnu/libc.so.6(pthread_mutex_lock+0x111)[0x72a944ca0101]
+./redis-server 127.0.0.1:6379(+0x18833a)[0x5b6270b5933a]
+/lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x72a944c45330]
+./redis-server 127.0.0.1:6379(setGetKeys+0xb0)[0x5b6270adcc80]
+./redis-server 127.0.0.1:6379(preprocessCommand+0x210)[0x5b6270a8f910]
+./redis-server 127.0.0.1:6379(processInputBuffer+0x9ce)[0x5b6270abc68e]
+./redis-server 127.0.0.1:6379(readQueryFromClient+0xb8)[0x5b6270abe018]
+./redis-server 127.0.0.1:6379(+0x25af44)[0x5b6270c2bf44]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0xc3)[0x5b6270a6baf3]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x5b6270aa69f9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+1879376 redis-server *
+./redis-server 127.0.0.1:6379(pauseIOThread+0x0)[0x5b6270a76630]
+./redis-server 127.0.0.1:6379(keepClientInMainThread+0x4f)[0x5b6270a7c09f]
+./redis-server 127.0.0.1:6379(freeClient+0x67f)[0x5b6270ab9a5f]
+./redis-server 127.0.0.1:6379(freeClientsInAsyncFreeQueue+0xa4)[0x5b6270aba334]
+./redis-server 127.0.0.1:6379(aeProcessEventsIO+0x3b)[0x5b6270a6ba6b]
+./redis-server 127.0.0.1:6379(ioThreadMain+0x39)[0x5b6270aa69f9]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4)[0x72a944c9caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c)[0x72a944d29c6c]
+
+8/8 expected stacktraces.
+
+------ STACK TRACE DONE ------

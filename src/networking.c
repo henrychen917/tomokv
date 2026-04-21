@@ -88,13 +88,13 @@ void freeClientReplyValue(void *o) {
 /* This function links the client to the global linked list of clients.
  * unlinkClient() does the opposite, among other things. */
 void linkClient(client *c) {
-    listAddNodeTail(server.clients,c);
+    listAddNodeTail(server.clients[iotid],c);
     /* Note that we remember the linked list node where the client is stored,
      * this way removing the client in unlinkClient() will not require
      * a linear scan, but just a constant time operation. */
-    c->client_list_node = listLast(server.clients);
+    c->client_list_node = listLast(server.clients[iotid]);
     uint64_t id = htonu64(c->id);
-    raxInsert(server.clients_index,(unsigned char*)&id,sizeof(id),c,NULL);
+    raxInsert(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),c,NULL);
 }
 
 /* Initialize client authentication state.
@@ -139,7 +139,7 @@ client *createClient(connection *conn) {
     c->id = client_id;
     c->reply_ready = 0;
     c->worker_id = -1;
-    c->tid = IOTHREAD_MAIN_THREAD_ID;
+    c->tid = iotid;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
 #ifdef LOG_REQ_RES
@@ -340,7 +340,7 @@ void putClientInPendingWriteQueue(client *c) {
          * a system call. We'll only really install the write handler if
          * we'll not be able to write the whole reply at once. */
         c->flags |= CLIENT_PENDING_WRITE;
-        listLinkNodeHead(server.clients_pending_write, &c->clients_pending_write_node);
+        listLinkNodeHead(server.clients_pending_write[iotid], &c->clients_pending_write_node);
     }
 }
 
@@ -553,8 +553,8 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
      * the SUBSCRIBE command family, which (currently) have a push message instead of a proper reply.
      * The check for executing_client also avoids affecting push messages that are part of eviction.
      * Check CLIENT_PUSHING first to avoid race conditions, as it's absent in module's fake client. */
-    if ((c->flags & CLIENT_PUSHING) && c == server.current_client &&
-        server.executing_client && !cmdHasPushAsReply(server.executing_client->cmd))
+    if ((c->flags & CLIENT_PUSHING) && c == server.current_client[iotid] &&
+        server.executing_client[iotid] && !cmdHasPushAsReply(server.executing_client[iotid]->cmd))
     {
         _addReplyPayloadToList(c,server.pending_push_messages,s,len,PLAIN_REPLY);
         return;
@@ -571,7 +571,7 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
 static inline int clientIsInPendingRefReplyList(client *c) {
     return listNextNode(&c->pending_ref_reply_node) != NULL ||
            listPrevNode(&c->pending_ref_reply_node) != NULL ||
-           listFirst(server.clients_with_pending_ref_reply) == &c->pending_ref_reply_node;
+           listFirst(server.clients_with_pending_ref_reply[iotid]) == &c->pending_ref_reply_node;
 }
 
 /* Increment reference to object and add pointer to object and
@@ -605,7 +605,7 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
 
     /* Track clients with pending referenced reply objects for async flushdb protection. */
     if (!clientIsInPendingRefReplyList(c)) {
-        listLinkNodeTail(server.clients_with_pending_ref_reply, &c->pending_ref_reply_node);
+        listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
     }
 }
 
@@ -1683,7 +1683,7 @@ void acceptCommonHandler(connection *conn, int flags, char *ip) {
      * Admission control will happen before a client is created and connAccept()
      * called, because we don't want to even start transport-level negotiation
      * if rejected. */
-    if (listLength(server.clients) + getClusterConnectionsCount()
+    if (listLength(server.clients[iotid]) + getClusterConnectionsCount()
         >= server.maxclients)
     {
         char *err;
@@ -1903,7 +1903,7 @@ void unlinkClient(client *c) {
     listNode *ln;
 
     /* If this is marked as current client unset it. */
-    if (c->conn && server.current_client == c) server.current_client = NULL;
+    if (c->conn && server.current_client[iotid] == c) server.current_client[iotid] = NULL;
 
     /* Certain operations must be done only if the client has an active connection.
      * If the client was already unlinked or if it's a "fake client" the
@@ -1912,8 +1912,8 @@ void unlinkClient(client *c) {
         /* Remove from the list of active clients. */
         if (c->client_list_node) {
             uint64_t id = htonu64(c->id);
-            raxRemove(server.clients_index,(unsigned char*)&id,sizeof(id),NULL);
-            listDelNode(server.clients,c->client_list_node);
+            raxRemove(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),NULL);
+            listDelNode(server.clients[iotid],c->client_list_node);
             c->client_list_node = NULL;
         }
 
@@ -1951,16 +1951,16 @@ void unlinkClient(client *c) {
     if (c->flags & CLIENT_PENDING_WRITE) {
         serverAssert(&c->clients_pending_write_node.next != NULL || 
                      &c->clients_pending_write_node.prev != NULL);
-        listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
         c->flags &= ~CLIENT_PENDING_WRITE;
     }
 
     /* When client was just unblocked because of a blocking operation,
      * remove it from the list of unblocked clients. */
     if (c->flags & CLIENT_UNBLOCKED) {
-        ln = listSearchKey(server.unblocked_clients,c);
+        ln = listSearchKey(server.unblocked_clients[iotid],c);
         serverAssert(ln != NULL);
-        listDelNode(server.unblocked_clients,ln);
+        listDelNode(server.unblocked_clients[iotid],ln);
         c->flags &= ~CLIENT_UNBLOCKED;
     }
 
@@ -1983,7 +1983,7 @@ void unlinkClient(client *c) {
  * contain any referenced robj. */
 void tryUnlinkClientFromPendingRefReply(client *c, int force) {
     if (clientIsInPendingRefReplyList(c) && (force || !clientHasPendingReplies(c))) {
-        listUnlinkNode(server.clients_with_pending_ref_reply, &c->pending_ref_reply_node);
+        listUnlinkNode(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
     }
 }
 
@@ -2039,7 +2039,7 @@ void deauthenticateAndCloseClient(client *c) {
     c->authenticated = 0;
     /* We will write replies to this client later, so we can't
      * close it directly even if async. */
-    if (c == server.current_client) {
+    if (c == server.current_client[iotid]) {
         c->flags |= CLIENT_CLOSE_AFTER_COMMAND;
     } else {
         freeClientAsync(c);
@@ -2121,45 +2121,40 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
-
+    if (c->flags & CLIENT_WORKER_PENDING) {
+        freeClientAsync(c);
+        return;
+    }
     /* If the client is running in io thread, we can't free it directly. */
     if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
         fetchClientFromIOThread(c);
     }
-
     /* We need to unbind connection of client from io thread event loop first. */
     if (c->tid != IOTHREAD_MAIN_THREAD_ID) {
         keepClientInMainThread(c);
     }
-
     /* Update the number of clients in the IO thread. */
     if (c->conn) server.io_threads_clients_num[c->tid]--;
-
     /* For connected clients, call the disconnection event of modules hooks. */
     if (c->conn) {
         moduleFireServerEvent(REDISMODULE_EVENT_CLIENT_CHANGE,
                               REDISMODULE_SUBEVENT_CLIENT_CHANGE_DISCONNECTED,
                               c);
     }
-
     asmCallbackOnFreeClient(c);
-
     /* Notify module system that this client auth status changed. */
     moduleNotifyUserChanged(c);
-
     /* Free the RedisModuleBlockedClient held onto for reprocessing if not already freed. */
     zfree(c->module_blocked_client);
-
     /* If this client was scheduled for async freeing we need to remove it
      * from the queue. Note that we need to do this here, because later
      * we may call replicationCacheMaster() and the client should already
      * be removed from the list of clients to free. */
     if (c->flags & CLIENT_CLOSE_ASAP) {
-        ln = listSearchKey(server.clients_to_close,c);
+        ln = listSearchKey(server.clients_to_close[iotid],c);
         serverAssert(ln != NULL);
-        listDelNode(server.clients_to_close,ln);
+        listDelNode(server.clients_to_close[iotid],ln);
     }
-
     /* If it is our master that's being disconnected we should make sure
      * to cache the state to try a partial resynchronization later.
      *
@@ -2174,30 +2169,25 @@ void freeClient(client *c) {
             return;
         }
     }
-
     /* Log link disconnection with slave */
     if (clientTypeIsSlave(c)) {
         const char *type = c->flags & CLIENT_REPL_RDB_CHANNEL ? " (rdbchannel)" : "";
         serverLog(LL_NOTICE,"Connection with replica%s %s lost.", type,
             replicationGetSlaveName(c));
     }
-
     /* Free the query buffer */
     if (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)
         resetReusableQueryBuf(c);
     sdsfree(c->querybuf);
     c->querybuf = NULL;
-
     /* Deallocate structures used to block on blocking ops. */
     /* If there is any in-flight command, we don't record their duration. */
     c->duration = 0;
     if (c->flags & CLIENT_BLOCKED) unblockClient(c, 1);
     dictRelease(c->bstate.keys);
-
     /* UNWATCH all the keys */
     unwatchAllKeys(c);
     listRelease(c->watched_keys);
-
     /* Unsubscribe from all the pubsub channels */
     pubsubUnsubscribeAllChannels(c,0);
     pubsubUnsubscribeShardAllChannels(c, 0);
@@ -2206,7 +2196,6 @@ void freeClient(client *c) {
     dictRelease(c->pubsub_channels);
     dictRelease(c->pubsub_patterns);
     dictRelease(c->pubsubshard_channels);
-
     /* Free data structures. */
     releaseAllBufReferences(c); /* Release all references to string objects in encoded buffers before freeing */
     listRelease(c->reply);
@@ -2221,13 +2210,11 @@ void freeClient(client *c) {
 #ifdef LOG_REQ_RES
     reqresReset(c, 1);
 #endif
-
     /* Remove the contribution that this client gave to our
      * incrementally computed memory usage. */
     if (c->conn)
         server.stat_clients_type_memory[c->last_memory_type] -=
             c->last_memory_usage;
-
     /* Unlink the client: this will close the socket, remove the I/O
      * handlers, and remove references of the client from different
      * places where active clients may be referenced.
@@ -2235,10 +2222,8 @@ void freeClient(client *c) {
      * as they are no longer valid.
      */
     unlinkClient(c);
-
     freeClientMultiState(c);
     serverAssert(c->pending_cmds.len == 0);
-
     /* Master/slave cleanup Case 1:
      * we lost the connection with a slave. */
     if (c->flags & CLIENT_SLAVE) {
@@ -2278,19 +2263,17 @@ void freeClient(client *c) {
                                   NULL);
     }
 
+
     /* Master/slave cleanup Case 2:
      * we lost the connection with the master. */
     if (c->flags & CLIENT_MASTER) replicationHandleMasterDisconnection();
-
     /* Remove client from memory usage buckets */
     if (c->mem_usage_bucket) {
         c->mem_usage_bucket->mem_usage_sum -= c->last_memory_usage;
         listDelNode(c->mem_usage_bucket->clients, c->mem_usage_bucket_node);
     }
-
     if (!(c->flags & CLIENT_WORKER_CONTEXT))
         freeClientWorkerState(c);
-
     /* Release other dynamically allocated client structure fields,
      * and finally release the client structure itself. */
     if (c->name) decrRefCount(c->name);
@@ -2322,11 +2305,12 @@ void freeClientAsync(client *c) {
     }
 
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
+    if (c->flags & CLIENT_WORKER_PENDING) return;
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */
     if (c->flags & CLIENT_SLAVE) freeReplicaReferencedReplBuffer(c);
-    listAddNodeTail(server.clients_to_close,c);
+    listAddNodeTail(server.clients_to_close[iotid],c);
 }
 
 /* Log errors for invalid use and free the client in async way.
@@ -2362,7 +2346,7 @@ int beforeNextClient(client *c) {
     if (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID)
         return C_OK;
     /* Handle async frees */
-    /* Note: this doesn't make the server.clients_to_close list redundant because of
+    /* Note: this doesn't make the server.clients_to_close[iotid] list redundant because of
      * cases where we want an async free of a client other than myself. For example
      * in ACL modifications we disconnect clients authenticated to non-existent
      * users (see ACL LOAD). */
@@ -2376,19 +2360,20 @@ int beforeNextClient(client *c) {
 /* Free the clients marked as CLOSE_ASAP, return the number of clients
  * freed. */
 int freeClientsInAsyncFreeQueue(void) {
+    //fprintf(stderr,"freeClientsInAsyncFreeQueue %d\n",iotid);
     int freed = 0;
     listIter li;
     listNode *ln;
 
-    listRewind(server.clients_to_close,&li);
+    listRewind(server.clients_to_close[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
         if (c->flags & CLIENT_PROTECTED) continue;
-
+        if (c->flags & CLIENT_WORKER_PENDING) continue;
         c->flags &= ~CLIENT_CLOSE_ASAP;
         freeClient(c);
-        listDelNode(server.clients_to_close,ln);
+        listDelNode(server.clients_to_close[iotid],ln);
         freed++;
     }
     return freed;
@@ -2400,7 +2385,7 @@ int freeClientsInAsyncFreeQueue(void) {
 client *lookupClientByID(uint64_t id) {
     id = htonu64(id);
     void *c = NULL;
-    raxFind(server.clients_index,(unsigned char*)&id,sizeof(id),&c);
+    raxFind(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),&c);
     return c;
 }
 
@@ -2851,9 +2836,9 @@ void sendReplyToClient(connection *conn) {
 int handleClientsWithPendingWrites(void) {
     listIter li;
     listNode *ln;
-    int processed = listLength(server.clients_pending_write);
+    int processed = listLength(server.clients_pending_write[iotid]);
 
-    listRewind(server.clients_pending_write,&li);
+    listRewind(server.clients_pending_write[iotid],&li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
 
@@ -2862,7 +2847,7 @@ int handleClientsWithPendingWrites(void) {
             continue;
 
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write,ln);
+        listUnlinkNode(server.clients_pending_write[iotid],ln);
 
         /* If a client is protected, don't do anything,
          * that may trigger write error or recreate handler. */
@@ -2883,6 +2868,7 @@ int handleClientsWithPendingWrites(void) {
 
         /* Try to write buffers to the client socket. */
         if (writeToClient(c,0) == C_ERR) continue;
+
 
         /* If after the synchronous writes above we still have data to
          * output to the client, we need to install the writable handler. */
@@ -3462,8 +3448,8 @@ void commandProcessed(client *c) {
  * of processing the command, otherwise C_OK is returned. */
 int processCommandAndResetClient(client *c) {
     int deadclient = 0;
-    client *old_client = server.current_client;
-    server.current_client = c;
+    client *old_client = server.current_client[iotid];
+    server.current_client[iotid] = c;
     if (processCommand(c) == C_OK) {
         if (c->flags & CLIENT_WORKER_DISPATCHED) {
             resetDispatchedClientState(c);
@@ -3472,8 +3458,8 @@ int processCommandAndResetClient(client *c) {
             if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
-    if (server.current_client == NULL) deadclient = 1;
-    server.current_client = old_client;
+    if (server.current_client[iotid] == NULL) deadclient = 1;
+    server.current_client[iotid] = old_client;
 
     return deadclient ? C_ERR : C_OK;
 }
@@ -3731,12 +3717,12 @@ int processInputBuffer(client *c) {
             }
 
             /* We are finally ready to execute the command. */
+            server.current_client[iotid] = c;
             if (processCommandAndResetClient(c) == C_ERR) {
-                /* If the client is no longer valid, we avoid exiting this
-                 * loop and trimming the client buffer later. So we return
-                 * ASAP in that case. */
+                server.current_client[iotid] = NULL;
                 return C_ERR;
             }
+            server.current_client[iotid] = NULL;
             if (c->flags & CLIENT_WORKER_DISPATCHED) {
                 c->flags &= ~CLIENT_WORKER_DISPATCHED;
                 break;
@@ -3780,6 +3766,7 @@ int processInputBuffer(client *c) {
 
 void readQueryFromClient(connection *conn) {
     client *c = connGetPrivateData(conn);
+    if (c->flags & CLIENT_WORKER_PENDING) return;
     int nread, big_arg = 0;
     size_t qblen, readlen;
 
@@ -4101,7 +4088,7 @@ sds getAllClientsInfoString(int type) {
     listNode *ln;
     listIter li;
     client *client;
-    sds o = sdsnewlen(SDS_NOINIT,200*listLength(server.clients));
+    sds o = sdsnewlen(SDS_NOINIT,200*listLength(server.clients[iotid]));
     sdsclear(o);
 
     /* Pause all IO threads to access data of clients safely, and pausing the
@@ -4114,7 +4101,7 @@ sds getAllClientsInfoString(int type) {
         pauseAllIOThreads();
     }
 
-    listRewind(server.clients,&li);
+    listRewind(server.clients[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client = listNodeValue(ln);
         if (type != -1 && getClientType(client) != type) continue;
@@ -4463,7 +4450,7 @@ NULL
         }
 
         /* Iterate clients killing all the matching clients. */
-        listRewind(server.clients,&li);
+        listRewind(server.clients[iotid],&li);
         while ((ln = listNext(&li)) != NULL) {
             client *client = listNodeValue(ln);
             if (addr && strcmp(getClientPeerId(client),addr) != 0) continue;

@@ -27,7 +27,7 @@
  *    if there is some query buffer to process, we do it. This is also
  *    required because otherwise there is no 'readable' event fired, we
  *    already read the pending commands. We also set the CLIENT_UNBLOCKED
- *    flag to remember the client is in the unblocked_clients list.
+ *    flag to remember the client is in the unblocked_clients[iotid] list.
  *
  * processUnblockedClients() is called inside the beforeSleep() function
  * to process the query buffer from unblocked clients and remove the clients
@@ -116,11 +116,11 @@ void processUnblockedClients(void) {
     listNode *ln;
     client *c;
 
-    while (listLength(server.unblocked_clients)) {
-        ln = listFirst(server.unblocked_clients);
+    while (listLength(server.unblocked_clients[iotid])) {
+        ln = listFirst(server.unblocked_clients[iotid]);
         serverAssert(ln != NULL);
         c = ln->value;
-        listDelNode(server.unblocked_clients,ln);
+        listDelNode(server.unblocked_clients[iotid],ln);
         c->flags &= ~CLIENT_UNBLOCKED;
 
         /* Reset the client for a new query, unless the client has pending command to process. */
@@ -175,7 +175,7 @@ void queueClientForReprocessing(client *c) {
      * blocking operation, don't add back it into the list multiple times. */
     if (!(c->flags & CLIENT_UNBLOCKED)) {
         c->flags |= CLIENT_UNBLOCKED;
-        listAddNodeTail(server.unblocked_clients,c);
+        listAddNodeTail(server.unblocked_clients[iotid],c);
     }
 }
 
@@ -262,7 +262,7 @@ void replyToClientsBlockedOnShutdown(void) {
     if (server.blocked_clients_by_type[BLOCKED_SHUTDOWN] == 0) return;
     listNode *ln;
     listIter li;
-    listRewind(server.clients, &li);
+    listRewind(server.clients[iotid], &li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
         if (c->flags & CLIENT_BLOCKED && c->bstate.btype == BLOCKED_SHUTDOWN) {
@@ -284,7 +284,7 @@ void disconnectAllBlockedClients(void) {
     listNode *ln;
     listIter li;
 
-    listRewind(server.clients,&li);
+    listRewind(server.clients[iotid],&li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
 
@@ -688,8 +688,8 @@ static void unblockClientOnKey(client *c, robj *key) {
          * running the command, and exit the execution unit after calling the unblock handler (if exists).
          * Notice that we also must set the current client so it will be available
          * when we will try to send the client side caching notification (done on 'afterCommand'). */
-        client *old_client = server.current_client;
-        server.current_client = c;
+        client *old_client = server.current_client[iotid];
+        server.current_client[iotid] = c;
         enterExecutionUnit(1, 0);
         processCommandAndResetClient(c);
         if (!(c->flags & CLIENT_BLOCKED)) {
@@ -703,7 +703,7 @@ static void unblockClientOnKey(client *c, robj *key) {
         afterCommand(c);
         /* Clear the CLIENT_REEXECUTING_COMMAND flag after the proc is executed. */
         c->flags &= ~CLIENT_REEXECUTING_COMMAND;
-        server.current_client = old_client;
+        server.current_client[iotid] = old_client;
     }
 }
 
@@ -713,8 +713,8 @@ static void unblockClientOnKey(client *c, robj *key) {
  * be processed in moduleHandleBlockedClients. */
 static void moduleUnblockClientOnKey(client *c, robj *key) {
     long long prev_error_replies = server.stat_total_error_replies;
-    client *old_client = server.current_client;
-    server.current_client = c;
+    client *old_client = server.current_client[iotid];
+    server.current_client[iotid] = c;
     monotime replyTimer;
     elapsedStart(&replyTimer);
 
@@ -726,7 +726,7 @@ static void moduleUnblockClientOnKey(client *c, robj *key) {
      * in order to propagate any changes that could have been done inside
      * moduleTryServeClientBlockedOnKey */
     afterCommand(c);
-    server.current_client = old_client;
+    server.current_client[iotid] = old_client;
 }
 
 /* Unblock a client which is currently Blocked on and provided a timeout.
@@ -757,6 +757,7 @@ void unblockClientOnError(client *c, const char *err_str) {
 }
 
 void blockedBeforeSleep(void) {
+    int prev_iotid = iotid;
     /* Handle precise timeouts of blocked clients. */
     handleBlockedClientsTimeout();
 
@@ -782,6 +783,10 @@ void blockedBeforeSleep(void) {
         moduleHandleBlockedClients();
 
     /* Try to process pending commands for clients that were just unblocked. */
-    if (listLength(server.unblocked_clients))
-        processUnblockedClients();
+    for (int slot = 0; slot < server.io_threads_num; slot++) {
+        iotid = slot;
+        if (listLength(server.unblocked_clients[iotid]))
+            processUnblockedClients();
+    }
+    iotid = prev_iotid;
 }
