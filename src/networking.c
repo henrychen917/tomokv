@@ -2336,7 +2336,12 @@ void freeClient(client *c) {
     }
 
     /* ee451: ring not drained — defer free until every dispatched fake has
-     * been flushed. dispatchid == flushid means the ring is empty. */
+     * been flushed. dispatchid == flushid means the ring is empty.
+     * The drain in handleWorkerReplies now skips CLOSE_ASAP reals (and
+     * advances flushid as fakes complete, letting freeClient eventually
+     * succeed when the ring drains). We do NOT mutate the per-IO-thread
+     * pending_worker lists here because freeClient can be called from a
+     * different thread than the one that owns c->tid's list. */
     if (!c->isFake && c->dispatchid != c->flushid) {
         freeClientAsync(c);
         return;
@@ -3901,18 +3906,10 @@ int processInputBuffer(client *c) {
         c->read_error = curcmd->read_error;
         c->current_pending_cmd = curcmd;
 
-        /* Prefetch the command only when more commands have been parsed and we
-         * are in the main thread. If running in an IO thread, prefetch will be
-         * deferred until the client is processed by the main thread. Skip prefetch
-         * if there are too few commands to avoid meaningless prefetching. */
-        if (parse_more && c->running_tid == IOTHREAD_MAIN_THREAD_ID &&
-            c->pending_cmds.ready_len > 1)
-        {
-            // /* Prefetch the commands. */
-            // resetCommandsBatch();
-            // addCommandToBatch(c);
-            // prefetchCommands();
-        }
+        /* Upstream command-prefetch batch (memory_prefetch.c) removed.
+         * Cache warming for worker-dispatched commands is handled in
+         * workerPrefetchBatch() (server.c) on the worker side against the
+         * correct shard DB. */
 
         /* Check if the client has a fatal read error that requires stopping processing. */
         if (isClientReadErrorFatal(c)) {

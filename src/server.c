@@ -1869,6 +1869,41 @@ void handleWorkerReplies(void) {
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
 
+        /* Guard: real might have been torn down (connection closed,
+         * output-buffer-limit overflow, etc.) between dispatch and now.
+         * freeClient defers when fakes are in flight (dispatchid != flushid)
+         * by calling freeClientAsync, which sets CLOSE_ASAP. After that the
+         * conn may be freed and splicing into it will NULL-deref.
+         *
+         * We still need to advance flushid as workers finish their fakes —
+         * otherwise freeClient keeps deferring forever (dispatchid !=
+         * flushid) and real never actually gets freed. So for each ready
+         * slot: clear its mask bit, retire fake state via commandProcessed
+         * (worker's release barrier means it's done touching the fake),
+         * advance flushid. Do NOT call AddReplyFromClient / writeToClient —
+         * real's conn is on its way out. Once the ring is empty, remove
+         * real from the pending_worker list; freeClient will reclaim on the
+         * next async-free pass. */
+        if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
+            uint32_t close_mask;
+            atomicGetAcquire(real->reply_ready_mask, close_mask);
+            while (real->flushid != real->dispatchid) {
+                unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
+                if (!(close_mask & (1u << slot))) break;  /* wait for worker */
+                client *fake = real->fakeClients[slot];
+                int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
+                fake->flags &= ~CLIENT_WORKER_PENDING;
+                commandProcessed(fake);
+                if (was_worker_dispatched) replyWorking--;
+                atomicFetchAnd(real->reply_ready_mask, ~(1u << slot));
+                real->flushid++;
+            }
+            if (real->flushid == real->dispatchid) {
+                listDelNode(server.clients_pending_worker[iotid], ln);
+            }
+            continue;
+        }
+
         /* Snapshot the ready-mask once per pass. Acquire pairs with the
          * workers' release on bit set, so all of each ready fake's reply
          * writes are visible before we read its buffer. Bits set by workers
@@ -3199,7 +3234,9 @@ void initServer(void) {
     if (server.maxmemory_clients != 0)
         initServerClientMemUsageBuckets();
 
-    prefetchCommandsBatchInit();
+    /* prefetchCommandsBatchInit() removed — upstream command-prefetch batch
+     * (memory_prefetch.c) is unused. Cache warming for worker-dispatched
+     * commands happens in workerPrefetchBatch() against the worker's DB. */
 }
 void initListeners(void) {
     /* Setup listeners from server config for TCP/TLS/Unix */
@@ -4861,14 +4898,111 @@ int processCommand(client *c) {
     return C_OK;
 }
 
+/* Whitelist of commands safe to dispatch to a worker thread.
+ *
+ * Every entry must satisfy:
+ *   1. Single key, at argv[1] (getWorkerForCommand hashes argv[1]).
+ *   2. Deterministic — no global RNG / TIME / shared state.
+ *   3. Touches only the key's own shard entry — no cross-key ops, no
+ *      pubsub fanout, no keyspace-wide scans.
+ *   4. Synchronous reply via fake's own buffer — no blocking, no async
+ *      deferred replies.
+ *
+ * Behavior-parity invariants this whitelist relies on (user-visible if
+ * violated):
+ *   - notify-keyspace-events must be "" (default). Otherwise write
+ *     commands race on global pubsub state.
+ *   - TTL-setting commands (EXPIRE, SET with EX/PX/KEEPTTL, GETEX with
+ *     TTL opts) are intentionally excluded — the expiration cron walks
+ *     server.db not the per-worker shards, so TTLs would never fire.
+ *   - RNG-sampling commands (SPOP/SRANDMEMBER/ZRANDMEMBER/HRANDFIELD
+ *     and their `count` forms) are excluded — racing workers on the
+ *     global RNG produces statistically biased output vs stock Redis.
+ *   - Variadic-key commands (DEL k1 k2 ...) are gated on argc == 2 so
+ *     only the single-key form is dispatched; multi-key callers fall
+ *     back to inline.
+ *
+ * When in doubt leave a command off — it will run inline on the IO
+ * thread via the else branch in processCommand. */
 int canDispatchToWorker(client *c) {
-    return (c->cmd->proc == getCommand ||
-            c->cmd->proc == setCommand ||
-            c->cmd->proc == delCommand);
+    redisCommandProc *p = c->cmd->proc;
+
+    /* DEL is variadic-key; only the single-key form (argc == 2) is safe
+     * to dispatch. Multi-key DEL would cross shards and silently lose
+     * keys whose hash targets a different worker. */
+    if (p == delCommand) return c->argc == 2;
+
+    /* NOTE: setCommand stays in the whitelist below, but SET with TTL
+     * options (EX/PX/EXAT/PXAT) triggers argv rewriting — same worker-
+     * unsafe path as INCRBYFLOAT. Callers should use SET without TTL,
+     * or don't dispatch SET at all if you need TTL support. */
+
+    return (
+        /* --- Strings (non-TTL) ------------------------------------- */
+        p == getCommand          || p == setCommand          ||
+        p == setnxCommand        ||
+        p == incrCommand         || p == incrbyCommand       ||
+        p == decrCommand         || p == decrbyCommand       ||
+        /* incrbyfloatCommand intentionally excluded — it calls
+         * rewriteClientCommandArgument to replicate as SET with the new
+         * value, which touches the shared command table and shared.set /
+         * shared.keepttl robjs via multi-step refcount ops that aren't
+         * safe under concurrent worker execution. Same hazard for
+         * hincrbyfloatCommand below. */
+        p == appendCommand       || p == strlenCommand       ||
+        p == getrangeCommand     || p == setrangeCommand     ||
+        /* --- Bitmap (compute-heavy — main worker showcase) --------- */
+        p == bitcountCommand     || p == bitposCommand       ||
+        p == getbitCommand       || p == setbitCommand       ||
+        p == bitfieldCommand     ||
+        /* --- Hash -------------------------------------------------- */
+        p == hgetCommand         || p == hmgetCommand        ||
+        p == hsetCommand         || p == hsetnxCommand       ||
+        p == hdelCommand         || p == hexistsCommand      ||
+        p == hgetallCommand      || p == hkeysCommand        ||
+        p == hvalsCommand        ||
+        p == hlenCommand         || p == hstrlenCommand      ||
+        p == hincrbyCommand      ||
+        /* hincrbyfloatCommand intentionally excluded — rewrites as
+         * HSETEX via rewriteClientCommandVector, same worker-unsafe
+         * refcount path as incrbyfloatCommand. */
+        /* --- Sorted set -------------------------------------------- */
+        p == zaddCommand         || p == zincrbyCommand      ||
+        p == zremCommand         ||
+        p == zscoreCommand       || p == zmscoreCommand      ||
+        p == zrankCommand        || p == zrevrankCommand     ||
+        p == zcardCommand        || p == zcountCommand       ||
+        p == zlexcountCommand    ||
+        p == zrangeCommand       || p == zrevrangeCommand    ||
+        p == zrangebyscoreCommand || p == zrevrangebyscoreCommand ||
+        p == zrangebylexCommand  || p == zrevrangebylexCommand ||
+        p == zremrangebyrankCommand  ||
+        p == zremrangebyscoreCommand ||
+        p == zremrangebylexCommand   ||
+        /* --- List -------------------------------------------------- */
+        p == lpushCommand        || p == rpushCommand        ||
+        p == lpushxCommand       || p == rpushxCommand       ||
+        p == lpopCommand         || p == rpopCommand         ||
+        p == lrangeCommand       || p == lindexCommand       ||
+        p == llenCommand         ||
+        p == lsetCommand         || p == ltrimCommand        ||
+        p == lremCommand         || p == linsertCommand      ||
+        p == lposCommand         ||
+        /* --- Set --------------------------------------------------- */
+        p == saddCommand         || p == sremCommand         ||
+        p == sismemberCommand    || p == smismemberCommand   ||
+        p == scardCommand        || p == smembersCommand     ||
+        /* --- HyperLogLog (single-key form only) -------------------- */
+        p == pfaddCommand        ||
+        /* --- Metadata (read-only) ---------------------------------- */
+        p == typeCommand);
 }
 
 int getWorkerForCommand(client *c) {
-    /* Key is always argv[1] for GET/SET/DEL */
+    /* Assumes argv[1] is the command's sole key. canDispatchToWorker
+     * enforces this invariant — every whitelisted command above is of
+     * the `CMD key [args...]` shape, and variadic-key commands like DEL
+     * are gated on argc == 2 so only the single-key form dispatches. */
     robj *key = c->argv[1];
     uint64_t hash = dictGenHashFunction(key->ptr, sdslen(key->ptr));
     return hash % server.num_workers;
