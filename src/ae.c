@@ -27,6 +27,12 @@
 #include "zmalloc.h"
 #include "config.h"
 
+/* Per-thread counter of worker-dispatched fakes still in flight for this
+ * IO thread. Defined here (not in server.c) so redis-cli — which links
+ * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
+ * below. Declared extern in ae.h. */
+__thread int replyWorking = 0;
+
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT

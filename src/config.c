@@ -2352,6 +2352,29 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
     embedConfigInterface(NULL, setfn, getfn, rewritefn, applyfn) \
 }
 
+/* myiothreadpipelinedepth must be a power of two and fit in the uint32_t
+ * reply_ready_mask (i.e., <= MY_PIPELINE_DEPTH_MAX = 32). The upper bound
+ * is enforced by createIntConfig's `upper` argument; this validator only
+ * checks power-of-two. Signature matches the numeric-config validator type
+ * (long long, const char **). */
+static int isValidMyPipelineDepth(long long val, const char **err) {
+    if (val < 1 || (val & (val - 1)) != 0) {
+        *err = "myiothreadpipelinedepth must be a power of two (e.g., 1, 2, 4, 8, 16, 32)";
+        return 0;
+    }
+    return 1;
+}
+
+/* myworkerthreadqueuedepth must be a power of two (ring-buffer uses mask for
+ * wrap-around). Upper bound enforced by createIntConfig. */
+static int isValidMyWorkerQueueDepth(long long val, const char **err) {
+    if (val < 1 || (val & (val - 1)) != 0) {
+        *err = "myworkerthreadqueuedepth must be a power of two (e.g., 64, 128, 256, 512, 1024, 2048)";
+        return 0;
+    }
+    return 1;
+}
+
 static int isValidActiveDefrag(int val, const char **err) {
 #ifndef HAVE_DEFRAG
     if (val) {
@@ -3206,6 +3229,12 @@ standardConfig static_configs[] = {
     createIntConfig("databases", NULL, IMMUTABLE_CONFIG, 1, INT_MAX, server.dbnum, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, NULL, updatePort), /* TCP port. */
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
+    /* THredis-dev custom threading knobs. `io-threads` above is inert in this fork
+     * (stock Redis upstream IO threads have been removed); use these instead. */
+    createIntConfig("myiothreads", NULL, IMMUTABLE_CONFIG, 1, MY_IO_THREADS_MAX, server.my_io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("myworkerthreads", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_THREADS_MAX, server.my_worker_threads, WORKER_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("myiothreadpipelinedepth", NULL, IMMUTABLE_CONFIG, 1, MY_PIPELINE_DEPTH_MAX, server.my_pipeline_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
+    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_QUEUE_SIZE_MAX, server.my_worker_queue_size, WORKER_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

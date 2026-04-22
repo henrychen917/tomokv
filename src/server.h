@@ -1425,13 +1425,46 @@ typedef struct {
 #endif
 //ee451
 
-#define PIPELINE_DEPTH 16 /* must be power of 2, must be <= 32 (mask is uint32_t) */
-#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1)
+/* =========================================================================
+ * THredis-dev custom threading & pipelining system.
+ *
+ * This fork removes stock Redis 6+ upstream I/O threads entirely
+ * (`handleClientsWithPending*UsingThreads`, `io_threads_op`, etc. are gone).
+ * The stock `io-threads` redis.conf directive still exists in config.c for
+ * parse-compat but is inert — `server.io_threads_num` is never read.
+ *
+ * The live system is:
+ *   - Custom IO threads: N threads sharing a SO_REUSEPORT listening socket;
+ *     each owns a set of clients and its own event loop. Count configured
+ *     via `myiothreads` -> server.my_io_threads (default 8, max
+ *     MY_IO_THREADS_MAX).
+ *   - Worker threads: M threads executing GET/SET/DEL on per-worker DB
+ *     replicas. Count configured via `myworkerthreads` ->
+ *     server.my_worker_threads (default 3, max MY_WORKER_THREADS_MAX).
+ *   - Per-client fake-client ring for pipelining. Depth configured via
+ *     `myiothreadpipelinedepth` -> server.my_pipeline_depth (default 16,
+ *     max MY_PIPELINE_DEPTH_MAX which is 32 due to reply_ready_mask being
+ *     uint32_t). Must be a power of two.
+ *
+ * Static arrays are sized by the compile-time MAX; loop bounds and slot
+ * masks use the runtime server.my_* values so the build is stable while
+ * actual resource usage scales with config. The runtime mask
+ * server.my_pipeline_queue_mask = server.my_pipeline_depth - 1 is recomputed
+ * once at startup after config load.
+ * ========================================================================= */
+
+/* Compile-time maxes: bound array sizes in struct redisServer / client. */
+#define MY_IO_THREADS_MAX 32
+#define MY_WORKER_THREADS_MAX 64
+#define MY_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
+
+#define PIPELINE_DEPTH 16 /* default; runtime value lives in server.my_pipeline_depth */
+#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.my_pipeline_queue_mask */
 typedef struct client client;
 typedef struct client {
     int isFake;
     client *parent;
-    client *fakeClients[PIPELINE_DEPTH];
+    client *fakeClients[MY_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
     /* Real-client: bitmap of which ring slots have completed replies.
@@ -1626,10 +1659,18 @@ typedef struct client {
                                    * in main thread has received a read event. */
 } client;
 //ee451
-#define WORKER_QUEUE_SIZE 1024  /* must be power of 2 */
-#define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
-#define WORKER_THREADS_NUM 3
-#define IO_THREADS_NUM 8
+/* Worker queue capacity: size of the ring each IO thread pushes fake-client
+ * jobs into for a given worker. Must be a power of two. Runtime value lives
+ * in server.my_worker_queue_size; MY_WORKER_QUEUE_SIZE_MAX caps the static
+ * array. Memory footprint at max:
+ *   num_workers * (my_io_threads + 1) * MY_WORKER_QUEUE_SIZE_MAX * sizeof(ptr)
+ * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
+ * (2048) keeps worst case manageable. */
+#define MY_WORKER_QUEUE_SIZE_MAX 2048
+#define WORKER_QUEUE_SIZE 1024  /* default; runtime value lives in server.my_worker_queue_size */
+#define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.my_worker_queue_mask */
+#define WORKER_THREADS_NUM 3    /* default; runtime value lives in server.my_worker_threads */
+#define IO_THREADS_NUM 8        /* default; runtime value lives in server.my_io_threads */
 /* How many fakes a worker drains per lock acquire on one IO-thread queue.
  * Larger = fewer mutex traffic pings, better cache locality in exec loop,
  * higher latency for the last fake in the batch. 16 matches PIPELINE_DEPTH
@@ -1637,7 +1678,7 @@ typedef struct client {
 #define WORKER_POP_BATCH 16
 typedef struct workerQueue {
   //testing
-    client *jobs[WORKER_QUEUE_SIZE];
+    client *jobs[MY_WORKER_QUEUE_SIZE_MAX];
     unsigned int head;  /* consumer reads from here */
     unsigned int tail;  /* producer writes here */
     pthread_mutex_t lock;
@@ -1646,7 +1687,7 @@ typedef struct workerQueue {
 typedef struct workerThread {
     int id;
     pthread_t thread;
-    workerQueue queues[IO_THREADS_NUM + 1];
+    workerQueue queues[MY_IO_THREADS_MAX + 1];
     redisDb *db;
 } workerThread;
 
@@ -1974,7 +2015,7 @@ struct redisServer {
     /* new front end io */
     int ioThreadsNum;
     ioThreadArgs *ioThreads;
-    int replyWorking[IO_THREADS_NUM + 1];
+    int replyWorking[MY_IO_THREADS_MAX + 1];
     int custom_io_threads_active;
     /* General */
     pid_t pid;                  /* Main process pid. */
@@ -1990,8 +2031,19 @@ struct redisServer {
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
     workerThread *workers;
-    list *clients_pending_worker[IO_THREADS_NUM + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
+    list *clients_pending_worker[MY_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
+    /* THredis-dev custom threading/pipelining runtime knobs. Loaded from
+     * redis.conf (`myiothreads`, `myworkerthreads`, `myiothreadpipelinedepth`,
+     * `myworkerthreadqueuedepth`). my_pipeline_queue_mask and
+     * my_worker_queue_mask are derived from their *_depth / *_size counterparts
+     * at startup. */
+    int my_io_threads;
+    int my_worker_threads;
+    int my_pipeline_depth;
+    unsigned int my_pipeline_queue_mask;
+    int my_worker_queue_size;
+    unsigned int my_worker_queue_mask;
     redisDb **worker_dbs;
     redisDb *db;
     dict *commands;             /* Command table */
@@ -2045,15 +2097,15 @@ struct redisServer {
     uint32_t socket_mark_id;    /* ID for listen socket marking */
     connListener clistener;     /* Cluster bus listener */
     //ee451 per-thread client lists, index 0 = main thread, 1..N = io threads
-    list *clients[IO_THREADS_NUM + 1];
-    list *clients_to_close[IO_THREADS_NUM + 1];
-    list *clients_pending_write[IO_THREADS_NUM + 1];
-    list *clients_pending_read[IO_THREADS_NUM + 1];
-    list *clients_with_pending_ref_reply[IO_THREADS_NUM + 1];
+    list *clients[MY_IO_THREADS_MAX + 1];
+    list *clients_to_close[MY_IO_THREADS_MAX + 1];
+    list *clients_pending_write[MY_IO_THREADS_MAX + 1];
+    list *clients_pending_read[MY_IO_THREADS_MAX + 1];
+    list *clients_with_pending_ref_reply[MY_IO_THREADS_MAX + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
     //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads
-    client *current_client[IO_THREADS_NUM + 1];
-    client *executing_client[IO_THREADS_NUM + 1];
+    client *current_client[MY_IO_THREADS_MAX + 1];
+    client *executing_client[MY_IO_THREADS_MAX + 1];
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */
@@ -2067,7 +2119,7 @@ struct redisServer {
     int execution_nesting;      /* Execution nesting level.
                                  * e.g. call(), async module stuff (timers, events, etc.),
                                  * cron stuff (active expire, eviction) */
-    rax *clients_index[IO_THREADS_NUM + 1];         /* Active clients dictionary by client ID. */
+    rax *clients_index[MY_IO_THREADS_MAX + 1];         /* Active clients dictionary by client ID. */
     uint32_t paused_actions;   /* Bitmask of actions that are currently paused */
     list *postponed_clients;       /* List of postponed clients */
     pause_event client_pause_per_purpose[NUM_PAUSE_PURPOSES];
@@ -2424,7 +2476,7 @@ struct redisServer {
     /* Blocked clients */
     unsigned int blocked_clients;   /* # of clients executing a blocking cmd.*/
     unsigned int blocked_clients_by_type[BLOCKED_NUM];
-    list *unblocked_clients[IO_THREADS_NUM + 1]; /* list of clients to unblock before next loop */
+    list *unblocked_clients[MY_IO_THREADS_MAX + 1]; /* list of clients to unblock before next loop */
     list *ready_keys;        /* List of readyList structures for BLPOP & co */
     /* Client side caching. */
     unsigned int tracking_clients;  /* # of clients with tracking enabled.*/

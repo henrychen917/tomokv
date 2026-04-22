@@ -85,7 +85,9 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 struct redisServer server; /* Server global state */
 /* thread vars */
 __thread int iotid = 0;
-__thread int replyWorking = 0;
+/* replyWorking now lives in ae.c so both redis-server and redis-cli
+ * (which link ae.o but not server.o) can resolve the symbol. Declared
+ * extern in ae.h. */
 /*============================ Internal prototypes ========================== */
 
 static inline int isShutdownInitiated(void);
@@ -1889,7 +1891,7 @@ void handleWorkerReplies(void) {
         int close_asap = 0;
 
         while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & PIPELINE_QUEUE_MASK;
+            unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
 
             client *fake = real->fakeClients[slot];
@@ -1951,7 +1953,7 @@ void handleWorkerReplies(void) {
          * wake it. processInputBuffer will re-evaluate and dispatch whatever
          * was sitting in pending_cmds. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < PIPELINE_DEPTH)
+            (real->dispatchid - real->flushid) < (unsigned int)server.my_pipeline_depth)
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -2896,7 +2898,7 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < IO_THREADS_NUM; j++) {
+    for (j = 0; j < server.my_io_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -2957,6 +2959,13 @@ void initServer(void) {
     server.aof_state = server.aof_enabled ? AOF_ON : AOF_OFF;
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
+
+    /* Derive runtime constants from THredis-dev custom threading config.
+     * my_pipeline_depth and my_worker_queue_size are validated as powers of
+     * two, so (val - 1) is a valid slot mask. Everything that masks a ring
+     * index uses the corresponding *_mask from here on. */
+    server.my_pipeline_queue_mask = (unsigned int)(server.my_pipeline_depth - 1);
+    server.my_worker_queue_mask   = (unsigned int)(server.my_worker_queue_size - 1);
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
     server.rdb_pipe_read = -1;
@@ -2998,7 +3007,7 @@ void initServer(void) {
     resetReplicationBuffer();
 
     /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
-    for (int t = 0; t <= IO_THREADS_NUM; t++) {
+    for (int t = 0; t <= server.my_io_threads; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -3056,7 +3065,7 @@ void initServer(void) {
         server.db[j].avg_ttl = 0;
     }
 
-    server.num_workers = WORKER_THREADS_NUM;
+    server.num_workers = server.my_worker_threads;
     server.worker_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
     for (int w = 0; w < server.num_workers; w++) {
         server.worker_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
@@ -4803,7 +4812,7 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
-    if (c->dispatchid - c->flushid == PIPELINE_DEPTH) {
+    if (c->dispatchid - c->flushid == (unsigned int)server.my_pipeline_depth) {
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
@@ -4815,7 +4824,7 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    client *fake = c->fakeClients[c->dispatchid & PIPELINE_QUEUE_MASK];
+    client *fake = c->fakeClients[c->dispatchid & server.my_pipeline_queue_mask];
     moveExecutionState(c, fake);
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
@@ -7960,7 +7969,7 @@ void workerQueueInit(workerQueue *q) {
 
 int workerQueuePush(workerQueue *q, client *c) {
     pthread_mutex_lock(&q->lock);
-    unsigned int next_tail = (q->tail + 1) & WORKER_QUEUE_MASK;
+    unsigned int next_tail = (q->tail + 1) & server.my_worker_queue_mask;
     if (next_tail == q->head) {
         pthread_mutex_unlock(&q->lock);
         fprintf(stderr, "worker queue full\n");
@@ -7983,7 +7992,7 @@ client *workerQueuePop(workerQueue *q) {
         return NULL; /* empty */
     }
     client *c = q->jobs[q->head];
-    q->head = (q->head + 1) & WORKER_QUEUE_MASK;
+    q->head = (q->head + 1) & server.my_worker_queue_mask;
     pthread_mutex_unlock(&q->lock);
     return c;
 }
@@ -7998,7 +8007,7 @@ int workerQueuePopBatch(workerQueue *q, client **out, int max) {
     int n = 0;
     while (n < max && q->head != q->tail) {
         out[n++] = q->jobs[q->head];
-        q->head = (q->head + 1) & WORKER_QUEUE_MASK;
+        q->head = (q->head + 1) & server.my_worker_queue_mask;
     }
     pthread_mutex_unlock(&q->lock);
     return n;
@@ -8062,7 +8071,7 @@ void *workerThreadMain(void *arg) {
     client *batch[WORKER_POP_BATCH];
     while (1) {
         int any = 0;
-        for (int i = 0; i <= IO_THREADS_NUM; i++) {
+        for (int i = 0; i <= server.my_io_threads; i++) {
             int n = workerQueuePopBatch(&worker->queues[i], batch, WORKER_POP_BATCH);
             if (n == 0) continue;
             any = 1;
@@ -8092,15 +8101,15 @@ void *workerThreadMain(void *arg) {
 }
 
 /* Pin a worker's pthread to a single core so its per-shard DB stays
- * cache-resident on that core. IO threads sit on cores [0, IO_THREADS_NUM);
- * we push workers onto cores starting at IO_THREADS_NUM. If the machine
+ * cache-resident on that core. IO threads sit on cores [0, my_io_threads);
+ * we push workers onto cores starting at my_io_threads. If the machine
  * doesn't have enough cores, fall back to wrapping with modulo — a soft
  * collision with an IO thread is fine, worse than ideal but not wrong. */
 static void pinWorkerToCore(pthread_t thread, int worker_id) {
 #ifdef __linux__
     long n_cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (n_cores <= 0) return;
-    int core = (IO_THREADS_NUM + worker_id) % (int)n_cores;
+    int core = (server.my_io_threads + worker_id) % (int)n_cores;
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(core, &cpuset);
@@ -8122,7 +8131,7 @@ void initWorkers(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.workers[i].id = i;
         server.workers[i].db = server.worker_dbs[i];
-        for (int t = 0; t <= IO_THREADS_NUM; t++) {
+        for (int t = 0; t <= server.my_io_threads; t++) {
             workerQueueInit(&server.workers[i].queues[t]);
         }
         pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
@@ -8133,11 +8142,11 @@ void initWorkers(void) {
 
 
 void initIOThreads(void) {
-    server.ioThreadsNum = IO_THREADS_NUM;
-    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * IO_THREADS_NUM);
+    server.ioThreadsNum = server.my_io_threads;
+    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * server.my_io_threads);
     server.custom_io_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
-    for (int i = 1; i < IO_THREADS_NUM; i++) {
+    for (int i = 1; i < server.my_io_threads; i++) {
         ioThreadArgs *t = &server.ioThreads[i];
         t->id = i;
         /* Create the event loop for this IO thread */
@@ -8177,7 +8186,7 @@ void *ioThreadMain(void *arg) {
     ioThreadArgs *t = (ioThreadArgs *)arg;
     iotid = t->id;
 
-    fprintf(stderr, "IO thread %d started", t->id);
+    fprintf(stderr, "IO thread %d started\n", t->id);
 
     while (1) {
         aeProcessEventsIO(t->el);

@@ -445,8 +445,10 @@ client *createClient(connection *conn) {
     /* Preallocate the fake ring. Each fake borrows conn/user/db at dispatch,
      * owns its own output buffer, and lives for the lifetime of the parent.
      * fake_slot is stamped to the ring index so workers know which bit to set
-     * in parent->reply_ready_mask at completion. */
-    for (int i = 0; i < PIPELINE_DEPTH; i++) {
+     * in parent->reply_ready_mask at completion.
+     * Allocate exactly server.my_pipeline_depth fakes; slots [depth, MAX) stay
+     * NULL. Depth is immutable post-startup so we never grow the ring. */
+    for (int i = 0; i < server.my_pipeline_depth; i++) {
         c->fakeClients[i] = createFakeClient(c);
         c->fakeClients[i]->fake_slot = (unsigned int)i;
     }
@@ -2345,9 +2347,11 @@ void freeClient(client *c) {
         fetchClientFromIOThread(c);
     }
 
-    /* ee451: ring is drained — safe to tear down fakes. */
+    /* ee451: ring is drained — safe to tear down fakes. Walk the full
+     * MAX-sized array; slots beyond server.my_pipeline_depth were never
+     * allocated and are NULL. */
     if (!c->isFake) {
-        for (int i = 0; i < PIPELINE_DEPTH; i++) {
+        for (int i = 0; i < MY_PIPELINE_DEPTH_MAX; i++) {
             if (c->fakeClients[i]) {
                 freeFakeClient(c->fakeClients[i]);
                 c->fakeClients[i] = NULL;
