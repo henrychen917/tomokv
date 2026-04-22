@@ -93,9 +93,6 @@ int isReadyToShutdown(void);
 int finishShutdown(void);
 const char *replstateToString(int replstate);
 
-//ee451
-static int isStatefulCommand(struct redisCommand *cmd);
-static void moveExecutionState(client *real, client *fake);
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -757,7 +754,32 @@ dictType clientDictType = {
     .no_value = 1,              /* no values in this dict */
     .keys_are_odd = 0           /* a client pointer is not an odd pointer */            
 };
+static uint64_t dictUint64Hash(const void *key) {
+    uint64_t v = *((const uint64_t *)key);
+    return dictGenHashFunction((unsigned char *)&v, sizeof(v));
+}
 
+static void *dictUint64Dup(dict *d, const void *key) {
+    UNUSED(d);
+    uint64_t *copy = zmalloc(sizeof(*copy));
+    *copy = *((const uint64_t *)key);
+    return copy;
+}
+
+static int dictUint64KeyCompare(dictCmpCache *cache, const void *key1, const void *key2) {
+    UNUSED(cache);
+    return *((const uint64_t *)key1) == *((const uint64_t *)key2);
+}
+
+dictType workerReplyDictType = {
+    dictUint64Hash,             /* hash function */
+    dictUint64Dup,              /* key dup */
+    NULL,                       /* val dup */
+    dictUint64KeyCompare,       /* key compare */
+    dictVanillaFree,            /* key destructor */
+    NULL,                       /* val destructor */
+    NULL                        /* allow to expand */
+};
 kvstoreType kvstoreBaseType = {
     NULL, /* kvstore metadata size */
     NULL, /* dict metadata size */
@@ -1859,101 +1881,175 @@ extern int ProcessingEventsWhileBlocked;
  *
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
-void handleWorkerReplies(void) {
-    listIter li;
-    listNode *ln;
-    listRewind(server.clients_pending_worker[iotid], &li);
-    while ((ln = listNext(&li))) {
-        client *real = listNodeValue(ln);
+// void handleWorkerReplies(void) {
+//     listIter li;
+//     listNode *ln;
+//     listRewind(server.clients_pending_worker[iotid], &li);
+//     while ((ln = listNext(&li))) {
+//         client *c = listNodeValue(ln);
+//         int ready;
+//         atomicGet(c->reply_ready, ready);
+//         if (ready) {
+//             replyWorking--;
+//             //fprintf(stderr, "replyWOrking%d\n", replyWorking);
+//             atomicSet(c->reply_ready, 0);
+//             c->flags &= ~CLIENT_WORKER_PENDING;
+//             commandProcessed(c);
 
-        /* Snapshot the ready-mask once per pass. Acquire pairs with the
-         * workers' release on bit set, so all of each ready fake's reply
-         * writes are visible before we read its buffer. Bits set by workers
-         * after this load just stay for the next drain pass. */
-        uint32_t mask;
-        atomicGetAcquire(real->reply_ready_mask, mask);
+//             putClientInPendingWriteQueue(c);
+//             listDelNode(server.clients_pending_worker[iotid], ln);
+//             connSetReadHandler(c->conn, readQueryFromClient);
+//         }
+//     }
+// }
+static void populateClientFromPendingCommand(client *c, pendingCommand *pcmd) {
+    c->argc = pcmd->argc;
+    c->argv = pcmd->argv;
+    c->argv_len = pcmd->argv_len;
+    c->cmd = c->lastcmd = c->realcmd = c->lookedcmd = pcmd->cmd;
+    c->current_pending_cmd = pcmd;
+    c->reploff_next = pcmd->reploff;
+    c->slot = pcmd->slot;
+    c->read_error = pcmd->read_error;
+    c->net_input_bytes_curr_cmd = pcmd->input_bytes;
+    c->net_output_bytes_curr_cmd = 0;
+}
 
-        /* Fast skip — no slot ready for this client. */
-        if (mask == 0) {
-            if (real->flushid == real->dispatchid) {
-                /* Nothing ready, nothing in flight — drop off the flush list. */
-                listDelNode(server.clients_pending_worker[iotid], ln);
-            }
+static void applyWorkerCommandContext(client *wc, pendingCommand *pcmd) {
+    wc->resp = pcmd->resp;
+    wc->user = pcmd->user;
+    wc->authenticated = pcmd->authenticated;
+    wc->db = &server.workers[wc->worker_id].db[pcmd->dbid];
+}
+
+static list *getWorkerFakeClientPool(client *owner) {
+    if (!owner->worker_fakeclients) {
+        owner->worker_fakeclients = listCreate();
+    }
+    return owner->worker_fakeclients;
+}
+
+static dict *getWorkerCompletedDict(client *owner) {
+    if (!owner->worker_completed) {
+        owner->worker_completed = dictCreate(&workerReplyDictType);
+    }
+    return owner->worker_completed;
+}
+
+static client *acquireWorkerFakeClient(client *owner) {
+    list *pool = getWorkerFakeClientPool(owner);
+    listNode *ln = listFirst(pool);
+
+    if (ln) {
+        client *fc = listNodeValue(ln);
+        listUnlinkNode(pool, ln);
+        zfree(ln);
+        return fc;
+    }
+
+    return createWorkerFakeClient(owner);
+}
+
+static void recycleWorkerFakeClient(client *fc) {
+    client *owner = fc->worker_owner;
+
+    serverAssert(owner != NULL);
+    serverAssert(fc->pending_cmds.len == 0);
+    serverAssert(fc->all_argv_len_sum == 0);
+    serverAssert(fc->bufpos == 0);
+    serverAssert(listLength(fc->reply) == 0);
+    serverAssert(fc->deferred_reply_errors == NULL);
+    fc->tid = 0;
+    fc->flags = CLIENT_WORKER_CONTEXT;
+    fc->worker_id = -1;
+    fc->reply_ready = 0;
+    fc->completed_seqno = UINT64_MAX;
+    fc->argc = 0;
+    fc->argv = NULL;
+    fc->argv_len = 0;
+    fc->cmd = fc->lastcmd = fc->realcmd = fc->lookedcmd = NULL;
+    fc->current_pending_cmd = NULL;
+    fc->cur_script = NULL;
+    fc->slot = -1;
+    fc->cluster_compatibility_check_slot = -2;
+    fc->read_error = 0;
+    fc->reploff_next = 0;
+    fc->duration = 0;
+    fc->original_argc = 0;
+    fc->original_argv = NULL;
+    fc->net_input_bytes_curr_cmd = 0;
+    fc->net_output_bytes_curr_cmd = 0;
+
+    listAddNodeTail(getWorkerFakeClientPool(owner), fc);
+}
+
+static void drainCompletedWorkerFakeClients(void) {
+    client *fc;
+
+    while ((fc = workerQueueTryPop(&server.worker_done_queue[iotid])) != NULL) {
+        client *owner = fc->worker_owner;
+
+        if (!owner) {
+            freeClient(fc);
             continue;
         }
 
-        /* Splice ready fakes (in ring order) onto real's output, accumulating
-         * a single writeToClient call at the end. */
-        int spliced = 0;
-        int close_asap = 0;
+        serverAssertWithInfo(owner, NULL,
+                             dictAdd(getWorkerCompletedDict(owner),
+                                     &fc->completed_seqno, fc) == DICT_OK);
+    }
+}
 
-        while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & PIPELINE_QUEUE_MASK;
-            if (!(mask & (1u << slot))) break;   /* head of ring not done */
+static void prependPendingCommand(pendingCommandList *list, pendingCommand *pcmd) {
+    pcmd->prev = NULL;
+    pcmd->next = list->head;
+    if (list->head) list->head->prev = pcmd;
+    else list->tail = pcmd;
+    list->head = pcmd;
+    list->len++;
+    if (!(pcmd->flags & PENDING_CMD_FLAG_INCOMPLETE)) list->ready_len++;
+}
+void handleWorkerReplies(void) {
+    listIter li;
+    listNode *ln;
 
-            client *fake = real->fakeClients[slot];
-            int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
+    drainCompletedWorkerFakeClients();
 
-            /* Clear the worker-pending flag BEFORE commandProcessed, because
-             * resetClient() early-returns when the flag is set. */
-            fake->flags &= ~CLIENT_WORKER_PENDING;
+    listRewind(server.clients_pending_worker[iotid], &li);
+    while ((ln = listNext(&li))) {
+        client *owner = listNodeValue(ln);
+        int merged = 0;
 
-            /* Zero-copy-ish splice of fake's reply onto real's output:
-             * absorbs the short buf via addReplyProto and listJoins the
-             * reply list (O(1) pointer splice for the tail list). Also
-             * resets fake->bufpos and fake->reply_bytes. May mark real
-             * CLIENT_CLOSE_ASAP on output-buffer-limit overflow. */
-            AddReplyFromClient(real, fake);
-            spliced = 1;
+        while (owner->worker_completed) {
+            uint64_t seqno = owner->next_reply_seq;
+            client *ready_fc = dictFetchValue(owner->worker_completed, &seqno);
 
-            if (real->flags & CLIENT_CLOSE_ASAP) {
-                /* Output limit blown — real is scheduled for async free.
-                 * Retire the fake state, stop walking the ring. The async
-                 * free queue will clean up real; its ring doesn't need
-                 * further drain here. */
-                commandProcessed(fake);
-                if (was_worker_dispatched) replyWorking--;
-                real->flushid++;
-                /* Clear this slot's ready bit so it doesn't linger. */
-                atomicFetchAnd(real->reply_ready_mask, ~(1u << slot));
-                close_asap = 1;
-                break;
-            }
+            if (!ready_fc) break;
 
-            /* Fake is fully drained into real's output. Clear this slot's
-             * ready bit (relaxed — the only other writers are workers, but
-             * they only OR; we're the sole clearer) and retire fake state.
-             * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
-            atomicFetchAnd(real->reply_ready_mask, ~(1u << slot));
-            commandProcessed(fake);
-
-            if (was_worker_dispatched) replyWorking--;
-            real->flushid++;
+            serverAssertWithInfo(owner, NULL,
+                                 dictDelete(owner->worker_completed, &seqno) == DICT_OK);
+            AddReplyFromClient(owner, ready_fc);
+            owner->next_reply_seq++;
+            owner->worker_inflight_count--;
+            merged = 1;
+            recycleWorkerFakeClient(ready_fc);
         }
 
-        /* Single socket flush for everything we spliced this pass. */
-        if (spliced && !close_asap) {
-            /* writeToClient returning C_ERR means the conn errored; it calls
-             * freeClientAsync(real) internally. We just stop touching real. */
-            (void)writeToClient(real, 0);
-        }
-
-        /* Ring fully drained and all ready bits consumed — drop off the
-         * flush-walk list. Test mask == 0 indirectly via flushid/dispatchid:
-         * any remaining set bits must correspond to slots >= flushid, but
-         * flushid == dispatchid means there are no outstanding slots. */
-        if (real->flushid == real->dispatchid) {
-            listDelNode(server.clients_pending_worker[iotid], ln);
-        }
-
-        /* A slot opened up; if real stalled waiting for ring space or drain,
-         * wake it. processInputBuffer will re-evaluate and dispatch whatever
-         * was sitting in pending_cmds. */
-        if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < PIPELINE_DEPTH)
+        if (!(owner->flags & CLIENT_CLOSE_ASAP) &&
+            ((owner->querybuf && sdslen(owner->querybuf) > 0) ||
+             owner->pending_cmds.ready_len > 0))
         {
-            real->flags &= ~CLIENT_PIPELINE_STALLED;
-            processInputBuffer(real);
+            processPendingCommandAndInputBuffer(owner);
+        }
+
+        if (owner->worker_inflight_count == 0) {
+            owner->flags &= ~(CLIENT_PROTECTED | CLIENT_WORKER_REPLY_TRACKED);
+            if (merged && owner->conn && !(owner->flags & CLIENT_CLOSE_ASAP) &&
+                clientHasPendingReplies(owner))
+            {
+                putClientInPendingWriteQueue(owner);
+            }
+            listDelNode(server.clients_pending_worker[iotid], ln);
         }
     }
 }
@@ -1964,36 +2060,6 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     handleWorkerReplies();
     handleClientsWithPendingWrites();
     freeClientsInAsyncFreeQueue();
-
-    size_t pending = listLength(server.clients_pending_worker[iotid]);
-    /* Periodic dump of state so we can see if the IO thread is stuck waiting. */
-    static __thread unsigned long long bsio_calls = 0;
-    static __thread monotime last_dump_us = 0;
-    bsio_calls++;
-    monotime now_us = getMonotonicUs();
-    if (pending > 0 && (now_us - last_dump_us) > 1000000) {  /* once per second */
-        last_dump_us = now_us;
-        listIter li; listNode *ln;
-        listRewind(server.clients_pending_worker[iotid], &li);
-        int n = 0;
-        //fprintf(stderr, "[iotid=%d STALL] pending=%zu replyWorking=%d bsio_calls=%llu\n",
-        //        iotid, pending, replyWorking, bsio_calls);
-        while ((ln = listNext(&li)) && n < 3) {
-            client *real = listNodeValue(ln);
-            uint32_t ready_mask;
-            atomicGetAcquire(real->reply_ready_mask, ready_mask);
-            (void)ready_mask;
-            //fprintf(stderr, "  real->id=%llu dispatch=%u flush=%u diff=%u ready_mask=0x%x flags=0x%llx\n",
-                    // (unsigned long long)real->id,
-                    // real->dispatchid, real->flushid,
-                    // real->dispatchid - real->flushid,
-                    // ready_mask, (unsigned long long)real->flags);
-            n++;
-        }
-    }
-
-    /* Don't sleep if this IO thread still has commands in flight with workers. */
-    aeSetDontWait(eventLoop, pending > 0);
 }
 
 void afterSleepIO(struct aeEventLoop *eventLoop) {
@@ -3055,7 +3121,7 @@ void initServer(void) {
         server.db[j].avg_ttl = 0;
     }
 
-    server.num_workers = WORKER_THREADS_NUM;
+    server.num_workers = 6;
     server.worker_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
     for (int w = 0; w < server.num_workers; w++) {
         server.worker_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
@@ -4386,14 +4452,6 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * If C_OK is returned the client is still alive and valid and
  * other operations can be performed by the caller. Otherwise
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
-/* If this function gets called we already read a whole
- * command, arguments are in the client argv/argc fields.
- * processCommand() execute the command or prepare the
- * server for a bulk read from the client.
- *
- * If C_OK is returned the client is still alive and valid and
- * other operations can be performed by the caller. Otherwise
- * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
 int processCommand(client *c) {
 
     if (!scriptIsTimedout()) {
@@ -4758,19 +4816,7 @@ int processCommand(client *c) {
         return C_OK;       
     }
 
-    /* ee451: classify and route.
-     *
-     * Stateful commands (MULTI/EXEC, SUBSCRIBE, HELLO, AUTH, SELECT, etc.)
-     * mutate client-level state (mstate, pubsub dicts, resp, user, db, name).
-     * They must run on the real client. When the ring has in-flight fakes,
-     * drain first so the stateful command's output goes on the wire after
-     * those fakes' replies.
-     *
-     * Everything else routes through a fake. The fake's reply buffer is
-     * what ends up on the wire, in dispatch order, via the flush walk. */
-
-    /* Queuing inside MULTI: writes to real->mstate and addReply(real).
-     * Must run on real. Drain ring first. */
+    /* Exec the command */
     if (c->flags & CLIENT_MULTI &&
         c->cmd->proc != execCommand &&
         c->cmd->proc != discardCommand &&
@@ -4779,75 +4825,25 @@ int processCommand(client *c) {
         c->cmd->proc != quitCommand &&
         c->cmd->proc != resetCommand)
     {
-        if (c->dispatchid != c->flushid) {
-            c->flags |= CLIENT_PIPELINE_STALLED;
-            return C_OK;
-        }
         queueMultiCommand(c, cmd_flags);
-        addReply(c, shared.queued);
-        return C_OK;
-    }
-
-    /* Stateful commands — run on real with ring drained. */
-    if (isStatefulCommand(c->cmd)) {
-        if (c->dispatchid != c->flushid) {
-            c->flags |= CLIENT_PIPELINE_STALLED;
+        addReply(c,shared.queued);
+    } else {
+        /* Check if this is a simple single-key data command we can
+         * dispatch to a worker thread. */
+        if (canDispatchToWorker(c)) {
+            int worker_id = getWorkerForCommand(c);
+            queueToWorker(c, worker_id);
+            /* Don't read more from this client until reply_ready */
+            aeDeleteFileEvent(server.el, c->conn->fd, AE_READABLE);
             return C_OK;
         }
+
+        /* Everything else runs on main thread as before */
         int flags = CMD_CALL_FULL;
-        call(c, flags);
+        call(c,flags);
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
-        return C_OK;
     }
-
-    /* Non-stateful — route through a fake. Stall if ring is full. */
-    if (c->dispatchid - c->flushid == PIPELINE_DEPTH) {
-        c->flags |= CLIENT_PIPELINE_STALLED;
-        static __thread monotime last_stall_us = 0;
-        monotime now_us = getMonotonicUs();
-        if (now_us - last_stall_us > 1000000) {
-            last_stall_us = now_us;
-            //fprintf(stderr, "[iotid=%d PIPELINE_STALLED] real->id=%llu dispatch=%u flush=%u (ring full)\n",
-                    //iotid, (unsigned long long)c->id, c->dispatchid, c->flushid);
-        }
-        return C_OK;
-    }
-
-    client *fake = c->fakeClients[c->dispatchid & PIPELINE_QUEUE_MASK];
-    moveExecutionState(c, fake);
-
-    /* First in-flight fake for this real — enroll in flush-walk list. */
-    if (c->dispatchid == c->flushid) {
-        listAddNodeTail(server.clients_pending_worker[iotid], c);
-    }
-
-    if (canDispatchToWorker(fake)) {
-        int worker_id = getWorkerForCommand(fake);
-        fake->db = &server.workers[worker_id].db[fake->db->id];
-        fake->flags |= CLIENT_WORKER_PENDING;
-        replyWorking++;
-// fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
-//         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
-//         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
-        workerQueuePush(&server.workers[worker_id].queues[iotid], fake);
-    } else {
-        /* Inline on IO thread — synchronous fake execution. */
-        int flags = CMD_CALL_FULL;
-// fprintf(stderr, "inline [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
-//         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
-//         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
-        call(fake, flags);
-        if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
-            handleClientsBlockedOnKeys();
-        /* Signal completion: set our bit in parent's ready mask. Release
-         * order ensures the reply-buffer writes from call() are visible
-         * to the drain thread when it acquire-loads the mask. */
-        atomicFetchOrWithRelease(fake->parent->reply_ready_mask,
-                                 1u << fake->fake_slot);
-    }
-
-    c->dispatchid++;
     return C_OK;
 }
 
@@ -7867,94 +7863,12 @@ redisTestProc *getTestProcByName(const char *name) {
 }
 #endif
 //ee451
-
-
-static inline int isStatefulCommand(struct redisCommand *cmd) {
-    if (!cmd) return 0;
-    return cmd->proc == multiCommand        ||
-           cmd->proc == execCommand         ||
-           cmd->proc == discardCommand      ||
-           cmd->proc == watchCommand        ||
-           cmd->proc == unwatchCommand      ||
-           cmd->proc == subscribeCommand    ||
-           cmd->proc == unsubscribeCommand  ||
-           cmd->proc == psubscribeCommand   ||
-           cmd->proc == punsubscribeCommand ||
-           cmd->proc == ssubscribeCommand   ||
-           cmd->proc == sunsubscribeCommand ||
-           cmd->proc == authCommand         ||
-           cmd->proc == helloCommand        ||
-           cmd->proc == selectCommand       ||
-           cmd->proc == resetCommand        ||
-           cmd->proc == clientCommand       ||
-           cmd->proc == quitCommand         ||
-           cmd->proc == monitorCommand      ||
-           cmd->proc == replicaofCommand;
-}
-
-static void moveExecutionState(client *real, client *fake) {
-    /* Execution state — moved (ownership transfers to fake). */
-    fake->argc                      = real->argc;
-    fake->argv                      = real->argv;
-    fake->argv_len                  = real->argv_len;
-    fake->cmd                       = real->cmd;
-    fake->lookedcmd                 = real->lookedcmd;
-    fake->realcmd                   = real->realcmd;
-    fake->slot                      = real->slot;
-    fake->reploff_next              = real->reploff_next;
-    fake->read_error                = real->read_error;
-    fake->net_input_bytes_curr_cmd  = real->net_input_bytes_curr_cmd;
-
-    /* Move the pending command from real's list to fake's list so that
-     * freeClientPendingCommands(fake, 1) in resetClientInternal frees it. */
-    pendingCommand *pcmd = popPendingCommandFromHead(&real->pending_cmds);
-    serverAssert(pcmd == real->current_pending_cmd);
-    fake->current_pending_cmd = pcmd;
-    addPendingCommand(&fake->pending_cmds, pcmd);
-    real->current_pending_cmd = NULL;
-
-    /* Transfer only this pcmd's argv accounting; other pipelined pcmds
-     * still owned by real must keep their share in real->all_argv_len_sum. */
-    serverAssert(real->all_argv_len_sum >= pcmd->argv_len_sum);
-    real->all_argv_len_sum -= pcmd->argv_len_sum;
-    fake->all_argv_len_sum = pcmd->argv_len_sum;
-
-    /* Identity / context — copied, not moved. */
-    fake->resp          = real->resp;
-    fake->user          = real->user;
-    fake->authenticated = real->authenticated;
-    fake->conn          = real->conn;
-    fake->db            = real->db;
-
-    /* Flag subset that command procs read for per-command behavior. */
-    fake->flags = real->flags & (CLIENT_INTERNAL | CLIENT_ASKING |
-                                  CLIENT_READONLY | CLIENT_DENY_BLOCKING);
-
-    /* Fake's output buffer starts empty every dispatch. The corresponding
-     * bit in parent->reply_ready_mask was cleared by the drain that retired
-     * the previous occupant of this slot, so no mask touch is needed here. */
-    fake->bufpos      = 0;
-    fake->sentlen     = 0;
-    fake->reply_bytes = 0;
-
-    /* Clear moved fields on real. */
-    real->argc                     = 0;
-    real->argv                     = NULL;
-    real->argv_len                 = 0;
-    real->cmd                      = NULL;
-    real->lookedcmd                = NULL;
-    real->realcmd                  = NULL;
-    real->slot                     = -1;
-    real->net_input_bytes_curr_cmd = 0;
-    real->read_error               = 0;
-}
-
-
+/* Returns 0 on success, -1 if full */
 
 void workerQueueInit(workerQueue *q) {
-    atomic_store(&q->head, 0);
-    atomic_store(&q->tail, 0);
-    memset(q->jobs, 0, sizeof(q->jobs));
+    q->head = q->tail = 0;
+    pthread_mutex_init(&q->lock, NULL);
+    pthread_cond_init(&q->cond, NULL);
 }
 
 int workerQueuePush(workerQueue *q, client *c) {
@@ -7967,19 +7881,15 @@ int workerQueuePush(workerQueue *q, client *c) {
     }
     q->jobs[q->tail] = c;
     q->tail = next_tail;
+    pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
-    // fprintf(stderr, "[%s:%d] dispatched, dispatchid now %u\n",
-        // __FILE__, __LINE__, c->dispatchid + 1);
-
     return 0;
 }
 
 client *workerQueuePop(workerQueue *q) {
-    if (pthread_mutex_trylock(&q->lock) != 0)
-        return NULL; /* IO thread is pushing, skip this queue */
-    if (q->head == q->tail) {
-        pthread_mutex_unlock(&q->lock);
-        return NULL; /* empty */
+    pthread_mutex_lock(&q->lock);
+    while (q->head == q->tail) {
+        pthread_cond_wait(&q->cond, &q->lock);
     }
     client *c = q->jobs[q->head];
     q->head = (q->head + 1) & WORKER_QUEUE_MASK;
@@ -7987,52 +7897,127 @@ client *workerQueuePop(workerQueue *q) {
     return c;
 }
 
+client *workerQueueTryPop(workerQueue *q) {
+    client *c = NULL;
 
-
-void queueToWorker(client *c, int worker_id) {
-    replyWorking++;
-    c->db = &server.workers[worker_id].db[c->db->id];
-    c->flags |= CLIENT_WORKER_PENDING;
-    connSetReadHandler(c->conn, NULL);
-    listAddNodeTail(server.clients_pending_worker[iotid], c);
-    workerQueuePush(&server.workers[worker_id].queues[iotid], c);
-
+    pthread_mutex_lock(&q->lock);
+    if (q->head != q->tail) {
+        c = q->jobs[q->head];
+        q->head = (q->head + 1) & WORKER_QUEUE_MASK;
+    }
+    pthread_mutex_unlock(&q->lock);
+    return c;
 }
+
+
+// void queueToWorker(client *c, int worker_id) {
+//     replyWorking++;
+//     c->db = &server.workers[worker_id].db[c->db->id];
+//     c->flags |= CLIENT_WORKER_PENDING;
+//     connSetReadHandler(c->conn, NULL);
+//     listAddNodeTail(server.clients_pending_worker[iotid], c);
+//     workerQueuePush(&server.workers[worker_id].queues[iotid], c);
+
+// }
+int queueToWorker(client *owner, int worker_id) {
+    pendingCommand *pcmd = owner->current_pending_cmd;
+    client *fc;
+
+    if (!pcmd) return C_ERR;
+
+    fc = acquireWorkerFakeClient(owner);
+
+    popPendingCommandFromHead(&owner->pending_cmds);
+    owner->current_pending_cmd = NULL;
+
+    pcmd->seqno = owner->next_dispatch_seq++;
+    pcmd->dbid = owner->db->id;
+    pcmd->resp = owner->resp;
+    pcmd->user = owner->user;
+    pcmd->authenticated = owner->authenticated;
+    serverAssert(owner->all_argv_len_sum >= pcmd->argv_len_sum);
+    owner->all_argv_len_sum -= pcmd->argv_len_sum;
+    fc->worker_id = worker_id;
+    fc->reply_ready = 0;
+    fc->completed_seqno = UINT64_MAX;
+    fc->all_argv_len_sum += pcmd->argv_len_sum;
+    addPendingCommand(&fc->pending_cmds, pcmd);
+    populateClientFromPendingCommand(fc, pcmd);
+    applyWorkerCommandContext(fc, pcmd);
+
+    if (workerQueuePush(&server.workers[worker_id].queues[iotid], fc) == C_ERR) {
+        popPendingCommandFromTail(&fc->pending_cmds);
+        serverAssert(fc->all_argv_len_sum >= pcmd->argv_len_sum);
+        fc->all_argv_len_sum -= pcmd->argv_len_sum;
+        owner->all_argv_len_sum += pcmd->argv_len_sum;
+        prependPendingCommand(&owner->pending_cmds, pcmd);
+        owner->current_pending_cmd = pcmd;
+        populateClientFromPendingCommand(owner, pcmd);
+        owner->next_dispatch_seq--;
+        recycleWorkerFakeClient(fc);
+        return C_ERR;
+    }
+
+    owner->flags |= (CLIENT_WORKER_DISPATCHED | CLIENT_PROTECTED);
+    owner->worker_inflight_count++;
+    if (!(owner->flags & CLIENT_WORKER_REPLY_TRACKED)) {
+        owner->flags |= CLIENT_WORKER_REPLY_TRACKED;
+        listAddNodeTail(server.clients_pending_worker[iotid], owner);
+    }
+    return C_OK;
+}
+
+// void *workerThreadMain(void *arg) {
+//     workerThread *worker = (workerThread *)arg;
+//     fprintf(stderr, "[worker %d] started\n", worker->id);
+//     while (1) {
+//         int found = 0;
+//         for (int i = 0; i <= IO_THREADS_NUM; i++) {
+//             client *c = workerQueuePop(&worker->queues[i]);
+//             if (c) {
+//                 if (c->cmd) {
+//                     c->cmd->proc(c);
+//                 } else {
+//                     fprintf(stderr, "[worker %d] ERROR: c->cmd is NULL!\n", worker->id);
+//                 }
+//                 atomicSet(c->reply_ready, 1);
+//                 found = 1;
+//             }
+//         }
+//         if (!found) sched_yield();
+//     }
+//     return NULL;
+// }
 
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
     fprintf(stderr, "[worker %d] started\n", worker->id);
-    unsigned long long total_processed = 0;
     while (1) {
-        int found = 0;
         for (int i = 0; i <= IO_THREADS_NUM; i++) {
-            client *fake = workerQueuePop(&worker->queues[i]);
-            if (fake) {
-                serverAssert(fake->isFake);
-                if (fake->cmd) {
-                    fake->cmd->proc(fake);
-                } else {
-                    // fprintf(stderr, "[worker %d] ERROR: fake->cmd is NULL!\n", worker->id);
-                }
-                /* Signal completion: set our bit in parent's ready mask with
-                 * release semantics so the draining IO thread sees all of
-                 * this fake's reply writes before observing the ready bit. */
-                atomicFetchOrWithRelease(fake->parent->reply_ready_mask,
-                                         1u << fake->fake_slot);
-                total_processed++;
-                if ((total_processed & 0x3FF) == 0) {
-                    // fprintf(stderr, "[worker %d] processed=%llu (latest: queue=%d, real->id=%llu)\n",
-                    //         worker->id, total_processed, i,
-                    //         (unsigned long long)(fake->parent ? fake->parent->id : 0));
-                }
-                found = 1;
+            client *fc = workerQueuePop(&worker->queues[i]);
+            if (!fc) continue;
+            if (!fc->worker_owner) continue;
+            if (fc->pending_cmds.ready_len == 0) continue;
+
+            pendingCommand *pcmd = fc->pending_cmds.head;
+            populateClientFromPendingCommand(fc, pcmd);
+            applyWorkerCommandContext(fc, pcmd);
+            uint64_t seqno = pcmd->seqno;
+
+            if (fc->cmd) {
+                fc->cmd->proc(fc);
+                prepareForNextCommand(fc, 0);
+            }
+
+            fc->completed_seqno = seqno;
+            fc->reply_ready = 1;
+            while (workerQueuePush(&server.worker_done_queue[fc->tid], fc) == C_ERR) {
+                usleep(1);
             }
         }
-        if (!found) sched_yield();
     }
     return NULL;
 }
-
 void initWorkers(void) {
     server.workers = zmalloc(sizeof(workerThread) * server.num_workers);
     for (int i = 0; i < server.num_workers; i++) {
@@ -8055,6 +8040,7 @@ void initIOThreads(void) {
     for (int i = 1; i < IO_THREADS_NUM; i++) {
         ioThreadArgs *t = &server.ioThreads[i];
         t->id = i;
+
         /* Create the event loop for this IO thread */
         t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
         if (t->el == NULL) {
@@ -8092,7 +8078,7 @@ void *ioThreadMain(void *arg) {
     ioThreadArgs *t = (ioThreadArgs *)arg;
     iotid = t->id;
 
-    fprintf(stderr, "IO thread %d started", t->id);
+    serverLog(LL_NOTICE, "IO thread %d started", t->id);
 
     while (1) {
         aeProcessEventsIO(t->el);

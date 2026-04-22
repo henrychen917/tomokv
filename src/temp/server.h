@@ -444,7 +444,10 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 
 //ee451 new flag
 #define CLIENT_WORKER_PENDING (1ULL << 55) //new ee451
-#define CLIENT_PIPELINE_STALLED (1ULL << 56)
+#define CLIENT_WORKER_CONTEXT (1ULL << 56) /* Non connected fake client used for a worker job. */
+#define CLIENT_WORKER_DISPATCHED (1ULL << 57) /* Current command was dispatched to a worker fake client. */
+#define CLIENT_WORKER_REPLY_TRACKED (1ULL << 58) /* Owner client is tracked in clients_pending_worker. */
+
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1425,30 +1428,28 @@ typedef struct {
 #endif
 //ee451
 
-#define PIPELINE_DEPTH 16 /* must be power of 2, must be <= 32 (mask is uint32_t) */
-#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1)
-typedef struct client client;
+
+
+
+
+
 typedef struct client {
-    int isFake;
-    client *parent;
-    client *fakeClients[PIPELINE_DEPTH];
-    unsigned int dispatchid;
-    unsigned int flushid;
-    /* Real-client: bitmap of which ring slots have completed replies.
-     * Bit N corresponds to fakeClients[N]. Workers set bits with
-     * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
-     * and clears bits with atomicFetchAnd as slots are drained. */
-    redisAtomic uint32_t reply_ready_mask;
-    /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
-     * stamped once at preallocation. Unused on real clients. */
-    unsigned int fake_slot;
-    uint64_t id;            /* Client incremental unique ID. */
-    uint64_t flags;         /* Client flags: CLIENT_* macros. */
-    connection *conn;
-    uint8_t tid;            /* Thread assigned ID this client is bound to. */
-    uint8_t running_tid;    /* Thread assigned ID this client is running on. */
-    uint8_t io_flags;       /* Accessed by both main and IO threads, but not modified concurrently */
-    uint8_t read_error;     /* Client read error: CLIENT_READ_* macros. */
+  int reply_ready;
+  int worker_id;          /* Worker ID for worker fake clients, -1 for regular clients. */
+  uint64_t id;            /* Client incremental unique ID. */
+  uint64_t flags;         /* Client flags: CLIENT_* macros. */
+  struct client *worker_owner; /* Owner connection client if this is a worker fake client. */
+  list *worker_fakeclients;    /* Owner's free fake-client pool. */
+  dict *worker_completed;      /* Owner's completed fake clients keyed by seqno. */
+  uint64_t next_dispatch_seq;  /* Sequence number assigned to the next dispatched command. */
+  uint64_t next_reply_seq;     /* Next sequence number expected to merge back to the owner. */
+  uint64_t completed_seqno;    /* Sequence number of the completed command in a worker fake client. */
+  int worker_inflight_count;   /* Number of dispatched commands not yet merged back. */
+  connection *conn;
+  uint8_t tid;            /* Thread assigned ID this client is bound to. */
+  uint8_t running_tid;    /* Thread assigned ID this client is running on. */
+  uint8_t io_flags;       /* Accessed by both main and IO threads, but not modified concurrently */
+  uint8_t read_error;     /* Client read error: CLIENT_READ_* macros. */
     int resp;               /* RESP protocol version. Can be 2 or 3. */
     redisDb *db;            /* Pointer to currently SELECTed DB. */
     robj *name;             /* As set by CLIENT SETNAME. */
@@ -1628,14 +1629,14 @@ typedef struct client {
 //ee451
 #define WORKER_QUEUE_SIZE 1024  /* must be power of 2 */
 #define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
-#define WORKER_THREADS_NUM 3
-#define IO_THREADS_NUM 8
+#define IO_THREADS_NUM 4
 typedef struct workerQueue {
   //testing
     client *jobs[WORKER_QUEUE_SIZE];
     unsigned int head;  /* consumer reads from here */
     unsigned int tail;  /* producer writes here */
     pthread_mutex_t lock;
+    pthread_cond_t cond;
 } workerQueue;
 
 typedef struct workerThread {
@@ -1969,7 +1970,7 @@ struct redisServer {
     /* new front end io */
     int ioThreadsNum;
     ioThreadArgs *ioThreads;
-    int replyWorking[IO_THREADS_NUM + 1];
+    // int replyWorking[IO_THREADS_NUM + 1];
     int custom_io_threads_active;
     /* General */
     pid_t pid;                  /* Main process pid. */
@@ -1985,6 +1986,7 @@ struct redisServer {
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
     workerThread *workers;
+    workerQueue worker_done_queue[IO_THREADS_NUM + 1];
     list *clients_pending_worker[IO_THREADS_NUM + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
     redisDb **worker_dbs;
@@ -2652,6 +2654,11 @@ struct pendingCommand {
     struct redisCommand *cmd;
     getKeysResult keys_result;
     long long reploff;        /* c->reploff should be set to this value when the command is processed */
+    uint64_t seqno;           /* Owner client sequence number for ordered reply merge. */
+    int dbid;                 /* Logical DB selected by the owner when the command was dispatched. */
+    int resp;                 /* RESP version snapshot from the owner. */
+    user *user;               /* ACL user snapshot from the owner. */
+    uint8_t authenticated;    /* Auth state snapshot from the owner. */
     int flags;
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
@@ -4534,10 +4541,13 @@ void initIOThreads(void);
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
 client *workerQueuePop(workerQueue *q);
-void queueToWorker(client *c, int worker_id);
+client *workerQueueTryPop(workerQueue *q);
+int queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
 void initWorkers(void);
 void handleWorkerReplies(void);
+client *createWorkerFakeClient(client *owner);
+void freeClientWorkerState(client *c);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 void *ioThreadMain(void *arg);

@@ -118,194 +118,8 @@ int authRequired(client *c) {
     return auth_required;
 }
 //ee451
-//ee451
-client *createFakeClient(client *parent) {
-    client *c = zmalloc(sizeof(client));
-
-    /* Fake-specific identity */
-    c->isFake = 1;
-    c->parent = parent;
-    memset(c->fakeClients, 0, sizeof(c->fakeClients));
-    c->dispatchid = 0;
-    c->flushid = 0;
-
-    /* Output buffer — fake owns its own */
-    c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
-    c->bufpos = 0;
-    c->buf_peak = c->buf_usable_size;
-    c->buf_peak_last_reset_time = server.unixtime;
-    c->buf_encoded = 0;
-    c->last_header = NULL;
-
-    /* Reply list — fake owns its own */
-    c->reply = listCreate();
-    listSetFreeMethod(c->reply, freeClientReplyValue);
-    listSetDupMethod(c->reply, dupClientReplyValue);
-    c->reply_bytes = 0;
-    c->deferred_reply_errors = NULL;
-    c->sentlen = 0;
-
-    /* Identity — borrow id space; parent's id is authoritative for logs */
-    uint64_t client_id;
-    atomicGetIncr(server.next_client_id, client_id, 1);
-    c->id = client_id;
-
-    /* Threading — fake runs on the same IO thread as its parent */
-    c->tid = parent->tid;
-    c->running_tid = parent->running_tid;
-    /* fake_slot is stamped by the preallocation caller after createFakeClient
-     * returns; default to 0 here so early error paths see a defined value. */
-    c->fake_slot = 0;
-    atomicSet(c->pending_read, 0);
-
-    /* No connection at init — dispatch borrows parent->conn */
-    c->conn = NULL;
-
-    /* RESP version — will be overwritten at dispatch to match parent */
-#ifdef LOG_REQ_RES
-    reqresReset(c, 0);
-    c->resp = server.client_default_resp;
-#else
-    c->resp = 2;
-#endif
-
-    /* Name / lib info — not used on fake */
-    c->name = NULL;
-    c->lib_name = NULL;
-    c->lib_ver = NULL;
-
-    /* Query buffer — fake never reads from socket */
-    c->querybuf = NULL;
-    c->qb_pos = 0;
-    c->querybuf_peak = 0;
-    c->reqtype = 0;
-
-    /* Execution state — populated at dispatch time */
-    c->argc = 0;
-    c->argv = NULL;
-    c->argv_len = 0;
-    c->all_argv_len_sum = 0;
-    c->pending_cmds.head = c->pending_cmds.tail = NULL;
-    c->pending_cmds.len = c->pending_cmds.ready_len = 0;
-    c->current_pending_cmd = NULL;
-    c->original_argc = 0;
-    c->original_argv = NULL;
-    c->cmd = c->lastcmd = c->realcmd = c->lookedcmd = NULL;
-    c->cur_script = NULL;
-    c->multibulklen = 0;
-    c->bulklen = -1;
-
-    /* Deferred objects — fake has its own */
-    c->deferred_objects = NULL;
-    c->deferred_objects_num = 0;
-    c->io_deferred_objects = NULL;
-    c->io_deferred_objects_num = 0;
-    c->io_deferred_objects_size = 0;
-
-    /* DB — overwritten at dispatch to match worker-owned DB or parent->db */
-    selectDb(c, 0);
-
-    /* Flags — fake starts clean; dispatch copies a subset from parent */
-    c->flags = 0;
-    c->io_flags = CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED;
-    c->read_error = 0;
-    c->slot = -1;
-    c->cluster_compatibility_check_slot = -2;
-
-    /* Time tracking */
-    c->ctime = c->lastinteraction = server.unixtime;
-    c->io_lastinteraction = 0;
-    c->duration = 0;
-    c->obuf_soft_limit_reached_time = 0;
-    c->io_last_client_cron = 0;
-    c->io_last_repl_cron = 0;
-
-    /* Auth — inherit parent's user at dispatch time; leave NULL for now */
-    c->user = NULL;
-    c->authenticated = 0;
-
-    /* Replication — fake is never a replica or master */
-    c->replstate = REPL_STATE_NONE;
-    c->repl_start_cmd_stream_on_ack = 0;
-    c->reploff = 0;
-    c->reploff_next = 0;
-    c->read_reploff = 0;
-    c->io_read_reploff = 0;
-    c->repl_applied = 0;
-    c->repl_ack_off = 0;
-    c->repl_ack_time = 0;
-    c->io_repl_ack_time = 0;
-    c->repl_aof_off = 0;
-    c->repl_last_partial_write = 0;
-    c->slave_listening_port = 0;
-    c->slave_addr = NULL;
-    c->slave_capa = SLAVE_CAPA_NONE;
-    c->slave_req = SLAVE_REQ_NONE;
-    c->main_ch_client_id = 0;
-    c->ref_repl_buf_node = NULL;
-    c->ref_block_pos = 0;
-    c->io_curr_repl_node = NULL;
-    c->io_curr_block_pos = 0;
-    c->io_bound_repl_node = NULL;
-    c->io_bound_block_pos = 0;
-
-    /* NOT initialized on fake (fake never uses these):
-     *   - blocking state (initClientBlockingState)
-     *   - multi state  (initClientMultiState)
-     *   - watched_keys / pubsub dicts
-     *   - peerid / sockname (fake shares parent's conn, no separate addr)
-     *   - client_list_node / io_thread_client_list_node / postponed_list_node
-     *   - mem_usage_bucket
-     *   - module_blocked_client / module_auth_ctx / auth_callback
-     *   - client_tracking_* (tracking is a real-client concept)
-     *   - task / node_id
-     */
-    c->watched_keys = NULL;
-    c->pubsub_channels = NULL;
-    c->pubsub_patterns = NULL;
-    c->pubsubshard_channels = NULL;
-    c->peerid = NULL;
-    c->sockname = NULL;
-    c->client_list_node = NULL;
-    c->io_thread_client_list_node = NULL;
-    c->postponed_list_node = NULL;
-    c->client_tracking_redirection = 0;
-    c->client_tracking_prefixes = NULL;
-    c->last_memory_usage = 0;
-    c->last_memory_type = CLIENT_TYPE_NORMAL;
-    c->module_blocked_client = NULL;
-    c->module_auth_ctx = NULL;
-    c->auth_callback = NULL;
-    c->auth_callback_privdata = NULL;
-    c->auth_module = NULL;
-    c->mem_usage_bucket = NULL;
-    c->mem_usage_bucket_node = NULL;
-    c->task = NULL;
-    c->node_id = NULL;
-
-    /* Intrusive list nodes — fake can be put on pending_write queues */
-    listInitNode(&c->clients_pending_write_node, c);
-    listInitNode(&c->pending_ref_reply_node, c);
-
-    /* Stats — fake-local; fold back to parent post-flush if desired */
-    c->net_input_bytes = 0;
-    c->net_output_bytes = 0;
-    c->net_input_bytes_curr_cmd = 0;
-    c->net_output_bytes_curr_cmd = 0;
-    c->commands_processed = 0;
-
-    return c;
-}
-
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
-
-    /* Pipeline fields — real client owns the ring */
-    c->isFake = 0;
-    c->parent = NULL;
-    memset(c->fakeClients, 0, sizeof(c->fakeClients));
-    c->dispatchid = 0;
-    c->flushid = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -323,6 +137,7 @@ client *createClient(connection *conn) {
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
     c->id = client_id;
+    c->reply_ready = 0;
     c->tid = iotid;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
@@ -333,6 +148,13 @@ client *createClient(connection *conn) {
     c->resp = 2;
 #endif
     c->conn = conn;
+    c->worker_owner = NULL;
+    c->worker_fakeclients = NULL;
+    c->worker_completed = NULL;
+    c->next_dispatch_seq = 0;
+    c->next_reply_seq = 0;
+    c->completed_seqno = UINT64_MAX;
+    c->worker_inflight_count = 0;
     c->name = NULL;
     c->lib_name = NULL;
     c->lib_ver = NULL;
@@ -438,20 +260,44 @@ client *createClient(connection *conn) {
     c->task = NULL;
     c->node_id = NULL;
     atomicSet(c->pending_read, 0);
+    return c;
+}
+client *createWorkerFakeClient(client *owner) {
+    client *c = createClient(NULL);
 
-    /* Real-client: start with no ready slots in the pipeline mask. */
-    atomicSet(c->reply_ready_mask, 0);
+    c->flags |= CLIENT_WORKER_CONTEXT;
+    c->worker_owner = owner;
+    c->tid = owner->tid;
+    return c;
+}
 
-    /* Preallocate the fake ring. Each fake borrows conn/user/db at dispatch,
-     * owns its own output buffer, and lives for the lifetime of the parent.
-     * fake_slot is stamped to the ring index so workers know which bit to set
-     * in parent->reply_ready_mask at completion. */
-    for (int i = 0; i < PIPELINE_DEPTH; i++) {
-        c->fakeClients[i] = createFakeClient(c);
-        c->fakeClients[i]->fake_slot = (unsigned int)i;
+
+void freeClientWorkerState(client *c) {
+    if (c->worker_fakeclients) {
+        listIter li;
+        listNode *ln;
+
+        listRewind(c->worker_fakeclients, &li);
+        while ((ln = listNext(&li)) != NULL) {
+            client *fc = listNodeValue(ln);
+            if (fc) freeClient(fc);
+        }
+        listRelease(c->worker_fakeclients);
+        c->worker_fakeclients = NULL;
     }
 
-    return c;
+    if (c->worker_completed) {
+        dictIterator *di = dictGetSafeIterator(c->worker_completed);
+        dictEntry *de;
+
+        while ((de = dictNext(di)) != NULL) {
+            client *fc = dictGetVal(de);
+            if (fc) freeClient(fc);
+        }
+        dictReleaseIterator(di);
+        dictRelease(c->worker_completed);
+        c->worker_completed = NULL;
+    }
 }
 
 void installClientWriteHandler(client *c) {
@@ -502,7 +348,7 @@ static inline int _prepareClientToWrite(client *c) {
     const uint64_t _flags = c->flags;
     /* If it's the Lua client we always return ok without installing any
      * handler since there is no socket at all. */
-    if (unlikely(_flags & (CLIENT_SCRIPT|CLIENT_MODULE))) return C_OK;
+    if (unlikely(_flags & (CLIENT_SCRIPT|CLIENT_MODULE|CLIENT_WORKER_CONTEXT))) return C_OK;
 
     /* If CLIENT_CLOSE_ASAP flag is set, we need not write anything. */
     if (unlikely(_flags & CLIENT_CLOSE_ASAP)) return C_ERR;
@@ -518,6 +364,7 @@ static inline int _prepareClientToWrite(client *c) {
         !(_flags & CLIENT_MASTER_FORCE_REPLY))) return C_ERR;
 
     if (unlikely(!c->conn)) return C_ERR; /* Fake client for AOF loading. */
+    if (unlikely(_flags & CLIENT_PROTECTED)) return C_OK;
 
     /* Schedule the client to write the output buffers to the socket, unless
      * it should already be setup to do so (it has already pending data).
@@ -525,8 +372,6 @@ static inline int _prepareClientToWrite(client *c) {
      * If the client runs in an IO thread, we should not put the client in the
      * pending write queue. Instead, we will install the write handler to the
      * corresponding IO thread’s event loop and let it handle the reply. */
-    if (_flags & CLIENT_WORKER_PENDING) return C_OK;
-
     if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
         putClientInPendingWriteQueue(c);
 
@@ -2267,59 +2112,7 @@ static void releaseAllBufReferences(client *c) {
     }
 }
 
-//ee451
-void freeFakeClient(client *c) {
-    /* Fakes don't own: conn (shared with parent), peerid/sockname (no socket of
-     * their own), pubsub dicts, watched_keys, mstate, bstate, module bookkeeping,
-     * client_list_node, io_thread_client_list_node, mem_usage_bucket. None of
-     * those were initialized in createFakeClient, so we don't touch them. */
-
-    /* Free the query buffer (fake shouldn't have one, but be defensive) */
-    sdsfree(c->querybuf);
-    c->querybuf = NULL;
-
-    /* Release reply buffer storage. */
-    releaseAllBufReferences(c);
-    listRelease(c->reply);
-    zfree(c->buf);
-
-    /* Per-command scratch that could be live if a fake is freed mid-flight. */
-    freeClientOriginalArgv(c);
-    freeClientDeferredObjects(c, 1);
-    freeClientIODeferredObjects(c, 1);
-
-    if (c->deferred_reply_errors)
-        listRelease(c->deferred_reply_errors);
-
-#ifdef LOG_REQ_RES
-    reqresReset(c, 1);
-#endif
-
-    /* name/lib_name/lib_ver should never be set on a fake (CLIENT SETNAME
-     * runs on real), but decrRefCount tolerates NULL. */
-    if (c->name) decrRefCount(c->name);
-    if (c->lib_name) decrRefCount(c->lib_name);
-    if (c->lib_ver) decrRefCount(c->lib_ver);
-
-    serverAssert(c->all_argv_len_sum == 0);
-    serverAssert(c->pending_cmds.len == 0);
-
-    /* Do NOT close c->conn — shared with parent.
-     * Do NOT call unlinkClient — fake isn't in server.clients[] or clients_index[].
-     * Do NOT freeClientMultiState — mstate was never initialized.
-     * Do NOT touch watched_keys / pubsub_* — never initialized. */
-
-    zfree(c);
-}
-
 void freeClient(client *c) {
-    //fprintf(stderr, "[%s:%d] freeClient called on %s id=%llu\n",
-        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)c->id);
-    if (c->isFake) {
-        freeClientAsync(c->parent);
-        return;
-    }
-
     listNode *ln;
 
     /* If a client is protected, yet we need to free it right now, make sure
@@ -2332,29 +2125,10 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
-
-    /* ee451: ring not drained — defer free until every dispatched fake has
-     * been flushed. dispatchid == flushid means the ring is empty. */
-    if (!c->isFake && c->dispatchid != c->flushid) {
-        freeClientAsync(c);
-        return;
-    }
-
     /* If the client is running in io thread, we can't free it directly. */
     if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
         fetchClientFromIOThread(c);
     }
-
-    /* ee451: ring is drained — safe to tear down fakes. */
-    if (!c->isFake) {
-        for (int i = 0; i < PIPELINE_DEPTH; i++) {
-            if (c->fakeClients[i]) {
-                freeFakeClient(c->fakeClients[i]);
-                c->fakeClients[i] = NULL;
-            }
-        }
-    }
-
     /* We need to unbind connection of client from io thread event loop first. */
     // if (c->tid != IOTHREAD_MAIN_THREAD_ID) {
     //     keepClientInMainThread(c);
@@ -2515,13 +2289,6 @@ void freeClient(client *c) {
  * a context where calling freeClient() is not possible, because the client
  * should be valid for the continuation of the flow of the program. */
 void freeClientAsync(client *c) {
-    //fprintf(stderr, "[%s:%d] freeClientAsync called on %s id=%llu flags=0x%llx\n",
-        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)c->id,
-        // (unsigned long long)c->flags);
-    if (c->isFake) {
-        freeClientAsync(c->parent);
-        return;
-    }
     // if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
     //     int main_thread = pthread_equal(pthread_self(), server.main_thread_id);
     //     /* Make sure the main thread can access IO thread data safely. */
@@ -3185,9 +2952,29 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->net_output_bytes_curr_cmd = 0;
 }
 
+
+static void resetDispatchedClientState(client *c) {
+    c->argc = 0;
+    c->cmd = NULL;
+    c->lookedcmd = NULL;
+    c->realcmd = NULL;
+    c->argv_len = 0;
+    c->argv = NULL;
+    c->cur_script = NULL;
+    c->slot = -1;
+    c->cluster_compatibility_check_slot = -2;
+    c->read_error = 0;
+    c->current_pending_cmd = NULL;
+    c->net_input_bytes_curr_cmd = 0;
+    c->net_output_bytes_curr_cmd = 0;
+    c->duration = 0;
+    if (c->flags & CLIENT_EXECUTING_COMMAND)
+        c->flags &= ~CLIENT_EXECUTING_COMMAND;
+}
+
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c, int num_pcmds_to_free) {
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_WORKER_DISPATCHED) return;
     resetClientInternal(c, num_pcmds_to_free);
 }
 
@@ -3662,23 +3449,16 @@ int processCommandAndResetClient(client *c) {
     client *old_client = server.current_client[iotid];
     server.current_client[iotid] = c;
     if (processCommand(c) == C_OK) {
-        /* ee451: if the command was refused because the pipeline ring is full
-         * (or a stateful/MULTI command needs to drain the ring first), the
-         * pending_cmd at the head of c->pending_cmds must stay there so it
-         * can be re-tried once handleWorkerReplies frees a slot. Skipping
-         * commandProcessed() preserves c->current_pending_cmd and c->argv. */
-        if (!(c->flags & CLIENT_PIPELINE_STALLED)) {
-            /* ee451: in pipelining, real's execution state was moved to the fake
-             * (if dispatched) or real ran a stateful command directly. Either way
-             * commandProcessed() is now either a no-op (drained real) or does the
-             * normal post-stateful-command cleanup (real executed MULTI queueing
-             * or a stateful command inline). */
+        if (c->flags & CLIENT_WORKER_DISPATCHED) {
+            resetDispatchedClientState(c);
+        } else {
             commandProcessed(c);
             if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
     if (server.current_client[iotid] == NULL) deadclient = 1;
     server.current_client[iotid] = old_client;
+
     return deadclient ? C_ERR : C_OK;
 }
 
@@ -3904,10 +3684,10 @@ int processInputBuffer(client *c) {
         if (parse_more && c->running_tid == IOTHREAD_MAIN_THREAD_ID &&
             c->pending_cmds.ready_len > 1)
         {
-            // /* Prefetch the commands. */
-            // resetCommandsBatch();
-            // addCommandToBatch(c);
-            // prefetchCommands();
+            /* Prefetch the commands. */
+            resetCommandsBatch();
+            addCommandToBatch(c);
+            prefetchCommands();
         }
 
         /* Check if the client has a fatal read error that requires stopping processing. */
@@ -3940,14 +3720,6 @@ int processInputBuffer(client *c) {
                 return C_ERR;
             }
             server.current_client[iotid] = NULL;
-
-            /* ee451: the command was refused because the pipeline ring is full
-             * (or a stateful/MULTI command is waiting for it to drain). The
-             * pending_cmd is still at the head of c->pending_cmds; we must
-             * stop processing so we don't spin on the same stalled head. When
-             * handleWorkerReplies flushes a reply it clears STALLED and calls
-             * processInputBuffer again, which will pick up from here. */
-            if (c->flags & CLIENT_PIPELINE_STALLED) break;
         }
     }
 
