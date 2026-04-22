@@ -56,6 +56,7 @@
 
 #ifdef __linux__
 #include <sys/mman.h>
+#include <sched.h>     /* cpu_set_t, CPU_SET, pthread_setaffinity_np */
 #endif
 
 #if defined(HAVE_SYSCTL_KIPC_SOMAXCONN) || defined(HAVE_SYSCTL_KERN_SOMAXCONN)
@@ -7987,6 +7988,22 @@ client *workerQueuePop(workerQueue *q) {
     return c;
 }
 
+/* Drain up to `max` fakes under a single lock acquire.
+ * Returns number of fakes written into out[]. 0 if empty or contended.
+ * trylock: if IO thread is pushing, skip this queue this round — we'll
+ * come back next iteration. This matches workerQueuePop's semantics. */
+int workerQueuePopBatch(workerQueue *q, client **out, int max) {
+    if (pthread_mutex_trylock(&q->lock) != 0)
+        return 0; /* IO thread is pushing, skip this queue */
+    int n = 0;
+    while (n < max && q->head != q->tail) {
+        out[n++] = q->jobs[q->head];
+        q->head = (q->head + 1) & WORKER_QUEUE_MASK;
+    }
+    pthread_mutex_unlock(&q->lock);
+    return n;
+}
+
 
 
 void queueToWorker(client *c, int worker_id) {
@@ -7999,38 +8016,105 @@ void queueToWorker(client *c, int worker_id) {
 
 }
 
+/* Staged prefetch for a batch of fakes about to be executed on a worker.
+ * Issues prefetches in stride order so hardware-prefetcher-unfriendly
+ * pointer chains (key robj -> key sds, dict bucket -> entry) overlap.
+ *
+ * Stage A: prefetch each fake's key robj and its sds ptr — cheap, warms
+ *          the data the command proc will hash.
+ * Stage B: for each fake, compute the dict bucket index and prefetch the
+ *          bucket head pointer — this is the main L3/DRAM miss that the
+ *          command's dictFind would otherwise pay synchronously.
+ *
+ * All GET/SET/DEL (the only worker-dispatched commands) take the key at
+ * argv[1]. fake->db was already pointed at the worker's shard in the
+ * dispatch path, so kvstoreGetDict here returns the worker-local dict. */
+static inline void workerPrefetchBatch(client **batch, int n) {
+    /* Stage A: key robj + sds. Two prefetches per fake, interleaved across
+     * all fakes so the first fake's bucket prefetch (stage B) overlaps the
+     * tail of this stage's loads. */
+    for (int j = 0; j < n; j++) {
+        client *fake = batch[j];
+        if (fake->argc < 2 || !fake->argv || !fake->argv[1]) continue;
+        redis_prefetch_read(fake->argv[1]);
+        /* argv[1]->ptr is a pointer into the robj — issuing this prefetch
+         * needs argv[1] in cache, which we just prefetched. The compiler
+         * emits a dependent load; this may partially serialize. Tolerable
+         * because stage B is the real payoff. */
+        if (fake->argv[1]->ptr) redis_prefetch_read(fake->argv[1]->ptr);
+    }
+
+    /* Stage B: dict bucket head for each fake. */
+    for (int j = 0; j < n; j++) {
+        client *fake = batch[j];
+        if (fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->db) continue;
+        dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
+        if (!d || dictSize(d) == 0 || !d->ht_table[0]) continue;
+        uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
+        unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+        redis_prefetch_read(&d->ht_table[0][idx]);
+    }
+}
+
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
     fprintf(stderr, "[worker %d] started\n", worker->id);
-    unsigned long long total_processed = 0;
+    client *batch[WORKER_POP_BATCH];
     while (1) {
-        int found = 0;
+        int any = 0;
         for (int i = 0; i <= IO_THREADS_NUM; i++) {
-            client *fake = workerQueuePop(&worker->queues[i]);
-            if (fake) {
+            int n = workerQueuePopBatch(&worker->queues[i], batch, WORKER_POP_BATCH);
+            if (n == 0) continue;
+            any = 1;
+
+            /* Warm the cache before executing the batch. */
+            workerPrefetchBatch(batch, n);
+
+            /* Execute each fake. By the time we reach fake j, earlier
+             * prefetches for j's key/bucket have had the loop body's
+             * worth of cycles to land. */
+            for (int j = 0; j < n; j++) {
+                client *fake = batch[j];
                 serverAssert(fake->isFake);
                 if (fake->cmd) {
                     fake->cmd->proc(fake);
-                } else {
-                    // fprintf(stderr, "[worker %d] ERROR: fake->cmd is NULL!\n", worker->id);
                 }
                 /* Signal completion: set our bit in parent's ready mask with
                  * release semantics so the draining IO thread sees all of
                  * this fake's reply writes before observing the ready bit. */
                 atomicFetchOrWithRelease(fake->parent->reply_ready_mask,
                                          1u << fake->fake_slot);
-                total_processed++;
-                if ((total_processed & 0x3FF) == 0) {
-                    // fprintf(stderr, "[worker %d] processed=%llu (latest: queue=%d, real->id=%llu)\n",
-                    //         worker->id, total_processed, i,
-                    //         (unsigned long long)(fake->parent ? fake->parent->id : 0));
-                }
-                found = 1;
             }
         }
-        if (!found) sched_yield();
+        if (!any) sched_yield();
     }
     return NULL;
+}
+
+/* Pin a worker's pthread to a single core so its per-shard DB stays
+ * cache-resident on that core. IO threads sit on cores [0, IO_THREADS_NUM);
+ * we push workers onto cores starting at IO_THREADS_NUM. If the machine
+ * doesn't have enough cores, fall back to wrapping with modulo — a soft
+ * collision with an IO thread is fine, worse than ideal but not wrong. */
+static void pinWorkerToCore(pthread_t thread, int worker_id) {
+#ifdef __linux__
+    long n_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    if (n_cores <= 0) return;
+    int core = (IO_THREADS_NUM + worker_id) % (int)n_cores;
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core, &cpuset);
+    int rc = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
+    if (rc != 0) {
+        serverLog(LL_WARNING, "Failed to pin worker %d to core %d: %s",
+                  worker_id, core, strerror(rc));
+    } else {
+        serverLog(LL_NOTICE, "Worker %d pinned to core %d", worker_id, core);
+    }
+#else
+    UNUSED(thread);
+    UNUSED(worker_id);
+#endif
 }
 
 void initWorkers(void) {
@@ -8042,6 +8126,7 @@ void initWorkers(void) {
             workerQueueInit(&server.workers[i].queues[t]);
         }
         pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
+        pinWorkerToCore(server.workers[i].thread, i);
     }
 }
 

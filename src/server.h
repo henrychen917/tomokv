@@ -1630,6 +1630,11 @@ typedef struct client {
 #define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1)
 #define WORKER_THREADS_NUM 3
 #define IO_THREADS_NUM 8
+/* How many fakes a worker drains per lock acquire on one IO-thread queue.
+ * Larger = fewer mutex traffic pings, better cache locality in exec loop,
+ * higher latency for the last fake in the batch. 16 matches PIPELINE_DEPTH
+ * so a single-client burst can be drained in one shot. */
+#define WORKER_POP_BATCH 16
 typedef struct workerQueue {
   //testing
     client *jobs[WORKER_QUEUE_SIZE];
