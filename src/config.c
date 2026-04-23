@@ -2375,6 +2375,17 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
     return 1;
 }
 
+/* myworkerthreads must be a power of two. getWorkerForCommand uses
+ * (hash & (num_workers - 1)) for dispatch; this requires num_workers
+ * to be a power of two so the mask gives uniform distribution. */
+static int isValidMyWorkerThreads(long long val, const char **err) {
+    if (val < 1 || (val & (val - 1)) != 0) {
+        *err = "myworkerthreads must be a power of two (1, 2, 4, 8, 16, 32, 64)";
+        return 0;
+    }
+    return 1;
+}
+
 static int isValidActiveDefrag(int val, const char **err) {
 #ifndef HAVE_DEFRAG
     if (val) {
@@ -3232,7 +3243,7 @@ standardConfig static_configs[] = {
     /* THredis-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
     createIntConfig("myiothreads", NULL, IMMUTABLE_CONFIG, 1, MY_IO_THREADS_MAX, server.my_io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("myworkerthreads", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_THREADS_MAX, server.my_worker_threads, WORKER_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("myworkerthreads", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_THREADS_MAX, server.my_worker_threads, WORKER_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
     createIntConfig("myiothreadpipelinedepth", NULL, IMMUTABLE_CONFIG, 1, MY_PIPELINE_DEPTH_MAX, server.my_pipeline_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
     createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_QUEUE_SIZE_MAX, server.my_worker_queue_size, WORKER_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),

@@ -2996,11 +2996,13 @@ void initServer(void) {
     server.hz = server.config_hz;
 
     /* Derive runtime constants from THredis-dev custom threading config.
-     * my_pipeline_depth and my_worker_queue_size are validated as powers of
-     * two, so (val - 1) is a valid slot mask. Everything that masks a ring
-     * index uses the corresponding *_mask from here on. */
-    server.my_pipeline_queue_mask = (unsigned int)(server.my_pipeline_depth - 1);
-    server.my_worker_queue_mask   = (unsigned int)(server.my_worker_queue_size - 1);
+     * my_pipeline_depth, my_worker_queue_size, and my_worker_threads are
+     * all validated as powers of two, so (val - 1) is a valid mask for
+     * each. getWorkerForCommand uses my_worker_dispatch_mask to replace
+     * `hash % num_workers` with a single AND. */
+    server.my_pipeline_queue_mask  = (unsigned int)(server.my_pipeline_depth - 1);
+    server.my_worker_queue_mask    = (unsigned int)(server.my_worker_queue_size - 1);
+    server.my_worker_dispatch_mask = (uint64_t)(server.my_worker_threads - 1);
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
     server.rdb_pipe_read = -1;
@@ -4998,14 +5000,114 @@ int canDispatchToWorker(client *c) {
         p == typeCommand);
 }
 
+/* ---------------------------------------------------------------------------
+ * Fast non-cryptographic hash for worker dispatch.
+ *
+ * We deliberately do NOT reuse dictGenHashFunction (SipHash-1-2) here. That
+ * hash exists to prevent HashDoS against the main key dict, where an
+ * attacker choosing colliding keys could trigger O(n) bucket scans. The
+ * worker-dispatch hash faces no such threat: workers own disjoint shards,
+ * key collisions only affect load balance (not correctness or latency), and
+ * we never iterate a bucket chain based on this hash.
+ *
+ * XXH64 is ~3-5x faster than SipHash-1-2 on typical Redis key sizes
+ * (10-30 bytes) and gives uniform distribution for any well-formed key set.
+ * Implementation extracted from Yann Collet's xxHash library (BSD-2-Clause),
+ * stripped of the seed, streaming, and 32-bit APIs we don't need.
+ * --------------------------------------------------------------------- */
+
+#define XXH64_PRIME64_1 0x9E3779B185EBCA87ULL
+#define XXH64_PRIME64_2 0xC2B2AE3D27D4EB4FULL
+#define XXH64_PRIME64_3 0x165667B19E3779F9ULL
+#define XXH64_PRIME64_4 0x85EBCA77C2B2AE63ULL
+#define XXH64_PRIME64_5 0x27D4EB2F165667C5ULL
+
+static inline uint64_t xxh64_read64(const void *p) {
+    uint64_t v; memcpy(&v, p, sizeof(v)); return v;
+}
+static inline uint32_t xxh64_read32(const void *p) {
+    uint32_t v; memcpy(&v, p, sizeof(v)); return v;
+}
+static inline uint64_t xxh64_rotl(uint64_t x, int r) {
+    return (x << r) | (x >> (64 - r));
+}
+static inline uint64_t xxh64_round(uint64_t acc, uint64_t input) {
+    acc += input * XXH64_PRIME64_2;
+    acc  = xxh64_rotl(acc, 31);
+    acc *= XXH64_PRIME64_1;
+    return acc;
+}
+static inline uint64_t xxh64_merge(uint64_t acc, uint64_t val) {
+    val = xxh64_round(0, val);
+    acc ^= val;
+    acc  = acc * XXH64_PRIME64_1 + XXH64_PRIME64_4;
+    return acc;
+}
+
+static uint64_t xxh64(const void *input, size_t len) {
+    const uint8_t *p   = (const uint8_t *)input;
+    const uint8_t *end = p + len;
+    uint64_t h;
+
+    if (len >= 32) {
+        uint64_t v1 = XXH64_PRIME64_1 + XXH64_PRIME64_2;
+        uint64_t v2 = XXH64_PRIME64_2;
+        uint64_t v3 = 0;
+        uint64_t v4 = 0 - XXH64_PRIME64_1;
+        do {
+            v1 = xxh64_round(v1, xxh64_read64(p)); p += 8;
+            v2 = xxh64_round(v2, xxh64_read64(p)); p += 8;
+            v3 = xxh64_round(v3, xxh64_read64(p)); p += 8;
+            v4 = xxh64_round(v4, xxh64_read64(p)); p += 8;
+        } while (p + 32 <= end);
+        h  = xxh64_rotl(v1, 1) + xxh64_rotl(v2, 7) +
+             xxh64_rotl(v3, 12) + xxh64_rotl(v4, 18);
+        h  = xxh64_merge(h, v1);
+        h  = xxh64_merge(h, v2);
+        h  = xxh64_merge(h, v3);
+        h  = xxh64_merge(h, v4);
+    } else {
+        h = XXH64_PRIME64_5;
+    }
+
+    h += (uint64_t)len;
+
+    while (p + 8 <= end) {
+        h ^= xxh64_round(0, xxh64_read64(p));
+        h  = xxh64_rotl(h, 27) * XXH64_PRIME64_1 + XXH64_PRIME64_4;
+        p += 8;
+    }
+    if (p + 4 <= end) {
+        h ^= (uint64_t)xxh64_read32(p) * XXH64_PRIME64_1;
+        h  = xxh64_rotl(h, 23) * XXH64_PRIME64_2 + XXH64_PRIME64_3;
+        p += 4;
+    }
+    while (p < end) {
+        h ^= (*p) * XXH64_PRIME64_5;
+        h  = xxh64_rotl(h, 11) * XXH64_PRIME64_1;
+        p++;
+    }
+
+    /* Avalanche */
+    h ^= h >> 33; h *= XXH64_PRIME64_2;
+    h ^= h >> 29; h *= XXH64_PRIME64_3;
+    h ^= h >> 32;
+    return h;
+}
+
 int getWorkerForCommand(client *c) {
     /* Assumes argv[1] is the command's sole key. canDispatchToWorker
      * enforces this invariant — every whitelisted command above is of
      * the `CMD key [args...]` shape, and variadic-key commands like DEL
-     * are gated on argc == 2 so only the single-key form dispatches. */
+     * are gated on argc == 2 so only the single-key form dispatches.
+     *
+     * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
+     * short keys) + bitmask (num_workers is validated power-of-two at
+     * config load, so server.my_worker_dispatch_mask = num_workers - 1
+     * gives uniform dispatch in a single AND instruction). */
     robj *key = c->argv[1];
-    uint64_t hash = dictGenHashFunction(key->ptr, sdslen(key->ptr));
-    return hash % server.num_workers;
+    uint64_t hash = xxh64(key->ptr, sdslen(key->ptr));
+    return (int)(hash & server.my_worker_dispatch_mask);
 }
 
 /* Checks if all keys in a command (or a MULTI-EXEC) belong to the same hash slot.

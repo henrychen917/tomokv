@@ -1669,7 +1669,9 @@ typedef struct client {
 #define MY_WORKER_QUEUE_SIZE_MAX 2048
 #define WORKER_QUEUE_SIZE 1024  /* default; runtime value lives in server.my_worker_queue_size */
 #define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.my_worker_queue_mask */
-#define WORKER_THREADS_NUM 3    /* default; runtime value lives in server.my_worker_threads */
+#define WORKER_THREADS_NUM 4    /* default; runtime value lives in server.my_worker_threads.
+                                 * Must be a power of two — getWorkerForCommand uses a
+                                 * bitmask (my_worker_dispatch_mask = N-1) instead of modulo. */
 #define IO_THREADS_NUM 8        /* default; runtime value lives in server.my_io_threads */
 /* How many fakes a worker drains per lock acquire on one IO-thread queue.
  * Larger = fewer mutex traffic pings, better cache locality in exec loop,
@@ -2044,6 +2046,11 @@ struct redisServer {
     unsigned int my_pipeline_queue_mask;
     int my_worker_queue_size;
     unsigned int my_worker_queue_mask;
+    /* Dispatch mask: my_worker_threads - 1. Requires my_worker_threads to
+     * be a power of two (enforced by isValidMyWorkerThreads validator in
+     * config.c). Replaces `hash % num_workers` in getWorkerForCommand
+     * with a single AND instruction. */
+    uint64_t my_worker_dispatch_mask;
     redisDb **worker_dbs;
     redisDb *db;
     dict *commands;             /* Command table */
