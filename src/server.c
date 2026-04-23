@@ -8331,10 +8331,42 @@ static inline void workerPrefetchBatch(client **batch, int n) {
     }
 }
 
+/* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
+ * hyperthreading to yield pipeline slots to the sibling logical core,
+ * and also lengthens the spin without burning memory bandwidth); on
+ * ARM emits the YIELD hint; elsewhere a compiler barrier (so the
+ * loop isn't optimized away). Used by the worker's adaptive backoff. */
+static inline void workerPauseCpu(void) {
+#if defined(__i386__) || defined(__x86_64__)
+    __builtin_ia32_pause();
+#elif defined(__aarch64__) || defined(__arm__)
+    __asm__ __volatile__("yield" ::: "memory");
+#else
+    __asm__ __volatile__("" ::: "memory");
+#endif
+}
+
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
     fprintf(stderr, "[worker %d] started\n", worker->id);
     client *batch[WORKER_POP_BATCH];
+
+    /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
+     * every ~0.5-1 µs, so yielding immediately on an empty poll causes
+     * the scheduler to take us off-CPU for tens of µs and we miss the
+     * next burst by a wide margin. Previously sched_yield was ~3% of
+     * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
+     * window first, fall back to yield only if still idle after that.
+     *
+     * Tuning knobs (compile-time constants for now):
+     *   SPIN_BURST_PAUSES   - PAUSE instructions per empty round.
+     *   SPIN_ROUNDS_YIELD   - empty rounds before we give up and yield.
+     *
+     * 32 rounds × 16 pauses ≈ 512 PAUSEs on x86 ≈ 500 ns-1 µs spin
+     * window, well matched to sub-µs inter-dispatch gaps. */
+    enum { SPIN_BURST_PAUSES = 16, SPIN_ROUNDS_YIELD = 32 };
+    int empty_rounds = 0;
+
     while (1) {
         int any = 0;
         for (int i = 0; i <= server.my_io_threads; i++) {
@@ -8361,7 +8393,23 @@ void *workerThreadMain(void *arg) {
                                          1u << fake->fake_slot);
             }
         }
-        if (!any) sched_yield();
+
+        if (any) {
+            empty_rounds = 0;
+        } else if (empty_rounds < SPIN_ROUNDS_YIELD) {
+            /* PAUSE-spin: stay hot, let the IO thread publish work
+             * during the small window without the cost of a context
+             * switch. */
+            for (int p = 0; p < SPIN_BURST_PAUSES; p++) workerPauseCpu();
+            empty_rounds++;
+        } else {
+            /* Sustained idleness — give up the CPU so other threads
+             * (including the IO thread that's about to feed us) can
+             * run. Reset the counter so the next empty stretch goes
+             * through the spin window again. */
+            sched_yield();
+            empty_rounds = 0;
+        }
     }
     return NULL;
 }
