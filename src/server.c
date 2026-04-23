@@ -8197,55 +8197,85 @@ static void moveExecutionState(client *real, client *fake) {
 
 
 
+/* ------------------------------------------------------------------
+ * Lock-free SPSC worker queue.
+ *
+ * The architecture guarantees single-producer single-consumer per queue:
+ *   - Producer: the IO thread whose iotid matches the queue's index.
+ *     Only queueToWorker() in the context of that IO thread pushes.
+ *   - Consumer: the worker thread owning the enclosing workerThread
+ *     struct. Only that worker's workerThreadMain pops.
+ *
+ * Therefore a mutex is unnecessary. Two atomic indices (head, tail)
+ * with acquire/release barriers suffice. head and tail sit on separate
+ * cache lines to prevent producer/consumer from ping-ponging each
+ * other's line.
+ *
+ * Index semantics:
+ *   - head: oldest unconsumed slot. Consumer advances after reading.
+ *   - tail: next slot to fill. Producer advances after writing.
+ *   - Empty: head == tail.
+ *   - Full:  ((tail + 1) & mask) == head  (one slot wasted; standard
+ *            SPSC ring convention to distinguish full from empty).
+ * ------------------------------------------------------------------ */
+
 void workerQueueInit(workerQueue *q) {
-    atomic_store(&q->head, 0);
-    atomic_store(&q->tail, 0);
+    atomic_store_explicit(&q->head, 0, memory_order_relaxed);
+    atomic_store_explicit(&q->tail, 0, memory_order_relaxed);
     memset(q->jobs, 0, sizeof(q->jobs));
 }
 
 int workerQueuePush(workerQueue *q, client *c) {
-    pthread_mutex_lock(&q->lock);
-    unsigned int next_tail = (q->tail + 1) & server.my_worker_queue_mask;
-    if (next_tail == q->head) {
-        pthread_mutex_unlock(&q->lock);
+    /* Producer owns tail; relaxed load is fine (no one else writes it). */
+    unsigned int t = atomic_load_explicit(&q->tail, memory_order_relaxed);
+    unsigned int next_t = (t + 1) & server.my_worker_queue_mask;
+    /* Acquire load of head pairs with the consumer's release store in
+     * pop — ensures we observe the latest head advance, so our
+     * "full" check is accurate. */
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_acquire);
+    if (next_t == h) {
+        /* Ring full. Extremely rare with default depth 1024 unless
+         * workers are stalled. Signal backpressure to caller. */
         fprintf(stderr, "worker queue full\n");
         return -1;
     }
-    q->jobs[q->tail] = c;
-    q->tail = next_tail;
-    pthread_mutex_unlock(&q->lock);
-    // fprintf(stderr, "[%s:%d] dispatched, dispatchid now %u\n",
-        // __FILE__, __LINE__, c->dispatchid + 1);
-
+    q->jobs[t] = c;
+    /* Release store of tail publishes the new slot to the consumer:
+     * consumer's acquire load of tail will observe this store and all
+     * writes that happened-before it (including the q->jobs[t] = c
+     * write just above). */
+    atomic_store_explicit(&q->tail, next_t, memory_order_release);
     return 0;
 }
 
 client *workerQueuePop(workerQueue *q) {
-    if (pthread_mutex_trylock(&q->lock) != 0)
-        return NULL; /* IO thread is pushing, skip this queue */
-    if (q->head == q->tail) {
-        pthread_mutex_unlock(&q->lock);
-        return NULL; /* empty */
-    }
-    client *c = q->jobs[q->head];
-    q->head = (q->head + 1) & server.my_worker_queue_mask;
-    pthread_mutex_unlock(&q->lock);
+    /* Consumer owns head; relaxed load is fine. */
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+    /* Acquire load of tail pairs with producer's release store in push. */
+    unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
+    if (h == t) return NULL; /* empty */
+    client *c = q->jobs[h];
+    atomic_store_explicit(&q->head, (h + 1) & server.my_worker_queue_mask,
+                          memory_order_release);
     return c;
 }
 
-/* Drain up to `max` fakes under a single lock acquire.
- * Returns number of fakes written into out[]. 0 if empty or contended.
- * trylock: if IO thread is pushing, skip this queue this round — we'll
- * come back next iteration. This matches workerQueuePop's semantics. */
+/* Drain up to `max` fakes in one pass. Same SPSC semantics; single
+ * acquire load of tail gives us an upper bound, we copy out n items,
+ * single release store of head publishes the advance. */
 int workerQueuePopBatch(workerQueue *q, client **out, int max) {
-    if (pthread_mutex_trylock(&q->lock) != 0)
-        return 0; /* IO thread is pushing, skip this queue */
-    int n = 0;
-    while (n < max && q->head != q->tail) {
-        out[n++] = q->jobs[q->head];
-        q->head = (q->head + 1) & server.my_worker_queue_mask;
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+    unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
+    /* Masked subtraction — wraps correctly even when tail has wrapped
+     * past head since last head advance. */
+    unsigned int avail = (t - h) & server.my_worker_queue_mask;
+    if (avail == 0) return 0;
+    int n = (int)avail < max ? (int)avail : max;
+    for (int i = 0; i < n; i++) {
+        out[i] = q->jobs[(h + (unsigned int)i) & server.my_worker_queue_mask];
     }
-    pthread_mutex_unlock(&q->lock);
+    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.my_worker_queue_mask,
+                          memory_order_release);
     return n;
 }
 
