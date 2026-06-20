@@ -3139,6 +3139,37 @@ standardConfig static_configs[] = {
     createBoolConfig("daemonize", NULL, IMMUTABLE_CONFIG, server.daemonize, 0, NULL, NULL),
     createBoolConfig("always-show-logo", NULL, IMMUTABLE_CONFIG, server.always_show_logo, 0, NULL, NULL),
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
+    /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
+    createBoolConfig("thredis-opt-prefetch-worker", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_worker, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-hash-carry", NULL, MODIFIABLE_CONFIG, server.opt_hash_carry, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-value-forward", NULL, MODIFIABLE_CONFIG, server.opt_value_forward, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-spsc-cache", NULL, MODIFIABLE_CONFIG, server.opt_spsc_cache, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-perthread-stats", NULL, MODIFIABLE_CONFIG, server.opt_perthread_stats, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-zerocopy", NULL, MODIFIABLE_CONFIG, server.opt_zerocopy, 1, NULL, NULL),
+    /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
+     * worker's captured CDB index from the drain's combined-read bound — see the
+     * design review. num_cdb is resolved once at init from this. Default OFF. */
+    createBoolConfig("thredis-opt-multi-cdb", NULL, IMMUTABLE_CONFIG, server.opt_multi_cdb, 0, NULL, NULL),
+    /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
+     * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
+    createIntConfig("thredis-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-io-struct", NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_struct, 64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-io-reply",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_reply,  64, INTEGER_CONFIG, NULL, NULL),
+    /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
+    createIntConfig("thredis-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 1, 16,      server.worker_pop_batch, 16, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-vf-min-dictsize",  NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.vf_min_dictsize,   0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-vf-min-run",       NULL, MODIFIABLE_CONFIG, 2, 32,      server.vf_min_run,        2, INTEGER_CONFIG, NULL, NULL),
+    /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
+    createIntConfig("thredis-vf-min-write-permille",  NULL, MODIFIABLE_CONFIG, 0, 1000,   server.vf_min_write_permille,  0, INTEGER_CONFIG, NULL, NULL),
+    createBoolConfig("thredis-vf-predictor",          NULL, MODIFIABLE_CONFIG,             server.vf_predictor,           0, NULL, NULL),
+    createBoolConfig("thredis-vf-predictor-tournament", NULL, MODIFIABLE_CONFIG,           server.vf_predictor_tournament, 0, NULL, NULL),
+    createIntConfig("thredis-vf-predictor-miss-cycles", NULL, MODIFIABLE_CONFIG, 0, 100000, server.vf_predictor_miss_cycles, 300, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),

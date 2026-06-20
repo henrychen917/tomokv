@@ -439,8 +439,10 @@ client *createClient(connection *conn) {
     c->node_id = NULL;
     atomicSet(c->pending_read, 0);
 
-    /* Real-client: start with no ready slots in the pipeline mask. */
-    atomicSet(c->reply_ready_mask, 0);
+    /* Real-client: start with no ready slots in any CDB mask (ee451 S5). Zero all
+     * NUM_CDB_MAX (cheap, and safe whatever num_cdb resolves to). */
+    for (int cc = 0; cc < NUM_CDB_MAX; cc++) atomicSet(c->reply_cdb[cc].v, 0);
+    c->cdb = 0;
 
     /* Preallocate the fake ring. Each fake borrows conn/user/db at dispatch,
      * owns its own output buffer, and lives for the lifetime of the parent.
@@ -1487,8 +1489,11 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * listJoin (no garbage-into-plain-buffer copy), and the post-send decref is
      * routed back to the owning worker via the free-back ring (no cross-thread
      * refcount race). For such fakes we skip the normal-client-only checks
-     * (getClientType / PUSHING) — they execute single-key string reads. */
-    int on_worker = c->isFake && iotid > MY_IO_THREADS_MAX;
+     * (getClientType / PUSHING) — they execute single-key string reads.
+     * ee451 (v4): with zero-copy disabled, on_worker is forced false so a worker
+     * fake falls through to the (c->isFake => return 0) branch below and uses the
+     * normal value-COPYing reply path instead of the forward + free-back path. */
+    int on_worker = server.opt_zerocopy && c->isFake && iotid > MY_IO_THREADS_MAX;
     if (!on_worker) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */

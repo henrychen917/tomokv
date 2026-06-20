@@ -43,6 +43,19 @@
 #endif
 #endif
 
+/* ee451 (v4): S3 cache-line mask isolation is a struct LAYOUT optimization and
+ * therefore compile-time, not runtime-toggleable. Build with -DTHREDIS_OPT_MASK_ISOLATE=0
+ * to ablate it (reply_ready_mask/fake_slot then false-share the surrounding
+ * dispatch metadata). Default on. */
+#ifndef THREDIS_OPT_MASK_ISOLATE
+#define THREDIS_OPT_MASK_ISOLATE 1
+#endif
+#if THREDIS_OPT_MASK_ISOLATE
+#define THREDIS_MASK_ALIGN __attribute__((aligned(CACHE_LINE_SIZE)))
+#else
+#define THREDIS_MASK_ALIGN
+#endif
+
 /* Test for proc filesystem */
 #ifdef __linux__
 #define HAVE_PROC_STAT 1

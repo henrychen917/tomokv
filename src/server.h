@@ -1465,6 +1465,22 @@ typedef struct {
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.my_pipeline_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.my_pipeline_queue_mask */
+/* ee451 (S5): multi-CDB reply signaling. Instead of one shared reply_ready_mask
+ * per client (the single common-data-bus), give each client up to NUM_CDB_MAX
+ * masks, each on its OWN cache line, and route each worker's completion signal to
+ * the CDB indexed by its worker id. Workers on different shards/CCDs then OR into
+ * DIFFERENT lines instead of ping-ponging one hot line across the fabric. With the
+ * optimization OFF, server.num_cdb == 1 and only reply_cdb[0] is ever used, which
+ * is byte-equivalent to the original single-mask protocol. Toggle is IMMUTABLE
+ * (startup-only): num_cdb is fixed at init, so the writer's captured CDB index
+ * (fake->cdb), the clearer (drain reads fake->cdb), and the combined-read bound
+ * (server.num_cdb) can never desync. */
+#define NUM_CDB_MAX 8   /* must be >= any sane num_cdb; bit slots still cap at 32 */
+typedef struct cdbMask {
+    redisAtomic uint32_t v;
+    char _pad[CACHE_LINE_SIZE - sizeof(uint32_t)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) cdbMask;
+
 typedef struct client client;
 typedef struct client {
     int isFake;
@@ -1485,11 +1501,21 @@ typedef struct client {
      * per dispatch AND once per completion. The trailing aligned field below
      * pushes everything after the mask onto the next line, so the mask owns
      * its line alone. */
-    redisAtomic uint32_t reply_ready_mask __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451 (S3/S5): per-CDB reply-ready masks. reply_cdb[c].v bit N = ring slot N
+     * completed, signaled by a worker mapped to CDB c. Workers set bits with
+     * atomicFetchOrWithRelease; the owning IO thread combines all num_cdb masks with
+     * atomicGetAcquire and clears bits with atomicFetchAnd as slots drain. Each
+     * cdbMask is cache-line isolated (S3 subsumed: even reply_cdb[0] owns its line).
+     * With multi-cdb OFF, num_cdb==1 and only [0] is used. */
+    cdbMask reply_cdb[NUM_CDB_MAX];
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
-     * stamped once at preallocation. Unused on real clients. Aligned to start a
-     * fresh cache line so reply_ready_mask above is not shared with it. */
-    unsigned int fake_slot __attribute__((aligned(CACHE_LINE_SIZE)));
+     * stamped once at preallocation. Unused on real clients. */
+    unsigned int fake_slot;
+    /* ee451 (S5): the CDB index this fake's completion bit is routed to, captured
+     * once at dispatch from its owning worker. The worker signals reply_cdb[cdb] and
+     * the drain clears reply_cdb[cdb] — one captured value keeps writer and clearer
+     * in agreement regardless of toggle state. 0 for the inline (non-worker) path. */
+    int cdb;
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (workerPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -1758,6 +1784,13 @@ typedef struct freebackRing {
     void *objs[FREEBACK_RING_SIZE] __attribute__((aligned(CACHE_LINE_SIZE)));
 } freebackRing;
 
+/* ee451 (#4): branch-predictor-style forward predictor — a table of 2-bit
+ * saturating counters indexed by key hash (gshare: XOR'd with a global-history
+ * register). MSB set => predict "forward". Per worker (no sharing). */
+#define FWD_PHT_BITS 10
+#define FWD_PHT_SIZE (1u << FWD_PHT_BITS)
+#define FWD_PHT_MASK (FWD_PHT_SIZE - 1)
+
 typedef struct workerThread {
     int id;
     pthread_t thread;
@@ -1765,6 +1798,14 @@ typedef struct workerThread {
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[MY_IO_THREADS_MAX + 1];
     redisDb *db;
+    /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
+    unsigned int w_writes, w_total;
+    /* ee451 (#4): forward predictor state. fwd_pht is the HISTORY (gshare) predictor;
+     * the tournament adds a general (bimodal) predictor + a chooser meta-predictor. */
+    unsigned char fwd_pht[FWD_PHT_SIZE];   /* history (gshare) 2-bit counters (0..3) */
+    unsigned char gen_pht[FWD_PHT_SIZE];   /* general (bimodal, no history) 2-bit counters */
+    unsigned char chooser[FWD_PHT_SIZE];   /* meta: >=2 trust history, <2 trust general */
+    unsigned int  fwd_ghist;               /* global history register (gshare) */
 } workerThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2714,6 +2755,40 @@ struct redisServer {
     long reply_buffer_peak_reset_time; /* The amount of time (in milliseconds) to wait between reply buffer peak resets */
     int reply_buffer_resizing_enabled; /* Is reply buffer resizing enabled (1 by default) */
     int reply_copy_avoidance_enabled; /* Is reply copy avoidance enabled (1 by default) */
+    /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. All
+     * default 1 (= the v3 behavior). Pinning is intentionally NOT toggleable.
+     * S3 cache-line mask isolation is a compile-time struct layout and is also
+     * not represented here (always on). */
+    int opt_prefetch_worker;   /* #3: worker-side batched prefetch + hash precompute */
+    int opt_prefetch_io;       /* #6: IO-thread drain-side reply prefetch */
+    int opt_hash_carry;        /* reuse prefetch SipHash via dictArmHashHint (no double hash) */
+    int opt_value_forward;     /* #7: same-key read-run value forwarding (CDB analog) */
+    int opt_spsc_cache;        /* cached_tail/cached_head SPSC index caching */
+    int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
+    int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
+    int opt_perthread_stats;   /* S6: per-thread keyspace hit/miss counters */
+    int opt_zerocopy;          /* S8: zero-copy large-value reply forwarding + free-back */
+    int opt_multi_cdb;         /* S5: per-worker reply masks (multi common-data-bus). IMMUTABLE. */
+    int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
+    /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
+     * different memory-access shape (independent vs dependent loads), so a single
+     * width is suboptimal. These cap how many of the popped batch / ready prefix a
+     * given stage prefetches. Default = full (>= any batch) == prior behavior; 0
+     * disables that stage's prefetch. Runtime-safe (hints only). */
+    int pf_w_struct;   /* worker pass 1: fake struct/argv/cmd/key (independent) */
+    int pf_w_hash;     /* worker pass 2: key bytes + bucket prefetch (hash compute always full) */
+    int pf_w_entry;    /* worker pass 3: bucket -> entry (dependent) */
+    int pf_w_value;    /* worker pass 4: entry -> value bytes (dependent, expensive) */
+    int pf_w_io_struct;/* IO drain pass 1: finished fake structs (independent) */
+    int pf_w_io_reply; /* IO drain pass 2: reply buffers (semi-dependent) */
+    /* ee451: independent batch + value-forward trigger knobs (runtime). */
+    int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
+    int vf_min_dictsize;   /* value-forward only when shard dict size >= this (cache-cold proxy); 0=always */
+    int vf_min_run;        /* value-forward only for same-key runs >= this length */
+    int vf_min_write_permille; /* #3: value-forward only when recent shard write rate >= this/1000; 0=off */
+    int vf_predictor;          /* #4: branch-predictor-style adaptive forward decision (overrides static gates) */
+    int vf_predictor_tournament; /* #4: when predictor on, use tournament (general+history+chooser) vs single gshare */
+    int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
