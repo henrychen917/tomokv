@@ -195,6 +195,15 @@ client *createFakeClient(client *parent) {
     c->multibulklen = 0;
     c->bulklen = -1;
 
+    /* ee451 (EX fix): initialize the MULTI/EXEC scalar state. createFakeClient uses
+     * zmalloc (uninitialized), so without this c->mstate.executing_cmd is GARBAGE.
+     * The command-propagation rewrite used by SET ... EX / SETEX (setGenericCommand
+     * -> replaceClientCommandVector) branches on executing_cmd: a garbage value >= 0
+     * sends it down the MULTI path and trips `executing_cmd < count` -> crash. A fake
+     * never runs MULTI, so this only sets scalars (count=0, executing_cmd=-1); no
+     * allocation, so no freeClientMultiState is needed at teardown. */
+    initClientMultiState(c);
+
     /* Deferred objects — fake has its own */
     c->deferred_objects = NULL;
     c->deferred_objects_num = 0;
@@ -251,7 +260,6 @@ client *createFakeClient(client *parent) {
 
     /* NOT initialized on fake (fake never uses these):
      *   - blocking state (initClientBlockingState)
-     *   - multi state  (initClientMultiState)
      *   - watched_keys / pubsub dicts
      *   - peerid / sockname (fake shares parent's conn, no separate addr)
      *   - client_list_node / io_thread_client_list_node / postponed_list_node
@@ -5227,6 +5235,12 @@ void redactClientCommandArgument(client *c, int argc) {
  * is incremented. The old command vector is freed, and the old objects
  * ref count is decremented. */
 void rewriteClientCommandVector(client *c, int argc, ...) {
+    /* ee451 (EX fix): command rewriting exists only for AOF/replication propagation
+     * (both THredis non-goals). For a worker fake it is unnecessary AND unsafe —
+     * mutating the fake's argv desyncs it from current_pending_cmd->argv (drained by
+     * the worker) and touches the pending/MULTI machinery fakes don't own. Skip it;
+     * the command's actual keyspace effect already happened before this call. */
+    if (c->isFake) return;
     va_list ap;
     int j;
     robj **argv; /* The new argument vector */
@@ -5246,6 +5260,9 @@ void rewriteClientCommandVector(client *c, int argc, ...) {
 
 /* Completely replace the client command vector with the provided one. */
 void replaceClientCommandVector(client *c, int argc, robj **argv) {
+    /* ee451 (EX fix): propagation-only; skip for worker fakes (see rewriteClientCommandVector).
+     * Caller-owned argv is not consumed here, so caller must free it (it does). */
+    if (c->isFake) { for (int k=0;k<argc;k++) if (argv[k]) decrRefCount(argv[k]); zfree(argv); return; }
     int j;
     retainOriginalCommandVector(c);
 
@@ -5311,6 +5328,10 @@ void replaceClientCommandVector(client *c, int argc, robj **argv) {
  * 3. To remove argument at i'th index, pass NULL as new value
  */
 void rewriteClientCommandArgument(client *c, int i, robj *newval) {
+    /* ee451 (EX fix): propagation-only; skip for worker fakes (see
+     * rewriteClientCommandVector). newval is not consumed here, so the caller's
+     * own decrRefCount (the usual pattern) still balances its creation. */
+    if (c->isFake) return;
     robj *oldval;
     retainOriginalCommandVector(c);
 

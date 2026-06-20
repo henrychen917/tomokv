@@ -3170,6 +3170,9 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-vf-predictor",          NULL, MODIFIABLE_CONFIG,             server.vf_predictor,           0, NULL, NULL),
     createBoolConfig("thredis-vf-predictor-tournament", NULL, MODIFIABLE_CONFIG,           server.vf_predictor_tournament, 0, NULL, NULL),
     createIntConfig("thredis-vf-predictor-miss-cycles", NULL, MODIFIABLE_CONFIG, 0, 100000, server.vf_predictor_miss_cycles, 300, INTEGER_CONFIG, NULL, NULL),
+    /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
+    createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
+    createBoolConfig("thredis-opt-ship-reuse",        NULL, MODIFIABLE_CONFIG, server.opt_ship_reuse,        0, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),

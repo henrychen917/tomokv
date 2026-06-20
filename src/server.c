@@ -5066,6 +5066,18 @@ int canDispatchToWorker(client *c) {
         p == scardCommand        || p == smembersCommand     ||
         /* --- HyperLogLog (single-key form only) -------------------- */
         p == pfaddCommand        ||
+        /* --- Expire family (single-key) — ee451 (EX fix). All single-key, so they
+         * route to the key's shard and operate on the SAME worker DB as GET/SET, so
+         * value and expire no longer diverge across DBs. The propagation rewrite some
+         * of these do (SET..EX/SETEX/EXPIRE->PEXPIREAT, GETEX) is now skipped for fakes
+         * at the rewrite functions (propagation is a THredis non-goal). ------------ */
+        p == ttlCommand          || p == pttlCommand         ||
+        p == expireCommand       || p == pexpireCommand      ||
+        p == expireatCommand     || p == pexpireatCommand    ||
+        p == expiretimeCommand   || p == pexpiretimeCommand  ||
+        p == persistCommand      ||
+        p == setexCommand        || p == psetexCommand       ||
+        p == getexCommand        || p == getdelCommand       ||
         /* --- Metadata (read-only) ---------------------------------- */
         p == typeCommand);
 }
@@ -8530,6 +8542,9 @@ static inline void workerPrefetchBatch(client **batch, int n) {
     int w1 = n < server.pf_w_struct ? n : server.pf_w_struct;
     int w3 = n < server.pf_w_entry  ? n : server.pf_w_entry;
     int w4 = n < server.pf_w_value  ? n : server.pf_w_value;
+    /* ee451 (#20/#21): this worker (for the per-key prefetch/reuse predictors). Runs on
+     * a worker thread, so iotid is in the worker range. */
+    workerThread *pfw = &server.workers[iotid - (MY_IO_THREADS_MAX + 1)];
 
     /* Pass 1 — fake client + execution metadata. The fake was just popped from
      * the SPSC ring and may be cold; warm the struct, argv, cmd, and key robj. */
@@ -8568,8 +8583,17 @@ static inline void workerPrefetchBatch(client **batch, int n) {
          * prefetch above and the SipHash hint below still apply to writes (they
          * walk the bucket and need the hash); only the value chase is gated. */
         if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
-            dts[j] = d;
-            idxs[j] = idx;
+            /* ee451 (#20): feedback-directed prefetch. Only chase value for keys the
+             * per-key predictor says prefetch PAYS for (predicted cache-cold). Hot,
+             * L1-resident keys are predicted "not useful" => skip the value chase =>
+             * auto-throttles the prefetch that hurts small hot reads. (#21 keep-warm:
+             * also chase if the key is predicted high-reuse, to keep it resident.) */
+            int chase = 1;
+            if (server.opt_feedback_prefetch)
+                chase = (pfw->pf_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
+            if (!chase && server.opt_ship_reuse)
+                chase = (pfw->reuse_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
+            if (chase) { dts[j] = d; idxs[j] = idx; }
         }
     }
 
@@ -8688,7 +8712,11 @@ static inline int workerPredictForward(workerThread *w, uint64_t key_hash) {
  * the chooser is nudged toward whichever predictor was right (only when they
  * disagree). gshare history register shifts in the outcome bit. */
 static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
-    if (!(server.vf_predictor && fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
+    /* Time the real op (op_0) and learn the per-key cache-temperature signal when ANY
+     * adaptive mechanism is on: forward predictor (#4), feedback-prefetch (#20), or
+     * SHiP reuse (#21). A slow exec => cache MISS (cold); fast => HIT (L1-warm). */
+    int want = (server.vf_predictor || server.opt_feedback_prefetch || server.opt_ship_reuse);
+    if (!(want && fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
           fake->prefetch_key_hash_valid)) {
         workerExecFake(fake);
         return;
@@ -8696,7 +8724,7 @@ static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
     uint64_t kh = fake->prefetch_key_hash;
     unsigned int ig = (unsigned int)kh & FWD_PHT_MASK;
     unsigned int ih = (unsigned int)(kh ^ worker->fwd_ghist) & FWD_PHT_MASK;
-    int pg = worker->gen_pht[ig] >= 2;            /* predictions BEFORE update */
+    int pg = worker->gen_pht[ig] >= 2;            /* forward predictions BEFORE update */
     int ph = worker->fwd_pht[ih] >= 2;
 
     unsigned long long t0 = readCyclesTSC();
@@ -8704,13 +8732,24 @@ static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
     unsigned long long dt = readCyclesTSC() - t0;
     int miss = (dt > (unsigned long long)server.vf_predictor_miss_cycles);
 
-    if (miss) { FWD_SAT_INC(worker->fwd_pht[ih]); FWD_SAT_INC(worker->gen_pht[ig]); }
-    else      { FWD_SAT_DEC(worker->fwd_pht[ih]); FWD_SAT_DEC(worker->gen_pht[ig]); }
-    if (server.vf_predictor_tournament) {
-        unsigned int ic = (unsigned int)kh & FWD_PHT_MASK;
-        int cg = (pg == miss), ch = (ph == miss);   /* which predictor was right */
-        if (ch && !cg) FWD_SAT_INC(worker->chooser[ic]);       /* toward history */
-        else if (cg && !ch) FWD_SAT_DEC(worker->chooser[ic]);  /* toward general */
+    if (server.vf_predictor) {
+        if (miss) { FWD_SAT_INC(worker->fwd_pht[ih]); FWD_SAT_INC(worker->gen_pht[ig]); }
+        else      { FWD_SAT_DEC(worker->fwd_pht[ih]); FWD_SAT_DEC(worker->gen_pht[ig]); }
+        if (server.vf_predictor_tournament) {
+            unsigned int ic = (unsigned int)kh & FWD_PHT_MASK;
+            int cg = (pg == miss), ch = (ph == miss);   /* which predictor was right */
+            if (ch && !cg) FWD_SAT_INC(worker->chooser[ic]);       /* toward history */
+            else if (cg && !ch) FWD_SAT_DEC(worker->chooser[ic]);  /* toward general */
+        }
+    }
+    /* #20: prefetch is "useful" exactly when the lookup missed (cold). */
+    if (server.opt_feedback_prefetch) {
+        if (miss) FWD_SAT_INC(worker->pf_pht[ig]); else FWD_SAT_DEC(worker->pf_pht[ig]);
+    }
+    /* #21: reuse — a HIT means the value was warm (recently re-referenced) => high reuse;
+     * a MISS means cold/one-shot => low reuse (anti-pollution candidate). */
+    if (server.opt_ship_reuse) {
+        if (!miss) FWD_SAT_INC(worker->reuse_pht[ig]); else FWD_SAT_DEC(worker->reuse_pht[ig]);
     }
     worker->fwd_ghist = (worker->fwd_ghist << 1) | (miss ? 1u : 0u);
 }
@@ -8971,6 +9010,8 @@ void initWorkers(void) {
         memset(server.workers[i].fwd_pht, 2, sizeof(server.workers[i].fwd_pht)); /* history: weakly forward */
         memset(server.workers[i].gen_pht, 2, sizeof(server.workers[i].gen_pht)); /* general: weakly forward */
         memset(server.workers[i].chooser, 1, sizeof(server.workers[i].chooser)); /* weakly trust general until history trains */
+        memset(server.workers[i].pf_pht, 2, sizeof(server.workers[i].pf_pht));   /* #20: weakly prefetch (= default behavior) */
+        memset(server.workers[i].reuse_pht, 2, sizeof(server.workers[i].reuse_pht)); /* #21: weakly high-reuse (keep) */
         for (int t = 0; t <= server.my_io_threads; t++) {
             workerQueueInit(&server.workers[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */

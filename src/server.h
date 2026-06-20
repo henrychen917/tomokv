@@ -1806,6 +1806,13 @@ typedef struct workerThread {
     unsigned char gen_pht[FWD_PHT_SIZE];   /* general (bimodal, no history) 2-bit counters */
     unsigned char chooser[FWD_PHT_SIZE];   /* meta: >=2 trust history, <2 trust general */
     unsigned int  fwd_ghist;               /* global history register (gshare) */
+    /* ee451 (#20 feedback-prefetch): per-key "is prefetch useful" 2-bit counters.
+     * miss => prefetch paid (++); hit (L1-resident) => prefetch wasted (--). Gates
+     * the worker value-chase per key, so it auto-throttles prefetch on hot keys. */
+    unsigned char pf_pht[FWD_PHT_SIZE];
+    /* ee451 (#21 SHiP): per-key re-reference (reuse) 2-bit counters. High => likely
+     * re-read soon (keep warm); low => one-shot (avoid cache pollution). */
+    unsigned char reuse_pht[FWD_PHT_SIZE];
 } workerThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2789,6 +2796,8 @@ struct redisServer {
     int vf_predictor;          /* #4: branch-predictor-style adaptive forward decision (overrides static gates) */
     int vf_predictor_tournament; /* #4: when predictor on, use tournament (general+history+chooser) vs single gshare */
     int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
+    int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
+    int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
