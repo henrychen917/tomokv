@@ -726,6 +726,13 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
  * A node is considered linked if it has neighbors (prev/next), or if it's the
  * only node in the list (head points to it). */
 static inline int clientIsInPendingRefReplyList(client *c) {
+    /* ee451 (S8): worker fakes are never put in this list (their zero-copy
+     * reply values are kept alive by the +1 ref + free-back ring, not by
+     * flushdb-protection tracking). Crucially, server.clients_with_pending_ref_reply[]
+     * is sized [MY_IO_THREADS_MAX+1] and indexed by iotid; a worker's iotid is
+     * in the worker range, so the listFirst([iotid]) clause below would read out
+     * of bounds. Returning false for fakes keeps this and the unlink path safe. */
+    if (c->isFake) return 0;
     return listNextNode(&c->pending_ref_reply_node) != NULL ||
            listPrevNode(&c->pending_ref_reply_node) != NULL ||
            listFirst(server.clients_with_pending_ref_reply[iotid]) == &c->pending_ref_reply_node;
@@ -738,7 +745,13 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
 
     bulkStrRef str_ref;
     str_ref.obj = obj;
-    incrRefCount(obj); /* Refcount will be decremented in write handler */
+    incrRefCount(obj); /* Refcount will be decremented in write handler (or, for
+                        * a worker fake, on the owning worker via freebackPush) */
+    /* ee451 (S8): if this reply is being built on a worker (a fake executing a
+     * command), record the owning worker id so the post-send decrRefCount is
+     * routed back to it. iotid for a worker is MY_IO_THREADS_MAX+1+worker_id. */
+    str_ref.owner_worker = (c->isFake && iotid > MY_IO_THREADS_MAX)
+                         ? (iotid - (MY_IO_THREADS_MAX + 1)) : -1;
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';
@@ -756,12 +769,26 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * buffer offset (see function comment) */
     reqresSaveClientReplyOffset(c);
 
-    if (!_addBulkStrRefToBuffer(c, (void *)&str_ref, sizeof(str_ref))) {
+    /* ee451 (S8): a worker fake MUST use the list-node form. The consolidated
+     * drain (AddReplyFromClient) splices the fake's reply LIST into the real
+     * client via listJoin — an O(1) ownership transfer with no copy and no
+     * refcount op. An inline-buffer ref would instead be bulk-memcpy'd into the
+     * real client's buffer, duplicating the reference (double-decref). So skip
+     * the inline buffer for fakes and always append to the list. */
+    if (str_ref.owner_worker >= 0 ||
+        !_addBulkStrRefToBuffer(c, (void *)&str_ref, sizeof(str_ref))) {
         _addReplyPayloadToList(c, c->reply, (void *)&str_ref, sizeof(str_ref), BULK_STR_REF);
     }
 
-    /* Track clients with pending referenced reply objects for async flushdb protection. */
-    if (!clientIsInPendingRefReplyList(c)) {
+    /* Track clients with pending referenced reply objects for async flushdb
+     * protection.
+     * ee451 (S8): SKIP this for worker fakes (owner_worker >= 0). The list
+     * server.clients_with_pending_ref_reply[] is sized [MY_IO_THREADS_MAX+1] and
+     * indexed by iotid — a worker's iotid is in the worker range (out of bounds
+     * => the SEGV thredis-stress caught). Fakes don't need it anyway: the value
+     * is held alive by the +1 ref taken above and released on the owning worker
+     * via the free-back ring, so a concurrent flushdb can't free it early. */
+    if (str_ref.owner_worker < 0 && !clientIsInPendingRefReplyList(c)) {
         listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
     }
 }
@@ -1452,21 +1479,25 @@ void addReplyBulkLen(client *c, robj *obj) {
  * Copy avoidance allows I/O threads to directly reference obj->ptr
  * instead of copying data to reply buffers. */
 static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
-    /* ee451: Don't use copy avoidance for fake clients. The !c->conn test
-     * alone does NOT catch fakes: moveExecutionState() borrows the parent's
-     * conn into fake->conn for the duration of a dispatch. A copy-avoid
-     * reply on a fake would store a bulkStrRef (robj pointer) produced on a
-     * worker thread; the drain memcpys the encoded bytes into the real
-     * client's plain buffer (garbage on the wire) and the deferred
-     * decrRefCount would race the owning worker. Always copy for fakes. */
-    if (c->isFake || !c->conn || !server.reply_copy_avoidance_enabled) return 0;
+    if (!server.reply_copy_avoidance_enabled) return 0;
 
-    int type = getClientType(c);
-    if (type != CLIENT_TYPE_NORMAL) return 0;
-
-    /* Don't use copy avoidance for push messages. Push messages need to be deferred
-     * to server.pending_push_messages when CLIENT_PUSHING is set. */
-    if (c->flags & CLIENT_PUSHING) return 0;
+    /* ee451 (S8): a worker fake (executing a command, iotid in the worker
+     * range) MAY use copy avoidance. The two original blockers are now solved:
+     * the reply is forced to the list-node form so the drain transfers it by
+     * listJoin (no garbage-into-plain-buffer copy), and the post-send decref is
+     * routed back to the owning worker via the free-back ring (no cross-thread
+     * refcount race). For such fakes we skip the normal-client-only checks
+     * (getClientType / PUSHING) — they execute single-key string reads. */
+    int on_worker = c->isFake && iotid > MY_IO_THREADS_MAX;
+    if (!on_worker) {
+        /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
+         * no owning worker to route the decref to. */
+        if (c->isFake || !c->conn) return 0;
+        int type = getClientType(c);
+        if (type != CLIENT_TYPE_NORMAL) return 0;
+        /* Don't use copy avoidance for push messages (deferred when PUSHING). */
+        if (c->flags & CLIENT_PUSHING) return 0;
+    }
 
     if (obj->encoding != OBJ_ENCODING_RAW || obj->refcount >= OBJ_FIRST_SPECIAL_REFCOUNT) return 0;
 
@@ -2244,7 +2275,13 @@ static void releaseBufReferences(client *c, char *buf, size_t bufpos) {
             bulkStrRef *str_ref = (bulkStrRef *)ptr;
             /* Only release if not already released. */
             if (str_ref->obj != NULL) {
-                if (in_io_thread)
+                if (str_ref->owner_worker >= 0)
+                    /* ee451 (S8): value owned by a worker shard — route the
+                     * decref back to that worker (sole refcount mutator) so it
+                     * never races the worker. The owning worker drains its
+                     * free-back ring and decrefs. */
+                    freebackPush(str_ref->owner_worker, str_ref->obj);
+                else if (in_io_thread)
                     ioDeferFreeRobj(c, str_ref->obj);
                 else
                     decrRefCount(str_ref->obj);
@@ -2730,7 +2767,16 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
                 return head;
             }
             *remaining -= (writen_len - *sentlen);
-            if (in_io_thread) {
+            /* ee451 (S8): worker fakes are forced onto the reply LIST (see
+             * _addBulkStrRefToBufferOrList), so a forwarded zero-copy value is
+             * released HERE, on the IO/main thread. It must NOT be decref'd here:
+             * that would race the owning worker, which is the sole refcount mutator
+             * for its shard's values (single-writer-per-key). Route the decref back
+             * to that worker via the free-back ring instead. Mirrors the inline-buffer
+             * path in releaseBufReferences(). */
+            if (str_ref->owner_worker >= 0) {
+                freebackPush(str_ref->owner_worker, str_ref->obj);
+            } else if (in_io_thread) {
                 ioDeferFreeRobj(c, str_ref->obj);
             } else {
                 decrRefCount(str_ref->obj);

@@ -8294,6 +8294,38 @@ void flushWorkerQueues(void) {
     }
 }
 
+/* ee451 (S8): IO thread (producer, this iotid) enqueues a value object for its
+ * owning worker to decrRefCount. The decref MUST happen on the worker (sole
+ * mutator of that shard's refcounts) — decref'ing here would race it. If the
+ * ring is momentarily full (rare; only >=16KB zero-copy replies use it), spin
+ * for the worker to drain rather than decref here. */
+void freebackPush(int worker_id, robj *obj) {
+    freebackRing *fb = &server.workers[worker_id].freeback[iotid];
+    unsigned int t = atomic_load_explicit(&fb->tail, memory_order_relaxed);
+    unsigned int next_t = (t + 1) & FREEBACK_RING_MASK;
+    while (next_t == atomic_load_explicit(&fb->head, memory_order_acquire))
+        sched_yield();  /* back-pressure: wait for the worker to drain */
+    fb->objs[t] = obj;
+    atomic_store_explicit(&fb->tail, next_t, memory_order_release);
+}
+
+/* ee451 (S8): the worker drains all its free-back rings and decrefs each value
+ * on the worker thread (single-writer for its shard => no refcount race).
+ * Called once per worker loop iteration. */
+static inline void freebackDrainAll(workerThread *worker) {
+    for (int t = 0; t <= server.my_io_threads; t++) {
+        freebackRing *fb = &worker->freeback[t];
+        unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
+        unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
+        if (h == tl) continue;
+        while (h != tl) {
+            decrRefCount((robj *)fb->objs[h]);
+            h = (h + 1) & FREEBACK_RING_MASK;
+        }
+        atomic_store_explicit(&fb->head, h, memory_order_release);
+    }
+}
+
 int workerQueuePush(workerQueue *q, client *c) {
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
@@ -8567,6 +8599,10 @@ void *workerThreadMain(void *arg) {
     int empty_rounds = 0;
 
     while (1) {
+        /* ee451 (S8): decref any zero-copy reply values the IO threads handed
+         * back after sending — done here on the worker so the shard's value
+         * refcounts are only ever mutated by this thread. */
+        freebackDrainAll(worker);
         int any = 0;
         for (int i = 0; i <= server.my_io_threads; i++) {
             int n = workerQueuePopBatch(&worker->queues[i], batch, WORKER_POP_BATCH);
@@ -8711,6 +8747,10 @@ void initWorkers(void) {
         server.workers[i].db = server.worker_dbs[i];
         for (int t = 0; t <= server.my_io_threads; t++) {
             workerQueueInit(&server.workers[i].queues[t]);
+            /* ee451 (S8): init this worker's free-back ring for producer t. */
+            freebackRing *fb = &server.workers[i].freeback[t];
+            atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
+            atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
         pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
         pinWorkerToCore(server.workers[i].thread, i);

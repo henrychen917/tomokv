@@ -1104,6 +1104,11 @@ typedef struct __attribute__((__packed__)) bulkStrRef {
     unsigned int prefix_cnt;
     char prefix[LONG_STR_SIZE + 3]; /* $<len>\r\n */
     char crlf[2]; /* \r\n */
+    /* ee451 (S8): owning worker id for zero-copy fake replies, or -1 for a
+     * normal client. When >= 0, the post-send decrRefCount is routed to that
+     * worker via freebackPush (sole refcount mutator for its shard); when -1,
+     * released inline / via ioDeferFreeRobj as before. */
+    int owner_worker;
 } bulkStrRef;
 
 /* This structure is used in order to represent the output buffer of a client,
@@ -1738,10 +1743,27 @@ typedef struct workerQueue {
     client *jobs[MY_WORKER_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } workerQueue;
 
+/* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
+ * takes a +1 ref on the value and the IO thread sends it by reference; the
+ * matching decrRefCount must run on the OWNING WORKER (the sole mutator of that
+ * shard's value refcounts) to avoid the cross-thread refcount race. After the
+ * send, the IO thread enqueues the value here; the worker drains and decrefs.
+ * One ring per producing IO thread => SPSC (producer = IO thread iotid,
+ * consumer = the owning worker). */
+#define FREEBACK_RING_SIZE 1024
+#define FREEBACK_RING_MASK (FREEBACK_RING_SIZE - 1)
+typedef struct freebackRing {
+    redisAtomic unsigned int head __attribute__((aligned(CACHE_LINE_SIZE))); /* consumer (worker) */
+    redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE))); /* producer (IO thread) */
+    void *objs[FREEBACK_RING_SIZE] __attribute__((aligned(CACHE_LINE_SIZE)));
+} freebackRing;
+
 typedef struct workerThread {
     int id;
     pthread_t thread;
     workerQueue queues[MY_IO_THREADS_MAX + 1];
+    /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
+    freebackRing freeback[MY_IO_THREADS_MAX + 1];
     redisDb *db;
 } workerThread;
 
@@ -4673,6 +4695,7 @@ void initIOThreads(void);
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
 void flushWorkerQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void freebackPush(int worker_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 client *workerQueuePop(workerQueue *q);
 void queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
