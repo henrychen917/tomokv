@@ -11,6 +11,7 @@ running `redis-server` from the THredis tree; start it with `--enable-debug-comm
 | Path | What it is |
 |------|------------|
 | `keys.py` | **Bit-exact replica of THredis's seedless xxh64** (`server.c`), so a key can be mapped to its bucket/worker *off the server*. Foundational for worker-targeted load and key placement. Verified against `DEBUG RESHARD FIND` (`python3 keys.py 7800`). |
+| `loadgen/cload.c` | **Fast C load generator** (raw-socket RESP + deep pipelining + N threads) that **saturates** the server and **targets one worker's keys** via an embedded bit-exact xxh64. Modes GET/SET/BITCOUNT/mixed. `gcc -O3 -o cload cload.c -lpthread`. This is the saturating client; the Python gens are client-bound. |
 | `loadgen/get_loadgen.py` | Pipelined GET load (reads a key list from `/tmp/hot.txt`). |
 | `loadgen/bitcount_loadgen.py` | Worker-CPU-heavy load (BITCOUNT over large values). |
 | `loadgen/single_key_skew.py` | Hammers a few hot keys — unbalanceable skew (exercises the LB no-progress guard). |
