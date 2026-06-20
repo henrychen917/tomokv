@@ -129,6 +129,14 @@ client *createFakeClient(client *parent) {
     c->dispatchid = 0;
     c->flushid = 0;
 
+    /* ee451 (v7): cross-shard scatter-gather state. zmalloc leaves these as
+     * garbage, so initialize: a fake is neither a group head (csgroup) nor a
+     * per-key sub (csparent) until dispatchCrossShard sets it. */
+    c->csgroup = NULL;
+    c->csparent = NULL;
+    c->cssub_idx = 0;
+    c->is_flush = 0;
+
     /* Output buffer — fake owns its own */
     c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
     c->bufpos = 0;

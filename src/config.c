@@ -3177,6 +3177,7 @@ standardConfig static_configs[] = {
     /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
     createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
     createBoolConfig("thredis-opt-ship-reuse",        NULL, MODIFIABLE_CONFIG, server.opt_ship_reuse,        0, NULL, NULL),
+    createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       0, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),

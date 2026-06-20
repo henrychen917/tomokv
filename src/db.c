@@ -1427,6 +1427,21 @@ void flushallCommand(client *c) {
     int flags;
     if (getFlushCommandFlags(c,&flags) == C_ERR) return;
 
+    /* ee451 (v7): sharded build — data lives in per-worker shard DBs that only their owning
+     * worker may mutate, so the stock blocking-async flush (which empties only server.db and
+     * waits on a bio completion that never fires here) hangs. Dispatch a flush to each worker
+     * and barrier-wait instead. */
+    /* NB: inline-dispatched commands run on a ring-slot FAKE (c->isFake==1), so do NOT gate
+     * on !c->isFake — that would skip the fix and fall into the stock blocking-async path,
+     * which hangs/crashes here. flushAllShards works whether c is the real client or its fake. */
+    if (server.workers && server.num_workers > 0) {
+        flushAllShards(c, -1, (flags & EMPTYDB_ASYNC) ? 1 : 0);
+        server.dirty++;
+        forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
+        addReply(c, shared.ok);
+        return;
+    }
+
     /* If FLUSH SYNC isn't running as blocking async, then reply */
     if (flushCommandCommon(c, FLUSH_TYPE_ALL, flags, NULL) == 0)
         addReply(c, shared.ok);
@@ -1438,6 +1453,16 @@ void flushallCommand(client *c) {
 void flushdbCommand(client *c) {
     int flags;
     if (getFlushCommandFlags(c,&flags) == C_ERR) return;
+
+    /* ee451 (v7): sharded build — flush the selected DB across all worker shards. See
+     * flushallCommand for why the stock path hangs here. */
+    if (server.workers && server.num_workers > 0 && !c->isFake) {
+        flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
+        server.dirty++;
+        forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
+        addReply(c, shared.ok);
+        return;
+    }
 
     /* If FLUSH SYNC isn't running as blocking async, then reply */
     if (flushCommandCommon(c, FLUSH_TYPE_DB,flags, NULL) == 0)

@@ -1516,6 +1516,20 @@ typedef struct client {
      * the drain clears reply_cdb[cdb] — one captured value keeps writer and clearer
      * in agreement regardless of toggle state. 0 for the inline (non-worker) path. */
     int cdb;
+    /* ee451 (v7 cross-shard): set on a ring-slot fake that is a multi-key (MGET/MSET/
+     * DEL/EXISTS) GROUP HEAD (NULL otherwise); and on a SUB-FAKE, csparent points back
+     * to its group so completion decrements the group counter instead of signaling. */
+    struct csGroup *csgroup;
+    struct csGroup *csparent;
+    int cssub_idx;   /* sub-fake: its index (= original key position) within its group */
+    /* ee451 (v7): FLUSH SENTINEL fake. FLUSHALL/FLUSHDB queues one of these per worker THROUGH
+     * the SPSC ring (so it is FIFO-ordered behind that connection's earlier commands, not
+     * jumped ahead); the owning worker empties its OWN shard DBs (single-writer) when it pops
+     * the sentinel, then frees it. dbid/async carried on the fake itself (no shared barrier —
+     * the reply is sent immediately, fire-and-forget). is_flush==0 on every non-sentinel. */
+    int is_flush;
+    int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
+    int flush_async;
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (workerPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -1705,6 +1719,37 @@ typedef struct client {
     redisAtomic int pending_read; /* Flag indicating an IO thread client residing
                                    * in main thread has received a read event. */
 } client;
+
+/* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
+ * slot that represents one multi-key command). Each sub-fake runs the per-shard
+ * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
+ * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
+ * preserved: each key is still touched only by its owning shard's worker. */
+typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS } csCmdType;
+typedef struct csGroup {
+    redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
+    int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
+    csCmdType ctype;
+    int nkeys;                 /* original key count */
+    client **subs;             /* [nsub] sub-fakes (freed at drain) */
+    client *head;              /* the group-head fake (the ring slot) */
+    /* per-position results (sub i writes index i; positions are disjoint => no conflict).
+     * MGET: result robj* (+1 ref, freed-back to its worker at drain). MSET: unused.
+     * DEL/EXISTS: rcount accumulates the per-sub integer. */
+    robj **results;            /* [nkeys] MGET values (or NULL) */
+    int  *result_worker;       /* [nkeys] owning worker of results[i] (for free-back) */
+    redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
+} csGroup;
+
+/* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
+ * generation counter, NOT the command queue — so no fake-client lifecycle to race on, and the
+ * IO event loop is never blocked). Each worker, at the TOP of its main loop (before popping its
+ * next command batch), notices req != its private flush_seen and empties its OWN shard DBs
+ * (single-writer preserved). Because the flush check precedes the batch pop, any command issued
+ * after FLUSHALL is guaranteed to observe the emptied shard, so "FLUSHALL; GET -> nil" holds.
+ * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
+ * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
+void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Must be a power of two. Runtime value lives
@@ -2799,6 +2844,7 @@ struct redisServer {
     int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
+    int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
@@ -4789,6 +4835,8 @@ void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int workerIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
+client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
+void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {

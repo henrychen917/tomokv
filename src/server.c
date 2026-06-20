@@ -99,6 +99,11 @@ const char *replstateToString(int replstate);
 //ee451
 static int isStatefulCommand(struct redisCommand *cmd);
 static void moveExecutionState(client *real, client *fake);
+/* ee451 (v7) cross-shard: defined below workerIndexForKey, used earlier (dispatch + drain). */
+static int csCommandType(client *c);
+static void dispatchCrossShard(client *head, int ct);
+static void csReassemble(client *dst, client *head);
+static inline void workerPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -1919,9 +1924,14 @@ void handleWorkerReplies(void) {
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
                 int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
+                int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_WORKER_PENDING;
+                /* ee451 (v7): real is being torn down, but a completed cross-shard group
+                 * still owns its sub-fakes + group struct — free them (dst=NULL: no reply)
+                 * to avoid a leak. */
+                if (fake->csgroup) csReassemble(NULL, fake);
                 commandProcessed(fake);
-                if (was_worker_dispatched) replyWorking--;
+                if (was_worker_dispatched || was_cs) replyWorking--;
                 atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
                 real->flushid++;
             }
@@ -1985,6 +1995,11 @@ void handleWorkerReplies(void) {
 
             client *fake = real->fakeClients[slot];
             int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
+            /* ee451 (v7): a cross-shard head is NOT CLIENT_WORKER_PENDING but DID bump
+             * replyWorking at dispatch (its subs are in flight), so it must decrement here
+             * too — else the IO loop's replyWorking stays >0 forever. Capture before
+             * csReassemble NULLs csgroup. */
+            int was_cs = (fake->csgroup != NULL);
 
             /* Clear the worker-pending flag BEFORE commandProcessed, because
              * resetClient() early-returns when the flag is set. */
@@ -1995,7 +2010,15 @@ void handleWorkerReplies(void) {
              * reply list (O(1) pointer splice for the tail list). Also
              * resets fake->bufpos and fake->reply_bytes. May mark real
              * CLIENT_CLOSE_ASAP on output-buffer-limit overflow. */
-            AddReplyFromClient(real, fake);
+            /* ee451 (v7): a cross-shard group head carries no reply of its own. Build the
+             * reassembled reply directly onto real (array header + spliced sub elements) and
+             * skip the normal head splice. commandProcessed(fake) below still retires the
+             * head ring slot like any other fake. */
+            if (fake->csgroup) {
+                csReassemble(real, fake);
+            } else {
+                AddReplyFromClient(real, fake);
+            }
             spliced = 1;
 
             if (real->flags & CLIENT_CLOSE_ASAP) {
@@ -2004,7 +2027,7 @@ void handleWorkerReplies(void) {
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
                 commandProcessed(fake);
-                if (was_worker_dispatched) replyWorking--;
+                if (was_worker_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
                 atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
@@ -2019,7 +2042,7 @@ void handleWorkerReplies(void) {
             atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
             commandProcessed(fake);
 
-            if (was_worker_dispatched) replyWorking--;
+            if (was_worker_dispatched || was_cs) replyWorking--;
             real->flushid++;
         }
 
@@ -4935,7 +4958,20 @@ int processCommand(client *c) {
         listAddNodeTail(server.clients_pending_worker[iotid], c);
     }
 
-    if (canDispatchToWorker(fake)) {
+    /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
+     * one single-key sub-fake per shard worker; the ring-slot `fake` becomes the group
+     * head and is NOT itself worker-dispatched (no CLIENT_WORKER_PENDING, so the drain's
+     * was_worker_dispatched stays 0 and replyWorking is untouched). Its completion bit is
+     * set by the last sub; the drain reassembles via csReassemble. */
+    int cst = csCommandType(fake);
+    if (cst >= 0) {
+        /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
+         * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
+         * in epoll_wait forever — otherwise it sleeps and never drains the completed group
+         * (the head carries no socket event of its own). Decremented when the group drains. */
+        replyWorking++;
+        dispatchCrossShard(fake, cst);
+    } else if (canDispatchToWorker(fake)) {
         int worker_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
          * reply_cdb[fake->cdb] and the drain clears reply_cdb[fake->cdb] — one
@@ -5196,6 +5232,242 @@ int getWorkerForCommand(client *c) {
 int workerIndexForKey(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & server.my_worker_dispatch_mask);
 }
+
+/* ============================ ee451 (v7) CROSS-SHARD ============================
+ * Multi-key scatter-gather. A multi-key command (MGET / MSET / DEL / UNLINK / EXISTS / TOUCH)
+ * is split at the IO thread into ONE single-key SUB-FAKE per key, each dispatched to its shard
+ * worker (so single-writer-per-key still holds). Each sub runs its per-key op ON ITS OWNING
+ * WORKER. Reassembly on the IO drain depends on the command: MGET splices each sub's serialized
+ * element (in key order); MSET replies +OK once all subs have set; DEL/EXISTS/TOUCH/UNLINK sum
+ * each sub's integer into g->rcount and reply the total. Default OFF until validated.
+ *
+ * (Original MGET notes below; they generalize.) A multi-key command is split at the IO
+ * (so single-writer-per-key still holds). Each sub runs the per-key lookup ON ITS OWNING
+ * WORKER and serializes the reply ELEMENT into its OWN reply buffer there. The LAST sub to
+ * finish (pending hits 0) publishes the group-head slot's reply bit; the IO drain then
+ * reassembles by writing the array header onto the head and splicing the sub reply buffers
+ * in original key order. Default OFF until validated.
+ *
+ * Why serialize on the worker (not forward the value robj to the IO thread):
+ *   1. INT-encoded string values (SET k 123) have a non-sds ->ptr; only addReplyBulk on
+ *      the owning thread encodes them correctly. A cross-thread sdslen(ptr) would corrupt.
+ *   2. No cross-thread refcount juggling — the value never escapes its worker, so the
+ *      worker stays the sole refcount mutator (Sec 4.8) with zero free-back traffic.
+ *   3. The bytes are copied synchronously on the worker, before any later same-key write
+ *      could COW/realloc the value, so there is no use-after-mutate window.
+ * The cost is one extra buffer copy per element (sub->buf -> head -> real); acceptable for
+ * a correctness-first implementation. One-sub-per-key keeps reassembly trivial (positional).
+ *
+ * Happens-before: each sub does fetch_sub(pending, ACQ_REL). The acq_rel chain means the
+ * last sub (result==1) has acquired every earlier sub's release and therefore sees all
+ * their reply-buffer writes; its release-OR of the head bit then synchronizes-with the IO
+ * drain's acquire-load of the reply mask. So the drain sees every sub's buffer. */
+static int csCommandType(client *c) {
+    if (!server.opt_cross_shard || !c->cmd) return -1;
+    void *p = c->cmd->proc;
+    /* MGET: every form (incl. 1 key) — MGET is never on the single-key whitelist. */
+    if (p == mgetCommand   && c->argc >= 2) return CS_MGET;
+    /* MSET k1 v1 ...: argc must be odd (1 + 2*nkeys). Per-key SET subs; +OK after barrier. */
+    if (p == msetCommand   && c->argc >= 3 && (c->argc & 1)) return CS_MSET;
+    /* DEL: single-key (argc==2) stays on the efficient whitelist; only multi-key crosses. */
+    if (p == delCommand    && c->argc >= 3) return CS_DEL;
+    /* UNLINK/EXISTS/TOUCH are NOT on the whitelist, so even single-key needs cross-shard
+     * (else they run inline on the empty IO db). UNLINK uses sync delete (async-free from a
+     * worker crashes); TOUCH counts like EXISTS. */
+    if (p == unlinkCommand && c->argc >= 2) return CS_DEL;
+    if (p == existsCommand && c->argc >= 2) return CS_EXISTS;
+    if (p == touchCommand  && c->argc >= 2) return CS_EXISTS;
+    return -1;
+}
+
+/* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
+ * array element (bulk value, or nil for missing / non-string) into the sub's own buffer.
+ * Matches mgetCommand's per-key semantics exactly: a wrong-type key replies nil, NOT an
+ * error (so this is deliberately not getCommand, which would WRONGTYPE). */
+static void csSubExec(client *sub) {
+    csGroup *g = sub->csparent;
+    if (!sub->argv || !sub->argv[1]) return;
+    client *saved = server.current_client[iotid];
+    server.current_client[iotid] = sub;
+    switch (g->ctype) {
+    case CS_MGET: {
+        /* Read element: matches mgetCommand per-key semantics (wrong-type -> nil, NOT error,
+         * so deliberately not getCommand). Serialize into the sub's own buffer. */
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+        if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
+        else addReplyBulk(sub, o);
+        break;
+    }
+    case CS_MSET: {
+        /* Per-key SET (single-writer on this shard). Mirrors msetGenericCommand EXACTLY:
+         * encode, setKey (which swaps argv[2] for the in-dict kvobj WITHOUT incrementing its
+         * refcount), then incrRefCount so the argv slot owns a valid ref — csFreeSub's later
+         * decref then leaves the dict's copy alive (omitting this incref frees the live value). */
+        sub->argv[2] = tryObjectEncoding(sub->argv[2]);
+        setKey(sub, sub->db, sub->argv[1], &sub->argv[2], 0);
+        incrRefCount(sub->argv[2]);   /* refcnt not incr by setKey() */
+        notifyKeyspaceEvent(NOTIFY_STRING, "set", sub->argv[1], sub->db->id);
+        server.dirty++;
+        break;
+    }
+    case CS_DEL: {
+        /* DEL/UNLINK: lookupKeyWrite handles lazy expiry (NULL if absent/expired); count only
+         * keys actually present, then sync-delete. Sum lands in g->rcount. */
+        robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+        int deleted = 0;
+        if (o != NULL && dbSyncDelete(sub->db, sub->argv[1])) {
+            deleted = 1; server.dirty++;
+            notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+        }
+        atomic_fetch_add_explicit(&g->rcount, deleted, memory_order_relaxed);
+        break;
+    }
+    case CS_EXISTS: {
+        /* EXISTS/TOUCH: count present keys (lookupKeyRead applies lazy expiry). Duplicates are
+         * separate subs, so EXISTS k k correctly counts 2 if present. */
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+        atomic_fetch_add_explicit(&g->rcount, o ? 1 : 0, memory_order_relaxed);
+        break;
+    }
+    default: break;
+    }
+    server.current_client[iotid] = saved;
+}
+
+static void csFreeSub(client *sub) {
+    if (sub->argv) {
+        for (int a = 0; a < sub->argc; a++) if (sub->argv[a]) decrRefCount(sub->argv[a]);
+        zfree(sub->argv); sub->argv = NULL; sub->argc = 0;
+    }
+    sub->csparent = NULL;
+    freeFakeClient(sub);
+}
+
+/* Push a sub to a worker queue, publishing `tail` IMMEDIATELY (not waiting for the
+ * event-loop's batched flushWorkerQueues) and spinning while the queue is full. A single
+ * MGET may stage more subs than the queue depth; under opt_batch_push the staged jobs are
+ * invisible to the worker until tail is published, so without this the worker could never
+ * drain and the push would deadlock. We are the sole producer for queues[iotid], so the
+ * immediate release-store races nothing; the worker is the sole consumer and drains
+ * concurrently, so the full-spin is bounded by its pop rate. */
+static void csPushSpin(int w, client *sub) {
+    workerQueue *q = &server.workers[w].queues[iotid];
+    int spins = 0;
+    while (workerQueuePush(q, sub) != 0) {
+        /* Full: ensure everything staged so far is visible so the worker drains. */
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        workerPauseCpu();
+        if ((++spins & 4095) == 0) sched_yield();
+    }
+    /* Publish this sub now (covers the opt_batch_push staging-only case). */
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+}
+
+/* Split the multi-key command on the ring-slot head fake into per-key sub-fakes and
+ * dispatch them. head->argv already holds the command (moved in by moveExecutionState). */
+static void dispatchCrossShard(client *head, int ct) {
+    /* MSET argv is [MSET k1 v1 k2 v2 ...] => nkeys = (argc-1)/2; the rest are [CMD k1 k2 ...]. */
+    int nkeys = (ct == CS_MSET) ? (head->argc - 1) / 2 : (head->argc - 1);
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = ct; g->nkeys = nkeys; g->nsub = nkeys; g->head = head;
+    g->subs = zmalloc(sizeof(client*) * nkeys);
+    g->results = NULL; g->result_worker = NULL;   /* reply-buffer design: no value forwarding */
+    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    head->csgroup = g;
+    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
+    int dbid = head->db->id;
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
+        robj *val = (ct == CS_MSET) ? head->argv[2 + 2*i] : NULL;
+        int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+        client *sub = createFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
+        sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
+        /* The sub serializes its reply into its OWN buffer on the worker. addReply* gate on
+         * _prepareClientToWrite, which (1) rejects conn==NULL and (2) short-circuits on
+         * CLIENT_WORKER_PENDING before the pending-write-queue logic. Borrow real's conn to
+         * pass (1) and set the flag for (2) — the sub IS worker-dispatched. Its reply is
+         * spliced/aggregated at reassembly, never written to the socket directly. */
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_WORKER_PENDING;
+        int an = (ct == CS_MSET) ? 3 : 2;        /* MSET sub = [CMD key val]; others [CMD key] */
+        sub->argv = zmalloc(sizeof(robj*) * an);
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);   /* command name (display) */
+        sub->argv[1] = key;           incrRefCount(key);
+        /* MSET value: a PRIVATE refcount-1 copy (not shared with the head), so the worker's
+         * setKey can consume it exactly like a stock SET (where argv[2] is refcount 1). */
+        if (ct == CS_MSET) sub->argv[2] = dupStringObject(val);
+        sub->argc = an;
+        sub->db = &server.workers[w].db[dbid];
+        g->subs[i] = sub;
+        csPushSpin(w, sub);
+    }
+}
+
+/* Reassemble a completed group's reply onto `dst` (the real client): array header + each
+ * sub's serialized element in original key order, then tear the group down. We build onto
+ * the real client directly (not the head fake) so addReply* hits the normal, proven reply
+ * target and never risks queueing the head for a direct socket write. dst==NULL means the
+ * real client is being torn down (CLOSE_ASAP): skip the reply, just free the subs/group.
+ * Called from the IO drain, which has acquire-synchronized with every sub via the head
+ * completion bit (release-acquire chain through g->pending; see the block header). */
+static void csReassemble(client *dst, client *head) {
+    csGroup *g = head->csgroup;
+    if (dst) {
+        switch (g->ctype) {
+        case CS_MGET:
+            addReplyArrayLen(dst, g->nkeys);
+            for (int i = 0; i < g->nkeys; i++)
+                AddReplyFromClient(dst, g->subs[i]);   /* splice sub's element buffer in order */
+            break;
+        case CS_MSET:
+            addReply(dst, shared.ok);                  /* MSET always +OK once all subs are set */
+            break;
+        case CS_DEL:
+        case CS_EXISTS:
+            addReplyLongLong(dst, (long long)atomic_load_explicit(&g->rcount, memory_order_relaxed));
+            break;
+        default: break;
+        }
+    }
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    zfree(g->subs); zfree(g);
+    head->csgroup = NULL;
+}
+
+/* ee451 (v7): FLUSHALL/FLUSHDB for the sharded build. Each worker owns its shard DBs and is
+ * the only thread allowed to mutate them (single-writer), so the IO thread cannot empty them
+ * directly. We signal each worker via a per-worker side-channel generation (flush_req) — NOT
+ * the command queue, so there is no fake-client to create/free/race on — then barrier-wait
+ * until each worker has emptied its own shards and decremented g.pending. Also empties the
+ * IO-side server.db (normally empty under sharding, but be thorough). dbid<0 = all logical
+ * DBs (FLUSHALL); else a single DB (FLUSHDB). The mutex serializes concurrent flushes so the
+ * per-worker flush_* fields are never clobbered mid-flight. Synchronous: returns only after
+ * every shard is emptied. Works whether c is the real client or its inline ring-slot fake. */
+void flushAllShards(client *c, int dbid, int async) {
+    if (!server.workers || server.num_workers <= 0) return;
+    /* Queue one flush-sentinel fake to each worker THROUGH the SPSC ring, so it is FIFO-ordered
+     * behind any commands this IO thread already queued for that worker (FLUSHALL does not jump
+     * ahead of a connection's earlier writes). Each worker empties its own shard DBs when it
+     * pops the sentinel (single-writer preserved). No barrier/spin: the caller replies OK
+     * immediately (fire-and-forget) — blocking the IO event loop here would break the drain &
+     * client-teardown bookkeeping for connections that close meanwhile. Because the worker runs
+     * the sentinel in queue order before any later command, post-FLUSHALL ops still see empty. */
+    for (int w = 0; w < server.num_workers; w++) {
+        client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
+        sentinel->is_flush = 1;
+        sentinel->flush_dbid = dbid;
+        /* SYNC free only: emptyDbAsync (lazyfree) from a worker thread crashes — it touches
+         * shared BIO/lazyfree state that assumes the main/IO thread. The worker frees its own
+         * shard inline (single-writer), which is fast for normal shards. */
+        sentinel->flush_async = 0; (void)async;
+        csPushSpin(w, sentinel);
+    }
+    /* Empty the IO-side DBs too (single-key data lives in shards, but stay thorough). */
+    emptyDbStructure(server.db, dbid, async, NULL);
+}
+/* ========================== end cross-shard ========================== */
 
 /* Checks if all keys in a command (or a MULTI-EXEC) belong to the same hash slot.
  * If yes, return 1, otherwise 0. If hashslot is not NULL, it will be set to the
@@ -8814,6 +9086,7 @@ void *workerThreadMain(void *arg) {
          * back after sending — done here on the worker so the shard's value
          * refcounts are only ever mutated by this thread. */
         freebackDrainAll(worker);
+
         int any = 0;
         /* ee451: runtime worker pop/execute batch size, capped by the compile-time
          * array max. Decoupled from the per-stage prefetch widths. */
@@ -8859,6 +9132,34 @@ void *workerThreadMain(void *arg) {
              * expiry is never bypassed. */
             for (int j = 0; j < n; ) {
                 client *fake = batch[j];
+
+                /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
+                 * connection's earlier commands). Empty this worker's OWN shard DBs and free
+                 * the fake. Fire-and-forget: no reply, no barrier. */
+                if (fake->is_flush) {
+                    emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                    freeFakeClient(fake);
+                    j++;
+                    continue;
+                }
+
+                /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
+                 * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
+                 * release-acquire chain across all subs so the last one sees every sub's
+                 * buffer; the last sub publishes the head slot's reply bit (into the head's
+                 * captured CDB, not this worker's wcdb) with release, pairing with the IO
+                 * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
+                if (fake->csparent) {
+                    csSubExec(fake);
+                    csGroup *g = fake->csparent;
+                    if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
+                        client *hp = g->head->parent;
+                        atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
+                                                 1u << g->head->fake_slot);
+                    }
+                    j++;
+                    continue;
+                }
 
                 /* Length of the same-key readonly run starting at j.
                  * ee451 (v4): with value forwarding disabled, m stays 1 and every
