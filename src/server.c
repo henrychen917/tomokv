@@ -1863,6 +1863,11 @@ extern int ProcessingEventsWhileBlocked;
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
 void handleWorkerReplies(void) {
+    /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
+     * any reply. This is the single guaranteed pre-drain / pre-sleep point
+     * (beforeSleepIO calls us first each loop), so a staged job is always
+     * visible to its worker before the drain can wait on its slot. */
+    flushWorkerQueues();
     listIter li;
     listNode *ln;
     listRewind(server.clients_pending_worker[iotid], &li);
@@ -2945,6 +2950,11 @@ void resetServerStats(void) {
     server.stat_last_eviction_exceeded_time = 0;
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
+    /* ee451 (S6): zero the per-thread keyspace counters too. */
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) {
+        server.kstat[i].hits = 0;
+        server.kstat[i].misses = 0;
+    }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
     server.stat_active_defrag_key_hits = 0;
@@ -6605,6 +6615,19 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
     return info;
 }
 
+/* ee451 (S6): fold the per-thread keyspace counters (plus the legacy scalar,
+ * normally 0) into a single total for INFO. */
+static long long keyspaceHitsTotal(void) {
+    long long s = server.stat_keyspace_hits;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].hits;
+    return s;
+}
+static long long keyspaceMissesTotal(void) {
+    long long s = server.stat_keyspace_misses;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].misses;
+    return s;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -6976,8 +6999,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "evicted_scripts:%lld\r\n", server.stat_evictedscripts,
             "total_eviction_exceeded_time:%lld\r\n", (server.stat_total_eviction_exceeded_time + current_eviction_exceeded_time) / 1000,
             "current_eviction_exceeded_time:%lld\r\n", current_eviction_exceeded_time / 1000,
-            "keyspace_hits:%lld\r\n", server.stat_keyspace_hits,
-            "keyspace_misses:%lld\r\n", server.stat_keyspace_misses,
+            "keyspace_hits:%lld\r\n", keyspaceHitsTotal(),     /* ee451 (S6): folded per-thread */
+            "keyspace_misses:%lld\r\n", keyspaceMissesTotal(), /* ee451 (S6): folded per-thread */
             "pubsub_channels:%llu\r\n", kvstoreSize(server.pubsub_channels),
             "pubsub_patterns:%lu\r\n", dictSize(server.pubsub_patterns),
             "pubsubshard_channels:%llu\r\n", kvstoreSize(server.pubsubshard_channels),
@@ -8250,12 +8273,34 @@ void workerQueueInit(workerQueue *q) {
     atomic_store_explicit(&q->tail, 0, memory_order_relaxed);
     q->cached_tail = 0;   /* ee451: empty (head == cached_tail) */
     q->cached_head = 0;   /* ee451: empty (next_t != cached_head until full) */
+    q->staged_tail = 0;   /* ee451 (S4): == tail; nothing staged yet */
     memset(q->jobs, 0, sizeof(q->jobs));
 }
 
+/* ee451 (S4): publish every job this IO thread (iotid) has STAGED to its
+ * worker queues, with a single release-store of `tail` per queue. Called at the
+ * top of handleWorkerReplies — i.e. before any reply drain and before the IO
+ * thread sleeps (beforeSleepIO calls handleWorkerReplies first every loop) — so
+ * a staged-but-unpublished job can never make the drain wait on a worker that
+ * cannot see it. One store publishes all the jobs[] writes that happened-before
+ * it (standard SPSC batch publish). */
+void flushWorkerQueues(void) {
+    if (!server.workers) return;
+    for (int w = 0; w < server.num_workers; w++) {
+        workerQueue *q = &server.workers[w].queues[iotid];
+        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+        if (q->staged_tail != published)
+            atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    }
+}
+
 int workerQueuePush(workerQueue *q, client *c) {
-    /* Producer owns tail; relaxed load is fine (no one else writes it). */
-    unsigned int t = atomic_load_explicit(&q->tail, memory_order_relaxed);
+    /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
+     * IO thread publishes all staged jobs with one release-store per queue at
+     * flushWorkerQueues() (handleWorkerReplies top), batching up to
+     * pipeline_depth cross-CCD release-stores into one. staged_tail is the
+     * producer-private write frontier (>= published tail). */
+    unsigned int t = q->staged_tail;
     unsigned int next_t = (t + 1) & server.my_worker_queue_mask;
     /* ee451: fast-path the "not full" check against the producer-private
      * cached_head, avoiding the cross-core acquire-load of the consumer's
@@ -8273,11 +8318,10 @@ int workerQueuePush(workerQueue *q, client *c) {
         }
     }
     q->jobs[t] = c;
-    /* Release store of tail publishes the new slot to the consumer:
-     * consumer's acquire load of tail will observe this store and all
-     * writes that happened-before it (including the q->jobs[t] = c
-     * write just above). */
-    atomic_store_explicit(&q->tail, next_t, memory_order_release);
+    /* ee451 (S4): advance the producer-private staged frontier only. The
+     * eventual single release-store of `tail` in flushWorkerQueues() publishes
+     * this jobs[t] write (and all earlier staged ones) to the consumer. */
+    q->staged_tail = next_t;
     return 0;
 }
 
@@ -8628,9 +8672,12 @@ void *workerThreadMain(void *arg) {
  * collision with an IO thread is fine, worse than ideal but not wrong. */
 /* ee451: SIMPLE deterministic core pinning — IDENTICAL across stable / v1 / v2
  * so benchmarks are reproducible and directly comparable (no floating IO
- * threads, no topology heuristics). worker i -> core i; IO thread j (0=main)
- * -> core (num_workers + j); modulo if short on cores. Topology-aware pinning
- * is a separate planned version. */
+ * threads, no topology/frequency heuristics that vary by machine). Mapping:
+ *   worker i              -> core i
+ *   IO thread j (0=main)  -> core (num_workers + j)
+ * wrapped with modulo if the machine has fewer cores than threads.
+ * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
+ * intentionally NOT done here. */
 static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #ifdef __linux__
     long n = sysconf(_SC_NPROCESSORS_ONLN);
@@ -8711,9 +8758,10 @@ void initIOThreads(void) {
             serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
             exit(1);
         }
-        pinIOThreadToCore(t->tid, i);   /* ee451: consistent deterministic pin */
+        pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
-    /* ee451: main thread is IO thread 0; pin it consistently too. */
+    /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
+     * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
 }
 void *ioThreadMain(void *arg) {

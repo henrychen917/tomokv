@@ -319,13 +319,13 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
         }
 
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_hits++;
+            server.kstat[iotid].hits++;   /* ee451 (S6): per-thread, contention-free */
         /* TODO: Use separate hits stats for WRITE */
     } else {
         if (!(flags & (LOOKUP_NONOTIFY | LOOKUP_WRITE)))
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_misses++;
+            server.kstat[iotid].misses++;   /* ee451 (S6): per-thread, contention-free */
         /* TODO: Use separate misses stats and notify event for WRITE */
     }
 
@@ -391,9 +391,9 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                 if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) updateLFU(v);
                 else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
             }
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.stat_keyspace_hits++;
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.kstat[iotid].hits++;   /* ee451 (S6) */
         } else {
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.stat_keyspace_misses++;
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.kstat[iotid].misses++; /* ee451 (S6) */
         }
         return v;
     }

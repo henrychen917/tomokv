@@ -1470,11 +1470,21 @@ typedef struct client {
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
-     * and clears bits with atomicFetchAnd as slots are drained. */
-    redisAtomic uint32_t reply_ready_mask;
+     * and clears bits with atomicFetchAnd as slots are drained.
+     *
+     * ee451 (S3): isolate this word on its own cache line. Workers across
+     * many cores/CCDs RMW this with release, while the owning IO thread reads/
+     * writes dispatchid/flushid/fakeClients (just above) on every dispatch and
+     * drain. Without isolation they false-share the same line — a cross-CCD
+     * coherence ping-pong on the single hottest line in the system, paid once
+     * per dispatch AND once per completion. The trailing aligned field below
+     * pushes everything after the mask onto the next line, so the mask owns
+     * its line alone. */
+    redisAtomic uint32_t reply_ready_mask __attribute__((aligned(CACHE_LINE_SIZE)));
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
-     * stamped once at preallocation. Unused on real clients. */
-    unsigned int fake_slot;
+     * stamped once at preallocation. Unused on real clients. Aligned to start a
+     * fresh cache line so reply_ready_mask above is not shared with it. */
+    unsigned int fake_slot __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (workerPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -1718,6 +1728,13 @@ typedef struct workerQueue {
      * cached_head and only acquire-reloads the real head when the cache says
      * full. cached_head can only lag the true head — never a false not-full. */
     unsigned int cached_head;
+    /* ee451 (S4): batched producer-side push. workerQueuePush writes jobs[] and
+     * advances this producer-private staged_tail WITHOUT publishing; the owning
+     * IO thread publishes all staged jobs with ONE release-store of `tail` per
+     * queue at flushWorkerQueues() (called at the top of handleWorkerReplies,
+     * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
+     * tail release-stores into one. Producer-private, lives on tail's line. */
+    unsigned int staged_tail;
     client *jobs[MY_WORKER_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } workerQueue;
 
@@ -2212,8 +2229,19 @@ struct redisServer {
     long long stat_evictedscripts;  /* Number of evicted lua scripts. */
     long long stat_total_eviction_exceeded_time;  /* Total time over the memory limit, unit us */
     monotime stat_last_eviction_exceeded_time;  /* Timestamp of current eviction start, unit us */
-    long long stat_keyspace_hits;   /* Number of successful lookups of keys */
-    long long stat_keyspace_misses; /* Number of failed lookups of keys */
+    long long stat_keyspace_hits;   /* legacy scalar (unused on hot path; folded from kstat at INFO) */
+    long long stat_keyspace_misses; /* legacy scalar (unused on hot path; folded from kstat at INFO) */
+    /* ee451 (S6): per-thread keyspace hit/miss counters. The single shared
+     * stat_keyspace_hits/misses lines were RMW'd by EVERY worker on EVERY
+     * lookup — one cache line bounced across all CCDs per command. Each thread
+     * now bumps its own cache-line-isolated slot (indexed by iotid); INFO folds
+     * them and CONFIG RESETSTAT zeroes them. Pure stats, no control-flow read,
+     * so this also removes a genuine non-atomic data race on the globals. */
+    struct {
+        long long hits;
+        long long misses;
+        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
+    } kstat[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
     long long stat_active_defrag_misses;    /* number of allocations scanned but not moved */
     long long stat_active_defrag_key_hits;  /* number of keys with moved allocations */
@@ -4644,6 +4672,7 @@ void initIOThreads(void);
 /* Worker thread functions */
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
+void flushWorkerQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 client *workerQueuePop(workerQueue *q);
 void queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
