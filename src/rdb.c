@@ -1570,7 +1570,11 @@ werr:
     return -1;
 }
 
-ssize_t rdbSaveDb(rio *rdb, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {
+/* ee451: rdbSaveDb now takes an explicit redisDb* so the caller can save each
+ * worker SHARD db (THredis stores data in server.workers[w].db[dbid], not
+ * server.db[dbid]). Multiple SELECTDB(dbid) sections per dbid are valid RDB; load
+ * routes each key to its shard by hash. */
+ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {
     dictEntry *de;
     ssize_t written = 0;
     ssize_t res;
@@ -1579,7 +1583,7 @@ ssize_t rdbSaveDb(rio *rdb, int dbid, int rdbflags, long *key_counter, unsigned 
     static long long info_updated_time = 0;
     char *pname = (rdbflags & RDBFLAGS_AOF_PREAMBLE) ? "AOF rewrite" :  "RDB";
 
-    redisDb *db = server.db + dbid;
+    redisDb *db = db_param;   /* ee451: caller passes server.db[dbid] or a worker shard db */
     unsigned long long int db_size = kvstoreSize(db->keys);
     if (db_size == 0) return 0;
 
@@ -1690,7 +1694,13 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
     /* save all databases, skip this if we're in functions-only mode */
     if (!(req & SLAVE_REQ_RDB_EXCLUDE_DATA)) {
         for (j = 0; j < server.dbnum; j++) {
-            if (rdbSaveDb(rdb, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            /* ee451: save the main logical db (usually empty under sharding) AND every
+             * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
+            if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            if (server.workers) {
+                for (int w = 0; w < server.num_workers; w++)
+                    if (rdbSaveDb(rdb, &server.workers[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            }
         }
     }
 
@@ -3964,16 +3974,23 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
             robj keyobj;
             initStaticStringObject(keyobj,key);
 
+            /* ee451: route this key to its worker SHARD db (same hash as dispatch).
+             * RDB load is single-threaded and runs before clients connect with workers
+             * idle, so populating shard dbs here is race-free. */
+            redisDb *kdb = db;
+            if (server.workers)
+                kdb = &server.workers[workerIndexForKey(key, sdslen(key))].db[db->id];
+
             /* Add the new object in the hash table */
-            kvobj *kv = dbAddRDBLoad(db, key, &val, &keyMeta);
+            kvobj *kv = dbAddRDBLoad(kdb, key, &val, &keyMeta);
             server.rdb_last_load_keys_loaded++;
             if (!kv) {
                 if (rdbflags & RDBFLAGS_ALLOW_DUP) {
                     /* This flag is useful for DEBUG RELOAD special modes.
                      * When it's set we allow new keys to replace the current
                      * keys with the same name. */
-                    dbSyncDelete(db,&keyobj);
-                    kv = dbAddRDBLoad(db, key, &val, &keyMeta);
+                    dbSyncDelete(kdb,&keyobj);
+                    kv = dbAddRDBLoad(kdb, key, &val, &keyMeta);
                     serverAssert(kv != NULL);
                 } else {
                     serverLog(LL_WARNING,
@@ -3987,7 +4004,7 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
             if (kv->type == OBJ_HASH) {
                 uint64_t minExpiredField = hashTypeGetMinExpire(kv, 1);
                 if (minExpiredField != EB_EXPIRE_TIME_INVALID)
-                    estoreAdd(db->subexpires, getKeySlot(key), kv, minExpiredField);
+                    estoreAdd(kdb->subexpires, getKeySlot(key), kv, minExpiredField);  /* ee451: shard */
             }
 
             /* Register streams with IDMP producers for cron-based expiration. */
@@ -3995,7 +4012,7 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
                 stream *s = kv->ptr;
                 if (s->idmp_producers != NULL) {
                     robj *kobj = createStringObject(key, sdslen(key));
-                    if (dictAddRaw(db->stream_idmp_keys, kobj, NULL) == NULL)
+                    if (dictAddRaw(kdb->stream_idmp_keys, kobj, NULL) == NULL)  /* ee451: shard */
                         decrRefCount(kobj);
                 }
             }

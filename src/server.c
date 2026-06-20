@@ -5187,9 +5187,14 @@ int getWorkerForCommand(client *c) {
      * short keys) + bitmask (num_workers is validated power-of-two at
      * config load, so server.my_worker_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
-    robj *key = c->argv[1];
-    uint64_t hash = xxh64(key->ptr, sdslen(key->ptr));
-    return (int)(hash & server.my_worker_dispatch_mask);
+    return workerIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+}
+
+/* ee451: single source of truth for key -> worker shard mapping. Used by dispatch
+ * (getWorkerForCommand) and by RDB load routing so saved keys reload into the same
+ * shard they were dispatched to. */
+int workerIndexForKey(const void *keyptr, size_t len) {
+    return (int)(xxh64(keyptr, len) & server.my_worker_dispatch_mask);
 }
 
 /* Checks if all keys in a command (or a MULTI-EXEC) belong to the same hash slot.
@@ -8695,13 +8700,17 @@ static inline void workerExecFake(client *fake) {
  * base-rate predictor (graceful fallback, no regression); on patterned/real
  * traces it switches to history. */
 static inline int workerPredictForward(workerThread *w, uint64_t key_hash) {
+    /* ee451: variant select. tournament bool forces mode 2 (back-compat); else the
+     * vf_predictor_mode knob picks: 0=bimodal(general), 1=gshare(history), 2=tournament.
+     * Lets each forward-predictor variant be toggled/swept independently. */
+    int mode = server.vf_predictor_tournament ? 2 : server.vf_predictor_mode;
     unsigned int ig = (unsigned int)key_hash & FWD_PHT_MASK;
+    if (mode == 0) return w->gen_pht[ig] >= 2;    /* bimodal / general only */
     unsigned int ih = (unsigned int)(key_hash ^ w->fwd_ghist) & FWD_PHT_MASK;
-    int ph = w->fwd_pht[ih] >= 2;                 /* history prediction */
-    if (!server.vf_predictor_tournament) return ph;
-    int pg = w->gen_pht[ig] >= 2;                 /* general prediction */
-    unsigned int ic = (unsigned int)key_hash & FWD_PHT_MASK;
-    return (w->chooser[ic] >= 2) ? ph : pg;       /* chooser arbitrates */
+    int ph = w->fwd_pht[ih] >= 2;                 /* history (gshare) */
+    if (mode == 1) return ph;                     /* gshare only */
+    int pg = w->gen_pht[ig] >= 2;                 /* tournament: general + chooser */
+    return (w->chooser[ig] >= 2) ? ph : pg;
 }
 
 /* ee451 (#4): execute the FIRST read of a (potential) run and, when the predictor

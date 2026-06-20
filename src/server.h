@@ -2794,7 +2794,8 @@ struct redisServer {
     int vf_min_run;        /* value-forward only for same-key runs >= this length */
     int vf_min_write_permille; /* #3: value-forward only when recent shard write rate >= this/1000; 0=off */
     int vf_predictor;          /* #4: branch-predictor-style adaptive forward decision (overrides static gates) */
-    int vf_predictor_tournament; /* #4: when predictor on, use tournament (general+history+chooser) vs single gshare */
+    int vf_predictor_tournament; /* #4: forces tournament mode (back-compat); else vf_predictor_mode applies */
+    int vf_predictor_mode;       /* #4: forward-predictor variant when on: 0=bimodal(general), 1=gshare(history), 2=tournament */
     int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
@@ -4787,6 +4788,7 @@ void initWorkers(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
+int workerIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
 void *ioThreadMain(void *arg);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {

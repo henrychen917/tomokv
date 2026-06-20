@@ -3169,6 +3169,10 @@ standardConfig static_configs[] = {
     createIntConfig("thredis-vf-min-write-permille",  NULL, MODIFIABLE_CONFIG, 0, 1000,   server.vf_min_write_permille,  0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-vf-predictor",          NULL, MODIFIABLE_CONFIG,             server.vf_predictor,           0, NULL, NULL),
     createBoolConfig("thredis-vf-predictor-tournament", NULL, MODIFIABLE_CONFIG,           server.vf_predictor_tournament, 0, NULL, NULL),
+    /* ee451: forward-predictor variant selector so each is independently sweepable.
+     * 0=bimodal(general-only), 1=gshare(history-only), 2=tournament. tournament bool
+     * forces 2 (back-compat); default 1 = the old "simple" gshare. */
+    createIntConfig("thredis-vf-predictor-mode", NULL, MODIFIABLE_CONFIG, 0, 2, server.vf_predictor_mode, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-vf-predictor-miss-cycles", NULL, MODIFIABLE_CONFIG, 0, 100000, server.vf_predictor_miss_cycles, 300, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
     createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
