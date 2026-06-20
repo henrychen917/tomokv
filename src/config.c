@@ -2375,12 +2375,12 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
     return 1;
 }
 
-/* myworkerthreads must be a power of two. getWorkerForCommand uses
- * (hash & (num_workers - 1)) for dispatch; this requires num_workers
- * to be a power of two so the mask gives uniform distribution. */
+/* ee451 (v8): ANY worker count in [1, MAX] is allowed now. Dispatch goes through the
+ * bucket->worker indirection table (workerIndexForKey), not hash&(N-1), so num_workers no
+ * longer has to be a power of two — that was the whole point of axing the limit. */
 static int isValidMyWorkerThreads(long long val, const char **err) {
-    if (val < 1 || (val & (val - 1)) != 0) {
-        *err = "myworkerthreads must be a power of two (1, 2, 4, 8, 16, 32, 64)";
+    if (val < 1 || val > MY_WORKER_THREADS_MAX) {
+        *err = "myworkerthreads must be between 1 and 64";
         return 0;
     }
     return 1;
@@ -3148,7 +3148,7 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-stats", NULL, MODIFIABLE_CONFIG, server.opt_perthread_stats, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-zerocopy", NULL, MODIFIABLE_CONFIG, server.opt_zerocopy, 1, NULL, NULL),
+    createIntConfig("thredis-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
@@ -3178,6 +3178,13 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
     createBoolConfig("thredis-opt-ship-reuse",        NULL, MODIFIABLE_CONFIG, server.opt_ship_reuse,        0, NULL, NULL),
     createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       0, NULL, NULL),
+    createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
+    createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-reshard-ewma-alpha-pct", NULL, MODIFIABLE_CONFIG, 1,   100,     server.reshard_ewma_alpha_pct, 30,    INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-reshard-chunk-buckets",  NULL, MODIFIABLE_CONFIG, 1,   MY_BUCKETS, server.reshard_chunk_buckets, 64,  INTEGER_CONFIG, NULL, NULL),
+    createBoolConfig("thredis-reshard-core-aware",    NULL, MODIFIABLE_CONFIG, server.reshard_core_aware,     1, NULL, NULL),
+    createIntConfig("thredis-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 1, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),

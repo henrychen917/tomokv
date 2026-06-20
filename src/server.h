@@ -1462,6 +1462,15 @@ typedef struct {
 #define MY_IO_THREADS_MAX 32
 #define MY_WORKER_THREADS_MAX 64
 #define MY_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
+/* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & MY_BUCKET_MASK
+ * (MY_BUCKETS is a power of two so indexing stays a single AND), worker =
+ * worker_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
+ * number of workers can own buckets) while keeping xxhash, and (b) is the foundation for
+ * adaptive resharding: each worker owns a CONTIGUOUS bucket range, so rebalancing only
+ * shifts a boundary between adjacent workers. 4096 buckets = uint8_t table (≤64 workers)
+ * = 4KB, L1-resident on the hot path. */
+#define MY_BUCKETS 4096
+#define MY_BUCKET_MASK (MY_BUCKETS - 1)
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.my_pipeline_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.my_pipeline_queue_mask */
@@ -1530,6 +1539,10 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
+    /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command;
+     * worker A pops it in queue order and decrements *drain_ack, proving every range primary
+     * dispatched before it has executed (no in-flight range write straddles the table flip). */
+    _Atomic int *drain_ack;
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (workerPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -1750,6 +1763,31 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
+void migCaptureEffect(redisDb *db, robj *keyobj); /* v8d: A-side post-commit effect-log capture */
+void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
+void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
+
+/* ee451 (v8d): online-resharding effect log. A (sole writer of the migrating range) appends one
+ * ORDERED entry per committed mutation carrying the POST-IMAGE (value + absolute TTL) or a
+ * TOMBSTONE (delete/expiry); worker B replays the log strictly in order as overwrite/delete
+ * (last-writer-wins). Capturing the RESULT (not the command) makes SPOP/INCRBYFLOAT/relative-TTL
+ * deterministic by construction. See RESHARD_DOUBLEWRITE_PROTOCOL.md. */
+typedef enum { MIG_IDLE=0, MIG_COPYING, MIG_DRAINING, MIG_FLIPPED, MIG_CLEANUP, MIG_DONE } migPhase;
+typedef struct migLogEntry {
+    uint64_t seq;              /* A's commit-order sequence number */
+    int      dbid;
+    sds      key;             /* owned by the entry (freed by B after apply) */
+    sds      blob;            /* PUT: RDB-serialized [type+object] post-image (cross-thread safe,
+                               * B rdbLoads its own private robj); NULL => TOMBSTONE (delete) */
+    long long pexpireat;      /* PUT: absolute expire ms, or -1 (no TTL) */
+} migLogEntry;
+typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head) */
+    migLogEntry **slots;      /* [cap] entry pointers */
+    unsigned int cap_mask;    /* cap-1 (power of two) */
+    _Atomic unsigned int head;/* B advances (acquire/release) */
+    _Atomic unsigned int tail;/* A advances (release) */
+    unsigned int cached_head; /* producer-private */
+} migLog;
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Must be a power of two. Runtime value lives
@@ -1845,6 +1883,14 @@ typedef struct workerThread {
     redisDb *db;
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
     unsigned int w_writes, w_total;
+    /* ee451 (v8d): monotonic per-worker op counter (control-plane only). Bumped relaxed in the
+     * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
+     * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
+    uint64_t ops_total;
+    /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
+     * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
+     * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
+    _Atomic uint64_t loop_seq;
     /* ee451 (#4): forward predictor state. fwd_pht is the HISTORY (gshare) predictor;
      * the tournament adds a general (bimodal) predictor + a chooser meta-predictor. */
     unsigned char fwd_pht[FWD_PHT_SIZE];   /* history (gshare) 2-bit counters (0..3) */
@@ -2217,7 +2263,32 @@ struct redisServer {
      * be a power of two (enforced by isValidMyWorkerThreads validator in
      * config.c). Replaces `hash % num_workers` in getWorkerForCommand
      * with a single AND instruction. */
-    uint64_t my_worker_dispatch_mask;
+    uint64_t my_worker_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
+    /* ee451 (v8): bucket->worker map (hot path) and the per-worker contiguous range ends
+     * (worker i owns buckets [i? worker_bucket_end[i-1]:0, worker_bucket_end[i]) — used by
+     * the adjacent-boundary-shift rebalancer). */
+    uint8_t  worker_bucket_table[MY_BUCKETS];
+    int      worker_bucket_end[MY_WORKER_THREADS_MAX];
+    /* ee451 (v8d): online resharding via a single totally-ordered A->B effect-log
+     * (RESHARD_DOUBLEWRITE_PROTOCOL.md). migration_active is read once (relaxed) per command on
+     * the hot path -> isolated on its own read-mostly cache line (written only at migration
+     * start/end) to avoid false-sharing every IO core. The rest lives on a separate line. */
+    _Alignas(64) _Atomic unsigned char migration_active;
+    struct {
+        _Atomic uint64_t gen;          /* phase-transition epoch (release on write, acquire on read) */
+        int lo, hi;                    /* migrating bucket range [lo,hi) (published before active=1) */
+        int src, dst;                  /* adjacent workers: A (src) -> B (dst) */
+        _Atomic int phase;             /* migPhase: IDLE/COPYING/DRAINING/FLIPPED/CLEANUP/DONE */
+        _Atomic uint64_t issued_seq;   /* A's per-range monotonic op counter (log producer) */
+        _Atomic uint64_t applied_seq;  /* how far B has replayed the log (release on advance) */
+        struct migLog *log;            /* ordered A->B SPSC effect channel (A produces, B consumes) */
+        _Atomic uint64_t outstanding_a_refs; /* D4: zero-copy reply refs still pointing into A's range */
+        _Atomic int scan_done;         /* A's cold-key scan has wrapped (cold copy complete) */
+        _Atomic int fence_acked[MY_IO_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack
+                                        * (set when A pops that slot's sentinel; coordinator also marks
+                                        * a slot done when A's queue from it stays empty = idle producer) */
+        _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
+    } migration;
     redisDb **worker_dbs;
     redisDb *db;
     dict *commands;             /* Command table */
@@ -2819,7 +2890,9 @@ struct redisServer {
     int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
     int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
     int opt_perthread_stats;   /* S6: per-thread keyspace hit/miss counters */
-    int opt_zerocopy;          /* S8: zero-copy large-value reply forwarding + free-back */
+    int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
+                                * N = use copy-avoidance only for values >= N bytes (it pays on
+                                * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int opt_multi_cdb;         /* S5: per-worker reply masks (multi common-data-bus). IMMUTABLE. */
     int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
@@ -2845,6 +2918,20 @@ struct redisServer {
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
+    /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
+    int reshard_auto;            /* master enable for auto resharding (default off) */
+    int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */
+    int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
+    int reshard_ewma_alpha_pct;  /* EWMA smoothing alpha = pct/100 (default 30) */
+    int reshard_chunk_buckets;   /* buckets shifted per auto trigger (default 64) */
+    int reshard_core_aware;      /* weight balance by per-worker core capacity (default on) */
+    int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
+                                  * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
+                                  * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
+                                  * untested on single-NUMA boxes — left OFF for now. */
+    double worker_capacity[MY_WORKER_THREADS_MAX]; /* auto-calibrated relative core speed (faster=bigger);
+                                  * the balancer targets equal load/capacity, not equal ops, so faster
+                                  * (P-core / higher-turbo / nearer-NUMA) workers carry proportionally more. */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */

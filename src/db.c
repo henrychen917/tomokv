@@ -2890,13 +2890,25 @@ static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, lo
 }
 
 /* Delete the specified expired key and propagate. */
+/* ee451 (v8d): an IMPLICIT delete (expiry/eviction) of a key skips the workerExecFake capture hook
+ * (which only fires for CMD_WRITE commands), so a range key A expires/evicts mid-migration would be
+ * resurrected on B. Log a tombstone here. STRICTLY gate to worker A's own shard: a tombstone emitted
+ * from any other db (e.g. the IO-side server.db, which never holds range keys) would tell B to delete
+ * a still-live key = data loss. The key is already gone, so migCaptureEffect logs a tombstone. */
+static inline void migCaptureImplicitDelete(redisDb *db, robj *keyobj) {
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
+        server.workers && db == &server.workers[server.migration.src].db[db->id])
+        migCaptureEffect(db, keyobj);
+}
 void deleteExpiredKeyAndPropagate(redisDb *db, robj *keyobj) {
     deleteKeyAndPropagate(db, keyobj, NOTIFY_EXPIRED, NULL);
+    migCaptureImplicitDelete(db, keyobj);
 }
 
 /* Delete the specified evicted key and propagate. */
 void deleteEvictedKeyAndPropagate(redisDb *db, robj *keyobj, long long *key_mem_freed) {
     deleteKeyAndPropagate(db, keyobj, NOTIFY_EVICTED, key_mem_freed);
+    migCaptureImplicitDelete(db, keyobj);
 }
 
 /* Propagate an implicit key deletion into replicas and the AOF file.

@@ -896,6 +896,8 @@ NULL
         tv.tv_nsec = (utime % 1000000) * 1000;
         nanosleep(&tv, NULL);
         addReply(c,shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
+        reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
     } else if (!strcasecmp(c->argv[1]->ptr,"set-active-expire") &&
                c->argc == 3)
     {

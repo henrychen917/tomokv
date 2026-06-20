@@ -136,6 +136,7 @@ client *createFakeClient(client *parent) {
     c->csparent = NULL;
     c->cssub_idx = 0;
     c->is_flush = 0;
+    c->drain_ack = NULL;
 
     /* Output buffer — fake owns its own */
     c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
@@ -1506,10 +1507,12 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * routed back to the owning worker via the free-back ring (no cross-thread
      * refcount race). For such fakes we skip the normal-client-only checks
      * (getClientType / PUSHING) — they execute single-key string reads.
-     * ee451 (v4): with zero-copy disabled, on_worker is forced false so a worker
-     * fake falls through to the (c->isFake => return 0) branch below and uses the
-     * normal value-COPYing reply path instead of the forward + free-back path. */
-    int on_worker = server.opt_zerocopy && c->isFake && iotid > MY_IO_THREADS_MAX;
+     * ee451 (v8): zero-copy is now VALUE-SIZE gated. zerocopy_min_value==0 disables it
+     * entirely; otherwise a worker fake uses copy-avoidance only when the value is at least
+     * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
+     * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
+    int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
+    int on_worker = zc_on && c->isFake && iotid > MY_IO_THREADS_MAX;
     if (!on_worker) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */

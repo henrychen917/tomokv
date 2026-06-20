@@ -46,6 +46,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/uio.h>
+#include <sys/syscall.h>   /* ee451 (v8d): SYS_set_mempolicy for NUMA-local shard binding (pin_mode==1) */
 #include <sys/un.h>
 #include <limits.h>
 #include <float.h>
@@ -102,6 +103,12 @@ static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below workerIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
 static void dispatchCrossShard(client *head, int ct);
+/* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
+ * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
+static void migHoldIfDraining(client *fake);
+static void migHoldKeyIfDraining(robj *key);
+static void migPushFenceIfNeeded(void);
+void workerBindNumaLocal(int worker_id);   /* v8d: NUMA-local shard alloc (pin_mode==1); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void workerPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 /*============================ Utility functions ============================ */
@@ -1686,11 +1693,15 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
      * a higher frequency. */
     run_with_period(1000) {
         if ((server.aof_state == AOF_ON || server.aof_state == AOF_WAIT_REWRITE) &&
-            server.aof_last_write_status == C_ERR) 
+            server.aof_last_write_status == C_ERR)
             {
                 flushAppendOnlyFile(0);
             }
     }
+
+    /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
+     * thredis-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
+    run_with_period(1000) reshardAutoTune();
 
     /* Clear the paused actions state if needed. */
     updatePausedActions();
@@ -2075,6 +2086,9 @@ void handleWorkerReplies(void) {
 
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
+    /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migPushFenceIfNeeded();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
@@ -2118,6 +2132,10 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
+
+    /* ee451 (v8d): main thread is IO producer slot 0 — push its cutover drain-sentinel. */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migPushFenceIfNeeded();
 
     updatePeakMemory();
 
@@ -3084,7 +3102,17 @@ void initServer(void) {
      * `hash % num_workers` with a single AND. */
     server.my_pipeline_queue_mask  = (unsigned int)(server.my_pipeline_depth - 1);
     server.my_worker_queue_mask    = (unsigned int)(server.my_worker_queue_size - 1);
-    server.my_worker_dispatch_mask = (uint64_t)(server.my_worker_threads - 1);
+    server.my_worker_dispatch_mask = (uint64_t)(server.my_worker_threads - 1);  /* legacy */
+    /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
+     * buckets [i*MY_BUCKETS/W, (i+1)*MY_BUCKETS/W)). Works for ANY worker count W (no
+     * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
+    {
+        int W = server.my_worker_threads;
+        for (int b = 0; b < MY_BUCKETS; b++)
+            server.worker_bucket_table[b] = (uint8_t)(((long)b * W) / MY_BUCKETS);
+        for (int i = 0; i < W; i++)
+            server.worker_bucket_end[i] = (int)(((long)(i + 1) * MY_BUCKETS) / W);
+    }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
     server.rdb_pipe_read = -1;
@@ -4963,6 +4991,11 @@ int processCommand(client *c) {
      * head and is NOT itself worker-dispatched (no CLIENT_WORKER_PENDING, so the drain's
      * was_worker_dispatched stays 0 and replyWorking is untouched). Its completion bit is
      * set by the last sub; the drain reassembles via csReassemble. */
+    /* ee451 (v8d): cutover hold. During the µs DRAINING window a range WRITE must not be dispatched
+     * to A; spin until the flip, then route under the new table (to B). Gated by the always-0 byte. */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migHoldIfDraining(fake);
+
     int cst = csCommandType(fake);
     if (cst >= 0) {
         /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
@@ -5230,7 +5263,10 @@ int getWorkerForCommand(client *c) {
  * (getWorkerForCommand) and by RDB load routing so saved keys reload into the same
  * shard they were dispatched to. */
 int workerIndexForKey(const void *keyptr, size_t len) {
-    return (int)(xxh64(keyptr, len) & server.my_worker_dispatch_mask);
+    /* ee451 (v8): xxhash -> bucket (single AND) -> worker via the indirection table. One
+     * extra L1-resident load vs the old direct mask, in exchange for arbitrary worker counts
+     * and online resharding. */
+    return (int)server.worker_bucket_table[xxh64(keyptr, len) & MY_BUCKET_MASK];
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -5332,6 +5368,12 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid] = saved;
+    /* ee451 (v8d): a cross-shard WRITE sub (MSET/DEL/UNLINK) to a range key runs on worker A just
+     * like a single-key write — capture its post-image/tombstone into the effect log so B converges.
+     * Reads (MGET/EXISTS/TOUCH) mutate nothing, so no capture. */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
+        (g->ctype == CS_MSET || g->ctype == CS_DEL))
+        migCaptureEffect(sub->db, sub->argv[1]);
 }
 
 static void csFreeSub(client *sub) {
@@ -5377,9 +5419,14 @@ static void dispatchCrossShard(client *head, int ct) {
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
     int dbid = head->db->id;
+    int cs_write = (ct == CS_MSET || ct == CS_DEL);   /* writes need the per-key cutover hold */
     for (int i = 0; i < nkeys; i++) {
         robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
         robj *val = (ct == CS_MSET) ? head->argv[2 + 2*i] : NULL;
+        /* ee451 (v8d): hold an in-range write sub during the cutover DRAINING window so it routes to
+         * B post-flip (never reaches A late). Gated by the always-0 byte; reads (MGET/EXISTS) skip. */
+        if (cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
         int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
         client *sub = createFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
@@ -5468,6 +5515,525 @@ void flushAllShards(client *c, int dbid, int async) {
     emptyDbStructure(server.db, dbid, async, NULL);
 }
 /* ========================== end cross-shard ========================== */
+
+/* ===================== ee451 (v8d) ONLINE RESHARDING =====================
+ * Move a contiguous bucket range [lo,hi) from worker A (src, sole writer) to adjacent worker B
+ * (dst) with ZERO global pause, via a single totally-ordered A->B effect log. A appends the
+ * POST-IMAGE (RDB-serialized value + absolute TTL) or a TOMBSTONE after each committed mutation;
+ * B replays strictly in order (last-writer-wins). Cutover is a microsecond per-range drain fence
+ * + an epoch-gated table flip. See RESHARD_DOUBLEWRITE_PROTOCOL.md. */
+
+static inline int migBucketInRange(int b) {            /* caller already checked migration_active */
+    return b >= server.migration.lo && b < server.migration.hi;
+}
+/* key (sds) -> bucket, same hash as workerIndexForKey but without the table indirection. */
+static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & MY_BUCKET_MASK); }
+
+/* ---- effect-log SPSC ring (A produces tail, B consumes head) ---- */
+static migLog *migLogCreate(unsigned int cap) {
+    migLog *L = zcalloc(sizeof(*L));
+    L->slots = zcalloc(sizeof(migLogEntry*) * cap);
+    L->cap_mask = cap - 1;
+    atomic_store_explicit(&L->head, 0, memory_order_relaxed);
+    atomic_store_explicit(&L->tail, 0, memory_order_relaxed);
+    L->cached_head = 0;
+    return L;
+}
+static void migEntryFree(migLogEntry *e) {
+    if (!e) return;
+    sdsfree(e->key); if (e->blob) sdsfree(e->blob); zfree(e);
+}
+static void migLogFree(migLog *L) {
+    if (!L) return;
+    /* drain any unconsumed entries */
+    unsigned int h = atomic_load_explicit(&L->head, memory_order_relaxed);
+    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
+    while (h != t) { migEntryFree(L->slots[h & L->cap_mask]); h++; }
+    zfree(L->slots); zfree(L);
+}
+/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate. */
+static void migLogPush(migLog *L, migLogEntry *e) {
+    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
+    unsigned int next = (t + 1) & L->cap_mask;
+    while (next == L->cached_head) {
+        L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
+        if (next == L->cached_head) { workerPauseCpu(); }   /* full: let B drain */
+    }
+    L->slots[t & L->cap_mask] = e;
+    atomic_store_explicit(&L->tail, t + 1, memory_order_release);
+}
+/* B-side pop; NULL if empty. */
+static migLogEntry *migLogPop(migLog *L) {
+    unsigned int h = atomic_load_explicit(&L->head, memory_order_relaxed);
+    if (h == atomic_load_explicit(&L->tail, memory_order_acquire)) return NULL;
+    migLogEntry *e = L->slots[h & L->cap_mask];
+    atomic_store_explicit(&L->head, h + 1, memory_order_release);
+    return e;
+}
+
+/* ---- A side: capture the post-image/tombstone of a range key AFTER its mutation commits.
+ * Runs on worker A (single writer of [lo,hi)), in commit order. Captures the RESULT (not the
+ * command) so SPOP/INCRBYFLOAT/relative-TTL are deterministic by construction. ---- */
+void migCaptureEffect(redisDb *db, robj *keyobj) {
+    if (!atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return;
+    int ph = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
+    if (ph != MIG_COPYING && ph != MIG_DRAINING) return;   /* both phases are pre-flip: A still logs */
+    if (!migBucketInRange(migKeyBucket(keyobj->ptr, sdslen(keyobj->ptr)))) return;
+    migLogEntry *e = zcalloc(sizeof(*e));
+    e->seq = atomic_fetch_add_explicit(&server.migration.issued_seq, 1, memory_order_relaxed);
+    e->dbid = db->id;
+    e->key = sdsdup(keyobj->ptr);
+    robj *val = lookupKeyReadWithFlags(db, keyobj, LOOKUP_NOEFFECTS);   /* A reads its own shard */
+    if (val == NULL) { e->blob = NULL; e->pexpireat = -1; }             /* TOMBSTONE */
+    else {
+        rio r; rioInitWithBuffer(&r, sdsempty());
+        rdbSaveObjectType(&r, val);
+        rdbSaveObject(&r, val, keyobj, db->id);
+        e->blob = r.io.buffer.ptr;
+        long long ex = getExpire(db, keyobj->ptr, NULL);
+        e->pexpireat = (ex == -1) ? -1 : ex;
+    }
+    migLogPush(server.migration.log, e);
+}
+
+/* ---- B side: apply one log entry to B's shard, in order (overwrite / delete, LWW). ---- */
+static void migApplyOne(workerThread *B, migLogEntry *e) {
+    redisDb *bdb = &B->db[e->dbid];
+    robj *keyobj = createStringObject(e->key, sdslen(e->key));
+    dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
+    if (e->blob != NULL) {                                  /* PUT */
+        rio r; rioInitWithBuffer(&r, e->blob);
+        int type = rdbLoadObjectType(&r);
+        int err = 0;
+        robj *val = rdbLoadObject(type, &r, e->key, e->dbid, &err);
+        if (val != NULL) {
+            dbAdd(bdb, keyobj, &val);                       /* B is sole writer of its shard */
+            if (e->pexpireat >= 0) setExpire(NULL, bdb, keyobj, e->pexpireat);
+        }
+    }
+    decrRefCount(keyobj);
+}
+/* B drains the whole log that is currently available, publishing applied_seq. Called from B's loop. */
+static void migDrainB(workerThread *B) {
+    migLogEntry *e;
+    while ((e = migLogPop(server.migration.log)) != NULL) {
+        uint64_t seq = e->seq;
+        migApplyOne(B, e);
+        migEntryFree(e);
+        atomic_store_explicit(&server.migration.applied_seq, seq + 1, memory_order_release);
+    }
+}
+
+/* ---- A side: background cold-key scan. Advances a cursor over A's shard, emitting a LOG_PUT for
+ * each range key. dictScan may dup/miss keys; harmless — live writes are later authoritative log
+ * entries. Returns 1 when the scan has wrapped (cold copy complete). ---- */
+static unsigned long long mig_scan_cursor = 0;
+static int mig_scan_dbid = 0;
+struct migScanCtx { workerThread *A; };
+static void migScanCallback(void *priv, const dictEntry *de, dictEntry **plink) {
+    (void)priv; (void)plink;
+    kvobj *kv = dictGetKV((dictEntry*)de);
+    sds keysds = kvobjGetKey(kv);
+    if (!migBucketInRange(migKeyBucket(keysds, sdslen(keysds)))) return;
+    robj *keyobj = createStringObject(keysds, sdslen(keysds));
+    migCaptureEffect(&server.workers[server.migration.src].db[mig_scan_dbid], keyobj);
+    decrRefCount(keyobj);
+}
+static int migScanA(workerThread *A, int batch) {
+    redisDb *adb = &A->db[mig_scan_dbid];
+    for (int i = 0; i < batch; i++) {
+        mig_scan_cursor = kvstoreScan(adb->keys, mig_scan_cursor, -1, migScanCallback, NULL, NULL);
+        if (mig_scan_cursor == 0) {                         /* wrapped: advance to next db or done */
+            if (mig_scan_dbid + 1 < server.dbnum) { mig_scan_dbid++; }
+            else return 1;                                  /* cold copy complete */
+        }
+    }
+    return 0;
+}
+
+/* Worker A drives the cold scan from its own loop, a small batch per iteration so serving is
+ * never starved. Publishes scan_done (release) when the whole keyspace has been emitted once. */
+static void migServiceScanA(workerThread *A) {
+    if (atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed)) return;
+    if (migScanA(A, 64))
+        atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
+}
+
+/* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side; the
+ * caller has already validated lo<hi, src/dst adjacency, and that no migration is in flight. ---- */
+static int reshardArm(int lo, int hi, int src, int dst) {
+    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return 0; /* one at a time */
+    server.migration.log = migLogCreate(1u << 16);          /* 64k entries; A backpressures if B lags */
+    atomic_store_explicit(&server.migration.issued_seq, 0, memory_order_relaxed);
+    atomic_store_explicit(&server.migration.applied_seq, 0, memory_order_relaxed);
+    atomic_store_explicit(&server.migration.outstanding_a_refs, 0, memory_order_relaxed);
+    atomic_store_explicit(&server.migration.scan_done, 0, memory_order_relaxed);
+    /* fence_gen is MONOTONIC across migrations (never reset) so producers' thread-local
+     * mig_local_fence_gen always differs from a fresh cutover's gen and they push their sentinel. */
+    mig_scan_cursor = 0; mig_scan_dbid = 0;
+    server.migration.lo = lo; server.migration.hi = hi;
+    server.migration.src = src; server.migration.dst = dst;
+    atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
+    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+    atomic_store_explicit(&server.migration_active, 1, memory_order_release); /* published LAST */
+    serverLog(LL_NOTICE, "ee451 reshard ARM: buckets [%d,%d) worker %d -> %d (COPYING)", lo, hi, src, dst);
+    return 1;
+}
+
+/* ---- Cutover drain fence (Phase C). Each IO producer (main=iotid 0 via beforeSleep, IO threads
+ * via beforeSleepIO) pushes ONE drain sentinel into A's queue[iotid] once per cutover. A pops them
+ * in queue order and decrements fence_count, proving every range primary dispatched before the
+ * sentinel has executed (so issued_seq is final). Idempotent per fence_gen via a thread-local. ---- */
+static __thread uint64_t mig_local_fence_gen = 0;
+/* createFakeClient() reads only parent->tid/running_tid; a zeroed dummy is a valid parent for a
+ * marker fake that carries no command and is freed (never dispatched) by the worker. */
+static client mig_fence_parent;
+static void migPushFenceIfNeeded(void) {
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
+    uint64_t fg = atomic_load_explicit(&server.migration.fence_gen, memory_order_acquire);
+    if (fg == 0 || mig_local_fence_gen == fg) return;        /* already fenced this cutover */
+    client *sentinel = createFakeClient(&mig_fence_parent);
+    sentinel->drain_ack = &server.migration.fence_acked[0]; /* non-NULL marker; A acks by queue index */
+    csPushSpin(server.migration.src, sentinel);              /* -> workers[A].queues[iotid] */
+    mig_local_fence_gen = fg;
+}
+
+/* IO-side hold: during the DRAINING window, a range WRITE must not reach A (else issued_seq never
+ * settles and a post-flip write to the same key could be clobbered by a late log replay). Spin
+ * until the flip; reads and non-range writes flow normally. Pushes this producer's fence first so
+ * the coordinator can make progress while we block (no deadlock). Called only when active!=0. */
+static void migHoldIfDraining(client *fake) {
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
+    if (!(fake->cmd && (fake->cmd->flags & CMD_WRITE) && fake->argc >= 2 && fake->argv && fake->argv[1]))
+        return;
+    if (!migBucketInRange(migKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))) return;
+    /* Push this producer's fence EACH spin (idempotent): if fence_gen wasn't visible on the first
+     * try, a later iteration catches it — so a held producer always contributes its sentinel. */
+    while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
+        migPushFenceIfNeeded();
+        workerPauseCpu();
+    }
+}
+
+/* Per-KEY hold for cross-shard writes. migHoldIfDraining only inspects the head's argv[1]; a
+ * cross-shard MSET/DEL/UNLINK whose first key is OUT of [lo,hi) but a later key is IN range would
+ * otherwise dispatch that in-range sub to A during DRAINING (after A's fence sentinel), producing a
+ * post-s_final log entry that clobbers a post-flip B write. Hold each in-range sub key until the
+ * flip, then it routes to B. Called per sub key in dispatchCrossShard for write groups only. */
+static void migHoldKeyIfDraining(robj *key) {
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
+    if (!migBucketInRange(migKeyBucket(key->ptr, sdslen(key->ptr)))) return;
+    while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
+        migPushFenceIfNeeded();
+        workerPauseCpu();
+    }
+}
+
+/* Worker A, on CLEANUP: delete its now-migrated [lo,hi) keys (single-writer). Collect-then-delete
+ * (cannot mutate the dict mid-iteration). Then advance phase to DONE so the coordinator tears down. */
+static void migCleanupDeleteRangeA(workerThread *A) {
+    int lo = server.migration.lo, hi = server.migration.hi;
+    for (int dbid = 0; dbid < server.dbnum; dbid++) {
+        redisDb *db = &A->db[dbid];
+        sds *batch = NULL; int n = 0, cap = 0;
+        kvstoreIterator it; kvstoreIteratorInit(&it, db->keys);
+        dictEntry *de;
+        while ((de = kvstoreIteratorNext(&it)) != NULL) {
+            sds k = kvobjGetKey(dictGetKV(de));
+            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            if (b < lo || b >= hi) continue;
+            if (n == cap) { cap = cap ? cap * 2 : 256; batch = zrealloc(batch, sizeof(sds) * cap); }
+            batch[n++] = sdsdup(k);
+        }
+        kvstoreIteratorReset(&it);
+        for (int i = 0; i < n; i++) {
+            robj *ko = createStringObject(batch[i], sdslen(batch[i]));
+            dbSyncDelete(db, ko);
+            decrRefCount(ko); sdsfree(batch[i]);
+        }
+        zfree(batch);
+    }
+    atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+    serverLog(LL_NOTICE, "ee451 reshard CLEANUP: worker %d deleted migrated range [%d,%d)",
+              server.migration.src, lo, hi);
+}
+
+/* ---- Cutover coordinator (detached thread): DRAINING -> fence -> B-caught-up -> FLIP -> ref-fence
+ * -> CLEANUP -> DONE. Short-lived; usleep-spins on the monotone counters. ---- */
+static void *reshardCoordinator(void *arg) {
+    (void)arg;
+    int lo = server.migration.lo, hi = server.migration.hi;
+    int src = server.migration.src, dst = server.migration.dst;
+    /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..my_io_threads-1) =
+     * my_io_threads total. (Worker queue slot my_io_threads exists but has no producer.) */
+    int nprod = server.my_io_threads;
+
+    /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
+     * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
+     * either way it does not raise the drain fence until the bulk copy has converged. */
+    while (!atomic_load_explicit(&server.migration.scan_done, memory_order_acquire)) usleep(200);
+    while (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) <
+           atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire)) usleep(200);
+
+    /* Phase C.1: raise the drain fence, THEN open DRAINING. Order matters: fence_acked/fence_gen are
+     * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
+     * also see the new fence_gen (release/acquire on phase carries the prior stores) — otherwise a
+     * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
+    for (int t = 0; t <= server.my_io_threads; t++)
+        atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
+    atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
+    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
+    atomic_store_explicit(&server.migration.phase, MIG_DRAINING, memory_order_release);
+
+    serverLog(LL_NOTICE, "ee451 reshard DRAINING: fence raised, nprod=%d", nprod);
+    /* C.2: each producer slot is "drained" when EITHER A popped its drain sentinel (busy producer
+     * pushed one — proving every range primary it dispatched before is executed) OR A's queue from
+     * that slot has stayed empty for a stretch (idle producer blocked in epoll — nothing in flight,
+     * so no sentinel will ever come). This needs no cross-thread wake of idle IO threads. */
+    int empty_cnt[MY_IO_THREADS_MAX + 1] = {0};
+    for (;;) {
+        int pending = 0;
+        for (int t = 0; t < nprod; t++) {
+            if (atomic_load_explicit(&server.migration.fence_acked[t], memory_order_acquire)) continue;
+            workerQueue *q = &server.workers[src].queues[t];
+            unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+            unsigned int tl = atomic_load_explicit(&q->tail, memory_order_acquire);
+            if (h == tl) {                       /* queue empty right now */
+                if (++empty_cnt[t] >= 40) {      /* ~2ms continuously empty => idle producer, no in-flight */
+                    atomic_store_explicit(&server.migration.fence_acked[t], 1, memory_order_release);
+                    continue;
+                }
+            } else empty_cnt[t] = 0;
+            pending = 1;
+        }
+        if (!pending) break;
+        usleep(50);
+    }
+    uint64_t s_final = atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire);
+    serverLog(LL_NOTICE, "ee451 reshard fence drained: S_final=%llu", (unsigned long long)s_final);
+
+    /* C.3: wait until B has replayed the entire log up to the freeze point (B == A for [lo,hi)). */
+    while (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) < s_final)
+        usleep(50);
+
+    /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
+     * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
+    for (int b = lo; b < hi; b++) server.worker_bucket_table[b] = (uint8_t)dst;
+    if (dst == src + 1) server.worker_bucket_end[src] = lo;      /* suffix move: A|B boundary -> lo */
+    else                server.worker_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
+    atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
+    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
+    serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d (S_final=%llu)",
+              lo, hi, dst, (unsigned long long)s_final);
+
+    /* Phase D.1: ref-fence — A may not free its range values until every zero-copy reply still
+     * pointing into them (owner_worker==A, bucket∈range) has been flushed. No-op when zerocopy is
+     * gated off (small values). */
+    while (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) usleep(50);
+
+    /* D.2: hand cleanup to worker A (single writer of its shard); it deletes the range and -> DONE.
+     * Once phase==DONE, worker B's drain gate (phase!=MIG_DONE) stops it calling migDrainB, so B
+     * will not touch the log again. */
+    atomic_store_explicit(&server.migration.phase, MIG_CLEANUP, memory_order_release);
+    while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DONE) usleep(50);
+
+    /* D.3: RCU-style teardown — NO timing guess. (1) Wait for worker B's heartbeat to advance several
+     * iterations so it has provably looped past the phase==DONE gate and is out of migDrainB. (2) Free
+     * the log and NULL it. (3) Publish migration_active=0 LAST — the sole "one migration at a time"
+     * gate (reshardArm/reshardAutoTune) so a new migration cannot start (and overwrite migration.log)
+     * until the old log is fully freed. Closes the teardown UAF and the re-arm double-free. */
+    uint64_t hb0 = atomic_load_explicit(&server.workers[dst].loop_seq, memory_order_acquire);
+    while (atomic_load_explicit(&server.workers[dst].loop_seq, memory_order_acquire) < hb0 + 3) usleep(50);
+    migLogFree(server.migration.log);
+    server.migration.log = NULL;
+    atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
+    serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+    return NULL;
+}
+
+/* Spawn the detached cutover coordinator. It internally waits for the cold copy to converge before
+ * raising the drain fence, so it is safe to call right after ARM (auto) or mid-COPYING (manual). */
+static int reshardBeginCutover(void) {
+    if (!atomic_load_explicit(&server.migration_active, memory_order_acquire)) return 0;
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_COPYING) return 0;
+    pthread_t t;
+    if (pthread_create(&t, NULL, reshardCoordinator, NULL) != 0) return 0;
+    pthread_detach(t);
+    return 1;
+}
+
+/* ---- EWMA adaptive load-balancer (CONTROL PLANE: called once/sec from serverCron on the main
+ * thread ONLY). Samples each shard's monotonic op counter, maintains a per-shard EWMA of ops/sec,
+ * and when the hottest shard is persistently above the mean it shifts a chunk of boundary buckets
+ * to its cooler adjacent neighbour via a full-auto migration. NOTHING here is read on the per-
+ * command routing path — that stays a single bucket-table byte load. ---- */
+static double   mig_load_ewma[MY_WORKER_THREADS_MAX];
+static uint64_t mig_last_ops[MY_WORKER_THREADS_MAX];
+static int      mig_ewma_primed = 0;
+/* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
+ * ONLY while it is actually shrinking the peak load/capacity. mig_peak_pre = the peak metric we were
+ * trying to reduce at the last migration; after a short settle (so the EWMA reflects the move), if
+ * the peak hasn't dropped meaningfully the hotspot is UNBALANCEABLE (e.g. one super-hot key that just
+ * relocates) and we stop chasing it. A balanceable hotspot keeps shrinking each step until balanced,
+ * so it converges fully; a genuinely worse NEW imbalance resets and is handled immediately. */
+static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
+static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
+void reshardAutoTune(void) {
+    if (!server.reshard_auto || !server.workers) return;
+    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
+    int W = server.num_workers;
+    if (W < 2) return;
+    double alpha = server.reshard_ewma_alpha_pct / 100.0;
+
+    /* metric[w] is what we balance on: raw ops, OR ops/capacity when core-aware (so a faster core is
+     * "hot" only when its load EXCEEDS its proportionally larger share). cap defaults to 1 if a core
+     * never calibrated. */
+    int core_aware = server.reshard_core_aware;
+    double sum_ops = 0, sum_metric = 0, hotmetric = -1; int hot = 0;
+    double metric[MY_WORKER_THREADS_MAX];
+    for (int w = 0; w < W; w++) {
+        uint64_t ops = server.workers[w].ops_total;     /* relaxed plain read of a per-thread stat */
+        uint64_t rate = ops - mig_last_ops[w];
+        mig_last_ops[w] = ops;
+        mig_load_ewma[w] = mig_ewma_primed ? (alpha * (double)rate + (1.0 - alpha) * mig_load_ewma[w])
+                                           : (double)rate;
+        double cap = (core_aware && server.worker_capacity[w] > 0) ? server.worker_capacity[w] : 1.0;
+        metric[w] = mig_load_ewma[w] / cap;
+        sum_ops += mig_load_ewma[w];
+        sum_metric += metric[w];
+        if (metric[w] > hotmetric) { hotmetric = metric[w]; hot = w; }
+    }
+    if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* need one tick to seed deltas */
+
+    double mean_ops = sum_ops / W, mean_metric = sum_metric / W;
+    double eff_imbalance = server.reshard_imbalance_pct / 100.0;   /* base threshold, never raised */
+    /* balanced (or too quiet) => clear convergence state and stay responsive at base sensitivity. */
+    if (mean_ops < (double)server.reshard_min_ops || hotmetric <= eff_imbalance * mean_metric) {
+        mig_peak_pre = 0; mig_settle = 0;
+        return;
+    }
+    /* let the EWMA absorb the previous migration before judging whether it helped. */
+    if (mig_settle > 0) { mig_settle--; return; }
+    /* NO-PROGRESS guard: if the last migration didn't cut the peak by >15%, this hotspot can't be
+     * balanced by moving buckets (it just relocates) — stop chasing until the load pattern changes
+     * (a genuinely worse imbalance clears the bar via the balanced-reset path on a later tick). */
+    if (mig_peak_pre > 0 && hotmetric > mig_peak_pre * 0.85) return;
+
+    /* Pick the cooler adjacent neighbour (lowest load/capacity), and only if it is genuinely below the
+     * mean ratio — i.e. it has spare CAPACITY to absorb, not just fewer ops. */
+    int left = hot - 1, right = hot + 1, B = -1;
+    if (left >= 0 && right < W) B = (metric[left] < metric[right]) ? left : right;
+    else if (left >= 0)        B = left;
+    else if (right < W)        B = right;
+    if (B < 0 || metric[B] >= mean_metric) return;
+
+    /* Shift a chunk of buckets at the hot|B boundary (suffix if B=hot+1, prefix if B=hot-1), keeping
+     * ranges contiguous and never emptying the hot shard. */
+    int chunk = server.reshard_chunk_buckets;
+    int hot_lo = (hot == 0 ? 0 : server.worker_bucket_end[hot - 1]);
+    int hot_hi = server.worker_bucket_end[hot];
+    if (hot_hi - hot_lo <= chunk) return;                    /* don't drain the hot shard dry */
+    int lo, hi;
+    if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }  /* suffix -> right neighbour */
+    else              { lo = hot_lo; hi = hot_lo + chunk; }  /* prefix -> left neighbour */
+
+    if (reshardArm(lo, hi, hot, B)) {
+        reshardBeginCutover();   /* spawns the coordinator; it waits out the cold copy then cuts over */
+        mig_peak_pre = hotmetric;  /* the peak this migration must shrink to be allowed to continue */
+        mig_settle = 4;            /* ~4 ticks for the EWMA to reflect the new distribution */
+        serverLog(LL_NOTICE, "ee451 reshard AUTO%s: hot=w%d(%.0f ops, cap %.0f) -> w%d(%.0f ops), moving [%d,%d)",
+                  core_aware ? "(core-aware)" : "", hot, mig_load_ewma[hot], server.worker_capacity[hot],
+                  B, mig_load_ewma[B], lo, hi);
+        /* NOTE: do NOT reset the EWMA here — it must keep adapting so the no-progress guard can see
+         * whether this migration actually reduced the peak. migration_active blocks re-fire meanwhile. */
+    }
+}
+
+/* Content checksum over all keys of worker `wid`'s shard whose bucket ∈ [lo,hi). Order-independent
+ * (XOR fold of key-hash mixed with the RDB-serialized value bytes), so src and dst can be compared
+ * directly: equal (count,xsum) ⇒ identical range contents. Racy under concurrent writes — call only
+ * when the write load is quiesced (it is a validation aid, not a hot path). */
+static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCount, uint64_t *outXsum) {
+    unsigned long long count = 0; uint64_t xsum = 0;
+    workerThread *w = &server.workers[wid];
+    for (int dbid = 0; dbid < server.dbnum; dbid++) {
+        kvstoreIterator it;
+        kvstoreIteratorInit(&it, w->db[dbid].keys);
+        dictEntry *de;
+        while ((de = kvstoreIteratorNext(&it)) != NULL) {
+            kvobj *kv = dictGetKV(de);
+            sds k = kvobjGetKey(kv);
+            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            if (b < lo || b >= hi) continue;
+            rio r; rioInitWithBuffer(&r, sdsempty());
+            rdbSaveObjectType(&r, (robj*)kv);
+            rdbSaveObject(&r, (robj*)kv, NULL, dbid);
+            uint64_t vh = xxh64(r.io.buffer.ptr, sdslen(r.io.buffer.ptr));
+            sdsfree(r.io.buffer.ptr);
+            uint64_t kh = xxh64(k, sdslen(k));
+            xsum ^= (kh * 0x9e3779b97f4a7c15ULL) + vh + (uint64_t)dbid;
+            count++;
+        }
+        kvstoreIteratorReset(&it);
+    }
+    *outCount = count; *outXsum = xsum;
+}
+
+/* DEBUG RESHARD START <lo> <hi> <src> <dst>  — arm a migration (manual trigger for validation).
+ * DEBUG RESHARD STATUS                       — phase/counters + per-shard range checksum (src vs dst).
+ * Runs on the IO thread; ARM only flips atomics + allocates the log (safe). */
+void reshardDebug(client *c) {
+    if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "start")) {
+        if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
+        int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
+        int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
+        if (lo < 0 || hi > MY_BUCKETS || lo >= hi ||
+            src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
+            addReplyError(c, "bad range/workers"); return;
+        }
+        if (!reshardArm(lo, hi, src, dst)) { addReplyError(c, "migration already active"); return; }
+        addReply(c, shared.ok);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "cutover")) {
+        if (!reshardBeginCutover())
+            { addReplyError(c, "not in COPYING, or cold scan not finished (check scan_done=1)"); return; }
+        addReply(c, shared.ok);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "ops")) {
+        /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
+         * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
+        unsigned long long total = 0;
+        for (int w = 0; w < server.num_workers; w++) total += server.workers[w].ops_total;
+        addReplyLongLong(c, (long long)total);
+    } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
+        /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
+         * is safe to call under live load. (An earlier variant scanned every worker's dict for the
+         * key; that is a §4.8 single-writer violation that races worker writes and can crash.) */
+        sds key = c->argv[3]->ptr;
+        int routed = workerIndexForKey(key, sdslen(key));
+        int bucket = (int)(xxh64(key, sdslen(key)) & MY_BUCKET_MASK);
+        addReplyStatusFormat(c, "key=%s bucket=%d routed_worker=%d", key, bucket, routed);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
+        int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
+        unsigned long long sc = 0, dc = 0; uint64_t sx = 0, dx = 0;
+        int phase = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
+        unsigned long long issued = atomic_load_explicit(&server.migration.issued_seq, memory_order_relaxed);
+        unsigned long long applied = atomic_load_explicit(&server.migration.applied_seq, memory_order_relaxed);
+        int scan_done = atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed);
+        if (active) {
+            migRangeChecksum(server.migration.src, server.migration.lo, server.migration.hi, &sc, &sx);
+            migRangeChecksum(server.migration.dst, server.migration.lo, server.migration.hi, &dc, &dx);
+        }
+        addReplyStatusFormat(c,
+            "active=%d phase=%d lo=%d hi=%d src=%d dst=%d issued=%llu applied=%llu scan_done=%d "
+            "src_keys=%llu src_xsum=%llu dst_keys=%llu dst_xsum=%llu converged=%d",
+            active, phase, server.migration.lo, server.migration.hi, server.migration.src,
+            server.migration.dst, issued, applied, scan_done,
+            sc, (unsigned long long)sx, dc, (unsigned long long)dx,
+            (active && sc == dc && sx == dx) ? 1 : 0);
+    } else {
+        addReplyError(c, "DEBUG RESHARD START|STATUS");
+    }
+}
+/* ========================== end resharding (engine) ========================== */
 
 /* Checks if all keys in a command (or a MULTI-EXEC) belong to the same hash slot.
  * If yes, return 1, otherwise 0. If hashslot is not NULL, it will be set to the
@@ -8952,6 +9518,14 @@ static inline void workerExecFake(client *fake) {
         dictDisarmHashHint();
         server.current_client[iotid] = NULL;
         server.executing_client[iotid] = NULL;
+        /* ee451 (v8d): online-resharding effect capture. If a migration is live and this was a
+         * WRITE to a key in the migrating bucket range, append the post-image/tombstone to the
+         * A->B effect log in commit order. Range keys only execute on worker A (the table maps
+         * them to A until cutover), so reaching this with an in-range key implies we ARE A.
+         * Gated by a relaxed load of the always-0 hot byte: ~free outside a migration. */
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
+            (fake->cmd->flags & CMD_WRITE) && fake->argc >= 2 && fake->argv && fake->argv[1])
+            migCaptureEffect(fake->db, fake->argv[1]);
     }
     pendingCommand *wpcmd = fake->current_pending_cmd;
     if (wpcmd && wpcmd->argv) {
@@ -9057,6 +9631,25 @@ void *workerThreadMain(void *arg) {
      * the main thread. The fixed base MY_IO_THREADS_MAX+1 guarantees no overlap
      * with any IO-thread iotid regardless of the configured my_io_threads. */
     iotid = MY_IO_THREADS_MAX + 1 + worker->id;
+
+    /* ee451 (v8d): calibrate this worker's CORE SPEED, pinned to its core, before serving. A fixed
+     * compute workload timed by the WALL clock (invariant-TSC wouldn't reflect core speed) yields a
+     * relative capacity (faster core => less time => bigger capacity). All workers calibrate at once,
+     * which mimics the all-cores-busy serving condition (P vs E, turbo, NUMA, thermal all captured).
+     * The EWMA balancer targets equal load/capacity, so faster cores carry proportionally more. */
+    {
+        uint64_t t0 = getMonotonicUs();
+        volatile uint64_t acc = 0x9e3779b97f4a7c15ULL;
+        for (uint64_t i = 0; i < 30000000ULL; i++)
+            acc = (acc * 6364136223846793005ULL + 1442695040888963407ULL) ^ (acc >> 29);
+        uint64_t dt = getMonotonicUs() - t0; if (dt == 0) dt = 1;
+        server.worker_capacity[worker->id] = 1.0e9 / (double)dt;   /* higher => faster core */
+        (void)acc;
+        serverLog(LL_NOTICE, "ee451 worker %d core capacity = %.0f (calib %llu us)",
+                  worker->id, server.worker_capacity[worker->id], (unsigned long long)dt);
+    }
+    workerBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==1) */
+
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
      * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
      * such fake->cdb == wcdb; the worker signals all its completions into this
@@ -9087,6 +9680,21 @@ void *workerThreadMain(void *arg) {
          * refcounts are only ever mutated by this thread. */
         freebackDrainAll(worker);
 
+        /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
+         * B replays the ordered effect log into its shard; A advances the cold-key scan during
+         * COPYING. Both are this-worker-only writes (single-writer preserved). */
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+            /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
+            atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
+            int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
+            if (worker->id == server.migration.dst) {
+                if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
+            } else if (worker->id == server.migration.src) {
+                if (ph == MIG_COPYING) migServiceScanA(worker);
+                else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
+            }
+        }
+
         int any = 0;
         /* ee451: runtime worker pop/execute batch size, capped by the compile-time
          * array max. Decoupled from the per-stage prefetch widths. */
@@ -9109,6 +9717,7 @@ void *workerThreadMain(void *arg) {
                 if (batch[j]->cmd && (batch[j]->cmd->flags & CMD_WRITE)) worker->w_writes++;
             }
             if (worker->w_total >= 8192) { worker->w_writes >>= 1; worker->w_total >>= 1; }
+            worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
 
             /* ee451: per-batch reply-ready signal coalescing accumulator.
              * sig_parents holds the distinct parent clients seen in this
@@ -9132,6 +9741,17 @@ void *workerThreadMain(void *arg) {
              * expiry is never bypassed. */
             for (int j = 0; j < n; ) {
                 client *fake = batch[j];
+
+                /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
+                 * every range primary this producer dispatched before it has executed on A; decrement
+                 * the per-cutover barrier and free. No reply. */
+                if (fake->drain_ack) {
+                    /* This sentinel came up queue slot `i`; mark that producer slot drained. */
+                    atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                    freeFakeClient(fake);
+                    j++;
+                    continue;
+                }
 
                 /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
                  * connection's earlier commands). Empty this worker's OWN shard DBs and free
@@ -9281,18 +9901,93 @@ void *workerThreadMain(void *arg) {
  * wrapped with modulo if the machine has fewer cores than threads.
  * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
  * intentionally NOT done here. */
+/* ee451 (v8d): SMART (topology-aware) core ordering for pin_mode==1. Groups cores that share an L3
+ * cache (a CCD on AMD Zen / a cache tile) to be CONSECUTIVE, so the deterministic logical->physical
+ * map (worker i, IO j) PACKS threads onto one shared-L3 domain before spilling to the next — keeping
+ * a shard's worker, the IO threads feeding it, and (with NUMA-local alloc below) its memory within
+ * one last-level cache + NUMA node. Reads /sys; falls back to identity order if topology is unknown.
+ * EPYC/Threadripper-targeted; on a single-L3 box this is identical to manual. */
+#define SMART_MAX_CORES 1024
+static int smart_core_order[SMART_MAX_CORES];
+static int smart_core_n = 0;
+static int read_int_file(const char *path, int *out) {
+    FILE *f = fopen(path, "r"); if (!f) return 0;
+    int ok = (fscanf(f, "%d", out) == 1); fclose(f); return ok;
+}
+static void buildSmartCoreOrder(void) {
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    if (n <= 0 || n > SMART_MAX_CORES) { smart_core_n = 0; return; }
+    int l3id[SMART_MAX_CORES]; int have_all = 1;
+    for (int c = 0; c < n; c++) {
+        l3id[c] = -1;
+        for (int idx = 0; idx < 12; idx++) {       /* find the cache index whose level==3 */
+            char p[160]; int lvl = -1;
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/level", c, idx);
+            if (!read_int_file(p, &lvl)) break;     /* no more cache indices for this cpu */
+            if (lvl != 3) continue;
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/id", c, idx);
+            read_int_file(p, &l3id[c]);
+            break;
+        }
+        if (l3id[c] < 0) have_all = 0;
+    }
+    int k = 0;
+    if (!have_all) {                                /* topology unknown -> identity order */
+        for (int c = 0; c < n; c++) smart_core_order[c] = c;
+        smart_core_n = (int)n; return;
+    }
+    for (int lastid = -1;;) {                        /* emit cores grouped by ascending L3 id */
+        int nextid = INT_MAX;
+        for (int c = 0; c < n; c++) if (l3id[c] > lastid && l3id[c] < nextid) nextid = l3id[c];
+        if (nextid == INT_MAX) break;
+        for (int c = 0; c < n; c++) if (l3id[c] == nextid) smart_core_order[k++] = c;
+        lastid = nextid;
+    }
+    smart_core_n = k;
+    serverLog(LL_NOTICE, "ee451 smart pinning: %d cores ordered by shared-L3 (CCD) groups", k);
+}
+static int smartCoreFor(int logical) {
+    if (smart_core_n == 0) buildSmartCoreOrder();
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    if (smart_core_n == 0) return (n > 0) ? (logical % (int)n) : 0;
+    return smart_core_order[logical % smart_core_n];
+}
+
 static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #ifdef __linux__
     long n = sysconf(_SC_NPROCESSORS_ONLN);
     if (n <= 0) return;
-    int core = core_idx % (int)n;
+    int core = (server.pin_mode == 1) ? smartCoreFor(core_idx) : (core_idx % (int)n);
     cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
     if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
-        serverLog(LL_NOTICE, "%s pinned to core %d", what, core);
+        serverLog(LL_NOTICE, "%s pinned to core %d%s", what, core, server.pin_mode==1?" (smart)":"");
     else
         serverLog(LL_WARNING, "Failed to pin %s to core %d", what, core);
 #else
     UNUSED(thread); UNUSED(what); UNUSED(core_idx);
+#endif
+}
+
+/* ee451 (v8d): bind this worker's allocations to its core's NUMA node (pin_mode==1 only), so the
+ * shard's dicts/values stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses raw
+ * syscalls (no libnuma dependency); a no-op / best-effort if unsupported. Called from the worker
+ * thread after it is already pinned, so getcpu() reports its real node. */
+void workerBindNumaLocal(int worker_id) {
+#ifdef __linux__
+    if (server.pin_mode != 1) return;
+    int core = smartCoreFor(worker_id);
+    int node = -1;                              /* core's NUMA node: node%d/cpu%d symlink exists iff member */
+    for (int nd = 0; nd < 256 && node < 0; nd++) {
+        char p[160]; snprintf(p, sizeof p, "/sys/devices/system/node/node%d/cpu%d", nd, core);
+        if (access(p, F_OK) == 0) node = nd;
+    }
+    if (node < 0) return;
+    unsigned long nodemask = 1UL << (node % (8 * sizeof(unsigned long)));
+    /* MPOL_PREFERRED (==1): prefer the local node, fall back elsewhere rather than OOM. */
+    syscall(SYS_set_mempolicy, 1, &nodemask, (unsigned long)(8 * sizeof(nodemask)));
+    serverLog(LL_NOTICE, "ee451 worker %d NUMA-local: core %d -> node %d", worker_id, core, node);
+#else
+    UNUSED(worker_id);
 #endif
 }
 
