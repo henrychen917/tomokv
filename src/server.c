@@ -1863,6 +1863,11 @@ extern int ProcessingEventsWhileBlocked;
  * The most important is freeClientsInAsyncFreeQueue but we also
  * call some other low-risk functions. */
 void handleWorkerReplies(void) {
+    /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
+     * any reply. This is the single guaranteed pre-drain / pre-sleep point
+     * (beforeSleepIO calls us first each loop), so a staged job is always
+     * visible to its worker before the drain can wait on its slot. */
+    flushWorkerQueues();
     listIter li;
     listNode *ln;
     listRewind(server.clients_pending_worker[iotid], &li);
@@ -1924,6 +1929,32 @@ void handleWorkerReplies(void) {
          * a single writeToClient call at the end. */
         int spliced = 0;
         int close_asap = 0;
+
+        /* ee451: pipelined drain prefetch — "prefetch finished fc -> prefetch
+         * reply -> send response". The ready fakes were last written on a
+         * worker core, so they are cold in this IO thread's cache. Pass 1 warms
+         * the fake structs; pass 2 (structs now warm) prefetches each fake's
+         * reply payload (static buf + overflow list head), so the splice loop
+         * below copies hot memory. We walk the same ready prefix the splice
+         * loop will, stopping at the first not-ready slot. */
+        {
+            client *ready_fakes[MY_PIPELINE_DEPTH_MAX];
+            int ready_n = 0;
+            for (unsigned int fid = real->flushid;
+                 fid != real->dispatchid && ready_n < MY_PIPELINE_DEPTH_MAX; fid++)
+            {
+                unsigned int slot = fid & server.my_pipeline_queue_mask;
+                if (!(mask & (1u << slot))) break;
+                client *fake = real->fakeClients[slot];
+                redis_prefetch_read(fake);
+                ready_fakes[ready_n++] = fake;
+            }
+            for (int k = 0; k < ready_n; k++) {
+                client *fake = ready_fakes[k];
+                if (fake->bufpos > 0) redis_prefetch_read(fake->buf);
+                if (listLength(fake->reply)) redis_prefetch_read(listFirst(fake->reply));
+            }
+        }
 
         while (real->flushid != real->dispatchid) {
             unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
@@ -2919,6 +2950,11 @@ void resetServerStats(void) {
     server.stat_last_eviction_exceeded_time = 0;
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
+    /* ee451 (S6): zero the per-thread keyspace counters too. */
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) {
+        server.kstat[i].hits = 0;
+        server.kstat[i].misses = 0;
+    }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
     server.stat_active_defrag_key_hits = 0;
@@ -6579,6 +6615,19 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
     return info;
 }
 
+/* ee451 (S6): fold the per-thread keyspace counters (plus the legacy scalar,
+ * normally 0) into a single total for INFO. */
+static long long keyspaceHitsTotal(void) {
+    long long s = server.stat_keyspace_hits;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].hits;
+    return s;
+}
+static long long keyspaceMissesTotal(void) {
+    long long s = server.stat_keyspace_misses;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].misses;
+    return s;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -6950,8 +6999,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "evicted_scripts:%lld\r\n", server.stat_evictedscripts,
             "total_eviction_exceeded_time:%lld\r\n", (server.stat_total_eviction_exceeded_time + current_eviction_exceeded_time) / 1000,
             "current_eviction_exceeded_time:%lld\r\n", current_eviction_exceeded_time / 1000,
-            "keyspace_hits:%lld\r\n", server.stat_keyspace_hits,
-            "keyspace_misses:%lld\r\n", server.stat_keyspace_misses,
+            "keyspace_hits:%lld\r\n", keyspaceHitsTotal(),     /* ee451 (S6): folded per-thread */
+            "keyspace_misses:%lld\r\n", keyspaceMissesTotal(), /* ee451 (S6): folded per-thread */
             "pubsub_channels:%llu\r\n", kvstoreSize(server.pubsub_channels),
             "pubsub_patterns:%lu\r\n", dictSize(server.pubsub_patterns),
             "pubsubshard_channels:%llu\r\n", kvstoreSize(server.pubsubshard_channels),
@@ -8222,54 +8271,128 @@ static void moveExecutionState(client *real, client *fake) {
 void workerQueueInit(workerQueue *q) {
     atomic_store_explicit(&q->head, 0, memory_order_relaxed);
     atomic_store_explicit(&q->tail, 0, memory_order_relaxed);
+    q->cached_tail = 0;   /* ee451: empty (head == cached_tail) */
+    q->cached_head = 0;   /* ee451: empty (next_t != cached_head until full) */
+    q->staged_tail = 0;   /* ee451 (S4): == tail; nothing staged yet */
     memset(q->jobs, 0, sizeof(q->jobs));
 }
 
+/* ee451 (S4): publish every job this IO thread (iotid) has STAGED to its
+ * worker queues, with a single release-store of `tail` per queue. Called at the
+ * top of handleWorkerReplies — i.e. before any reply drain and before the IO
+ * thread sleeps (beforeSleepIO calls handleWorkerReplies first every loop) — so
+ * a staged-but-unpublished job can never make the drain wait on a worker that
+ * cannot see it. One store publishes all the jobs[] writes that happened-before
+ * it (standard SPSC batch publish). */
+void flushWorkerQueues(void) {
+    if (!server.workers) return;
+    for (int w = 0; w < server.num_workers; w++) {
+        workerQueue *q = &server.workers[w].queues[iotid];
+        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+        if (q->staged_tail != published)
+            atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    }
+}
+
+/* ee451 (S8): IO thread (producer, this iotid) enqueues a value object for its
+ * owning worker to decrRefCount. The decref MUST happen on the worker (sole
+ * mutator of that shard's refcounts) — decref'ing here would race it. If the
+ * ring is momentarily full (rare; only >=16KB zero-copy replies use it), spin
+ * for the worker to drain rather than decref here. */
+void freebackPush(int worker_id, robj *obj) {
+    freebackRing *fb = &server.workers[worker_id].freeback[iotid];
+    unsigned int t = atomic_load_explicit(&fb->tail, memory_order_relaxed);
+    unsigned int next_t = (t + 1) & FREEBACK_RING_MASK;
+    while (next_t == atomic_load_explicit(&fb->head, memory_order_acquire))
+        sched_yield();  /* back-pressure: wait for the worker to drain */
+    fb->objs[t] = obj;
+    atomic_store_explicit(&fb->tail, next_t, memory_order_release);
+}
+
+/* ee451 (S8): the worker drains all its free-back rings and decrefs each value
+ * on the worker thread (single-writer for its shard => no refcount race).
+ * Called once per worker loop iteration. */
+static inline void freebackDrainAll(workerThread *worker) {
+    for (int t = 0; t <= server.my_io_threads; t++) {
+        freebackRing *fb = &worker->freeback[t];
+        unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
+        unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
+        if (h == tl) continue;
+        while (h != tl) {
+            decrRefCount((robj *)fb->objs[h]);
+            h = (h + 1) & FREEBACK_RING_MASK;
+        }
+        atomic_store_explicit(&fb->head, h, memory_order_release);
+    }
+}
+
 int workerQueuePush(workerQueue *q, client *c) {
-    /* Producer owns tail; relaxed load is fine (no one else writes it). */
-    unsigned int t = atomic_load_explicit(&q->tail, memory_order_relaxed);
+    /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
+     * IO thread publishes all staged jobs with one release-store per queue at
+     * flushWorkerQueues() (handleWorkerReplies top), batching up to
+     * pipeline_depth cross-CCD release-stores into one. staged_tail is the
+     * producer-private write frontier (>= published tail). */
+    unsigned int t = q->staged_tail;
     unsigned int next_t = (t + 1) & server.my_worker_queue_mask;
-    /* Acquire load of head pairs with the consumer's release store in
-     * pop — ensures we observe the latest head advance, so our
-     * "full" check is accurate. */
-    unsigned int h = atomic_load_explicit(&q->head, memory_order_acquire);
-    if (next_t == h) {
-        /* Ring full. Extremely rare with default depth 1024 unless
-         * workers are stalled. Signal backpressure to caller. */
-        fprintf(stderr, "worker queue full\n");
-        return -1;
+    /* ee451: fast-path the "not full" check against the producer-private
+     * cached_head, avoiding the cross-core acquire-load of the consumer's
+     * head line on every push. cached_head lags the real head (the consumer
+     * only advances head), so if next_t != cached_head there is definitely
+     * space. Only when the cache says full do we pay the acquire-load to
+     * refresh and re-test. */
+    if (next_t == q->cached_head) {
+        q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
+        if (next_t == q->cached_head) {
+            /* Truly full. Extremely rare with default depth 1024 unless
+             * workers are stalled. Signal backpressure to caller. */
+            fprintf(stderr, "worker queue full\n");
+            return -1;
+        }
     }
     q->jobs[t] = c;
-    /* Release store of tail publishes the new slot to the consumer:
-     * consumer's acquire load of tail will observe this store and all
-     * writes that happened-before it (including the q->jobs[t] = c
-     * write just above). */
-    atomic_store_explicit(&q->tail, next_t, memory_order_release);
+    /* ee451 (S4): advance the producer-private staged frontier only. The
+     * eventual single release-store of `tail` in flushWorkerQueues() publishes
+     * this jobs[t] write (and all earlier staged ones) to the consumer. */
+    q->staged_tail = next_t;
     return 0;
 }
 
 client *workerQueuePop(workerQueue *q) {
     /* Consumer owns head; relaxed load is fine. */
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    /* Acquire load of tail pairs with producer's release store in push. */
-    unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
-    if (h == t) return NULL; /* empty */
+    /* ee451: fast-path the "not empty" check against the consumer-private
+     * cached_tail. cached_tail lags the real tail (the producer only advances
+     * tail), so if h != cached_tail an item is definitely present and was
+     * published by the acquire-load that last refreshed cached_tail. Only when
+     * the cache says empty do we pay the acquire-load to refresh and re-test. */
+    if (h == q->cached_tail) {
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        if (h == q->cached_tail) return NULL; /* empty */
+    }
     client *c = q->jobs[h];
     atomic_store_explicit(&q->head, (h + 1) & server.my_worker_queue_mask,
                           memory_order_release);
     return c;
 }
 
-/* Drain up to `max` fakes in one pass. Same SPSC semantics; single
- * acquire load of tail gives us an upper bound, we copy out n items,
- * single release store of head publishes the advance. */
+/* Drain up to `max` fakes in one pass. Same SPSC semantics; the available
+ * count is computed against the consumer-private cached_tail, refreshed with a
+ * single acquire-load of the real tail only when the cache shows empty. We copy
+ * out n items, then a single release store of head publishes the advance. */
 int workerQueuePopBatch(workerQueue *q, client **out, int max) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
     /* Masked subtraction — wraps correctly even when tail has wrapped
      * past head since last head advance. */
-    unsigned int avail = (t - h) & server.my_worker_queue_mask;
-    if (avail == 0) return 0;
+    unsigned int avail = (q->cached_tail - h) & server.my_worker_queue_mask;
+    if (avail == 0) {
+        /* ee451: cache says empty — pay the cross-core acquire-load once to
+         * refresh. The acquire pairs with the producer's release store of
+         * tail, making jobs[..tail) visible; those slots stay visible for
+         * subsequent cached reads until head catches up again. */
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        avail = (q->cached_tail - h) & server.my_worker_queue_mask;
+        if (avail == 0) return 0;
+    }
     int n = (int)avail < max ? (int)avail : max;
     for (int i = 0; i < n; i++) {
         out[i] = q->jobs[(h + (unsigned int)i) & server.my_worker_queue_mask];
@@ -8291,43 +8414,95 @@ void queueToWorker(client *c, int worker_id) {
 
 }
 
-/* Staged prefetch for a batch of fakes about to be executed on a worker.
- * Issues prefetches in stride order so hardware-prefetcher-unfriendly
- * pointer chains (key robj -> key sds, dict bucket -> entry) overlap.
+/* ee451: Pipelined prefetch for a batch of fakes about to execute on a worker.
+ * The dependent pointer chain a single-key command walks is:
  *
- * Stage A: prefetch each fake's key robj and its sds ptr — cheap, warms
- *          the data the command proc will hash.
- * Stage B: for each fake, compute the dict bucket index and prefetch the
- *          bucket head pointer — this is the main L3/DRAM miss that the
- *          command's dictFind would otherwise pay synchronously.
+ *     fake -> argv -> argv[1](robj) -> argv[1]->ptr(sds)        (the key)
+ *           -> cmd                                              (the proc)
+ *           -> shard dict bucket -> dict entry -> kvobj         (the value)
  *
- * All GET/SET/DEL (the only worker-dispatched commands) take the key at
- * argv[1]. fake->db was already pointed at the worker's shard in the
- * dispatch path, so kvstoreGetDict here returns the worker-local dict. */
+ * Chasing that chain synchronously inside the command handler serializes a
+ * string of L3/DRAM misses. Instead we issue the loads as a SOFTWARE PIPELINE
+ * across the whole batch: each pass prefetches one link for every fake, so by
+ * the time a later pass dereferences a link it has had ~n iterations to land,
+ * and the misses of different fakes overlap (memory-level parallelism).
+ *
+ * Passes mirror the requested ordering "prefetch fc -> prefetch command
+ * execution stages -> prefetch key value -> execute":
+ *   1. fake client struct, its argv vector, the command descriptor, key robj
+ *   2. key sds bytes; compute SipHash ONCE and stash it on the fake (reused at
+ *      execution via dictArmHashHint so we don't hash the key a second time);
+ *      prefetch the bucket slot
+ *   3. dereference the (now-warm) bucket slot to the head entry; prefetch it
+ *   4. dereference the (now-warm) entry to the stored kvobj; prefetch the value
+ *
+ * fake->db was already pointed at the worker's shard during dispatch, so
+ * kvstoreGetDict here returns the worker-local dict. Scratch arrays are bounded
+ * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a
+ * prefetch of a stale address is harmless, and a missed hash hint simply falls
+ * back to recomputation at execution. */
 static inline void workerPrefetchBatch(client **batch, int n) {
-    /* Stage A: key robj + sds. Two prefetches per fake, interleaved across
-     * all fakes so the first fake's bucket prefetch (stage B) overlaps the
-     * tail of this stage's loads. */
+    dict *dts[WORKER_POP_BATCH];
+    unsigned long idxs[WORKER_POP_BATCH];
+    dictEntry *des[WORKER_POP_BATCH];
+
+    /* Pass 1 — fake client + execution metadata. The fake was just popped from
+     * the SPSC ring and may be cold; warm the struct, argv, cmd, and key robj. */
     for (int j = 0; j < n; j++) {
         client *fake = batch[j];
-        if (fake->argc < 2 || !fake->argv || !fake->argv[1]) continue;
-        redis_prefetch_read(fake->argv[1]);
-        /* argv[1]->ptr is a pointer into the robj — issuing this prefetch
-         * needs argv[1] in cache, which we just prefetched. The compiler
-         * emits a dependent load; this may partially serialize. Tolerable
-         * because stage B is the real payoff. */
-        if (fake->argv[1]->ptr) redis_prefetch_read(fake->argv[1]->ptr);
+        redis_prefetch_read(fake);
+        if (fake->argv) redis_prefetch_read(fake->argv);
+        if (fake->cmd)  redis_prefetch_read(fake->cmd);
+        if (fake->argc >= 2 && fake->argv && fake->argv[1])
+            redis_prefetch_read(fake->argv[1]);
     }
 
-    /* Stage B: dict bucket head for each fake. */
+    /* Pass 2 — key bytes + hash + bucket slot. Compute the SipHash once and
+     * store it on the fake; the command's dictFind/lookupKey will reuse it. */
     for (int j = 0; j < n; j++) {
         client *fake = batch[j];
+        dts[j] = NULL;
+        des[j] = NULL;
+        fake->prefetch_key_hash_valid = 0;
         if (fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->db) continue;
+        if (fake->argv[1]->ptr) redis_prefetch_read(fake->argv[1]->ptr);
         dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
         if (!d || dictSize(d) == 0 || !d->ht_table[0]) continue;
         uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
+        fake->prefetch_key_hash = h;
+        fake->prefetch_key_hash_valid = 1;
         unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
         redis_prefetch_read(&d->ht_table[0][idx]);
+        /* ee451: only chase bucket -> entry -> value (passes 3-4) for READ
+         * commands. A read (GET/MGET/...) dereferences the stored value's
+         * bytes, so warming them pays off. A write (SET/overwrite/insert)
+         * installs a NEW value and never reads the old payload, so those two
+         * dependent-load passes are pure waste that measurably hurt write-heavy
+         * throughput (pure-SET populate regressed ~35% with them on). The bucket
+         * prefetch above and the SipHash hint below still apply to writes (they
+         * walk the bucket and need the hash); only the value chase is gated. */
+        if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+            dts[j] = d;
+            idxs[j] = idx;
+        }
+    }
+
+    /* Pass 3 — bucket slot (warm) -> head entry. (Read commands only; writes
+     * left dts[j] == NULL above so they skip the value chase entirely.) */
+    for (int j = 0; j < n; j++) {
+        if (!dts[j]) continue;
+        dictEntry *de = dts[j]->ht_table[0][idxs[j]];
+        des[j] = de;
+        if (de) redis_prefetch_read(de);
+    }
+
+    /* Pass 4 — entry (warm) -> stored kvobj; prefetch the value bytes the
+     * handler will read. (DB dict stores the kvobj as the entry's key.) */
+    for (int j = 0; j < n; j++) {
+        dictEntry *de = des[j];
+        if (!de) continue;
+        void *kv = dictGetKey(de);
+        if (kv) redis_prefetch_read(kv);
     }
 }
 
@@ -8346,9 +8521,65 @@ static inline void workerPauseCpu(void) {
 #endif
 }
 
+/* ee451: execute one fake on the worker thread.
+ *
+ * Publishes the fake as this worker's current/executing client (via the
+ * worker-private iotid) so command procs read a valid, owned client through
+ * server.current_client[iotid]/executing_client[iotid] — e.g. lookupKey's
+ * NO_TOUCH check, getKeySlot, and dbSetValue's overwrite old-value free.
+ * Reuses the SipHash computed in workerPrefetchBatch so the key lookup doesn't
+ * re-hash argv[1]. After the command, releases the DB-aliasing argv references
+ * (refcount > 1) HERE so this worker is the SOLE mutator of its shard's value
+ * refcounts — a plain decrement, never a free(), which kills the worker-vs-IO
+ * refcount race without the cross-thread-free arena contention that freeing
+ * here would cause (the IO drain frees the solely-owned argv same-arena).
+ *
+ * Factored out of the batch loop so it can drive both lone commands and
+ * same-key read-run value-forwarding chains identically. */
+static inline void workerExecFake(client *fake) {
+    serverAssert(fake->isFake);
+    if (fake->cmd) {
+        server.current_client[iotid] = fake;
+        server.executing_client[iotid] = fake;
+        if (fake->prefetch_key_hash_valid && fake->argv && fake->argv[1])
+            dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
+        fake->cmd->proc(fake);
+        dictDisarmHashHint();
+        server.current_client[iotid] = NULL;
+        server.executing_client[iotid] = NULL;
+    }
+    pendingCommand *wpcmd = fake->current_pending_cmd;
+    if (wpcmd && wpcmd->argv) {
+        for (int a = 0; a < wpcmd->argc; a++) {
+            robj *o = wpcmd->argv[a];
+            if (o && o->refcount > 1) { decrRefCount(o); wpcmd->argv[a] = NULL; }
+        }
+    }
+}
+
+/* ee451: is `b` a CMD_READONLY single-key command on the SAME key as `a`?
+ * Used to form same-key read runs for value forwarding. Cheap fast-reject on
+ * the prefetched key hash, then a definitive sds compare (guarded so we never
+ * sdscmp an int-encoded key pointer). */
+static inline int workerSameKeyReadonly(client *a, client *b) {
+    if (!b->cmd || !(b->cmd->flags & CMD_READONLY)) return 0;
+    if (b->argc < 2 || !b->argv || !b->argv[1]) return 0;
+    if (a->prefetch_key_hash_valid && b->prefetch_key_hash_valid &&
+        a->prefetch_key_hash != b->prefetch_key_hash) return 0;
+    if (!sdsEncodedObject(a->argv[1]) || !sdsEncodedObject(b->argv[1])) return 0;
+    return sdscmp(a->argv[1]->ptr, b->argv[1]->ptr) == 0;
+}
+
 void *workerThreadMain(void *arg) {
     workerThread *worker = (workerThread *)arg;
-    fprintf(stderr, "[worker %d] started\n", worker->id);
+    /* ee451: give this worker a PRIVATE iotid above the IO-thread range
+     * (IO threads occupy 0..my_io_threads-1; main thread is 0). Without this,
+     * iotid stays at its __thread default of 0 and every worker aliases
+     * IO-thread-0's slot in server.current_client[]/executing_client[], racing
+     * the main thread. The fixed base MY_IO_THREADS_MAX+1 guarantees no overlap
+     * with any IO-thread iotid regardless of the configured my_io_threads. */
+    iotid = MY_IO_THREADS_MAX + 1 + worker->id;
+    fprintf(stderr, "[worker %d] started (iotid=%d)\n", worker->id, iotid);
     client *batch[WORKER_POP_BATCH];
 
     /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
@@ -8368,6 +8599,10 @@ void *workerThreadMain(void *arg) {
     int empty_rounds = 0;
 
     while (1) {
+        /* ee451 (S8): decref any zero-copy reply values the IO threads handed
+         * back after sending — done here on the worker so the shard's value
+         * refcounts are only ever mutated by this thread. */
+        freebackDrainAll(worker);
         int any = 0;
         for (int i = 0; i <= server.my_io_threads; i++) {
             int n = workerQueuePopBatch(&worker->queues[i], batch, WORKER_POP_BATCH);
@@ -8377,21 +8612,73 @@ void *workerThreadMain(void *arg) {
             /* Warm the cache before executing the batch. */
             workerPrefetchBatch(batch, n);
 
-            /* Execute each fake. By the time we reach fake j, earlier
-             * prefetches for j's key/bucket have had the loop body's
-             * worth of cycles to land. */
-            for (int j = 0; j < n; j++) {
+            /* ee451: per-batch reply-ready signal coalescing accumulator.
+             * sig_parents holds the distinct parent clients seen in this
+             * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
+             * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
+             * release fetch_or per distinct parent after the inner loop. */
+            client *sig_parents[WORKER_POP_BATCH];
+            uint32_t sig_masks[WORKER_POP_BATCH];
+            int sig_n = 0;
+
+            /* Execute the batch in issue (queue) order. A run of consecutive
+             * CMD_READONLY commands on the SAME key is executed as a
+             * value-forwarding chain (the Tomasulo common-data-bus analog):
+             * op_0 does the real lookup and RECORDS the resolved value; the
+             * remaining same-key reads REPLAY it, skipping dictFind. This stays
+             * strictly inside the single owning worker, processes same-key ops
+             * in issue order, and never reorders — so the paper's Sec 4.8
+             * properties (single-writer, in-order emission, cross-thread
+             * visibility) and causal ordering hold exactly. Forwarding is
+             * disarmed when op_0's value is volatile (carries a TTL) so lazy
+             * expiry is never bypassed. */
+            for (int j = 0; j < n; ) {
                 client *fake = batch[j];
-                serverAssert(fake->isFake);
-                if (fake->cmd) {
-                    fake->cmd->proc(fake);
+
+                /* Length of the same-key readonly run starting at j. */
+                int m = 1;
+                if (fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
+                    fake->argc >= 2 && fake->argv && fake->argv[1]) {
+                    while (j + m < n && workerSameKeyReadonly(fake, batch[j + m])) m++;
                 }
-                /* Signal completion: set our bit in parent's ready mask with
-                 * release semantics so the draining IO thread sees all of
-                 * this fake's reply writes before observing the ready bit. */
-                atomicFetchOrWithRelease(fake->parent->reply_ready_mask,
-                                         1u << fake->fake_slot);
+
+                if (m == 1) {
+                    workerExecFake(fake);
+                } else {
+                    readFwdArmRecord(fake->argv[1]->ptr);
+                    workerExecFake(fake);                  /* op_0: real lookup + record */
+                    int replay = readFwdCanReplay();       /* recorded & non-volatile? */
+                    if (!replay) readFwdDisarm();          /* volatile/no-record: run rest normally */
+                    for (int k = 1; k < m; k++) {
+                        if (replay) readFwdSetReplayKey(batch[j + k]->argv[1]->ptr);
+                        workerExecFake(batch[j + k]);
+                    }
+                    readFwdDisarm();
+                }
+
+                /* ee451: coalesced reply-ready signal — OR each fake's slot bit
+                 * into a per-parent accumulator; one release fetch_or per
+                 * distinct parent is flushed after the whole batch. */
+                for (int k = 0; k < m; k++) {
+                    client *p = batch[j + k]->parent;
+                    int s;
+                    for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
+                    if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
+                    sig_masks[s] |= (1u << batch[j + k]->fake_slot);
+                }
+                j += m;
             }
+
+            /* ee451: flush coalesced signals — one release fetch_or per
+             * distinct parent. This release happens-after every proc() and
+             * argv release for ALL of that parent's fakes in this batch, so
+             * the draining IO thread's acquire-load of reply_ready_mask sees
+             * all their reply writes. Bits are only ever OR-ed by workers and
+             * cleared by the single owning IO thread, so coalescing N ORs into
+             * one is equivalent and cannot lose a bit. */
+            for (int s = 0; s < sig_n; s++)
+                atomicFetchOrWithRelease(sig_parents[s]->reply_ready_mask,
+                                         sig_masks[s]);
         }
 
         if (any) {
@@ -8419,25 +8706,38 @@ void *workerThreadMain(void *arg) {
  * we push workers onto cores starting at my_io_threads. If the machine
  * doesn't have enough cores, fall back to wrapping with modulo — a soft
  * collision with an IO thread is fine, worse than ideal but not wrong. */
-static void pinWorkerToCore(pthread_t thread, int worker_id) {
+/* ee451: SIMPLE deterministic core pinning — IDENTICAL across stable / v1 / v2
+ * so benchmarks are reproducible and directly comparable (no floating IO
+ * threads, no topology/frequency heuristics that vary by machine). Mapping:
+ *   worker i              -> core i
+ *   IO thread j (0=main)  -> core (num_workers + j)
+ * wrapped with modulo if the machine has fewer cores than threads.
+ * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
+ * intentionally NOT done here. */
+static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #ifdef __linux__
-    long n_cores = sysconf(_SC_NPROCESSORS_ONLN);
-    if (n_cores <= 0) return;
-    int core = (server.my_io_threads + worker_id) % (int)n_cores;
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core, &cpuset);
-    int rc = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
-    if (rc != 0) {
-        serverLog(LL_WARNING, "Failed to pin worker %d to core %d: %s",
-                  worker_id, core, strerror(rc));
-    } else {
-        serverLog(LL_NOTICE, "Worker %d pinned to core %d", worker_id, core);
-    }
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    if (n <= 0) return;
+    int core = core_idx % (int)n;
+    cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
+    if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
+        serverLog(LL_NOTICE, "%s pinned to core %d", what, core);
+    else
+        serverLog(LL_WARNING, "Failed to pin %s to core %d", what, core);
 #else
-    UNUSED(thread);
-    UNUSED(worker_id);
+    UNUSED(thread); UNUSED(what); UNUSED(core_idx);
 #endif
+}
+
+static void pinWorkerToCore(pthread_t thread, int worker_id) {
+    char what[40]; snprintf(what, sizeof what, "Worker %d", worker_id);
+    pinThreadToCoreN(thread, what, worker_id);
+}
+
+/* IO thread id 0 == main thread. */
+void pinIOThreadToCore(pthread_t thread, int io_id) {
+    char what[40]; snprintf(what, sizeof what, "IO thread %d", io_id);
+    pinThreadToCoreN(thread, what, server.num_workers + io_id);
 }
 
 void initWorkers(void) {
@@ -8447,6 +8747,10 @@ void initWorkers(void) {
         server.workers[i].db = server.worker_dbs[i];
         for (int t = 0; t <= server.my_io_threads; t++) {
             workerQueueInit(&server.workers[i].queues[t]);
+            /* ee451 (S8): init this worker's free-back ring for producer t. */
+            freebackRing *fb = &server.workers[i].freeback[t];
+            atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
+            atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
         pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
         pinWorkerToCore(server.workers[i].thread, i);
@@ -8494,7 +8798,11 @@ void initIOThreads(void) {
             serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
             exit(1);
         }
+        pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
+    /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
+     * pin it to its dedicated core too. */
+    pinIOThreadToCore(pthread_self(), 0);
 }
 void *ioThreadMain(void *arg) {
     ioThreadArgs *t = (ioThreadArgs *)arg;

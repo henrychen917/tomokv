@@ -1104,6 +1104,11 @@ typedef struct __attribute__((__packed__)) bulkStrRef {
     unsigned int prefix_cnt;
     char prefix[LONG_STR_SIZE + 3]; /* $<len>\r\n */
     char crlf[2]; /* \r\n */
+    /* ee451 (S8): owning worker id for zero-copy fake replies, or -1 for a
+     * normal client. When >= 0, the post-send decrRefCount is routed to that
+     * worker via freebackPush (sole refcount mutator for its shard); when -1,
+     * released inline / via ioDeferFreeRobj as before. */
+    int owner_worker;
 } bulkStrRef;
 
 /* This structure is used in order to represent the output buffer of a client,
@@ -1470,11 +1475,27 @@ typedef struct client {
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
-     * and clears bits with atomicFetchAnd as slots are drained. */
-    redisAtomic uint32_t reply_ready_mask;
+     * and clears bits with atomicFetchAnd as slots are drained.
+     *
+     * ee451 (S3): isolate this word on its own cache line. Workers across
+     * many cores/CCDs RMW this with release, while the owning IO thread reads/
+     * writes dispatchid/flushid/fakeClients (just above) on every dispatch and
+     * drain. Without isolation they false-share the same line — a cross-CCD
+     * coherence ping-pong on the single hottest line in the system, paid once
+     * per dispatch AND once per completion. The trailing aligned field below
+     * pushes everything after the mask onto the next line, so the mask owns
+     * its line alone. */
+    redisAtomic uint32_t reply_ready_mask __attribute__((aligned(CACHE_LINE_SIZE)));
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
-     * stamped once at preallocation. Unused on real clients. */
-    unsigned int fake_slot;
+     * stamped once at preallocation. Unused on real clients. Aligned to start a
+     * fresh cache line so reply_ready_mask above is not shared with it. */
+    unsigned int fake_slot __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
+     * the worker prefetch stage (workerPrefetchBatch) and reused at command
+     * execution via dictArmHashHint() to avoid hashing the key twice. Valid
+     * only for the window between prefetch and proc() for this fake. */
+    uint64_t prefetch_key_hash;
+    int prefetch_key_hash_valid;
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
     connection *conn;
@@ -1696,14 +1717,53 @@ typedef struct client {
  *     acceptable (no cross-core false sharing with head). */
 typedef struct workerQueue {
     redisAtomic unsigned int head __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451: SPSC index caching (DPDK/folly style). cached_tail is a
+     * non-atomic snapshot of `tail` touched ONLY by the consumer (owning
+     * worker). It sits right after `head` so it lands on head's cache line,
+     * which the consumer already owns/dirties — no new shared line. The
+     * consumer tests "empty" against cached_tail and only acquire-reloads the
+     * real tail when the cache says empty. cached_tail can only lag the true
+     * tail (one producer monotonically advances it), so the cached check is
+     * always conservative — never a false not-empty. */
+    unsigned int cached_tail;
     redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451: cached_head — non-atomic snapshot of `head`, touched ONLY by the
+     * producer (owning IO thread). Sits after `tail` on tail's cache line,
+     * which the producer already owns. The producer tests "full" against
+     * cached_head and only acquire-reloads the real head when the cache says
+     * full. cached_head can only lag the true head — never a false not-full. */
+    unsigned int cached_head;
+    /* ee451 (S4): batched producer-side push. workerQueuePush writes jobs[] and
+     * advances this producer-private staged_tail WITHOUT publishing; the owning
+     * IO thread publishes all staged jobs with ONE release-store of `tail` per
+     * queue at flushWorkerQueues() (called at the top of handleWorkerReplies,
+     * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
+     * tail release-stores into one. Producer-private, lives on tail's line. */
+    unsigned int staged_tail;
     client *jobs[MY_WORKER_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } workerQueue;
+
+/* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
+ * takes a +1 ref on the value and the IO thread sends it by reference; the
+ * matching decrRefCount must run on the OWNING WORKER (the sole mutator of that
+ * shard's value refcounts) to avoid the cross-thread refcount race. After the
+ * send, the IO thread enqueues the value here; the worker drains and decrefs.
+ * One ring per producing IO thread => SPSC (producer = IO thread iotid,
+ * consumer = the owning worker). */
+#define FREEBACK_RING_SIZE 1024
+#define FREEBACK_RING_MASK (FREEBACK_RING_SIZE - 1)
+typedef struct freebackRing {
+    redisAtomic unsigned int head __attribute__((aligned(CACHE_LINE_SIZE))); /* consumer (worker) */
+    redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE))); /* producer (IO thread) */
+    void *objs[FREEBACK_RING_SIZE] __attribute__((aligned(CACHE_LINE_SIZE)));
+} freebackRing;
 
 typedef struct workerThread {
     int id;
     pthread_t thread;
     workerQueue queues[MY_IO_THREADS_MAX + 1];
+    /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
+    freebackRing freeback[MY_IO_THREADS_MAX + 1];
     redisDb *db;
 } workerThread;
 
@@ -2124,9 +2184,16 @@ struct redisServer {
     list *clients_pending_read[MY_IO_THREADS_MAX + 1];
     list *clients_with_pending_ref_reply[MY_IO_THREADS_MAX + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
-    //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads
-    client *current_client[MY_IO_THREADS_MAX + 1];
-    client *executing_client[MY_IO_THREADS_MAX + 1];
+    //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads,
+    // and MY_IO_THREADS_MAX+1 .. +MY_WORKER_THREADS_MAX = worker threads. Worker threads run
+    // command procs directly (bypassing call()) and index these arrays by their OWN iotid, so
+    // they must have private slots. Sharing slot 0 with the main thread (the pre-fix behavior,
+    // since workers never set iotid) is a data race: a worker reads/writes server.current_client[0]
+    // — a foreign client the main thread concurrently reassigns and frees — which caused the
+    // worker-side UAF read (lookupKey/getKeySlot, Signature B) and the heap corruption in the
+    // overwrite old-value free path (dbSetValue -> tryDeferFreeClientObject, Signature A).
+    client *current_client[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX];
+    client *executing_client[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX];
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */
@@ -2184,8 +2251,19 @@ struct redisServer {
     long long stat_evictedscripts;  /* Number of evicted lua scripts. */
     long long stat_total_eviction_exceeded_time;  /* Total time over the memory limit, unit us */
     monotime stat_last_eviction_exceeded_time;  /* Timestamp of current eviction start, unit us */
-    long long stat_keyspace_hits;   /* Number of successful lookups of keys */
-    long long stat_keyspace_misses; /* Number of failed lookups of keys */
+    long long stat_keyspace_hits;   /* legacy scalar (unused on hot path; folded from kstat at INFO) */
+    long long stat_keyspace_misses; /* legacy scalar (unused on hot path; folded from kstat at INFO) */
+    /* ee451 (S6): per-thread keyspace hit/miss counters. The single shared
+     * stat_keyspace_hits/misses lines were RMW'd by EVERY worker on EVERY
+     * lookup — one cache line bounced across all CCDs per command. Each thread
+     * now bumps its own cache-line-isolated slot (indexed by iotid); INFO folds
+     * them and CONFIG RESETSTAT zeroes them. Pure stats, no control-flow read,
+     * so this also removes a genuine non-atomic data race on the globals. */
+    struct {
+        long long hits;
+        long long misses;
+        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
+    } kstat[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
     long long stat_active_defrag_misses;    /* number of allocations scanned but not moved */
     long long stat_active_defrag_key_hits;  /* number of keys with moved allocations */
@@ -4049,6 +4127,11 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags);
 kvobj *lookupKeyWriteWithFlags(redisDb *db, robj *key, int flags);
 kvobj *kvobjCommandLookup(client *c, robj *key);
+/* ee451: read-run value forwarding (same-key read chains on a worker). */
+void readFwdArmRecord(const void *keyptr);
+void readFwdSetReplayKey(const void *keyptr);
+void readFwdDisarm(void);
+int  readFwdCanReplay(void);
 kvobj *kvobjCommandLookupOrReply(client *c, robj *key, robj *reply);
 
 #define LOOKUP_NONE 0
@@ -4611,6 +4694,8 @@ void initIOThreads(void);
 /* Worker thread functions */
 void workerQueueInit(workerQueue *q);
 int workerQueuePush(workerQueue *q, client *c);
+void flushWorkerQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void freebackPush(int worker_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 client *workerQueuePop(workerQueue *q);
 void queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);

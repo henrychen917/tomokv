@@ -319,17 +319,54 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
         }
 
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_hits++;
+            server.kstat[iotid].hits++;   /* ee451 (S6): per-thread, contention-free */
         /* TODO: Use separate hits stats for WRITE */
     } else {
         if (!(flags & (LOOKUP_NONOTIFY | LOOKUP_WRITE)))
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_misses++;
+            server.kstat[iotid].misses++;   /* ee451 (S6): per-thread, contention-free */
         /* TODO: Use separate misses stats and notify event for WRITE */
     }
 
     return val;
+}
+
+/* ee451: read-run value forwarding (Tomasulo CDB analog; see workerThreadMain).
+ * Thread-local and per-worker. Within one worker batch, a run of consecutive
+ * CMD_READONLY commands on the SAME key is executed as a dependency chain: the
+ * first read does the real lookup and RECORDs the resolved value; the rest
+ * REPLAY it, skipping dictFind entirely.
+ *
+ * Why this is safe w.r.t. the paper's correctness properties (Sec 4.8):
+ *  - Single-writer-per-key: untouched. This runs strictly inside the one owning
+ *    worker, over ops already serialized in that worker's queue in issue order.
+ *  - Reads do not mutate the keyspace, so nothing between op_0 and op_k frees,
+ *    overwrites, or moves the value object. Incremental rehashing only relinks
+ *    dict entries; it never frees/moves the value object, so a recorded
+ *    kvobj* stays valid for the whole run.
+ *  - The worker DISARMs forwarding if the recorded value carries a TTL
+ *    (readFwdRecordedHasTTL), so we never bypass lazy expiry. A recorded miss
+ *    (NULL) has no expiry concern and replays as a miss.
+ *  - Matching is by the exact key-sds pointer of the op currently executing
+ *    (re-armed per op by the worker), and the worker only forms a run after
+ *    byte-comparing the keys, so a replay can only ever return the value the
+ *    intended key resolves to. */
+static __thread int      readFwdMode = 0;       /* 0=off, 1=record, 2=replay */
+static __thread const void *readFwdKey = NULL;  /* key sds ptr armed for now */
+static __thread kvobj    *readFwdVal = NULL;    /* recorded value (may be NULL) */
+
+void readFwdArmRecord(const void *keyptr) { readFwdMode = 1; readFwdKey = keyptr; readFwdVal = NULL; }
+void readFwdSetReplayKey(const void *keyptr) { readFwdKey = keyptr; } /* mode stays replay */
+void readFwdDisarm(void) { readFwdMode = 0; readFwdKey = NULL; readFwdVal = NULL; }
+/* True iff op_0 actually recorded a value (mode advanced to replay) AND that
+ * value is safe to forward: either a miss (NULL — an absent key has no expiry
+ * to bypass) or a NON-VOLATILE live value (no TTL). A volatile value is NOT
+ * replayable: we must let each subsequent read re-run lazy expiry. */
+int readFwdCanReplay(void) {
+    if (readFwdMode != 2) return 0;            /* op_0 didn't record */
+    if (readFwdVal == NULL) return 1;          /* recorded miss — safe */
+    return kvobjGetExpire(readFwdVal) == -1;   /* live & non-volatile only */
 }
 
 /* Lookup a key for read operations, or return NULL if the key is not found
@@ -343,7 +380,30 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
  * the key. */
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     serverAssert(!(flags & LOOKUP_WRITE));
-    return lookupKey(db, key, flags, NULL);
+    /* ee451: replay a forwarded value for a same-key read run. */
+    if (readFwdMode == 2 && key->ptr == readFwdKey) {
+        kvobj *v = readFwdVal;
+        if (v) {
+            /* Mirror lookupKey()'s read-side bookkeeping so eviction and hit
+             * stats stay faithful (the non-volatile gate already ensured no
+             * expiry work is owed). */
+            if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)) {
+                if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) updateLFU(v);
+                else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
+            }
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.kstat[iotid].hits++;   /* ee451 (S6) */
+        } else {
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) server.kstat[iotid].misses++; /* ee451 (S6) */
+        }
+        return v;
+    }
+    kvobj *v = lookupKey(db, key, flags, NULL);
+    /* ee451: record the first resolved value of a same-key read run. */
+    if (readFwdMode == 1 && key->ptr == readFwdKey) {
+        readFwdVal = v;
+        readFwdMode = 2;
+    }
+    return v;
 }
 
 /* Like lookupKeyReadWithFlags(), but does not use any flag, which is the

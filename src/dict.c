@@ -1789,8 +1789,32 @@ void dictSetResizeEnabled(dictResizeEnable enable) {
     dict_can_resize = enable;
 }
 
+/* ee451: one-shot per-thread hash hint (see dictArmHashHint in dict.h).
+ * Only the owning thread reads/writes its own thread-local copy, so no
+ * synchronization is needed. dictHashHintKey == NULL means "not armed". */
+static __thread const void *dictHashHintKey = NULL;
+static __thread uint64_t dictHashHintVal = 0;
+
+void dictArmHashHint(const void *key, uint64_t hash) {
+    dictHashHintKey = key;
+    dictHashHintVal = hash;
+}
+
+void dictDisarmHashHint(void) {
+    dictHashHintKey = NULL;
+}
+
 /* Compiler inlines this for internal calls within dict.c (verified with -O3). */
 uint64_t dictGetHash(dict *d, const void *key) {
+    /* ee451: if a hint is armed for exactly this key pointer, reuse the
+     * precomputed hash and consume the hint. The value equals
+     * d->type->hashFunction(key) because the hint was produced by the same
+     * hash function over the same key bytes; matching by pointer + one-shot
+     * consumption bounds the effect to the single intended lookup. */
+    if (dictHashHintKey != NULL && key == dictHashHintKey) {
+        dictHashHintKey = NULL;
+        return dictHashHintVal;
+    }
     return d->type->hashFunction(key);
 }
 
