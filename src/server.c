@@ -5185,8 +5185,9 @@ int canDispatchToWorker(client *c) {
         p == xtrimCommand        || p == xsetidCommand    ||
         p == xpendingCommand     || p == xclaimCommand    ||
         p == xautoclaimCommand   ||
-        /* GEO* removed from this batch: GEOADD errors "not a valid float" under worker dispatch
-         * even though single-key — deeper incompatibility, needs separate investigation (v10-B GEO). */
+        p == geoaddCommand       || p == geodistCommand   ||         /* geo single-key (GEOADD fixed */
+        p == geoposCommand       || p == geosearchCommand ||         /* via replaceClientCommandVector fake path) */
+        p == geohashCommand      ||
         p == hexpireCommand      || p == hpexpireCommand  ||         /* hash field-TTL */
         p == hexpireatCommand    || p == hpexpireatCommand ||
         p == httlCommand         || p == hpttlCommand     ||

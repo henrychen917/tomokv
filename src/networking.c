@@ -5271,9 +5271,25 @@ void rewriteClientCommandVector(client *c, int argc, ...) {
 
 /* Completely replace the client command vector with the provided one. */
 void replaceClientCommandVector(client *c, int argc, robj **argv) {
-    /* ee451 (EX fix): propagation-only; skip for worker fakes (see rewriteClientCommandVector).
-     * Caller-owned argv is not consumed here, so caller must free it (it does). */
-    if (c->isFake) { for (int k=0;k<argc;k++) if (argv[k]) decrRefCount(argv[k]); zfree(argv); return; }
+    /* ee451 v10-B: a worker FAKE DOES need the real argv swap — unlike rewriteClientCommand* (which
+     * is propagation-only and rightly skipped for fakes), replaceClientCommandVector is an EXECUTION
+     * transform: the command rewrites itself then re-dispatches (GEOADD->ZADD, etc.). Skipping it left
+     * the fake running the ORIGINAL argv -> "syntax error". So for a fake: install the new argv (free
+     * the old, sync the pending-command pointer so the worker's post-exec free targets the NEW argv and
+     * never the freed old one), but skip the propagation machinery (retainOriginalCommandVector) and the
+     * argv-len bookkeeping that fakes don't use. ASAN-validated (GEOADD + churn). */
+    if (c->isFake) {
+        pendingCommand *fpcmd = NULL;
+        if (c->mstate.executing_cmd < 0) {
+            if (c->pending_cmds.ready_len > 0) fpcmd = c->pending_cmds.head;
+        } else if (c->mstate.executing_cmd < c->mstate.count) {
+            fpcmd = c->mstate.commands[c->mstate.executing_cmd];
+        }
+        if (fpcmd) { fpcmd->argv = argv; fpcmd->argc = argc; fpcmd->argv_len = argc; }
+        freeClientArgv(c);
+        c->argv = argv; c->argc = c->argv_len = argc;
+        return;
+    }
     int j;
     retainOriginalCommandVector(c);
 
