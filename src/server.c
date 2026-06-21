@@ -5160,7 +5160,27 @@ int canDispatchToWorker(client *c) {
         p == zrandmemberCommand  || p == zpopminCommand   ||         /* zset */
         p == zpopmaxCommand      || p == zscanCommand      ||
         p == hrandfieldCommand   || p == hscanCommand     ||         /* hash */
-        p == dumpCommand         || p == restoreCommand);            /* generic single-key */
+        p == dumpCommand         || p == restoreCommand   ||         /* generic single-key */
+        /* --- ee451 v10-B.2: more single-key (key@argv[1]) cmds that were silently broken on
+         * the inline path. All single-shard. Streams: single-stream cmds only (NOT XGROUP/XINFO
+         * which key@argv[2], NOT XREAD/XREADGROUP which are multi-key). Geo: read/add only (NOT
+         * GEORADIUS or GEOSEARCHSTORE which can STORE a 2nd key). Hash field-TTL: all key@argv[1].
+         * INCRBYFLOAT/HINCRBYFLOAT: their replicate-as-SET rewrite is skipped for fakes, so safe. */
+        p == xaddCommand         || p == xlenCommand      ||         /* streams (single-stream) */
+        p == xrangeCommand       || p == xrevrangeCommand ||
+        p == xackCommand         || p == xdelCommand      ||
+        p == xtrimCommand        || p == xsetidCommand    ||
+        p == xpendingCommand     || p == xclaimCommand    ||
+        p == xautoclaimCommand   ||
+        /* GEO* removed from this batch: GEOADD errors "not a valid float" under worker dispatch
+         * even though single-key — deeper incompatibility, needs separate investigation (v10-B GEO). */
+        p == hexpireCommand      || p == hpexpireCommand  ||         /* hash field-TTL */
+        p == hexpireatCommand    || p == hpexpireatCommand ||
+        p == httlCommand         || p == hpttlCommand     ||
+        p == hpersistCommand     || p == hexpiretimeCommand ||
+        p == hpexpiretimeCommand ||
+        p == bitfieldroCommand   ||                                  /* bitmap read-only */
+        p == incrbyfloatCommand  || p == hincrbyfloatCommand);       /* rewrite skipped for fakes */
 }
 
 /* ---------------------------------------------------------------------------
