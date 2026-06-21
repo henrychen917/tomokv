@@ -5075,6 +5075,9 @@ int canDispatchToWorker(client *c) {
      * to dispatch. Multi-key DEL would cross shards and silently lose
      * keys whose hash targets a different worker. */
     if (p == delCommand) return c->argc == 2;
+    /* ee451 v10-B: PFCOUNT is variadic-key; only the single-key form (argc==2) routes to a shard.
+     * Multi-key PFCOUNT needs the merge framework (still TODO). */
+    if (p == pfcountCommand) return c->argc == 2;
 
     /* ee451 v10-B: SORT/SORT_RO is single-key (key@argv[1]) ONLY when it has no BY/GET/STORE —
      * those reference OTHER keys (cross-shard). Whitelist the single-key form (incl. LIMIT/ASC/
