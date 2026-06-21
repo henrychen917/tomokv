@@ -102,13 +102,25 @@ static inline void init_my_thread_index(void) {
     }
 }
 
+/* ee451 v10-A (Tomasulo single-writer discipline): the per-thread used_memory slot has exactly
+ * ONE writer (its owning thread), so the LOCK-prefixed atomic RMW (lock xadd) buys atomicity we
+ * don't need. A relaxed load+store gives the same result with no LOCK on the alloc/free hot path
+ * (profiling showed zmalloc accounting ~12% of dispatch-bound cycles, downstream of decrRefCount
+ * churn). Readers (zmalloc_used_memory) sum slots with relaxed loads, tolerating transient
+ * staleness; aligned 8-byte load/store is atomic on x86-64 so no torn reads. */
+static inline long long zmalloc_local_add(long long bytes_delta) {
+    long long v = __atomic_load_n(&used_memory[my_thread_index].used_memory, __ATOMIC_RELAXED) + bytes_delta;
+    __atomic_store_n(&used_memory[my_thread_index].used_memory, v, __ATOMIC_RELAXED);
+    return v;
+}
+
 static void update_zmalloc_stat_alloc(long long bytes_delta) {
     init_my_thread_index();
 
     /* Per-thread allocation counter and the last counter value at which we ran a
      * global peak check (throttles how often we call zmalloc_used_memory()). */
     long long thread_used, thread_last_peak_check_used;
-    atomicIncrGet(used_memory[my_thread_index].used_memory, thread_used, bytes_delta);
+    thread_used = zmalloc_local_add(bytes_delta);   /* ee451 v10-A: single-writer, no LOCK */
     atomicGet(used_memory[my_thread_index].last_peak_check, thread_last_peak_check_used);
 
     /* Only run the (expensive) global used/peak check after this thread's
@@ -146,7 +158,7 @@ static void update_zmalloc_stat_alloc(long long bytes_delta) {
 
 static void update_zmalloc_stat_free(long long num) {
     init_my_thread_index();
-    atomicDecr(used_memory[my_thread_index].used_memory, num);
+    zmalloc_local_add(-num);   /* ee451 v10-A: single-writer per-thread slot, no LOCK */
 }
 
 static void zmalloc_default_oom(size_t size) {

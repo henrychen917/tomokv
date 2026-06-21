@@ -5149,7 +5149,18 @@ int canDispatchToWorker(client *c) {
         p == setexCommand        || p == psetexCommand       ||
         p == getexCommand        || p == getdelCommand       ||
         /* --- Metadata (read-only) ---------------------------------- */
-        p == typeCommand);
+        p == typeCommand ||
+        /* --- ee451 v10-B.1: single-key (key@argv[1]) commands that were falling to the
+         * BROKEN inline-on-IO path (empty main db). All single-shard; the propagation
+         * rewrite some do (SPOP->SREM, etc.) is already skipped for fakes
+         * (rewriteClientCommandVector/Argument: if(isFake) return), so no rewrite hazard. */
+        p == getsetCommand       ||                                  /* string */
+        p == srandmemberCommand  || p == spopCommand      ||         /* set */
+        p == sscanCommand        ||
+        p == zrandmemberCommand  || p == zpopminCommand   ||         /* zset */
+        p == zpopmaxCommand      || p == zscanCommand      ||
+        p == hrandfieldCommand   || p == hscanCommand     ||         /* hash */
+        p == dumpCommand         || p == restoreCommand);            /* generic single-key */
 }
 
 /* ---------------------------------------------------------------------------
