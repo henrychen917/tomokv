@@ -3143,7 +3143,13 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-prefetch-worker", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_worker, 1, NULL, NULL),
     createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 1, NULL, NULL),
     createBoolConfig("thredis-opt-hash-carry", NULL, MODIFIABLE_CONFIG, server.opt_hash_carry, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-value-forward", NULL, MODIFIABLE_CONFIG, server.opt_value_forward, 1, NULL, NULL),
+    /* ee451: VALUE-FORWARDING DISABLED by default (2026-06-21). Proven a wash in every tested regime
+     * (small/large GET, complex LRANGE, even maximal single-hot-key + zerocopy): it removes a non-
+     * bottleneck (hot-key dictFind + one serialize copy) while per-op cost is dominated by net/syscall/
+     * socket-write, and real workloads lack the same-key runs it needs (mean run 1.008). With this off,
+     * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
+     * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
+    createBoolConfig("thredis-opt-value-forward", NULL, MODIFIABLE_CONFIG, server.opt_value_forward, 0, NULL, NULL),
     createBoolConfig("thredis-opt-spsc-cache", NULL, MODIFIABLE_CONFIG, server.opt_spsc_cache, 1, NULL, NULL),
     createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
@@ -3159,20 +3165,32 @@ standardConfig static_configs[] = {
     createIntConfig("thredis-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
+    createBoolConfig("thredis-pf-w-value-adaptive", NULL, MODIFIABLE_CONFIG,        server.pf_w_value_adaptive, 0, NULL, NULL),
+    createIntConfig("thredis-pf-value-cache-kb",    NULL, MODIFIABLE_CONFIG, 1, 8192, server.pf_value_cache_kb, 128, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-io-struct", NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_struct, 64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-io-reply",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_reply,  64, INTEGER_CONFIG, NULL, NULL),
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
     createIntConfig("thredis-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 1, 16,      server.worker_pop_batch, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-vf-min-dictsize",  NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.vf_min_dictsize,   0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-vf-min-run",       NULL, MODIFIABLE_CONFIG, 2, 32,      server.vf_min_run,        2, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-vf-min-saved",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.vf_min_saved,      0, INTEGER_CONFIG, NULL, NULL),
+    createBoolConfig("thredis-vf-early-signal", NULL, MODIFIABLE_CONFIG,            server.vf_early_signal,   0, NULL, NULL),
     /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
     createIntConfig("thredis-vf-min-write-permille",  NULL, MODIFIABLE_CONFIG, 0, 1000,   server.vf_min_write_permille,  0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-vf-predictor",          NULL, MODIFIABLE_CONFIG,             server.vf_predictor,           0, NULL, NULL),
+    createBoolConfig("thredis-vf-bakeoff",            NULL, MODIFIABLE_CONFIG,             server.vf_bakeoff,             0, NULL, NULL),
+    createBoolConfig("thredis-vf-perfsignal",         NULL, MODIFIABLE_CONFIG,             server.vf_perfsignal,          0, NULL, NULL),
     createBoolConfig("thredis-vf-predictor-tournament", NULL, MODIFIABLE_CONFIG,           server.vf_predictor_tournament, 0, NULL, NULL),
     /* ee451: forward-predictor variant selector so each is independently sweepable.
      * 0=bimodal(general-only), 1=gshare(history-only), 2=tournament. tournament bool
      * forces 2 (back-compat); default 1 = the old "simple" gshare. */
     createIntConfig("thredis-vf-predictor-mode", NULL, MODIFIABLE_CONFIG, 0, 2, server.vf_predictor_mode, 1, INTEGER_CONFIG, NULL, NULL),
+    /* ee451 adaptive predictor selection. Bitmask over the 6 bake-off predictors
+     * (bit0=bimodal 1=gshare 2=perceptron 3=recency 4=frequency 5=client). 0 = legacy
+     * vf-predictor-mode. Exactly one bit set = use that predictor. Multiple bits = all
+     * run as shadows and the WINDOWED-BEST (live accuracy) drives the actual forwarding.
+     * bit6=key-correlation(Markov "X follows Y"), bit7=pure-client. */
+    createIntConfig("thredis-vf-predictor-set", NULL, MODIFIABLE_CONFIG, 0, 1023, server.vf_predictor_set, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-vf-predictor-miss-cycles", NULL, MODIFIABLE_CONFIG, 0, 100000, server.vf_predictor_miss_cycles, 300, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
     createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
@@ -3184,7 +3202,7 @@ standardConfig static_configs[] = {
     createIntConfig("thredis-reshard-ewma-alpha-pct", NULL, MODIFIABLE_CONFIG, 1,   100,     server.reshard_ewma_alpha_pct, 30,    INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-reshard-chunk-buckets",  NULL, MODIFIABLE_CONFIG, 1,   MY_BUCKETS, server.reshard_chunk_buckets, 64,  INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-reshard-core-aware",    NULL, MODIFIABLE_CONFIG, server.reshard_core_aware,     1, NULL, NULL),
-    createIntConfig("thredis-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 1, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),

@@ -57,17 +57,22 @@ static int key_worker(const char*k,int W){ return (int)((xxh64(k,strlen(k))&(BUC
 static char  g_host[64]="127.0.0.1";
 static int   g_port=7800, g_threads=8, g_pipe=64, g_dur=10, g_W=8, g_target=-1;
 static long  g_keyspace=1000000; static int g_valsize=64; static double g_setfrac=0.0;
-enum {C_GET,C_SET,C_BITCOUNT,C_MIXED}; static int g_cmd=C_GET;
+enum {C_GET,C_SET,C_BITCOUNT,C_MIXED,C_MGET,C_MSET}; static int g_cmd=C_GET;
+static int g_mkeys=8;   /* keys per multi-key (MGET/MSET) command */
+static int g_session=0; /* per-client locality: each connection (thread) uses its OWN keyspace ("c<tid>_<n>")
+                         * — models pub/sub publishers / session apps; tests the client-aware predictor. */
 static volatile int g_stop=0;
 static _Atomic long long g_ops=0;
 
-/* build a per-thread pool of keys that hash to g_target (or any key if target<0) */
-static char**build_pool(int *out_n){
+/* build a per-thread pool of keys that hash to g_target (or any key if target<0).
+ * session mode: keys are namespaced by thread id ("c<tid>_<n>") so each connection has its OWN set. */
+static char**build_pool(int *out_n,int tid){
     int cap = (g_target<0)? 4096 : 8192, n=0;
     char**pool=malloc(sizeof(char*)*cap);
     long i=0;
     while(n<cap){
-        char buf[32]; int len=snprintf(buf,sizeof buf,"k%ld",i); i++;
+        char buf[48]; int len = g_session ? snprintf(buf,sizeof buf,"c%d_%ld",tid,i)
+                                           : snprintf(buf,sizeof buf,"k%ld",i); i++;
         if(g_target>=0 && key_worker(buf,g_W)!=g_target) continue;
         pool[n]=malloc(len+1); memcpy(pool[n],buf,len+1); n++;
         if(i>40000000L) break;
@@ -106,8 +111,8 @@ static int read_reply(struct rdr*r){
 }
 
 static void*worker(void*arg){
-    (void)arg; int fd=connect_srv(); if(fd<0){fprintf(stderr,"connect failed\n");return 0;}
-    int np; char**pool=build_pool(&np);
+    int tid=(int)(intptr_t)arg; int fd=connect_srv(); if(fd<0){fprintf(stderr,"connect failed\n");return 0;}
+    int np; char**pool=build_pool(&np,tid);
     if(getenv("CLOAD_DEBUG")) fprintf(stderr,"[dbg] connected fd=%d np=%d firstkey=%s\n",fd,np,np?pool[0]:"NONE");
     char*val=malloc(g_valsize>1?g_valsize:1); memset(val,'x',g_valsize>1?g_valsize:1);
     struct rdr r={.fd=fd};
@@ -116,6 +121,16 @@ static void*worker(void*arg){
         int olen=0;
         for(int i=0;i<g_pipe;i++){
             const char*k=pool[ki++ % np];
+            if(g_cmd==C_MGET){
+                olen+=sprintf(ob+olen,"*%d\r\n$4\r\nMGET\r\n",g_mkeys+1);
+                for(int j=0;j<g_mkeys;j++){const char*mk=pool[ki++ % np];olen+=sprintf(ob+olen,"$%zu\r\n%s\r\n",strlen(mk),mk);}
+                continue;
+            }
+            if(g_cmd==C_MSET){
+                olen+=sprintf(ob+olen,"*%d\r\n$4\r\nMSET\r\n",2*g_mkeys+1);
+                for(int j=0;j<g_mkeys;j++){const char*mk=pool[ki++ % np];olen+=sprintf(ob+olen,"$%zu\r\n%s\r\n$%d\r\n",strlen(mk),mk,g_valsize);memcpy(ob+olen,val,g_valsize);olen+=g_valsize;olen+=sprintf(ob+olen,"\r\n");}
+                continue;
+            }
             int isset = (g_cmd==C_SET) || (g_cmd==C_MIXED && ((rng=rng*1103515245u+12345u)>>8)*1.0/(1u<<24) < g_setfrac);
             if(isset)
                 olen+=sprintf(ob+olen,"*3\r\n$3\r\nSET\r\n$%zu\r\n%s\r\n$%d\r\n",strlen(k),k,g_valsize),
@@ -145,12 +160,15 @@ int main(int argc,char**argv){
         else if(!strcmp(argv[i],"-n"))g_keyspace=atol(argv[++i]);
         else if(!strcmp(argv[i],"-v"))g_valsize=atoi(argv[++i]);
         else if(!strcmp(argv[i],"-r"))g_setfrac=atof(argv[++i]);
+        else if(!strcmp(argv[i],"-k"))g_mkeys=atoi(argv[++i]);
+        else if(!strcmp(argv[i],"-S"))g_session=1;   /* per-client locality (don't place last) */
         else if(!strcmp(argv[i],"-c")){const char*c=argv[++i];
-            g_cmd = !strcmp(c,"set")?C_SET : !strcmp(c,"bitcount")?C_BITCOUNT : !strcmp(c,"mixed")?C_MIXED : C_GET;}
+            g_cmd = !strcmp(c,"set")?C_SET : !strcmp(c,"bitcount")?C_BITCOUNT : !strcmp(c,"mixed")?C_MIXED
+                  : !strcmp(c,"mget")?C_MGET : !strcmp(c,"mset")?C_MSET : C_GET;}
     }
     pthread_t th[1024];
     struct timespec t0,t1; clock_gettime(CLOCK_MONOTONIC,&t0);
-    for(int i=0;i<g_threads;i++) pthread_create(&th[i],0,worker,0);
+    for(int i=0;i<g_threads;i++) pthread_create(&th[i],0,worker,(void*)(intptr_t)i);
     struct timespec ts={g_dur,0}; nanosleep(&ts,0); g_stop=1;
     for(int i=0;i<g_threads;i++) pthread_join(th[i],0);
     clock_gettime(CLOCK_MONOTONIC,&t1);

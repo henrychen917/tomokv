@@ -375,6 +375,16 @@ int readFwdCanReplay(void) {
     return kvobjGetExpire(readFwdVal) == -1;   /* live & non-volatile only */
 }
 
+/* ee451: recorded value's per-replay "forward cost" — the re-serialization work a forward avoids
+ * for EACH replayed same-key read. String: its byte length. Complex type (list/hash/set/zset/stream):
+ * a large constant (re-serializing iterates the structure, always expensive). 0 if no recorded value
+ * (miss — only the cheap nil reply). Used by the cost-benefit forward gate: forward iff cost*(run-1) high. */
+long readFwdValCost(void) {
+    if (readFwdMode != 2 || readFwdVal == NULL) return 0;
+    if (readFwdVal->type == OBJ_STRING) return (long)stringObjectLen(readFwdVal);
+    return 1L << 20;   /* complex type: always worth forwarding */
+}
+
 /* Lookup a key for read operations, or return NULL if the key is not found
  * in the specified DB.
  *

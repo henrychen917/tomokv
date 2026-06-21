@@ -1883,6 +1883,9 @@ typedef struct workerThread {
     redisDb *db;
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
     unsigned int w_writes, w_total;
+    /* ee451 (gem5): EWMA of served read reply size (≈ value bytes), alpha=1/16. Drives
+     * value-size-adaptive pf-w-value: big values ⇒ narrower value-chase (avoid LFB oversub). */
+    unsigned int w_ewma_vsize;
     /* ee451 (v8d): monotonic per-worker op counter (control-plane only). Bumped relaxed in the
      * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
      * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
@@ -1904,6 +1907,32 @@ typedef struct workerThread {
     /* ee451 (#21 SHiP): per-key re-reference (reuse) 2-bit counters. High => likely
      * re-read soon (keep warm); low => one-shot (avoid cache pollution). */
     unsigned char reuse_pht[FWD_PHT_SIZE];
+    /* ee451 predictor-accuracy instrumentation (bench tool): per-worker single-threaded,
+     * so plain (non-atomic) increments. pred_correct/pred_total = forward-predictor hit rate
+     * (prediction vs the real cache-temperature outcome). Read via DEBUG RESHARD PREDACC. */
+    unsigned long long pred_total, pred_correct;
+    /* ee451 predictor BAKE-OFF (thredis-vf-bakeoff): independent shadow tables for 6 predictors
+     * — bimodal, gshare, perceptron, recency, frequency, client-aware. Each predicts every read
+     * and is scored vs the real cache-hit/miss outcome; PREDACC reports all. Measurement only,
+     * per-worker (no atomics). 0=bimodal 1=gshare 2=perceptron 3=recency 4=frequency 5=client. */
+    unsigned char  bo_bimodal[FWD_PHT_SIZE];
+    unsigned char  bo_gshare[FWD_PHT_SIZE];
+    signed char    bo_perc[FWD_PHT_SIZE][8];   /* perceptron weights over 8 global-history bits */
+    unsigned short bo_rec[FWD_PHT_SIZE];       /* recency: last-seen coarse clock */
+    unsigned char  bo_freq[FWD_PHT_SIZE];      /* frequency: decaying access count */
+    unsigned char  bo_client[FWD_PHT_SIZE];    /* client-aware: indexed by client-id ^ key-hash */
+    unsigned char  bo_keycorr[FWD_PHT_SIZE];   /* key-correlation (Markov): indexed by prev-key ^ key ("X follows Y") */
+    unsigned char  bo_client2[FWD_PHT_SIZE];   /* pure client: indexed by client-id only */
+    unsigned int   bo_ghist;
+    unsigned short bo_now;
+    uint64_t       bo_lastkey;                 /* previous key hash (for key-correlation) */
+    signed short   bo_ens_w[9];                /* ensemble (#8): perceptron weights over 8 base predictors + perkey (global+per-key) */
+    unsigned char  bo_pk[1u<<18];              /* perkey (#9): EXACT per-key miss-tendency, 256K entries (near-collision-free
+                                                * for our keyspaces) — tests whether hash ALIASING is the accuracy ceiling.
+                                                * Production would store this in the value robj (free; reuses the LFU field). */
+    unsigned long long bo_corr[10], bo_tot[10];/* +ensemble +perkey */
+    int bo_best;                               /* current windowed-best predictor id (adaptive set mode) */
+    int bo_perf_fd;                            /* ee451: per-worker perf LLC-miss fd (clean ground-truth signal); 0=untried,-1=failed */
 } workerThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2904,16 +2933,23 @@ struct redisServer {
     int pf_w_hash;     /* worker pass 2: key bytes + bucket prefetch (hash compute always full) */
     int pf_w_entry;    /* worker pass 3: bucket -> entry (dependent) */
     int pf_w_value;    /* worker pass 4: entry -> value bytes (dependent, expensive) */
+    int pf_w_value_adaptive; /* ee451 (gem5): scale pass-4 width by served value size (cache_budget/vsize), capped at pf_w_value; 0=fixed */
+    int pf_value_cache_kb;   /* ee451 (gem5): cache budget (KB) for the adaptive value-chase width formula */
     int pf_w_io_struct;/* IO drain pass 1: finished fake structs (independent) */
     int pf_w_io_reply; /* IO drain pass 2: reply buffers (semi-dependent) */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
     int vf_min_dictsize;   /* value-forward only when shard dict size >= this (cache-cold proxy); 0=always */
     int vf_min_run;        /* value-forward only for same-key runs >= this length */
+    int vf_min_saved;      /* ee451: cost-benefit gate — forward only if value_cost*(run-1) >= this (bytes of re-serialization saved) */
+    int vf_early_signal;   /* ee451: emit a forwarded run's CDB reply-ready bits immediately (overlap IO drain) instead of at batch-end coalesce */
     int vf_min_write_permille; /* #3: value-forward only when recent shard write rate >= this/1000; 0=off */
     int vf_predictor;          /* #4: branch-predictor-style adaptive forward decision (overrides static gates) */
     int vf_predictor_tournament; /* #4: forces tournament mode (back-compat); else vf_predictor_mode applies */
     int vf_predictor_mode;       /* #4: forward-predictor variant when on: 0=bimodal(general), 1=gshare(history), 2=tournament */
+    int vf_bakeoff;              /* ee451: run all 6 shadow predictors + score them (DEBUG RESHARD PREDACC); measurement only */
+    int vf_perfsignal;           /* ee451: use a real perf LLC-miss counter as the bake-off ground truth (vs the noisy TSC dt); measurement only */
+    int vf_predictor_set;        /* ee451: bitmask of active predictors; >1 bit => windowed-best drives forwarding */
     int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
@@ -4350,6 +4386,7 @@ void readFwdArmRecord(const void *keyptr);
 void readFwdSetReplayKey(const void *keyptr);
 void readFwdDisarm(void);
 int  readFwdCanReplay(void);
+long readFwdValCost(void);   /* ee451: recorded value's per-replay forward cost (string len / big for complex) */
 kvobj *kvobjCommandLookupOrReply(client *c, robj *key, robj *reply);
 
 #define LOOKUP_NONE 0
