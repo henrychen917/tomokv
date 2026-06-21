@@ -5180,6 +5180,7 @@ int canDispatchToWorker(client *c) {
         p == hpersistCommand     || p == hexpiretimeCommand ||
         p == hpexpiretimeCommand ||
         p == bitfieldroCommand   ||                                  /* bitmap read-only */
+        p == randomkeyCommand    ||                                  /* v10-B: routed to a size-weighted shard */
         p == incrbyfloatCommand  || p == hincrbyfloatCommand);       /* rewrite skipped for fakes */
 }
 
@@ -5279,6 +5280,24 @@ static uint64_t xxh64(const void *input, size_t len) {
 }
 
 int getWorkerForCommand(client *c) {
+    /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
+     * selection probability == its share of the keyspace, so (a) the result distribution mirrors
+     * uniform key sampling, and (b) empty shards have zero weight => the picked shard is non-empty
+     * whenever the keyspace is, so we never return nil on a non-empty DB. dbSize is a racy counter
+     * read (no iteration) — fine for selection. */
+    if (c->cmd && c->cmd->proc == randomkeyCommand && server.num_workers > 0 && server.workers) {
+        int dbid = c->db->id;
+        long long total = 0;
+        for (int w = 0; w < server.num_workers; w++) total += dbSize(&server.workers[w].db[dbid]);
+        if (total <= 0) return 0;
+        long long pick = (long long)(random() % total);
+        for (int w = 0; w < server.num_workers; w++) {
+            long long s = dbSize(&server.workers[w].db[dbid]);
+            if (pick < s) return w;
+            pick -= s;
+        }
+        return server.num_workers - 1;
+    }
     /* Assumes argv[1] is the command's sole key. canDispatchToWorker
      * enforces this invariant — every whitelisted command above is of
      * the `CMD key [args...]` shape, and variadic-key commands like DEL
