@@ -3195,7 +3195,11 @@ standardConfig static_configs[] = {
     /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
     createBoolConfig("thredis-opt-feedback-prefetch", NULL, MODIFIABLE_CONFIG, server.opt_feedback_prefetch, 0, NULL, NULL),
     createBoolConfig("thredis-opt-ship-reuse",        NULL, MODIFIABLE_CONFIG, server.opt_ship_reuse,        0, NULL, NULL),
-    createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       0, NULL, NULL),
+    /* ee451 v10-B: DEFAULT ON. With cross-shard OFF, multi-key cmds (MGET/MSET/EXISTS/UNLINK/TOUCH/
+     * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
+     * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
+     * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
+    createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       1, NULL, NULL),
     createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
     createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
