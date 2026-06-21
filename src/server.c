@@ -5193,6 +5193,7 @@ int canDispatchToWorker(client *c) {
         p == httlCommand         || p == hpttlCommand     ||
         p == hpersistCommand     || p == hexpiretimeCommand ||
         p == hpexpiretimeCommand ||
+        p == hgetexCommand       || p == hgetdelCommand   ||         /* self-transform, fixed via fake path */
         p == bitfieldroCommand   ||                                  /* bitmap read-only */
         p == randomkeyCommand    ||                                  /* v10-B: routed to a size-weighted shard */
         p == incrbyfloatCommand  || p == hincrbyfloatCommand);       /* rewrite skipped for fakes */
