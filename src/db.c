@@ -2184,6 +2184,18 @@ void scanCommand(client *c) {
 }
 
 void dbsizeCommand(client *c) {
+    /* ee451 v10-B (fan_all): the keyspace is partitioned across worker shard dbs; c->db (main)
+     * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
+     * used counter only (no iteration), so reading it from the IO thread while a worker writes
+     * is racy but crash-free and DBSIZE is approximate by nature. */
+    if (server.num_workers > 0 && server.workers) {
+        long long total = 0;
+        int dbid = c->db->id;
+        for (int w = 0; w < server.num_workers; w++)
+            total += dbSize(&server.workers[w].db[dbid]);
+        addReplyLongLong(c, total);
+        return;
+    }
     addReplyLongLong(c,dbSize(c->db));
 }
 
