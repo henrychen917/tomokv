@@ -1738,7 +1738,7 @@ typedef struct client {
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
  * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
-typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS } csCmdType;
+typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS } csCmdType;
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2954,6 +2954,7 @@ struct redisServer {
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
+    int opt_fanall;            /* v10-B: fan-to-all-shards reads (KEYS); one sub per worker, concat. default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_auto;            /* master enable for auto resharding (default off) */
     int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */

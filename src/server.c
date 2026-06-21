@@ -104,6 +104,7 @@ static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below workerIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
 static void dispatchCrossShard(client *head, int ct);
+static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
 static void migHoldIfDraining(client *fake);
@@ -5004,7 +5005,8 @@ int processCommand(client *c) {
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
-        dispatchCrossShard(fake, cst);
+        if (cst == CS_KEYS) dispatchFanAll(fake);   /* ee451 v10-B: one sub per worker */
+        else dispatchCrossShard(fake, cst);
     } else if (canDispatchToWorker(fake)) {
         int worker_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
@@ -5375,6 +5377,9 @@ static int csCommandType(client *c) {
     if (p == unlinkCommand && c->argc >= 2) return CS_DEL;
     if (p == existsCommand && c->argc >= 2) return CS_EXISTS;
     if (p == touchCommand  && c->argc >= 2) return CS_EXISTS;
+    /* ee451 v10-B: KEYS pattern — fan to ALL shards (one sub per worker), concat results.
+     * Gated by opt_fanall (default off) until validated. argc==2 (KEYS pattern). */
+    if (server.opt_fanall && p == keysCommand && c->argc == 2) return CS_KEYS;
     return -1;
 }
 
@@ -5425,6 +5430,31 @@ static void csSubExec(client *sub) {
          * separate subs, so EXISTS k k correctly counts 2 if present. */
         robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
         atomic_fetch_add_explicit(&g->rcount, o ? 1 : 0, memory_order_relaxed);
+        break;
+    }
+    case CS_KEYS: {
+        /* ee451 v10-B: iterate THIS shard (sub owns it on the worker thread; single-writer, so the
+         * non-safe full iterator is safe), emit each matching key as a BARE bulk (NO array header —
+         * csReassemble emits the combined one) and accumulate the count. Mirrors keysCommand (db.c:1651). */
+        sds pattern = sub->argv[1]->ptr;
+        int plen = sdslen(pattern);
+        int allkeys = (pattern[0] == '*' && plen == 1);
+        unsigned long n = 0;
+        kvstoreIterator kvs_it;
+        kvstoreIteratorInit(&kvs_it, sub->db->keys);
+        dictEntry *de;
+        while ((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
+            kvobj *kv = dictGetKV(de);
+            sds key = kvobjGetKey(kv);
+            if (allkeys || stringmatchlen(pattern, plen, key, sdslen(key), 0)) {
+                if (!keyIsExpired(sub->db, NULL, kv)) {
+                    addReplyBulkCBuffer(sub, key, sdslen(key));
+                    n++;
+                }
+            }
+        }
+        kvstoreIteratorReset(&kvs_it);
+        atomic_fetch_add_explicit(&g->rcount, (long)n, memory_order_relaxed);
         break;
     }
     default: break;
@@ -5514,6 +5544,36 @@ static void dispatchCrossShard(client *head, int ct) {
     }
 }
 
+/* ee451 v10-B: fan a no-key global read (KEYS) to ALL worker shards. One sub per worker runs the
+ * command on its own shard (safe single-writer iteration); csReassemble concatenates. Mirrors
+ * dispatchCrossShard's sub setup but the sub count = num_workers and each sub carries the FULL
+ * original argv (e.g. [KEYS, pattern]) routed to a specific worker. */
+static void dispatchFanAll(client *head) {
+    int nw = server.num_workers;
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
+    g->subs = zmalloc(sizeof(client*) * nw);
+    g->results = NULL; g->result_worker = NULL;
+    atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    head->csgroup = g;
+    head->cdb = 0;
+    int dbid = head->db->id;
+    for (int w = 0; w < nw; w++) {
+        client *sub = createFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = w; sub->cmd = head->cmd;
+        sub->resp = head->resp;
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_WORKER_PENDING;
+        sub->argv = zmalloc(sizeof(robj*) * head->argc);
+        for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
+        sub->argc = head->argc;
+        sub->db = &server.workers[w].db[dbid];
+        g->subs[w] = sub;
+        csPushSpin(w, sub);
+    }
+}
+
 /* Reassemble a completed group's reply onto `dst` (the real client): array header + each
  * sub's serialized element in original key order, then tear the group down. We build onto
  * the real client directly (not the head fake) so addReply* hits the normal, proven reply
@@ -5536,6 +5596,12 @@ static void csReassemble(client *dst, client *head) {
         case CS_DEL:
         case CS_EXISTS:
             addReplyLongLong(dst, (long long)atomic_load_explicit(&g->rcount, memory_order_relaxed));
+            break;
+        case CS_KEYS:
+            /* ee451 v10-B: combined array = sum of per-shard counts, then splice each shard's bare
+             * bulks (subs emitted no header of their own). */
+            addReplyArrayLen(dst, (long)atomic_load_explicit(&g->rcount, memory_order_relaxed));
+            for (int i = 0; i < g->nsub; i++) AddReplyFromClient(dst, g->subs[i]);
             break;
         default: break;
         }

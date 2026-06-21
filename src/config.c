@@ -3200,6 +3200,7 @@ standardConfig static_configs[] = {
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       1, NULL, NULL),
+    createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            0, NULL, NULL),
     createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
     createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
