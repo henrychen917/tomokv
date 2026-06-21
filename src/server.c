@@ -5074,6 +5074,17 @@ int canDispatchToWorker(client *c) {
      * keys whose hash targets a different worker. */
     if (p == delCommand) return c->argc == 2;
 
+    /* ee451 v10-B: SORT/SORT_RO is single-key (key@argv[1]) ONLY when it has no BY/GET/STORE —
+     * those reference OTHER keys (cross-shard). Whitelist the single-key form (incl. LIMIT/ASC/
+     * DESC/ALPHA); BY/GET/STORE forms fall through (multishard, TODO). */
+    if (p == sortCommand || p == sortroCommand) {
+        for (int i = 2; i < c->argc; i++) {
+            const char *a = c->argv[i]->ptr;
+            if (!strcasecmp(a, "by") || !strcasecmp(a, "get") || !strcasecmp(a, "store")) return 0;
+        }
+        return 1;
+    }
+
     /* NOTE: setCommand stays in the whitelist below, but SET with TTL
      * options (EX/PX/EXAT/PXAT) triggers argv rewriting — same worker-
      * unsafe path as INCRBYFLOAT. Callers should use SET without TTL,
