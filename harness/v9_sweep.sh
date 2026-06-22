@@ -69,8 +69,11 @@ srv_up(){ for i in $(seq 1 40); do $CLI -p $PORT ping >/dev/null 2>&1 && return 
 start_srv(){ pkill -9 -x redis-server 2>/dev/null; sleep 1
   LD_PRELOAD=$JEM taskset -c 0-7 "$V9BIN" --port $PORT --save '' --appendonly no \
     --protected-mode no --myworkerthreads 4 --myiothreads 4 >/tmp/v9sw_srv.log 2>&1 & srv_up; }
-populate(){ taskset -c 12-15 memtier_benchmark -p $PORT -P redis -t 4 -c 16 --pipeline=8 --ratio=1:0 \
-    --key-pattern=P:P --key-prefix="key:" --key-minimum=1 --key-maximum=$1 -n $(($1/64+1)) -d $2 --hide-histogram >/dev/null 2>&1; }
+# gentle (-P4 -c8) + timeout backstop: heavy 10M populates wedged the worker ring with -P8 and
+# hung forever (no timeout) -> 2h stall. Lower in-flight avoids the wedge; timeout caps any stall
+# (a partial big-DB populate is still a valid cold regime).
+populate(){ timeout 900 taskset -c 12-15 memtier_benchmark -p $PORT -P redis -t 4 -c 8 --pipeline=4 --ratio=1:0 \
+    --key-pattern=P:P --key-prefix="key:" --key-minimum=1 --key-maximum=$1 -n $(($1/32+1)) -d $2 --hide-histogram >/dev/null 2>&1; }
 run(){ local kp pipe=${5:-12} cl=${6:-32}; [ "$4" = G ] && kp="G:G --key-stddev=$(($1/20))" || kp="R:R"
   timeout 45 taskset -c 12-15 memtier_benchmark -p $PORT -P redis -t 4 -c $cl --pipeline=$pipe --test-time=6 \
     --ratio=$3 --key-pattern=$kp --key-prefix="key:" --key-minimum=1 --key-maximum=$1 -d $2 --hide-histogram 2>&1 | awk '/^Totals/{printf "%.0f",$2}'; }
