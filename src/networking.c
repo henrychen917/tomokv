@@ -3465,6 +3465,38 @@ static void setProtocolError(const char *errstr, client *c) {
  * This function is called if processInputBuffer() detects that the next
  * command is in RESP format, so the first byte in the command is found
  * to be '*'. Otherwise for inline commands processInlineBuffer() is called. */
+/* ee451 v11-A: operand pooling — recycle transient argv element robjs IO-thread-locally (Tomasulo
+ * physical-register reuse). The refcount==1 operands (keys/cmd args) are alloc'd at parse and freed at
+ * freePendingCommand, both on the SAME IO thread, so a per-thread freelist needs no cross-thread ring.
+ * Each thread touches only operandPool[iotid]. Pooled robjs are RAW strings (reusable sds); miss path
+ * allocs RAW (not embstr) so it's poolable on return. Oversized sds aren't pooled (avoid hoarding).
+ * Gated by server.opt_operand_pool. */
+#define OPERAND_POOL_CAP 256
+#define OPERAND_POOL_MAX_SDS 512
+static robj *operandPool[MY_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
+static int operandPoolN[MY_IO_THREADS_MAX + 1];
+
+static inline robj *operandPoolGet(const char *ptr, size_t len) {
+    if (iotid <= MY_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
+        robj *o = operandPool[iotid][--operandPoolN[iotid]];
+        o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
+        o->refcount = 1;
+        return o;
+    }
+    return createRawStringObject(ptr, len);      /* RAW so it's poolable when returned */
+}
+
+static inline void operandPoolPut(robj *o) {
+    if (iotid <= MY_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+        o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid] < OPERAND_POOL_CAP &&
+        sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
+        sdsclear(o->ptr);                        /* reset length, keep capacity */
+        operandPool[iotid][operandPoolN[iotid]++] = o;
+        return;
+    }
+    decrRefCount(o);
+}
+
 static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     char *newline = NULL;
     int ok;
@@ -3651,8 +3683,9 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 sdsclear(c->querybuf);
                 querybuf_len = sdslen(c->querybuf); /* Update cached length */
             } else {
-                (pcmd->argv)[(pcmd->argc)++] =
-                    createStringObject(c->querybuf+c->qb_pos,c->bulklen);
+                (pcmd->argv)[(pcmd->argc)++] = server.opt_operand_pool   /* ee451 v11-A: pooled pull */
+                    ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
+                    : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
                 pcmd->argv_len_sum += c->bulklen;
                 c->all_argv_len_sum += c->bulklen;
                 c->qb_pos += c->bulklen+2;
@@ -6051,7 +6084,8 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
         for (int j = 0; j < pcmd->argc; j++) {
             robj *o = pcmd->argv[j];
             if (!o) continue; /* argv[j] may be NULL when called from reclaimPendingCommand */
-            decrRefCount(o);
+            if (server.opt_operand_pool) operandPoolPut(o);   /* ee451 v11-A: recycle or decref */
+            else decrRefCount(o);
         }
 
         zfree(pcmd->argv);
