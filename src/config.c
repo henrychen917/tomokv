@@ -3141,7 +3141,7 @@ standardConfig static_configs[] = {
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
     /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
     createBoolConfig("thredis-opt-prefetch-worker", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_worker, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 0, NULL, NULL),
     createBoolConfig("thredis-opt-hash-carry", NULL, MODIFIABLE_CONFIG, server.opt_hash_carry, 1, NULL, NULL),
     /* ee451: VALUE-FORWARDING DISABLED by default (2026-06-21). Proven a wash in every tested regime
      * (small/large GET, complex LRANGE, even maximal single-hot-key + zerocopy): it removes a non-
@@ -3200,7 +3200,7 @@ standardConfig static_configs[] = {
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       1, NULL, NULL),
-    createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            0, NULL, NULL),
+    createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            1, NULL, NULL),
     createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
     createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
