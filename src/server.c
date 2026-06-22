@@ -9579,10 +9579,10 @@ static inline void workerPrefetchBatch(client **batch, int n) {
      * the SPSC ring and may be cold; warm the struct, argv, cmd, and key robj. */
     for (int j = 0; j < w1; j++) {
         client *fake = batch[j];
-        redis_prefetch_read(fake);
-        if (fake->argv) redis_prefetch_read(fake->argv);
-        if (fake->cmd)  redis_prefetch_read(fake->cmd);
-        if (fake->argc >= 2 && fake->argv && fake->argv[1])
+        if (server.pf_fc)   redis_prefetch_read(fake);                          /* ee451 v11-E: per-stage toggles */
+        if (server.pf_argv && fake->argv) redis_prefetch_read(fake->argv);
+        if (server.pf_cmd  && fake->cmd)  redis_prefetch_read(fake->cmd);
+        if (server.pf_keyobj && fake->argc >= 2 && fake->argv && fake->argv[1])
             redis_prefetch_read(fake->argv[1]);
     }
 

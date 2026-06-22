@@ -2936,6 +2936,11 @@ struct redisServer {
     int pf_w_value_adaptive; /* ee451 (gem5): scale pass-4 width by served value size (cache_budget/vsize), capped at pf_w_value; 0=fixed */
     int pf_value_cache_kb;   /* ee451 (gem5): cache budget (KB) for the adaptive value-chase width formula */
     int prefetch_adaptive_min_keys; /* ee451 v11 (#58): worker prefetch active only when shard dict >= this many keys (DRAM-cold); sweep showed it hurts L3-resident. 0=always (gate off) */
+    /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
+    int pf_fc;     /* prefetch the fake-client struct */
+    int pf_argv;   /* prefetch the argv array */
+    int pf_cmd;    /* prefetch the command struct */
+    int pf_keyobj; /* prefetch the key robj (argv[1]) */
     int pf_w_io_struct;/* IO drain pass 1: finished fake structs (independent) */
     int pf_w_io_reply; /* IO drain pass 2: reply buffers (semi-dependent) */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
