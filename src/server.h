@@ -2955,6 +2955,7 @@ struct redisServer {
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
     int opt_fanall;            /* v10-B: fan-to-all-shards reads (KEYS); one sub per worker, concat. default off. */
+    int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_auto;            /* master enable for auto resharding (default off) */
     int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */
