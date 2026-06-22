@@ -317,6 +317,38 @@ client *createFakeClient(client *parent) {
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
 
+    /* ee451 (v11-D): the client struct embeds the S3/S5 per-CDB reply masks
+     * (reply_cdb[], each __attribute__((aligned(CACHE_LINE_SIZE)))) whose entire
+     * benefit is that each mask's hot .v word owns its own cache line, so the
+     * many worker cores RMW'ing completion bits never false-share with the IO
+     * thread writing the dispatch fields. That isolation only holds if the
+     * allocator returns a CACHE_LINE_SIZE-aligned base — the struct's own
+     * over-alignment (_Alignof(client)==CACHE_LINE_SIZE) is NOT honored by
+     * malloc(), which only guarantees fundamental alignment. jemalloc (our perf
+     * allocator) happens to return a 64-aligned base for this size class — but
+     * a 16-aligning allocator (e.g. glibc) silently degrades S3/S5 to false
+     * sharing. Verify the contract ONCE at startup and warn loudly if violated,
+     * so degradation is visible instead of silent. (Self-check is one-shot;
+     * not on any hot path.) */
+    {
+        static int _align_checked = 0;
+        if (!_align_checked) {
+            _align_checked = 1;
+            if ((uintptr_t)c % CACHE_LINE_SIZE != 0) {
+                serverLog(LL_WARNING,
+                    "ALIGNMENT: client base is offset %lu within a %d-byte cache line under this "
+                    "allocator (expected 0); S3/S5 reply-mask cache-line isolation is DEGRADED (false "
+                    "sharing on the hottest cross-thread line). jemalloc avoids this; a 16-aligning "
+                    "allocator (e.g. glibc) does not.",
+                    (unsigned long)((uintptr_t)c % CACHE_LINE_SIZE), CACHE_LINE_SIZE);
+            } else {
+                serverLog(LL_VERBOSE,
+                    "ALIGNMENT: client base is %d-byte aligned; S3/S5 reply-mask cache-line isolation holds.",
+                    CACHE_LINE_SIZE);
+            }
+        }
+    }
+
     /* Pipeline fields — real client owns the ring */
     c->isFake = 0;
     c->parent = NULL;
