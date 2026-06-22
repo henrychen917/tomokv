@@ -9542,6 +9542,16 @@ static inline void workerPrefetchBatch(client **batch, int n) {
         return;
     }
 
+    /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
+     * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
+     * So skip prefetch on small shards (the common cache-friendly case). batch[0]->db is this worker's
+     * shard db (set at dispatch); dbSize is a cheap counter read. min_keys=0 disables the gate. */
+    if (server.prefetch_adaptive_min_keys > 0 && n > 0 && batch[0]->db &&
+        dbSize(batch[0]->db) < (unsigned long)server.prefetch_adaptive_min_keys) {
+        for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
+        return;
+    }
+
     /* ee451 (gem5): per-stage prefetch widths. Each stage prefetches at most its
      * configured window of the popped batch. The hash COMPUTE in pass 2 still runs
      * for all n (it is functional, not prefetch). */

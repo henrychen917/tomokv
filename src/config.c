@@ -3167,6 +3167,7 @@ standardConfig static_configs[] = {
     createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-pf-w-value-adaptive", NULL, MODIFIABLE_CONFIG,        server.pf_w_value_adaptive, 0, NULL, NULL),
     createIntConfig("thredis-pf-value-cache-kb",    NULL, MODIFIABLE_CONFIG, 1, 8192, server.pf_value_cache_kb, 128, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-prefetch-adaptive-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_adaptive_min_keys, 8000000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-io-struct", NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_struct, 64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-io-reply",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_reply,  64, INTEGER_CONFIG, NULL, NULL),
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
