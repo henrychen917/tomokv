@@ -5415,13 +5415,21 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSET: {
-        /* Per-key SET (single-writer on this shard). Mirrors msetGenericCommand EXACTLY:
-         * encode, setKey (which swaps argv[2] for the in-dict kvobj WITHOUT incrementing its
-         * refcount), then incrRefCount so the argv slot owns a valid ref — csFreeSub's later
-         * decref then leaves the dict's copy alive (omitting this incref frees the live value). */
+        /* Per-key SET (single-writer on this shard). encode, then setKey, which consumes the
+         * value's ref (kvobjSet embeds it) and swaps argv[2] to point at the in-dict kvobj.
+         *
+         * ee451 (v11 crash fix): after setKey, argv[2] is an ALIAS of the in-dict object, whose
+         * refcount is owned by the dict and mutated ONLY by this worker (sole writer of this
+         * shard). The previous code did incrRefCount(argv[2]) here so csFreeSub could decref it
+         * later — but csFreeSub runs on the IO thread, so that decref RACED (non-atomic refcount)
+         * with a later same-key overwrite's decref on THIS worker, double-freeing the value under
+         * hot-key MSET load (Guru Meditation: illegal decrRefCount, embstr, refcount 0,
+         * object.c:608, handleWorkerReplies path). Fix: relinquish the argv slot on the worker —
+         * NULL it so csFreeSub never touches the in-dict object. The dict's ref (rc=1, transferred
+         * from the dup by setKey) is the sole owner and is managed entirely on this worker thread. */
         sub->argv[2] = tryObjectEncoding(sub->argv[2]);
         setKey(sub, sub->db, sub->argv[1], &sub->argv[2], 0);
-        incrRefCount(sub->argv[2]);   /* refcnt not incr by setKey() */
+        sub->argv[2] = NULL;   /* released to the dict on the worker; no cross-thread decref */
         notifyKeyspaceEvent(NOTIFY_STRING, "set", sub->argv[1], sub->db->id);
         server.dirty++;
         break;
