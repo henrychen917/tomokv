@@ -105,6 +105,7 @@ static void moveExecutionState(client *real, client *fake);
 static int csCommandType(client *c);
 static void dispatchCrossShard(client *head, int ct);
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
+static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/SUNION/SDIFF */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
 static void migHoldIfDraining(client *fake);
@@ -5006,6 +5007,7 @@ int processCommand(client *c) {
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
         if (cst == CS_KEYS) dispatchFanAll(fake);   /* ee451 v10-B: one sub per worker */
+        else if (cst == CS_SETOP) dispatchSetOp(fake);  /* ee451 v11-F: per-key gather-compute */
         else dispatchCrossShard(fake, cst);
     } else if (canDispatchToWorker(fake)) {
         int worker_id = getWorkerForCommand(fake);
@@ -5385,6 +5387,12 @@ static int csCommandType(client *c) {
     /* ee451 v10-B: KEYS pattern — fan to ALL shards (one sub per worker), concat results.
      * Gated by opt_fanall (default off) until validated. argc==2 (KEYS pattern). */
     if (server.opt_fanall && p == keysCommand && c->argc == 2) return CS_KEYS;
+    /* ee451 v11-F: cross-shard read-only set-ops. SINTER/SUNION/SDIFF take keys at argv[1..];
+     * each key may live on a different shard, so gather members per-key and compute on the
+     * coordinator. Gated by opt_cross_setop (default off) until validated. (SINTERCARD's numkeys/
+     * LIMIT parsing and the STORE variants' hop-2 write are separate follow-ups.) */
+    if (server.opt_cross_setop && c->argc >= 2 &&
+        (p == sinterCommand || p == sunionCommand || p == sdiffCommand)) return CS_SETOP;
     return -1;
 }
 
@@ -5460,6 +5468,29 @@ static void csSubExec(client *sub) {
         }
         kvstoreIteratorReset(&kvs_it);
         atomic_fetch_add_explicit(&g->rcount, (long)n, memory_order_relaxed);
+        break;
+    }
+    case CS_SETOP: {
+        /* ee451 v11-F: gather THIS key's set members as fresh sds COPIES into our disjoint slot
+         * (cssub_idx). Worker owns sub->db (single-writer) so the non-safe iterator is safe and no
+         * concurrent mutation can occur mid-iteration. Missing key => empty contribution; a non-set
+         * key => flag WRONGTYPE for the coordinator. Copies are private (refcount-free) => the
+         * coordinator frees them after the pending barrier, no freeback ring needed. */
+        int idx = sub->cssub_idx;
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+        if (o == NULL) { g->setmem[idx] = NULL; g->setcnt[idx] = 0; break; }
+        if (o->type != OBJ_SET) {
+            atomic_store_explicit(&g->err, 1, memory_order_relaxed);
+            g->setmem[idx] = NULL; g->setcnt[idx] = 0;
+            break;
+        }
+        unsigned long sz = setTypeSize(o);
+        sds *arr = sz ? zmalloc(sizeof(sds) * sz) : NULL;
+        long m = 0;
+        setTypeIterator si; setTypeInitIterator(&si, o);
+        sds ele;
+        while ((ele = setTypeNextObject(&si)) != NULL) arr[m++] = ele;  /* fresh owned sds */
+        g->setmem[idx] = arr; g->setcnt[idx] = m;
         break;
     }
     default: break;
@@ -5579,6 +5610,105 @@ static void dispatchFanAll(client *head) {
     }
 }
 
+/* ee451 v11-F: split a read-only set-op (SINTER/SUNION/SDIFF) into one sub per key, each routed
+ * to its key's shard. Mirrors dispatchCrossShard's per-key sub setup; the sub carries [CMD key]
+ * (the worker only reads argv[1]). Each sub gathers its set's members into g->setmem[idx] (sds
+ * copies); csReassemble computes the union/inter/diff on the coordinator and frees the copies. */
+static void dispatchSetOp(client *head) {
+    void *p = head->cmd->proc;
+    int op = (p == sunionCommand) ? CS_SETOP_UNION :
+             (p == sdiffCommand)  ? CS_SETOP_DIFF  : CS_SETOP_INTER;
+    int nkeys = head->argc - 1;          /* keys at argv[1..argc-1] */
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_SETOP; g->setop = op; g->nkeys = nkeys; g->nsub = nkeys; g->head = head;
+    g->subs = zmalloc(sizeof(client*) * nkeys);
+    g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* per-sub member arrays (sub i fills slot i) */
+    g->setcnt = zcalloc(sizeof(long) * nkeys);
+    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
+    atomic_store_explicit(&g->err, 0, memory_order_relaxed);
+    head->csgroup = g;
+    head->cdb = 0;
+    int dbid = head->db->id;
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[1 + i];
+        int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+        client *sub = createFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
+        sub->resp = head->resp;
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_WORKER_PENDING;
+        sub->argv = zmalloc(sizeof(robj*) * 2);   /* [CMD key]; worker reads only argv[1] */
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argv[1] = key;           incrRefCount(key);
+        sub->argc = 2;
+        sub->db = &server.workers[w].db[dbid];
+        g->subs[i] = sub;
+        csPushSpin(w, sub);
+    }
+}
+
+/* ee451 v11-F: compute the set-op result from the gathered per-sub member arrays and emit it on
+ * `dst`. Runs on the coordinator (IO drain) after the pending barrier, so every sub's setmem is
+ * visible. Builds temp set robjs (reusing setTypeAdd/IsMember — correct dedup + encoding) for the
+ * membership tests INTER/DIFF need; UNION just dedups into one result set. */
+static void csSetOpCompute(client *dst, csGroup *g) {
+    int n = g->nsub;
+    if (g->setop == CS_SETOP_UNION) {
+        robj *res = createIntsetObject();   /* setTypeAdd auto-upgrades encoding as needed */
+        for (int i = 0; i < n; i++)
+            for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(res, g->setmem[i][k]);
+        addReplySetLen(dst, setTypeSize(res));
+        setTypeIterator si; setTypeInitIterator(&si, res);
+        char *str; size_t len; int64_t llele;
+        while (setTypeNext(&si, &str, &len, &llele) != -1) {
+            if (str) addReplyBulkCBuffer(dst, str, len);
+            else addReplyBulkLongLong(dst, llele);
+        }
+        decrRefCount(res);
+        return;
+    }
+    /* INTER / DIFF: build a membership set per sub. */
+    robj **S = zmalloc(sizeof(robj*) * n);
+    for (int i = 0; i < n; i++) {
+        S[i] = createIntsetObject();
+        for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+    }
+    robj *res = createIntsetObject();
+    if (g->setop == CS_SETOP_INTER) {
+        /* Member of subs[0] that is present in EVERY other sub. If any key is missing/empty its
+         * membership set is empty => nothing survives => empty intersection (matches Redis). */
+        setTypeIterator si; setTypeInitIterator(&si, S[0]);
+        char *str; size_t len; int64_t llele;
+        while (setTypeNext(&si, &str, &len, &llele) != -1) {
+            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
+            int in_all = 1;
+            for (int j = 1; j < n; j++) if (!setTypeIsMember(S[j], m)) { in_all = 0; break; }
+            if (in_all) setTypeAdd(res, m);
+            sdsfree(m);
+        }
+    } else { /* CS_SETOP_DIFF: members of subs[0] absent from subs[1..] */
+        setTypeIterator si; setTypeInitIterator(&si, S[0]);
+        char *str; size_t len; int64_t llele;
+        while (setTypeNext(&si, &str, &len, &llele) != -1) {
+            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
+            int in_others = 0;
+            for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], m)) { in_others = 1; break; }
+            if (!in_others) setTypeAdd(res, m);
+            sdsfree(m);
+        }
+    }
+    addReplySetLen(dst, setTypeSize(res));
+    setTypeIterator so; setTypeInitIterator(&so, res);
+    char *str; size_t len; int64_t llele;
+    while (setTypeNext(&so, &str, &len, &llele) != -1) {
+        if (str) addReplyBulkCBuffer(dst, str, len);
+        else addReplyBulkLongLong(dst, llele);
+    }
+    decrRefCount(res);
+    for (int i = 0; i < n; i++) decrRefCount(S[i]);
+    zfree(S);
+}
+
 /* Reassemble a completed group's reply onto `dst` (the real client): array header + each
  * sub's serialized element in original key order, then tear the group down. We build onto
  * the real client directly (not the head fake) so addReply* hits the normal, proven reply
@@ -5608,8 +5738,28 @@ static void csReassemble(client *dst, client *head) {
             addReplyArrayLen(dst, (long)atomic_load_explicit(&g->rcount, memory_order_relaxed));
             for (int i = 0; i < g->nsub; i++) AddReplyFromClient(dst, g->subs[i]);
             break;
+        case CS_SETOP:
+            /* ee451 v11-F: WRONGTYPE if any key was a non-set (matches Redis, which errors before
+             * emitting any element); otherwise compute union/inter/diff over the gathered members. */
+            if (atomic_load_explicit(&g->err, memory_order_relaxed))
+                addReplyErrorObject(dst, shared.wrongtypeerr);
+            else
+                csSetOpCompute(dst, g);
+            break;
         default: break;
         }
+    }
+    /* ee451 v11-F: free the gathered member copies (allocated on worker threads; freed here on the
+     * coordinator — private refcount-free sds, safe to free cross-thread). Done whether or not dst
+     * was set (the teardown path with dst==NULL still allocated them). */
+    if (g->ctype == CS_SETOP) {
+        for (int i = 0; i < g->nsub; i++) {
+            if (g->setmem && g->setmem[i]) {
+                for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
+                zfree(g->setmem[i]);
+            }
+        }
+        zfree(g->setmem); zfree(g->setcnt);
     }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); zfree(g);

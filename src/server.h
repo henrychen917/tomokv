@@ -1738,7 +1738,11 @@ typedef struct client {
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
  * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
-typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS } csCmdType;
+typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP } csCmdType;
+/* CS_SETOP operation kind (carried in csGroup.setop). */
+#define CS_SETOP_INTER     0
+#define CS_SETOP_UNION     1
+#define CS_SETOP_DIFF      2
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -1752,6 +1756,14 @@ typedef struct csGroup {
     robj **results;            /* [nkeys] MGET values (or NULL) */
     int  *result_worker;       /* [nkeys] owning worker of results[i] (for free-back) */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
+    /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
+     * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
+     * the coordinator after the pending barrier — no freeback ring needed, unlike MGET's shared
+     * values). The coordinator computes union/inter/diff over setmem[] and replies. */
+    int setop;                 /* CS_SETOP_{INTER,UNION,DIFF} */
+    redisAtomic int err;       /* CS_SETOP: a sub saw a non-set (WRONGTYPE) key */
+    sds **setmem;              /* CS_SETOP: [nsub] arrays of member-sds copies (worker-alloc) */
+    long *setcnt;              /* CS_SETOP: [nsub] member count for setmem[i] (0 if missing key) */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
@@ -2961,6 +2973,7 @@ struct redisServer {
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
     int opt_fanall;            /* v10-B: fan-to-all-shards reads (KEYS); one sub per worker, concat. default off. */
+    int opt_cross_setop;       /* v11-F: cross-shard set-ops (SINTER/SUNION/SDIFF) gather-compute. default off until validated. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_auto;            /* master enable for auto resharding (default off) */
