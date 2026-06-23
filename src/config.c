@@ -3206,7 +3206,7 @@ standardConfig static_configs[] = {
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       1, NULL, NULL),
     createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            1, NULL, NULL),
-    createBoolConfig("thredis-opt-cross-setop",       NULL, MODIFIABLE_CONFIG, server.opt_cross_setop,       0, NULL, NULL),
+    createBoolConfig("thredis-opt-cross-setop",       NULL, MODIFIABLE_CONFIG, server.opt_cross_setop,       1, NULL, NULL),
     createBoolConfig("thredis-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
     createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),
