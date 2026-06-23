@@ -5518,7 +5518,7 @@ static void csFreeSub(client *sub) {
         zfree(sub->argv); sub->argv = NULL; sub->argc = 0;
     }
     sub->csparent = NULL;
-    freeFakeClient(sub);
+    freePooledFakeClient(sub);
 }
 
 /* Push a sub to a worker queue, publishing `tail` IMMEDIATELY (not waiting for the
@@ -5564,7 +5564,7 @@ static void dispatchCrossShard(client *head, int ct) {
         if (cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
         int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
-        client *sub = createFakeClient(head->parent);
+        client *sub = createPooledFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
         sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
         /* The sub serializes its reply into its OWN buffer on the worker. addReply* gate on
@@ -5604,7 +5604,7 @@ static void dispatchFanAll(client *head) {
     head->cdb = 0;
     int dbid = head->db->id;
     for (int w = 0; w < nw; w++) {
-        client *sub = createFakeClient(head->parent);
+        client *sub = createPooledFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = w; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
@@ -5640,7 +5640,7 @@ static void dispatchSetOp(client *head) {
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[1 + i];
         int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
-        client *sub = createFakeClient(head->parent);
+        client *sub = createPooledFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;

@@ -37,6 +37,7 @@ static inline int _writeToClientNonSlave(client *c, ssize_t *nwritten);
 static inline int _writeToClientSlave(client *c, ssize_t *nwritten);
 static pendingCommand *acquirePendingCommand(void);
 static void reclaimPendingCommand(client *c, pendingCommand *pcmd);
+static void releaseAllBufReferences(client *c);   /* ee451 (v11): used by freePooledFakeClient (defined later) */
 
 int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
 __thread sds thread_reusable_qb = NULL;
@@ -119,9 +120,13 @@ int authRequired(client *c) {
 }
 //ee451
 //ee451
-client *createFakeClient(client *parent) {
-    client *c = zmalloc(sizeof(client));
-
+/* ee451 (v11): reset ALL per-call fields of a fake client to the pristine post-create state,
+ * WITHOUT touching the cached heap allocations (c->buf and the c->reply list object).
+ * createFakeClient and the pooled-reuse path (createPooledFakeClient) BOTH call this, so a fresh
+ * fake and a recycled fake are byte-identical in every field — no field can be missed on reuse.
+ * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
+ * list with its free/dup methods already set. */
+static void resetFakeClientState(client *c, client *parent) {
     /* Fake-specific identity */
     c->isFake = 1;
     c->parent = parent;
@@ -138,18 +143,14 @@ client *createFakeClient(client *parent) {
     c->is_flush = 0;
     c->drain_ack = NULL;
 
-    /* Output buffer — fake owns its own */
-    c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+    /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
     c->bufpos = 0;
     c->buf_peak = c->buf_usable_size;
     c->buf_peak_last_reset_time = server.unixtime;
     c->buf_encoded = 0;
     c->last_header = NULL;
 
-    /* Reply list — fake owns its own */
-    c->reply = listCreate();
-    listSetFreeMethod(c->reply, freeClientReplyValue);
-    listSetDupMethod(c->reply, dupClientReplyValue);
+    /* Reply list (the list object is cached/created by the caller; assumed empty here). */
     c->reply_bytes = 0;
     c->deferred_reply_errors = NULL;
     c->sentlen = 0;
@@ -310,8 +311,64 @@ client *createFakeClient(client *parent) {
     c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
     c->commands_processed = 0;
+}
 
+client *createFakeClient(client *parent) {
+    client *c = zmalloc(sizeof(client));
+    /* Cached heap, reused across pooled recycles: output buffer + reply list. */
+    c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+    c->reply = listCreate();
+    listSetFreeMethod(c->reply, freeClientReplyValue);
+    listSetDupMethod(c->reply, dupClientReplyValue);
+    resetFakeClientState(c, parent);
     return c;
+}
+
+/* ee451 (v11): per-IO-thread pool of recyclable fake clients for the CROSS-SHARD SUB path.
+ * A cross-shard command creates one sub fake PER KEY and frees them at reassembly — all on the
+ * SAME IO thread (dispatch + drain run on the owning IO thread), so a per-iotid freelist needs no
+ * locking. Without pooling, each sub did zmalloc(client) + a 16KB reply buffer + a reply list per
+ * key per call (then freed) — dominating small-MGET/MSET cost and making cross-shard slower than
+ * vanilla UNDER PIPELINE. The pool caches the struct + buffer + reply list across calls. Scoped to
+ * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
+#define XSUB_POOL_CAP 96
+static client *xsubPool[MY_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
+static int xsubPoolN[MY_IO_THREADS_MAX + 1];
+
+client *createPooledFakeClient(client *parent) {
+    int t = iotid;
+    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] > 0) {
+        client *c = xsubPool[t][--xsubPoolN[t]];
+        /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
+         * (ensured at free time). Re-init every other field to the pristine state. */
+        resetFakeClientState(c, parent);
+        return c;
+    }
+    return createFakeClient(parent);
+}
+
+void freePooledFakeClient(client *c) {
+    int t = iotid;
+    /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
+     * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
+    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
+        c->buf && c->reply && c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES) {
+        if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
+        releaseAllBufReferences(c);
+        listEmpty(c->reply);                 /* free reply blocks, keep the list object */
+        freeClientOriginalArgv(c);
+        freeClientDeferredObjects(c, 1);
+        freeClientIODeferredObjects(c, 1);
+        if (c->deferred_reply_errors) { listRelease(c->deferred_reply_errors); c->deferred_reply_errors = NULL; }
+        if (c->name) { decrRefCount(c->name); c->name = NULL; }
+#ifdef LOG_REQ_RES
+        reqresReset(c, 1);
+#endif
+        serverAssert(c->all_argv_len_sum == 0 && c->pending_cmds.len == 0);
+        xsubPool[t][xsubPoolN[t]++] = c;
+        return;
+    }
+    freeFakeClient(c);
 }
 
 client *createClient(connection *conn) {

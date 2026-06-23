@@ -4981,6 +4981,8 @@ int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int workerIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
+client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
+void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */

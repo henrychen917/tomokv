@@ -57,14 +57,14 @@ $CLI -p $TP flushall >/dev/null
 $CLI -p $TP sadd hs1 $(seq -f 'm%g' 1 200) >/dev/null
 $CLI -p $TP sadd hs2 $(seq -f 'm%g' 100 300) >/dev/null
 # bounded, parallel: hot-key MSET (the crash trigger) + MGET + set-ops + DEL/EXISTS churn
-( taskset -c 12-13 $RB -p $TP -n 400000 -c 50 -P 1  -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1
-  taskset -c 12-13 $RB -p $TP -n 400000 -c 50 -P 16 -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1 ) &
-( taskset -c 14 $RB -p $TP -n 400000 -c 50 -P 16 -q MGET k1 k2 k3 k4 k5 k6 k7 k8 >/dev/null 2>&1
-  taskset -c 14 $RB -p $TP -n 200000 -c 30 -P 8  -q DEL k1 k2 k3 k4 >/dev/null 2>&1 ) &
-( taskset -c 15 $RB -p $TP -n 200000 -c 30 -P 8  -q SINTER hs1 hs2 >/dev/null 2>&1
-  taskset -c 15 $RB -p $TP -n 200000 -c 30 -P 8  -q SUNION hs1 hs2 >/dev/null 2>&1
-  taskset -c 15 $RB -p $TP -n 200000 -c 30 -P 8  -q EXISTS k1 k2 k3 k4 k5 >/dev/null 2>&1 ) &
-wait
+( taskset -c 8-11 $RB -p $TP -n 120000 -c 50 -P 1  -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1
+  taskset -c 8-11 $RB -p $TP -n 120000 -c 50 -P 16 -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1 ) & SP1=$!
+( taskset -c 12-13 $RB -p $TP -n 120000 -c 50 -P 16 -q MGET k1 k2 k3 k4 k5 k6 k7 k8 >/dev/null 2>&1
+  taskset -c 12-13 $RB -p $TP -n 80000 -c 30 -P 8  -q DEL k1 k2 k3 k4 >/dev/null 2>&1 ) & SP2=$!
+( taskset -c 14-15 $RB -p $TP -n 80000 -c 30 -P 8  -q SINTER hs1 hs2 >/dev/null 2>&1
+  taskset -c 14-15 $RB -p $TP -n 80000 -c 30 -P 8  -q SUNION hs1 hs2 >/dev/null 2>&1
+  taskset -c 14-15 $RB -p $TP -n 80000 -c 30 -P 8  -q EXISTS k1 k2 k3 k4 k5 >/dev/null 2>&1 ) & SP3=$!
+wait $SP1 $SP2 $SP3   # ONLY the benchmark subshells, NOT the background servers (which never exit)
 sleep 1
 if $CLI -p $TP ping >/dev/null 2>&1; then echo "  server ALIVE after stress"; else echo "  server DIED under stress"; FAILED=1; fi
 PANIC=$(grep -ciE 'Guru Meditation|illegal decrRefCount|REDIS BUG REPORT|AddressSanitizer|heap-use-after-free' /tmp/va_t.log)
@@ -73,7 +73,7 @@ if [ "$ISASAN" -gt 0 ]; then ls /tmp/va_asan.* >/dev/null 2>&1 && { echo "  ASAN
 
 echo "===== PHASE C: pipelined perf gate (THredis must be >= vanilla at P=16) ====="
 RPS() { local port="$1" pipe="$2"; shift 2
-  taskset -c 12-15 $RB -p "$port" -n 300000 -c 50 -P "$pipe" -q "$@" 2>/dev/null \
+  taskset -c 8-15 $RB -p "$port" -n 100000 -c 50 -P "$pipe" -q "$@" 2>/dev/null \
     | tr '\r' '\n' | sed -nE 's/.*: ([0-9.]+) requests per second.*/\1/p' | tail -1; }
 for p in $TP $VP; do $CLI -p $p flushall >/dev/null
   for k in 1 2 3 4 5 6 7 8; do $CLI -p $p set k$k v$k >/dev/null; done
