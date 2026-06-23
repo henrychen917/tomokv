@@ -5415,42 +5415,48 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSET: {
-        /* Per-key SET (single-writer on this shard). encode, then setKey, which consumes the
-         * value's ref (kvobjSet embeds it) and swaps argv[2] to point at the in-dict kvobj.
-         *
-         * ee451 (v11 crash fix): after setKey, argv[2] is an ALIAS of the in-dict object, whose
-         * refcount is owned by the dict and mutated ONLY by this worker (sole writer of this
-         * shard). The previous code did incrRefCount(argv[2]) here so csFreeSub could decref it
-         * later — but csFreeSub runs on the IO thread, so that decref RACED (non-atomic refcount)
-         * with a later same-key overwrite's decref on THIS worker, double-freeing the value under
-         * hot-key MSET load (Guru Meditation: illegal decrRefCount, embstr, refcount 0,
-         * object.c:608, handleWorkerReplies path). Fix: relinquish the argv slot on the worker —
-         * NULL it so csFreeSub never touches the in-dict object. The dict's ref (rc=1, transferred
-         * from the dup by setKey) is the sole owner and is managed entirely on this worker thread. */
-        sub->argv[2] = tryObjectEncoding(sub->argv[2]);
-        setKey(sub, sub->db, sub->argv[1], &sub->argv[2], 0);
-        sub->argv[2] = NULL;   /* released to the dict on the worker; no cross-thread decref */
-        notifyKeyspaceEvent(NOTIFY_STRING, "set", sub->argv[1], sub->db->id);
-        server.dirty++;
+        /* ee451 (v11): COALESCED — sub->argv is [CMD k v k v ...] for ALL of this shard's pairs.
+         * Per pair: encode, setKey (consumes the value ref; kvobjSet embeds it, swaps the slot to
+         * the in-dict kvobj), then NULL the slot. The NULL is the crash fix: after setKey the slot
+         * aliases the in-dict object whose refcount is owned by the dict and mutated ONLY by this
+         * worker; leaving an argv ref for csFreeSub to decref on the IO thread RACED (non-atomic rc)
+         * with a later same-key overwrite on this worker -> double free (object.c:608). Relinquish
+         * on the worker. Migration effect is captured per key. */
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        for (int a = 1; a + 1 < sub->argc; a += 2) {
+            robj *keyo = sub->argv[a];
+            sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+            setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+            sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
+            notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+            server.dirty++;
+            if (mig) migCaptureEffect(sub->db, keyo);
+        }
         break;
     }
     case CS_DEL: {
-        /* DEL/UNLINK: lookupKeyWrite handles lazy expiry (NULL if absent/expired); count only
-         * keys actually present, then sync-delete. Sum lands in g->rcount. */
-        robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
-        int deleted = 0;
-        if (o != NULL && dbSyncDelete(sub->db, sub->argv[1])) {
-            deleted = 1; server.dirty++;
-            notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+        /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
+         * lookupKeyWrite handles lazy expiry. Per-key migration capture. */
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        long deleted = 0;
+        for (int a = 1; a < sub->argc; a++) {
+            robj *o = lookupKeyWrite(sub->db, sub->argv[a]);
+            if (o != NULL && dbSyncDelete(sub->db, sub->argv[a])) {
+                deleted++; server.dirty++;
+                notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[a], sub->db->id);
+                if (mig) migCaptureEffect(sub->db, sub->argv[a]);
+            }
         }
         atomic_fetch_add_explicit(&g->rcount, deleted, memory_order_relaxed);
         break;
     }
     case CS_EXISTS: {
-        /* EXISTS/TOUCH: count present keys (lookupKeyRead applies lazy expiry). Duplicates are
-         * separate subs, so EXISTS k k correctly counts 2 if present. */
-        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
-        atomic_fetch_add_explicit(&g->rcount, o ? 1 : 0, memory_order_relaxed);
+        /* ee451 (v11): COALESCED — argv is [CMD k k ...]; count present keys (lazy expiry applied).
+         * Duplicate key args are separate argv entries, so EXISTS k k correctly counts 2 if present. */
+        long present = 0;
+        for (int a = 1; a < sub->argc; a++)
+            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
+        atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
     case CS_KEYS: {
@@ -5504,12 +5510,9 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid] = saved;
-    /* ee451 (v8d): a cross-shard WRITE sub (MSET/DEL/UNLINK) to a range key runs on worker A just
-     * like a single-key write — capture its post-image/tombstone into the effect log so B converges.
-     * Reads (MGET/EXISTS/TOUCH) mutate nothing, so no capture. */
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
-        (g->ctype == CS_MSET || g->ctype == CS_DEL))
-        migCaptureEffect(sub->db, sub->argv[1]);
+    /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
+     * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
+     * no single argv[1] to capture here. Reads (MGET/EXISTS/TOUCH/SETOP) mutate nothing -> no capture. */
 }
 
 static void csFreeSub(client *sub) {
@@ -5546,46 +5549,91 @@ static void csPushSpin(int w, client *sub) {
 static void dispatchCrossShard(client *head, int ct) {
     /* MSET argv is [MSET k1 v1 k2 v2 ...] => nkeys = (argc-1)/2; the rest are [CMD k1 k2 ...]. */
     int nkeys = (ct == CS_MSET) ? (head->argc - 1) / 2 : (head->argc - 1);
-    csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = ct; g->nkeys = nkeys; g->nsub = nkeys; g->head = head;
-    g->subs = zmalloc(sizeof(client*) * nkeys);
-    g->results = NULL; g->result_worker = NULL;   /* reply-buffer design: no value forwarding */
-    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
-    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
-    head->csgroup = g;
-    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
     int dbid = head->db->id;
     int cs_write = (ct == CS_MSET || ct == CS_DEL);   /* writes need the per-key cutover hold */
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = ct; g->nkeys = nkeys; g->head = head;
+    g->results = NULL; g->result_worker = NULL;   /* reply-buffer design: no value forwarding */
+    head->csgroup = g;
+    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
+
+    /* ee451 (v11): COALESCE keys-per-shard for DEL/EXISTS/MSET. These reassemble order-free
+     * (rcount sum / shared.ok), so instead of one sub PER KEY we issue one sub PER DISTINCT SHARD
+     * carrying all of that shard's keys ([CMD k k ...]) or key-val pairs ([CMD k v k v ...]). That
+     * cuts the cross-thread fan-out from nkeys dispatches to <= num_workers. MGET stays per-key
+     * because its reply MUST be reassembled in original key order (per-position splice). */
+    int coalesce = (ct == CS_DEL || ct == CS_EXISTS || ct == CS_MSET);
+    if (!coalesce) {
+        g->nsub = nkeys;
+        g->subs = zmalloc(sizeof(client*) * nkeys);
+        atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
+        atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+        for (int i = 0; i < nkeys; i++) {
+            robj *key = head->argv[1 + i];
+            int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+            client *sub = createPooledFakeClient(head->parent);
+            sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
+            sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
+            /* The sub serializes its reply into its OWN buffer on the worker; spliced at
+             * reassembly, never written to the socket directly (CLIENT_WORKER_PENDING + borrowed conn). */
+            sub->conn = head->conn;
+            sub->flags |= CLIENT_WORKER_PENDING;
+            sub->argv = zmalloc(sizeof(robj*) * 2);
+            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+            sub->argv[1] = key;           incrRefCount(key);
+            sub->argc = 2;
+            sub->db = &server.workers[w].db[dbid];
+            g->subs[i] = sub;
+            csPushSpin(w, sub);
+        }
+        return;
+    }
+
+    /* Coalesced path: bucket keys by owning shard. */
+    int nw = server.num_workers;
+    int *cnt = zcalloc(sizeof(int) * nw);     /* keys assigned to worker w */
+    int *wof = zmalloc(sizeof(int) * nkeys);  /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
         robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
-        robj *val = (ct == CS_MSET) ? head->argv[2 + 2*i] : NULL;
-        /* ee451 (v8d): hold an in-range write sub during the cutover DRAINING window so it routes to
-         * B post-flip (never reaches A late). Gated by the always-0 byte; reads (MGET/EXISTS) skip. */
         if (cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
         int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+        wof[i] = w; cnt[w]++;
+    }
+    int nsub = 0;
+    for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
+    g->nsub = nsub;
+    g->subs = zmalloc(sizeof(client*) * nsub);
+    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    client **wsub = zcalloc(sizeof(client*) * nw);   /* worker -> its sub (NULL if none) */
+    int si = 0;
+    for (int w = 0; w < nw; w++) {
+        if (!cnt[w]) continue;
         client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
-        sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
-        /* The sub serializes its reply into its OWN buffer on the worker. addReply* gate on
-         * _prepareClientToWrite, which (1) rejects conn==NULL and (2) short-circuits on
-         * CLIENT_WORKER_PENDING before the pending-write-queue logic. Borrow real's conn to
-         * pass (1) and set the flag for (2) — the sub IS worker-dispatched. Its reply is
-         * spliced/aggregated at reassembly, never written to the socket directly. */
+        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_WORKER_PENDING;
-        int an = (ct == CS_MSET) ? 3 : 2;        /* MSET sub = [CMD key val]; others [CMD key] */
-        sub->argv = zmalloc(sizeof(robj*) * an);
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);   /* command name (display) */
-        sub->argv[1] = key;           incrRefCount(key);
-        /* MSET value: a PRIVATE refcount-1 copy (not shared with the head), so the worker's
-         * setKey can consume it exactly like a stock SET (where argv[2] is refcount 1). */
-        if (ct == CS_MSET) sub->argv[2] = dupStringObject(val);
-        sub->argc = an;
+        int per = (ct == CS_MSET) ? (1 + 2*cnt[w]) : (1 + cnt[w]);  /* [CMD k v...] or [CMD k...] */
+        sub->argv = zmalloc(sizeof(robj*) * per);
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argc = 1;   /* keys/pairs appended below in original order */
         sub->db = &server.workers[w].db[dbid];
-        g->subs[i] = sub;
-        csPushSpin(w, sub);
+        wsub[w] = sub;
+        g->subs[si++] = sub;
     }
+    for (int i = 0; i < nkeys; i++) {
+        client *sub = wsub[wof[i]];
+        robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
+        sub->argv[sub->argc++] = key; incrRefCount(key);
+        if (ct == CS_MSET) {
+            /* PRIVATE refcount-1 copy so the worker's setKey can consume it like a stock SET. */
+            sub->argv[sub->argc++] = dupStringObject(head->argv[2 + 2*i]);
+        }
+    }
+    for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
+    zfree(cnt); zfree(wof); zfree(wsub);
 }
 
 /* ee451 v10-B: fan a no-key global read (KEYS) to ALL worker shards. One sub per worker runs the

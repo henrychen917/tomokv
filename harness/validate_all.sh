@@ -71,27 +71,32 @@ PANIC=$(grep -ciE 'Guru Meditation|illegal decrRefCount|REDIS BUG REPORT|Address
 [ "$PANIC" -gt 0 ] && { echo "  PANIC/ASAN in log:"; grep -iE 'Guru Meditation|illegal decrRefCount|heap-use-after-free|SUMMARY' /tmp/va_t.log | head -3; FAILED=1; }
 if [ "$ISASAN" -gt 0 ]; then ls /tmp/va_asan.* >/dev/null 2>&1 && { echo "  ASAN report:"; grep -iE 'ERROR|SUMMARY|leak' /tmp/va_asan.* | head; FAILED=1; } || echo "  ASAN clean"; fi
 
-echo "===== PHASE C: pipelined perf gate (THredis must be >= vanilla at P=16) ====="
-RPS() { local port="$1" pipe="$2"; shift 2
-  taskset -c 8-15 $RB -p "$port" -n 100000 -c 50 -P "$pipe" -q "$@" 2>/dev/null \
-    | tr '\r' '\n' | sed -nE 's/.*: ([0-9.]+) requests per second.*/\1/p' | tail -1; }
+echo "===== PHASE C: pipelined perf gate (RANDOM keys => exercises shard parallelism; P=16) ====="
+# RANDOM keys (key:__rand_int__) so multi-key ops spread across ALL shards -- a FIXED-key gate
+# pins one shard and measures only dispatch tax (misleading). Populate a keyspace first.
+R=200000
 for p in $TP $VP; do $CLI -p $p flushall >/dev/null
-  for k in 1 2 3 4 5 6 7 8; do $CLI -p $p set k$k v$k >/dev/null; done
+  taskset -c 8-15 $RB -p $p -t set -r $R -n 400000 -c 50 -P 16 -q >/dev/null 2>&1
   $CLI -p $p sadd ga $(seq -f 'm%g' 1 300) >/dev/null; $CLI -p $p sadd gb $(seq -f 'm%g' 150 450) >/dev/null; done
-printf "  %-16s %12s %12s %8s %s\n" "cmd(P=16)" "THredis" "vanilla" "ratio" "verdict"
+K='key:__rand_int__'
+RPS() { local port="$1"; shift
+  taskset -c 8-15 $RB -p "$port" -r $R -n 600000 -c 50 -P 16 -q "$@" 2>/dev/null \
+    | tr '\r' '\n' | sed -nE 's/.*: ([0-9.]+) requests per second.*/\1/p' | tail -1; }
+printf "  %-16s %12s %12s %8s %s\n" "cmd(P=16,rand)" "THredis" "vanilla" "ratio" "verdict"
 gate() { local label="$1"; shift
-  local t v r; t=$(RPS $TP 16 "$@"); v=$(RPS $VP 16 "$@")
+  local t v r; t=$(RPS $TP "$@"); v=$(RPS $VP "$@")
   r=$(awk -v t="$t" -v v="$v" 'BEGIN{if(v>0)printf "%.2f",t/v; else print "?"}')
   local vd=ok; awk -v t="$t" -v v="$v" 'BEGIN{exit !(t<v*0.95)}' && vd="SLOW(<vanilla)"
   printf "  %-16s %12s %12s %8s %s\n" "$label" "$t" "$v" "$r" "$vd"; }
-gate MGET8  MGET k1 k2 k3 k4 k5 k6 k7 k8
-gate MSET8  MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h
-gate DEL8   DEL k1 k2 k3 k4 k5 k6 k7 k8
-gate EXISTS8 EXISTS k1 k2 k3 k4 k5 k6 k7 k8
+gate GET    GET $K
+gate SET    SET $K v
+gate MGET8  MGET $K $K $K $K $K $K $K $K
+gate MSET8  MSET $K a $K b $K c $K d $K e $K f $K g $K h
+gate DEL8   DEL $K $K $K $K $K $K $K $K
+gate EXISTS8 EXISTS $K $K $K $K $K $K $K $K
 gate SINTER SINTER ga gb
 gate SUNION SUNION ga gb
-gate SDIFF  SDIFF ga gb
-echo "  (perf gate is informational; SLOW under pipeline = investigate as bug)"
+echo "  (SLOW under pipeline with random keys = investigate; single-key + writes should win)"
 
 $CLI -p $TP shutdown nosave >/dev/null 2>&1; $CLI -p $VP shutdown nosave >/dev/null 2>&1
 pkill -9 -x redis-server 2>/dev/null
