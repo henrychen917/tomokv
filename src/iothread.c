@@ -161,6 +161,12 @@ void unbindClientFromIOThreadEventLoop(client *c) {
     if (!connHasEventLoop(c->conn)) return;
     /* As calling in main thread, we should pause the io thread to make it safe. */
     pauseIOThread(c->tid);
+#ifdef HAVE_LIBURING
+    /* v12-G: drop this fd from the IO thread's multishot-recv map while it's paused (so the
+     * reaper can't be mid-flight). The kernel terminates the multishot when the fd is later
+     * closed; any straggler CQE then finds a NULL/stale slot and is ignored. */
+    if (server.io_uring_recv && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
+#endif
     connUnbindEventLoop(c->conn);
     resumeIOThread(c->tid);
 }
@@ -217,6 +223,10 @@ void fetchClientFromIOThread(client *c) {
             }
         }
     }
+#ifdef HAVE_LIBURING
+    /* v12-G: drop this fd from the IO thread's multishot-recv map (under pause; see unbind). */
+    if (server.io_uring_recv && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
+#endif
     /* Unbind connection of client from io thread event loop. */
     connUnbindEventLoop(c->conn);
     /* Now main thread can process it. */
@@ -757,6 +767,9 @@ int processClientsFromMainThread(IOThread *t) {
             connRebindEventLoop(c->conn, t->el);
             serverAssert(!connHasReadHandler(c->conn));
             connSetReadHandler(c->conn, readQueryFromClient);
+            /* v12-G note: io_uring multishot-recv is armed in createClient (THredis accepts on
+             * per-IO-thread SO_REUSEPORT listeners), not here — this upstream handoff path is
+             * dormant under THredis (server.io_threads_num == 1). */
         }
 
         /* If the client has pending replies, write replies to client. */

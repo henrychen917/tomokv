@@ -2976,6 +2976,7 @@ struct redisServer {
     int opt_cross_setop;       /* v11-F: cross-shard set-ops (SINTER/SUNION/SDIFF) gather-compute. default off until validated. */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
+    int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
@@ -4979,6 +4980,12 @@ void freebackPush(int worker_id, robj *obj);   /* ee451 (S8): IO->worker value f
 client *workerQueuePop(workerQueue *q);
 void queueToWorker(client *c, int worker_id);
 void *workerThreadMain(void *arg);
+#ifdef HAVE_LIBURING
+/* v12-G: io_uring multishot-recv (gated by server.io_uring_recv). Called from the IO thread. */
+int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
+void iouRecvArm(client *c);                       /* arm multishot recv for a freshly-bound IO-thread client */
+void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (teardown, under IO-thread pause) */
+#endif
 void initWorkers(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);

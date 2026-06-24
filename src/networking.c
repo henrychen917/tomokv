@@ -24,6 +24,7 @@
 #ifdef HAVE_LIBURING
 #include <liburing.h>
 #include <sys/socket.h>   /* MSG_DONTWAIT for the io_uring batched-send path */
+#include <sys/eventfd.h>  /* v12-G: eventfd bridge for the multishot-recv ring */
 #endif
 #include "connection.h"
 #include <sys/socket.h>
@@ -443,6 +444,17 @@ client *createClient(connection *conn) {
     c->resp = 2;
 #endif
     c->conn = conn;
+#ifdef HAVE_LIBURING
+    /* v12-G: arm io_uring multishot-recv (gated). THredis accepts each client directly on a
+     * dedicated IO thread's SO_REUSEPORT listener, so createClient runs ON that IO thread and
+     * iotid identifies it — the client lives its whole life (accept/read/free) on this thread,
+     * which keeps every recv-ring op single-threaded. The epoll read handler set just above
+     * stays as a harmless fallback (multishot drains the socket first → spurious wakeups EAGAIN). */
+    if (conn && server.io_uring_recv && server.io_uring_net &&
+        iotid >= 1 && iotid < server.my_io_threads &&
+        iouRecvEnsure(iotid, server.ioThreads[iotid].el) >= 0)
+        iouRecvArm(c);
+#endif
     c->name = NULL;
     c->lib_name = NULL;
     c->lib_ver = NULL;
@@ -2481,6 +2493,13 @@ void freeClient(client *c) {
         freeClientAsync(c->parent);
         return;
     }
+#ifdef HAVE_LIBURING
+    /* v12-G: drop this real client from its IO thread's multishot-recv map before teardown.
+     * For THredis the free runs on the owning IO thread (the same thread that reaps), so this is
+     * race-free; the per-arm generation also rejects any stale CQE after the fd is reused. */
+    if (server.io_uring_recv && c->conn && c->conn->fd >= 0)
+        iouRecvDisarm(c->tid, c->conn->fd);
+#endif
 
     listNode *ln;
 
@@ -3335,6 +3354,229 @@ static int handleClientsWithPendingWritesUring(void) {
         }
     }
     return processed;
+}
+
+/* ===== v12-G: io_uring MULTISHOT-RECV + provided buffer ring (gated, default off) =====
+ * The "deep network" READ half of the io_uring path (the send ring above is the write half).
+ * When server.io_uring_recv is on (requires io_uring_net; build USE_URING=yes), every IO-thread
+ * client arms ONE multishot recv (io_uring_prep_recv_multishot) against a per-thread provided
+ * buffer ring. The kernel reads readable data into ring buffers AS IT ARRIVES and posts one CQE
+ * per chunk — no per-read recv() syscall, no epoll round-trip per readable. A registered eventfd
+ * wakes the IO thread's epoll loop when CQEs land; iouRecvReap() drains them, appends each chunk
+ * to the client's querybuf, runs the SAME processInputBuffer() parse/dispatch as the epoll path,
+ * recycles the buffer, and re-arms when the kernel clears IORING_CQE_F_MORE.
+ *
+ * SAFETY (single-threaded by construction): every ring op runs on the OWNING IO thread — arm at
+ * bind (handleClientsFromMainThread, which runs on the IO thread), reap/recycle/re-arm in the
+ * reaper. Teardown clears the fd->client slot under the IO-thread pause (iouRecvDisarm from
+ * fetchClientFromIOThread / unbindClientFromIOThreadEventLoop) so a freed client is never
+ * dereferenced; a per-arm generation in the CQE user_data rejects stale completions after fd
+ * reuse. The epoll read handler is LEFT installed as a harmless fallback (multishot drains the
+ * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every THredis read
+ * invariant intact. Perf is network-bound (≈neutral on loopback); this lands the infrastructure
+ * for a real-NIC / EPYC evaluation. */
+#define IOU_RECV_NBUFS   512               /* provided buffers per IO thread (power of two) */
+#define IOU_RECV_BUFSZ   PROTO_IOBUF_LEN   /* 16K each — matches the epoll read size */
+#define IOU_RECV_BGID    7                 /* buffer group id (distinct from the send ring) */
+#define IOU_RECV_DEPTH   2048
+
+typedef struct iouRecvSlot { client *c; uint32_t gen; } iouRecvSlot;
+typedef struct iouRecvState {
+    struct io_uring ring;
+    struct io_uring_buf_ring *br;
+    unsigned char *bufmem;     /* IOU_RECV_NBUFS * IOU_RECV_BUFSZ */
+    int efd;                   /* eventfd registered with the ring; read side lives in the el */
+    int brmask;
+    int state;                 /* 0 uninit, 1 ready, -1 failed */
+    uint32_t gen;              /* monotonically increasing arm generation */
+    iouRecvSlot *fdmap;        /* indexed by fd */
+    int fdcap;
+} iouRecvState;
+static iouRecvState iouRecvs[MY_IO_THREADS_MAX + 1];
+
+/* Recycle one consumed buffer back to the provided ring. */
+static inline void iouRecvProvide(iouRecvState *st, int bid) {
+    io_uring_buf_ring_add(st->br, st->bufmem + (size_t)bid * IOU_RECV_BUFSZ, IOU_RECV_BUFSZ,
+                          (unsigned short)bid, st->brmask, 0);
+    io_uring_buf_ring_advance(st->br, 1);
+}
+
+/* Prep (without submitting) a multishot recv for fd, carrying the current generation. */
+static void iouRecvPrepArm(iouRecvState *st, int fd) {
+    struct io_uring_sqe *sqe = io_uring_get_sqe(&st->ring);
+    if (!sqe) { io_uring_submit(&st->ring); sqe = io_uring_get_sqe(&st->ring); if (!sqe) return; }
+    io_uring_prep_recv_multishot(sqe, fd, NULL, 0, 0);
+    sqe->flags |= IOSQE_BUFFER_SELECT;
+    sqe->buf_group = IOU_RECV_BGID;
+    io_uring_sqe_set_data64(sqe, ((uint64_t)st->fdmap[fd].gen << 32) | (uint32_t)fd);
+}
+
+/* Append a kernel-delivered chunk to the client's querybuf and run the normal parse/dispatch.
+ * Mirrors the post-read tail of readQueryFromClient(). Returns 1 if the client is still alive,
+ * 0 if it was scheduled for (async) free — the caller must then drop it from the fd map. */
+static int iouRecvDeliver(client *c, const char *data, int len) {
+    /* Real IO-thread clients are never CLIENT_WORKER_PENDING (only fakes are), but be defensive:
+     * just buffer the bytes and let a later pass parse them. */
+    if (c->flags & CLIENT_WORKER_PENDING) {
+        if (!c->querybuf) c->querybuf = sdsempty();
+        c->querybuf = sdscatlen(c->querybuf, data, len);
+        return 1;
+    }
+    if (!c->querybuf) c->querybuf = sdsempty();
+    c->querybuf = sdscatlen(c->querybuf, data, len);
+    size_t qblen = sdslen(c->querybuf);
+    if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+    c->io_lastinteraction = server.unixtime;
+    atomicIncr(server.stat_net_input_bytes, len);
+    c->net_input_bytes += len;
+    atomicIncr(server.stat_io_reads_processed[c->running_tid], 1);
+
+    if (!(c->flags & CLIENT_MASTER) &&
+        (c->mstate.argv_len_sums + sdslen(c->querybuf) > server.client_max_querybuf_len ||
+         (c->mstate.argv_len_sums + sdslen(c->querybuf) > 1024*1024 && authRequired(c))))
+    {
+        c->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+        freeClientAsync(c);
+        atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
+        return 0;
+    }
+
+    int alive = 1;
+    if (processInputBuffer(c) == C_ERR) alive = 0;
+    if (alive && isClientReadErrorFatal(c)) {
+        if (c->running_tid == IOTHREAD_MAIN_THREAD_ID) handleClientReadError(c);
+    }
+    if (alive) beforeNextClient(c);
+    return alive;
+}
+
+/* The eventfd readable handler, registered on the IO thread's event loop. Runs on the IO thread. */
+static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rmask) {
+    UNUSED(el); UNUSED(privdata); UNUSED(rmask);
+    iouRecvState *st = &iouRecvs[iotid];
+    if (st->state != 1) return;
+
+    /* Drain the eventfd counter (edge cases coalesce; we scan the whole CQ regardless). */
+    uint64_t cnt; while (read(efd, &cnt, sizeof(cnt)) == (ssize_t)sizeof(cnt)) {}
+
+    struct io_uring_cqe *cqe;
+    unsigned head;
+    int reaped = 0, rearmed = 0;
+    io_uring_for_each_cqe(&st->ring, head, cqe) {
+        reaped++;
+        uint64_t ud = io_uring_cqe_get_data64(cqe);
+        int fd = (int)(ud & 0xffffffff);
+        uint32_t gen = (uint32_t)(ud >> 32);
+        int res = cqe->res;
+        int have_buf = (cqe->flags & IORING_CQE_F_BUFFER) != 0;
+        int bid = have_buf ? (int)(cqe->flags >> IORING_CQE_BUFFER_SHIFT) : -1;
+        int more = (cqe->flags & IORING_CQE_F_MORE) != 0;
+
+        client *c = NULL;
+        if (fd >= 0 && fd < st->fdcap && st->fdmap[fd].c && st->fdmap[fd].gen == gen)
+            c = st->fdmap[fd].c;
+
+        if (res > 0) {
+            if (c && have_buf) {
+                if (!iouRecvDeliver(c, (char *)st->bufmem + (size_t)bid * IOU_RECV_BUFSZ, res)) {
+                    st->fdmap[fd].c = NULL;  /* client gone — don't re-arm, don't deref again */
+                    c = NULL;
+                }
+            }
+            if (have_buf) iouRecvProvide(st, bid);
+        } else if (res == 0) {
+            if (have_buf) iouRecvProvide(st, bid);
+            if (c) { st->fdmap[fd].c = NULL; c->read_error = CLIENT_READ_CONN_CLOSED; freeClientAsync(c); c = NULL; }
+        } else { /* res < 0 */
+            if (have_buf) iouRecvProvide(st, bid);
+            if (res == -ENOBUFS) {
+                /* provided ring momentarily empty; multishot ended (no F_MORE). We just recycled
+                 * buffers above, so a re-arm below will find space. */
+            } else if (res == -ECANCELED || res == -EINTR) {
+                /* benign termination — re-arm if the client is still mapped */
+            } else if (c) {
+                st->fdmap[fd].c = NULL; c->read_error = CLIENT_READ_CONN_DISCONNECTED; freeClientAsync(c); c = NULL;
+            }
+        }
+
+        /* Multishot terminated (kernel cleared F_MORE): re-arm if the client is still active. */
+        if (!more && fd >= 0 && fd < st->fdcap && st->fdmap[fd].c && st->fdmap[fd].gen == gen) {
+            iouRecvPrepArm(st, fd);
+            rearmed++;
+        }
+    }
+    if (reaped) io_uring_cq_advance(&st->ring, reaped);
+    if (rearmed) io_uring_submit(&st->ring);
+}
+
+/* Lazily build the per-thread recv ring + provided buffer ring + eventfd, and register the
+ * eventfd's read side with the IO thread's event loop. Returns the eventfd or -1 on failure.
+ * Idempotent: after the first success it just returns the cached eventfd. */
+int iouRecvEnsure(int t, struct aeEventLoop *el) {
+    iouRecvState *st = &iouRecvs[t];
+    if (st->state == 1) return st->efd;
+    if (st->state == -1) return -1;
+    serverLog(LL_NOTICE, "v12-G: initializing multishot-recv ring on IO thread %d", t);
+
+    /* The recv ring is EVENTFD-driven (the kernel signals an eventfd on each CQE, which wakes the
+     * IO thread's epoll loop) — it is NOT submission-heavy, so SQPOLL buys nothing here and in fact
+     * regressed throughput AND corrupted multi-chunk (>16K) reads in testing. So the recv ring is
+     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring. */
+    int rc = io_uring_queue_init(IOU_RECV_DEPTH, &st->ring, 0);
+    if (rc < 0) { serverLog(LL_WARNING,"v12-G: recv ring queue_init failed on IO thread %d: %s", t, strerror(-rc)); st->state = -1; return -1; }
+
+    int ret = 0;
+    st->br = io_uring_setup_buf_ring(&st->ring, IOU_RECV_NBUFS, IOU_RECV_BGID, 0, &ret);
+    if (!st->br) { serverLog(LL_WARNING,"v12-G: setup_buf_ring failed on IO thread %d: %s", t, strerror(ret<0?-ret:ret)); io_uring_queue_exit(&st->ring); st->state = -1; return -1; }
+    st->brmask = io_uring_buf_ring_mask(IOU_RECV_NBUFS);
+    st->bufmem = zmalloc((size_t)IOU_RECV_NBUFS * IOU_RECV_BUFSZ);
+    for (int i = 0; i < IOU_RECV_NBUFS; i++)
+        io_uring_buf_ring_add(st->br, st->bufmem + (size_t)i * IOU_RECV_BUFSZ, IOU_RECV_BUFSZ,
+                              (unsigned short)i, st->brmask, i);
+    io_uring_buf_ring_advance(st->br, IOU_RECV_NBUFS);
+
+    st->efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (st->efd < 0 || io_uring_register_eventfd(&st->ring, st->efd) < 0) {
+        serverLog(LL_WARNING,"v12-G: eventfd register failed on IO thread %d (efd=%d)", t, st->efd);
+        if (st->efd >= 0) close(st->efd);
+        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
+    }
+    if (aeCreateFileEvent(el, st->efd, AE_READABLE, iouRecvReap, NULL) != AE_OK) {
+        serverLog(LL_WARNING,"v12-G: aeCreateFileEvent(efd) failed on IO thread %d", t);
+        close(st->efd);
+        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
+    }
+
+    st->fdcap = server.maxclients + CONFIG_FDSET_INCR;
+    st->fdmap = zcalloc((size_t)st->fdcap * sizeof(iouRecvSlot));
+    st->gen = 0;
+    st->state = 1;
+    serverLog(LL_NOTICE, "v12-G: io_uring multishot-recv ring ready on IO thread %d (efd=%d, %d bufs)",
+              t, st->efd, IOU_RECV_NBUFS);
+    return st->efd;
+}
+
+/* Arm a multishot recv for a freshly-bound IO-thread client. Runs on the IO thread. */
+void iouRecvArm(client *c) {
+    iouRecvState *st = &iouRecvs[iotid];
+    if (st->state != 1 || !c->conn) return;
+    int fd = c->conn->fd;
+    if (fd < 0 || fd >= st->fdcap) return;
+    st->fdmap[fd].c = c;
+    st->fdmap[fd].gen = ++st->gen;
+    iouRecvPrepArm(st, fd);
+    io_uring_submit(&st->ring);
+}
+
+/* Drop fd from the recv map. Called under the IO-thread pause during teardown/migration, so it
+ * cannot race the reaper. The kernel terminates the multishot when the fd is finally closed;
+ * any straggler CQE finds a NULL slot (or a stale generation) and is ignored. */
+void iouRecvDisarm(int t, int fd) {
+    iouRecvState *st = &iouRecvs[t];
+    if (st->state != 1 || fd < 0 || fd >= st->fdcap) return;
+    st->fdmap[fd].c = NULL;
 }
 #endif /* HAVE_LIBURING */
 
