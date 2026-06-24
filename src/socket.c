@@ -192,10 +192,14 @@ static int connSocketAccept(connection *conn, ConnectionCallbackFunc accept_hand
 #ifdef TCP_QUICKACK
         int qa = 1; setsockopt(conn->fd, IPPROTO_TCP, TCP_QUICKACK, &qa, sizeof(qa));
 #endif
-#ifdef SO_BUSY_POLL
-        int bp = 50; setsockopt(conn->fd, SOL_SOCKET, SO_BUSY_POLL, &bp, sizeof(bp));
-#endif
     }
+#ifdef SO_BUSY_POLL
+    /* SEPARATE knob: SO_BUSY_POLL burns CPU busy-polling the socket; on a fully-packed core layout it
+     * steals cycles from the worker/IO threads and regressed v12 throughput. Off by default. */
+    if (server.os_busypoll && conn->fd >= 0) {
+        int bp = 50; setsockopt(conn->fd, SOL_SOCKET, SO_BUSY_POLL, &bp, sizeof(bp));
+    }
+#endif
 
     connIncrRefs(conn);
     if (!callHandler(conn, accept_handler)) ret = C_ERR;
