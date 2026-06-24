@@ -21,6 +21,10 @@
 #include "fmtargs.h"
 #include "cluster_asm.h"
 #include "memory_prefetch.h"
+#ifdef HAVE_LIBURING
+#include <liburing.h>
+#include <sys/socket.h>   /* MSG_DONTWAIT for the io_uring batched-send path */
+#endif
 #include "connection.h"
 #include <sys/socket.h>
 #include <sys/uio.h>
@@ -3237,7 +3241,94 @@ void sendReplyToClient(connection *conn) {
  * we can just write the replies to the client output buffer without any
  * need to use a syscall in order to install the writable event handler,
  * get it called, and so forth. */
+#ifdef HAVE_LIBURING
+/* ee451 (v11-B): fresh, purpose-built io_uring batched-SEND path for the reply flush. One
+ * io_uring ring per IO thread (lazily initialized). For every pending-write client whose entire
+ * reply is in the contiguous static buffer (c->buf; no reply list, not encoded, not a slave
+ * stream), we prep ONE io_uring_prep_send and submit the whole pending set with a SINGLE
+ * io_uring_submit -- one enter syscall for N sends instead of N write() syscalls. Completions are
+ * reaped synchronously (a send to a ready socket completes immediately; MSG_DONTWAIT makes a full
+ * socket buffer return -EAGAIN rather than block the ring). Anything outside the fast path (reply
+ * list / encoded buffer / slave / no conn / SQ full) falls back to the normal writeToClient().
+ * Runtime-gated by server.io_uring_net (default off => epoll); epoll path fully intact. */
+#define IOU_RING_DEPTH 1024
+static struct io_uring iouRings[MY_IO_THREADS_MAX + 1];
+static int iouRingState[MY_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
+
+static int iouEnsureRing(int t) {
+    if (iouRingState[t] == 1) return 1;
+    if (iouRingState[t] == -1) return 0;
+    if (io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0) < 0) { iouRingState[t] = -1; return 0; }
+    iouRingState[t] = 1;
+    return 1;
+}
+
+static int handleClientsWithPendingWritesUring(void) {
+    int t = iotid;
+    struct io_uring *ring = &iouRings[t];
+    int processed = listLength(server.clients_pending_write[t]);
+    listIter li; listNode *ln;
+    int n_submitted = 0;
+
+    listRewind(server.clients_pending_write[t], &li);
+    while ((ln = listNext(&li))) {
+        client *c = listNodeValue(ln);
+        if (c->flags & CLIENT_SLAVE && c->tid != IOTHREAD_MAIN_THREAD_ID) continue;
+        c->flags &= ~CLIENT_PENDING_WRITE;
+        listUnlinkNode(server.clients_pending_write[t], ln);
+        if (c->flags & CLIENT_PROTECTED) continue;
+        if (c->flags & CLIENT_CLOSE_ASAP) continue;
+        if (server.io_threads_num > 1 && !(c->flags & CLIENT_CLOSE_AFTER_REPLY) &&
+            c->tid == IOTHREAD_MAIN_THREAD_ID && !isClientMustHandledByMainThread(c)) {
+            assignClientToIOThread(c);
+            continue;
+        }
+        struct io_uring_sqe *sqe;
+        if (c->conn && c->conn->fd >= 0 && listLength(c->reply) == 0 && c->bufpos > 0 &&
+            !c->buf_encoded && !(c->flags & CLIENT_SLAVE) && n_submitted < IOU_RING_DEPTH &&
+            (sqe = io_uring_get_sqe(ring)) != NULL)
+        {
+            io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen,
+                               c->bufpos - c->sentlen, MSG_DONTWAIT);
+            io_uring_sqe_set_data(sqe, c);
+            n_submitted++;
+            continue;
+        }
+        /* Fallback: normal synchronous write for this client. */
+        if (writeToClient(c, 0) == C_ERR) continue;
+        if (clientHasPendingReplies(c)) installClientWriteHandler(c);
+    }
+
+    if (n_submitted > 0) {
+        io_uring_submit(ring);
+        for (int i = 0; i < n_submitted; i++) {
+            struct io_uring_cqe *cqe = NULL;
+            if (io_uring_wait_cqe(ring, &cqe) < 0 || cqe == NULL) break;
+            client *c = io_uring_cqe_get_data(cqe);
+            int res = cqe->res;
+            io_uring_cqe_seen(ring, cqe);
+            if (c == NULL) continue;
+            if (res > 0) {
+                c->sentlen += (size_t)res;
+                if (c->sentlen >= c->bufpos) { c->bufpos = 0; c->sentlen = 0; }
+                else installClientWriteHandler(c);          /* partial send -> finish via epoll */
+            } else if (res == -EAGAIN || res == -EWOULDBLOCK || res == -ENOBUFS || res == -EINTR) {
+                installClientWriteHandler(c);                /* socket buffer full -> retry via epoll */
+            } else {
+                c->conn->last_errno = (res < 0) ? -res : 0;
+                freeClientAsync(c);                          /* hard send error -> close */
+            }
+        }
+    }
+    return processed;
+}
+#endif /* HAVE_LIBURING */
+
 int handleClientsWithPendingWrites(void) {
+#ifdef HAVE_LIBURING
+    if (server.io_uring_net && iouEnsureRing(iotid))
+        return handleClientsWithPendingWritesUring();
+#endif
     listIter li;
     listNode *ln;
     int processed = listLength(server.clients_pending_write[iotid]);
