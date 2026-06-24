@@ -9603,7 +9603,6 @@ int workerQueuePush(workerQueue *q, client *c) {
         if (next_t == q->cached_head) {
             q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
             if (next_t == q->cached_head) {
-                fprintf(stderr, "worker queue full\n");
                 return -1;
             }
         }
@@ -9615,7 +9614,6 @@ int workerQueuePush(workerQueue *q, client *c) {
          * <= true head (head is monotonic), preserving the full-check invariant. */
         q->cached_head = h;
         if (next_t == h) {
-            fprintf(stderr, "worker queue full\n");
             return -1;
         }
     }
@@ -9704,8 +9702,15 @@ void queueToWorker(client *c, int worker_id) {
     c->flags |= CLIENT_WORKER_PENDING;
     connSetReadHandler(c->conn, NULL);
     listAddNodeTail(server.clients_pending_worker[iotid], c);
-    workerQueuePush(&server.workers[worker_id].queues[iotid], c);
-
+    /* ee451 (v11 hang fix): spin-on-full backpressure (see v11 server.c). The old code dropped the
+     * command on a full worker queue -> client hang ("worker queue full"). */
+    workerQueue *q = &server.workers[worker_id].queues[iotid];
+    int spins = 0;
+    while (workerQueuePush(q, c) != 0) {
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        workerPauseCpu();
+        if ((++spins & 4095) == 0) sched_yield();
+    }
 }
 
 /* ee451: Pipelined prefetch for a batch of fakes about to execute on a worker.
