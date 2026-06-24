@@ -3271,6 +3271,11 @@ void sendReplyToClient(connection *conn) {
  * list / encoded buffer / slave / no conn / SQ full) falls back to the normal writeToClient().
  * Runtime-gated by server.io_uring_net (default off => epoll); epoll path fully intact. */
 #define IOU_RING_DEPTH 1024
+/* v12-H: zero-copy send only kicks in at/above this reply size — below it the per-send buffer pin
+ * + the extra notification CQE cost more than the copy SEND_ZC avoids. The send ring's fast path is
+ * limited to replies that fit the static buf (PROTO_REPLY_CHUNK_BYTES = 16K; larger replies use the
+ * reply-list/writeToClient fallback), so ZC here targets mid-size (4–16K) static-buf replies. */
+#define IOU_ZC_MIN_BYTES 4096
 static struct io_uring iouRings[MY_IO_THREADS_MAX + 1];
 static int iouRingState[MY_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
 
@@ -3321,10 +3326,25 @@ static int handleClientsWithPendingWritesUring(void) {
             !c->buf_encoded && !(c->flags & CLIENT_SLAVE) && n_submitted < IOU_RING_DEPTH &&
             (sqe = io_uring_get_sqe(ring)) != NULL)
         {
-            io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen,
-                               c->bufpos - c->sentlen, MSG_DONTWAIT);
+            size_t pend = c->bufpos - c->sentlen;
+            /* v12-H: zero-copy send (gated) for mid-size replies. SEND_ZC hands the kernel a
+             * reference to c->buf instead of copying it, so the buffer must stay valid+unmodified
+             * until the F_NOTIF completion — we defer the c->bufpos reset to that notif (reap loop
+             * below). Only worth it above a threshold (small replies: the copy is cheaper than the
+             * pin + the extra notif CQE), and only for replies that fit the static buf (bigger ones
+             * take the reply-list/writeToClient fallback). zc_flags=0; MSG_DONTWAIT non-blocking. */
+            if (server.io_uring_zc && pend >= IOU_ZC_MIN_BYTES) {
+                io_uring_prep_send_zc(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT, 0);
+                static __thread int zc_logged = 0;
+                if (!zc_logged) { zc_logged = 1;
+                    serverLog(LL_NOTICE, "v12-H: zero-copy send active on IO thread %d (first send=%zu bytes)", t, pend); }
+            } else
+                io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT);
             io_uring_sqe_set_data(sqe, c);
             n_submitted++;
+            { static __thread int snd_logged = 0;
+              if (!snd_logged) { snd_logged = 1;
+                  serverLog(LL_NOTICE, "v12: io_uring SEND ring active on IO thread %d (first submit=%zu bytes)", t, pend); } }
             continue;
         }
         /* Fallback: normal synchronous write for this client. */
@@ -3334,12 +3354,42 @@ static int handleClientsWithPendingWritesUring(void) {
 
     if (n_submitted > 0) {
         io_uring_submit(ring);
-        for (int i = 0; i < n_submitted; i++) {
+        /* Plain SEND posts ONE CQE per request. ZERO-COPY SEND (SEND_ZC) posts TWO: a send-result
+         * CQE with IORING_CQE_F_MORE set, then later an IORING_CQE_F_NOTIF CQE once the kernel is
+         * done with c->buf. So we can't reap a fixed count — we track results + expected notifs
+         * dynamically: every result with F_MORE promises exactly one notif. (If a ZC send fails
+         * early the kernel may post a single result WITHOUT F_MORE, i.e. no notif — handled.) */
+        int results_seen = 0, notifs_expected = 0, notifs_seen = 0;
+        while (results_seen < n_submitted || notifs_seen < notifs_expected) {
             struct io_uring_cqe *cqe = NULL;
             if (io_uring_wait_cqe(ring, &cqe) < 0 || cqe == NULL) break;
             client *c = io_uring_cqe_get_data(cqe);
             int res = cqe->res;
+            unsigned cflags = cqe->flags;
             io_uring_cqe_seen(ring, cqe);
+
+            if (cflags & IORING_CQE_F_NOTIF) {
+                /* ZC completion: c->buf is now free. Apply the deferred reset using the byte count
+                 * the matching send-result already accumulated into c->sentlen. */
+                notifs_seen++;
+                if (c == NULL || c->bufpos == 0) continue;
+                if (c->sentlen >= c->bufpos) { c->bufpos = 0; c->sentlen = 0; }
+                else installClientWriteHandler(c);  /* partial / error / EAGAIN -> finish via epoll */
+                continue;
+            }
+
+            /* A send-result CQE (plain or the first half of a ZC send). */
+            results_seen++;
+            if (cflags & IORING_CQE_F_MORE) {
+                /* ZERO-COPY result: record bytes but DEFER the buffer reset to the F_NOTIF above. */
+                notifs_expected++;
+                if (c && res > 0) c->sentlen += (size_t)res;
+                /* res<=0 (error/EAGAIN): leave sentlen; the notif path routes to epoll, which
+                 * retries the send or surfaces the hard error and frees the client. */
+                continue;
+            }
+
+            /* PLAIN send result — kernel already copied the buffer, reset immediately (as before). */
             if (c == NULL) continue;
             if (res > 0) {
                 c->sentlen += (size_t)res;
