@@ -185,6 +185,18 @@ static int connSocketAccept(connection *conn, ConnectionCallbackFunc accept_hand
     if (conn->state != CONN_STATE_ACCEPTING) return C_ERR;
     conn->state = CONN_STATE_CONNECTED;
 
+    /* v12 OS opts: on the accepted socket, disable delayed ACKs (TCP_QUICKACK) and enable
+     * kernel busy-polling (SO_BUSY_POLL) to cut per-request latency on the read path. Best-effort
+     * (ignore failures); gated by thredis-os-opts. */
+    if (server.os_opts && conn->fd >= 0) {
+#ifdef TCP_QUICKACK
+        int qa = 1; setsockopt(conn->fd, IPPROTO_TCP, TCP_QUICKACK, &qa, sizeof(qa));
+#endif
+#ifdef SO_BUSY_POLL
+        int bp = 50; setsockopt(conn->fd, SOL_SOCKET, SO_BUSY_POLL, &bp, sizeof(bp));
+#endif
+    }
+
     connIncrRefs(conn);
     if (!callHandler(conn, accept_handler)) ret = C_ERR;
     connDecrRefs(conn);

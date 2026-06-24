@@ -2975,6 +2975,8 @@ struct redisServer {
     int opt_fanall;            /* v10-B: fan-to-all-shards reads (KEYS); one sub per worker, concat. default off. */
     int opt_cross_setop;       /* v11-F: cross-shard set-ops (SINTER/SUNION/SDIFF) gather-compute. default off until validated. */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
+    int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
+    int os_opts;               /* v12: OS/Linux opts — SO_BUSY_POLL + TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_auto;            /* master enable for auto resharding (default off) */

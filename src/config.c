@@ -3208,6 +3208,8 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            1, NULL, NULL),
     createBoolConfig("thredis-opt-cross-setop",       NULL, MODIFIABLE_CONFIG, server.opt_cross_setop,       1, NULL, NULL),
     createBoolConfig("thredis-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
+    createBoolConfig("thredis-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
+    createBoolConfig("thredis-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("thredis-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createBoolConfig("thredis-reshard-auto",          NULL, MODIFIABLE_CONFIG, server.reshard_auto,           0, NULL, NULL),
     createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 100, 100000, server.reshard_imbalance_pct,  150,   INTEGER_CONFIG, NULL, NULL),

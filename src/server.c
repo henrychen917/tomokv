@@ -10557,6 +10557,13 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
 
 void initWorkers(void) {
     server.workers = zmalloc(sizeof(workerThread) * server.num_workers);
+    /* v12 OS opt: the workerThread array is large + hot (per-worker queues, freeback rings, predictor
+     * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
+     * gated by thredis-os-opts. */
+#ifdef MADV_HUGEPAGE
+    if (server.os_opts)
+        madvise(server.workers, sizeof(workerThread) * server.num_workers, MADV_HUGEPAGE);
+#endif
     for (int i = 0; i < server.num_workers; i++) {
         server.workers[i].id = i;
         server.workers[i].db = server.worker_dbs[i];

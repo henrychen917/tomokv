@@ -3258,7 +3258,21 @@ static int iouRingState[MY_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=faile
 static int iouEnsureRing(int t) {
     if (iouRingState[t] == 1) return 1;
     if (iouRingState[t] == -1) return 0;
-    if (io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0) < 0) { iouRingState[t] = -1; return 0; }
+    int rc;
+    if (server.io_uring_sqpoll) {
+        /* v12: SQPOLL — a kernel thread polls the SQ, so io_uring_submit() needs NO enter syscall
+         * on the hot path (zero submit syscalls). Falls back to a normal ring if SQPOLL init fails
+         * (needs privileges / kernel support). sq_thread_idle keeps the poller warm 200ms. */
+        struct io_uring_params params;
+        memset(&params, 0, sizeof(params));
+        params.flags = IORING_SETUP_SQPOLL;
+        params.sq_thread_idle = 200;
+        rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
+        if (rc < 0) rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0);
+    } else {
+        rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0);
+    }
+    if (rc < 0) { iouRingState[t] = -1; return 0; }
     iouRingState[t] = 1;
     return 1;
 }
