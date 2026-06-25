@@ -1517,6 +1517,21 @@ typedef struct client {
      * cdbMask is cache-line isolated (S3 subsumed: even reply_cdb[0] owns its line).
      * With multi-cdb OFF, num_cdb==1 and only [0] is used. */
     cdbMask reply_cdb[NUM_CDB_MAX];
+    /* ee451 (v12-K): worker-direct in-order send-back state (real client; used ONLY when
+     * server.worker_direct_send is on — all fields are dead/0 on the default path).
+     * wds_busy is the single-owner token + single-outstanding flag combined: a worker CASes it
+     * 0->1 to become the sole committer for this client, builds an IOSQE_IO_HARDLINK send chain
+     * for the contiguous ready prefix [flushid, wds_sent_upto) on ITS OWN ring, and holds it
+     * (busy==1) until that worker reaps the pass's send CQEs — only then does it advance flushid,
+     * clear busy, and re-scan. So at most one worker ever sends to this client's fd, and a client's
+     * in-flight sends always live on exactly one ring (the owner's) => per-connection FIFO with no
+     * cross-ring race. wds_gen is bumped on free so a late CQE after fd reuse is rejected (mirror of
+     * the v12-G recv-ring gen). Lives right after reply_cdb so it shares the isolated-mask region;
+     * cache-line isolation is provided by the aligned field that follows the mask block. */
+    redisAtomic uint32_t wds_busy;     /* 0=idle, 1=owned by a committer worker (building or in-flight) */
+    uint32_t wds_gen;                  /* generation; SQE user_data carries it; reaper drops stale CQEs */
+    unsigned int wds_sent_upto;        /* committer has submitted sends for ring slots [flushid, wds_sent_upto) */
+    int wds_inflight;                  /* outstanding send count for THIS client (freeClient defers while >0) */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
      * stamped once at preallocation. Unused on real clients. */
     unsigned int fake_slot;
@@ -4988,6 +5003,9 @@ void *workerThreadMain(void *arg);
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
 void iouRecvArm(client *c);                       /* arm multishot recv for a freshly-bound IO-thread client */
 void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (teardown, under IO-thread pause) */
+/* v12-K: worker-direct send-back per-worker ring (gated by server.worker_direct_send). */
+int wdsEnsureRing(int wid);                       /* lazily build worker wid's send ring; 1 on success */
+struct io_uring *wdsRingOf(int wid);              /* the worker's ring (NULL if not ready) — for the commit/reap protocol */
 #endif
 void initWorkers(void);
 void handleWorkerReplies(void);

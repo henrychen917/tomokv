@@ -417,6 +417,12 @@ client *createClient(connection *conn) {
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
     c->flushid = 0;
+    /* ee451 (v12-K): worker-direct send-back state (idle until a worker claims it; gen starts 1 so
+     * 0 can be a never-armed sentinel in SQE user_data). Dead on the default path. */
+    atomic_store_explicit(&c->wds_busy, 0, memory_order_relaxed);
+    c->wds_gen = 1;
+    c->wds_sent_upto = 0;
+    c->wds_inflight = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -3627,6 +3633,45 @@ void iouRecvDisarm(int t, int fd) {
     iouRecvState *st = &iouRecvs[t];
     if (st->state != 1 || fd < 0 || fd >= st->fdcap) return;
     st->fdmap[fd].c = NULL;
+}
+
+/* ===== v12-K: worker-direct in-order send-back — per-worker send ring (gated, default off) =====
+ * The deepest io_uring integration: when server.worker_direct_send is on, the worker that commits a
+ * client's in-order head slot sends the contiguous ready reply prefix directly via ITS OWN io_uring
+ * ring (one IOSQE_IO_HARDLINK chain per client pass), so the IO thread never splices/writes the
+ * reply — eliminating the CDB-notify -> IO-thread-drain -> writeToClient hop. This file owns only the
+ * RING object + raw submit/reap primitives; the commit-token protocol, the contiguous-prefix walk,
+ * and the CQE-driven retirement (advance flushid, commandProcessed) live in server.c next to the
+ * existing drain logic they mirror. Rings use SINGLE_ISSUER|CLAMP|DEFER_TASKRUN (paper GL3: DeferTR
+ * is the recommended low-jitter mode and is LEGAL here because each worker exclusively owns its ring
+ * — the very thing PostgreSQL's shared-ring multi-process model could not do). Lifetime/ordering are
+ * the crash-prone surface (deferred retirement under churn), so this lands gated, default-off, with
+ * the legacy CDB-drain path byte-identical when off, and must clear ASAN churn + pipeline-order gates
+ * before any promotion. */
+#define WDS_RING_DEPTH 2048
+static struct io_uring wdsRings[MY_WORKER_THREADS_MAX];
+static int wdsRingState[MY_WORKER_THREADS_MAX];   /* 0=uninit, 1=ready, -1=failed */
+
+/* Lazily build worker `wid`'s send ring. Called once at worker-thread start when the knob is on.
+ * Falls back to a plain ring if DEFER_TASKRUN/SINGLE_ISSUER aren't available. Returns 1 on success. */
+int wdsEnsureRing(int wid) {
+    if (wid < 0 || wid >= MY_WORKER_THREADS_MAX) return 0;
+    if (wdsRingState[wid] == 1) return 1;
+    if (wdsRingState[wid] == -1) return 0;
+    struct io_uring_params p;
+    memset(&p, 0, sizeof(p));
+    p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_CLAMP | IORING_SETUP_DEFER_TASKRUN;
+    int rc = io_uring_queue_init_params(WDS_RING_DEPTH, &wdsRings[wid], &p);
+    if (rc < 0) rc = io_uring_queue_init(WDS_RING_DEPTH, &wdsRings[wid], 0);  /* fallback: plain ring */
+    if (rc < 0) { wdsRingState[wid] = -1; return 0; }
+    wdsRingState[wid] = 1;
+    serverLog(LL_NOTICE, "v12-K: worker-direct send ring ready on worker %d (DeferTR+single-issuer)", wid);
+    return 1;
+}
+
+/* Raw ring accessors used by the server.c commit/reap protocol. */
+struct io_uring *wdsRingOf(int wid) {
+    return (wid >= 0 && wid < MY_WORKER_THREADS_MAX && wdsRingState[wid] == 1) ? &wdsRings[wid] : NULL;
 }
 #endif /* HAVE_LIBURING */
 
