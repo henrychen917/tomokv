@@ -13,6 +13,9 @@
  */
 
 #include "server.h"
+#ifdef HAVE_LIBURING
+#include <liburing.h>   /* v12-K: worker-direct send-back uses io_uring sends from the worker loop */
+#endif
 #include "monotonic.h"
 #include "cluster.h"
 #include "cluster_slot_stats.h"

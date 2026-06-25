@@ -1532,6 +1532,8 @@ typedef struct client {
     uint32_t wds_gen;                  /* generation; SQE user_data carries it; reaper drops stale CQEs */
     unsigned int wds_sent_upto;        /* committer has submitted sends for ring slots [flushid, wds_sent_upto) */
     int wds_inflight;                  /* outstanding send count for THIS client (freeClient defers while >0) */
+    int wds_aborted;                   /* a send in the current pass errored; stop retiring, drain CQEs, then free/handback */
+    int wds_close_needed;              /* worker hit a send error; the IO thread frees this client (worker can't — per-iotid close list) */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
      * stamped once at preallocation. Unused on real clients. */
     unsigned int fake_slot;

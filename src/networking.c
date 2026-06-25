@@ -419,10 +419,12 @@ client *createClient(connection *conn) {
     c->flushid = 0;
     /* ee451 (v12-K): worker-direct send-back state (idle until a worker claims it; gen starts 1 so
      * 0 can be a never-armed sentinel in SQE user_data). Dead on the default path. */
-    atomic_store_explicit(&c->wds_busy, 0, memory_order_relaxed);
+    c->wds_busy = 0;
     c->wds_gen = 1;
     c->wds_sent_upto = 0;
     c->wds_inflight = 0;
+    c->wds_aborted = 0;
+    c->wds_close_needed = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
