@@ -2978,6 +2978,8 @@ struct redisServer {
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
     int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
     int io_uring_zc;           /* v12-H: io_uring ZERO-COPY SEND (IORING_OP_SEND_ZC) for mid-size static-buf replies. requires io_uring_net. default off. */
+    int worker_direct_send;    /* v12-K: IO-thread-free worker-direct in-order io_uring send-back (per-worker ring, head-ownership token). default off; legacy CDB-drain reply path when off. */
+    int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */

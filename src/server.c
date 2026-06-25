@@ -2062,9 +2062,19 @@ void handleWorkerReplies(void) {
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
-            /* writeToClient returning C_ERR means the conn errored; it calls
-             * freeClientAsync(real) internally. We just stop touching real. */
-            (void)writeToClient(real, 0);
+            /* v12-J: route the worker-reply flush through the io_uring batched SEND ring instead
+             * of a direct per-client writeToClient. The IO thread STAYS the sole fd-writer (no new
+             * lifetime surface — unlike v12-K); we just defer the spliced reply onto this IO
+             * thread's clients_pending_write list, which handleClientsWithPendingWrites() (called
+             * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
+             * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
+             * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
+            if (server.io_uring_reply_send)
+                putClientInPendingWriteQueue(real);
+            else
+                /* writeToClient returning C_ERR means the conn errored; it calls
+                 * freeClientAsync(real) internally. We just stop touching real. */
+                (void)writeToClient(real, 0);
         }
 
         /* Ring fully drained and all ready bits consumed — drop off the
