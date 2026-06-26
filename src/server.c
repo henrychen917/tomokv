@@ -1907,6 +1907,11 @@ static inline uint32_t cdbCombinedMask(client *real) {
     return m;
 }
 
+#ifdef HAVE_LIBURING
+static inline int robqPush(workerQueue *q, client *c);  /* uring-threestage: defined with the ROB thread below */
+static int robDbg; static long robDbgSkip; static long robcFallback;  /* uring-threestage: debug tracing (defined below) */
+#endif
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -1958,6 +1963,22 @@ void handleWorkerReplies(void) {
             }
             continue;
         }
+
+#ifdef HAVE_LIBURING
+        /* uring-threestage: this client's reassembled real->buf is currently being sent by the ROB
+         * thread (ts_inflight) — do NOT splice more into it; skip and re-drain next pass (the ROB clears
+         * ts_inflight + resets bufpos when the send CQE lands). If the ROB hit a send error, free here
+         * (on the IO thread — the correct per-iotid close context; the ROB can't). */
+        if (server.uring_threestage && iotid >= 1 && iotid < server.my_io_threads) {
+            if (real->ts_close_needed) { real->ts_close_needed = 0; freeClientAsync(real); continue; }
+            if (__atomic_load_n(&real->ts_inflight, __ATOMIC_ACQUIRE)) {
+                if (robDbg) { __atomic_fetch_add(&robDbgSkip, 1, __ATOMIC_RELAXED);
+                    fprintf(stderr, "[IO %d] SKIP-inflight real=%p flushid=%u dispatchid=%u\n",
+                            iotid, (void*)real, real->flushid, real->dispatchid); }
+                continue;
+            }
+        }
+#endif
 
         /* Snapshot the ready-mask once per pass. Acquire pairs with the
          * workers' release on bit set, so all of each ready fake's reply
@@ -2066,13 +2087,37 @@ void handleWorkerReplies(void) {
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
-            /* v12-J: route the worker-reply flush through the io_uring batched SEND ring instead
-             * of a direct per-client writeToClient. The IO thread STAYS the sole fd-writer (no new
-             * lifetime surface — unlike v12-K); we just defer the spliced reply onto this IO
-             * thread's clients_pending_write list, which handleClientsWithPendingWrites() (called
-             * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
-             * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
-             * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
+#ifdef HAVE_LIBURING
+            /* uring-threestage: hand the reassembled real->buf to this IO thread's ROB thread for the
+             * ASYNC io_uring send, instead of blocking the IO thread on a synchronous send+wait_cqe.
+             * Eligible = reply fully in the static buf (no reply list, not encoded). ts_inflight=1
+             * (release) BEFORE the push so the ROB sees the buffer as owned; the ROB resets bufpos +
+             * clears ts_inflight on the send CQE, after which the IO thread re-splices the next batch.
+             * If robq is full (ROB momentarily behind), fall back to an inline write so we never stall. */
+            if (server.uring_threestage && iotid >= 1 && iotid < server.my_io_threads &&
+                listLength(real->reply) == 0 && real->bufpos > 0 && !real->buf_encoded &&
+                real->conn && real->conn->fd >= 0)
+            {
+                ioThreadArgs *me = &server.ioThreads[iotid];
+                /* The ROB thread is the SOLE sender for this client. AddReplyFromClient ->
+                 * _prepareClientToWrite already queued `real` on this IO thread's
+                 * clients_pending_write; handleClientsWithPendingWrites() runs right after us
+                 * in beforeSleepIO and would writeToClient(real) the same buf, racing the ROB's
+                 * io_uring send (and zeroing bufpos -> the ROB then sends nothing -> the reply
+                 * is lost and the connection stalls). Take `real` off the pending-write queue so
+                 * only the ROB sends it. */
+                if (real->flags & CLIENT_PENDING_WRITE) {
+                    listUnlinkNode(server.clients_pending_write[iotid], &real->clients_pending_write_node);
+                    real->flags &= ~CLIENT_PENDING_WRITE;
+                }
+                __atomic_store_n(&real->ts_inflight, 1, __ATOMIC_RELEASE);
+                if (!robqPush(&me->robq, real)) {                 /* ROB queue full -> inline fallback */
+                    if (robDbg) __atomic_fetch_add(&robcFallback, 1, __ATOMIC_RELAXED);
+                    __atomic_store_n(&real->ts_inflight, 0, __ATOMIC_RELAXED);
+                    (void)writeToClient(real, 0);
+                }
+            } else
+#endif
             if (server.io_uring_reply_send)
                 putClientInPendingWriteQueue(real);
             else
@@ -10611,17 +10656,137 @@ void initWorkers(void) {
 
 
 #ifdef HAVE_LIBURING
-/* uring-threestage: one ROB/submit thread per IO thread. Chunk 1 = skeleton (spawns + idle; the IO
- * thread still drains replies via handleWorkerReplies, so behavior is unchanged — this just validates
- * the spawn + struct plumbing). Chunk 2 will move the in-order reassemble + io_uring send + reap here. */
+/* ===== uring-threestage Chunk 2: the ROB thread is a pure ASYNC io_uring SEND executor =====
+ * The IO thread still does ALL the in-order reassembly + retire (handleWorkerReplies, exactly the v12-J
+ * flow — so flushid/cross-shard/STALLED-resume stay single-threaded on the IO thread; NO token, NO
+ * cross-thread reorder). When it has coalesced a client's ready replies into real->buf, instead of the
+ * v12-J SYNCHRONOUS io_uring send+wait_cqe (which blocks the IO thread until the send completes), it sets
+ * ts_inflight=1 and hands the client to its ROB thread via robq. The ROB thread loops tightly: pop robq,
+ * io_uring_prep_send(real->buf), submit, reap (get_events) — and on completion clears real->bufpos +
+ * ts_inflight so the IO thread can reassemble the next batch. So the only thing offloaded is the blocking
+ * send+reap; that frees the IO thread from waiting on the NIC. real->buf is single-owner via ts_inflight
+ * (IO writes it only when ts_inflight==0; ROB reads it while ts_inflight==1, resets it, then clears). */
+static struct io_uring robRings[MY_IO_THREADS_MAX];
+static int robRingState[MY_IO_THREADS_MAX];      /* 0=uninit,1=ready,-1=failed */
+static int robOutstanding[MY_IO_THREADS_MAX];    /* submitted-not-reaped sends on this ROB ring */
+static int robDbg = 0;                            /* TS_ROB_DBG env -> verbose ROB tracing */
+static long robDbgPop = 0, robDbgStale = 0, robDbgSkip = 0;
+/* aggregate ROB event counters (RELAXED; debug only) */
+static long robcSend=0, robcFull=0, robcPartial=0, robcEagain=0, robcErr=0, robcNosend=0, robcExhaust=0, robcFallback=0, robcRetry=0;
+
+/* SPSC handoff: IO thread (producer) -> ROB thread (consumer). Immediate-publish (no staging). */
+static inline int robqPush(workerQueue *q, client *c) {
+    unsigned int tail = q->tail;                                   /* producer-owned */
+    unsigned int head = __atomic_load_n(&q->head, __ATOMIC_ACQUIRE);
+    if ((tail - head) >= (unsigned int)server.my_worker_queue_size) return 0;  /* full -> caller falls back */
+    q->jobs[tail & server.my_worker_queue_mask] = c;
+    __atomic_store_n(&q->tail, tail + 1, __ATOMIC_RELEASE);
+    return 1;
+}
+static inline client *robqPop(workerQueue *q) {
+    unsigned int head = q->head;                                   /* consumer-owned */
+    if (head == __atomic_load_n(&q->tail, __ATOMIC_ACQUIRE)) return NULL;
+    client *c = q->jobs[head & server.my_worker_queue_mask];
+    __atomic_store_n(&q->head, head + 1, __ATOMIC_RELEASE);
+    return c;
+}
+
+static int robEnsureRing(int id) {
+    if (id < 0 || id >= MY_IO_THREADS_MAX) return 0;
+    if (robRingState[id] == 1) return 1;
+    if (robRingState[id] == -1) return 0;
+    /* plain ring (not DeferTR — DeferTR defers send progress to the owning thread's enter, which the
+     * v12-K experience showed stalls under load; a plain ring lets the kernel progress sends + post CQEs
+     * independently, and io_uring_get_events still reaps). */
+    if (io_uring_queue_init(2048, &robRings[id], 0) < 0) { robRingState[id] = -1; return 0; }
+    robRingState[id] = 1;
+    return 1;
+}
+
 void *robThreadMain(void *arg) {
     ioThreadArgs *t = (ioThreadArgs *)arg;
-    iotid = t->id;   /* Chunk 1: idle, shares the IO thread's id; finalized with the drain in Chunk 2 */
-    serverLog(LL_NOTICE, "uring-threestage: ROB thread for IO thread %d started (skeleton)", t->id);
+    int id = t->id;
+    iotid = id;   /* the send-only ROB touches no per-iotid arrays; set for clarity only */
+    if (!robEnsureRing(id)) { serverLog(LL_WARNING, "uring-threestage: ROB ring init failed (IO thread %d)", id); return NULL; }
+    if (getenv("TS_ROB_DBG")) robDbg = 1;
+    serverLog(LL_NOTICE, "uring-threestage: ROB send thread for IO thread %d ready (dbg=%d)", id, robDbg);
+    struct io_uring *ring = &robRings[id];
+    int spins = 0;
     while (1) {
-        /* Chunk 2: drain robq -> splice ready prefix into real->buf -> io_uring send -> reap CQEs ->
-         * retire (flushid++/commandProcessed/clear cdb/replyWorking--) -> push un-stalled to resumeq. */
-        usleep(1000);
+        int did = 0;
+        /* (1) pop ready clients + prep one send each */
+        client *c;
+        while ((c = robqPop(&t->robq)) != NULL) {
+            if (robDbg) __atomic_fetch_add(&robDbgPop, 1, __ATOMIC_RELAXED);
+            /* Eligibility check FIRST — before reserving an SQE. Reserving an SQE
+             * (io_uring_get_sqe advances the SQ tail) and then `continue`ing without
+             * prepping it leaks an unprepped SQE: io_uring_submit dispatches it as an
+             * IORING_OP_NOP (opcode 0) that completes with res=0/user_data=0, and the
+             * reap loop's robOutstanding-- for that phantom CQE desyncs the outstanding
+             * count -> the reap gate gets skipped while real send CQEs are pending ->
+             * ts_inflight stuck at 1 -> the client hangs. */
+            if (!c->conn || c->conn->fd < 0 || c->bufpos <= c->sentlen) {
+                if (robDbg) __atomic_fetch_add(&robcNosend, 1, __ATOMIC_RELAXED);
+                __atomic_store_n(&c->ts_inflight, 0, __ATOMIC_RELEASE);  /* nothing to send -> release */
+                continue;
+            }
+            struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+            if (!sqe) {                                  /* SQ momentarily full: submit+reap then retry c */
+                io_uring_submit(ring);
+                sqe = io_uring_get_sqe(ring);
+                if (!sqe) {
+                    if (robDbg) __atomic_fetch_add(&robcExhaust, 1, __ATOMIC_RELAXED);
+                    __atomic_store_n(&c->ts_inflight, 0, __ATOMIC_RELEASE); break; } /* let IO retry it */
+            }
+            io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, c->bufpos - c->sentlen, MSG_WAITALL);
+            io_uring_sqe_set_data64(sqe, ((uint64_t)c->ts_gen << 48) | (uint64_t)(uintptr_t)c);
+            if (robDbg) __atomic_fetch_add(&robcSend, 1, __ATOMIC_RELAXED);
+            robOutstanding[id]++;
+            did = 1;
+        }
+        if (did) io_uring_submit(ring);
+        /* (2) reap completions (tight) */
+        if (robOutstanding[id] > 0) {
+            io_uring_get_events(ring);
+            struct io_uring_cqe *cqe; unsigned int head; int seen = 0;
+            io_uring_for_each_cqe(ring, head, cqe) {
+                seen++; robOutstanding[id]--;
+                uint64_t ud = io_uring_cqe_get_data64(cqe);
+                client *rc = (client *)(uintptr_t)(ud & 0x0000FFFFFFFFFFFFULL);
+                uint32_t gen = (uint32_t)(ud >> 48);
+                int res = cqe->res;
+                if (!rc || rc->ts_gen != gen) { if (robDbg) __atomic_fetch_add(&robDbgStale,1,__ATOMIC_RELAXED); continue; }          /* stale CQE after free/reuse: drop */
+                unsigned int want = rc->bufpos - rc->sentlen;
+                if (res >= 0 && (unsigned int)res >= want) {
+                    if (robDbg) __atomic_fetch_add(&robcFull,1,__ATOMIC_RELAXED);
+                    rc->bufpos = 0; rc->sentlen = 0;             /* full send -> buffer free */
+                } else if (res >= 0) {
+                    if (robDbg) __atomic_fetch_add(&robcPartial,1,__ATOMIC_RELAXED);
+                    rc->sentlen += (unsigned int)res;            /* partial (rare w/ MSG_WAITALL) -> IO re-sends remainder */
+                } else if (res == -EAGAIN || res == -EWOULDBLOCK) {
+                    if (robDbg) __atomic_fetch_add(&robcEagain,1,__ATOMIC_RELAXED);
+                } else {
+                    if (robDbg) __atomic_fetch_add(&robcErr,1,__ATOMIC_RELAXED);
+                    rc->ts_close_needed = 1;                     /* socket error -> IO thread frees it */
+                }
+                __atomic_store_n(&rc->ts_inflight, 0, __ATOMIC_RELEASE);  /* IO thread may now re-splice/free */
+                did = 1;
+            }
+            if (seen) io_uring_cq_advance(ring, seen);
+        }
+        if (did) { spins = 0; }
+        else if (++spins < 2000) { for (int p = 0; p < 16; p++) workerPauseCpu(); }
+        else {
+            spins = 0;
+            if (robDbg && id == 1) {   /* only ROB 1 dumps the (shared) aggregate, ~every 50ms idle */
+                static long lastdump = 0; long s = __atomic_load_n(&robcSend, __ATOMIC_RELAXED);
+                if (s != lastdump) { lastdump = s;
+                    fprintf(stderr, "[ROBSTAT] send=%ld full=%ld partial=%ld eagain=%ld err=%ld nosend=%ld exhaust=%ld fallback=%ld stale=%ld skip=%ld outstanding[1..3]=%d,%d,%d\n",
+                        s, robcFull, robcPartial, robcEagain, robcErr, robcNosend, robcExhaust, robcFallback, robDbgStale, robDbgSkip,
+                        robOutstanding[1], robOutstanding[2], robOutstanding[3]); }
+            }
+            usleep(50);
+        }
     }
     return NULL;
 }

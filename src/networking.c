@@ -2531,6 +2531,15 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
+    /* ee451 (uring-threestage): also defer while a ROB io_uring send still references c->buf (the kernel
+     * is reading it; a send CQE carrying this client pointer is pending). The ROB clears ts_inflight at
+     * the CQE, after which this free proceeds. Bump ts_gen on the real free so any straggler CQE after the
+     * client is reused is rejected by the ROB's gen check. */
+    if (!c->isFake && __atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) > 0) {
+        freeClientAsync(c);
+        return;
+    }
+    c->ts_gen++;
 
     /* If the client is running in io thread, we can't free it directly. */
     if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
