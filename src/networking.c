@@ -417,6 +417,12 @@ client *createClient(connection *conn) {
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
     c->flushid = 0;
+    /* ee451 (uring-threestage): ROB-thread state (dead unless the knob is on). gen starts 1 so 0 is a
+     * never-armed sentinel in send user_data. */
+    c->ts_inflight = 0;
+    c->ts_gen = 1;
+    c->ts_close_needed = 0;
+    c->on_robq = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed

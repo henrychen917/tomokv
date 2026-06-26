@@ -13,6 +13,10 @@
  */
 
 #include "server.h"
+#ifdef HAVE_LIBURING
+#include <liburing.h>   /* uring-threestage: the ROB thread issues io_uring reply sends */
+#include <sys/socket.h> /* MSG_WAITALL */
+#endif
 #include "monotonic.h"
 #include "cluster.h"
 #include "cluster_slot_stats.h"
@@ -10606,6 +10610,23 @@ void initWorkers(void) {
 
 
 
+#ifdef HAVE_LIBURING
+/* uring-threestage: one ROB/submit thread per IO thread. Chunk 1 = skeleton (spawns + idle; the IO
+ * thread still drains replies via handleWorkerReplies, so behavior is unchanged — this just validates
+ * the spawn + struct plumbing). Chunk 2 will move the in-order reassemble + io_uring send + reap here. */
+void *robThreadMain(void *arg) {
+    ioThreadArgs *t = (ioThreadArgs *)arg;
+    iotid = t->id;   /* Chunk 1: idle, shares the IO thread's id; finalized with the drain in Chunk 2 */
+    serverLog(LL_NOTICE, "uring-threestage: ROB thread for IO thread %d started (skeleton)", t->id);
+    while (1) {
+        /* Chunk 2: drain robq -> splice ready prefix into real->buf -> io_uring send -> reap CQEs ->
+         * retire (flushid++/commandProcessed/clear cdb/replyWorking--) -> push un-stalled to resumeq. */
+        usleep(1000);
+    }
+    return NULL;
+}
+#endif
+
 void initIOThreads(void) {
     server.ioThreadsNum = server.my_io_threads;
     server.ioThreads = zmalloc(sizeof(ioThreadArgs) * server.my_io_threads);
@@ -10646,6 +10667,17 @@ void initIOThreads(void) {
             exit(1);
         }
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
+#ifdef HAVE_LIBURING
+        /* uring-threestage: spawn this IO thread's dedicated ROB/submit thread (gated; default off). */
+        if (server.uring_threestage) {
+            memset(&t->robq, 0, sizeof(t->robq));
+            memset(&t->resumeq, 0, sizeof(t->resumeq));
+            if (pthread_create(&t->rob_tid, NULL, robThreadMain, t) != 0) {
+                serverLog(LL_WARNING, "Failed creating ROB thread for IO thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+        }
+#endif
     }
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */

@@ -1517,6 +1517,15 @@ typedef struct client {
      * cdbMask is cache-line isolated (S3 subsumed: even reply_cdb[0] owns its line).
      * With multi-cdb OFF, num_cdb==1 and only [0] is used. */
     cdbMask reply_cdb[NUM_CDB_MAX];
+    /* ee451 (uring-threestage): real-client state for the ROB/submit thread (used only when
+     * server.uring_threestage; dead/0 on the default path). The per-iotid ROB thread is the SOLE
+     * drainer/sender for this client, so NO token is needed. ts_inflight is 0 or 1 — at most one
+     * io_uring send of real->buf in flight; the ROB thread does not re-splice into real->buf until
+     * that send's CQE (real->buf reuse is the only lifetime gate; fakes are retired at splice). */
+    int ts_inflight;                   /* 0/1: a ROB io_uring send of real->buf is in flight */
+    uint32_t ts_gen;                   /* bumped on free; ROB send user_data carries it; reject stale CQEs */
+    int ts_close_needed;               /* ROB hit a send error; the IO thread frees (ROB iotid has no close drainer) */
+    int on_robq;                       /* dedup: client is queued/active on the ROB thread (atomic_exchange-guarded) */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
      * stamped once at preallocation. Unused on real clients. */
     unsigned int fake_slot;
@@ -2263,6 +2272,14 @@ typedef struct {
     pthread_t tid;
     aeEventLoop *el;
     int fd;
+    /* ee451 (uring-threestage): the dedicated ROB/submit thread for this IO thread + its two SPSC
+     * handoff rings. robq: IO thread (producer) -> ROB thread (consumer), clients with reply work.
+     * resumeq: ROB thread (producer) -> IO thread (consumer), clients whose freed ring slot un-stalled
+     * a CLIENT_PIPELINE_STALLED client (re-dispatch = parsing, MUST run on the IO thread). Reuse the
+     * proven workerQueue SPSC layout. Only created/used when server.uring_threestage. */
+    pthread_t rob_tid;
+    workerQueue robq;
+    workerQueue resumeq;
 } ioThreadArgs;
 
 
@@ -2980,6 +2997,7 @@ struct redisServer {
     int io_uring_zc;           /* v12-H: io_uring ZERO-COPY SEND (IORING_OP_SEND_ZC) for mid-size static-buf replies. requires io_uring_net. default off. */
     int worker_direct_send;    /* v12-K: IO-thread-free worker-direct in-order io_uring send-back (per-worker ring, head-ownership token). default off; legacy CDB-drain reply path when off. */
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
+    int uring_threestage;      /* uring-threestage: 3-stage pipeline — IO thread parses, workers execute, a dedicated per-IO-thread ROB thread reorders + io_uring sends replies. requires io_uring_net. default off. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
