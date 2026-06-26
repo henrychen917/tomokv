@@ -3214,6 +3214,7 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
     createBoolConfig("thredis-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("thredis-uring-threestage",      NULL, IMMUTABLE_CONFIG,  server.uring_threestage,      0, NULL, NULL),
+    createIntConfig("thredis-rob-threads",            NULL, IMMUTABLE_CONFIG, 0, MY_IO_THREADS_MAX, server.rob_threads, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("thredis-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("thredis-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),

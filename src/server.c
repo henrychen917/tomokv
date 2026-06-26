@@ -10666,9 +10666,11 @@ void initWorkers(void) {
  * ts_inflight so the IO thread can reassemble the next batch. So the only thing offloaded is the blocking
  * send+reap; that frees the IO thread from waiting on the NIC. real->buf is single-owner via ts_inflight
  * (IO writes it only when ts_inflight==0; ROB reads it while ts_inflight==1, resets it, then clears). */
-static struct io_uring robRings[MY_IO_THREADS_MAX];
+static struct io_uring robRings[MY_IO_THREADS_MAX];   /* indexed by ROB id 0..robThreadCount-1 */
 static int robRingState[MY_IO_THREADS_MAX];      /* 0=uninit,1=ready,-1=failed */
 static int robOutstanding[MY_IO_THREADS_MAX];    /* submitted-not-reaped sends on this ROB ring */
+static pthread_t robTids[MY_IO_THREADS_MAX];     /* the ROB/submit threads */
+static int robThreadCount = 0;                   /* effective # of ROB threads (decoupled from io threads; set in initIOThreads) */
 static int robDbg = 0;                            /* TS_ROB_DBG env -> verbose ROB tracing */
 static long robDbgPop = 0, robDbgStale = 0, robDbgSkip = 0;
 /* aggregate ROB event counters (RELAXED; debug only) */
@@ -10704,19 +10706,29 @@ static int robEnsureRing(int id) {
 }
 
 void *robThreadMain(void *arg) {
-    ioThreadArgs *t = (ioThreadArgs *)arg;
-    int id = t->id;
-    iotid = id;   /* the send-only ROB touches no per-iotid arrays; set for clarity only */
-    if (!robEnsureRing(id)) { serverLog(LL_WARNING, "uring-threestage: ROB ring init failed (IO thread %d)", id); return NULL; }
+    int rid = (int)(intptr_t)arg;           /* ROB id, 0 .. robThreadCount-1 */
+    int R = robThreadCount;
+    /* This ROB drains every io thread i (1..I-1) with (i-1) % R == rid. Each such robq is
+     * single-producer (its io thread) / single-consumer (this ROB) => SPSC preserved, and a
+     * client maps to exactly one io thread -> one robq -> this ROB, so per-client reply order holds.
+     * iotid: pin to the lowest io thread we serve so any incidental iotid read stays in-range
+     * (the ROB touches no per-iotid arrays on its hot path). */
+    int first = 0;
+    for (int i = 1; i < server.my_io_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
+    iotid = first;
+    if (!robEnsureRing(rid)) { serverLog(LL_WARNING, "uring-threestage: ROB ring init failed (ROB %d)", rid); return NULL; }
     if (getenv("TS_ROB_DBG")) robDbg = 1;
-    serverLog(LL_NOTICE, "uring-threestage: ROB send thread for IO thread %d ready (dbg=%d)", id, robDbg);
-    struct io_uring *ring = &robRings[id];
+    serverLog(LL_NOTICE, "uring-threestage: ROB send thread %d of %d ready (serves io threads where (i-1)%%%d==%d, dbg=%d)", rid, R, R, rid, robDbg);
+    struct io_uring *ring = &robRings[rid];
     int spins = 0;
     while (1) {
         int did = 0;
-        /* (1) pop ready clients + prep one send each */
-        client *c;
-        while ((c = robqPop(&t->robq)) != NULL) {
+        /* (1) drain every robq assigned to this ROB thread; prep one coalesced send per client */
+        for (int qi = 1; qi < server.my_io_threads; qi++) {
+            if (((qi - 1) % R) != rid) continue;
+            workerQueue *q = &server.ioThreads[qi].robq;
+            client *c;
+            while ((c = robqPop(q)) != NULL) {
             if (robDbg) __atomic_fetch_add(&robDbgPop, 1, __ATOMIC_RELAXED);
             /* Eligibility check FIRST — before reserving an SQE. Reserving an SQE
              * (io_uring_get_sqe advances the SQ tail) and then `continue`ing without
@@ -10741,16 +10753,17 @@ void *robThreadMain(void *arg) {
             io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, c->bufpos - c->sentlen, MSG_WAITALL);
             io_uring_sqe_set_data64(sqe, ((uint64_t)c->ts_gen << 48) | (uint64_t)(uintptr_t)c);
             if (robDbg) __atomic_fetch_add(&robcSend, 1, __ATOMIC_RELAXED);
-            robOutstanding[id]++;
+            robOutstanding[rid]++;
             did = 1;
+            }
         }
         if (did) io_uring_submit(ring);
         /* (2) reap completions (tight) */
-        if (robOutstanding[id] > 0) {
+        if (robOutstanding[rid] > 0) {
             io_uring_get_events(ring);
             struct io_uring_cqe *cqe; unsigned int head; int seen = 0;
             io_uring_for_each_cqe(ring, head, cqe) {
-                seen++; robOutstanding[id]--;
+                seen++; robOutstanding[rid]--;
                 uint64_t ud = io_uring_cqe_get_data64(cqe);
                 client *rc = (client *)(uintptr_t)(ud & 0x0000FFFFFFFFFFFFULL);
                 uint32_t gen = (uint32_t)(ud >> 48);
@@ -10778,12 +10791,12 @@ void *robThreadMain(void *arg) {
         else if (++spins < 2000) { for (int p = 0; p < 16; p++) workerPauseCpu(); }
         else {
             spins = 0;
-            if (robDbg && id == 1) {   /* only ROB 1 dumps the (shared) aggregate, ~every 50ms idle */
+            if (robDbg && rid == 0) {   /* only ROB 0 dumps the (shared) aggregate, ~every 50ms idle */
                 static long lastdump = 0; long s = __atomic_load_n(&robcSend, __ATOMIC_RELAXED);
                 if (s != lastdump) { lastdump = s;
-                    fprintf(stderr, "[ROBSTAT] send=%ld full=%ld partial=%ld eagain=%ld err=%ld nosend=%ld exhaust=%ld fallback=%ld stale=%ld skip=%ld outstanding[1..3]=%d,%d,%d\n",
-                        s, robcFull, robcPartial, robcEagain, robcErr, robcNosend, robcExhaust, robcFallback, robDbgStale, robDbgSkip,
-                        robOutstanding[1], robOutstanding[2], robOutstanding[3]); }
+                    fprintf(stderr, "[ROBSTAT] robs=%d send=%ld full=%ld partial=%ld eagain=%ld err=%ld nosend=%ld exhaust=%ld fallback=%ld stale=%ld skip=%ld out[0..3]=%d,%d,%d,%d\n",
+                        R, s, robcFull, robcPartial, robcEagain, robcErr, robcNosend, robcExhaust, robcFallback, robDbgStale, robDbgSkip,
+                        robOutstanding[0], robOutstanding[1], robOutstanding[2], robOutstanding[3]); }
             }
             usleep(50);
         }
@@ -10833,17 +10846,37 @@ void initIOThreads(void) {
         }
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
 #ifdef HAVE_LIBURING
-        /* uring-threestage: spawn this IO thread's dedicated ROB/submit thread (gated; default off). */
+        /* uring-threestage: init this io thread's SPSC robq (a ROB thread consumes it; spawned below). */
         if (server.uring_threestage) {
             memset(&t->robq, 0, sizeof(t->robq));
             memset(&t->resumeq, 0, sizeof(t->resumeq));
-            if (pthread_create(&t->rob_tid, NULL, robThreadMain, t) != 0) {
-                serverLog(LL_WARNING, "Failed creating ROB thread for IO thread %d: %s", i, strerror(errno));
-                exit(1);
-            }
         }
 #endif
     }
+#ifdef HAVE_LIBURING
+    /* uring-threestage: spawn the ROB/submit thread pool AFTER every robq is initialized (a ROB may
+     * drain several robqs). Count is DECOUPLED from io threads via thredis-rob-threads: 0 => one ROB
+     * per io thread (legacy). Effective parallelism caps at (my_io_threads-1) robqs since each robq is
+     * SPSC; extra ROBs would idle, so clamp. ROB r drains io threads i with (i-1) % R == r. */
+    if (server.uring_threestage) {
+        int nq = server.my_io_threads - 1;          /* robqs in use: io threads 1..I-1 */
+        if (nq < 1) {
+            serverLog(LL_WARNING, "uring-threestage: needs >=2 io threads; ROB pool not started");
+        } else {
+            int R = server.rob_threads;
+            if (R <= 0) R = nq;                       /* legacy: one ROB per io thread */
+            if (R > nq) R = nq;                       /* extra ROBs can't help (1 robq/io thread, SPSC) */
+            robThreadCount = R;
+            serverLog(LL_NOTICE, "uring-threestage: starting %d ROB send thread(s) for %d io threads (thredis-rob-threads=%d)", R, nq, server.rob_threads);
+            for (int r = 0; r < R; r++) {
+                if (pthread_create(&robTids[r], NULL, robThreadMain, (void *)(intptr_t)r) != 0) {
+                    serverLog(LL_WARNING, "Failed creating ROB thread %d: %s", r, strerror(errno));
+                    exit(1);
+                }
+            }
+        }
+    }
+#endif
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);

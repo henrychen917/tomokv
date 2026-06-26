@@ -2998,6 +2998,7 @@ struct redisServer {
     int worker_direct_send;    /* v12-K: IO-thread-free worker-direct in-order io_uring send-back (per-worker ring, head-ownership token). default off; legacy CDB-drain reply path when off. */
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int uring_threestage;      /* uring-threestage: 3-stage pipeline — IO thread parses, workers execute, a dedicated per-IO-thread ROB thread reorders + io_uring sends replies. requires io_uring_net. default off. */
+    int rob_threads;           /* uring-threestage: number of ROB/submit threads, DECOUPLED from io thread count. 0 = one ROB per io thread (legacy). Each ROB drains a disjoint subset of the per-io-thread robqs (SPSC preserved). Effective parallelism caps at (my_io_threads-1) robqs. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
