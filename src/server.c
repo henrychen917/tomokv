@@ -104,7 +104,7 @@ const char *replstateToString(int replstate);
 //ee451
 static int isStatefulCommand(struct redisCommand *cmd);
 static void moveExecutionState(client *real, client *fake);
-/* ee451 (v7) cross-shard: defined below workerIndexForKey, used earlier (dispatch + drain). */
+/* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
 static void dispatchCrossShard(client *head, int ct);
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
@@ -114,9 +114,9 @@ static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/S
 static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
-void workerBindNumaLocal(int worker_id);   /* v8d: NUMA-local shard alloc (pin_mode==1); defined late */
+void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==1); defined late */
 static void csReassemble(client *dst, client *head);
-static inline void workerPauseCpu(void);   /* defined far below; csPushSpin needs it early */
+static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -1887,8 +1887,8 @@ extern int ProcessingEventsWhileBlocked;
 
 /* ee451 (S5): map a worker id to its common-data-bus index. server.num_cdb is
  * fixed at init (IMMUTABLE toggle), so this never changes underfoot. OFF => 0. */
-static inline int cdbIndexFor(int worker_id) {
-    return (worker_id % server.num_cdb);   /* num_cdb==1 when multi-cdb off => always 0 */
+static inline int cdbIndexFor(int ex_id) {
+    return (ex_id % server.num_cdb);   /* num_cdb==1 when multi-cdb off => always 0 */
 }
 
 /* ee451 (S5): combined reply-ready mask = OR of all active CDB masks. Each
@@ -1911,10 +1911,10 @@ void handleWorkerReplies(void) {
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
      * (beforeSleepIO calls us first each loop), so a staged job is always
      * visible to its worker before the drain can wait on its slot. */
-    flushWorkerQueues();
+    flushExQueues();
     listIter li;
     listNode *ln;
-    listRewind(server.clients_pending_worker[iotid], &li);
+    listRewind(server.clients_pending_ex[iotid], &li);
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
 
@@ -1940,20 +1940,20 @@ void handleWorkerReplies(void) {
                 unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
-                int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
+                int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
-                fake->flags &= ~CLIENT_WORKER_PENDING;
+                fake->flags &= ~CLIENT_EX_PENDING;
                 /* ee451 (v7): real is being torn down, but a completed cross-shard group
                  * still owns its sub-fakes + group struct — free them (dst=NULL: no reply)
                  * to avoid a leak. */
                 if (fake->csgroup) csReassemble(NULL, fake);
                 commandProcessed(fake);
-                if (was_worker_dispatched || was_cs) replyWorking--;
+                if (was_ex_dispatched || was_cs) replyWorking--;
                 atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
                 real->flushid++;
             }
             if (real->flushid == real->dispatchid) {
-                listDelNode(server.clients_pending_worker[iotid], ln);
+                listDelNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -1969,7 +1969,7 @@ void handleWorkerReplies(void) {
         if (mask == 0) {
             if (real->flushid == real->dispatchid) {
                 /* Nothing ready, nothing in flight — drop off the flush list. */
-                listDelNode(server.clients_pending_worker[iotid], ln);
+                listDelNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -2011,8 +2011,8 @@ void handleWorkerReplies(void) {
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
 
             client *fake = real->fakeClients[slot];
-            int was_worker_dispatched = (fake->flags & CLIENT_WORKER_PENDING) != 0;
-            /* ee451 (v7): a cross-shard head is NOT CLIENT_WORKER_PENDING but DID bump
+            int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
+            /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
              * too — else the IO loop's replyWorking stays >0 forever. Capture before
              * csReassemble NULLs csgroup. */
@@ -2020,7 +2020,7 @@ void handleWorkerReplies(void) {
 
             /* Clear the worker-pending flag BEFORE commandProcessed, because
              * resetClient() early-returns when the flag is set. */
-            fake->flags &= ~CLIENT_WORKER_PENDING;
+            fake->flags &= ~CLIENT_EX_PENDING;
 
             /* Zero-copy-ish splice of fake's reply onto real's output:
              * absorbs the short buf via addReplyProto and listJoins the
@@ -2044,7 +2044,7 @@ void handleWorkerReplies(void) {
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
                 commandProcessed(fake);
-                if (was_worker_dispatched || was_cs) replyWorking--;
+                if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
                 atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
@@ -2059,7 +2059,7 @@ void handleWorkerReplies(void) {
             atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
             commandProcessed(fake);
 
-            if (was_worker_dispatched || was_cs) replyWorking--;
+            if (was_ex_dispatched || was_cs) replyWorking--;
             real->flushid++;
         }
 
@@ -2085,7 +2085,7 @@ void handleWorkerReplies(void) {
          * any remaining set bits must correspond to slots >= flushid, but
          * flushid == dispatchid means there are no outstanding slots. */
         if (real->flushid == real->dispatchid) {
-            listDelNode(server.clients_pending_worker[iotid], ln);
+            listDelNode(server.clients_pending_ex[iotid], ln);
         }
 
         /* A slot opened up; if real stalled waiting for ring space or drain,
@@ -2110,7 +2110,7 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     handleClientsWithPendingWrites();
     freeClientsInAsyncFreeQueue();
 
-    size_t pending = listLength(server.clients_pending_worker[iotid]);
+    size_t pending = listLength(server.clients_pending_ex[iotid]);
     /* Periodic dump of state so we can see if the IO thread is stuck waiting. */
     static __thread unsigned long long bsio_calls = 0;
     static __thread monotime last_dump_us = 0;
@@ -2119,7 +2119,7 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     if (pending > 0 && (now_us - last_dump_us) > 1000000) {  /* once per second */
         last_dump_us = now_us;
         listIter li; listNode *ln;
-        listRewind(server.clients_pending_worker[iotid], &li);
+        listRewind(server.clients_pending_ex[iotid], &li);
         int n = 0;
         //fprintf(stderr, "[iotid=%d STALL] pending=%zu replyWorking=%d bsio_calls=%llu\n",
         //        iotid, pending, replyWorking, bsio_calls);
@@ -2238,7 +2238,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     /* If workers still have commands in flight, don't sleep —
      * we need to check reply_ready again ASAP. */
-    if (listLength(server.clients_pending_worker[iotid]) > 0)
+    if (listLength(server.clients_pending_ex[iotid]) > 0)
         dont_sleep = 1;
 
     /* Handle writes with pending output buffers. */
@@ -3031,7 +3031,7 @@ void resetServerStats(void) {
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) {
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {
         server.kstat[i].hits = 0;
         server.kstat[i].misses = 0;
     }
@@ -3112,22 +3112,22 @@ void initServer(void) {
     server.hz = server.config_hz;
 
     /* Derive runtime constants from THredis-dev custom threading config.
-     * my_pipeline_depth, my_worker_queue_size, and my_worker_threads are
+     * my_pipeline_depth, my_ex_queue_size, and my_ex_threads are
      * all validated as powers of two, so (val - 1) is a valid mask for
-     * each. getWorkerForCommand uses my_worker_dispatch_mask to replace
+     * each. getWorkerForCommand uses my_ex_dispatch_mask to replace
      * `hash % num_workers` with a single AND. */
     server.my_pipeline_queue_mask  = (unsigned int)(server.my_pipeline_depth - 1);
-    server.my_worker_queue_mask    = (unsigned int)(server.my_worker_queue_size - 1);
-    server.my_worker_dispatch_mask = (uint64_t)(server.my_worker_threads - 1);  /* legacy */
+    server.my_ex_queue_mask    = (unsigned int)(server.my_ex_queue_size - 1);
+    server.my_ex_dispatch_mask = (uint64_t)(server.my_ex_threads - 1);  /* legacy */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
      * buckets [i*MY_BUCKETS/W, (i+1)*MY_BUCKETS/W)). Works for ANY worker count W (no
      * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
     {
-        int W = server.my_worker_threads;
+        int W = server.my_ex_threads;
         for (int b = 0; b < MY_BUCKETS; b++)
-            server.worker_bucket_table[b] = (uint8_t)(((long)b * W) / MY_BUCKETS);
+            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / MY_BUCKETS);
         for (int i = 0; i < W; i++)
-            server.worker_bucket_end[i] = (int)(((long)(i + 1) * MY_BUCKETS) / W);
+            server.ex_bucket_end[i] = (int)(((long)(i + 1) * MY_BUCKETS) / W);
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -3178,7 +3178,7 @@ void initServer(void) {
         server.clients_pending_write[t]          = listCreate();
         server.clients_pending_read[t]           = listCreate();
         server.clients_with_pending_ref_reply[t] = listCreate();
-        server.clients_pending_worker[t]         = listCreate();
+        server.clients_pending_ex[t]         = listCreate();
         server.current_client[t]                 = NULL;
         server.executing_client[t]               = NULL;
     }
@@ -3202,7 +3202,7 @@ void initServer(void) {
 
     /* Create per-worker Redis databases. Each worker owns its own
      * independent set of databases (0..dbnum-1). Keys are partitioned
-     * across workers by hash, so worker N only ever touches worker_dbs[N]. */
+     * across workers by hash, so worker N only ever touches ex_dbs[N]. */
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
@@ -3211,7 +3211,7 @@ void initServer(void) {
     }
 
     /* Keep server.db allocated so legacy code paths don't crash.
-     * These dbs are empty - real data lives in worker_dbs. */
+     * These dbs are empty - real data lives in ex_dbs. */
     server.db = zmalloc(sizeof(redisDb) * server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
         server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
@@ -3228,28 +3228,28 @@ void initServer(void) {
         server.db[j].avg_ttl = 0;
     }
 
-    server.num_workers = server.my_worker_threads;
+    server.num_workers = server.my_ex_threads;
     /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
      * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
     server.num_cdb = server.opt_multi_cdb
                        ? (server.num_workers < NUM_CDB_MAX ? server.num_workers : NUM_CDB_MAX)
                        : 1;
-    server.worker_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
+    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
     for (int w = 0; w < server.num_workers; w++) {
-        server.worker_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
+        server.ex_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
         for (j = 0; j < server.dbnum; j++) {
-            server.worker_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
-            server.worker_dbs[w][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
-            server.worker_dbs[w][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-            server.worker_dbs[w][j].expires_cursor = 0;
-            server.worker_dbs[w][j].blocking_keys = dictCreate(&keylistDictType);
-            server.worker_dbs[w][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-            server.worker_dbs[w][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.worker_dbs[w][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.worker_dbs[w][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.worker_dbs[w][j].watched_keys = dictCreate(&keylistDictType);
-            server.worker_dbs[w][j].id = j;
-            server.worker_dbs[w][j].avg_ttl = 0;
+            server.ex_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+            server.ex_dbs[w][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
+            server.ex_dbs[w][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+            server.ex_dbs[w][j].expires_cursor = 0;
+            server.ex_dbs[w][j].blocking_keys = dictCreate(&keylistDictType);
+            server.ex_dbs[w][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
+            server.ex_dbs[w][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.ex_dbs[w][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.ex_dbs[w][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
+            server.ex_dbs[w][j].watched_keys = dictCreate(&keylistDictType);
+            server.ex_dbs[w][j].id = j;
+            server.ex_dbs[w][j].avg_ttl = 0;
         }
     }
 
@@ -3369,7 +3369,7 @@ void initServer(void) {
 
     /* prefetchCommandsBatchInit() removed — upstream command-prefetch batch
      * (memory_prefetch.c) is unused. Cache warming for worker-dispatched
-     * commands happens in workerPrefetchBatch() against the worker's DB. */
+     * commands happens in exPrefetchBatch() against the worker's DB. */
 }
 void initListeners(void) {
     /* Setup listeners from server config for TCP/TLS/Unix */
@@ -4999,13 +4999,13 @@ int processCommand(client *c) {
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
-        listAddNodeTail(server.clients_pending_worker[iotid], c);
+        listAddNodeTail(server.clients_pending_ex[iotid], c);
     }
 
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
      * one single-key sub-fake per shard worker; the ring-slot `fake` becomes the group
-     * head and is NOT itself worker-dispatched (no CLIENT_WORKER_PENDING, so the drain's
-     * was_worker_dispatched stays 0 and replyWorking is untouched). Its completion bit is
+     * head and is NOT itself worker-dispatched (no CLIENT_EX_PENDING, so the drain's
+     * was_ex_dispatched stays 0 and replyWorking is untouched). Its completion bit is
      * set by the last sub; the drain reassembles via csReassemble. */
     /* ee451 (v8d): cutover hold. During the µs DRAINING window a range WRITE must not be dispatched
      * to A; spin until the flip, then route under the new table (to B). Gated by the always-0 byte. */
@@ -5023,19 +5023,19 @@ int processCommand(client *c) {
         else if (cst == CS_SETOP) dispatchSetOp(fake);  /* ee451 v11-F: per-key gather-compute */
         else dispatchCrossShard(fake, cst);
     } else if (canDispatchToWorker(fake)) {
-        int worker_id = getWorkerForCommand(fake);
+        int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
          * reply_cdb[fake->cdb] and the drain clears reply_cdb[fake->cdb] — one
          * captured value, published to the worker via the SPSC queue's release
-         * store (workerQueuePush below), so writer and clearer never disagree. */
-        fake->cdb = cdbIndexFor(worker_id);
-        fake->db = &server.workers[worker_id].db[fake->db->id];
-        fake->flags |= CLIENT_WORKER_PENDING;
+         * store (exQueuePush below), so writer and clearer never disagree. */
+        fake->cdb = cdbIndexFor(ex_id);
+        fake->db = &server.exThreads[ex_id].db[fake->db->id];
+        fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
-        workerQueuePush(&server.workers[worker_id].queues[iotid], fake);
+        exQueuePush(&server.exThreads[ex_id].queues[iotid], fake);
     } else {
         /* Inline on IO thread — synchronous fake execution. */
         fake->cdb = 0;   /* ee451 (S5): inline path has no worker; CDB 0 */
@@ -5318,14 +5318,14 @@ int getWorkerForCommand(client *c) {
      * uniform key sampling, and (b) empty shards have zero weight => the picked shard is non-empty
      * whenever the keyspace is, so we never return nil on a non-empty DB. dbSize is a racy counter
      * read (no iteration) — fine for selection. */
-    if (c->cmd && c->cmd->proc == randomkeyCommand && server.num_workers > 0 && server.workers) {
+    if (c->cmd && c->cmd->proc == randomkeyCommand && server.num_workers > 0 && server.exThreads) {
         int dbid = c->db->id;
         long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += dbSize(&server.workers[w].db[dbid]);
+        for (int w = 0; w < server.num_workers; w++) total += dbSize(&server.exThreads[w].db[dbid]);
         if (total <= 0) return 0;
         long long pick = (long long)(random() % total);
         for (int w = 0; w < server.num_workers; w++) {
-            long long s = dbSize(&server.workers[w].db[dbid]);
+            long long s = dbSize(&server.exThreads[w].db[dbid]);
             if (pick < s) return w;
             pick -= s;
         }
@@ -5338,19 +5338,19 @@ int getWorkerForCommand(client *c) {
      *
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
      * short keys) + bitmask (num_workers is validated power-of-two at
-     * config load, so server.my_worker_dispatch_mask = num_workers - 1
+     * config load, so server.my_ex_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
-    return workerIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+    return exIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
 }
 
 /* ee451: single source of truth for key -> worker shard mapping. Used by dispatch
  * (getWorkerForCommand) and by RDB load routing so saved keys reload into the same
  * shard they were dispatched to. */
-int workerIndexForKey(const void *keyptr, size_t len) {
+int exIndexForKey(const void *keyptr, size_t len) {
     /* ee451 (v8): xxhash -> bucket (single AND) -> worker via the indirection table. One
      * extra L1-resident load vs the old direct mask, in exchange for arbitrary worker counts
      * and online resharding. */
-    return (int)server.worker_bucket_table[xxh64(keyptr, len) & MY_BUCKET_MASK];
+    return (int)server.ex_bucket_table[xxh64(keyptr, len) & MY_BUCKET_MASK];
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -5538,19 +5538,19 @@ static void csFreeSub(client *sub) {
 }
 
 /* Push a sub to a worker queue, publishing `tail` IMMEDIATELY (not waiting for the
- * event-loop's batched flushWorkerQueues) and spinning while the queue is full. A single
+ * event-loop's batched flushExQueues) and spinning while the queue is full. A single
  * MGET may stage more subs than the queue depth; under opt_batch_push the staged jobs are
  * invisible to the worker until tail is published, so without this the worker could never
  * drain and the push would deadlock. We are the sole producer for queues[iotid], so the
  * immediate release-store races nothing; the worker is the sole consumer and drains
  * concurrently, so the full-spin is bounded by its pop rate. */
 static void csPushSpin(int w, client *sub) {
-    workerQueue *q = &server.workers[w].queues[iotid];
+    exQueue *q = &server.exThreads[w].queues[iotid];
     int spins = 0;
-    while (workerQueuePush(q, sub) != 0) {
+    while (exQueuePush(q, sub) != 0) {
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        workerPauseCpu();
+        exPauseCpu();
         if ((++spins & 4095) == 0) sched_yield();
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
@@ -5566,7 +5566,7 @@ static void dispatchCrossShard(client *head, int ct) {
     int cs_write = (ct == CS_MSET || ct == CS_DEL);   /* writes need the per-key cutover hold */
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = ct; g->nkeys = nkeys; g->head = head;
-    g->results = NULL; g->result_worker = NULL;   /* reply-buffer design: no value forwarding */
+    g->results = NULL; g->result_ex = NULL;   /* reply-buffer design: no value forwarding */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
 
@@ -5583,19 +5583,19 @@ static void dispatchCrossShard(client *head, int ct) {
         atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
         for (int i = 0; i < nkeys; i++) {
             robj *key = head->argv[1 + i];
-            int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+            int w = exIndexForKey(key->ptr, sdslen(key->ptr));
             client *sub = createPooledFakeClient(head->parent);
             sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
             sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
             /* The sub serializes its reply into its OWN buffer on the worker; spliced at
-             * reassembly, never written to the socket directly (CLIENT_WORKER_PENDING + borrowed conn). */
+             * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
             sub->conn = head->conn;
-            sub->flags |= CLIENT_WORKER_PENDING;
+            sub->flags |= CLIENT_EX_PENDING;
             sub->argv = zmalloc(sizeof(robj*) * 2);
             sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
             sub->argv[1] = key;           incrRefCount(key);
             sub->argc = 2;
-            sub->db = &server.workers[w].db[dbid];
+            sub->db = &server.exThreads[w].db[dbid];
             g->subs[i] = sub;
             csPushSpin(w, sub);
         }
@@ -5610,7 +5610,7 @@ static void dispatchCrossShard(client *head, int ct) {
         robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
         if (cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
-        int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
         wof[i] = w; cnt[w]++;
     }
     int nsub = 0;
@@ -5627,12 +5627,12 @@ static void dispatchCrossShard(client *head, int ct) {
         sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
-        sub->flags |= CLIENT_WORKER_PENDING;
+        sub->flags |= CLIENT_EX_PENDING;
         int per = (ct == CS_MSET) ? (1 + 2*cnt[w]) : (1 + cnt[w]);  /* [CMD k v...] or [CMD k...] */
         sub->argv = zmalloc(sizeof(robj*) * per);
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;   /* keys/pairs appended below in original order */
-        sub->db = &server.workers[w].db[dbid];
+        sub->db = &server.exThreads[w].db[dbid];
         wsub[w] = sub;
         g->subs[si++] = sub;
     }
@@ -5658,7 +5658,7 @@ static void dispatchFanAll(client *head) {
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = zmalloc(sizeof(client*) * nw);
-    g->results = NULL; g->result_worker = NULL;
+    g->results = NULL; g->result_ex = NULL;
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     head->csgroup = g;
@@ -5669,11 +5669,11 @@ static void dispatchFanAll(client *head) {
         sub->csparent = g; sub->cssub_idx = w; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
-        sub->flags |= CLIENT_WORKER_PENDING;
+        sub->flags |= CLIENT_EX_PENDING;
         sub->argv = zmalloc(sizeof(robj*) * head->argc);
         for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
         sub->argc = head->argc;
-        sub->db = &server.workers[w].db[dbid];
+        sub->db = &server.exThreads[w].db[dbid];
         g->subs[w] = sub;
         csPushSpin(w, sub);
     }
@@ -5700,17 +5700,17 @@ static void dispatchSetOp(client *head) {
     int dbid = head->db->id;
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[1 + i];
-        int w = workerIndexForKey(key->ptr, sdslen(key->ptr));
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
         client *sub = createPooledFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
-        sub->flags |= CLIENT_WORKER_PENDING;
+        sub->flags |= CLIENT_EX_PENDING;
         sub->argv = zmalloc(sizeof(robj*) * 2);   /* [CMD key]; worker reads only argv[1] */
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argv[1] = key;           incrRefCount(key);
         sub->argc = 2;
-        sub->db = &server.workers[w].db[dbid];
+        sub->db = &server.exThreads[w].db[dbid];
         g->subs[i] = sub;
         csPushSpin(w, sub);
     }
@@ -5845,7 +5845,7 @@ static void csReassemble(client *dst, client *head) {
  * per-worker flush_* fields are never clobbered mid-flight. Synchronous: returns only after
  * every shard is emptied. Works whether c is the real client or its inline ring-slot fake. */
 void flushAllShards(client *c, int dbid, int async) {
-    if (!server.workers || server.num_workers <= 0) return;
+    if (!server.exThreads || server.num_workers <= 0) return;
     /* Queue one flush-sentinel fake to each worker THROUGH the SPSC ring, so it is FIFO-ordered
      * behind any commands this IO thread already queued for that worker (FLUSHALL does not jump
      * ahead of a connection's earlier writes). Each worker empties its own shard DBs when it
@@ -5878,7 +5878,7 @@ void flushAllShards(client *c, int dbid, int async) {
 static inline int migBucketInRange(int b) {            /* caller already checked migration_active */
     return b >= server.migration.lo && b < server.migration.hi;
 }
-/* key (sds) -> bucket, same hash as workerIndexForKey but without the table indirection. */
+/* key (sds) -> bucket, same hash as exIndexForKey but without the table indirection. */
 static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & MY_BUCKET_MASK); }
 
 /* ---- effect-log SPSC ring (A produces tail, B consumes head) ---- */
@@ -5909,7 +5909,7 @@ static void migLogPush(migLog *L, migLogEntry *e) {
     unsigned int next = (t + 1) & L->cap_mask;
     while (next == L->cached_head) {
         L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
-        if (next == L->cached_head) { workerPauseCpu(); }   /* full: let B drain */
+        if (next == L->cached_head) { exPauseCpu(); }   /* full: let B drain */
     }
     L->slots[t & L->cap_mask] = e;
     atomic_store_explicit(&L->tail, t + 1, memory_order_release);
@@ -5949,7 +5949,7 @@ void migCaptureEffect(redisDb *db, robj *keyobj) {
 }
 
 /* ---- B side: apply one log entry to B's shard, in order (overwrite / delete, LWW). ---- */
-static void migApplyOne(workerThread *B, migLogEntry *e) {
+static void migApplyOne(exThread *B, migLogEntry *e) {
     redisDb *bdb = &B->db[e->dbid];
     robj *keyobj = createStringObject(e->key, sdslen(e->key));
     dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
@@ -5966,7 +5966,7 @@ static void migApplyOne(workerThread *B, migLogEntry *e) {
     decrRefCount(keyobj);
 }
 /* B drains the whole log that is currently available, publishing applied_seq. Called from B's loop. */
-static void migDrainB(workerThread *B) {
+static void migDrainB(exThread *B) {
     migLogEntry *e;
     while ((e = migLogPop(server.migration.log)) != NULL) {
         uint64_t seq = e->seq;
@@ -5981,17 +5981,17 @@ static void migDrainB(workerThread *B) {
  * entries. Returns 1 when the scan has wrapped (cold copy complete). ---- */
 static unsigned long long mig_scan_cursor = 0;
 static int mig_scan_dbid = 0;
-struct migScanCtx { workerThread *A; };
+struct migScanCtx { exThread *A; };
 static void migScanCallback(void *priv, const dictEntry *de, dictEntry **plink) {
     (void)priv; (void)plink;
     kvobj *kv = dictGetKV((dictEntry*)de);
     sds keysds = kvobjGetKey(kv);
     if (!migBucketInRange(migKeyBucket(keysds, sdslen(keysds)))) return;
     robj *keyobj = createStringObject(keysds, sdslen(keysds));
-    migCaptureEffect(&server.workers[server.migration.src].db[mig_scan_dbid], keyobj);
+    migCaptureEffect(&server.exThreads[server.migration.src].db[mig_scan_dbid], keyobj);
     decrRefCount(keyobj);
 }
-static int migScanA(workerThread *A, int batch) {
+static int migScanA(exThread *A, int batch) {
     redisDb *adb = &A->db[mig_scan_dbid];
     for (int i = 0; i < batch; i++) {
         mig_scan_cursor = kvstoreScan(adb->keys, mig_scan_cursor, -1, migScanCallback, NULL, NULL);
@@ -6005,7 +6005,7 @@ static int migScanA(workerThread *A, int batch) {
 
 /* Worker A drives the cold scan from its own loop, a small batch per iteration so serving is
  * never starved. Publishes scan_done (release) when the whole keyspace has been emitted once. */
-static void migServiceScanA(workerThread *A) {
+static void migServiceScanA(exThread *A) {
     if (atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed)) return;
     if (migScanA(A, 64))
         atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
@@ -6063,7 +6063,7 @@ static void migHoldIfDraining(client *fake) {
      * try, a later iteration catches it — so a held producer always contributes its sentinel. */
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
-        workerPauseCpu();
+        exPauseCpu();
     }
 }
 
@@ -6077,13 +6077,13 @@ static void migHoldKeyIfDraining(robj *key) {
     if (!migBucketInRange(migKeyBucket(key->ptr, sdslen(key->ptr)))) return;
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
-        workerPauseCpu();
+        exPauseCpu();
     }
 }
 
 /* Worker A, on CLEANUP: delete its now-migrated [lo,hi) keys (single-writer). Collect-then-delete
  * (cannot mutate the dict mid-iteration). Then advance phase to DONE so the coordinator tears down. */
-static void migCleanupDeleteRangeA(workerThread *A) {
+static void migCleanupDeleteRangeA(exThread *A) {
     int lo = server.migration.lo, hi = server.migration.hi;
     for (int dbid = 0; dbid < server.dbnum; dbid++) {
         redisDb *db = &A->db[dbid];
@@ -6147,7 +6147,7 @@ static void *reshardCoordinator(void *arg) {
         int pending = 0;
         for (int t = 0; t < nprod; t++) {
             if (atomic_load_explicit(&server.migration.fence_acked[t], memory_order_acquire)) continue;
-            workerQueue *q = &server.workers[src].queues[t];
+            exQueue *q = &server.exThreads[src].queues[t];
             unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
             unsigned int tl = atomic_load_explicit(&q->tail, memory_order_acquire);
             if (h == tl) {                       /* queue empty right now */
@@ -6170,16 +6170,16 @@ static void *reshardCoordinator(void *arg) {
 
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
-    for (int b = lo; b < hi; b++) server.worker_bucket_table[b] = (uint8_t)dst;
-    if (dst == src + 1) server.worker_bucket_end[src] = lo;      /* suffix move: A|B boundary -> lo */
-    else                server.worker_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
+    for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
+    if (dst == src + 1) server.ex_bucket_end[src] = lo;      /* suffix move: A|B boundary -> lo */
+    else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d (S_final=%llu)",
               lo, hi, dst, (unsigned long long)s_final);
 
     /* Phase D.1: ref-fence — A may not free its range values until every zero-copy reply still
-     * pointing into them (owner_worker==A, bucket∈range) has been flushed. No-op when zerocopy is
+     * pointing into them (owner_ex==A, bucket∈range) has been flushed. No-op when zerocopy is
      * gated off (small values). */
     while (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) usleep(50);
 
@@ -6194,8 +6194,8 @@ static void *reshardCoordinator(void *arg) {
      * the log and NULL it. (3) Publish migration_active=0 LAST — the sole "one migration at a time"
      * gate (reshardArm/reshardAutoTune) so a new migration cannot start (and overwrite migration.log)
      * until the old log is fully freed. Closes the teardown UAF and the re-arm double-free. */
-    uint64_t hb0 = atomic_load_explicit(&server.workers[dst].loop_seq, memory_order_acquire);
-    while (atomic_load_explicit(&server.workers[dst].loop_seq, memory_order_acquire) < hb0 + 3) usleep(50);
+    uint64_t hb0 = atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire);
+    while (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < hb0 + 3) usleep(50);
     migLogFree(server.migration.log);
     server.migration.log = NULL;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
@@ -6219,8 +6219,8 @@ static int reshardBeginCutover(void) {
  * and when the hottest shard is persistently above the mean it shifts a chunk of boundary buckets
  * to its cooler adjacent neighbour via a full-auto migration. NOTHING here is read on the per-
  * command routing path — that stays a single bucket-table byte load. ---- */
-static double   mig_load_ewma[MY_WORKER_THREADS_MAX];
-static uint64_t mig_last_ops[MY_WORKER_THREADS_MAX];
+static double   mig_load_ewma[MY_EX_THREADS_MAX];
+static uint64_t mig_last_ops[MY_EX_THREADS_MAX];
 static int      mig_ewma_primed = 0;
 /* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
  * ONLY while it is actually shrinking the peak load/capacity. mig_peak_pre = the peak metric we were
@@ -6231,7 +6231,7 @@ static int      mig_ewma_primed = 0;
 static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
 static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
 void reshardAutoTune(void) {
-    if (!server.reshard_auto || !server.workers) return;
+    if (!server.reshard_auto || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
     int W = server.num_workers;
     if (W < 2) return;
@@ -6242,14 +6242,14 @@ void reshardAutoTune(void) {
      * never calibrated. */
     int core_aware = server.reshard_core_aware;
     double sum_ops = 0, sum_metric = 0, hotmetric = -1; int hot = 0;
-    double metric[MY_WORKER_THREADS_MAX];
+    double metric[MY_EX_THREADS_MAX];
     for (int w = 0; w < W; w++) {
-        uint64_t ops = server.workers[w].ops_total;     /* relaxed plain read of a per-thread stat */
+        uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
         mig_last_ops[w] = ops;
         mig_load_ewma[w] = mig_ewma_primed ? (alpha * (double)rate + (1.0 - alpha) * mig_load_ewma[w])
                                            : (double)rate;
-        double cap = (core_aware && server.worker_capacity[w] > 0) ? server.worker_capacity[w] : 1.0;
+        double cap = (core_aware && server.ex_capacity[w] > 0) ? server.ex_capacity[w] : 1.0;
         metric[w] = mig_load_ewma[w] / cap;
         sum_ops += mig_load_ewma[w];
         sum_metric += metric[w];
@@ -6282,8 +6282,8 @@ void reshardAutoTune(void) {
     /* Shift a chunk of buckets at the hot|B boundary (suffix if B=hot+1, prefix if B=hot-1), keeping
      * ranges contiguous and never emptying the hot shard. */
     int chunk = server.reshard_chunk_buckets;
-    int hot_lo = (hot == 0 ? 0 : server.worker_bucket_end[hot - 1]);
-    int hot_hi = server.worker_bucket_end[hot];
+    int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
+    int hot_hi = server.ex_bucket_end[hot];
     if (hot_hi - hot_lo <= chunk) return;                    /* don't drain the hot shard dry */
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }  /* suffix -> right neighbour */
@@ -6294,7 +6294,7 @@ void reshardAutoTune(void) {
         mig_peak_pre = hotmetric;  /* the peak this migration must shrink to be allowed to continue */
         mig_settle = 4;            /* ~4 ticks for the EWMA to reflect the new distribution */
         serverLog(LL_NOTICE, "ee451 reshard AUTO%s: hot=w%d(%.0f ops, cap %.0f) -> w%d(%.0f ops), moving [%d,%d)",
-                  core_aware ? "(core-aware)" : "", hot, mig_load_ewma[hot], server.worker_capacity[hot],
+                  core_aware ? "(core-aware)" : "", hot, mig_load_ewma[hot], server.ex_capacity[hot],
                   B, mig_load_ewma[B], lo, hi);
         /* NOTE: do NOT reset the EWMA here — it must keep adapting so the no-progress guard can see
          * whether this migration actually reduced the peak. migration_active blocks re-fire meanwhile. */
@@ -6307,7 +6307,7 @@ void reshardAutoTune(void) {
  * when the write load is quiesced (it is a validation aid, not a hot path). */
 static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCount, uint64_t *outXsum) {
     unsigned long long count = 0; uint64_t xsum = 0;
-    workerThread *w = &server.workers[wid];
+    exThread *w = &server.exThreads[wid];
     for (int dbid = 0; dbid < server.dbnum; dbid++) {
         kvstoreIterator it;
         kvstoreIteratorInit(&it, w->db[dbid].keys);
@@ -6353,7 +6353,7 @@ void reshardDebug(client *c) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
          * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
         unsigned long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += server.workers[w].ops_total;
+        for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
         addReplyLongLong(c, (long long)total);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "predacc")) {
         /* ee451 bench tool: forward-predictor accuracy (prediction vs real cache outcome),
@@ -6361,7 +6361,7 @@ void reshardDebug(client *c) {
         unsigned long long tot = 0, cor = 0;
         sds s = sdsempty();
         for (int w = 0; w < server.num_workers; w++) {
-            unsigned long long t = server.workers[w].pred_total, k = server.workers[w].pred_correct;
+            unsigned long long t = server.exThreads[w].pred_total, k = server.exThreads[w].pred_correct;
             tot += t; cor += k;
             s = sdscatprintf(s, "w%d=%llu/%llu(%.1f%%) ", w, k, t, t ? 100.0 * (double)k / (double)t : 0.0);
         }
@@ -6371,7 +6371,7 @@ void reshardDebug(client *c) {
             static const char *names[10] = {"bimodal","gshare","perceptron","recency","frequency","client","keycorr","pureclient","ENSEMBLE","PERKEY"};
             unsigned long long bt[10] = {0}, bc[10] = {0};
             for (int w = 0; w < server.num_workers; w++)
-                for (int p = 0; p < 10; p++) { bt[p] += server.workers[w].bo_tot[p]; bc[p] += server.workers[w].bo_corr[p]; }
+                for (int p = 0; p < 10; p++) { bt[p] += server.exThreads[w].bo_tot[p]; bc[p] += server.exThreads[w].bo_corr[p]; }
             s = sdscatprintf(s, "  ||  BAKEOFF:");
             for (int p = 0; p < 10; p++)
                 s = sdscatprintf(s, " %s=%.2f%%", names[p], bt[p] ? 100.0 * (double)bc[p] / (double)bt[p] : 0.0);
@@ -6379,7 +6379,7 @@ void reshardDebug(client *c) {
             if (server.vf_predictor_set) {
                 s = sdscatprintf(s, " | ACTIVE set=%d best/worker=", server.vf_predictor_set);
                 for (int w = 0; w < server.num_workers; w++) {
-                    int b = server.workers[w].bo_best;
+                    int b = server.exThreads[w].bo_best;
                     s = sdscatprintf(s, "%s%s", (b >= 0 && b < 10) ? names[b] : "?", w + 1 < server.num_workers ? "," : "");
                 }
             }
@@ -6390,9 +6390,9 @@ void reshardDebug(client *c) {
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
          * key; that is a §4.8 single-writer violation that races worker writes and can crash.) */
         sds key = c->argv[3]->ptr;
-        int routed = workerIndexForKey(key, sdslen(key));
+        int routed = exIndexForKey(key, sdslen(key));
         int bucket = (int)(xxh64(key, sdslen(key)) & MY_BUCKET_MASK);
-        addReplyStatusFormat(c, "key=%s bucket=%d routed_worker=%d", key, bucket, routed);
+        addReplyStatusFormat(c, "key=%s bucket=%d routed_ex=%d", key, bucket, routed);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
         int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
         unsigned long long sc = 0, dc = 0; uint64_t sx = 0, dx = 0;
@@ -7890,12 +7890,12 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
  * normally 0) into a single total for INFO. */
 static long long keyspaceHitsTotal(void) {
     long long s = server.stat_keyspace_hits;
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].hits;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
     return s;
 }
 static long long keyspaceMissesTotal(void) {
     long long s = server.stat_keyspace_misses;
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX; i++) s += server.kstat[i].misses;
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
     return s;
 }
 
@@ -9523,8 +9523,8 @@ static void moveExecutionState(client *real, client *fake) {
  * The architecture guarantees single-producer single-consumer per queue:
  *   - Producer: the IO thread whose iotid matches the queue's index.
  *     Only queueToWorker() in the context of that IO thread pushes.
- *   - Consumer: the worker thread owning the enclosing workerThread
- *     struct. Only that worker's workerThreadMain pops.
+ *   - Consumer: the worker thread owning the enclosing exThread
+ *     struct. Only that worker's exThreadMain pops.
  *
  * Therefore a mutex is unnecessary. Two atomic indices (head, tail)
  * with acquire/release barriers suffice. head and tail sit on separate
@@ -9539,7 +9539,7 @@ static void moveExecutionState(client *real, client *fake) {
  *            SPSC ring convention to distinguish full from empty).
  * ------------------------------------------------------------------ */
 
-void workerQueueInit(workerQueue *q) {
+void exQueueInit(exQueue *q) {
     atomic_store_explicit(&q->head, 0, memory_order_relaxed);
     atomic_store_explicit(&q->tail, 0, memory_order_relaxed);
     q->cached_tail = 0;   /* ee451: empty (head == cached_tail) */
@@ -9555,10 +9555,10 @@ void workerQueueInit(workerQueue *q) {
  * a staged-but-unpublished job can never make the drain wait on a worker that
  * cannot see it. One store publishes all the jobs[] writes that happened-before
  * it (standard SPSC batch publish). */
-void flushWorkerQueues(void) {
-    if (!server.workers) return;
+void flushExQueues(void) {
+    if (!server.exThreads) return;
     for (int w = 0; w < server.num_workers; w++) {
-        workerQueue *q = &server.workers[w].queues[iotid];
+        exQueue *q = &server.exThreads[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published)
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
@@ -9570,8 +9570,8 @@ void flushWorkerQueues(void) {
  * mutator of that shard's refcounts) — decref'ing here would race it. If the
  * ring is momentarily full (rare; only >=16KB zero-copy replies use it), spin
  * for the worker to drain rather than decref here. */
-void freebackPush(int worker_id, robj *obj) {
-    freebackRing *fb = &server.workers[worker_id].freeback[iotid];
+void freebackPush(int ex_id, robj *obj) {
+    freebackRing *fb = &server.exThreads[ex_id].freeback[iotid];
     unsigned int t = atomic_load_explicit(&fb->tail, memory_order_relaxed);
     unsigned int next_t = (t + 1) & FREEBACK_RING_MASK;
     while (next_t == atomic_load_explicit(&fb->head, memory_order_acquire))
@@ -9583,7 +9583,7 @@ void freebackPush(int worker_id, robj *obj) {
 /* ee451 (S8): the worker drains all its free-back rings and decrefs each value
  * on the worker thread (single-writer for its shard => no refcount race).
  * Called once per worker loop iteration. */
-static inline void freebackDrainAll(workerThread *worker) {
+static inline void freebackDrainAll(exThread *worker) {
     for (int t = 0; t <= server.my_io_threads; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
@@ -9597,14 +9597,14 @@ static inline void freebackDrainAll(workerThread *worker) {
     }
 }
 
-int workerQueuePush(workerQueue *q, client *c) {
+int exQueuePush(exQueue *q, client *c) {
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
-     * flushWorkerQueues() (handleWorkerReplies top), batching up to
+     * flushExQueues() (handleWorkerReplies top), batching up to
      * pipeline_depth cross-CCD release-stores into one. staged_tail is the
      * producer-private write frontier (>= published tail). */
     unsigned int t = q->staged_tail;
-    unsigned int next_t = (t + 1) & server.my_worker_queue_mask;
+    unsigned int next_t = (t + 1) & server.my_ex_queue_mask;
     /* ee451: fast-path the "not full" check against the producer-private
      * cached_head, avoiding the cross-core acquire-load of the consumer's
      * head line on every push. cached_head lags the real head (the consumer
@@ -9632,17 +9632,17 @@ int workerQueuePush(workerQueue *q, client *c) {
     }
     q->jobs[t] = c;
     /* ee451 (S4): advance the producer-private staged frontier only; the single
-     * release-store of `tail` in flushWorkerQueues() publishes this and all
+     * release-store of `tail` in flushExQueues() publishes this and all
      * earlier staged jobs[] writes to the consumer.
      * ee451 (v4): with batch-push disabled, publish immediately — one release-
-     * store of tail per push (flushWorkerQueues then no-ops). */
+     * store of tail per push (flushExQueues then no-ops). */
     q->staged_tail = next_t;
     if (!server.opt_batch_push)
         atomic_store_explicit(&q->tail, next_t, memory_order_release);
     return 0;
 }
 
-client *workerQueuePop(workerQueue *q) {
+client *exQueuePop(exQueue *q) {
     /* Consumer owns head; relaxed load is fine. */
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     /* ee451: fast-path the "not empty" check against the consumer-private
@@ -9666,7 +9666,7 @@ client *workerQueuePop(workerQueue *q) {
         if (h == t) return NULL; /* empty */
     }
     client *c = q->jobs[h];
-    atomic_store_explicit(&q->head, (h + 1) & server.my_worker_queue_mask,
+    atomic_store_explicit(&q->head, (h + 1) & server.my_ex_queue_mask,
                           memory_order_release);
     return c;
 }
@@ -9675,53 +9675,53 @@ client *workerQueuePop(workerQueue *q) {
  * count is computed against the consumer-private cached_tail, refreshed with a
  * single acquire-load of the real tail only when the cache shows empty. We copy
  * out n items, then a single release store of head publishes the advance. */
-int workerQueuePopBatch(workerQueue *q, client **out, int max) {
+int exQueuePopBatch(exQueue *q, client **out, int max) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     /* Masked subtraction — wraps correctly even when tail has wrapped
      * past head since last head advance.
      * ee451 (v4): with SPSC caching disabled, read the real tail directly. */
     unsigned int avail;
     if (server.opt_spsc_cache) {
-        avail = (q->cached_tail - h) & server.my_worker_queue_mask;
+        avail = (q->cached_tail - h) & server.my_ex_queue_mask;
         if (avail == 0) {
             /* ee451: cache says empty — pay the cross-core acquire-load once to
              * refresh. The acquire pairs with the producer's release store of
              * tail, making jobs[..tail) visible; those slots stay visible for
              * subsequent cached reads until head catches up again. */
             q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-            avail = (q->cached_tail - h) & server.my_worker_queue_mask;
+            avail = (q->cached_tail - h) & server.my_ex_queue_mask;
             if (avail == 0) return 0;
         }
     } else {
         unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
-        q->cached_tail = t;   /* ee451 (v4): keep current; see workerQueuePop */
-        avail = (t - h) & server.my_worker_queue_mask;
+        q->cached_tail = t;   /* ee451 (v4): keep current; see exQueuePop */
+        avail = (t - h) & server.my_ex_queue_mask;
         if (avail == 0) return 0;
     }
     int n = (int)avail < max ? (int)avail : max;
     for (int i = 0; i < n; i++) {
-        out[i] = q->jobs[(h + (unsigned int)i) & server.my_worker_queue_mask];
+        out[i] = q->jobs[(h + (unsigned int)i) & server.my_ex_queue_mask];
     }
-    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.my_worker_queue_mask,
+    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.my_ex_queue_mask,
                           memory_order_release);
     return n;
 }
 
 
 
-void queueToWorker(client *c, int worker_id) {
+void queueToWorker(client *c, int ex_id) {
     replyWorking++;
-    c->db = &server.workers[worker_id].db[c->db->id];
-    c->flags |= CLIENT_WORKER_PENDING;
+    c->db = &server.exThreads[ex_id].db[c->db->id];
+    c->flags |= CLIENT_EX_PENDING;
     connSetReadHandler(c->conn, NULL);
-    listAddNodeTail(server.clients_pending_worker[iotid], c);
+    listAddNodeTail(server.clients_pending_ex[iotid], c);
     /* ee451 (v11 hang fix): spin-on-full backpressure (see v11 server.c). The old code dropped the
      * command on a full worker queue -> client hang ("worker queue full"). */
-    workerQueue *q = &server.workers[worker_id].queues[iotid];
+    exQueue *q = &server.exThreads[ex_id].queues[iotid];
     int spins = 0;
-    while (workerQueuePush(q, c) != 0) {
+    while (exQueuePush(q, c) != 0) {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        workerPauseCpu();
+        exPauseCpu();
         if ((++spins & 4095) == 0) sched_yield();
     }
 }
@@ -9753,7 +9753,7 @@ void queueToWorker(client *c, int worker_id) {
  * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a
  * prefetch of a stale address is harmless, and a missed hash hint simply falls
  * back to recomputation at execution. */
-static inline void workerPrefetchBatch(client **batch, int n) {
+static inline void exPrefetchBatch(client **batch, int n) {
     dict *dts[WORKER_POP_BATCH];
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];
@@ -9783,7 +9783,7 @@ static inline void workerPrefetchBatch(client **batch, int n) {
     int w3 = n < server.pf_w_entry  ? n : server.pf_w_entry;
     /* ee451 (#20/#21): this worker (for the per-key prefetch/reuse predictors). Runs on
      * a worker thread, so iotid is in the worker range. */
-    workerThread *pfw = &server.workers[iotid - (MY_IO_THREADS_MAX + 1)];
+    exThread *pfw = &server.exThreads[iotid - (MY_IO_THREADS_MAX + 1)];
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
@@ -9878,7 +9878,7 @@ static inline void workerPrefetchBatch(client **batch, int n) {
  * and also lengthens the spin without burning memory bandwidth); on
  * ARM emits the YIELD hint; elsewhere a compiler barrier (so the
  * loop isn't optimized away). Used by the worker's adaptive backoff. */
-static inline void workerPauseCpu(void) {
+static inline void exPauseCpu(void) {
 #if defined(__i386__) || defined(__x86_64__)
     __builtin_ia32_pause();
 #elif defined(__aarch64__) || defined(__arm__)
@@ -9894,7 +9894,7 @@ static inline void workerPauseCpu(void) {
  * worker-private iotid) so command procs read a valid, owned client through
  * server.current_client[iotid]/executing_client[iotid] — e.g. lookupKey's
  * NO_TOUCH check, getKeySlot, and dbSetValue's overwrite old-value free.
- * Reuses the SipHash computed in workerPrefetchBatch so the key lookup doesn't
+ * Reuses the SipHash computed in exPrefetchBatch so the key lookup doesn't
  * re-hash argv[1]. After the command, releases the DB-aliasing argv references
  * (refcount > 1) HERE so this worker is the SOLE mutator of its shard's value
  * refcounts — a plain decrement, never a free(), which kills the worker-vs-IO
@@ -9929,7 +9929,7 @@ static inline unsigned long long readCyclesTSC(void) {
 #endif
 }
 
-static inline void workerExecFake(client *fake) {
+static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
     if (fake->cmd) {
         server.current_client[iotid] = fake;
@@ -9965,7 +9965,7 @@ static inline void workerExecFake(client *fake) {
 /* ee451: evaluate one bake-off predictor for (key_hash, client-id) from its shadow tables.
  * Shared by the shadow scoring and the active forwarding path. 0=bimodal 1=gshare 2=perceptron
  * 3=recency 4=frequency 5=client. */
-static inline int boPredictOne(workerThread *W, int p, uint64_t kh, uint64_t cid) {
+static inline int boPredictOne(exThread *W, int p, uint64_t kh, uint64_t cid) {
     unsigned ik = (unsigned)kh & FWD_PHT_MASK;
     switch (p) {
     case 0: return W->bo_bimodal[ik] >= 2;
@@ -9991,7 +9991,7 @@ static inline int boPredictOne(workerThread *W, int p, uint64_t kh, uint64_t cid
 /* ee451 (#4): predict whether to FORWARD this run. Adaptive set (thredis-vf-predictor-set) takes
  * priority: one bit = that predictor; multiple bits = the current windowed-best. Else legacy:
  * simple = gshare alone; tournament = bimodal vs gshare via the chooser meta-predictor. */
-static inline int workerPredictForward(workerThread *w, client *fake, uint64_t key_hash) {
+static inline int exPredictForward(exThread *w, client *fake, uint64_t key_hash) {
     if (server.vf_predictor_set) {
         int set = server.vf_predictor_set;
         uint64_t cid = (fake && fake->parent) ? fake->parent->id : (fake ? fake->id : 0);
@@ -10016,14 +10016,14 @@ static inline int workerPredictForward(workerThread *w, client *fake, uint64_t k
  * skipped. In tournament mode, both predictors are nudged toward the outcome and
  * the chooser is nudged toward whichever predictor was right (only when they
  * disagree). gshare history register shifts in the outcome bit. */
-static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
+static inline void exExecFakeLearn(client *fake, exThread *worker) {
     /* Time the real op (op_0) and learn the per-key cache-temperature signal when ANY
      * adaptive mechanism is on: forward predictor (#4), feedback-prefetch (#20), or
      * SHiP reuse (#21). A slow exec => cache MISS (cold); fast => HIT (L1-warm). */
     int want = (server.vf_predictor || server.opt_feedback_prefetch || server.opt_ship_reuse);
     if (!(want && fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
           fake->prefetch_key_hash_valid)) {
-        workerExecFake(fake);
+        exExecFake(fake);
         return;
     }
     uint64_t kh = fake->prefetch_key_hash;
@@ -10040,7 +10040,7 @@ static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
         if (pfd > 0) pc0 = boPerfRead(pfd);
     }
     unsigned long long t0 = readCyclesTSC();
-    workerExecFake(fake);
+    exExecFake(fake);
     unsigned long long dt = readCyclesTSC() - t0;
     int miss = (dt > (unsigned long long)server.vf_predictor_miss_cycles);
     if (pfd > 0) miss = (boPerfRead(pfd) != pc0);   /* CLEAN ground truth: the lookup caused an LLC read miss */
@@ -10050,7 +10050,7 @@ static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
      * scores all 6 (PREDACC reports them). 0=bimodal 1=gshare 2=perceptron 3=recency 4=freq 5=client.
      * Also maintains the tables for the adaptive active path (thredis-vf-predictor-set). */
     if (server.vf_bakeoff || server.vf_predictor_set) {
-        workerThread *W = worker;
+        exThread *W = worker;
         unsigned gh  = W->bo_ghist;
         unsigned ik  = (unsigned)kh & FWD_PHT_MASK;
         unsigned igs = (unsigned)(kh ^ gh) & FWD_PHT_MASK;
@@ -10149,7 +10149,7 @@ static inline void workerExecFakeLearn(client *fake, workerThread *worker) {
  * Used to form same-key read runs for value forwarding. Cheap fast-reject on
  * the prefetched key hash, then a definitive sds compare (guarded so we never
  * sdscmp an int-encoded key pointer). */
-static inline int workerSameKeyReadonly(client *a, client *b) {
+static inline int exSameKeyReadonly(client *a, client *b) {
     if (!b->cmd || !(b->cmd->flags & CMD_READONLY)) return 0;
     if (b->argc < 2 || !b->argv || !b->argv[1]) return 0;
     if (a->prefetch_key_hash_valid && b->prefetch_key_hash_valid &&
@@ -10158,8 +10158,8 @@ static inline int workerSameKeyReadonly(client *a, client *b) {
     return sdscmp(a->argv[1]->ptr, b->argv[1]->ptr) == 0;
 }
 
-void *workerThreadMain(void *arg) {
-    workerThread *worker = (workerThread *)arg;
+void *exThreadMain(void *arg) {
+    exThread *worker = (exThread *)arg;
     /* ee451: give this worker a PRIVATE iotid above the IO-thread range
      * (IO threads occupy 0..my_io_threads-1; main thread is 0). Without this,
      * iotid stays at its __thread default of 0 and every worker aliases
@@ -10186,12 +10186,12 @@ void *workerThreadMain(void *arg) {
         for (uint64_t i = 0; i < 30000000ULL; i++)
             acc = (acc * 6364136223846793005ULL + 1442695040888963407ULL) ^ (acc >> 29);
         uint64_t dt = getMonotonicUs() - t0; if (dt == 0) dt = 1;
-        server.worker_capacity[worker->id] = 1.0e9 / (double)dt;   /* higher => faster core */
+        server.ex_capacity[worker->id] = 1.0e9 / (double)dt;   /* higher => faster core */
         (void)acc;
         serverLog(LL_NOTICE, "ee451 worker %d core capacity = %.0f (calib %llu us)",
-                  worker->id, server.worker_capacity[worker->id], (unsigned long long)dt);
+                  worker->id, server.ex_capacity[worker->id], (unsigned long long)dt);
     }
-    workerBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==1) */
+    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==1) */
 
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
      * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
@@ -10245,12 +10245,12 @@ void *workerThreadMain(void *arg) {
         if (popmax > WORKER_POP_BATCH) popmax = WORKER_POP_BATCH;
         if (popmax < 1) popmax = 1;
         for (int i = 0; i <= server.my_io_threads; i++) {
-            int n = workerQueuePopBatch(&worker->queues[i], batch, popmax);
+            int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
             if (n == 0) continue;
             any = 1;
 
             /* Warm the cache before executing the batch. */
-            workerPrefetchBatch(batch, n);
+            exPrefetchBatch(batch, n);
 
             /* ee451 (#3): track recent write activity for this shard (windowed,
              * decayed). High recent write rate => values churning => reads more
@@ -10336,10 +10336,10 @@ void *workerThreadMain(void *arg) {
                     if (server.vf_predictor) {
                         /* ee451 (#4): branch-predictor-style decision (simple gshare or
                          * tournament). Learns per key from op_0's observed lookup cost
-                         * (workerExecFakeLearn); on random keys the chooser/counter degrades
+                         * (exExecFakeLearn); on random keys the chooser/counter degrades
                          * to the base rate (no worse than a static gate). */
                         do_fwd = (fake->prefetch_key_hash_valid &&
-                                  workerPredictForward(worker, fake, fake->prefetch_key_hash));
+                                  exPredictForward(worker, fake, fake->prefetch_key_hash));
                     } else {
                         /* Static gates: dict-size (#2, cache-cold proxy) AND write-rate (#3,
                          * recent write activity). Both checked pre-scan so a tiny/quiet shard
@@ -10355,7 +10355,7 @@ void *workerThreadMain(void *arg) {
                         }
                     }
                     if (do_fwd)
-                        while (j + m < n && workerSameKeyReadonly(fake, batch[j + m])) m++;
+                        while (j + m < n && exSameKeyReadonly(fake, batch[j + m])) m++;
                 }
 
                 /* ee451: min-run GATE. Only pay the record/replay machinery for runs
@@ -10364,7 +10364,7 @@ void *workerThreadMain(void *arg) {
                 int fwd_early_done = 0;   /* set when a forwarded run was signaled early */
                 if (m > 1 && m >= server.vf_min_run) {
                     readFwdArmRecord(fake->argv[1]->ptr);
-                    workerExecFakeLearn(fake, worker);     /* op_0: real lookup + record + learn */
+                    exExecFakeLearn(fake, worker);     /* op_0: real lookup + record + learn */
                     int replay = readFwdCanReplay();       /* recorded & non-volatile? */
                     /* ee451 COST-BENEFIT gate: forward only when the re-serialization saved across the
                      * run is worth the machinery — saved ~= value_cost * (run-1). Skips small-string /
@@ -10376,7 +10376,7 @@ void *workerThreadMain(void *arg) {
                     if (!replay) readFwdDisarm();          /* volatile/no-record/not-worth-it: run rest normally */
                     for (int k = 1; k < m; k++) {
                         if (replay) readFwdSetReplayKey(batch[j + k]->argv[1]->ptr);
-                        workerExecFake(batch[j + k]);       /* replayed: no learn (not a real lookup) */
+                        exExecFake(batch[j + k]);       /* replayed: no learn (not a real lookup) */
                     }
                     readFwdDisarm();
                     /* ee451 EARLY-CDB: a forwarded run's replays are fully built NOW (they reuse
@@ -10394,8 +10394,8 @@ void *workerThreadMain(void *arg) {
                         fwd_early_done = 1;
                     }
                 } else {
-                    workerExecFakeLearn(fake, worker);     /* op_0 real lookup + learn */
-                    for (int k = 1; k < m; k++) workerExecFake(batch[j + k]);
+                    exExecFakeLearn(fake, worker);     /* op_0 real lookup + learn */
+                    for (int k = 1; k < m; k++) exExecFake(batch[j + k]);
                 }
 
                 if (fwd_early_done) { j += m; continue; }  /* already signaled; skip batch-end coalesce */
@@ -10451,7 +10451,7 @@ void *workerThreadMain(void *arg) {
             /* PAUSE-spin: stay hot, let the IO thread publish work
              * during the small window without the cost of a context
              * switch. */
-            for (int p = 0; p < SPIN_BURST_PAUSES; p++) workerPauseCpu();
+            for (int p = 0; p < SPIN_BURST_PAUSES; p++) exPauseCpu();
             empty_rounds++;
         } else {
             /* Sustained idleness — give up the CPU so other threads
@@ -10550,10 +10550,10 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
  * shard's dicts/values stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses raw
  * syscalls (no libnuma dependency); a no-op / best-effort if unsupported. Called from the worker
  * thread after it is already pinned, so getcpu() reports its real node. */
-void workerBindNumaLocal(int worker_id) {
+void exBindNumaLocal(int ex_id) {
 #ifdef __linux__
     if (server.pin_mode != 1) return;
-    int core = smartCoreFor(worker_id);
+    int core = smartCoreFor(ex_id);
     int node = -1;                              /* core's NUMA node: node%d/cpu%d symlink exists iff member */
     for (int nd = 0; nd < 256 && node < 0; nd++) {
         char p[160]; snprintf(p, sizeof p, "/sys/devices/system/node/node%d/cpu%d", nd, core);
@@ -10563,15 +10563,15 @@ void workerBindNumaLocal(int worker_id) {
     unsigned long nodemask = 1UL << (node % (8 * sizeof(unsigned long)));
     /* MPOL_PREFERRED (==1): prefer the local node, fall back elsewhere rather than OOM. */
     syscall(SYS_set_mempolicy, 1, &nodemask, (unsigned long)(8 * sizeof(nodemask)));
-    serverLog(LL_NOTICE, "ee451 worker %d NUMA-local: core %d -> node %d", worker_id, core, node);
+    serverLog(LL_NOTICE, "ee451 worker %d NUMA-local: core %d -> node %d", ex_id, core, node);
 #else
-    UNUSED(worker_id);
+    UNUSED(ex_id);
 #endif
 }
 
-static void pinWorkerToCore(pthread_t thread, int worker_id) {
-    char what[40]; snprintf(what, sizeof what, "Worker %d", worker_id);
-    pinThreadToCoreN(thread, what, worker_id);
+static void pinExToCore(pthread_t thread, int ex_id) {
+    char what[40]; snprintf(what, sizeof what, "Worker %d", ex_id);
+    pinThreadToCoreN(thread, what, ex_id);
 }
 
 /* IO thread id 0 == main thread. */
@@ -10580,37 +10580,37 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
     pinThreadToCoreN(thread, what, server.num_workers + io_id);
 }
 
-void initWorkers(void) {
-    server.workers = zmalloc(sizeof(workerThread) * server.num_workers);
-    /* v12 OS opt: the workerThread array is large + hot (per-worker queues, freeback rings, predictor
+void initExThreads(void) {
+    server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
+    /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by thredis-os-opts. */
 #ifdef MADV_HUGEPAGE
     if (server.os_opts)
-        madvise(server.workers, sizeof(workerThread) * server.num_workers, MADV_HUGEPAGE);
+        madvise(server.exThreads, sizeof(exThread) * server.num_workers, MADV_HUGEPAGE);
 #endif
     for (int i = 0; i < server.num_workers; i++) {
-        server.workers[i].id = i;
-        server.workers[i].db = server.worker_dbs[i];
+        server.exThreads[i].id = i;
+        server.exThreads[i].db = server.ex_dbs[i];
         /* ee451 (#3/#4): init write-rate counters + forward predictor (weakly-forward
          * = 2, matching the default "forward when VF on" until the predictor learns). */
-        server.workers[i].w_writes = 0;
-        server.workers[i].w_total = 0;
-        server.workers[i].fwd_ghist = 0;
-        memset(server.workers[i].fwd_pht, 2, sizeof(server.workers[i].fwd_pht)); /* history: weakly forward */
-        memset(server.workers[i].gen_pht, 2, sizeof(server.workers[i].gen_pht)); /* general: weakly forward */
-        memset(server.workers[i].chooser, 1, sizeof(server.workers[i].chooser)); /* weakly trust general until history trains */
-        memset(server.workers[i].pf_pht, 2, sizeof(server.workers[i].pf_pht));   /* #20: weakly prefetch (= default behavior) */
-        memset(server.workers[i].reuse_pht, 2, sizeof(server.workers[i].reuse_pht)); /* #21: weakly high-reuse (keep) */
+        server.exThreads[i].w_writes = 0;
+        server.exThreads[i].w_total = 0;
+        server.exThreads[i].fwd_ghist = 0;
+        memset(server.exThreads[i].fwd_pht, 2, sizeof(server.exThreads[i].fwd_pht)); /* history: weakly forward */
+        memset(server.exThreads[i].gen_pht, 2, sizeof(server.exThreads[i].gen_pht)); /* general: weakly forward */
+        memset(server.exThreads[i].chooser, 1, sizeof(server.exThreads[i].chooser)); /* weakly trust general until history trains */
+        memset(server.exThreads[i].pf_pht, 2, sizeof(server.exThreads[i].pf_pht));   /* #20: weakly prefetch (= default behavior) */
+        memset(server.exThreads[i].reuse_pht, 2, sizeof(server.exThreads[i].reuse_pht)); /* #21: weakly high-reuse (keep) */
         for (int t = 0; t <= server.my_io_threads; t++) {
-            workerQueueInit(&server.workers[i].queues[t]);
+            exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
-            freebackRing *fb = &server.workers[i].freeback[t];
+            freebackRing *fb = &server.exThreads[i].freeback[t];
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
-        pthread_create(&server.workers[i].thread, NULL, workerThreadMain, &server.workers[i]);
-        pinWorkerToCore(server.workers[i].thread, i);
+        pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
+        pinExToCore(server.exThreads[i].thread, i);
     }
 }
 
@@ -10970,7 +10970,7 @@ int main(int argc, char **argv) {
     }
     InitServerLast();
     if (!server.sentinel_mode) {
-        initWorkers();
+        initExThreads();
     }
 
     if (!server.sentinel_mode) {

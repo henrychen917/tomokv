@@ -2376,11 +2376,11 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
 }
 
 /* ee451 (v8): ANY worker count in [1, MAX] is allowed now. Dispatch goes through the
- * bucket->worker indirection table (workerIndexForKey), not hash&(N-1), so num_workers no
+ * bucket->worker indirection table (exIndexForKey), not hash&(N-1), so num_workers no
  * longer has to be a power of two — that was the whole point of axing the limit. */
 static int isValidMyWorkerThreads(long long val, const char **err) {
-    if (val < 1 || val > MY_WORKER_THREADS_MAX) {
-        *err = "myworkerthreads must be between 1 and 64";
+    if (val < 1 || val > MY_EX_THREADS_MAX) {
+        *err = "myexthreads must be between 1 and 64";
         return 0;
     }
     return 1;
@@ -3327,9 +3327,9 @@ standardConfig static_configs[] = {
     /* THredis-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
     createIntConfig("myiothreads", NULL, IMMUTABLE_CONFIG, 1, MY_IO_THREADS_MAX, server.my_io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("myworkerthreads", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_THREADS_MAX, server.my_worker_threads, WORKER_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
+    createIntConfig("myexthreads", "myworkerthreads", IMMUTABLE_CONFIG, 1, MY_EX_THREADS_MAX, server.my_ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
     createIntConfig("myiothreadpipelinedepth", NULL, IMMUTABLE_CONFIG, 1, MY_PIPELINE_DEPTH_MAX, server.my_pipeline_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
-    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_QUEUE_SIZE_MAX, server.my_worker_queue_size, WORKER_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
+    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_EX_QUEUE_SIZE_MAX, server.my_ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

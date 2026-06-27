@@ -443,7 +443,7 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 #define CLIENT_ASM_IMPORTING (1ULL<<54) /* Client is importing RDB/stream data during atomic slot migration. */
 
 //ee451 new flag
-#define CLIENT_WORKER_PENDING (1ULL << 55) //new ee451
+#define CLIENT_EX_PENDING (1ULL << 55) //new ee451
 #define CLIENT_PIPELINE_STALLED (1ULL << 56)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
@@ -1108,7 +1108,7 @@ typedef struct __attribute__((__packed__)) bulkStrRef {
      * normal client. When >= 0, the post-send decrRefCount is routed to that
      * worker via freebackPush (sole refcount mutator for its shard); when -1,
      * released inline / via ioDeferFreeRobj as before. */
-    int owner_worker;
+    int owner_ex;
 } bulkStrRef;
 
 /* This structure is used in order to represent the output buffer of a client,
@@ -1445,7 +1445,7 @@ typedef struct {
  *     MY_IO_THREADS_MAX).
  *   - Worker threads: M threads executing GET/SET/DEL on per-worker DB
  *     replicas. Count configured via `myworkerthreads` ->
- *     server.my_worker_threads (default 3, max MY_WORKER_THREADS_MAX).
+ *     server.my_ex_threads (default 3, max MY_EX_THREADS_MAX).
  *   - Per-client fake-client ring for pipelining. Depth configured via
  *     `myiothreadpipelinedepth` -> server.my_pipeline_depth (default 16,
  *     max MY_PIPELINE_DEPTH_MAX which is 32 due to reply_ready_mask being
@@ -1460,11 +1460,11 @@ typedef struct {
 
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
 #define MY_IO_THREADS_MAX 32
-#define MY_WORKER_THREADS_MAX 64
+#define MY_EX_THREADS_MAX 64
 #define MY_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & MY_BUCKET_MASK
  * (MY_BUCKETS is a power of two so indexing stays a single AND), worker =
- * worker_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
+ * ex_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
  * number of workers can own buckets) while keeping xxhash, and (b) is the foundation for
  * adaptive resharding: each worker owns a CONTIGUOUS bucket range, so rebalancing only
  * shifts a boundary between adjacent workers. 4096 buckets = uint8_t table (≤64 workers)
@@ -1561,7 +1561,7 @@ typedef struct client {
      * dispatched before it has executed (no in-flight range write straddles the table flip). */
     _Atomic int *drain_ack;
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
-     * the worker prefetch stage (workerPrefetchBatch) and reused at command
+     * the worker prefetch stage (exPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
      * only for the window between prefetch and proc() for this fake. */
     uint64_t prefetch_key_hash;
@@ -1771,7 +1771,7 @@ typedef struct csGroup {
      * MGET: result robj* (+1 ref, freed-back to its worker at drain). MSET: unused.
      * DEL/EXISTS: rcount accumulates the per-sub integer. */
     robj **results;            /* [nkeys] MGET values (or NULL) */
-    int  *result_worker;       /* [nkeys] owning worker of results[i] (for free-back) */
+    int  *result_ex;       /* [nkeys] owning worker of results[i] (for free-back) */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
@@ -1820,17 +1820,17 @@ typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head)
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Must be a power of two. Runtime value lives
- * in server.my_worker_queue_size; MY_WORKER_QUEUE_SIZE_MAX caps the static
+ * in server.my_ex_queue_size; MY_EX_QUEUE_SIZE_MAX caps the static
  * array. Memory footprint at max:
- *   num_workers * (my_io_threads + 1) * MY_WORKER_QUEUE_SIZE_MAX * sizeof(ptr)
+ *   num_workers * (my_io_threads + 1) * MY_EX_QUEUE_SIZE_MAX * sizeof(ptr)
  * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
  * (2048) keeps worst case manageable. */
-#define MY_WORKER_QUEUE_SIZE_MAX 2048
-#define WORKER_QUEUE_SIZE 1024  /* default; runtime value lives in server.my_worker_queue_size */
-#define WORKER_QUEUE_MASK (WORKER_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.my_worker_queue_mask */
-#define WORKER_THREADS_NUM 4    /* default; runtime value lives in server.my_worker_threads.
+#define MY_EX_QUEUE_SIZE_MAX 2048
+#define EX_QUEUE_SIZE 1024  /* default; runtime value lives in server.my_ex_queue_size */
+#define EX_QUEUE_MASK (EX_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.my_ex_queue_mask */
+#define EX_THREADS_NUM 4    /* default; runtime value lives in server.my_ex_threads.
                                  * Must be a power of two — getWorkerForCommand uses a
-                                 * bitmask (my_worker_dispatch_mask = N-1) instead of modulo. */
+                                 * bitmask (my_ex_dispatch_mask = N-1) instead of modulo. */
 #define IO_THREADS_NUM 8        /* default; runtime value lives in server.my_io_threads */
 /* How many fakes a worker drains per lock acquire on one IO-thread queue.
  * Larger = fewer mutex traffic pings, better cache locality in exec loop,
@@ -1839,7 +1839,7 @@ typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head)
 #define WORKER_POP_BATCH 16
 
 /* Lock-free SPSC ring buffer. The architecture already guarantees that
- * each workerQueue has exactly one producer (the IO thread whose index
+ * each exQueue has exactly one producer (the IO thread whose index
  * matches queues[]) and exactly one consumer (the owning worker thread),
  * so we don't need a mutex — atomic head/tail indices with
  * acquire/release ordering are sufficient and ~60ns cheaper per op.
@@ -1853,7 +1853,7 @@ typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head)
  *   - `jobs[]` trails `tail` — the producer writes `jobs[tail]` right
  *     before advancing `tail`, so co-located with tail's cache line is
  *     acceptable (no cross-core false sharing with head). */
-typedef struct workerQueue {
+typedef struct exQueue {
     redisAtomic unsigned int head __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451: SPSC index caching (DPDK/folly style). cached_tail is a
      * non-atomic snapshot of `tail` touched ONLY by the consumer (owning
@@ -1871,15 +1871,15 @@ typedef struct workerQueue {
      * cached_head and only acquire-reloads the real head when the cache says
      * full. cached_head can only lag the true head — never a false not-full. */
     unsigned int cached_head;
-    /* ee451 (S4): batched producer-side push. workerQueuePush writes jobs[] and
+    /* ee451 (S4): batched producer-side push. exQueuePush writes jobs[] and
      * advances this producer-private staged_tail WITHOUT publishing; the owning
      * IO thread publishes all staged jobs with ONE release-store of `tail` per
-     * queue at flushWorkerQueues() (called at the top of handleWorkerReplies,
+     * queue at flushExQueues() (called at the top of handleWorkerReplies,
      * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
      * tail release-stores into one. Producer-private, lives on tail's line. */
     unsigned int staged_tail;
-    client *jobs[MY_WORKER_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
-} workerQueue;
+    client *jobs[MY_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+} exQueue;
 
 /* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
  * takes a +1 ref on the value and the IO thread sends it by reference; the
@@ -1903,10 +1903,10 @@ typedef struct freebackRing {
 #define FWD_PHT_SIZE (1u << FWD_PHT_BITS)
 #define FWD_PHT_MASK (FWD_PHT_SIZE - 1)
 
-typedef struct workerThread {
+typedef struct exThread {
     int id;
     pthread_t thread;
-    workerQueue queues[MY_IO_THREADS_MAX + 1];
+    exQueue queues[MY_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[MY_IO_THREADS_MAX + 1];
     redisDb *db;
@@ -1962,7 +1962,7 @@ typedef struct workerThread {
     unsigned long long bo_corr[10], bo_tot[10];/* +ensemble +perkey */
     int bo_best;                               /* current windowed-best predictor id (adaptive set mode) */
     int bo_perf_fd;                            /* ee451: per-worker perf LLC-miss fd (clean ground-truth signal); 0=untried,-1=failed */
-} workerThread;
+} exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     uint8_t id;                                 /* The unique ID assigned, if IO_THREADS_MAX_NUM is more
@@ -2303,30 +2303,30 @@ struct redisServer {
     mode_t umask;               /* The umask value of the process on startup */
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
-    workerThread *workers;
-    list *clients_pending_worker[MY_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
+    exThread *exThreads;
+    list *clients_pending_ex[MY_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
     /* THredis-dev custom threading/pipelining runtime knobs. Loaded from
      * redis.conf (`myiothreads`, `myworkerthreads`, `myiothreadpipelinedepth`,
      * `myworkerthreadqueuedepth`). my_pipeline_queue_mask and
-     * my_worker_queue_mask are derived from their *_depth / *_size counterparts
+     * my_ex_queue_mask are derived from their *_depth / *_size counterparts
      * at startup. */
     int my_io_threads;
-    int my_worker_threads;
+    int my_ex_threads;
     int my_pipeline_depth;
     unsigned int my_pipeline_queue_mask;
-    int my_worker_queue_size;
-    unsigned int my_worker_queue_mask;
-    /* Dispatch mask: my_worker_threads - 1. Requires my_worker_threads to
+    int my_ex_queue_size;
+    unsigned int my_ex_queue_mask;
+    /* Dispatch mask: my_ex_threads - 1. Requires my_ex_threads to
      * be a power of two (enforced by isValidMyWorkerThreads validator in
      * config.c). Replaces `hash % num_workers` in getWorkerForCommand
      * with a single AND instruction. */
-    uint64_t my_worker_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
+    uint64_t my_ex_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
     /* ee451 (v8): bucket->worker map (hot path) and the per-worker contiguous range ends
-     * (worker i owns buckets [i? worker_bucket_end[i-1]:0, worker_bucket_end[i]) — used by
+     * (worker i owns buckets [i? ex_bucket_end[i-1]:0, ex_bucket_end[i]) — used by
      * the adjacent-boundary-shift rebalancer). */
-    uint8_t  worker_bucket_table[MY_BUCKETS];
-    int      worker_bucket_end[MY_WORKER_THREADS_MAX];
+    uint8_t  ex_bucket_table[MY_BUCKETS];
+    int      ex_bucket_end[MY_EX_THREADS_MAX];
     /* ee451 (v8d): online resharding via a single totally-ordered A->B effect-log
      * (RESHARD_DOUBLEWRITE_PROTOCOL.md). migration_active is read once (relaxed) per command on
      * the hot path -> isolated on its own read-mostly cache line (written only at migration
@@ -2347,7 +2347,7 @@ struct redisServer {
                                         * a slot done when A's queue from it stays empty = idle producer) */
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
     } migration;
-    redisDb **worker_dbs;
+    redisDb **ex_dbs;
     redisDb *db;
     dict *commands;             /* Command table */
     dict *orig_commands;        /* Command table before command renaming. */
@@ -2407,15 +2407,15 @@ struct redisServer {
     list *clients_with_pending_ref_reply[MY_IO_THREADS_MAX + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
     //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads,
-    // and MY_IO_THREADS_MAX+1 .. +MY_WORKER_THREADS_MAX = worker threads. Worker threads run
+    // and MY_IO_THREADS_MAX+1 .. +MY_EX_THREADS_MAX = worker threads. Worker threads run
     // command procs directly (bypassing call()) and index these arrays by their OWN iotid, so
     // they must have private slots. Sharing slot 0 with the main thread (the pre-fix behavior,
     // since workers never set iotid) is a data race: a worker reads/writes server.current_client[0]
     // — a foreign client the main thread concurrently reassigns and frees — which caused the
     // worker-side UAF read (lookupKey/getKeySlot, Signature B) and the heap corruption in the
     // overwrite old-value free path (dbSetValue -> tryDeferFreeClientObject, Signature A).
-    client *current_client[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX];
-    client *executing_client[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX];
+    client *current_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX];
+    client *executing_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX];
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */
@@ -2485,7 +2485,7 @@ struct redisServer {
         long long hits;
         long long misses;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
-    } kstat[MY_IO_THREADS_MAX + 1 + MY_WORKER_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    } kstat[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
     long long stat_active_defrag_misses;    /* number of allocations scanned but not moved */
     long long stat_active_defrag_key_hits;  /* number of keys with moved allocations */
@@ -3011,7 +3011,7 @@ struct redisServer {
                                   * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
                                   * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
                                   * untested on single-NUMA boxes — left OFF for now. */
-    double worker_capacity[MY_WORKER_THREADS_MAX]; /* auto-calibrated relative core speed (faster=bigger);
+    double ex_capacity[MY_EX_THREADS_MAX]; /* auto-calibrated relative core speed (faster=bigger);
                                   * the balancer targets equal load/capacity, not equal ops, so faster
                                   * (P-core / higher-turbo / nearer-NUMA) workers carry proportionally more. */
     /* Local environment */
@@ -4993,13 +4993,13 @@ void debugPauseProcess(void);
 void initIOThreads(void);
 
 /* Worker thread functions */
-void workerQueueInit(workerQueue *q);
-int workerQueuePush(workerQueue *q, client *c);
-void flushWorkerQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
-void freebackPush(int worker_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
-client *workerQueuePop(workerQueue *q);
-void queueToWorker(client *c, int worker_id);
-void *workerThreadMain(void *arg);
+void exQueueInit(exQueue *q);
+int exQueuePush(exQueue *q, client *c);
+void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
+client *exQueuePop(exQueue *q);
+void queueToWorker(client *c, int ex_id);
+void *exThreadMain(void *arg);
 #ifdef HAVE_LIBURING
 /* v12-G: io_uring multishot-recv (gated by server.io_uring_recv). Called from the IO thread. */
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
@@ -5009,11 +5009,11 @@ void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (t
 int wdsEnsureRing(int wid);                       /* lazily build worker wid's send ring; 1 on success */
 struct io_uring *wdsRingOf(int wid);              /* the worker's ring (NULL if not ready) — for the commit/reap protocol */
 #endif
-void initWorkers(void);
+void initExThreads(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
-int workerIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
+int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */

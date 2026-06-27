@@ -338,7 +338,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
     return val;
 }
 
-/* ee451: read-run value forwarding (Tomasulo CDB analog; see workerThreadMain).
+/* ee451: read-run value forwarding (Tomasulo CDB analog; see exThreadMain).
  * Thread-local and per-worker. Within one worker batch, a run of consecutive
  * CMD_READONLY commands on the SAME key is executed as a dependency chain: the
  * first read does the real lookup and RECORDs the resolved value; the rest
@@ -1444,7 +1444,7 @@ void flushallCommand(client *c) {
     /* NB: inline-dispatched commands run on a ring-slot FAKE (c->isFake==1), so do NOT gate
      * on !c->isFake — that would skip the fix and fall into the stock blocking-async path,
      * which hangs/crashes here. flushAllShards works whether c is the real client or its fake. */
-    if (server.workers && server.num_workers > 0) {
+    if (server.exThreads && server.num_workers > 0) {
         flushAllShards(c, -1, (flags & EMPTYDB_ASYNC) ? 1 : 0);
         server.dirty++;
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
@@ -1466,7 +1466,7 @@ void flushdbCommand(client *c) {
 
     /* ee451 (v7): sharded build — flush the selected DB across all worker shards. See
      * flushallCommand for why the stock path hangs here. */
-    if (server.workers && server.num_workers > 0 && !c->isFake) {
+    if (server.exThreads && server.num_workers > 0 && !c->isFake) {
         flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
         server.dirty++;
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
@@ -2188,11 +2188,11 @@ void dbsizeCommand(client *c) {
      * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
      * used counter only (no iteration), so reading it from the IO thread while a worker writes
      * is racy but crash-free and DBSIZE is approximate by nature. */
-    if (server.num_workers > 0 && server.workers) {
+    if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;
         for (int w = 0; w < server.num_workers; w++)
-            total += dbSize(&server.workers[w].db[dbid]);
+            total += dbSize(&server.exThreads[w].db[dbid]);
         addReplyLongLong(c, total);
         return;
     }
@@ -2912,14 +2912,14 @@ static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, lo
 }
 
 /* Delete the specified expired key and propagate. */
-/* ee451 (v8d): an IMPLICIT delete (expiry/eviction) of a key skips the workerExecFake capture hook
+/* ee451 (v8d): an IMPLICIT delete (expiry/eviction) of a key skips the exExecFake capture hook
  * (which only fires for CMD_WRITE commands), so a range key A expires/evicts mid-migration would be
  * resurrected on B. Log a tombstone here. STRICTLY gate to worker A's own shard: a tombstone emitted
  * from any other db (e.g. the IO-side server.db, which never holds range keys) would tell B to delete
  * a still-live key = data loss. The key is already gone, so migCaptureEffect logs a tombstone. */
 static inline void migCaptureImplicitDelete(redisDb *db, robj *keyobj) {
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
-        server.workers && db == &server.workers[server.migration.src].db[db->id])
+        server.exThreads && db == &server.exThreads[server.migration.src].db[db->id])
         migCaptureEffect(db, keyobj);
 }
 void deleteExpiredKeyAndPropagate(redisDb *db, robj *keyobj) {

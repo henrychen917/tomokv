@@ -659,7 +659,7 @@ static inline int _prepareClientToWrite(client *c) {
      * If the client runs in an IO thread, we should not put the client in the
      * pending write queue. Instead, we will install the write handler to the
      * corresponding IO thread’s event loop and let it handle the reply. */
-    if (_flags & CLIENT_WORKER_PENDING) return C_OK;
+    if (_flags & CLIENT_EX_PENDING) return C_OK;
 
     if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
         putClientInPendingWriteQueue(c);
@@ -881,8 +881,8 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
                         * a worker fake, on the owning worker via freebackPush) */
     /* ee451 (S8): if this reply is being built on a worker (a fake executing a
      * command), record the owning worker id so the post-send decrRefCount is
-     * routed back to it. iotid for a worker is MY_IO_THREADS_MAX+1+worker_id. */
-    str_ref.owner_worker = (c->isFake && iotid > MY_IO_THREADS_MAX)
+     * routed back to it. iotid for a worker is MY_IO_THREADS_MAX+1+ex_id. */
+    str_ref.owner_ex = (c->isFake && iotid > MY_IO_THREADS_MAX)
                          ? (iotid - (MY_IO_THREADS_MAX + 1)) : -1;
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
@@ -907,20 +907,20 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * refcount op. An inline-buffer ref would instead be bulk-memcpy'd into the
      * real client's buffer, duplicating the reference (double-decref). So skip
      * the inline buffer for fakes and always append to the list. */
-    if (str_ref.owner_worker >= 0 ||
+    if (str_ref.owner_ex >= 0 ||
         !_addBulkStrRefToBuffer(c, (void *)&str_ref, sizeof(str_ref))) {
         _addReplyPayloadToList(c, c->reply, (void *)&str_ref, sizeof(str_ref), BULK_STR_REF);
     }
 
     /* Track clients with pending referenced reply objects for async flushdb
      * protection.
-     * ee451 (S8): SKIP this for worker fakes (owner_worker >= 0). The list
+     * ee451 (S8): SKIP this for worker fakes (owner_ex >= 0). The list
      * server.clients_with_pending_ref_reply[] is sized [MY_IO_THREADS_MAX+1] and
      * indexed by iotid — a worker's iotid is in the worker range (out of bounds
      * => the SEGV thredis-stress caught). Fakes don't need it anyway: the value
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
-    if (str_ref.owner_worker < 0 && !clientIsInPendingRefReplyList(c)) {
+    if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
         listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
     }
 }
@@ -1625,8 +1625,8 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
      * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
     int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
-    int on_worker = zc_on && c->isFake && iotid > MY_IO_THREADS_MAX;
-    if (!on_worker) {
+    int on_ex = zc_on && c->isFake && iotid > MY_IO_THREADS_MAX;
+    if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */
         if (c->isFake || !c->conn) return 0;
@@ -2412,12 +2412,12 @@ static void releaseBufReferences(client *c, char *buf, size_t bufpos) {
             bulkStrRef *str_ref = (bulkStrRef *)ptr;
             /* Only release if not already released. */
             if (str_ref->obj != NULL) {
-                if (str_ref->owner_worker >= 0)
+                if (str_ref->owner_ex >= 0)
                     /* ee451 (S8): value owned by a worker shard — route the
                      * decref back to that worker (sole refcount mutator) so it
                      * never races the worker. The owning worker drains its
                      * free-back ring and decrefs. */
-                    freebackPush(str_ref->owner_worker, str_ref->obj);
+                    freebackPush(str_ref->owner_ex, str_ref->obj);
                 else if (in_io_thread)
                     ioDeferFreeRobj(c, str_ref->obj);
                 else
@@ -2517,7 +2517,7 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
-    if (c->flags & CLIENT_WORKER_PENDING) {
+    if (c->flags & CLIENT_EX_PENDING) {
         freeClientAsync(c);
         return;
     }
@@ -2731,7 +2731,7 @@ void freeClientAsync(client *c) {
     // }
 
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */
@@ -2796,7 +2796,7 @@ int freeClientsInAsyncFreeQueue(void) {
         client *c = listNodeValue(ln);
 
         if (c->flags & CLIENT_PROTECTED) continue;
-        if (c->flags & CLIENT_WORKER_PENDING) continue;
+        if (c->flags & CLIENT_EX_PENDING) continue;
         c->flags &= ~CLIENT_CLOSE_ASAP;
         freeClient(c);
         listDelNode(server.clients_to_close[iotid],ln);
@@ -2918,8 +2918,8 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
              * for its shard's values (single-writer-per-key). Route the decref back
              * to that worker via the free-back ring instead. Mirrors the inline-buffer
              * path in releaseBufReferences(). */
-            if (str_ref->owner_worker >= 0) {
-                freebackPush(str_ref->owner_worker, str_ref->obj);
+            if (str_ref->owner_ex >= 0) {
+                freebackPush(str_ref->owner_ex, str_ref->obj);
             } else if (in_io_thread) {
                 ioDeferFreeRobj(c, str_ref->obj);
             } else {
@@ -3473,9 +3473,9 @@ static void iouRecvPrepArm(iouRecvState *st, int fd) {
  * Mirrors the post-read tail of readQueryFromClient(). Returns 1 if the client is still alive,
  * 0 if it was scheduled for (async) free — the caller must then drop it from the fd map. */
 static int iouRecvDeliver(client *c, const char *data, int len) {
-    /* Real IO-thread clients are never CLIENT_WORKER_PENDING (only fakes are), but be defensive:
+    /* Real IO-thread clients are never CLIENT_EX_PENDING (only fakes are), but be defensive:
      * just buffer the bytes and let a later pass parse them. */
-    if (c->flags & CLIENT_WORKER_PENDING) {
+    if (c->flags & CLIENT_EX_PENDING) {
         if (!c->querybuf) c->querybuf = sdsempty();
         c->querybuf = sdscatlen(c->querybuf, data, len);
         return 1;
@@ -3651,13 +3651,13 @@ void iouRecvDisarm(int t, int fd) {
  * the legacy CDB-drain path byte-identical when off, and must clear ASAN churn + pipeline-order gates
  * before any promotion. */
 #define WDS_RING_DEPTH 2048
-static struct io_uring wdsRings[MY_WORKER_THREADS_MAX];
-static int wdsRingState[MY_WORKER_THREADS_MAX];   /* 0=uninit, 1=ready, -1=failed */
+static struct io_uring wdsRings[MY_EX_THREADS_MAX];
+static int wdsRingState[MY_EX_THREADS_MAX];   /* 0=uninit, 1=ready, -1=failed */
 
 /* Lazily build worker `wid`'s send ring. Called once at worker-thread start when the knob is on.
  * Falls back to a plain ring if DEFER_TASKRUN/SINGLE_ISSUER aren't available. Returns 1 on success. */
 int wdsEnsureRing(int wid) {
-    if (wid < 0 || wid >= MY_WORKER_THREADS_MAX) return 0;
+    if (wid < 0 || wid >= MY_EX_THREADS_MAX) return 0;
     if (wdsRingState[wid] == 1) return 1;
     if (wdsRingState[wid] == -1) return 0;
     struct io_uring_params p;
@@ -3673,7 +3673,7 @@ int wdsEnsureRing(int wid) {
 
 /* Raw ring accessors used by the server.c commit/reap protocol. */
 struct io_uring *wdsRingOf(int wid) {
-    return (wid >= 0 && wid < MY_WORKER_THREADS_MAX && wdsRingState[wid] == 1) ? &wdsRings[wid] : NULL;
+    return (wid >= 0 && wid < MY_EX_THREADS_MAX && wdsRingState[wid] == 1) ? &wdsRings[wid] : NULL;
 }
 #endif /* HAVE_LIBURING */
 
@@ -3805,7 +3805,7 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
 
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c, int num_pcmds_to_free) {
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     resetClientInternal(c, num_pcmds_to_free);
 }
 
@@ -4550,7 +4550,7 @@ int processInputBuffer(client *c) {
 
         /* Upstream command-prefetch batch (memory_prefetch.c) removed.
          * Cache warming for worker-dispatched commands is handled in
-         * workerPrefetchBatch() (server.c) on the worker side against the
+         * exPrefetchBatch() (server.c) on the worker side against the
          * correct shard DB. */
 
         /* Check if the client has a fatal read error that requires stopping processing. */
@@ -4630,7 +4630,7 @@ int processInputBuffer(client *c) {
 
 void readQueryFromClient(connection *conn) {
     client *c = connGetPrivateData(conn);
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     int nread, big_arg = 0;
     size_t qblen, readlen;
 
