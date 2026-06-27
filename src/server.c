@@ -5101,12 +5101,13 @@ int processCommand(client *c) {
     if (c->dispatchid == __atomic_load_n(&c->flushid, __ATOMIC_ACQUIRE)) {
 #ifdef HAVE_LIBURING
         if (server.strict_pipeline && iotid >= 1) {
-            /* uring-strict: hand a 'watch' to this io thread's ROB (owns reorder/retire/send). iotid 0
-             * (main thread, no ROB/robq) uses the legacy IO-drain path (below) like uring-threestage.
-             * DEFER the push to AFTER c->dispatchid++ (below): if pushed now, the ROB could pop the watch
-             * and read the OLD dispatchid (== flushid), conclude "fully drained", and remove the client
-             * from its active set before this dispatch even completes -> the reply is never scanned. */
-            strict_first_watch = 1;
+            /* uring-strict: hand a 'watch' to this io thread's ROB (owns reorder/retire/send), but only
+             * ONCE per connection — skip if already in the ROB active-set (on_robq), since the ROB keeps
+             * a live client watched for its whole lifetime (no re-watch flood / robq saturation). iotid 0
+             * (main thread, no ROB) uses the legacy IO-drain path. The push itself is DEFERRED to after
+             * c->dispatchid++ (below): if pushed now, the ROB could pop the watch, read the OLD dispatchid
+             * (== flushid), conclude "drained", and drop the client before this dispatch completes. */
+            if (!__atomic_load_n(&c->on_robq, __ATOMIC_ACQUIRE)) strict_first_watch = 1;
         } else
 #endif
             listAddNodeTail(server.clients_pending_worker[iotid], c);
@@ -10844,8 +10845,13 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
         }
         return 0;                                                      /* send in flight (or retry next loop) */
     }
-    /* Fully retired ONLY if nothing left to send (bufpos<=sentlen) — never drop a client with an
-     * unsent (EAGAIN-deferred) buffer, or the reply is lost. */
+    /* REMOVE from the active set ONLY when the client is CLOSING and fully drained. A LIVE client stays
+     * watched for its whole connection lifetime (watch-once at first connect): this avoids the
+     * remove/re-watch churn (and the robq saturation -> dispatch spin -> wedge) that a deep pipeline
+     * under reconnect storms triggers, and closes the remove/re-add race. The cost is the ROB scanning
+     * idle watched clients each loop (cheap: one CDB-word read); a future scalability pass can index
+     * only clients with pending work. Never drop with an unsent (EAGAIN-deferred) buffer either. */
+    if (!closing) return 0;
     return (c->flushid == c->dispatchid) && !__atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) &&
            (c->bufpos <= c->sentlen);
 }
