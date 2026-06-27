@@ -11068,6 +11068,20 @@ void *wbThreadMain(void *arg) {
 #endif
 
 void initIfidThreads(void) {
+#ifndef HAVE_LIBURING
+    /* The 3-stage write-back (WB) thread + its watch/drain path live entirely under HAVE_LIBURING.
+     * Built without liburing, strict-pipeline/uring-threestage have NO WB thread and silently fall back
+     * to a drain that hangs the first connection on each ifid thread (a footgun that silently corrupts
+     * benchmarks). Fail fast with an actionable message instead. */
+    if (server.strict_pipeline || server.uring_threestage) {
+        serverLog(LL_WARNING,
+            "FATAL: thredis-strict-pipeline / thredis-uring-threestage require a USE_URING=yes build "
+            "(HAVE_LIBURING), but this binary was built WITHOUT liburing. The write-back (WB) thread is "
+            "absent and the 3-stage reply path would silently hang. Rebuild with `make USE_URING=yes`, "
+            "or disable strict-pipeline/uring-threestage.");
+        exit(1);
+    }
+#endif
     server.ifidThreadsNum = server.my_ifid_threads;
     server.ifidThreads = zmalloc(sizeof(ifidThreadArgs) * server.my_ifid_threads);
     server.custom_ifid_threads_active = 1;
