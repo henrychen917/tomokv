@@ -5080,7 +5080,7 @@ int processCommand(client *c) {
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
     if (c->dispatchid - c->flushid == (unsigned int)server.my_pipeline_depth) {
-        c->flags |= CLIENT_PIPELINE_STALLED;
+        markStalled(c);   /* enroll + replyWorking++ so the IO polls and resumes when the ROB frees a slot */
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
         if (now_us - last_stall_us > 1000000) {
