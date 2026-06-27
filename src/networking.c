@@ -423,6 +423,7 @@ client *createClient(connection *conn) {
     c->ts_gen = 1;
     c->ts_close_needed = 0;
     c->on_wbq = 0;
+    c->owner_ifid = -1;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -4055,6 +4056,46 @@ static inline void operandPoolPut(robj *o) {
     decrRefCount(o);
 }
 
+/* v12-pool: the WB (producer, ifidx = a wb slot) returns a retired operand to its OWNING ifid's recycle
+ * ring so the operand is pooled+reused+freed all on the ifid that alloc'd it (no cross-thread jemalloc
+ * free). Non-blocking: on ring-full fall back to a local decrRefCount (rare; one cross-thread free). */
+static inline void operandRecyclePush(int owner_ifid, robj *o) {
+    freebackRing *r = &server.ifidThreads[owner_ifid].recycle[ifidx];
+    unsigned int t = atomic_load_explicit(&r->tail, memory_order_relaxed);
+    unsigned int next_t = (t + 1) & FREEBACK_RING_MASK;
+    if (next_t == atomic_load_explicit(&r->head, memory_order_acquire)) { decrRefCount(o); return; }
+    r->objs[t] = o;
+    atomic_store_explicit(&r->tail, next_t, memory_order_release);
+}
+
+/* Retire-time PUT: cross-thread (3-stage WB, owner != current) -> recycle to owner ifid; same-thread
+ * (2-stage / inline) or non-tiered -> pool locally on the current ifidx. */
+static inline void operandPoolPutRouted(robj *o, int owner_ifid) {
+    if (server.opt_operand_pool_tiered && owner_ifid >= 0 && owner_ifid != ifidx &&
+        owner_ifid <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+        o->encoding == OBJ_ENCODING_RAW) {
+        operandRecyclePush(owner_ifid, o);
+        return;
+    }
+    operandPoolPut(o);
+}
+
+/* Drained by the owning ifid in beforeSleepIfid: file WB-returned operands into THIS ifid's tiers (single
+ * consumer; producers are the wb threads). Operand was alloc'd here at parse -> malloc+free stay local. */
+void operandRecycleDrain(int self_ifidx) {
+    if (self_ifidx < 0 || self_ifidx > MY_IFID_THREADS_MAX) return;
+    for (int p = 0; p <= MY_IFID_THREADS_MAX; p++) {
+        freebackRing *r = &server.ifidThreads[self_ifidx].recycle[p];
+        unsigned int h = atomic_load_explicit(&r->head, memory_order_relaxed);
+        unsigned int tl = atomic_load_explicit(&r->tail, memory_order_acquire);
+        while (h != tl) {
+            operandPoolPut((robj *)r->objs[h]);
+            h = (h + 1) & FREEBACK_RING_MASK;
+        }
+        atomic_store_explicit(&r->head, h, memory_order_release);
+    }
+}
+
 static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     char *newline = NULL;
     int ok;
@@ -6639,10 +6680,13 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
     getKeysFreeResult(&pcmd->keys_result);
 
     if (pcmd->argv) {
+        /* v12-pool: route operands back to the OWNING ifid (where they were alloc'd). c is the fake
+         * (->parent = real conn) on the worker/WB path, or the real client on the inline/2-stage path. */
+        int oif = c ? (c->parent ? c->parent->owner_ifid : c->owner_ifid) : -1;
         for (int j = 0; j < pcmd->argc; j++) {
             robj *o = pcmd->argv[j];
             if (!o) continue; /* argv[j] may be NULL when called from reclaimPendingCommand */
-            if (server.opt_operand_pool) operandPoolPut(o);   /* ee451 v11-A: recycle or decref */
+            if (server.opt_operand_pool) operandPoolPutRouted(o, oif);   /* v12-pool: recycle/pool/decref */
             else decrRefCount(o);
         }
 

@@ -2175,6 +2175,7 @@ void beforeSleepIfid(struct aeEventLoop *eventLoop) {
         migPushFenceIfNeeded();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
+    if (server.opt_operand_pool_tiered) operandRecycleDrain(ifidx);   /* v12-pool: file WB-returned operands into this ifid's tiers */
 #ifdef HAVE_LIBURING
     /* uring-strict resume: handleWorkerReplies early-returned for ifidx>=1 (the WB drains). The WB
      * advances flushid as it retires, freeing ring slots; here we resume clients that stalled on a full
@@ -5097,6 +5098,7 @@ int processCommand(client *c) {
 
     client *fake = c->fakeClients[c->dispatchid & server.my_pipeline_queue_mask];
     moveExecutionState(c, fake);
+    if (c->owner_ifid < 0) c->owner_ifid = ifidx;   /* v12-pool: ifid that alloc'd this conn's argv (operand recycle target) */
 
     /* First in-flight fake for this real — enroll for reply draining. In strict mode flushid is
      * advanced by the WB, so acquire-load it: a stale (smaller) read here would skip the watch on a
@@ -11089,6 +11091,7 @@ void initIfidThreads(void) {
     for (int i = 1; i < server.my_ifid_threads; i++) {
         ifidThreadArgs *t = &server.ifidThreads[i];
         t->id = i;
+        memset(t->recycle, 0, sizeof(t->recycle));   /* v12-pool: zero the operand recycle SPSC rings (zmalloc'd) */
         /* Create the event loop for this IO thread */
         t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
         if (t->el == NULL) {

@@ -1526,6 +1526,8 @@ typedef struct client {
     uint32_t ts_gen;                   /* bumped on free; WB send user_data carries it; reject stale CQEs */
     int ts_close_needed;               /* WB hit a send error; the IO thread frees (WB ifidx has no close drainer) */
     int on_wbq;                       /* dedup: client is queued/active on the WB thread (atomic_exchange-guarded) */
+    int owner_ifid;                   /* v12-pool: ifid thread owning this conn (parses=allocs argv); the WB
+                                       * routes retired operands back to its recycle ring. -1 until dispatched. */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
      * stamped once at preallocation. Unused on real clients. */
     unsigned int fake_slot;
@@ -2280,6 +2282,10 @@ typedef struct {
     pthread_t wb_tid;
     exQueue wbq;
     exQueue resumeq;
+    /* v12-pool: operand recycle rings, WB (producer) -> this ifid (consumer). The WB retires fakes whose
+     * argv robjs were alloc'd on THIS ifid at parse; returning them here keeps malloc+free same-thread
+     * (avoids the cross-thread jemalloc free that ballooned instr/op). One ring per producer ifidx. */
+    freebackRing recycle[MY_IFID_THREADS_MAX + 1];
 } ifidThreadArgs;
 
 
@@ -3589,6 +3595,7 @@ int moduleHasSubscribersForKeyspaceEvent(int type);
 /* pcmd */
 void initPendingCommand(pendingCommand *pcmd);
 void freePendingCommand(client *c, pendingCommand *pcmd);
+void operandRecycleDrain(int self_ifidx);   /* v12-pool: ifid files WB-returned operands into its tiers */
 void addPendingCommand(pendingCommandList *queue, pendingCommand *cmd);
 pendingCommand *popPendingCommandFromHead(pendingCommandList *queue);
 pendingCommand *popPendingCommandFromTail(pendingCommandList *queue);
