@@ -2376,11 +2376,11 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
 }
 
 /* ee451 (v8): ANY worker count in [1, MAX] is allowed now. Dispatch goes through the
- * bucket->worker indirection table (workerIndexForKey), not hash&(N-1), so num_workers no
+ * bucket->worker indirection table (exIndexForKey), not hash&(N-1), so num_workers no
  * longer has to be a power of two — that was the whole point of axing the limit. */
 static int isValidMyWorkerThreads(long long val, const char **err) {
-    if (val < 1 || val > MY_WORKER_THREADS_MAX) {
-        *err = "myworkerthreads must be between 1 and 64";
+    if (val < 1 || val > MY_EX_THREADS_MAX) {
+        *err = "myexthreads must be between 1 and 64";
         return 0;
     }
     return 1;
@@ -3115,7 +3115,7 @@ static int applyClientMaxMemoryUsage(const char **err) {
     pauseAllIOThreads();
     /* When client eviction is enabled update memory buckets for all clients.
      * When disabled, clear that data structure. */
-    listRewind(server.clients[iotid], &li);
+    listRewind(server.clients[ifidx], &li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
         if (server.maxmemory_clients == 0) {
@@ -3214,9 +3214,9 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
     createBoolConfig("thredis-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("thredis-uring-threestage",      NULL, IMMUTABLE_CONFIG,  server.uring_threestage,      0, NULL, NULL),
-    createIntConfig("thredis-rob-threads",            NULL, IMMUTABLE_CONFIG, 0, MY_IO_THREADS_MAX, server.rob_threads, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-wb-threads",             "thredis-rob-threads", IMMUTABLE_CONFIG, 0, MY_IFID_THREADS_MAX, server.wb_threads, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-strict-pipeline",       NULL, IMMUTABLE_CONFIG,  server.strict_pipeline,       0, NULL, NULL),
-    createBoolConfig("thredis-rob-epoll",             NULL, IMMUTABLE_CONFIG,  server.rob_epoll,             0, NULL, NULL),
+    createBoolConfig("thredis-wb-epoll",              "thredis-rob-epoll", IMMUTABLE_CONFIG,  server.wb_epoll,             0, NULL, NULL),
     createBoolConfig("thredis-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("thredis-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("thredis-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
@@ -3330,10 +3330,10 @@ standardConfig static_configs[] = {
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
     /* THredis-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
-    createIntConfig("myiothreads", NULL, IMMUTABLE_CONFIG, 1, MY_IO_THREADS_MAX, server.my_io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("myworkerthreads", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_THREADS_MAX, server.my_worker_threads, WORKER_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
+    createIntConfig("myifidthreads", "myiothreads", IMMUTABLE_CONFIG, 1, MY_IFID_THREADS_MAX, server.my_ifid_threads, IFID_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("myexthreads", "myworkerthreads", IMMUTABLE_CONFIG, 1, MY_EX_THREADS_MAX, server.my_ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
     createIntConfig("myiothreadpipelinedepth", NULL, IMMUTABLE_CONFIG, 1, MY_PIPELINE_DEPTH_MAX, server.my_pipeline_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
-    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_WORKER_QUEUE_SIZE_MAX, server.my_worker_queue_size, WORKER_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
+    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_EX_QUEUE_SIZE_MAX, server.my_ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

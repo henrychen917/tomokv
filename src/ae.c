@@ -501,7 +501,7 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
             fired++;
 
             fe = &eventLoop->events[fd];
-            //fprintf(stderr, "[IO thread %d] handled read event on fd %d\n", iotid, fd);
+            //fprintf(stderr, "[IO thread %d] handled read event on fd %d\n", ifidx, fd);
         }
 
         if (fe->mask & mask & AE_WRITABLE) {

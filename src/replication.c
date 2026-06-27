@@ -603,7 +603,7 @@ void replicationFeedSlaves(list *slaves, int dictid, robj **argv, int argc) {
     /* If current client is marked as master, we will proxy the command stream
      * to our slaves instead of replicating them, that also happens when being
      * in atomic slot migration. */
-    if (server.current_client[iotid] && server.current_client[iotid]->flags & CLIENT_MASTER) return;
+    if (server.current_client[ifidx] && server.current_client[ifidx]->flags & CLIENT_MASTER) return;
 
     /* If there aren't slaves, and there is no backlog buffer to populate,
      * we can return ASAP. */

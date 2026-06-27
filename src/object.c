@@ -849,7 +849,7 @@ void trimStringObjectIfNeeded(robj *o, int trim_small_values) {
     size_t len = sdslen(o->ptr);
     if (len >= PROTO_MBULK_BIG_ARG ||
         trim_small_values||
-        (server.executing_client[iotid] && server.executing_client[iotid]->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
+        (server.executing_client[ifidx] && server.executing_client[ifidx]->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
         if (sdsavail(o->ptr) > len/10) {
             o->ptr = sdsRemoveFreeSpace(o->ptr, 0);
         }
@@ -1467,7 +1467,7 @@ sds getMemoryDoctorReport(void) {
 
         /* Clients using more than 200k each average? */
         long numslaves = listLength(server.slaves);
-        long numclients = listLength(server.clients[iotid])-numslaves;
+        long numclients = listLength(server.clients[ifidx])-numslaves;
         if (mh->clients_normal / numclients > (1024*200)) {
             big_client_buf = 1;
             num_reports++;

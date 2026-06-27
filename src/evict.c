@@ -477,8 +477,8 @@ static int isSafeToPerformEvictions(void) {
     /* Disable eviction during slot migration import to avoid delays and errors
      * caused by failed evictions. A special client is created for data import,
      * identified by the CLIENT_MASTER and CLIENT_ASM_IMPORTING flags. */
-    if (server.current_client[iotid] && server.current_client[iotid]->flags & CLIENT_MASTER &&
-        server.current_client[iotid]->flags & CLIENT_ASM_IMPORTING)
+    if (server.current_client[ifidx] && server.current_client[ifidx]->flags & CLIENT_MASTER &&
+        server.current_client[ifidx]->flags & CLIENT_ASM_IMPORTING)
         return 0;
 
     /* If 'evict' action is paused, for whatever reason, then return false */

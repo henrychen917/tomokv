@@ -94,13 +94,13 @@ void freeClientReplyValue(void *o) {
 /* This function links the client to the global linked list of clients.
  * unlinkClient() does the opposite, among other things. */
 void linkClient(client *c) {
-    listAddNodeTail(server.clients[iotid],c);
+    listAddNodeTail(server.clients[ifidx],c);
     /* Note that we remember the linked list node where the client is stored,
      * this way removing the client in unlinkClient() will not require
      * a linear scan, but just a constant time operation. */
-    c->client_list_node = listLast(server.clients[iotid]);
+    c->client_list_node = listLast(server.clients[ifidx]);
     uint64_t id = htonu64(c->id);
-    raxInsert(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),c,NULL);
+    raxInsert(server.clients_index[ifidx],(unsigned char*)&id,sizeof(id),c,NULL);
 }
 
 /* Initialize client authentication state.
@@ -331,18 +331,18 @@ client *createFakeClient(client *parent) {
 
 /* ee451 (v11): per-IO-thread pool of recyclable fake clients for the CROSS-SHARD SUB path.
  * A cross-shard command creates one sub fake PER KEY and frees them at reassembly — all on the
- * SAME IO thread (dispatch + drain run on the owning IO thread), so a per-iotid freelist needs no
+ * SAME IO thread (dispatch + drain run on the owning IO thread), so a per-ifidx freelist needs no
  * locking. Without pooling, each sub did zmalloc(client) + a 16KB reply buffer + a reply list per
  * key per call (then freed) — dominating small-MGET/MSET cost and making cross-shard slower than
  * vanilla UNDER PIPELINE. The pool caches the struct + buffer + reply list across calls. Scoped to
  * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
 #define XSUB_POOL_CAP 96
-static client *xsubPool[MY_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
-static int xsubPoolN[MY_IO_THREADS_MAX + 1];
+static client *xsubPool[MY_IFID_THREADS_MAX + 1][XSUB_POOL_CAP];
+static int xsubPoolN[MY_IFID_THREADS_MAX + 1];
 
 client *createPooledFakeClient(client *parent) {
-    int t = iotid;
-    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] > 0) {
+    int t = ifidx;
+    if (t >= 0 && t <= MY_IFID_THREADS_MAX && xsubPoolN[t] > 0) {
         client *c = xsubPool[t][--xsubPoolN[t]];
         /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
          * (ensured at free time). Re-init every other field to the pristine state. */
@@ -353,10 +353,10 @@ client *createPooledFakeClient(client *parent) {
 }
 
 void freePooledFakeClient(client *c) {
-    int t = iotid;
+    int t = ifidx;
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
-    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
+    if (t >= 0 && t <= MY_IFID_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
         c->buf && c->reply && c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES) {
         if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
         releaseAllBufReferences(c);
@@ -417,12 +417,12 @@ client *createClient(connection *conn) {
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
     c->flushid = 0;
-    /* ee451 (uring-threestage): ROB-thread state (dead unless the knob is on). gen starts 1 so 0 is a
+    /* ee451 (uring-threestage): WB-thread state (dead unless the knob is on). gen starts 1 so 0 is a
      * never-armed sentinel in send user_data. */
     c->ts_inflight = 0;
     c->ts_gen = 1;
     c->ts_close_needed = 0;
-    c->on_robq = 0;
+    c->on_wbq = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -440,7 +440,7 @@ client *createClient(connection *conn) {
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
     c->id = client_id;
-    c->tid = iotid;
+    c->tid = ifidx;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
 #ifdef LOG_REQ_RES
@@ -453,12 +453,12 @@ client *createClient(connection *conn) {
 #ifdef HAVE_LIBURING
     /* v12-G: arm io_uring multishot-recv (gated). THredis accepts each client directly on a
      * dedicated IO thread's SO_REUSEPORT listener, so createClient runs ON that IO thread and
-     * iotid identifies it — the client lives its whole life (accept/read/free) on this thread,
+     * ifidx identifies it — the client lives its whole life (accept/read/free) on this thread,
      * which keeps every recv-ring op single-threaded. The epoll read handler set just above
      * stays as a harmless fallback (multishot drains the socket first → spurious wakeups EAGAIN). */
     if (conn && server.io_uring_recv && server.io_uring_net &&
-        iotid >= 1 && iotid < server.my_io_threads &&
-        iouRecvEnsure(iotid, server.ioThreads[iotid].el) >= 0)
+        ifidx >= 1 && ifidx < server.my_ifid_threads &&
+        iouRecvEnsure(ifidx, server.ifidThreads[ifidx].el) >= 0)
         iouRecvArm(c);
 #endif
     c->name = NULL;
@@ -626,7 +626,7 @@ void putClientInPendingWriteQueue(client *c) {
          * a system call. We'll only really install the write handler if
          * we'll not be able to write the whole reply at once. */
         c->flags |= CLIENT_PENDING_WRITE;
-        listLinkNodeHead(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        listLinkNodeHead(server.clients_pending_write[ifidx], &c->clients_pending_write_node);
     }
 }
 
@@ -657,7 +657,7 @@ static inline int _prepareClientToWrite(client *c) {
      * If the client runs in an IO thread, we should not put the client in the
      * pending write queue. Instead, we will install the write handler to the
      * corresponding IO thread’s event loop and let it handle the reply. */
-    if (_flags & CLIENT_WORKER_PENDING) return C_OK;
+    if (_flags & CLIENT_EX_PENDING) return C_OK;
 
     if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
         putClientInPendingWriteQueue(c);
@@ -840,8 +840,8 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
      * the SUBSCRIBE command family, which (currently) have a push message instead of a proper reply.
      * The check for executing_client also avoids affecting push messages that are part of eviction.
      * Check CLIENT_PUSHING first to avoid race conditions, as it's absent in module's fake client. */
-    if ((c->flags & CLIENT_PUSHING) && c == server.current_client[iotid] &&
-        server.executing_client[iotid] && !cmdHasPushAsReply(server.executing_client[iotid]->cmd))
+    if ((c->flags & CLIENT_PUSHING) && c == server.current_client[ifidx] &&
+        server.executing_client[ifidx] && !cmdHasPushAsReply(server.executing_client[ifidx]->cmd))
     {
         _addReplyPayloadToList(c,server.pending_push_messages,s,len,PLAIN_REPLY);
         return;
@@ -859,13 +859,13 @@ static inline int clientIsInPendingRefReplyList(client *c) {
     /* ee451 (S8): worker fakes are never put in this list (their zero-copy
      * reply values are kept alive by the +1 ref + free-back ring, not by
      * flushdb-protection tracking). Crucially, server.clients_with_pending_ref_reply[]
-     * is sized [MY_IO_THREADS_MAX+1] and indexed by iotid; a worker's iotid is
-     * in the worker range, so the listFirst([iotid]) clause below would read out
+     * is sized [MY_IFID_THREADS_MAX+1] and indexed by ifidx; a worker's ifidx is
+     * in the worker range, so the listFirst([ifidx]) clause below would read out
      * of bounds. Returning false for fakes keeps this and the unlink path safe. */
     if (c->isFake) return 0;
     return listNextNode(&c->pending_ref_reply_node) != NULL ||
            listPrevNode(&c->pending_ref_reply_node) != NULL ||
-           listFirst(server.clients_with_pending_ref_reply[iotid]) == &c->pending_ref_reply_node;
+           listFirst(server.clients_with_pending_ref_reply[ifidx]) == &c->pending_ref_reply_node;
 }
 
 /* Increment reference to object and add pointer to object and
@@ -879,9 +879,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
                         * a worker fake, on the owning worker via freebackPush) */
     /* ee451 (S8): if this reply is being built on a worker (a fake executing a
      * command), record the owning worker id so the post-send decrRefCount is
-     * routed back to it. iotid for a worker is MY_IO_THREADS_MAX+1+worker_id. */
-    str_ref.owner_worker = (c->isFake && iotid > MY_IO_THREADS_MAX)
-                         ? (iotid - (MY_IO_THREADS_MAX + 1)) : -1;
+     * routed back to it. ifidx for a worker is MY_IFID_THREADS_MAX+1+ex_id. */
+    str_ref.owner_ex = (c->isFake && ifidx > MY_IFID_THREADS_MAX)
+                         ? (ifidx - (MY_IFID_THREADS_MAX + 1)) : -1;
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';
@@ -905,21 +905,21 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * refcount op. An inline-buffer ref would instead be bulk-memcpy'd into the
      * real client's buffer, duplicating the reference (double-decref). So skip
      * the inline buffer for fakes and always append to the list. */
-    if (str_ref.owner_worker >= 0 ||
+    if (str_ref.owner_ex >= 0 ||
         !_addBulkStrRefToBuffer(c, (void *)&str_ref, sizeof(str_ref))) {
         _addReplyPayloadToList(c, c->reply, (void *)&str_ref, sizeof(str_ref), BULK_STR_REF);
     }
 
     /* Track clients with pending referenced reply objects for async flushdb
      * protection.
-     * ee451 (S8): SKIP this for worker fakes (owner_worker >= 0). The list
-     * server.clients_with_pending_ref_reply[] is sized [MY_IO_THREADS_MAX+1] and
-     * indexed by iotid — a worker's iotid is in the worker range (out of bounds
+     * ee451 (S8): SKIP this for worker fakes (owner_ex >= 0). The list
+     * server.clients_with_pending_ref_reply[] is sized [MY_IFID_THREADS_MAX+1] and
+     * indexed by ifidx — a worker's ifidx is in the worker range (out of bounds
      * => the SEGV thredis-stress caught). Fakes don't need it anyway: the value
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
-    if (str_ref.owner_worker < 0 && !clientIsInPendingRefReplyList(c)) {
-        listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
+    if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
+        listLinkNodeTail(server.clients_with_pending_ref_reply[ifidx], &c->pending_ref_reply_node);
     }
 }
 
@@ -1611,7 +1611,7 @@ void addReplyBulkLen(client *c, robj *obj) {
 static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
     if (!server.reply_copy_avoidance_enabled) return 0;
 
-    /* ee451 (S8): a worker fake (executing a command, iotid in the worker
+    /* ee451 (S8): a worker fake (executing a command, ifidx in the worker
      * range) MAY use copy avoidance. The two original blockers are now solved:
      * the reply is forced to the list-node form so the drain transfers it by
      * listJoin (no garbage-into-plain-buffer copy), and the post-send decref is
@@ -1623,8 +1623,8 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
      * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
     int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
-    int on_worker = zc_on && c->isFake && iotid > MY_IO_THREADS_MAX;
-    if (!on_worker) {
+    int on_ex = zc_on && c->isFake && ifidx > MY_IFID_THREADS_MAX;
+    if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */
         if (c->isFake || !c->conn) return 0;
@@ -2012,7 +2012,7 @@ void acceptCommonHandler(connection *conn, int flags, char *ip) {
      * Admission control will happen before a client is created and connAccept()
      * called, because we don't want to even start transport-level negotiation
      * if rejected. */
-    if (listLength(server.clients[iotid]) + getClusterConnectionsCount()
+    if (listLength(server.clients[ifidx]) + getClusterConnectionsCount()
         >= server.maxclients)
     {
         char *err;
@@ -2232,7 +2232,7 @@ void unlinkClient(client *c) {
     listNode *ln;
 
     /* If this is marked as current client unset it. */
-    if (c->conn && server.current_client[iotid] == c) server.current_client[iotid] = NULL;
+    if (c->conn && server.current_client[ifidx] == c) server.current_client[ifidx] = NULL;
 
     /* Certain operations must be done only if the client has an active connection.
      * If the client was already unlinked or if it's a "fake client" the
@@ -2241,8 +2241,8 @@ void unlinkClient(client *c) {
         /* Remove from the list of active clients. */
         if (c->client_list_node) {
             uint64_t id = htonu64(c->id);
-            raxRemove(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),NULL);
-            listDelNode(server.clients[iotid],c->client_list_node);
+            raxRemove(server.clients_index[ifidx],(unsigned char*)&id,sizeof(id),NULL);
+            listDelNode(server.clients[ifidx],c->client_list_node);
             c->client_list_node = NULL;
         }
 
@@ -2280,16 +2280,16 @@ void unlinkClient(client *c) {
     if (c->flags & CLIENT_PENDING_WRITE) {
         serverAssert(&c->clients_pending_write_node.next != NULL || 
                      &c->clients_pending_write_node.prev != NULL);
-        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[ifidx], &c->clients_pending_write_node);
         c->flags &= ~CLIENT_PENDING_WRITE;
     }
 
     /* When client was just unblocked because of a blocking operation,
      * remove it from the list of unblocked clients. */
     if (c->flags & CLIENT_UNBLOCKED) {
-        ln = listSearchKey(server.unblocked_clients[iotid],c);
+        ln = listSearchKey(server.unblocked_clients[ifidx],c);
         serverAssert(ln != NULL);
-        listDelNode(server.unblocked_clients[iotid],ln);
+        listDelNode(server.unblocked_clients[ifidx],ln);
         c->flags &= ~CLIENT_UNBLOCKED;
     }
 
@@ -2312,7 +2312,7 @@ void unlinkClient(client *c) {
  * contain any referenced robj. */
 void tryUnlinkClientFromPendingRefReply(client *c, int force) {
     if (clientIsInPendingRefReplyList(c) && (force || !clientHasPendingReplies(c))) {
-        listUnlinkNode(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
+        listUnlinkNode(server.clients_with_pending_ref_reply[ifidx], &c->pending_ref_reply_node);
     }
 }
 
@@ -2368,7 +2368,7 @@ void deauthenticateAndCloseClient(client *c) {
     c->authenticated = 0;
     /* We will write replies to this client later, so we can't
      * close it directly even if async. */
-    if (c == server.current_client[iotid]) {
+    if (c == server.current_client[ifidx]) {
         c->flags |= CLIENT_CLOSE_AFTER_COMMAND;
     } else {
         freeClientAsync(c);
@@ -2410,12 +2410,12 @@ static void releaseBufReferences(client *c, char *buf, size_t bufpos) {
             bulkStrRef *str_ref = (bulkStrRef *)ptr;
             /* Only release if not already released. */
             if (str_ref->obj != NULL) {
-                if (str_ref->owner_worker >= 0)
+                if (str_ref->owner_ex >= 0)
                     /* ee451 (S8): value owned by a worker shard — route the
                      * decref back to that worker (sole refcount mutator) so it
                      * never races the worker. The owning worker drains its
                      * free-back ring and decrefs. */
-                    freebackPush(str_ref->owner_worker, str_ref->obj);
+                    freebackPush(str_ref->owner_ex, str_ref->obj);
                 else if (in_io_thread)
                     ioDeferFreeRobj(c, str_ref->obj);
                 else
@@ -2515,7 +2515,7 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
-    if (c->flags & CLIENT_WORKER_PENDING) {
+    if (c->flags & CLIENT_EX_PENDING) {
         freeClientAsync(c);
         return;
     }
@@ -2531,18 +2531,18 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
-    /* ee451 (uring-threestage): also defer while a ROB io_uring send still references c->buf (the kernel
-     * is reading it; a send CQE carrying this client pointer is pending). The ROB clears ts_inflight at
+    /* ee451 (uring-threestage): also defer while a WB io_uring send still references c->buf (the kernel
+     * is reading it; a send CQE carrying this client pointer is pending). The WB clears ts_inflight at
      * the CQE, after which this free proceeds. Bump ts_gen on the real free so any straggler CQE after the
-     * client is reused is rejected by the ROB's gen check. */
+     * client is reused is rejected by the WB's gen check. */
     if (!c->isFake && __atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) > 0) {
         freeClientAsync(c);
         return;
     }
-    /* ee451 (uring-strict): also defer while the ROB still holds c in its active-set (it keeps a
-     * persistent reference there to reorder/retire). The ROB clears on_robq (release) only after it
+    /* ee451 (uring-strict): also defer while the WB still holds c in its active-set (it keeps a
+     * persistent reference there to reorder/retire). The WB clears on_wbq (release) only after it
      * has fully retired c (flushid==dispatchid) and will not touch it again, after which we free. */
-    if (!c->isFake && server.strict_pipeline && __atomic_load_n(&c->on_robq, __ATOMIC_ACQUIRE)) {
+    if (!c->isFake && server.strict_pipeline && __atomic_load_n(&c->on_wbq, __ATOMIC_ACQUIRE)) {
         freeClientAsync(c);
         return;
     }
@@ -2586,9 +2586,9 @@ void freeClient(client *c) {
      * we may call replicationCacheMaster() and the client should already
      * be removed from the list of clients to free. */
     if (c->flags & CLIENT_CLOSE_ASAP) {
-        ln = listSearchKey(server.clients_to_close[iotid],c);
+        ln = listSearchKey(server.clients_to_close[ifidx],c);
         serverAssert(ln != NULL);
-        listDelNode(server.clients_to_close[iotid],ln);
+        listDelNode(server.clients_to_close[ifidx],ln);
     }
     /* If it is our master that's being disconnected we should make sure
      * to cache the state to try a partial resynchronization later.
@@ -2745,12 +2745,12 @@ void freeClientAsync(client *c) {
     // }
 
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */
     if (c->flags & CLIENT_SLAVE) freeReplicaReferencedReplBuffer(c);
-    listAddNodeTail(server.clients_to_close[iotid],c);
+    listAddNodeTail(server.clients_to_close[ifidx],c);
 }
 
 /* Log errors for invalid use and free the client in async way.
@@ -2786,7 +2786,7 @@ int beforeNextClient(client *c) {
     if (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID)
         return C_OK;
     /* Handle async frees */
-    /* Note: this doesn't make the server.clients_to_close[iotid] list redundant because of
+    /* Note: this doesn't make the server.clients_to_close[ifidx] list redundant because of
      * cases where we want an async free of a client other than myself. For example
      * in ACL modifications we disconnect clients authenticated to non-existent
      * users (see ACL LOAD). */
@@ -2800,20 +2800,20 @@ int beforeNextClient(client *c) {
 /* Free the clients marked as CLOSE_ASAP, return the number of clients
  * freed. */
 int freeClientsInAsyncFreeQueue(void) {
-    //fprintf(stderr,"freeClientsInAsyncFreeQueue %d\n",iotid);
+    //fprintf(stderr,"freeClientsInAsyncFreeQueue %d\n",ifidx);
     int freed = 0;
     listIter li;
     listNode *ln;
 
-    listRewind(server.clients_to_close[iotid],&li);
+    listRewind(server.clients_to_close[ifidx],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
         if (c->flags & CLIENT_PROTECTED) continue;
-        if (c->flags & CLIENT_WORKER_PENDING) continue;
+        if (c->flags & CLIENT_EX_PENDING) continue;
         c->flags &= ~CLIENT_CLOSE_ASAP;
         freeClient(c);
-        listDelNode(server.clients_to_close[iotid],ln);
+        listDelNode(server.clients_to_close[ifidx],ln);
         freed++;
     }
     return freed;
@@ -2825,7 +2825,7 @@ int freeClientsInAsyncFreeQueue(void) {
 client *lookupClientByID(uint64_t id) {
     id = htonu64(id);
     void *c = NULL;
-    raxFind(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),&c);
+    raxFind(server.clients_index[ifidx],(unsigned char*)&id,sizeof(id),&c);
     return c;
 }
 
@@ -2932,8 +2932,8 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
              * for its shard's values (single-writer-per-key). Route the decref back
              * to that worker via the free-back ring instead. Mirrors the inline-buffer
              * path in releaseBufReferences(). */
-            if (str_ref->owner_worker >= 0) {
-                freebackPush(str_ref->owner_worker, str_ref->obj);
+            if (str_ref->owner_ex >= 0) {
+                freebackPush(str_ref->owner_ex, str_ref->obj);
             } else if (in_io_thread) {
                 ioDeferFreeRobj(c, str_ref->obj);
             } else {
@@ -3298,8 +3298,8 @@ void sendReplyToClient(connection *conn) {
  * limited to replies that fit the static buf (PROTO_REPLY_CHUNK_BYTES = 16K; larger replies use the
  * reply-list/writeToClient fallback), so ZC here targets mid-size (4–16K) static-buf replies. */
 #define IOU_ZC_MIN_BYTES 4096
-static struct io_uring iouRings[MY_IO_THREADS_MAX + 1];
-static int iouRingState[MY_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
+static struct io_uring iouRings[MY_IFID_THREADS_MAX + 1];
+static int iouRingState[MY_IFID_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
 
 static int iouEnsureRing(int t) {
     if (iouRingState[t] == 1) return 1;
@@ -3324,7 +3324,7 @@ static int iouEnsureRing(int t) {
 }
 
 static int handleClientsWithPendingWritesUring(void) {
-    int t = iotid;
+    int t = ifidx;
     struct io_uring *ring = &iouRings[t];
     int processed = listLength(server.clients_pending_write[t]);
     listIter li; listNode *ln;
@@ -3464,7 +3464,7 @@ typedef struct iouRecvState {
     iouRecvSlot *fdmap;        /* indexed by fd */
     int fdcap;
 } iouRecvState;
-static iouRecvState iouRecvs[MY_IO_THREADS_MAX + 1];
+static iouRecvState iouRecvs[MY_IFID_THREADS_MAX + 1];
 
 /* Recycle one consumed buffer back to the provided ring. */
 static inline void iouRecvProvide(iouRecvState *st, int bid) {
@@ -3487,9 +3487,9 @@ static void iouRecvPrepArm(iouRecvState *st, int fd) {
  * Mirrors the post-read tail of readQueryFromClient(). Returns 1 if the client is still alive,
  * 0 if it was scheduled for (async) free — the caller must then drop it from the fd map. */
 static int iouRecvDeliver(client *c, const char *data, int len) {
-    /* Real IO-thread clients are never CLIENT_WORKER_PENDING (only fakes are), but be defensive:
+    /* Real IO-thread clients are never CLIENT_EX_PENDING (only fakes are), but be defensive:
      * just buffer the bytes and let a later pass parse them. */
-    if (c->flags & CLIENT_WORKER_PENDING) {
+    if (c->flags & CLIENT_EX_PENDING) {
         if (!c->querybuf) c->querybuf = sdsempty();
         c->querybuf = sdscatlen(c->querybuf, data, len);
         return 1;
@@ -3525,7 +3525,7 @@ static int iouRecvDeliver(client *c, const char *data, int len) {
 /* The eventfd readable handler, registered on the IO thread's event loop. Runs on the IO thread. */
 static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rmask) {
     UNUSED(el); UNUSED(privdata); UNUSED(rmask);
-    iouRecvState *st = &iouRecvs[iotid];
+    iouRecvState *st = &iouRecvs[ifidx];
     if (st->state != 1) return;
 
     /* Drain the eventfd counter (edge cases coalesce; we scan the whole CQ regardless). */
@@ -3632,7 +3632,7 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
 
 /* Arm a multishot recv for a freshly-bound IO-thread client. Runs on the IO thread. */
 void iouRecvArm(client *c) {
-    iouRecvState *st = &iouRecvs[iotid];
+    iouRecvState *st = &iouRecvs[ifidx];
     if (st->state != 1 || !c->conn) return;
     int fd = c->conn->fd;
     if (fd < 0 || fd >= st->fdcap) return;
@@ -3654,14 +3654,14 @@ void iouRecvDisarm(int t, int fd) {
 
 int handleClientsWithPendingWrites(void) {
 #ifdef HAVE_LIBURING
-    if (server.io_uring_net && iouEnsureRing(iotid))
+    if (server.io_uring_net && iouEnsureRing(ifidx))
         return handleClientsWithPendingWritesUring();
 #endif
     listIter li;
     listNode *ln;
-    int processed = listLength(server.clients_pending_write[iotid]);
+    int processed = listLength(server.clients_pending_write[ifidx]);
 
-    listRewind(server.clients_pending_write[iotid],&li);
+    listRewind(server.clients_pending_write[ifidx],&li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
 
@@ -3670,7 +3670,7 @@ int handleClientsWithPendingWrites(void) {
             continue;
 
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write[iotid],ln);
+        listUnlinkNode(server.clients_pending_write[ifidx],ln);
 
         /* If a client is protected, don't do anything,
          * that may trigger write error or recreate handler. */
@@ -3780,7 +3780,7 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
 
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c, int num_pcmds_to_free) {
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     resetClientInternal(c, num_pcmds_to_free);
 }
 
@@ -3976,17 +3976,17 @@ static void setProtocolError(const char *errstr, client *c) {
 /* ee451 v11-A: operand pooling — recycle transient argv element robjs IO-thread-locally (Tomasulo
  * physical-register reuse). The refcount==1 operands (keys/cmd args) are alloc'd at parse and freed at
  * freePendingCommand, both on the SAME IO thread, so a per-thread freelist needs no cross-thread ring.
- * Each thread touches only operandPool[iotid]. Pooled robjs are RAW strings (reusable sds); miss path
+ * Each thread touches only operandPool[ifidx]. Pooled robjs are RAW strings (reusable sds); miss path
  * allocs RAW (not embstr) so it's poolable on return. Oversized sds aren't pooled (avoid hoarding).
  * Gated by server.opt_operand_pool. */
 #define OPERAND_POOL_CAP 256
 #define OPERAND_POOL_MAX_SDS 512
-static robj *operandPool[MY_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
-static int operandPoolN[MY_IO_THREADS_MAX + 1];
+static robj *operandPool[MY_IFID_THREADS_MAX + 1][OPERAND_POOL_CAP];
+static int operandPoolN[MY_IFID_THREADS_MAX + 1];
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (iotid <= MY_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
-        robj *o = operandPool[iotid][--operandPoolN[iotid]];
+    if (ifidx <= MY_IFID_THREADS_MAX && operandPoolN[ifidx] > 0) {
+        robj *o = operandPool[ifidx][--operandPoolN[ifidx]];
         o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
         o->refcount = 1;
         return o;
@@ -3995,11 +3995,11 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 }
 
 static inline void operandPoolPut(robj *o) {
-    if (iotid <= MY_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
-        o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid] < OPERAND_POOL_CAP &&
+    if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+        o->encoding == OBJ_ENCODING_RAW && operandPoolN[ifidx] < OPERAND_POOL_CAP &&
         sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
         sdsclear(o->ptr);                        /* reset length, keep capacity */
-        operandPool[iotid][operandPoolN[iotid]++] = o;
+        operandPool[ifidx][operandPoolN[ifidx]++] = o;
         return;
     }
     decrRefCount(o);
@@ -4285,8 +4285,8 @@ void commandProcessed(client *c) {
  * of processing the command, otherwise C_OK is returned. */
 int processCommandAndResetClient(client *c) {
     int deadclient = 0;
-    client *old_client = server.current_client[iotid];
-    server.current_client[iotid] = c;
+    client *old_client = server.current_client[ifidx];
+    server.current_client[ifidx] = c;
     if (processCommand(c) == C_OK) {
         /* ee451: if the command was refused because the pipeline ring is full
          * (or a stateful/MULTI command needs to drain the ring first), the
@@ -4303,8 +4303,8 @@ int processCommandAndResetClient(client *c) {
             if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
-    if (server.current_client[iotid] == NULL) deadclient = 1;
-    server.current_client[iotid] = old_client;
+    if (server.current_client[ifidx] == NULL) deadclient = 1;
+    server.current_client[ifidx] = old_client;
     return deadclient ? C_ERR : C_OK;
 }
 
@@ -4525,7 +4525,7 @@ int processInputBuffer(client *c) {
 
         /* Upstream command-prefetch batch (memory_prefetch.c) removed.
          * Cache warming for worker-dispatched commands is handled in
-         * workerPrefetchBatch() (server.c) on the worker side against the
+         * exPrefetchBatch() (server.c) on the worker side against the
          * correct shard DB. */
 
         /* Check if the client has a fatal read error that requires stopping processing. */
@@ -4552,12 +4552,12 @@ int processInputBuffer(client *c) {
             }
 
             /* We are finally ready to execute the command. */
-            server.current_client[iotid] = c;
+            server.current_client[ifidx] = c;
             if (processCommandAndResetClient(c) == C_ERR) {
-                server.current_client[iotid] = NULL;
+                server.current_client[ifidx] = NULL;
                 return C_ERR;
             }
-            server.current_client[iotid] = NULL;
+            server.current_client[ifidx] = NULL;
 
             /* ee451: the command was refused because the pipeline ring is full
              * (or a stateful/MULTI command is waiting for it to drain). The
@@ -4605,7 +4605,7 @@ int processInputBuffer(client *c) {
 
 void readQueryFromClient(connection *conn) {
     client *c = connGetPrivateData(conn);
-    if (c->flags & CLIENT_WORKER_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) return;
     int nread, big_arg = 0;
     size_t qblen, readlen;
 
@@ -4927,7 +4927,7 @@ sds getAllClientsInfoString(int type) {
     listNode *ln;
     listIter li;
     client *client;
-    sds o = sdsnewlen(SDS_NOINIT,200*listLength(server.clients[iotid]));
+    sds o = sdsnewlen(SDS_NOINIT,200*listLength(server.clients[ifidx]));
     sdsclear(o);
 
     /* Pause all IO threads to access data of clients safely, and pausing the
@@ -4940,7 +4940,7 @@ sds getAllClientsInfoString(int type) {
         pauseAllIOThreads();
     }
 
-    listRewind(server.clients[iotid],&li);
+    listRewind(server.clients[ifidx],&li);
     while ((ln = listNext(&li)) != NULL) {
         client = listNodeValue(ln);
         if (type != -1 && getClientType(client) != type) continue;
@@ -5289,7 +5289,7 @@ NULL
         }
 
         /* Iterate clients killing all the matching clients. */
-        listRewind(server.clients[iotid],&li);
+        listRewind(server.clients[ifidx],&li);
         while ((ln = listNext(&li)) != NULL) {
             client *client = listNodeValue(ln);
             if (addr && strcmp(getClientPeerId(client),addr) != 0) continue;
@@ -6517,7 +6517,7 @@ static int tryExpandPendingCommandPool(void) {
  * between multiple clients. Additionally, pool reuse provides minimal benefit in
  * multi-threaded scenarios, so we only use it in single-threaded mode. */
 static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
-    if (!server.io_threads_active && !server.custom_io_threads_active) {
+    if (!server.io_threads_active && !server.custom_ifid_threads_active) {
         /* Try to add to shared pool for reuse if argv isn't too large */
         if (likely(pcmd->argv_len < 64)) {
             /* Check if pool needs expansion before attempting to add */
