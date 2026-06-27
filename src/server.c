@@ -10834,16 +10834,34 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
      * new splice, and must be retried until it drains, else the reply is lost. */
     if (!(c->flags & CLIENT_CLOSE_ASAP) && c->conn && c->conn->fd >= 0 &&
         c->bufpos > c->sentlen && listLength(c->reply) == 0 && !c->buf_encoded) {
-        struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-        if (!sqe) { io_uring_submit(ring); sqe = io_uring_get_sqe(ring); }
-        if (sqe) {
-            __atomic_store_n(&c->ts_inflight, 1, __ATOMIC_RELEASE);
-            io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, c->bufpos - c->sentlen, MSG_WAITALL);
-            io_uring_sqe_set_data64(sqe, ((uint64_t)c->ts_gen << 48) | (uint64_t)(uintptr_t)c);
-            robOutstanding[rid]++;
-            if (robDbg) __atomic_fetch_add(&robcSend, 1, __ATOMIC_RELAXED);
+        if (server.rob_epoll) {
+            /* ABLATION (epoll send-backend): same 3-stage pipeline, but the ROB sends via a raw
+             * non-blocking write() instead of io_uring — isolates io_uring's contribution from the
+             * triple-thread architecture. Synchronous: no ts_inflight, no CQE reap. NOT writeToClient
+             * (that installs a write handler on the IO thread's event loop -> cross-thread race). On
+             * partial/EAGAIN keep bufpos>sentlen and retry next scan (the client stays watched). */
+            ssize_t n = write(c->conn->fd, c->buf + c->sentlen, (size_t)(c->bufpos - c->sentlen));
+            if (n > 0) {
+                c->sentlen += (unsigned int)n;
+                if (c->sentlen >= c->bufpos) { c->bufpos = 0; c->sentlen = 0; if (robDbg) __atomic_fetch_add(&robcSend,1,__ATOMIC_RELAXED); }
+            } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                if (robDbg) __atomic_fetch_add(&robcEagain,1,__ATOMIC_RELAXED);   /* socket full: retry next scan */
+            } else {
+                c->ts_close_needed = 1;                                 /* error/EOF: IO frees */
+            }
+            /* fall through to the done-check (live clients stay watched; closing+drained -> removed) */
+        } else {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+            if (!sqe) { io_uring_submit(ring); sqe = io_uring_get_sqe(ring); }
+            if (sqe) {
+                __atomic_store_n(&c->ts_inflight, 1, __ATOMIC_RELEASE);
+                io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, c->bufpos - c->sentlen, MSG_WAITALL);
+                io_uring_sqe_set_data64(sqe, ((uint64_t)c->ts_gen << 48) | (uint64_t)(uintptr_t)c);
+                robOutstanding[rid]++;
+                if (robDbg) __atomic_fetch_add(&robcSend, 1, __ATOMIC_RELAXED);
+            }
+            return 0;                                                  /* send in flight (or retry next loop) */
         }
-        return 0;                                                      /* send in flight (or retry next loop) */
     }
     /* REMOVE from the active set ONLY when the client is CLOSING and fully drained. A LIVE client stays
      * watched for its whole connection lifetime (watch-once at first connect): this avoids the
