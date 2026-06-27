@@ -3984,7 +3984,44 @@ static void setProtocolError(const char *errstr, client *c) {
 static robj *operandPool[MY_IFID_THREADS_MAX + 1][OPERAND_POOL_CAP];
 static int operandPoolN[MY_IFID_THREADS_MAX + 1];
 
+/* ---- v12-pool: size-class TIERED operand pool (server.opt_operand_pool_tiered, requires opt_operand_pool).
+ * Tiers bucket pooled robjs by sds capacity so reuse matches size (no realloc-on-grow, no bloat-on-shrink)
+ * and pooling extends past the flat 512B cap to cover wide-request-size workloads. Per-ifidx, single-thread.
+ * Demand-grow: malloc only when a class's free list is empty (every entry in-flight). GET ceils len to a
+ * class (popped sds cap >= class >= len => fit, no realloc); PUT floors cap to a class. Per-tier slot caps
+ * bound memory (big classes get fewer slots). Decay + the 3-stage wb->ifid recycle ring are follow-ons. */
+#define OPERAND_NTIER 5
+#define OPERAND_TIER_SLOTS_MAX 256
+static const unsigned int operandTierCap[OPERAND_NTIER]   = {64u, 256u, 1024u, 4096u, 16384u};
+static const int          operandTierSlots[OPERAND_NTIER] = {256, 256, 128, 64, 32};
+static robj *operandTier[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
+static int   operandTierN[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];
+
+static inline int operandCeilTier(size_t len) {        /* smallest class >= len; -1 if above top class */
+    for (int t = 0; t < OPERAND_NTIER; t++) if (len <= operandTierCap[t]) return t;
+    return -1;
+}
+static inline int operandFloorTier(unsigned int cap) { /* largest class <= cap; -1 if below smallest */
+    for (int t = OPERAND_NTIER - 1; t >= 0; t--) if (cap >= operandTierCap[t]) return t;
+    return -1;
+}
+
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
+    if (server.opt_operand_pool_tiered && ifidx <= MY_IFID_THREADS_MAX) {
+        int t = operandCeilTier(len);
+        if (t < 0) return createRawStringObject(ptr, len);   /* > top class: not pooled */
+        if (operandTierN[ifidx][t] > 0) {
+            robj *o = operandTier[ifidx][t][--operandTierN[ifidx][t]];
+            o->ptr = sdscpylen(o->ptr, ptr, len);            /* cap >= class[t] >= len => no realloc */
+            o->refcount = 1;
+            return o;
+        }
+        /* demand-grow: free list empty -> malloc, sized UP to the class so PUT re-files it to tier t */
+        robj *o = createRawStringObject(ptr, len);
+        if (sdsalloc(o->ptr) < operandTierCap[t])
+            o->ptr = sdsMakeRoomFor(o->ptr, (size_t)operandTierCap[t] - sdslen(o->ptr));
+        return o;
+    }
     if (ifidx <= MY_IFID_THREADS_MAX && operandPoolN[ifidx] > 0) {
         robj *o = operandPool[ifidx][--operandPoolN[ifidx]];
         o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
@@ -3995,6 +4032,19 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 }
 
 static inline void operandPoolPut(robj *o) {
+    if (server.opt_operand_pool_tiered) {
+        if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+            o->encoding == OBJ_ENCODING_RAW) {
+            int t = operandFloorTier(sdsalloc(o->ptr));
+            if (t >= 0 && operandTierN[ifidx][t] < operandTierSlots[t]) {
+                sdsclear(o->ptr);                            /* reset length, keep capacity */
+                operandTier[ifidx][t][operandTierN[ifidx][t]++] = o;
+                return;
+            }
+        }
+        decrRefCount(o);
+        return;
+    }
     if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
         o->encoding == OBJ_ENCODING_RAW && operandPoolN[ifidx] < OPERAND_POOL_CAP &&
         sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {

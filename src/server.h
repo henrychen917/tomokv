@@ -3004,6 +3004,7 @@ struct redisServer {
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
+    int opt_operand_pool_tiered; /* v12-pool: size-class tiered operand pool (requires opt_operand_pool); default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_auto;            /* master enable for auto resharding (default off) */
     int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */
