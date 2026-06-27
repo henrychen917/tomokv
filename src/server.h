@@ -3596,6 +3596,7 @@ int moduleHasSubscribersForKeyspaceEvent(int type);
 void initPendingCommand(pendingCommand *pcmd);
 void freePendingCommand(client *c, pendingCommand *pcmd);
 void operandRecycleDrain(int self_ifidx);   /* v12-pool: ifid files WB-returned operands into its tiers */
+void operandPoolDecay(int self_ifidx);       /* v12-pool: periodic per-class free-list decay */
 void addPendingCommand(pendingCommandList *queue, pendingCommand *cmd);
 pendingCommand *popPendingCommandFromHead(pendingCommandList *queue);
 pendingCommand *popPendingCommandFromTail(pendingCommandList *queue);

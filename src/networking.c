@@ -3997,6 +3997,8 @@ static const unsigned int operandTierCap[OPERAND_NTIER]   = {64u, 256u, 1024u, 4
 static const int          operandTierSlots[OPERAND_NTIER] = {256, 256, 128, 64, 32};
 static robj *operandTier[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
 static int   operandTierN[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];
+static int   operandTierIdle[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* decay: GET-idle ticks per class */
+#define OPERAND_DECAY_IDLE 8   /* idle ticks with no GET before a class starts shedding its free list */
 
 static inline int operandCeilTier(size_t len) {        /* smallest class >= len; -1 if above top class */
     for (int t = 0; t < OPERAND_NTIER; t++) if (len <= operandTierCap[t]) return t;
@@ -4011,6 +4013,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
     if (server.opt_operand_pool_tiered && ifidx <= MY_IFID_THREADS_MAX) {
         int t = operandCeilTier(len);
         if (t < 0) return createRawStringObject(ptr, len);   /* > top class: not pooled */
+        operandTierIdle[ifidx][t] = 0;                       /* demand for this class -> reset decay */
         if (operandTierN[ifidx][t] > 0) {
             robj *o = operandTier[ifidx][t][--operandTierN[ifidx][t]];
             o->ptr = sdscpylen(o->ptr, ptr, len);            /* cap >= class[t] >= len => no realloc */
@@ -4093,6 +4096,22 @@ void operandRecycleDrain(int self_ifidx) {
             h = (h + 1) & FREEBACK_RING_MASK;
         }
         atomic_store_explicit(&r->head, h, memory_order_release);
+    }
+}
+
+/* v12-pool: per-class decay, called periodically on the owning ifid. A size class with no GET for
+ * OPERAND_DECAY_IDLE ticks sheds a quarter of its free list each tick (all if nearly empty), releasing
+ * memory to the allocator on the SAME thread that alloc'd it. A GET resets the class's idle counter, so
+ * classes decay independently as the workload's request-size mix shifts. */
+void operandPoolDecay(int self_ifidx) {
+    if (self_ifidx < 0 || self_ifidx > MY_IFID_THREADS_MAX) return;
+    for (int t = 0; t < OPERAND_NTIER; t++) {
+        int n = operandTierN[self_ifidx][t];
+        if (n == 0) { operandTierIdle[self_ifidx][t] = 0; continue; }
+        if (++operandTierIdle[self_ifidx][t] < OPERAND_DECAY_IDLE) continue;
+        int drop = n > 4 ? n / 4 : n;
+        for (int k = 0; k < drop; k++)
+            decrRefCount(operandTier[self_ifidx][t][--operandTierN[self_ifidx][t]]);
     }
 }
 

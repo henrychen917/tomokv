@@ -2175,7 +2175,11 @@ void beforeSleepIfid(struct aeEventLoop *eventLoop) {
         migPushFenceIfNeeded();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
-    if (server.opt_operand_pool_tiered) operandRecycleDrain(ifidx);   /* v12-pool: file WB-returned operands into this ifid's tiers */
+    if (server.opt_operand_pool_tiered) {   /* v12-pool: file WB-returned operands into this ifid's tiers + decay idle classes */
+        operandRecycleDrain(ifidx);
+        static __thread unsigned int decayTick;
+        if ((++decayTick & 1023) == 0) operandPoolDecay(ifidx);
+    }
 #ifdef HAVE_LIBURING
     /* uring-strict resume: handleWorkerReplies early-returned for ifidx>=1 (the WB drains). The WB
      * advances flushid as it retires, freeing ring slots; here we resume clients that stalled on a full
