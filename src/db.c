@@ -306,8 +306,8 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
          * Don't do it if we have a saving child, as this will trigger
          * a copy on write madness. */
         if (((flags & LOOKUP_NOTOUCH) == 0) &&
-            (server.current_client[iotid] && server.current_client[iotid]->flags & CLIENT_NO_TOUCH) &&
-            (server.executing_client[iotid] && server.executing_client[iotid]->cmd->proc != touchCommand))
+            (server.current_client[ifidx] && server.current_client[ifidx]->flags & CLIENT_NO_TOUCH) &&
+            (server.executing_client[ifidx] && server.executing_client[ifidx]->cmd->proc != touchCommand))
             flags |= LOOKUP_NOTOUCH;
         if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)){
             if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
@@ -320,7 +320,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
 
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
             /* ee451 (S6): per-thread, contention-free; (v4) toggle => shared scalar */
-            if (server.opt_perthread_stats) server.kstat[iotid].hits++;
+            if (server.opt_perthread_stats) server.kstat[ifidx].hits++;
             else server.stat_keyspace_hits++;
         }
         /* TODO: Use separate hits stats for WRITE */
@@ -329,7 +329,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
             /* ee451 (S6) / (v4) toggle */
-            if (server.opt_perthread_stats) server.kstat[iotid].misses++;
+            if (server.opt_perthread_stats) server.kstat[ifidx].misses++;
             else server.stat_keyspace_misses++;
         }
         /* TODO: Use separate misses stats and notify event for WRITE */
@@ -338,7 +338,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
     return val;
 }
 
-/* ee451: read-run value forwarding (Tomasulo CDB analog; see workerThreadMain).
+/* ee451: read-run value forwarding (Tomasulo CDB analog; see exThreadMain).
  * Thread-local and per-worker. Within one worker batch, a run of consecutive
  * CMD_READONLY commands on the SAME key is executed as a dependency chain: the
  * first read does the real lookup and RECORDs the resolved value; the rest
@@ -408,12 +408,12 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                 else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
             }
             if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6)/(v4) */
-                if (server.opt_perthread_stats) server.kstat[iotid].hits++;
+                if (server.opt_perthread_stats) server.kstat[ifidx].hits++;
                 else server.stat_keyspace_hits++;
             }
         } else {
             if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6)/(v4) */
-                if (server.opt_perthread_stats) server.kstat[iotid].misses++;
+                if (server.opt_perthread_stats) server.kstat[ifidx].misses++;
                 else server.stat_keyspace_misses++;
             }
         }
@@ -558,10 +558,10 @@ int getKeySlot(sds key) {
      * It only gets set during the execution of command under `call` method. Other flows requesting
      * the key slot would fallback to calculateKeySlot.
      */
-    if (server.current_client[iotid] && server.current_client[iotid]->slot >= 0 && server.current_client[iotid]->flags & CLIENT_EXECUTING_COMMAND) {
-        debugServerAssertWithInfo(server.current_client[iotid], NULL,
-                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client[iotid]->slot);
-        return server.current_client[iotid]->slot;
+    if (server.current_client[ifidx] && server.current_client[ifidx]->slot >= 0 && server.current_client[ifidx]->flags & CLIENT_EXECUTING_COMMAND) {
+        debugServerAssertWithInfo(server.current_client[ifidx], NULL,
+                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client[ifidx]->slot);
+        return server.current_client[ifidx]->slot;
     }
     int slot = keyHashSlot(key, (int)sdslen(key));
     return slot;
@@ -778,7 +778,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
          * Besides, we never free a string object in BIO threads, so, even with
          * lazyfree-lazy-server-del enabled, a fallback to main thread freeing
          * due to defer free failure doesn't go against the config intention. */
-        tryDeferFreeClientObject(server.current_client[iotid], DEFERRED_OBJECT_TYPE_ROBJ, old);
+        tryDeferFreeClientObject(server.current_client[ifidx], DEFERRED_OBJECT_TYPE_ROBJ, old);
     } else if (server.lazyfree_lazy_server_del) {
         freeObjAsync(key, old, db->id);
     } else {
@@ -1335,8 +1335,8 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     }
 
     /* Update current_client (Called functions might rely on it) */
-    client *old_client = server.current_client[iotid];
-    server.current_client[iotid] = c;
+    client *old_client = server.current_client[ifidx];
+    server.current_client[ifidx] = c;
 
     /* Don't update blocked_us since command was processed in bg by lazy_free thread */
     updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(c->bstate.lazyfreeStartTime), 0);
@@ -1362,7 +1362,7 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     updateClientMemUsageAndBucket(c);
 
     /* restore current_client */
-    server.current_client[iotid] = old_client;
+    server.current_client[ifidx] = old_client;
 }
 
 /* Common flush command implementation for FLUSHALL, FLUSHDB and SFLUSH.
@@ -1444,7 +1444,7 @@ void flushallCommand(client *c) {
     /* NB: inline-dispatched commands run on a ring-slot FAKE (c->isFake==1), so do NOT gate
      * on !c->isFake — that would skip the fix and fall into the stock blocking-async path,
      * which hangs/crashes here. flushAllShards works whether c is the real client or its fake. */
-    if (server.workers && server.num_workers > 0) {
+    if (server.exThreads && server.num_workers > 0) {
         flushAllShards(c, -1, (flags & EMPTYDB_ASYNC) ? 1 : 0);
         server.dirty++;
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
@@ -1466,7 +1466,7 @@ void flushdbCommand(client *c) {
 
     /* ee451 (v7): sharded build — flush the selected DB across all worker shards. See
      * flushallCommand for why the stock path hangs here. */
-    if (server.workers && server.num_workers > 0 && !c->isFake) {
+    if (server.exThreads && server.num_workers > 0 && !c->isFake) {
         flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
         server.dirty++;
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
@@ -2188,11 +2188,11 @@ void dbsizeCommand(client *c) {
      * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
      * used counter only (no iteration), so reading it from the IO thread while a worker writes
      * is racy but crash-free and DBSIZE is approximate by nature. */
-    if (server.num_workers > 0 && server.workers) {
+    if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;
         for (int w = 0; w < server.num_workers; w++)
-            total += dbSize(&server.workers[w].db[dbid]);
+            total += dbSize(&server.exThreads[w].db[dbid]);
         addReplyLongLong(c, total);
         return;
     }
@@ -2912,14 +2912,14 @@ static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, lo
 }
 
 /* Delete the specified expired key and propagate. */
-/* ee451 (v8d): an IMPLICIT delete (expiry/eviction) of a key skips the workerExecFake capture hook
+/* ee451 (v8d): an IMPLICIT delete (expiry/eviction) of a key skips the exExecFake capture hook
  * (which only fires for CMD_WRITE commands), so a range key A expires/evicts mid-migration would be
  * resurrected on B. Log a tombstone here. STRICTLY gate to worker A's own shard: a tombstone emitted
  * from any other db (e.g. the IO-side server.db, which never holds range keys) would tell B to delete
  * a still-live key = data loss. The key is already gone, so migCaptureEffect logs a tombstone. */
 static inline void migCaptureImplicitDelete(redisDb *db, robj *keyobj) {
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
-        server.workers && db == &server.workers[server.migration.src].db[db->id])
+        server.exThreads && db == &server.exThreads[server.migration.src].db[db->id])
         migCaptureEffect(db, keyobj);
 }
 void deleteExpiredKeyAndPropagate(redisDb *db, robj *keyobj) {
@@ -2994,7 +2994,7 @@ int confAllowsExpireDel(void) {
     /* This configuration specifically targets nested commands, to align with RE's feature of replication between dbs.
      * transactions (from scripts or multi-exec) containing commands like SCAN and RANDOMKEY will execute locally, but their
      * lazy-expiration DELs may induce CROSS-SLOT on remote proxy in mode replica-of (RED-161574) */
-    return !(server.execution_nesting > 1 && server.executing_client[iotid]->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
+    return !(server.execution_nesting > 1 && server.executing_client[ifidx]->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
 }
 
 /* This function is called when we are going to perform some operation
@@ -3070,7 +3070,7 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * When replicating commands from the master, keys are never considered
      * expired. */
     if (server.masterhost != NULL || server.cluster_enabled) {
-        if (server.current_client[iotid] && (server.current_client[iotid]->flags & CLIENT_MASTER)) return KEY_VALID;
+        if (server.current_client[ifidx] && (server.current_client[ifidx]->flags & CLIENT_MASTER)) return KEY_VALID;
         if (server.masterhost != NULL && !(flags & EXPIRE_FORCE_DELETE_EXPIRED)) return KEY_EXPIRED;
     }
 

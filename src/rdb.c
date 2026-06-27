@@ -41,7 +41,7 @@
 
 /* This macro tells if we are in the context of a RESTORE command, and not loading an RDB or AOF. */
 #define isRestoreContext() \
-    ((server.current_client[iotid] == NULL || server.current_client[iotid]->id == CLIENT_ID_AOF) ? 0 : 1)
+    ((server.current_client[ifidx] == NULL || server.current_client[ifidx]->id == CLIENT_ID_AOF) ? 0 : 1)
 
 char* rdbFileBeingLoaded = NULL; /* used for rdb checking on read error */
 extern int rdbCheckMode;
@@ -1571,7 +1571,7 @@ werr:
 }
 
 /* ee451: rdbSaveDb now takes an explicit redisDb* so the caller can save each
- * worker SHARD db (THredis stores data in server.workers[w].db[dbid], not
+ * worker SHARD db (THredis stores data in server.exThreads[w].db[dbid], not
  * server.db[dbid]). Multiple SELECTDB(dbid) sections per dbid are valid RDB; load
  * routes each key to its shard by hash. */
 ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {
@@ -1697,9 +1697,9 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
             /* ee451: save the main logical db (usually empty under sharding) AND every
              * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
             if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
-            if (server.workers) {
+            if (server.exThreads) {
                 for (int w = 0; w < server.num_workers; w++)
-                    if (rdbSaveDb(rdb, &server.workers[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+                    if (rdbSaveDb(rdb, &server.exThreads[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
             }
         }
     }
@@ -2199,9 +2199,9 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, int dbid, int *error)
         /* Skip sanitization when loading (an RDB), or getting a RESTORE command
          * from either the master or a client using an ACL user with the skip-sanitize-payload flag. */
         int skip = server.loading ||
-            (server.current_client[iotid] && (server.current_client[iotid]->flags & CLIENT_MASTER));
-        if (!skip && server.current_client[iotid] && server.current_client[iotid]->user)
-            skip = !!(server.current_client[iotid]->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
+            (server.current_client[ifidx] && (server.current_client[ifidx]->flags & CLIENT_MASTER));
+        if (!skip && server.current_client[ifidx] && server.current_client[ifidx]->user)
+            skip = !!(server.current_client[ifidx]->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
         deep_integrity_validation = !skip;
     }
 
@@ -3978,8 +3978,8 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
              * RDB load is single-threaded and runs before clients connect with workers
              * idle, so populating shard dbs here is race-free. */
             redisDb *kdb = db;
-            if (server.workers)
-                kdb = &server.workers[workerIndexForKey(key, sdslen(key))].db[db->id];
+            if (server.exThreads)
+                kdb = &server.exThreads[exIndexForKey(key, sdslen(key))].db[db->id];
 
             /* Add the new object in the hash table */
             kvobj *kv = dbAddRDBLoad(kdb, key, &val, &keyMeta);

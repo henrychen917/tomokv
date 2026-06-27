@@ -146,7 +146,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
      *     fine for redis-server running as root; may fail under a
      *     sandboxed user with tight capabilities.
      *   - Dedicates a CPU core PER ring. Since THredis creates a ring
-     *     per IO thread's ae loop, this multiplies: 1 + my_io_threads
+     *     per IO thread's ae loop, this multiplies: 1 + my_ifid_threads
      *     kernel polling threads total. On an 8-core box with 3 IO
      *     threads, that's 4 kernel pollers consuming (at most) 4 cores.
      *   - If the SQ is rarely submitted to (which is the case for our

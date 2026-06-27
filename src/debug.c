@@ -2567,8 +2567,8 @@ void printCrashReport(void) {
     logServerInfo();
 
     /* Log the current client */
-    logCurrentClient(server.current_client[iotid], "CURRENT");
-    logCurrentClient(server.executing_client[iotid], "EXECUTING");
+    logCurrentClient(server.current_client[ifidx], "CURRENT");
+    logCurrentClient(server.executing_client[ifidx], "EXECUTING");
 
     /* Log modules info. Something we wanna do last since we fear it may crash. */
     logModulesInfo();

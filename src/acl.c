@@ -484,7 +484,7 @@ void ACLFreeUserGeneric(void *u) {
 void ACLFreeUserAndKillClients(user *u) {
     listIter li;
     listNode *ln;
-    listRewind(server.clients[iotid],&li);
+    listRewind(server.clients[ifidx],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
         if (c->user == u) {
@@ -2031,7 +2031,7 @@ void ACLKillPubsubClientsIfNeeded(user *new, user *original) {
     /* Permissions have changed, so we need to iterate through all
      * the clients and disconnect those that are no longer valid.
      * Scan all connected clients to find the user's pub/subs. */
-    listRewind(server.clients[iotid],&li);
+    listRewind(server.clients[ifidx],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
         if (c->user != original)
@@ -2457,7 +2457,7 @@ sds ACLLoadFromFile(const char *filename) {
         listIter li;
         listNode *ln;
 
-        listRewind(server.clients[iotid],&li);
+        listRewind(server.clients[ifidx],&li);
         while ((ln = listNext(&li)) != NULL) {
             client *c = listNodeValue(ln);
             /* a MASTER client can do everything (and user = NULL) so we can skip it */
@@ -2721,7 +2721,7 @@ void addACLLogEntry(client *c, int reason, int context, int argpos, sds username
     }
 
     /* if we have a real client from the network, use it (could be missing on module timers) */
-    client *realclient = server.current_client[iotid]? server.current_client[iotid] : c;
+    client *realclient = server.current_client[ifidx]? server.current_client[ifidx] : c;
 
     le->cinfo = catClientInfoString(sdsempty(),realclient);
     le->context = context;

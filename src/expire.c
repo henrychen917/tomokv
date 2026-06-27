@@ -656,7 +656,7 @@ int checkAlreadyExpired(long long when) {
      *
      * Instead we add the already expired key to the database with expire time
      * (possibly in the past) and wait for an explicit DEL from the master. */
-    if (server.current_client[iotid] && server.current_client[iotid]->flags & CLIENT_MASTER) return 0;
+    if (server.current_client[ifidx] && server.current_client[ifidx]->flags & CLIENT_MASTER) return 0;
     return (when <= commandTimeSnapshot() && !server.loading && !server.masterhost);
 }
 

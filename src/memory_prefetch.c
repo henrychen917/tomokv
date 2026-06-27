@@ -82,11 +82,13 @@ typedef struct PrefetchCommandsBatch {
     GetValueDataFunc get_value_data_func; /* Function to get the value data */
 } PrefetchCommandsBatch;
 
-/* THredis-dev: this file is dead code. All call sites for the upstream
- * command-prefetch batch have been removed from the fork's live paths.
- * The functions below compile but are never invoked. Left intact rather
- * than deleted to avoid touching the Makefile and to simplify rebase
- * from upstream. */
+/* THredis: command-prefetch is LIVE and enabled (kept on per project policy).
+ * The batch is driven from iothread.c (prefetchIOThreadCommands ->
+ * addCommandToBatch / prefetchCommands / resetCommandsBatch); the lifecycle
+ * helpers below (init/free/onMaxBatchSizeChange) are reached via the lazy init
+ * in resetCommandsBatch (batch==NULL && server.prefetch_batch_max_size>0, which
+ * defaults >0). A prior comment here called this file "dead code" — that was
+ * stale and incorrect; do not remove these functions. */
 static PrefetchCommandsBatch *batch = NULL;
 
 void freePrefetchCommandsBatch(void) {
