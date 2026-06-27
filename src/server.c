@@ -10810,6 +10810,30 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
     unsigned int dispatchid = c->dispatchid;
     uint32_t mask = cdbCombinedMask(c);
     int closing = (c->flags & CLIENT_CLOSE_ASAP) || !c->conn;
+
+    /* Pipelined prefetch — same as handleWorkerReplies' opt_prefetch_io. The ready fakes were last
+     * written on a worker core, so they're cold here. Pass 1 warms the fake structs; pass 2 warms each
+     * reply's static buf + reply-list head, so the coalescing splice below copies HOT memory. (This is a
+     * proven algorithmic improvement the strict ROB had been missing — added, not axed.) */
+    if (server.opt_prefetch_io && !closing) {
+        client *ready_fakes[MY_PIPELINE_DEPTH_MAX]; int ready_n = 0;
+        for (unsigned int fid = c->flushid; fid != dispatchid && ready_n < server.my_pipeline_depth; fid++) {
+            unsigned int slot = fid & server.my_pipeline_queue_mask;
+            if (!(mask & (1u << slot))) break;
+            client *fake = c->fakeClients[slot];
+            if (ready_n < server.pf_w_io_struct) redis_prefetch_read(fake);
+            ready_fakes[ready_n++] = fake;
+        }
+        int wio = ready_n < server.pf_w_io_reply ? ready_n : server.pf_w_io_reply;
+        for (int k = 0; k < wio; k++) {
+            client *fake = ready_fakes[k];
+            if (fake->bufpos > 0) redis_prefetch_read(fake->buf);
+            if (listLength(fake->reply)) redis_prefetch_read(listFirst(fake->reply));
+        }
+    }
+
+    /* Coalesce the contiguous ready prefix into real->buf (the proven BATCHED-SUBMIT path: one send for
+     * N replies), retiring each fake ON THE ROB (own freeback iotid) and advancing flushid in order. */
     int spliced = 0;
     while (c->flushid != dispatchid) {
         unsigned int slot = c->flushid & server.my_pipeline_queue_mask;
@@ -10828,18 +10852,11 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
         if (c->flags & CLIENT_CLOSE_ASAP) { closing = 1; }             /* splice may have tripped the limit */
     }
     (void)spliced;
-    /* Send the reassembled buf (fast path: fully in the static buf, not a reply list / encoded).
-     * Gate on UNSENT DATA (bufpos>sentlen), not on `spliced`: a prior send that hit EAGAIN (socket
-     * buffer full — common when a --pipe client writes-before-reading) leaves bufpos>sentlen with no
-     * new splice, and must be retried until it drains, else the reply is lost. */
+    /* Send the coalesced buf (one batched send). Gate on UNSENT DATA (bufpos>sentlen): a prior send that
+     * hit EAGAIN leaves bufpos>sentlen with no new splice and must be retried, else the reply is lost. */
     if (!(c->flags & CLIENT_CLOSE_ASAP) && c->conn && c->conn->fd >= 0 &&
         c->bufpos > c->sentlen && listLength(c->reply) == 0 && !c->buf_encoded) {
         if (server.rob_epoll) {
-            /* ABLATION (epoll send-backend): same 3-stage pipeline, but the ROB sends via a raw
-             * non-blocking write() instead of io_uring — isolates io_uring's contribution from the
-             * triple-thread architecture. Synchronous: no ts_inflight, no CQE reap. NOT writeToClient
-             * (that installs a write handler on the IO thread's event loop -> cross-thread race). On
-             * partial/EAGAIN keep bufpos>sentlen and retry next scan (the client stays watched). */
             ssize_t n = write(c->conn->fd, c->buf + c->sentlen, (size_t)(c->bufpos - c->sentlen));
             if (n > 0) {
                 c->sentlen += (unsigned int)n;
@@ -10849,7 +10866,6 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
             } else {
                 c->ts_close_needed = 1;                                 /* error/EOF: IO frees */
             }
-            /* fall through to the done-check (live clients stay watched; closing+drained -> removed) */
         } else {
             struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
             if (!sqe) { io_uring_submit(ring); sqe = io_uring_get_sqe(ring); }
@@ -10863,12 +10879,7 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
             return 0;                                                  /* send in flight (or retry next loop) */
         }
     }
-    /* REMOVE from the active set ONLY when the client is CLOSING and fully drained. A LIVE client stays
-     * watched for its whole connection lifetime (watch-once at first connect): this avoids the
-     * remove/re-watch churn (and the robq saturation -> dispatch spin -> wedge) that a deep pipeline
-     * under reconnect storms triggers, and closes the remove/re-add race. The cost is the ROB scanning
-     * idle watched clients each loop (cheap: one CDB-word read); a future scalability pass can index
-     * only clients with pending work. Never drop with an unsent (EAGAIN-deferred) buffer either. */
+    /* Live client stays watched (keep-while-live); closing+drained -> caller removes from the active set. */
     if (!closing) return 0;
     return (c->flushid == c->dispatchid) && !__atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) &&
            (c->bufpos <= c->sentlen);
