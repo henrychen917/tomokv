@@ -1909,8 +1909,24 @@ static inline uint32_t cdbCombinedMask(client *real) {
 
 #ifdef HAVE_LIBURING
 static inline int robqPush(workerQueue *q, client *c);  /* uring-threestage: defined with the ROB thread below */
-static int robDbg; static long robDbgSkip; static long robcFallback;  /* uring-threestage: debug tracing (defined below) */
+static int robDbg; static long robDbgSkip; static long robcFallback; static long robcRetry;  /* uring debug tracing (defined below) */
+static int robThreadCount;                              /* uring-strict: # ROB threads (defined below); freeback drain range */
 #endif
+
+/* Mark a client pipeline-stalled (ring full / needs drain). In strict mode the IO thread doesn't drain
+ * replies, so on the 0->1 transition we enroll the client on clients_pending_worker[iotid] (reused as
+ * the stalled list — unused for draining in strict iotid>=1) and bump replyWorking so the IO polls and
+ * re-checks ring space; beforeSleepIO resumes it (processInputBuffer) once the ROB advances flushid. */
+static inline void markStalled(client *c) {
+    if (c->flags & CLIENT_PIPELINE_STALLED) return;
+    c->flags |= CLIENT_PIPELINE_STALLED;
+#ifdef HAVE_LIBURING
+    if (server.strict_pipeline && iotid >= 1) {
+        listAddNodeTail(server.clients_pending_worker[iotid], c);
+        replyWorking++;
+    }
+#endif
+}
 
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
@@ -1918,6 +1934,12 @@ void handleWorkerReplies(void) {
      * (beforeSleepIO calls us first each loop), so a staged job is always
      * visible to its worker before the drain can wait on its slot. */
     flushWorkerQueues();
+#ifdef HAVE_LIBURING
+    /* uring-strict: for iotid>=1 the ROB owns reorder/reassemble/retire/send, so the IO thread only
+     * publishes staged worker jobs (above) then returns. iotid 0 (main thread, no ROB) still drains
+     * its own clients via the legacy path below. */
+    if (server.strict_pipeline && iotid >= 1) return;
+#endif
     listIter li;
     listNode *ln;
     listRewind(server.clients_pending_worker[iotid], &li);
@@ -2153,6 +2175,35 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
         migPushFenceIfNeeded();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
+#ifdef HAVE_LIBURING
+    /* uring-strict resume: handleWorkerReplies early-returned for iotid>=1 (the ROB drains). The ROB
+     * advances flushid as it retires, freeing ring slots; here we resume clients that stalled on a full
+     * ring. clients_pending_worker[iotid] is reused as the stalled list (markStalled enrolled them).
+     * Snapshot the resumable set first (processInputBuffer may re-stall -> re-enqueue -> would corrupt
+     * the in-progress iteration). */
+    if (server.strict_pipeline && iotid >= 1 && listLength(server.clients_pending_worker[iotid])) {
+        client *resumable[64]; int rn = 0;
+        listIter li; listNode *ln;
+        listRewind(server.clients_pending_worker[iotid], &li);
+        while ((ln = listNext(&li)) && rn < 64) {
+            client *real = listNodeValue(ln);
+            if (real->flags & CLIENT_CLOSE_ASAP) {
+                /* Closing: drop from the stall list now (before freeClientsInAsyncFreeQueue reclaims it
+                 * -> dangling node) and DON'T re-parse. The ROB retires it; on_robq/flushid gate the free. */
+                real->flags &= ~CLIENT_PIPELINE_STALLED;
+                listDelNode(server.clients_pending_worker[iotid], ln);
+                replyWorking--;
+            } else if ((real->dispatchid - __atomic_load_n(&real->flushid, __ATOMIC_ACQUIRE)) < (unsigned int)server.my_pipeline_depth) {
+                real->flags &= ~CLIENT_PIPELINE_STALLED;
+                listDelNode(server.clients_pending_worker[iotid], ln);
+                replyWorking--;
+                resumable[rn++] = real;
+            }
+        }
+        if (robDbg && rn) __atomic_fetch_add(&robcRetry, rn, __ATOMIC_RELAXED);
+        for (int i = 0; i < rn; i++) processInputBuffer(resumable[i]);  /* may re-stall -> markStalled re-enrolls */
+    }
+#endif
     handleClientsWithPendingWrites();
     freeClientsInAsyncFreeQueue();
 
@@ -5006,7 +5057,7 @@ int processCommand(client *c) {
         c->cmd->proc != resetCommand)
     {
         if (c->dispatchid != c->flushid) {
-            c->flags |= CLIENT_PIPELINE_STALLED;
+            markStalled(c);
             return C_OK;
         }
         queueMultiCommand(c, cmd_flags);
@@ -5017,7 +5068,7 @@ int processCommand(client *c) {
     /* Stateful commands — run on real with ring drained. */
     if (isStatefulCommand(c->cmd)) {
         if (c->dispatchid != c->flushid) {
-            c->flags |= CLIENT_PIPELINE_STALLED;
+            markStalled(c);
             return C_OK;
         }
         int flags = CMD_CALL_FULL;
@@ -5043,9 +5094,22 @@ int processCommand(client *c) {
     client *fake = c->fakeClients[c->dispatchid & server.my_pipeline_queue_mask];
     moveExecutionState(c, fake);
 
-    /* First in-flight fake for this real — enroll in flush-walk list. */
-    if (c->dispatchid == c->flushid) {
-        listAddNodeTail(server.clients_pending_worker[iotid], c);
+    /* First in-flight fake for this real — enroll for reply draining. In strict mode flushid is
+     * advanced by the ROB, so acquire-load it: a stale (smaller) read here would skip the watch on a
+     * re-activated client (the ROB already removed it) -> a stuck reply. */
+    int strict_first_watch = 0;
+    if (c->dispatchid == __atomic_load_n(&c->flushid, __ATOMIC_ACQUIRE)) {
+#ifdef HAVE_LIBURING
+        if (server.strict_pipeline && iotid >= 1) {
+            /* uring-strict: hand a 'watch' to this io thread's ROB (owns reorder/retire/send). iotid 0
+             * (main thread, no ROB/robq) uses the legacy IO-drain path (below) like uring-threestage.
+             * DEFER the push to AFTER c->dispatchid++ (below): if pushed now, the ROB could pop the watch
+             * and read the OLD dispatchid (== flushid), conclude "fully drained", and remove the client
+             * from its active set before this dispatch even completes -> the reply is never scanned. */
+            strict_first_watch = 1;
+        } else
+#endif
+            listAddNodeTail(server.clients_pending_worker[iotid], c);
     }
 
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
@@ -5064,7 +5128,7 @@ int processCommand(client *c) {
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
-        replyWorking++;
+        if (!(server.strict_pipeline && iotid >= 1)) replyWorking++;   /* strict iotid>=1: ROB drains, IO doesn't poll */
         if (cst == CS_KEYS) dispatchFanAll(fake);   /* ee451 v10-B: one sub per worker */
         else if (cst == CS_SETOP) dispatchSetOp(fake);  /* ee451 v11-F: per-key gather-compute */
         else dispatchCrossShard(fake, cst);
@@ -5077,7 +5141,7 @@ int processCommand(client *c) {
         fake->cdb = cdbIndexFor(worker_id);
         fake->db = &server.workers[worker_id].db[fake->db->id];
         fake->flags |= CLIENT_WORKER_PENDING;
-        replyWorking++;
+        if (!(server.strict_pipeline && iotid >= 1)) replyWorking++;   /* strict iotid>=1: ROB drains, IO doesn't poll */
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
@@ -5100,6 +5164,12 @@ int processCommand(client *c) {
     }
 
     c->dispatchid++;
+#ifdef HAVE_LIBURING
+    /* uring-strict: NOW that dispatchid > flushid, hand the watch to the ROB. The ROB will see
+     * pending work and won't prematurely retire/remove the client. Spin on a (practically impossible)
+     * full robq so the watch — and thus the reply — can never be lost. */
+    if (strict_first_watch) while (!robqPush(&server.ioThreads[iotid].robq, c)) sched_yield();
+#endif
     return C_OK;
 }
 
@@ -9630,7 +9700,13 @@ void freebackPush(int worker_id, robj *obj) {
  * on the worker thread (single-writer for its shard => no refcount race).
  * Called once per worker loop iteration. */
 static inline void freebackDrainAll(workerThread *worker) {
-    for (int t = 0; t <= server.my_io_threads; t++) {
+    int hi = server.my_io_threads;
+#ifdef HAVE_LIBURING
+    /* uring-strict: ROB threads retire fakes on their OWN freeback iotid (my_io_threads+1+rob_id)
+     * so they never share a per-iotid SPSC ring with an IO thread. Drain those extra slots too. */
+    if (server.strict_pipeline) hi = server.my_io_threads + robThreadCount;
+#endif
+    for (int t = 0; t <= hi; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
@@ -10675,6 +10751,11 @@ static int robDbg = 0;                            /* TS_ROB_DBG env -> verbose R
 static long robDbgPop = 0, robDbgStale = 0, robDbgSkip = 0;
 /* aggregate ROB event counters (RELAXED; debug only) */
 static long robcSend=0, robcFull=0, robcPartial=0, robcEagain=0, robcErr=0, robcNosend=0, robcExhaust=0, robcFallback=0, robcRetry=0;
+/* uring-strict: per-ROB active-set of clients with in-flight fakes the ROB is reordering. ROB-owned
+ * (no sync). Client added on robq 'watch' pop (dedup via c->on_robq), removed when fully retired. */
+static client **robActive[MY_IO_THREADS_MAX];
+static int robActiveN[MY_IO_THREADS_MAX];
+static int robActiveCap[MY_IO_THREADS_MAX];
 
 /* SPSC handoff: IO thread (producer) -> ROB thread (consumer). Immediate-publish (no staging). */
 static inline int robqPush(workerQueue *q, client *c) {
@@ -10705,6 +10786,136 @@ static int robEnsureRing(int id) {
     return 1;
 }
 
+/* uring-strict: lower-level reply splice that does NOT call _prepareClientToWrite (the ROB is the
+ * sole sender; registering on clients_pending_write[iotid] would race the IO thread). Copies the
+ * fake's static buf into real->buf and joins any reply list, then resets the fake. */
+void _addReplyToBufferOrList(client *c, const char *s, size_t len);   /* networking.c */
+static void robSpliceFake(client *real, client *fake) {
+    if (fake->bufpos > 0) _addReplyToBufferOrList(real, fake->buf, (size_t)fake->bufpos);
+    if (listLength(fake->reply)) listJoin(real->reply, fake->reply);
+    real->reply_bytes += fake->reply_bytes;
+    fake->reply_bytes = 0; fake->bufpos = 0;
+}
+
+/* uring-strict: the ROB owns this client's reorder buffer. Walk the contiguous ready prefix
+ * [flushid,dispatchid) over the CDB (in dispatch order), splice + RETIRE each ready fake (retirement
+ * runs here on the ROB, freeing argv to the ROB's OWN freeback iotid), advance flushid, then io_uring
+ * send the reassembled real->buf. dispatchid/flushid are monotonic, aligned-32b (atomic on x86) — the
+ * CDB acquire/release carries the actual reply-data visibility, so plain reads are safe. Returns 1 iff
+ * fully retired (flushid==dispatchid) and no send in flight -> caller removes from the active set. */
+static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
+    if (__atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE)) return 0;   /* send in flight: wait for CQE */
+    if (c->ts_close_needed) return 0;                                  /* IO thread will free it */
+    unsigned int dispatchid = c->dispatchid;
+    uint32_t mask = cdbCombinedMask(c);
+    int closing = (c->flags & CLIENT_CLOSE_ASAP) || !c->conn;
+    int spliced = 0;
+    while (c->flushid != dispatchid) {
+        unsigned int slot = c->flushid & server.my_pipeline_queue_mask;
+        if (!(mask & (1u << slot))) break;                              /* head of ring not done yet */
+        client *fake = c->fakeClients[slot];
+        fake->flags &= ~CLIENT_WORKER_PENDING;
+        if (!closing) {
+            if (fake->csgroup) csReassemble(c, fake);                   /* cross-shard excluded in strict (see dispatch) */
+            else { robSpliceFake(c, fake); spliced = 1; }
+        } else if (fake->csgroup) {
+            csReassemble(NULL, fake);                                   /* free group, no reply */
+        }
+        commandProcessed(fake);                                        /* RETIRE on the ROB (own freeback iotid) */
+        atomicFetchAnd(c->reply_cdb[fake->cdb].v, ~(1u << slot));
+        __atomic_store_n(&c->flushid, c->flushid + 1, __ATOMIC_RELEASE);  /* IO acquire-reads in dispatch/free */
+        if (c->flags & CLIENT_CLOSE_ASAP) { closing = 1; }             /* splice may have tripped the limit */
+    }
+    (void)spliced;
+    /* Send the reassembled buf (fast path: fully in the static buf, not a reply list / encoded).
+     * Gate on UNSENT DATA (bufpos>sentlen), not on `spliced`: a prior send that hit EAGAIN (socket
+     * buffer full — common when a --pipe client writes-before-reading) leaves bufpos>sentlen with no
+     * new splice, and must be retried until it drains, else the reply is lost. */
+    if (!(c->flags & CLIENT_CLOSE_ASAP) && c->conn && c->conn->fd >= 0 &&
+        c->bufpos > c->sentlen && listLength(c->reply) == 0 && !c->buf_encoded) {
+        struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+        if (!sqe) { io_uring_submit(ring); sqe = io_uring_get_sqe(ring); }
+        if (sqe) {
+            __atomic_store_n(&c->ts_inflight, 1, __ATOMIC_RELEASE);
+            io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, c->bufpos - c->sentlen, MSG_WAITALL);
+            io_uring_sqe_set_data64(sqe, ((uint64_t)c->ts_gen << 48) | (uint64_t)(uintptr_t)c);
+            robOutstanding[rid]++;
+            if (robDbg) __atomic_fetch_add(&robcSend, 1, __ATOMIC_RELAXED);
+        }
+        return 0;                                                      /* send in flight (or retry next loop) */
+    }
+    /* Fully retired ONLY if nothing left to send (bufpos<=sentlen) — never drop a client with an
+     * unsent (EAGAIN-deferred) buffer, or the reply is lost. */
+    return (c->flushid == c->dispatchid) && !__atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) &&
+           (c->bufpos <= c->sentlen);
+}
+
+/* uring-strict ROB main loop: maintain an active set of clients (added via the robq 'watch' the IO
+ * thread pushes at first-in-flight), reorder/reassemble/retire/send each, reap CQEs. */
+static void robStrictRun(int rid, int R, struct io_uring *ring) {
+    int spins = 0;
+    while (1) {
+        int did = 0;
+        /* (1) drain assigned robqs -> add watched clients to the active set (dedup via on_robq) */
+        for (int qi = 1; qi < server.my_io_threads; qi++) {
+            if (((qi - 1) % R) != rid) continue;
+            client *c;
+            while ((c = robqPop(&server.ioThreads[qi].robq)) != NULL) {
+                if (c->on_robq) continue;
+                __atomic_store_n(&c->on_robq, 1, __ATOMIC_RELEASE);
+                if (robDbg) __atomic_fetch_add(&robcFallback, 1, __ATOMIC_RELAXED);   /* reuse: # watches added */
+                if (robActiveN[rid] >= robActiveCap[rid]) {
+                    int nc = robActiveCap[rid] ? robActiveCap[rid] * 2 : 256;
+                    robActive[rid] = zrealloc(robActive[rid], (size_t)nc * sizeof(client *));
+                    robActiveCap[rid] = nc;
+                }
+                robActive[rid][robActiveN[rid]++] = c;
+            }
+        }
+        /* (2) scan the active set */
+        for (int k = 0; k < robActiveN[rid]; ) {
+            client *c = robActive[rid][k];
+            if (robStrictDrainClient(c, ring, rid)) {
+                __atomic_store_n(&c->on_robq, 0, __ATOMIC_RELEASE);     /* IO may now free c */
+                robActive[rid][k] = robActive[rid][--robActiveN[rid]];  /* swap-remove (no c deref) */
+            } else { k++; did = 1; }
+        }
+        if (did) io_uring_submit(ring);
+        /* (3) reap send CQEs -> clear ts_inflight; the client is re-scanned next loop */
+        if (robOutstanding[rid] > 0) {
+            io_uring_get_events(ring);
+            struct io_uring_cqe *cqe; unsigned int head; int seen = 0;
+            io_uring_for_each_cqe(ring, head, cqe) {
+                seen++; robOutstanding[rid]--;
+                uint64_t ud = io_uring_cqe_get_data64(cqe);
+                client *rc = (client *)(uintptr_t)(ud & 0x0000FFFFFFFFFFFFULL);
+                uint32_t gen = (uint32_t)(ud >> 48); int res = cqe->res;
+                if (!rc || rc->ts_gen != gen) { if (robDbg) __atomic_fetch_add(&robDbgStale,1,__ATOMIC_RELAXED); continue; }
+                unsigned int want = rc->bufpos - rc->sentlen;
+                if (res >= 0 && (unsigned int)res >= want) { rc->bufpos = 0; rc->sentlen = 0; if (robDbg) __atomic_fetch_add(&robcFull,1,__ATOMIC_RELAXED); }
+                else if (res >= 0) { rc->sentlen += (unsigned int)res; if (robDbg) __atomic_fetch_add(&robcPartial,1,__ATOMIC_RELAXED); }
+                else if (res == -EAGAIN || res == -EWOULDBLOCK) { if (robDbg) __atomic_fetch_add(&robcEagain,1,__ATOMIC_RELAXED); }
+                else { rc->ts_close_needed = 1; if (robDbg) __atomic_fetch_add(&robcErr,1,__ATOMIC_RELAXED); }
+                __atomic_store_n(&rc->ts_inflight, 0, __ATOMIC_RELEASE);
+                did = 1;
+            }
+            if (seen) io_uring_cq_advance(ring, seen);
+        }
+        if (did) spins = 0;
+        else if (++spins < 2000) { for (int p = 0; p < 16; p++) workerPauseCpu(); }
+        else {
+            spins = 0;
+            if (robDbg && rid == 0) {
+                static long last = 0; long s = __atomic_load_n(&robcSend, __ATOMIC_RELAXED);
+                if (s != last || robcFallback != last) { last = s;
+                    fprintf(stderr, "[STRICT rid0] watches=%ld sends=%ld full=%ld eagain=%ld stale=%ld err=%ld resume=%ld activeN=%d out=%d\n",
+                        robcFallback, s, robcFull, robcEagain, robDbgStale, robcErr, robcRetry, robActiveN[rid], robOutstanding[rid]); }
+            }
+            usleep(50);
+        }
+    }
+}
+
 void *robThreadMain(void *arg) {
     int rid = (int)(intptr_t)arg;           /* ROB id, 0 .. robThreadCount-1 */
     int R = robThreadCount;
@@ -10715,11 +10926,15 @@ void *robThreadMain(void *arg) {
      * (the ROB touches no per-iotid arrays on its hot path). */
     int first = 0;
     for (int i = 1; i < server.my_io_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
-    iotid = first;
+    /* Non-strict: the ROB touches no per-iotid arrays, so iotid is cosmetic. Strict: the ROB RETIRES
+     * fakes (freebackPush keys on thread-local iotid) -> give it a DEDICATED slot beyond the io threads
+     * (my_io_threads+1+rid) so it never shares an SPSC freeback ring with an io thread. */
+    iotid = server.strict_pipeline ? (server.my_io_threads + 1 + rid) : first;
     if (!robEnsureRing(rid)) { serverLog(LL_WARNING, "uring-threestage: ROB ring init failed (ROB %d)", rid); return NULL; }
     if (getenv("TS_ROB_DBG")) robDbg = 1;
-    serverLog(LL_NOTICE, "uring-threestage: ROB send thread %d of %d ready (serves io threads where (i-1)%%%d==%d, dbg=%d)", rid, R, R, rid, robDbg);
+    serverLog(LL_NOTICE, "uring-threestage: ROB send thread %d of %d ready (strict=%d freeback_iotid=%d, dbg=%d)", rid, R, server.strict_pipeline, iotid, robDbg);
     struct io_uring *ring = &robRings[rid];
+    if (server.strict_pipeline) { robStrictRun(rid, R, ring); return NULL; }
     int spins = 0;
     while (1) {
         int did = 0;
@@ -10846,8 +11061,8 @@ void initIOThreads(void) {
         }
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
 #ifdef HAVE_LIBURING
-        /* uring-threestage: init this io thread's SPSC robq (a ROB thread consumes it; spawned below). */
-        if (server.uring_threestage) {
+        /* uring-threestage/strict: init this io thread's SPSC robq (a ROB thread consumes it). */
+        if (server.uring_threestage || server.strict_pipeline) {
             memset(&t->robq, 0, sizeof(t->robq));
             memset(&t->resumeq, 0, sizeof(t->resumeq));
         }
@@ -10858,7 +11073,7 @@ void initIOThreads(void) {
      * drain several robqs). Count is DECOUPLED from io threads via thredis-rob-threads: 0 => one ROB
      * per io thread (legacy). Effective parallelism caps at (my_io_threads-1) robqs since each robq is
      * SPSC; extra ROBs would idle, so clamp. ROB r drains io threads i with (i-1) % R == r. */
-    if (server.uring_threestage) {
+    if (server.uring_threestage || server.strict_pipeline) {
         int nq = server.my_io_threads - 1;          /* robqs in use: io threads 1..I-1 */
         if (nq < 1) {
             serverLog(LL_WARNING, "uring-threestage: needs >=2 io threads; ROB pool not started");

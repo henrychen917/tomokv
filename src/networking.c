@@ -2539,6 +2539,13 @@ void freeClient(client *c) {
         freeClientAsync(c);
         return;
     }
+    /* ee451 (uring-strict): also defer while the ROB still holds c in its active-set (it keeps a
+     * persistent reference there to reorder/retire). The ROB clears on_robq (release) only after it
+     * has fully retired c (flushid==dispatchid) and will not touch it again, after which we free. */
+    if (!c->isFake && server.strict_pipeline && __atomic_load_n(&c->on_robq, __ATOMIC_ACQUIRE)) {
+        freeClientAsync(c);
+        return;
+    }
     c->ts_gen++;
 
     /* If the client is running in io thread, we can't free it directly. */
