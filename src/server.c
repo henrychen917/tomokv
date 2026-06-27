@@ -3267,7 +3267,11 @@ void initServer(void) {
     resetReplicationBuffer();
 
     /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
-    for (int t = 0; t <= server.my_io_threads; t++) {
+    /* Init per-iotid arrays up to MY_IO_THREADS_MAX (not just my_io_threads): uring-strict ROB threads
+     * run with iotid = my_io_threads+1+rob_id (their own freeback slot), and cross-shard csReassemble ->
+     * addReply -> putClientInPendingWriteQueue touches clients_pending_write[that iotid]. Over-init (a few
+     * empty lists) so those never NULL-deref. */
+    for (int t = 0; t <= MY_IO_THREADS_MAX; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -10852,6 +10856,14 @@ static int robStrictDrainClient(client *c, struct io_uring *ring, int rid) {
         if (c->flags & CLIENT_CLOSE_ASAP) { closing = 1; }             /* splice may have tripped the limit */
     }
     (void)spliced;
+    /* csReassemble (cross-shard) builds the reply via addReply -> putClientInPendingWriteQueue, which
+     * links the client onto clients_pending_write[iotid] (this ROB's iotid). The ROB sends real->buf
+     * itself, so take it back off that list + clear the flag (else freeClient would later unlink it from
+     * the WRONG iotid list -> corruption). Mirrors the single-key sole-sender unlink. */
+    if (c->flags & CLIENT_PENDING_WRITE) {
+        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        c->flags &= ~CLIENT_PENDING_WRITE;
+    }
     /* Send the coalesced buf (one batched send). Gate on UNSENT DATA (bufpos>sentlen): a prior send that
      * hit EAGAIN leaves bufpos>sentlen with no new splice and must be retried, else the reply is lost. */
     if (!(c->flags & CLIENT_CLOSE_ASAP) && c->conn && c->conn->fd >= 0 &&
