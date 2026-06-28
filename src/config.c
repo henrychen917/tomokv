@@ -3164,6 +3164,7 @@ standardConfig static_configs[] = {
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
     createIntConfig("thredis-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("thredis-pf-w-value-adaptive", NULL, MODIFIABLE_CONFIG,        server.pf_w_value_adaptive, 0, NULL, NULL),
