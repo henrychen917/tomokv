@@ -134,6 +134,7 @@ int authRequired(client *c) {
 static void resetFakeClientState(client *c, client *parent) {
     /* Fake-specific identity */
     c->isFake = 1;
+    c->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal parent->reply_cdb */
     c->parent = parent;
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
@@ -379,37 +380,10 @@ void freePooledFakeClient(client *c) {
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
 
-    /* ee451 (v11-D): the client struct embeds the S3/S5 per-CDB reply masks
-     * (reply_cdb[], each __attribute__((aligned(CACHE_LINE_SIZE)))) whose entire
-     * benefit is that each mask's hot .v word owns its own cache line, so the
-     * many worker cores RMW'ing completion bits never false-share with the IO
-     * thread writing the dispatch fields. That isolation only holds if the
-     * allocator returns a CACHE_LINE_SIZE-aligned base — the struct's own
-     * over-alignment (_Alignof(client)==CACHE_LINE_SIZE) is NOT honored by
-     * malloc(), which only guarantees fundamental alignment. jemalloc (our perf
-     * allocator) happens to return a 64-aligned base for this size class — but
-     * a 16-aligning allocator (e.g. glibc) silently degrades S3/S5 to false
-     * sharing. Verify the contract ONCE at startup and warn loudly if violated,
-     * so degradation is visible instead of silent. (Self-check is one-shot;
-     * not on any hot path.) */
-    {
-        static int _align_checked = 0;
-        if (!_align_checked) {
-            _align_checked = 1;
-            if ((uintptr_t)c % CACHE_LINE_SIZE != 0) {
-                serverLog(LL_WARNING,
-                    "ALIGNMENT: client base is offset %lu within a %d-byte cache line under this "
-                    "allocator (expected 0); S3/S5 reply-mask cache-line isolation is DEGRADED (false "
-                    "sharing on the hottest cross-thread line). jemalloc avoids this; a 16-aligning "
-                    "allocator (e.g. glibc) does not.",
-                    (unsigned long)((uintptr_t)c % CACHE_LINE_SIZE), CACHE_LINE_SIZE);
-            } else {
-                serverLog(LL_VERBOSE,
-                    "ALIGNMENT: client base is %d-byte aligned; S3/S5 reply-mask cache-line isolation holds.",
-                    CACHE_LINE_SIZE);
-            }
-        }
-    }
+    /* ee451 (#75): the S3/S5 per-CDB reply masks are now a HEAP array (c->reply_cdb), aligned to
+     * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
+     * isolation no longer depends on the client struct's own alignment, and the old inline-array +
+     * jemalloc-luck self-check is retired. */
 
     /* Pipeline fields — real client owns the ring */
     c->isFake = 0;
@@ -569,9 +543,19 @@ client *createClient(connection *conn) {
     c->node_id = NULL;
     atomicSet(c->pending_read, 0);
 
-    /* Real-client: start with no ready slots in any CDB mask (ee451 S5). Zero all
-     * NUM_CDB_MAX (cheap, and safe whatever num_cdb resolves to). */
-    for (int cc = 0; cc < NUM_CDB_MAX; cc++) atomicSet(c->reply_cdb[cc].v, 0);
+    /* ee451 (#75): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
+     * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
+     * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
+     * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
+     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal parent->reply_cdb. */
+    {
+        int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
+        void *raw = zmalloc(sizeof(cdbMask) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
+        uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+        ((void **)aligned)[-1] = raw;
+        c->reply_cdb = (cdbMask *)aligned;
+        for (int cc = 0; cc < ncdb; cc++) atomicSet(c->reply_cdb[cc].v, 0);
+    }
     c->cdb = 0;
 
     /* Preallocate the fake ring. Each fake borrows conn/user/db at dispatch,
@@ -2549,6 +2533,7 @@ void freeClient(client *c) {
                 c->fakeClients[i] = NULL;
             }
         }
+        if (c->reply_cdb) { zfree(((void **)c->reply_cdb)[-1]); c->reply_cdb = NULL; }   /* #75: free heap reply buses */
     }
 
     /* We need to unbind connection of client from io thread event loop first. */

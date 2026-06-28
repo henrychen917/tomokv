@@ -3231,9 +3231,18 @@ void initServer(void) {
     server.num_workers = server.my_ex_threads;
     /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
      * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
-    server.num_cdb = server.opt_multi_cdb
-                       ? (server.num_workers < NUM_CDB_MAX ? server.num_workers : NUM_CDB_MAX)
-                       : 1;
+    /* ee451 (#75): resolve the bus count once (IMMUTABLE). thredis-num-cdb (cfg_num_cdb>0) requests an
+     * explicit count, else legacy opt_multi_cdb auto-requests one bus per worker, else 1. Capped at
+     * num_workers (cdbIndexFor = ex_id % num_cdb with ex_id < num_workers, so buses beyond #workers are
+     * never written -> would only widen the per-reply drain scan) and at NUM_CDB_MAX. So the knob accepts
+     * up to 256 but the effective count scales with the worker count. */
+    {
+        int req = server.cfg_num_cdb > 0 ? server.cfg_num_cdb
+                                         : (server.opt_multi_cdb ? server.num_workers : 1);
+        if (req > server.num_workers) req = server.num_workers;
+        if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
+        server.num_cdb = req < 1 ? 1 : req;
+    }
     server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
     for (int w = 0; w < server.num_workers; w++) {
         server.ex_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);

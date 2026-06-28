@@ -3160,6 +3160,7 @@ standardConfig static_configs[] = {
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
     createBoolConfig("thredis-opt-multi-cdb", NULL, IMMUTABLE_CONFIG, server.opt_multi_cdb, 0, NULL, NULL),
+    createIntConfig("thredis-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
     createIntConfig("thredis-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
