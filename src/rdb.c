@@ -1859,7 +1859,7 @@ int rdbSave(int req, char *filename, rdbSaveInfo *rsi, int rdbflags) {
     }
 
     serverLog(LL_NOTICE,"DB saved on disk");
-    server.dirty = 0;
+    resetDirtyCounter();
     server.lastsave = time(NULL);
     server.lastbgsave_status = C_OK;
     stopSaving(1);
@@ -1872,7 +1872,7 @@ int rdbSaveBackground(int req, char *filename, rdbSaveInfo *rsi, int rdbflags) {
     if (hasActiveChildProcess()) return C_ERR;
     server.stat_rdb_saves++;
 
-    server.dirty_before_bgsave = server.dirty;
+    server.dirty_before_bgsave = getDirty();
     server.lastbgsave_try = time(NULL);
 
     if ((childpid = redisFork(CHILD_TYPE_RDB)) == 0) {

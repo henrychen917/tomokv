@@ -2530,7 +2530,7 @@ void readSyncBulkPayload(connection *conn) {
         }
 
         /* Inform about db change, as replication was diskless and didn't cause a save. */
-        server.dirty++;
+        markDirty(1);
 
         stopLoading(1);
 

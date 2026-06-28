@@ -1298,7 +1298,7 @@ int getFlushCommandFlags(client *c, int *flags) {
 
 /* Flushes the whole server data set. */
 void flushAllDataAndResetRDB(int flags) {
-    server.dirty += emptyData(-1,flags,NULL);
+    markDirty(emptyData(-1,flags,NULL));
     if (server.child_type == CHILD_TYPE_RDB) killRDBChild();
     if (server.saveparamslen > 0) {
         rdbSaveInfo rsi, *rsiptr;
@@ -1390,7 +1390,7 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
     if (type == FLUSH_TYPE_ALL)
         flushAllDataAndResetRDB(flags | EMPTYDB_NOFUNCTIONS);
     else
-        server.dirty += emptyData(c->db->id,flags | EMPTYDB_NOFUNCTIONS,NULL);
+        markDirty(emptyData(c->db->id,flags | EMPTYDB_NOFUNCTIONS,NULL));
 
     /* Without the forceCommandPropagation, when DB(s) was already empty,
      * FLUSHALL\FLUSHDB will not be replicated nor put into the AOF. */
@@ -1446,7 +1446,7 @@ void flushallCommand(client *c) {
      * which hangs/crashes here. flushAllShards works whether c is the real client or its fake. */
     if (server.exThreads && server.num_workers > 0) {
         flushAllShards(c, -1, (flags & EMPTYDB_ASYNC) ? 1 : 0);
-        server.dirty++;
+        markDirty(1);
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
         addReply(c, shared.ok);
         return;
@@ -1468,7 +1468,7 @@ void flushdbCommand(client *c) {
      * flushallCommand for why the stock path hangs here. */
     if (server.exThreads && server.num_workers > 0 && !c->isFake) {
         flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
-        server.dirty++;
+        markDirty(1);
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
         addReply(c, shared.ok);
         return;
@@ -1493,7 +1493,7 @@ void delGenericCommand(client *c, int lazy) {
             keyModified(c,c->db,c->argv[j],NULL,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,
                 "del",c->argv[j],c->db->id);
-            server.dirty++;
+            markDirty(1);
             numdel++;
         }
     }
@@ -1592,7 +1592,7 @@ void delexCommand(client *c) {
         rewriteClientCommandVector(c, 2, shared.del, key);
         keyModified(c, c->db, key, NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 
     addReplyLongLong(c, deleted);
@@ -2341,7 +2341,7 @@ void renameGenericCommand(client *c, int nx) {
         if (desttype != srctype)
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", c->argv[2], c->db->id);
     }
-    server.dirty++;
+    markDirty(1);
     addReply(c,nx ? shared.cone : shared.ok);
 }
 
@@ -2437,7 +2437,7 @@ void moveCommand(client *c) {
     notifyKeyspaceEvent(NOTIFY_GENERIC,
                 "move_to",c->argv[1],dst->id);
 
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.cone);
 }
 
@@ -2570,7 +2570,7 @@ void copyCommand(client *c) {
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", c->argv[2], dst->id);
     }
 
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.cone);
 }
 
@@ -2757,7 +2757,7 @@ void swapdbCommand(client *c) {
     } else {
         RedisModuleSwapDbInfo si = {REDISMODULE_SWAPDBINFO_VERSION,id1,id2};
         moduleFireServerEvent(REDISMODULE_EVENT_SWAPDB,0,&si);
-        server.dirty++;
+        markDirty(1);
         server.stat_cluster_incompatible_ops++;
         addReply(c,shared.ok);
     }

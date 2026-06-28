@@ -281,7 +281,7 @@ void restoreCommand(client *c) {
             rewriteClientCommandVector(c, 2, aux, key);
             keyModified(c,c->db,key,NULL,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"del",key,c->db->id);
-            server.dirty++;
+            markDirty(1);
         }
         /* If the expiration time is already elapsed, we skip adding
          * it to the DB, but we still increment the stats. */
@@ -333,7 +333,7 @@ void restoreCommand(client *c) {
         }
     }
     addReply(c,shared.ok);
-    server.dirty++;
+    markDirty(1);
 }
 /* MIGRATE socket cache implementation.
  *
@@ -696,7 +696,7 @@ void migrateCommand(client *c) {
                 dbDelete(c->db,keyArray[j]);
                 keyModified(c,c->db,keyArray[j],NULL,1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC,"del",keyArray[j],c->db->id);
-                server.dirty++;
+                markDirty(1);
 
                 /* Populate the argument vector to replace the old one. */
                 newargv[del_idx++] = keyArray[j];
@@ -1734,7 +1734,7 @@ unsigned int clusterDelKeysInSlot(unsigned int hashslot, int by_command) {
         postExecutionUnitOperations();
         decrRefCount(key);
         j++;
-        server.dirty++;
+        markDirty(1);
     }
     kvstoreResetDictIterator(&kvs_di);
     return j;

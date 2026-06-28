@@ -877,7 +877,7 @@ void setbitCommand(client *c) {
         ((uint8_t*)o->ptr)[byte] = byteval;
         keyModified(c,c->db,c->argv[1],o,1);
         notifyKeyspaceEvent(NOTIFY_STRING,"setbit",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
 
         /* If this is not a new key (old size not 0) and size changed, then 
          * update the keysizes histogram. Otherwise, the histogram already 
@@ -1445,11 +1445,11 @@ void bitopCommand(client *c) {
         robj *o = createObject(OBJ_STRING, res);
         setKey(c, c->db, targetkey, &o, 0);
         notifyKeyspaceEvent(NOTIFY_STRING,"set",targetkey,c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else if (dbDelete(c->db,targetkey)) {
         keyModified(c,c->db,targetkey,NULL,1);
         notifyKeyspaceEvent(NOTIFY_GENERIC,"del",targetkey,c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
     addReplyLongLong(c,maxlen); /* Return the output string length in bytes. */
 }
@@ -1953,7 +1953,7 @@ void bitfieldGeneric(client *c, int flags) {
         
         keyModified(c,c->db,c->argv[1],o,1);
         notifyKeyspaceEvent(NOTIFY_STRING,"setbit",c->argv[1],c->db->id);
-        server.dirty += changes;
+        markDirty(changes);
     }
     zfree(ops);
 }

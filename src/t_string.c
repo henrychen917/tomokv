@@ -160,7 +160,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
      * from 1 to 2 to ensure both DB and client have valid references. */
     incrRefCount(*valref); /* 1->2 */
 
-    server.dirty++;
+    markDirty(1);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",key,c->db->id);
 
     if (expire) {
@@ -514,7 +514,7 @@ void getexCommand(client *c) {
         rewriteClientCommandVector(c,2,aux,c->argv[1]);
         keyModified(c, c->db, c->argv[1], NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", c->argv[1], c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else if (args.expire) {
         o = setExpire(c,c->db,c->argv[1],milliseconds);
         /* Propagate as PXEXPIREAT millisecond-timestamp if there is
@@ -524,13 +524,13 @@ void getexCommand(client *c) {
         decrRefCount(milliseconds_obj);
         keyModified(c, c->db, c->argv[1], o, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else if (args.flags & OBJ_PERSIST) {
         if (removeExpire(c->db, c->argv[1])) {
             keyModified(c, c->db, c->argv[1], o, 1);
             rewriteClientCommandVector(c, 2, shared.persist, c->argv[1]);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"persist",c->argv[1],c->db->id);
-            server.dirty++;
+            markDirty(1);
         }
     }
 }
@@ -542,7 +542,7 @@ void getdelCommand(client *c) {
         rewriteClientCommandVector(c,2,shared.del,c->argv[1]);
         keyModified(c, c->db, c->argv[1], NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", c->argv[1], c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 }
 
@@ -552,7 +552,7 @@ void getsetCommand(client *c) {
     setKey(c, c->db, c->argv[1], &c->argv[2], 0);
     incrRefCount(c->argv[2]);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     /* Propagate as SET command */
     rewriteClientCommandArgument(c,0,shared.set);
@@ -622,7 +622,7 @@ void setrangeCommand(client *c) {
         keyModified(c,c->db,c->argv[1],kv,1);
         notifyKeyspaceEvent(NOTIFY_STRING,
             "setrange",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 
     addReplyLongLong(c,newLen);
@@ -713,7 +713,7 @@ void msetGenericCommand(client *c, int nx) {
         incrRefCount(c->argv[j+1]);  /* refcnt not incr by setKey() */
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
     }
-    server.dirty += (c->argc-1)/2;
+    markDirty((c->argc-1)/2);
     addReply(c, nx ? shared.cone : shared.ok);
 }
 
@@ -800,7 +800,7 @@ void msetexCommand(client *c) {
         decrRefCount(milliseconds_obj);
     }
 
-    server.dirty += kv_count;
+    markDirty(kv_count);
     addReply(c, shared.cone);
 }
 
@@ -842,7 +842,7 @@ void incrDecrCommand(client *c, long long incr) {
     addReplyLongLongFromStr(c,new);
     keyModified(c,c->db,c->argv[1],new,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"incrby",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 }
 
 void incrCommand(client *c) {
@@ -894,7 +894,7 @@ void incrbyfloatCommand(client *c) {
         dbAddByLink(c->db, c->argv[1], &new, &link);
     keyModified(c,c->db,c->argv[1],new,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"incrbyfloat",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
     addReplyBulk(c,new);
 
     /* Always replicate INCRBYFLOAT as a SET command with the final value
@@ -943,7 +943,7 @@ void appendCommand(client *c) {
     }
     keyModified(c,c->db,c->argv[1],o,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"append",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     addReplyLongLong(c,totlen);
 }

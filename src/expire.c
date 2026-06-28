@@ -809,7 +809,7 @@ void expireGenericCommand(client *c, long long basetime, int unit) {
 
         int deleted = dbGenericDelete(c->db,key,server.lazyfree_lazy_expire,DB_FLAG_KEY_EXPIRED);
         serverAssertWithInfo(c,key,deleted);
-        server.dirty++;
+        markDirty(1);
 
         /* Replicate/AOF this as an explicit DEL or UNLINK. */
         aux = server.lazyfree_lazy_expire ? shared.unlink : shared.del;
@@ -836,7 +836,7 @@ void expireGenericCommand(client *c, long long basetime, int unit) {
 
         keyModified(c,c->db,key,kv,1);
         notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",key,c->db->id);
-        server.dirty++;
+        markDirty(1);
         return;
     }
 }
@@ -914,7 +914,7 @@ void persistCommand(client *c) {
             keyModified(c,c->db,c->argv[1],kv,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"persist",c->argv[1],c->db->id);
             addReply(c,shared.cone);
-            server.dirty++;
+            markDirty(1);
         } else {
             addReply(c,shared.czero);
         }

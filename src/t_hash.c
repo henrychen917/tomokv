@@ -2102,7 +2102,7 @@ void hsetnxCommand(client *c) {
     updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_HASH, hlen - 1, hlen);
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
-    server.dirty++;
+    markDirty(1);
 }
 
 void hsetCommand(client *c) {
@@ -2139,7 +2139,7 @@ void hsetCommand(client *c) {
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
     notifyKeyspaceEvent(NOTIFY_HASH,"hset",c->argv[1],c->db->id);
-    server.dirty += (c->argc - 2)/2;
+    markDirty((c->argc - 2)/2);
 }
 
 /* Parse expire time from argument and do boundary checks. */
@@ -2450,7 +2450,7 @@ void hsetexCommand(client *c) {
     if (set_expiry)
         hashTypeSetExDone(&setex);
 
-    server.dirty += field_count;
+    markDirty(field_count);
 
     if (deleted) {
         /* If fields are deleted due to timestamp is being in the past, hdel's
@@ -2545,7 +2545,7 @@ void hincrbyCommand(client *c) {
     addReplyLongLong(c,value);
     keyModified(c,c->db,c->argv[1], o, 1);
     notifyKeyspaceEvent(NOTIFY_HASH,"hincrby",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 }
 
 void hincrbyfloatCommand(client *c) {
@@ -2603,7 +2603,7 @@ void hincrbyfloatCommand(client *c) {
     addReplyBulkCBuffer(c,buf,len);
     keyModified(c,c->db,c->argv[1],o,1);
     notifyKeyspaceEvent(NOTIFY_HASH,"hincrbyfloat",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     /* Always replicate HINCRBYFLOAT as an HSETEX command with the final value
      * in order to make sure that differences in float precision or formatting
@@ -2750,7 +2750,7 @@ void hgetdelCommand(client *c) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hexpired", c->argv[1], c->db->id);
     if (deleted) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hdel", c->argv[1], c->db->id);
-        server.dirty += deleted;
+        markDirty(deleted);
 
         /* Propagate as HDEL command.
          * Orig: HGETDEL <key> FIELDS <numfields> field1 field2 ...
@@ -2851,7 +2851,7 @@ void hgetexCommand(client *c) {
     if (expired == 0 && deleted == 0 && updated == 0)
         return;
 
-    server.dirty += deleted + updated;
+    markDirty(deleted + updated);
     keyModified(c, c->db, c->argv[1], o, 1);
 
     /* This command will never be propagated as it is. It will be propagated as
@@ -2965,7 +2965,7 @@ void hdelCommand(client *c) {
             newLen = oldLen - deleted;
         }
         updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_HASH, oldLen, newLen);
-        server.dirty += deleted;
+        markDirty(deleted);
     }
     addReplyLongLong(c,deleted);
 }
@@ -3860,7 +3860,7 @@ static void hexpireGenericCommand(client *c, long long basetime, int unit) {
         updateSlotAllocSize(c->db, getKeySlot(keyArg->ptr), hashObj, oldsize, kvobjAllocSize(hashObj));
 
     if (deleted + updated > 0) {
-        server.dirty += deleted + updated;
+        markDirty(deleted + updated);
         keyModified(c, c->db, keyArg, hashObj, 1);
         notifyKeyspaceEvent(NOTIFY_HASH, deleted ? "hdel" : "hexpire",
                             keyArg, c->db->id);
@@ -4089,6 +4089,6 @@ void hpersistCommand(client *c) {
     if (changed) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hpersist", c->argv[1], c->db->id);
         keyModified(c, c->db, c->argv[1], hashObj, 1);
-        server.dirty++;
+        markDirty(1);
     }
 }
