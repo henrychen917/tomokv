@@ -2955,7 +2955,7 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
  * If we write successfully, it returns C_OK, otherwise, C_ERR is returned,
  * and 'nwritten' is an output parameter, it means how many bytes server write
  * to client. */
-static int _writevToClient(client *c, ssize_t *nwritten) {
+int _writevToClient(client *c, ssize_t *nwritten) {   /* non-static: the 3-stage WB calls it for list/encoded replies */
     int iovmax = min(IOV_MAX, c->conn->iovcnt);
     struct iovec iov[iovmax];
     ReplyIOV reply_iov = {iov, iovmax};

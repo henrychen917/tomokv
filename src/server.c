@@ -10873,7 +10873,8 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
     /* Send the coalesced buf (one batched send). Gate on UNSENT DATA (bufpos>sentlen): a prior send that
      * hit EAGAIN leaves bufpos>sentlen with no new splice and must be retried, else the reply is lost. */
     if (!(c->flags & CLIENT_CLOSE_ASAP) && c->conn && c->conn->fd >= 0 &&
-        c->bufpos > c->sentlen && listLength(c->reply) == 0 && !c->buf_encoded) {
+        (c->bufpos > c->sentlen || listLength(c->reply) > 0)) {
+        if (listLength(c->reply) == 0 && !c->buf_encoded) {
         if (server.wb_epoll) {
             ssize_t n = write(c->conn->fd, c->buf + c->sentlen, (size_t)(c->bufpos - c->sentlen));
             if (n > 0) {
@@ -10896,11 +10897,21 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
             }
             return 0;                                                  /* send in flight (or retry next loop) */
         }
+        } else {
+            /* uring-strict FIX: reply spilled to the list (e.g. a value > the 16KB static buf) or is
+             * encoded -> the buf-only fast paths above skip it and the reply wedges forever. Send buf+list
+             * via _writevToClient (synchronous writev; WB is the sole sender so no race, no event-loop ops;
+             * a partial write leaves the remainder for the next WB scan). */
+            ssize_t nw = 0;
+            int rc = _writevToClient(c, &nw);
+            if (rc == C_ERR && errno != EAGAIN && errno != EWOULDBLOCK) c->ts_close_needed = 1;
+            else if (wbDbg) __atomic_fetch_add(&wbcSend, 1, __ATOMIC_RELAXED);
+        }
     }
     /* Live client stays watched (keep-while-live); closing+drained -> caller removes from the active set. */
     if (!closing) return 0;
     return (c->flushid == c->dispatchid) && !__atomic_load_n(&c->ts_inflight, __ATOMIC_ACQUIRE) &&
-           (c->bufpos <= c->sentlen);
+           (c->bufpos <= c->sentlen) && listLength(c->reply) == 0;
 }
 
 /* uring-strict WB main loop: maintain an active set of clients (added via the wbq 'watch' the IO

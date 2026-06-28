@@ -3735,6 +3735,7 @@ void removeClientFromMemUsageBucket(client *c, int allow_eviction);
 void unlinkClient(client *c);
 void tryUnlinkClientFromPendingRefReply(client *c, int force);
 int writeToClient(client *c, int handler_installed);
+int _writevToClient(client *c, ssize_t *nwritten);   /* 3-stage WB: buf+list+encoded reply writev (no event-loop ops) */
 void linkClient(client *c);
 void protectClient(client *c);
 void unprotectClient(client *c);
