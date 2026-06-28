@@ -4043,6 +4043,7 @@ static inline void operandPoolPut(robj *o) {
             if (t >= 0 && operandTierN[ifidx][t] < operandTierSlots[t]) {
                 sdsclear(o->ptr);                            /* reset length, keep capacity */
                 operandTier[ifidx][t][operandTierN[ifidx][t]++] = o;
+                operandTierIdle[ifidx][t] = 0;               /* class keeps getting filled -> active, reset decay */
                 return;
             }
         }
@@ -4108,9 +4109,13 @@ void operandPoolDecay(int self_ifidx) {
     for (int t = 0; t < OPERAND_NTIER; t++) {
         int n = operandTierN[self_ifidx][t];
         if (n == 0) { operandTierIdle[self_ifidx][t] = 0; continue; }
+        /* Don't decay a proven-needed class: >=90% full means the workload filled it and shedding would
+         * just thrash a re-alloc. Idle is reset on every GET (incl. demand-grow misses) and every PUT
+         * (fill), so any class still seeing allocs or returns never reaches the threshold below. */
+        if (n * 10 >= operandTierSlots[t] * 9) continue;
         if (++operandTierIdle[self_ifidx][t] < OPERAND_DECAY_IDLE) continue;
         int drop = n > 4 ? n / 4 : n;
-        for (int k = 0; k < drop; k++)
+        for (int k = 0; k < drop; k++)                       /* freed on self_ifidx == the thread that alloc'd them */
             decrRefCount(operandTier[self_ifidx][t][--operandTierN[self_ifidx][t]]);
     }
 }
