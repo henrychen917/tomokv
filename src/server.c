@@ -10658,10 +10658,34 @@ static int smartCoreFor(int logical) {
 
 static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #ifdef __linux__
-    long n = sysconf(_SC_NPROCESSORS_ONLN);
-    if (n <= 0) return;
     if (server.pin_mode == 2) return;   /* OFF/float for cross-product benches */
-    int core = (server.pin_mode == 1) ? smartCoreFor(core_idx) : (core_idx % (int)n);
+    /* dragonfly/helio-style affinity-set-aware pinning: pin within the process's ALLOWED cpu set
+     * (sched_getaffinity -> respects taskset/cgroup/cpuset), compacted to a dense list, round-robin.
+     * Fixes the old `core_idx % NPROC_ONLN`, which used ABSOLUTE core numbers and silently failed
+     * (the thread then floated) whenever core_idx fell outside a taskset range — e.g. an oversubscribed
+     * config under `taskset -c 0-7`. pin_mode==1 keeps the smart (shared-L3/CCD) core IF it's allowed. */
+    /* Capture the allowed set ONCE (cached) on the first pin — BEFORE any thread (incl. main) narrows
+     * its own affinity. Otherwise sched_getaffinity(0) of an already-pinned caller returns a single cpu
+     * and every later pin clusters onto it. (All pins are issued from the main thread pre-cache, so the
+     * lazy init is race-free.) */
+    static int g_abs[CPU_SETSIZE]; static int g_na = -1;
+    if (g_na < 0) {
+        cpu_set_t allowed; CPU_ZERO(&allowed);
+        if (sched_getaffinity(0, sizeof(allowed), &allowed) != 0 || CPU_COUNT(&allowed) == 0) {
+            long n = sysconf(_SC_NPROCESSORS_ONLN); if (n <= 0) return;
+            CPU_ZERO(&allowed);
+            for (int i = 0; i < (int)n && i < CPU_SETSIZE; i++) CPU_SET(i, &allowed);
+        }
+        int k = 0;
+        for (int c = 0; c < CPU_SETSIZE; c++) if (CPU_ISSET(c, &allowed)) g_abs[k++] = c;
+        g_na = k;
+    }
+    if (g_na <= 0) return;
+    int core = g_abs[core_idx % g_na];           /* default (pin_mode 0): allowed-set round-robin */
+    if (server.pin_mode == 1) {                  /* smart: topology core, but only if it's allowed */
+        int sc = smartCoreFor(core_idx);
+        if (sc >= 0) for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
+    }
     cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
     if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
         serverLog(LL_NOTICE, "%s pinned to core %d%s", what, core, server.pin_mode==1?" (smart)":"");
