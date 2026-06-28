@@ -9959,6 +9959,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
         fake->prefetch_key_hash = h;
         fake->prefetch_key_hash_valid = 1;
         unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+        fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3: feed the exec-loop next-op look-ahead */
         if (j < server.pf_w_hash) redis_prefetch_read(&d->ht_table[0][idx]);   /* ee451 (gem5): bucket prefetch gated */
         /* ee451: only chase bucket -> entry -> value (passes 3-4) for READ
          * commands. A read (GET/MGET/...) dereferences the stored value's
@@ -10410,6 +10411,21 @@ void *exThreadMain(void *arg) {
              * expiry is never bypassed. */
             for (int j = 0; j < n; ) {
                 client *fake = batch[j];
+
+                /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
+                 * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
+                 * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
+                 * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
+                 * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
+                 * faults). Targets the big-DB cache-miss regime; 0 = off. */
+                if (server.pf_w_nextop) {
+                    int la = j + server.pf_w_nextop;
+                    if (la < n) {
+                        client *nf = batch[la];
+                        if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
+                            redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+                    }
+                }
 
                 /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
                  * every range primary this producer dispatched before it has executed on A; decrement

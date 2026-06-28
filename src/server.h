@@ -1560,6 +1560,8 @@ typedef struct client {
      * only for the window between prefetch and proc() for this fake. */
     uint64_t prefetch_key_hash;
     int prefetch_key_hash_valid;
+    dict *prefetch_dict;              /* #3: this fake's resolved shard dict (set in exPrefetchBatch pass-2) */
+    unsigned long prefetch_bucket_idx;/* #3: ht_table[0] slot for the key -> exec-loop next-op look-ahead */
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
     connection *conn;
@@ -2982,6 +2984,8 @@ struct redisServer {
     int pf_w_hash;     /* worker pass 2: key bytes + bucket prefetch (hash compute always full) */
     int pf_w_entry;    /* worker pass 3: bucket -> entry (dependent) */
     int pf_w_value;    /* worker pass 4: entry -> value bytes (dependent, expensive) */
+    int pf_w_nextop;   /* #3: exec-loop look-ahead distance — while running batch[j], prefetch
+                        * batch[j+pf_w_nextop]'s dict bucket (reuses pass-2's (dict,idx)). 0 = off */
     int pf_w_value_adaptive; /* ee451 (gem5): scale pass-4 width by served value size (cache_budget/vsize), capped at pf_w_value; 0=fixed */
     int pf_value_cache_kb;   /* ee451 (gem5): cache budget (KB) for the adaptive value-chase width formula */
     int prefetch_adaptive_min_keys; /* ee451 v11 (#58): worker prefetch active only when shard dict >= this many keys (DRAM-cold); sweep showed it hurts L3-resident. 0=always (gate off) */
