@@ -1657,7 +1657,7 @@ void pfaddCommand(client *c) {
         HLL_INVALIDATE_CACHE(hdr);
         keyModified(c,c->db,c->argv[1],kv,1);
         notifyKeyspaceEvent(NOTIFY_STRING,"pfadd",c->argv[1],c->db->id);
-        server.dirty += updated;
+        markDirty(updated);
     }
     addReply(c, updated ? shared.cone : shared.czero);
 }
@@ -1751,7 +1751,7 @@ void pfcountCommand(client *c) {
              * may be modified and given that the HLL is a Redis string
              * we need to propagate the change. */
             keyModified(c,c->db,c->argv[1],o,1);
-            server.dirty++;
+            markDirty(1);
         }
         addReplyLongLong(c,card);
     }
@@ -1843,7 +1843,7 @@ void pfmergeCommand(client *c) {
 
     updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr),
                        OBJ_STRING, oldLen, stringObjectLen(kv));
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.ok);
 }
 
@@ -2014,7 +2014,7 @@ void pfdebugCommand(client *c) {
             updateKeysizesHist(c->db, getKeySlot(c->argv[2]->ptr), OBJ_STRING, oldlen, stringObjectLen(o));
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(c->db, getKeySlot(c->argv[2]->ptr), o, oldsize, kvobjAllocSize(o));
-            server.dirty++; /* Force propagation on encoding change. */
+            markDirty(1); /* Force propagation on encoding change. */
         }
 
         hdr = o->ptr;
@@ -2084,7 +2084,7 @@ void pfdebugCommand(client *c) {
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(c->db, getKeySlot(c->argv[2]->ptr), o, oldsize, kvobjAllocSize(o));
             conv = 1;
-            server.dirty++; /* Force propagation on encoding change. */
+            markDirty(1); /* Force propagation on encoding change. */
         }
         addReply(c,conv ? shared.cone : shared.czero);
     } else {

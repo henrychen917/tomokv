@@ -2641,8 +2641,21 @@ struct redisServer {
                                         default no. (for testings). */
 
     /* RDB persistence */
-    long long dirty;                /* Changes to DB from the last save */
+    long long dirty;                /* Changes to DB from the last save. With opt_perthread_dirty ON this
+                                     * holds the FOLD BASELINE (bgsave subtracts / resets adjust it); the
+                                     * live per-command counts accumulate in dirty_shard[] and getDirty()
+                                     * returns dirty + sum(shards). */
     long long dirty_before_bgsave;  /* Used to restore dirty on failed BGSAVE */
+    /* ee451 (#4): per-thread shard of the dirty counter. The single `dirty` line was ++'d by EVERY EX
+     * worker on EVERY write (exExecFake calls cmd->proc directly) -> one cache line bounced across all
+     * CCDs per write, plus a genuine non-atomic torn-++ race between workers. Each thread now bumps its
+     * own cache-line-isolated slot (indexed by iotid); getDirty() folds them. The call() before/after
+     * delta and in-command local deltas read this thread's slot only (DIRTY_LOCAL) so they capture just
+     * the running command's changes, unpolluted by concurrent threads. Gated by opt_perthread_dirty. */
+    struct {
+        long long v;
+        char _pad[CACHE_LINE_SIZE - sizeof(long long)];
+    } dirty_shard[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long rdb_last_load_keys_expired;  /* number of expired keys when loading RDB */
     long long rdb_last_load_keys_loaded;   /* number of loaded keys when loading RDB */
     int bgsave_aborted;             /* Set when killing a child, to treat it as aborted even if it succeeds. */
@@ -2948,6 +2961,7 @@ struct redisServer {
     int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
     int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
     int opt_perthread_stats;   /* S6: per-thread keyspace hit/miss counters */
+    int opt_perthread_dirty;   /* #4: per-thread shard of server.dirty (de-contend + fix torn-++ race) */
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
@@ -3490,6 +3504,33 @@ typedef struct {
 extern struct redisServer server;
 extern struct sharedObjectsStruct shared;
 extern dictType objectKeyPointerValueDictType;
+
+/* ee451 (#4): dirty-counter accessors. iotid is the current thread's index (ae.h). When
+ * opt_perthread_dirty is OFF these are byte-identical to the legacy server.dirty arithmetic.
+ *   markDirty(n)  - a write made n changes: accumulate into THIS thread's shard.
+ *   DIRTY_LOCAL   - this thread's running count, for the call() before/after delta and any
+ *                   in-command local delta (captures only the command's own changes).
+ *   getDirty()    - global fold (baseline + all shards): save-point trigger, INFO, bgsave snapshot.
+ *   resetDirtyCounter() - zero the effective total without a shard-zeroing race: re-baseline so
+ *                   getDirty()==0 while in-flight increments stay counted. */
+#define DIRTY_NSHARD (MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX)
+#define markDirty(n) do { \
+        if (server.opt_perthread_dirty) server.dirty_shard[iotid].v += (n); \
+        else server.dirty += (n); \
+    } while (0)
+#define DIRTY_LOCAL (server.opt_perthread_dirty ? server.dirty_shard[iotid].v : server.dirty)
+static inline long long getDirty(void) {
+    if (!server.opt_perthread_dirty) return server.dirty;
+    long long s = server.dirty;                 /* baseline carries bgsave subtracts + resets */
+    for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;
+    return s;
+}
+static inline void resetDirtyCounter(void) {
+    if (!server.opt_perthread_dirty) { server.dirty = 0; return; }
+    long long s = 0;
+    for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;
+    server.dirty = -s;                           /* baseline cancels current shards -> getDirty()==0 */
+}
 extern dictType objectKeyHeapPointerValueDictType;
 extern dictType setDictType;
 extern dictType BenchmarkDictType;

@@ -628,13 +628,13 @@ void sortCommandGeneric(client *c, int readonly) {
             sobj = NULL;
             notifyKeyspaceEvent(NOTIFY_LIST,"sortstore",storekey,
                                 c->db->id);
-            server.dirty += outputlen;
+            markDirty(outputlen);
             /* Ownership of sobj transferred to the db. No need to free it. */
         } else {
             if (dbDelete(c->db, storekey)) {
                 keyModified(c, c->db, storekey, NULL, 1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", storekey, c->db->id);
-                server.dirty++;
+                markDirty(1);
             }
             decrRefCount(sobj);
         }

@@ -1651,7 +1651,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
              * the given amount of seconds, and if the latest bgsave was
              * successful or if, in case of an error, at least
              * CONFIG_BGSAVE_RETRY_DELAY seconds already elapsed. */
-            if (server.dirty >= sp->changes &&
+            if (getDirty() >= sp->changes &&
                 server.unixtime-server.lastsave > sp->seconds &&
                 (server.unixtime-server.lastbgsave_try >
                  CONFIG_BGSAVE_RETRY_DELAY ||
@@ -3287,7 +3287,7 @@ void initServer(void) {
     server.rdb_save_time_start = -1;
     server.rdb_last_load_keys_expired = 0;
     server.rdb_last_load_keys_loaded = 0;
-    server.dirty = 0;
+    resetDirtyCounter();
     resetServerStats();
     server.stat_starttime = time(NULL);
     server.stat_peak_memory = 0;
@@ -4128,7 +4128,7 @@ void call(client *c, int flags) {
      * In that case, the module is in charge of propagation. */
 
     /* Call the command. */
-    dirty = server.dirty;
+    dirty = DIRTY_LOCAL;       /* #4: this thread's slot only -> delta = just THIS command */
     long long old_master_repl_offset = server.master_repl_offset;
     incrCommandStatsOnError(NULL, 0);
 
@@ -4182,7 +4182,7 @@ void call(client *c, int flags) {
         duration = ustime() - call_timer;
 
     c->duration += duration;
-    dirty = server.dirty-dirty;
+    dirty = DIRTY_LOCAL-dirty;
     if (dirty < 0) dirty = 0;
 
     /* Update failed command calls if required. */
@@ -5442,7 +5442,7 @@ static void csSubExec(client *sub) {
             setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
             sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
             notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
-            server.dirty++;
+            markDirty(1);
             if (mig) migCaptureEffect(sub->db, keyo);
         }
         break;
@@ -5455,7 +5455,7 @@ static void csSubExec(client *sub) {
         for (int a = 1; a < sub->argc; a++) {
             robj *o = lookupKeyWrite(sub->db, sub->argv[a]);
             if (o != NULL && dbSyncDelete(sub->db, sub->argv[a])) {
-                deleted++; server.dirty++;
+                deleted++; markDirty(1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[a], sub->db->id);
                 if (mig) migCaptureEffect(sub->db, sub->argv[a]);
             }
@@ -8119,7 +8119,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "current_fork_perc:%.2f\r\n", fork_perc,
             "current_save_keys_processed:%zu\r\n", server.stat_current_save_keys_processed,
             "current_save_keys_total:%zu\r\n", server.stat_current_save_keys_total,
-            "rdb_changes_since_last_save:%lld\r\n", server.dirty,
+            "rdb_changes_since_last_save:%lld\r\n", getDirty(),
             "rdb_bgsave_in_progress:%d\r\n", server.child_type == CHILD_TYPE_RDB,
             "rdb_last_save_time:%jd\r\n", (intmax_t)server.lastsave,
             "rdb_last_bgsave_status:%s\r\n", (server.lastbgsave_status == C_OK) ? "ok" : "err",
