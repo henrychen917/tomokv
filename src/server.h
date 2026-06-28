@@ -1484,7 +1484,7 @@ typedef struct {
  * (startup-only): num_cdb is fixed at init, so the writer's captured CDB index
  * (fake->cdb), the clearer (drain reads fake->cdb), and the combined-read bound
  * (server.num_cdb) can never desync. */
-#define NUM_CDB_MAX 8   /* must be >= any sane num_cdb; bit slots still cap at 32 */
+#define NUM_CDB_MAX 256 /* ceiling for num_cdb + the dynamic reply_cdb array; bit slots still cap at 32 */
 typedef struct cdbMask {
     redisAtomic uint32_t v;
     char _pad[CACHE_LINE_SIZE - sizeof(uint32_t)];
@@ -1516,7 +1516,9 @@ typedef struct client {
      * atomicGetAcquire and clears bits with atomicFetchAnd as slots drain. Each
      * cdbMask is cache-line isolated (S3 subsumed: even reply_cdb[0] owns its line).
      * With multi-cdb OFF, num_cdb==1 and only [0] is used. */
-    cdbMask reply_cdb[NUM_CDB_MAX];
+    cdbMask *reply_cdb;     /* #75: heap array of exactly server.num_cdb cache-line-isolated reply buses
+                             * (real clients; aligned_alloc'd in createClient, freed in freeClient). Fakes
+                             * leave this NULL and signal completions into parent->reply_cdb. */
     /* ee451 (uring-threestage): real-client state for the WB/submit thread (used only when
      * server.uring_threestage; dead/0 on the default path). The per-ifidx WB thread is the SOLE
      * drainer/sender for this client, so NO token is needed. ts_inflight is 0 or 1 — at most one
@@ -2975,6 +2977,7 @@ struct redisServer {
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int opt_multi_cdb;         /* S5: per-worker reply masks (multi common-data-bus). IMMUTABLE. */
     int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
+    int cfg_num_cdb;           /* #75: explicit bus count (thredis-num-cdb); 0=auto. IMMUTABLE. */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a
