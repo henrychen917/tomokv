@@ -6229,6 +6229,7 @@ static int reshardBeginCutover(void) {
  * to its cooler adjacent neighbour via a full-auto migration. NOTHING here is read on the per-
  * command routing path — that stays a single bucket-table byte load. ---- */
 static double   mig_load_ewma[MY_EX_THREADS_MAX];
+static double   mig_load_ewma_fast[MY_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
 static uint64_t mig_last_ops[MY_EX_THREADS_MAX];
 static int      mig_ewma_primed = 0;
 /* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
@@ -6245,6 +6246,7 @@ void reshardAutoTune(void) {
     int W = server.num_workers;
     if (W < 2) return;
     double alpha = server.reshard_ewma_alpha_pct / 100.0;
+    double alpha_fast = server.reshard_ewma_fast_pct / 100.0;   /* #89: faster-reacting companion EWMA */
 
     /* metric[w] is what we balance on: raw ops, OR ops/capacity when core-aware (so a faster core is
      * "hot" only when its load EXCEEDS its proportionally larger share). cap defaults to 1 if a core
@@ -6252,6 +6254,7 @@ void reshardAutoTune(void) {
     int core_aware = server.reshard_core_aware;
     double sum_ops = 0, sum_metric = 0, hotmetric = -1; int hot = 0;
     double metric[MY_EX_THREADS_MAX];
+    double metric_fast[MY_EX_THREADS_MAX]; double sum_metric_fast = 0;   /* #89 dual-rate */
     for (int w = 0; w < W; w++) {
         uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
@@ -6260,6 +6263,10 @@ void reshardAutoTune(void) {
                                            : (double)rate;
         double cap = (core_aware && server.ex_capacity[w] > 0) ? server.ex_capacity[w] : 1.0;
         metric[w] = mig_load_ewma[w] / cap;
+        mig_load_ewma_fast[w] = mig_ewma_primed ? (alpha_fast * (double)rate + (1.0 - alpha_fast) * mig_load_ewma_fast[w])
+                                                : (double)rate;   /* #89: same deltas, faster alpha */
+        metric_fast[w] = mig_load_ewma_fast[w] / cap;
+        sum_metric_fast += metric_fast[w];
         sum_ops += mig_load_ewma[w];
         sum_metric += metric[w];
         if (metric[w] > hotmetric) { hotmetric = metric[w]; hot = w; }
@@ -6267,6 +6274,7 @@ void reshardAutoTune(void) {
     if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* need one tick to seed deltas */
 
     double mean_ops = sum_ops / W, mean_metric = sum_metric / W;
+    double mean_metric_fast = sum_metric_fast / W;   /* #89 */
     double eff_imbalance = server.reshard_imbalance_pct / 100.0;   /* base threshold, never raised */
     /* balanced (or too quiet) => clear convergence state and stay responsive at base sensitivity. */
     if (mean_ops < (double)server.reshard_min_ops || hotmetric <= eff_imbalance * mean_metric) {
@@ -6278,7 +6286,12 @@ void reshardAutoTune(void) {
     /* NO-PROGRESS guard: if the last migration didn't cut the peak by >15%, this hotspot can't be
      * balanced by moving buckets (it just relocates) — stop chasing until the load pattern changes
      * (a genuinely worse imbalance clears the bar via the balanced-reset path on a later tick). */
-    if (mig_peak_pre > 0 && hotmetric > mig_peak_pre * 0.85) return;
+    if (mig_peak_pre > 0 && hotmetric > mig_peak_pre * (server.reshard_progress_pct / 100.0)) return;
+
+    /* #89 dual-rate: require the FAST EWMA to ALSO see this worker as hot. A hotspot that just died
+     * (fast EWMA decays in ~1-2 ticks vs the slow one's ~3-4) stops being chased immediately, and a
+     * slow-EWMA lag artifact can't trigger a needless migration. Off (default) = single-EWMA legacy. */
+    if (server.reshard_ewma_dual && metric_fast[hot] <= eff_imbalance * mean_metric_fast) return;
 
     /* Pick the cooler adjacent neighbour (lowest load/capacity), and only if it is genuinely below the
      * mean ratio — i.e. it has spare CAPACITY to absorb, not just fewer ops. */
@@ -6301,7 +6314,7 @@ void reshardAutoTune(void) {
     if (reshardArm(lo, hi, hot, B)) {
         reshardBeginCutover();   /* spawns the coordinator; it waits out the cold copy then cuts over */
         mig_peak_pre = hotmetric;  /* the peak this migration must shrink to be allowed to continue */
-        mig_settle = 4;            /* ~4 ticks for the EWMA to reflect the new distribution */
+        mig_settle = server.reshard_settle_ticks;   /* #89: ticks for the EWMA to reflect the new distribution */
         serverLog(LL_NOTICE, "ee451 reshard AUTO%s: hot=w%d(%.0f ops, cap %.0f) -> w%d(%.0f ops), moving [%d,%d)",
                   core_aware ? "(core-aware)" : "", hot, mig_load_ewma[hot], server.ex_capacity[hot],
                   B, mig_load_ewma[B], lo, hi);

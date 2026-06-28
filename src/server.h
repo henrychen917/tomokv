@@ -3028,6 +3028,10 @@ struct redisServer {
     int reshard_ewma_alpha_pct;  /* EWMA smoothing alpha = pct/100 (default 30) */
     int reshard_chunk_buckets;   /* buckets shifted per auto trigger (default 64) */
     int reshard_core_aware;      /* weight balance by per-worker core capacity (default on) */
+    int reshard_ewma_dual;       /* #89: dual-rate EWMA (fast+slow) — smarter balancing + faster decay */
+    int reshard_ewma_fast_pct;   /* #89: fast EWMA alpha pct (default 60) */
+    int reshard_progress_pct;    /* #89: no-progress stop threshold, pct of pre-migration peak (default 85) */
+    int reshard_settle_ticks;    /* #89: ticks to let the EWMA absorb a migration before judging (default 4) */
     int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
                                   * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
                                   * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
