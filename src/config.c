@@ -3142,7 +3142,6 @@ standardConfig static_configs[] = {
     /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
     createBoolConfig("thredis-opt-prefetch-worker", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_worker, 1, NULL, NULL),
     createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 0, NULL, NULL),
-    createBoolConfig("thredis-opt-hash-carry", NULL, MODIFIABLE_CONFIG, server.opt_hash_carry, 1, NULL, NULL),
     /* ee451: VALUE-FORWARDING DISABLED by default (2026-06-21). Proven a wash in every tested regime
      * (small/large GET, complex LRANGE, even maximal single-hot-key + zerocopy): it removes a non-
      * bottleneck (hot-key dictFind + one serialize copy) while per-op cost is dominated by net/syscall/
@@ -3150,11 +3149,8 @@ standardConfig static_configs[] = {
      * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
      * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
     createBoolConfig("thredis-opt-value-forward", NULL, MODIFIABLE_CONFIG, server.opt_value_forward, 0, NULL, NULL),
-    createBoolConfig("thredis-opt-spsc-cache", NULL, MODIFIABLE_CONFIG, server.opt_spsc_cache, 1, NULL, NULL),
     createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
-    createBoolConfig("thredis-batch-push-eager", NULL, MODIFIABLE_CONFIG, server.batch_push_eager, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-perthread-stats", NULL, MODIFIABLE_CONFIG, server.opt_perthread_stats, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batched-clear", NULL, MODIFIABLE_CONFIG, server.opt_batched_clear, 0, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-dirty", NULL, IMMUTABLE_CONFIG, server.opt_perthread_dirty, 0, NULL, NULL),
     createIntConfig("thredis-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),

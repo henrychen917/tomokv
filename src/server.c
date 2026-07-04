@@ -9680,22 +9680,10 @@ int exQueuePush(exQueue *q, client *c) {
      * only advances head), so if next_t != cached_head there is definitely
      * space. Only when the cache says full do we pay the acquire-load to
      * refresh and re-test.
-     * ee451 (v4): with SPSC caching disabled, always pay the acquire-load. */
-    if (server.opt_spsc_cache) {
+     * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
+    if (next_t == q->cached_head) {
+        q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
         if (next_t == q->cached_head) {
-            q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
-            if (next_t == q->cached_head) {
-                return -1;
-            }
-        }
-    } else {
-        unsigned int h = atomic_load_explicit(&q->head, memory_order_acquire);
-        /* ee451 (v4): keep cached_head current even on the no-cache path so a
-         * later runtime flip to enabled never reads a stale (frozen) cache.
-         * cached_head is only ever set from an observed head => always
-         * <= true head (head is monotonic), preserving the full-check invariant. */
-        q->cached_head = h;
-        if (next_t == h) {
             return -1;
         }
     }
@@ -9719,20 +9707,10 @@ client *exQueuePop(exQueue *q) {
      * tail), so if h != cached_tail an item is definitely present and was
      * published by the acquire-load that last refreshed cached_tail. Only when
      * the cache says empty do we pay the acquire-load to refresh and re-test.
-     * ee451 (v4): with SPSC caching disabled, always pay the acquire-load. */
-    if (server.opt_spsc_cache) {
-        if (h == q->cached_tail) {
-            q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-            if (h == q->cached_tail) return NULL; /* empty */
-        }
-    } else {
-        unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
-        /* ee451 (v4): keep cached_tail current even on the no-cache path so a
-         * later runtime flip to enabled never reads a stale (frozen) cache that
-         * lags behind an already-advanced head (the empty-check would then read a
-         * not-yet-published slot). cached_tail = observed tail => h <= cached_tail. */
-        q->cached_tail = t;
-        if (h == t) return NULL; /* empty */
+     * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
+    if (h == q->cached_tail) {
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        if (h == q->cached_tail) return NULL; /* empty */
     }
     client *c = q->jobs[h];
     atomic_store_explicit(&q->head, (h + 1) & server.my_ex_queue_mask,
@@ -9748,23 +9726,16 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     /* Masked subtraction — wraps correctly even when tail has wrapped
      * past head since last head advance.
-     * ee451 (v4): with SPSC caching disabled, read the real tail directly. */
+     * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
     unsigned int avail;
-    if (server.opt_spsc_cache) {
+    avail = (q->cached_tail - h) & server.my_ex_queue_mask;
+    if (avail == 0) {
+        /* ee451: cache says empty — pay the cross-core acquire-load once to
+         * refresh. The acquire pairs with the producer's release store of
+         * tail, making jobs[..tail) visible; those slots stay visible for
+         * subsequent cached reads until head catches up again. */
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
         avail = (q->cached_tail - h) & server.my_ex_queue_mask;
-        if (avail == 0) {
-            /* ee451: cache says empty — pay the cross-core acquire-load once to
-             * refresh. The acquire pairs with the producer's release store of
-             * tail, making jobs[..tail) visible; those slots stay visible for
-             * subsequent cached reads until head catches up again. */
-            q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-            avail = (q->cached_tail - h) & server.my_ex_queue_mask;
-            if (avail == 0) return 0;
-        }
-    } else {
-        unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
-        q->cached_tail = t;   /* ee451 (v4): keep current; see exQueuePop */
-        avail = (t - h) & server.my_ex_queue_mask;
         if (avail == 0) return 0;
     }
     int n = (int)avail < max ? (int)avail : max;
@@ -10004,11 +9975,16 @@ static inline void exExecFake(client *fake) {
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
         server.executing_client[iotid].p = fake;
-        if (server.opt_hash_carry &&
-            fake->prefetch_key_hash_valid && fake->argv && fake->argv[1])
+        /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
+         * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
+         * even when nothing was armed; now only armed ops pay it. */
+        int hh_armed = 0;
+        if (fake->prefetch_key_hash_valid && fake->argv && fake->argv[1]) {
             dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
+            hh_armed = 1;
+        }
         fake->cmd->proc(fake);
-        dictDisarmHashHint();
+        if (hh_armed) dictDisarmHashHint();
         server.current_client[iotid].p = NULL;
         server.executing_client[iotid].p = NULL;
         /* ee451 (v8d): online-resharding effect capture. If a migration is live and this was a

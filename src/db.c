@@ -319,18 +319,16 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
         }
 
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
-            /* ee451 (S6): per-thread, contention-free; (v4) toggle => shared scalar */
-            if (server.opt_perthread_stats) server.kstat[iotid].hits++;
-            else server.stat_keyspace_hits++;
+            /* ee451 (S6, v13): per-thread contention-free — HARDWIRED (knob retired) */
+            server.kstat[iotid].hits++;
         }
         /* TODO: Use separate hits stats for WRITE */
     } else {
         if (!(flags & (LOOKUP_NONOTIFY | LOOKUP_WRITE)))
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
-            /* ee451 (S6) / (v4) toggle */
-            if (server.opt_perthread_stats) server.kstat[iotid].misses++;
-            else server.stat_keyspace_misses++;
+            /* ee451 (S6, v13): hardwired */
+            server.kstat[iotid].misses++;
         }
         /* TODO: Use separate misses stats and notify event for WRITE */
     }
@@ -407,14 +405,12 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                 if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) updateLFU(v);
                 else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
             }
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6)/(v4) */
-                if (server.opt_perthread_stats) server.kstat[iotid].hits++;
-                else server.stat_keyspace_hits++;
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
+                server.kstat[iotid].hits++;
             }
         } else {
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6)/(v4) */
-                if (server.opt_perthread_stats) server.kstat[iotid].misses++;
-                else server.stat_keyspace_misses++;
+            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
+                server.kstat[iotid].misses++;
             }
         }
         return v;
