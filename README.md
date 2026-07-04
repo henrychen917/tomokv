@@ -135,6 +135,11 @@ reply path (its 32 B GET and FB-ETC results are representative; treat the 512 B/
 loopback-only). Validation before benchmarking: correctness (round-trips, MGET, expiry, DEL,
 FLUSHDB) plus a reconnect-storm churn stress — both editions pass with zero crashes.
 
+> **On the split:** the table above fixes `io4w4`, which under‑provisions ingress for this I/O‑bound
+> regime. On the same 8 cores, `io6w2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
+> [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea): the gap
+> is a topology choice, not an architectural limit.
+
 **Historical provenance.** The original EE451 evaluation of this architecture (earlier code
 line, same class of hardware) measured 1.81× Redis on Tier-1 GET/SET, 1.66× on HGETALL, 3.46×
 on BITCOUNT-1MB, and 2.0× at the saturated ceiling; those results reproduce within 1% under
@@ -159,6 +164,45 @@ larger and send‑bound values by scaling the write‑back stage independently o
 > sanity‑gated: a number that doesn't match the mechanism is treated as a bug, not a result.
 
 ---
+
+## Configurable execution topology — a CPU‑architecture idea
+
+Tomo KV's defining knob is that **you split your core budget between *ingress* threads (parse /
+dispatch / reply) and *execution* workers (run commands on owned shards)** — the way a CPU architect
+sizes fetch/decode/issue width against the number of execution units. You match the machine to *your*
+workload's bottleneck instead of matching your workload to a fixed machine. Redis only lets you scale
+I/O threads (execution stays single‑threaded); Dragonfly is a rigid shard‑per‑core model. Neither can
+re‑balance ingress against execution — Tomo can, and on the same cores it changes performance
+dramatically.
+
+**The split is a real, consequential dial** (3‑Stage, 512 B GET/SET 1:9, DRAM‑resident 8 M keys,
+same 8 cores, `memtier` loopback):
+
+| Split (8 cores) | ops/s | note |
+| :--- | :--- | :--- |
+| `io4w4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
+| **`io6w2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
+| `io7w1` | 1.80 M | workers starved → collapse |
+
+At **equal I/O parallelism the architecture is a wash** — Tomo `io4w4` = 2.48 M vs Redis `io‑threads 4`
+= 2.45 M — and both scale identically as I/O threads are added (Tomo io4→io6, Redis io4→io8). So a
+DRAM‑resident small‑value workload isn't "slower on Tomo"; it just wants its cores spent on ingress,
+which one knob does.
+
+**Which way to dial depends on where your bottleneck is:**
+
+| Bottleneck | Symptom | Dial toward | Measured (6 cores, 3‑Stage) |
+| :--- | :--- | :--- | :--- |
+| **Ingress / reply‑send** | small values at high op‑rate, or large‑value replies (the io thread sends) | **more ingress** (`ifid4ex2`) | 64 B GET 4.4 M · 16 KB GET 0.55 M |
+| balanced | mixed | balanced/send | mixed / large values | `ifid‑ex‑wb` mix | scale WB with reply size |
+| **Execution** | CPU‑heavy commands (HGETALL, ZRANGE, BITCOUNT, set ops) | **more workers** (`ifid2ex4`) | 64 B GET 3.2 M · 16 KB GET 0.33 M |
+
+3‑Stage adds a **third axis**: a dedicated write‑back (WB) stage owns reply reordering + socket sends,
+so ingress is freed from egress and **send‑bound large‑value workloads scale with WB threads** rather
+than ingress. Small‑value work still favors ingress; **CPU‑heavy commands favor workers** — exactly the regime where the
+architecture posts its biggest wins (the paper's HGETALL 1.66× and BITCOUNT‑1 MB 3.46× are worker‑
+parallelism gains). Rule of thumb: **profile your dominant command, then give cores to whichever stage
+is the wall.**
 
 ## Optimizations
 
