@@ -3845,6 +3845,49 @@ extern struct redisCommand redisCommandTable[];
 
 /* Populates the Redis Command Table dict from the static table in commands.c
  * which is auto generated from the json files in the commands folder. */
+/* ee451 (v14, intern): command-name interning. argv[0] (the command token) is one of ~200 fixed
+ * strings re-created (zmalloc) on EVERY parsed command. Pre-build shared robjs for every command
+ * name (canonical + uppercase) in a raw-byte open-addressed table; parse reuses the shared robj on
+ * a hit (no alloc), and teardown no-ops on OBJ_SHARED_REFCOUNT. Zero-alloc lookup (hash+probe+memcmp).
+ * GET drops 2->1 argv allocs, SET 3->2 — on the io-thread allocation path that the DRAM sweep showed
+ * is the small-value bottleneck. */
+#define CMD_INTERN_SLOTS 2048u
+static robj *cmdInternTab[CMD_INTERN_SLOTS];
+static inline uint32_t cmdInternHash(const char *p, size_t len){ uint32_t h=2166136261u; for(size_t i=0;i<len;i++){h^=(unsigned char)p[i]; h*=16777619u;} return h; }
+static void cmdInternInsert(const char *p, size_t len){
+    if (len==0 || len>=32) return;
+    uint32_t i = cmdInternHash(p,len) & (CMD_INTERN_SLOTS-1);
+    for (uint32_t n=0;n<CMD_INTERN_SLOTS;n++){
+        uint32_t s=(i+n)&(CMD_INTERN_SLOTS-1);
+        if (!cmdInternTab[s]){
+            robj *o = createStringObject(p,len);   /* embstr for short names */
+            o->refcount = OBJ_SHARED_REFCOUNT;      /* shared: never freed, teardown no-ops */
+            cmdInternTab[s]=o; return;
+        }
+        if (sdslen(cmdInternTab[s]->ptr)==len && memcmp(cmdInternTab[s]->ptr,p,len)==0) return; /* dup */
+    }
+}
+robj *commandNameIntern(const char *p, size_t len){
+    if (len==0 || len>=32) return NULL;
+    uint32_t i = cmdInternHash(p,len) & (CMD_INTERN_SLOTS-1);
+    for (uint32_t n=0;n<CMD_INTERN_SLOTS;n++){
+        uint32_t s=(i+n)&(CMD_INTERN_SLOTS-1);
+        robj *o=cmdInternTab[s];
+        if (!o) return NULL;
+        if (sdslen(o->ptr)==len && memcmp(o->ptr,p,len)==0) return o;
+    }
+    return NULL;
+}
+/* Build from the static command table (proc names) — canonical + UPPERCASE. */
+static void buildCommandIntern(void){
+    for (int j=0;; j++){ struct redisCommand *c=redisCommandTable+j; if (c->declared_name==NULL) break;
+        const char *nm=c->declared_name; size_t l=strlen(nm); if (l==0||l>=32) continue;
+        cmdInternInsert(nm,l);
+        char up[32]; for(size_t k=0;k<l;k++) up[k]=(nm[k]>='a'&&nm[k]<='z')?nm[k]-32:nm[k];
+        cmdInternInsert(up,l);
+    }
+}
+
 void populateCommandTable(void) {
     int j;
     struct redisCommand *c;
@@ -3874,6 +3917,7 @@ void populateCommandTable(void) {
         retval2 = dictAdd(server.orig_commands, sdsdup(c->fullname), c);
         serverAssert(retval1 == DICT_OK && retval2 == DICT_OK);
     }
+    buildCommandIntern();   /* ee451 (v14): shared robjs for argv[0] interning */
 }
 
 void resetCommandTableStats(dict* commands) {
