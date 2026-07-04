@@ -152,8 +152,8 @@ GET and FB-ETC results are representative; treat the 512 B/4 KB cells as loopbac
 before benchmarking: correctness (round-trips, MGET, expiry, DEL, FLUSHDB) plus a reconnect-storm
 churn stress — both editions pass with zero crashes.
 
-> **On the split:** the table above fixes `io4w4`, which under‑provisions ingress for this I/O‑bound
-> regime. On the same 8 cores, `io6w2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
+> **On the split:** the table above fixes `io4ex4`, which under‑provisions ingress for this I/O‑bound
+> regime. On the same 8 cores, `io6ex2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
 > [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea): the gap
 > is a topology choice, not an architectural limit.
 
@@ -197,22 +197,30 @@ same 8 cores, `memtier` loopback):
 
 | Split (8 cores) | ops/s | note |
 | :--- | :--- | :--- |
-| `io4w4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
-| **`io6w2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
-| `io7w1` | 1.80 M | workers starved → collapse |
+| `io4ex4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
+| **`io6ex2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
+| `io7ex1` | 1.80 M | workers starved → collapse |
 
-At **equal I/O parallelism the architecture is a wash** — Tomo `io4w4` = 2.48 M vs Redis `io‑threads 4`
+At **equal I/O parallelism the architecture is a wash** — Tomo `io4ex4` = 2.48 M vs Redis `io‑threads 4`
 = 2.45 M — and both scale identically as I/O threads are added (Tomo io4→io6, Redis io4→io8). So a
 DRAM‑resident small‑value workload isn't "slower on Tomo"; it just wants its cores spent on ingress,
 which one knob does.
 
-**Which way to dial depends on where your bottleneck is:**
+**Which way to dial depends on where your bottleneck is** (measured, same 8 cores, `memtier` loopback):
 
-| Bottleneck | Symptom | Dial toward | Measured (6 cores, 3‑Stage) |
-| :--- | :--- | :--- | :--- |
-| **Ingress / reply‑send** | small values at high op‑rate, or large‑value replies (the io thread sends) | **more ingress** (`ifid4ex2`) | 64 B GET 4.4 M · 16 KB GET 0.55 M |
-| balanced | mixed | balanced/send | mixed / large values | `ifid‑ex‑wb` mix | scale WB with reply size |
-| **Execution** | CPU‑heavy commands (HGETALL, ZRANGE, BITCOUNT, set ops) | **more workers** (`ifid2ex4`) | 64 B GET 3.2 M · 16 KB GET 0.33 M |
+| Bottleneck | Example workload | Dial toward | Best split | Measured (Tomo vs Redis `io‑8`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ingress‑bound** | small‑value GET/SET, DRAM‑resident | ingress threads | `ifid6ex2` | 512 B 1:9 **3.26 M** ≈ Redis 3.22 M (frozen `ifid3ex3wb2` was ~2.4 M) |
+| **Execution‑bound** | CPU‑heavy commands (`HGETALL`, `ZRANGE`, `BITCOUNT`) | execution workers | `ifid3ex3wb2` | `HGETALL` 460 K = **1.66×** · `ZRANGE` 809 K = **1.70×** · `BITCOUNT` 3.10 M = **1.40×** |
+
+The two dials are real and opposite. An I/O‑bound cell wants cores on **ingress**; a compute‑bound cell wants
+cores on **execution**, where Tomo beats Redis **1.4–1.7×** because it runs `N` workers in parallel while Redis
+executes every command on one thread. 3‑Stage's dedicated **WB send‑stage** takes reply‑sends off the ingress
+threads, so its execution‑optimal split sits a notch more toward workers than 2‑Stage's — and on a
+**multi‑channel server**, where each added worker commands its own memory‑channel bandwidth, the optimum shifts
+further still (this is where the paper's fully worker‑heavy `BITCOUNT` 3.46× lives; a dual‑channel desktop caps
+out first). Rule of thumb: **profile your dominant command, then give cores to whichever stage is the wall** — a
+dial no fixed‑model engine offers.
 
 3‑Stage adds a **third axis**: a dedicated write‑back (WB) stage owns reply reordering + socket sends,
 so ingress is freed from egress and **send‑bound large‑value workloads scale with WB threads** rather
