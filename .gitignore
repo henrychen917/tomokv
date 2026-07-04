@@ -49,3 +49,4 @@ src/redis-pipeline-test
 src/redis-pipeline-testv2
 src/redis-pipeline-testv3
 src/redis-correctness-test
+src/redis-server.base
