@@ -134,7 +134,7 @@ static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg) 
 
 /* This macro tells if we are in the context of loading an AOF. */
 #define isAOFLoadingContext() \
-    ((server.current_client[ifidx] && server.current_client[ifidx]->id == CLIENT_ID_AOF) ? 1 : 0)
+    ((server.current_client[ifidx].p && server.current_client[ifidx].p->id == CLIENT_ID_AOF) ? 1 : 0)
 
 /* We use a private localtime implementation which is fork-safe. The logging
  * function of Redis may be called from other threads. */
@@ -3333,8 +3333,8 @@ void initServer(void) {
         server.clients_pending_read[t]           = listCreate();
         server.clients_with_pending_ref_reply[t] = listCreate();
         server.clients_pending_ex[t]         = listCreate();
-        server.current_client[t]                 = NULL;
-        server.executing_client[t]               = NULL;
+        server.current_client[t].p                 = NULL;
+        server.executing_client[t].p               = NULL;
     }
 
     if (setlocale(LC_COLLATE, server.locale_collate) == NULL) {
@@ -4140,9 +4140,9 @@ static void propagatePendingCommands(void) {
     /* In case a command that may modify random keys was run *directly*
      * (i.e. not from within a script, MULTI/EXEC, RM_Call, etc.) we want
      * to avoid using a transaction (much like active-expire) */
-    if (server.current_client[ifidx] &&
-        server.current_client[ifidx]->cmd &&
-        server.current_client[ifidx]->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS)
+    if (server.current_client[ifidx].p &&
+        server.current_client[ifidx].p->cmd &&
+        server.current_client[ifidx].p->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS)
     {
         transaction = 0;
     }
@@ -4267,8 +4267,8 @@ void call(client *c, int flags) {
     long long dirty;
     uint64_t client_old_flags = c->flags;
     struct redisCommand *real_cmd = c->realcmd;
-    client *prev_client = server.executing_client[ifidx];
-    server.executing_client[ifidx] = c;
+    client *prev_client = server.executing_client[ifidx].p;
+    server.executing_client[ifidx].p = c;
 
     /* When call() is issued during loading the AOF we don't want commands called
      * from module, exec or LUA to go into the slowlog or to populate statistics. */
@@ -4485,19 +4485,19 @@ void call(client *c, int flags) {
         /* We use the tracking flag of the original external client that
          * triggered the command, but we take the keys from the actual command
          * being executed. */
-        if (server.current_client[ifidx] &&
-            (server.current_client[ifidx]->flags & CLIENT_TRACKING) &&
-            !(server.current_client[ifidx]->flags & CLIENT_TRACKING_BCAST))
+        if (server.current_client[ifidx].p &&
+            (server.current_client[ifidx].p->flags & CLIENT_TRACKING) &&
+            !(server.current_client[ifidx].p->flags & CLIENT_TRACKING_BCAST))
         {
-            trackingRememberKeys(server.current_client[ifidx], c);
+            trackingRememberKeys(server.current_client[ifidx].p, c);
         }
     }
 
     if (!(c->flags & CLIENT_BLOCKED)) {
-        /* Modules may call commands in cron, in which case server.current_client[ifidx]
+        /* Modules may call commands in cron, in which case server.current_client[ifidx].p
          * is not set. */
-        if (server.current_client[ifidx]) {
-            server.current_client[ifidx]->commands_processed++;
+        if (server.current_client[ifidx].p) {
+            server.current_client[ifidx].p->commands_processed++;
         }
         server.stat_numcommands++;
     }
@@ -4539,7 +4539,7 @@ void call(client *c, int flags) {
         server.client_pause_in_transaction = 0;
     }
 
-    server.executing_client[ifidx] = prev_client;
+    server.executing_client[ifidx].p = prev_client;
 }
 
 /* Used when a command that is ready for execution needs to be rejected, due to
@@ -4915,7 +4915,7 @@ int processCommand(client *c) {
      * before key eviction, after the last command was executed and consumed
      * some client output buffer memory. */
     evictClients();
-    if (server.current_client[ifidx] == NULL) {
+    if (server.current_client[ifidx].p == NULL) {
         /* If we evicted ourself then abort processing the command */
         return C_ERR;
     }
@@ -4937,7 +4937,7 @@ int processCommand(client *c) {
 
         /* performEvictions may flush slave output buffers. This may result
          * in a slave, that may be the active client, to be freed. */
-        if (server.current_client[ifidx] == NULL) return C_ERR;
+        if (server.current_client[ifidx].p == NULL) return C_ERR;
 
         if (out_of_memory && is_denyoom_command) {
             rejectCommand(c, shared.oomerr);
@@ -5601,8 +5601,8 @@ static int csCommandType(client *c) {
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
-    client *saved = server.current_client[ifidx];
-    server.current_client[ifidx] = sub;
+    client *saved = server.current_client[ifidx].p;
+    server.current_client[ifidx].p = sub;
     switch (g->ctype) {
     case CS_MGET: {
         /* Read element: matches mgetCommand per-key semantics (wrong-type -> nil, NOT error,
@@ -5707,7 +5707,7 @@ static void csSubExec(client *sub) {
     }
     default: break;
     }
-    server.current_client[ifidx] = saved;
+    server.current_client[ifidx].p = saved;
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
      * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
      * no single argv[1] to capture here. Reads (MGET/EXISTS/TOUCH/SETOP) mutate nothing -> no capture. */
@@ -10097,7 +10097,7 @@ static inline void exPauseCpu(void) {
  *
  * Publishes the fake as this worker's current/executing client (via the
  * worker-private ifidx) so command procs read a valid, owned client through
- * server.current_client[ifidx]/executing_client[ifidx] — e.g. lookupKey's
+ * server.current_client[ifidx].p/executing_client[ifidx].p — e.g. lookupKey's
  * NO_TOUCH check, getKeySlot, and dbSetValue's overwrite old-value free.
  * Reuses the SipHash computed in exPrefetchBatch so the key lookup doesn't
  * re-hash argv[1]. After the command, releases the DB-aliasing argv references
@@ -10137,15 +10137,15 @@ static inline unsigned long long readCyclesTSC(void) {
 static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
     if (fake->cmd) {
-        server.current_client[ifidx] = fake;
-        server.executing_client[ifidx] = fake;
+        server.current_client[ifidx].p = fake;
+        server.executing_client[ifidx].p = fake;
         if (server.opt_hash_carry &&
             fake->prefetch_key_hash_valid && fake->argv && fake->argv[1])
             dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
         fake->cmd->proc(fake);
         dictDisarmHashHint();
-        server.current_client[ifidx] = NULL;
-        server.executing_client[ifidx] = NULL;
+        server.current_client[ifidx].p = NULL;
+        server.executing_client[ifidx].p = NULL;
         /* ee451 (v8d): online-resharding effect capture. If a migration is live and this was a
          * WRITE to a key in the migrating bucket range, append the post-image/tombstone to the
          * A->B effect log in commit order. Range keys only execute on worker A (the table maps

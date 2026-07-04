@@ -41,7 +41,7 @@
 
 /* This macro tells if we are in the context of a RESTORE command, and not loading an RDB or AOF. */
 #define isRestoreContext() \
-    ((server.current_client[ifidx] == NULL || server.current_client[ifidx]->id == CLIENT_ID_AOF) ? 0 : 1)
+    ((server.current_client[ifidx].p == NULL || server.current_client[ifidx].p->id == CLIENT_ID_AOF) ? 0 : 1)
 
 char* rdbFileBeingLoaded = NULL; /* used for rdb checking on read error */
 extern int rdbCheckMode;
@@ -2199,9 +2199,9 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, int dbid, int *error)
         /* Skip sanitization when loading (an RDB), or getting a RESTORE command
          * from either the master or a client using an ACL user with the skip-sanitize-payload flag. */
         int skip = server.loading ||
-            (server.current_client[ifidx] && (server.current_client[ifidx]->flags & CLIENT_MASTER));
-        if (!skip && server.current_client[ifidx] && server.current_client[ifidx]->user)
-            skip = !!(server.current_client[ifidx]->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
+            (server.current_client[ifidx].p && (server.current_client[ifidx].p->flags & CLIENT_MASTER));
+        if (!skip && server.current_client[ifidx].p && server.current_client[ifidx].p->user)
+            skip = !!(server.current_client[ifidx].p->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
         deep_integrity_validation = !skip;
     }
 

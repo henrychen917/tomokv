@@ -2721,7 +2721,7 @@ void addACLLogEntry(client *c, int reason, int context, int argpos, sds username
     }
 
     /* if we have a real client from the network, use it (could be missing on module timers) */
-    client *realclient = server.current_client[ifidx]? server.current_client[ifidx] : c;
+    client *realclient = server.current_client[ifidx].p? server.current_client[ifidx].p : c;
 
     le->cinfo = catClientInfoString(sdsempty(),realclient);
     le->context = context;

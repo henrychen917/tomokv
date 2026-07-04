@@ -748,7 +748,7 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
          * from the source, to avoid deleting fields that are still in use.
          * We create a fake master client for data import, which can be
          * identified using the CLIENT_MASTER flag. */
-        if (server.current_client[ifidx] && (server.current_client[ifidx]->flags & CLIENT_MASTER))
+        if (server.current_client[ifidx].p && (server.current_client[ifidx].p->flags & CLIENT_MASTER))
             return GETF_OK;
 
         /* For replica, if user client, then act as if expired, but don't delete! */

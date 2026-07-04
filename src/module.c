@@ -812,8 +812,8 @@ void modulePostExecutionUnitOperations(void) {
     if (server.busy_module_yield_flags) {
         blockingOperationEnds();
         server.busy_module_yield_flags = BUSY_MODULE_YIELD_NONE;
-        if (server.current_client[ifidx])
-            unprotectClient(server.current_client[ifidx]);
+        if (server.current_client[ifidx].p)
+            unprotectClient(server.current_client[ifidx].p);
         unblockPostponedClients();
     }
 }
@@ -2444,8 +2444,8 @@ void RM_Yield(RedisModuleCtx *ctx, int flags, const char *busy_reply) {
             if (!server.busy_module_yield_flags) {
                 server.busy_module_yield_flags = BUSY_MODULE_YIELD_EVENTS;
                 blockingOperationStarts();
-                if (server.current_client[ifidx])
-                    protectClient(server.current_client[ifidx]);
+                if (server.current_client[ifidx].p)
+                    protectClient(server.current_client[ifidx].p);
             }
             if (flags & REDISMODULE_YIELD_FLAG_CLIENTS)
                 server.busy_module_yield_flags |= BUSY_MODULE_YIELD_CLIENTS;
@@ -6951,7 +6951,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
             }
 
             int deny_write_type = writeCommandsDeniedByDiskError();
-            int obey_client = (server.current_client[ifidx] && mustObeyClient(server.current_client[ifidx]));
+            int obey_client = (server.current_client[ifidx].p && mustObeyClient(server.current_client[ifidx].p));
 
             if (deny_write_type != DISK_ERROR_TYPE_NONE && !obey_client) {
                 errno = ESPIPE;
@@ -14150,12 +14150,12 @@ int RM_RdbLoad(RedisModuleCtx *ctx, RedisModuleRdbStream *stream, int flags) {
      * RM_RdbLoad() is called inside a command callback, we don't want to
      * process the current client. Otherwise, we may free the client or try to
      * process next message while we are already in the command callback. */
-    if (server.current_client[ifidx]) protectClient(server.current_client[ifidx]);
+    if (server.current_client[ifidx].p) protectClient(server.current_client[ifidx].p);
 
     serverAssert(stream->type == REDISMODULE_RDB_STREAM_FILE);
     int ret = rdbLoad(stream->data.filename,NULL,RDBFLAGS_NONE);
 
-    if (server.current_client[ifidx]) unprotectClient(server.current_client[ifidx]);
+    if (server.current_client[ifidx].p) unprotectClient(server.current_client[ifidx].p);
     if (server.aof_enabled) startAppendOnlyWithRetry();
 
     if (ret != RDB_OK) {

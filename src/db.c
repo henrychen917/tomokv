@@ -306,8 +306,8 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
          * Don't do it if we have a saving child, as this will trigger
          * a copy on write madness. */
         if (((flags & LOOKUP_NOTOUCH) == 0) &&
-            (server.current_client[ifidx] && server.current_client[ifidx]->flags & CLIENT_NO_TOUCH) &&
-            (server.executing_client[ifidx] && server.executing_client[ifidx]->cmd->proc != touchCommand))
+            (server.current_client[ifidx].p && server.current_client[ifidx].p->flags & CLIENT_NO_TOUCH) &&
+            (server.executing_client[ifidx].p && server.executing_client[ifidx].p->cmd->proc != touchCommand))
             flags |= LOOKUP_NOTOUCH;
         if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)){
             if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
@@ -558,10 +558,10 @@ int getKeySlot(sds key) {
      * It only gets set during the execution of command under `call` method. Other flows requesting
      * the key slot would fallback to calculateKeySlot.
      */
-    if (server.current_client[ifidx] && server.current_client[ifidx]->slot >= 0 && server.current_client[ifidx]->flags & CLIENT_EXECUTING_COMMAND) {
-        debugServerAssertWithInfo(server.current_client[ifidx], NULL,
-                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client[ifidx]->slot);
-        return server.current_client[ifidx]->slot;
+    if (server.current_client[ifidx].p && server.current_client[ifidx].p->slot >= 0 && server.current_client[ifidx].p->flags & CLIENT_EXECUTING_COMMAND) {
+        debugServerAssertWithInfo(server.current_client[ifidx].p, NULL,
+                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client[ifidx].p->slot);
+        return server.current_client[ifidx].p->slot;
     }
     int slot = keyHashSlot(key, (int)sdslen(key));
     return slot;
@@ -778,7 +778,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
          * Besides, we never free a string object in BIO threads, so, even with
          * lazyfree-lazy-server-del enabled, a fallback to main thread freeing
          * due to defer free failure doesn't go against the config intention. */
-        tryDeferFreeClientObject(server.current_client[ifidx], DEFERRED_OBJECT_TYPE_ROBJ, old);
+        tryDeferFreeClientObject(server.current_client[ifidx].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
     } else if (server.lazyfree_lazy_server_del) {
         freeObjAsync(key, old, db->id);
     } else {
@@ -1335,8 +1335,8 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     }
 
     /* Update current_client (Called functions might rely on it) */
-    client *old_client = server.current_client[ifidx];
-    server.current_client[ifidx] = c;
+    client *old_client = server.current_client[ifidx].p;
+    server.current_client[ifidx].p = c;
 
     /* Don't update blocked_us since command was processed in bg by lazy_free thread */
     updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(c->bstate.lazyfreeStartTime), 0);
@@ -1362,7 +1362,7 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     updateClientMemUsageAndBucket(c);
 
     /* restore current_client */
-    server.current_client[ifidx] = old_client;
+    server.current_client[ifidx].p = old_client;
 }
 
 /* Common flush command implementation for FLUSHALL, FLUSHDB and SFLUSH.
@@ -1466,7 +1466,10 @@ void flushdbCommand(client *c) {
 
     /* ee451 (v7): sharded build — flush the selected DB across all worker shards. See
      * flushallCommand for why the stock path hangs here. */
-    if (server.exThreads && server.num_workers > 0 && !c->isFake) {
+    /* ee451 (audit fix): do NOT gate on !c->isFake — inline-dispatched FLUSHDB runs on a ring-slot
+     * fake, and skipping the shard flush made it a silent no-op on shard data (falls into the stock
+     * blocking-async path). Mirrors flushallCommand. */
+    if (server.exThreads && server.num_workers > 0) {
         flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
         markDirty(1);
         forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
@@ -2994,7 +2997,7 @@ int confAllowsExpireDel(void) {
     /* This configuration specifically targets nested commands, to align with RE's feature of replication between dbs.
      * transactions (from scripts or multi-exec) containing commands like SCAN and RANDOMKEY will execute locally, but their
      * lazy-expiration DELs may induce CROSS-SLOT on remote proxy in mode replica-of (RED-161574) */
-    return !(server.execution_nesting > 1 && server.executing_client[ifidx]->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
+    return !(server.execution_nesting > 1 && server.executing_client[ifidx].p->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
 }
 
 /* This function is called when we are going to perform some operation
@@ -3070,7 +3073,7 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * When replicating commands from the master, keys are never considered
      * expired. */
     if (server.masterhost != NULL || server.cluster_enabled) {
-        if (server.current_client[ifidx] && (server.current_client[ifidx]->flags & CLIENT_MASTER)) return KEY_VALID;
+        if (server.current_client[ifidx].p && (server.current_client[ifidx].p->flags & CLIENT_MASTER)) return KEY_VALID;
         if (server.masterhost != NULL && !(flags & EXPIRE_FORCE_DELETE_EXPIRED)) return KEY_EXPIRED;
     }
 

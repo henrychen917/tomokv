@@ -827,8 +827,8 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
      * the SUBSCRIBE command family, which (currently) have a push message instead of a proper reply.
      * The check for executing_client also avoids affecting push messages that are part of eviction.
      * Check CLIENT_PUSHING first to avoid race conditions, as it's absent in module's fake client. */
-    if ((c->flags & CLIENT_PUSHING) && c == server.current_client[ifidx] &&
-        server.executing_client[ifidx] && !cmdHasPushAsReply(server.executing_client[ifidx]->cmd))
+    if ((c->flags & CLIENT_PUSHING) && c == server.current_client[ifidx].p &&
+        server.executing_client[ifidx].p && !cmdHasPushAsReply(server.executing_client[ifidx].p->cmd))
     {
         _addReplyPayloadToList(c,server.pending_push_messages,s,len,PLAIN_REPLY);
         return;
@@ -2219,7 +2219,7 @@ void unlinkClient(client *c) {
     listNode *ln;
 
     /* If this is marked as current client unset it. */
-    if (c->conn && server.current_client[ifidx] == c) server.current_client[ifidx] = NULL;
+    if (c->conn && server.current_client[ifidx].p == c) server.current_client[ifidx].p = NULL;
 
     /* Certain operations must be done only if the client has an active connection.
      * If the client was already unlinked or if it's a "fake client" the
@@ -2355,7 +2355,7 @@ void deauthenticateAndCloseClient(client *c) {
     c->authenticated = 0;
     /* We will write replies to this client later, so we can't
      * close it directly even if async. */
-    if (c == server.current_client[ifidx]) {
+    if (c == server.current_client[ifidx].p) {
         c->flags |= CLIENT_CLOSE_AFTER_COMMAND;
     } else {
         freeClientAsync(c);
@@ -4389,8 +4389,8 @@ void commandProcessed(client *c) {
  * of processing the command, otherwise C_OK is returned. */
 int processCommandAndResetClient(client *c) {
     int deadclient = 0;
-    client *old_client = server.current_client[ifidx];
-    server.current_client[ifidx] = c;
+    client *old_client = server.current_client[ifidx].p;
+    server.current_client[ifidx].p = c;
     if (processCommand(c) == C_OK) {
         /* ee451: if the command was refused because the pipeline ring is full
          * (or a stateful/MULTI command needs to drain the ring first), the
@@ -4407,8 +4407,8 @@ int processCommandAndResetClient(client *c) {
             if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
-    if (server.current_client[ifidx] == NULL) deadclient = 1;
-    server.current_client[ifidx] = old_client;
+    if (server.current_client[ifidx].p == NULL) deadclient = 1;
+    server.current_client[ifidx].p = old_client;
     return deadclient ? C_ERR : C_OK;
 }
 
@@ -4656,12 +4656,12 @@ int processInputBuffer(client *c) {
             }
 
             /* We are finally ready to execute the command. */
-            server.current_client[ifidx] = c;
+            server.current_client[ifidx].p = c;
             if (processCommandAndResetClient(c) == C_ERR) {
-                server.current_client[ifidx] = NULL;
+                server.current_client[ifidx].p = NULL;
                 return C_ERR;
             }
-            server.current_client[ifidx] = NULL;
+            server.current_client[ifidx].p = NULL;
 
             /* ee451: the command was refused because the pipeline ring is full
              * (or a stateful/MULTI command is waiting for it to drain). The
