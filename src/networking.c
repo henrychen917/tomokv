@@ -3204,8 +3204,7 @@ int writeToClient(client *c, int handler_installed) {
                 zmalloc_used_memory() < server.maxmemory) &&
                 is_normal_client) break;
         }
-        if (server.opt_perthread_stats) server.netstat[ifidx].out += totwritten;   /* ee451 (#A2) */
-        else atomicIncr(server.stat_net_output_bytes, totwritten);
+        server.netstat[ifidx].out += totwritten;   /* ee451 (#A2, v13): hardwired */
     }
     c->net_output_bytes += totwritten;
 
@@ -3488,8 +3487,7 @@ static int iouRecvDeliver(client *c, const char *data, int len) {
     size_t qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
     c->io_lastinteraction = server.unixtime;
-    if (server.opt_perthread_stats) server.netstat[ifidx].in += len;               /* ee451 (#A2) */
-    else atomicIncr(server.stat_net_input_bytes, len);
+    server.netstat[ifidx].in += len;               /* ee451 (#A2, v13): hardwired */
     c->net_input_bytes += len;
     atomicIncr(server.stat_io_reads_processed[c->running_tid], 1);
 
@@ -4708,7 +4706,7 @@ int processInputBuffer(client *c) {
      * beforeSleep flushExQueues (see the 2s fork where this is the +50% starvation fix). ~neutral on
      * 3s (the ifid thread reaches beforeSleep quickly), kept for consistency + multi-CCD. No-op when
      * opt_batch_push is off or nothing is staged. */
-    if (server.opt_batch_push && server.batch_push_eager)
+    if (server.opt_batch_push)   /* ee451 (#E1, v13): eager publish hardwired (knob retired, +79% verified on 2s) */
         flushExQueues();
 
     return C_OK;
@@ -4834,8 +4832,7 @@ void readQueryFromClient(connection *conn) {
         }
         atomicIncr(server.stat_net_repl_input_bytes, nread);
     } else {
-        if (server.opt_perthread_stats) server.netstat[ifidx].in += nread;         /* ee451 (#A2) */
-        else atomicIncr(server.stat_net_input_bytes, nread);
+        server.netstat[ifidx].in += nread;         /* ee451 (#A2, v13): hardwired */
     }
     c->net_input_bytes += nread;
 
