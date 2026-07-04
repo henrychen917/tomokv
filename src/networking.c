@@ -4002,7 +4002,8 @@ static int   operandTierIdle[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* deca
 static unsigned operandPoolOps[TOMO_IFID_THREADS_MAX + 1];  /* v14: op-clock for decay (GET+PUT count) */
 int operandPoolDecayDue(int self_ifidx) {   /* one decay tick per 8192 pool ops (workload-clocked) */
     if (self_ifidx < 0 || self_ifidx > TOMO_IFID_THREADS_MAX) return 0;
-    if (operandPoolOps[self_ifidx] < 8192) return 0;
+    unsigned per = server.pool_decay_ops > 0 ? (unsigned)server.pool_decay_ops : 8192;  /* 0 = auto */
+    if (operandPoolOps[self_ifidx] < per) return 0;
     operandPoolOps[self_ifidx] = 0;
     return 1;
 }
