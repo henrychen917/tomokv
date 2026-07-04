@@ -3123,6 +3123,27 @@ static size_t detectL3Bytes(void) {
     return 32UL*1024*1024;
 }
 
+/* ee451 (v14, v4-leanness + controller doctrine): count distinct L3 domains (CCDs) once at
+ * startup. On a single-L3 machine the multi-CDB reply buses have nothing to de-contend and
+ * only add drain-sweep cost — auto collapses to v4's single-bus shape there; multi-CCD
+ * machines get one bus per worker (the de-contention regime the buses were built for). */
+static int detectL3Domains(void) {
+    char seen[64][64]; int nseen = 0;
+    for (int cpu = 0; cpu < 1024; cpu++) {
+        char path[128], buf[64] = {0};
+        snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cache/index3/shared_cpu_list", cpu);
+        FILE *f = fopen(path, "r");
+        if (!f) break;
+        size_t r = fread(buf, 1, sizeof(buf)-1, f);
+        fclose(f);
+        if (r == 0) continue;
+        int found = 0;
+        for (int i = 0; i < nseen; i++) if (strncmp(seen[i], buf, sizeof(buf)) == 0) { found = 1; break; }
+        if (!found && nseen < 64) strncpy(seen[nseen++], buf, sizeof(seen[0]) - 1);
+    }
+    return nseen > 0 ? nseen : 1;
+}
+
 void initServer(void) {
     server.detected_l3_bytes = detectL3Bytes();   /* ee451 (v13): for -1=auto thresholds */
     int j;
@@ -3270,7 +3291,7 @@ void initServer(void) {
      * up to 256 but the effective count scales with the worker count. */
     {
         int req = server.cfg_num_cdb > 0 ? server.cfg_num_cdb
-                                         : server.num_workers;   /* ee451 (v13): multi-cdb HARDWIRED (knob retired) — auto = one bus per worker */
+                                         : (detectL3Domains() > 1 ? server.num_workers : 1);   /* ee451 (v14): topology-auto — bus-per-worker only when there are multiple L3 domains (CCDs) to de-contend; single-CCD keeps v4's single-bus shape */
         if (req > server.num_workers) req = server.num_workers;
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
@@ -5053,6 +5074,20 @@ int processCommand(client *c) {
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migHoldIfDraining(fake);
 
+    /* ee451 (v14, v4-leanness): EXPRESS LANE — GET and SET are the overwhelmingly hottest
+     * commands and by construction are neither cross-shard, stateful, nor inline; v4 matched
+     * them in <=2 compares while v13's classifier chains (csCommandType ~10 compares +
+     * canDispatchToWorker pre-guards) made every hot op fall through ~25-40 cycles of
+     * always-false tests. Two proc compares restore the v4 floor for the hot pair; every
+     * other command takes the full (unchanged) classification below. */
+    if (fake->cmd->proc == getCommand || fake->cmd->proc == setCommand) {
+        int ex_id = getWorkerForCommand(fake);
+        fake->cdb = cdbIndexFor(ex_id);
+        fake->db = &server.exThreads[ex_id].db[fake->db->id];
+        fake->flags |= CLIENT_EX_PENDING;
+        replyWorking++;
+        exQueuePush(&server.exThreads[ex_id].queues[iotid], fake);
+    } else {
     int cst = csCommandType(fake);
     if (cst >= 0) {
         /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
@@ -5093,6 +5128,7 @@ int processCommand(client *c) {
         atomicFetchOrWithRelease(fake->parent->reply_cdb[fake->cdb].v,
                                  1u << fake->fake_slot);
     }
+    }   /* end express-lane else */
 
     c->dispatchid++;
     return C_OK;
