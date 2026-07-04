@@ -1923,6 +1923,8 @@ typedef struct exThread {
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
     _Atomic uint64_t loop_seq;
+    unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
+    unsigned pf_gate_tick;              /* recompute the divide every 64 batches; EWMA moves slowly */
     /* ee451 (v13): forward-predictor / bakeoff state removed with the VF apparatus. */
 } exThread;
 

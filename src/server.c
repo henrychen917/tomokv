@@ -9881,10 +9881,19 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
      * Full prefetch-off remains available via the stage widths (all 0). */
     {
-        unsigned long long fp = 96ULL + pfw->w_ewma_vsize;      /* per-entry footprint estimate */
-        unsigned long long auto_min = server.prefetch_min_keys > 0
-            ? (unsigned long long)server.prefetch_min_keys      /* explicit override */
-            : (8ULL * server.detected_l3_bytes) / fp;           /* 0 = auto (L3-derived) */
+        /* ee451 (v14): the L3-derived gate needs a 64-bit divide (8*L3/fp); fp tracks the slow-moving
+         * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
+         * the gate-closed (dispatch-bound, cache-resident) path, the hottest regime. */
+        unsigned long long auto_min;
+        if (server.prefetch_min_keys > 0) {
+            auto_min = (unsigned long long)server.prefetch_min_keys;   /* explicit override */
+        } else {
+            if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
+                unsigned long long fp = 96ULL + pfw->w_ewma_vsize;
+                pfw->pf_cached_min = (8ULL * server.detected_l3_bytes) / (fp ? fp : 1);
+            }
+            auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
+        }
         if (n > 0 && batch[0]->db && dbSize(batch[0]->db) < auto_min) {
             for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
             return;
