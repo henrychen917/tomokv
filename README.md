@@ -168,12 +168,6 @@ number: correctness (round‑trips, MGET, expiry, DEL, FLUSHDB) + a reconnect‑
 structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with neighbouring
 measurements are investigated and re‑run, never reported.
 
-### Historical provenance
-
-The original EE451 evaluation of this architecture (earlier code line, same class of hardware) measured
-1.81× Redis on Tier‑1 GET/SET, 1.66× on HGETALL, 3.46× on BITCOUNT‑1 MB, and 2.0× at the saturated
-ceiling; those reproduce within 1 % under the original methodology.
-
 ## Optimizations
 
 Every optimization is an independent, runtime‑gated knob (see [Configuration](#configuration)). They fall
