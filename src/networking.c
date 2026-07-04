@@ -6610,11 +6610,12 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
     getKeysFreeResult(&pcmd->keys_result);
 
     if (pcmd->argv) {
-        for (int j = 0; j < pcmd->argc; j++) {
-            robj *o = pcmd->argv[j];
-            if (!o) continue; /* argv[j] may be NULL when called from reclaimPendingCommand */
-            if (server.opt_operand_pool) operandPoolPut(o);   /* ee451 v11-A: recycle or decref */
-            else decrRefCount(o);
+        /* ee451 (v14 cleanup): hoist the pool-vs-decref decision out of the per-arg loop (it's a
+         * process-lifetime constant on the hot retire path) — two tight loops instead of a branch/arg. */
+        if (server.opt_operand_pool) {
+            for (int j = 0; j < pcmd->argc; j++) { robj *o = pcmd->argv[j]; if (o) operandPoolPut(o); }
+        } else {
+            for (int j = 0; j < pcmd->argc; j++) { robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
         }
 
         zfree(pcmd->argv);

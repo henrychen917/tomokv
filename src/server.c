@@ -9693,9 +9693,11 @@ void exQueueInit(exQueue *q) {
  * cannot see it. One store publishes all the jobs[] writes that happened-before
  * it (standard SPSC batch publish). */
 void flushExQueues(void) {
-    if (!server.exThreads) return;
-    for (int w = 0; w < server.num_workers; w++) {
-        exQueue *q = &server.exThreads[w].queues[iotid];
+    exThread *ex = server.exThreads;
+    if (!ex) return;
+    int nw = server.num_workers;   /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop */
+    for (int w = 0; w < nw; w++) {
+        exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published)
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
