@@ -3088,6 +3088,8 @@ struct pendingCommand {
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
     uint8_t read_error;
+    uint64_t argv_released_mask; /* ee451 (v14): decref-bounce — worker signals released argv slots
+                                  * without writing the io-owned array; teardown skips masked slots. */
 
     struct pendingCommand *next;
     struct pendingCommand *prev;

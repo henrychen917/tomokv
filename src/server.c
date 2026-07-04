@@ -10294,9 +10294,16 @@ static inline void exExecFake(client *fake) {
     }
     pendingCommand *wpcmd = fake->current_pending_cmd;
     if (wpcmd && wpcmd->argv) {
+        wpcmd->argv_released_mask = 0;
         for (int a = 0; a < wpcmd->argc; a++) {
             robj *o = wpcmd->argv[a];
-            if (o && o->refcount > 1) { decrRefCount(o); wpcmd->argv[a] = NULL; }
+            /* ee451 (v14): release DB-aliasing refs via a mask bit (own line), not by NULLing the
+             * io argv array (the cross-core bounce). Skip shared/interned robjs (argv[0]). */
+            if (o && o->refcount > 1 && o->refcount != OBJ_SHARED_REFCOUNT) {
+                decrRefCount(o);
+                if (a < 64) wpcmd->argv_released_mask |= (1ULL << a);
+                else wpcmd->argv[a] = NULL;
+            }
         }
     }
 }

@@ -6664,8 +6664,10 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
             }
 
             /* Clean up command resources before adding to pool */
-            for (int j = 0; j < pcmd->argc; j++)
-                decrRefCount(pcmd->argv[j]);
+            for (int j = 0; j < pcmd->argc; j++) {
+                if (j < 64 && (pcmd->argv_released_mask & (1ULL<<j))) continue;  /* worker released it */
+                if (pcmd->argv[j]) decrRefCount(pcmd->argv[j]);
+            }
 
             getKeysFreeResult(&pcmd->keys_result);
 
@@ -6693,6 +6695,7 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
              * To avoid robj that may already be referenced elsewhere, we should
              * decrease the reference count to release our reference to it. */
             for (int j = 0; j < pcmd->argc; j++) {
+                if (j < 64 && (pcmd->argv_released_mask & (1ULL<<j))) continue;  /* worker released it */
                 robj *o = pcmd->argv[j];
                 if (o && o->refcount > 1) {
                     decrRefCount(o);
@@ -6729,7 +6732,9 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
         /* v12-pool: route operands back to the OWNING ifid (where they were alloc'd). c is the fake
          * (->parent = real conn) on the worker/WB path, or the real client on the inline/2-stage path. */
         int oif = c ? (c->parent ? c->parent->owner_ifid : c->owner_ifid) : -1;
+        uint64_t rel = pcmd->argv_released_mask;   /* ee451 (v14): worker already released these */
         for (int j = 0; j < pcmd->argc; j++) {
+            if (j < 64 && (rel & (1ULL<<j))) continue;
             robj *o = pcmd->argv[j];
             if (!o) continue; /* argv[j] may be NULL when called from reclaimPendingCommand */
             operandPoolPutRouted(o, oif);   /* ee451 (v13): pool hardwired — routes to owner tier,
