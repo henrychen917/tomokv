@@ -4011,7 +4011,7 @@ static inline int operandFloorTier(unsigned int cap) { /* largest class <= cap; 
 }
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (server.opt_operand_pool_tiered && ifidx <= MY_IFID_THREADS_MAX) {
+    if (ifidx <= MY_IFID_THREADS_MAX) {   /* ee451 (v13): tiered hardwired */
         int t = operandCeilTier(len);
         if (t < 0) return createRawStringObject(ptr, len);   /* > top class: not pooled */
         operandTierIdle[ifidx][t] = 0;                       /* demand for this class -> reset decay */
@@ -4037,7 +4037,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 }
 
 static inline void operandPoolPut(robj *o) {
-    if (server.opt_operand_pool_tiered) {
+    {   /* ee451 (v13): tiered hardwired */
         if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
             o->encoding == OBJ_ENCODING_RAW) {
             int t = operandFloorTier(sdsalloc(o->ptr));
@@ -4076,7 +4076,7 @@ static inline void operandRecyclePush(int owner_ifid, robj *o) {
 /* Retire-time PUT: cross-thread (3-stage WB, owner != current) -> recycle to owner ifid; same-thread
  * (2-stage / inline) or non-tiered -> pool locally on the current ifidx. */
 static inline void operandPoolPutRouted(robj *o, int owner_ifid) {
-    if (server.opt_operand_pool_tiered && owner_ifid >= 0 && owner_ifid != ifidx &&
+    if (owner_ifid >= 0 && owner_ifid != ifidx &&   /* ee451 (v13): tiered hardwired */
         owner_ifid <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
         o->encoding == OBJ_ENCODING_RAW) {
         operandRecyclePush(owner_ifid, o);
@@ -4307,7 +4307,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 sdsclear(c->querybuf);
                 querybuf_len = sdslen(c->querybuf); /* Update cached length */
             } else {
-                (pcmd->argv)[(pcmd->argc)++] = server.opt_operand_pool   /* ee451 v11-A: pooled pull */
+                (pcmd->argv)[(pcmd->argc)++] = 1   /* ee451 (v13): operand pool hardwired (v11-A pooled pull) */
                     ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
                     : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
                 pcmd->argv_len_sum += c->bulklen;
@@ -4720,8 +4720,7 @@ int processInputBuffer(client *c) {
      * beforeSleep flushExQueues (see the 2s fork where this is the +50% starvation fix). ~neutral on
      * 3s (the ifid thread reaches beforeSleep quickly), kept for consistency + multi-CCD. No-op when
      * opt_batch_push is off or nothing is staged. */
-    if (server.opt_batch_push)   /* ee451 (#E1, v13): eager publish hardwired (knob retired, +79% verified on 2s) */
-        flushExQueues();
+    flushExQueues();   /* ee451 (#E1+S4, v13): batch-push + eager publish both hardwired */
 
     return C_OK;
 }
@@ -6718,8 +6717,8 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
         for (int j = 0; j < pcmd->argc; j++) {
             robj *o = pcmd->argv[j];
             if (!o) continue; /* argv[j] may be NULL when called from reclaimPendingCommand */
-            if (server.opt_operand_pool) operandPoolPutRouted(o, oif);   /* v12-pool: recycle/pool/decref */
-            else decrRefCount(o);
+            operandPoolPutRouted(o, oif);   /* ee451 (v13): pool hardwired — routes to owner tier,
+                                             * pools locally, or decrefs (fallback inside PoolPut) */
         }
 
         zfree(pcmd->argv);

@@ -1892,6 +1892,7 @@ static inline int cdbIndexFor(int ex_id) {
     /* ee451 (v13, #16a): fast-path the default single-bus config — the modulo was an
      * idiv on every dispatched op. Multi-cdb (gated, non-default) keeps the modulo. */
     if (server.num_cdb == 1) return 0;
+    if (ex_id < server.num_cdb) return ex_id;   /* auto config: num_cdb == num_workers => identity, no idiv */
     return (ex_id % server.num_cdb);
 }
 
@@ -2016,8 +2017,7 @@ void handleWorkerReplies(void) {
                 if (fake->csgroup) csReassemble(NULL, fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                if (server.opt_batched_clear) cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1) */
-                else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+                cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
             }
             cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
@@ -2071,25 +2071,9 @@ void handleWorkerReplies(void) {
          * reply payload (static buf + overflow list head), so the splice loop
          * below copies hot memory. We walk the same ready prefix the splice
          * loop will, stopping at the first not-ready slot. */
-        if (server.opt_prefetch_io) {
-            client *ready_fakes[MY_PIPELINE_DEPTH_MAX];
-            int ready_n = 0;
-            for (unsigned int fid = real->flushid;
-                 fid != real->dispatchid && ready_n < MY_PIPELINE_DEPTH_MAX; fid++)
-            {
-                unsigned int slot = fid & server.my_pipeline_queue_mask;
-                if (!(mask & (1u << slot))) break;
-                client *fake = real->fakeClients[slot];
-                if (ready_n < server.pf_w_io_struct) redis_prefetch_read(fake);  /* ee451 (gem5): I1 width */
-                ready_fakes[ready_n++] = fake;
-            }
-            int wio = ready_n < server.pf_w_io_reply ? ready_n : server.pf_w_io_reply;  /* ee451 (gem5): I2 width */
-            for (int k = 0; k < wio; k++) {
-                client *fake = ready_fakes[k];
-                if (fake->bufpos > 0) redis_prefetch_read(fake->buf);
-                if (listLength(fake->reply)) redis_prefetch_read(listFirst(fake->reply));
-            }
-        }
+        /* ee451 (v13): io-side drain prefetch DELETED (knob retired hard-OFF — measured net-
+         * negative in v11, ≈noise in every eval since; it also duplicated the splice loop's
+         * ready-prefix walk). */
 
         cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
@@ -2133,8 +2117,7 @@ void handleWorkerReplies(void) {
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
-                if (server.opt_batched_clear) cdbClrAdd(&acc, fake->cdb, 1u << slot);   /* ee451 (#A1) */
-                else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+                cdbClrAdd(&acc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 close_asap = 1;
                 break;
             }
@@ -2143,8 +2126,7 @@ void handleWorkerReplies(void) {
              * ready bit (relaxed — the only other writers are workers, but
              * they only OR; we're the sole clearer) and retire fake state.
              * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
-            if (server.opt_batched_clear) cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1) */
-            else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+            cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
@@ -2222,7 +2204,7 @@ void beforeSleepIfid(struct aeEventLoop *eventLoop) {
         migPushFenceIfNeeded();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
-    if (server.opt_operand_pool_tiered) {   /* v12-pool: file WB-returned operands into this ifid's tiers + decay idle classes */
+    {   /* ee451 (v13): tiered pool HARDWIRED (validated +22% write-heavy) — file WB-returned operands into this ifid's tiers + decay idle classes */
         operandRecycleDrain(ifidx);
         static __thread unsigned int decayTick;
         if ((++decayTick & 1023) == 0) operandPoolDecay(ifidx);
@@ -3372,7 +3354,7 @@ void initServer(void) {
      * worker count. */
     {
         int req = server.cfg_num_cdb > 0 ? server.cfg_num_cdb
-                                         : (server.opt_multi_cdb ? server.num_workers : 1);
+                                         : server.num_workers;   /* ee451 (v13): multi-cdb HARDWIRED (knob retired) — auto = one bus per worker */
         if (req > server.num_workers) req = server.num_workers;
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
@@ -5547,7 +5529,7 @@ int exIndexForKey(const void *keyptr, size_t len) {
  * their reply-buffer writes; its release-OR of the head bit then synchronizes-with the IO
  * drain's acquire-load of the reply mask. So the drain sees every sub's buffer. */
 static int csCommandType(client *c) {
-    if (!server.opt_cross_shard || !c->cmd) return -1;
+    if (!c->cmd) return -1;   /* ee451 (v13): cross-shard HARDWIRED (off caused keyspace desync) */
     void *p = c->cmd->proc;
     /* MGET: every form (incl. 1 key) — MGET is never on the single-key whitelist. */
     if (p == mgetCommand   && c->argc >= 2) return CS_MGET;
@@ -5563,12 +5545,12 @@ static int csCommandType(client *c) {
     if (p == touchCommand  && c->argc >= 2) return CS_EXISTS;
     /* ee451 v10-B: KEYS pattern — fan to ALL shards (one sub per worker), concat results.
      * Gated by opt_fanall (default off) until validated. argc==2 (KEYS pattern). */
-    if (server.opt_fanall && p == keysCommand && c->argc == 2) return CS_KEYS;
+    if (p == keysCommand && c->argc == 2) return CS_KEYS;   /* ee451 (v13): fanall hardwired */
     /* ee451 v11-F: cross-shard read-only set-ops. SINTER/SUNION/SDIFF take keys at argv[1..];
      * each key may live on a different shard, so gather members per-key and compute on the
      * coordinator. Gated by opt_cross_setop (default off) until validated. (SINTERCARD's numkeys/
      * LIMIT parsing and the STORE variants' hop-2 write are separate follow-ups.) */
-    if (server.opt_cross_setop && c->argc >= 2 &&
+    if (c->argc >= 2 &&   /* ee451 (v13): cross-setop hardwired */
         (p == sinterCommand || p == sunionCommand || p == sdiffCommand)) return CS_SETOP;
     return -1;
 }
@@ -9808,8 +9790,8 @@ int exQueuePush(exQueue *q, client *c) {
      * ee451 (v4): with batch-push disabled, publish immediately — one release-
      * store of tail per push (flushExQueues then no-ops). */
     q->staged_tail = next_t;
-    if (!server.opt_batch_push)
-        atomic_store_explicit(&q->tail, next_t, memory_order_release);
+    /* ee451 (v13): batch-push HARDWIRED (knob retired) — publish happens per parse-batch
+     * (#E1 eager, end of processInputBuffer) and at beforeSleep's flushExQueues. */
     return 0;
 }
 
@@ -9894,13 +9876,8 @@ static inline void exPrefetchBatch(client **batch, int n) {
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];
 
-    /* ee451 (v4): worker prefetch + hash precompute disabled. Still clear each
-     * fake's hash-valid flag so a stale hint from a prior reuse of this fake
-     * client can never be consumed (hash-carry / forwarding both check it). */
-    if (!server.opt_prefetch_worker) {
-        for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
-        return;
-    }
+    /* ee451 (v13): opt-prefetch-worker master knob RETIRED (hardwired on) — control is the
+     * adaptive DB-size gate below + per-stage widths (all 0 = no prefetch issues). */
 
     /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
      * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
@@ -10631,14 +10608,12 @@ void *exThreadMain(void *arg) {
                 for (int k = 0; k < m; k++) {
                     client *p = batch[j + k]->parent;
                     uint32_t bit = 1u << batch[j + k]->fake_slot;
-                    if (server.opt_coalesce_signal) {
-                        int s;
-                        for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
-                        if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
-                        sig_masks[s] |= bit;
-                    } else {
-                        atomicFetchOrWithRelease(p->reply_cdb[wcdb].v, bit);  /* ee451 (S5): this worker's CDB */
-                    }
+                    /* ee451 (v13): coalescing HARDWIRED (knob retired — strictly fewer release
+                     * RMWs; bits only OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
+                    int s;
+                    for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
+                    if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
+                    sig_masks[s] |= bit;
                 }
                 j += m;
             }
@@ -10933,22 +10908,7 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
      * written on a worker core, so they're cold here. Pass 1 warms the fake structs; pass 2 warms each
      * reply's static buf + reply-list head, so the coalescing splice below copies HOT memory. (This is a
      * proven algorithmic improvement the strict WB had been missing — added, not axed.) */
-    if (server.opt_prefetch_io && !closing) {
-        client *ready_fakes[MY_PIPELINE_DEPTH_MAX]; int ready_n = 0;
-        for (unsigned int fid = c->flushid; fid != dispatchid && ready_n < server.my_pipeline_depth; fid++) {
-            unsigned int slot = fid & server.my_pipeline_queue_mask;
-            if (!(mask & (1u << slot))) break;
-            client *fake = c->fakeClients[slot];
-            if (ready_n < server.pf_w_io_struct) redis_prefetch_read(fake);
-            ready_fakes[ready_n++] = fake;
-        }
-        int wio = ready_n < server.pf_w_io_reply ? ready_n : server.pf_w_io_reply;
-        for (int k = 0; k < wio; k++) {
-            client *fake = ready_fakes[k];
-            if (fake->bufpos > 0) redis_prefetch_read(fake->buf);
-            if (listLength(fake->reply)) redis_prefetch_read(listFirst(fake->reply));
-        }
-    }
+    /* ee451 (v13): WB-side drain prefetch DELETED (see handleWorkerReplies note). */
 
     /* Coalesce the contiguous ready prefix into real->buf (the proven BATCHED-SUBMIT path: one send for
      * N replies), retiring each fake ON THE WB (own freeback ifidx) and advancing flushid in order. */
@@ -10968,15 +10928,10 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
         }
         commandProcessed(fake);                                        /* RETIRE on the WB (own freeback ifidx) */
         fid++;
-        if (server.opt_batched_clear) {
-            cdbClrAdd(&acc, fake->cdb, 1u << slot);                    /* ee451 (#A1): defer clear AND publish */
-        } else {
-            atomicFetchAnd(c->reply_cdb[fake->cdb].v, ~(1u << slot));
-            __atomic_store_n(&c->flushid, fid, __ATOMIC_RELEASE);      /* IO acquire-reads in dispatch/free */
-        }
+        cdbClrAdd(&acc, fake->cdb, 1u << slot);                    /* ee451 (#A1, v13): hardwired — defer clear AND publish */
         if (c->flags & CLIENT_CLOSE_ASAP) { closing = 1; }             /* splice may have tripped the limit */
     }
-    if (server.opt_batched_clear && fid != c->flushid) {
+    if (fid != c->flushid) {
         /* ee451 (#A1): ORDER IS THE INVARIANT — clear the retired slots' bits FIRST, then release-
          * publish flushid. The dispatching IO thread acquire-reads flushid and reuses a slot the
          * moment it sees it advance; a stale set bit on a reused slot would make the new fake look
