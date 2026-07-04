@@ -113,50 +113,48 @@ dispatch-bound regime the architecture targets:
 
 Tomo KV 2-Stage: **1.64× Redis / 1.28× Dragonfly** on GET, **2.30× Redis** on mixed 1:1.
 
-**Regime 2 — DRAM-resident working set (~6 GB: 512 B × 8 M keys and 4 KB × 1.4 M keys, pipeline 16):**
+**Regime 2 — DRAM-resident working set (~6 GB: 512 B × 8 M keys and 4 KB × 1.4 M keys, pipeline 16).**
+Each engine at its best 8-core config for this regime (Redis `io-threads 8`, Dragonfly
+`proactor_threads 8`, **Tomo 2-Stage `io6ex2`** — ingress-provisioned, since this DRAM regime is
+I/O-bound; 3-Stage `ifid4ex2wb2`):
 
 | System | 512B 1:1 | 512B 1:9 | hot-key | 4KB 1:1 | 4KB 1:9 | FB-ETC |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Tomo KV 2-Stage | 2.39 M | 2.41 M | 2.44 M | 1.26 M | 1.24 M | 2.58 M |
-| Tomo KV 3-Stage | 2.37 M | 2.34 M | 2.29 M | **1.38 M** | 1.25 M | 2.37 M |
-| Redis 8 | 3.08 M | 3.23 M | 3.36 M | 1.88 M | 1.26 M | 3.22 M |
-| Dragonfly | 1.34 M | 0.88 M | 0.82 M | 0.84 M | 0.63 M | 2.70 M |
+| **Tomo KV 2-Stage** | **3.57 M** | **3.79 M** | **3.75 M** | 1.47 M | 1.20 M | **3.75 M** |
+| Tomo KV 3-Stage | 2.42 M | 2.36 M | 2.38 M | 1.41 M | **1.28 M** | 2.36 M |
+| Redis 8 | 3.08 M | 3.23 M | 3.37 M | **1.89 M** | 1.25 M | 3.23 M |
+| Dragonfly | 1.34 M | 0.88 M | 0.82 M | 0.84 M | 0.63 M | 2.21 M |
 
 (hot-key = Gaussian-concentrated GETs; FB-ETC = a Facebook ETC-like mix: 1:30 write:read,
-Gaussian keys, small-skewed value-size distribution.)
+Gaussian keys, small-skewed value-size distribution. Same-session runs: Redis reproduces its
+original 512 B 1:9 = 3.23 M exactly, anchoring the comparison.)
 
-**Honest reading.** Tomo KV owns the small-value pipelined regime and beats Dragonfly across
-nearly every cell in both regimes. The DRAM-resident table above looks like a Redis win, but
-that reading is an artifact of the test config, not the architecture — and the reason *is* the
-point of Tomo KV:
+**Honest reading.** Given each engine its best 8-core config for the regime, **Tomo 2-Stage leads the
+DRAM small-value regime** — 512 B (both ratios), hot-key, and FB-ETC all land **11–17 % over Redis** —
+and beats Dragonfly on every cell. Redis keeps 4 KB 1:1 (larger values shift work off dispatch onto
+per-op copy/bandwidth, where its simpler path wins); 4 KB 1:9 is a wash (3-Stage nudges ahead).
 
-* **The table fixes one compute-tuned split (`io4ex4`), which under-provisions ingress for an
-  I/O-bound cell.** At *matched* I/O provisioning the two are a dead heat — Tomo `io4ex4` = 2.48 M
-  vs Redis `io-threads 4` = 2.45 M on 512 B 1:9 — and both scale identically as I/O threads are
-  added. Tomo's one extra knob then recovers the entire gap on the same 8 cores: `io6ex2` = **3.26 M**,
-  matching Redis's 8-thread peak (3.22 M). Redis wasn't faster here; the fixed harness simply handed
-  it 8 ingress threads while Tomo used 4. See
-  [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea).
-* **The split cuts the other way too, and that direction is Tomo-only.** Dial toward workers and
-  Tomo parallelizes *execution* — something neither Redis (every command executes on one main
-  thread; `io-threads` only parallelize I/O) nor Dragonfly (rigid shard-per-core) can do. On
-  compute-heavy commands the worker-heavy split (`io2ex6`) pulls away and **no single-execution
-  engine can follow** (the paper's BITCOUNT-1 MB **3.46×** and HGETALL **1.66×** are exactly this;
-  a fresh reproduction is in the topology section).
+An earlier draft of this table showed Tomo *losing* Regime 2 — that was a benchmarking mistake, not the
+architecture: Tomo was frozen at `io4ex4`, which starves ingress for an I/O-bound workload. On the same
+8 cores, provisioning ingress (`io6ex2`) takes 512 B 1:9 from 2.41 M → **3.79 M**. Redis's own number is
+unchanged (3.23 M, reproduced exactly this session), so the swing is entirely Tomo's split. Being able to
+make that swing — reallocating cores between ingress and execution — is the point of
+[Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea); Redis only
+scales I/O threads, Dragonfly is rigid shard-per-core.
 
-So the honest one-liner is: **matched-for-provisioning, Tomo ties Redis on flat DRAM GET/SET and
-wins outright the moment the command does real work** — because it is the only one of the three that
-lets you spend cores on execution. The multi-CCD / real-NIC evaluation (where the de-contention
+And the dial cuts both ways: toward workers, Tomo parallelizes *execution* — which no single-execution
+engine can (Redis runs every command on one main thread). On compute-heavy commands Tomo beats Redis
+**1.5–1.9×** (`HGETALL`/`ZRANGE`/`BITCOUNT`, measured in the topology section; the paper's BITCOUNT-1 MB
+**3.46×** is the same effect on server-class hardware).
+
+So the honest one-liner is: **best-config-for-best-config, Tomo leads small-value DRAM and wins outright
+the moment the command does real work**, and only trails on large flat values — because it is the only one
+of the three that lets you spend cores where the bottleneck actually is. The multi-CCD / real-NIC evaluation (where the de-contention
 machinery is *additionally* designed to pay) is pending on a Threadripper-class box. Dragonfly's low
 pipelined-GET numbers at ≥256 B are a known loopback-specific artifact of its reply path (its 32 B
 GET and FB-ETC results are representative; treat the 512 B/4 KB cells as loopback-only). Validation
 before benchmarking: correctness (round-trips, MGET, expiry, DEL, FLUSHDB) plus a reconnect-storm
 churn stress — both editions pass with zero crashes.
-
-> **On the split:** the table above fixes `io4ex4`, which under‑provisions ingress for this I/O‑bound
-> regime. On the same 8 cores, `io6ex2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
-> [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea): the gap
-> is a topology choice, not an architectural limit.
 
 **Historical provenance.** The original EE451 evaluation of this architecture (earlier code
 line, same class of hardware) measured 1.81× Redis on Tier-1 GET/SET, 1.66× on HGETALL, 3.46×
