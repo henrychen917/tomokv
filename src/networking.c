@@ -4202,9 +4202,15 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 sdsclear(c->querybuf);
                 querybuf_len = sdslen(c->querybuf); /* Update cached length */
             } else {
-                (pcmd->argv)[(pcmd->argc)++] = server.opt_operand_pool   /* ee451 v11-A: pooled pull */
-                    ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
-                    : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
+                robj *arg = NULL;
+                /* ee451 (v14): intern argv[0] (the command token) — reuse a shared robj, no alloc. */
+                if (pcmd->argc == 0)
+                    arg = commandNameIntern(c->querybuf+c->qb_pos, c->bulklen);
+                if (arg == NULL)
+                    arg = server.opt_operand_pool   /* ee451 v11-A: pooled pull */
+                        ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
+                        : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
+                (pcmd->argv)[(pcmd->argc)++] = arg;
                 pcmd->argv_len_sum += c->bulklen;
                 c->all_argv_len_sum += c->bulklen;
                 c->qb_pos += c->bulklen+2;
