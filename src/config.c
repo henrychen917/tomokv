@@ -3140,8 +3140,6 @@ standardConfig static_configs[] = {
     createBoolConfig("always-show-logo", NULL, IMMUTABLE_CONFIG, server.always_show_logo, 0, NULL, NULL),
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
     /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
-    createBoolConfig("thredis-opt-prefetch-worker", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_worker, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-prefetch-io", NULL, MODIFIABLE_CONFIG, server.opt_prefetch_io, 0, NULL, NULL),
     /* ee451: VALUE-FORWARDING DISABLED by default (2026-06-21). Proven a wash in every tested regime
      * (small/large GET, complex LRANGE, even maximal single-hot-key + zerocopy): it removes a non-
      * bottleneck (hot-key dictFind + one serialize copy) while per-op cost is dominated by net/syscall/
@@ -3149,15 +3147,10 @@ standardConfig static_configs[] = {
      * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
      * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
     createBoolConfig("thredis-opt-value-forward", NULL, MODIFIABLE_CONFIG, server.opt_value_forward, 0, NULL, NULL),
-    createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
-    createBoolConfig("thredis-opt-batched-clear", NULL, MODIFIABLE_CONFIG, server.opt_batched_clear, 0, NULL, NULL),
-    createBoolConfig("thredis-opt-perthread-dirty", NULL, IMMUTABLE_CONFIG, server.opt_perthread_dirty, 0, NULL, NULL),
     createIntConfig("thredis-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
-    createBoolConfig("thredis-opt-multi-cdb", NULL, IMMUTABLE_CONFIG, server.opt_multi_cdb, 0, NULL, NULL),
     createIntConfig("thredis-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
@@ -3172,8 +3165,6 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-pf-w-value-adaptive", NULL, MODIFIABLE_CONFIG,        server.pf_w_value_adaptive, 0, NULL, NULL),
     createIntConfig("thredis-pf-value-cache-kb",    NULL, MODIFIABLE_CONFIG, 1, 8192, server.pf_value_cache_kb, 128, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-prefetch-adaptive-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_adaptive_min_keys, 8000000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-io-struct", NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_struct, 64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-io-reply",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_io_reply,  64, INTEGER_CONFIG, NULL, NULL),
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
     createIntConfig("thredis-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 1, 16,      server.worker_pop_batch, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-vf-min-dictsize",  NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.vf_min_dictsize,   0, INTEGER_CONFIG, NULL, NULL),
@@ -3204,9 +3195,6 @@ standardConfig static_configs[] = {
      * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
-    createBoolConfig("thredis-opt-cross-shard",       NULL, MODIFIABLE_CONFIG, server.opt_cross_shard,       1, NULL, NULL),
-    createBoolConfig("thredis-opt-fanall",            NULL, MODIFIABLE_CONFIG, server.opt_fanall,            1, NULL, NULL),
-    createBoolConfig("thredis-opt-cross-setop",       NULL, MODIFIABLE_CONFIG, server.opt_cross_setop,       1, NULL, NULL),
     createBoolConfig("thredis-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     createBoolConfig("thredis-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("thredis-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),

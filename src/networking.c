@@ -4619,8 +4619,7 @@ int processInputBuffer(client *c) {
      * Publishing here keeps the cross-CCD store-batching (one publish per connection's pipelined
      * batch) without the latency. No-op when opt_batch_push is off (already published per-push) or on
      * the stock main thread (flushExQueues early-returns / nothing staged). */
-    if (server.opt_batch_push)   /* ee451 (#E1, v13): eager publish hardwired (knob retired, +79% verified) */
-        flushExQueues();
+    flushExQueues();   /* ee451 (#E1+S4, v13): batch-push + eager publish both hardwired */
 
     return C_OK;
 }

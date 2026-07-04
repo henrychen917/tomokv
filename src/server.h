@@ -2974,17 +2974,10 @@ struct redisServer {
      * default 1 (= the v3 behavior). Pinning is intentionally NOT toggleable.
      * S3 cache-line mask isolation is a compile-time struct layout and is also
      * not represented here (always on). */
-    int opt_prefetch_worker;   /* #3: worker-side batched prefetch + hash precompute */
-    int opt_prefetch_io;       /* #6: IO-thread drain-side reply prefetch */
     int opt_value_forward;     /* #7: same-key read-run value forwarding (CDB analog) */
-    int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
-    int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
-    int opt_batched_clear;     /* #A1: batch the drain's per-slot CDB fetch_and clears into one per cdb per pass */
-    int opt_perthread_dirty;   /* #4: per-thread shard of server.dirty (de-contend + fix torn-++ race) */
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
-    int opt_multi_cdb;         /* S5: per-worker reply masks (multi common-data-bus). IMMUTABLE. */
     int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
     int cfg_num_cdb;           /* #75: explicit bus count (thredis-num-cdb); 0=auto. IMMUTABLE. */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
@@ -3005,8 +2998,6 @@ struct redisServer {
     int pf_value_cache_kb;   /* ee451 (gem5): cache budget (KB) for the adaptive value-chase width formula */
     int prefetch_adaptive_min_keys; /* ee451 v11 (#58): worker prefetch active only when shard dict >= this many keys (DRAM-cold); sweep showed it hurts L3-resident. 0=always (gate off) */
     /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
-    int pf_w_io_struct;/* IO drain pass 1: finished fake structs (independent) */
-    int pf_w_io_reply; /* IO drain pass 2: reply buffers (semi-dependent) */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
     int vf_min_dictsize;   /* value-forward only when shard dict size >= this (cache-cold proxy); 0=always */
@@ -3023,9 +3014,6 @@ struct redisServer {
     int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
     int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
     int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
-    int opt_cross_shard;       /* v7: multi-key scatter-gather (MGET/MSET/DEL/EXISTS). default off until validated. */
-    int opt_fanall;            /* v10-B: fan-to-all-shards reads (KEYS); one sub per worker, concat. default off. */
-    int opt_cross_setop;       /* v11-F: cross-shard set-ops (SINTER/SUNION/SDIFF) gather-compute. default off until validated. */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
     int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
@@ -3539,22 +3527,17 @@ extern dictType objectKeyPointerValueDictType;
  *   resetDirtyCounter() - zero the effective total without a shard-zeroing race: re-baseline so
  *                   getDirty()==0 while in-flight increments stay counted. */
 #define DIRTY_NSHARD (MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX)
-#define markDirty(n) do { \
-        if (server.opt_perthread_dirty) server.dirty_shard[iotid].v += (n); \
-        else server.dirty += (n); \
-    } while (0)
-#define DIRTY_LOCAL (server.opt_perthread_dirty ? server.dirty_shard[iotid].v : server.dirty)
+#define markDirty(n) do { server.dirty_shard[iotid].v += (n); } while (0)   /* ee451 (v13): #4 hardwired */
+#define DIRTY_LOCAL (server.dirty_shard[iotid].v)
 /* ee451 (#A2): folded per-thread network byte counters (defined in server.c) */
 long long getNetInputBytes(void);
 long long getNetOutputBytes(void);
 static inline long long getDirty(void) {
-    if (!server.opt_perthread_dirty) return server.dirty;
     long long s = server.dirty;                 /* baseline carries bgsave subtracts + resets */
     for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;
     return s;
 }
 static inline void resetDirtyCounter(void) {
-    if (!server.opt_perthread_dirty) { server.dirty = 0; return; }
     long long s = 0;
     for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;
     server.dirty = -s;                           /* baseline cancels current shards -> getDirty()==0 */
