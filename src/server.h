@@ -3320,6 +3320,10 @@ typedef int redisGetKeysProc(struct redisCommand *cmd, robj **argv, int argc, ge
  *    specific data structures, such as: DEL, RENAME, MOVE, SELECT,
  *    TYPE, EXPIRE*, PEXPIRE*, TTL, PTTL, ...
  */
+/* ee451 (v14) routing byte bits (redisCommand.tomo_route), stamped at populate time. */
+#define TOMO_R_STATEFUL 1u   /* multi/exec/subscribe/auth/... — run on real client, ring-drained */
+#define TOMO_R_EXPRESS  2u   /* getCommand/setCommand — the express dispatch lane */
+#define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (mget/mset/del/unlink/exists/touch/keys/setops) */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
@@ -3371,6 +3375,9 @@ struct redisCommand {
                              * (not the fullname), and the value is the redisCommand structure pointer. */
     struct redisCommand *parent;
     struct RedisModuleCommand *module_cmd; /* A pointer to the module command data (NULL if native command) */
+    unsigned char tomo_route; /* ee451 (v14): routing byte, stamped once at populateCommandTable
+                               * (struct END so commands.def positional init is unaffected);
+                               * replaces per-op proc-pointer compare chains on dispatch. TOMO_R_* */
 };
 
 struct redisError {
