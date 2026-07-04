@@ -167,7 +167,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
         /* Propagate as SET Key Value PXAT millisecond-timestamp if there is
          * EX/PX/EXAT flag.
          * ee451 (EX fix): SKIP this command-vector rewrite for worker fakes. It is
-         * purely for AOF/replication determinism (both THredis non-goals), and
+         * purely for AOF/replication determinism (both Tomo KV non-goals), and
          * rewriting a fake's argv desyncs it from current_pending_cmd->argv (the
          * worker drains the pending argv) and touches the rewrite/MULTI machinery
          * fakes don't fully own. The expire itself is already applied above. */

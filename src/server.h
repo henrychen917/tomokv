@@ -1431,7 +1431,7 @@ typedef struct {
 //ee451
 
 /* =========================================================================
- * THredis-dev custom threading & pipelining system.
+ * Tomo KV-dev custom threading & pipelining system.
  *
  * This fork removes stock Redis 6+ upstream I/O threads entirely
  * (`handleClientsWithPending*UsingThreads`, `io_threads_op`, etc. are gone).
@@ -1441,39 +1441,39 @@ typedef struct {
  * The live system is:
  *   - Custom IO threads: N threads sharing a SO_REUSEPORT listening socket;
  *     each owns a set of clients and its own event loop. Count configured
- *     via `myiothreads` -> server.my_ifid_threads (default 8, max
- *     MY_IFID_THREADS_MAX).
+ *     via `tomokv-io-threads` -> server.ifid_threads (default 8, max
+ *     TOMO_IFID_THREADS_MAX).
  *   - Worker threads: M threads executing GET/SET/DEL on per-worker DB
- *     replicas. Count configured via `myworkerthreads` ->
- *     server.my_ex_threads (default 3, max MY_EX_THREADS_MAX).
+ *     replicas. Count configured via `tomokv-ex-threads` ->
+ *     server.ex_threads (default 3, max TOMO_EX_THREADS_MAX).
  *   - Per-client fake-client ring for pipelining. Depth configured via
- *     `myiothreadpipelinedepth` -> server.my_pipeline_depth (default 16,
- *     max MY_PIPELINE_DEPTH_MAX which is 32 due to reply_ready_mask being
+ *     `tomokv-pipeline-depth` -> server.pipeline_ring_depth (default 16,
+ *     max TOMO_PIPELINE_DEPTH_MAX which is 32 due to reply_ready_mask being
  *     uint32_t). Must be a power of two.
  *
  * Static arrays are sized by the compile-time MAX; loop bounds and slot
  * masks use the runtime server.my_* values so the build is stable while
  * actual resource usage scales with config. The runtime mask
- * server.my_pipeline_queue_mask = server.my_pipeline_depth - 1 is recomputed
+ * server.pipeline_ring_mask = server.pipeline_ring_depth - 1 is recomputed
  * once at startup after config load.
  * ========================================================================= */
 
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
-#define MY_IFID_THREADS_MAX 32
-#define MY_EX_THREADS_MAX 64
-#define MY_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
-/* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & MY_BUCKET_MASK
- * (MY_BUCKETS is a power of two so indexing stays a single AND), worker =
+#define TOMO_IFID_THREADS_MAX 32
+#define TOMO_EX_THREADS_MAX 64
+#define TOMO_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
+/* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
+ * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
  * ex_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
  * number of workers can own buckets) while keeping xxhash, and (b) is the foundation for
  * adaptive resharding: each worker owns a CONTIGUOUS bucket range, so rebalancing only
  * shifts a boundary between adjacent workers. 4096 buckets = uint8_t table (≤64 workers)
  * = 4KB, L1-resident on the hot path. */
-#define MY_BUCKETS 4096
-#define MY_BUCKET_MASK (MY_BUCKETS - 1)
+#define TOMO_BUCKETS 4096
+#define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
 
-#define PIPELINE_DEPTH 16 /* default; runtime value lives in server.my_pipeline_depth */
-#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.my_pipeline_queue_mask */
+#define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
+#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.pipeline_ring_mask */
 /* ee451 (S5): multi-CDB reply signaling. Instead of one shared reply_ready_mask
  * per client (the single common-data-bus), give each client up to NUM_CDB_MAX
  * masks, each on its OWN cache line, and route each worker's completion signal to
@@ -1494,7 +1494,7 @@ typedef struct client client;
 typedef struct client {
     int isFake;
     client *parent;
-    client *fakeClients[MY_PIPELINE_DEPTH_MAX];
+    client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
     /* Real-client: bitmap of which ring slots have completed replies.
@@ -1820,18 +1820,18 @@ typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head)
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Must be a power of two. Runtime value lives
- * in server.my_ex_queue_size; MY_EX_QUEUE_SIZE_MAX caps the static
+ * in server.ex_queue_size; TOMO_EX_QUEUE_SIZE_MAX caps the static
  * array. Memory footprint at max:
- *   num_workers * (my_ifid_threads + 1) * MY_EX_QUEUE_SIZE_MAX * sizeof(ptr)
+ *   num_workers * (ifid_threads + 1) * TOMO_EX_QUEUE_SIZE_MAX * sizeof(ptr)
  * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
  * (2048) keeps worst case manageable. */
-#define MY_EX_QUEUE_SIZE_MAX 2048
-#define EX_QUEUE_SIZE 1024  /* default; runtime value lives in server.my_ex_queue_size */
-#define EX_QUEUE_MASK (EX_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.my_ex_queue_mask */
-#define EX_THREADS_NUM 4    /* default; runtime value lives in server.my_ex_threads.
+#define TOMO_EX_QUEUE_SIZE_MAX 2048
+#define EX_QUEUE_SIZE 1024  /* default; runtime value lives in server.ex_queue_size */
+#define EX_QUEUE_MASK (EX_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.ex_queue_mask */
+#define EX_THREADS_NUM 4    /* default; runtime value lives in server.ex_threads.
                                  * Must be a power of two — getWorkerForCommand uses a
-                                 * bitmask (my_ex_dispatch_mask = N-1) instead of modulo. */
-#define IFID_THREADS_NUM 8        /* default; runtime value lives in server.my_ifid_threads */
+                                 * bitmask (ex_dispatch_mask = N-1) instead of modulo. */
+#define IFID_THREADS_NUM 8        /* default; runtime value lives in server.ifid_threads */
 /* How many fakes a worker drains per lock acquire on one IO-thread queue.
  * Larger = fewer mutex traffic pings, better cache locality in exec loop,
  * higher latency for the last fake in the batch. 16 matches PIPELINE_DEPTH
@@ -1878,7 +1878,7 @@ typedef struct exQueue {
      * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
      * tail release-stores into one. Producer-private, lives on tail's line. */
     unsigned int staged_tail;
-    client *jobs[MY_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    client *jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } exQueue;
 
 /* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
@@ -1903,9 +1903,9 @@ typedef struct freebackRing {
 typedef struct exThread {
     int id;
     pthread_t thread;
-    exQueue queues[MY_IFID_THREADS_MAX + 1];
+    exQueue queues[TOMO_IFID_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
-    freebackRing freeback[MY_IFID_THREADS_MAX + 1];
+    freebackRing freeback[TOMO_IFID_THREADS_MAX + 1];
     redisDb *db;
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
     /* ee451 (gem5): EWMA of served read reply size (≈ value bytes), alpha=1/16. Drives
@@ -2249,7 +2249,7 @@ typedef struct {
     /* v12-pool: operand recycle rings, WB (producer) -> this ifid (consumer). The WB retires fakes whose
      * argv robjs were alloc'd on THIS ifid at parse; returning them here keeps malloc+free same-thread
      * (avoids the cross-thread jemalloc free that ballooned instr/op). One ring per producer ifidx. */
-    freebackRing recycle[MY_IFID_THREADS_MAX + 1];
+    freebackRing recycle[TOMO_IFID_THREADS_MAX + 1];
 } ifidThreadArgs;
 
 
@@ -2258,7 +2258,7 @@ struct redisServer {
     /* new front end io */
     int ifidThreadsNum;
     ifidThreadArgs *ifidThreads;
-    int replyWorking[MY_IFID_THREADS_MAX + 1];
+    int replyWorking[TOMO_IFID_THREADS_MAX + 1];
     int custom_ifid_threads_active;
     /* General */
     pid_t pid;                  /* Main process pid. */
@@ -2274,29 +2274,29 @@ struct redisServer {
     int hz;                     /* serverCron() calls frequency in hertz */
     int in_fork_child;          /* indication that this is a fork child */
     exThread *exThreads;
-    list *clients_pending_ex[MY_IFID_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
+    list *clients_pending_ex[TOMO_IFID_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
-    /* THredis-dev custom threading/pipelining runtime knobs. Loaded from
-     * redis.conf (`myiothreads`, `myworkerthreads`, `myiothreadpipelinedepth`,
-     * `myworkerthreadqueuedepth`). my_pipeline_queue_mask and
-     * my_ex_queue_mask are derived from their *_depth / *_size counterparts
+    /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
+     * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
+     * `tomokv-ex-queue-depth`). pipeline_ring_mask and
+     * ex_queue_mask are derived from their *_depth / *_size counterparts
      * at startup. */
-    int my_ifid_threads;
-    int my_ex_threads;
-    int my_pipeline_depth;
-    unsigned int my_pipeline_queue_mask;
-    int my_ex_queue_size;
-    unsigned int my_ex_queue_mask;
-    /* Dispatch mask: my_ex_threads - 1. Requires my_ex_threads to
+    int ifid_threads;
+    int ex_threads;
+    int pipeline_ring_depth;
+    unsigned int pipeline_ring_mask;
+    int ex_queue_size;
+    unsigned int ex_queue_mask;
+    /* Dispatch mask: ex_threads - 1. Requires ex_threads to
      * be a power of two (enforced by isValidMyWorkerThreads validator in
      * config.c). Replaces `hash % num_workers` in getWorkerForCommand
      * with a single AND instruction. */
-    uint64_t my_ex_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
+    uint64_t ex_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
     /* ee451 (v8): bucket->worker map (hot path) and the per-worker contiguous range ends
      * (worker i owns buckets [i? ex_bucket_end[i-1]:0, ex_bucket_end[i]) — used by
      * the adjacent-boundary-shift rebalancer). */
-    uint8_t  ex_bucket_table[MY_BUCKETS];
-    int      ex_bucket_end[MY_EX_THREADS_MAX];
+    uint8_t  ex_bucket_table[TOMO_BUCKETS];
+    int      ex_bucket_end[TOMO_EX_THREADS_MAX];
     /* ee451 (v8d): online resharding via a single totally-ordered A->B effect-log
      * (RESHARD_DOUBLEWRITE_PROTOCOL.md). migration_active is read once (relaxed) per command on
      * the hot path -> isolated on its own read-mostly cache line (written only at migration
@@ -2312,7 +2312,7 @@ struct redisServer {
         struct migLog *log;            /* ordered A->B SPSC effect channel (A produces, B consumes) */
         _Atomic uint64_t outstanding_a_refs; /* D4: zero-copy reply refs still pointing into A's range */
         _Atomic int scan_done;         /* A's cold-key scan has wrapped (cold copy complete) */
-        _Atomic int fence_acked[MY_IFID_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack
+        _Atomic int fence_acked[TOMO_IFID_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack
                                         * (set when A pops that slot's sentinel; coordinator also marks
                                         * a slot done when A's queue from it stays empty = idle producer) */
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
@@ -2370,14 +2370,14 @@ struct redisServer {
     uint32_t socket_mark_id;    /* ID for listen socket marking */
     connListener clistener;     /* Cluster bus listener */
     //ee451 per-thread client lists, index 0 = main thread, 1..N = io threads
-    list *clients[MY_IFID_THREADS_MAX + 1];
-    list *clients_to_close[MY_IFID_THREADS_MAX + 1];
-    list *clients_pending_write[MY_IFID_THREADS_MAX + 1];
-    list *clients_pending_read[MY_IFID_THREADS_MAX + 1];
-    list *clients_with_pending_ref_reply[MY_IFID_THREADS_MAX + 1];
+    list *clients[TOMO_IFID_THREADS_MAX + 1];
+    list *clients_to_close[TOMO_IFID_THREADS_MAX + 1];
+    list *clients_pending_write[TOMO_IFID_THREADS_MAX + 1];
+    list *clients_pending_read[TOMO_IFID_THREADS_MAX + 1];
+    list *clients_with_pending_ref_reply[TOMO_IFID_THREADS_MAX + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
     //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads,
-    // and MY_IFID_THREADS_MAX+1 .. +MY_EX_THREADS_MAX = worker threads. Worker threads run
+    // and TOMO_IFID_THREADS_MAX+1 .. +TOMO_EX_THREADS_MAX = worker threads. Worker threads run
     // command procs directly (bypassing call()) and index these arrays by their OWN ifidx, so
     // they must have private slots. Sharing slot 0 with the main thread (the pre-fix behavior,
     // since workers never set ifidx) is a data race: a worker reads/writes server.current_client[0]
@@ -2389,9 +2389,9 @@ struct redisServer {
      * line = cross-core store ping-pong on the hottest path (the padding cure that went to kstat/
      * netstat but was missed here). Pad each slot to a cache line. Accessed as .p everywhere. */
     struct { client *p; char _pad[CACHE_LINE_SIZE - sizeof(client *)]; }
-        current_client[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+        current_client[TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     struct { client *p; char _pad[CACHE_LINE_SIZE - sizeof(client *)]; }
-        executing_client[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+        executing_client[TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */
@@ -2405,7 +2405,7 @@ struct redisServer {
     int execution_nesting;      /* Execution nesting level.
                                  * e.g. call(), async module stuff (timers, events, etc.),
                                  * cron stuff (active expire, eviction) */
-    rax *clients_index[MY_IFID_THREADS_MAX + 1];         /* Active clients dictionary by client ID. */
+    rax *clients_index[TOMO_IFID_THREADS_MAX + 1];         /* Active clients dictionary by client ID. */
     uint32_t paused_actions;   /* Bitmask of actions that are currently paused */
     list *postponed_clients;       /* List of postponed clients */
     pause_event client_pause_per_purpose[NUM_PAUSE_PURPOSES];
@@ -2461,7 +2461,7 @@ struct redisServer {
         long long hits;
         long long misses;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
-    } kstat[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    } kstat[TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#A2): per-thread network byte counters. stat_net_input/output_bytes were single shared
      * atomics hit with a lock xadd once per read event AND once per write event from EVERY io/WB
      * thread — a contended cross-core line at ~1M events/s (plus the two adjacent counters false-
@@ -2472,7 +2472,7 @@ struct redisServer {
         long long in;
         long long out;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
-    } netstat[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    } netstat[TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
     long long stat_active_defrag_misses;    /* number of allocations scanned but not moved */
     long long stat_active_defrag_key_hits;  /* number of keys with moved allocations */
@@ -2642,7 +2642,7 @@ struct redisServer {
     struct {
         long long v;
         char _pad[CACHE_LINE_SIZE - sizeof(long long)];
-    } dirty_shard[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    } dirty_shard[TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long rdb_last_load_keys_expired;  /* number of expired keys when loading RDB */
     long long rdb_last_load_keys_loaded;   /* number of loaded keys when loading RDB */
     int bgsave_aborted;             /* Set when killing a child, to treat it as aborted even if it succeeds. */
@@ -2797,7 +2797,7 @@ struct redisServer {
     /* Blocked clients */
     unsigned int blocked_clients;   /* # of clients executing a blocking cmd.*/
     unsigned int blocked_clients_by_type[BLOCKED_NUM];
-    list *unblocked_clients[MY_IFID_THREADS_MAX + 1]; /* list of clients to unblock before next loop */
+    list *unblocked_clients[TOMO_IFID_THREADS_MAX + 1]; /* list of clients to unblock before next loop */
     list *ready_keys;        /* List of readyList structures for BLPOP & co */
     /* Client side caching. */
     unsigned int tracking_clients;  /* # of clients with tracking enabled.*/
@@ -2944,7 +2944,7 @@ struct redisServer {
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
-    int cfg_num_cdb;           /* #75: explicit bus count (thredis-num-cdb); 0=auto. IMMUTABLE. */
+    int cfg_num_cdb;           /* #75: explicit bus count (tomokv-num-cdb); 0=auto. IMMUTABLE. */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a
@@ -2974,8 +2974,8 @@ struct redisServer {
     int worker_direct_send;    /* v12-K: IO-thread-free worker-direct in-order io_uring send-back (per-worker ring, head-ownership token). default off; legacy CDB-drain reply path when off. */
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int uring_threestage;      /* uring-threestage: 3-stage pipeline — IO thread parses, workers execute, a dedicated per-IO-thread WB thread reorders + io_uring sends replies. requires io_uring_net. default off. */
-    int wb_threads;           /* uring-threestage: number of WB/submit threads, DECOUPLED from io thread count. 0 = one WB per io thread (legacy). Each WB drains a disjoint subset of the per-io-thread wbqs (SPSC preserved). Effective parallelism caps at (my_ifid_threads-1) wbqs. */
-    int strict_pipeline;       /* uring-strict: strict IO->worker->WB. WB owns reorder+reassemble+retire+send; IO is pure ingress (parse/dispatch, pushes a 'watch' to its WB at first-in-flight). WB retires with its OWN freeback ifidx (my_ifid_threads+1+wb_id). requires uring_threestage. default off. */
+    int wb_threads;           /* uring-threestage: number of WB/submit threads, DECOUPLED from io thread count. 0 = one WB per io thread (legacy). Each WB drains a disjoint subset of the per-io-thread wbqs (SPSC preserved). Effective parallelism caps at (ifid_threads-1) wbqs. */
+    int strict_pipeline;       /* uring-strict: strict IO->worker->WB. WB owns reorder+reassemble+retire+send; IO is pure ingress (parse/dispatch, pushes a 'watch' to its WB at first-in-flight). WB retires with its OWN freeback ifidx (ifid_threads+1+wb_id). requires uring_threestage. default off. */
     int wb_epoll;             /* ablation: WB sends via raw write() instead of io_uring (isolates io_uring vs the 3-stage architecture). requires strict_pipeline. default off (io_uring). */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
@@ -3471,7 +3471,7 @@ extern dictType objectKeyPointerValueDictType;
  *   getDirty()    - global fold (baseline + all shards): save-point trigger, INFO, bgsave snapshot.
  *   resetDirtyCounter() - zero the effective total without a shard-zeroing race: re-baseline so
  *                   getDirty()==0 while in-flight increments stay counted. */
-#define DIRTY_NSHARD (MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX)
+#define DIRTY_NSHARD (TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX)
 #define markDirty(n) do { server.dirty_shard[ifidx].v += (n); } while (0)   /* ee451 (v13): #4 hardwired */
 #define DIRTY_LOCAL (server.dirty_shard[ifidx].v)
 /* ee451 (#A2): folded per-thread network byte counters (defined in server.c) */

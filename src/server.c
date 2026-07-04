@@ -1707,7 +1707,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     }
 
     /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
-     * thredis-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
+     * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
     run_with_period(1000) reshardAutoTune();
 
     /* Clear the paused actions state if needed. */
@@ -1917,11 +1917,11 @@ static inline uint32_t cdbCombinedMask(client *real) {
  * equivalent to ONE combined clear per cdb: accumulate the masks over the ready-prefix walk and flush
  * once per touched cdb. INVARIANT: the flush must complete before any code that can REUSE a ring slot
  * (the WB's flushid release-publish; the same-thread STALLED-resume redispatch) — a stale set bit on a
- * reused slot would make the new fake look ready before its worker ran. Gated: thredis-opt-batched-clear. */
+ * reused slot would make the new fake look ready before its worker ran. Gated: tomokv-opt-batched-clear. */
 typedef struct cdbClrAcc {
     int n;
-    uint8_t cdb[MY_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
-    uint32_t mask[MY_PIPELINE_DEPTH_MAX];
+    uint8_t cdb[TOMO_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
+    uint32_t mask[TOMO_PIPELINE_DEPTH_MAX];
 } cdbClrAcc;
 static inline void cdbClrAdd(cdbClrAcc *a, int cdb, uint32_t bit) {
     for (int i = 0; i < a->n; i++)
@@ -1937,12 +1937,12 @@ static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].in;
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].in;
     return s;
 }
 long long getNetOutputBytes(void) {
     long long s; atomicGet(server.stat_net_output_bytes, s);
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].out;
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].out;
     return s;
 }
 
@@ -2005,7 +2005,7 @@ void handleWorkerReplies(void) {
             close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
             cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
-                unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
+                unsigned int slot = real->flushid & server.pipeline_ring_mask;
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
@@ -2032,7 +2032,7 @@ void handleWorkerReplies(void) {
          * thread (ts_inflight) — do NOT splice more into it; skip and re-drain next pass (the WB clears
          * ts_inflight + resets bufpos when the send CQE lands). If the WB hit a send error, free here
          * (on the IO thread — the correct per-ifidx close context; the WB can't). */
-        if (server.uring_threestage && ifidx >= 1 && ifidx < server.my_ifid_threads) {
+        if (server.uring_threestage && ifidx >= 1 && ifidx < server.ifid_threads) {
             if (real->ts_close_needed) { real->ts_close_needed = 0; freeClientAsync(real); continue; }
             if (__atomic_load_n(&real->ts_inflight, __ATOMIC_ACQUIRE)) {
                 if (wbDbg) { __atomic_fetch_add(&wbDbgSkip, 1, __ATOMIC_RELAXED);
@@ -2077,7 +2077,7 @@ void handleWorkerReplies(void) {
 
         cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
+            unsigned int slot = real->flushid & server.pipeline_ring_mask;
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
 
             client *fake = real->fakeClients[slot];
@@ -2145,7 +2145,7 @@ void handleWorkerReplies(void) {
              * (release) BEFORE the push so the WB sees the buffer as owned; the WB resets bufpos +
              * clears ts_inflight on the send CQE, after which the IO thread re-splices the next batch.
              * If wbq is full (WB momentarily behind), fall back to an inline write so we never stall. */
-            if (server.uring_threestage && ifidx >= 1 && ifidx < server.my_ifid_threads &&
+            if (server.uring_threestage && ifidx >= 1 && ifidx < server.ifid_threads &&
                 listLength(real->reply) == 0 && real->bufpos > 0 && !real->buf_encoded &&
                 real->conn && real->conn->fd >= 0)
             {
@@ -2189,7 +2189,7 @@ void handleWorkerReplies(void) {
          * wake it. processInputBuffer will re-evaluate and dispatch whatever
          * was sitting in pending_cmds. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < (unsigned int)server.my_pipeline_depth)
+            (real->dispatchid - real->flushid) < (unsigned int)server.pipeline_ring_depth)
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -2230,7 +2230,7 @@ void beforeSleepIfid(struct aeEventLoop *eventLoop) {
                 real->flags &= ~CLIENT_PIPELINE_STALLED;
                 listDelNode(server.clients_pending_ex[ifidx], ln);
                 replyWorking--;
-            } else if ((real->dispatchid - __atomic_load_n(&real->flushid, __ATOMIC_ACQUIRE)) < (unsigned int)server.my_pipeline_depth) {
+            } else if ((real->dispatchid - __atomic_load_n(&real->flushid, __ATOMIC_ACQUIRE)) < (unsigned int)server.pipeline_ring_depth) {
                 real->flags &= ~CLIENT_PIPELINE_STALLED;
                 listDelNode(server.clients_pending_ex[ifidx], ln);
                 replyWorking--;
@@ -3141,7 +3141,7 @@ void resetServerStats(void) {
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
         server.kstat[i].hits = 0;
         server.kstat[i].misses = 0;
     }
@@ -3159,7 +3159,7 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < server.my_ifid_threads; j++) {
+    for (j = 0; j < server.ifid_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -3178,7 +3178,7 @@ void resetServerStats(void) {
     server.stat_rdb_consecutive_failures = 0;
     atomicSet(server.stat_net_input_bytes, 0);
     atomicSet(server.stat_net_output_bytes, 0);
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
         server.netstat[i].in = 0;
         server.netstat[i].out = 0;
     }
@@ -3250,23 +3250,23 @@ void initServer(void) {
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
 
-    /* Derive runtime constants from THredis-dev custom threading config.
-     * my_pipeline_depth, my_ex_queue_size, and my_ex_threads are
+    /* Derive runtime constants from Tomo KV-dev custom threading config.
+     * pipeline_ring_depth, ex_queue_size, and ex_threads are
      * all validated as powers of two, so (val - 1) is a valid mask for
-     * each. getWorkerForCommand uses my_ex_dispatch_mask to replace
+     * each. getWorkerForCommand uses ex_dispatch_mask to replace
      * `hash % num_workers` with a single AND. */
-    server.my_pipeline_queue_mask  = (unsigned int)(server.my_pipeline_depth - 1);
-    server.my_ex_queue_mask    = (unsigned int)(server.my_ex_queue_size - 1);
-    server.my_ex_dispatch_mask = (uint64_t)(server.my_ex_threads - 1);  /* legacy */
+    server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
+    server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
+    server.ex_dispatch_mask = (uint64_t)(server.ex_threads - 1);  /* legacy */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
-     * buckets [i*MY_BUCKETS/W, (i+1)*MY_BUCKETS/W)). Works for ANY worker count W (no
+     * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W (no
      * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
     {
-        int W = server.my_ex_threads;
-        for (int b = 0; b < MY_BUCKETS; b++)
-            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / MY_BUCKETS);
+        int W = server.ex_threads;
+        for (int b = 0; b < TOMO_BUCKETS; b++)
+            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
         for (int i = 0; i < W; i++)
-            server.ex_bucket_end[i] = (int)(((long)(i + 1) * MY_BUCKETS) / W);
+            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -3309,11 +3309,11 @@ void initServer(void) {
     resetReplicationBuffer();
 
     /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
-    /* Init per-ifidx arrays up to MY_IFID_THREADS_MAX (not just my_ifid_threads): uring-strict WB threads
-     * run with ifidx = my_ifid_threads+1+wb_id (their own freeback slot), and cross-shard csReassemble ->
+    /* Init per-ifidx arrays up to TOMO_IFID_THREADS_MAX (not just ifid_threads): uring-strict WB threads
+     * run with ifidx = ifid_threads+1+wb_id (their own freeback slot), and cross-shard csReassemble ->
      * addReply -> putClientInPendingWriteQueue touches clients_pending_write[that ifidx]. Over-init (a few
      * empty lists) so those never NULL-deref. */
-    for (int t = 0; t <= MY_IFID_THREADS_MAX; t++) {
+    for (int t = 0; t <= TOMO_IFID_THREADS_MAX; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -3371,10 +3371,10 @@ void initServer(void) {
         server.db[j].avg_ttl = 0;
     }
 
-    server.num_workers = server.my_ex_threads;
+    server.num_workers = server.ex_threads;
     /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
      * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
-    /* ee451 (#75): resolve the bus count once (IMMUTABLE). thredis-num-cdb (cfg_num_cdb>0) requests an
+    /* ee451 (#75): resolve the bus count once (IMMUTABLE). tomokv-num-cdb (cfg_num_cdb>0) requests an
      * explicit count, else legacy opt_multi_cdb auto-requests one bus per worker, else 1. The request is
      * capped at num_workers (cdbIndexFor = ex_id % num_cdb with ex_id < num_workers, so buses beyond
      * #workers are never written -> they would only widen the per-reply drain scan for zero benefit) and
@@ -5135,7 +5135,7 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
-    if (c->dispatchid - c->flushid == (unsigned int)server.my_pipeline_depth) {
+    if (c->dispatchid - c->flushid == (unsigned int)server.pipeline_ring_depth) {
         markStalled(c);   /* enroll + replyWorking++ so the IO polls and resumes when the WB frees a slot */
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
@@ -5147,7 +5147,7 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    client *fake = c->fakeClients[c->dispatchid & server.my_pipeline_queue_mask];
+    client *fake = c->fakeClients[c->dispatchid & server.pipeline_ring_mask];
     moveExecutionState(c, fake);
     if (c->owner_ifid < 0) c->owner_ifid = ifidx;   /* v12-pool: ifid that alloc'd this conn's argv (operand recycle target) */
 
@@ -5345,7 +5345,7 @@ int canDispatchToWorker(client *c) {
          * route to the key's shard and operate on the SAME worker DB as GET/SET, so
          * value and expire no longer diverge across DBs. The propagation rewrite some
          * of these do (SET..EX/SETEX/EXPIRE->PEXPIREAT, GETEX) is now skipped for fakes
-         * at the rewrite functions (propagation is a THredis non-goal). ------------ */
+         * at the rewrite functions (propagation is a Tomo KV non-goal). ------------ */
         p == ttlCommand          || p == pttlCommand         ||
         p == expireCommand       || p == pexpireCommand      ||
         p == expireatCommand     || p == pexpireatCommand    ||
@@ -5512,7 +5512,7 @@ int getWorkerForCommand(client *c) {
      *
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
      * short keys) + bitmask (num_workers is validated power-of-two at
-     * config load, so server.my_ex_dispatch_mask = num_workers - 1
+     * config load, so server.ex_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
     return exIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
 }
@@ -5524,7 +5524,7 @@ int exIndexForKey(const void *keyptr, size_t len) {
     /* ee451 (v8): xxhash -> bucket (single AND) -> worker via the indirection table. One
      * extra L1-resident load vs the old direct mask, in exchange for arbitrary worker counts
      * and online resharding. */
-    return (int)server.ex_bucket_table[xxh64(keyptr, len) & MY_BUCKET_MASK];
+    return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -6053,7 +6053,7 @@ static inline int migBucketInRange(int b) {            /* caller already checked
     return b >= server.migration.lo && b < server.migration.hi;
 }
 /* key (sds) -> bucket, same hash as exIndexForKey but without the table indirection. */
-static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & MY_BUCKET_MASK); }
+static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & TOMO_BUCKET_MASK); }
 
 /* ---- effect-log SPSC ring (A produces tail, B consumes head) ---- */
 static migLog *migLogCreate(unsigned int cap) {
@@ -6266,7 +6266,7 @@ static void migCleanupDeleteRangeA(exThread *A) {
         dictEntry *de;
         while ((de = kvstoreIteratorNext(&it)) != NULL) {
             sds k = kvobjGetKey(dictGetKV(de));
-            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
             if (b < lo || b >= hi) continue;
             if (n == cap) { cap = cap ? cap * 2 : 256; batch = zrealloc(batch, sizeof(sds) * cap); }
             batch[n++] = sdsdup(k);
@@ -6290,9 +6290,9 @@ static void *reshardCoordinator(void *arg) {
     (void)arg;
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
-    /* Producers = main thread (ifidx 0) + separate IO threads (ifidx 1..my_ifid_threads-1) =
-     * my_ifid_threads total. (Worker queue slot my_ifid_threads exists but has no producer.) */
-    int nprod = server.my_ifid_threads;
+    /* Producers = main thread (ifidx 0) + separate IO threads (ifidx 1..ifid_threads-1) =
+     * ifid_threads total. (Worker queue slot ifid_threads exists but has no producer.) */
+    int nprod = server.ifid_threads;
 
     /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
      * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
@@ -6305,7 +6305,7 @@ static void *reshardCoordinator(void *arg) {
      * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
      * also see the new fence_gen (release/acquire on phase carries the prior stores) — otherwise a
      * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
-    for (int t = 0; t <= server.my_ifid_threads; t++)
+    for (int t = 0; t <= server.ifid_threads; t++)
         atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
     atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
@@ -6316,7 +6316,7 @@ static void *reshardCoordinator(void *arg) {
      * pushed one — proving every range primary it dispatched before is executed) OR A's queue from
      * that slot has stayed empty for a stretch (idle producer blocked in epoll — nothing in flight,
      * so no sentinel will ever come). This needs no cross-thread wake of idle IO threads. */
-    int empty_cnt[MY_IFID_THREADS_MAX + 1] = {0};
+    int empty_cnt[TOMO_IFID_THREADS_MAX + 1] = {0};
     for (;;) {
         int pending = 0;
         for (int t = 0; t < nprod; t++) {
@@ -6393,9 +6393,9 @@ static int reshardBeginCutover(void) {
  * and when the hottest shard is persistently above the mean it shifts a chunk of boundary buckets
  * to its cooler adjacent neighbour via a full-auto migration. NOTHING here is read on the per-
  * command routing path — that stays a single bucket-table byte load. ---- */
-static double   mig_load_ewma[MY_EX_THREADS_MAX];
-static double   mig_load_ewma_fast[MY_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
-static uint64_t mig_last_ops[MY_EX_THREADS_MAX];
+static double   mig_load_ewma[TOMO_EX_THREADS_MAX];
+static double   mig_load_ewma_fast[TOMO_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
+static uint64_t mig_last_ops[TOMO_EX_THREADS_MAX];
 static int      mig_ewma_primed = 0;
 /* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
  * ONLY while it is actually shrinking the peak load/capacity. mig_peak_pre = the peak metric we were
@@ -6409,7 +6409,7 @@ void reshardAutoTune(void) {
     /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
      * tick forever; every quantity is recomputed from the current signal — no calibration
      * phase, no learned-then-locked state, no dependence on server uptime. DEFAULT ON;
-     * off = thredis-reshard-min-ops 0 (also the significance floor).
+     * off = tomokv-reshard-min-ops 0 (also the significance floor).
      * The only remaining knobs are min-ops (floor/off) and chunk-buckets (granule) — the
      * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
@@ -6523,7 +6523,7 @@ static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCou
         while ((de = kvstoreIteratorNext(&it)) != NULL) {
             kvobj *kv = dictGetKV(de);
             sds k = kvobjGetKey(kv);
-            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
             if (b < lo || b >= hi) continue;
             rio r; rioInitWithBuffer(&r, sdsempty());
             rdbSaveObjectType(&r, (robj*)kv);
@@ -6547,7 +6547,7 @@ void reshardDebug(client *c) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
         int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
         int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
-        if (lo < 0 || hi > MY_BUCKETS || lo >= hi ||
+        if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi ||
             src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
@@ -6569,7 +6569,7 @@ void reshardDebug(client *c) {
          * key; that is a §4.8 single-writer violation that races worker writes and can crash.) */
         sds key = c->argv[3]->ptr;
         int routed = exIndexForKey(key, sdslen(key));
-        int bucket = (int)(xxh64(key, sdslen(key)) & MY_BUCKET_MASK);
+        int bucket = (int)(xxh64(key, sdslen(key)) & TOMO_BUCKET_MASK);
         addReplyStatusFormat(c, "key=%s bucket=%d routed_ex=%d", key, bucket, routed);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
         int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
@@ -8068,12 +8068,12 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
  * normally 0) into a single total for INFO. */
 static long long keyspaceHitsTotal(void) {
     long long s = server.stat_keyspace_hits;
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
     return s;
 }
 static long long keyspaceMissesTotal(void) {
     long long s = server.stat_keyspace_misses;
-    for (int i = 0; i < MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
+    for (int i = 0; i < TOMO_IFID_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
     return s;
 }
 
@@ -9762,11 +9762,11 @@ void freebackPush(int ex_id, robj *obj) {
  * on the worker thread (single-writer for its shard => no refcount race).
  * Called once per worker loop iteration. */
 static inline void freebackDrainAll(exThread *worker) {
-    int hi = server.my_ifid_threads;
+    int hi = server.ifid_threads;
 #ifdef HAVE_LIBURING
-    /* uring-strict: WB threads retire fakes on their OWN freeback ifidx (my_ifid_threads+1+wb_id)
+    /* uring-strict: WB threads retire fakes on their OWN freeback ifidx (ifid_threads+1+wb_id)
      * so they never share a per-ifidx SPSC ring with an IO thread. Drain those extra slots too. */
-    if (server.strict_pipeline) hi = server.my_ifid_threads + wbThreadCount;
+    if (server.strict_pipeline) hi = server.ifid_threads + wbThreadCount;
 #endif
     for (int t = 0; t <= hi; t++) {
         freebackRing *fb = &worker->freeback[t];
@@ -9788,7 +9788,7 @@ int exQueuePush(exQueue *q, client *c) {
      * pipeline_depth cross-CCD release-stores into one. staged_tail is the
      * producer-private write frontier (>= published tail). */
     unsigned int t = q->staged_tail;
-    unsigned int next_t = (t + 1) & server.my_ex_queue_mask;
+    unsigned int next_t = (t + 1) & server.ex_queue_mask;
     /* ee451: fast-path the "not full" check against the producer-private
      * cached_head, avoiding the cross-core acquire-load of the consumer's
      * head line on every push. cached_head lags the real head (the consumer
@@ -9828,7 +9828,7 @@ client *exQueuePop(exQueue *q) {
         if (h == q->cached_tail) return NULL; /* empty */
     }
     client *c = q->jobs[h];
-    atomic_store_explicit(&q->head, (h + 1) & server.my_ex_queue_mask,
+    atomic_store_explicit(&q->head, (h + 1) & server.ex_queue_mask,
                           memory_order_release);
     return c;
 }
@@ -9843,17 +9843,17 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
      * past head since last head advance.
      * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
     unsigned int avail;
-    avail = (q->cached_tail - h) & server.my_ex_queue_mask;
+    avail = (q->cached_tail - h) & server.ex_queue_mask;
     if (avail == 0) {
         q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        avail = (q->cached_tail - h) & server.my_ex_queue_mask;
+        avail = (q->cached_tail - h) & server.ex_queue_mask;
         if (avail == 0) return 0;
     }
     int n = (int)avail < max ? (int)avail : max;
     for (int i = 0; i < n; i++) {
-        out[i] = q->jobs[(h + (unsigned int)i) & server.my_ex_queue_mask];
+        out[i] = q->jobs[(h + (unsigned int)i) & server.ex_queue_mask];
     }
-    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.my_ex_queue_mask,
+    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.ex_queue_mask,
                           memory_order_release);
     return n;
 }
@@ -9909,7 +9909,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
      * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
-    exThread *pfw = &server.exThreads[ifidx - (MY_IFID_THREADS_MAX + 1)];
+    exThread *pfw = &server.exThreads[ifidx - (TOMO_IFID_THREADS_MAX + 1)];
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
      * Full prefetch-off remains available via the stage widths (all 0). */
@@ -10155,12 +10155,12 @@ static inline void exExecFake(client *fake) {
 void *exThreadMain(void *arg) {
     exThread *worker = (exThread *)arg;
     /* ee451: give this worker a PRIVATE ifidx above the IO-thread range
-     * (IO threads occupy 0..my_ifid_threads-1; main thread is 0). Without this,
+     * (IO threads occupy 0..ifid_threads-1; main thread is 0). Without this,
      * ifidx stays at its __thread default of 0 and every worker aliases
      * IO-thread-0's slot in server.current_client[]/executing_client[], racing
-     * the main thread. The fixed base MY_IFID_THREADS_MAX+1 guarantees no overlap
-     * with any IO-thread ifidx regardless of the configured my_ifid_threads. */
-    ifidx = MY_IFID_THREADS_MAX + 1 + worker->id;
+     * the main thread. The fixed base TOMO_IFID_THREADS_MAX+1 guarantees no overlap
+     * with any IO-thread ifidx regardless of the configured ifid_threads. */
+    ifidx = TOMO_IFID_THREADS_MAX + 1 + worker->id;
 
     /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
      * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
@@ -10182,7 +10182,7 @@ void *exThreadMain(void *arg) {
      * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
      * window first, fall back to yield only if still idle after that.
      *
-     * Tuning knobs (v13: runtime — thredis-worker-spin-pauses / -spin-yield-rounds;
+     * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
      * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
      * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
     int empty_rounds = 0;
@@ -10222,7 +10222,7 @@ void *exThreadMain(void *arg) {
          * untouched; only the inter-queue visit order rotates, which was never
          * ordered to begin with. */
         static __thread int scan_start = 0;
-        int nq = server.my_ifid_threads + 1;
+        int nq = server.ifid_threads + 1;
         if (++scan_start >= nq) scan_start = 0;
         for (int k = 0; k < nq; k++) {
             int i = scan_start + k; if (i >= nq) i -= nq;
@@ -10372,8 +10372,8 @@ void *exThreadMain(void *arg) {
 }
 
 /* Pin a worker's pthread to a single core so its per-shard DB stays
- * cache-resident on that core. IO threads sit on cores [0, my_ifid_threads);
- * we push workers onto cores starting at my_ifid_threads. If the machine
+ * cache-resident on that core. IO threads sit on cores [0, ifid_threads);
+ * we push workers onto cores starting at ifid_threads. If the machine
  * doesn't have enough cores, fall back to wrapping with modulo — a soft
  * collision with an IO thread is fine, worse than ideal but not wrong. */
 /* ee451: SIMPLE deterministic core pinning — IDENTICAL across stable / v1 / v2
@@ -10514,7 +10514,7 @@ void initExThreads(void) {
     server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
-     * gated by thredis-os-opts. */
+     * gated by tomokv-os-opts. */
 #ifdef MADV_HUGEPAGE
     if (server.os_opts)
         madvise(server.exThreads, sizeof(exThread) * server.num_workers, MADV_HUGEPAGE);
@@ -10522,7 +10522,7 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        for (int t = 0; t <= server.my_ifid_threads; t++) {
+        for (int t = 0; t <= server.ifid_threads; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
             freebackRing *fb = &server.exThreads[i].freeback[t];
@@ -10547,10 +10547,10 @@ void initExThreads(void) {
  * ts_inflight so the IO thread can reassemble the next batch. So the only thing offloaded is the blocking
  * send+reap; that frees the IO thread from waiting on the NIC. real->buf is single-owner via ts_inflight
  * (IO writes it only when ts_inflight==0; WB reads it while ts_inflight==1, resets it, then clears). */
-static struct io_uring wbRings[MY_IFID_THREADS_MAX];   /* indexed by WB id 0..wbThreadCount-1 */
-static int wbRingState[MY_IFID_THREADS_MAX];      /* 0=uninit,1=ready,-1=failed */
-static int wbOutstanding[MY_IFID_THREADS_MAX];    /* submitted-not-reaped sends on this WB ring */
-static pthread_t wbTids[MY_IFID_THREADS_MAX];     /* the WB/submit threads */
+static struct io_uring wbRings[TOMO_IFID_THREADS_MAX];   /* indexed by WB id 0..wbThreadCount-1 */
+static int wbRingState[TOMO_IFID_THREADS_MAX];      /* 0=uninit,1=ready,-1=failed */
+static int wbOutstanding[TOMO_IFID_THREADS_MAX];    /* submitted-not-reaped sends on this WB ring */
+static pthread_t wbTids[TOMO_IFID_THREADS_MAX];     /* the WB/submit threads */
 static int wbThreadCount = 0;                   /* effective # of WB threads (decoupled from io threads; set in initIfidThreads) */
 static int wbDbg = 0;                            /* TS_WB_DBG env -> verbose WB tracing */
 static long wbDbgPop = 0, wbDbgStale = 0, wbDbgSkip = 0;
@@ -10558,29 +10558,29 @@ static long wbDbgPop = 0, wbDbgStale = 0, wbDbgSkip = 0;
 static long wbcSend=0, wbcFull=0, wbcPartial=0, wbcEagain=0, wbcErr=0, wbcNosend=0, wbcExhaust=0, wbcFallback=0, wbcRetry=0;
 /* uring-strict: per-WB active-set of clients with in-flight fakes the WB is reordering. WB-owned
  * (no sync). Client added on wbq 'watch' pop (dedup via c->on_wbq), removed when fully retired. */
-static client **wbActive[MY_IFID_THREADS_MAX];
-static int wbActiveN[MY_IFID_THREADS_MAX];
-static int wbActiveCap[MY_IFID_THREADS_MAX];
+static client **wbActive[TOMO_IFID_THREADS_MAX];
+static int wbActiveN[TOMO_IFID_THREADS_MAX];
+static int wbActiveCap[TOMO_IFID_THREADS_MAX];
 
 /* SPSC handoff: IO thread (producer) -> WB thread (consumer). Immediate-publish (no staging). */
 static inline int wbqPush(exQueue *q, client *c) {
     unsigned int tail = q->tail;                                   /* producer-owned */
     unsigned int head = __atomic_load_n(&q->head, __ATOMIC_ACQUIRE);
-    if ((tail - head) >= (unsigned int)server.my_ex_queue_size) return 0;  /* full -> caller falls back */
-    q->jobs[tail & server.my_ex_queue_mask] = c;
+    if ((tail - head) >= (unsigned int)server.ex_queue_size) return 0;  /* full -> caller falls back */
+    q->jobs[tail & server.ex_queue_mask] = c;
     __atomic_store_n(&q->tail, tail + 1, __ATOMIC_RELEASE);
     return 1;
 }
 static inline client *wbqPop(exQueue *q) {
     unsigned int head = q->head;                                   /* consumer-owned */
     if (head == __atomic_load_n(&q->tail, __ATOMIC_ACQUIRE)) return NULL;
-    client *c = q->jobs[head & server.my_ex_queue_mask];
+    client *c = q->jobs[head & server.ex_queue_mask];
     __atomic_store_n(&q->head, head + 1, __ATOMIC_RELEASE);
     return c;
 }
 
 static int wbEnsureRing(int id) {
-    if (id < 0 || id >= MY_IFID_THREADS_MAX) return 0;
+    if (id < 0 || id >= TOMO_IFID_THREADS_MAX) return 0;
     if (wbRingState[id] == 1) return 1;
     if (wbRingState[id] == -1) return 0;
     /* plain ring (not DeferTR — DeferTR defers send progress to the owning thread's enter, which the
@@ -10627,7 +10627,7 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
     unsigned int fid = c->flushid;                 /* local cursor: batched mode publishes ONCE at the end */
     cdbClrAcc acc = { .n = 0 };                    /* ee451 (#A1) */
     while (fid != dispatchid) {
-        unsigned int slot = fid & server.my_pipeline_queue_mask;
+        unsigned int slot = fid & server.pipeline_ring_mask;
         if (!(mask & (1u << slot))) break;                              /* head of ring not done yet */
         client *fake = c->fakeClients[slot];
         fake->flags &= ~CLIENT_EX_PENDING;
@@ -10710,7 +10710,7 @@ static void wbRun(int rid, int R, struct io_uring *ring) {
     while (1) {
         int did = 0;
         /* (1) drain assigned wbqs -> add watched clients to the active set (dedup via on_wbq) */
-        for (int qi = 1; qi < server.my_ifid_threads; qi++) {
+        for (int qi = 1; qi < server.ifid_threads; qi++) {
             if (((qi - 1) % R) != rid) continue;
             client *c;
             while ((c = wbqPop(&server.ifidThreads[qi].wbq)) != NULL) {
@@ -10778,11 +10778,11 @@ void *wbThreadMain(void *arg) {
      * ifidx: pin to the lowest io thread we serve so any incidental ifidx read stays in-range
      * (the WB touches no per-ifidx arrays on its hot path). */
     int first = 0;
-    for (int i = 1; i < server.my_ifid_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
+    for (int i = 1; i < server.ifid_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
     /* Non-strict: the WB touches no per-ifidx arrays, so ifidx is cosmetic. Strict: the WB RETIRES
      * fakes (freebackPush keys on thread-local ifidx) -> give it a DEDICATED slot beyond the io threads
-     * (my_ifid_threads+1+rid) so it never shares an SPSC freeback ring with an io thread. */
-    ifidx = server.strict_pipeline ? (server.my_ifid_threads + 1 + rid) : first;
+     * (ifid_threads+1+rid) so it never shares an SPSC freeback ring with an io thread. */
+    ifidx = server.strict_pipeline ? (server.ifid_threads + 1 + rid) : first;
     if (!wbEnsureRing(rid)) { serverLog(LL_WARNING, "uring-threestage: WB ring init failed (WB %d)", rid); return NULL; }
     if (getenv("TS_WB_DBG")) wbDbg = 1;
     serverLog(LL_NOTICE, "uring-threestage: WB send thread %d of %d ready (strict=%d freeback_iotid=%d, dbg=%d)", rid, R, server.strict_pipeline, ifidx, wbDbg);
@@ -10792,7 +10792,7 @@ void *wbThreadMain(void *arg) {
     while (1) {
         int did = 0;
         /* (1) drain every wbq assigned to this WB thread; prep one coalesced send per client */
-        for (int qi = 1; qi < server.my_ifid_threads; qi++) {
+        for (int qi = 1; qi < server.ifid_threads; qi++) {
             if (((qi - 1) % R) != rid) continue;
             exQueue *q = &server.ifidThreads[qi].wbq;
             client *c;
@@ -10881,18 +10881,18 @@ void initIfidThreads(void) {
      * benchmarks). Fail fast with an actionable message instead. */
     if (server.strict_pipeline || server.uring_threestage) {
         serverLog(LL_WARNING,
-            "FATAL: thredis-strict-pipeline / thredis-uring-threestage require a USE_URING=yes build "
+            "FATAL: tomokv-strict-pipeline / tomokv-uring-threestage require a USE_URING=yes build "
             "(HAVE_LIBURING), but this binary was built WITHOUT liburing. The write-back (WB) thread is "
             "absent and the 3-stage reply path would silently hang. Rebuild with `make USE_URING=yes`, "
             "or disable strict-pipeline/uring-threestage.");
         exit(1);
     }
 #endif
-    server.ifidThreadsNum = server.my_ifid_threads;
-    server.ifidThreads = zmalloc(sizeof(ifidThreadArgs) * server.my_ifid_threads);
+    server.ifidThreadsNum = server.ifid_threads;
+    server.ifidThreads = zmalloc(sizeof(ifidThreadArgs) * server.ifid_threads);
     server.custom_ifid_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
-    for (int i = 1; i < server.my_ifid_threads; i++) {
+    for (int i = 1; i < server.ifid_threads; i++) {
         ifidThreadArgs *t = &server.ifidThreads[i];
         t->id = i;
         memset(t->recycle, 0, sizeof(t->recycle));   /* v12-pool: zero the operand recycle SPSC rings (zmalloc'd) */
@@ -10938,28 +10938,28 @@ void initIfidThreads(void) {
     }
 #ifdef HAVE_LIBURING
     /* uring-threestage: spawn the WB/submit thread pool AFTER every wbq is initialized (a WB may
-     * drain several wbqs). Count is DECOUPLED from io threads via thredis-wb-threads: 0 => one WB
-     * per io thread (legacy). Effective parallelism caps at (my_ifid_threads-1) wbqs since each wbq is
+     * drain several wbqs). Count is DECOUPLED from io threads via tomokv-wb-threads: 0 => one WB
+     * per io thread (legacy). Effective parallelism caps at (ifid_threads-1) wbqs since each wbq is
      * SPSC; extra ROBs would idle, so clamp. WB r drains io threads i with (i-1) % R == r. */
     if (server.uring_threestage || server.strict_pipeline) {
-        int nq = server.my_ifid_threads - 1;          /* wbqs in use: io threads 1..I-1 */
+        int nq = server.ifid_threads - 1;          /* wbqs in use: io threads 1..I-1 */
         if (nq < 1) {
             serverLog(LL_WARNING, "uring-threestage: needs >=2 io threads; WB pool not started");
         } else {
             int R = server.wb_threads;
             if (R <= 0) R = nq;                       /* legacy: one WB per io thread */
             if (R > nq) R = nq;                       /* extra ROBs can't help (1 wbq/io thread, SPSC) */
-            /* ee451 (v13, audit #5): WB threads take ifidx = my_ifid_threads+1+rid; every
+            /* ee451 (v13, audit #5): WB threads take ifidx = ifid_threads+1+rid; every
              * per-ifidx array (clients_to_close/pending_write, freeback rings, netstat/kstat)
-             * is sized MY_IFID_THREADS_MAX+1. Guard the sum or WBs index OUT OF BOUNDS. */
-            if (server.my_ifid_threads + R > MY_IFID_THREADS_MAX) {
-                serverLog(LL_WARNING, "myifidthreads (%d) + wb-threads (%d) exceeds %d; clamping WB threads.",
-                          server.my_ifid_threads, R, MY_IFID_THREADS_MAX);
-                R = MY_IFID_THREADS_MAX - server.my_ifid_threads;
+             * is sized TOMO_IFID_THREADS_MAX+1. Guard the sum or WBs index OUT OF BOUNDS. */
+            if (server.ifid_threads + R > TOMO_IFID_THREADS_MAX) {
+                serverLog(LL_WARNING, "tomokv-ifid-threads (%d) + wb-threads (%d) exceeds %d; clamping WB threads.",
+                          server.ifid_threads, R, TOMO_IFID_THREADS_MAX);
+                R = TOMO_IFID_THREADS_MAX - server.ifid_threads;
                 if (R < 1) R = 1;
             }
             wbThreadCount = R;
-            serverLog(LL_NOTICE, "uring-threestage: starting %d WB send thread(s) for %d io threads (thredis-wb-threads=%d)", R, nq, server.wb_threads);
+            serverLog(LL_NOTICE, "uring-threestage: starting %d WB send thread(s) for %d io threads (tomokv-wb-threads=%d)", R, nq, server.wb_threads);
             for (int r = 0; r < R; r++) {
                 if (pthread_create(&wbTids[r], NULL, wbThreadMain, (void *)(intptr_t)r) != 0) {
                     serverLog(LL_WARNING, "Failed creating WB thread %d: %s", r, strerror(errno));

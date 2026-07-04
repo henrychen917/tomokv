@@ -338,12 +338,12 @@ client *createFakeClient(client *parent) {
  * vanilla UNDER PIPELINE. The pool caches the struct + buffer + reply list across calls. Scoped to
  * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
 #define XSUB_POOL_CAP 96
-static client *xsubPool[MY_IFID_THREADS_MAX + 1][XSUB_POOL_CAP];
-static int xsubPoolN[MY_IFID_THREADS_MAX + 1];
+static client *xsubPool[TOMO_IFID_THREADS_MAX + 1][XSUB_POOL_CAP];
+static int xsubPoolN[TOMO_IFID_THREADS_MAX + 1];
 
 client *createPooledFakeClient(client *parent) {
     int t = ifidx;
-    if (t >= 0 && t <= MY_IFID_THREADS_MAX && xsubPoolN[t] > 0) {
+    if (t >= 0 && t <= TOMO_IFID_THREADS_MAX && xsubPoolN[t] > 0) {
         client *c = xsubPool[t][--xsubPoolN[t]];
         /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
          * (ensured at free time). Re-init every other field to the pristine state. */
@@ -357,7 +357,7 @@ void freePooledFakeClient(client *c) {
     int t = ifidx;
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
-    if (t >= 0 && t <= MY_IFID_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
+    if (t >= 0 && t <= TOMO_IFID_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
         c->buf && c->reply && c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES) {
         if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
         releaseAllBufReferences(c);
@@ -426,13 +426,13 @@ client *createClient(connection *conn) {
 #endif
     c->conn = conn;
 #ifdef HAVE_LIBURING
-    /* v12-G: arm io_uring multishot-recv (gated). THredis accepts each client directly on a
+    /* v12-G: arm io_uring multishot-recv (gated). Tomo KV accepts each client directly on a
      * dedicated IO thread's SO_REUSEPORT listener, so createClient runs ON that IO thread and
      * ifidx identifies it — the client lives its whole life (accept/read/free) on this thread,
      * which keeps every recv-ring op single-threaded. The epoll read handler set just above
      * stays as a harmless fallback (multishot drains the socket first → spurious wakeups EAGAIN). */
     if (conn && server.io_uring_recv && server.io_uring_net &&
-        ifidx >= 1 && ifidx < server.my_ifid_threads &&
+        ifidx >= 1 && ifidx < server.ifid_threads &&
         iouRecvEnsure(ifidx, server.ifidThreads[ifidx].el) >= 0)
         iouRecvArm(c);
 #endif
@@ -563,9 +563,9 @@ client *createClient(connection *conn) {
      * owns its own output buffer, and lives for the lifetime of the parent.
      * fake_slot is stamped to the ring index so workers know which bit to set
      * in parent->reply_ready_mask at completion.
-     * Allocate exactly server.my_pipeline_depth fakes; slots [depth, MAX) stay
+     * Allocate exactly server.pipeline_ring_depth fakes; slots [depth, MAX) stay
      * NULL. Depth is immutable post-startup so we never grow the ring. */
-    for (int i = 0; i < server.my_pipeline_depth; i++) {
+    for (int i = 0; i < server.pipeline_ring_depth; i++) {
         c->fakeClients[i] = createFakeClient(c);
         c->fakeClients[i]->fake_slot = (unsigned int)i;
     }
@@ -846,7 +846,7 @@ static inline int clientIsInPendingRefReplyList(client *c) {
     /* ee451 (S8): worker fakes are never put in this list (their zero-copy
      * reply values are kept alive by the +1 ref + free-back ring, not by
      * flushdb-protection tracking). Crucially, server.clients_with_pending_ref_reply[]
-     * is sized [MY_IFID_THREADS_MAX+1] and indexed by ifidx; a worker's ifidx is
+     * is sized [TOMO_IFID_THREADS_MAX+1] and indexed by ifidx; a worker's ifidx is
      * in the worker range, so the listFirst([ifidx]) clause below would read out
      * of bounds. Returning false for fakes keeps this and the unlink path safe. */
     if (c->isFake) return 0;
@@ -866,9 +866,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
                         * a worker fake, on the owning worker via freebackPush) */
     /* ee451 (S8): if this reply is being built on a worker (a fake executing a
      * command), record the owning worker id so the post-send decrRefCount is
-     * routed back to it. ifidx for a worker is MY_IFID_THREADS_MAX+1+ex_id. */
-    str_ref.owner_ex = (c->isFake && ifidx > MY_IFID_THREADS_MAX)
-                         ? (ifidx - (MY_IFID_THREADS_MAX + 1)) : -1;
+     * routed back to it. ifidx for a worker is TOMO_IFID_THREADS_MAX+1+ex_id. */
+    str_ref.owner_ex = (c->isFake && ifidx > TOMO_IFID_THREADS_MAX)
+                         ? (ifidx - (TOMO_IFID_THREADS_MAX + 1)) : -1;
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';
@@ -900,9 +900,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
     /* Track clients with pending referenced reply objects for async flushdb
      * protection.
      * ee451 (S8): SKIP this for worker fakes (owner_ex >= 0). The list
-     * server.clients_with_pending_ref_reply[] is sized [MY_IFID_THREADS_MAX+1] and
+     * server.clients_with_pending_ref_reply[] is sized [TOMO_IFID_THREADS_MAX+1] and
      * indexed by ifidx — a worker's ifidx is in the worker range (out of bounds
-     * => the SEGV thredis-stress caught). Fakes don't need it anyway: the value
+     * => the SEGV tomokv-stress caught). Fakes don't need it anyway: the value
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
     if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
@@ -1610,7 +1610,7 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
      * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
     int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
-    int on_ex = zc_on && c->isFake && ifidx > MY_IFID_THREADS_MAX;
+    int on_ex = zc_on && c->isFake && ifidx > TOMO_IFID_THREADS_MAX;
     if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */
@@ -2488,7 +2488,7 @@ void freeClient(client *c) {
     }
 #ifdef HAVE_LIBURING
     /* v12-G: drop this real client from its IO thread's multishot-recv map before teardown.
-     * For THredis the free runs on the owning IO thread (the same thread that reaps), so this is
+     * For Tomo KV the free runs on the owning IO thread (the same thread that reaps), so this is
      * race-free; the per-arm generation also rejects any stale CQE after the fd is reused. */
     if (server.io_uring_recv && c->conn && c->conn->fd >= 0)
         iouRecvDisarm(c->tid, c->conn->fd);
@@ -2541,10 +2541,10 @@ void freeClient(client *c) {
     }
 
     /* ee451: ring is drained — safe to tear down fakes. Walk the full
-     * MAX-sized array; slots beyond server.my_pipeline_depth were never
+     * MAX-sized array; slots beyond server.pipeline_ring_depth were never
      * allocated and are NULL. */
     if (!c->isFake) {
-        for (int i = 0; i < MY_PIPELINE_DEPTH_MAX; i++) {
+        for (int i = 0; i < TOMO_PIPELINE_DEPTH_MAX; i++) {
             if (c->fakeClients[i]) {
                 freeFakeClient(c->fakeClients[i]);
                 c->fakeClients[i] = NULL;
@@ -2735,12 +2735,12 @@ void freeClientAsync(client *c) {
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
     if (c->flags & CLIENT_EX_PENDING) return;
     /* ee451 (v13, audit #7): a WB thread must NOT touch clients_to_close[] — it would enqueue
-     * on ITS ifidx slot (my_ifid_threads+1+rid), a list no io thread's async-free pass walks
+     * on ITS ifidx slot (ifid_threads+1+rid), a list no io thread's async-free pass walks
      * (leak) and freeClient's listSearchKey on the owner's list would assert. Route through the
      * existing WB->IO close protocol instead: set ts_close_needed; the owning io thread's drain
      * sees it and calls freeClientAsync on the correct thread. Also avoids a WB-side flags RMW. */
-    if (server.strict_pipeline && ifidx > server.my_ifid_threads &&
-        ifidx <= server.my_ifid_threads + server.wb_threads)
+    if (server.strict_pipeline && ifidx > server.ifid_threads &&
+        ifidx <= server.ifid_threads + server.wb_threads)
     {
         c->ts_close_needed = 1;
         return;
@@ -3300,8 +3300,8 @@ void sendReplyToClient(connection *conn) {
  * limited to replies that fit the static buf (PROTO_REPLY_CHUNK_BYTES = 16K; larger replies use the
  * reply-list/writeToClient fallback), so ZC here targets mid-size (4–16K) static-buf replies. */
 #define IOU_ZC_MIN_BYTES 4096
-static struct io_uring iouRings[MY_IFID_THREADS_MAX + 1];
-static int iouRingState[MY_IFID_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
+static struct io_uring iouRings[TOMO_IFID_THREADS_MAX + 1];
+static int iouRingState[TOMO_IFID_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
 
 static int iouEnsureRing(int t) {
     if (iouRingState[t] == 1) return 1;
@@ -3446,7 +3446,7 @@ static int handleClientsWithPendingWritesUring(void) {
  * fetchClientFromIOThread / unbindClientFromIOThreadEventLoop) so a freed client is never
  * dereferenced; a per-arm generation in the CQE user_data rejects stale completions after fd
  * reuse. The epoll read handler is LEFT installed as a harmless fallback (multishot drains the
- * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every THredis read
+ * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every Tomo KV read
  * invariant intact. Perf is network-bound (≈neutral on loopback); this lands the infrastructure
  * for a real-NIC / EPYC evaluation. */
 #define IOU_RECV_NBUFS   512               /* provided buffers per IO thread (power of two) */
@@ -3466,7 +3466,7 @@ typedef struct iouRecvState {
     iouRecvSlot *fdmap;        /* indexed by fd */
     int fdcap;
 } iouRecvState;
-static iouRecvState iouRecvs[MY_IFID_THREADS_MAX + 1];
+static iouRecvState iouRecvs[TOMO_IFID_THREADS_MAX + 1];
 
 /* Recycle one consumed buffer back to the provided ring. */
 static inline void iouRecvProvide(iouRecvState *st, int bid) {
@@ -3983,8 +3983,8 @@ static void setProtocolError(const char *errstr, client *c) {
  * Gated by server.opt_operand_pool. */
 #define OPERAND_POOL_CAP 256
 #define OPERAND_POOL_MAX_SDS 512
-static robj *operandPool[MY_IFID_THREADS_MAX + 1][OPERAND_POOL_CAP];
-static int operandPoolN[MY_IFID_THREADS_MAX + 1];
+static robj *operandPool[TOMO_IFID_THREADS_MAX + 1][OPERAND_POOL_CAP];
+static int operandPoolN[TOMO_IFID_THREADS_MAX + 1];
 
 /* ---- v12-pool: size-class TIERED operand pool (server.opt_operand_pool_tiered, requires opt_operand_pool).
  * Tiers bucket pooled robjs by sds capacity so reuse matches size (no realloc-on-grow, no bloat-on-shrink)
@@ -3996,10 +3996,10 @@ static int operandPoolN[MY_IFID_THREADS_MAX + 1];
 #define OPERAND_TIER_SLOTS_MAX 256
 static const unsigned int operandTierCap[OPERAND_NTIER]   = {64u, 256u, 1024u, 4096u, 16384u};
 static const int          operandTierSlots[OPERAND_NTIER] = {256, 256, 128, 64, 32};
-static robj *operandTier[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
-static int   operandTierN[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];
-static int   operandTierIdle[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* decay: GET-idle ticks per class */
-/* v13: idle-ticks-before-shed is the thredis-pool-decay-idle knob (was hardcoded 8) */
+static robj *operandTier[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
+static int   operandTierN[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER];
+static int   operandTierIdle[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* decay: GET-idle ticks per class */
+/* v13: idle-ticks-before-shed is the tomokv-pool-decay-idle knob (was hardcoded 8) */
 
 static inline int operandCeilTier(size_t len) {        /* smallest class >= len; -1 if above top class */
     for (int t = 0; t < OPERAND_NTIER; t++) if (len <= operandTierCap[t]) return t;
@@ -4011,7 +4011,7 @@ static inline int operandFloorTier(unsigned int cap) { /* largest class <= cap; 
 }
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (ifidx <= MY_IFID_THREADS_MAX) {   /* ee451 (v13): tiered hardwired */
+    if (ifidx <= TOMO_IFID_THREADS_MAX) {   /* ee451 (v13): tiered hardwired */
         int t = operandCeilTier(len);
         if (t < 0) return createRawStringObject(ptr, len);   /* > top class: not pooled */
         operandTierIdle[ifidx][t] = 0;                       /* demand for this class -> reset decay */
@@ -4027,7 +4027,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
             o->ptr = sdsMakeRoomFor(o->ptr, (size_t)operandTierCap[t] - sdslen(o->ptr));
         return o;
     }
-    if (ifidx <= MY_IFID_THREADS_MAX && operandPoolN[ifidx] > 0) {
+    if (ifidx <= TOMO_IFID_THREADS_MAX && operandPoolN[ifidx] > 0) {
         robj *o = operandPool[ifidx][--operandPoolN[ifidx]];
         o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
         o->refcount = 1;
@@ -4038,7 +4038,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 
 static inline void operandPoolPut(robj *o) {
     {   /* ee451 (v13): tiered hardwired */
-        if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+        if (ifidx <= TOMO_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
             o->encoding == OBJ_ENCODING_RAW) {
             int t = operandFloorTier(sdsalloc(o->ptr));
             if (t >= 0 && operandTierN[ifidx][t] < operandTierSlots[t]) {
@@ -4051,7 +4051,7 @@ static inline void operandPoolPut(robj *o) {
         decrRefCount(o);
         return;
     }
-    if (ifidx <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+    if (ifidx <= TOMO_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
         o->encoding == OBJ_ENCODING_RAW && operandPoolN[ifidx] < OPERAND_POOL_CAP &&
         sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
         sdsclear(o->ptr);                        /* reset length, keep capacity */
@@ -4077,7 +4077,7 @@ static inline void operandRecyclePush(int owner_ifid, robj *o) {
  * (2-stage / inline) or non-tiered -> pool locally on the current ifidx. */
 static inline void operandPoolPutRouted(robj *o, int owner_ifid) {
     if (owner_ifid >= 0 && owner_ifid != ifidx &&   /* ee451 (v13): tiered hardwired */
-        owner_ifid <= MY_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+        owner_ifid <= TOMO_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
         o->encoding == OBJ_ENCODING_RAW) {
         operandRecyclePush(owner_ifid, o);
         return;
@@ -4088,8 +4088,8 @@ static inline void operandPoolPutRouted(robj *o, int owner_ifid) {
 /* Drained by the owning ifid in beforeSleepIfid: file WB-returned operands into THIS ifid's tiers (single
  * consumer; producers are the wb threads). Operand was alloc'd here at parse -> malloc+free stay local. */
 void operandRecycleDrain(int self_ifidx) {
-    if (self_ifidx < 0 || self_ifidx > MY_IFID_THREADS_MAX) return;
-    for (int p = 0; p <= MY_IFID_THREADS_MAX; p++) {
+    if (self_ifidx < 0 || self_ifidx > TOMO_IFID_THREADS_MAX) return;
+    for (int p = 0; p <= TOMO_IFID_THREADS_MAX; p++) {
         freebackRing *r = &server.ifidThreads[self_ifidx].recycle[p];
         unsigned int h = atomic_load_explicit(&r->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&r->tail, memory_order_acquire);
@@ -4106,7 +4106,7 @@ void operandRecycleDrain(int self_ifidx) {
  * memory to the allocator on the SAME thread that alloc'd it. A GET resets the class's idle counter, so
  * classes decay independently as the workload's request-size mix shifts. */
 void operandPoolDecay(int self_ifidx) {
-    if (self_ifidx < 0 || self_ifidx > MY_IFID_THREADS_MAX) return;
+    if (self_ifidx < 0 || self_ifidx > TOMO_IFID_THREADS_MAX) return;
     for (int t = 0; t < OPERAND_NTIER; t++) {
         int n = operandTierN[self_ifidx][t];
         if (n == 0) { operandTierIdle[self_ifidx][t] = 0; continue; }
@@ -5910,7 +5910,7 @@ void redactClientCommandArgument(client *c, int argc) {
  * ref count is decremented. */
 void rewriteClientCommandVector(client *c, int argc, ...) {
     /* ee451 (EX fix): command rewriting exists only for AOF/replication propagation
-     * (both THredis non-goals). For a worker fake it is unnecessary AND unsafe —
+     * (both Tomo KV non-goals). For a worker fake it is unnecessary AND unsafe —
      * mutating the fake's argv desyncs it from current_pending_cmd->argv (drained by
      * the worker) and touches the pending/MULTI machinery fakes don't own. Skip it;
      * the command's actual keyspace effect already happened before this call. */
@@ -6047,7 +6047,7 @@ void rewriteClientCommandArgument(client *c, int i, robj *newval) {
     /* ee451: capture oldval's length BEFORE it can be freed by the
      * decrRefCount below. The update_pcmd block further down needs this
      * length, and re-reading getStringObjectLen(oldval) after the free is a
-     * use-after-free (thredis-stress caught this on the SET ... EX argv-rewrite
+     * use-after-free (tomokv-stress caught this on the SET ... EX argv-rewrite
      * path: rewriteClientCommandArgument frees oldval at the decrRefCount, then
      * the pcmd-resync read touches the freed object). */
     size_t oldlen = oldval ? getStringObjectLen(oldval) : 0;

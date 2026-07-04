@@ -82,7 +82,7 @@ typedef struct PrefetchCommandsBatch {
     GetValueDataFunc get_value_data_func; /* Function to get the value data */
 } PrefetchCommandsBatch;
 
-/* THredis: command-prefetch is LIVE and enabled (kept on per project policy).
+/* Tomo KV: command-prefetch is LIVE and enabled (kept on per project policy).
  * The batch is driven from iothread.c (prefetchIOThreadCommands ->
  * addCommandToBatch / prefetchCommands / resetCommandsBatch); the lifecycle
  * helpers below (init/free/onMaxBatchSizeChange) are reached via the lazy init

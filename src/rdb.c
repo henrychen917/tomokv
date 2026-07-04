@@ -1571,7 +1571,7 @@ werr:
 }
 
 /* ee451: rdbSaveDb now takes an explicit redisDb* so the caller can save each
- * worker SHARD db (THredis stores data in server.exThreads[w].db[dbid], not
+ * worker SHARD db (Tomo KV stores data in server.exThreads[w].db[dbid], not
  * server.db[dbid]). Multiple SELECTDB(dbid) sections per dbid are valid RDB; load
  * routes each key to its shard by hash. */
 ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {

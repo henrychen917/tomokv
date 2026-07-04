@@ -38,7 +38,7 @@ variant.
 Tomo KV is a direct, deliberate translation of **Tomasulo's out‑of‑order execution algorithm** (IBM
 System/360 Model 91, 1967) into a key‑value server. The mapping is one‑to‑one — the code names its
 structures after the hardware they emulate. The reply bus is literally `reply_cdb`, the **Common Data
-Bus**; the write‑back stage is aliased `thredis-rob-threads`, the **Reorder Buffer**.
+Bus**; the write‑back stage is aliased `tomokv-rob-threads`, the **Reorder Buffer**.
 
 | CPU (Tomasulo)                     | Tomo KV · 3‑Stage                                                          |
 | :--------------------------------- | :------------------------------------------------------------------------ |
@@ -48,7 +48,7 @@ Bus**; the write‑back stage is aliased `thredis-rob-threads`, the **Reorder Bu
 | Reservation stations / **execute** | **EX worker threads** executing against their own shard, in parallel      |
 | Hazard avoidance (RAW/WAR/WAW)     | **Single‑writer‑per‑shard**: one key ⇒ one worker ⇒ no cross‑worker hazards |
 | Common Data Bus (CDB)              | **`reply_cdb`** — the mask bus workers use to signal completion           |
-| **Reorder buffer**, in‑order commit | **WB thread** (`thredis-rob-threads`) reorders + writes back replies in issue order |
+| **Reorder buffer**, in‑order commit | **WB thread** (`tomokv-rob-threads`) reorders + writes back replies in issue order |
 
 Because each key is owned by exactly one worker, there are no locks on the data path and no cross‑worker
 data hazards to resolve. Commands to *different* keys execute fully in parallel and out of order; commands
@@ -201,49 +201,49 @@ knobs exist for research and per‑workload tuning, not day‑to‑day use. The 
 ### Threading & topology
 | Knob | Default | Meaning |
 | :--- | :--- | :--- |
-| `myifidthreads` (`myiothreads`) | auto | Number of **ingress (issue)** threads. |
-| `myexthreads` (`myworkerthreads`) | auto | Number of **EX worker** threads (must be a power of two). |
-| `thredis-strict-pipeline` | off → **set `yes`** | Enables the 3‑stage strict pipeline (dedicated WB send). Required for this edition. |
-| `thredis-wb-threads` (`thredis-rob-threads`) | 0 → **set ≥1** | Number of **write‑back / reorder‑buffer** threads. |
-| `thredis-wb-epoll` (`thredis-rob-epoll`) | off | Use epoll `write()` on the WB stage instead of io_uring. |
-| `thredis-pin-mode` | 2 | Core‑pinning strategy (dense / shared‑L3‑aware). |
+| `tomokv-ifid-threads` | auto | Number of **ingress (issue)** threads. |
+| `tomokv-ex-threads` | auto | Number of **EX worker** threads (must be a power of two). |
+| `tomokv-strict-pipeline` | off → **set `yes`** | Enables the 3‑stage strict pipeline (dedicated WB send). Required for this edition. |
+| `tomokv-wb-threads` (`tomokv-rob-threads`) | 0 → **set ≥1** | Number of **write‑back / reorder‑buffer** threads. |
+| `tomokv-wb-epoll` (`tomokv-rob-epoll`) | off | Use epoll `write()` on the WB stage instead of io_uring. |
+| `tomokv-pin-mode` | 2 | Core‑pinning strategy (dense / shared‑L3‑aware). |
 
-<sub>The 3‑Stage pipeline is opt‑in: pass `--thredis-strict-pipeline yes --thredis-wb-threads N` (see
+<sub>The 3‑Stage pipeline is opt‑in: pass `--tomokv-strict-pipeline yes --tomokv-wb-threads N` (see
 [Building & running](#building--running)). Build with `make USE_URING=yes` — the strict WB send path
 requires it.</sub>
 
 ### Reply backend
 | Knob | Default | Meaning |
 | :--- | :--- | :--- |
-| `thredis-wb-epoll` | off | WB stage sends via epoll `write()` (else io_uring). |
-| `thredis-io-uring` | off | Master switch for the io_uring backend. |
-| `thredis-io-uring-recv` / `-zc` / `-sqpoll` | off | Multishot receive / zero‑copy send / kernel submission polling. |
+| `tomokv-wb-epoll` | off | WB stage sends via epoll `write()` (else io_uring). |
+| `tomokv-io-uring` | off | Master switch for the io_uring backend. |
+| `tomokv-io-uring-recv` / `-zc` / `-sqpoll` | off | Multishot receive / zero‑copy send / kernel submission polling. |
 
 ### Prefetch pipeline
 | Knob | Default | Meaning |
 | :--- | :--- | :--- |
-| `thredis-opt-prefetch-worker` | on | Master switch for the worker prefetch pipeline. |
-| `thredis-prefetch-adaptive-min-keys` | auto | Enable prefetch only once a shard exceeds this key count (DRAM‑bound). |
-| `thredis-pf-fc` / `-argv` / `-cmd` / `-keyobj` | on | Individual pass‑1 prefetch stages. |
-| `thredis-pf-w-struct` / `-hash` / `-entry` / `-value` | 256 | Per‑stage prefetch window widths. |
-| `thredis-pf-w-nextop` | 256 | Execution‑adjacent next‑op look‑ahead distance. |
-| `thredis-opt-hash-carry` | on | Compute each key's hash once; reuse through dispatch + lookup. |
+| `tomokv-opt-prefetch-worker` | on | Master switch for the worker prefetch pipeline. |
+| `tomokv-prefetch-adaptive-min-keys` | auto | Enable prefetch only once a shard exceeds this key count (DRAM‑bound). |
+| `tomokv-pf-fc` / `-argv` / `-cmd` / `-keyobj` | on | Individual pass‑1 prefetch stages. |
+| `tomokv-pf-w-struct` / `-hash` / `-entry` / `-value` | 256 | Per‑stage prefetch window widths. |
+| `tomokv-pf-w-nextop` | 256 | Execution‑adjacent next‑op look‑ahead distance. |
+| `tomokv-opt-hash-carry` | on | Compute each key's hash once; reuse through dispatch + lookup. |
 
 ### Dispatch, reply & memory de‑contention
 | Knob | Default | Meaning |
 | :--- | :--- | :--- |
-| `thredis-opt-batch-push` | on | Stage worker pushes, one tail release per batch. |
-| `thredis-batch-push-eager` | on | Publish the staged batch at end of parse. |
-| `thredis-opt-coalesce-signal` | on | Coalesce per‑parent reply‑ready signals. |
-| `thredis-operand-pool-tiered` | off | Size‑class‑tiered operand pool with WB→ingress recycle ring. |
-| `thredis-opt-multi-cdb` / `thredis-num-cdb` | off / auto | Spread reply signaling across multiple CDB cache lines. |
-| `thredis-opt-perthread-stats` | on | Cache‑line‑isolated per‑thread counters (no false sharing). |
+| `tomokv-opt-batch-push` | on | Stage worker pushes, one tail release per batch. |
+| `tomokv-batch-push-eager` | on | Publish the staged batch at end of parse. |
+| `tomokv-opt-coalesce-signal` | on | Coalesce per‑parent reply‑ready signals. |
+| `tomokv-operand-pool-tiered` | off | Size‑class‑tiered operand pool with WB→ingress recycle ring. |
+| `tomokv-opt-multi-cdb` / `tomokv-num-cdb` | off / auto | Spread reply signaling across multiple CDB cache lines. |
+| `tomokv-opt-perthread-stats` | on | Cache‑line‑isolated per‑thread counters (no false sharing). |
 
 ### Advanced
-Cross‑shard (`thredis-opt-cross-shard`, `-cross-setop`, `-fanall`), online resharding
-(`thredis-reshard-auto` and the `thredis-reshard-*` family), memory (`thredis-zerocopy-min-value`), and a
-suite of research/experimental predictors (`thredis-vf-*`, `thredis-opt-ship-reuse`,
-`thredis-opt-feedback-prefetch`) are available and default‑off. Run `redis-server --help` or see `config.c`
+Cross‑shard (`tomokv-opt-cross-shard`, `-cross-setop`, `-fanall`), online resharding
+(`tomokv-reshard-auto` and the `tomokv-reshard-*` family), memory (`tomokv-zerocopy-min-value`), and a
+suite of research/experimental predictors (`tomokv-vf-*`, `tomokv-opt-ship-reuse`,
+`tomokv-opt-feedback-prefetch`) are available and default‑off. Run `redis-server --help` or see `config.c`
 for the full surface.
 
 ---
@@ -255,8 +255,8 @@ for the full surface.
 make -j USE_URING=yes
 
 # Run a 3-stage instance: 4 ingress, 4 workers, 2 write-back (ROB) threads
-./src/redis-server --myifidthreads 4 --myexthreads 4 \
-                   --thredis-strict-pipeline yes --thredis-wb-threads 2
+./src/redis-server --tomokv-ifid-threads 4 --tomokv-ex-threads 4 \
+                   --tomokv-strict-pipeline yes --tomokv-wb-threads 2
 
 # Talk to it with any Redis client
 ./src/redis-cli set hello world
