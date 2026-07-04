@@ -3154,6 +3154,7 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-stats", NULL, MODIFIABLE_CONFIG, server.opt_perthread_stats, 1, NULL, NULL),
+    createBoolConfig("thredis-opt-batched-clear", NULL, MODIFIABLE_CONFIG, server.opt_batched_clear, 0, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-dirty", NULL, IMMUTABLE_CONFIG, server.opt_perthread_dirty, 0, NULL, NULL),
     createIntConfig("thredis-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the

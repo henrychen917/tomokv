@@ -1539,8 +1539,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     run_with_period(100) {
         long long stat_net_input_bytes, stat_net_output_bytes;
         long long stat_net_repl_input_bytes, stat_net_repl_output_bytes;
-        atomicGet(server.stat_net_input_bytes, stat_net_input_bytes);
-        atomicGet(server.stat_net_output_bytes, stat_net_output_bytes);
+        stat_net_input_bytes = getNetInputBytes();     /* ee451 (#A2): fold per-thread shards */
+        stat_net_output_bytes = getNetOutputBytes();
         atomicGet(server.stat_net_repl_input_bytes, stat_net_repl_input_bytes);
         atomicGet(server.stat_net_repl_output_bytes, stat_net_repl_output_bytes);
         monotime current_time = getMonotonicUs();
@@ -1906,6 +1906,40 @@ static inline uint32_t cdbCombinedMask(client *real) {
     return m;
 }
 
+/* ee451 (#A1): batched CDB clear. The drain paths issued one lock-prefixed fetch_and PER RETIRED SLOT
+ * on the same cache line(s) the workers concurrently fetch_or into — up to pipeline-depth RMWs per
+ * pass. Bits are only ever OR'd by workers and cleared by the sole drainer, so N single-bit clears are
+ * equivalent to ONE combined clear per cdb: accumulate the masks over the ready-prefix walk and flush
+ * once per touched cdb. INVARIANT: the flush must complete before any code that can REUSE a ring slot
+ * (the same-thread STALLED-resume redispatch). Gated: thredis-opt-batched-clear. */
+typedef struct cdbClrAcc {
+    int n;
+    uint8_t cdb[MY_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
+    uint32_t mask[MY_PIPELINE_DEPTH_MAX];
+} cdbClrAcc;
+static inline void cdbClrAdd(cdbClrAcc *a, int cdb, uint32_t bit) {
+    for (int i = 0; i < a->n; i++)
+        if (a->cdb[i] == (uint8_t)cdb) { a->mask[i] |= bit; return; }
+    a->cdb[a->n] = (uint8_t)cdb; a->mask[a->n] = bit; a->n++;
+}
+static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
+    for (int i = 0; i < a->n; i++)
+        atomicFetchAnd(real->reply_cdb[a->cdb[i]].v, ~a->mask[i]);
+    a->n = 0;
+}
+
+/* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
+long long getNetInputBytes(void) {
+    long long s; atomicGet(server.stat_net_input_bytes, s);
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].in;
+    return s;
+}
+long long getNetOutputBytes(void) {
+    long long s; atomicGet(server.stat_net_output_bytes, s);
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].out;
+    return s;
+}
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -1936,6 +1970,7 @@ void handleWorkerReplies(void) {
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
             uint32_t close_mask;
             close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
+            cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
                 unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
@@ -1949,9 +1984,11 @@ void handleWorkerReplies(void) {
                 if (fake->csgroup) csReassemble(NULL, fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+                if (server.opt_batched_clear) cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1) */
+                else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
                 real->flushid++;
             }
+            cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
             if (real->flushid == real->dispatchid) {
                 listDelNode(server.clients_pending_ex[iotid], ln);
             }
@@ -2006,6 +2043,7 @@ void handleWorkerReplies(void) {
             }
         }
 
+        cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
             unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
@@ -2047,7 +2085,8 @@ void handleWorkerReplies(void) {
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
-                atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+                if (server.opt_batched_clear) cdbClrAdd(&acc, fake->cdb, 1u << slot);   /* ee451 (#A1) */
+                else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
                 close_asap = 1;
                 break;
             }
@@ -2056,12 +2095,16 @@ void handleWorkerReplies(void) {
              * ready bit (relaxed — the only other writers are workers, but
              * they only OR; we're the sole clearer) and retire fake state.
              * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
-            atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
+            if (server.opt_batched_clear) cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1) */
+            else atomicFetchAnd(real->reply_cdb[fake->cdb].v, ~(1u << slot));  /* ee451 (S5): clear in the fake's captured CDB */
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
             real->flushid++;
         }
+        /* ee451 (#A1): flush the accumulated clears NOW — before the STALLED-resume below can
+         * redispatch into these freed slots on this same thread. Same-thread => no other ordering. */
+        cdbClrFlush(&acc, real);
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
@@ -3068,6 +3111,10 @@ void resetServerStats(void) {
     server.stat_rdb_consecutive_failures = 0;
     atomicSet(server.stat_net_input_bytes, 0);
     atomicSet(server.stat_net_output_bytes, 0);
+    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
+        server.netstat[i].in = 0;
+        server.netstat[i].out = 0;
+    }
     atomicSet(server.stat_net_repl_input_bytes, 0);
     atomicSet(server.stat_net_repl_output_bytes, 0);
     server.stat_unexpected_error_replies = 0;
@@ -8243,8 +8290,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         long long current_active_defrag_time = server.stat_last_active_defrag_time ?
             (long long) elapsedUs(server.stat_last_active_defrag_time): 0;
         long long stat_client_qbuf_limit_disconnections;
-        atomicGet(server.stat_net_input_bytes, stat_net_input_bytes);
-        atomicGet(server.stat_net_output_bytes, stat_net_output_bytes);
+        stat_net_input_bytes = getNetInputBytes();     /* ee451 (#A2): fold per-thread shards */
+        stat_net_output_bytes = getNetOutputBytes();
         atomicGet(server.stat_net_repl_input_bytes, stat_net_repl_input_bytes);
         atomicGet(server.stat_net_repl_output_bytes, stat_net_repl_output_bytes);
         atomicGet(server.stat_client_qbuf_limit_disconnections, stat_client_qbuf_limit_disconnections);
