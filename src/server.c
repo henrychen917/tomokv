@@ -1706,7 +1706,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     }
 
     /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
-     * thredis-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
+     * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
     run_with_period(1000) reshardAutoTune();
 
     /* Clear the paused actions state if needed. */
@@ -1915,11 +1915,11 @@ static inline uint32_t cdbCombinedMask(client *real) {
  * pass. Bits are only ever OR'd by workers and cleared by the sole drainer, so N single-bit clears are
  * equivalent to ONE combined clear per cdb: accumulate the masks over the ready-prefix walk and flush
  * once per touched cdb. INVARIANT: the flush must complete before any code that can REUSE a ring slot
- * (the same-thread STALLED-resume redispatch). Gated: thredis-opt-batched-clear. */
+ * (the same-thread STALLED-resume redispatch). Gated: tomokv-opt-batched-clear. */
 typedef struct cdbClrAcc {
     int n;
-    uint8_t cdb[MY_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
-    uint32_t mask[MY_PIPELINE_DEPTH_MAX];
+    uint8_t cdb[TOMO_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
+    uint32_t mask[TOMO_PIPELINE_DEPTH_MAX];
 } cdbClrAcc;
 static inline void cdbClrAdd(cdbClrAcc *a, int cdb, uint32_t bit) {
     for (int i = 0; i < a->n; i++)
@@ -1935,12 +1935,12 @@ static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].in;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].in;
     return s;
 }
 long long getNetOutputBytes(void) {
     long long s; atomicGet(server.stat_net_output_bytes, s);
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.netstat[i].out;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].out;
     return s;
 }
 
@@ -1976,7 +1976,7 @@ void handleWorkerReplies(void) {
             close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
             cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
-                unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
+                unsigned int slot = real->flushid & server.pipeline_ring_mask;
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
@@ -2031,7 +2031,7 @@ void handleWorkerReplies(void) {
 
         cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & server.my_pipeline_queue_mask;
+            unsigned int slot = real->flushid & server.pipeline_ring_mask;
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
 
             client *fake = real->fakeClients[slot];
@@ -2119,7 +2119,7 @@ void handleWorkerReplies(void) {
          * wake it. processInputBuffer will re-evaluate and dispatch whatever
          * was sitting in pending_cmds. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < (unsigned int)server.my_pipeline_depth)
+            (real->dispatchid - real->flushid) < (unsigned int)server.pipeline_ring_depth)
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -3034,7 +3034,7 @@ void resetServerStats(void) {
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
         server.kstat[i].hits = 0;
         server.kstat[i].misses = 0;
     }
@@ -3052,7 +3052,7 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < server.my_io_threads; j++) {
+    for (j = 0; j < server.io_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -3071,7 +3071,7 @@ void resetServerStats(void) {
     server.stat_rdb_consecutive_failures = 0;
     atomicSet(server.stat_net_input_bytes, 0);
     atomicSet(server.stat_net_output_bytes, 0);
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
         server.netstat[i].in = 0;
         server.netstat[i].out = 0;
     }
@@ -3143,23 +3143,23 @@ void initServer(void) {
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
 
-    /* Derive runtime constants from THredis-dev custom threading config.
-     * my_pipeline_depth, my_ex_queue_size, and my_ex_threads are
+    /* Derive runtime constants from Tomo KV-dev custom threading config.
+     * pipeline_ring_depth, ex_queue_size, and ex_threads are
      * all validated as powers of two, so (val - 1) is a valid mask for
-     * each. getWorkerForCommand uses my_ex_dispatch_mask to replace
+     * each. getWorkerForCommand uses ex_dispatch_mask to replace
      * `hash % num_workers` with a single AND. */
-    server.my_pipeline_queue_mask  = (unsigned int)(server.my_pipeline_depth - 1);
-    server.my_ex_queue_mask    = (unsigned int)(server.my_ex_queue_size - 1);
-    server.my_ex_dispatch_mask = (uint64_t)(server.my_ex_threads - 1);  /* legacy */
+    server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
+    server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
+    server.ex_dispatch_mask = (uint64_t)(server.ex_threads - 1);  /* legacy */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
-     * buckets [i*MY_BUCKETS/W, (i+1)*MY_BUCKETS/W)). Works for ANY worker count W (no
+     * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W (no
      * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
     {
-        int W = server.my_ex_threads;
-        for (int b = 0; b < MY_BUCKETS; b++)
-            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / MY_BUCKETS);
+        int W = server.ex_threads;
+        for (int b = 0; b < TOMO_BUCKETS; b++)
+            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
         for (int i = 0; i < W; i++)
-            server.ex_bucket_end[i] = (int)(((long)(i + 1) * MY_BUCKETS) / W);
+            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -3202,7 +3202,7 @@ void initServer(void) {
     resetReplicationBuffer();
 
     /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
-    for (int t = 0; t <= server.my_io_threads; t++) {
+    for (int t = 0; t <= server.io_threads; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -3260,10 +3260,10 @@ void initServer(void) {
         server.db[j].avg_ttl = 0;
     }
 
-    server.num_workers = server.my_ex_threads;
+    server.num_workers = server.ex_threads;
     /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
      * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
-    /* ee451 (#75): resolve the bus count once (IMMUTABLE). thredis-num-cdb (cfg_num_cdb>0) requests an
+    /* ee451 (#75): resolve the bus count once (IMMUTABLE). tomokv-num-cdb (cfg_num_cdb>0) requests an
      * explicit count, else legacy opt_multi_cdb auto-requests one bus per worker, else 1. Capped at
      * num_workers (cdbIndexFor = ex_id % num_cdb with ex_id < num_workers, so buses beyond #workers are
      * never written -> would only widen the per-reply drain scan) and at NUM_CDB_MAX. So the knob accepts
@@ -5023,7 +5023,7 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
-    if (c->dispatchid - c->flushid == (unsigned int)server.my_pipeline_depth) {
+    if (c->dispatchid - c->flushid == (unsigned int)server.pipeline_ring_depth) {
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
@@ -5035,7 +5035,7 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    client *fake = c->fakeClients[c->dispatchid & server.my_pipeline_queue_mask];
+    client *fake = c->fakeClients[c->dispatchid & server.pipeline_ring_mask];
     moveExecutionState(c, fake);
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
@@ -5212,7 +5212,7 @@ int canDispatchToWorker(client *c) {
          * route to the key's shard and operate on the SAME worker DB as GET/SET, so
          * value and expire no longer diverge across DBs. The propagation rewrite some
          * of these do (SET..EX/SETEX/EXPIRE->PEXPIREAT, GETEX) is now skipped for fakes
-         * at the rewrite functions (propagation is a THredis non-goal). ------------ */
+         * at the rewrite functions (propagation is a Tomo KV non-goal). ------------ */
         p == ttlCommand          || p == pttlCommand         ||
         p == expireCommand       || p == pexpireCommand      ||
         p == expireatCommand     || p == pexpireatCommand    ||
@@ -5379,7 +5379,7 @@ int getWorkerForCommand(client *c) {
      *
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
      * short keys) + bitmask (num_workers is validated power-of-two at
-     * config load, so server.my_ex_dispatch_mask = num_workers - 1
+     * config load, so server.ex_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
     return exIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
 }
@@ -5391,7 +5391,7 @@ int exIndexForKey(const void *keyptr, size_t len) {
     /* ee451 (v8): xxhash -> bucket (single AND) -> worker via the indirection table. One
      * extra L1-resident load vs the old direct mask, in exchange for arbitrary worker counts
      * and online resharding. */
-    return (int)server.ex_bucket_table[xxh64(keyptr, len) & MY_BUCKET_MASK];
+    return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -5920,7 +5920,7 @@ static inline int migBucketInRange(int b) {            /* caller already checked
     return b >= server.migration.lo && b < server.migration.hi;
 }
 /* key (sds) -> bucket, same hash as exIndexForKey but without the table indirection. */
-static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & MY_BUCKET_MASK); }
+static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & TOMO_BUCKET_MASK); }
 
 /* ---- effect-log SPSC ring (A produces tail, B consumes head) ---- */
 static migLog *migLogCreate(unsigned int cap) {
@@ -6133,7 +6133,7 @@ static void migCleanupDeleteRangeA(exThread *A) {
         dictEntry *de;
         while ((de = kvstoreIteratorNext(&it)) != NULL) {
             sds k = kvobjGetKey(dictGetKV(de));
-            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
             if (b < lo || b >= hi) continue;
             if (n == cap) { cap = cap ? cap * 2 : 256; batch = zrealloc(batch, sizeof(sds) * cap); }
             batch[n++] = sdsdup(k);
@@ -6157,9 +6157,9 @@ static void *reshardCoordinator(void *arg) {
     (void)arg;
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
-    /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..my_io_threads-1) =
-     * my_io_threads total. (Worker queue slot my_io_threads exists but has no producer.) */
-    int nprod = server.my_io_threads;
+    /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..io_threads-1) =
+     * io_threads total. (Worker queue slot io_threads exists but has no producer.) */
+    int nprod = server.io_threads;
 
     /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
      * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
@@ -6172,7 +6172,7 @@ static void *reshardCoordinator(void *arg) {
      * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
      * also see the new fence_gen (release/acquire on phase carries the prior stores) — otherwise a
      * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
-    for (int t = 0; t <= server.my_io_threads; t++)
+    for (int t = 0; t <= server.io_threads; t++)
         atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
     atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
@@ -6183,7 +6183,7 @@ static void *reshardCoordinator(void *arg) {
      * pushed one — proving every range primary it dispatched before is executed) OR A's queue from
      * that slot has stayed empty for a stretch (idle producer blocked in epoll — nothing in flight,
      * so no sentinel will ever come). This needs no cross-thread wake of idle IO threads. */
-    int empty_cnt[MY_IO_THREADS_MAX + 1] = {0};
+    int empty_cnt[TOMO_IO_THREADS_MAX + 1] = {0};
     for (;;) {
         int pending = 0;
         for (int t = 0; t < nprod; t++) {
@@ -6260,9 +6260,9 @@ static int reshardBeginCutover(void) {
  * and when the hottest shard is persistently above the mean it shifts a chunk of boundary buckets
  * to its cooler adjacent neighbour via a full-auto migration. NOTHING here is read on the per-
  * command routing path — that stays a single bucket-table byte load. ---- */
-static double   mig_load_ewma[MY_EX_THREADS_MAX];
-static double   mig_load_ewma_fast[MY_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
-static uint64_t mig_last_ops[MY_EX_THREADS_MAX];
+static double   mig_load_ewma[TOMO_EX_THREADS_MAX];
+static double   mig_load_ewma_fast[TOMO_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
+static uint64_t mig_last_ops[TOMO_EX_THREADS_MAX];
 static int      mig_ewma_primed = 0;
 /* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
  * ONLY while it is actually shrinking the peak load/capacity. mig_peak_pre = the peak metric we were
@@ -6276,7 +6276,7 @@ void reshardAutoTune(void) {
     /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
      * tick forever; every quantity is recomputed from the current signal — no calibration
      * phase, no learned-then-locked state, no dependence on server uptime. DEFAULT ON;
-     * off = thredis-reshard-min-ops 0 (also the significance floor).
+     * off = tomokv-reshard-min-ops 0 (also the significance floor).
      * The only remaining knobs are min-ops (floor/off) and chunk-buckets (granule) — the
      * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
@@ -6390,7 +6390,7 @@ static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCou
         while ((de = kvstoreIteratorNext(&it)) != NULL) {
             kvobj *kv = dictGetKV(de);
             sds k = kvobjGetKey(kv);
-            int b = (int)(xxh64(k, sdslen(k)) & MY_BUCKET_MASK);
+            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
             if (b < lo || b >= hi) continue;
             rio r; rioInitWithBuffer(&r, sdsempty());
             rdbSaveObjectType(&r, (robj*)kv);
@@ -6414,7 +6414,7 @@ void reshardDebug(client *c) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
         int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
         int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
-        if (lo < 0 || hi > MY_BUCKETS || lo >= hi ||
+        if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi ||
             src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
@@ -6436,7 +6436,7 @@ void reshardDebug(client *c) {
          * key; that is a §4.8 single-writer violation that races worker writes and can crash.) */
         sds key = c->argv[3]->ptr;
         int routed = exIndexForKey(key, sdslen(key));
-        int bucket = (int)(xxh64(key, sdslen(key)) & MY_BUCKET_MASK);
+        int bucket = (int)(xxh64(key, sdslen(key)) & TOMO_BUCKET_MASK);
         addReplyStatusFormat(c, "key=%s bucket=%d routed_ex=%d", key, bucket, routed);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
         int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
@@ -7935,12 +7935,12 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
  * normally 0) into a single total for INFO. */
 static long long keyspaceHitsTotal(void) {
     long long s = server.stat_keyspace_hits;
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
     return s;
 }
 static long long keyspaceMissesTotal(void) {
     long long s = server.stat_keyspace_misses;
-    for (int i = 0; i < MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
     return s;
 }
 
@@ -9629,7 +9629,7 @@ void freebackPush(int ex_id, robj *obj) {
  * on the worker thread (single-writer for its shard => no refcount race).
  * Called once per worker loop iteration. */
 static inline void freebackDrainAll(exThread *worker) {
-    for (int t = 0; t <= server.my_io_threads; t++) {
+    for (int t = 0; t <= server.io_threads; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
@@ -9649,7 +9649,7 @@ int exQueuePush(exQueue *q, client *c) {
      * pipeline_depth cross-CCD release-stores into one. staged_tail is the
      * producer-private write frontier (>= published tail). */
     unsigned int t = q->staged_tail;
-    unsigned int next_t = (t + 1) & server.my_ex_queue_mask;
+    unsigned int next_t = (t + 1) & server.ex_queue_mask;
     /* ee451: fast-path the "not full" check against the producer-private
      * cached_head, avoiding the cross-core acquire-load of the consumer's
      * head line on every push. cached_head lags the real head (the consumer
@@ -9689,7 +9689,7 @@ client *exQueuePop(exQueue *q) {
         if (h == q->cached_tail) return NULL; /* empty */
     }
     client *c = q->jobs[h];
-    atomic_store_explicit(&q->head, (h + 1) & server.my_ex_queue_mask,
+    atomic_store_explicit(&q->head, (h + 1) & server.ex_queue_mask,
                           memory_order_release);
     return c;
 }
@@ -9704,21 +9704,21 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
      * past head since last head advance.
      * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
     unsigned int avail;
-    avail = (q->cached_tail - h) & server.my_ex_queue_mask;
+    avail = (q->cached_tail - h) & server.ex_queue_mask;
     if (avail == 0) {
         /* ee451: cache says empty — pay the cross-core acquire-load once to
          * refresh. The acquire pairs with the producer's release store of
          * tail, making jobs[..tail) visible; those slots stay visible for
          * subsequent cached reads until head catches up again. */
         q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        avail = (q->cached_tail - h) & server.my_ex_queue_mask;
+        avail = (q->cached_tail - h) & server.ex_queue_mask;
         if (avail == 0) return 0;
     }
     int n = (int)avail < max ? (int)avail : max;
     for (int i = 0; i < n; i++) {
-        out[i] = q->jobs[(h + (unsigned int)i) & server.my_ex_queue_mask];
+        out[i] = q->jobs[(h + (unsigned int)i) & server.ex_queue_mask];
     }
-    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.my_ex_queue_mask,
+    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.ex_queue_mask,
                           memory_order_release);
     return n;
 }
@@ -9774,7 +9774,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
      * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
-    exThread *pfw = &server.exThreads[iotid - (MY_IO_THREADS_MAX + 1)];
+    exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
      * Full prefetch-off remains available via the stage widths (all 0). */
@@ -10023,12 +10023,12 @@ static inline void exExecFake(client *fake) {
 void *exThreadMain(void *arg) {
     exThread *worker = (exThread *)arg;
     /* ee451: give this worker a PRIVATE iotid above the IO-thread range
-     * (IO threads occupy 0..my_io_threads-1; main thread is 0). Without this,
+     * (IO threads occupy 0..io_threads-1; main thread is 0). Without this,
      * iotid stays at its __thread default of 0 and every worker aliases
      * IO-thread-0's slot in server.current_client[]/executing_client[], racing
-     * the main thread. The fixed base MY_IO_THREADS_MAX+1 guarantees no overlap
-     * with any IO-thread iotid regardless of the configured my_io_threads. */
-    iotid = MY_IO_THREADS_MAX + 1 + worker->id;
+     * the main thread. The fixed base TOMO_IO_THREADS_MAX+1 guarantees no overlap
+     * with any IO-thread iotid regardless of the configured io_threads. */
+    iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
 
 #ifdef HAVE_LIBURING
     /* ee451 (v12-K): build this worker's exclusive io_uring send ring (gated; default off). The ring
@@ -10057,7 +10057,7 @@ void *exThreadMain(void *arg) {
      * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
      * window first, fall back to yield only if still idle after that.
      *
-     * Tuning knobs (v13: runtime — thredis-worker-spin-pauses / -spin-yield-rounds;
+     * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
      * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
      * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
     int empty_rounds = 0;
@@ -10097,7 +10097,7 @@ void *exThreadMain(void *arg) {
          * untouched; only the inter-queue visit order rotates, which was never
          * ordered to begin with. */
         static __thread int scan_start = 0;
-        int nq = server.my_io_threads + 1;
+        int nq = server.io_threads + 1;
         if (++scan_start >= nq) scan_start = 0;
         for (int k = 0; k < nq; k++) {
             int i = scan_start + k; if (i >= nq) i -= nq;
@@ -10247,8 +10247,8 @@ void *exThreadMain(void *arg) {
 }
 
 /* Pin a worker's pthread to a single core so its per-shard DB stays
- * cache-resident on that core. IO threads sit on cores [0, my_io_threads);
- * we push workers onto cores starting at my_io_threads. If the machine
+ * cache-resident on that core. IO threads sit on cores [0, io_threads);
+ * we push workers onto cores starting at io_threads. If the machine
  * doesn't have enough cores, fall back to wrapping with modulo — a soft
  * collision with an IO thread is fine, worse than ideal but not wrong. */
 /* ee451: SIMPLE deterministic core pinning — IDENTICAL across stable / v1 / v2
@@ -10389,7 +10389,7 @@ void initExThreads(void) {
     server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
-     * gated by thredis-os-opts. */
+     * gated by tomokv-os-opts. */
 #ifdef MADV_HUGEPAGE
     if (server.os_opts)
         madvise(server.exThreads, sizeof(exThread) * server.num_workers, MADV_HUGEPAGE);
@@ -10397,7 +10397,7 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        for (int t = 0; t <= server.my_io_threads; t++) {
+        for (int t = 0; t <= server.io_threads; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
             freebackRing *fb = &server.exThreads[i].freeback[t];
@@ -10412,11 +10412,11 @@ void initExThreads(void) {
 
 
 void initIOThreads(void) {
-    server.ioThreadsNum = server.my_io_threads;
-    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * server.my_io_threads);
+    server.ioThreadsNum = server.io_threads;
+    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * server.io_threads);
     server.custom_io_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
-    for (int i = 1; i < server.my_io_threads; i++) {
+    for (int i = 1; i < server.io_threads; i++) {
         ioThreadArgs *t = &server.ioThreads[i];
         t->id = i;
         /* Create the event loop for this IO thread */

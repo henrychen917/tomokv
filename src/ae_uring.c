@@ -145,8 +145,8 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
      *   - Needs CAP_SYS_NICE (or CAP_SYS_ADMIN on kernel <5.11). Usually
      *     fine for redis-server running as root; may fail under a
      *     sandboxed user with tight capabilities.
-     *   - Dedicates a CPU core PER ring. Since THredis creates a ring
-     *     per IO thread's ae loop, this multiplies: 1 + my_io_threads
+     *   - Dedicates a CPU core PER ring. Since Tomo KV creates a ring
+     *     per IO thread's ae loop, this multiplies: 1 + io_threads
      *     kernel polling threads total. On an 8-core box with 3 IO
      *     threads, that's 4 kernel pollers consuming (at most) 4 cores.
      *   - If the SQ is rarely submitted to (which is the case for our

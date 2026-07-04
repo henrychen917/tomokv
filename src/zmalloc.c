@@ -93,12 +93,12 @@ static __attribute__((aligned(CACHE_LINE_SIZE))) used_memory_entry used_memory[M
 static redisAtomic size_t num_active_threads = 0;
 static redisAtomic size_t zmalloc_peak = 0;
 static redisAtomic time_t zmalloc_peak_time = 0;
-static __thread long my_thread_index = -1;
+static __thread long thread_index = -1;
 
 static inline void init_my_thread_index(void) {
-    if (unlikely(my_thread_index == -1)) {
-        atomicGetIncr(num_active_threads, my_thread_index, 1);
-        my_thread_index &= THREAD_MASK;
+    if (unlikely(thread_index == -1)) {
+        atomicGetIncr(num_active_threads, thread_index, 1);
+        thread_index &= THREAD_MASK;
     }
 }
 
@@ -109,8 +109,8 @@ static inline void init_my_thread_index(void) {
  * churn). Readers (zmalloc_used_memory) sum slots with relaxed loads, tolerating transient
  * staleness; aligned 8-byte load/store is atomic on x86-64 so no torn reads. */
 static inline long long zmalloc_local_add(long long bytes_delta) {
-    long long v = __atomic_load_n(&used_memory[my_thread_index].used_memory, __ATOMIC_RELAXED) + bytes_delta;
-    __atomic_store_n(&used_memory[my_thread_index].used_memory, v, __ATOMIC_RELAXED);
+    long long v = __atomic_load_n(&used_memory[thread_index].used_memory, __ATOMIC_RELAXED) + bytes_delta;
+    __atomic_store_n(&used_memory[thread_index].used_memory, v, __ATOMIC_RELAXED);
     return v;
 }
 
@@ -121,7 +121,7 @@ static void update_zmalloc_stat_alloc(long long bytes_delta) {
      * global peak check (throttles how often we call zmalloc_used_memory()). */
     long long thread_used, thread_last_peak_check_used;
     thread_used = zmalloc_local_add(bytes_delta);   /* ee451 v10-A: single-writer, no LOCK */
-    atomicGet(used_memory[my_thread_index].last_peak_check, thread_last_peak_check_used);
+    atomicGet(used_memory[thread_index].last_peak_check, thread_last_peak_check_used);
 
     /* Only run the (expensive) global used/peak check after this thread's
      * allocation counter has advanced enough since the last check. */
@@ -152,7 +152,7 @@ static void update_zmalloc_stat_alloc(long long bytes_delta) {
 
         /* Record the thread counter value at which we last ran a global peak check,
          * to throttle future checks for this thread. */
-        atomicSet(used_memory[my_thread_index].last_peak_check, thread_used);
+        atomicSet(used_memory[thread_index].last_peak_check, thread_used);
     }
 }
 

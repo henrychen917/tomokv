@@ -187,7 +187,7 @@ static int connSocketAccept(connection *conn, ConnectionCallbackFunc accept_hand
 
     /* v12 OS opts: on the accepted socket, disable delayed ACKs (TCP_QUICKACK) and enable
      * kernel busy-polling (SO_BUSY_POLL) to cut per-request latency on the read path. Best-effort
-     * (ignore failures); gated by thredis-os-opts. */
+     * (ignore failures); gated by tomokv-os-opts. */
     if (server.os_opts && conn->fd >= 0) {
 #ifdef TCP_QUICKACK
         int qa = 1; setsockopt(conn->fd, IPPROTO_TCP, TCP_QUICKACK, &qa, sizeof(qa));

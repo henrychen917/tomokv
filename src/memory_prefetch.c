@@ -82,7 +82,7 @@ typedef struct PrefetchCommandsBatch {
     GetValueDataFunc get_value_data_func; /* Function to get the value data */
 } PrefetchCommandsBatch;
 
-/* THredis-dev: this file is dead code. All call sites for the upstream
+/* Tomo KV-dev: this file is dead code. All call sites for the upstream
  * command-prefetch batch have been removed from the fork's live paths.
  * The functions below compile but are never invoked. Left intact rather
  * than deleted to avoid touching the Makefile and to simplify rebase

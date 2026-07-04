@@ -338,12 +338,12 @@ client *createFakeClient(client *parent) {
  * vanilla UNDER PIPELINE. The pool caches the struct + buffer + reply list across calls. Scoped to
  * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
 #define XSUB_POOL_CAP 96
-static client *xsubPool[MY_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
-static int xsubPoolN[MY_IO_THREADS_MAX + 1];
+static client *xsubPool[TOMO_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
+static int xsubPoolN[TOMO_IO_THREADS_MAX + 1];
 
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
-    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] > 0) {
+    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] > 0) {
         client *c = xsubPool[t][--xsubPoolN[t]];
         /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
          * (ensured at free time). Re-init every other field to the pristine state. */
@@ -357,7 +357,7 @@ void freePooledFakeClient(client *c) {
     int t = iotid;
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
-    if (t >= 0 && t <= MY_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
+    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
         c->buf && c->reply && c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES) {
         if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
         releaseAllBufReferences(c);
@@ -427,13 +427,13 @@ client *createClient(connection *conn) {
 #endif
     c->conn = conn;
 #ifdef HAVE_LIBURING
-    /* v12-G: arm io_uring multishot-recv (gated). THredis accepts each client directly on a
+    /* v12-G: arm io_uring multishot-recv (gated). Tomo KV accepts each client directly on a
      * dedicated IO thread's SO_REUSEPORT listener, so createClient runs ON that IO thread and
      * iotid identifies it — the client lives its whole life (accept/read/free) on this thread,
      * which keeps every recv-ring op single-threaded. The epoll read handler set just above
      * stays as a harmless fallback (multishot drains the socket first → spurious wakeups EAGAIN). */
     if (conn && server.io_uring_recv && server.io_uring_net &&
-        iotid >= 1 && iotid < server.my_io_threads &&
+        iotid >= 1 && iotid < server.io_threads &&
         iouRecvEnsure(iotid, server.ioThreads[iotid].el) >= 0)
         iouRecvArm(c);
 #endif
@@ -562,9 +562,9 @@ client *createClient(connection *conn) {
      * owns its own output buffer, and lives for the lifetime of the parent.
      * fake_slot is stamped to the ring index so workers know which bit to set
      * in parent->reply_ready_mask at completion.
-     * Allocate exactly server.my_pipeline_depth fakes; slots [depth, MAX) stay
+     * Allocate exactly server.pipeline_ring_depth fakes; slots [depth, MAX) stay
      * NULL. Depth is immutable post-startup so we never grow the ring. */
-    for (int i = 0; i < server.my_pipeline_depth; i++) {
+    for (int i = 0; i < server.pipeline_ring_depth; i++) {
         c->fakeClients[i] = createFakeClient(c);
         c->fakeClients[i]->fake_slot = (unsigned int)i;
     }
@@ -845,7 +845,7 @@ static inline int clientIsInPendingRefReplyList(client *c) {
     /* ee451 (S8): worker fakes are never put in this list (their zero-copy
      * reply values are kept alive by the +1 ref + free-back ring, not by
      * flushdb-protection tracking). Crucially, server.clients_with_pending_ref_reply[]
-     * is sized [MY_IO_THREADS_MAX+1] and indexed by iotid; a worker's iotid is
+     * is sized [TOMO_IO_THREADS_MAX+1] and indexed by iotid; a worker's iotid is
      * in the worker range, so the listFirst([iotid]) clause below would read out
      * of bounds. Returning false for fakes keeps this and the unlink path safe. */
     if (c->isFake) return 0;
@@ -865,9 +865,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
                         * a worker fake, on the owning worker via freebackPush) */
     /* ee451 (S8): if this reply is being built on a worker (a fake executing a
      * command), record the owning worker id so the post-send decrRefCount is
-     * routed back to it. iotid for a worker is MY_IO_THREADS_MAX+1+ex_id. */
-    str_ref.owner_ex = (c->isFake && iotid > MY_IO_THREADS_MAX)
-                         ? (iotid - (MY_IO_THREADS_MAX + 1)) : -1;
+     * routed back to it. iotid for a worker is TOMO_IO_THREADS_MAX+1+ex_id. */
+    str_ref.owner_ex = (c->isFake && iotid > TOMO_IO_THREADS_MAX)
+                         ? (iotid - (TOMO_IO_THREADS_MAX + 1)) : -1;
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';
@@ -899,9 +899,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
     /* Track clients with pending referenced reply objects for async flushdb
      * protection.
      * ee451 (S8): SKIP this for worker fakes (owner_ex >= 0). The list
-     * server.clients_with_pending_ref_reply[] is sized [MY_IO_THREADS_MAX+1] and
+     * server.clients_with_pending_ref_reply[] is sized [TOMO_IO_THREADS_MAX+1] and
      * indexed by iotid — a worker's iotid is in the worker range (out of bounds
-     * => the SEGV thredis-stress caught). Fakes don't need it anyway: the value
+     * => the SEGV tomokv-stress caught). Fakes don't need it anyway: the value
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
     if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
@@ -1609,7 +1609,7 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
      * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
     int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
-    int on_ex = zc_on && c->isFake && iotid > MY_IO_THREADS_MAX;
+    int on_ex = zc_on && c->isFake && iotid > TOMO_IO_THREADS_MAX;
     if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */
@@ -2487,7 +2487,7 @@ void freeClient(client *c) {
     }
 #ifdef HAVE_LIBURING
     /* v12-G: drop this real client from its IO thread's multishot-recv map before teardown.
-     * For THredis the free runs on the owning IO thread (the same thread that reaps), so this is
+     * For Tomo KV the free runs on the owning IO thread (the same thread that reaps), so this is
      * race-free; the per-arm generation also rejects any stale CQE after the fd is reused. */
     if (server.io_uring_recv && c->conn && c->conn->fd >= 0)
         iouRecvDisarm(c->tid, c->conn->fd);
@@ -2524,10 +2524,10 @@ void freeClient(client *c) {
     }
 
     /* ee451: ring is drained — safe to tear down fakes. Walk the full
-     * MAX-sized array; slots beyond server.my_pipeline_depth were never
+     * MAX-sized array; slots beyond server.pipeline_ring_depth were never
      * allocated and are NULL. */
     if (!c->isFake) {
-        for (int i = 0; i < MY_PIPELINE_DEPTH_MAX; i++) {
+        for (int i = 0; i < TOMO_PIPELINE_DEPTH_MAX; i++) {
             if (c->fakeClients[i]) {
                 freeFakeClient(c->fakeClients[i]);
                 c->fakeClients[i] = NULL;
@@ -3270,8 +3270,8 @@ void sendReplyToClient(connection *conn) {
  * limited to replies that fit the static buf (PROTO_REPLY_CHUNK_BYTES = 16K; larger replies use the
  * reply-list/writeToClient fallback), so ZC here targets mid-size (4–16K) static-buf replies. */
 #define IOU_ZC_MIN_BYTES 4096
-static struct io_uring iouRings[MY_IO_THREADS_MAX + 1];
-static int iouRingState[MY_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
+static struct io_uring iouRings[TOMO_IO_THREADS_MAX + 1];
+static int iouRingState[TOMO_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
 
 static int iouEnsureRing(int t) {
     if (iouRingState[t] == 1) return 1;
@@ -3416,7 +3416,7 @@ static int handleClientsWithPendingWritesUring(void) {
  * fetchClientFromIOThread / unbindClientFromIOThreadEventLoop) so a freed client is never
  * dereferenced; a per-arm generation in the CQE user_data rejects stale completions after fd
  * reuse. The epoll read handler is LEFT installed as a harmless fallback (multishot drains the
- * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every THredis read
+ * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every Tomo KV read
  * invariant intact. Perf is network-bound (≈neutral on loopback); this lands the infrastructure
  * for a real-NIC / EPYC evaluation. */
 #define IOU_RECV_NBUFS   512               /* provided buffers per IO thread (power of two) */
@@ -3436,7 +3436,7 @@ typedef struct iouRecvState {
     iouRecvSlot *fdmap;        /* indexed by fd */
     int fdcap;
 } iouRecvState;
-static iouRecvState iouRecvs[MY_IO_THREADS_MAX + 1];
+static iouRecvState iouRecvs[TOMO_IO_THREADS_MAX + 1];
 
 /* Recycle one consumed buffer back to the provided ring. */
 static inline void iouRecvProvide(iouRecvState *st, int bid) {
@@ -3637,13 +3637,13 @@ void iouRecvDisarm(int t, int fd) {
  * the legacy CDB-drain path byte-identical when off, and must clear ASAN churn + pipeline-order gates
  * before any promotion. */
 #define WDS_RING_DEPTH 2048
-static struct io_uring wdsRings[MY_EX_THREADS_MAX];
-static int wdsRingState[MY_EX_THREADS_MAX];   /* 0=uninit, 1=ready, -1=failed */
+static struct io_uring wdsRings[TOMO_EX_THREADS_MAX];
+static int wdsRingState[TOMO_EX_THREADS_MAX];   /* 0=uninit, 1=ready, -1=failed */
 
 /* Lazily build worker `wid`'s send ring. Called once at worker-thread start when the knob is on.
  * Falls back to a plain ring if DEFER_TASKRUN/SINGLE_ISSUER aren't available. Returns 1 on success. */
 int wdsEnsureRing(int wid) {
-    if (wid < 0 || wid >= MY_EX_THREADS_MAX) return 0;
+    if (wid < 0 || wid >= TOMO_EX_THREADS_MAX) return 0;
     if (wdsRingState[wid] == 1) return 1;
     if (wdsRingState[wid] == -1) return 0;
     struct io_uring_params p;
@@ -3659,7 +3659,7 @@ int wdsEnsureRing(int wid) {
 
 /* Raw ring accessors used by the server.c commit/reap protocol. */
 struct io_uring *wdsRingOf(int wid) {
-    return (wid >= 0 && wid < MY_EX_THREADS_MAX && wdsRingState[wid] == 1) ? &wdsRings[wid] : NULL;
+    return (wid >= 0 && wid < TOMO_EX_THREADS_MAX && wdsRingState[wid] == 1) ? &wdsRings[wid] : NULL;
 }
 #endif /* HAVE_LIBURING */
 
@@ -3992,11 +3992,11 @@ static void setProtocolError(const char *errstr, client *c) {
  * Gated by server.opt_operand_pool. */
 #define OPERAND_POOL_CAP 256
 #define OPERAND_POOL_MAX_SDS 512
-static robj *operandPool[MY_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
-static int operandPoolN[MY_IO_THREADS_MAX + 1];
+static robj *operandPool[TOMO_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
+static int operandPoolN[TOMO_IO_THREADS_MAX + 1];
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (iotid <= MY_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
+    if (iotid <= TOMO_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
         robj *o = operandPool[iotid][--operandPoolN[iotid]];
         o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
         o->refcount = 1;
@@ -4006,7 +4006,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 }
 
 static inline void operandPoolPut(robj *o) {
-    if (iotid <= MY_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
+    if (iotid <= TOMO_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
         o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid] < OPERAND_POOL_CAP &&
         sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
         sdsclear(o->ptr);                        /* reset length, keep capacity */
@@ -5809,7 +5809,7 @@ void redactClientCommandArgument(client *c, int argc) {
  * ref count is decremented. */
 void rewriteClientCommandVector(client *c, int argc, ...) {
     /* ee451 (EX fix): command rewriting exists only for AOF/replication propagation
-     * (both THredis non-goals). For a worker fake it is unnecessary AND unsafe —
+     * (both Tomo KV non-goals). For a worker fake it is unnecessary AND unsafe —
      * mutating the fake's argv desyncs it from current_pending_cmd->argv (drained by
      * the worker) and touches the pending/MULTI machinery fakes don't own. Skip it;
      * the command's actual keyspace effect already happened before this call. */
@@ -5946,7 +5946,7 @@ void rewriteClientCommandArgument(client *c, int i, robj *newval) {
     /* ee451: capture oldval's length BEFORE it can be freed by the
      * decrRefCount below. The update_pcmd block further down needs this
      * length, and re-reading getStringObjectLen(oldval) after the free is a
-     * use-after-free (thredis-stress caught this on the SET ... EX argv-rewrite
+     * use-after-free (tomokv-stress caught this on the SET ... EX argv-rewrite
      * path: rewriteClientCommandArgument frees oldval at the decrRefCount, then
      * the pcmd-resync read touches the freed object). */
     size_t oldlen = oldval ? getStringObjectLen(oldval) : 0;

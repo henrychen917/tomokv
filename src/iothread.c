@@ -767,9 +767,9 @@ int processClientsFromMainThread(IOThread *t) {
             connRebindEventLoop(c->conn, t->el);
             serverAssert(!connHasReadHandler(c->conn));
             connSetReadHandler(c->conn, readQueryFromClient);
-            /* v12-G note: io_uring multishot-recv is armed in createClient (THredis accepts on
+            /* v12-G note: io_uring multishot-recv is armed in createClient (Tomo KV accepts on
              * per-IO-thread SO_REUSEPORT listeners), not here — this upstream handoff path is
-             * dormant under THredis (server.io_threads_num == 1). */
+             * dormant under Tomo KV (server.io_threads_num == 1). */
         }
 
         /* If the client has pending replies, write replies to client. */

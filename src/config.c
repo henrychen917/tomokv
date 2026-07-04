@@ -2352,24 +2352,24 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
     embedConfigInterface(NULL, setfn, getfn, rewritefn, applyfn) \
 }
 
-/* myiothreadpipelinedepth must be a power of two and fit in the uint32_t
- * reply_ready_mask (i.e., <= MY_PIPELINE_DEPTH_MAX = 32). The upper bound
+/* tomokv-pipeline-depth must be a power of two and fit in the uint32_t
+ * reply_ready_mask (i.e., <= TOMO_PIPELINE_DEPTH_MAX = 32). The upper bound
  * is enforced by createIntConfig's `upper` argument; this validator only
  * checks power-of-two. Signature matches the numeric-config validator type
  * (long long, const char **). */
 static int isValidMyPipelineDepth(long long val, const char **err) {
     if (val < 1 || (val & (val - 1)) != 0) {
-        *err = "myiothreadpipelinedepth must be a power of two (e.g., 1, 2, 4, 8, 16, 32)";
+        *err = "tomokv-pipeline-depth must be a power of two (e.g., 1, 2, 4, 8, 16, 32)";
         return 0;
     }
     return 1;
 }
 
-/* myworkerthreadqueuedepth must be a power of two (ring-buffer uses mask for
+/* tomokv-ex-queue-depth must be a power of two (ring-buffer uses mask for
  * wrap-around). Upper bound enforced by createIntConfig. */
 static int isValidMyWorkerQueueDepth(long long val, const char **err) {
     if (val < 1 || (val & (val - 1)) != 0) {
-        *err = "myworkerthreadqueuedepth must be a power of two (e.g., 64, 128, 256, 512, 1024, 2048)";
+        *err = "tomokv-ex-queue-depth must be a power of two (e.g., 64, 128, 256, 512, 1024, 2048)";
         return 0;
     }
     return 1;
@@ -2379,8 +2379,8 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
  * bucket->worker indirection table (exIndexForKey), not hash&(N-1), so num_workers no
  * longer has to be a power of two — that was the whole point of axing the limit. */
 static int isValidMyWorkerThreads(long long val, const char **err) {
-    if (val < 1 || val > MY_EX_THREADS_MAX) {
-        *err = "myexthreads must be between 1 and 64";
+    if (val < 1 || val > TOMO_EX_THREADS_MAX) {
+        *err = "tomokv-ex-threads must be between 1 and 64";
         return 0;
     }
     return 1;
@@ -3146,25 +3146,25 @@ standardConfig static_configs[] = {
      * socket-write, and real workloads lack the same-key runs it needs (mean run 1.008). With this off,
      * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
      * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
-    createIntConfig("thredis-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
-    createIntConfig("thredis-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
-    createIntConfig("thredis-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-argv",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_argv,      64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keyobj,    64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keybytes,  64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_argv,      64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keyobj,    64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keybytes,  64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
-    createIntConfig("thredis-worker-spin-pauses", NULL, MODIFIABLE_CONFIG, 0, 1024, server.worker_spin_pauses, 16, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-worker-spin-yield-rounds", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin_yield_rounds, 32, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 1, 16,      server.worker_pop_batch, 16, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-worker-spin-pauses", NULL, MODIFIABLE_CONFIG, 0, 1024, server.worker_spin_pauses, 16, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-worker-spin-yield-rounds", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin_yield_rounds, 32, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 1, 16,      server.worker_pop_batch, 16, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
     /* ee451: forward-predictor variant selector so each is independently sweepable.
      * 0=bimodal(general-only), 1=gshare(history-only), 2=tournament. tournament bool
@@ -3179,18 +3179,18 @@ standardConfig static_configs[] = {
      * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
-    createBoolConfig("thredis-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
-    createBoolConfig("thredis-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
-    createBoolConfig("thredis-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
-    createBoolConfig("thredis-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
-    createBoolConfig("thredis-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
-    createBoolConfig("thredis-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
-    createBoolConfig("thredis-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
-    createBoolConfig("thredis-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
-    createBoolConfig("thredis-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
-    createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-reshard-chunk-buckets",  NULL, MODIFIABLE_CONFIG, 1,   MY_BUCKETS, server.reshard_chunk_buckets, 64,  INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
+    createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
+    createBoolConfig("tomokv-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
+    createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
+    createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
+    createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
+    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-reshard-chunk-buckets",  NULL, MODIFIABLE_CONFIG, 1,   TOMO_BUCKETS, server.reshard_chunk_buckets, 64,  INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3292,12 +3292,12 @@ standardConfig static_configs[] = {
     createIntConfig("databases", NULL, IMMUTABLE_CONFIG, 1, INT_MAX, server.dbnum, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, NULL, updatePort), /* TCP port. */
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
-    /* THredis-dev custom threading knobs. `io-threads` above is inert in this fork
+    /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
-    createIntConfig("myiothreads", NULL, IMMUTABLE_CONFIG, 1, MY_IO_THREADS_MAX, server.my_io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("myexthreads", "myworkerthreads", IMMUTABLE_CONFIG, 1, MY_EX_THREADS_MAX, server.my_ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
-    createIntConfig("myiothreadpipelinedepth", NULL, IMMUTABLE_CONFIG, 1, MY_PIPELINE_DEPTH_MAX, server.my_pipeline_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
-    createIntConfig("myworkerthreadqueuedepth", NULL, IMMUTABLE_CONFIG, 1, MY_EX_QUEUE_SIZE_MAX, server.my_ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
+    createIntConfig("tomokv-io-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_IO_THREADS_MAX, server.io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_THREADS_MAX, server.ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
+    createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
+    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */
