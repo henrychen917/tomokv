@@ -840,12 +840,12 @@ void clusterCommandMyShardId(client *c) {
 /* When a cluster command is called, we need to decide whether to return TLS info or
  * non-TLS info by the client's connection type. However if the command is called by
  * a Lua script or RM_call, there is no connection in the fake client, so we use
- * server.current_client[iotid] here to get the real client if available. And if it is not
+ * server.current_client[iotid].p here to get the real client if available. And if it is not
  * available (modules may call commands without a real client), we return the default
  * info, which is determined by server.tls_cluster. */
 static int shouldReturnTlsInfo(void) {
-    if (server.current_client[iotid] && server.current_client[iotid]->conn) {
-        return connIsTLS(server.current_client[iotid]->conn);
+    if (server.current_client[iotid].p && server.current_client[iotid].p->conn) {
+        return connIsTLS(server.current_client[iotid].p->conn);
     } else {
         return server.tls_cluster;
     }

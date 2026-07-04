@@ -2418,8 +2418,14 @@ struct redisServer {
     // — a foreign client the main thread concurrently reassigns and frees — which caused the
     // worker-side UAF read (lookupKey/getKeySlot, Signature B) and the heap corruption in the
     // overwrite old-value free path (dbSetValue -> tryDeferFreeClientObject, Signature A).
-    client *current_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX];
-    client *executing_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX];
+    /* ee451 (audit fix, hot-path): exExecFake stores to these 4x per executed command (set+clear
+     * across both arrays) from every worker; as plain 8-byte slots, 8 workers' slots share one 64B
+     * line = cross-core store ping-pong on the hottest path (the padding cure that went to kstat/
+     * netstat but was missed here). Pad each slot to a cache line. Accessed as .p everywhere. */
+    struct { client *p; char _pad[CACHE_LINE_SIZE - sizeof(client *)]; }
+        current_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    struct { client *p; char _pad[CACHE_LINE_SIZE - sizeof(client *)]; }
+        executing_client[MY_IO_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 
 #ifdef LOG_REQ_RES
     char *req_res_logfile; /* Path of log file for logging all requests and their replies. If NULL, no logging will be performed */

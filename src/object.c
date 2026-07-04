@@ -849,7 +849,7 @@ void trimStringObjectIfNeeded(robj *o, int trim_small_values) {
     size_t len = sdslen(o->ptr);
     if (len >= PROTO_MBULK_BIG_ARG ||
         trim_small_values||
-        (server.executing_client[iotid] && server.executing_client[iotid]->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
+        (server.executing_client[iotid].p && server.executing_client[iotid].p->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
         if (sdsavail(o->ptr) > len/10) {
             o->ptr = sdsRemoveFreeSpace(o->ptr, 0);
         }
