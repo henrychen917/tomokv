@@ -6393,7 +6393,12 @@ void reshardAutoTune(void) {
 
     /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never
      * emptying the hot shard. */
-    int chunk = server.reshard_chunk_buckets;
+    /* ee451 (v14, controller): chunk granule self-scales with shard size — TOMO_BUCKETS/(16*W)
+     * clamped [16, 256]: bigger keyspaces move proportionally bigger chunks (same convergence
+     * step count at any scale), small worker counts don't over-move. Knob retired. */
+    int chunk = TOMO_BUCKETS / (16 * W);
+    if (chunk < 16) chunk = 16;
+    if (chunk > 256) chunk = 256;
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
     if (hot_hi - hot_lo <= chunk) return;
@@ -10097,6 +10102,7 @@ void *exThreadMain(void *arg) {
      * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
      * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
     int empty_rounds = 0;
+    int spin_budget = 32;   /* ee451 (v14): adaptive spin window (rounds); self-tunes, no knob */
 
     while (1) {
         /* ee451 (S8): decref any zero-copy reply values the IO threads handed
@@ -10122,7 +10128,7 @@ void *exThreadMain(void *arg) {
         int any = 0;
         /* ee451: runtime worker pop/execute batch size, capped by the compile-time
          * array max. Decoupled from the per-stage prefetch widths. */
-        int popmax = server.worker_pop_batch;
+        int popmax = WORKER_POP_BATCH;   /* ee451 (v14): quantum hardcoded (knob retired) */
         if (popmax > WORKER_POP_BATCH) popmax = WORKER_POP_BATCH;
         if (popmax < 1) popmax = 1;
         /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
@@ -10263,18 +10269,25 @@ void *exThreadMain(void *arg) {
         }
 
         if (any) {
+            if (empty_rounds > 0) {   /* work arrived DURING the spin window -> spinning paid, grow */
+                spin_budget += spin_budget >> 1;
+                if (spin_budget > 256) spin_budget = 256;
+            }
             empty_rounds = 0;
-        } else if (empty_rounds < server.worker_spin_yield_rounds) {
-            /* PAUSE-spin: stay hot, let the IO thread publish work
-             * during the small window without the cost of a context
-             * switch. */
-            for (int p = 0; p < server.worker_spin_pauses; p++) exPauseCpu();
+        } else if (empty_rounds < spin_budget) {
+            /* PAUSE-spin: stay hot, let the IO thread publish work during the
+             * small window without the cost of a context switch.
+             * ee451 (v14, controller): the spin budget is ADAPTIVE — no knobs.
+             * If work arrived while we were spinning, spinning paid: grow the
+             * window (x1.5, cap 256 rounds). If we exhausted the window and had
+             * to yield, it was wasted: halve it (floor 4). Multiplicative,
+             * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
+             * is the quantum (~30-60ns on Zen). */
+            for (int p = 0; p < 16; p++) exPauseCpu();
             empty_rounds++;
         } else {
-            /* Sustained idleness — give up the CPU so other threads
-             * (including the IO thread that's about to feed us) can
-             * run. Reset the counter so the next empty stretch goes
-             * through the spin window again. */
+            /* Sustained idleness — give up the CPU; shrink the spin window. */
+            spin_budget = spin_budget > 4 ? (spin_budget >> 1) : 4;
             sched_yield();
             empty_rounds = 0;
         }
