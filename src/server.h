@@ -3332,6 +3332,10 @@ typedef int redisGetKeysProc(struct redisCommand *cmd, robj **argv, int argc, ge
  *    specific data structures, such as: DEL, RENAME, MOVE, SELECT,
  *    TYPE, EXPIRE*, PEXPIRE*, TTL, PTTL, ...
  */
+/* ee451 (v14) routing byte bits (redisCommand.tomo_route), stamped at populate time. */
+#define TOMO_R_STATEFUL 1u
+#define TOMO_R_EXPRESS  2u
+#define TOMO_R_CROSS    4u
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
@@ -3383,6 +3387,7 @@ struct redisCommand {
                              * (not the fullname), and the value is the redisCommand structure pointer. */
     struct redisCommand *parent;
     struct RedisModuleCommand *module_cmd; /* A pointer to the module command data (NULL if native command) */
+    unsigned char tomo_route; /* ee451 (v14): routing byte, stamped at populateCommandTable (struct END). */
 };
 
 struct redisError {

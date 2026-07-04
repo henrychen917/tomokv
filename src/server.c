@@ -103,7 +103,8 @@ int finishShutdown(void);
 const char *replstateToString(int replstate);
 
 //ee451
-static int isStatefulCommand(struct redisCommand *cmd);
+static int isStatefulCommandSlow(struct redisCommand *cmd);
+static inline int isStatefulCommand(struct redisCommand *cmd);
 static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
@@ -3836,6 +3837,14 @@ void populateCommandTable(void) {
         if (populateCommandStructure(c) == C_ERR)
             continue;
 
+        c->tomo_route = 0;
+        if (isStatefulCommandSlow(c)) c->tomo_route |= TOMO_R_STATEFUL;
+        if (c->proc == getCommand || c->proc == setCommand) c->tomo_route |= TOMO_R_EXPRESS;
+        if (c->proc == mgetCommand || c->proc == msetCommand || c->proc == delCommand ||
+            c->proc == unlinkCommand || c->proc == existsCommand || c->proc == touchCommand ||
+            c->proc == keysCommand || c->proc == sinterCommand || c->proc == sunionCommand ||
+            c->proc == sdiffCommand) c->tomo_route |= TOMO_R_CROSS;
+
         retval1 = dictAdd(server.commands, sdsdup(c->fullname), c);
         /* Populate an additional dictionary that will be unaffected
          * by rename-command statements in redis.conf. */
@@ -5211,7 +5220,7 @@ int processCommand(client *c) {
      * canDispatchToWorker pre-guards) made every hot op fall through ~25-40 cycles of
      * always-false tests. Two proc compares restore the v4 floor for the hot pair; every
      * other command takes the full (unchanged) classification below. */
-    if (fake->cmd->proc == getCommand || fake->cmd->proc == setCommand) {
+    if (fake->cmd->tomo_route & TOMO_R_EXPRESS) {   /* ee451 (v14): routing byte */
         int ex_id = getWorkerForCommand(fake);
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
@@ -5219,7 +5228,7 @@ int processCommand(client *c) {
         replyWorking++;
         exQueuePush(&server.exThreads[ex_id].queues[ifidx], fake);
     } else {
-    int cst = csCommandType(fake);
+    int cst = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csCommandType(fake) : -1;
     if (cst >= 0) {
         /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
@@ -9669,7 +9678,7 @@ redisTestProc *getTestProcByName(const char *name) {
 //ee451
 
 
-static inline int isStatefulCommand(struct redisCommand *cmd) {
+static int isStatefulCommandSlow(struct redisCommand *cmd) {
     if (!cmd) return 0;
     return cmd->proc == multiCommand        ||
            cmd->proc == execCommand         ||
@@ -9690,6 +9699,10 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
            cmd->proc == quitCommand         ||
            cmd->proc == monitorCommand      ||
            cmd->proc == replicaofCommand;
+}
+
+static inline int isStatefulCommand(struct redisCommand *cmd) {
+    return cmd && (cmd->tomo_route & TOMO_R_STATEFUL);
 }
 
 static void moveExecutionState(client *real, client *fake) {
