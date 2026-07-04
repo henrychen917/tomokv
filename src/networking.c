@@ -3204,7 +3204,8 @@ int writeToClient(client *c, int handler_installed) {
                 zmalloc_used_memory() < server.maxmemory) &&
                 is_normal_client) break;
         }
-        atomicIncr(server.stat_net_output_bytes, totwritten);
+        if (server.opt_perthread_stats) server.netstat[ifidx].out += totwritten;   /* ee451 (#A2) */
+        else atomicIncr(server.stat_net_output_bytes, totwritten);
     }
     c->net_output_bytes += totwritten;
 
@@ -3487,7 +3488,8 @@ static int iouRecvDeliver(client *c, const char *data, int len) {
     size_t qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
     c->io_lastinteraction = server.unixtime;
-    atomicIncr(server.stat_net_input_bytes, len);
+    if (server.opt_perthread_stats) server.netstat[ifidx].in += len;               /* ee451 (#A2) */
+    else atomicIncr(server.stat_net_input_bytes, len);
     c->net_input_bytes += len;
     atomicIncr(server.stat_io_reads_processed[c->running_tid], 1);
 
@@ -4825,7 +4827,8 @@ void readQueryFromClient(connection *conn) {
         }
         atomicIncr(server.stat_net_repl_input_bytes, nread);
     } else {
-        atomicIncr(server.stat_net_input_bytes, nread);
+        if (server.opt_perthread_stats) server.netstat[ifidx].in += nread;         /* ee451 (#A2) */
+        else atomicIncr(server.stat_net_input_bytes, nread);
     }
     c->net_input_bytes += nread;
 

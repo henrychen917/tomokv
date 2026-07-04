@@ -2498,6 +2498,17 @@ struct redisServer {
         long long misses;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
     } kstat[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451 (#A2): per-thread network byte counters. stat_net_input/output_bytes were single shared
+     * atomics hit with a lock xadd once per read event AND once per write event from EVERY io/WB
+     * thread — a contended cross-core line at ~1M events/s (plus the two adjacent counters false-
+     * sharing one line). Same cure as kstat: each thread bumps its own cache-line-isolated slot
+     * (indexed by ifidx) when opt_perthread_stats is on; readers fold via getNetInput/OutputBytes().
+     * The legacy atomics stay as the fold BASELINE (repl paths + resets still use them). */
+    struct {
+        long long in;
+        long long out;
+        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
+    } netstat[MY_IFID_THREADS_MAX + 1 + MY_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
     long long stat_active_defrag_misses;    /* number of allocations scanned but not moved */
     long long stat_active_defrag_key_hits;  /* number of keys with moved allocations */
@@ -3544,6 +3555,9 @@ extern dictType objectKeyPointerValueDictType;
         else server.dirty += (n); \
     } while (0)
 #define DIRTY_LOCAL (server.opt_perthread_dirty ? server.dirty_shard[ifidx].v : server.dirty)
+/* ee451 (#A2): folded per-thread network byte counters (defined in server.c) */
+long long getNetInputBytes(void);
+long long getNetOutputBytes(void);
 static inline long long getDirty(void) {
     if (!server.opt_perthread_dirty) return server.dirty;
     long long s = server.dirty;                 /* baseline carries bgsave subtracts + resets */
