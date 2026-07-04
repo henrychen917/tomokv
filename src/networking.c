@@ -4612,6 +4612,17 @@ int processInputBuffer(client *c) {
     if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
         updateClientMemUsageAndBucket(c);
 
+    /* ee451 (#E1): publish this parse-batch's staged worker jobs NOW, instead of deferring to the
+     * next beforeSleep flushExQueues. Under opt_batch_push the pushes above only advanced staged_tail
+     * (producer-private) — the workers can't see them until a release-store of tail. Waiting for
+     * beforeSleep means the staged batch stays invisible while this io thread drains replies + writes
+     * sockets, starving the workers (retirement study: batch_push OFF = +50% at DRAM 512B on 2s).
+     * Publishing here keeps the cross-CCD store-batching (one publish per connection's pipelined
+     * batch) without the latency. No-op when opt_batch_push is off (already published per-push) or on
+     * the stock main thread (flushExQueues early-returns / nothing staged). */
+    if (server.opt_batch_push && server.batch_push_eager)
+        flushExQueues();
+
     return C_OK;
 }
 
