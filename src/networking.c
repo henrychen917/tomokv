@@ -2734,6 +2734,17 @@ void freeClientAsync(client *c) {
 
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
     if (c->flags & CLIENT_EX_PENDING) return;
+    /* ee451 (v13, audit #7): a WB thread must NOT touch clients_to_close[] — it would enqueue
+     * on ITS ifidx slot (my_ifid_threads+1+rid), a list no io thread's async-free pass walks
+     * (leak) and freeClient's listSearchKey on the owner's list would assert. Route through the
+     * existing WB->IO close protocol instead: set ts_close_needed; the owning io thread's drain
+     * sees it and calls freeClientAsync on the correct thread. Also avoids a WB-side flags RMW. */
+    if (server.strict_pipeline && ifidx > server.my_ifid_threads &&
+        ifidx <= server.my_ifid_threads + server.wb_threads)
+    {
+        c->ts_close_needed = 1;
+        return;
+    }
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */
@@ -3162,7 +3173,10 @@ static inline int _writeToClientSlave(client *c, ssize_t *nwritten) {
 int writeToClient(client *c, int handler_installed) {
     if (!(c->io_flags & CLIENT_IO_WRITE_ENABLED)) return C_OK;
     /* Update the number of writes of io threads on server */
-    atomicIncr(server.stat_io_writes_processed[c->running_tid], 1);
+    server.stat_io_writes_processed[ifidx] += 1;   /* ee451 (v13,#18): plain per-ifidx add — single
+                                                    * writer per slot; running_tid was always 0 here
+                                                    * (inert upstream io-threads), which INFO SKIPS,
+                                                    * so the stat was dead. Now real + RMW-free. */
 
     ssize_t nwritten = 0, totwritten = 0;
     const int is_slave = clientTypeIsSlave(c);
@@ -3489,7 +3503,7 @@ static int iouRecvDeliver(client *c, const char *data, int len) {
     c->io_lastinteraction = server.unixtime;
     server.netstat[ifidx].in += len;               /* ee451 (#A2, v13): hardwired */
     c->net_input_bytes += len;
-    atomicIncr(server.stat_io_reads_processed[c->running_tid], 1);
+    server.stat_io_reads_processed[ifidx] += 1;    /* ee451 (v13,#18): see writes_processed note */
 
     if (!(c->flags & CLIENT_MASTER) &&
         (c->mstate.argv_len_sums + sdslen(c->querybuf) > server.client_max_querybuf_len ||
@@ -4728,7 +4742,7 @@ void readQueryFromClient(connection *conn) {
     c->read_error = 0;
 
     /* Update the number of reads of io threads on server */
-    atomicIncr(server.stat_io_reads_processed[c->running_tid], 1);
+    server.stat_io_reads_processed[ifidx] += 1;    /* ee451 (v13,#18): see writes_processed note */
 
     readlen = PROTO_IOBUF_LEN;
     /* If this is a multi bulk request, and we are processing a bulk reply
