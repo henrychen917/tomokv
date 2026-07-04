@@ -10394,7 +10394,18 @@ void *exThreadMain(void *arg) {
         int popmax = server.worker_pop_batch;
         if (popmax > WORKER_POP_BATCH) popmax = WORKER_POP_BATCH;
         if (popmax < 1) popmax = 1;
-        for (int i = 0; i <= server.my_ifid_threads; i++) {
+        /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
+         * per-queue pop batch already prevents starvation across the per-IO SPSC
+         * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
+         * latency; rotating the start removes that bias. Per-queue FIFO — and thus
+         * per-connection ordering (a connection always feeds one queue) — is
+         * untouched; only the inter-queue visit order rotates, which was never
+         * ordered to begin with. */
+        static __thread int scan_start = 0;
+        int nq = server.my_ifid_threads + 1;
+        if (++scan_start >= nq) scan_start = 0;
+        for (int k = 0; k < nq; k++) {
+            int i = scan_start + k; if (i >= nq) i -= nq;
             int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
             if (n == 0) continue;
             any = 1;

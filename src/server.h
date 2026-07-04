@@ -1527,7 +1527,9 @@ typedef struct client {
     int ts_inflight;                   /* 0/1: a WB io_uring send of real->buf is in flight */
     uint32_t ts_gen;                   /* bumped on free; WB send user_data carries it; reject stale CQEs */
     int ts_close_needed;               /* WB hit a send error; the IO thread frees (WB ifidx has no close drainer) */
-    int on_wbq;                       /* dedup: client is queued/active on the WB thread (atomic_exchange-guarded) */
+    int on_wbq;                       /* dedup: client is queued/active on the WB thread. Single-writer (WB)
+                                       * load-acquire/store-release protocol — NOT an RMW; do not "restore"
+                                       * an atomic_exchange here, the plain load/store form is the correct one. */
     int owner_ifid;                   /* v12-pool: ifid thread owning this conn (parses=allocs argv); the WB
                                        * routes retired operands back to its recycle ring. -1 until dispatched. */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
@@ -2971,6 +2973,7 @@ struct redisServer {
     int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
     int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
     int opt_perthread_stats;   /* S6: per-thread keyspace hit/miss counters */
+    int opt_batched_clear;     /* #A1: batch the drain's per-slot CDB fetch_and clears into one per cdb per pass */
     int opt_perthread_dirty;   /* #4: per-thread shard of server.dirty (de-contend + fix torn-++ race) */
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
