@@ -2965,6 +2965,12 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
+    int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
+    int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */
+    int reshard_chunk;         /* v14 dual-mode: 0=auto granule; N=explicit buckets */
+    int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
+    int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
+    int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
     int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
                                   * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
                                   * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and

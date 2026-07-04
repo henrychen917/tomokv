@@ -3145,7 +3145,9 @@ static int detectL3Domains(void) {
 }
 
 void initServer(void) {
-    server.detected_l3_bytes = detectL3Bytes();   /* ee451 (v13): for -1=auto thresholds */
+    /* ee451 (v14): 0 = auto-detect from sysfs; explicit KB pins it (VMs often hide cache
+     * topology — the auto would fall back to a blind 32MB default there). */
+    server.detected_l3_bytes = server.l3_kb > 0 ? (size_t)server.l3_kb * 1024 : detectL3Bytes();
     int j;
 
     signal(SIGHUP, SIG_IGN);
@@ -6355,6 +6357,13 @@ void reshardAutoTune(void) {
      * stops sigma-collapse on uniform load (measured: pure sigma-bar fired 21 spurious
      * migrations). All dimensionless, recomputed every tick. */
     double mean = sum_ewma / W, mean_fast = sum_fast / W;
+    double hot_bar, hot_bar_fast;
+    if (server.reshard_imbalance_pct > 0) {
+        /* ee451 (v14): explicit override — fixed bar at pct of mean (e.g. 150 = 1.5x). */
+        double eff = server.reshard_imbalance_pct / 100.0;
+        hot_bar = eff * mean;
+        hot_bar_fast = eff * mean_fast;
+    } else {
     double var = 0, var_fast = 0;
     for (int w = 0; w < W; w++) {
         double d = mig_load_ewma[w] - mean;            var += d * d;
@@ -6363,9 +6372,10 @@ void reshardAutoTune(void) {
     double k = 0.8 * sqrt((double)(W - 1));
     if (k > 2.0) k = 2.0;
     double margin = k * sqrt(var / W), floor_m = 0.25 * mean;
-    double hot_bar = mean + (margin > floor_m ? margin : floor_m);
+    hot_bar = mean + (margin > floor_m ? margin : floor_m);
     double margin_f = k * sqrt(var_fast / W), floor_f = 0.25 * mean_fast;
-    double hot_bar_fast = mean_fast + (margin_f > floor_f ? margin_f : floor_f);
+    hot_bar_fast = mean_fast + (margin_f > floor_f ? margin_f : floor_f);
+    }
 
     /* balanced (or too quiet) => clear convergence state and stay responsive. */
     if (mean < (double)server.reshard_min_ops || hotv <= hot_bar) {
@@ -6396,9 +6406,12 @@ void reshardAutoTune(void) {
     /* ee451 (v14, controller): chunk granule self-scales with shard size — TOMO_BUCKETS/(16*W)
      * clamped [16, 256]: bigger keyspaces move proportionally bigger chunks (same convergence
      * step count at any scale), small worker counts don't over-move. Knob retired. */
-    int chunk = TOMO_BUCKETS / (16 * W);
-    if (chunk < 16) chunk = 16;
-    if (chunk > 256) chunk = 256;
+    int chunk = server.reshard_chunk;
+    if (chunk <= 0) {          /* 0 = auto: proportional granule */
+        chunk = TOMO_BUCKETS / (16 * W);
+        if (chunk < 16) chunk = 16;
+        if (chunk > 256) chunk = 256;
+    }
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
     if (hot_hi - hot_lo <= chunk) return;
@@ -9821,7 +9834,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * Full prefetch-off remains available via the stage widths (all 0). */
     {
         unsigned long long fp = 96ULL + pfw->w_ewma_vsize;      /* per-entry footprint estimate */
-        unsigned long long auto_min = (8ULL * server.detected_l3_bytes) / fp;
+        unsigned long long auto_min = server.prefetch_min_keys > 0
+            ? (unsigned long long)server.prefetch_min_keys      /* explicit override */
+            : (8ULL * server.detected_l3_bytes) / fp;           /* 0 = auto (L3-derived) */
         if (n > 0 && batch[0]->db && dbSize(batch[0]->db) < auto_min) {
             for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
             return;
@@ -9845,7 +9860,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
     int w4cap = server.pf_w_value;
     if (w4cap > 0) {
         unsigned int ev = pfw->w_ewma_vsize < 64 ? 64 : pfw->w_ewma_vsize;
-        long budget = (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
+        long budget = server.pf_value_budget_kb > 0
+            ? (long)server.pf_value_budget_kb * 1024            /* explicit override */
+            : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers)); /* 0 = auto */
         long aw = budget / (long)ev;
         if (aw < 4) aw = 4;
         if (aw > w4cap) aw = w4cap;
@@ -10102,7 +10119,9 @@ void *exThreadMain(void *arg) {
      * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
      * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
     int empty_rounds = 0;
-    int spin_budget = 32;   /* ee451 (v14): adaptive spin window (rounds); self-tunes, no knob */
+    /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
+    int spin_pinned = server.worker_spin > 0;
+    int spin_budget = spin_pinned ? server.worker_spin : 32;
 
     while (1) {
         /* ee451 (S8): decref any zero-copy reply values the IO threads handed
@@ -10269,7 +10288,7 @@ void *exThreadMain(void *arg) {
         }
 
         if (any) {
-            if (empty_rounds > 0) {   /* work arrived DURING the spin window -> spinning paid, grow */
+            if (!spin_pinned && empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
                 spin_budget += spin_budget >> 1;
                 if (spin_budget > 256) spin_budget = 256;
             }
@@ -10287,7 +10306,7 @@ void *exThreadMain(void *arg) {
             empty_rounds++;
         } else {
             /* Sustained idleness — give up the CPU; shrink the spin window. */
-            spin_budget = spin_budget > 4 ? (spin_budget >> 1) : 4;
+            if (!spin_pinned) spin_budget = spin_budget > 4 ? (spin_budget >> 1) : 4;
             sched_yield();
             empty_rounds = 0;
         }

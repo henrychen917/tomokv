@@ -3292,6 +3292,12 @@ standardConfig static_configs[] = {
      * (stock Redis upstream IO threads have been removed); use these instead. */
     createIntConfig("tomokv-io-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_IO_THREADS_MAX, server.io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_THREADS_MAX, server.ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
+    createIntConfig("tomokv-l3-kb", NULL, IMMUTABLE_CONFIG, 0, 1048576, server.l3_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto-detect (sysfs); N pins L3 KB for the auto formulas (VMs) */
+    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean */
+    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule */
+    createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
+    createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
+    createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
     createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
