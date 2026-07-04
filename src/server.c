@@ -3099,7 +3099,32 @@ void makeThreadKillable(void) {
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 }
 //ee451
+
+/* ee451 (v13, knob philosophy): self-read the L3 size at startup so -1=auto thresholds can
+ * derive from THIS machine instead of a hardcoded constant. sysfs first (index3, then index2
+ * as L2-only fallback); 32MB default if unreadable. No user hardware knowledge needed. */
+static size_t detectL3Bytes(void) {
+    const char *paths[] = { "/sys/devices/system/cpu/cpu0/cache/index3/size",
+                            "/sys/devices/system/cpu/cpu0/cache/index2/size" };
+    for (int i = 0; i < 2; i++) {
+        FILE *f = fopen(paths[i], "r");
+        if (!f) continue;
+        char buf[32] = {0};
+        size_t r = fread(buf, 1, sizeof(buf)-1, f);
+        fclose(f);
+        if (r == 0) continue;
+        char *end = NULL;
+        unsigned long v = strtoul(buf, &end, 10);
+        if (v == 0) continue;
+        if (end && (*end == 'K' || *end == 'k')) v *= 1024UL;
+        else if (end && (*end == 'M' || *end == 'm')) v *= 1024UL*1024UL;
+        return (size_t)v;
+    }
+    return 32UL*1024*1024;
+}
+
 void initServer(void) {
+    server.detected_l3_bytes = detectL3Bytes();   /* ee451 (v13): for -1=auto thresholds */
     int j;
 
     signal(SIGHUP, SIG_IGN);
@@ -6248,24 +6273,41 @@ static int      mig_ewma_primed = 0;
 static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
 static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
 void reshardAutoTune(void) {
-    if (!server.reshard_auto || !server.exThreads) return;
+    /* ee451 (v13): reshard-auto bool RETIRED — EWMA load balancing is DEFAULT ON; off = set
+     * thredis-reshard-min-ops 0 (0=off convention; also the significance floor, so 'off' and
+     * 'never significant' coincide). */
+    if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
     int W = server.num_workers;
     if (W < 2) return;
-    double alpha = server.reshard_ewma_alpha_pct / 100.0;
-    double alpha_fast = server.reshard_ewma_fast_pct / 100.0;   /* #89: faster-reacting companion EWMA */
+    /* ee451 (v13, self-driven decay): alpha-pct 0 = AUTO — the smoothing window spans a fixed
+     * multiple (4x) of the min-ops significance floor in OPERATIONS, using the PREVIOUS tick's
+     * mean rate. The workload's own throughput sets the time constant: a hot box converges in a
+     * few ticks, a trickle doesn't chase noise. Explicit pct still overrides. */
+    static double mig_prev_rate_mean = 0;
+    double alpha;
+    if (server.reshard_ewma_alpha_pct > 0) alpha = server.reshard_ewma_alpha_pct / 100.0;
+    else {
+        alpha = mig_prev_rate_mean / (4.0 * (double)server.reshard_min_ops);
+        if (alpha < 0.05) alpha = 0.05;
+        if (alpha > 0.90) alpha = 0.90;
+    }
+    double alpha_fast = server.reshard_ewma_fast_pct > 0 ? server.reshard_ewma_fast_pct / 100.0
+                                                         : (alpha * 2.0 > 0.95 ? 0.95 : alpha * 2.0);
 
     /* metric[w] is what we balance on: raw ops, OR ops/capacity when core-aware (so a faster core is
      * "hot" only when its load EXCEEDS its proportionally larger share). cap defaults to 1 if a core
      * never calibrated. */
     int core_aware = server.reshard_core_aware;
     double sum_ops = 0, sum_metric = 0, hotmetric = -1; int hot = 0;
+    double sum_rate = 0;
     double metric[MY_EX_THREADS_MAX];
     double metric_fast[MY_EX_THREADS_MAX]; double sum_metric_fast = 0;   /* #89 dual-rate */
     for (int w = 0; w < W; w++) {
         uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
         mig_last_ops[w] = ops;
+        sum_rate += (double)rate;
         mig_load_ewma[w] = mig_ewma_primed ? (alpha * (double)rate + (1.0 - alpha) * mig_load_ewma[w])
                                            : (double)rate;
         double cap = (core_aware && server.ex_capacity[w] > 0) ? server.ex_capacity[w] : 1.0;
@@ -6278,13 +6320,59 @@ void reshardAutoTune(void) {
         sum_metric += metric[w];
         if (metric[w] > hotmetric) { hotmetric = metric[w]; hot = w; }
     }
+    mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's auto-alpha */
     if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* need one tick to seed deltas */
 
     double mean_ops = sum_ops / W, mean_metric = sum_metric / W;
     double mean_metric_fast = sum_metric_fast / W;   /* #89 */
-    double eff_imbalance = server.reshard_imbalance_pct / 100.0;   /* base threshold, never raised */
-    /* balanced (or too quiet) => clear convergence state and stay responsive at base sensitivity. */
-    if (mean_ops < (double)server.reshard_min_ops || hotmetric <= eff_imbalance * mean_metric) {
+    /* ee451 (v13, self-driven trigger): imbalance-pct 0 = AUTO — the hot shard must be a
+     * statistical OUTLIER against the workload's own spread: hot > mean + 2*stddev. A uniform
+     * workload has tiny stddev, so any real hotspot stands out immediately; an inherently
+     * noisy/skewed mix raises its own bar and isn't chased. Dimensionless — no tuning, no
+     * hardware knowledge. Explicit pct (e.g. 150 = 1.5x mean) keeps the legacy fixed bar. */
+    double hot_bar, hot_bar_fast;
+    if (server.reshard_imbalance_pct > 0) {
+        double eff = server.reshard_imbalance_pct / 100.0;
+        hot_bar = eff * mean_metric;
+        hot_bar_fast = eff * mean_metric_fast;
+    } else {
+        /* ee451 (v13, AUTO): run the outlier test on the RAW op-rate EWMAs, NOT the
+         * capacity-normalized metric — an uncalibrated idle worker keeps cap=1, which
+         * inflates its metric from near-zero ops and poisons the spread (measured: idle
+         * metrics ~30 vs hot 60 under a single-key storm; the sigma bar became unreachable).
+         * Raw rates are the pure workload signal. Core-aware normalization still governs the
+         * explicit-pct path and the target-neighbor choice below.
+         * k self-scales with worker count: a one-hot load vector's max z-score is sqrt(W-1),
+         * so a fixed k would be unreachable at small W. k = 0.8*sqrt(W-1), capped at 2.0. */
+        double mean_raw = sum_ops / W, mean_raw_fast = 0;
+        double var_raw = 0, var_raw_fast = 0;
+        for (int w = 0; w < W; w++) mean_raw_fast += mig_load_ewma_fast[w];
+        mean_raw_fast /= W;
+        int hot_raw = 0; double hotv = -1;
+        for (int w = 0; w < W; w++) {
+            double d = mig_load_ewma[w] - mean_raw;            var_raw += d * d;
+            double df = mig_load_ewma_fast[w] - mean_raw_fast; var_raw_fast += df * df;
+            if (mig_load_ewma[w] > hotv) { hotv = mig_load_ewma[w]; hot_raw = w; }
+        }
+        double k = 0.8 * sqrt((double)(W - 1));
+        if (k > 2.0) k = 2.0;
+        hot = hot_raw;                       /* auto mode judges + selects on raw load */
+        hotmetric = mig_load_ewma[hot];
+        mean_metric = mean_raw;              /* downstream balanced-check compares raw now */
+        /* Relative FLOOR: with near-uniform load sigma -> 0 and a pure sigma-bar collapses
+         * onto the mean, so ±2% noise "triggers" (measured: 21 spurious migrations under
+         * uniform load). The hot shard must beat the mean by BOTH the outlier margin AND a
+         * dimensionless 25% — uniform noise never crosses, a true hotspot always does. */
+        double margin = k * sqrt(var_raw / W);
+        double floor_m = 0.25 * mean_raw;
+        hot_bar = mean_raw + (margin > floor_m ? margin : floor_m);
+        double margin_f = k * sqrt(var_raw_fast / W);
+        double floor_f = 0.25 * mean_raw_fast;
+        hot_bar_fast = mean_raw_fast + (margin_f > floor_f ? margin_f : floor_f);
+        metric_fast[hot] = mig_load_ewma_fast[hot];   /* dual-rate gate reads this below */
+    }
+    /* balanced (or too quiet) => clear convergence state and stay responsive. */
+    if (mean_ops < (double)server.reshard_min_ops || hotmetric <= hot_bar) {
         mig_peak_pre = 0; mig_settle = 0;
         return;
     }
@@ -6298,7 +6386,7 @@ void reshardAutoTune(void) {
     /* #89 dual-rate: require the FAST EWMA to ALSO see this worker as hot. A hotspot that just died
      * (fast EWMA decays in ~1-2 ticks vs the slow one's ~3-4) stops being chased immediately, and a
      * slow-EWMA lag artifact can't trigger a needless migration. Off (default) = single-EWMA legacy. */
-    if (server.reshard_ewma_dual && metric_fast[hot] <= eff_imbalance * mean_metric_fast) return;
+    if (metric_fast[hot] <= hot_bar_fast) return;   /* ee451 (v13): #89 dual-rate HARDWIRED */
 
     /* Pick the cooler adjacent neighbour (lowest load/capacity), and only if it is genuinely below the
      * mean ratio — i.e. it has spare CAPACITY to absorb, not just fewer ops. */
@@ -9751,8 +9839,21 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
      * So skip prefetch on small shards (the common cache-friendly case). batch[0]->db is this worker's
      * shard db (set at dispatch); dbSize is a cheap counter read. min_keys=0 disables the gate. */
-    if (server.prefetch_adaptive_min_keys > 0 && n > 0 && batch[0]->db &&
-        dbSize(batch[0]->db) < (unsigned long)server.prefetch_adaptive_min_keys) {
+    /* v13 (knob philosophy): -1 = AUTO — derive the gate from SELF-MEASURED quantities instead
+     * of a hardware-encoding constant: open prefetch once the shard's estimated footprint
+     * (dbSize x (96B dict/robj overhead + EWMA value size)) clearly exceeds the machine's own
+     * L3 (read from sysfs at startup) by a dimensionless 8x — below that, hot subsets are
+     * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
+     * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
+    /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
+    exThread *pfw = &server.exThreads[iotid - (MY_IO_THREADS_MAX + 1)];
+    long long eff_min_keys = server.prefetch_adaptive_min_keys;
+    if (eff_min_keys < 0) {
+        unsigned long long fp = 96ULL + pfw->w_ewma_vsize;      /* per-entry footprint estimate */
+        eff_min_keys = (long long)((8ULL * server.detected_l3_bytes) / fp);
+    }
+    if (eff_min_keys > 0 && n > 0 && batch[0]->db &&
+        dbSize(batch[0]->db) < (unsigned long long)eff_min_keys) {
         for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
         return;
     }
@@ -9762,9 +9863,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * for all n (it is functional, not prefetch). */
     /* (v13) w1 replaced by per-stage widths w1a..w1d below */
     int w3 = n < server.pf_w_entry  ? n : server.pf_w_entry;
-    /* ee451 (#20/#21): this worker (for the per-key prefetch/reuse predictors). Runs on
-     * a worker thread, so iotid is in the worker range. */
-    exThread *pfw = &server.exThreads[iotid - (MY_IO_THREADS_MAX + 1)];
+
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
@@ -10244,13 +10343,9 @@ void *exThreadMain(void *arg) {
      * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
      * window first, fall back to yield only if still idle after that.
      *
-     * Tuning knobs (compile-time constants for now):
-     *   SPIN_BURST_PAUSES   - PAUSE instructions per empty round.
-     *   SPIN_ROUNDS_YIELD   - empty rounds before we give up and yield.
-     *
-     * 32 rounds × 16 pauses ≈ 512 PAUSEs on x86 ≈ 500 ns-1 µs spin
-     * window, well matched to sub-µs inter-dispatch gaps. */
-    enum { SPIN_BURST_PAUSES = 16, SPIN_ROUNDS_YIELD = 32 };
+     * Tuning knobs (v13: runtime — thredis-worker-spin-pauses / -spin-yield-rounds;
+     * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
+     * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
     int empty_rounds = 0;
 
     while (1) {
@@ -10507,11 +10602,11 @@ void *exThreadMain(void *arg) {
 
         if (any) {
             empty_rounds = 0;
-        } else if (empty_rounds < SPIN_ROUNDS_YIELD) {
+        } else if (empty_rounds < server.worker_spin_yield_rounds) {
             /* PAUSE-spin: stay hot, let the IO thread publish work
              * during the small window without the cost of a context
              * switch. */
-            for (int p = 0; p < SPIN_BURST_PAUSES; p++) exPauseCpu();
+            for (int p = 0; p < server.worker_spin_pauses; p++) exPauseCpu();
             empty_rounds++;
         } else {
             /* Sustained idleness — give up the CPU so other threads
