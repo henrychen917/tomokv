@@ -9970,15 +9970,41 @@ static inline void exPrefetchBatch(client **batch, int n) {
     }
     int w4 = n < w4cap ? n : w4cap;
 
-    /* Pass 1 — fake client + execution metadata. The fake was just popped from
-     * the SPSC ring and may be cold; warm the struct, argv, cmd, and key robj. */
-    for (int j = 0; j < w1; j++) {
+    /* Pass 1 — REDESIGNED (v13): a true 4-deep software pipeline over the operand pointer
+     * chain, replacing the old single loop that prefetched a pointer and demand-loaded
+     * THROUGH it in the same iteration (zero distance => the load ate the full miss and the
+     * prefetch was decorative). Each mini-pass prefetches exactly one link; the NEXT pass
+     * dereferences it — a full batch-width of slack per link, every line touched once:
+     *   P1a  fake struct lines (head + exec-fields)   -> consumed by P1b/P1c/pass 2
+     *   P1b  argv vector line   (deref warm fake)     -> consumed by P1c
+     *   P1c  key robj header    (deref warm argv)     -> consumed by P1d/pass 2
+     *   P1d  key BYTES          (deref warm robj)     -> consumed by pass 2's SipHash
+     *        (skipped for embstr: header+bytes share the robj line P1c already pulled)
+     * The old pf-cmd stage is DELETED: fake->cmd points into the static command table,
+     * permanently L1-hot on any real run — prefetching hot data is pure issue-slot waste.
+     * The old per-stage bools (pf-fc/argv/cmd/keyobj) are retired: the links are now a
+     * dependency chain, ablatable as a group via pf-w-struct (width 0 = whole group off). */
+    for (int j = 0; j < w1; j++) {                                   /* P1a: struct lines */
         client *fake = batch[j];
-        if (server.pf_fc)   redis_prefetch_read(fake);                          /* ee451 v11-E: per-stage toggles */
-        if (server.pf_argv && fake->argv) redis_prefetch_read(fake->argv);
-        if (server.pf_cmd  && fake->cmd)  redis_prefetch_read(fake->cmd);
-        if (server.pf_keyobj && fake->argc >= 2 && fake->argv && fake->argv[1])
+        redis_prefetch_read(fake);                                   /* ee451 metadata head line */
+        redis_prefetch_read(&fake->argc);                            /* exec-fields line (argv/argc/db) */
+    }
+    for (int j = 0; j < w1; j++) {                                   /* P1b: argv vector */
+        client *fake = batch[j];
+        if (fake->argv) redis_prefetch_read(fake->argv);
+    }
+    for (int j = 0; j < w1; j++) {                                   /* P1c: key robj header */
+        client *fake = batch[j];
+        if (fake->argc >= 2 && fake->argv && fake->argv[1])
             redis_prefetch_read(fake->argv[1]);
+    }
+    for (int j = 0; j < w1; j++) {                                   /* P1d: key bytes (raw enc only) */
+        client *fake = batch[j];
+        if (fake->argc >= 2 && fake->argv && fake->argv[1]) {
+            robj *k = fake->argv[1];
+            if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr)
+                redis_prefetch_read(k->ptr);
+        }
     }
 
     /* Pass 2 — key bytes + hash + bucket slot. Compute the SipHash once and
@@ -9989,8 +10015,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
         des[j] = NULL;
         fake->prefetch_key_hash_valid = 0;
         if (fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->db) continue;
-        /* ee451 (gem5): gate the key-byte prefetch on the pass-2 width. */
-        if (j < server.pf_w_hash && fake->argv[1]->ptr) redis_prefetch_read(fake->argv[1]->ptr);
+        /* ee451 (v13): key-byte prefetch MOVED to P1d — here it was issued 3 instructions
+         * before the SipHash read the same bytes (zero distance, useless). Now it lands a
+         * full mini-pass earlier, so the hash below runs on warm lines. */
         dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
         if (!d || dictSize(d) == 0 || !d->ht_table[0]) continue;
         uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
