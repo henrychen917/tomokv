@@ -6472,36 +6472,6 @@ void reshardDebug(client *c) {
         unsigned long long total = 0;
         for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
         addReplyLongLong(c, (long long)total);
-    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "predacc")) {
-        /* ee451 bench tool: forward-predictor accuracy (prediction vs real cache outcome),
-         * per worker and overall. Needs --thredis-vf-predictor yes to accumulate. */
-        unsigned long long tot = 0, cor = 0;
-        sds s = sdsempty();
-        for (int w = 0; w < server.num_workers; w++) {
-            unsigned long long t = server.exThreads[w].pred_total, k = server.exThreads[w].pred_correct;
-            tot += t; cor += k;
-            s = sdscatprintf(s, "w%d=%llu/%llu(%.1f%%) ", w, k, t, t ? 100.0 * (double)k / (double)t : 0.0);
-        }
-        s = sdscatprintf(s, "| TOTAL=%llu/%llu (%.2f%%)", cor, tot, tot ? 100.0 * (double)cor / (double)tot : 0.0);
-        /* ee451 bake-off: per-predictor accuracy (summed across workers); shown when bake-off OR an adaptive set is on. */
-        if (server.vf_bakeoff || server.vf_predictor_set) {
-            static const char *names[10] = {"bimodal","gshare","perceptron","recency","frequency","client","keycorr","pureclient","ENSEMBLE","PERKEY"};
-            unsigned long long bt[10] = {0}, bc[10] = {0};
-            for (int w = 0; w < server.num_workers; w++)
-                for (int p = 0; p < 10; p++) { bt[p] += server.exThreads[w].bo_tot[p]; bc[p] += server.exThreads[w].bo_corr[p]; }
-            s = sdscatprintf(s, "  ||  BAKEOFF:");
-            for (int p = 0; p < 10; p++)
-                s = sdscatprintf(s, " %s=%.2f%%", names[p], bt[p] ? 100.0 * (double)bc[p] / (double)bt[p] : 0.0);
-            s = sdscatprintf(s, " (n=%llu)", bt[0]);
-            if (server.vf_predictor_set) {
-                s = sdscatprintf(s, " | ACTIVE set=%d best/worker=", server.vf_predictor_set);
-                for (int w = 0; w < server.num_workers; w++) {
-                    int b = server.exThreads[w].bo_best;
-                    s = sdscatprintf(s, "%s%s", (b >= 0 && b < 10) ? names[b] : "?", w + 1 < server.num_workers ? "," : "");
-                }
-            }
-        }
-        addReplyStatus(c, s); sdsfree(s);
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
@@ -9963,14 +9933,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * NEW value and never reads the old payload — the chase measurably hurt
                  * write-heavy: pure-SET populate regressed ~35% with it on), optionally
                  * throttled by the #20 feedback / #21 reuse predictors. */
-                int chase = 0;
-                if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
-                    chase = 1;
-                    if (server.opt_feedback_prefetch)
-                        chase = (pfw->pf_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
-                    if (!chase && server.opt_ship_reuse)
-                        chase = (pfw->reuse_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
-                }
+                /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
+                 * the chase is gated by READONLY + stage widths only. */
+                int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
                 if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
                 if (j < server.pf_w_hash) {
@@ -10034,18 +9999,7 @@ static inline void exPauseCpu(void) {
  * Factored out of the batch loop so it can drive both lone commands and
  * same-key read-run value-forwarding chains identically. */
 /* ee451 (#4): portable cycle counter for the forward-predictor outcome signal. */
-/* ee451: per-thread perf LLC-read-miss counter — a CLEAN ground-truth ("did this lookup touch DRAM")
- * vs the noisy TSC dt threshold. Measurement only (vf-perfsignal). exclude_kernel for paranoid<=2. */
-static long boPerfOpenSelf(void) {
-    struct perf_event_attr pe; memset(&pe, 0, sizeof pe);
-    pe.type = PERF_TYPE_HW_CACHE; pe.size = sizeof pe;
-    pe.config = PERF_COUNT_HW_CACHE_LL | (PERF_COUNT_HW_CACHE_OP_READ << 8) | (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-    pe.disabled = 0; pe.exclude_kernel = 1; pe.exclude_hv = 1;
-    return syscall(SYS_perf_event_open, &pe, 0, -1, -1, 0);   /* pid=0 self, cpu=-1; -1 on failure */
-}
-static inline unsigned long long boPerfRead(int fd) {
-    unsigned long long v = 0; if (read(fd, &v, sizeof v) != (ssize_t)sizeof v) return 0; return v;
-}
+/* ee451 (v13): boPerfRead() deleted with the value-forwarding apparatus. */
 
 static inline unsigned long long readCyclesTSC(void) {
 #if defined(__x86_64__) || defined(__i386__)
@@ -10094,204 +10048,14 @@ static inline void exExecFake(client *fake) {
     }
 }
 
-#define FWD_SAT_INC(c) do { if ((c) < 3) (c)++; } while (0)
-#define FWD_SAT_DEC(c) do { if ((c) > 0) (c)--; } while (0)
 
-/* ee451: evaluate one bake-off predictor for (key_hash, client-id) from its shadow tables.
- * Shared by the shadow scoring and the active forwarding path. 0=bimodal 1=gshare 2=perceptron
- * 3=recency 4=frequency 5=client. */
-static inline int boPredictOne(exThread *W, int p, uint64_t kh, uint64_t cid) {
-    unsigned ik = (unsigned)kh & FWD_PHT_MASK;
-    switch (p) {
-    case 0: return W->bo_bimodal[ik] >= 2;
-    case 1: return W->bo_gshare[(unsigned)(kh ^ W->bo_ghist) & FWD_PHT_MASK] >= 2;
-    case 2: { int sum = 4; unsigned gh = W->bo_ghist;
-              for (int b = 0; b < 8; b++) { int hb = ((gh >> b) & 1) ? 1 : -1; sum += W->bo_perc[ik][b] * hb; }
-              return sum >= 0; }
-    case 3: return (unsigned short)(W->bo_now - W->bo_rec[ik]) > 200;
-    case 4: return W->bo_freq[ik] < 2;
-    case 5: { unsigned ic = (unsigned)(((cid * 0x9E3779B97F4A7C15ULL) >> 32) ^ kh) & FWD_PHT_MASK;
-              return W->bo_client[ic] >= 2; }
-    case 6: { unsigned ikc = (unsigned)(kh ^ ((W->bo_lastkey * 0x9E3779B97F4A7C15ULL) >> 29)) & FWD_PHT_MASK;
-              return W->bo_keycorr[ikc] >= 2; }
-    case 7: { unsigned ic2 = (unsigned)((cid * 0x9E3779B97F4A7C15ULL) >> 40) & FWD_PHT_MASK;
-              return W->bo_client2[ic2] >= 2; }
-    case 8: { int es = 0; for (int e = 0; e < 8; e++) es += W->bo_ens_w[e] * (boPredictOne(W, e, kh, cid) ? 1 : -1);
-              return es >= 0; }   /* ensemble: learned weighted vote */
-    case 9: return W->bo_pk[(unsigned)kh & ((1u<<18)-1)] >= 128;   /* perkey: exact per-key */
-    }
-    return 0;
-}
+/* ee451 (v13): boPredictOne() deleted with the value-forwarding apparatus. */
 
-/* ee451 (#4): predict whether to FORWARD this run. Adaptive set (thredis-vf-predictor-set) takes
- * priority: one bit = that predictor; multiple bits = the current windowed-best. Else legacy:
- * simple = gshare alone; tournament = bimodal vs gshare via the chooser meta-predictor. */
-static inline int exPredictForward(exThread *w, client *fake, uint64_t key_hash) {
-    if (server.vf_predictor_set) {
-        int set = server.vf_predictor_set;
-        uint64_t cid = (fake && fake->parent) ? fake->parent->id : (fake ? fake->id : 0);
-        int p = ((set & (set - 1)) == 0) ? __builtin_ctz((unsigned)set) : w->bo_best;
-        if (p < 0 || p > 9) p = 0;
-        return boPredictOne(w, p, key_hash, cid);
-    }
-    int mode = server.vf_predictor_tournament ? 2 : server.vf_predictor_mode;
-    unsigned int ig = (unsigned int)key_hash & FWD_PHT_MASK;
-    if (mode == 0) return w->gen_pht[ig] >= 2;    /* bimodal / general only */
-    unsigned int ih = (unsigned int)(key_hash ^ w->fwd_ghist) & FWD_PHT_MASK;
-    int ph = w->fwd_pht[ih] >= 2;                 /* history (gshare) */
-    if (mode == 1) return ph;                     /* gshare only */
-    int pg = w->gen_pht[ig] >= 2;                 /* tournament: general + chooser */
-    return (w->chooser[ig] >= 2) ? ph : pg;
-}
+/* ee451 (v13): exPredictForward() deleted with the value-forwarding apparatus. */
 
-/* ee451 (#4): execute the FIRST read of a (potential) run and, when the predictor
- * is enabled, learn from its real-lookup cost. A slow exec => the lookup missed
- * cache => forwarding a same-key run pays => nudge toward "forward"; fast (L1-hot)
- * => nudge toward "don't". Only op_0 (a REAL lookup) learns — replayed ops are
- * skipped. In tournament mode, both predictors are nudged toward the outcome and
- * the chooser is nudged toward whichever predictor was right (only when they
- * disagree). gshare history register shifts in the outcome bit. */
-static inline void exExecFakeLearn(client *fake, exThread *worker) {
-    /* Time the real op (op_0) and learn the per-key cache-temperature signal when ANY
-     * adaptive mechanism is on: forward predictor (#4), feedback-prefetch (#20), or
-     * SHiP reuse (#21). A slow exec => cache MISS (cold); fast => HIT (L1-warm). */
-    int want = (server.vf_predictor || server.opt_feedback_prefetch || server.opt_ship_reuse);
-    if (!(want && fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
-          fake->prefetch_key_hash_valid)) {
-        exExecFake(fake);
-        return;
-    }
-    uint64_t kh = fake->prefetch_key_hash;
-    unsigned int ig = (unsigned int)kh & FWD_PHT_MASK;
-    unsigned int ih = (unsigned int)(kh ^ worker->fwd_ghist) & FWD_PHT_MASK;
-    int pg = worker->gen_pht[ig] >= 2;            /* forward predictions BEFORE update */
-    int ph = worker->fwd_pht[ih] >= 2;
+/* ee451 (v13): exExecFakeLearn() deleted with the value-forwarding apparatus. */
 
-    /* clean-signal path: lazily open a per-worker LLC-miss counter and read it around op_0. */
-    int pfd = -1; unsigned long long pc0 = 0;
-    if (server.vf_perfsignal) {
-        if (worker->bo_perf_fd == 0) { long f = boPerfOpenSelf(); worker->bo_perf_fd = (f >= 0) ? (int)f : -1; }
-        pfd = (worker->bo_perf_fd > 0) ? worker->bo_perf_fd : -1;
-        if (pfd > 0) pc0 = boPerfRead(pfd);
-    }
-    unsigned long long t0 = readCyclesTSC();
-    exExecFake(fake);
-    unsigned long long dt = readCyclesTSC() - t0;
-    int miss = (dt > (unsigned long long)server.vf_predictor_miss_cycles);
-    if (pfd > 0) miss = (boPerfRead(pfd) != pc0);   /* CLEAN ground truth: the lookup caused an LLC read miss */
-
-    /* ee451 predictor BAKE-OFF: every shadow predictor predicts this read from its current state,
-     * is scored vs the real `miss` outcome, then updates. Independent per-worker tables; one run
-     * scores all 6 (PREDACC reports them). 0=bimodal 1=gshare 2=perceptron 3=recency 4=freq 5=client.
-     * Also maintains the tables for the adaptive active path (thredis-vf-predictor-set). */
-    if (server.vf_bakeoff || server.vf_predictor_set) {
-        exThread *W = worker;
-        unsigned gh  = W->bo_ghist;
-        unsigned ik  = (unsigned)kh & FWD_PHT_MASK;
-        unsigned igs = (unsigned)(kh ^ gh) & FWD_PHT_MASK;
-        uint64_t cid = fake->parent ? fake->parent->id : fake->id;     /* client-aware signature */
-        unsigned ic  = (unsigned)(((cid * 0x9E3779B97F4A7C15ULL) >> 32) ^ kh) & FWD_PHT_MASK;
-        W->bo_now++;
-        int sum = 4; for (int b = 0; b < 8; b++) { int hb = ((gh >> b) & 1) ? 1 : -1; sum += W->bo_perc[ik][b] * hb; }
-        unsigned short gap = (unsigned short)(W->bo_now - W->bo_rec[ik]);
-        int p0 = W->bo_bimodal[ik] >= 2;    /* bimodal     */
-        int p1 = W->bo_gshare[igs] >= 2;    /* gshare      */
-        int p2 = sum >= 0;                  /* perceptron  */
-        int p3 = gap > 200;                 /* recency: stale => cold/miss */
-        int p4 = W->bo_freq[ik] < 2;        /* frequency: infrequent => cold/miss */
-        int p5 = W->bo_client[ic] >= 2;     /* client-aware (client ^ key) */
-        unsigned ikc = (unsigned)(kh ^ ((W->bo_lastkey * 0x9E3779B97F4A7C15ULL) >> 29)) & FWD_PHT_MASK; /* key-correlation: prev-key context */
-        unsigned ic2 = (unsigned)((cid * 0x9E3779B97F4A7C15ULL) >> 40) & FWD_PHT_MASK;                  /* pure client */
-        int p6 = W->bo_keycorr[ikc] >= 2;   /* key-correlation: "X follows Y" */
-        int p7 = W->bo_client2[ic2] >= 2;   /* pure client */
-        unsigned ipk = (unsigned)kh & ((1u<<18)-1);
-        int p9 = W->bo_pk[ipk] >= 128;      /* perkey: EXACT per-key (computed first so the ensemble includes it) */
-        int pv[9] = {p0,p1,p2,p3,p4,p5,p6,p7,p9};   /* ensemble now COMBINES global predictors + per-key */
-        int esum = 0; for (int e = 0; e < 9; e++) esum += W->bo_ens_w[e] * (pv[e] ? 1 : -1);
-        int p8 = esum >= 0;                 /* ensemble: learned weighted vote (global + per-key) */
-        W->bo_tot[0]++; if (p0 == miss) W->bo_corr[0]++;
-        W->bo_tot[1]++; if (p1 == miss) W->bo_corr[1]++;
-        W->bo_tot[2]++; if (p2 == miss) W->bo_corr[2]++;
-        W->bo_tot[3]++; if (p3 == miss) W->bo_corr[3]++;
-        W->bo_tot[4]++; if (p4 == miss) W->bo_corr[4]++;
-        W->bo_tot[5]++; if (p5 == miss) W->bo_corr[5]++;
-        W->bo_tot[6]++; if (p6 == miss) W->bo_corr[6]++;
-        W->bo_tot[7]++; if (p7 == miss) W->bo_corr[7]++;
-        W->bo_tot[8]++; if (p8 == miss) W->bo_corr[8]++;
-        W->bo_tot[9]++; if (p9 == miss) W->bo_corr[9]++;
-        { int v = (int)W->bo_pk[ipk] + (miss ? 24 : -24); W->bo_pk[ipk] = (unsigned char)(v > 255 ? 255 : v < 0 ? 0 : v); }
-        if (miss) FWD_SAT_INC(W->bo_bimodal[ik]); else FWD_SAT_DEC(W->bo_bimodal[ik]);
-        if (miss) FWD_SAT_INC(W->bo_gshare[igs]); else FWD_SAT_DEC(W->bo_gshare[igs]);
-        if (p2 != miss || (sum > -24 && sum < 24)) { int t = miss ? 1 : -1;
-            for (int b = 0; b < 8; b++) { int hb = ((gh >> b) & 1) ? 1 : -1; int nw = W->bo_perc[ik][b] + t * hb;
-                if (nw > 127) nw = 127; if (nw < -127) nw = -127; W->bo_perc[ik][b] = (signed char)nw; } }
-        W->bo_rec[ik] = W->bo_now;
-        if (W->bo_freq[ik] < 15) W->bo_freq[ik]++;
-        if ((W->bo_now & 4095) == 0) for (int j = 0; j < FWD_PHT_SIZE; j++) W->bo_freq[j] >>= 1;
-        if (miss) FWD_SAT_INC(W->bo_client[ic]); else FWD_SAT_DEC(W->bo_client[ic]);
-        if (miss) FWD_SAT_INC(W->bo_keycorr[ikc]); else FWD_SAT_DEC(W->bo_keycorr[ikc]);
-        if (miss) FWD_SAT_INC(W->bo_client2[ic2]); else FWD_SAT_DEC(W->bo_client2[ic2]);
-        /* ensemble: perceptron update — nudge each base predictor's weight toward agreement with truth. */
-        if (p8 != miss || (esum > -96 && esum < 96)) { int t = miss ? 1 : -1;
-            for (int e = 0; e < 9; e++) { int xe = pv[e] ? 1 : -1; int nw = W->bo_ens_w[e] + t * xe;
-                if (nw > 1024) nw = 1024; if (nw < -1024) nw = -1024; W->bo_ens_w[e] = (signed short)nw; } }
-        W->bo_lastkey = kh;
-        W->bo_ghist = (gh << 1) | (miss ? 1u : 0u);
-        /* adaptive: every ~1024 reads, pick the windowed-best predictor among the active set and
-         * decay the counters (so "best" tracks recent accuracy, adapting to workload shifts). */
-        if (server.vf_predictor_set && (W->bo_now & 1023) == 0) {
-            int set = server.vf_predictor_set, best = W->bo_best; double ba = -1.0;
-            for (int p = 0; p < 10; p++) {
-                if (set & (1 << p)) {
-                    double a = W->bo_tot[p] ? (double)W->bo_corr[p] / (double)W->bo_tot[p] : 0.0;
-                    if (a > ba) { ba = a; best = p; }
-                }
-                W->bo_corr[p] = (W->bo_corr[p] * 7) >> 3;   /* ~12.5%/window decay => windowed accuracy */
-                W->bo_tot[p]  = (W->bo_tot[p]  * 7) >> 3;
-            }
-            W->bo_best = best;
-        }
-    }
-
-    if (server.vf_predictor) {
-        /* ee451 instrumentation: did the pre-update active prediction match the real outcome? */
-        int mode_ = server.vf_predictor_tournament ? 2 : server.vf_predictor_mode;
-        int pact = (mode_ == 0) ? pg : (mode_ == 1) ? ph : ((worker->chooser[ig] >= 2) ? ph : pg);
-        worker->pred_total++;
-        if (pact == miss) worker->pred_correct++;
-        if (miss) { FWD_SAT_INC(worker->fwd_pht[ih]); FWD_SAT_INC(worker->gen_pht[ig]); }
-        else      { FWD_SAT_DEC(worker->fwd_pht[ih]); FWD_SAT_DEC(worker->gen_pht[ig]); }
-        if (server.vf_predictor_tournament) {
-            unsigned int ic = (unsigned int)kh & FWD_PHT_MASK;
-            int cg = (pg == miss), ch = (ph == miss);   /* which predictor was right */
-            if (ch && !cg) FWD_SAT_INC(worker->chooser[ic]);       /* toward history */
-            else if (cg && !ch) FWD_SAT_DEC(worker->chooser[ic]);  /* toward general */
-        }
-    }
-    /* #20: prefetch is "useful" exactly when the lookup missed (cold). */
-    if (server.opt_feedback_prefetch) {
-        if (miss) FWD_SAT_INC(worker->pf_pht[ig]); else FWD_SAT_DEC(worker->pf_pht[ig]);
-    }
-    /* #21: reuse — a HIT means the value was warm (recently re-referenced) => high reuse;
-     * a MISS means cold/one-shot => low reuse (anti-pollution candidate). */
-    if (server.opt_ship_reuse) {
-        if (!miss) FWD_SAT_INC(worker->reuse_pht[ig]); else FWD_SAT_DEC(worker->reuse_pht[ig]);
-    }
-    worker->fwd_ghist = (worker->fwd_ghist << 1) | (miss ? 1u : 0u);
-}
-
-/* ee451: is `b` a CMD_READONLY single-key command on the SAME key as `a`?
- * Used to form same-key read runs for value forwarding. Cheap fast-reject on
- * the prefetched key hash, then a definitive sds compare (guarded so we never
- * sdscmp an int-encoded key pointer). */
-static inline int exSameKeyReadonly(client *a, client *b) {
-    if (!b->cmd || !(b->cmd->flags & CMD_READONLY)) return 0;
-    if (b->argc < 2 || !b->argv || !b->argv[1]) return 0;
-    if (a->prefetch_key_hash_valid && b->prefetch_key_hash_valid &&
-        a->prefetch_key_hash != b->prefetch_key_hash) return 0;
-    if (!sdsEncodedObject(a->argv[1]) || !sdsEncodedObject(b->argv[1])) return 0;
-    return sdscmp(a->argv[1]->ptr, b->argv[1]->ptr) == 0;
-}
+/* ee451 (v13): exSameKeyReadonly() deleted with the value-forwarding apparatus. */
 
 void *exThreadMain(void *arg) {
     exThread *worker = (exThread *)arg;
@@ -10394,14 +10158,6 @@ void *exThreadMain(void *arg) {
             /* Warm the cache before executing the batch. */
             exPrefetchBatch(batch, n);
 
-            /* ee451 (#3): track recent write activity for this shard (windowed,
-             * decayed). High recent write rate => values churning => reads more
-             * likely cache-cold => forwarding pays. Used by the write-rate gate. */
-            for (int j = 0; j < n; j++) {
-                worker->w_total++;
-                if (batch[j]->cmd && (batch[j]->cmd->flags & CMD_WRITE)) worker->w_writes++;
-            }
-            if (worker->w_total >= 8192) { worker->w_writes >>= 1; worker->w_total >>= 1; }
             worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
 
             /* ee451: per-batch reply-ready signal coalescing accumulator.
@@ -10413,17 +10169,11 @@ void *exThreadMain(void *arg) {
             uint32_t sig_masks[WORKER_POP_BATCH];
             int sig_n = 0;
 
-            /* Execute the batch in issue (queue) order. A run of consecutive
-             * CMD_READONLY commands on the SAME key is executed as a
-             * value-forwarding chain (the Tomasulo common-data-bus analog):
-             * op_0 does the real lookup and RECORDS the resolved value; the
-             * remaining same-key reads REPLAY it, skipping dictFind. This stays
-             * strictly inside the single owning worker, processes same-key ops
-             * in issue order, and never reorders — so the paper's Sec 4.8
-             * properties (single-writer, in-order emission, cross-thread
-             * visibility) and causal ordering hold exactly. Forwarding is
-             * disarmed when op_0's value is volatile (carries a TTL) so lazy
-             * expiry is never bypassed. */
+            /* Execute the batch in issue (queue) order — plain, one op at a time.
+             * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
+             * (paper negative result: neutral in every regime, real workloads lack same-key
+             * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
+             * The record/replay helpers in db.c remain dormant for the paper's artifact. */
             for (int j = 0; j < n; ) {
                 client *fake = batch[j];
 
@@ -10481,81 +10231,7 @@ void *exThreadMain(void *arg) {
                     continue;
                 }
 
-                /* Length of the same-key readonly run starting at j.
-                 * ee451 (v4): with value forwarding disabled, m stays 1 and every
-                 * read executes its own lookup (no record/replay). */
-                int m = 1;
-                if (server.opt_value_forward &&
-                    fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
-                    fake->argc >= 2 && fake->argv && fake->argv[1]) {
-                    /* Decide whether to FORWARD this (potential) run. */
-                    int do_fwd;
-                    if (server.vf_predictor) {
-                        /* ee451 (#4): branch-predictor-style decision (simple gshare or
-                         * tournament). Learns per key from op_0's observed lookup cost
-                         * (exExecFakeLearn); on random keys the chooser/counter degrades
-                         * to the base rate (no worse than a static gate). */
-                        do_fwd = (fake->prefetch_key_hash_valid &&
-                                  exPredictForward(worker, fake, fake->prefetch_key_hash));
-                    } else {
-                        /* Static gates: dict-size (#2, cache-cold proxy) AND write-rate (#3,
-                         * recent write activity). Both checked pre-scan so a tiny/quiet shard
-                         * skips the scan + replay overhead entirely (the 1-key regression). */
-                        do_fwd = 1;
-                        if (server.vf_min_dictsize > 0) {
-                            dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
-                            if (!(d && dictSize(d) >= (unsigned long)server.vf_min_dictsize)) do_fwd = 0;
-                        }
-                        if (do_fwd && server.vf_min_write_permille > 0) {
-                            unsigned int wr = worker->w_total ? (worker->w_writes * 1000u / worker->w_total) : 0;
-                            if (wr < (unsigned)server.vf_min_write_permille) do_fwd = 0;
-                        }
-                    }
-                    if (do_fwd)
-                        while (j + m < n && exSameKeyReadonly(fake, batch[j + m])) m++;
-                }
-
-                /* ee451: min-run GATE. Only pay the record/replay machinery for runs
-                 * at least vf_min_run long; shorter runs execute plainly. op_0 always
-                 * does a REAL lookup, so it carries the predictor's learning signal. */
-                int fwd_early_done = 0;   /* set when a forwarded run was signaled early */
-                if (m > 1 && m >= server.vf_min_run) {
-                    readFwdArmRecord(fake->argv[1]->ptr);
-                    exExecFakeLearn(fake, worker);     /* op_0: real lookup + record + learn */
-                    int replay = readFwdCanReplay();       /* recorded & non-volatile? */
-                    /* ee451 COST-BENEFIT gate: forward only when the re-serialization saved across the
-                     * run is worth the machinery — saved ~= value_cost * (run-1). Skips small-string /
-                     * short-run cases (the neutral-to-negative regime); fires on large/complex values
-                     * and long runs (where it pays). vf_min_saved=0 disables the gate (legacy). */
-                    if (replay && server.vf_min_saved > 0 &&
-                        readFwdValCost() * (long)(m - 1) < (long)server.vf_min_saved)
-                        replay = 0;
-                    if (!replay) readFwdDisarm();          /* volatile/no-record/not-worth-it: run rest normally */
-                    for (int k = 1; k < m; k++) {
-                        if (replay) readFwdSetReplayKey(batch[j + k]->argv[1]->ptr);
-                        exExecFake(batch[j + k]);       /* replayed: no learn (not a real lookup) */
-                    }
-                    readFwdDisarm();
-                    /* ee451 EARLY-CDB: a forwarded run's replays are fully built NOW (they reuse
-                     * op_0's value, so they finished almost instantly). Publish their reply-ready
-                     * bits immediately so the owning IO thread overlaps draining them with the rest
-                     * of this batch, instead of waiting for the batch-end coalesced flush. This is
-                     * the same release fetch_or as the uncoalesced path below (each bit's release
-                     * happens-after that fake's reply write), just issued early — cannot lose a bit.
-                     * Only worthwhile for an actually-forwarded run (replay), where the whole run
-                     * became ready at once. */
-                    if (replay && server.vf_early_signal) {
-                        for (int k = 0; k < m; k++)
-                            atomicFetchOrWithRelease(batch[j + k]->parent->reply_cdb[wcdb].v,
-                                                     1u << batch[j + k]->fake_slot);
-                        fwd_early_done = 1;
-                    }
-                } else {
-                    exExecFakeLearn(fake, worker);     /* op_0 real lookup + learn */
-                    for (int k = 1; k < m; k++) exExecFake(batch[j + k]);
-                }
-
-                if (fwd_early_done) { j += m; continue; }  /* already signaled; skip batch-end coalesce */
+                exExecFake(fake);
 
                 /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
                  * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
@@ -10575,17 +10251,17 @@ void *exThreadMain(void *arg) {
                  * no-op). Both are correct: bits are only OR'd by workers and
                  * cleared by the one owning IO thread, so coalescing N ORs into
                  * one cannot lose a bit. */
-                for (int k = 0; k < m; k++) {
-                    client *p = batch[j + k]->parent;
-                    uint32_t bit = 1u << batch[j + k]->fake_slot;
-                    /* ee451 (v13): coalescing HARDWIRED (knob retired — strictly fewer release
-                     * RMWs; bits only OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
+                {
+                    client *p = fake->parent;
+                    uint32_t bit = 1u << fake->fake_slot;
+                    /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
+                     * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
                     int s;
                     for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
                     if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
                     sig_masks[s] |= bit;
                 }
-                j += m;
+                j++;
             }
 
             /* ee451: flush coalesced signals — one release fetch_or per
@@ -10771,16 +10447,6 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        /* ee451 (#3/#4): init write-rate counters + forward predictor (weakly-forward
-         * = 2, matching the default "forward when VF on" until the predictor learns). */
-        server.exThreads[i].w_writes = 0;
-        server.exThreads[i].w_total = 0;
-        server.exThreads[i].fwd_ghist = 0;
-        memset(server.exThreads[i].fwd_pht, 2, sizeof(server.exThreads[i].fwd_pht)); /* history: weakly forward */
-        memset(server.exThreads[i].gen_pht, 2, sizeof(server.exThreads[i].gen_pht)); /* general: weakly forward */
-        memset(server.exThreads[i].chooser, 1, sizeof(server.exThreads[i].chooser)); /* weakly trust general until history trains */
-        memset(server.exThreads[i].pf_pht, 2, sizeof(server.exThreads[i].pf_pht));   /* #20: weakly prefetch (= default behavior) */
-        memset(server.exThreads[i].reuse_pht, 2, sizeof(server.exThreads[i].reuse_pht)); /* #21: weakly high-reuse (keep) */
         for (int t = 0; t <= server.my_io_threads; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */

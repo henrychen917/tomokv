@@ -1903,9 +1903,6 @@ typedef struct freebackRing {
 /* ee451 (#4): branch-predictor-style forward predictor — a table of 2-bit
  * saturating counters indexed by key hash (gshare: XOR'd with a global-history
  * register). MSB set => predict "forward". Per worker (no sharing). */
-#define FWD_PHT_BITS 10
-#define FWD_PHT_SIZE (1u << FWD_PHT_BITS)
-#define FWD_PHT_MASK (FWD_PHT_SIZE - 1)
 
 typedef struct exThread {
     int id;
@@ -1915,7 +1912,6 @@ typedef struct exThread {
     freebackRing freeback[MY_IO_THREADS_MAX + 1];
     redisDb *db;
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
-    unsigned int w_writes, w_total;
     /* ee451 (gem5): EWMA of served read reply size (≈ value bytes), alpha=1/16. Drives
      * value-size-adaptive pf-w-value: big values ⇒ narrower value-chase (avoid LFB oversub). */
     unsigned int w_ewma_vsize;
@@ -1927,45 +1923,7 @@ typedef struct exThread {
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
     _Atomic uint64_t loop_seq;
-    /* ee451 (#4): forward predictor state. fwd_pht is the HISTORY (gshare) predictor;
-     * the tournament adds a general (bimodal) predictor + a chooser meta-predictor. */
-    unsigned char fwd_pht[FWD_PHT_SIZE];   /* history (gshare) 2-bit counters (0..3) */
-    unsigned char gen_pht[FWD_PHT_SIZE];   /* general (bimodal, no history) 2-bit counters */
-    unsigned char chooser[FWD_PHT_SIZE];   /* meta: >=2 trust history, <2 trust general */
-    unsigned int  fwd_ghist;               /* global history register (gshare) */
-    /* ee451 (#20 feedback-prefetch): per-key "is prefetch useful" 2-bit counters.
-     * miss => prefetch paid (++); hit (L1-resident) => prefetch wasted (--). Gates
-     * the worker value-chase per key, so it auto-throttles prefetch on hot keys. */
-    unsigned char pf_pht[FWD_PHT_SIZE];
-    /* ee451 (#21 SHiP): per-key re-reference (reuse) 2-bit counters. High => likely
-     * re-read soon (keep warm); low => one-shot (avoid cache pollution). */
-    unsigned char reuse_pht[FWD_PHT_SIZE];
-    /* ee451 predictor-accuracy instrumentation (bench tool): per-worker single-threaded,
-     * so plain (non-atomic) increments. pred_correct/pred_total = forward-predictor hit rate
-     * (prediction vs the real cache-temperature outcome). Read via DEBUG RESHARD PREDACC. */
-    unsigned long long pred_total, pred_correct;
-    /* ee451 predictor BAKE-OFF (thredis-vf-bakeoff): independent shadow tables for 6 predictors
-     * — bimodal, gshare, perceptron, recency, frequency, client-aware. Each predicts every read
-     * and is scored vs the real cache-hit/miss outcome; PREDACC reports all. Measurement only,
-     * per-worker (no atomics). 0=bimodal 1=gshare 2=perceptron 3=recency 4=frequency 5=client. */
-    unsigned char  bo_bimodal[FWD_PHT_SIZE];
-    unsigned char  bo_gshare[FWD_PHT_SIZE];
-    signed char    bo_perc[FWD_PHT_SIZE][8];   /* perceptron weights over 8 global-history bits */
-    unsigned short bo_rec[FWD_PHT_SIZE];       /* recency: last-seen coarse clock */
-    unsigned char  bo_freq[FWD_PHT_SIZE];      /* frequency: decaying access count */
-    unsigned char  bo_client[FWD_PHT_SIZE];    /* client-aware: indexed by client-id ^ key-hash */
-    unsigned char  bo_keycorr[FWD_PHT_SIZE];   /* key-correlation (Markov): indexed by prev-key ^ key ("X follows Y") */
-    unsigned char  bo_client2[FWD_PHT_SIZE];   /* pure client: indexed by client-id only */
-    unsigned int   bo_ghist;
-    unsigned short bo_now;
-    uint64_t       bo_lastkey;                 /* previous key hash (for key-correlation) */
-    signed short   bo_ens_w[9];                /* ensemble (#8): perceptron weights over 8 base predictors + perkey (global+per-key) */
-    unsigned char  bo_pk[1u<<18];              /* perkey (#9): EXACT per-key miss-tendency, 256K entries (near-collision-free
-                                                * for our keyspaces) — tests whether hash ALIASING is the accuracy ceiling.
-                                                * Production would store this in the value robj (free; reuses the LFU field). */
-    unsigned long long bo_corr[10], bo_tot[10];/* +ensemble +perkey */
-    int bo_best;                               /* current windowed-best predictor id (adaptive set mode) */
-    int bo_perf_fd;                            /* ee451: per-worker perf LLC-miss fd (clean ground-truth signal); 0=untried,-1=failed */
+    /* ee451 (v13): forward-predictor / bakeoff state removed with the VF apparatus. */
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2974,7 +2932,6 @@ struct redisServer {
      * default 1 (= the v3 behavior). Pinning is intentionally NOT toggleable.
      * S3 cache-line mask isolation is a compile-time struct layout and is also
      * not represented here (always on). */
-    int opt_value_forward;     /* #7: same-key read-run value forwarding (CDB analog) */
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
@@ -3003,20 +2960,6 @@ struct redisServer {
     int worker_spin_pauses;        /* v13: PAUSE instrs per empty worker round (0 = no pause burst) */
     int worker_spin_yield_rounds;  /* v13: empty rounds before sched_yield (0 = yield immediately) */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
-    int vf_min_dictsize;   /* value-forward only when shard dict size >= this (cache-cold proxy); 0=always */
-    int vf_min_run;        /* value-forward only for same-key runs >= this length */
-    int vf_min_saved;      /* ee451: cost-benefit gate — forward only if value_cost*(run-1) >= this (bytes of re-serialization saved) */
-    int vf_early_signal;   /* ee451: emit a forwarded run's CDB reply-ready bits immediately (overlap IO drain) instead of at batch-end coalesce */
-    int vf_min_write_permille; /* #3: value-forward only when recent shard write rate >= this/1000; 0=off */
-    int vf_predictor;          /* #4: branch-predictor-style adaptive forward decision (overrides static gates) */
-    int vf_predictor_tournament; /* #4: forces tournament mode (back-compat); else vf_predictor_mode applies */
-    int vf_predictor_mode;       /* #4: forward-predictor variant when on: 0=bimodal(general), 1=gshare(history), 2=tournament */
-    int vf_bakeoff;              /* ee451: run all 6 shadow predictors + score them (DEBUG RESHARD PREDACC); measurement only */
-    int vf_perfsignal;           /* ee451: use a real perf LLC-miss counter as the bake-off ground truth (vs the noisy TSC dt); measurement only */
-    int vf_predictor_set;        /* ee451: bitmask of active predictors; >1 bit => windowed-best drives forwarding */
-    int vf_predictor_miss_cycles; /* #4: op-exec cycles above which the lookup counts as a "miss" (toward forward) */
-    int opt_feedback_prefetch; /* #20: per-key adaptive prefetch throttling (gate value-chase by learned usefulness) */
-    int opt_ship_reuse;        /* #21: SHiP-style reuse prediction (keep-warm hot / anti-pollute cold) */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
     int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
