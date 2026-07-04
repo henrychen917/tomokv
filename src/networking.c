@@ -6548,8 +6548,10 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
             }
 
             /* Clean up command resources before adding to pool */
-            for (int j = 0; j < pcmd->argc; j++)
-                decrRefCount(pcmd->argv[j]);
+            for (int j = 0; j < pcmd->argc; j++) {
+                if (j < 64 && (pcmd->argv_released_mask & (1ULL<<j))) continue;  /* worker released it */
+                if (pcmd->argv[j]) decrRefCount(pcmd->argv[j]);
+            }
 
             getKeysFreeResult(&pcmd->keys_result);
 
@@ -6577,6 +6579,7 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
              * To avoid robj that may already be referenced elsewhere, we should
              * decrease the reference count to release our reference to it. */
             for (int j = 0; j < pcmd->argc; j++) {
+                if (j < 64 && (pcmd->argv_released_mask & (1ULL<<j))) continue;  /* ee451 (v14 deepint): worker released it */
                 robj *o = pcmd->argv[j];
                 if (o && o->refcount > 1) {
                     decrRefCount(o);
@@ -6610,12 +6613,13 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
     getKeysFreeResult(&pcmd->keys_result);
 
     if (pcmd->argv) {
-        /* ee451 (v14 cleanup): hoist the pool-vs-decref decision out of the per-arg loop (it's a
-         * process-lifetime constant on the hot retire path) — two tight loops instead of a branch/arg. */
+        /* ee451 (v14 deepint): skip slots the worker already released (argv_released_mask) — the worker
+         * decref'd them WITHOUT NULLing the io array, so freeing here would double-free. */
+        uint64_t rel = pcmd->argv_released_mask;
         if (server.opt_operand_pool) {
-            for (int j = 0; j < pcmd->argc; j++) { robj *o = pcmd->argv[j]; if (o) operandPoolPut(o); }
+            for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) operandPoolPut(o); }
         } else {
-            for (int j = 0; j < pcmd->argc; j++) { robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
+            for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
         }
 
         zfree(pcmd->argv);
