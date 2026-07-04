@@ -10636,9 +10636,14 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        for (int t = 0; t <= server.ifid_threads; t++) {
+        for (int t = 0; t <= server.ifid_threads; t++)
             exQueueInit(&server.exThreads[i].queues[t]);
-            /* ee451 (S8): init this worker's free-back ring for producer t. */
+        /* ee451 (v14, RP-1 fix): init the free-back rings for the FULL producer range, not just
+         * the ifid threads — in strict mode the WB threads push to freeback[ifid_threads+1+rid]
+         * and freebackDrainAll scans up to ifid_threads+wbThreadCount. The old loop left those WB
+         * slots uninitialized (garbage head/tail); only masked today because S8 zerocopy is off by
+         * default. Zero the whole array unconditionally (cheap, order-independent). */
+        for (int t = 0; t < TOMO_IFID_THREADS_MAX + 1; t++) {
             freebackRing *fb = &server.exThreads[i].freeback[t];
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
