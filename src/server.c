@@ -1888,7 +1888,10 @@ extern int ProcessingEventsWhileBlocked;
 /* ee451 (S5): map a worker id to its common-data-bus index. server.num_cdb is
  * fixed at init (IMMUTABLE toggle), so this never changes underfoot. OFF => 0. */
 static inline int cdbIndexFor(int ex_id) {
-    return (ex_id % server.num_cdb);   /* num_cdb==1 when multi-cdb off => always 0 */
+    /* ee451 (v13, #16a): fast-path the default single-bus config — the modulo was an
+     * idiv on every dispatched op. Multi-cdb (gated, non-default) keeps the modulo. */
+    if (server.num_cdb == 1) return 0;
+    return (ex_id % server.num_cdb);
 }
 
 /* ee451 (S5): combined reply-ready mask = OR of all active CDB masks. Each
@@ -2153,35 +2156,11 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     handleClientsWithPendingWrites();
     freeClientsInAsyncFreeQueue();
 
-    size_t pending = listLength(server.clients_pending_ex[iotid]);
-    /* Periodic dump of state so we can see if the IO thread is stuck waiting. */
-    static __thread unsigned long long bsio_calls = 0;
-    static __thread monotime last_dump_us = 0;
-    bsio_calls++;
-    monotime now_us = getMonotonicUs();
-    if (pending > 0 && (now_us - last_dump_us) > 1000000) {  /* once per second */
-        last_dump_us = now_us;
-        listIter li; listNode *ln;
-        listRewind(server.clients_pending_ex[iotid], &li);
-        int n = 0;
-        //fprintf(stderr, "[iotid=%d STALL] pending=%zu replyWorking=%d bsio_calls=%llu\n",
-        //        iotid, pending, replyWorking, bsio_calls);
-        while ((ln = listNext(&li)) && n < 3) {
-            client *real = listNodeValue(ln);
-            uint32_t ready_mask;
-            ready_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
-            (void)ready_mask;
-            //fprintf(stderr, "  real->id=%llu dispatch=%u flush=%u diff=%u ready_mask=0x%x flags=0x%llx\n",
-                    // (unsigned long long)real->id,
-                    // real->dispatchid, real->flushid,
-                    // real->dispatchid - real->flushid,
-                    // ready_mask, (unsigned long long)real->flags);
-            n++;
-        }
-    }
-
-    /* Don't sleep if this IO thread still has commands in flight with workers. */
-    aeSetDontWait(eventLoop, pending > 0);
+    /* ee451 (v13, hot-path audit #17): the old once-per-second "stall dump" block here cost a
+     * TLS counter bump + getMonotonicUs() vDSO call EVERY loop iteration for fprintf's that were
+     * commented out — deleted. Likewise aeSetDontWait was a DEAD STORE: aeProcessEventsIO never
+     * reads AE_DONT_WAIT; the actual sleep policy is replyWorking (block forever when 0, poll
+     * when >0) in ae.c. */
 }
 
 void afterSleepIO(struct aeEventLoop *eventLoop) {
@@ -9591,7 +9570,7 @@ static void moveExecutionState(client *real, client *fake) {
  *
  * The architecture guarantees single-producer single-consumer per queue:
  *   - Producer: the IO thread whose iotid matches the queue's index.
- *     Only queueToWorker() in the context of that IO thread pushes.
+ *     Only the dispatch path (exQueuePush) in that IO thread's context pushes.
  *   - Consumer: the worker thread owning the enclosing exThread
  *     struct. Only that worker's exThreadMain pops.
  *
@@ -9749,22 +9728,8 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
 
 
 
-void queueToWorker(client *c, int ex_id) {
-    replyWorking++;
-    c->db = &server.exThreads[ex_id].db[c->db->id];
-    c->flags |= CLIENT_EX_PENDING;
-    connSetReadHandler(c->conn, NULL);
-    listAddNodeTail(server.clients_pending_ex[iotid], c);
-    /* ee451 (v11 hang fix): spin-on-full backpressure (see v11 server.c). The old code dropped the
-     * command on a full worker queue -> client hang ("worker queue full"). */
-    exQueue *q = &server.exThreads[ex_id].queues[iotid];
-    int spins = 0;
-    while (exQueuePush(q, c) != 0) {
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        exPauseCpu();
-        if ((++spins & 4095) == 0) sched_yield();
-    }
-}
+/* ee451 (v13, audit #9): dead queueToWorker() deleted — no callers (live dispatch uses
+ * exQueuePush directly); it carried a per-op epoll_ctl (connSetReadHandler NULL) trap. */
 
 /* ee451: Pipelined prefetch for a batch of fakes about to execute on a worker.
  * The dependent pointer chain a single-key command walks is:

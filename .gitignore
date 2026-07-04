@@ -44,3 +44,8 @@ compile_commands.json
 redis.code-workspace
 ycsb-0.17.0/
 ycsb-0.17.0.tar.gz
+# ee451 test binaries (build products, do not commit)
+src/redis-pipeline-test
+src/redis-pipeline-testv2
+src/redis-pipeline-testv3
+src/redis-correctness-test
