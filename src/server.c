@@ -3285,6 +3285,29 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+
+    /* ee451 (v14, role-purity RP-1): refuse configs that silently lose or corrupt SHARD data.
+     * The real dataset lives in per-worker shard DBs; upstream AOF/replication/eviction machinery
+     * still operates on the empty decoy server.db, so with sharding enabled: an AOF rewrite would
+     * serialize ONLY the decoy (total data loss on reload); maxmemory eviction can free nothing real
+     * (permanent OOM write-stop) while N IO threads race the shared eviction pool; a replica would
+     * receive an empty dataset. Fail loud at startup rather than corrupt silently. */
+    if (server.num_workers > 0) {
+        const char *bad = NULL;
+        if (server.aof_state != AOF_OFF)        bad = "appendonly yes";
+        else if (server.masterhost)             bad = "replicaof / slaveof";
+        else if (server.maxmemory > 0)          bad = "maxmemory";
+        else if (server.maxmemory_clients != 0) bad = "maxmemory-clients";
+        else if (server.active_defrag_enabled)  bad = "activedefrag";
+        if (bad) {
+            serverLog(LL_WARNING,
+                "FATAL: '%s' is not supported with tomokv sharding (tomokv-ex-threads=%d): the real "
+                "dataset lives in per-worker shard DBs that this subsystem does not see, so it would "
+                "silently lose or fail to manage that data. Disable it or run with tomokv-ex-threads=0.",
+                bad, server.num_workers);
+            exit(1);
+        }
+    }
     /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
      * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
     /* ee451 (#75): resolve the bus count once (IMMUTABLE). tomokv-num-cdb (cfg_num_cdb>0) requests an
