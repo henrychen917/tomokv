@@ -6406,36 +6406,30 @@ static int      mig_ewma_primed = 0;
 static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
 static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
 void reshardAutoTune(void) {
-    /* ee451 (v13): reshard-auto bool RETIRED — EWMA load balancing is DEFAULT ON; off = set
-     * thredis-reshard-min-ops 0 (0=off convention; also the significance floor, so 'off' and
-     * 'never significant' coincide). */
+    /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
+     * tick forever; every quantity is recomputed from the current signal — no calibration
+     * phase, no learned-then-locked state, no dependence on server uptime. DEFAULT ON;
+     * off = thredis-reshard-min-ops 0 (also the significance floor).
+     * The only remaining knobs are min-ops (floor/off) and chunk-buckets (granule) — the
+     * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
     int W = server.num_workers;
     if (W < 2) return;
-    /* ee451 (v13, self-driven decay): alpha-pct 0 = AUTO — the smoothing window spans a fixed
-     * multiple (4x) of the min-ops significance floor in OPERATIONS, using the PREVIOUS tick's
-     * mean rate. The workload's own throughput sets the time constant: a hot box converges in a
-     * few ticks, a trickle doesn't chase noise. Explicit pct still overrides. */
-    static double mig_prev_rate_mean = 0;
-    double alpha;
-    if (server.reshard_ewma_alpha_pct > 0) alpha = server.reshard_ewma_alpha_pct / 100.0;
-    else {
-        alpha = mig_prev_rate_mean / (4.0 * (double)server.reshard_min_ops);
-        if (alpha < 0.05) alpha = 0.05;
-        if (alpha > 0.90) alpha = 0.90;
-    }
-    double alpha_fast = server.reshard_ewma_fast_pct > 0 ? server.reshard_ewma_fast_pct / 100.0
-                                                         : (alpha * 2.0 > 0.95 ? 0.95 : alpha * 2.0);
 
-    /* metric[w] is what we balance on: raw ops, OR ops/capacity when core-aware (so a faster core is
-     * "hot" only when its load EXCEEDS its proportionally larger share). cap defaults to 1 if a core
-     * never calibrated. */
-    int core_aware = server.reshard_core_aware;
-    double sum_ops = 0, sum_metric = 0, hotmetric = -1; int hot = 0;
-    double sum_rate = 0;
-    double metric[MY_EX_THREADS_MAX];
-    double metric_fast[MY_EX_THREADS_MAX]; double sum_metric_fast = 0;   /* #89 dual-rate */
+    /* Continuous decay: the EWMA window spans 4x min-ops in OPERATIONS, from the previous
+     * tick's mean rate — the workload's own throughput sets the time constant, re-derived
+     * every tick (a rate shift re-tunes it immediately). fast = 2x slow (dual-rate #89). */
+    static double mig_prev_rate_mean = 0;
+    double alpha = mig_prev_rate_mean / (4.0 * (double)server.reshard_min_ops);
+    if (alpha < 0.05) alpha = 0.05;
+    if (alpha > 0.90) alpha = 0.90;
+    double alpha_fast = alpha * 2.0 > 0.95 ? 0.95 : alpha * 2.0;
+
+    /* Fold this tick's per-worker rates into the dual EWMAs — RAW ops only (the retired
+     * core-capacity normalization was a one-shot calibration AND poisoned the spread). */
+    double sum_ewma = 0, sum_fast = 0, sum_rate = 0, hotv = -1;
+    int hot = 0;
     for (int w = 0; w < W; w++) {
         uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
@@ -6443,111 +6437,75 @@ void reshardAutoTune(void) {
         sum_rate += (double)rate;
         mig_load_ewma[w] = mig_ewma_primed ? (alpha * (double)rate + (1.0 - alpha) * mig_load_ewma[w])
                                            : (double)rate;
-        double cap = (core_aware && server.ex_capacity[w] > 0) ? server.ex_capacity[w] : 1.0;
-        metric[w] = mig_load_ewma[w] / cap;
         mig_load_ewma_fast[w] = mig_ewma_primed ? (alpha_fast * (double)rate + (1.0 - alpha_fast) * mig_load_ewma_fast[w])
-                                                : (double)rate;   /* #89: same deltas, faster alpha */
-        metric_fast[w] = mig_load_ewma_fast[w] / cap;
-        sum_metric_fast += metric_fast[w];
-        sum_ops += mig_load_ewma[w];
-        sum_metric += metric[w];
-        if (metric[w] > hotmetric) { hotmetric = metric[w]; hot = w; }
+                                                : (double)rate;
+        sum_ewma += mig_load_ewma[w];
+        sum_fast += mig_load_ewma_fast[w];
+        if (mig_load_ewma[w] > hotv) { hotv = mig_load_ewma[w]; hot = w; }
     }
-    mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's auto-alpha */
-    if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* need one tick to seed deltas */
+    mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's alpha */
+    if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* bootstrap seed only */
 
-    double mean_ops = sum_ops / W, mean_metric = sum_metric / W;
-    double mean_metric_fast = sum_metric_fast / W;   /* #89 */
-    /* ee451 (v13, self-driven trigger): imbalance-pct 0 = AUTO — the hot shard must be a
-     * statistical OUTLIER against the workload's own spread: hot > mean + 2*stddev. A uniform
-     * workload has tiny stddev, so any real hotspot stands out immediately; an inherently
-     * noisy/skewed mix raises its own bar and isn't chased. Dimensionless — no tuning, no
-     * hardware knowledge. Explicit pct (e.g. 150 = 1.5x mean) keeps the legacy fixed bar. */
-    double hot_bar, hot_bar_fast;
-    if (server.reshard_imbalance_pct > 0) {
-        double eff = server.reshard_imbalance_pct / 100.0;
-        hot_bar = eff * mean_metric;
-        hot_bar_fast = eff * mean_metric_fast;
-    } else {
-        /* ee451 (v13, AUTO): run the outlier test on the RAW op-rate EWMAs, NOT the
-         * capacity-normalized metric — an uncalibrated idle worker keeps cap=1, which
-         * inflates its metric from near-zero ops and poisons the spread (measured: idle
-         * metrics ~30 vs hot 60 under a single-key storm; the sigma bar became unreachable).
-         * Raw rates are the pure workload signal. Core-aware normalization still governs the
-         * explicit-pct path and the target-neighbor choice below.
-         * k self-scales with worker count: a one-hot load vector's max z-score is sqrt(W-1),
-         * so a fixed k would be unreachable at small W. k = 0.8*sqrt(W-1), capped at 2.0. */
-        double mean_raw = sum_ops / W, mean_raw_fast = 0;
-        double var_raw = 0, var_raw_fast = 0;
-        for (int w = 0; w < W; w++) mean_raw_fast += mig_load_ewma_fast[w];
-        mean_raw_fast /= W;
-        int hot_raw = 0; double hotv = -1;
-        for (int w = 0; w < W; w++) {
-            double d = mig_load_ewma[w] - mean_raw;            var_raw += d * d;
-            double df = mig_load_ewma_fast[w] - mean_raw_fast; var_raw_fast += df * df;
-            if (mig_load_ewma[w] > hotv) { hotv = mig_load_ewma[w]; hot_raw = w; }
-        }
-        double k = 0.8 * sqrt((double)(W - 1));
-        if (k > 2.0) k = 2.0;
-        hot = hot_raw;                       /* auto mode judges + selects on raw load */
-        hotmetric = mig_load_ewma[hot];
-        mean_metric = mean_raw;              /* downstream balanced-check compares raw now */
-        /* Relative FLOOR: with near-uniform load sigma -> 0 and a pure sigma-bar collapses
-         * onto the mean, so ±2% noise "triggers" (measured: 21 spurious migrations under
-         * uniform load). The hot shard must beat the mean by BOTH the outlier margin AND a
-         * dimensionless 25% — uniform noise never crosses, a true hotspot always does. */
-        double margin = k * sqrt(var_raw / W);
-        double floor_m = 0.25 * mean_raw;
-        hot_bar = mean_raw + (margin > floor_m ? margin : floor_m);
-        double margin_f = k * sqrt(var_raw_fast / W);
-        double floor_f = 0.25 * mean_raw_fast;
-        hot_bar_fast = mean_raw_fast + (margin_f > floor_f ? margin_f : floor_f);
-        metric_fast[hot] = mig_load_ewma_fast[hot];   /* dual-rate gate reads this below */
+    /* Trigger: the hot shard must be a statistical OUTLIER of the workload's own spread —
+     * bar = mean + max(k*sigma, 0.25*mean). k = 0.8*sqrt(W-1) capped 2.0 (a one-hot vector's
+     * max z-score is sqrt(W-1), so fixed k is unreachable at small W); the 25% relative floor
+     * stops sigma-collapse on uniform load (measured: pure sigma-bar fired 21 spurious
+     * migrations). All dimensionless, recomputed every tick. */
+    double mean = sum_ewma / W, mean_fast = sum_fast / W;
+    double var = 0, var_fast = 0;
+    for (int w = 0; w < W; w++) {
+        double d = mig_load_ewma[w] - mean;            var += d * d;
+        double df = mig_load_ewma_fast[w] - mean_fast; var_fast += df * df;
     }
+    double k = 0.8 * sqrt((double)(W - 1));
+    if (k > 2.0) k = 2.0;
+    double margin = k * sqrt(var / W), floor_m = 0.25 * mean;
+    double hot_bar = mean + (margin > floor_m ? margin : floor_m);
+    double margin_f = k * sqrt(var_fast / W), floor_f = 0.25 * mean_fast;
+    double hot_bar_fast = mean_fast + (margin_f > floor_f ? margin_f : floor_f);
+
     /* balanced (or too quiet) => clear convergence state and stay responsive. */
-    if (mean_ops < (double)server.reshard_min_ops || hotmetric <= hot_bar) {
+    if (mean < (double)server.reshard_min_ops || hotv <= hot_bar) {
         mig_peak_pre = 0; mig_settle = 0;
         return;
     }
-    /* let the EWMA absorb the previous migration before judging whether it helped. */
+    /* Settle: let the EWMA absorb the last migration before judging — the window IS the
+     * EWMA's own time constant (ceil(1/alpha)+1 ticks), so it self-scales with the decay. */
     if (mig_settle > 0) { mig_settle--; return; }
-    /* NO-PROGRESS guard: if the last migration didn't cut the peak by >15%, this hotspot can't be
-     * balanced by moving buckets (it just relocates) — stop chasing until the load pattern changes
-     * (a genuinely worse imbalance clears the bar via the balanced-reset path on a later tick). */
-    if (mig_peak_pre > 0 && hotmetric > mig_peak_pre * (server.reshard_progress_pct / 100.0)) return;
+    /* NO-PROGRESS guard (fixed dimensionless 0.85): if the last migration didn't cut the
+     * peak by >15%, the hotspot is unbalanceable (a single hot key just relocates) — stop
+     * chasing. Self-resets via the balanced path when the pattern changes. */
+    if (mig_peak_pre > 0 && hotv > mig_peak_pre * 0.85) return;
 
-    /* #89 dual-rate: require the FAST EWMA to ALSO see this worker as hot. A hotspot that just died
-     * (fast EWMA decays in ~1-2 ticks vs the slow one's ~3-4) stops being chased immediately, and a
-     * slow-EWMA lag artifact can't trigger a needless migration. Off (default) = single-EWMA legacy. */
-    if (metric_fast[hot] <= hot_bar_fast) return;   /* ee451 (v13): #89 dual-rate HARDWIRED */
+    /* #89 dual-rate: the FAST EWMA must ALSO see this worker hot — a hotspot that just died
+     * stops being chased immediately; slow-EWMA lag can't trigger a stale migration. */
+    if (mig_load_ewma_fast[hot] <= hot_bar_fast) return;
 
-    /* Pick the cooler adjacent neighbour (lowest load/capacity), and only if it is genuinely below the
-     * mean ratio — i.e. it has spare CAPACITY to absorb, not just fewer ops. */
+    /* Cooler adjacent neighbour with genuinely-below-mean load. */
     int left = hot - 1, right = hot + 1, B = -1;
-    if (left >= 0 && right < W) B = (metric[left] < metric[right]) ? left : right;
+    if (left >= 0 && right < W) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
     else if (left >= 0)        B = left;
     else if (right < W)        B = right;
-    if (B < 0 || metric[B] >= mean_metric) return;
+    if (B < 0 || mig_load_ewma[B] >= mean) return;
 
-    /* Shift a chunk of buckets at the hot|B boundary (suffix if B=hot+1, prefix if B=hot-1), keeping
-     * ranges contiguous and never emptying the hot shard. */
+    /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never
+     * emptying the hot shard. */
     int chunk = server.reshard_chunk_buckets;
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
-    if (hot_hi - hot_lo <= chunk) return;                    /* don't drain the hot shard dry */
+    if (hot_hi - hot_lo <= chunk) return;
     int lo, hi;
-    if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }  /* suffix -> right neighbour */
-    else              { lo = hot_lo; hi = hot_lo + chunk; }  /* prefix -> left neighbour */
+    if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
+    else              { lo = hot_lo; hi = hot_lo + chunk; }
 
     if (reshardArm(lo, hi, hot, B)) {
-        reshardBeginCutover();   /* spawns the coordinator; it waits out the cold copy then cuts over */
-        mig_peak_pre = hotmetric;  /* the peak this migration must shrink to be allowed to continue */
-        mig_settle = server.reshard_settle_ticks;   /* #89: ticks for the EWMA to reflect the new distribution */
-        serverLog(LL_NOTICE, "ee451 reshard AUTO%s: hot=w%d(%.0f ops, cap %.0f) -> w%d(%.0f ops), moving [%d,%d)",
-                  core_aware ? "(core-aware)" : "", hot, mig_load_ewma[hot], server.ex_capacity[hot],
-                  B, mig_load_ewma[B], lo, hi);
-        /* NOTE: do NOT reset the EWMA here — it must keep adapting so the no-progress guard can see
-         * whether this migration actually reduced the peak. migration_active blocks re-fire meanwhile. */
+        reshardBeginCutover();
+        mig_peak_pre = hotv;
+        mig_settle = (int)(1.0 / alpha) + 1;   /* self-derived settle = EWMA time constant */
+        serverLog(LL_NOTICE, "ee451 reshard AUTO: hot=w%d(%.0f ops) -> w%d(%.0f ops), moving [%d,%d)",
+                  hot, mig_load_ewma[hot], B, mig_load_ewma[B], lo, hi);
+        /* NOTE: do NOT reset the EWMA — it must keep adapting so the no-progress guard can
+         * judge whether this migration actually reduced the peak. */
     }
 }
 
@@ -9952,15 +9910,16 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
     exThread *pfw = &server.exThreads[ifidx - (MY_IFID_THREADS_MAX + 1)];
-    long long eff_min_keys = server.prefetch_adaptive_min_keys;
-    if (eff_min_keys < 0) {
+    /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
+     * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
+     * Full prefetch-off remains available via the stage widths (all 0). */
+    {
         unsigned long long fp = 96ULL + pfw->w_ewma_vsize;      /* per-entry footprint estimate */
-        eff_min_keys = (long long)((8ULL * server.detected_l3_bytes) / fp);
-    }
-    if (eff_min_keys > 0 && n > 0 && batch[0]->db &&
-        dbSize(batch[0]->db) < (unsigned long long)eff_min_keys) {
-        for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
-        return;
+        unsigned long long auto_min = (8ULL * server.detected_l3_bytes) / fp;
+        if (n > 0 && batch[0]->db && dbSize(batch[0]->db) < auto_min) {
+            for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
+            return;
+        }
     }
 
     /* ee451 (gem5): per-stage prefetch widths. Each stage prefetches at most its
@@ -9974,12 +9933,16 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
      * clamped to [4, pf_w_value]: small values keep the full window, big values go shallow.
      * Reproduces the measured 64B→64 / 4KB→32 / 64KB→~4 sweet spots. EWMA from served reads. */
+    /* ee451 (v14): value-chase width ALWAYS adapts (bool + cache-kb knobs deleted):
+     * width = (L3/(2*workers)) / EWMA-vsize, clamped [4, pf-w-value]. Self-derived budget,
+     * self-measured size, recomputed every batch; pf-w-value stays as the cap (0 = off). */
     int w4cap = server.pf_w_value;
-    if (server.pf_w_value_adaptive) {
+    if (w4cap > 0) {
         unsigned int ev = pfw->w_ewma_vsize < 64 ? 64 : pfw->w_ewma_vsize;
-        long aw = (long)server.pf_value_cache_kb * 1024 / (long)ev;
+        long budget = (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
+        long aw = budget / (long)ev;
         if (aw < 4) aw = 4;
-        if (aw > server.pf_w_value) aw = server.pf_w_value;
+        if (aw > w4cap) aw = w4cap;
         w4cap = (int)aw;
     }
     int w4 = n < w4cap ? n : w4cap;
@@ -10199,22 +10162,9 @@ void *exThreadMain(void *arg) {
      * with any IO-thread ifidx regardless of the configured my_ifid_threads. */
     ifidx = MY_IFID_THREADS_MAX + 1 + worker->id;
 
-    /* ee451 (v8d): calibrate this worker's CORE SPEED, pinned to its core, before serving. A fixed
-     * compute workload timed by the WALL clock (invariant-TSC wouldn't reflect core speed) yields a
-     * relative capacity (faster core => less time => bigger capacity). All workers calibrate at once,
-     * which mimics the all-cores-busy serving condition (P vs E, turbo, NUMA, thermal all captured).
-     * The EWMA balancer targets equal load/capacity, so faster cores carry proportionally more. */
-    {
-        uint64_t t0 = getMonotonicUs();
-        volatile uint64_t acc = 0x9e3779b97f4a7c15ULL;
-        for (uint64_t i = 0; i < 30000000ULL; i++)
-            acc = (acc * 6364136223846793005ULL + 1442695040888963407ULL) ^ (acc >> 29);
-        uint64_t dt = getMonotonicUs() - t0; if (dt == 0) dt = 1;
-        server.ex_capacity[worker->id] = 1.0e9 / (double)dt;   /* higher => faster core */
-        (void)acc;
-        serverLog(LL_NOTICE, "ee451 worker %d core capacity = %.0f (calib %llu us)",
-                  worker->id, server.ex_capacity[worker->id], (unsigned long long)dt);
-    }
+    /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
+     * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
+     * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
     exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==1) */
 
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
@@ -10362,7 +10312,7 @@ void *exThreadMain(void *arg) {
                  * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
                  * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
                  * downward. Drives the value-size-adaptive pf-w-value width. */
-                if (server.pf_w_value_adaptive && fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+                if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
                     int cur = (int)worker->w_ewma_vsize;
                     cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
                     worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;

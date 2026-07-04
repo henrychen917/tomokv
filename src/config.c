@@ -3161,9 +3161,6 @@ standardConfig static_configs[] = {
     createIntConfig("thredis-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
-    createBoolConfig("thredis-pf-w-value-adaptive", NULL, MODIFIABLE_CONFIG,        server.pf_w_value_adaptive, 0, NULL, NULL),
-    createIntConfig("thredis-pf-value-cache-kb",    NULL, MODIFIABLE_CONFIG, 1, 8192, server.pf_value_cache_kb, 128, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-prefetch-adaptive-min-keys", NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.prefetch_adaptive_min_keys, -1, INTEGER_CONFIG, NULL, NULL), /* -1=AUTO (L3-derived), 0=gate off (always prefetch), N=explicit */
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
     createIntConfig("thredis-worker-spin-pauses", NULL, MODIFIABLE_CONFIG, 0, 1024, server.worker_spin_pauses, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-worker-spin-yield-rounds", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin_yield_rounds, 32, INTEGER_CONFIG, NULL, NULL),
@@ -3196,14 +3193,8 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-wb-epoll",              "thredis-rob-epoll", IMMUTABLE_CONFIG,  server.wb_epoll,             0, NULL, NULL),
     createBoolConfig("thredis-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("thredis-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
-    createIntConfig("thredis-reshard-imbalance-pct",  NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct,  0,   INTEGER_CONFIG, NULL, NULL), /* 0=AUTO (mean+2*stddev outlier) */
     createIntConfig("thredis-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-reshard-ewma-alpha-pct", NULL, MODIFIABLE_CONFIG, 0,   100,     server.reshard_ewma_alpha_pct, 0, /* 0=AUTO (rate-normalized) */    INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-reshard-chunk-buckets",  NULL, MODIFIABLE_CONFIG, 1,   MY_BUCKETS, server.reshard_chunk_buckets, 64,  INTEGER_CONFIG, NULL, NULL),
-    createBoolConfig("thredis-reshard-core-aware",    NULL, MODIFIABLE_CONFIG, server.reshard_core_aware,     1, NULL, NULL),
-    createIntConfig("thredis-reshard-ewma-fast-pct",  NULL, MODIFIABLE_CONFIG, 0,   100,     server.reshard_ewma_fast_pct, 0, /* 0=AUTO (2x slow alpha) */ INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-reshard-progress-pct",   NULL, MODIFIABLE_CONFIG, 1, 100, server.reshard_progress_pct,   85, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("thredis-reshard-settle-ticks",   NULL, MODIFIABLE_CONFIG, 0, 1000, server.reshard_settle_ticks,   4, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),

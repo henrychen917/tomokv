@@ -2959,9 +2959,6 @@ struct redisServer {
     int pf_w_value;    /* worker pass 4: entry -> value bytes (dependent, expensive) */
     int pf_w_nextop;   /* #3: exec-loop look-ahead distance — while running batch[j], prefetch
                         * batch[j+pf_w_nextop]'s dict bucket (reuses pass-2's (dict,idx)). 0 = off */
-    int pf_w_value_adaptive; /* ee451 (gem5): scale pass-4 width by served value size (cache_budget/vsize), capped at pf_w_value; 0=fixed */
-    int pf_value_cache_kb;   /* ee451 (gem5): cache budget (KB) for the adaptive value-chase width formula */
-    int prefetch_adaptive_min_keys; /* ee451 v11 (#58): worker prefetch active only when shard dict >= this many keys (DRAM-cold); sweep showed it hurts L3-resident. 0=always (gate off) */
     /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
@@ -2983,21 +2980,12 @@ struct redisServer {
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
-    int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
-    int reshard_ewma_alpha_pct;  /* EWMA smoothing alpha = pct/100 (default 30) */
     int reshard_chunk_buckets;   /* buckets shifted per auto trigger (default 64) */
-    int reshard_core_aware;      /* weight balance by per-worker core capacity (default on) */
-    int reshard_ewma_fast_pct;   /* #89: fast EWMA alpha pct (default 60) */
-    int reshard_progress_pct;    /* #89: no-progress stop threshold, pct of pre-migration peak (default 85) */
-    int reshard_settle_ticks;    /* #89: ticks to let the EWMA absorb a migration before judging (default 4) */
     int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
                                   * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
                                   * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
                                   * untested on single-NUMA boxes — left OFF for now. */
-    double ex_capacity[MY_EX_THREADS_MAX]; /* auto-calibrated relative core speed (faster=bigger);
-                                  * the balancer targets equal load/capacity, not equal ops, so faster
-                                  * (P-core / higher-turbo / nearer-NUMA) workers carry proportionally more. */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
