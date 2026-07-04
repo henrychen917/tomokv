@@ -3162,6 +3162,9 @@ standardConfig static_configs[] = {
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
     createIntConfig("thredis-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-argv",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_argv,      64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keyobj,    64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("thredis-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keybytes,  64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
     createIntConfig("thredis-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),

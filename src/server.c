@@ -9819,7 +9819,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
     /* ee451 (gem5): per-stage prefetch widths. Each stage prefetches at most its
      * configured window of the popped batch. The hash COMPUTE in pass 2 still runs
      * for all n (it is functional, not prefetch). */
-    int w1 = n < server.pf_w_struct ? n : server.pf_w_struct;
+    /* (v13) w1 replaced by per-stage widths w1a..w1d below */
     int w3 = n < server.pf_w_entry  ? n : server.pf_w_entry;
     /* ee451 (#20/#21): this worker (for the per-key prefetch/reuse predictors). Runs on
      * a worker thread, so iotid is in the worker range. */
@@ -9853,21 +9853,29 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * permanently L1-hot on any real run — prefetching hot data is pure issue-slot waste.
      * The old per-stage bools (pf-fc/argv/cmd/keyobj) are retired: the links are now a
      * dependency chain, ablatable as a group via pf-w-struct (width 0 = whole group off). */
-    for (int j = 0; j < w1; j++) {                                   /* P1a: struct lines */
+    /* gem5 (v13): per-STAGE pipeline widths, exactly like configuring the width of each
+     * pipeline stage in gem5 — w1a..w1d bound how deep into the batch each mini-pass
+     * prefetches (0 = stage off). Later links can run narrower than earlier ones (the
+     * chain degrades gracefully: an unprefetched link just derefs colder). */
+    int w1a = n < server.pf_w_struct   ? n : server.pf_w_struct;
+    int w1b = n < server.pf_w_argv     ? n : server.pf_w_argv;
+    int w1c = n < server.pf_w_keyobj   ? n : server.pf_w_keyobj;
+    int w1d = n < server.pf_w_keybytes ? n : server.pf_w_keybytes;
+    for (int j = 0; j < w1a; j++) {                                  /* P1a: struct lines */
         client *fake = batch[j];
         redis_prefetch_read(fake);                                   /* ee451 metadata head line */
         redis_prefetch_read(&fake->argc);                            /* exec-fields line (argv/argc/db) */
     }
-    for (int j = 0; j < w1; j++) {                                   /* P1b: argv vector */
+    for (int j = 0; j < w1b; j++) {                                  /* P1b: argv vector */
         client *fake = batch[j];
         if (fake->argv) redis_prefetch_read(fake->argv);
     }
-    for (int j = 0; j < w1; j++) {                                   /* P1c: key robj header */
+    for (int j = 0; j < w1c; j++) {                                  /* P1c: key robj header */
         client *fake = batch[j];
         if (fake->argc >= 2 && fake->argv && fake->argv[1])
             redis_prefetch_read(fake->argv[1]);
     }
-    for (int j = 0; j < w1; j++) {                                   /* P1d: key bytes (raw enc only) */
+    for (int j = 0; j < w1d; j++) {                                  /* P1d: key bytes (raw enc only) */
         client *fake = batch[j];
         if (fake->argc >= 2 && fake->argv && fake->argv[1]) {
             robj *k = fake->argv[1];
