@@ -3153,6 +3153,7 @@ standardConfig static_configs[] = {
     createBoolConfig("thredis-opt-spsc-cache", NULL, MODIFIABLE_CONFIG, server.opt_spsc_cache, 1, NULL, NULL),
     createBoolConfig("thredis-opt-coalesce-signal", NULL, MODIFIABLE_CONFIG, server.opt_coalesce_signal, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batch-push", NULL, MODIFIABLE_CONFIG, server.opt_batch_push, 1, NULL, NULL),
+    createBoolConfig("thredis-batch-push-eager", NULL, MODIFIABLE_CONFIG, server.batch_push_eager, 1, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-stats", NULL, MODIFIABLE_CONFIG, server.opt_perthread_stats, 1, NULL, NULL),
     createBoolConfig("thredis-opt-batched-clear", NULL, MODIFIABLE_CONFIG, server.opt_batched_clear, 0, NULL, NULL),
     createBoolConfig("thredis-opt-perthread-dirty", NULL, IMMUTABLE_CONFIG, server.opt_perthread_dirty, 0, NULL, NULL),

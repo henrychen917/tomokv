@@ -2989,6 +2989,11 @@ struct redisServer {
     int opt_spsc_cache;        /* cached_tail/cached_head SPSC index caching */
     int opt_coalesce_signal;   /* per-parent reply-ready signal coalescing */
     int opt_batch_push;        /* S4: staged producer push, one tail release per drain */
+    int batch_push_eager;      /* #E1: publish staged jobs at end of the parse-batch
+                                * (processInputBuffer) instead of the next beforeSleep flushExQueues.
+                                * On 3s the ifid thread loops back to beforeSleep fast (WB owns replies)
+                                * so this is ~neutral here, but kept for consistency + multi-CCD. Only
+                                * acts when opt_batch_push is on. See 2s where it is the +50% fix. */
     int opt_perthread_stats;   /* S6: per-thread keyspace hit/miss counters */
     int opt_batched_clear;     /* #A1: batch the drain's per-slot CDB fetch_and clears into one per cdb per pass */
     int opt_perthread_dirty;   /* #4: per-thread shard of server.dirty (de-contend + fix torn-++ race) */

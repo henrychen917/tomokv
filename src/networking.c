@@ -4704,6 +4704,13 @@ int processInputBuffer(client *c) {
     if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
         updateClientMemUsageAndBucket(c);
 
+    /* ee451 (#E1): publish this parse-batch's staged worker jobs now instead of deferring to the next
+     * beforeSleep flushExQueues (see the 2s fork where this is the +50% starvation fix). ~neutral on
+     * 3s (the ifid thread reaches beforeSleep quickly), kept for consistency + multi-CCD. No-op when
+     * opt_batch_push is off or nothing is staged. */
+    if (server.opt_batch_push && server.batch_push_eager)
+        flushExQueues();
+
     return C_OK;
 }
 
