@@ -111,8 +111,9 @@ You size ingress vs execution the way a CPU architect sizes fetch/decode/issue w
 of execution units — to match *your* workload's bottleneck. No fixed‑model engine offers this: Redis
 only scales I/O threads (execution stays single‑threaded); Dragonfly is a rigid shard‑per‑core model. On
 8 cores we show three moderate splits — **`io5ex3`** (ingress‑leaning), **`io4ex4`** (balanced),
-**`io3ex5`** (execution‑leaning). (Extreme splits like `io2ex6` / `io6ex2` starve one stage on a low‑core
-box and are omitted here; the trend continues past these — e.g. `io6ex2` pushes 512 B 1:9 to **3.44 M**.)
+**`io3ex5`** (execution‑leaning). The **extremes** `io6ex2` (ingress‑heavy) / `io2ex6` (worker‑heavy) are included below as edge rows: on a
+low‑core box each starves the opposite stage and usually loses — but they mark the ceiling of the dial
+(maximally ingress‑provisioned `io6ex2` **overtakes Redis on every DRAM read cell**).
 
 ### Dispatch‑ and compute‑bound — where Tomo KV wins outright
 
@@ -123,6 +124,8 @@ Small‑value pipelined ops and CPU‑heavy commands (**M ops/s**, higher is bet
 | **Tomo `io5ex3`** | **8.09** | 5.77 | **3.88** | 0.47 | 0.82 |
 | **Tomo `io4ex4`** | 7.73 | **6.66** | 3.30 | **0.50** | **0.90** |
 | Tomo `io3ex5` | 6.04 | 5.61 | 2.54 | 0.48 | 0.88 |
+| Tomo `io6ex2` *(ingress‑extreme)* | 5.05 | 3.96 | 3.38 | 0.37 | 0.64 |
+| Tomo `io2ex6` *(execution‑extreme)* | 4.27 | 3.96 | 1.77 | **0.50** | 0.68 |
 | Redis 8 | 4.40 | 2.75 | 2.21 | 0.28 | 0.48 |
 | Dragonfly | 5.76 | 5.41 | 1.08 | 0.46 | 0.82 |
 
@@ -141,11 +144,16 @@ Working set ~6 GB (512 B × 8 M keys, 4 KB × 1.4 M keys, pipeline 16):
 | :--- | :--- | :--- | :--- | :--- |
 | Tomo `io5ex3` | 3.08 | 3.09 | **1.26** | 3.08 |
 | Tomo `io4ex4` | 2.53 | 2.52 | **1.26** | 2.51 |
-| Redis 8 | **3.23** | **3.36** | 1.27 | **3.21** |
+| Tomo `io6ex2` *(ingress‑extreme)* | **3.44** | **3.55** | 1.22 | **3.43** |
+| Tomo `io2ex6` *(execution‑extreme)* | 1.41 | 1.40 | 0.77 | 1.39 |
+| Redis 8 | 3.23 | 3.36 | **1.27** | 3.21 |
 | Dragonfly | 0.87 | 0.81 | 0.63 | 2.20 |
 
 Here the moderate splits land **within ~5 % of Redis** and tie on 4 KB; Redis keeps a small edge on flat
-512 B reads at these splits, and the ingress‑heavy extreme (`io6ex2` = 3.44 M) overtakes it. This regime is
+512 B reads at *those* splits — but the ingress‑heavy extreme **`io6ex2` beats Redis on all three DRAM read
+cells** (512 B 1:9 3.44 vs 3.23, hot‑key 3.55 vs 3.36, FB‑ETC 3.43 vs 3.21); dial ingress up when the
+workload is purely I/O‑bound. The worker‑heavy extreme `io2ex6` collapses here — 2 ingress threads can't
+feed the pipeline (the starvation cliff). This regime is
 I/O‑bound — the value never fits a register‑cheap execution step, so it wants ingress, exactly the dial
 Tomo exposes. (hot‑key = Gaussian‑concentrated GETs; FB‑ETC = a Facebook‑ETC‑like mix: 1:30 write:read,
 Gaussian keys, small‑skewed value sizes. Dragonfly's low ≥ 256 B pipelined‑GET numbers are a known
