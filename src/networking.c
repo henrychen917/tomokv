@@ -3999,6 +3999,13 @@ static const int          operandTierSlots[OPERAND_NTIER] = {256, 256, 128, 64, 
 static robj *operandTier[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
 static int   operandTierN[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER];
 static int   operandTierIdle[TOMO_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* decay: GET-idle ticks per class */
+static unsigned operandPoolOps[TOMO_IFID_THREADS_MAX + 1];  /* v14: op-clock for decay (GET+PUT count) */
+int operandPoolDecayDue(int self_ifidx) {   /* one decay tick per 8192 pool ops (workload-clocked) */
+    if (self_ifidx < 0 || self_ifidx > TOMO_IFID_THREADS_MAX) return 0;
+    if (operandPoolOps[self_ifidx] < 8192) return 0;
+    operandPoolOps[self_ifidx] = 0;
+    return 1;
+}
 /* v13: idle-ticks-before-shed is the tomokv-pool-decay-idle knob (was hardcoded 8) */
 
 static inline int operandCeilTier(size_t len) {        /* smallest class >= len; -1 if above top class */
@@ -4011,6 +4018,7 @@ static inline int operandFloorTier(unsigned int cap) { /* largest class <= cap; 
 }
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
+    if (ifidx >= 0 && ifidx <= TOMO_IFID_THREADS_MAX) operandPoolOps[ifidx]++;   /* v14 op-clock */
     if (ifidx <= TOMO_IFID_THREADS_MAX) {   /* ee451 (v13): tiered hardwired */
         int t = operandCeilTier(len);
         if (t < 0) return createRawStringObject(ptr, len);   /* > top class: not pooled */
@@ -4037,6 +4045,7 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 }
 
 static inline void operandPoolPut(robj *o) {
+    if (ifidx >= 0 && ifidx <= TOMO_IFID_THREADS_MAX) operandPoolOps[ifidx]++;   /* v14 op-clock */
     {   /* ee451 (v13): tiered hardwired */
         if (ifidx <= TOMO_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
             o->encoding == OBJ_ENCODING_RAW) {
@@ -4114,7 +4123,7 @@ void operandPoolDecay(int self_ifidx) {
          * just thrash a re-alloc. Idle is reset on every GET (incl. demand-grow misses) and every PUT
          * (fill), so any class still seeing allocs or returns never reaches the threshold below. */
         if (n * 10 >= operandTierSlots[t] * 9) continue;
-        if (++operandTierIdle[self_ifidx][t] < server.pool_decay_idle) continue;
+        if (++operandTierIdle[self_ifidx][t] < 8) continue;   /* v14: 8 idle ticks (dimensionless), knob retired */
         int drop = n > 4 ? n / 4 : n;
         for (int k = 0; k < drop; k++)                       /* freed on self_ifidx == the thread that alloc'd them */
             decrRefCount(operandTier[self_ifidx][t][--operandTierN[self_ifidx][t]]);

@@ -2961,11 +2961,6 @@ struct redisServer {
                         * batch[j+pf_w_nextop]'s dict bucket (reuses pass-2's (dict,idx)). 0 = off */
     /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
-    int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
-    int worker_spin_pauses;        /* v13: PAUSE instrs per empty worker round (0 = no pause burst) */
-    int worker_spin_yield_rounds;  /* v13: empty rounds before sched_yield (0 = yield immediately) */
-    int pool_decay_period;         /* v13: beforeSleep iterations between pool decay ticks (0 = never) */
-    int pool_decay_idle;           /* v13: idle decay ticks before a tier class sheds (was hardcoded 8) */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
@@ -2981,7 +2976,6 @@ struct redisServer {
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
-    int reshard_chunk_buckets;   /* buckets shifted per auto trigger (default 64) */
     int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
                                   * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
                                   * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
@@ -4995,7 +4989,8 @@ void initIfidThreads(void);
 /* Worker thread functions */
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
-void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this ifidx */
+void flushExQueues(void);
+int operandPoolDecayDue(int self_ifidx);   /* v14: op-clocked pool decay */   /* ee451 (S4): publish staged pushes for this ifidx */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 client *exQueuePop(exQueue *q);
 void queueToWorker(client *c, int ex_id);
