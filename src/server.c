@@ -9970,113 +9970,127 @@ static inline void exPrefetchBatch(client **batch, int n) {
     }
     int w4 = n < w4cap ? n : w4cap;
 
-    /* Pass 1 — REDESIGNED (v13): a true 4-deep software pipeline over the operand pointer
-     * chain, replacing the old single loop that prefetched a pointer and demand-loaded
-     * THROUGH it in the same iteration (zero distance => the load ate the full miss and the
-     * prefetch was decorative). Each mini-pass prefetches exactly one link; the NEXT pass
-     * dereferences it — a full batch-width of slack per link, every line touched once:
-     *   P1a  fake struct lines (head + exec-fields)   -> consumed by P1b/P1c/pass 2
-     *   P1b  argv vector line   (deref warm fake)     -> consumed by P1c
-     *   P1c  key robj header    (deref warm argv)     -> consumed by P1d/pass 2
-     *   P1d  key BYTES          (deref warm robj)     -> consumed by pass 2's SipHash
-     *        (skipped for embstr: header+bytes share the robj line P1c already pulled)
-     * The old pf-cmd stage is DELETED: fake->cmd points into the static command table,
-     * permanently L1-hot on any real run — prefetching hot data is pure issue-slot waste.
-     * The old per-stage bools (pf-fc/argv/cmd/keyobj) are retired: the links are now a
-     * dependency chain, ablatable as a group via pf-w-struct (width 0 = whole group off). */
-    /* gem5 (v13): per-STAGE pipeline widths, exactly like configuring the width of each
-     * pipeline stage in gem5 — w1a..w1d bound how deep into the batch each mini-pass
-     * prefetches (0 = stage off). Later links can run narrower than earlier ones (the
-     * chain degrades gracefully: an unprefetched link just derefs colder). */
+    /* ── Tomo SCOREBOARD prefetcher (v13) ────────────────────────────────────────────
+     * Redis-8-style round-robin FSM (see upstream memory_prefetch.c) over Tomo's
+     * CROSS-CORE stage set. Hardware framing: each fake is an instruction in flight on
+     * a scoreboard; the cursor is the issue slot. One visit advances ONE lookup by one
+     * stage and yields as soon as it ISSUES a prefetch — by the time the cursor returns
+     * to a lookup, every other in-flight lookup has had work issued in between, so each
+     * dereference lands on a line whose prefetch got a full scoreboard rotation to
+     * arrive. Stages that issue nothing (guard-fail, width-skip, embstr) fall through
+     * within the same visit; DONE lookups retire from the rotation (writes retire right
+     * after HASH — no wasted visits, unlike the fixed pass structure).
+     * Stage set (superset of Redis's dict-only FSM — our operands cross a core
+     * boundary, ifid-parse -> worker-exec, so the struct/argv/key links are cold too):
+     *   STRUCT -> ARGV -> KEYOBJ -> KEYBYTES -> HASH -> ENTRY -> VALUE -> DONE
+     * gem5 per-stage widths gate each stage's PREFETCH (0 = stage issues nothing);
+     * the FUNCTIONAL work (SipHash + hash/dict/bucket stash, consumed by hash-carry,
+     * #3 nextop, and the predictors) always runs for all n regardless of widths.
+     * pf-cmd stays deleted (command table is permanently L1-hot). */
+    enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
+    uint8_t st[WORKER_POP_BATCH];
     int w1a = n < server.pf_w_struct   ? n : server.pf_w_struct;
     int w1b = n < server.pf_w_argv     ? n : server.pf_w_argv;
     int w1c = n < server.pf_w_keyobj   ? n : server.pf_w_keyobj;
     int w1d = n < server.pf_w_keybytes ? n : server.pf_w_keybytes;
-    for (int j = 0; j < w1a; j++) {                                  /* P1a: struct lines */
-        client *fake = batch[j];
-        redis_prefetch_read(fake);                                   /* ee451 metadata head line */
-        redis_prefetch_read(&fake->argc);                            /* exec-fields line (argv/argc/db) */
-    }
-    for (int j = 0; j < w1b; j++) {                                  /* P1b: argv vector */
-        client *fake = batch[j];
-        if (fake->argv) redis_prefetch_read(fake->argv);
-    }
-    for (int j = 0; j < w1c; j++) {                                  /* P1c: key robj header */
-        client *fake = batch[j];
-        if (fake->argc >= 2 && fake->argv && fake->argv[1])
-            redis_prefetch_read(fake->argv[1]);
-    }
-    for (int j = 0; j < w1d; j++) {                                  /* P1d: key bytes (raw enc only) */
-        client *fake = batch[j];
-        if (fake->argc >= 2 && fake->argv && fake->argv[1]) {
-            robj *k = fake->argv[1];
-            if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr)
-                redis_prefetch_read(k->ptr);
-        }
-    }
-
-    /* Pass 2 — key bytes + hash + bucket slot. Compute the SipHash once and
-     * store it on the fake; the command's dictFind/lookupKey will reuse it. */
     for (int j = 0; j < n; j++) {
-        client *fake = batch[j];
+        st[j] = PFS_STRUCT;
         dts[j] = NULL;
         des[j] = NULL;
-        fake->prefetch_key_hash_valid = 0;
-        if (fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->db) continue;
-        /* ee451 (v13): key-byte prefetch MOVED to P1d — here it was issued 3 instructions
-         * before the SipHash read the same bytes (zero distance, useless). Now it lands a
-         * full mini-pass earlier, so the hash below runs on warm lines. */
-        dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
-        if (!d || dictSize(d) == 0 || !d->ht_table[0]) continue;
-        uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
-        fake->prefetch_key_hash = h;
-        fake->prefetch_key_hash_valid = 1;
-        unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
-        fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3: feed the exec-loop next-op look-ahead */
-        if (j < server.pf_w_hash) redis_prefetch_read(&d->ht_table[0][idx]);   /* ee451 (gem5): bucket prefetch gated */
-        /* ee451: only chase bucket -> entry -> value (passes 3-4) for READ
-         * commands. A read (GET/MGET/...) dereferences the stored value's
-         * bytes, so warming them pays off. A write (SET/overwrite/insert)
-         * installs a NEW value and never reads the old payload, so those two
-         * dependent-load passes are pure waste that measurably hurt write-heavy
-         * throughput (pure-SET populate regressed ~35% with them on). The bucket
-         * prefetch above and the SipHash hint below still apply to writes (they
-         * walk the bucket and need the hash); only the value chase is gated. */
-        if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
-            /* ee451 (#20): feedback-directed prefetch. Only chase value for keys the
-             * per-key predictor says prefetch PAYS for (predicted cache-cold). Hot,
-             * L1-resident keys are predicted "not useful" => skip the value chase =>
-             * auto-throttles the prefetch that hurts small hot reads. (#21 keep-warm:
-             * also chase if the key is predicted high-reuse, to keep it resident.) */
-            int chase = 1;
-            if (server.opt_feedback_prefetch)
-                chase = (pfw->pf_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
-            if (!chase && server.opt_ship_reuse)
-                chase = (pfw->reuse_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
-            if (chase) { dts[j] = d; idxs[j] = idx; }
+        batch[j]->prefetch_key_hash_valid = 0;
+    }
+    int remaining = n;
+    int cur = 0;
+    while (remaining > 0) {
+        int j = cur;
+        cur = (cur + 1 == n) ? 0 : cur + 1;
+        if (st[j] == PFS_DONE) continue;
+        client *fake = batch[j];
+        int issued = 0;
+        while (!issued && st[j] != PFS_DONE) {
+            switch (st[j]) {
+            case PFS_STRUCT:
+                st[j] = PFS_ARGV;
+                if (j < w1a) {
+                    redis_prefetch_read(fake);          /* ee451 metadata head line */
+                    redis_prefetch_read(&fake->argc);   /* exec-fields line (argv/argc/db) */
+                    issued = 1;
+                }
+                break;
+            case PFS_ARGV:
+                /* struct lines had a full rotation to land; cheap guards read them. */
+                if (fake->argc < 2 || !fake->argv || !fake->db) { st[j] = PFS_DONE; break; }
+                st[j] = PFS_KEYOBJ;
+                if (j < w1b) { redis_prefetch_read(fake->argv); issued = 1; }
+                break;
+            case PFS_KEYOBJ: {
+                robj *k = fake->argv[1];                /* argv vector line warm */
+                if (!k) { st[j] = PFS_DONE; break; }
+                st[j] = PFS_KEYBYTES;
+                if (j < w1c) { redis_prefetch_read(k); issued = 1; }
+                break;
+            }
+            case PFS_KEYBYTES: {
+                robj *k = fake->argv[1];                /* robj header line warm */
+                st[j] = PFS_HASH;
+                /* embstr: key bytes share the robj line KEYOBJ already pulled. */
+                if (j < w1d && k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
+                    redis_prefetch_read(k->ptr);
+                    issued = 1;
+                }
+                break;
+            }
+            case PFS_HASH: {
+                /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
+                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ. */
+                dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
+                if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
+                uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
+                fake->prefetch_key_hash = h;
+                fake->prefetch_key_hash_valid = 1;
+                unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+                fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3 feed */
+                /* Chase bucket->entry->value only for READ commands (a write installs a
+                 * NEW value and never reads the old payload — the chase measurably hurt
+                 * write-heavy: pure-SET populate regressed ~35% with it on), optionally
+                 * throttled by the #20 feedback / #21 reuse predictors. */
+                int chase = 0;
+                if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+                    chase = 1;
+                    if (server.opt_feedback_prefetch)
+                        chase = (pfw->pf_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
+                    if (!chase && server.opt_ship_reuse)
+                        chase = (pfw->reuse_pht[(unsigned int)h & FWD_PHT_MASK] >= 2);
+                }
+                if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
+                else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
+                if (j < server.pf_w_hash) {
+                    redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
+                    issued = 1;
+                }
+                break;
+            }
+            case PFS_ENTRY: {
+                dictEntry *de = dts[j]->ht_table[0][idxs[j]];    /* bucket line warm */
+                if (!de) { st[j] = PFS_DONE; break; }
+                des[j] = de;
+                st[j] = (j < w4) ? PFS_VALUE : PFS_DONE;
+                redis_prefetch_read(de);
+                issued = 1;
+                break;
+            }
+            case PFS_VALUE: {
+                void *kv = dictGetKey(des[j]);                   /* entry line warm */
+                st[j] = PFS_DONE;
+                if (kv) { redis_prefetch_read(kv); issued = 1; }
+                break;
+            }
+            default:
+                st[j] = PFS_DONE;
+                break;
+            }
         }
-    }
-
-    /* Pass 3 — bucket slot (warm) -> head entry. (Read commands only; writes
-     * left dts[j] == NULL above so they skip the value chase entirely.)
-     * ee451 (gem5): capped at the entry-stage width (dependent loads). */
-    for (int j = 0; j < w3; j++) {
-        if (!dts[j]) continue;
-        dictEntry *de = dts[j]->ht_table[0][idxs[j]];
-        des[j] = de;
-        if (de) redis_prefetch_read(de);
-    }
-
-    /* Pass 4 — entry (warm) -> stored kvobj; prefetch the value bytes the
-     * handler will read. (DB dict stores the kvobj as the entry's key.)
-     * ee451 (gem5): capped at the value-stage width (dependent, expensive — the
-     * stage most prone to oversubscribing the line-fill buffers). des[j] is only
-     * set for j < w3, so this is effectively bounded by min(w3, w4). */
-    for (int j = 0; j < w4; j++) {
-        dictEntry *de = des[j];
-        if (!de) continue;
-        void *kv = dictGetKey(de);
-        if (kv) redis_prefetch_read(kv);
+        if (st[j] == PFS_DONE) remaining--;
     }
 }
 
