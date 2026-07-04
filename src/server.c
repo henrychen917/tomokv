@@ -10168,6 +10168,8 @@ void *exThreadMain(void *arg) {
     /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
     int spin_pinned = server.worker_spin > 0;
     int spin_budget = spin_pinned ? server.worker_spin : 32;
+    int nq = server.io_threads + 1;         /* ee451 (v14): loop-invariant (immutable after startup) — hoisted */
+    int scan_start = 0;                 /* worker-local producer-scan rotation cursor */
 
     while (1) {
         /* ee451 (S8): decref any zero-copy reply values the IO threads handed
@@ -10193,9 +10195,7 @@ void *exThreadMain(void *arg) {
         int any = 0;
         /* ee451: runtime worker pop/execute batch size, capped by the compile-time
          * array max. Decoupled from the per-stage prefetch widths. */
-        int popmax = WORKER_POP_BATCH;   /* ee451 (v14): quantum hardcoded (knob retired) */
-        if (popmax > WORKER_POP_BATCH) popmax = WORKER_POP_BATCH;
-        if (popmax < 1) popmax = 1;
+        int popmax = WORKER_POP_BATCH;   /* ee451 (v14): quantum hardcoded; clamps were dead */
         /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
          * per-queue pop batch already prevents starvation across the per-IO SPSC
          * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
@@ -10203,8 +10203,6 @@ void *exThreadMain(void *arg) {
          * per-connection ordering (a connection always feeds one queue) — is
          * untouched; only the inter-queue visit order rotates, which was never
          * ordered to begin with. */
-        static __thread int scan_start = 0;
-        int nq = server.io_threads + 1;
         if (++scan_start >= nq) scan_start = 0;
         for (int k = 0; k < nq; k++) {
             int i = scan_start + k; if (i >= nq) i -= nq;
