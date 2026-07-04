@@ -9891,6 +9891,12 @@ static inline void exPrefetchBatch(client **batch, int n) {
             if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
                 unsigned long long fp = 96ULL + pfw->w_ewma_vsize;
                 pfw->pf_cached_min = (8ULL * server.detected_l3_bytes) / (fp ? fp : 1);
+                /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
+                unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
+                long budget = server.pf_value_budget_kb > 0
+                    ? (long)server.pf_value_budget_kb * 1024
+                    : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
+                pfw->pf_cached_w4 = (int)(budget / (long)ev);
             }
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
         }
@@ -9916,11 +9922,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * self-measured size, recomputed every batch; pf-w-value stays as the cap (0 = off). */
     int w4cap = server.pf_w_value;
     if (w4cap > 0) {
-        unsigned int ev = pfw->w_ewma_vsize < 64 ? 64 : pfw->w_ewma_vsize;
-        long budget = server.pf_value_budget_kb > 0
-            ? (long)server.pf_value_budget_kb * 1024            /* explicit override */
-            : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers)); /* 0 = auto */
-        long aw = budget / (long)ev;
+        long aw = pfw->pf_cached_w4;   /* ee451 (v14): cached (budget/ev computed in the 64-batch refresh) */
         if (aw < 4) aw = 4;
         if (aw > w4cap) aw = w4cap;
         w4cap = (int)aw;
