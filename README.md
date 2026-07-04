@@ -130,17 +130,17 @@ nearly every cell in both regimes. The DRAM-resident table above looks like a Re
 that reading is an artifact of the test config, not the architecture — and the reason *is* the
 point of Tomo KV:
 
-* **The table fixes one compute-tuned split (`io4w4`), which under-provisions ingress for an
-  I/O-bound cell.** At *matched* I/O provisioning the two are a dead heat — Tomo `io4w4` = 2.48 M
+* **The table fixes one compute-tuned split (`io4ex4`), which under-provisions ingress for an
+  I/O-bound cell.** At *matched* I/O provisioning the two are a dead heat — Tomo `io4ex4` = 2.48 M
   vs Redis `io-threads 4` = 2.45 M on 512 B 1:9 — and both scale identically as I/O threads are
-  added. Tomo's one extra knob then recovers the entire gap on the same 8 cores: `io6w2` = **3.26 M**,
+  added. Tomo's one extra knob then recovers the entire gap on the same 8 cores: `io6ex2` = **3.26 M**,
   matching Redis's 8-thread peak (3.22 M). Redis wasn't faster here; the fixed harness simply handed
   it 8 ingress threads while Tomo used 4. See
   [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea).
 * **The split cuts the other way too, and that direction is Tomo-only.** Dial toward workers and
   Tomo parallelizes *execution* — something neither Redis (every command executes on one main
   thread; `io-threads` only parallelize I/O) nor Dragonfly (rigid shard-per-core) can do. On
-  compute-heavy commands the worker-heavy split (`io2w6`) pulls away and **no single-execution
+  compute-heavy commands the worker-heavy split (`io2ex6`) pulls away and **no single-execution
   engine can follow** (the paper's BITCOUNT-1 MB **3.46×** and HGETALL **1.66×** are exactly this;
   a fresh reproduction is in the topology section).
 
@@ -153,8 +153,8 @@ GET and FB-ETC results are representative; treat the 512 B/4 KB cells as loopbac
 before benchmarking: correctness (round-trips, MGET, expiry, DEL, FLUSHDB) plus a reconnect-storm
 churn stress — both editions pass with zero crashes.
 
-> **On the split:** the table above fixes `io4w4`, which under‑provisions ingress for this I/O‑bound
-> regime. On the same 8 cores, `io6w2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
+> **On the split:** the table above fixes `io4ex4`, which under‑provisions ingress for this I/O‑bound
+> regime. On the same 8 cores, `io6ex2` reaches **3.26 M** — matching Redis's 8‑thread peak. See
 > [Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea): the gap
 > is a topology choice, not an architectural limit.
 
@@ -197,24 +197,36 @@ same 8 cores, `memtier` loopback):
 
 | Split (8 cores) | ops/s | note |
 | :--- | :--- | :--- |
-| `io4w4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
-| **`io6w2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
-| `io7w1` | 1.80 M | workers starved → collapse |
+| `io4ex4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
+| **`io6ex2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
+| `io7ex1` | 1.80 M | workers starved → collapse |
 
-At **equal I/O parallelism the architecture is a wash** — Tomo `io4w4` = 2.48 M vs Redis `io‑threads 4`
+At **equal I/O parallelism the architecture is a wash** — Tomo `io4ex4` = 2.48 M vs Redis `io‑threads 4`
 = 2.45 M — and both scale identically as I/O threads are added (Tomo io4→io6, Redis io4→io8). So a
 DRAM‑resident small‑value workload isn't "slower on Tomo"; it just wants its cores spent on ingress,
 which one knob does.
 
-**Which way to dial depends on where your bottleneck is:**
+**Which way to dial depends on where your bottleneck is** (measured, same 8 cores, `memtier` loopback):
 
-| Bottleneck | Symptom | Dial toward | Measured (6 cores, 2‑Stage) |
-| :--- | :--- | :--- | :--- |
-| **Ingress / reply‑send** | small values at high op‑rate, or large‑value replies (the io thread sends) | **more ingress** (`io4w2`) | 64 B GET 4.4 M · 16 KB GET 0.55 M |
-| balanced | mixed | `io3w3` | 64 B GET 4.5 M · 16 KB GET 0.45 M |
-| **Execution** | CPU‑heavy commands (HGETALL, ZRANGE, BITCOUNT, set ops) | **more workers** (`io2w4`) | 64 B GET 3.2 M · 16 KB GET 0.33 M |
+| Bottleneck | Example workload | Dial toward | Best split | Measured (Tomo vs Redis `io‑8`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ingress‑bound** | small‑value GET/SET, DRAM‑resident | ingress threads | `io6ex2` | 512 B 1:9 **3.26 M** ≈ Redis 3.22 M (frozen `io4ex4` was only 2.48 M) |
+| **Execution‑bound** | CPU‑heavy commands (`HGETALL`, `ZRANGE`, `BITCOUNT`) | execution workers | `io3ex5`–`io4ex4` | `HGETALL` 505 K = **1.83×** · `ZRANGE` 900 K = **1.89×** · `BITCOUNT` 3.30 M = **1.49×** |
 
-In 2‑Stage the ingress threads do parsing *and* reply‑sends, so both small‑value and large‑value GET
+The two dials are real and opposite. An I/O‑bound cell wants cores on **ingress** — `io6ex2` recovers the
+entire DRAM gap to Redis on the same hardware. A compute‑bound cell wants cores on **execution**, where
+Tomo beats Redis **1.5–1.9×** because it runs `N` workers in parallel while Redis executes every command on
+one thread. The exact execution‑optimal split is command‑dependent: on **2‑Stage the ingress threads also do
+reply‑*sends***, so big‑reply commands (`HGETALL`/`ZRANGE`) still want ≥ 4 ingress — `io3ex5`/`io4ex4` beat
+ex‑heavy `io2ex6` *here*. `io3ex5` is a good execution‑leaning default (491 K/880 K/2.55 M — still 1.8×/1.8×/1.15× Redis),
+`io4ex4` edges it on the tiniest‑reply command (`BITCOUNT`). On a **multi‑channel server** — where each added
+worker commands its own memory‑channel bandwidth — the optimum shifts further toward execution (this is where
+the paper's fully worker‑heavy `BITCOUNT` 3.46× lives; a dual‑channel desktop caps out first). **3‑Stage**
+moves reply‑sends onto a dedicated WB stage, nudging its balance point a notch more toward execution. Rule of
+thumb: **profile your dominant command, then give cores to whichever stage is the wall** — a dial no fixed‑model
+engine offers. (The following paragraph elaborates.)
+
+<!--elab-->In 2‑Stage the ingress threads do parsing *and* reply‑sends, so both small‑value and large‑value GET
 favor more ingress; **workers win when the command itself is CPU‑heavy** — exactly the regime where the
 architecture posts its biggest wins (the paper's HGETALL 1.66× and BITCOUNT‑1 MB 3.46× are worker‑
 parallelism gains). Rule of thumb: **profile your dominant command, then give cores to whichever stage
@@ -222,7 +234,7 @@ is the wall.**
 
 **Compute‑bound, measured (L3‑resident `BITCOUNT`, same 8 cores, `memtier` loopback):**
 
-| value size | Tomo KV (`io4w4`) | Redis 8 (`io‑8`) | **Tomo / Redis** |
+| value size | Tomo KV (`io4ex4`) | Redis 8 (`io‑8`) | **Tomo / Redis** |
 | :--- | :--- | :--- | :--- |
 | 16 KB | 3.36 M | 2.19 M | **1.54×** |
 | 64 KB | 2.94 M | 1.04 M | **2.83×** |
@@ -234,9 +246,9 @@ core. Dragonfly is far behind on `BITCOUNT` entirely. This is the half of the de
 *structurally cannot* answer.
 
 The optimal split is workload‑dependent. `BITCOUNT` has a tiny (integer) reply and a per‑op dispatch cost
-comparable to its compute, so **balanced** `io4w4` is best here — worker‑heavy `io2w6` starves (2 ingress
-threads can't feed 6 workers: 138 GB/s of L3 vs `io4w4`'s 218 GB/s). But the crossover toward worker‑heavy
-is visible as compute grows (`io2w6`'s gap to `io4w4` narrows 1.86× → 1.57× from 16 KB → 128 KB) and
+comparable to its compute, so **balanced** `io4ex4` is best here — worker‑heavy `io2ex6` starves (2 ingress
+threads can't feed 6 workers: 138 GB/s of L3 vs `io4ex4`'s 218 GB/s). But the crossover toward worker‑heavy
+is visible as compute grows (`io2ex6`'s gap to `io4ex4` narrows 1.86× → 1.57× from 16 KB → 128 KB) and
 arrives decisively on a **multi‑channel server**, where each added worker commands its own memory‑channel
 bandwidth (6 workers = 6× channels). On this dual‑channel desktop the DRAM ceiling (~50 GB/s) hides that
 regime — it is the same reason the paper's `BITCOUNT`‑1 MB **3.46×** was measured on server‑class hardware.
