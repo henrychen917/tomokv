@@ -9784,8 +9784,16 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
         if (avail == 0) return 0;
     }
     int n = (int)avail < max ? (int)avail : max;
-    for (int i = 0; i < n; i++) {
-        out[i] = q->jobs[(h + (unsigned int)i) & server.ex_queue_mask];
+    /* ee451 (v14, lower-level): two-segment memcpy instead of a masked-index per-item loop —
+     * the ring is contiguous from h to the buffer end, then wraps; memcpy lets the compiler
+     * emit wide moves (the & mask in the old index defeated vectorization). n <= 16 pointers. */
+    unsigned int size = server.ex_queue_mask + 1;
+    unsigned int first = size - h;                 /* slots from h to buffer end */
+    if ((unsigned int)n <= first) {
+        memcpy(out, &q->jobs[h], (size_t)n * sizeof(*out));
+    } else {
+        memcpy(out, &q->jobs[h], (size_t)first * sizeof(*out));
+        memcpy(out + first, &q->jobs[0], (size_t)(n - first) * sizeof(*out));
     }
     atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.ex_queue_mask,
                           memory_order_release);
