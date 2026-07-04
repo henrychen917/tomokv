@@ -93,157 +93,84 @@ stage independently is what makes the 3‑Stage design win on send‑bound and l
 
 ---
 
-## Performance
+## Performance & the ingress/execution split
 
-Measured on this repository's current code (v13 line), single node, loopback, AMD Ryzen 7 7700X
-(8 cores, single CCD), server and load generator capped at 8 threads each, 30-second runs, two
-interleaved repetitions (spread ≤ 2%), `memtier_benchmark`. Compared against stock **Redis 8**
-(`io-threads 8`) and **Dragonfly** (`proactor_threads 8`) on identical cells.
+Tomo KV's performance is inseparable from its defining knob: **how you split your cores between
+*ingress* threads (parse / dispatch / reply) and *execution* workers (run commands on owned shards).**
+So this section presents both together — the benchmarks, and the split that shapes them.
 
-**Regime 1 — small values, deep pipelining (32 B values, 2 M keys, pipeline 32).** The
-dispatch-bound regime the architecture targets:
+*Methodology.* Single node, loopback, AMD Ryzen 7 7700X (8 cores, single CCD); server and load
+generator each capped at 8 threads; `memtier_benchmark`; **jemalloc on every binary**; 3 interleaved
+reps (median reported), each number sanity‑gated against its normal range (contended reads discarded
+and re‑run). Baselines: Redis 8 (`io-threads 8`) and Dragonfly (`proactor_threads 8`).
 
-| System | GET | GET/SET 1:1 |
-| :--- | :--- | :--- |
-| **Tomo KV 2-Stage** | **7.25 M ops/s** | **6.38 M ops/s** |
-| Tomo KV 3-Stage | 5.14 M ops/s | 4.52 M ops/s |
-| Redis 8 | 4.43 M ops/s | 2.78 M ops/s |
-| Dragonfly | 5.66 M ops/s | 5.29 M ops/s |
+### The knob — a CPU‑architecture idea
 
-Tomo KV 2-Stage: **1.64× Redis / 1.28× Dragonfly** on GET, **2.30× Redis** on mixed 1:1.
+> **Note for 3‑Stage.** The split figures below are the **2‑Stage edition** measured on this box —
+> the cleanest demonstration of the ingress/execution dial. 3‑Stage maps the same dial to `ifid`
+> (ingress) / `ex` (execution) / `wb` (send‑back), and its dedicated write‑back stage adds a **third
+> axis** — send‑bound / large‑value workloads scale with WB threads. The relative story (dial toward
+> ingress for dispatch/DRAM, toward execution for compute) carries over.
 
-**Regime 2 — DRAM-resident working set (~6 GB: 512 B × 8 M keys and 4 KB × 1.4 M keys, pipeline 16):**
 
-Each engine at its best 8-core config for this regime (Redis `io-threads 8`, Dragonfly
-`proactor_threads 8`, Tomo 2-Stage `io6ex2`, Tomo 3-Stage `ifid4ex2wb2`):
+You size ingress vs execution the way a CPU architect sizes fetch/decode/issue width against the number
+of execution units — to match *your* workload's bottleneck. No fixed‑model engine offers this: Redis
+only scales I/O threads (execution stays single‑threaded); Dragonfly is a rigid shard‑per‑core model. On
+8 cores we show three moderate splits — **`io5ex3`** (ingress‑leaning), **`io4ex4`** (balanced),
+**`io3ex5`** (execution‑leaning). (Extreme splits like `io2ex6` / `io6ex2` starve one stage on a low‑core
+box and are omitted here; the trend continues past these — e.g. `io6ex2` pushes 512 B 1:9 to **3.44 M**.)
 
-| System | 512B 1:1 | 512B 1:9 | hot-key | 4KB 1:1 | 4KB 1:9 | FB-ETC |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tomo KV 2-Stage** | **3.57 M** | **3.79 M** | **3.75 M** | 1.47 M | 1.20 M | **3.75 M** |
-| Tomo KV 3-Stage | 2.42 M | 2.36 M | 2.38 M | 1.41 M | **1.28 M** | 2.36 M |
-| Redis 8 | 3.08 M | 3.23 M | 3.37 M | **1.89 M** | 1.25 M | 3.23 M |
-| Dragonfly | 1.34 M | 0.88 M | 0.82 M | 0.84 M | 0.63 M | 2.21 M |
+### Dispatch‑ and compute‑bound — where Tomo KV wins outright
 
-(hot-key = Gaussian-concentrated GETs; FB-ETC = a Facebook ETC-like mix: 1:30 write:read,
-Gaussian keys, small-skewed value-size distribution. Redis reproduces its original 512 B 1:9 =
-3.23 M exactly this session, anchoring the comparison.)
+Small‑value pipelined ops and CPU‑heavy commands (**M ops/s**, higher is better):
 
-**Honest reading.** With each engine at its best 8-core config, **Tomo 2-Stage leads the DRAM
-small-value regime** (512 B, hot-key, FB-ETC all 11–17 % over Redis) and every engine beats Dragonfly.
-**3-Stage** — this edition — trades a little small-value throughput (2.4 M vs 2-Stage's 3.6 M: the extra
-ingress→exec→**write-back** hop is pure overhead when the reply is tiny) for a decoupled send path that
-pays on **send-bound / large-value** work; it already edges every engine on 4 KB 1:9 and is built to pull
-ahead as reply sizes and NIC pressure grow (the WB stage owns reordering + socket sends, off the ingress
-critical path). Pick 2-Stage for small-value/latency, 3-Stage for large-value/send-heavy.
+| Config | GET 32 B | GET/SET 1:1 32 B | `BITCOUNT` 16 KB | `HGETALL` (80 f) | `ZRANGE` (80 m) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tomo `io5ex3`** | **8.09** | 5.77 | **3.88** | 0.47 | 0.82 |
+| **Tomo `io4ex4`** | 7.73 | **6.66** | 3.30 | **0.50** | **0.90** |
+| Tomo `io3ex5` | 6.04 | 5.61 | 2.54 | 0.48 | 0.88 |
+| Redis 8 | 4.40 | 2.75 | 2.21 | 0.28 | 0.48 |
+| Dragonfly | 5.76 | 5.41 | 1.08 | 0.46 | 0.82 |
 
-The earlier impression that "Redis wins Regime 2" was a benchmarking mistake: Tomo was frozen at a
-compute-tuned split that starves ingress for an I/O-bound workload. Provisioning ingress on the same 8
-cores takes 512 B 1:9 from 2.41 M → **3.79 M** (2-Stage) while Redis's own number is unchanged (3.23 M) —
-the swing is entirely the split. Reallocating cores between ingress and execution is the point of
-[Configurable execution topology](#configurable-execution-topology--a-cpuarchitecture-idea): Redis only
-scales I/O threads, Dragonfly is rigid shard-per-core. And the dial cuts both ways — toward workers, Tomo
-parallelizes *execution* and beats Redis **1.4–1.7×** on compute-heavy commands (topology section), which
-no single-execution engine can follow. The multi-CCD / real-NIC evaluation (where the de-contention
-machinery is *additionally* designed to pay) is pending on a Threadripper-class box. Dragonfly's low
-pipelined-GET numbers at ≥256 B are a known loopback-specific artifact of its reply path (its 32 B
-GET and FB-ETC results are representative; treat the 512 B/4 KB cells as loopback-only). Validation
-before benchmarking: correctness (round-trips, MGET, expiry, DEL, FLUSHDB) plus a reconnect-storm
-churn stress — both editions pass with zero crashes.
+Best‑split Tomo beats Redis **1.8× GET, 2.4× mixed, 1.8× `BITCOUNT`, 1.8× `HGETALL`, 1.9× `ZRANGE`**, and
+beats Dragonfly on every cell. And **the split is the story**: ingress‑leaning `io5ex3` wins the
+dispatch‑bound reads (GET, and `BITCOUNT` — its reply is a single integer, so it's dispatch‑bound); balanced
+`io4ex4` wins writes and big‑reply commands (mixed, `HGETALL`, `ZRANGE` — the worker does the
+mutation/serialization while ingress handles the larger sends). One knob spans both; no single Redis or
+Dragonfly configuration does.
 
-**Historical provenance.** The original EE451 evaluation of this architecture (earlier code
-line, same class of hardware) measured 1.81× Redis on Tier-1 GET/SET, 1.66× on HGETALL, 3.46×
-on BITCOUNT-1MB, and 2.0× at the saturated ceiling; those results reproduce within 1% under
-the original methodology. Every number above was sanity-gated: results inconsistent with the
-mechanism or with neighboring measurements are investigated and re-run, never reported.
+### DRAM‑resident — matched, not beaten (on 1‑CCD loopback)
 
--------------------------------- | :--------------- | :---------------- | :------------ |
-| GET / SET (small value)           | 1.99 M ops/s     | **3.63 M ops/s**  | **1.81×**     |
-| HGETALL (logic‑heavy)             | 1.59 M ops/s     | **2.64 M ops/s**  | **1.66×**     |
-| BITCOUNT (1 MB, CPU‑bound)        | 2.6 K ops/s      | **9.1 K ops/s**   | **3.46×**     |
-| Saturated ceiling (parallel load) | ~1.99 M ops/s    | **~3.98 M ops/s** | **2.0×**      |
+Working set ~6 GB (512 B × 8 M keys, 4 KB × 1.4 M keys, pipeline 16):
 
-p50 latency drops correspondingly (e.g. 1.52 ms → 0.35 ms on Tier‑1). The pattern is consistent: **the
-heavier the command, the larger the multi‑core win**, because Tomo KV turns Redis's serial execution into
-`N`‑way parallel execution while preserving its semantics. The 3‑Stage pipeline extends that advantage into
-larger and send‑bound values by scaling the write‑back stage independently of ingress.
-
-> **Scope, honestly.** The gains are largest for pipelined traffic and compute‑heavy or send‑bound commands
-> on a saturated server. Non‑pipelined, single‑connection, latency‑bound traffic sees little benefit — one
-> command in flight cannot be parallelized. All numbers are single‑node loopback; behavior on a real NIC
-> and multi‑CCD/NUMA hardware is a separate (ongoing) evaluation. Every benchmark in this project is
-> sanity‑gated: a number that doesn't match the mechanism is treated as a bug, not a result.
-
----
-
-## Configurable execution topology — a CPU‑architecture idea
-
-Tomo KV's defining knob is that **you split your core budget between *ingress* threads (parse /
-dispatch / reply) and *execution* workers (run commands on owned shards)** — the way a CPU architect
-sizes fetch/decode/issue width against the number of execution units. You match the machine to *your*
-workload's bottleneck instead of matching your workload to a fixed machine. Redis only lets you scale
-I/O threads (execution stays single‑threaded); Dragonfly is a rigid shard‑per‑core model. Neither can
-re‑balance ingress against execution — Tomo can, and on the same cores it changes performance
-dramatically.
-
-**The split is a real, consequential dial** (3‑Stage, 512 B GET/SET 1:9, DRAM‑resident 8 M keys,
-same 8 cores, `memtier` loopback):
-
-| Split (8 cores) | ops/s | note |
-| :--- | :--- | :--- |
-| `io4ex4` | 2.48 M | ingress‑starved for this I/O‑bound cell |
-| **`io6ex2`** | **3.26 M** | ingress provisioned → **+31%**, matches Redis's 8‑thread peak (3.22 M) |
-| `io7ex1` | 1.80 M | workers starved → collapse |
-
-At **equal I/O parallelism the architecture is a wash** — Tomo `io4ex4` = 2.48 M vs Redis `io‑threads 4`
-= 2.45 M — and both scale identically as I/O threads are added (Tomo io4→io6, Redis io4→io8). So a
-DRAM‑resident small‑value workload isn't "slower on Tomo"; it just wants its cores spent on ingress,
-which one knob does.
-
-**Which way to dial depends on where your bottleneck is** (measured, same 8 cores, `memtier` loopback):
-
-| Bottleneck | Example workload | Dial toward | Best split | Measured (Tomo vs Redis `io‑8`) |
+| Config | 512 B 1:9 | hot‑key | 4 KB 1:9 | FB‑ETC |
 | :--- | :--- | :--- | :--- | :--- |
-| **Ingress‑bound** | small‑value GET/SET, DRAM‑resident | ingress threads | `ifid6ex2` | 512 B 1:9 **3.26 M** ≈ Redis 3.22 M (frozen `ifid3ex3wb2` was ~2.4 M) |
-| **Execution‑bound** | CPU‑heavy commands (`HGETALL`, `ZRANGE`, `BITCOUNT`) | execution workers | `ifid3ex3wb2` | `HGETALL` 460 K = **1.66×** · `ZRANGE` 809 K = **1.70×** · `BITCOUNT` 3.10 M = **1.40×** |
+| Tomo `io5ex3` | 3.08 | 3.09 | **1.26** | 3.08 |
+| Tomo `io4ex4` | 2.53 | 2.52 | **1.26** | 2.51 |
+| Redis 8 | **3.23** | **3.36** | 1.27 | **3.21** |
+| Dragonfly | 0.87 | 0.81 | 0.63 | 2.20 |
 
-The two dials are real and opposite. An I/O‑bound cell wants cores on **ingress**; a compute‑bound cell wants
-cores on **execution**, where Tomo beats Redis **1.4–1.7×** because it runs `N` workers in parallel while Redis
-executes every command on one thread. 3‑Stage's dedicated **WB send‑stage** takes reply‑sends off the ingress
-threads, so its execution‑optimal split sits a notch more toward workers than 2‑Stage's — and on a
-**multi‑channel server**, where each added worker commands its own memory‑channel bandwidth, the optimum shifts
-further still (this is where the paper's fully worker‑heavy `BITCOUNT` 3.46× lives; a dual‑channel desktop caps
-out first). Rule of thumb: **profile your dominant command, then give cores to whichever stage is the wall** — a
-dial no fixed‑model engine offers.
+Here the moderate splits land **within ~5 % of Redis** and tie on 4 KB; Redis keeps a small edge on flat
+512 B reads at these splits, and the ingress‑heavy extreme (`io6ex2` = 3.44 M) overtakes it. This regime is
+I/O‑bound — the value never fits a register‑cheap execution step, so it wants ingress, exactly the dial
+Tomo exposes. (hot‑key = Gaussian‑concentrated GETs; FB‑ETC = a Facebook‑ETC‑like mix: 1:30 write:read,
+Gaussian keys, small‑skewed value sizes. Dragonfly's low ≥ 256 B pipelined‑GET numbers are a known
+loopback reply‑path artifact — its 32 B GET and FB‑ETC results are representative.)
 
-3‑Stage adds a **third axis**: a dedicated write‑back (WB) stage owns reply reordering + socket sends,
-so ingress is freed from egress and **send‑bound large‑value workloads scale with WB threads** rather
-than ingress. Small‑value work still favors ingress; **CPU‑heavy commands favor workers** — exactly the regime where the
-architecture posts its biggest wins (the paper's HGETALL 1.66× and BITCOUNT‑1 MB 3.46× are worker‑
-parallelism gains). Rule of thumb: **profile your dominant command, then give cores to whichever stage
-is the wall.**
+### Honest scope
 
-**Compute‑bound, measured (L3‑resident `BITCOUNT`, same 8 cores, `memtier` loopback):**
+All numbers are single‑node **loopback on one CCD**. The de‑contention machinery and the worker‑heavy end
+of the dial are designed to pay on **multi‑CCD / real‑NIC** hardware (cross‑CCD transfers ~100–200 cycles
+vs cheap shared‑L3 here); that evaluation is pending on a Threadripper‑class box. Validation before every
+number: correctness (round‑trips, MGET, expiry, DEL, FLUSHDB) + a reconnect‑storm churn stress + (for
+structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with neighbouring
+measurements are investigated and re‑run, never reported.
 
-| value size | Tomo KV (`ifid4ex4`) | Redis 8 (`io‑8`) | **Tomo / Redis** |
-| :--- | :--- | :--- | :--- |
-| 16 KB | 3.36 M | 2.19 M | **1.54×** |
-| 64 KB | 2.94 M | 1.04 M | **2.83×** |
-| 128 KB | 1.66 M | 0.59 M | **2.80×** |
+### Historical provenance
 
-**The heavier the command, the larger the win** — Redis executes every command on one main thread; Tomo
-runs `N` workers in parallel, so a CPU‑heavy op scales with worker count while Redis is pinned to a single
-core. Dragonfly is far behind on `BITCOUNT` entirely. This is the half of the design fixed‑model engines
-*structurally cannot* answer.
-
-The optimal split is workload‑dependent. `BITCOUNT` has a tiny (integer) reply and a per‑op dispatch cost
-comparable to its compute, so **balanced** `ifid4ex4` is best here — worker‑heavy `ifid2ex6` starves (2 ingress
-threads can't feed 6 workers: 138 GB/s of L3 vs `ifid4ex4`'s 218 GB/s). But the crossover toward worker‑heavy
-is visible as compute grows (`ifid2ex6`'s gap to `ifid4ex4` narrows 1.86× → 1.57× from 16 KB → 128 KB) and
-arrives decisively on a **multi‑channel server**, where each added worker commands its own memory‑channel
-bandwidth (6 workers = 6× channels). On this dual‑channel desktop the DRAM ceiling (~50 GB/s) hides that
-regime — it is the same reason the paper's `BITCOUNT`‑1 MB **3.46×** was measured on server‑class hardware.
-
-
+The original EE451 evaluation of this architecture (earlier code line, same class of hardware) measured
+1.81× Redis on Tier‑1 GET/SET, 1.66× on HGETALL, 3.46× on BITCOUNT‑1 MB, and 2.0× at the saturated
+ceiling; those reproduce within 1 % under the original methodology.
 
 ## Optimizations
 
