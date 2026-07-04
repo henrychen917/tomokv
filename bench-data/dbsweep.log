@@ -1,0 +1,171 @@
+[12:02:12] ===== BIG-DB + 8t/10t CONFIG SWEEP reps=3 T=8s (1:9, payload<256) =====
+[12:02:25] rep1 2s_io4ex4  db=cache d64  ops=4831440
+[12:02:35] rep1 2s_io4ex4  db=med   d64  ops=5446196
+[12:02:49] rep1 2s_io4ex4  db=big   d64  ops=5210673
+[12:02:59] rep1 2s_io4ex4  db=cache d128 ops=4653309
+[12:03:09] rep1 2s_io4ex4  db=med   d128 ops=3816479
+[12:03:24] rep1 2s_io4ex4  db=big   d128 ops=3843174
+[12:03:38] rep1 3s_i4e3w1  db=cache d64  ops=4299269
+[12:03:48] rep1 3s_i4e3w1  db=med   d64  ops=3647534
+[12:04:02] rep1 3s_i4e3w1  db=big   d64  ops=3858308
+[12:04:13] rep1 3s_i4e3w1  db=cache d128 ops=4460491
+[12:04:23] rep1 3s_i4e3w1  db=med   d128 ops=3358326
+[12:04:38] rep1 3s_i4e3w1  db=big   d128 ops=3319882
+[12:04:52] rep1 3s_i3e3w2  db=cache d64  ops=5389477
+[12:05:02] rep1 3s_i3e3w2  db=med   d64  ops=4390635
+[12:05:17] rep1 3s_i3e3w2  db=big   d64  ops=3837976
+[12:05:27] rep1 3s_i3e3w2  db=cache d128 ops=3965291
+[12:05:37] rep1 3s_i3e3w2  db=med   d128 ops=4127420
+[12:05:53] rep1 3s_i3e3w2  db=big   d128 ops=4222712
+[12:06:08] rep1 3s_i4e2w2  db=cache d64  ops=5119028
+[12:06:18] rep1 3s_i4e2w2  db=med   d64  ops=4513195
+[12:06:33] rep1 3s_i4e2w2  db=big   d64  ops=4027955
+[12:06:43] rep1 3s_i4e2w2  db=cache d128 ops=3937860
+[12:06:53] rep1 3s_i4e2w2  db=med   d128 ops=3859406
+[12:07:09] rep1 3s_i4e2w2  db=big   d128 ops=3602221
+[12:07:23] rep1 2s_io5ex5  db=cache d64  ops=5421421
+[12:07:33] rep1 2s_io5ex5  db=med   d64  ops=4715114
+[12:07:48] rep1 2s_io5ex5  db=big   d64  ops=4439316
+[12:07:58] rep1 2s_io5ex5  db=cache d128 ops=4401567
+[12:08:08] rep1 2s_io5ex5  db=med   d128 ops=4354064
+[12:08:25] rep1 2s_io5ex5  db=big   d128 ops=4357435
+[12:08:40] rep1 3s_i4e3w3  db=cache d64  ops=4990741
+[12:08:50] rep1 3s_i4e3w3  db=med   d64  ops=4221974
+[12:09:06] rep1 3s_i4e3w3  db=big   d64  ops=3903825
+[12:09:16] rep1 3s_i4e3w3  db=cache d128 ops=3947332
+[12:09:26] rep1 3s_i4e3w3  db=med   d128 ops=3590388
+[12:09:43] rep1 3s_i4e3w3  db=big   d128 ops=3608963
+[12:09:58] rep1 3s_i3e3w4  db=cache d64  ops=5085927
+[12:10:08] rep1 3s_i3e3w4  db=med   d64  ops=4334023
+[12:10:23] rep1 3s_i3e3w4  db=big   d64  ops=4168725
+[12:10:33] rep1 3s_i3e3w4  db=cache d128 ops=3967500
+[12:10:43] rep1 3s_i3e3w4  db=med   d128 ops=4281159
+[12:10:59] rep1 3s_i3e3w4  db=big   d128 ops=4136818
+[12:11:13] rep2 2s_io4ex4  db=cache d64  ops=4752575
+[12:11:23] rep2 2s_io4ex4  db=med   d64  ops=4150583
+[12:11:39] rep2 2s_io4ex4  db=big   d64  ops=4063515
+[12:11:49] rep2 2s_io4ex4  db=cache d128 ops=3919877
+[12:11:59] rep2 2s_io4ex4  db=med   d128 ops=3878690
+[12:12:15] rep2 2s_io4ex4  db=big   d128 ops=3855564
+[12:12:30] rep2 3s_i4e3w1  db=cache d64  ops=4033769
+[12:12:40] rep2 3s_i4e3w1  db=med   d64  ops=3523977
+[12:12:55] rep2 3s_i4e3w1  db=big   d64  ops=3495843
+[12:13:05] rep2 3s_i4e3w1  db=cache d128 ops=3492190
+[12:13:15] rep2 3s_i4e3w1  db=med   d128 ops=3191209
+[12:13:30] rep2 3s_i4e3w1  db=big   d128 ops=3252857
+[12:13:45] rep2 3s_i3e3w2  db=cache d64  ops=4819788
+[12:13:55] rep2 3s_i3e3w2  db=med   d64  ops=4210611
+[12:14:10] rep2 3s_i3e3w2  db=big   d64  ops=3898557
+[12:14:20] rep2 3s_i3e3w2  db=cache d128 ops=3783367
+[12:14:30] rep2 3s_i3e3w2  db=med   d128 ops=4334663
+[12:14:46] rep2 3s_i3e3w2  db=big   d128 ops=4047015
+[12:15:00] rep2 3s_i4e2w2  db=cache d64  ops=4672487
+[12:15:10] rep2 3s_i4e2w2  db=med   d64  ops=4205458
+[12:15:25] rep2 3s_i4e2w2  db=big   d64  ops=4069339
+[12:15:35] rep2 3s_i4e2w2  db=cache d128 ops=4045105
+[12:15:45] rep2 3s_i4e2w2  db=med   d128 ops=4006891
+[12:16:01] rep2 3s_i4e2w2  db=big   d128 ops=3774633
+[12:16:16] rep2 2s_io5ex5  db=cache d64  ops=4831680
+[12:16:26] rep2 2s_io5ex5  db=med   d64  ops=4429614
+[12:16:41] rep2 2s_io5ex5  db=big   d64  ops=4361666
+[12:16:51] rep2 2s_io5ex5  db=cache d128 ops=3876930
+[12:17:01] rep2 2s_io5ex5  db=med   d128 ops=4294802
+[12:17:17] rep2 2s_io5ex5  db=big   d128 ops=4249789
+[12:17:31] rep2 3s_i4e3w3  db=cache d64  ops=4316150
+[12:17:42] rep2 3s_i4e3w3  db=med   d64  ops=4048514
+[12:17:57] rep2 3s_i4e3w3  db=big   d64  ops=3837883
+[12:18:07] rep2 3s_i4e3w3  db=cache d128 ops=3786366
+[12:18:17] rep2 3s_i4e3w3  db=med   d128 ops=3694086
+[12:18:33] rep2 3s_i4e3w3  db=big   d128 ops=3758081
+[12:18:47] rep2 3s_i3e3w4  db=cache d64  ops=5434131
+[12:18:57] rep2 3s_i3e3w4  db=med   d64  ops=4381384
+[12:19:12] rep2 3s_i3e3w4  db=big   d64  ops=4638970
+[12:19:22] rep2 3s_i3e3w4  db=cache d128 ops=4117115
+[12:19:32] rep2 3s_i3e3w4  db=med   d128 ops=4174896
+[12:19:48] rep2 3s_i3e3w4  db=big   d128 ops=4220392
+[12:20:03] rep3 2s_io4ex4  db=cache d64  ops=5126386
+[12:20:13] rep3 2s_io4ex4  db=med   d64  ops=4661127
+[12:20:28] rep3 2s_io4ex4  db=big   d64  ops=4064457
+[12:20:38] rep3 2s_io4ex4  db=cache d128 ops=3937085
+[12:20:48] rep3 2s_io4ex4  db=med   d128 ops=3890254
+[12:21:03] rep3 2s_io4ex4  db=big   d128 ops=3867088
+[12:21:17] rep3 3s_i4e3w1  db=cache d64  ops=3874837
+[12:21:27] rep3 3s_i4e3w1  db=med   d64  ops=3660266
+[12:21:43] rep3 3s_i4e3w1  db=big   d64  ops=3656712
+[12:21:53] rep3 3s_i4e3w1  db=cache d128 ops=3375282
+[12:22:03] rep3 3s_i4e3w1  db=med   d128 ops=3387928
+[12:22:19] rep3 3s_i4e3w1  db=big   d128 ops=3373052
+[12:22:33] rep3 3s_i3e3w2  db=cache d64  ops=4877005
+[12:22:43] rep3 3s_i3e3w2  db=med   d64  ops=4238646
+[12:22:58] rep3 3s_i3e3w2  db=big   d64  ops=4312952
+[12:23:08] rep3 3s_i3e3w2  db=cache d128 ops=4230894
+[12:23:18] rep3 3s_i3e3w2  db=med   d128 ops=4283364
+[12:23:34] rep3 3s_i3e3w2  db=big   d128 ops=4005047
+[12:23:49] rep3 3s_i4e2w2  db=cache d64  ops=4645978
+[12:23:59] rep3 3s_i4e2w2  db=med   d64  ops=4140282
+[12:24:14] rep3 3s_i4e2w2  db=big   d64  ops=3925856
+[12:24:24] rep3 3s_i4e2w2  db=cache d128 ops=4184199
+[12:24:34] rep3 3s_i4e2w2  db=med   d128 ops=3948708
+[12:24:49] rep3 3s_i4e2w2  db=big   d128 ops=3721888
+[12:25:03] rep3 2s_io5ex5  db=cache d64  ops=4880312
+[12:25:13] rep3 2s_io5ex5  db=med   d64  ops=4427425
+[12:25:28] rep3 2s_io5ex5  db=big   d64  ops=4452001
+[12:25:38] rep3 2s_io5ex5  db=cache d128 ops=4423957
+[12:25:48] rep3 2s_io5ex5  db=med   d128 ops=4333634
+[12:26:04] rep3 2s_io5ex5  db=big   d128 ops=4266818
+[12:26:18] rep3 3s_i4e3w3  db=cache d64  ops=4580855
+[12:26:28] rep3 3s_i4e3w3  db=med   d64  ops=4142035
+[12:26:43] rep3 3s_i4e3w3  db=big   d64  ops=4016010
+[12:26:53] rep3 3s_i4e3w3  db=cache d128 ops=3943983
+[12:27:03] rep3 3s_i4e3w3  db=med   d128 ops=3591550
+[12:27:20] rep3 3s_i4e3w3  db=big   d128 ops=3743879
+[12:27:35] rep3 3s_i3e3w4  db=cache d64  ops=4857347
+[12:27:45] rep3 3s_i3e3w4  db=med   d64  ops=4390012
+[12:28:00] rep3 3s_i3e3w4  db=big   d64  ops=3865155
+[12:28:10] rep3 3s_i3e3w4  db=cache d128 ops=4098220
+[12:28:20] rep3 3s_i3e3w4  db=med   d128 ops=4197122
+[12:28:36] rep3 3s_i3e3w4  db=big   d128 ops=4335430
+[12:28:40] ===== DONE — medians (ops by system/db/payload) =====
+  2s_io4ex4  big   d128 median=3855564
+  2s_io5ex5  big   d128 median=4266818
+  3s_i3e3w2  big   d128 median=4047015
+  3s_i3e3w4  big   d128 median=4220392
+  3s_i4e2w2  big   d128 median=3721888
+  3s_i4e3w1  big   d128 median=3319882
+  3s_i4e3w3  big   d128 median=3743879
+  2s_io4ex4  big   d64  median=4064457
+  2s_io5ex5  big   d64  median=4439316
+  3s_i3e3w2  big   d64  median=3898557
+  3s_i3e3w4  big   d64  median=4168725
+  3s_i4e2w2  big   d64  median=4027955
+  3s_i4e3w1  big   d64  median=3656712
+  3s_i4e3w3  big   d64  median=3903825
+  2s_io4ex4  cache d128 median=3937085
+  2s_io5ex5  cache d128 median=4401567
+  3s_i3e3w2  cache d128 median=3965291
+  3s_i3e3w4  cache d128 median=4098220
+  3s_i4e2w2  cache d128 median=4045105
+  3s_i4e3w1  cache d128 median=3492190
+  3s_i4e3w3  cache d128 median=3943983
+  2s_io4ex4  cache d64  median=4831440
+  2s_io5ex5  cache d64  median=4880312
+  3s_i3e3w2  cache d64  median=4877005
+  3s_i3e3w4  cache d64  median=5085927
+  3s_i4e2w2  cache d64  median=4672487
+  3s_i4e3w1  cache d64  median=4033769
+  3s_i4e3w3  cache d64  median=4580855
+  2s_io4ex4  med   d128 median=3878690
+  2s_io5ex5  med   d128 median=4333634
+  3s_i3e3w2  med   d128 median=4283364
+  3s_i3e3w4  med   d128 median=4197122
+  3s_i4e2w2  med   d128 median=3948708
+  3s_i4e3w1  med   d128 median=3358326
+  3s_i4e3w3  med   d128 median=3591550
+  2s_io4ex4  med   d64  median=4661127
+  2s_io5ex5  med   d64  median=4429614
+  3s_i3e3w2  med   d64  median=4238646
+  3s_i3e3w4  med   d64  median=4381384
+  3s_i4e2w2  med   d64  median=4205458
+  3s_i4e3w1  med   d64  median=3647534
+  3s_i4e3w3  med   d64  median=4142035
+DBSWEEP_DONE

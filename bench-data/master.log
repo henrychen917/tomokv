@@ -1,0 +1,26 @@
+[13:17:12] jemalloc verified on rs_base, rs_mask, redis
+[13:17:12] ===== PHASE 1: decref verdict (rs_base vs rs_mask) =====
+[13:18:33]   decref rep1 base=6768882.86 mask=6821500.26
+[13:20:24]   decref rep2 base=6808999.46 mask=6746171.76
+[13:22:25]   decref rep3 base=6630596.19 mask=6828985.69
+[13:22:25] DECREF MIX32: base=6768882.86 mask=6821500.26 delta=0.8%
+[13:22:25] VERDICT: mask flat/regress (0.8%) -> sweep uses PRE-FORK STABLE
+DECREF_DONE tomo=pre-fork-stable delta=0.8%
+[13:22:25] ===== PHASE 2: sweep (Tomo=pre-fork-stable) =====
+[13:23:25] -- io4ex4 rep1 --
+[13:28:36] -- io4ex4 rep2 --
+[13:33:51] -- io4ex4 rep3 --
+[13:39:03] -- io2ex6 rep1 --
+[13:44:08] -- io2ex6 rep2 --
+[13:49:16] -- io2ex6 rep3 --
+[13:54:13] -- io6ex2 rep1 --
+[13:59:25] -- io6ex2 rep2 --
+[14:04:31] -- io6ex2 rep3 --
+[14:09:24] -- redis rep1 --
+[14:13:49] -- redis rep2 --
+[14:18:21] -- redis rep3 --
+[14:22:54] -- dfly rep1 --
+[14:29:22] -- dfly rep2 --
+[14:35:37] -- dfly rep3 --
+[14:40:45] ===== MASTER SWEEP DONE =====
+MASTER_DONE

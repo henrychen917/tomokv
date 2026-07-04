@@ -1,0 +1,20 @@
+[07-04 02:14:15] ===== SHOWCASE: 7 regime cells x 4 systems x 2 reps (~5GB DBs) =====
+[07-04 02:14:15] --- rep 1 ---
+ 3138069[07-04 02:17:55]   v13-2s r1: 512(1:9)=2428470.36 512(SET)=3744240.13 512(P64)=4109567.85 TTL=2470519.92 2k(1:9)=1696677.60 16kGET=513244.45 16kSET=398860.27
+showcase.sh: line 17: 3138806 Killed                  /shared/Projects/THredis-v13-2s/src/redis-server --myiothreads 4 --myworkerthreads 4 --myiothreadpipelinedepth 32 --myworkerthreadqueuedepth 2048 --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:21:43]   v13-3s r1: 512(1:9)=2365403.54 512(SET)=3057321.26 512(P64)=3685437.50 TTL=2316633.22 2k(1:9)=1741186.88 16kGET=486601.65 16kSET=387919.20
+showcase.sh: line 17: 3140519 Killed                  /shared/Projects/THredis-v13-3s/src/redis-server --myifidthreads 3 --myexthreads 3 --thredis-strict-pipeline yes --thredis-wb-threads 2 --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:25:31]   redis r1: 512(1:9)=3244595.49 512(SET)=3444436.79 512(P64)=3676652.96 TTL=2821201.48 2k(1:9)=2437065.54 16kGET=480150.81 16kSET=468230.09
+showcase.sh: line 17: 3142968 Killed                  /shared/Projects/redis/src/redis-server --io-threads 8 --io-threads-do-reads yes --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:29:12]   dragonfly r1: 512(1:9)=884975.49 512(SET)=3163969.06 512(P64)=869430.29 TTL=941744.85 2k(1:9)=759243.00 16kGET=360990.83 16kSET=359802.26
+showcase.sh: line 17: 3144822 Killed                  /shared/Projects/dragonfly-bin/dragonfly --port=6399 --bind=127.0.0.1 --proactor_threads=8 --dbnum=1 --dbfilename= --snapshot_cron= --cluster_mode=emulated --dir /tmp/showc > /tmp/showc/srv.log 2>&1
+[07-04 02:29:13] --- rep 2 ---
+[07-04 02:32:54]   v13-2s r2: 512(1:9)=2433556.00 512(SET)=3710086.23 512(P64)=3933613.31 TTL=2391421.96 2k(1:9)=1713578.60 16kGET=525590.04 16kSET=404615.37
+showcase.sh: line 17: 3146567 Killed                  /shared/Projects/THredis-v13-2s/src/redis-server --myiothreads 4 --myworkerthreads 4 --myiothreadpipelinedepth 32 --myworkerthreadqueuedepth 2048 --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:36:43]   v13-3s r2: 512(1:9)=2317726.42 512(SET)=3121892.38 512(P64)=3632519.41 TTL=2312860.33 2k(1:9)=1736542.45 16kGET=495874.85 16kSET=391024.59
+showcase.sh: line 17: 3148239 Killed                  /shared/Projects/THredis-v13-3s/src/redis-server --myifidthreads 3 --myexthreads 3 --thredis-strict-pipeline yes --thredis-wb-threads 2 --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:40:30]   redis r2: 512(1:9)=3227443.77 512(SET)=3420323.08 512(P64)=3669473.00 TTL=2816574.32 2k(1:9)=2428841.52 16kGET=481585.21 16kSET=434576.22
+showcase.sh: line 17: 3149927 Killed                  /shared/Projects/redis/src/redis-server --io-threads 8 --io-threads-do-reads yes --save '' --appendonly no --protected-mode no --dir /tmp/showc --port 6399 > /tmp/showc/srv.log 2>&1
+[07-04 02:44:13]   dragonfly r2: 512(1:9)=880954.78 512(SET)=3188958.50 512(P64)=871759.29 TTL=939998.79 2k(1:9)=756264.18 16kGET=359258.57 16kSET=359781.06
+showcase.sh: line 17: 3152592 Killed                  /shared/Projects/dragonfly-bin/dragonfly --port=6399 --bind=127.0.0.1 --proactor_threads=8 --dbnum=1 --dbfilename= --snapshot_cron= --cluster_mode=emulated --dir /tmp/showc > /tmp/showc/srv.log 2>&1
+[07-04 02:44:15] ===== SHOWCASE DONE =====

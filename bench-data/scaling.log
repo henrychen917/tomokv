@@ -1,0 +1,5 @@
+[23:08:50] ===== SCALING SWEEP (threads 4/6/8, reps=3 T=8s) =====
+[23:09:02] rep1 t4  2s_epoll  64B_1:9    ops=4791993
+[23:09:12] rep1 t4  2s_epoll  256B_1:1   ops=4167257
+[23:09:55] rep1 t4  3s_epoll  64B_1:9    ops=ERR
+[23:12:35] rep1 t4  3s_epoll  256B_1:1   ops=ERR
