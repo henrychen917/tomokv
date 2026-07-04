@@ -10165,9 +10165,16 @@ static inline void exExecFake(client *fake) {
     }
     pendingCommand *wpcmd = fake->current_pending_cmd;
     if (wpcmd && wpcmd->argv) {
+        wpcmd->argv_released_mask = 0;
         for (int a = 0; a < wpcmd->argc; a++) {
             robj *o = wpcmd->argv[a];
-            if (o && o->refcount > 1) { decrRefCount(o); wpcmd->argv[a] = NULL; }
+            /* ee451 (v14): skip interned/shared robjs (argv[0] command token) — they're never freed,
+             * so no release needed; avoids a redundant no-op decref + mask bit. */
+            if (o && o->refcount > 1 && o->refcount != OBJ_SHARED_REFCOUNT) {
+                decrRefCount(o);                                  /* worker: sole shard-refcount mutator */
+                if (a < 64) wpcmd->argv_released_mask |= (1ULL << a);  /* signal WITHOUT touching io array */
+                else wpcmd->argv[a] = NULL;                       /* >64 args: fall back to NULL sentinel */
+            }
         }
     }
 }
