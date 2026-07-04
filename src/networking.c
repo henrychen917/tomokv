@@ -3999,7 +3999,7 @@ static const int          operandTierSlots[OPERAND_NTIER] = {256, 256, 128, 64, 
 static robj *operandTier[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER][OPERAND_TIER_SLOTS_MAX];
 static int   operandTierN[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];
 static int   operandTierIdle[MY_IFID_THREADS_MAX + 1][OPERAND_NTIER];  /* decay: GET-idle ticks per class */
-#define OPERAND_DECAY_IDLE 8   /* idle ticks with no GET before a class starts shedding its free list */
+/* v13: idle-ticks-before-shed is the thredis-pool-decay-idle knob (was hardcoded 8) */
 
 static inline int operandCeilTier(size_t len) {        /* smallest class >= len; -1 if above top class */
     for (int t = 0; t < OPERAND_NTIER; t++) if (len <= operandTierCap[t]) return t;
@@ -4102,7 +4102,7 @@ void operandRecycleDrain(int self_ifidx) {
 }
 
 /* v12-pool: per-class decay, called periodically on the owning ifid. A size class with no GET for
- * OPERAND_DECAY_IDLE ticks sheds a quarter of its free list each tick (all if nearly empty), releasing
+ * pool-decay-idle ticks sheds a quarter of its free list each tick (all if nearly empty), releasing
  * memory to the allocator on the SAME thread that alloc'd it. A GET resets the class's idle counter, so
  * classes decay independently as the workload's request-size mix shifts. */
 void operandPoolDecay(int self_ifidx) {
@@ -4114,7 +4114,7 @@ void operandPoolDecay(int self_ifidx) {
          * just thrash a re-alloc. Idle is reset on every GET (incl. demand-grow misses) and every PUT
          * (fill), so any class still seeing allocs or returns never reaches the threshold below. */
         if (n * 10 >= operandTierSlots[t] * 9) continue;
-        if (++operandTierIdle[self_ifidx][t] < OPERAND_DECAY_IDLE) continue;
+        if (++operandTierIdle[self_ifidx][t] < server.pool_decay_idle) continue;
         int drop = n > 4 ? n / 4 : n;
         for (int k = 0; k < drop; k++)                       /* freed on self_ifidx == the thread that alloc'd them */
             decrRefCount(operandTier[self_ifidx][t][--operandTierN[self_ifidx][t]]);

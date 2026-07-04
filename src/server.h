@@ -3008,6 +3008,11 @@ struct redisServer {
     /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     int worker_pop_batch;  /* fakes popped+executed per worker loop (<= WORKER_POP_BATCH) */
+    int worker_spin_pauses;        /* v13: PAUSE instrs per empty worker round (0 = no pause burst) */
+    int worker_spin_yield_rounds;  /* v13: empty rounds before sched_yield (0 = yield immediately) */
+    int pool_decay_period;         /* v13: beforeSleep iterations between pool decay ticks (0 = never) */
+    int pool_decay_idle;           /* v13: idle decay ticks before a tier class sheds (was hardcoded 8) */
+    size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int vf_min_dictsize;   /* value-forward only when shard dict size >= this (cache-cold proxy); 0=always */
     int vf_min_run;        /* value-forward only for same-key runs >= this length */
     int vf_min_saved;      /* ee451: cost-benefit gate — forward only if value_cost*(run-1) >= this (bytes of re-serialization saved) */
@@ -3035,13 +3040,11 @@ struct redisServer {
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
-    int reshard_auto;            /* master enable for auto resharding (default off) */
     int reshard_imbalance_pct;   /* trigger when hottest shard EWMA > pct/100 * mean (default 150) */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
     int reshard_ewma_alpha_pct;  /* EWMA smoothing alpha = pct/100 (default 30) */
     int reshard_chunk_buckets;   /* buckets shifted per auto trigger (default 64) */
     int reshard_core_aware;      /* weight balance by per-worker core capacity (default on) */
-    int reshard_ewma_dual;       /* #89: dual-rate EWMA (fast+slow) — smarter balancing + faster decay */
     int reshard_ewma_fast_pct;   /* #89: fast EWMA alpha pct (default 60) */
     int reshard_progress_pct;    /* #89: no-progress stop threshold, pct of pre-migration peak (default 85) */
     int reshard_settle_ticks;    /* #89: ticks to let the EWMA absorb a migration before judging (default 4) */
