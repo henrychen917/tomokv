@@ -3001,6 +3001,9 @@ struct redisServer {
      * given stage prefetches. Default = full (>= any batch) == prior behavior; 0
      * disables that stage's prefetch. Runtime-safe (hints only). */
     int pf_w_struct;   /* worker pass 1: fake struct/argv/cmd/key (independent) */
+    int pf_w_argv;             /* gem5 (v13): P1b width — argv-vector prefetch */
+    int pf_w_keyobj;           /* gem5 (v13): P1c width — key robj header prefetch */
+    int pf_w_keybytes;         /* gem5 (v13): P1d width — key bytes prefetch (raw enc) */
     int pf_w_hash;     /* worker pass 2: key bytes + bucket prefetch (hash compute always full) */
     int pf_w_entry;    /* worker pass 3: bucket -> entry (dependent) */
     int pf_w_value;    /* worker pass 4: entry -> value bytes (dependent, expensive) */
