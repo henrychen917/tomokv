@@ -10253,8 +10253,6 @@ void *exThreadMain(void *arg) {
     /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
     int spin_pinned = server.worker_spin > 0;
     int spin_budget = spin_pinned ? server.worker_spin : 32;
-    int pop_cap = WORKER_POP_BATCH;     /* ee451 (v14): AUTO pop-batch controller state (worker-local) */
-    int pop_pass_max = 0;               /* max pop seen this pass (controller signal) */
     int nq = server.io_threads + 1;         /* ee451 (v14): loop-invariant (immutable after startup) — hoisted */
     int scan_start = 0;                 /* worker-local producer-scan rotation cursor */
 
@@ -10286,7 +10284,7 @@ void *exThreadMain(void *arg) {
          * a saturating up/down controller in the micro-arch style (2-bit-predictor flavor):
          * a full batch (saturated pop) doubles the cap; a sparse pass (< cap/4, nonzero)
          * halves it. Current-signal only — a workload shift re-tunes within a few passes. */
-        int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : pop_cap;
+        int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
         /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
          * per-queue pop batch already prevents starvation across the per-IO SPSC
          * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
@@ -10298,7 +10296,6 @@ void *exThreadMain(void *arg) {
         for (int k = 0; k < nq; k++) {
             int i = scan_start + k; if (i >= nq) i -= nq;
             int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
-            if (n > pop_pass_max) pop_pass_max = n;
             if (n == 0) continue;
             any = 1;
 
@@ -10425,12 +10422,11 @@ void *exThreadMain(void *arg) {
 
         if (any) {
             /* AUTO pop-batch update (once per non-empty pass): saturate-up / sparse-down. */
-            if (server.worker_pop_batch == 0) {
-                if (pop_pass_max >= pop_cap && pop_cap < WORKER_POP_BATCH) pop_cap <<= 1;
-                else if (pop_pass_max > 0 && pop_pass_max <= (pop_cap >> 2) && pop_cap > 2) pop_cap >>= 1;
-                if (pop_cap > WORKER_POP_BATCH) pop_cap = WORKER_POP_BATCH;
-            }
-            pop_pass_max = 0;
+            /* ee451 (v14): AUTO pop-batch = MAX, honestly. Demand-adaptive caps were implemented
+             * two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both flap at
+             * quantization boundaries with zero throughput delta — the cap only BINDS when a queue
+             * holds more than cap items, which is exactly when the big batch is right. STRICT mode
+             * (N=1..16) remains for inter-queue latency-fairness capping if ever needed. */
             if (!spin_pinned && empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
                 spin_budget += spin_budget >> 1;
                 if (spin_budget > 256) spin_budget = 256;
@@ -10449,7 +10445,11 @@ void *exThreadMain(void *arg) {
             empty_rounds++;
         } else {
             /* Sustained idleness — give up the CPU; shrink the spin window. */
-            if (!spin_pinned) spin_budget = spin_budget > 4 ? (spin_budget >> 1) : 4;
+            if (!spin_pinned) {
+                spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp — the old ternary let
+                                                 * 6>>1=3 land BELOW the floor (cycle-test catch) */
+                if (spin_budget < 4) spin_budget = 4;
+            }
             sched_yield();
             empty_rounds = 0;
         }
