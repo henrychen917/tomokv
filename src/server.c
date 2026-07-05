@@ -10642,18 +10642,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
     }
 
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
-     * work/spin/yield decision below — work passes fold the standing backlog and count a
-     * work slice; the YIELD branch (a sustained-idleness EPISODE) 0-folds the EWMA and
-     * counts an idle episode; cheap spin passes touch nothing (they'd both pollute the
-     * ratio — 50ns spins vs 100µs work passes — and dirty the loop). Fields are owner-
-     * written plain ints, racily sampled by the 4Hz balancer. */
+     * work/spin/yield decision below — work passes fold the standing backlog and accumulate
+     * busy TIME; the YIELD branch (a sustained-idleness EPISODE) 0-folds the EWMA; cheap
+     * spin passes touch nothing (they'd both pollute the signals — 50ns spins vs 100µs work
+     * passes — and dirty the loop). Fields are owner-written plain ints, racily sampled by
+     * the 4Hz balancer. */
 
     if (any) {
         if (server.thread_balance) {
             int tm_e = (int)worker->tm_qdepth_ewma_q4;
             tm_e += ((tm_pass_depth << 4) - tm_e) >> 3;
             worker->tm_qdepth_ewma_q4 = tm_e < 0 ? 0 : (unsigned int)tm_e;
-            worker->tm_work_slices++;
             /* busy-TIME accounting: first-pop..here = this pass's WORK duration. Two vDSO
              * clock reads per WORK pass (>=µs-scale), never per spin poll. */
             worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
@@ -10688,12 +10687,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             if (ctx->spin_budget < 4) ctx->spin_budget = 4;
         }
         /* ee451 (thread-modes step 4, signals a+e): a genuine IDLE EPISODE — 0-fold the
-         * backlog EWMA (decays within µs of true idleness) and count the episode. (Busy
-         * time needs no reset here: it is clocked first-pop..fold within work passes.) */
-        if (server.thread_balance) {
+         * backlog EWMA (decays within µs of true idleness). (Busy time needs no reset
+         * here: it is clocked first-pop..fold within work passes.) */
+        if (server.thread_balance)
             worker->tm_qdepth_ewma_q4 -= worker->tm_qdepth_ewma_q4 >> 3;
-            worker->tm_idle_episodes++;
-        }
         sched_yield();
         ctx->empty_rounds = 0;
     }
@@ -12053,7 +12050,10 @@ int tomoMigrateTest(int val, const char **err) {
  *   b. io ingress busy        tm_io_sig[t].busy_ewma_q4  (aeProcessEventsIO events/pass EWMA)
  *   c. reply ROB occupancy    tm_io_sig[t].rob           (replyWorking snapshot, per loop pass)
  *   d. socket write backlog   listLength(clients_pending_write[t]) snapshot
- *   e. idle/spin ratio        exThread.tm_work_slices / tm_idle_slices deltas -> busy%
+ *   e. busy% (utilization)    exThread.tm_busy_us deltas / wall time -> TIME-weighted busy
+ *                             ratio (pass and episode ratios were calibrated OUT: passes
+ *                             weight 50ns spins vs 100µs work; episodes saturate at 100%
+ *                             whenever burst gaps fit the spin window)
  *   f. p99 guardrail          tm_io_sig[t].lat_ring max ("max-ish" of 64 sampled latencies) — VETO ONLY
  *
  * QUORUM (bias strongly toward NOT shifting — mispredicted shifts are the expensive recovery):

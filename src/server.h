@@ -1956,11 +1956,10 @@ typedef struct exThread {
                                       * EPISODES (yield events), so it decays within µs of real
                                       * idleness but is NOT diluted by cheap spin passes. HIGH =
                                       * the worker is persistently behind its arrivals. */
-    unsigned int tm_work_slices;     /* passes that popped work (idle/spin-ratio numerator) */
-    unsigned int tm_idle_episodes;   /* sustained-idleness events (the sched_yield branch —
-                                      * one per exhausted spin window, NOT per spin pass: pass
-                                      * counts would weight 50ns spins against 100µs work
-                                      * passes and read ~0% busy on a saturated worker) */
+    /* ee451 (rank-5 cleanup): tm_work_slices / tm_idle_episodes deleted — v1 scaffolding
+     * for the pass/episode busy ratios that calibration ruled OUT (see tm_busy_us below);
+     * they were written on the hot path and read by nothing. Tail block still packs in
+     * one 64B line (db .. tm_busy_us), so the padded layout is unchanged. */
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
                                       * accumulating). The balancer's BUSY vote uses this TIME
