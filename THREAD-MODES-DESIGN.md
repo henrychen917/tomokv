@@ -92,3 +92,30 @@ Cron work is CONSERVED (it still runs), so the aggregate win is not "cron disapp
     entirely (true throughput gain ≈ cron's full cost + zero cron jitter on any served connection);
 (3) uniform packing: the balancer can allocate main's core like any other (io1exN where the "1"
     is merely the current token holder).
+
+### Cron DECOMPOSITION (user, supersedes the fat token): duties follow data ownership
+Deprecate the obsolete, distribute the local, and shrink the token to the truly-global rump.
+Sourced from the role-purity audit's duty inventory:
+
+**DEPRECATE (obsolete under tomokv — delete, don't relocate):**
+- databasesCron/activeExpire/defrag on the DECOY server.db (scans an empty keyspace every tick)
+- upstream io-threads cron apparatus (IOThreadClientsCron etc. — dead code, io_threads_num==1)
+- eviction/AOF/replication/cluster cron paths (config-gated off by RP-1; delete the tick checks)
+
+**IO-MODE LOCAL (each io thread crons ITS OWN, in its slice, ~100ms cadence):**
+- clientsCron for own clients: timeouts, qbuf shrink, output-buffer limits (fixes RP-3's orphan —
+  today only main's 1/N slice is cron'd)
+- cached-time refresh for its own loop; TLS-pending sweep
+
+**EX-MODE LOCAL (each worker, in its idle/backoff slice — fixes RP-2's orphans, zero locks since
+the owner is the sole shard writer):**
+- activeExpireCycle over OWN shard; incremental rehash/resize of OWN shard dicts; (defrag later)
+- operand-pool decay (already op-clocked per-owner — the existing pattern to copy)
+
+**CRON TOKEN (the global rump — small, pressure-placed per the token spec):**
+- persistence triggers + fork points; reshardAutoTune (1Hz control plane); stat folds/INFO cache;
+  LRU clock/unixtime single-writer; signals/shutdown; config-apply context.
+
+Result: cron cost mostly vanishes from serving threads not by relocation but by LOCALITY — shard
+housekeeping runs on the shard's owner in otherwise-idle slices; client housekeeping on the client's
+owner; the token carries only what is genuinely singular. Absorbs tasks RP-2 (#18) and RP-3 (#19).
