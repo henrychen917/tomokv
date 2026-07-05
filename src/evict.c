@@ -445,7 +445,12 @@ static int evictionTimeProc(
     UNUSED(id);
     UNUSED(clientData);
 
-    if (performEvictions() == EVICT_RUNNING) return 0;  /* keep evicting */
+    /* ee451 (BUGFIX ex=0): eviction only runs with num_workers==0 (maxmemory is boot-rejected
+     * when sharded); take the ex=0 execution lock vs IO-thread inline command execution. */
+    tomoEx0Lock();
+    int evict_state = performEvictions();
+    tomoEx0Unlock();
+    if (evict_state == EVICT_RUNNING) return 0;  /* keep evicting */
 
     /* For EVICT_OK - things are good, no need to keep evicting.
      * For EVICT_FAIL - there is nothing left to evict.  */
