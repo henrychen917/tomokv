@@ -223,3 +223,12 @@ IO-EXIT = leave reuseport accept group (no new conns) -> migrate existing conns 
 (idle instantly; busy via read-pause drain), spread least-loaded across remaining io threads ->
 last conn gone -> EX-entry. Seconds-bounded, ZERO connection loss. Also usable standalone as
 IO LOAD REBALANCING (hand hot conns to cold io threads) — same mechanism, no mode change.
+
+## BENCH VERDICT v1 (2026-07-05): spare-topology auto LOSES to static 4-4 — full-mix is the fix
+static44 vs balancer-auto(3io/3ex+spare), 2 oscillation loops: io-phases 5.40M vs 4.4M (-18%),
+ex-phases 667K vs 607K (-9%). Balancer mechanics flawless (6 autonomous shifts, perfect tracking,
+0 flap/crash) — the loss is THREAD-BUDGET arithmetic: static works 8 threads always; the spare
+topology peaks at 7 (parks to 6). Confirms the fixed-pool/fluid-mix goal: v2 must shift EXISTING
+threads (5io/3ex <-> 4io/4ex, always 8) — per the static sweep, io5ex3 wins io-bound cells (+22%
+DRAM 1:9) and io4ex4 wins HGETALL/mixed, so a full-mix balancer beats any single static across
+phases. Critical path: v1.5 EX->IO (composed, shipped pieces) + v1.6 IO-exit (conn-migration spec).
