@@ -2567,7 +2567,17 @@ static int updateReplBacklogSize(const char **err) {
 }
 
 static int updateMaxmemory(const char **err) {
-    UNUSED(err);
+    /* ee451 (W6-E3, RP-1 runtime): the boot gate refuses maxmemory>0 with sharding — extend it
+     * to CONFIG SET. Armed at runtime, eviction walks only the empty decoy server.db (can free
+     * nothing real = permanent OOM write-stop) while N IO threads race the shared eviction pool,
+     * and shouldPropagate() turning true lets worker-side lazy-expire deletes hit the single
+     * global also_propagate array concurrently = heap corruption. Apply-failure rolls the value
+     * back (restoreBackupConfig), so this is a clean -ERR to the client. */
+    if (server.maxmemory > 0 && server.num_workers > 0) {
+        *err = "maxmemory > 0 is not supported with tomokv sharding (tomokv-ex-threads > 0): "
+               "the dataset lives in per-worker shard DBs that eviction does not see";
+        return 0;
+    }
     if (server.maxmemory) {
         size_t used = zmalloc_used_memory()-freeMemoryGetNotCountedMemory();
         if (server.maxmemory < used) {
@@ -2591,6 +2601,15 @@ static int updateWatchdogPeriod(const char **err) {
 }
 
 static int updateAppendonly(const char **err) {
+    /* ee451 (W6-E3, RP-1 runtime): the boot gate refuses appendonly with sharding — extend it
+     * to CONFIG SET. Armed at runtime, the AOF (and any rewrite) serializes ONLY the empty decoy
+     * server.db = total data loss on reload, and every worker-side lazy-expire delete starts
+     * calling alsoPropagate on the global redisOpArray from N threads concurrently. */
+    if (server.aof_enabled && server.num_workers > 0) {
+        *err = "appendonly cannot be enabled with tomokv sharding (tomokv-ex-threads > 0): "
+               "the dataset lives in per-worker shard DBs that AOF does not see";
+        return 0;
+    }
     /* If loading flag is set, AOF might have been stopped temporarily, and it
      * will be restarted depending on server.aof_enabled flag after loading is
      * completed. So, we just need to update 'server.aof_enabled' which has been

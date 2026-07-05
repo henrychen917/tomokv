@@ -1146,6 +1146,17 @@ void syncCommand(client *c) {
     /* ignore SYNC if already slave or in monitor mode */
     if (c->flags & CLIENT_SLAVE) return;
 
+    /* ee451 (W6-E3, RP-1 runtime): refuse inbound SYNC/PSYNC under sharding — the boot gate
+     * refuses replicaof (us as replica), but nothing stopped a replica from syncing FROM us.
+     * The replica would receive the empty decoy dataset, and arming repl_backlog/slaves makes
+     * shouldPropagate() true so worker-side lazy-expire deletes race the single global
+     * also_propagate array from N threads (heap corruption; expire.c numops==0 assert). */
+    if (server.num_workers > 0) {
+        addReplyError(c, "SYNC/PSYNC is not supported with tomokv sharding (tomokv-ex-threads > 0): "
+                         "the dataset lives in per-worker shard DBs that replication does not see");
+        return;
+    }
+
     /* Check if this is a failover request to a replica with the same replid and
      * become a master if so. */
     if (c->argc > 3 && !strcasecmp(c->argv[0]->ptr,"psync") && 
