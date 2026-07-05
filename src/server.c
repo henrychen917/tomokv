@@ -11896,10 +11896,25 @@ void tmMigServiceOut(void) {
     if (exiting && listLength(mb->migrating_out) == 0 &&
         listLength(server.clients[id]) == 0) {
         polyThreadCtx *ctx = tmCtxForIotid(id);
-        if (ctx && atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_PARKED) {
-            serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d IO-EXIT complete — all conns "
-                                 "migrated out, requesting PARK", id);
-            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
+        if (ctx) {
+            if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_PARKED) {
+                serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d IO-EXIT complete — all conns "
+                                     "migrated out, requesting PARK", id);
+                atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            }
+            /* SELF-WAKE (the file-header note "IO-exit needs a wakeup or a bounded poll
+             * timeout" — this is the wakeup): we are in beforeSleepIO; the next
+             * aeProcessEventsIO pass polls with tvp=NULL while replyWorking==0, and with
+             * every client migrated off this loop has NOTHING left to fire — the thread
+             * would sleep in epoll_wait forever and the park checkpoint (which runs
+             * BETWEEN slices) would never adopt PARKED, leaving target!=mode and the
+             * 3.1c pending gate rejecting all further shifts. Kicking our own notifier
+             * (registered on this loop) makes the poll return immediately, the slice
+             * end, and the checkpoint run. Outside the one-shot guard on purpose: a
+             * REFUSED park (e.g. stranded inbox, no live dest) must also re-wake after
+             * the strays are re-drained, when this block re-fires with target already
+             * PARKED. */
+            triggerEventNotifier(mb->notifier);
         }
     }
 }
