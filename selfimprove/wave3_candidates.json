@@ -1,0 +1,355 @@
+{
+  "summary": "Self-improvement broad wave (box-free): readers for 2s regions 5-8 (teardown/serialize/SPSC/spin-prefetch tails) + 3s-specific regions (wb slices, operand pool routing) + adversarial verification of the queued pass-1/2 win-class candidates so the serial applier only spends box time on verified mechanisms.",
+  "agentCount": 7,
+  "logs": [],
+  "result": {
+    "teardown": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "src/networking.c:6498 (acquirePendingCommand) + src/networking.c:6615-6641 (freePendingCommand)",
+          "change": "Add a per-IO-thread pendingCommand freelist (mirror of operandPool[iotid], networking.c:3993-4017): freePendingCommand pushes the pcmd WITH its argv array preserved (argv_len<64, like the shared-pool reclaim branch does) onto freelist[iotid]; acquirePendingCommand pops from freelist[iotid] before falling back to zmalloc+initPendingCommand. Keep the existing shared cmd_pool for the single-threaded regime.",
+          "mechanism": "With IO threads active the shared cmd_pool is asserted empty (6500), so every command pays zmalloc(144B)+memset(144B) at parse and zfree(pcmd)+zfree(argv) at teardown. The code's own comment (3987-3992) establishes parse-alloc and deferred-free both run on the SAME IO thread, so a TLS-indexed freelist needs no ring or locks — identical safety argument to the operand pool. Eliminates 2 zmalloc+2 zfree per command plus most of the init memset; analog (tiered operand pool) measured -19% instr/op on write-heavy.",
+          "risk": "Medium: main thread also calls freePendingCommand for IO clients (freeClient -> freeClientDeferredObjects at networking.c:366) — pushing into freelist[main-iotid] is safe but must cap pool size and clear argv_released_mask/read_error on reuse; needs CHURN+ASAN gate per repro recipe; interacts with pool-shrink path (shrinkPendingCommandPool frees with c==NULL).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "src/networking.c:6619 and 6562 (getKeysFreeResult calls); src/db.c:3602",
+          "change": "Make the teardown check inline: static inline wrapper in server.h `if (result->keys && result->keys != result->keysbuf) zfree(result->keys)` (or guard the two networking.c call sites), keeping the out-of-line db.c function for cold callers.",
+          "mechanism": "Every command teardown pays a cross-TU call into db.c that does one load+compare and usually returns; worse, when keys_result was never prepared (argc==0 / read_error / non-preprocessed paths) keys==NULL compares unequal to keysbuf and it calls zfree(NULL) — a wasted call pair per such teardown. Inlining folds to a single predicted-not-taken branch; the heap-keys case (>6 keys) stays out-of-line.",
+          "risk": "Low: pure mechanical; keys_result is always either memset-zeroed (initPendingCommand) or GETKEYS_RESULT_INIT (preprocessCommand server.c:4700), so the NULL/keysbuf invariant holds at both call sites.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 3,
+          "file_line": "src/networking.c:3747-3786 (resetClientInternal flag chain)",
+          "change": "Clear CLIENT_EXECUTING_COMMAND unconditionally (drop the guard at 3747), and collapse the ASKING / TRACKING_CACHING / REPLY_SKIP / REPLY_SKIP_NEXT handling behind one composite test: `if (unlikely(c->flags & (CLIENT_ASKING|CLIENT_TRACKING_CACHING|CLIENT_REPLY_SKIP|CLIENT_REPLY_SKIP_NEXT))) { ...existing logic... }`.",
+          "mechanism": "The per-command reset currently executes five separate test-and-clear branches on c->flags, and the listRelease call at 3757 forces c->flags to be reloaded across them. One composite predicted-not-taken branch replaces four in the common path (none of these flags set for normal GET/SET traffic), and the struct line is already dirty from the argc/cmd/slot stores so the unconditional EXECUTING_COMMAND clear costs nothing.",
+          "risk": "Low: semantics must be preserved exactly inside the cold block (prevcmd==askingCommand / clientCommand exemptions and the SKIP_NEXT->SKIP transfer); no ordering hazards since all are plain flag ops on one client.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 4,
+          "file_line": "src/networking.c:6587-6594 (reclaimPendingCommand IO-branch walk) feeding 6624-6629 (freePendingCommand second walk)",
+          "change": "In the reclaim partial-cleanup walk, compact surviving (unreleased, refcount==1) robj pointers to argv[0..k) and set pcmd->argc=k, pcmd->argv_released_mask=0 before tryDeferFreeClientObject; freePendingCommand's deferred walk then iterates only survivors with no mask test.",
+          "mechanism": "The double walk is architecturally required (refcount>1 decrefs must precede handoff; refcount==1 frees must run on the owning IO thread), but the second walk currently re-visits all argc slots re-testing the released mask and NULLs. Compaction shrinks it to survivors only — for SET/MSET/HSET the DB-aliased values are already released/NULLed, roughly halving second-walk iterations at arity 2+ and deleting the per-slot mask branch from the IO-thread free path.",
+          "risk": "Medium: relies on nothing reading deferred pcmd->argv positional semantics after reclaim (audit multi.c and the 3s-extra audit sites from the argv_released_mask design note); argv_len must stay intact for zfree; ASAN churn run mandatory given prior refcount-race history in exactly this region.",
+          "est": "speculative"
+        },
+        {
+          "rank": 5,
+          "file_line": "src/networking.c:6564-6576 (reclaim pool-branch memset+restore) and 6610-6613 (initPendingCommand memset)",
+          "change": "Stop zeroing the 48B keys_result.keysbuf: reorder pendingCommand so keysbuf sits last (or reset explicit fields), memset only the live prefix; also drop the redundant pcmd->argv_len_sum=0 at 6567 (memset re-zeroes it two lines later) and the argv/argv_len save-restore dance.",
+          "mechanism": "keysbuf contents are never read before preprocessCommand wholesale-reassigns keys_result (server.c:4700) and getKeysPrepareResult only copies keysbuf up to the prior numkeys (0 after reset), so ~90 of the 144 memset bytes per pcmd init are dead stores; initPendingCommand runs per command in the hot IO-threads regime.",
+          "risk": "Medium for low payoff: a 144B memset is only ~5 cycles of wide stores, the pool-branch site is single-threaded-regime-only, and explicit field lists are a footgun for future struct additions (any new field silently uninitialized); struct reorder also shifts cacheline layout of next/prev used by the queue ops.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "serialize": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:1648-1684 (addReplyBulkWithFlag, addReplyBulkCBuffer) with :804-839 (_addReplyToBufferOrList)",
+          "change": "Fuse the bulk reply's three fragment emissions ($<len>\\r\\n header, payload, trailing \\r\\n) into a single fast path: run the flag gauntlet once, compute total = hdrlen+len+2, and if !c->buf_encoded && listLength(c->reply)==0 && total fits (c->buf_usable_size - c->bufpos), write header via ll2string directly into c->buf at bufpos, memcpy payload, append CRLF, then do ONE net_output_bytes_curr_cmd add, ONE reqres call, ONE buf_peak update. Fall back to the existing 3-call path on any miss (encoded buf, CLIENT_PUSHING, list non-empty, doesn't fit).",
+          "mechanism": "Each bulk reply currently runs _addReplyToBufferOrList three times; each pass pays: CLIENT_CLOSE_AFTER_REPLY test, clientTypeIsSlave test, the PUSHING check dereferencing server.current_client[iotid].p and server.executing_client[iotid].p (two global loads), an extern reqres call, listLength(c->reply) check, buf_encoded branch, and buf_peak compare/store. Fusing removes ~2/3 of that per GET reply. Small-value GET/SET is dispatch-bound per prior profiling, so per-reply fixed overhead is exactly what's on the critical path.",
+          "risk": "Must fall back BEFORE copying anything when the fused reply doesn't fully fit (partial-fit spill semantics: generic path splits a fragment across buf and list). Must also bypass for buf_encoded mode and the PUSHING/pending_push_messages case. For len<32 the shared.bulkhdr path is replaced by a direct ll2string (negligibly different). Confined to one function; behavior identical byte-wise on the wire.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.h:3760 + /shared/Projects/THredis-2s-improve/src/logreqres.c:333 (call sites networking.c:821, 886, 1259)",
+          "change": "When LOG_REQ_RES is not compiled, define reqresSaveClientReplyOffset (and siblings) as a static inline no-op / macro in server.h instead of the current extern empty function in logreqres.c.",
+          "mechanism": "Default builds pay a real call+ret per reply fragment (3 per bulk reply, plus one in deferred-len path) into a function that does nothing. Worse than the call itself: the compiler must assume the extern call clobbers *c, forcing reloads of c->flags / c->bufpos / list state around every fragment in _addReplyToBufferOrList and _addBulkStrRefToBufferOrList. Making it visibly empty deletes the call and unblocks CSE across the whole add-reply hot path.",
+          "risk": "Essentially zero: purely build-flag-gated stub replacement; LOG_REQ_RES builds keep the real function. Check no other TU takes its address.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:1822 (AddReplyFromClient)",
+          "change": "Guard the static-buffer splice: `if (src->bufpos) addReplyProto(dst, src->buf, src->bufpos);` instead of calling unconditionally.",
+          "mechanism": "Worker fakes using zero-copy are FORCED to list-node form (:888-897), so src->bufpos==0 for every zerocopy drain; and pure-listJoin drains generally. Today each such drained command still pays a full addReplyProto(dst, buf, 0): _prepareClientToWrite gauntlet + _addReplyToBufferOrList (slave check, PUSHING check with two global derefs, reqres extern call, _addReplyPayloadToBuffer with listLength check + 0-byte memcpy + buf_peak compare). Pure dead work per drained sub/command in the zerocopy and scatter-gather (server.c:2062, :5965) paths.",
+          "risk": "None observable: the skipped _prepareClientToWrite side effect (pending-write queueing) is immediately re-done at line 1826 before the listJoin; a 0-length proto append has no other effects. One-line change.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:619-653 (_prepareClientToWrite)",
+          "change": "Collapse the five sequential rare-flag tests into one combined mask fast path: `if (likely(!(_flags & (CLIENT_SCRIPT|CLIENT_MODULE|CLIENT_CLOSE_ASAP|CLIENT_REPLY_OFF|CLIENT_REPLY_SKIP|CLIENT_MASTER|CLIENT_EX_PENDING)) && c->conn))` then jump straight to the running_tid/pending-queue tail; keep the current sequential logic as the cold slow path (ordering preserved for correctness of the OFF/SKIP-vs-PUSHING and MASTER_FORCE_REPLY interactions).",
+          "mechanism": "This function runs 1-4 times per command reply (every addReply* entry point). The common client has none of these bits set, so 5-6 test+branch pairs collapse to one test+one branch; shrinks I-cache footprint of the hottest prologue in the reply path. Note CLIENT_EX_PENDING can go in the combined mask only for the fall-to-slow-path variant since its fast-path answer is also C_OK — handle by keeping it out of the mask and relying on the running_tid check, or route through slow path.",
+          "risk": "Low but subtle: slow path must reproduce exact precedence (e.g. SCRIPT|MODULE returns OK even with CLOSE_ASAP set; PUSHING overrides REPLY_OFF/SKIP; MASTER_FORCE_REPLY overrides MASTER). Modern predictors already eat the current chain, so gain is small.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.h:1102-1112 (bulkStrRef) + /shared/Projects/THredis-2s-improve/src/networking.c:2831 and :2892",
+          "change": "Add a `size_t len` field to bulkStrRef, filled in _addBulkStrRefToBufferOrList (:859, where len is already in hand), and use it in processEncodedBufferForWrite (:2831 `sdslen(str_ref->obj->ptr)`) and processSentDataInEncodedBuffer (:2892 recomputes the same as part of writen_len).",
+          "mechanism": "The length is computed three times per zero-copy ref (once at build via the caller's sdslen, twice on the IO thread). The consume-pass sdslen at :2892 dereferences the value's sds header AFTER the kernel finished sending it — for the 16-64KB values zerocopy targets, that line is likely evicted, so it's a fresh cross-thread cache miss per reply purely to recompute a number known at build time. Caching it also removes the obj->ptr chase from the header-walk when only accounting is needed.",
+          "risk": "Struct grows ~8B per ref inside the encoded buffer (internal format only, no wire change; slightly fewer refs fit per 16KB block). Relies on the existing invariant that the value is immutable while the ref is pending (already required since the kernel reads it during send). Benefit is miss-bound and regime-dependent — measure on the large-value zerocopy workload.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "spsc": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:9753-9763 (flushExQueues), :9824 (exQueuePush staged advance), /shared/Projects/THredis-2s-improve/src/networking.c:4628 (E1 call site)",
+          "change": "Add a producer-private (thread-local, per-iotid) uint64_t staged-dirty bitmap: exQueuePush sets bit w when it advances staged_tail for worker w; flushExQueues early-returns when the bitmap is 0, else walks only set bits (ctz loop) and clears them. TOMO_EX_THREADS_MAX=64 fits exactly. Keep the existing staged_tail != published guard as a second-level filter (stale bits then harmless).",
+          "mechanism": "flushExQueues is called per readQueryFromClient parse-batch (#E1) AND again at handleWorkerReplies top — the staged-publish double-walk. Each call walks all num_workers queues' tail cache lines even though a single connection's parse batch typically stages 1-2 worker queues, and the handleWorkerReplies call is almost always a full no-op walk (E1 already published; csPushSpin self-publishes). With C ready connections per loop this is C*num_workers loads+branches reduced to C*popcount(staged). The bitmap is thread-private — no new shared state, no atomics.",
+          "risk": "A staging site that forgets to set the bit = unpublished job = worker never sees it = drain deadlock (the exact hazard the S4 comment warns about). exQueuePush at :9824 is the SINGLE staged_tail-advancing site (csPushSpin goes through it too), so set the bit there and the invariant holds by construction. Keep the tail!=staged guard so stale bits only cost one compare. Verify with the churn/hang stress from the queueToWorker-hang playbook.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:9853-9884 (exQueuePopBatch), consumer at :10298 (worker loop) and :10240 (batch[] buffer)",
+          "change": "Pointer-window consume: replace the two-segment memcpy with an API returning a contiguous window {&q->jobs[h], n} (first segment only, up to min(avail, max, size-h)); the worker executes/prefetches in place from the ring and a new exQueueConsume(q, n) issues the single release-store of head AFTER the batch's last slot read. Wrap simply yields a shorter batch; the next call returns the segment from index 0.",
+          "mechanism": "Eliminates the memcpy call (dynamic n defeats full inlining) plus the out[] store-then-reload round trip (~2 cache lines per batch of 16 pointers) on the hottest worker-side path. Safe because the producer never writes slots in [h, h+n) until head advances — processing in place before the head-store is exactly the SPSC slot-reuse protocol; the release store's position after the last jobs[] read is unchanged in kind, only in time.",
+          "risk": "Head advance is deferred across batch execution (~16 ops), so the producer sees the queue fuller for longer — negligible with ring size 1024 vs batch <=16, but csPushSpin's full-spin frequency could tick up under cross-shard bursts; the consumer must NEVER touch the window after exQueueConsume (freeFakeClient'd fakes leave stale slot pointers — producer never reads slots, but any consumer-side re-walk would). Wrap-boundary batches shrink (rare: 16/1024). Only pays in dispatch-bound regimes — measure at 64B 1:9 P16 per the interleave methodology.",
+          "est": "speculative"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:9830-9847 (exQueuePop) + /shared/Projects/THredis-2s-improve/src/server.h:5002 (decl)",
+          "change": "Delete exQueuePop — dead code. grep shows zero callers (only its definition); the sole consume path is exQueuePopBatch at :10298. Companion to the already-deleted dead queueToWorker (v13 audit #9 note at :9888).",
+          "mechanism": "Removes a second, divergence-prone copy of the consume protocol (it duplicates the cached_tail refresh + release-head-store logic; any future protocol change — e.g. the rank-2 pointer-window — would have to be mirrored here or silently rot).",
+          "risk": "None beyond link check; confirm no out-of-tree/test callers (tests/ helpers, DEBUG commands) before removal.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:5717-5728 (csPushSpin)",
+          "change": "Hoist the in-loop release-store of tail out of the full-spin: publish staged_tail once on first push failure (before entering the spin), then spin with only exPauseCpu/sched_yield; keep the post-success publish at :5727. staged_tail cannot change inside the loop (this thread is the sole producer and stages nothing while spinning), so every iteration after the first re-stores the identical value.",
+          "mechanism": "Each redundant same-value store still executes an RFO, invalidating the consumer worker's Shared copy of the tail line — exactly while the worker is re-acquire-loading tail to drain the full queue this spin is waiting on. Coherence self-interference on the backpressure path; one store removes it.",
+          "risk": "Must keep the first publish BEFORE any waiting (the comment's deadlock argument: staged jobs invisible => worker can never drain => spin never exits). Path is rare (cross-shard sub burst overflowing the ring), so the gain is bounded to full-queue episodes; primarily a correct-by-simpler cleanup.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:9783-9795 (freebackDrainAll), caller :10263; freebackPush :9770-9778",
+          "change": "(a) Hoist the loop bound: `t <= server.io_threads` reloads the global each iteration because decrRefCount is a memory clobber — copy to a local (mirror the nq hoist at :10256). (b) Gate the whole drain behind a per-worker relaxed 'freeback armed' flag/counter (own line, set once by the first freebackPush, or gate on the zero-copy value-size knob being enabled): skips nq acquire-loads of remote tail lines per worker-loop iteration when zero-copy replies are never produced. FENCE AUDIT NULL RESULT: every acquire/release in the region is protocol-required — push:9813 head-acquire pairs with popbatch:9881 head-release (consumer jobs[h] reads happen-before producer slot overwrite), popbatch:9865 tail-acquire pairs with flush:9761 tail-release (jobs[] visibility), freeback :9774/:9793 and :9787/:9777 are the same two pairs; on x86-64 all compile to plain MOVs, so no downgrade is both safe and profitable. Do not touch them.",
+          "mechanism": "Idle workers spin-loop at high frequency; each iteration currently pays the nq-ring poll. After first touch the producer tail lines sit Shared so re-loads are L1 hits — the win is the removed loop + reload-after-clobber, and avoiding first-touch misses of 33 padded ring headers, i.e. small.",
+          "risk": "The armed-flag must be sticky (never cleared while a push could be in flight) or a pushed obj is stranded => robj leak / delayed decref; simplest safe form is set-once monotonic. Expect sub-noise on the 15%-drift laptop — needs the interleaved harness or perf-counter (instr/op) confirmation rather than throughput.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "wb3s": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:10838-10856 (wbDrainClient head)",
+          "change": "Add an idle early-out before cdbCombinedMask: after the ts_inflight/ts_close_needed gates, if (c->dispatchid == c->flushid && c->bufpos <= c->sentlen && c->reply_bytes == 0 /* or listLength==0 */) compute `closing` and return (closing ? fully-retired-check : 0) — only then fall into the mask snapshot + splice loop + send gate.",
+          "mechanism": "Strict keeps every live client watched for its whole lifetime (on_wbq cleared only at close), so wbActive == all connections, and every WB spin currently pays the full body per idle client: num_cdb acquire loads for cdbCombinedMask (num_cdb auto = num_workers on multi-CCD per server.c:3446 — the Threadripper target), plus flags/conn/conn->fd/reply-list derefs and the CLIENT_PENDING_WRITE test. The scan is O(connections × num_workers) loads per spin, and the spin never backs off (did=1 per live client at 10961). The early-out reduces an idle client to ~2-3 WB-local/one-shared-line reads. All fields read are WB-owned in strict (WB is sole splicer/sender; bufpos/sentlen/flushid/reply_bytes) or already plain-read today (dispatchid).",
+          "risk": "Must keep the EAGAIN-retry reachable (bufpos>sentlen is in the unsent condition, so kept) and closing clients must still reach the retire/unwatch return — handled by computing closing inside the early-out branch. reply_bytes as list-nonempty proxy is conservative if _writevToClient trims lazily (worst case: early-out just doesn't fire).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4077-4084 (operandRecyclePush; same pattern applies to freebackPush server.c:9899-9907 and wbqPush server.c:10793-10800)",
+          "change": "Classic SPSC cached-index: add a producer-side cached_head field (on the tail's cache line of freebackRing) and only acquire-reload r->head when (t+1)&MASK == cached_head; fall back to decrRefCount only after a fresh reload still shows full. Symmetrically, a consumer-side cached_tail in operandRecycleDrain/wbqPop.",
+          "mechanism": "operandRecyclePush runs once per retired operand on the WB (per SET: ~2-3 operands, via freePendingCommand → operandPoolPutRouted at networking.c:6740) and today acquire-loads the consumer-owned head cache line every push; the owning ifid advances head on every drain, so this is a recurring cross-core miss on the exact path the tiered pool already showed is instr/op-sensitive (−19% instr/op finding). Caching the head removes the miss except ~once per ring wraparound.",
+          "risk": "Low — textbook technique; stale cached head only under-reports free space and the reload-before-fallback keeps behavior identical. Only trap is struct layout: put cached_head on the producer (tail) line, not the consumer (head) line, or you reintroduce the sharing.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:10842 + 10856-10869 (wbDrainClient mask snapshot + prefix walk)",
+          "change": "When num_cdb > 1, replace the up-front cdbCombinedMask OR-of-all-buses with a per-head-slot test inside the walk: atomicGetAcquire(c->reply_cdb[c->fakeClients[slot]->cdb].v) & (1u<<slot). Keep the single-load snapshot when num_cdb == 1.",
+          "mechanism": "On multi-CCD (auto num_cdb = num_workers), the snapshot costs num_workers acquire loads per ACTIVE client per WB spin even though a client's in-flight ops touch only 1-2 buses; the per-slot test costs exactly (retired+1) loads and pairs acquire with the specific worker's release fetch_or on the same _Atomic object, so per-bit visibility is unchanged (comment at 1900-1905 already states visibility holds per bit regardless of carrier CDB). Complements rank 1 (which only removes idle-client cost).",
+          "risk": "Low-medium: per-slot reads are fresher than the one-snapshot-per-pass semantic — strictly more permissive and still bounded by ring depth, but the same restructuring in handleWorkerReplies (2s path, server.c:2052) should NOT be blindly mirrored without re-checking its close/CLOSE_ASAP mask usage at 2006. Neutral (one extra load per client) on single-CCD/single-bus configs.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4100-4112 (operandRecycleDrain) — pattern donor: server.c:9912-9919 (freebackDrainAll)",
+          "change": "Bound the producer scan to the slots that can actually push: strict-mode producers are exclusively WB threads (ifidx = ifid_threads+1+rid), so loop p over [server.ifid_threads+1, server.ifid_threads+wbThreadCount] instead of 0..TOMO_IFID_THREADS_MAX (33 rings). Requires exporting wbThreadCount (mirror into a server field at init, same info freebackDrainAll already uses).",
+          "mechanism": "Every beforeSleepIfid iteration (server.c:2209) probes 33 rings × 2 cacheline-aligned atomics each, but operandPoolPutRouted only routes cross-thread from WBs (2-stage/inline retirement is same-thread → local operandPoolPut), so ~28-29 of the probes are structurally dead. freebackDrainAll encodes exactly this producer-range logic already; the recycle drain simply never got the equivalent bound. Per-loop-pass saving (~58 L1 touches), not per-op.",
+          "risk": "Low, but it hard-codes the producer set: any future non-WB cross-thread put (e.g. if 2s fork ever routes) would silently strand operands in unscanned rings (they'd fall back to ring-full decref, a leak of the optimization not memory). Guard with a debug assert in operandRecyclePush that ifidx is in the drained range.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:5251 (ring-full check) + 5270-5284 (strict first-watch gate)",
+          "change": "Strict dispatch-side: gate the WB watch on !on_wbq alone (drop the dispatchid==flushid condition for the strict branch — on_wbq stays 1 for a live client's whole lifetime so it is the real dedup), and keep an IO-thread-local shadow of flushid for the ring-full check at 5251, acquire-reloading the shared c->flushid only when the ring appears full under the shadow.",
+          "mechanism": "c->flushid is release-written by the WB every retirement batch and read on the IO (dispatch-bound) thread on EVERY dispatched command; the shadow confines the cross-core load to apparent-full events, and dropping the redundant equality removes the second read at 5271. Slot-reuse safety is preserved: a stale shadow only under-counts free slots (conservative — reload before declaring stall), and any slot counted free under the shadow was covered by the acquire load that produced it, which is the same happens-after edge (WB: cdbClrFlush then release-store flushid, 10873-10878) the current code relies on.",
+          "risk": "Medium: this touches the strict watch/first-in-flight invariant (comment at 5267-5269 about stale flushid skipping the watch — the on_wbq-only gate must be acquire and reasoned against the WB's closing-time on_wbq=0 release). Payoff is bounded: the miss already amortizes to ~1 per WB batch (subsequent dispatches hit L1 after 5251), so confirm with perf counters before keeping.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "verify_freelist": {
+      "confirmed": true,
+      "reasoning": "All four sub-claims verified in /shared/Projects/THredis-2s-improve/src. (1) Pool hard-disabled with io threads: networking.c:6500 asserts io_threads_active==0 || cmd_pool.size==0; the ONLY refill site (reclaimPendingCommand, networking.c:6547) is gated on !io_threads_active && !custom_io_threads_active; io_threads_active is set once at startup in initThreadedIO (iothread.c:884, never cleared) and the pool initializes empty (server.c:3431-3434) — so with io threads the pool is permanently empty and acquirePendingCommand (networking.c:6513-6514) always does zmalloc(sizeof(pendingCommand)) + initPendingCommand memset. (2) Per-op cost: sizeof(pendingCommand) counts to ~152B (server.h:3068-3087; getKeysResult inline keysbuf[6] is 64B of it) — claim's ~144B is essentially right; argv array is zmalloc'd fresh per command at parse (networking.c:3906/4067, zrealloc 4180); freePendingCommand (networking.c:6615-6641) does zfree(argv)+zfree(pcmd). Net: 2 zmalloc + 2 zfree + 1 memset per command, on both inline and multibulk paths. (3) Free-thread/race-freedom: the hot worker-dispatch path moves the pcmd onto the fake client (moveExecutionState server.c:9670-9676); the IO-thread flush walk (server.c:2085 commandProcessed → prepareForNextCommand → resetClientInternal networking.c:3728 → freeClientPendingCommands 2171 → reclaimPendingCommand) frees it; fakes have tid=parent->tid (networking.c:170) but deferred_objects==NULL (networking.c:224), so tryDeferFreeClientObject (networking.c:2069-2082) falls through to an IMMEDIATE freePendingCommand on the drain thread — which is the SAME io thread that allocated it at parse. Real io-clients' deferred pcmds drain on the io thread too (iothread.c:753). Workers never free pcmds (argv_released_mask protocol, server.h:3081; reclaim's partial-decref at networking.c:6587-6594 skips released slots). This matches the existing operandPool precedent comment (networking.c:3987-3992: alloc and free 'both on the SAME IO thread'). (4) argv-preserve pattern verified at the shared pool's reset (networking.c:6570-6576: save argv/argv_len, memset struct, restore, slot=INVALID_CLUSTER_SLOT; gated argv_len<64 at 6549) — a per-thread freelist can preserve the argv array identically and thus genuinely kill all 4 allocator calls. IMPORTANT EXCEPTIONS that the claim's 'freed-thread-indexed' design correctly anticipates but must not be relaxed: (a) client teardown frees on MAIN (fetchClientFromIOThread sets tid=MAIN at iothread.c:186-191 then freeClientDeferredObjects → freePendingCommand on main; also freeClientPendingCommands at networking.c:2282); (b) deferred-array overflow (>CLIENT_MAX_DEFERRED_OBJECTS=32, server.h:452) frees immediately on the calling thread. So the freelist push MUST index by the executing thread's own iotid (operandPoolPut pattern with the iotid<=TOMO_IO_THREADS_MAX guard), never by c->tid. On the jemalloc question: the concern is partially valid — the claim overstates the win's mechanism. All 4 calls are same-thread alloc/free in the hot path (pure tcache fast paths, no arena bounce), and zmalloc's used_memory accounting is ALREADY per-thread relaxed (zmalloc.c:92-113, the v10-A single-writer opt), so no shared-atomic or cross-arena contention is removed. Savings ≈ 4 tcache ops + 2 malloc_usable_size + wrapper ≈ 100-150 cycles/op, and the ~152B memset is NOT saved (freelist reuse still needs the reset, as the shared pool's own reset shows). The code's own comment at networking.c:6544-6545 ('pool reuse provides minimal benefit in multi-threaded scenarios') and the tiered-operand-pool precedent (flat on 64B 1:9 dispatch-bound, wins only write-heavy/larger ops) both suggest low-single-digit % on the small-value hot path under jemalloc, more under libc malloc.",
+      "amended_risk": "Mechanically TRUE but perf-impact likely overstated under jemalloc: expect ~1-4% on dispatch-bound 64B GET/SET (same-thread tcache fast paths, per-thread zmalloc stats already contention-free, memset not eliminated); bigger on write-heavy/pipelined regimes and non-LD_PRELOAD builds — bench both before ranking P1. Correctness risks for implementation: (1) MUST index freelist by the freeing thread's own iotid (c->tid is wrong: teardown frees on MAIN after tid flip at iothread.c:186-191, and >32-object deferred overflow frees on the caller); (2) hook at freePendingCommand level (after getKeysFreeResult + argv decref/operandPoolPut + argv_released_mask skip + all_argv_len_sum accounting) — the two existing release paths differ subtly (refcount>1 partial decref at networking.c:6587 vs unconditional at 6626-6628) and both must keep working; (3) replicate the argv-preserve reset exactly (networking.c:6570-6576) incl. argv_len<64 gate and slot=INVALID_CLUSTER_SLOT; (4) cap per-thread lists and fall back to zfree for out-of-range iotid (main's list accumulates io-thread-allocated pcmds during connection churn and may never drain via acquire; guard mirrors operandPoolPut); (5) keep the networking.c:6500 assert valid — freelist must be separate from server.cmd_pool, not a repurposing of it."
+    },
+    "verify_interncmd": {
+      "confirmed": true,
+      "reasoning": "CLAIM CONFIRMED, with material amendments. (1) Second-lookup path verified: parse interns argv[0] at networking.c:4208 via commandNameIntern (server.c:3770, exact-byte FNV hash + memcmp over canonical+UPPERCASE declared names, built by buildCommandIntern from the static table at server.c:3782/3821). preprocessCommand (server.c:4674) then re-identifies at 4683-4686: isCommandReusable (strcasecmp vs last_cmd->fullname; requires subcommands_dict==NULL; last_cmd = prev pcmd's cmd or c->lastcmd) else lookupCommand -> lookupCommandLogic (server.c:3910) -> dictFetchValue(server.commands) using dictSdsCaseHash = case-insensitive siphash + bucket probe + dictSdsKeyCaseCompare. So the claimed redundancy is real: the intern hit already proved byte-identity to a known command name, then it is hashed/compared again. A potential THIRD lookup in processCommand (server.c:4768-4777) is already short-circuited by c->lookedcmd = curcmd->cmd at networking.c:4539, so preprocessCommand is the only redundant identification in the common path — P2 targets the right site. (2) Semantic equivalence verified: for subcommand-less commands lookupCommandLogic returns base_cmd regardless of argc, so carrying the resolved cmd* for subcommand-less interned names returns the exact same redisCommand* the dict would; downstream arity check (server.c:4693), ACL (id-based on c->cmd), CMD_INTERNAL filter (server.c:4789 — applied after lookedcmd regardless of lookup path), and getKeysResult caching (computed from pcmd->cmd at 4700-4713; consumers pair pcmd->cmd with pcmd->keys_result at cluster.c:1254+1267-1272 and networking.c:6711; module filters free+invalidate both at module.c:11568-11580) are all unaffected. Container commands (proc==NULL, e.g. CONFIG) have subcommands_dict!=NULL and are correctly excluded by the claim. (3) Mutation points of server.commands are a closed, enumerable set: populateCommandTable (startup, server.c:3815); rename-command ONLY during loadServerConfig file parse (config.c:543-566; NOT CONFIG SET-able — allowlisted for file-parse only at config.c:1172-1176); RM_CreateCommand dictAdd inside pauseAllIOThreads (module.c:1302-1305); moduleUnregisterCommands inside pauseAllIOThreads (module.c:13083-13099). Non-mutators verified: ACL never touches server.commands; RM_CreateSubcommand cannot add subcommands to builtins (parent must be a module container command, module.c:1421-1428), so no interned command can gain subcommands at runtime; sentinel rename-command is per-master outgoing-link config, not server.commands. Startup ordering verified: buildCommandIntern runs in initServerConfig (main @10790) BEFORE rename-command is applied in loadServerConfig (@10935), but IO threads start only at initListeners/InitServerLast (@11003/11007) — so a post-config-load cmd* (re)build is single-threaded-safe, and runtime rebuilds fit inside the two existing module.c pause windows. P2 adds no new reader threads: every site that would read the parallel array currently reads server.commands under the same pause discipline. (4) Honest cost accounting: on homogeneous pipelines (redis-benchmark) isCommandReusable already skips the dict lookup, so P2 saves only a short strcasecmp (~nothing). The dict lookup (siphash + probe + strcasecmp + dict-entry cache misses) runs per command whenever consecutive commands differ — and per the project's own trace finding (mean run length ~1.008), real workloads alternate almost every command, so on real traces P2 removes one case-insensitive siphash+dict-probe per command. Small but genuine, and it lands on the ifid dispatch-bound path.",
+      "amended_risk": "AMENDED RISK (four additions to the stated 'rebuild on rename/module changes'): (1) SENTINEL-MODE / STALE-POINTER TRAP: the cmd* parallel array MUST be filled in a second pass by resolving each interned name via dictFetchValue(server.commands, name) — never by carrying the static redisCommandTable element pointer from buildCommandIntern. buildCommandIntern inserts ALL static names, but in sentinel mode populateCommandStructure rejects most commands (never added to server.commands, struct only partially initialized), and rename-command deletes/re-keys entries after the intern table is built. Static-pointer filling would execute renamed-away commands (e.g. 'rename-command FLUSHALL \"\"' silently bypassed — a security regression) and resolve unregistered commands in sentinel mode. (2) REBUILD SITES: exactly three — (a) once after loadServerConfig returns (single-threaded, IO threads not yet started); (b) inside the existing pauseAllIOThreads window in RM_CreateCommand (module.c:1302-1305) — needed because a module CAN register a builtin name that was renamed away, rebinding an interned token at runtime; (c) inside moduleUnregisterCommands' pause window (module.c:13083-13099) to revert such a slot to NULL (module redisCommand structs are zfree'd there — a stale slot would be a dangling pointer, not just wrong dispatch). No other triggers exist: CONFIG SET cannot rename, RM_CreateSubcommand cannot touch builtins, ACL never mutates the table. (3) HINT-INVALIDATION BUG CLASS: if the resolved cmd* is stashed in a new pendingCommand field at parse time, moduleCallCommandFilters (module.c:11568-11580) resets pcmd->cmd/flags/keys_result and c->lookedcmd but would NOT clear the new field, and pendingCommand pool recycling (acquirePendingCommand) must also reset it. Safer design: detect by robj identity (argv[0] pointer == intern-slot robj -> use slot's cmd*), which stays correct even if a filter re-installs an interned robj; if a field is used instead, it must be cleared in moduleCallCommandFilters and in pcmd init/recycle. (4) EXPECTATION RISK: measurable gain only on command-alternating traffic (real traces, mean run ~1.008); standard homogeneous benchmarks already hit the isCommandReusable fast path and will show ~0 — do not gate keep/drop on a pipelined single-command sweep (per the sanity-gate and provisional-verdict rules)."
+    },
+    "verify_structpf": {
+      "confirmed": true,
+      "reasoning": "CONFIRMED, with two amendments. All four verification targets check out against measured offsets (gdb on src/redis-server, sizeof(client)=1440, jemalloc 1536-class => 64B-aligned base). (1) Offsets: flags=400/conn=408/read_error=419/resp=420/db=424 all share line [384,447]; argc=480/argv=488 are on line [448,511]. So the existing PFS_STRUCT pair — redis_prefetch_read(fake) at offset 0 and redis_prefetch_read(&fake->argc) at 480 (server.c:10039-10040) — does NOT cover fake->db; the inline comment \"exec-fields line (argv/argc/db)\" is stale/wrong (db and argc are on different 64B lines under ANY >=16B alignment; phase analysis of the 56B gap rules out line-sharing at 16B-aligned bases too). bufpos=1352/buf_usable_size=1360/buf=1368 share line [1344,1407], distinct from both lines PFS_STRUCT touches; one prefetch_write(&fake->bufpos) covers pos+size+buf-pointer. No other prefetch of bufpos/buf exists anywhere in the worker path (grep). (2) moveExecutionState (server.c:9656, called from the IO-thread dispatch path at 5153) writes exactly the claimed fields: flags(9691)/conn(9687)/resp(9684)/db(9688)/read_error(9667) dirty the identity line, bufpos=0(9697) dirties the bufpos line; the express lane rewrites fake->db again at 5179. Both lines are M-state on the IO core every dispatch; the PFS_ARGV guard (10046: `!fake->db`) is a serialized cross-core dirty-line demand load one visit later, and PFS_HASH (10070) chases fake->db->keys off it. (3) Rotation: the scoreboard loop (10028-10113) sets issued=1 on the STRUCT prefetch, breaks the inner while, and round-robins every other non-DONE lookup before revisiting j — full rotation between STRUCT issue and ARGV read (degenerate only at n==1). (4) Gate-open-only: the L3-derived footprint gate early-returns at 9961-9964 before the FSM runs, and prefetches added under `if (j < w1a)` also honor pf-w-struct=0 — zero cost in the gate-closed dispatch-bound regime (corollary: zero benefit there too; the win only materializes on gate-open/DRAM-cold runs, so benchmark in that regime).",
+      "amended_risk": "MEDIUM-LOW overall, but the fix as specified has one real defect and one gap. (a) DEFECT — prefetch_write(fake->buf) placed in PFS_STRUCT must first LOAD the fake->buf pointer (offset 1368, the same IO-core-dirty line 21 being prefetched) in the same visit: a zero-rotation cross-core demand load of exactly the line the stage discipline exists to avoid (cf. the 10045 comment). Amend: in PFS_STRUCT issue only redis_prefetch_read(&fake->db) + redis_prefetch_write(&fake->bufpos); defer the buf-head prefetch_write(fake->buf) to the next visit (PFS_ARGV/KEYOBJ), after line 21 has had a rotation to land. (b) GAP — the claim's dirty-set is incomplete: moveExecutionState also dirties line [576,639] (cmd/lookedcmd/realcmd/user) and line [640,703] (reply/reply_bytes/sentlen/slot), and the FSM itself demand-reads fake->cmd (10083) and fake->slot (10070) from those lines with no prefetch coverage — E1 captures only part of the cross-core stall; consider also prefetching &fake->cmd and &fake->slot in PFS_STRUCT, at the cost of 4-6 outstanding misses per STRUCT visit (LFB pressure; widths remain knob-bounded, but per-stage width verdicts are provisional per prior findings and should be re-swept). (c) Must also fix the stale 10040 comment or the next audit re-derives the wrong layout. (d) Alignment caveat is benign in practice (jemalloc 1536-class is 64B-aligned; under glibc 16B alignment db can split from flags in 1 of 4 phases — prefetch &fake->db specifically, not &fake->flags, so the guarded read is always covered). (e) Benefit is confined to the gate-open (DRAM-cold) regime by construction; expect no movement on cache-resident dispatch-bound sweeps, and validate at n==1/low-pipeline where no rotation exists."
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Read"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "r5:teardown",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "adf0fe7446ecd23dc",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393638,
+      "queuedAt": 1783252393629,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-2s-improve/src/networking.c — TEARDOWN region: freePendingCommand, reclaimPendingCommand (both branches), resetClientInternal's pcmd advance, freeClientDeferredObjects, the deferred-free queue. Prior: pool-branch hoist, mask honor. Hunt: redundant per-field resets vs memset, double-walks of argv, list ops per-command that could batch, getKeysFreeResul…",
+      "lastProgressAt": 1783252740927,
+      "tokens": 48430,
+      "toolCalls": 21,
+      "durationMs": 347288,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"src/networking.c:6498 (acquirePendingCommand) + src/networking.c:6615-6641 (freePendingCommand)\",\"change\":\"Add a per-IO-thread pendingCommand freelist (mirror of operandPool[iotid], networking.c:3993-4017): freePendingCommand pushes the pcmd WITH its argv array preserved (argv_len<64, like the shared-pool reclaim branch does) onto freelist[iotid]; acquirePendi…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "r6:serialize",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "aee5c80da26303253",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393638,
+      "queuedAt": 1783252393629,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-2s-improve/src/networking.c — REPLY SERIALIZE region: writeToClient, _writeToClient, _writevToClient, addReply/addReplyBulk fast paths for fakes (dst buffer selection, _prepareClientToWrite), the reply-list spill logic. Hunt: per-call flag checks hoistable, iovec assembly waste, avoidable memcpy of small replies, sdscatlen overhead in the bulk header …",
+      "lastProgressAt": 1783252609523,
+      "tokens": 56165,
+      "toolCalls": 13,
+      "durationMs": 215885,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/networking.c:1648-1684 (addReplyBulkWithFlag, addReplyBulkCBuffer) with :804-839 (_addReplyToBufferOrList)\",\"change\":\"Fuse the bulk reply's three fragment emissions ($<len>\\\\r\\\\n header, payload, trailing \\\\r\\\\n) into a single fast path: run the flag gauntlet once, compute total = hdrlen+len+2, and if !c->buf_encoded && …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "r7:spsc",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a786b892ca57129b7",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393639,
+      "queuedAt": 1783252393629,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-2s-improve/src/server.c + server.h — SPSC region: exQueuePush, exQueuePopBatch, flushExQueues (staged publish), freeback rings (freebackPush/DrainAll), the queue struct layout (cache-line placement of head/tail/staged_tail). Prior: batched-release publish, invariant hoist, eager batch-push E1. Hunt: false sharing残留, redundant fences (acquire where rel…",
+      "lastProgressAt": 1783252671789,
+      "tokens": 43100,
+      "toolCalls": 12,
+      "durationMs": 278150,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/server.c:9753-9763 (flushExQueues), :9824 (exQueuePush staged advance), /shared/Projects/THredis-2s-improve/src/networking.c:4628 (E1 call site)\",\"change\":\"Add a producer-private (thread-local, per-iotid) uint64_t staged-dirty bitmap: exQueuePush sets bit w when it advances staged_tail for worker w; flushExQueues early-r…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "r9:3s-wb",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "afbecd613255ce558",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393639,
+      "queuedAt": 1783252393629,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-3s-improve/src/server.c — 3s-SPECIFIC hot regions: wbStrictSlice/wbUringSlice (the WB retirement scan, wbq owner table, _writevToClient call shape), operandPoolPutRouted/operandRecycleDrain (the wb->ifid recycle ring), ifidSlice differences vs 2s ioSlice. Hunt: per-retirement work hoistable per-scan, owner-table lookup redundancy, recycle-ring batch s…",
+      "lastProgressAt": 1783252782181,
+      "tokens": 69874,
+      "toolCalls": 18,
+      "durationMs": 388542,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-3s-improve/src/server.c:10838-10856 (wbDrainClient head)\",\"change\":\"Add an idle early-out before cdbCombinedMask: after the ts_inflight/ts_close_needed gates, if (c->dispatchid == c->flushid && c->bufpos <= c->sentlen && c->reply_bytes == 0 /* or listLength==0 */) compute `closing` and return (closing ? fully-retired-check : 0) — only …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "v:freelist",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a936d6ae0024db284",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393649,
+      "queuedAt": 1783252393645,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "All four sub-claims verified in /shared/Projects/THredis-2s…",
+      "promptPreview": "ADVERSARIAL VERIFY (read-only, /shared/Projects/THredis-2s-improve/src). Candidate P1: per-io-thread pendingCommand freelist. Claim: with io threads active the shared cmd_pool is hard-disabled, so EVERY command pays zmalloc(pcmd)+zmalloc(argv)+memset(~144B)+2x zfree; a per-iotid freelist (freed-thread-indexed) removes 4 allocator calls/op and is race-free because deferred frees run on the owning i…",
+      "lastProgressAt": 1783252771505,
+      "tokens": 59918,
+      "toolCalls": 28,
+      "durationMs": 377856,
+      "resultPreview": "{\"confirmed\":true,\"reasoning\":\"All four sub-claims verified in /shared/Projects/THredis-2s-improve/src. (1) Pool hard-disabled with io threads: networking.c:6500 asserts io_threads_active==0 || cmd_pool.size==0; the ONLY refill site (reclaimPendingCommand, networking.c:6547) is gated on !io_threads_active && !custom_io_threads_active; io_threads_active is set once at startup in initThreadedIO (iot…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "v:interncmd",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "ac1ad0241f16ebed4",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393649,
+      "queuedAt": 1783252393645,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "CLAIM CONFIRMED, with material amendments. (1) Second-looku…",
+      "promptPreview": "ADVERSARIAL VERIFY (read-only, /shared/Projects/THredis-2s-improve/src). Candidate P2: intern table carries resolved redisCommand*. Claim: after commandNameIntern identifies the token, preprocessCommand re-identifies via isCommandReusable strcasecmp or dictFetchValue(siphash); carrying cmd* in the intern table (parallel array, subcommand-less cmds only) skips it; must rebuild on rename-command/mod…",
+      "lastProgressAt": 1783252760009,
+      "tokens": 53597,
+      "toolCalls": 27,
+      "durationMs": 366360,
+      "resultPreview": "{\"confirmed\":true,\"reasoning\":\"CLAIM CONFIRMED, with material amendments. (1) Second-lookup path verified: parse interns argv[0] at networking.c:4208 via commandNameIntern (server.c:3770, exact-byte FNV hash + memcmp over canonical+UPPERCASE declared names, built by buildCommandIntern from the static table at server.c:3782/3821). preprocessCommand (server.c:4674) then re-identifies at 4683-4686: i…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "v:structpf",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a301da408335d456c",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783252393650,
+      "queuedAt": 1783252393645,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "CONFIRMED, with two amendments. All four verification targe…",
+      "promptPreview": "ADVERSARIAL VERIFY (read-only, /shared/Projects/THredis-2s-improve/src). Candidate E1 (pass-2): STRUCT-stage prefetch gap — claim: moveExecutionState dirties fake identity line + bufpos line on the IO core each dispatch; PFS_ARGV reads fake->db one visit later = serialized cross-core load; adding redis_prefetch_read(&fake->db) + prefetch_write(&fake->bufpos)+prefetch_write(fake->buf) to PFS_STRUCT…",
+      "lastProgressAt": 1783252693845,
+      "tokens": 44372,
+      "toolCalls": 14,
+      "durationMs": 300195,
+      "resultPreview": "{\"confirmed\":true,\"reasoning\":\"CONFIRMED, with two amendments. All four verification targets check out against measured offsets (gdb on src/redis-server, sizeof(client)=1440, jemalloc 1536-class => 64B-aligned base). (1) Offsets: flags=400/conn=408/read_error=419/resp=420/db=424 all share line [384,447]; argc=480/argv=488 are on line [448,511]. So the existing PFS_STRUCT pair — redis_prefetch_read…"
+    }
+  ],
+  "totalTokens": 375456,
+  "totalToolCalls": 133
+}

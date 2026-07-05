@@ -1,0 +1,160 @@
+{
+  "summary": "Self-improvement pass 1 READERS (box-free, no benching): close-read 2s-static hot regions 1 (parse/multibulk) and 2 (dispatch/routing), return ranked overhead-shave/simplify candidates with mechanisms. Output stashed for the serial applier.",
+  "agentCount": 2,
+  "logs": [],
+  "result": {
+    "parse": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:6498 (acquirePendingCommand), :6546-6607 (reclaimPendingCommand), :6615 (freePendingCommand), :4064-4068 (argv alloc)",
+          "change": "Per-IO-thread pendingCommand freelist (indexed by iotid, like operandPool at :3995) that preserves the argv array across reuse — mirroring the existing shared-pool reset at :6570-6576. Acquire pops from the thread-local list; freePendingCommand pushes back (guarded by argv_len < 64 like :6549) instead of zfree(argv)+zfree(pcmd).",
+          "mechanism": "The shared cmd_pool is HARD-DISABLED when IO threads are active (assert :6500, gate :6547), so the real hot path pays 2 zmallocs (pcmd struct at :6513 + argv array at :4067 since fresh pcmd has argv_len 0) + full memset(sizeof(pendingCommand), ~144B incl. 6-entry keysbuf) + 2 zfrees (:6631, :6640) PER COMMAND — 4 allocator calls of non-pipelined work that pure removal eliminates. Thread-safety is free: deferred-object frees already run on the owning IO thread (iothread.c:753 freeClientDeferredObjects), and a freelist indexed by the freeing thread's iotid never races regardless of alloc origin. jemalloc being the fork's #1 measured throughput lever says allocator traffic on this path measures.",
+          "risk": "Moderate: reset-on-reuse must replicate the memset-preserve-argv dance (:6570-6576) exactly — stale keys_result (getKeysFreeResult first), argv_released_mask, flags, slot=INVALid. Client-teardown path (freeClientPendingCommands -1 at :2282) can free on main thread — safe since main indexes its own iotid slot, but needs the same iotid<=MAX bound check as operandPoolPut. Gate as a knob per house style.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:3770 (commandNameIntern) + :4681-4686 (preprocessCommand lookup) + :129 (isCommandReusable) + :3911 (lookupCommandLogic dictFetchValue)",
+          "change": "Carry the resolved struct redisCommand* in the intern table (parallel array cmdInternCmdTab[s], stamped in buildCommandIntern; only for commands with subcommands_dict==NULL). processMultibulkBuffer stashes it in a pcmd field on intern hit; preprocessCommand uses it directly, skipping both isCommandReusable's strcasecmp and lookupCommand's dict lookup.",
+          "mechanism": "commandNameIntern already hashes+memcmps the command token per command — then preprocessCommand REDOES the identification: strcasecmp (libc call, :132) on the reuse fast path, or on reuse-miss (any alternating workload, e.g. the 1:9 GET/SET bench: every SET after GETs misses prev->cmd) a full dictFetchValue with dictSdsCaseHash = siphash over the name + probe + case-insensitive compare. The intern probe subsumes that work; the second lookup is 100% redundant for interned tokens. Removes a call (or a hash+probe chain) per command, not just ALU.",
+          "risk": "Moderate: rename-command / module command registration mutate server.commands while cmdInternCmdTab is built from the static table — must invalidate/rebuild the cmd-pointer array on any commands-dict mutation, and never cache commands with subcommands_dict (two-token lookup at :3922). ACL/getkeys unaffected (same cmd pointer preprocessCommand would have produced).",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:4109 (sdslen in per-arg memchr), :4210 (server.opt_operand_pool per-arg), :4130/:4139/:4186 (c->flags & CLIENT_MASTER per-arg)",
+          "change": "Use the already-maintained querybuf_len local (cached at :4023, updated at :4155/:4163/:4203) in the memchr bound at :4109 instead of re-calling sdslen(c->querybuf); hoist server.opt_operand_pool and (c->flags & CLIENT_MASTER) into locals at function entry of processMultibulkBuffer.",
+          "mechanism": "All three are per-command invariants reloaded once per ARGUMENT because intervening calls (memchr, string2ll, operandPoolGet, sdsrange) clobber the compiler's ability to CSE loads of globals and heap fields. :4109 is a plain oversight — the function already maintains querybuf_len for exactly this (sdslen = flags-byte load + type branch + len load, per arg). opt_operand_pool is a global load + branch per arg; CLIENT_MASTER is a c->flags load per arg at up to 3 sites. Pure removed loads/branches in the innermost loop.",
+          "risk": "Low: mechanical. Only trap is keeping querybuf_len updates in sync at the three querybuf-mutation points (already done) and never hoisting across the big-arg querybuf swap at :4198-4203.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:3993-3996 (OPERAND_POOL_CAP 256, fixed array) + :4005 (miss path createRawStringObject)",
+          "change": "Make the operand pool demand-grow (or raise cap; the 3s fork's tiered pool already validated the pattern) so deep-pipeline in-flight operand counts don't permanently exhaust it; alternatively on pool-miss with len<=44 fall back to createStringObject (embstr, 1 alloc) since operandPoolPut already safely rejects non-RAW.",
+          "mechanism": "In-flight operands = conns × pipeline × (argc-1); at P16 with dozens of connections this exceeds 256 per IO thread, so gets outpace puts and EVERY arg takes the miss path — createRawStringObject = 2 zmallocs (robj + sds) per arg, strictly WORSE than the non-pooled baseline's embstr 1 alloc for small args. Removes one allocator call per arg in the exhausted regime; demand-grow removes both (pool hit = zero allocs).",
+          "risk": "Low-moderate: embstr-on-miss starves pool refill (embstr never pooled) — prefer demand-grow with the existing decay pattern to avoid RSS hoarding (3s fork measured 79→40MB with decay). Verify exhaustion actually occurs at bench pipeline depths before crediting (sanity-gate rule).",
+          "est": "speculative"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:4045/:4102 (multibulklen_slen), :4127/:4168 (bulklen_slen per arg), :4226, :4536 (net_input_bytes_curr_cmd), :4247 (clusterSlotStatsAddNetworkBytesInForUserClient)",
+          "change": "Hoist a `const int track_input_bytes = server.cluster_enabled` (or the slot-stats-enabled condition) and gate the entire input_bytes accounting chain: the slen computations, the per-arg `pcmd->input_bytes += bulklen_slen+3`, the per-command 3rd/4th-component add at :4226, and the accumulate at :4536.",
+          "mechanism": "input_bytes exists solely to feed per-slot cluster network stats; in the standard THredis single-node config (cluster off) it is dead work: one add+store per argument plus pointer-diff slen computations, carried through three sites per command. Pure removed work, but it is plain pipelined ALU on a dispatch-bound path.",
+          "risk": "Low: must gate ALL accumulation sites and the consumer consistently (partial gating leaves garbage in net_input_bytes_curr_cmd); check nothing else reads input_bytes (INFO/metrics).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 6,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:4517-4520 (pcmd->reploff computation per parsed command)",
+          "change": "Hoist the reploff base: compute `base = (running_tid==MAIN ? c->read_reploff : c->io_read_reploff) - sdslen(c->querybuf)` once before the lookahead parse loop and use `pcmd->reploff = base + c->qb_pos`, re-deriving base only when querybuf is swapped/trimmed (big-arg path); or skip entirely for non-CLIENT_MASTER clients if reploff is only consumed on the replication path.",
+          "mechanism": "Per parsed command this does a running_tid branch + a full sdslen (flags-byte load + branch + len load) + two loads, though read_reploff/io_read_reploff and sdslen(querybuf) are loop-invariant across the whole lookahead batch (querybuf length does not change during parsing — only qb_pos moves — except the big-arg swap at :4198). Removes a redundant sds-header reload + branch per command in a pipelined batch.",
+          "risk": "Low-moderate: MUST invalidate the cached base on the big-arg querybuf replacement (:4191-4203) and on the master-client trim; reploff correctness feeds replication offsets — an off-by-N here corrupts repl offsets silently. The masters-only skip needs proof that c->reploff_next is unused for normal clients.",
+          "est": "neutral-simpler"
+        }
+      ]
+    },
+    "dispatch": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:5194 (call), 5256-5345 (canDispatchToWorker), 3806-3813 (stamp site)",
+          "change": "Extend the v14 routing byte: stamp a TOMO_R_WORKER bit in populateCommandTable for every statically-whitelisted proc, plus a TOMO_R_WORKER_COND bit for the three argv-dependent ones (DEL/PFCOUNT argc==2, SORT/SORT_RO no BY/GET/STORE). canDispatchToWorker becomes `(tomo_route & TOMO_R_WORKER) || ((tomo_route & TOMO_R_WORKER_COND) && dynGate(fake))`.",
+          "mechanism": "Every non-GET/SET dispatchable op (INCR, HSET, LPUSH, ZADD, SADD, BITCOUNT...) still walks a ~60-term sequential proc-pointer compare chain per op — the exact pattern the express lane killed for GET/SET (comment at 5170-5175 says the classifier chains cost ~25-40 cycles of always-false tests). HSET sits ~25 compares deep; list/set/zset cmds deeper. One flag test on the already-loaded cmd struct replaces the whole chain; the branchy dynamic gates survive only for the 4 procs that need them. This is the direct 'what remains' of the routing-byte work.",
+          "risk": "Whitelist source-of-truth moves to populateCommandTable — a wrongly-stamped bit dispatches an unsafe command to a worker (silent data race). Mitigate with a startup assert that the flag set matches the old proc list; a missing bit only degrades to inline execution (safe direction).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:1905-1912 (cdbCombinedMask), call sites 1977 and 2007",
+          "change": "Prune cdbCombinedMask from O(num_cdb) to O(live cdbs): maintain a per-real 'cdbs with in-flight fakes' set, appended at dispatch (fake->cdb is captured right there, 5178/5200) and pruned at retire — same shape as the existing cdbClrAcc (1920-1934). Alternatively, drop the whole-mask snapshot and test only the head slot's bit in reply_cdb[fakeClients[flushid&mask]->cdb] per drain step.",
+          "mechanism": "With #75 multi-cdb enabled, num_cdb auto-resolves to num_workers and each cdbMask is a full cache line (server.h:1487-1491). handleWorkerReplies calls cdbCombinedMask TWICE per pending client per pass (close path 1977 + live path 2007), acquire-loading num_workers separate contended lines even when the client's <=16 in-flight fakes span 1-2 cdbs — and those lines are being RMW'd by workers, so each miss is a cross-CCD transfer. Live-set pruning bounds the loads to cdbs actually carrying replies; the mask==0 fast-skip (2010) gets cheaper in exactly the num_cdb-large config that #75 exists for.",
+          "risk": "The combined mask is also the drain's memory-ordering pairing point (acquire vs worker release fetch_or). Loading only live cdbs preserves per-bit pairing (comment 1899-1904 says visibility holds per bit), but the live-set add/remove must be exactly balanced across the CLOSE_ASAP path or bits get orphaned. Neutral (one extra branch) when num_cdb==1.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:4821-5094 (guard chain), express gate at 5176",
+          "change": "Steady-state express gate: a single server-level cached predicate byte (recomputed only when any contributing config/state flips: maxmemory==0, no AOF/RDB-err, not loading, no cluster, no masterhost, no pause, no busy script/module, no tracking, default-user-allperms) plus one masked test of c->flags (MULTI|PUBSUB|SLAVE|MASTER|CLOSE flags). When both pass and cmd is TOMO_R_EXPRESS, jump from just after command lookup straight to the routing block, skipping getCommandFlags + the seven is_* derivations + authRequired + ACLCheckAllPerm + evictClients + writeCommandsDeniedByDiskError + isPausedActions x2 + isInsideYieldingLongCommand + the scriptIsTimedout/serverAssert preamble (4734-4741).",
+          "mechanism": "For a GET in the benchmark regime, ~25 always-false conditional branches and 6-8 cross-TU calls (ACLCheckAllPerm alone chases user->selectors list nodes; evictClients, writeCommandsDeniedByDiskError, mustObeyClient, authRequired are real calls) touch server-struct globals scattered across many cache lines — all per op, all evaluating stable predicates that change at config/replication/persistence-event granularity, on a path the memory notes say is dispatch-bound for small values. Collapsing them to two register tests removes the largest remaining per-op fixed cost in processCommand.",
+          "risk": "Highest: every skipped guard must be provably folded into the cached byte's recompute triggers (AOF error status flips on bio thread; pause actions; loading; busy-script). A missed trigger silently bypasses a safety check. Scope conservatively (gate OFF unless the whole conjunction holds; recompute in serverCron + at each config/repl/persistence transition) and keep it a knob per the knob philosophy.",
+          "est": "speculative"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:4953-4956",
+          "change": "Reorder: `if ((is_write_command || c->cmd->proc == pingCommand) && (deny_write_type = writeCommandsDeniedByDiskError()) != DISK_ERROR_TYPE_NONE)`. Compute the disk-error verdict only for writes/PING instead of unconditionally per op.",
+          "mechanism": "writeCommandsDeniedByDiskError (7019-7039) is a cross-TU call reading 3-5 cold globals (saveparams, lastbgsave_status, aof_state, atomic fsync status) on EVERY command including pure reads; its result is consumed only inside the write/ping branch. Short-circuiting on the already-computed is_write_command removes the call and its scattered loads from the GET hot line with byte-identical behavior. Same trivially applies to hoisting `is_exec` for the 7 repeated `c->cmd->proc == execCommand` compares at 4823-4836 if the compiler isn't already CSE'ing them.",
+          "risk": "None — pure evaluation-order change; the value has no other reader.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:5176-5182 (express lane), 5485-5503 (randomkey pre-check), 1891-1896 (cdbIndexFor)",
+          "change": "In the express lane, replace getWorkerForCommand(fake) with a direct exIndexForKey(fake->argv[1]->ptr, sdslen(...)) — EXPRESS is by construction GET/SET, never RANDOMKEY — and replace cdbIndexFor's two branches (+ possible idiv) with a precomputed uint8 server.cdb_of_worker[ex_id] table filled once at init.",
+          "mechanism": "getWorkerForCommand is a non-static function whose body contains two loops (the randomkey size-weighted scan), which deters inlining; even inlined, the express lane pays the `c->cmd && proc == randomkeyCommand` cold-path pre-check on every hot op. The 5170-5175 comment sells the lane as '<=2 compares' but it currently carries a call/branch tax that isn't strictly necessary. cdbIndexFor's compare pair becomes one L1 load. Small (~a few cycles/op) but it is exactly 'something in the express lane that isn't strictly necessary'.",
+          "risk": "Low — invariant (EXPRESS => single key at argv[1]) already documented at 5504-5507. NOTE while editing here: exQueuePush's return is ignored at 5182 and 5207 (contrast the spin at 5720); a full 2048-slot queue silently drops the staged fake and wedges that client's drain — reachable with >127 ring-full pipelined clients on one iotid hitting one worker. Worth a spin-or-stall fallback in the same patch.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 6,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:9753-9763 (flushExQueues), networking.c:4628 (eager per-parse-batch call), server.c:1953 (per-loop call)",
+          "change": "Per-iotid dirty-queue bitmask: exQueuePush sets bit w on first stage into worker w's queue since last flush; flushExQueues iterates only set bits (ctz loop) and clears, instead of scanning all num_workers queues comparing staged_tail vs a relaxed tail load.",
+          "mechanism": "flushExQueues runs at the top of EVERY handleWorkerReplies (twice per main-thread loop: 2137 beforeSleepIO / 2241 beforeSleep) AND once per parse batch (#E1 eager, networking.c:4628). Each run touches num_workers exQueue structs spread across the exThreads array — nw loads+branches, mostly of lines the consumers' acquire-loads keep in Shared state — even when zero or one queue was staged (typical: one client, one command, one worker). A single-word bitmask makes cost proportional to queues actually staged; the win scales with worker count, i.e. the 24-core Threadripper target, and the idle-loop case becomes one zero-test.",
+          "risk": "Low — the bitmask is producer-private per iotid (same single-producer invariant as staged_tail); only trap is clearing the bit before the release-store rather than after (must clear after publish, or a push between would be missed... actually clear-then-publish within the same thread is fine; the real invariant is set-on-stage before any return to the event loop). Verify the v8d migration fence path doesn't stage outside exQueuePush.",
+          "est": "neutral-simpler"
+        }
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Read"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "read:parse",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a74919ec8eba74517",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783250460513,
+      "queuedAt": 1783250460505,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read (no edits, no servers, no benches). Target: /shared/Projects/THredis-2s-improve/src/networking.c — the PARSE hot path: processMultibulkBuffer + processInputBuffer + the pendingCommand acquire/parse loop (find via 'commandNameIntern' and 'multibulklen'). This code has been optimized before (interning, pool hoist, invariant hoists) — hunt for what REMAINS: redundant per-arg work…",
+      "lastProgressAt": 1783250782261,
+      "tokens": 60094,
+      "toolCalls": 22,
+      "durationMs": 321748,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/networking.c:6498 (acquirePendingCommand), :6546-6607 (reclaimPendingCommand), :6615 (freePendingCommand), :4064-4068 (argv alloc)\",\"change\":\"Per-IO-thread pendingCommand freelist (indexed by iotid, like operandPool at :3995) that preserves the argv array across reuse — mirroring the existing shared-pool reset at :6570-6…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "read:dispatch",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a35e4216585089059",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783250460514,
+      "queuedAt": 1783250460505,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read (no edits, no servers, no benches). Target: /shared/Projects/THredis-2s-improve/src/server.c — the DISPATCH hot path: processCommand's tomokv routing (find 'tomo_route', 'TOMO_R_EXPRESS', 'canDispatchToWorker', 'getWorkerForCommand', 'exQueuePush' call site region) + beforeSleepIO's flushExQueues/handleWorkerReplies call structure. Prior work: routing byte, express lane, invar…",
+      "lastProgressAt": 1783250835726,
+      "tokens": 73194,
+      "toolCalls": 27,
+      "durationMs": 375212,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/server.c:5194 (call), 5256-5345 (canDispatchToWorker), 3806-3813 (stamp site)\",\"change\":\"Extend the v14 routing byte: stamp a TOMO_R_WORKER bit in populateCommandTable for every statically-whitelisted proc, plus a TOMO_R_WORKER_COND bit for the three argv-dependent ones (DEL/PFCOUNT argc==2, SORT/SORT_RO no BY/GET/STORE)…"
+    }
+  ],
+  "totalTokens": 133288,
+  "totalToolCalls": 49
+}

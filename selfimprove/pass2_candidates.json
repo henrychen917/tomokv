@@ -1,0 +1,160 @@
+{
+  "summary": "Self-improvement pass 2 READERS (box-free): close-read 2s-static hot regions 3 (exec slice/exExecFake) and 4 (drain/reply cdb), ranked overhead-shave candidates.",
+  "agentCount": 2,
+  "logs": [],
+  "result": {
+    "exec": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10036-10042 (PFS_STRUCT), consumers at 10046 and 10070; dispatch writer moveExecutionState at 9656-9699",
+          "change": "Close the STRUCT-stage coverage gap: add redis_prefetch_read(&fake->db) (identity line: db/flags/resp/conn, server.h:1575-1582) and write-intent redis_prefetch_write(&fake->bufpos) + redis_prefetch_write(fake->buf) to the PFS_STRUCT visit (gated by the existing w1a width).",
+          "mechanism": "moveExecutionState dirties the identity line and the bufpos line on the IO core every dispatch, and the IO drain's send-memcpy leaves fake->buf Shared. The PFS_ARGV guard reads fake->db one visit later — a serialized cross-core load per op with no overlap — and the proc's first addReply pays a cross-core RFO on bufpos and buf head. Prefetching them in STRUCT gives each a full scoreboard rotation to land, exactly the S3-class non-pipelined cross-core traffic that has measured before. Only affects the gate-open (big-DB) regime since the gate-closed path returns before the scoreboard runs.",
+          "risk": "Adds up to 3 prefetch issues per op in the gate-open regime — more LFB pressure where value-chase width already competes; must ride the existing w1a width gate and be re-measured with the DB-size sweep. No correctness risk (prefetch never faults).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10187-10200 (exExecFake argv release loop)",
+          "change": "Reshape the release loop: hoist robj **av = wpcmd->argv and int ac = wpcmd->argc to locals, accumulate the released mask in a register uint64_t, and do ONE store of wpcmd->argv_released_mask after the loop (keep the >64-arg argv[a]=NULL fallback store). Optionally start at a=1 since argv[0] is never releasable (fresh token refcount==1, interned token OBJ_SHARED_REFCOUNT — both skipped today).",
+          "mechanism": "decrRefCount is an external call, so the compiler must reload wpcmd->argv/argc and reload-OR-store argv_released_mask through the pointer on every iteration — argc load/store pairs per op on the pendingCommand line the IO thread will later pull. Register accumulation removes all but one store; skipping a=0 removes one robj refcount deref per op. Removed work, mechanically safe, scales with argc (MSET/write-heavy).",
+          "risk": "Very low: bit semantics identical (mask built then stored once, before the batch-end release fetch_or that publishes it); verify no path reads argv_released_mask between exec and the CDB signal (the IO drain only reads it after the release-OR).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10384-10388 (vsize EWMA feed)",
+          "change": "Move the EWMA sample from per-READONLY-op to once per batch (first READONLY op, one sticky flag per batch), matching the code comment's stated design ('from op_0's reply').",
+          "mechanism": "Per-op work that is per-batch invariant in effect: the EWMA drives the pf gate/width controller which is itself recomputed only every 64 batches (line 9949), so per-op sampling adds zero information. Removes a cmd->flags test, two loads (bufpos/reply_bytes), the shift-EWMA ALU, and a store to worker->w_ewma_vsize for every read op in read-heavy regimes.",
+          "risk": "Fewer samples per unit time (per batch not per op) — still hundreds/ms, far faster than the 64-batch consumer; slight bias toward batch-head ops is irrelevant to a slow EWMA. ALU-class saving, unlikely to measure alone.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10342-10376 (drain_ack / is_flush / csparent sentinel tests)",
+          "change": "Collapse the three sentinel tests into one predicted-cold combined test: if (__builtin_expect(fake->drain_ack != NULL || fake->is_flush || fake->csparent != NULL, 0)) { handleSentinel(fake, worker, i); j++; continue; } with the three handler bodies moved to a noinline cold function (needs queue index i for fence_acked).",
+          "mechanism": "Current order is rarest-first (drain_ack fires once per cutover, is_flush once per FLUSH, csparent only with cross-shard on — default off), and the three handler bodies sit inline in the hottest loop. The common case pays 3 loads + 3 branches; the fields do share the worker-warmed prefetch_* line (server.h:1551-1564, warmed by the hash_valid=0 init store), so the win is 1 branch instead of 3 plus smaller hot-loop I-cache/BTB footprint, not a cold-load fix.",
+          "risk": "None functional (same tests, same order inside the cold helper). Branch-predictor already eats the three never-taken branches, so this is layout/ALU — honest expectation is simpler code, not measurable throughput.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10330-10337 (nextop look-ahead) and 10183 (migration_active load in exExecFake)",
+          "change": "Hoist per-op batch-invariants: resolve int la_step = server.pf_w_nextop == -1 ? n : server.pf_w_nextop once per batch (per-op just tests la_step && j+la_step < n); optionally also hoist the relaxed migration_active load to a per-batch local passed into/checked around exExecFake.",
+          "mechanism": "proc() is an opaque call that clobbers all globals, so the compiler reloads server.pf_w_nextop (+ branch + -1 resolution) and the migration_active byte on every op; both are invariant across the <=16-op batch. Removes 2-3 global loads and branches per op. For migration_active the hoist is safe because A's effect-log scan (migServiceScanA) runs on this same thread only at the NEXT loop pass, so a write whose capture is missed inside the current batch is still picked up by the not-yet-started scan.",
+          "risk": "pf_w_nextop hoist: none (knob is read-only at runtime w.r.t. a batch). migration_active hoist: protocol reasoning must be re-validated against the v8d cutover fence (capture misses bounded to one batch, covered by scan order) — if in doubt, ship only the pf_w_nextop half. L1-hot loads, so throughput-neutral alone.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 6,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:10164-10177 (current_client/executing_client stores in exExecFake), thread setup at 10220",
+          "change": "Cache client **cc = &server.current_client[iotid].p, **ec = &server.executing_client[iotid].p in locals once after iotid is set in exThreadMain (addresses are thread-lifetime constants) and pass/expose them to exExecFake; defer the two NULL clears from per-op to once after the batch loop (each op's set overwrites the previous op's value).",
+          "mechanism": "Today each op pays 2 TLS reads of iotid + address arithmetic + 4 stores (2 set + 2 clear). Hoisting the addresses removes the TLS/indexing per op; deferring the clears halves the stores (2/op -> 2/batch). Nothing on the worker thread between ops reads the slots: sentinel handlers don't, csSubExec does its own save/restore (server.c:5589/5695), and procs only run inside exExecFake after the set.",
+          "risk": "Any assert/crash-log or future code between ops would observe a stale (but still-alive — fakes aren't freed until IO drain) client instead of NULL, and debug paths like line 4909's NULL check change meaning inside a batch window. Stores are to the thread's own slot line (L1-exclusive), so this is ALU-class; needs an audit that no between-op path consults the slots.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "drain": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "networking.c:1807-1848 (AddReplyFromClient) called from server.c:2062; per-fake obuf check networking.c:1847; double prepare networking.c:955-957 + 1826",
+          "change": "Add a drain-specialized splice (or flag-parameterized AddReplyFromClient) that hoists the per-fake _prepareClientToWrite calls and the per-fake closeClientOnOutputBufferLimitReached(real,1) out of the ring-walk loop: do the prepare-style flag validation once per client per pass (dst=real is fixed), splice N ready fakes with only the raw buffer/list work per fake, then run the obuf-limit check ONCE after the walk (before writeToClient).",
+          "mechanism": "Per spliced fake today: _prepareClientToWrite runs TWICE (once inside addReplyProto at networking.c:956, once explicitly at :1826) = ~10 predictable-but-real flag branches each; then closeClientOnOutputBufferLimitReached -> checkClientOutputBufferLimits -> getClientOutputBufferMemoryUsage + getClientType + authRequired whenever reply_bytes>0 — and for worker fakes with zero-copy BULK_STR_REF replies the reply ALWAYS goes to the list (networking.c:888-897 forces list form), so the expensive branch is the common one on GET-heavy zero-copy traffic. At pipeline depth 16 that is 32 prepare calls + up to 16 limit evaluations per drain pass, collapsible to 1+1. Keep the cheap per-fake CLIENT_CLOSE_ASAP test (the loop already breaks on it at server.c:2066).",
+          "risk": "Obuf-limit enforcement coarsens from per-spliced-reply to per-drain-pass; worst-case overshoot is bounded by ring depth x per-fake reply size before CLOSE_ASAP fires — same class of bound as a single fat multibulk today. Must keep the src CLOSE_ASAP propagation (networking.c:1813) and the CLIENT_CLOSE_AFTER_REPLY early-out per fake. Audit the csReassemble path (server.c:5965/5978) which calls AddReplyFromClient per sub — it should use the same specialized splice.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "networking.c:4257 (commandProcessed) + networking.c:3723 (resetClientInternal); drain call sites server.c:1990, 2071, 2085",
+          "change": "Replace commandProcessed(fake) in the drain with a slim fakeRetire(fake): keep the CLIENT_BLOCKED early-return, freeClientPendingCommands(fake,1), deferred_reply_errors release, and the field resets (argc/argv/cmd/slot/net_*_curr_cmd/CLIENT_EXECUTING_COMMAND); drop reqresAppendResponse, clusterSlotStatsAddNetworkBytesInForUserClient, the CLIENT_MASTER reploff/propagation block, and the ASKING / TRACKING_CACHING / REPLY_SKIP / REPLY_SKIP_NEXT flag dances.",
+          "mechanism": "commandProcessed -> prepareForNextCommand -> resetClientInternal executes ~15 flag branches + 2-3 call frames per retired reply that are provably dead for fakes: a fake is never CLIENT_MASTER; its flags are wholesale re-assigned at the next moveExecutionState (server.c:9691: flags = real->flags & subset), so clearing ASKING/CACHING/REPLY_SKIP on the fake is dead work; reqres is compiled-out or reqresShouldLog-gated; slot stats are cluster-gated. In the dispatch-bound small-value regime (where per-op instruction count is the proven lever, cf. the -19% instr/op pool result) this shaves a fixed per-op tax on every drained reply.",
+          "risk": "Must keep the CLIENT_BLOCKED guard — inline-executed fakes CAN block (BLPOP runs via call(fake,..) on the inline path server.c:5215) and unblockClient later re-enters the reset. Divergence risk if upstream resetClientInternal grows new mandatory cleanup that fakes also need (deferred_reply_errors was exactly such a case — it is already moved to real by AddReplyFromClient but the NULL-check must stay).",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "server.c:9753-9763 (flushExQueues) + server.c:9797-9828 (exQueuePush); called every pass at server.c:1953",
+          "change": "Add a producer-private (per-IO-thread, plain TLS) dirty bitmask: exQueuePush sets bit w when it stages into worker w's queue; flushExQueues iterates only set bits (ctz loop) and clears the mask, instead of scanning all num_workers queue structs.",
+          "mechanism": "flushExQueues runs at the top of EVERY handleWorkerReplies — i.e. every beforeSleepIO iteration, including the replyWorking>0 poll loop where the IO thread spins at 100us granularity with nothing newly staged. Each scan touches ex[w].queues[iotid] for every worker: num_workers distinct cache lines whose tail word is consumer-shared, loaded even when staged_tail==published for all of them. A one-word dirty test replaces the whole scan on idle/poll passes; on busy passes it skips the workers this thread didn't dispatch to (locality-hashed traffic rarely hits all workers per batch).",
+          "risk": "Very low: the bitmask is written and read only by the owning IO thread (staged_tail is already producer-private); correctness argument unchanged — a set bit exactly when staged_tail may differ from published tail. Only trap: any OTHER call site that stages (csPushSpin / migration sentinels via csPushSpin at server.c:6034) must also set the bit or flush immediately — audit those paths.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "server.c:2034-2089 (main ring-walk) and server.c:1979-1994 (CLOSE_ASAP walk)",
+          "change": "Hoist loop-invariant loads out of the per-slot walk into locals: const unsigned rmask = server.pipeline_ring_mask; const unsigned did = real->dispatchid; client **fks = real->fakeClients; iterate slot = flushid&rmask against did.",
+          "mechanism": "Each iteration re-loads server.pipeline_ring_mask (global), real->dispatchid, and real->fakeClients through pointers the compiler cannot prove non-aliased across the opaque calls to AddReplyFromClient/commandProcessed/csReassemble — 3 dependent loads per retired reply that are invariant for the whole pass (nothing in the loop body writes dispatchid; only the post-loop processInputBuffer STALLED-resume can). Pure redundant-read elimination in the hottest drain loop.",
+          "risk": "Near-zero; only invariant to verify is that no callee mutates real->dispatchid (csReassemble frees subs, commandProcessed touches the fake only). The STALLED-resume at server.c:2122 already runs after the loop so it is unaffected.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "networking.c:1821-1822 (addReplyProto(dst, src->buf, src->bufpos) inside AddReplyFromClient); bufs allocated at networking.c:325/414",
+          "change": "Buffer donation for the first splice of a pass: when real->bufpos==0 && listLength(real->reply)==0 && !real->buf_encoded && !fake->buf_encoded, pointer-swap real->buf <-> fake->buf (plus bufpos/buf_usable_size/buf_peak) instead of memcpy'ing up to 16KB; subsequent fakes in the same pass fall back to the copy path.",
+          "mechanism": "c->buf is a separate zmalloc_usable heap allocation on both real and fake, so the swap is legal and O(1); it removes a bufpos-sized memcpy (up to PROTO_REPLY_CHUNK_BYTES=16K) plus the possible second copy into a reply-list block when real's buf can't hold it. Win regime: 1-16KB plain-buffer replies (below/without the zero-copy BULK_STR_REF gate) at low pipeline depth, where one reply per drain pass is the norm.",
+          "risk": "Real: (a) uring SEND_ZC defers real's bufpos reset until the F_NOTIF CQE — swapping while a ZC send is pending would hand a kernel-pinned buffer to the fake; the emptiness precondition (bufpos==0) excludes it, but that coupling must be documented; (b) buf_usable_size must travel with the pointer or _addReplyPayloadToBuffer overruns; (c) buf_peak/resize cron accounting crosses clients. Overlaps heavily with the existing zerocopy path (already covers >=4KB when enabled), so measured headroom may be thin.",
+          "est": "speculative"
+        },
+        {
+          "rank": 6,
+          "file_line": "server.c:1905-1912 (cdbCombinedMask); dispatch capture server.c:5178/5200; clear server.c:1930-1934",
+          "change": "Bound the combined-mask scan to CDBs actually in use by this client's in-flight fakes: at dispatch, OR (1<<(cdb&63)) into a per-real 4x-u64 cdb_inuse bitmap (IO-thread-private writes); cdbCombinedMask iterates only set bits; clear the bitmap when flushid==dispatchid.",
+          "mechanism": "With the gated multi-cdb config (thredis-num-cdb up to 256, #75 heap reply buses), every pending client pays num_cdb element-wise acquire loads per drain pass — up to 256 loads across up to 32 distinct heap lines, per client, per beforeSleepIO iteration — while a client's in-flight window (<= pipeline depth 32) can touch at most 32 distinct CDBs and typically 1-4. Scanning only the in-use set makes the mask cost proportional to actual fan-out instead of the configured bus count.",
+          "risk": "Only pays off when num_cdb>1 (default 1 already fast-paths to a single load at server.c:1894 — this must not slow that path: gate the bitmap maintenance on num_cdb>1). Correctness: the bitmap is only read/written by the owning IO thread, but a bit must not be cleared while any slot's completion could still be signaled into that CDB — clearing only at ring-empty (flushid==dispatchid) is safe since the CLOSE_ASAP path also fully drains before delisting.",
+          "est": "speculative"
+        }
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Read"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "read:exec",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a121302efa97b0437",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783250877157,
+      "queuedAt": 1783250877148,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read (no edits/servers/benches). Target /shared/Projects/THredis-2s-improve/src/server.c — the EXEC slice: exThreadMain's while(1) body (find 'freebackDrainAll', 'exQueuePopBatch', 'exPrefetchBatch', 'exExecFake', the drain_ack/is_flush/csparent sentinel handling, the vsize EWMA, the coalesced sig_parents flush, the adaptive spin tail). Prior work: batch prefetch scoreboard, hash-c…",
+      "lastProgressAt": 1783251298842,
+      "tokens": 63411,
+      "toolCalls": 13,
+      "durationMs": 421685,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/server.c:10036-10042 (PFS_STRUCT), consumers at 10046 and 10070; dispatch writer moveExecutionState at 9656-9699\",\"change\":\"Close the STRUCT-stage coverage gap: add redis_prefetch_read(&fake->db) (identity line: db/flags/resp/conn, server.h:1575-1582) and write-intent redis_prefetch_write(&fake->bufpos) + redis_prefetch_…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "read:drain",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a505d8d0f4eeb70d5",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783250877157,
+      "queuedAt": 1783250877148,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read (no edits/servers/benches). Target /shared/Projects/THredis-2s-improve/src/server.c + networking.c — the DRAIN/REPLY path: handleWorkerReplies (find 'reply_cdb', 'cdbCombinedMask', the per-client pending scan, freeback push), writeToClient/_writevToClient entry from beforeSleepIO, and the reply-buffer handling for fakes (addReply on fake -> parent forwarding). Prior work: cdb …",
+      "lastProgressAt": 1783251265087,
+      "tokens": 92266,
+      "toolCalls": 30,
+      "durationMs": 387930,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"networking.c:1807-1848 (AddReplyFromClient) called from server.c:2062; per-fake obuf check networking.c:1847; double prepare networking.c:955-957 + 1826\",\"change\":\"Add a drain-specialized splice (or flag-parameterized AddReplyFromClient) that hoists the per-fake _prepareClientToWrite calls and the per-fake closeClientOnOutputBufferLimitReached(real,1) out of t…"
+    }
+  ],
+  "totalTokens": 155677,
+  "totalToolCalls": 43
+}

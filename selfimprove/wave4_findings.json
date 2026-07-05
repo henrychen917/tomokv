@@ -1,0 +1,208 @@
+{
+  "summary": "Box-free wave 4: (a) control-plane simplification review of the auto fork (balancer/migration/mode-shift — correctness/clarity, not bench-gated), (b) 3s-static portability map for all queued 2s candidates (verify anchors exist in 3s, list adaptations).",
+  "agentCount": 2,
+  "logs": [],
+  "result": {
+    "auto_ctl": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11789-11798 (tmMigServiceOut step 4) + 11331-11338 (polyThreadMain IO->PARKED guard)",
+          "change": "Close the IO-exit inbox-wedge window: keep mb->io_exiting=1 until the park checkpoint actually adopts PARKED (clear it next to accept_left at server.c:11336, not at 11791), add `atomic_load(&mb->inbox_n)==0` to the IO->PARKED guard, and have the refused/parked path drain any stranded inbox clients back out (re-handoff via tmGatherLiveDests) before parking.",
+          "mechanism": "Step 4 clears io_exiting and requests PARK while ctx->mode is still TOMO_MODE_IO. In that window (and in the TOCTOU between another source's dest-validity check at 11774-11775 and its tmMigHandoff inbox push), tmGatherLiveDests/the per-client fallback see io_exiting==0 && mode==IO and select the parking thread as a migration DEST. The park guard checks only accept_left and listLength(server.clients[id]) — inbox conns live in mb->inbox, not clients[id] — so the thread parks with a live client in its mailbox. A parked thread runs clock_nanosleep only (no beforeSleepIO, no tmMigDrainInbox): the connection is wedged indefinitely, rescued only if the thread ever re-enters IO. Variant: if the conn arrives one pass earlier it gets ADOPTED after io_exiting was cleared, and the exit wedges forever in IO with exiting flag off (clients!=0 blocks park, step-2 re-marking no longer runs).",
+          "risk": "Fix touches cross-thread visibility of io_exiting (make it an atomic/relaxed int while at it — today it is a plain int read by tmGatherLiveDests and tomoMigrateTest cross-thread). Draining the inbox at park needs the same re-validation loop as step 3; window is narrow so hard to repro, easy to test by forcing test-5 on two threads concurrently.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11657-11667 (tmMigLeaveAcceptGroup) + 11266-11277 (IO-entry listen path)",
+          "change": "After an IO-exit, the listener is closed (t->fd=-1) and never re-bound, so a later PARKED->IO re-entry calls listen(-1) and is refused forever. Either re-bind a dormant socket (anetTcpServerBindOnly + anetNonBlock, exactly like tmSpawnSpare) inside tmMigLeaveAcceptGroup, or teach the IO-entry branch to handle fd<0 by binding before listen().",
+          "mechanism": "tomoMigrateTest(5) picks the HIGHEST live io_slot — that is the spare whenever the spare is in IO. So the supported sequence PARKED->IO (test 1), IO-exit (test 5), PARKED->IO again fails at listen(ctx->io->fd==-1); the checkpoint logs 'refused shift' once and the spare is permanently IO-incapable while tomoSpareShift already returned 1 to the caller (target stored, adoption never lands — and per the 3.1c pending-gate, ALL further shift requests except ->IO now reject with 'transition pending', so the spare is bricked for EX too until restart).",
+          "risk": "Re-bind can transiently fail (EADDRINUSE is impossible with SO_REUSEPORT siblings, but bind can still fail); on failure must roll target_mode back to PARKED rather than leave the 3.1c pending-state wedge. The pending-wedge secondary effect is the nastier half — verify with test 1/5/1 cycling.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11264+11467 (EX->IO rejects), 6533-6540 (coordinator spare tail), 11454-11461 (spare-action pending map), 11340-11367 (EX-exit drain)",
+          "change": "v1.5 EX->IO composition TODO surface — what must chain EX-exit into IO-entry instead of park: (1) tomoSpareShift(TOMO_MODE_IO, cur==EX): replace the reject at 11467 with the deactivation arm from the PARKED case (live-- , reshardArm(lo,hi,W,W-1), reshardBeginCutover) under a NEW tm_mig_spare_action=3 'deactivate-then-IO'. (2) reshardCoordinator tail at 6537: spare_act==3 stores the chained destination — either bounce through PARKED (store PARKED, then a main-thread poll retargets IO once mode==PARKED is observed) or, cleaner, store IO directly and legalize EX->IO at the checkpoint by factoring the EX-exit epilogue (50ms-quiet drain + resid==0 assert, lines 11351-11364) into a shared tmExExitDrain() that the TOMO_MODE_IO case runs when cur==EX before the iotid swap + listen. (3) Extend the 3.1c pending map at 11455 so action 3 -> dest TOMO_MODE_IO (idempotent-OK / reject wording). (4) Requires the rank-2 listener re-bind fix as a prerequisite (fd may be -1). (5) Balancer: the stand-down at 12087 keys on smode/stgt==IO and already covers the chained result, but the one-way-policy comment and the p99 watch (which gates only on migration_active — the listen() join is instant, so OK) should be re-annotated. (6) No new identity work: the spare's io_slot producer/freeback/clients/fence_acked slots are pre-provisioned, and iotid swap ordering at the checkpoint already guarantees identity-before-first-slice.",
+          "mechanism": "Today both the actuator and the checkpoint hard-reject EX->IO ('park first'), and the coordinator tail only knows actions 1 (publish live) and 2 (request PARKED); there is no chained-destination plumbing, so the composition is a two-knob manual dance with a pending-gate window between them.",
+          "risk": "Option (2b) (direct EX->IO at checkpoint) runs the shard-empty assert on the poly thread while main believes the transition is a single hop — the 3.1c gate handles callers, but the drain's serverAssert(resid==0) crash-on-violation now fires inside an IO-entry, so log wording must distinguish. The PARKED-bounce option is simpler but doubles shift latency and adds a second pending window.",
+          "est": "speculative"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11509 (tomoSpareShift PARKED->EX step 2)",
+          "change": "Move `server.exThreads[W].tm_qdepth_ewma_q4 = 0` to BEFORE the target_mode=EX release-store (line 11490), while the spare is still parked and provably not slicing — or delete it outright and rely on the idle-episode 1/8-fold decay.",
+          "mechanism": "The reset runs AFTER the 2s adoption wait confirms mode==EX, i.e. the spare is already running exSlice and owner-writes this exact field every pass (RMW fold at 10653-10655, decay at 10694). Main's plain store races an owner RMW — a C11 data race on a field the file's own discipline declares owner-written; the comment 'same thread as the autotuner — no race' is true for mig_load_ewma/mig_last_ops (main-owned) but false for this line. Practically benign (lost store = one extra decay tick on an empty-queue worker), but it is the one place the control plane violates its own single-writer rule, and it is one of the step-3.1 residue nits.",
+          "risk": "None if moved before the target store (parked thread cannot touch it; the release on target_mode orders it). Deleting instead leaves up to ~1 tick of stale-backlog vote after activation — the 12-tick sustain absorbs it.",
+          "est": "win"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:10656+10695 (exSlice counters), 11944 (balancer header signal e), server.h:1959-1960",
+          "change": "Delete tm_work_slices/tm_idle_episodes (written on the worker hot path under thread_balance, read by NOTHING in the tree) and fix the balancer header: signal (e) claims 'exThread.tm_work_slices / tm_idle_slices deltas -> busy%' — tm_idle_slices does not even exist, and the implemented signal is the time-weighted tm_busy_us/wall ratio (the pass/episode ratios were explicitly calibrated OUT per the step-4 memory).",
+          "mechanism": "v1-scaffolding residue from the calibrated-out episode-ratio signal: dead owner-written state that future readers will (per the header) believe feeds the quorum, plus two per-pass increments on the exSlice hot path for nothing. This is documentation-load-bearing code — the header is the balancer's spec and it currently lies about one of six signals.",
+          "risk": "None; grep-verified no readers. Keep the padded-line layout of exThread intact when removing fields (they sit near tm_busy_us).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 6,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11261-11290 (checkpoint legality) vs 11464-11523 (tomoSpareShift legality) [+ config layer per comment at 11246]",
+          "change": "Collapse the transition-legality state machine, currently encoded three times with subtly different vocabularies, into one tmShiftLegal(cur, want, ctx, const char **why) predicate consulted by both the actuator (with the human-readable *err) and the checkpoint (log-once refusal). The checkpoint keeps its binding-existence checks (ctx->io/ctx->ex) as a separate, mechanical gate.",
+          "mechanism": "EX->IO, IO->EX, and bare-IO->PARKED rules each live in tomoSpareShift (caller-facing errors), polyThreadMain (silent-ish refusal + generic log), and the config layer. v1.5/v2 changes the legal set (EX->IO chain, full-mix any-thread shifts) — three copies guarantee they fork; the v1.6 IO->PARKED addition already shows the drift pattern (legal at the checkpoint only when accept_left && clients==0, expressed at the actuator as a differently-worded reject). One predicate makes v2's table a one-place edit and makes the checkpoint's 'no binding / not legal in v1' catch-all log precise.",
+          "risk": "Pure refactor of 1Hz-4Hz code; the only trap is that the checkpoint's IO->PARKED case has a side-effecting guard (reads mb state owned by the same thread) that must stay AT the checkpoint, not in the shared predicate.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 7,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11422-11424 (tomoModeshiftSpare alias) + 11320-11322 (unreachable TOMO_MODE_WB checkpoint case)",
+          "change": "Retire the tomoModeshiftSpare one-line alias (rename callers to tomoSpareShift; the factoring comment already explains the history) and either delete the checkpoint's `case TOMO_MODE_WB: ok = 0` or re-comment it as intentionally-unreachable armor: target_mode can never hold WB — tomoSpareShift canonicalizes 3->PARKED at 11430 before any store, and births store only IO/EX/PARKED.",
+          "mechanism": "Step-3.1 residue: the alias survives only as the pre-step-4 knob entry name, and the WB case reads like a real refused mode (it even feeds the 'refused shift' warning path with a mode value no caller can produce), misleading the v2 reader about where WB-mode support would plug in on this 2s fork.",
+          "risk": "None for the alias (mechanical rename). If the pool/3s fork shares this file shape, keep the WB case there — verify the deletion is 2s-fork-only before applying (the canonical-forks memory says shared fixes go to both, but WB is real on the 3s fork).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 8,
+          "file_line": "/shared/Projects/THredis-2s-auto-improve/src/server.c:11893-11896+11919-11921 (tomoMigrateTest guards), 11770 (rr_cursor), 12025-12028 (balancer ingress loop)",
+          "change": "Three v2-full-mix landmines to annotate now (or cheaply fix): (a) tomoMigrateTest's in-progress guard reads listLength(mb->migrating_out) and mb->io_exiting from the main thread while the source io thread mutates them — non-torn but a stale read lets a second REBALANCE overwrite mb->batch_dest while the first batch is mid-flight, silently redirecting its remaining conns (handoff-time re-validation keeps it safe, not correct-as-specified); make the guard fields atomic-relaxed and say the redirect is accepted behavior. (b) mb->rr_cursor is a signed int incremented per handoff — `rr_cursor++ % nd` hits signed-overflow UB after 2^31 handoffs; make it unsigned. (c) The balancer's donor-signal ingress loop (t=1..io_threads-1) permanently excludes the spare's tm_io_sig slot while rob/wb loops include t==io_threads — inert in v1 (balancer stands down when the spare is IO) but the loops silently disagree the moment v2 lets IO-capable threads float; a one-line comment on each loop stating the v1 assumption prevents the miscount from shipping unnoticed.",
+          "mechanism": "All three are spare-only/v1-only assumptions baked into loops and guards without a marker; none misbehaves under the v1 legal transition set, which is exactly why they will survive into v2 unless flagged.",
+          "risk": "(a)/(b) are two-line changes with no behavior delta today; (c) is comment-only. Ranked last because every consequence is either theoretical (2^31 handoffs) or masked by v1 policy.",
+          "est": "speculative"
+        }
+      ]
+    },
+    "port3s": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:6608 (acquirePendingCommand), :6656 (reclaimPendingCommand), :6725 (freePendingCommand); /shared/Projects/THredis-3s-improve/src/server.c:10867 (commandProcessed on WB in wbDrainClient)",
+          "change": "P1 pendingCommand freelist — ADAPT (major). All anchors exist verbatim (same assert at 6610, same reclaim branches, same argv-preserve reset at 6690-6698, gate now !io_threads_active && !custom_ifid_threads_active). But the 2s safety argument ('alloc and free both on the SAME IO thread') is BROKEN in strict 3s: wbDrainClient retires every fake via commandProcessed ON THE WB thread (server.c:10867, comment 'RETIRE on the WB (own freeback ifidx)'), so freePendingCommand runs on WB while acquirePendingCommand runs on the ifid parse thread. A freed-thread-indexed freelist strands every pcmd in WB-ifidx slots that never allocate. Required adaptation: a WB->ifid pcmd recycle ring mirroring the operand pattern that already exists two functions away — operandRecyclePush (networking.c:4077) / operandPoolPutRouted (:4088) / operandRecycleDrain (:4100, drained at server.c:2209 in beforeSleepIfid) — routed by the same oif = c->parent->owner_ifid already computed at networking.c:6734. Push must happen AFTER the existing argv operandPoolPutRouted loop (operands route independently); argv-array preservation on the recycled pcmd still works (only zfree(pcmd->argv) at 6744 is skipped). Non-strict/main-thread path (handleWorkerReplies legacy path for ifidx 0, server.c:1983+) frees on the ifid thread and can use a plain local freelist push. Extra 3s ring-header cost is the known 33-slot scan issue (wave3 wb3s rank-4) — bound the drain range like freebackDrainAll does for WB slots (server.c:9915-9918).",
+          "mechanism": "Same 4-allocator-calls/op shave (2 zmalloc + 2 zfree per command, verified pool-disabled with ifid threads active), but the free-side now crosses a core (WB), so recycling additionally removes the jemalloc cross-thread free-to-remote-tcache path — potentially a slightly BIGGER win than 2s where both were same-thread tcache ops. The recycle-ring plumbing (ring slot + release store per pcmd, one drain probe per ifid loop) eats some of it back.",
+          "risk": "Higher than 2s: two producer classes (WB via ring, main/ifid via local push) must both cap and fall back to zfree; ring-full fallback must zfree (not leak); teardown path (freeClient on main after tid flip) still frees on main — bound-check ifidx like operandPoolPut. ASAN+CHURN gate mandatory (this file's refcount-race history). The 2s verify amendments (index by freeing thread, hook at freePendingCommand level, replicate argv-preserve reset, keep cmd_pool separate) all still apply.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:3882 (commandNameIntern), :3894 (buildCommandIntern), :130 + :4794 (isCommandReusable), :4785-4797 (preprocessCommand lookupCommand); /shared/Projects/THredis-3s-improve/src/networking.c:4324 (intern at parse)",
+          "change": "P2 intern-cmd-ptr — PORTABLE (shared base, near-verbatim). Every anchor exists at shifted line numbers with identical code: parse interns argv[0] at networking.c:4324, preprocessCommand re-identifies via isCommandReusable strcasecmp else lookupCommand dictFetchValue at server.c:4794-4797, buildCommandIntern called from initServerConfig (server.c:3932). Parse and preprocess both run on ifid threads in both forks, so the parallel cmd* array + pcmd stash design ports unchanged. Rebuild sites (post-loadServerConfig, RM_CreateCommand / moduleUnregisterCommands pause windows) are shared-base module.c/config.c code — same three sites.",
+          "mechanism": "Identical to 2s: removes the redundant strcasecmp (reuse hit) or case-insensitive siphash + dict probe (reuse miss — every command on alternating real traces, mean run ~1.008) per command on the ifid dispatch-bound path.",
+          "risk": "Same amended risks as the 2s verify: fill the array by dictFetchValue resolution (never static-table pointers — rename-command/sentinel trap), clear the stash in moduleCallCommandFilters + pcmd init/recycle (interacts with P1's freelist reset if both land), expect ~0 on homogeneous benchmarks. No 3s-specific additions.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:10161-10168 (PFS_STRUCT case, stale 'exec-fields line (argv/argc/db)' comment intact), :10172 (PFS_ARGV fake->db guard), :9787 (moveExecutionState), :10855-10867 (wbSpliceFake reads fake->buf on WB core)",
+          "change": "E1 struct-pf — ADAPT (offsets must be re-derived). The scoreboard FSM, stage set, width knobs (pf_w_struct at 10142), and the exact coverage gap (PFS_STRUCT prefetches fake + &fake->argc but not &fake->db, which PFS_ARGV demand-reads one visit later) all exist identically. TWO 3s deltas: (a) the 2s verify's gdb-measured client offsets (db=424 line, bufpos=1352 line, sizeof=1440) are INVALID here — 3s client adds ts_inflight/ts_close_needed/ts_gen/on_wbq/owner_ifid/wbq fields, so line assignments shift; re-run the gdb offset derivation on the 3s binary before picking prefetch targets (prefetch &fake->db specifically, per the 2s amendment). (b) the fake->buf/bufpos sharing partner differs: in 2s the ifid drain's memcpy leaves fake->buf Shared with the ifid core; in strict 3s wbSpliceFake reads it on the WB core. moveExecutionState (server.c:9787, runs on ifid at dispatch, writes bufpos=0) still dirties the bufpos line on the ifid core, so the prefetch_write(&fake->bufpos) claim holds; the buf-head line's cold source is now the WB core — mechanism (cross-core RFO at worker's first addReply) intact, magnitude may differ. Apply the 2s amendment: defer prefetch_write(fake->buf) to the visit after STRUCT (loading the pointer in STRUCT is a zero-rotation demand load of the very line being avoided). Also fix the stale comment in BOTH forks.",
+          "mechanism": "Same as 2s: covers the serialized cross-core load of fake->db in the ARGV guard and the RFO on the bufpos line at first addReply, giving each a full scoreboard rotation. Gate-open (DRAM-cold) regime only — zero cost and zero benefit when the L3 footprint gate closes.",
+          "risk": "No correctness risk (prefetches). Real risk is wasted effort: verdict is regime-gated and per-stage width verdicts are provisional per the standing rule — bench on the DB-size sweep, not the dispatch-bound config. Offset re-derivation is mandatory; blind-porting the 2s line map could prefetch the wrong lines and add pure LFB pressure.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:1649 (addReplyBulkWithFlag), :805 (_addReplyToBufferOrList), :887-897 (zerocopy forced-list); /shared/Projects/THredis-3s-improve/src/server.c:10891-10925 (wbDrainClient send gates), networking.c:2956 (_writevToClient, non-static for WB)",
+          "change": "fused-bulk-reply — PORTABLE with one 3s validation gate. The serialize anchors are identical shared base: three _addReplyToBufferOrList passes per bulk reply from addReplyBulkWithFlag/addReplyBulkCBuffer, same flag gauntlet, same reqres extern calls. The fusion happens where the WORKER writes the fake's buf — same thread/ownership in both forks. 3s-specific check (the prompt's concern): the WB is the sole sender and wbDrainClient CLASSIFIES by buffer form — buf-only fast path (write/io_uring_prep_send of c->buf) when listLength(c->reply)==0 && !c->buf_encoded, else _writevToClient (server.c:10895-10925, the c6d293db6 large-reply wedge fix). The fused path MUST fall back to the generic 3-call path BEFORE copying anything on partial fit (same as the 2s risk note) so spill-to-list decisions are byte-identical — otherwise a reply the WB believes is buf-only could straddle. Also note _addReplyToBufferOrList runs on the WB thread too (csReassemble at server.c:6097/6110 → AddReplyFromClient → addReplyProto), and on ifid for inline-executed commands — the fused fast path has no thread assumptions, so this is fine; just keep the CLIENT_PUSHING check's current_client[ifidx] indexing untouched (ifidx TLS is valid on all three thread classes).",
+          "mechanism": "Same as 2s: ~2/3 of the per-fragment fixed cost (flag gauntlet, PUSHING double global deref, reqres call, listLength/buf_encoded branches, buf_peak update) removed per bulk reply on the dispatch-bound small-value path. The companion reqresSaveClientReplyOffset inline-stub (serialize rank-2) is also directly portable and multiplies this by unblocking CSE.",
+          "risk": "Same as 2s (fall back before copy; bypass for buf_encoded/PUSHING) plus the 3s gate above: verify wire-byte identity AND that the buf/list split points are unchanged, since wbDrainClient's send-path selection depends on them. A regression here reproduces the 16KB wedge class of bug.",
+          "est": "win"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:9884-9892 (flushExQueues walks all num_workers queues[ifidx]), :9932 (exQueuePush, sole staged_tail-advance site), :5852 (csPushSpin goes through exQueuePush); /shared/Projects/THredis-3s-improve/src/networking.c:4738 (eager E1 call site); server.c:1976 (handleWorkerReplies-top call)",
+          "change": "SPSC dirty bitmap — PORTABLE with minor ADAPT (producer ranges). Identical structure: flushExQueues scans all num_workers queues comparing staged_tail vs published tail, called per parse batch (networking.c:4738, hardwired E1) and at handleWorkerReplies top (server.c:1976) — and in strict mode that second call still executes on EVERY ifid thread every loop pass BEFORE the ifidx>=1 early-return (server.c:1977-1982), so the idle full-scan waste is at least as large as 2s. Producer set verified: only ifid threads push (exQueuePush at dispatch 5308/5333; csPushSpin 5852 wraps exQueuePush; WB threads never stage — their cross-thread returns use the separate freeback/recycle rings). Adaptations: (a) the bitmap is TLS or indexed by ifidx over 0..TOMO_IFID_THREADS_MAX only — do NOT size it over the WB ifidx range (ifid_threads+1..+wbThreadCount), those slots never stage; (b) set the bit at the single staged-advance site in exQueuePush (:9955-9958 region), same by-construction invariant as 2s; (c) confirm TOMO_EX_THREADS_MAX <= 64 in 3s server.h for the u64.",
+          "mechanism": "Same as 2s: C×num_workers loads+branches per loop reduced to popcount(staged); the strict ifid loop's per-pass no-op walk becomes one zero-test. Win scales with worker count (Threadripper target).",
+          "risk": "Same deadlock hazard class (missed bit = unpublished job = drain wedge) — mitigated by the single-advance-site invariant and keeping the staged!=published guard as second-level filter. Stress with the queueToWorker-hang playbook; in 3s also exercise the strict path where the WB waits on cdb bits fed by these queues.",
+          "est": "win"
+        },
+        {
+          "rank": 6,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:10311-10323 (exExecFake argv release loop)",
+          "change": "E2 release-reshape — PORTABLE verbatim. The loop is byte-for-byte the 2s shape: per-iteration decrRefCount (external call, clobbers), per-iteration RMW `wpcmd->argv_released_mask |= (1ULL << a)`, reloads of wpcmd->argv/argc through the pointer, >64 fallback NULLing argv[a]. Apply the same reshape: hoist av/ac to locals, accumulate mask in a register, single store after the loop, optionally start at a=1 (argv[0] interned/shared, skipped today by the refcount tests at 10318).",
+          "mechanism": "Same removed loads/stores per op scaling with argc. 3s consumer check done: the mask is read by freePendingCommand (rel at networking.c:6735) which in strict runs on the WB only after the worker's cdb release fetch_or publishes the fake — a single mask store before that release preserves the protocol exactly as in 2s.",
+          "risk": "Very low, same as 2s: verify nothing reads argv_released_mask between exec and the cdb signal (reclaimPendingCommand at 6668+ and freePendingCommand both read it post-signal only).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 7,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4224 (sdslen(c->querybuf) in memchr bound; querybuf_len local maintained at :4270/:4280/:4320), :4245/:4255/:4302 (CLIENT_MASTER per-arg), :4326 (operandPoolGet ungated — pool hardwired)",
+          "change": "P3 hoists — ADAPT (2 of 3 sub-items port; 1 is N/A). (a) The redundant sdslen(c->querybuf) in the bulk-length memchr bound EXISTS in 3s at :4224 with the querybuf_len local already maintained at the same three mutation points — identical one-word fix, portable. (b) The per-arg (c->flags & CLIENT_MASTER) reloads at 3 sites — portable, hoist to a function-entry local. (c) The per-arg server.opt_operand_pool global load is N/A: the 3s pool is HARDWIRED — operandPoolGet is called unconditionally at :4326 ('ee451 (v13): pool hardwired'), no gate exists to hoist. (The stale comment at :3983 'Gated by server.opt_operand_pool' should be deleted while there.)",
+          "mechanism": "Same per-argument removed loads/branches in the innermost parse loop, minus the (already absent) pool-gate load.",
+          "risk": "Low/mechanical, same as 2s: keep querybuf_len sync at the three mutation points (already done), never hoist across the big-arg querybuf swap at :4268-4280.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 8,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4217 (multibulklen_slen add), :4285 (bulklen_slen add), :4344 (3rd/4th components), :4361 (clusterSlotStatsAddNetworkBytesInForUserClient), :4650 (net_input_bytes_curr_cmd accumulate)",
+          "change": "P5 input-bytes — PORTABLE verbatim. All accumulation sites and the sole consumer chain exist identically at shifted lines; the accounting is shared base and equally dead work with cluster off in the standard single-node 3s config. Gate the whole chain on a hoisted `track_input_bytes = server.cluster_enabled` local exactly as specified for 2s.",
+          "mechanism": "Same: one add+store per argument plus slen pointer-diffs and the per-command component adds removed from the parse loop when cluster is off.",
+          "risk": "Same as 2s: gate ALL sites plus the consumer consistently (partial gating leaves garbage in net_input_bytes_curr_cmd, which is also reset at :317/:534/:3779 — those resets can stay); confirm no INFO/metrics reader of input_bytes in 3s (none found beyond the slot-stats path).",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 9,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/server.c:10442-10443 (per-op server.pf_w_nextop reload + -1 resolution in the worker batch loop), :10307 (per-op migration_active relaxed load in exExecFake)",
+          "change": "E5 nextop-hoist — PORTABLE verbatim. Both per-op reloads exist in the same shape: the lookahead resolves `server.pf_w_nextop == -1 ? n : server.pf_w_nextop` inside the per-op body at :10443 (opaque proc() calls forbid CSE), and exExecFake loads server.migration_active per op at :10307. Hoist la_step per batch; optionally hoist migration_active per batch with the same v8d argument (missed captures bounded to one batch, covered by the not-yet-started migServiceScanA pass — shared-base code, argument identical in 3s).",
+          "mechanism": "Same 2-3 global loads + branches removed per op in the <=16-op worker batch.",
+          "risk": "pf_w_nextop half: none. migration_active half: re-validate against the v8d cutover fence (same code both forks); ship only the nextop half if in doubt. Throughput-neutral alone.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 10,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:6668 + :6729 (getKeysFreeResult cross-TU calls), :3747-3781 (resetClientInternal ASKING/CACHING/REPLY_SKIP flag chain), :3714 (resetClientInternal)",
+          "change": "teardown extras — PORTABLE (both sub-items), one 3s thread note. (a) getKeysFreeResult inline wrapper: both call sites exist (reclaim :6668, freePendingCommand :6729); the db.c function is shared base — identical static-inline fix. (b) resetClientInternal composite flag test: the five sequential test-and-clear branches (EXECUTING_COMMAND guard, ASKING :3752, TRACKING_CACHING :3762, REPLY_SKIP :3772, REPLY_SKIP_NEXT :3775) with the listRelease-forced reloads exist verbatim at :3747-3781 — same one-composite-mask collapse. 3s note: in strict mode commandProcessed → resetClientInternal runs on the WB thread for fakes, but all touched fields are fake-local and WB-owned at retirement (the worker's release barrier precedes), so the rewrite is thread-neutral; no adaptation.",
+          "mechanism": "Same: one predicted-not-taken branch replaces four per retired command plus removes a wasted zfree(NULL) call pair on never-prepared keys_result paths; runs per command on the WB retirement path in strict (the 3s hot loop), so the per-op instruction shave lands where 3s is instr-bound.",
+          "risk": "Low, same as 2s: preserve exact cold-block semantics (prevcmd==askingCommand/clientCommand exemptions, SKIP_NEXT->SKIP transfer); keysbuf NULL/keysbuf invariant verified to hold at both 3s call sites (memset init at :6721 / GETKEYS_RESULT_INIT in preprocessCommand :4785+).",
+          "est": "neutral-simpler"
+        }
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Read"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "r:auto-ctl",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a3c3705d83e307430",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783255310367,
+      "queuedAt": 1783255310359,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY review. /shared/Projects/THredis-2s-auto-improve/src/server.c — the thread-modes CONTROL PLANE: tomoThreadBalanceCron, tomoSpareShift, tomoModeshiftSpare, tmMigServiceOut/tmMigHandoff/adopt (v1.6 conn migration), polyThreadMain checkpoint. This is 1Hz-4Hz control code — bench deltas are irrelevant; hunt CORRECTNESS hazards + SIMPLIFICATION: duplicated state machines, unclear ownership, m…",
+      "lastProgressAt": 1783255665916,
+      "tokens": 87322,
+      "toolCalls": 9,
+      "durationMs": 355549,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-auto-improve/src/server.c:11789-11798 (tmMigServiceOut step 4) + 11331-11338 (polyThreadMain IO->PARKED guard)\",\"change\":\"Close the IO-exit inbox-wedge window: keep mb->io_exiting=1 until the park checkpoint actually adopts PARKED (clear it next to accept_left at server.c:11336, not at 11791), add `atomic_load(&mb->inbox_n)==0` to t…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "r:3s-port",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a34400223776b0585",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783255310368,
+      "queuedAt": 1783255310360,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY portability map. Reference candidate files: /shared/Projects/overnight_sweep/selfimprove/pass1_candidates.json, /shared/Projects/overnight_sweep/selfimprove/pass2_candidates.json, /shared/Projects/overnight_sweep/selfimprove/wave3_candidates.json (2s-static). Target: /shared/Projects/THredis-3s-improve/src (the 3-Stage static fork — ifid/ex/wb threads, strict pipeline, operand pool HARDW…",
+      "lastProgressAt": 1783255613632,
+      "tokens": 85462,
+      "toolCalls": 20,
+      "durationMs": 303264,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-3s-improve/src/networking.c:6608 (acquirePendingCommand), :6656 (reclaimPendingCommand), :6725 (freePendingCommand); /shared/Projects/THredis-3s-improve/src/server.c:10867 (commandProcessed on WB in wbDrainClient)\",\"change\":\"P1 pendingCommand freelist — ADAPT (major). All anchors exist verbatim (same assert at 6610, same reclaim branch…"
+    }
+  ],
+  "totalTokens": 172784,
+  "totalToolCalls": 29
+}
