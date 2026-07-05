@@ -3600,11 +3600,7 @@ int getKeysFromCommand(struct redisCommand *cmd, robj **argv, int argc, getKeysR
     }
 }
 
-/* Free the result of getKeysFromCommand. */
-void getKeysFreeResult(getKeysResult *result) {
-    if (result && result->keys != result->keysbuf)
-        zfree(result->keys);
-}
+/* getKeysFreeResult: moved to server.h as static inline (ee451 v14, teardown shave). */
 
 /* Helper function to extract keys from following commands:
  * COMMAND [destkey] <num-keys> <key> [...] <key> [...] ... <options>
