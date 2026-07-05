@@ -2557,8 +2557,13 @@ static int updateDefragConfiguration(const char **err) {
 
 /* ee451 (thread-modes v1, step 2): CONFIG SET tomokv-modeshift-test <mode> —
  * retarget the spare poly thread. Invalid requests (knob off, no spare, EX/WB,
- * re-parking a live spare) fail here and config.c rolls the value back. */
+ * re-parking a live spare) fail here and config.c rolls the value back.
+ * ee451 (v1.6): values 5/6 drive CONNECTION MIGRATION instead of the spare — 5 =
+ * IO-EXIT (highest io_slot thread migrates its conns out + parks), 6 = pure conn
+ * REBALANCE (half of the most-loaded io thread's conns -> least-loaded). */
 static int updateTomokvModeshiftTest(const char **err) {
+    if (server.modeshift_test == 5 || server.modeshift_test == 6)
+        return tomoMigrateTest(server.modeshift_test, err);
     return tomoModeshiftSpare(server.modeshift_test, err);
 }
 
@@ -3251,7 +3256,7 @@ standardConfig static_configs[] = {
      * at the table FLIP); 3 or 0 = EX->PARKED (migrate everything back, drain, assert-empty,
      * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
      * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
-    createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 3, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
+    createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 6, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
     /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. Requires thread-modes at
      * boot (else FATAL-warn + ignore). ON = serverCron samples the per-thread pressure
      * signals ~4-5Hz and autonomously shifts the SPARE: PARKED->EX on a sustained
