@@ -46,3 +46,22 @@ built: IO-exit (gradual conn drain) — so IO->PARKED and any direct IO<->EX swa
 refuse at both the config layer and the poly checkpoint; WB is unreachable in the
 2s fork (modeshift value 3 is repurposed as the explicit park verb). Non-spare
 threads never shift. Driver: CONFIG SET tomokv-modeshift-test (balancer pending).
+
+## Balancer pressure signals (user spec, step 4)
+Shift decisions read PRESSURE, not guesses — each signal a cheap current-value/EWMA, micro-arch style:
+
+| signal | source | Tomasulo analog |
+| :-- | :-- | :-- |
+| ingress queue backlog | epoll-ready count + unparsed querybuf bytes per io thread | fetch-queue occupancy |
+| worker queue backlog | SPSC queue depths (head-tail), EWMA per worker (reshard controller has these) | reservation-station occupancy |
+| reply ROB occupancy | per-conn in-flight (dispatchid - flushid) aggregated per io thread | ROB occupancy |
+| socket write backlog | clients_pending_write length + pending reply bytes (+ kernel sndbuf if cheap) | retire/writeback pressure |
+| per-role CPU idle/spin ratio | idle-episode ticks vs busy slices per thread (adaptive-spin state already tracks episodes) | port utilization |
+| p99 command latency | sampled latency ring / hdr histogram (guardrail, not a trigger) | pipeline stall indicator |
+
+Decision shape: shift TOWARD the role with sustained high pressure ONLY when a donor role shows
+headroom (high idle/spin ratio + low backlog) — pressure differential with hysteresis band + settle
+window, one shift per window. p99 latency is the GUARDRAIL: if p99 degrades during/after a transition,
+back off and extend settle (transitions are DVFS-like states; the balancer must respect their costs:
+EX shifts = migration ms, IO-exit = gradual drain). All signals current-value or leaky EWMA — no
+history accumulation, shifts re-evaluate on a dime.
