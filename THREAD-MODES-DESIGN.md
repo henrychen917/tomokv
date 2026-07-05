@@ -153,3 +153,14 @@ lock-free — that is a relocation, not a deletion; same for rehash/shrink, clie
 Only features truly useless/unsupported by design — replication, cluster, failover/ASM, maxmemory
 eviction — get deleted, and "at least from the loop": strip their per-tick checks from serverCron/
 beforeSleep (the recurring cost); the dormant code may remain compiled for optionality.
+
+### Integration matrix (user): housekeeping x migration x load balancing
+| interaction | hazard | rule |
+| :-- | :-- | :-- |
+| active expire x migration COPYING | A expires a key in a range mid-copy to B -> B resurrects it | expiry deletes in the migrating range MUST emit effect-log tombstones (verify existing lazy-expire delete already routes through effect-capture); else pause expire over that range until DONE |
+| rehash x migration endpoint | bucket copy iterates the dict | dictPauseRehashing on the endpoint shard until DONE (already specced) |
+| shrink x migration IN | shrink right before buckets arrive -> immediate re-expand | skip shrink while self is a migration dst |
+| housekeeping x EX->PARKED | wasted work + park asserts empty | park checkpoint quiesces housekeeping first; no new cycles once target_mode=PARKED |
+| housekeeping x pressure signals | idle-slice work masks idleness -> balancer thinks worker is busy | count housekeeping time as IDLE-EQUIVALENT for shift decisions (separate tick counter); serving-busy and housekeeping-busy are different signals |
+| expire storms x reshard EWMAs | synchronized mass expiry shifts shard sizes -> spurious migrations | existing significance floor + relative bar + settle window are the guard (verified once under storm test); expiry-driven size change is a REAL signal, just rate-limited |
+| reshardAutoTune x mode transitions | migration endpoint mid-transition | already enforced (step 3): live-- precedes deactivation arm; dormant spare never an endpoint; single control-plane writer |
