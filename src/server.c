@@ -10316,13 +10316,6 @@ void *exThreadMain(void *arg) {
      * with any IO-thread iotid regardless of the configured io_threads. */
     iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
 
-#ifdef HAVE_LIBURING
-    /* ee451 (v12-K): build this worker's exclusive io_uring send ring (gated; default off). The ring
-     * is owned solely by this worker thread — required for the DeferTR+single-issuer setup and for the
-     * single-submitter-per-fd ordering guarantee. No-op (and no ring) when worker_direct_send is off. */
-    if (server.worker_direct_send) wdsEnsureRing(worker->id);
-#endif
-
     /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
      * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
      * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */

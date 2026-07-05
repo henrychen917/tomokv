@@ -3201,7 +3201,10 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
-    createBoolConfig("tomokv-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
+    /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
+     * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
+     * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed
+     * here), so it silently no-op'd while implying worker-direct replies. */
     createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
