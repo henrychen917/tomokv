@@ -3053,7 +3053,9 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < server.io_threads; j++) {
+    /* ee451 (thread-modes step 2): <= — slot io_threads is the spare's iotid when
+     * tomokv-thread-modes is on (arrays are IO_THREADS_MAX_NUM-sized; always safe). */
+    for (j = 0; j <= server.io_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -6287,8 +6289,12 @@ static void *reshardCoordinator(void *arg) {
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
     /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..io_threads-1) =
-     * io_threads total. (Worker queue slot io_threads exists but has no producer.) */
-    int nprod = server.io_threads;
+     * io_threads total. (Worker queue slot io_threads has no producer in static mode.)
+     * ee451 (thread-modes step 2): with tomokv-thread-modes on, slot io_threads is the
+     * SPARE's producer slot — fence it too. While the spare is parked/dormant its queue
+     * just stays empty and the ~2ms idle-ack below clears it; once it has shifted to IO
+     * its in-flight dispatches are drained exactly like any other producer's. */
+    int nprod = server.io_threads + (server.thread_modes ? 1 : 0);
 
     /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
      * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
@@ -10663,6 +10669,44 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
     pinThreadToCoreN(thread, what, server.num_workers + io_id);
 }
 
+/* ---- ee451 (thread-modes v1, step 2): poly-thread context registry ----
+ * One flat array, allocated in initIOThreads (the first thread-spawning init):
+ *   [0 .. io_threads-2]                    IO-born  (io slot 1..io_threads-1)
+ *   [io_threads-1 .. io_threads-2+W]       EX-born  (worker 0..W-1)
+ *   [io_threads-1+W]                       the parked spare (if any)
+ * Contexts are written ONLY before their pthread_create (except mode/target_mode,
+ * which follow the checkpoint protocol documented on polyThreadCtx). */
+static polyThreadCtx *tmPolyCtxs = NULL;
+static polyThreadCtx *tmSpare = NULL;   /* the one PARKED spare, NULL if none */
+
+static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
+    serverAssert(tmPolyCtxs != NULL);
+    switch (born_mode) {
+    case TOMO_MODE_IO: return &tmPolyCtxs[idx - 1];                              /* idx = io thread id, 1-based */
+    case TOMO_MODE_EX: return &tmPolyCtxs[(server.io_threads - 1) + idx];        /* idx = worker id */
+    default:           return &tmPolyCtxs[(server.io_threads - 1) + server.num_workers];  /* the spare */
+    }
+}
+
+/* Allowed-core count for the spare decision, captured from the process affinity
+ * mask (respects taskset/cgroup) BEFORE any thread — including main — narrows its
+ * own affinity (same capture rule as pinThreadToCoreN's cached allowed set: called
+ * first thing in initIOThreads, before any pin is issued). */
+static int tmAllowedCores(void) {
+    static int cached = -1;
+    if (cached > 0) return cached;
+#ifdef __linux__
+    cpu_set_t allowed; CPU_ZERO(&allowed);
+    if (sched_getaffinity(0, sizeof(allowed), &allowed) == 0 && CPU_COUNT(&allowed) > 0) {
+        cached = CPU_COUNT(&allowed);
+        return cached;
+    }
+#endif
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    cached = n > 0 ? (int)n : 1;
+    return cached;
+}
+
 void initExThreads(void) {
     server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
@@ -10675,11 +10719,6 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        /* ee451 (thread-modes v1): static mode mix — every exThread is born EX and
-         * stays EX (nothing shifts modes yet). Explicit init: the array is
-         * zmalloc'd, not zeroed. */
-        atomic_store_explicit(&server.exThreads[i].mode, TOMO_MODE_EX, memory_order_relaxed);
-        atomic_store_explicit(&server.exThreads[i].target_mode, TOMO_MODE_EX, memory_order_relaxed);
         for (int t = 0; t <= server.io_threads; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
@@ -10687,16 +10726,107 @@ void initExThreads(void) {
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
-        pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
-        pinExToCore(server.exThreads[i].thread, i);
+        if (server.thread_modes) {
+            /* ee451 (thread-modes v1, step 2): EX-born poly thread. Fixed identity
+             * pair: ex_slot = its worker index (the EX identity it was born to);
+             * io_slot = io_threads+1+i, a reserved NAME only (no io binding — EX
+             * threads cannot enter IO mode until step 3 provisions listeners +
+             * per-slot state for slots above io_threads). Born TOMO_MODE_EX:
+             * polyThreadMain adopts the preset target at its first checkpoint,
+             * setting iotid BEFORE the first slice runs. */
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+            ctx->ex = &server.exThreads[i];
+            ctx->io = NULL;
+            ctx->ex_slot = i;
+            ctx->io_slot = server.io_threads + 1 + i;
+            ctx->io_listening = 0;
+            atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_relaxed);
+            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            server.exThreads[i].thread = ctx->thread;   /* keep exThread.thread meaningful */
+        } else {
+            pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
+        }
+        pinExToCore(server.exThreads[i].thread, i);   /* same core index either way — pin map unchanged */
     }
 }
 
 
 
+/* ee451 (thread-modes v1, step 2): build + park the ONE spare poly thread.
+ * Its io binding (server.ioThreads[io_threads]: event loop + REUSEPORT listener)
+ * is pre-allocated HERE at boot so IO-entry is instant, but the listener is
+ * bound-NOT-listening: a TCP socket only joins the kernel's reuseport dispatch
+ * group at listen(), so the dormant socket steals no connections while parked
+ * (a pre-listen()ed socket WOULD — the kernel hashes connections to it and
+ * they'd rot unaccepted in its backlog). The spare's io_slot io_threads is the
+ * historically unfed "+1" producer slot: worker queues[slot]/freeback[slot],
+ * the per-slot client lists and fence_acked[slot] are all already initialized
+ * and scanned for slot <= io_threads, so activation needs no resizing. */
+static void tmSpawnSpare(void) {
+    ioThreadArgs *t = &server.ioThreads[server.io_threads];
+    t->id = server.io_threads;
+    t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
+    if (t->el == NULL) {
+        serverLog(LL_WARNING, "thread-modes: failed creating event loop for the spare thread");
+        exit(1);
+    }
+    t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+    if (t->fd == ANET_ERR) {
+        serverLog(LL_WARNING, "thread-modes: failed binding the spare's dormant listener: %s", server.neterr);
+        exit(1);
+    }
+    anetNonBlock(NULL, t->fd);
+    /* Same stripped before/after sleep as any IO thread; the accept handler is
+     * registered by the spare ITSELF at IO-entry (its own event loop — single
+     * threaded once it runs; nothing processes this loop while parked). */
+    aeSetBeforeSleepProc(t->el, beforeSleepIO);
+    aeSetAfterSleepProc(t->el, afterSleepIO);
+
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_PARKED, 0);
+    ctx->ex = NULL;                       /* not EX-capable: PARKED->EX needs bucket migration (step 3) */
+    ctx->io = t;
+    ctx->io_slot = server.io_threads;
+    ctx->ex_slot = server.num_workers;    /* reserved name only */
+    ctx->io_listening = 0;                /* dormant until IO-entry */
+    atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+    atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_relaxed);
+    if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+        serverLog(LL_WARNING, "thread-modes: failed creating the spare poly thread: %s", strerror(errno));
+        exit(1);
+    }
+    t->tid = ctx->thread;
+    /* Stable pin index: workers take 0..W-1, IO threads W..W+io_threads-1, the
+     * spare gets the NEXT slot — no live thread's pin index moves. */
+    {
+        char what[40]; snprintf(what, sizeof what, "Spare poly thread");
+        pinThreadToCoreN(ctx->thread, what, server.num_workers + server.io_threads);
+    }
+    tmSpare = ctx;
+    serverLog(LL_NOTICE, "ee451 thread-modes: spare poly thread PARKED (io_slot %d, ex_slot %d), "
+                         "listener bound dormant on port %d", ctx->io_slot, ctx->ex_slot, server.port);
+}
+
 void initIOThreads(void) {
     server.ioThreadsNum = server.io_threads;
-    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * server.io_threads);
+    int spare = 0;
+    if (server.thread_modes) {
+        /* ee451 (thread-modes v1, step 2): capture the allowed-core count BEFORE any
+         * pin narrows an affinity mask, decide the spare, and size the poly registry. */
+        int allowed = tmAllowedCores();
+        int configured = server.io_threads + server.num_workers;   /* io (incl. main) + workers */
+        spare = configured < allowed ? 1 : 0;
+        int npoly = (server.io_threads - 1) + server.num_workers + spare;
+        tmPolyCtxs = zcalloc(sizeof(polyThreadCtx) * (npoly > 0 ? npoly : 1));
+        serverLog(LL_NOTICE, "ee451 thread-modes ON: %d poly threads (%d io-born, %d ex-born, %d spare; "
+                             "%d configured vs %d allowed cores)",
+                  npoly, server.io_threads - 1, server.num_workers, spare, configured, allowed);
+    }
+    /* +1 entry when a spare exists: its dormant io binding lives at [io_threads]. */
+    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + spare));
     server.custom_io_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
     for (int i = 1; i < server.io_threads; i++) {
@@ -10729,12 +10859,33 @@ void initIOThreads(void) {
         aeSetAfterSleepProc(t->el, afterSleepIO);
 
         /* Spin up the thread */
-        if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
+        if (server.thread_modes) {
+            /* ee451 (thread-modes v1, step 2): IO-born poly thread. Fixed identity
+             * pair: io_slot = its io thread id (listener + event loop pre-built
+             * above, exactly as the static path); ex_slot = num_workers+i, a
+             * reserved NAME (no ex binding — IO->EX needs step 3). Born
+             * TOMO_MODE_IO: the first checkpoint sets iotid = io_slot before the
+             * first slice, then behavior is identical to ioThreadMain. */
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
+            ctx->ex = NULL;
+            ctx->io = t;
+            ctx->io_slot = i;
+            ctx->ex_slot = server.num_workers + i;
+            ctx->io_listening = 1;   /* listener live from boot */
+            atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_relaxed);
+            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                serverLog(LL_WARNING, "Failed creating poly IO thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            t->tid = ctx->thread;
+        } else if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
             serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
             exit(1);
         }
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
+    if (spare) tmSpawnSpare();
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
@@ -10766,69 +10917,138 @@ void *ioThreadMain(void *arg) {
     return NULL;
 }
 
-/* ee451 (thread-modes v1, step 1): unified polymorphic thread main — reads the
- * thread's atomic mode every iteration and runs ONE slice of that mode
- * (THREAD-MODES-DESIGN.md). NOT WIRED YET: initExThreads/initIOThreads still
- * spawn exThreadMain/ioThreadMain; this only has to compile in step 1. Before
- * it can be wired, step 2 must provide:
- *   - mode-scoped identity swap: the __thread iotid (EX = TOMO_IO_THREADS_MAX+1+id,
- *     IO = io thread id) must change ATOMICALLY at a safe checkpoint, with
- *     current_client[]/queues[producer]/freeback[producer] indexing valid for
- *     both roles during the transition window (the historic worker-slot crash
- *     class — see the iotid comment in exThreadMain);
- *   - an IO binding (ioThreadArgs: event loop + SO_REUSEPORT listener) owned by
- *     the balancer; entry 0 of server.ioThreads belongs to the main thread and
- *     entries exist only for ids < ioThreadsNum;
- *   - transition checkpoints (EX: post-drain-fence; IO: empty-loop pass; WB:
- *     post-retire fence) driving mode = target_mode. */
-__attribute__((unused)) void *polyThreadMain(void *arg) {
-    exThread *worker = (exThread *)arg;
-
-    /* EX-mode identity + one-time EX setup, exactly as exThreadMain does it.
-     * Step 1 pins this thread's identity to EX for its whole life (the only
-     * mode whose slice touches iotid-indexed state here); step 2 moves this
-     * into the EX-entry transition. */
-    iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
-#ifdef HAVE_LIBURING
-    if (server.worker_direct_send) wdsEnsureRing(worker->id);
-#endif
-    exBindNumaLocal(worker->id);
-
+/* ee451 (thread-modes v1, step 2): unified polymorphic thread main — WIRED when
+ * tomokv-thread-modes=1 (all tomokv threads run this; static mains untouched
+ * when 0). arg = this thread's polyThreadCtx (fixed identity pair + bindings).
+ *
+ * The MODE-SCOPED IDENTITY protocol (the historic worker-slot crash class was
+ * two live threads aliasing one __thread iotid slot):
+ *   - identity slots are FIXED at creation and never shared between live threads
+ *     (see polyThreadCtx) — so no transition can ever alias another thread;
+ *   - iotid is (re)stored ONLY at the checkpoint below — between slices, when
+ *     this thread is not mid-slice and owns no in-flight iotid-indexed state —
+ *     and always BEFORE the first slice of the new mode runs;
+ *   - a mode is entered only if its binding exists (io: listener + event loop;
+ *     ex: exThread/shard). Refused targets leave the thread in its current mode
+ *     (parked if it never had one) — EX-entry/exit and IO-exit are step 3.
+ *
+ * Step-2 transitions: birth PARKED->preset (IO or EX) at the first checkpoint,
+ * and the spare's PARKED->IO via tomokv-modeshift-test. IO-entry completes the
+ * dormant listener: listen() joins the SO_REUSEPORT group (new connections
+ * kernel-hash here from that instant) and the accept handler is registered on
+ * the thread's OWN event loop before its first slice. */
+void *polyThreadMain(void *arg) {
+    polyThreadCtx *ctx = (polyThreadCtx *)arg;
+    int cur = -1;              /* no mode entered yet (distinct from PARKED, which is a real mode) */
     exSliceCtx exctx;
-    exSliceInit(worker, &exctx);
+    int ex_inited = 0;         /* one-time EX setup done (send ring / NUMA bind / slice ctx) */
+    int refused = -1;          /* last refused target, to log once */
 
-    while (1) {
-        switch (atomic_load_explicit(&worker->mode, memory_order_acquire)) {
-        case TOMO_MODE_IO:
-            /* Needs a real IO binding (see header comment). Until step 2 hands
-             * one over, only a pre-built per-thread ioThreadArgs slot (never the
-             * main thread's id 0) can be sliced; otherwise park-yield. */
-            if (worker->id >= 1 && worker->id < server.ioThreadsNum && server.ioThreads) {
-                ioSlice(&server.ioThreads[worker->id]);
-            } else {
-                sched_yield();
+    for (;;) {
+        /* CHECKPOINT — between slices, never mid-slice. Adopt target_mode and
+         * swap identity before the new mode's first slice. */
+        int want = atomic_load_explicit(&ctx->target_mode, memory_order_acquire);
+        if (__builtin_expect(want != cur, 0)) {
+            int ok = 1;
+            switch (want) {
+            case TOMO_MODE_IO:
+                if (!ctx->io) { ok = 0; break; }        /* EX-born: no listener/el until step 3 */
+                iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
+                if (!ctx->io_listening) {
+                    /* IO-ENTRY (spare): make the pre-bound dormant listener live.
+                     * listen() joins the SO_REUSEPORT dispatch group — instant. */
+                    if (listen(ctx->io->fd, server.tcp_backlog) != 0) {
+                        serverLog(LL_WARNING, "thread-modes: spare listen() failed: %s", strerror(errno));
+                        ok = 0; break;
+                    }
+                    if (aeCreateFileEvent(ctx->io->el, ctx->io->fd, AE_READABLE,
+                        connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
+                        serverLog(LL_WARNING, "thread-modes: spare accept-handler registration failed");
+                        ok = 0; break;
+                    }
+                    ctx->io_listening = 1;
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT PARKED->IO complete — "
+                                         "spare is IO thread %d (iotid=%d), listener live, accepting",
+                              ctx->io->id, iotid);
+                } else if (cur == -1) {
+                    fprintf(stderr, "IO thread %d started (poly, iotid=%d)\n", ctx->io->id, iotid);
+                }
+                break;
+            case TOMO_MODE_EX:
+                if (!ctx->ex) { ok = 0; break; }        /* IO-born/spare: EX-entry needs bucket migration (step 3) */
+                iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
+                if (!ex_inited) {
+                    /* One-time EX setup, exactly as exThreadMain's preamble. */
+#ifdef HAVE_LIBURING
+                    if (server.worker_direct_send) wdsEnsureRing(ctx->ex->id);
+#endif
+                    exBindNumaLocal(ctx->ex->id);
+                    exSliceInit(ctx->ex, &exctx);
+                    ex_inited = 1;
+                    fprintf(stderr, "[worker %d] started (poly, iotid=%d)\n", ctx->ex->id, iotid);
+                }
+                break;
+            case TOMO_MODE_WB:
+                ok = 0;                                 /* 2s fork has no WB slice */
+                break;
+            case TOMO_MODE_PARKED:
+            default:
+                break;                                  /* parking touches no iotid-indexed state */
             }
-            break;
-        case TOMO_MODE_EX:
-            exSlice(worker, &exctx);
-            break;
-        case TOMO_MODE_WB:
-            /* WB slices are 3s-only (write-back threads live in the 3-stage
-             * fork); stub in this 2s fork — park until the balancer retargets. */
-            sched_yield();
-            break;
-        case TOMO_MODE_PARKED:
+            if (ok) {
+                cur = want;
+                atomic_store_explicit(&ctx->mode, cur, memory_order_release);
+            } else if (refused != want) {
+                serverLog(LL_WARNING, "thread-modes: refused shift to mode %d (io_slot %d, ex_slot %d): "
+                                      "no binding for that mode in step 2", want, ctx->io_slot, ctx->ex_slot);
+                refused = want;                         /* log once; stay in current mode */
+            }
+        }
+
+        switch (cur) {
+        case TOMO_MODE_IO: ioSlice(ctx->io);        break;
+        case TOMO_MODE_EX: exSlice(ctx->ex, &exctx); break;
         default: {
-            /* Parked: cheap bounded wait, then re-check target. A futex-based
-             * park/wake (so mode changes apply instantly) comes with the
-             * balancer in step 2; 100µs re-check latency is fine until then. */
-            struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000 };
-            nanosleep(&ts, NULL);
+            /* PARKED (or never-entered): 50ms bounded wait, then re-check target.
+             * A futex park/wake comes with the balancer; 50ms shift latency is
+             * fine for the control plane. */
+            struct timespec ts = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
             break;
         }
         }
     }
     return NULL;
+}
+
+/* ee451 (thread-modes v1, step 2): control-plane entry for the modeshift test
+ * knob — retarget the SPARE. Only PARKED->IO is in scope (IO-exit needs the
+ * gradual drain, EX-entry/exit need bucket migration — both step 3). Returns 1
+ * on success, 0 with *err set. Runs on the main thread (CONFIG SET); the spare
+ * adopts the target at its next parked checkpoint (<= 50ms). */
+int tomoModeshiftSpare(int mode, const char **err) {
+    if (mode == TOMO_MODE_PARKED && !server.thread_modes) return 1;   /* boot default, knob off — no-op */
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
+    int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
+    switch (mode) {
+    case TOMO_MODE_IO:
+        if (cur == TOMO_MODE_IO) return 1;            /* already there */
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_IO, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->IO (io_slot %d)",
+                  tmSpare->io_slot);
+        return 1;
+    case TOMO_MODE_PARKED:
+        if (cur == TOMO_MODE_PARKED) return 1;        /* no-op */
+        *err = "IO-exit (gradual drain) is step 3 — cannot re-park a live IO spare";
+        return 0;
+    case TOMO_MODE_EX:
+        *err = "PARKED->EX needs bucket migration (step 3) — rejected";
+        return 0;
+    default:
+        *err = "no WB mode in the 2-stage fork";
+        return 0;
+    }
 }
 
 //ee451
