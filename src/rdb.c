@@ -1698,7 +1698,10 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
              * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
             if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
             if (server.exThreads) {
-                for (int w = 0; w < server.num_workers; w++)
+                /* ee451 (thread-modes): ALL alloc'd slots — a LIVE spare's shard holds
+                 * real keys that a num_workers-bounded loop would silently drop from the save
+                 * (data loss on reload); a dormant spare's shard is empty (harmless section). */
+                for (int w = 0; w < server.num_workers_alloc; w++)
                     if (rdbSaveDb(rdb, &server.exThreads[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
             }
         }

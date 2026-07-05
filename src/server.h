@@ -1900,6 +1900,13 @@ typedef struct freebackRing {
  * saturating counters indexed by key hash (gshare: XOR'd with a global-history
  * register). MSB set => predict "forward". Per worker (no sharing). */
 
+/* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
+ * A thread is not born ifid/ex/wb — it HOLDS a mode and the balancer shifts the
+ * mode mix. PARKED=0 so a zeroed struct is a parked thread. 3-Stage edition:
+ * WB (write-back sender) is a FIRST-CLASS mode here, unlike the 2s fork.
+ * The per-thread mode/target_mode atomics live on polyThreadCtx. */
+typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
+
 typedef struct exThread {
     int id;
     pthread_t thread;
@@ -2255,6 +2262,60 @@ typedef struct {
     freebackRing recycle[TOMO_IFID_THREADS_MAX + 1];
 } ifidThreadArgs;
 
+/* ee451 (thread-modes v1, 3-Stage edition): per-poly-thread context (tomokv-thread-modes=1).
+ * A poly thread owns a FIXED TRIPLE of identity slots for its whole life, assigned at
+ * creation and NEVER shared with another live thread — the historic worker-slot crash
+ * class was two live threads aliasing one __thread ifidx slot, so slots are statically
+ * partitioned, never handed between threads:
+ *
+ *   ifid_slot: identity among ingress producer slots — ifidx while in IFID (IO) mode.
+ *     Slots [1..ifid_threads] are IFID-CAPABLE: per-slot client lists (initServer inits
+ *     the FULL 0..TOMO_IFID_THREADS_MAX range), worker queues[slot] (initExThreads inits
+ *     t <= ifid_threads; exSlice pops nq = ifid_threads+1) and fence_acked[slot] all
+ *     exist. Slot ifid_threads is the historically unfed "+1" producer slot — the
+ *     SPARE's. In strict mode the spare-as-ifid pushes reply watches to its OWN wbq
+ *     (ifidThreads[ifid_threads].wbq, allocated with the +1 entry) and the WB queue-scan
+ *     bound is extended to cover it (tmWbQHi). Other threads' ifid_slots are reserved
+ *     unique NAMES only (no listener/event loop) — polyThreadMain refuses IFID mode
+ *     without an io binding.
+ *
+ *   ex_slot: identity among workers — ifidx = TOMO_IFID_THREADS_MAX+1+ex_slot while in
+ *     EX mode. Slots [0..num_workers-1] are EX-capable (own an exThread + shard). The
+ *     SPARE's ex_slot (num_workers) is a REAL worker slot when num_workers_alloc >
+ *     num_workers: initExThreads pre-allocates its full exThread + shard dbs (dormant —
+ *     the bucket table routes nothing to it) and binds ctx->ex; PARKED->EX then seeds it
+ *     via a v8d bucket migration and EX->PARKED migrates everything back (shard asserted
+ *     empty at park). Non-spare foreign ex_slots are reserved names only.
+ *
+ *   wb_slot: identity among WB (write-back sender) threads — the WB rid. While in WB
+ *     mode: ifidx = ifid_threads+1+wb_slot (strict retirement identity — its own
+ *     freeback/recycle producer slot and clients_pending_write list; also used for the
+ *     spare in non-strict mode, where WB ifidx is cosmetic). WB-born threads' wb_slots
+ *     [0..wbThreadCount-1] are real; the SPARE's (wbThreadCount) is real when the WB
+ *     pool exists and ifid_threads+1+wbThreadCount <= TOMO_IFID_THREADS_MAX (wb_capable).
+ *     Workers' freeback rings are initialized for the FULL producer range (RP-1 fix) and
+ *     freebackDrainAll's scan is extended by tmWbSpareExtra, so the spare-WB slot is
+ *     drained from boot. wbq ownership is per-queue via the tmWbqOwner table (knob-on):
+ *     PARKED->WB joins by a fenced repartition of ONE wbq (new watches only — clients
+ *     already watched stay with their original WB, keep-while-live).
+ *
+ * mode is written ONLY by the owning thread, at a checkpoint (between slices, never
+ * mid-slice); target_mode ONLY by the control plane (the modeshift-test knob today, the
+ * balancer later). The ifidx TLS store happens exclusively at that checkpoint, BEFORE
+ * the first slice of the new mode runs. */
+typedef struct polyThreadCtx {
+    exThread *ex;          /* EX binding (shard + queues); NULL = not EX-capable */
+    ifidThreadArgs *io;    /* IFID binding (event loop + listener); NULL = not IFID-capable */
+    int ifid_slot;         /* fixed IFID identity (ifidx in IO mode) */
+    int ex_slot;           /* fixed EX identity (ifidx = TOMO_IFID_THREADS_MAX+1+ex_slot in EX mode) */
+    int wb_slot;           /* fixed WB identity (rid; ifidx = ifid_threads+1+wb_slot in strict WB mode) */
+    int wb_capable;        /* WB binding exists (pool live + slot under the ifidx ceiling) */
+    int io_listening;      /* thread-private after boot: listener live (spare starts 0 = bound, dormant) */
+    _Atomic int mode;         /* tomoThreadMode; written by the thread at checkpoints */
+    _Atomic int target_mode;  /* tomoThreadMode; written by the control plane */
+    pthread_t thread;
+} polyThreadCtx;
+
 
 
 struct redisServer {
@@ -2279,6 +2340,21 @@ struct redisServer {
     exThread *exThreads;
     list *clients_pending_ex[TOMO_IFID_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
+    /* ee451 (thread-modes v1): worker-slot accounting for the EX-capable spare.
+     * num_workers stays the CONFIGURED count W (pin-map bases, num_cdb resolution and the
+     * poly-registry layout key off it and never change).
+     * num_workers_alloc = W, +1 when an EX-capable spare exists: sizes ex_dbs/exThreads and
+     * bounds every control-plane fold over ALL slots (RDB save, DBSIZE, stats, producer-side
+     * flushExQueues/cross-shard scratch) — a dormant slot's shard is empty and its queues are
+     * unfed, so covering it is always harmless, and producer-side coverage MUST be
+     * unconditional (the bucket-table FLIP can route to slot W before any liveness signal).
+     * num_workers_live = the CONSUMING worker set [0..live): read by the reshard autotuner,
+     * KEYS fan-all, FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand
+     * work to a thread that must be running exSlice to ever pop it. Writers: the modeshift
+     * apply fn (main thread; decrement BEFORE arming the deactivation migration) and the
+     * reshard coordinator (increment at FLIP — the bucket remap IS the go-live). */
+    int num_workers_alloc;
+    _Atomic int num_workers_live;
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
      * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
      * `tomokv-ex-queue-depth`). pipeline_ring_mask and
@@ -2286,6 +2362,23 @@ struct redisServer {
      * at startup. */
     int ifid_threads;
     int ex_threads;
+    /* ee451 (thread-modes v1): 0 (default) = static thread mains, exact legacy behavior;
+     * 1 = every tomokv thread (ifid + ex + wb) runs polyThreadMain with a preset mode,
+     * plus one PARKED spare if configured threads < allowed cores. IMMUTABLE. */
+    int thread_modes;
+    /* ee451 (thread-modes v1): test-only shift driver — CONFIG SET tomokv-modeshift-test <n>
+     * retargets the spare. 1 = PARKED->IO (instant listener join, ifid ingress); 2 = PARKED->EX
+     * (migration-backed activation); 3 or 0 = EX->PARKED (migrate-back + park); 4 = PARKED->WB
+     * (fenced wbq repartition — the spare joins the write-back sender set for NEW watches).
+     * V1 legal set is spare-only; IFID-exit, WB-exit and any direct mode<->mode swap are
+     * rejected at BOTH the config layer and the poly checkpoint. Apply-fn validated. */
+    int modeshift_test;
+    /* ee451 (thread-modes v1): coordinator side-channel for spare EX transitions.
+     * 0 = ordinary migration; 1 = spare ACTIVATION (coordinator publishes num_workers_live
+     * at FLIP); 2 = spare DEACTIVATION (coordinator requests PARKED after teardown). Written
+     * by the modeshift apply fn (main thread) strictly before reshardArm, read + cleared by
+     * the single coordinator of that migration — one-migration-at-a-time makes this race-free. */
+    int tm_mig_spare_action;
     int pipeline_ring_depth;
     unsigned int pipeline_ring_mask;
     int ex_queue_size;
@@ -5015,6 +5108,8 @@ void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-
 client *exQueuePop(exQueue *q);
 void queueToWorker(client *c, int ex_id);
 void *exThreadMain(void *arg);
+void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1): unified mode-dispatching main (arg = polyThreadCtx*) */
+int tomoModeshiftSpare(int mode, const char **err);  /* ee451 (thread-modes): retarget the spare; 0 + *err on invalid */
 #ifdef HAVE_LIBURING
 /* v12-G: io_uring multishot-recv (gated by server.io_uring_recv). Called from the IO thread. */
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */

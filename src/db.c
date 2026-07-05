@@ -2190,7 +2190,9 @@ void dbsizeCommand(client *c) {
     if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;
-        for (int w = 0; w < server.num_workers; w++)
+        /* ee451 (thread-modes): fold over ALL alloc'd slots — covers a live spare's
+         * shard with no liveness ordering to get wrong (a dormant spare's shard adds 0). */
+        for (int w = 0; w < server.num_workers_alloc; w++)
             total += dbSize(&server.exThreads[w].db[dbid]);
         addReplyLongLong(c, total);
         return;

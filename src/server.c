@@ -119,6 +119,11 @@ static void migPushFenceIfNeeded(void);
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==1); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
+/* ee451 (thread-modes v1): fwd decls — initServer needs the spare decision early; the reshard
+ * coordinator's park-request tail needs the spare ctx; both defined far below with the poly plumbing. */
+static int tmAllowedCores(void);
+static int tmResolveWbCount(void);
+static polyThreadCtx *tmSpare;
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -1951,6 +1956,9 @@ long long getNetOutputBytes(void) {
 static inline int wbqPush(exQueue *q, client *c);  /* uring-threestage: defined with the WB thread below */
 static int wbDbg; static long wbDbgSkip; static long wbcFallback; static long wbcRetry;  /* uring debug tracing (defined below) */
 static int wbThreadCount;                              /* uring-strict: # WB threads (defined below); freeback drain range */
+/* ee451 (thread-modes): 1 when a WB-capable spare exists (knob-on only, set at boot) — extends the
+ * worker freeback drain scan over the spare's WB retirement slot ifid_threads+1+wbThreadCount. */
+static int tmWbSpareExtra;
 #endif
 
 /* Mark a client pipeline-stalled (ring full / needs drain). In strict mode the IO thread doesn't drain
@@ -3162,7 +3170,9 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    for (j = 0; j < server.ifid_threads; j++) {
+    /* ee451 (thread-modes): <= — slot ifid_threads is the spare's ifidx when
+     * tomokv-thread-modes is on (arrays are IO_THREADS_MAX_NUM-sized; always safe). */
+    for (j = 0; j <= server.ifid_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
     }
@@ -3305,6 +3315,15 @@ void initServer(void) {
             server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
         for (int i = 0; i < W; i++)
             server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
+        /* ee451 (thread-modes v1): canonical EMPTY suffix range for every slot
+         * above the configured workers (the spare's slot W among them): end[i] =
+         * TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing. The spare
+         * activation migration is a SUFFIX move (src = W-1, dst = W), whose FLIP sets
+         * end[src] = lo and leaves end[dst] alone — so end[W] = TOMO_BUCKETS stays
+         * correct by construction, and the deactivation (prefix move back, dst = W-1)
+         * restores end[W-1] = TOMO_BUCKETS, returning to the boot shape. */
+        for (int i = W; i < TOMO_EX_THREADS_MAX; i++)
+            server.ex_bucket_end[i] = TOMO_BUCKETS;
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -3410,6 +3429,25 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+    /* ee451 (thread-modes v1): worker-slot accounting (see server.h). The spare's EX
+     * capability needs a FULL pre-allocated worker slot W = num_workers — shard dbs,
+     * exThread (queues/freeback), an ex_bucket_end slot, a balancer EWMA slot and the
+     * EX-ifidx-indexed stat slots — so it must fit under the compile-time worker ceiling
+     * (W+1 <= TOMO_EX_THREADS_MAX keeps ex_bucket_end[W] / mig_load_ewma[W] /
+     * current_client[TOMO_IFID_THREADS_MAX+1+W] all in bounds). The spare-EXISTS predicate
+     * (configured threads < allowed cores, 3s configured = ifid + ex + wb) must match
+     * initIfidThreads'; alloc grows only for the EX-capable subset of that. */
+    server.num_workers_alloc = server.num_workers;
+    atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
+    server.tm_mig_spare_action = 0;
+    if (server.thread_modes && server.num_workers >= 1 &&
+        server.num_workers + 1 <= TOMO_EX_THREADS_MAX &&
+        server.ifid_threads + server.num_workers + tmResolveWbCount() < tmAllowedCores()) {
+        server.num_workers_alloc = server.num_workers + 1;
+        serverLog(LL_NOTICE, "ee451 thread-modes: allocating a dormant worker slot %d for the spare "
+                             "(num_workers_alloc=%d, num_workers_live=%d)",
+                  server.num_workers, server.num_workers_alloc, server.num_workers);
+    }
 
     /* ee451 (v14, role-purity RP-1): refuse configs that silently lose or corrupt SHARD data.
      * The real dataset lives in per-worker shard DBs; upstream AOF/replication/eviction machinery
@@ -3448,8 +3486,10 @@ void initServer(void) {
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
     }
-    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
-    for (int w = 0; w < server.num_workers; w++) {
+    /* ee451 (thread-modes v1): sized by num_workers_alloc — the spare's dormant
+     * shard dbs (slot num_workers) are pre-built at boot so PARKED->EX needs no allocation. */
+    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers_alloc);
+    for (int w = 0; w < server.num_workers_alloc; w++) {
         server.ex_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
         for (j = 0; j < server.dbnum; j++) {
             server.ex_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
@@ -5622,16 +5662,20 @@ int getWorkerForCommand(client *c) {
      * read (no iteration) — fine for selection. */
     if (c->cmd && c->cmd->proc == randomkeyCommand && server.num_workers > 0 && server.exThreads) {
         int dbid = c->db->id;
+        /* ee451 (thread-modes): weight over the LIVE worker set — the returned index
+         * is dispatched to, so it must be a consuming worker. A live spare is included; a
+         * dormant one has an empty shard (zero weight) and must never be picked. */
+        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
         long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += dbSize(&server.exThreads[w].db[dbid]);
+        for (int w = 0; w < nlive; w++) total += dbSize(&server.exThreads[w].db[dbid]);
         if (total <= 0) return 0;
         long long pick = (long long)(random() % total);
-        for (int w = 0; w < server.num_workers; w++) {
+        for (int w = 0; w < nlive; w++) {
             long long s = dbSize(&server.exThreads[w].db[dbid]);
             if (pick < s) return w;
             pick -= s;
         }
-        return server.num_workers - 1;
+        return nlive - 1;
     }
     /* Assumes argv[1] is the command's sole key. canDispatchToWorker
      * enforces this invariant — every whitelisted command above is of
@@ -5905,7 +5949,12 @@ static void dispatchCrossShard(client *head, int ct) {
     }
 
     /* Coalesced path: bucket keys by owning shard. */
-    int nw = server.num_workers;
+    /* ee451 (thread-modes): ALLOC-sized, unconditionally — after an activation
+     * FLIP exIndexForKey can return the spare's slot (num_workers), and these scratch
+     * arrays are indexed by that result; sizing them by the live count would be a heap
+     * overflow the instant the bucket table routes to the spare. Dormant slot => its
+     * cnt[] stays 0 and no sub is created — no cost. */
+    int nw = server.num_workers_alloc;
     int *cnt = zcalloc(sizeof(int) * nw);     /* keys assigned to worker w */
     int *wof = zmalloc(sizeof(int) * nkeys);  /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
@@ -5956,7 +6005,15 @@ static void dispatchCrossShard(client *head, int ct) {
  * dispatchCrossShard's sub setup but the sub count = num_workers and each sub carries the FULL
  * original argv (e.g. [KEYS, pattern]) routed to a specific worker. */
 static void dispatchFanAll(client *head) {
-    int nw = server.num_workers;
+    /* ee451 (thread-modes): fan to the LIVE worker set only — a sub pushed to a
+     * parked spare would never be popped and the group's pending barrier would hang the
+     * client forever. A live spare consumes until it parks (park happens strictly after
+     * live--, one whole migration later), so subs racing the decrement are still served.
+     * Consistency note: between live-- and the deactivation FLIP (and symmetrically
+     * between the activation FLIP and live++ — sub-second windows), the spare's keys are
+     * invisible to KEYS — the same weak-consistency class KEYS already has under any
+     * migration (dictScan dup/miss). */
+    int nw = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = zmalloc(sizeof(client*) * nw);
@@ -6155,7 +6212,11 @@ void flushAllShards(client *c, int dbid, int async) {
      * immediately (fire-and-forget) — blocking the IO event loop here would break the drain &
      * client-teardown bookkeeping for connections that close meanwhile. Because the worker runs
      * the sentinel in queue order before any later command, post-FLUSHALL ops still see empty. */
-    for (int w = 0; w < server.num_workers; w++) {
+    /* ee451 (thread-modes): LIVE workers only — a sentinel queued to a parked spare
+     * would rot unpopped. A dormant spare's shard is EMPTY by invariant (asserted at every
+     * park), so skipping it loses nothing; a live spare consumes until it parks. */
+    int nflush = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         sentinel->is_flush = 1;
         sentinel->flush_dbid = dbid;
@@ -6419,8 +6480,12 @@ static void *reshardCoordinator(void *arg) {
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
     /* Producers = main thread (ifidx 0) + separate IO threads (ifidx 1..ifid_threads-1) =
-     * ifid_threads total. (Worker queue slot ifid_threads exists but has no producer.) */
-    int nprod = server.ifid_threads;
+     * ifid_threads total. (Worker queue slot ifid_threads has no producer in static mode.)
+     * ee451 (thread-modes): with tomokv-thread-modes on, slot ifid_threads is the
+     * SPARE's producer slot — fence it too. While the spare is parked/dormant its queue
+     * just stays empty and the ~2ms idle-ack below clears it; once it has shifted to IFID
+     * its in-flight dispatches are drained exactly like any other producer's. */
+    int nprod = server.ifid_threads + (server.thread_modes ? 1 : 0);
 
     /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
      * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
@@ -6480,6 +6545,19 @@ static void *reshardCoordinator(void *arg) {
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d (S_final=%llu)",
               lo, hi, dst, (unsigned long long)s_final);
 
+    /* ee451 (thread-modes v1): spare ACTIVATION — the table remap above IS the
+     * go-live (dispatch now routes [lo,hi) to the spare's slot), so publish it to the
+     * live-worker set here: the autotuner starts balancing it, KEYS/FLUSH fan-outs and
+     * RANDOMKEY cover it. Producer-side coverage (flushExQueues, cross-shard scratch)
+     * is alloc-sized and needed no liveness signal. The spare has been running exSlice
+     * since before ARM (it drained this very effect log as dst), so everything routed
+     * from this instant is consumed. */
+    if (server.tm_mig_spare_action == 1) {
+        atomic_store_explicit(&server.num_workers_live, server.num_workers_alloc, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: spare worker %d LIVE (num_workers_live=%d)",
+                  dst, server.num_workers_alloc);
+    }
+
     /* Phase D.1: ref-fence — A may not free its range values until every zero-copy reply still
      * pointing into them (owner_ex==A, bucket∈range) has been flushed. No-op when zerocopy is
      * gated off (small values). */
@@ -6502,6 +6580,21 @@ static void *reshardCoordinator(void *arg) {
     server.migration.log = NULL;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+
+    /* ee451 (thread-modes v1): spare transition tail. DEACTIVATION (action 2):
+     * the spare's ENTIRE range is on dst, CLEANUP deleted the src copies and teardown is
+     * complete — request PARKED. The spare's park checkpoint drains its (now traffic-less)
+     * queues, asserts the shard is empty, then parks. Clearing the flag here (for both
+     * actions) is race-free: the next migration can only be armed after the active=0
+     * publish above, by the same main thread that would set a new action first. */
+    {
+        int spare_act = server.tm_mig_spare_action;
+        server.tm_mig_spare_action = 0;
+        if (spare_act == 2 && tmSpare) {
+            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
+        }
+    }
     return NULL;
 }
 
@@ -6542,7 +6635,13 @@ void reshardAutoTune(void) {
      * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
-    int W = server.num_workers;
+    /* ee451 (thread-modes): balance over the LIVE worker set. A dormant spare must
+     * never be a migration endpoint (its thread isn't running exSlice — buckets flipped to
+     * it would blackhole every op on them); a LIVE spare participates fully, so hot load
+     * rebalances into it organically after activation. live-- precedes the deactivation
+     * migration (same thread as this fn), so the autotuner can't re-seed a spare that is
+     * on its way out. EWMA slots for the spare are reset by the modeshift fn (same thread). */
+    int W = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     if (W < 2) return;
 
     /* Continuous decay: the EWMA window spans 4x min-ops in OPERATIONS, from the previous
@@ -6691,8 +6790,11 @@ void reshardDebug(client *c) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
         int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
         int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
+        /* ee451 (thread-modes): bound by the LIVE set — manual migrations may target a
+         * live spare, never a dormant one (its thread isn't consuming; use modeshift 2). */
+        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
         if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi ||
-            src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
+            src < 0 || dst < 0 || src >= nlive || dst >= nlive || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
         if (!reshardArm(lo, hi, src, dst)) { addReplyError(c, "migration already active"); return; }
@@ -6704,8 +6806,8 @@ void reshardDebug(client *c) {
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "ops")) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
          * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
-        unsigned long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
+        unsigned long long total = 0;   /* ee451 (thread-modes): stats fold over ALL alloc'd slots (dormant spare adds 0) */
+        for (int w = 0; w < server.num_workers_alloc; w++) total += server.exThreads[w].ops_total;
         addReplyLongLong(c, (long long)total);
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
@@ -9883,7 +9985,12 @@ void exQueueInit(exQueue *q) {
  * it (standard SPSC batch publish). */
 void flushExQueues(void) {
     if (!server.exThreads) return;
-    for (int w = 0; w < server.num_workers; w++) {
+    /* ee451 (thread-modes): ALLOC-sized, unconditionally — exQueuePush only STAGES;
+     * this publish is what makes a job visible to its worker. The activation FLIP can route
+     * to the spare's slot before any liveness signal propagates, so the spare's queues must
+     * be covered from boot (a job staged there but never published = a hung client). While
+     * dormant the extra iteration is a no-op compare (staged_tail == tail, no store). */
+    for (int w = 0; w < server.num_workers_alloc; w++) {
         exQueue *q = &server.exThreads[w].queues[ifidx];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published)
@@ -9913,8 +10020,11 @@ static inline void freebackDrainAll(exThread *worker) {
     int hi = server.ifid_threads;
 #ifdef HAVE_LIBURING
     /* uring-strict: WB threads retire fakes on their OWN freeback ifidx (ifid_threads+1+wb_id)
-     * so they never share a per-ifidx SPSC ring with an IO thread. Drain those extra slots too. */
-    if (server.strict_pipeline) hi = server.ifid_threads + wbThreadCount;
+     * so they never share a per-ifidx SPSC ring with an IO thread. Drain those extra slots too.
+     * ee451 (thread-modes): +tmWbSpareExtra covers the SPARE-as-WB producer slot
+     * (ifid_threads+1+wbThreadCount) — 0 knob-off; the ring is initialized from boot (RP-1
+     * inits the FULL freeback array), so scanning one extra empty slot is free while parked. */
+    if (server.strict_pipeline) hi = server.ifid_threads + wbThreadCount + tmWbSpareExtra;
 #endif
     for (int t = 0; t <= hi; t++) {
         freebackRing *fb = &worker->freeback[t];
@@ -10331,29 +10441,22 @@ static inline void exExecFake(client *fake) {
 
 /* ee451 (v13): exSameKeyReadonly() deleted with the value-forwarding apparatus. */
 
-void *exThreadMain(void *arg) {
-    exThread *worker = (exThread *)arg;
-    /* ee451: give this worker a PRIVATE ifidx above the IO-thread range
-     * (IO threads occupy 0..ifid_threads-1; main thread is 0). Without this,
-     * ifidx stays at its __thread default of 0 and every worker aliases
-     * IO-thread-0's slot in server.current_client[]/executing_client[], racing
-     * the main thread. The fixed base TOMO_IFID_THREADS_MAX+1 guarantees no overlap
-     * with any IO-thread ifidx regardless of the configured ifid_threads. */
-    ifidx = TOMO_IFID_THREADS_MAX + 1 + worker->id;
-
-    /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
-     * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
-     * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
-    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
-
+/* ee451 (thread-modes v1): EX slice context — ALL persistent loop-local
+ * state of exThreadMain's old while(1) body, hoisted so one pass (a "slice")
+ * can be driven by any thread main: exThreadMain today, polyThreadMain once
+ * modes shift (THREAD-MODES-DESIGN.md). Deliberately NOT in here: the __thread
+ * ifidx assignment — that is mode-scoped IDENTITY (current_client[]/
+ * executing_client[] slots and queues[producer]/freeback[producer] indexing
+ * all derive from it); it stays in the thread main / poly checkpoint, and must
+ * only ever be swapped atomically at a mode-transition checkpoint. */
+typedef struct exSliceCtx {
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
      * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
      * such fake->cdb == wcdb; the worker signals all its completions into this
      * one CDB line, which the drain clears via the same captured fake->cdb. */
-    int wcdb = cdbIndexFor(worker->id);
-    fprintf(stderr, "[worker %d] started (ifidx=%d)\n", worker->id, ifidx);
-    client *batch[WORKER_POP_BATCH];
-
+    int wcdb;
+    int nq;             /* ee451 (v14): ifid_threads+1 — loop-invariant (immutable after startup), hoisted */
+    int scan_start;     /* worker-local producer-scan rotation cursor */
     /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
      * every ~0.5-1 µs, so yielding immediately on an empty poll causes
      * the scheduler to take us off-CPU for tens of µs and we miss the
@@ -10364,203 +10467,247 @@ void *exThreadMain(void *arg) {
      * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
      * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
      * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
-    int empty_rounds = 0;
+    int empty_rounds;
     /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
-    int spin_pinned = server.worker_spin > 0;
-    int spin_budget = spin_pinned ? server.worker_spin : 32;
-    int nq = server.ifid_threads + 1;         /* ee451 (v14): loop-invariant (immutable after startup) — hoisted */
-    int scan_start = 0;                 /* worker-local producer-scan rotation cursor */
+    int spin_pinned;
+    int spin_budget;
+    /* pop/execute scratch. Contents never persist across passes; it lives here
+     * (not on the slice stack) only so the slice body is the verbatim old loop. */
+    client *batch[WORKER_POP_BATCH];
+} exSliceCtx;
 
-    while (1) {
-        /* ee451 (S8): decref any zero-copy reply values the IO threads handed
-         * back after sending — done here on the worker so the shard's value
-         * refcounts are only ever mutated by this thread. */
-        freebackDrainAll(worker);
+/* ee451 (thread-modes v1): initialize a worker's EX slice state exactly
+ * as the old exThreadMain preamble did — same values, same thread-start timing
+ * (num_cdb, ifid_threads and worker_spin are all immutable after startup, so
+ * capturing them here == capturing them at the top of the old thread main). */
+static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
+    ctx->wcdb = cdbIndexFor(worker->id);
+    ctx->nq = server.ifid_threads + 1;
+    ctx->scan_start = 0;
+    ctx->empty_rounds = 0;
+    ctx->spin_pinned = server.worker_spin > 0;
+    ctx->spin_budget = ctx->spin_pinned ? server.worker_spin : 32;
+}
 
-        /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
-         * B replays the ordered effect log into its shard; A advances the cold-key scan during
-         * COPYING. Both are this-worker-only writes (single-writer preserved). */
-        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
-            /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
-            atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
-            int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
-            if (worker->id == server.migration.dst) {
-                if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
-            } else if (worker->id == server.migration.src) {
-                if (ph == MIG_COPYING) migServiceScanA(worker);
-                else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
-            }
-        }
+/* ee451 (thread-modes v1): ONE pass of the EX loop — freeback drain,
+ * migration duties, one full rotated producer-queue scan + batch exec + reply
+ * signals, then the adaptive idle-spin decision — moved VERBATIM from the old
+ * exThreadMain while(1) body (only the persistent locals moved into ctx).
+ * Returns 1 if this pass popped any work, 0 for an idle pass. */
+static int exSlice(exThread *worker, exSliceCtx *ctx) {
+    /* ee451 (S8): decref any zero-copy reply values the IO threads handed
+     * back after sending — done here on the worker so the shard's value
+     * refcounts are only ever mutated by this thread. */
+    freebackDrainAll(worker);
 
-        int any = 0;
-        /* ee451: runtime worker pop/execute batch size, capped by the compile-time
-         * array max. Decoupled from the per-stage prefetch widths. */
-        /* ee451 (v14): dual-mode — STRICT (N) or AUTO (0): saturating up/down (2-bit-predictor flavor). */
-        int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
-        /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
-         * per-queue pop batch already prevents starvation across the per-IO SPSC
-         * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
-         * latency; rotating the start removes that bias. Per-queue FIFO — and thus
-         * per-connection ordering (a connection always feeds one queue) — is
-         * untouched; only the inter-queue visit order rotates, which was never
-         * ordered to begin with. */
-        if (++scan_start >= nq) scan_start = 0;
-        for (int k = 0; k < nq; k++) {
-            int i = scan_start + k; if (i >= nq) i -= nq;
-            int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
-            if (n == 0) continue;
-            any = 1;
-
-            /* Warm the cache before executing the batch. */
-            exPrefetchBatch(batch, n);
-
-            worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
-
-            /* ee451: per-batch reply-ready signal coalescing accumulator.
-             * sig_parents holds the distinct parent clients seen in this
-             * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
-             * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
-             * release fetch_or per distinct parent after the inner loop. */
-            client *sig_parents[WORKER_POP_BATCH];
-            uint32_t sig_masks[WORKER_POP_BATCH];
-            int sig_n = 0;
-
-            /* Execute the batch in issue (queue) order — plain, one op at a time.
-             * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
-             * (paper negative result: neutral in every regime, real workloads lack same-key
-             * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
-             * The record/replay helpers in db.c remain dormant for the paper's artifact. */
-            for (int j = 0; j < n; ) {
-                client *fake = batch[j];
-
-                /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-                 * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
-                 * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-                 * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-                 * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-                 * faults). Targets the big-DB cache-miss regime; 0 = off. */
-                if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = batch n), N = strict */
-                    int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
-                    if (la < n) {
-                        client *nf = batch[la];
-                        if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                            redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
-                    }
-                }
-
-                /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
-                 * every range primary this producer dispatched before it has executed on A; decrement
-                 * the per-cutover barrier and free. No reply. */
-                if (fake->drain_ack) {
-                    /* This sentinel came up queue slot `i`; mark that producer slot drained. */
-                    atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
-                    freeFakeClient(fake);
-                    j++;
-                    continue;
-                }
-
-                /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
-                 * connection's earlier commands). Empty this worker's OWN shard DBs and free
-                 * the fake. Fire-and-forget: no reply, no barrier. */
-                if (fake->is_flush) {
-                    emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
-                    freeFakeClient(fake);
-                    j++;
-                    continue;
-                }
-
-                /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
-                 * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
-                 * release-acquire chain across all subs so the last one sees every sub's
-                 * buffer; the last sub publishes the head slot's reply bit (into the head's
-                 * captured CDB, not this worker's wcdb) with release, pairing with the IO
-                 * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
-                if (fake->csparent) {
-                    csSubExec(fake);
-                    csGroup *g = fake->csparent;
-                    if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
-                        client *hp = g->head->parent;
-                        atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
-                                                 1u << g->head->fake_slot);
-                    }
-                    j++;
-                    continue;
-                }
-
-                exExecFake(fake);
-
-                /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
-                 * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
-                 * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
-                 * downward. Drives the value-size-adaptive pf-w-value width. */
-                if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
-                    int cur = (int)worker->w_ewma_vsize;
-                    cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
-                    worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
-                }
-
-                /* ee451: coalesced reply-ready signal — OR each fake's slot bit
-                 * into a per-parent accumulator; one release fetch_or per
-                 * distinct parent is flushed after the whole batch.
-                 * ee451 (v4): with coalescing disabled, do an immediate release
-                 * fetch_or per fake (sig_n stays 0 so the post-batch flush is a
-                 * no-op). Both are correct: bits are only OR'd by workers and
-                 * cleared by the one owning IO thread, so coalescing N ORs into
-                 * one cannot lose a bit. */
-                {
-                    client *p = fake->parent;
-                    uint32_t bit = 1u << fake->fake_slot;
-                    /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
-                     * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
-                    int s;
-                    for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
-                    if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
-                    sig_masks[s] |= bit;
-                }
-                j++;
-            }
-
-            /* ee451: flush coalesced signals — one release fetch_or per
-             * distinct parent. This release happens-after every proc() and
-             * argv release for ALL of that parent's fakes in this batch, so
-             * the draining IO thread's acquire-load of reply_ready_mask sees
-             * all their reply writes. Bits are only ever OR-ed by workers and
-             * cleared by the single owning IO thread, so coalescing N ORs into
-             * one is equivalent and cannot lose a bit. */
-            for (int s = 0; s < sig_n; s++)
-                atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[wcdb].v,  /* ee451 (S5): this worker's CDB */
-                                         sig_masks[s]);
-        }
-
-        if (any) {
-            /* ee451 (v14): AUTO pop-batch = MAX, honestly (see 2s note: adaptive caps flap at
-             * quantization boundaries with zero benefit; STRICT N=1..16 covers fairness capping). */
-            if (!spin_pinned && empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
-                spin_budget += spin_budget >> 1;
-                if (spin_budget > 256) spin_budget = 256;
-            }
-            empty_rounds = 0;
-        } else if (empty_rounds < spin_budget) {
-            /* PAUSE-spin: stay hot, let the IO thread publish work during the
-             * small window without the cost of a context switch.
-             * ee451 (v14, controller): the spin budget is ADAPTIVE — no knobs.
-             * If work arrived while we were spinning, spinning paid: grow the
-             * window (x1.5, cap 256 rounds). If we exhausted the window and had
-             * to yield, it was wasted: halve it (floor 4). Multiplicative,
-             * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
-             * is the quantum (~30-60ns on Zen). */
-            for (int p = 0; p < 16; p++) exPauseCpu();
-            empty_rounds++;
-        } else {
-            /* Sustained idleness — give up the CPU; shrink the spin window. */
-            if (!spin_pinned) {
-                spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp (cycle-test catch) */
-                if (spin_budget < 4) spin_budget = 4;
-            }
-            sched_yield();
-            empty_rounds = 0;
+    /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
+     * B replays the ordered effect log into its shard; A advances the cold-key scan during
+     * COPYING. Both are this-worker-only writes (single-writer preserved). */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+        /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
+        atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
+        int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
+        if (worker->id == server.migration.dst) {
+            if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
+        } else if (worker->id == server.migration.src) {
+            if (ph == MIG_COPYING) migServiceScanA(worker);
+            else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
         }
     }
+
+    int any = 0;
+    /* ee451: runtime worker pop/execute batch size, capped by the compile-time
+     * array max. Decoupled from the per-stage prefetch widths. */
+    /* ee451 (v14): dual-mode — STRICT (N) or AUTO (0): saturating up/down (2-bit-predictor flavor). */
+    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
+     * per-queue pop batch already prevents starvation across the per-IO SPSC
+     * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
+     * latency; rotating the start removes that bias. Per-queue FIFO — and thus
+     * per-connection ordering (a connection always feeds one queue) — is
+     * untouched; only the inter-queue visit order rotates, which was never
+     * ordered to begin with. */
+    if (++ctx->scan_start >= ctx->nq) ctx->scan_start = 0;
+    for (int k = 0; k < ctx->nq; k++) {
+        int i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
+        int n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+        if (n == 0) continue;
+        any = 1;
+
+        /* Warm the cache before executing the batch. */
+        exPrefetchBatch(ctx->batch, n);
+
+        worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
+
+        /* ee451: per-batch reply-ready signal coalescing accumulator.
+         * sig_parents holds the distinct parent clients seen in this
+         * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
+         * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
+         * release fetch_or per distinct parent after the inner loop. */
+        client *sig_parents[WORKER_POP_BATCH];
+        uint32_t sig_masks[WORKER_POP_BATCH];
+        int sig_n = 0;
+
+        /* Execute the batch in issue (queue) order — plain, one op at a time.
+         * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
+         * (paper negative result: neutral in every regime, real workloads lack same-key
+         * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
+         * The record/replay helpers in db.c remain dormant for the paper's artifact. */
+        for (int j = 0; j < n; ) {
+            client *fake = ctx->batch[j];
+
+            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
+             * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
+             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
+             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
+             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
+             * faults). Targets the big-DB cache-miss regime; 0 = off. */
+            if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = batch n), N = strict */
+                int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
+                if (la < n) {
+                    client *nf = ctx->batch[la];
+                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
+                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+                }
+            }
+
+            /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
+             * every range primary this producer dispatched before it has executed on A; decrement
+             * the per-cutover barrier and free. No reply. */
+            if (fake->drain_ack) {
+                /* This sentinel came up queue slot `i`; mark that producer slot drained. */
+                atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                freeFakeClient(fake);
+                j++;
+                continue;
+            }
+
+            /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
+             * connection's earlier commands). Empty this worker's OWN shard DBs and free
+             * the fake. Fire-and-forget: no reply, no barrier. */
+            if (fake->is_flush) {
+                emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                freeFakeClient(fake);
+                j++;
+                continue;
+            }
+
+            /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
+             * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
+             * release-acquire chain across all subs so the last one sees every sub's
+             * buffer; the last sub publishes the head slot's reply bit (into the head's
+             * captured CDB, not this worker's wcdb) with release, pairing with the IO
+             * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
+            if (fake->csparent) {
+                csSubExec(fake);
+                csGroup *g = fake->csparent;
+                if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
+                    client *hp = g->head->parent;
+                    atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
+                                             1u << g->head->fake_slot);
+                }
+                j++;
+                continue;
+            }
+
+            exExecFake(fake);
+
+            /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
+             * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
+             * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
+             * downward. Drives the value-size-adaptive pf-w-value width. */
+            if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
+                int cur = (int)worker->w_ewma_vsize;
+                cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
+                worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
+            }
+
+            /* ee451: coalesced reply-ready signal — OR each fake's slot bit
+             * into a per-parent accumulator; one release fetch_or per
+             * distinct parent is flushed after the whole batch.
+             * ee451 (v4): with coalescing disabled, do an immediate release
+             * fetch_or per fake (sig_n stays 0 so the post-batch flush is a
+             * no-op). Both are correct: bits are only OR'd by workers and
+             * cleared by the one owning IO thread, so coalescing N ORs into
+             * one cannot lose a bit. */
+            {
+                client *p = fake->parent;
+                uint32_t bit = 1u << fake->fake_slot;
+                /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
+                 * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
+                int s;
+                for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
+                if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
+                sig_masks[s] |= bit;
+            }
+            j++;
+        }
+
+        /* ee451: flush coalesced signals — one release fetch_or per
+         * distinct parent. This release happens-after every proc() and
+         * argv release for ALL of that parent's fakes in this batch, so
+         * the draining IO thread's acquire-load of reply_ready_mask sees
+         * all their reply writes. Bits are only ever OR-ed by workers and
+         * cleared by the single owning IO thread, so coalescing N ORs into
+         * one is equivalent and cannot lose a bit. */
+        for (int s = 0; s < sig_n; s++)
+            atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[ctx->wcdb].v,  /* ee451 (S5): this worker's CDB */
+                                     sig_masks[s]);
+    }
+
+    if (any) {
+        /* ee451 (v14): AUTO pop-batch = MAX, honestly (see 2s note: adaptive caps flap at
+         * quantization boundaries with zero benefit; STRICT N=1..16 covers fairness capping). */
+        if (!ctx->spin_pinned && ctx->empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
+            ctx->spin_budget += ctx->spin_budget >> 1;
+            if (ctx->spin_budget > 256) ctx->spin_budget = 256;
+        }
+        ctx->empty_rounds = 0;
+    } else if (ctx->empty_rounds < ctx->spin_budget) {
+        /* PAUSE-spin: stay hot, let the IO thread publish work during the
+         * small window without the cost of a context switch.
+         * ee451 (v14, controller): the spin budget is ADAPTIVE — no knobs.
+         * If work arrived while we were spinning, spinning paid: grow the
+         * window (x1.5, cap 256 rounds). If we exhausted the window and had
+         * to yield, it was wasted: halve it (floor 4). Multiplicative,
+         * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
+         * is the quantum (~30-60ns on Zen). */
+        for (int p = 0; p < 16; p++) exPauseCpu();
+        ctx->empty_rounds++;
+    } else {
+        /* Sustained idleness — give up the CPU; shrink the spin window. */
+        if (!ctx->spin_pinned) {
+            ctx->spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp (cycle-test catch) */
+            if (ctx->spin_budget < 4) ctx->spin_budget = 4;
+        }
+        sched_yield();
+        ctx->empty_rounds = 0;
+    }
+    return any;
+}
+
+void *exThreadMain(void *arg) {
+    exThread *worker = (exThread *)arg;
+    /* ee451: give this worker a PRIVATE ifidx above the IO-thread range
+     * (IO threads occupy 0..ifid_threads-1; main thread is 0). Without this,
+     * ifidx stays at its __thread default of 0 and every worker aliases
+     * IO-thread-0's slot in server.current_client[]/executing_client[], racing
+     * the main thread. The fixed base TOMO_IFID_THREADS_MAX+1 guarantees no overlap
+     * with any IO-thread ifidx regardless of the configured ifid_threads. */
+    /* ee451 (thread-modes v1): this TLS store is mode-scoped IDENTITY — under
+     * tomokv-thread-modes it is swapped atomically at the poly checkpoint only. */
+    ifidx = TOMO_IFID_THREADS_MAX + 1 + worker->id;
+
+    /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
+     * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
+     * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
+    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
+
+    fprintf(stderr, "[worker %d] started (ifidx=%d)\n", worker->id, ifidx);
+
+    exSliceCtx ctx;
+    exSliceInit(worker, &ctx);
+    while (1) exSlice(worker, &ctx);
     return NULL;
 }
 
@@ -10732,14 +10879,80 @@ void pinIfidThreadToCore(pthread_t thread, int io_id) {
     pinThreadToCoreN(thread, what, server.num_workers + io_id);
 }
 
+/* ---- ee451 (thread-modes v1): poly-thread context registry ----
+ * One flat array, allocated in initIfidThreads (the first thread-spawning init):
+ *   [0 .. I-2]                 IFID-born (ifid slot 1..I-1)
+ *   [I-1 .. I-2+W]             EX-born   (worker 0..W-1)
+ *   [I-1+W .. I-2+W+R]         WB-born   (wb rid 0..R-1)
+ *   [I-1+W+R]                  the parked spare (if any)
+ * Contexts are written ONLY before their pthread_create (except mode/target_mode,
+ * which follow the checkpoint protocol documented on polyThreadCtx, and the spare's
+ * ->ex binding, provisioned by initExThreads before any EX target can be set). */
+static polyThreadCtx *tmPolyCtxs = NULL;
+static polyThreadCtx *tmSpare = NULL;   /* the one spare poly thread, NULL if none (fwd-declared at top) */
+static void tmSpawnSpare(void);         /* defined below polyThreadMain; called from initIfidThreads */
+
+static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
+    serverAssert(tmPolyCtxs != NULL);
+    int I = server.ifid_threads, W = server.num_workers;
+    switch (born_mode) {
+    case TOMO_MODE_IO: return &tmPolyCtxs[idx - 1];               /* idx = ifid thread id, 1-based */
+    case TOMO_MODE_EX: return &tmPolyCtxs[(I - 1) + idx];         /* idx = worker id */
+    case TOMO_MODE_WB: return &tmPolyCtxs[(I - 1) + W + idx];     /* idx = wb rid */
+    default:           return &tmPolyCtxs[(I - 1) + W + tmResolveWbCount()];  /* the spare */
+    }
+}
+
+/* Allowed-core count for the spare decision, captured from the process affinity
+ * mask (respects taskset/cgroup) BEFORE any thread — including main — narrows its
+ * own affinity (same capture rule as pinThreadToCoreN's cached allowed set: called
+ * first from initServer, before any pin is issued). */
+static int tmAllowedCores(void) {
+    static int cached = -1;
+    if (cached > 0) return cached;
+#ifdef __linux__
+    cpu_set_t allowed; CPU_ZERO(&allowed);
+    if (sched_getaffinity(0, sizeof(allowed), &allowed) == 0 && CPU_COUNT(&allowed) > 0) {
+        cached = CPU_COUNT(&allowed);
+        return cached;
+    }
+#endif
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    cached = n > 0 ? (int)n : 1;
+    return cached;
+}
+
+/* ee451 (thread-modes v1): the WB-thread count initIfidThreads will resolve, computed
+ * identically (same clamps, same order) so initServer's spare decision, the poly-registry
+ * layout and the WB spawn all agree on ONE number. Immutable inputs only. */
+static int tmResolveWbCount(void) {
+#ifdef HAVE_LIBURING
+    if (!(server.uring_threestage || server.strict_pipeline)) return 0;
+    int nq = server.ifid_threads - 1;          /* wbqs in use: io threads 1..I-1 */
+    if (nq < 1) return 0;                      /* pool not started */
+    int R = server.wb_threads;
+    if (R <= 0) R = nq;                        /* legacy: one WB per io thread */
+    if (R > nq) R = nq;                        /* extra ROBs can't help (1 wbq/io thread, SPSC) */
+    if (server.ifid_threads + R > TOMO_IFID_THREADS_MAX) {   /* ee451 (v13, audit #5) */
+        R = TOMO_IFID_THREADS_MAX - server.ifid_threads;
+        if (R < 1) R = 1;
+    }
+    return R;
+#else
+    return 0;
+#endif
+}
+
 void initExThreads(void) {
-    server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
+    /* ee451 (thread-modes): ALLOC-sized — the spare's dormant worker slot (index
+     * num_workers) is fully built here so activation needs no allocation or resizing. */
+    server.exThreads = zmalloc(sizeof(exThread) * server.num_workers_alloc);
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */
 #ifdef MADV_HUGEPAGE
     if (server.os_opts)
-        madvise(server.exThreads, sizeof(exThread) * server.num_workers, MADV_HUGEPAGE);
+        madvise(server.exThreads, sizeof(exThread) * server.num_workers_alloc, MADV_HUGEPAGE);
 #endif
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
@@ -10756,8 +10969,59 @@ void initExThreads(void) {
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
-        pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
-        pinExToCore(server.exThreads[i].thread, i);
+        if (server.thread_modes) {
+            /* ee451 (thread-modes v1): EX-born poly thread. Fixed identity triple:
+             * ex_slot = its worker index (the EX identity it was born to); ifid_slot and
+             * wb_slot are reserved NAMES only (no io/wb binding — EX-born threads cannot
+             * enter IFID or WB mode in v1). Born TOMO_MODE_EX: polyThreadMain adopts the
+             * preset target at its first checkpoint, setting ifidx BEFORE the first slice. */
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+            ctx->ex = &server.exThreads[i];
+            ctx->io = NULL;
+            ctx->ex_slot = i;
+            ctx->ifid_slot = server.ifid_threads + 2 + tmResolveWbCount() + i;  /* unique name past ifid+wb+spare slots */
+            ctx->wb_slot = tmResolveWbCount() + 1 + server.ifid_threads + i;    /* unique name past wb rids + spare */
+            ctx->wb_capable = 0;
+            ctx->io_listening = 0;
+            atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_relaxed);
+            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            server.exThreads[i].thread = ctx->thread;   /* keep exThread.thread meaningful */
+        } else {
+            pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
+        }
+        pinExToCore(server.exThreads[i].thread, i);   /* same core index either way — pin map unchanged */
+    }
+    /* ee451 (thread-modes v1): provision the SPARE's full worker slot W = num_workers
+     * (dormant: the boot bucket table routes nothing to it, so it receives no traffic until an
+     * activation migration FLIPs buckets in). Same per-slot init a live worker gets — queues for
+     * every ifid producer slot + the FULL freeback array (RP-1 shape) — plus explicit zeroing of
+     * the stat/EWMA scalars (the array is zmalloc'd, and unlike live workers nothing else primes
+     * them). NO thread is spawned for the slot: the spare poly thread (spawned by initIfidThreads,
+     * which ran before this) BINDS it here and runs exSlice on it only while in EX mode. The plain
+     * tmSpare->ex store is safe: the spare reads ctx->ex only at a checkpoint ordered after a
+     * target_mode release/acquire pair, and every EX target store happens after this init (main
+     * thread, config-apply). */
+    if (server.thread_modes && server.num_workers_alloc > server.num_workers) {
+        exThread *sp = &server.exThreads[server.num_workers];
+        memset(sp, 0, sizeof(*sp));
+        sp->id = server.num_workers;
+        sp->db = server.ex_dbs[server.num_workers];
+        for (int t = 0; t <= server.ifid_threads; t++)
+            exQueueInit(&sp->queues[t]);
+        for (int t = 0; t < TOMO_IFID_THREADS_MAX + 1; t++) {
+            freebackRing *fb = &sp->freeback[t];
+            atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
+            atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
+        }
+        if (tmSpare) {
+            tmSpare->ex = sp;
+            serverLog(LL_NOTICE, "ee451 thread-modes: spare EX binding provisioned "
+                                 "(dormant worker slot %d, ex_slot %d)", sp->id, tmSpare->ex_slot);
+        }
     }
 }
 
@@ -10788,6 +11052,36 @@ static long wbcSend=0, wbcFull=0, wbcPartial=0, wbcEagain=0, wbcErr=0, wbcNosend
 static client **wbActive[TOMO_IFID_THREADS_MAX];
 static int wbActiveN[TOMO_IFID_THREADS_MAX];
 static int wbActiveCap[TOMO_IFID_THREADS_MAX];
+
+/* ---- ee451 (thread-modes v1): live wbq ownership (knob-on only) ----
+ * Legacy (knob-off): WB rid drains ifid queue qi iff (qi-1) % R == rid — a static partition.
+ * Knob-on: ownership is a per-queue table so (a) the SPARE's ingress wbq (qi = ifid_threads,
+ * live after PARKED->IO) is covered, and (b) PARKED->WB can REPARTITION a queue to the spare
+ * WB behind a fence. Protocol: the control plane release-stores tmWbqNextOwner[qi]; the OLD
+ * owner acks at its next scan of qi (wbOwnsQueue below) by release-storing tmWbqOwner[qi] =
+ * next and never popping again — that release publishes its final q->head cursor; the NEW
+ * owner pops only once it acquire-reads tmWbqOwner[qi] == its rid. At any instant at most one
+ * thread consumes a wbq (SPSC preserved); during the µs handover window nobody pops (the
+ * producer just backs up a few entries). CLIENT GRANULARITY: strict-mode clients already
+ * watched (in the old WB's active set, keep-while-live) STAY with their old WB — only NEW
+ * watches pushed to the queue land on the new owner ("join-only-for-new-retirements"). */
+static _Atomic int tmWbqOwner[TOMO_IFID_THREADS_MAX + 1];
+static _Atomic int tmWbqNextOwner[TOMO_IFID_THREADS_MAX + 1];
+static int tmWbQHi;   /* wbq scan bound: ifid_threads legacy; +1 when the thread-modes spare exists */
+
+static inline int wbOwnsQueue(int rid, int R, int qi) {
+    if (!server.thread_modes) return ((qi - 1) % R) == rid;   /* legacy static partition, token-exact */
+    int own = atomic_load_explicit(&tmWbqOwner[qi], memory_order_acquire);
+    if (own != rid) return 0;
+    int next = atomic_load_explicit(&tmWbqNextOwner[qi], memory_order_acquire);
+    if (next != rid) {
+        /* Handover requested: ack by publishing ownership (release carries this thread's
+         * final head-cursor stores to the acquiring new owner) and never touch qi again. */
+        atomic_store_explicit(&tmWbqOwner[qi], next, memory_order_release);
+        return 0;
+    }
+    return 1;
+}
 
 /* SPSC handoff: IO thread (producer) -> WB thread (consumer). Immediate-publish (no staging). */
 static inline int wbqPush(exQueue *q, client *c) {
@@ -10930,15 +11224,38 @@ static int wbDrainClient(client *c, struct io_uring *ring, int rid) {
            (c->bufpos <= c->sentlen) && listLength(c->reply) == 0;
 }
 
-/* uring-strict WB main loop: maintain an active set of clients (added via the wbq 'watch' the IO
- * thread pushes at first-in-flight), reorder/reassemble/retire/send each, reap CQEs. */
-static void wbRun(int rid, int R, struct io_uring *ring) {
-    int spins = 0;
-    while (1) {
+/* ee451 (thread-modes v1): WB slice context — the persistent loop-locals of the two WB
+ * main loops (strict wbRun / non-strict wbThreadMain), hoisted so one pass (a "slice")
+ * can be driven by wbThreadMain today or polyThreadMain under tomokv-thread-modes.
+ * NOT in here: the __thread ifidx store (mode-scoped identity — poly checkpoint only)
+ * and the ring INIT (wbEnsureRing — one-time WB-entry setup). */
+typedef struct wbSliceCtx {
+    int rid;                 /* WB id (wb_slot) */
+    int R;                   /* wbThreadCount at entry (legacy partition modulo; immutable) */
+    struct io_uring *ring;   /* this WB's exclusive send ring */
+    int spins;               /* idle-backoff counter (persistent across slices) */
+} wbSliceCtx;
+
+static void wbSliceInit(wbSliceCtx *ctx, int rid) {
+    ctx->rid = rid;
+    ctx->R = wbThreadCount;
+    ctx->ring = &wbRings[rid];
+    ctx->spins = 0;
+}
+
+/* ee451 (thread-modes v1): ONE pass of the STRICT WB loop — drain owned wbqs into the
+ * active set, scan/reassemble/retire/send each watched client, reap CQEs, idle-backoff —
+ * moved VERBATIM from the old wbRun while(1) body (locals -> ctx; queue-selection via
+ * wbOwnsQueue == the legacy modulo when tomokv-thread-modes is off; bound tmWbQHi ==
+ * ifid_threads when off). Returns 1 if the pass did work, 0 for an idle pass. */
+static int wbStrictSlice(wbSliceCtx *ctx) {
+    int rid = ctx->rid, R = ctx->R;
+    struct io_uring *ring = ctx->ring;
+    {
         int did = 0;
         /* (1) drain assigned wbqs -> add watched clients to the active set (dedup via on_wbq) */
-        for (int qi = 1; qi < server.ifid_threads; qi++) {
-            if (((qi - 1) % R) != rid) continue;
+        for (int qi = 1; qi < tmWbQHi; qi++) {
+            if (!wbOwnsQueue(rid, R, qi)) continue;
             client *c;
             while ((c = wbqPop(&server.ifidThreads[qi].wbq)) != NULL) {
                 if (c->on_wbq) continue;
@@ -10981,10 +11298,10 @@ static void wbRun(int rid, int R, struct io_uring *ring) {
             }
             if (seen) io_uring_cq_advance(ring, seen);
         }
-        if (did) spins = 0;
-        else if (++spins < 2000) { for (int p = 0; p < 16; p++) exPauseCpu(); }
+        if (did) ctx->spins = 0;
+        else if (++ctx->spins < 2000) { for (int p = 0; p < 16; p++) exPauseCpu(); }
         else {
-            spins = 0;
+            ctx->spins = 0;
             if (wbDbg && rid == 0) {
                 static long last = 0; long s = __atomic_load_n(&wbcSend, __ATOMIC_RELAXED);
                 if (s != last || wbcFallback != last) { last = s;
@@ -10993,34 +11310,30 @@ static void wbRun(int rid, int R, struct io_uring *ring) {
             }
             usleep(50);
         }
+        return did;
     }
 }
 
-void *wbThreadMain(void *arg) {
-    int rid = (int)(intptr_t)arg;           /* WB id, 0 .. wbThreadCount-1 */
-    int R = wbThreadCount;
-    /* This WB drains every io thread i (1..I-1) with (i-1) % R == rid. Each such wbq is
-     * single-producer (its io thread) / single-consumer (this WB) => SPSC preserved, and a
-     * client maps to exactly one io thread -> one wbq -> this WB, so per-client reply order holds.
-     * ifidx: pin to the lowest io thread we serve so any incidental ifidx read stays in-range
-     * (the WB touches no per-ifidx arrays on its hot path). */
-    int first = 0;
-    for (int i = 1; i < server.ifid_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
-    /* Non-strict: the WB touches no per-ifidx arrays, so ifidx is cosmetic. Strict: the WB RETIRES
-     * fakes (freebackPush keys on thread-local ifidx) -> give it a DEDICATED slot beyond the io threads
-     * (ifid_threads+1+rid) so it never shares an SPSC freeback ring with an io thread. */
-    ifidx = server.strict_pipeline ? (server.ifid_threads + 1 + rid) : first;
-    if (!wbEnsureRing(rid)) { serverLog(LL_WARNING, "uring-threestage: WB ring init failed (WB %d)", rid); return NULL; }
-    if (getenv("TS_WB_DBG")) wbDbg = 1;
-    serverLog(LL_NOTICE, "uring-threestage: WB send thread %d of %d ready (strict=%d freeback_iotid=%d, dbg=%d)", rid, R, server.strict_pipeline, ifidx, wbDbg);
-    struct io_uring *ring = &wbRings[rid];
-    if (server.strict_pipeline) { wbRun(rid, R, ring); return NULL; }
-    int spins = 0;
-    while (1) {
+/* uring-strict WB main loop: maintain an active set of clients (added via the wbq 'watch' the IO
+ * thread pushes at first-in-flight), reorder/reassemble/retire/send each, reap CQEs. */
+static void wbRun(int rid, int R, struct io_uring *ring) {
+    wbSliceCtx ctx = { .rid = rid, .R = R, .ring = ring, .spins = 0 };
+    while (1) wbStrictSlice(&ctx);
+}
+
+/* ee451 (thread-modes v1): ONE pass of the NON-STRICT WB loop — drain owned wbqs prepping
+ * one coalesced io_uring send per popped client, submit, reap CQEs, idle-backoff — moved
+ * VERBATIM from the old wbThreadMain while(1) body (locals -> ctx; queue selection via
+ * wbOwnsQueue/tmWbQHi == the legacy modulo/bound when tomokv-thread-modes is off).
+ * Returns 1 if the pass did work, 0 for an idle pass. */
+static int wbUringSlice(wbSliceCtx *ctx) {
+    int rid = ctx->rid, R = ctx->R;
+    struct io_uring *ring = ctx->ring;
+    {
         int did = 0;
         /* (1) drain every wbq assigned to this WB thread; prep one coalesced send per client */
-        for (int qi = 1; qi < server.ifid_threads; qi++) {
-            if (((qi - 1) % R) != rid) continue;
+        for (int qi = 1; qi < tmWbQHi; qi++) {
+            if (!wbOwnsQueue(rid, R, qi)) continue;
             exQueue *q = &server.ifidThreads[qi].wbq;
             client *c;
             while ((c = wbqPop(q)) != NULL) {
@@ -11082,10 +11395,10 @@ void *wbThreadMain(void *arg) {
             }
             if (seen) io_uring_cq_advance(ring, seen);
         }
-        if (did) { spins = 0; }
-        else if (++spins < 2000) { for (int p = 0; p < 16; p++) exPauseCpu(); }
+        if (did) { ctx->spins = 0; }
+        else if (++ctx->spins < 2000) { for (int p = 0; p < 16; p++) exPauseCpu(); }
         else {
-            spins = 0;
+            ctx->spins = 0;
             if (wbDbg && rid == 0) {   /* only WB 0 dumps the (shared) aggregate, ~every 50ms idle */
                 static long lastdump = 0; long s = __atomic_load_n(&wbcSend, __ATOMIC_RELAXED);
                 if (s != lastdump) { lastdump = s;
@@ -11095,7 +11408,33 @@ void *wbThreadMain(void *arg) {
             }
             usleep(50);
         }
+        return did;
     }
+}
+
+void *wbThreadMain(void *arg) {
+    int rid = (int)(intptr_t)arg;           /* WB id, 0 .. wbThreadCount-1 */
+    int R = wbThreadCount;
+    /* This WB drains every io thread i (1..I-1) with (i-1) % R == rid. Each such wbq is
+     * single-producer (its io thread) / single-consumer (this WB) => SPSC preserved, and a
+     * client maps to exactly one io thread -> one wbq -> this WB, so per-client reply order holds.
+     * ifidx: pin to the lowest io thread we serve so any incidental ifidx read stays in-range
+     * (the WB touches no per-ifidx arrays on its hot path). */
+    int first = 0;
+    for (int i = 1; i < server.ifid_threads; i++) if (R > 0 && ((i - 1) % R) == rid) { first = i; break; }
+    /* Non-strict: the WB touches no per-ifidx arrays, so ifidx is cosmetic. Strict: the WB RETIRES
+     * fakes (freebackPush keys on thread-local ifidx) -> give it a DEDICATED slot beyond the io threads
+     * (ifid_threads+1+rid) so it never shares an SPSC freeback ring with an io thread. */
+    /* ee451 (thread-modes v1): this TLS store is mode-scoped IDENTITY — under
+     * tomokv-thread-modes the poly checkpoint owns it (WB threads then run polyThreadMain). */
+    ifidx = server.strict_pipeline ? (server.ifid_threads + 1 + rid) : first;
+    if (!wbEnsureRing(rid)) { serverLog(LL_WARNING, "uring-threestage: WB ring init failed (WB %d)", rid); return NULL; }
+    if (getenv("TS_WB_DBG")) wbDbg = 1;
+    serverLog(LL_NOTICE, "uring-threestage: WB send thread %d of %d ready (strict=%d freeback_iotid=%d, dbg=%d)", rid, R, server.strict_pipeline, ifidx, wbDbg);
+    struct io_uring *ring = &wbRings[rid];
+    if (server.strict_pipeline) { wbRun(rid, R, ring); return NULL; }
+    wbSliceCtx ctx = { .rid = rid, .R = R, .ring = ring, .spins = 0 };
+    while (1) wbUringSlice(&ctx);
     return NULL;
 }
 #endif
@@ -11116,7 +11455,23 @@ void initIfidThreads(void) {
     }
 #endif
     server.ifidThreadsNum = server.ifid_threads;
-    server.ifidThreads = zmalloc(sizeof(ifidThreadArgs) * server.ifid_threads);
+    int tmspare = 0;
+    if (server.thread_modes) {
+        /* ee451 (thread-modes v1): capture the allowed-core count BEFORE any pin narrows an
+         * affinity mask, decide the spare (3s configured = ifid + ex + wb — MUST match
+         * initServer's num_workers_alloc predicate), and size the poly registry. */
+        int allowed = tmAllowedCores();
+        int R = tmResolveWbCount();
+        int configured = server.ifid_threads + server.num_workers + R;
+        tmspare = configured < allowed ? 1 : 0;
+        int npoly = (server.ifid_threads - 1) + server.num_workers + R + tmspare;
+        tmPolyCtxs = zcalloc(sizeof(polyThreadCtx) * (npoly > 0 ? npoly : 1));
+        serverLog(LL_NOTICE, "ee451 thread-modes ON: %d poly threads (%d ifid-born, %d ex-born, %d wb-born, "
+                             "%d spare; %d configured vs %d allowed cores)",
+                  npoly, server.ifid_threads - 1, server.num_workers, R, tmspare, configured, allowed);
+    }
+    /* +1 entry when a spare exists: its dormant io binding lives at [ifid_threads]. */
+    server.ifidThreads = zmalloc(sizeof(ifidThreadArgs) * (server.ifid_threads + tmspare));
     server.custom_ifid_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
     for (int i = 1; i < server.ifid_threads; i++) {
@@ -11150,7 +11505,29 @@ void initIfidThreads(void) {
         aeSetAfterSleepProc(t->el, afterSleepIO);
 
         /* Spin up the thread */
-        if (pthread_create(&t->tid, NULL, ifidThreadMain, t) != 0) {
+        if (server.thread_modes) {
+            /* ee451 (thread-modes v1): IFID-born poly thread. Fixed identity triple:
+             * ifid_slot = its io thread id (listener + event loop pre-built above, exactly
+             * as the static path); ex_slot / wb_slot are reserved NAMES (no ex/wb binding —
+             * IFID->EX/WB needs a transition machinery outside v1's legal set). Born
+             * TOMO_MODE_IO: the first checkpoint sets ifidx = ifid_slot before the first
+             * slice, then behavior is identical to ifidThreadMain. */
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
+            ctx->ex = NULL;
+            ctx->io = t;
+            ctx->ifid_slot = i;
+            ctx->ex_slot = server.num_workers + 1 + i;
+            ctx->wb_slot = tmResolveWbCount() + 1 + i;
+            ctx->wb_capable = 0;
+            ctx->io_listening = 1;   /* listener live from boot */
+            atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_relaxed);
+            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                serverLog(LL_WARNING, "Failed creating poly IFID thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            t->tid = ctx->thread;
+        } else if (pthread_create(&t->tid, NULL, ifidThreadMain, t) != 0) {
             serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
             exit(1);
         }
@@ -11186,9 +11563,40 @@ void initIfidThreads(void) {
                 if (R < 1) R = 1;
             }
             wbThreadCount = R;
+            serverAssert(!server.thread_modes || R == tmResolveWbCount());  /* thread-modes: registry/spare math must agree */
+            /* ee451 (thread-modes v1): wbq scan bound + live ownership table, initialized
+             * BEFORE any WB thread spawns (they read both). Knob-off: bound = ifid_threads
+             * and wbOwnsQueue uses the legacy modulo (table unread). Knob-on: the table
+             * starts as exactly that modulo; +1 covers the spare's ingress wbq (dormant
+             * until PARKED->IO, so its owner just scans an empty queue). */
+            tmWbQHi = server.ifid_threads + (server.thread_modes ? tmspare : 0);
+            for (int qi = 1; qi < tmWbQHi && qi <= TOMO_IFID_THREADS_MAX; qi++) {
+                atomic_store_explicit(&tmWbqOwner[qi], (qi - 1) % R, memory_order_relaxed);
+                atomic_store_explicit(&tmWbqNextOwner[qi], (qi - 1) % R, memory_order_relaxed);
+            }
             serverLog(LL_NOTICE, "uring-threestage: starting %d WB send thread(s) for %d io threads (tomokv-wb-threads=%d)", R, nq, server.wb_threads);
             for (int r = 0; r < R; r++) {
-                if (pthread_create(&wbTids[r], NULL, wbThreadMain, (void *)(intptr_t)r) != 0) {
+                if (server.thread_modes) {
+                    /* ee451 (thread-modes v1): WB-born poly thread. wb_slot = its rid (the WB
+                     * identity it was born to); ifid_slot / ex_slot are reserved NAMES. Born
+                     * TOMO_MODE_WB: the first checkpoint runs the exact wbThreadMain preamble
+                     * (identity + ring init) before the first slice. */
+                    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_WB, r);
+                    ctx->ex = NULL;
+                    ctx->io = NULL;
+                    ctx->wb_slot = r;
+                    ctx->wb_capable = 1;
+                    ctx->ifid_slot = server.ifid_threads + 2 + R + server.num_workers + r;  /* unique name */
+                    ctx->ex_slot = server.num_workers + 1 + server.ifid_threads + r;        /* unique name */
+                    ctx->io_listening = 0;
+                    atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+                    atomic_store_explicit(&ctx->target_mode, TOMO_MODE_WB, memory_order_relaxed);
+                    if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                        serverLog(LL_WARNING, "Failed creating poly WB thread %d: %s", r, strerror(errno));
+                        exit(1);
+                    }
+                    wbTids[r] = ctx->thread;
+                } else if (pthread_create(&wbTids[r], NULL, wbThreadMain, (void *)(intptr_t)r) != 0) {
                     serverLog(LL_WARNING, "Failed creating WB thread %d: %s", r, strerror(errno));
                     exit(1);
                 }
@@ -11196,21 +11604,488 @@ void initIfidThreads(void) {
         }
     }
 #endif
+    if (tmspare) tmSpawnSpare();
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIfidThreadToCore(pthread_self(), 0);
 }
+
+/* ee451 (thread-modes v1): ONE pass of the IFID (ingress) loop. The IO loop keeps no
+ * persistent loop-local state of its own (the event loop owns all of it inside t->el),
+ * so there is no ifidSliceCtx — a slice is exactly one aeProcessEventsIO() pass.
+ * Returns the number of events processed (0 = idle pass). NOTE: aeApiPoll blocks with
+ * tvp=NULL while replyWorking==0, so a mode check between slices is NOT prompt —
+ * IFID-exit would need a wakeup or bounded poll timeout (rejected in v1 anyway). */
+static int ifidSlice(ifidThreadArgs *t) {
+    return aeProcessEventsIO(t->el);
+}
+
 void *ifidThreadMain(void *arg) {
     ifidThreadArgs *t = (ifidThreadArgs *)arg;
+    /* ee451 (thread-modes v1): mode-scoped IDENTITY — IFID identity is the raw io thread
+     * id (EX identity is TOMO_IFID_THREADS_MAX+1+id, strict-WB identity ifid_threads+1+rid);
+     * queue/freeback/recycle producer slots and replyWorking index off it. Under
+     * tomokv-thread-modes the poly checkpoint owns this store. */
     ifidx = t->id;
 
     fprintf(stderr, "IO thread %d started\n", t->id);
 
     while (1) {
-        aeProcessEventsIO(t->el);
+        ifidSlice(t);
     }
 
     return NULL;
+}
+
+/* ee451 (thread-modes v1): build + park the ONE spare poly thread.
+ * Its io binding (server.ifidThreads[ifid_threads]: event loop + REUSEPORT listener)
+ * is pre-allocated HERE at boot so IFID-entry is instant, but the listener is
+ * bound-NOT-listening: a TCP socket only joins the kernel's reuseport dispatch
+ * group at listen(), so the dormant socket steals no connections while parked
+ * (a pre-listen()ed socket WOULD — the kernel hashes connections to it and
+ * they'd rot unaccepted in its backlog). The spare's ifid_slot ifid_threads is the
+ * historically unfed "+1" producer slot: worker queues[slot]/freeback[slot], the
+ * per-slot client lists and fence_acked[slot] all already exist, so activation
+ * needs no resizing; its wbq is covered by the WB scan (tmWbQHi) and owner table
+ * from boot. wb_capable when the WB pool exists and the spare's WB retirement
+ * ifidx (ifid_threads+1+wbThreadCount) stays under the per-ifidx array ceiling. */
+static void tmSpawnSpare(void) {
+    ifidThreadArgs *t = &server.ifidThreads[server.ifid_threads];
+    t->id = server.ifid_threads;
+    memset(t->recycle, 0, sizeof(t->recycle));   /* v12-pool rings: spare parses/allocs like any ifid */
+    memset(&t->wbq, 0, sizeof(t->wbq));
+    memset(&t->resumeq, 0, sizeof(t->resumeq));
+    t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
+    if (t->el == NULL) {
+        serverLog(LL_WARNING, "thread-modes: failed creating event loop for the spare thread");
+        exit(1);
+    }
+    t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+    if (t->fd == ANET_ERR) {
+        serverLog(LL_WARNING, "thread-modes: failed binding the spare's dormant listener: %s", server.neterr);
+        exit(1);
+    }
+    anetNonBlock(NULL, t->fd);
+    /* Same stripped before/after sleep as any ifid thread; the accept handler is
+     * registered by the spare ITSELF at IFID-entry (its own event loop — single
+     * threaded once it runs; nothing processes this loop while parked). */
+    aeSetBeforeSleepProc(t->el, beforeSleepIfid);
+    aeSetAfterSleepProc(t->el, afterSleepIO);
+
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_PARKED, 0);
+    ctx->ex = NULL;                       /* EX binding provisioned LATER by initExThreads (which runs
+                                           * after initIfidThreads) when num_workers_alloc > num_workers */
+    ctx->io = t;
+    ctx->ifid_slot = server.ifid_threads;
+    ctx->ex_slot = server.num_workers;    /* the spare's REAL worker slot once EX-capable */
+#ifdef HAVE_LIBURING
+    ctx->wb_slot = wbThreadCount;         /* the spare's REAL WB rid when wb_capable */
+    ctx->wb_capable = wbThreadCount >= 1 &&
+                      server.ifid_threads + 1 + wbThreadCount <= TOMO_IFID_THREADS_MAX;
+    if (ctx->wb_capable) tmWbSpareExtra = 1;   /* workers drain the spare's WB freeback slot from boot */
+#else
+    ctx->wb_slot = 0;                     /* reserved name only (never entered) */
+    ctx->wb_capable = 0;
+#endif
+    ctx->io_listening = 0;                /* dormant until IFID-entry */
+    atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
+    atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_relaxed);
+    if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+        serverLog(LL_WARNING, "thread-modes: failed creating the spare poly thread: %s", strerror(errno));
+        exit(1);
+    }
+    t->tid = ctx->thread;
+    /* Stable pin index: workers take 0..W-1, ifid threads W..W+I-1, the spare gets
+     * the NEXT slot — no live thread's pin index moves (WB threads float, as legacy). */
+    {
+        char what[40]; snprintf(what, sizeof what, "Spare poly thread");
+        pinThreadToCoreN(ctx->thread, what, server.num_workers + server.ifid_threads);
+    }
+    tmSpare = ctx;
+    serverLog(LL_NOTICE, "ee451 thread-modes: spare poly thread PARKED (ifid_slot %d, ex_slot %d, wb_slot %d, "
+                         "wb_capable %d), listener bound dormant on port %d",
+              ctx->ifid_slot, ctx->ex_slot, ctx->wb_slot, ctx->wb_capable, server.port);
+}
+
+/* ee451 (thread-modes v1): unified polymorphic thread main — WIRED when
+ * tomokv-thread-modes=1 (all tomokv threads — ifid + ex + wb — run this; static mains
+ * untouched when 0). arg = this thread's polyThreadCtx (fixed identity triple + bindings).
+ *
+ * The MODE-SCOPED IDENTITY protocol (the historic worker-slot crash class was
+ * two live threads aliasing one __thread ifidx slot):
+ *   - identity slots are FIXED at creation and never shared between live threads
+ *     (see polyThreadCtx) — so no transition can ever alias another thread;
+ *   - ifidx is (re)stored ONLY at the checkpoint below — between slices, when
+ *     this thread is not mid-slice and owns no in-flight ifidx-indexed state —
+ *     and always BEFORE the first slice of the new mode runs;
+ *   - a mode is entered only if its binding exists (io: listener + event loop;
+ *     ex: exThread/shard; wb: wb_capable + ring init). Refused targets leave the
+ *     thread in its current mode (parked if it never had one).
+ *
+ * Transitions: birth PARKED->preset (IFID/EX/WB) at the first checkpoint, plus the
+ * spare's (tomokv-modeshift-test):
+ *   PARKED->IO  (1) complete the dormant listener: listen() joins the SO_REUSEPORT
+ *               group (new connections kernel-hash here from that instant) and the
+ *               accept handler is registered on the thread's OWN event loop before its
+ *               first slice. In strict mode its reply watches go to its own wbq, whose
+ *               WB owner has been scanning it (empty) since boot.
+ *   PARKED->EX  (2) adopt EX identity + slice the (empty) pre-allocated shard slot;
+ *               the modeshift fn then migrates buckets IN via the v8d engine and the
+ *               coordinator publishes num_workers_live at the FLIP (go-live).
+ *   EX->PARKED  (3/0) requested by the coordinator only AFTER the outbound migration's
+ *               teardown: the park checkpoint drains the straggler queues until quiet,
+ *               asserts the shard is EMPTY (v1 invariant — never park data), then parks.
+ *   PARKED->WB  (4) adopt the spare WB identity (rid wbThreadCount, dedicated retirement
+ *               ifidx), init the send ring, then the modeshift fn repartitions ONE wbq to
+ *               it behind the tmWbqOwner fence (new watches only — join-only-for-new-
+ *               retirements; already-watched clients stay with their original WB).
+ * IFID-exit, WB-exit and every direct mode<->mode swap are refused here AND at the
+ * config layer: v1's legal set is spare-only PARKED->{IO,EX,WB} + EX->PARKED. */
+void *polyThreadMain(void *arg) {
+    polyThreadCtx *ctx = (polyThreadCtx *)arg;
+    int cur = -1;              /* no mode entered yet (distinct from PARKED, which is a real mode) */
+    exSliceCtx exctx;
+    int ex_inited = 0;         /* one-time EX setup done (NUMA bind / slice ctx) */
+#ifdef HAVE_LIBURING
+    wbSliceCtx wbctx;
+    int wb_inited = 0;         /* one-time WB setup done (send ring / slice ctx) */
+#endif
+    int refused = -1;          /* last refused target, to log once */
+
+    for (;;) {
+        /* CHECKPOINT — between slices, never mid-slice. Adopt target_mode and
+         * swap identity before the new mode's first slice. */
+        int want = atomic_load_explicit(&ctx->target_mode, memory_order_acquire);
+        if (__builtin_expect(want != cur, 0)) {
+            int ok = 1;
+            switch (want) {
+            case TOMO_MODE_IO:
+                if (!ctx->io) { ok = 0; break; }        /* EX/WB-born: no listener/el (not in v1) */
+                if (cur == TOMO_MODE_EX || cur == TOMO_MODE_WB) { ok = 0; break; }  /* direct swaps illegal — park first (and EX/WB-exit only via their own protocols) */
+                ifidx = ctx->ifid_slot;                 /* IFID identity, BEFORE any slice */
+                if (!ctx->io_listening) {
+                    /* IFID-ENTRY (spare): make the pre-bound dormant listener live.
+                     * listen() joins the SO_REUSEPORT dispatch group — instant. */
+                    if (listen(ctx->io->fd, server.tcp_backlog) != 0) {
+                        serverLog(LL_WARNING, "thread-modes: spare listen() failed: %s", strerror(errno));
+                        ok = 0; break;
+                    }
+                    if (aeCreateFileEvent(ctx->io->el, ctx->io->fd, AE_READABLE,
+                        connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
+                        serverLog(LL_WARNING, "thread-modes: spare accept-handler registration failed");
+                        ok = 0; break;
+                    }
+                    ctx->io_listening = 1;
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT PARKED->IO complete — "
+                                         "spare is ifid thread %d (ifidx=%d), listener live, accepting",
+                              ctx->io->id, ifidx);
+                } else if (cur == -1) {
+                    fprintf(stderr, "IO thread %d started (poly, ifidx=%d)\n", ctx->io->id, ifidx);
+                }
+                break;
+            case TOMO_MODE_EX:
+                if (!ctx->ex) { ok = 0; break; }        /* IFID/WB-born: no shard slot (not in v1) */
+                if (cur == TOMO_MODE_IO || cur == TOMO_MODE_WB) { ok = 0; break; }  /* direct swaps illegal */
+                ifidx = TOMO_IFID_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
+                if (!ex_inited) {
+                    /* One-time EX setup, exactly as exThreadMain's preamble. */
+                    exBindNumaLocal(ctx->ex->id);
+                    exSliceInit(ctx->ex, &exctx);
+                    ex_inited = 1;
+                    fprintf(stderr, "[worker %d] started (poly, ifidx=%d)\n", ctx->ex->id, ifidx);
+                }
+                if (cur == TOMO_MODE_PARKED) {
+                    /* EX-ENTRY of the spare — it starts slicing its pre-allocated shard
+                     * slot, which is EMPTY (nothing routes here until the activation
+                     * migration FLIPs buckets in). */
+                    long long sz = 0;
+                    for (int d = 0; d < server.dbnum; d++) sz += dbSize(&ctx->ex->db[d]);
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is "
+                                         "worker %d (ifidx=%d), shard holds %lld keys, spinning for buckets",
+                              ctx->ex->id, ifidx, sz);
+                }
+                break;
+            case TOMO_MODE_WB:
+#ifdef HAVE_LIBURING
+                if (!ctx->wb_capable) { ok = 0; break; }   /* no WB pool / slot over the ifidx ceiling */
+                if (cur == TOMO_MODE_IO || cur == TOMO_MODE_EX) { ok = 0; break; }  /* direct swaps illegal */
+                /* WB identity, BEFORE any slice. Unlike legacy wbThreadMain (non-strict pins
+                 * ifidx to the first served io thread, cosmetic), a poly WB ALWAYS takes its
+                 * DEDICATED retirement slot ifid_threads+1+rid: required in strict mode (own
+                 * freeback/recycle producer slot + pending-write list), safe in non-strict
+                 * (the WB hot path touches no per-ifidx arrays there), and — unlike "first
+                 * owned queue" — stable under live wbq repartitions. */
+                ifidx = server.ifid_threads + 1 + ctx->wb_slot;
+                if (!wb_inited) {
+                    if (!wbEnsureRing(ctx->wb_slot)) {
+                        serverLog(LL_WARNING, "uring-threestage: WB ring init failed (WB %d)", ctx->wb_slot);
+                        ok = 0; break;
+                    }
+                    if (getenv("TS_WB_DBG")) wbDbg = 1;
+                    wbSliceInit(&wbctx, ctx->wb_slot);
+                    wb_inited = 1;
+                    serverLog(LL_NOTICE, "uring-threestage: WB send thread %d of %d ready "
+                                         "(poly, strict=%d freeback_iotid=%d, dbg=%d)",
+                              ctx->wb_slot, wbThreadCount, server.strict_pipeline, ifidx, wbDbg);
+                }
+                if (cur == TOMO_MODE_PARKED)
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT PARKED->WB complete — spare is "
+                                         "WB %d (ifidx=%d), scanning for owned wbqs", ctx->wb_slot, ifidx);
+#else
+                ok = 0;                                 /* no WB machinery without liburing */
+#endif
+                break;
+            case TOMO_MODE_PARKED:
+            default:
+                /* Parking is legal from birth (cur == -1) and from EX after its buckets
+                 * are gone; IFID-exit needs the gradual conn drain and WB-exit a reverse
+                 * queue handover + active-set drain (neither in v1). Parking itself
+                 * touches no ifidx-indexed state. */
+                if (cur == TOMO_MODE_IO || cur == TOMO_MODE_WB) { ok = 0; break; }
+                if (cur == TOMO_MODE_EX) {
+                    /* EX-EXIT PARK CHECKPOINT. Only the reshard coordinator requests
+                     * this, strictly after the outbound migration's teardown — the
+                     * bucket table routes NOTHING here anymore and the live-set fan-outs
+                     * (KEYS/FLUSH) stopped at live--, one whole migration earlier. If a
+                     * migration involving this shard is somehow still active, stay EX
+                     * and retry at the next checkpoint (target_mode is still PARKED). */
+                    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
+                        (server.migration.src == ctx->ex->id || server.migration.dst == ctx->ex->id)) {
+                        ok = 0; break;
+                    }
+                    /* Drain stragglers: keep slicing (queues + freeback rings + reply
+                     * signals) until every source has stayed quiet for 50ms. */
+                    mstime_t quiet0 = mstime();
+                    while (mstime() - quiet0 < 50)
+                        if (exSlice(ctx->ex, &exctx)) quiet0 = mstime();
+                    /* V1 invariant: a parked shard is EMPTY — the outbound migration
+                     * moved the spare's whole range and nothing routes here. Fail loud
+                     * rather than park data. */
+                    long long resid = 0;
+                    for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
+                    if (resid != 0)
+                        serverLog(LL_WARNING, "thread-modes: parking spare worker %d with %lld keys "
+                                              "still in its shard — v1 invariant violated", ctx->ex->id, resid);
+                    serverAssert(resid == 0);
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT EX->PARKED complete — "
+                                         "spare worker %d parked (shard empty, queues quiet)", ctx->ex->id);
+                }
+                break;
+            }
+            if (ok) {
+                cur = want;
+                atomic_store_explicit(&ctx->mode, cur, memory_order_release);
+                refused = -1;                           /* a successful shift re-arms rejection logging */
+            } else if (refused != want) {
+                serverLog(LL_WARNING, "thread-modes: refused shift to mode %d (ifid_slot %d, ex_slot %d, "
+                                      "wb_slot %d): no binding for that mode / transition not legal in v1",
+                          want, ctx->ifid_slot, ctx->ex_slot, ctx->wb_slot);
+                refused = want;                         /* log once; stay in current mode */
+            }
+        }
+
+        switch (cur) {
+        case TOMO_MODE_IO: ifidSlice(ctx->io);          break;
+        case TOMO_MODE_EX: exSlice(ctx->ex, &exctx);    break;
+#ifdef HAVE_LIBURING
+        case TOMO_MODE_WB:
+            if (server.strict_pipeline) wbStrictSlice(&wbctx);
+            else                        wbUringSlice(&wbctx);
+            break;
+#endif
+        default: {
+            /* PARKED (or never-entered): 50ms bounded wait, then re-check target.
+             * A futex park/wake comes with the balancer; 50ms shift latency is
+             * fine for the control plane. */
+            struct timespec ts = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+            break;
+        }
+        }
+    }
+    return NULL;
+}
+
+/* ee451 (thread-modes v1): fenced wbq repartition for the spare's WB join. Pick the
+ * victim WB owning the MOST queues (ties -> highest rid) and hand its HIGHEST-index
+ * queue to the spare: the control plane publishes tmWbqNextOwner, the old owner acks
+ * at its next scan (wbOwnsQueue) with a release that carries its final head cursor,
+ * and the spare pops only after acquiring tmWbqOwner == its rid. Clients already
+ * watched via that queue stay with the old WB (client-granularity, keep-while-live);
+ * only NEW watches land on the spare. Returns the queue moved, or -1. */
+#ifdef HAVE_LIBURING
+static int tmWbJoinSpare(int spare_rid, const char **err) {
+    int R = wbThreadCount;
+    int cnt[TOMO_IFID_THREADS_MAX + 1] = {0};
+    for (int qi = 1; qi < server.ifid_threads; qi++) {   /* spare's own ingress wbq excluded (dormant) */
+        int own = atomic_load_explicit(&tmWbqOwner[qi], memory_order_acquire);
+        if (own >= 0 && own < R) cnt[own]++;
+    }
+    int victim = -1, most = 0;
+    for (int r = 0; r < R; r++) if (cnt[r] >= most) { most = cnt[r]; victim = r; }
+    if (victim < 0 || most == 0) { *err = "no wbq available to repartition to the spare WB"; return -1; }
+    int qmove = -1;
+    for (int qi = server.ifid_threads - 1; qi >= 1; qi--)
+        if (atomic_load_explicit(&tmWbqOwner[qi], memory_order_acquire) == victim) { qmove = qi; break; }
+    serverAssert(qmove >= 1);
+    atomic_store_explicit(&tmWbqNextOwner[qmove], spare_rid, memory_order_release);
+    /* Fence-wait for the old owner's ack (it acks at its next scan of qmove — its loop
+     * runs a scan at least every ~50µs idle / every pass busy, so ms at most). */
+    for (int waited = 0; waited < 400; waited++) {       /* <= 2s */
+        if (atomic_load_explicit(&tmWbqOwner[qmove], memory_order_acquire) == spare_rid) {
+            serverLog(LL_NOTICE, "ee451 thread-modes: wbq %d repartitioned WB %d -> spare WB %d "
+                                 "(fenced; existing watched clients stay with WB %d)",
+                      qmove, victim, spare_rid, victim);
+            return qmove;
+        }
+        usleep(5000);
+    }
+    /* Roll back the request (old owner never acked — should not happen while it loops). */
+    atomic_store_explicit(&tmWbqNextOwner[qmove], victim, memory_order_release);
+    *err = "old WB owner did not ack the wbq handover within 2s";
+    return -1;
+}
+#endif
+
+/* ee451 (thread-modes v1): control-plane entry for the modeshift test knob — retarget
+ * the SPARE. V1 legal transitions (spare-only; rejected both here and at the poly
+ * checkpoint):
+ *   1 = PARKED->IO  instant listener join (ifid ingress; strict watches covered by the
+ *       boot-time owner of the spare's wbq).
+ *   2 = PARKED->EX  wake the spare onto its empty pre-allocated shard slot, then migrate
+ *       the TOP HALF of worker W-1's bucket range INTO it with the v8d online-reshard
+ *       engine (effect log + drain fence + FLIP). The bucket-table FLIP is the go-live:
+ *       the coordinator publishes num_workers_live there. Seeding from W-1 (not "the
+ *       hottest") keeps the ex_bucket_end contiguity invariant that the FLIP arithmetic
+ *       and the autotuner's boundary math depend on (suffix move, dst == src+1); once
+ *       LIVE, reshardAutoTune rebalances genuinely hot load into it organically.
+ *   3 or 0 = EX->PARKED  num_workers_live-- FIRST (the autotuner and KEYS/FLUSH fan-outs
+ *       stop considering the spare while it keeps consuming), then migrate ALL of the
+ *       spare's buckets back to W-1; after teardown the coordinator requests PARKED and
+ *       the spare's park checkpoint drains, asserts its shard EMPTY, and parks.
+ *   4 = PARKED->WB  wake the spare into WB (rid wbThreadCount, ring + dedicated
+ *       retirement ifidx), then fence-repartition ONE wbq to it (tmWbJoinSpare) so NEW
+ *       watches retire there. WB-exit (reverse handover + active-set drain) is not in
+ *       v1 — a WB spare stays WB (like an IO spare).
+ * Runs on the main thread (CONFIG SET) — the SAME thread as reshardAutoTune, so the
+ * live-set write, the EWMA-slot resets and the arm are atomic wrt the autotuner.
+ * Returns 1 on success, 0 with *err set (config.c rolls the value back). */
+int tomoModeshiftSpare(int mode, const char **err) {
+    if (mode == 0 && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
+    int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
+    int W = server.num_workers;
+    switch (mode) {
+    case 1: /* -> IO (ifid ingress) */
+        if (cur == TOMO_MODE_IO) return 1;            /* already there */
+        if (cur == TOMO_MODE_EX) { *err = "EX->IO direct is illegal — park first (modeshift 3)"; return 0; }
+        if (cur == TOMO_MODE_WB) { *err = "WB->IO direct is illegal — WB-exit is not implemented in v1"; return 0; }
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_IO, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->IO (ifid_slot %d)",
+                  tmSpare->ifid_slot);
+        return 1;
+    case 2: { /* -> EX */
+        if (cur == TOMO_MODE_EX) return 1;            /* already there */
+        if (cur == TOMO_MODE_IO) { *err = "IO->EX direct is illegal — IFID-exit is not implemented in v1"; return 0; }
+        if (cur == TOMO_MODE_WB) { *err = "WB->EX direct is illegal — WB-exit is not implemented in v1"; return 0; }
+        if (!tmSpare->ex)
+            { *err = "spare has no EX binding (tomokv-ex-threads is 0, or the extra slot would exceed TOMO_EX_THREADS_MAX)"; return 0; }
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            { *err = "a migration is in flight — retry when it completes"; return 0; }
+        /* Seed range: the TOP HALF of worker W-1's contiguous range (a SUFFIX move to
+         * dst = src+1 — exactly the adjacency the FLIP bookkeeping handles; W-1 is the
+         * last live worker so its range always ends at TOMO_BUCKETS). */
+        int src = W - 1;
+        int lo_src = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
+        int hi_src = server.ex_bucket_end[src];
+        if (hi_src - lo_src < 2) { *err = "worker W-1 owns too few buckets to split"; return 0; }
+        int lo = lo_src + (hi_src - lo_src) / 2, hi = hi_src;
+        /* 1. Wake the spare into EX. It adopts at its parked checkpoint (<= 50ms poll)
+         * and MUST be slicing before the migration arms: the dst-side effect-log drain
+         * (migDrainB) runs inside exSlice, and a full log would stall the src worker. */
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_EX, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->EX (worker slot %d); "
+                             "will seed buckets [%d,%d) from worker %d after EX adoption", W, lo, hi, src);
+        int waited;
+        for (waited = 0; waited < 400; waited++) {    /* <= 2s; adoption is a 50ms poll */
+            if (atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX) break;
+            usleep(5000);
+        }
+        if (waited == 400) { *err = "spare did not adopt EX mode within 2s"; return 0; }
+        /* 2. Balancer-slot hygiene for the incoming worker (same thread as the
+         * autotuner — no race): fresh EWMAs, rate base = the counter's current value. */
+        mig_load_ewma[W] = mig_load_ewma_fast[W] = 0;
+        mig_last_ops[W] = server.exThreads[W].ops_total;
+        /* 3. Migration INTO the spare; the coordinator publishes num_workers_live at FLIP. */
+        server.tm_mig_spare_action = 1;
+        if (!reshardArm(lo, hi, src, W)) {
+            server.tm_mig_spare_action = 0;
+            *err = "migration already active"; return 0;
+        }
+        reshardBeginCutover();
+        return 1;
+    }
+    case 3:      /* park verb (EX->PARKED) */
+    case 0: {
+        if (cur == TOMO_MODE_PARKED) return 1;        /* no-op */
+        if (cur == TOMO_MODE_IO)
+            { *err = "IFID-exit (gradual conn drain) is not implemented in v1 — cannot re-park a live IO spare"; return 0; }
+        if (cur == TOMO_MODE_WB)
+            { *err = "WB-exit (reverse wbq handover) is not implemented in v1 — cannot re-park a live WB spare"; return 0; }
+        /* cur == EX: migrate everything back, then park. */
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            { *err = "a migration is in flight — retry when it completes"; return 0; }
+        int lo = server.ex_bucket_end[W - 1];         /* spare owns [end[W-1], end[W]) */
+        int hi = server.ex_bucket_end[W];
+        /* Delist FIRST: the autotuner and the KEYS/FLUSH fan-outs stop considering the
+         * spare before its range starts moving; it keeps consuming until it parks. */
+        atomic_store_explicit(&server.num_workers_live, W, memory_order_release);
+        if (lo >= hi) {                               /* the autotuner already drained it — park directly */
+            serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT EX->PARKED — spare owns no buckets, parking directly");
+            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            return 1;
+        }
+        server.tm_mig_spare_action = 2;
+        if (!reshardArm(lo, hi, W, W - 1)) {
+            server.tm_mig_spare_action = 0;
+            atomic_store_explicit(&server.num_workers_live, W + 1, memory_order_release);  /* restore */
+            *err = "migration already active"; return 0;
+        }
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare EX->PARKED: migrating "
+                             "buckets [%d,%d) back to worker %d; park follows teardown", lo, hi, W - 1);
+        reshardBeginCutover();
+        return 1;   /* async: the spare parks when the coordinator finishes */
+    }
+    case 4: { /* -> WB */
+#ifdef HAVE_LIBURING
+        if (cur == TOMO_MODE_WB) return 1;            /* already there */
+        if (cur == TOMO_MODE_IO) { *err = "IO->WB direct is illegal — IFID-exit is not implemented in v1"; return 0; }
+        if (cur == TOMO_MODE_EX) { *err = "EX->WB direct is illegal — park first (modeshift 3)"; return 0; }
+        if (!tmSpare->wb_capable)
+            { *err = "spare has no WB capability (no WB pool: strict/threestage off, <2 ifid threads, or the slot would exceed TOMO_IFID_THREADS_MAX)"; return 0; }
+        /* 1. Wake the spare into WB (ring init + identity at its checkpoint). */
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_WB, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->WB (wb_slot %d)",
+                  tmSpare->wb_slot);
+        int waited;
+        for (waited = 0; waited < 400; waited++) {    /* <= 2s; adoption is a 50ms poll */
+            if (atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_WB) break;
+            usleep(5000);
+        }
+        if (waited == 400) { *err = "spare did not adopt WB mode within 2s"; return 0; }
+        /* 2. Fenced repartition: hand ONE wbq to the spare for NEW watches. */
+        if (tmWbJoinSpare(tmSpare->wb_slot, err) < 0) return 0;  /* spare stays WB but idle; still a success? No: report */
+        return 1;
+#else
+        *err = "no WB machinery without liburing";
+        return 0;
+#endif
+    }
+    default:
+        *err = "invalid mode";
+        return 0;
+    }
 }
 
 //ee451

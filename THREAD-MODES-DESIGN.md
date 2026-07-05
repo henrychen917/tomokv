@@ -47,6 +47,29 @@ refuse at both the config layer and the poly checkpoint; WB is unreachable in th
 2s fork (modeshift value 3 is repurposed as the explicit park verb). Non-spare
 threads never shift. Driver: CONFIG SET tomokv-modeshift-test (balancer pending).
 
+## V1 status (3-Stage edition port — this fork)
+Same architecture, THREE identity slots per poly thread (ifid_slot / ex_slot /
+wb_slot — disjoint static partition, spare included) and WB as a first-class mode:
+ifidSlice (one aeProcessEventsIO pass), exSlice (verbatim worker loop body),
+wbStrictSlice/wbUringSlice (verbatim WB loop bodies; queue selection through
+wbOwnsQueue). Spare-only legal set, driver CONFIG SET tomokv-modeshift-test:
+- 1 PARKED->IO: dormant bind-only listener joins the reuseport group. 3s extra:
+  the spare's ingress wbq (slot ifid_threads) is WB-covered from boot — scan bound
+  tmWbQHi and the tmWbqOwner table replace the (qi-1)%R modulo when the knob is on.
+- 2 PARKED->EX / 3-or-0 EX->PARKED: v8d-migration-backed, num_workers_live/alloc
+  split identical to 2s (3s extra alloc sites: flushExQueues publish, cross-shard
+  cnt/wsub scratch, DBSIZE/RDB/OPS folds; extra producer-slot sites: coordinator
+  fence nprod+1, worker freeback drain +tmWbSpareExtra for the spare-WB slot).
+- 4 PARKED->WB: the spare becomes WB rid wbThreadCount (dedicated retirement ifidx
+  ifid_threads+1+rid, own ring) and ONE wbq is repartitioned to it behind the
+  tmWbqOwner/tmWbqNextOwner fence (old owner acks at its next scan; release/acquire
+  carries the SPSC head cursor). JOIN-ONLY-FOR-NEW-RETIREMENTS at client
+  granularity: clients already watched (keep-while-live) stay with their original
+  WB — moving them mid-flight would need in-flight-CQE draining across rings;
+  deferred with WB-exit (reverse handover + active-set drain), which is why a WB
+  spare cannot re-park in v1.
+IFID-exit, WB-exit and all direct mode<->mode swaps refuse at both layers.
+
 ## Balancer pressure signals (user spec, step 4)
 Shift decisions read PRESSURE, not guesses — each signal a cheap current-value/EWMA, micro-arch style:
 
