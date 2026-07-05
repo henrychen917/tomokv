@@ -116,7 +116,7 @@ static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/S
 static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
-void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==1); defined late */
+void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 auto); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 /* ee451 (thread-modes v1): fwd decls — initServer needs the spare decision early; the reshard
@@ -10848,14 +10848,23 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #endif
 }
 
-/* ee451 (v8d): bind this worker's allocations to its core's NUMA node (pin_mode==1 only), so the
- * shard's dicts/values stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses raw
- * syscalls (no libnuma dependency); a no-op / best-effort if unsupported. Called from the worker
- * thread after it is already pinned, so getcpu() reports its real node. */
+/* ee451 (v8d): bind this worker's allocations to its core's NUMA node (pin_mode==2 auto only), so
+ * the shard's dicts/values stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses
+ * raw syscalls (no libnuma dependency); a no-op / best-effort if unsupported. Called from the worker
+ * thread after it is already pinned, so getcpu() reports its real node.
+ * ee451 (W5-B1 BUGFIX, ported from 2s fae4fb4de): the gate was inverted (`!= 1` return, i.e.
+ * MANUAL-mode-only) against every other reference — the forward declaration, the call-site comment
+ * and README all promise NUMA bind as part of AUTO mode 2 — so on the machine class this exists for
+ * (multi-node, default pin mode) it never ran; and when it did run (manual mode) the node came from
+ * smartCoreFor(ex_id), the AUTO core map, which manual placement does not use — potentially
+ * preferring a REMOTE node. Fixed: gate on mode 2 and derive the node from sched_getcpu() on the
+ * already-pinned thread (exactly what the header comment always claimed), with the smart map only
+ * as a fallback if getcpu fails. */
 void exBindNumaLocal(int ex_id) {
 #ifdef __linux__
-    if (server.pin_mode != 1) return;
-    int core = smartCoreFor(ex_id);
+    if (server.pin_mode != 2) return;
+    int core = sched_getcpu();
+    if (core < 0) core = smartCoreFor(ex_id);
     int node = -1;                              /* core's NUMA node: node%d/cpu%d symlink exists iff member */
     for (int nd = 0; nd < 256 && node < 0; nd++) {
         char p[160]; snprintf(p, sizeof p, "/sys/devices/system/node/node%d/cpu%d", nd, core);
