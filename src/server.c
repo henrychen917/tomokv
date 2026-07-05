@@ -11537,6 +11537,14 @@ int tomoSpareShift(int mode, const char **err) {
         int hi_src = server.ex_bucket_end[src];
         if (hi_src - lo_src < 2) { *err = "worker W-1 owns too few buckets to split"; return 0; }
         int lo = lo_src + (hi_src - lo_src) / 2, hi = hi_src;
+        /* ee451 (rank-4 fix, step-3.1 residue): reset the spare's backlog EWMA BEFORE the
+         * target_mode release-store, while the thread is provably parked (not slicing).
+         * The old placement — after the adoption wait, i.e. with the spare already running
+         * exSlice and owner-RMW-folding this exact field every pass — was the one
+         * control-plane write that violated the file's single-writer rule (a C11 data
+         * race; practically a lost store = one stale-backlog vote). The release on
+         * target_mode orders this store before the spare's first EX slice. */
+        server.exThreads[W].tm_qdepth_ewma_q4 = 0;   /* stale pre-park backlog EWMA must not vote */
         /* 1. Wake the spare into EX. It adopts at its parked checkpoint (<= 50ms poll)
          * and MUST be slicing before the migration arms: the dst-side effect-log drain
          * (migDrainB) runs inside exSlice, and a full log would stall the src worker. */
@@ -11555,11 +11563,12 @@ int tomoSpareShift(int mode, const char **err) {
             atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
             *err = "spare did not adopt EX mode within 2s"; return 0;
         }
-        /* 2. Balancer-slot hygiene for the incoming worker (same thread as the
-         * autotuner — no race): fresh EWMAs, rate base = the counter's current value. */
+        /* 2. Balancer-slot hygiene for the incoming worker — MAIN-OWNED fields only (the
+         * autotuner runs on this same thread, so no race): fresh EWMAs, rate base = the
+         * counter's current value. (The spare-owned tm_qdepth_ewma_q4 reset moved BEFORE
+         * the target store above — rank-4 fix.) */
         mig_load_ewma[W] = mig_load_ewma_fast[W] = 0;
         mig_last_ops[W] = server.exThreads[W].ops_total;
-        server.exThreads[W].tm_qdepth_ewma_q4 = 0;   /* ee451 (step 4): stale pre-park backlog EWMA must not vote */
         /* 3. Migration INTO the spare; the coordinator publishes num_workers_live at FLIP. */
         server.tm_mig_spare_action = 1;
         if (!reshardArm(lo, hi, src, W)) {
