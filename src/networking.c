@@ -3735,8 +3735,9 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->cur_script = NULL;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
-    if (c->flags & CLIENT_EXECUTING_COMMAND)
-        c->flags &= ~CLIENT_EXECUTING_COMMAND;
+    /* ee451 (W3-T3 port from 2s): unconditional clear — the guard bought nothing (the flags
+     * line is already dirty from the argc/cmd/slot stores above). */
+    c->flags &= ~CLIENT_EXECUTING_COMMAND;
 
     /* Make sure the duration has been recorded to some command. */
     serverAssert(c->duration == 0);
@@ -3748,32 +3749,42 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
         listRelease(c->deferred_reply_errors);
     c->deferred_reply_errors = NULL;
 
-    /* We clear the ASKING flag as well if we are not inside a MULTI, and
-     * if what we just executed is not the ASKING command itself. */
-    if (c->flags & CLIENT_ASKING && !(c->flags & CLIENT_MULTI) &&
-        prevcmd != askingCommand)
-    {
-        c->flags &= ~CLIENT_ASKING;
-    }
+    /* ee451 (W3-T3 port from 2s): composite rare-flag test. None of these four flags is set for
+     * normal GET/SET traffic, so one predicted-not-taken branch replaces four separate
+     * test-and-clear branches on the per-command reset path (in strict 3s this runs on the WB
+     * retirement path via commandProcessed -> resetClientInternal; all touched fields are
+     * fake-local and WB-owned at retirement). Each inner block is a no-op when its flag is
+     * unset, so running all four whenever any one is set is behavior-identical; inner logic
+     * and ordering (SKIP clear before SKIP_NEXT transfer) verbatim. */
+    if (unlikely(c->flags & (CLIENT_ASKING | CLIENT_TRACKING_CACHING |
+                             CLIENT_REPLY_SKIP | CLIENT_REPLY_SKIP_NEXT))) {
+        /* We clear the ASKING flag as well if we are not inside a MULTI, and
+         * if what we just executed is not the ASKING command itself. */
+        if (c->flags & CLIENT_ASKING && !(c->flags & CLIENT_MULTI) &&
+            prevcmd != askingCommand)
+        {
+            c->flags &= ~CLIENT_ASKING;
+        }
 
-    /* We do the same for the CACHING command as well. It also affects
-     * the next command or transaction executed, in a way very similar
-     * to ASKING. */
-    if (c->flags & CLIENT_TRACKING_CACHING && !(c->flags & CLIENT_MULTI) &&
-        prevcmd != clientCommand)
-    {
-        c->flags &= ~CLIENT_TRACKING_CACHING;
-    }
+        /* We do the same for the CACHING command as well. It also affects
+         * the next command or transaction executed, in a way very similar
+         * to ASKING. */
+        if (c->flags & CLIENT_TRACKING_CACHING && !(c->flags & CLIENT_MULTI) &&
+            prevcmd != clientCommand)
+        {
+            c->flags &= ~CLIENT_TRACKING_CACHING;
+        }
 
-    /* Remove the CLIENT_REPLY_SKIP flag if any so that the reply
-     * to the next command will be sent, but set the flag if the command
-     * we just processed was "CLIENT REPLY SKIP". */
-    if (c->flags & CLIENT_REPLY_SKIP)
-        c->flags &= ~CLIENT_REPLY_SKIP;
+        /* Remove the CLIENT_REPLY_SKIP flag if any so that the reply
+         * to the next command will be sent, but set the flag if the command
+         * we just processed was "CLIENT REPLY SKIP". */
+        if (c->flags & CLIENT_REPLY_SKIP)
+            c->flags &= ~CLIENT_REPLY_SKIP;
 
-    if (c->flags & CLIENT_REPLY_SKIP_NEXT) {
-        c->flags |= CLIENT_REPLY_SKIP;
-        c->flags &= ~CLIENT_REPLY_SKIP_NEXT;
+        if (c->flags & CLIENT_REPLY_SKIP_NEXT) {
+            c->flags |= CLIENT_REPLY_SKIP;
+            c->flags &= ~CLIENT_REPLY_SKIP_NEXT;
+        }
     }
 
     c->net_input_bytes_curr_cmd = 0;
