@@ -36,3 +36,13 @@ Pin modes: 0 pure-float, 1 manual, 2 pure arch-aware, 3 dynamic-float, 4 dynamic
    refactor ioThreadMain/exThreadMain bodies into single-pass slice functions.
 2. EX<->WB shifting (3s) + IO-entry / gradual IO-exit (both forks).
 3. Balancer v1: ex-queue-depth vs io-busy EWMA ratio, one shift per settle window.
+
+## V1 status (steps 1-3 landed, 2s fork)
+Legal transitions are SPARE-ONLY: PARKED->IO (step 2, instant listener join),
+PARKED->EX and EX->PARKED (step 3, migration-backed on the v8d effect-log engine;
+go-live/delist keyed to the bucket-table FLIP via num_workers_live, spare slot
+pre-allocated via num_workers_alloc, parked shard asserted EMPTY). Rejected until
+built: IO-exit (gradual conn drain) — so IO->PARKED and any direct IO<->EX swap
+refuse at both the config layer and the poly checkpoint; WB is unreachable in the
+2s fork (modeshift value 3 is repurposed as the explicit park verb). Non-spare
+threads never shift. Driver: CONFIG SET tomokv-modeshift-test (balancer pending).

@@ -2420,8 +2420,12 @@ typedef struct {
  *
  *   ex_slot: identity among workers — iotid = TOMO_IO_THREADS_MAX+1+ex_slot while
  *     in EX mode. Slots [0..num_workers-1] are EX-capable (own an exThread +
- *     shard). The spare's (num_workers) and IO-born threads' (num_workers+1+i)
- *     are reserved names: entering EX requires bucket migration (step 3), so
+ *     shard). The SPARE's ex_slot (num_workers) is a REAL worker slot when
+ *     num_workers_alloc > num_workers (step 3): initExThreads pre-allocates its
+ *     full exThread + shard dbs (dormant — the bucket table routes nothing to it)
+ *     and binds ctx->ex; PARKED->EX then seeds it via a v8d bucket migration and
+ *     EX->PARKED migrates everything back (shard asserted empty at park).
+ *     IO-born threads' ex_slots (num_workers+1+i) remain reserved names only:
  *     polyThreadMain refuses EX mode without an ex binding.
  *
  * mode is written ONLY by the owning thread, at a checkpoint (between slices,
@@ -2463,6 +2467,21 @@ struct redisServer {
     exThread *exThreads;
     list *clients_pending_ex[TOMO_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
+    /* ee451 (thread-modes v1, step 3): worker-slot accounting for the EX-capable spare.
+     * num_workers stays the CONFIGURED count W (pin-map bases, num_cdb resolution and the
+     * poly-registry layout key off it and never change).
+     * num_workers_alloc = W, +1 when an EX-capable spare exists: sizes ex_dbs/exThreads and
+     * bounds every control-plane fold over ALL slots (RDB save, DBSIZE, stats, producer-side
+     * flushExQueues/cross-shard scratch) — a dormant slot's shard is empty and its queues are
+     * unfed, so covering it is always harmless, and producer-side coverage MUST be
+     * unconditional (the bucket-table FLIP can route to slot W before any liveness signal).
+     * num_workers_live = the CONSUMING worker set [0..live): read by the reshard autotuner,
+     * KEYS fan-all, FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand
+     * work to a thread that must be running exSlice to ever pop it. Writers: the modeshift
+     * apply fn (main thread; decrement BEFORE arming the deactivation migration) and the
+     * reshard coordinator (increment at FLIP — the bucket remap IS the go-live). */
+    int num_workers_alloc;
+    _Atomic int num_workers_live;
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
      * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
      * `tomokv-ex-queue-depth`). pipeline_ring_mask and
@@ -2474,10 +2493,20 @@ struct redisServer {
      * behavior; 1 = every tomokv thread runs polyThreadMain with a preset mode,
      * plus one PARKED spare if configured threads < allowed cores. IMMUTABLE. */
     int thread_modes;
-    /* ee451 (thread-modes v1, step 2): test-only shift driver — CONFIG SET
-     * tomokv-modeshift-test <tomoThreadMode> retargets the spare (1 = PARKED->IO).
-     * Apply-fn validated; EX/WB and IO-exit are rejected until step 3. */
+    /* ee451 (thread-modes v1, step 2+3): test-only shift driver — CONFIG SET
+     * tomokv-modeshift-test <n> retargets the spare. 1 = PARKED->IO (instant listener
+     * join); 2 = PARKED->EX (migration-backed activation); 3 or 0 = EX->PARKED
+     * (migrate-back + park). V1 legal set is spare-only; IO-exit and any direct
+     * IO<->EX swap are rejected, and WB is unreachable (no WB mode in the 2s fork —
+     * value 3 is repurposed as the explicit park verb). Apply-fn validated. */
     int modeshift_test;
+    /* ee451 (thread-modes v1, step 3): coordinator side-channel for spare transitions.
+     * 0 = ordinary migration; 1 = spare ACTIVATION (coordinator publishes
+     * num_workers_live at FLIP); 2 = spare DEACTIVATION (coordinator requests PARKED
+     * after teardown). Written by the modeshift apply fn (main thread) strictly before
+     * reshardArm, read + cleared by the single coordinator of that migration —
+     * one-migration-at-a-time makes this race-free. */
+    int tm_mig_spare_action;
     int pipeline_ring_depth;
     unsigned int pipeline_ring_mask;
     int ex_queue_size;

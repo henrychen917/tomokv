@@ -130,6 +130,8 @@ static void migPushFenceIfNeeded(void);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 (auto)); defined late */
+static int tmAllowedCores(void);   /* ee451 (thread-modes step 3): initServer needs the spare decision early */
+static polyThreadCtx *tmSpare;     /* ee451 (thread-modes step 3): reshardCoordinator's park-request tail needs it; defined below */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 /*============================ Utility functions ============================ */
@@ -3304,6 +3306,15 @@ void initServer(void) {
             server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
         for (int i = 0; i < W; i++)
             server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
+        /* ee451 (thread-modes v1, step 3): canonical EMPTY suffix range for every slot
+         * above the configured workers (the spare's slot W among them): end[i] =
+         * TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing. The spare
+         * activation migration is a SUFFIX move (src = W-1, dst = W), whose FLIP sets
+         * end[src] = lo and leaves end[dst] alone — so end[W] = TOMO_BUCKETS stays
+         * correct by construction, and the deactivation (prefix move back, dst = W-1)
+         * restores end[W-1] = TOMO_BUCKETS, returning to the boot shape. */
+        for (int i = W; i < TOMO_EX_THREADS_MAX; i++)
+            server.ex_bucket_end[i] = TOMO_BUCKETS;
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -3405,6 +3416,25 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+    /* ee451 (thread-modes v1, step 3): worker-slot accounting (see server.h). The spare's
+     * EX capability needs a FULL pre-allocated worker slot W = num_workers — shard dbs,
+     * exThread (queues/freeback), an ex_bucket_end slot, a balancer EWMA slot and the
+     * EX-iotid-indexed stat slots — so it must fit under the compile-time worker ceiling
+     * (W+1 <= TOMO_EX_THREADS_MAX keeps ex_bucket_end[W] / mig_load_ewma[W] /
+     * current_client[TOMO_IO_THREADS_MAX+1+W] all in bounds). The spare-EXISTS predicate
+     * (configured threads < allowed cores) must match initIOThreads'; alloc grows only
+     * for the EX-capable subset of that. */
+    server.num_workers_alloc = server.num_workers;
+    atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
+    server.tm_mig_spare_action = 0;
+    if (server.thread_modes && server.num_workers >= 1 &&
+        server.num_workers + 1 <= TOMO_EX_THREADS_MAX &&
+        server.io_threads + server.num_workers < tmAllowedCores()) {
+        server.num_workers_alloc = server.num_workers + 1;
+        serverLog(LL_NOTICE, "ee451 thread-modes: allocating a dormant worker slot %d for the spare "
+                             "(num_workers_alloc=%d, num_workers_live=%d)",
+                  server.num_workers, server.num_workers_alloc, server.num_workers);
+    }
 
     /* ee451 (xshard registry): audit AFTER num_workers is final (populate runs in
      * initServerConfig, before sharding config resolves) — asserts every row binds a live
@@ -3447,8 +3477,10 @@ void initServer(void) {
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
     }
-    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers);
-    for (int w = 0; w < server.num_workers; w++) {
+    /* ee451 (thread-modes v1, step 3): sized by num_workers_alloc — the spare's dormant
+     * shard dbs (slot num_workers) are pre-built at boot so PARKED->EX needs no allocation. */
+    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers_alloc);
+    for (int w = 0; w < server.num_workers_alloc; w++) {
         server.ex_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
         for (j = 0; j < server.dbnum; j++) {
             server.ex_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
@@ -5683,16 +5715,20 @@ int getWorkerForCommand(client *c) {
      * read (no iteration) — fine for selection. */
     if (c->cmd && c->cmd->proc == randomkeyCommand && server.num_workers > 0 && server.exThreads) {
         int dbid = c->db->id;
+        /* ee451 (thread-modes step 3): weight over the LIVE worker set — the returned index
+         * is dispatched to, so it must be a consuming worker. A live spare is included; a
+         * dormant one has an empty shard (zero weight) and must never be picked. */
+        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
         long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += dbSize(&server.exThreads[w].db[dbid]);
+        for (int w = 0; w < nlive; w++) total += dbSize(&server.exThreads[w].db[dbid]);
         if (total <= 0) return 0;
         long long pick = (long long)(random() % total);
-        for (int w = 0; w < server.num_workers; w++) {
+        for (int w = 0; w < nlive; w++) {
             long long s = dbSize(&server.exThreads[w].db[dbid]);
             if (pick < s) return w;
             pick -= s;
         }
-        return server.num_workers - 1;
+        return nlive - 1;
     }
     /* Assumes argv[1] is the command's sole key. canDispatchToWorker
      * enforces this invariant — every whitelisted command above is of
@@ -6928,7 +6964,9 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
                                 const csCoalesceSpec *spec,
                                 void (*append_extra)(client *head, client *sub, int origpos)) {
-    int nw = server.num_workers;
+    /* ee451 (thread-modes step 3): ALLOC-sized — post-activation exIndexForKey can
+     * return the spare slot (num_workers); live-sized scratch would heap-overflow. */
+    int nw = server.num_workers_alloc;
     int stride = spec->key_stride;
     int first = spec->first_argi ? spec->first_argi : 1;
     int *cnt = zcalloc(sizeof(int) * nw);      /* keys owned by worker w */
@@ -7388,7 +7426,15 @@ static void csDispatch(client *head, const csCmdSpec *s) {
  * dispatchCrossShard's sub setup but the sub count = num_workers and each sub carries the FULL
  * original argv (e.g. [KEYS, pattern]) routed to a specific worker. */
 static void dispatchFanAll(client *head) {
-    int nw = server.num_workers;
+    /* ee451 (thread-modes step 3): fan to the LIVE worker set only — a sub pushed to a
+     * parked spare would never be popped and the group's pending barrier would hang the
+     * client forever. A live spare consumes until it parks (park happens strictly after
+     * live--, one whole migration later), so subs racing the decrement are still served.
+     * Consistency note: between live-- and the deactivation FLIP (and symmetrically
+     * between the activation FLIP and live++ — sub-second windows), the spare's keys are
+     * invisible to KEYS — the same weak-consistency class KEYS already has under any
+     * migration (dictScan dup/miss). */
+    int nw = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = zmalloc(sizeof(client*) * nw);
@@ -8414,7 +8460,11 @@ void flushAllShards(client *c, int dbid, int async) {
      * immediately (fire-and-forget) — blocking the IO event loop here would break the drain &
      * client-teardown bookkeeping for connections that close meanwhile. Because the worker runs
      * the sentinel in queue order before any later command, post-FLUSHALL ops still see empty. */
-    for (int w = 0; w < server.num_workers; w++) {
+    /* ee451 (thread-modes step 3): LIVE workers only — a sentinel queued to a parked spare
+     * would rot unpopped. A dormant spare's shard is EMPTY by invariant (asserted at every
+     * park), so skipping it loses nothing; a live spare consumes until it parks. */
+    int nflush = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         sentinel->is_flush = 1;
         sentinel->flush_dbid = dbid;
@@ -8670,7 +8720,11 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
     int s_lo = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
     int s_hi = server.ex_bucket_end[src];
     if (lo < s_lo || hi > s_hi) return 0;                         /* inside src's range */
-    if (lo == s_lo && hi == s_hi) return 0;                       /* would empty src */
+    /* thread-modes step 3 (port adaptation): spare EX->PARKED deactivation legitimately moves
+     * the spare's ENTIRE range back to its neighbor — "would empty src" is the POINT there.
+     * The exemption is spare-slot-only (src == num_workers): base workers can still never be
+     * emptied by an arm, manual or auto. */
+    if (lo == s_lo && hi == s_hi && src != server.num_workers) return 0;   /* would empty src */
     if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
     for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
         if (server.ex_bucket_table[b] != (uint8_t)src) return 0;
@@ -8885,6 +8939,19 @@ static void *reshardCoordinator(void *arg) {
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d (S_final=%llu)",
               lo, hi, dst, (unsigned long long)s_final);
 
+    /* ee451 (thread-modes v1, step 3): spare ACTIVATION — the table remap above IS the
+     * go-live (dispatch now routes [lo,hi) to the spare's slot), so publish it to the
+     * live-worker set here: the autotuner starts balancing it, KEYS/FLUSH fan-outs and
+     * RANDOMKEY cover it. Producer-side coverage (flushExQueues, cross-shard scratch)
+     * is alloc-sized and needed no liveness signal. The spare has been running exSlice
+     * since before ARM (it drained this very effect log as dst), so everything routed
+     * from this instant is consumed. */
+    if (server.tm_mig_spare_action == 1) {
+        atomic_store_explicit(&server.num_workers_live, server.num_workers_alloc, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: spare worker %d LIVE (num_workers_live=%d)",
+                  dst, server.num_workers_alloc);
+    }
+
     /* Phase D.1: ref-fence — A may not free its range values until every zero-copy reply still
      * pointing into them (owner_ex==A, bucket∈range) has been flushed. No-op when zerocopy is
      * gated off (small values). */
@@ -8907,6 +8974,21 @@ static void *reshardCoordinator(void *arg) {
     server.migration.log = NULL;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+
+    /* ee451 (thread-modes v1, step 3): spare transition tail. DEACTIVATION (action 2):
+     * the spare's ENTIRE range is on dst, CLEANUP deleted the src copies and teardown is
+     * complete — request PARKED. The spare's park checkpoint drains its (now traffic-less)
+     * queues, asserts the shard is empty, then parks. Clearing the flag here (for both
+     * actions) is race-free: the next migration can only be armed after the active=0
+     * publish above, by the same main thread that would set a new action first. */
+    {
+        int spare_act = server.tm_mig_spare_action;
+        server.tm_mig_spare_action = 0;
+        if (spare_act == 2 && tmSpare) {
+            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
+        }
+    }
     return NULL;
 }
 
@@ -8965,7 +9047,7 @@ void fakeRingAutoTune(void) {
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
         if (g && s) {
             uint64_t hot = (uint64_t)g->calls + (uint64_t)s->calls, tot = 0;
-            for (int w = 0; w < server.num_workers; w++) tot += tomoRelaxedRead(server.exThreads[w].ops_total);
+            for (int w = 0; w < server.num_workers_alloc; w++) tot += tomoRelaxedRead(server.exThreads[w].ops_total);  /* alloc: dormant spare adds 0 */
             /* Review #6: CONFIG RESETSTAT zeroes command `calls` but not the per-worker
              * ops_total, so hot can drop below the cached high-water while tot does not — the
              * unsigned dh/dt would wrap to ~2^64. Detect the counter reset and rebaseline
@@ -9037,7 +9119,13 @@ void reshardAutoTune(void) {
      * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
-    int W = server.num_workers;
+    /* ee451 (thread-modes step 3): balance over the LIVE worker set. A dormant spare must
+     * never be a migration endpoint (its thread isn't running exSlice — buckets flipped to
+     * it would blackhole every op on them); a LIVE spare participates fully, so hot load
+     * rebalances into it organically after activation. live-- precedes the deactivation
+     * migration (same thread as this fn), so the autotuner can't re-seed a spare that is
+     * on its way out. EWMA slots for the spare are reset by the modeshift fn (same thread). */
+    int W = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     if (W < 2) return;
 
     /* Continuous decay: the EWMA window spans 4x min-ops in OPERATIONS, from the previous
@@ -9221,8 +9309,11 @@ void reshardDebug(client *c) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
         int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
         int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
+        /* ee451 (thread-modes step 3): bound by the LIVE set — manual migrations may target a
+         * live spare, never a dormant one (its thread isn't consuming; use modeshift 2). */
+        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
         if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi ||
-            src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
+            src < 0 || dst < 0 || src >= nlive || dst >= nlive || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
         if (!reshardArm(lo, hi, src, dst)) {
@@ -9239,13 +9330,13 @@ void reshardDebug(client *c) {
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "ops")) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
          * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
-        unsigned long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += tomoRelaxedRead(server.exThreads[w].ops_total);
+        unsigned long long total = 0;   /* stats fold: ALL alloc'd slots (dormant spare adds 0) */
+        for (int w = 0; w < server.num_workers_alloc; w++) total += tomoRelaxedRead(server.exThreads[w].ops_total);
         addReplyLongLong(c, (long long)total);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "perworker")) {
         /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
          * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
-        addReplyArrayLen(c, server.num_workers);
+        addReplyArrayLen(c, server.num_workers_alloc);   /* alloc: spare slot visible (0 when dormant) */
         for (int w = 0; w < server.num_workers; w++)
             addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
@@ -12472,7 +12563,13 @@ void exQueueInit(exQueue *q) {
 void flushExQueues(void) {
     exThread *ex = server.exThreads;
     if (!ex) return;
-    int nw = server.num_workers;   /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop */
+    /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop.
+     * ee451 (thread-modes step 3): ALLOC-sized, unconditionally — exQueuePush only STAGES;
+     * this publish is what makes a job visible to its worker. The activation FLIP can route
+     * to the spare's slot before any liveness signal propagates, so the spare's queues must
+     * be covered from boot (a job staged there but never published = a hung client). While
+     * dormant the extra iteration is a no-op compare (staged_tail == tail, no store). */
+    int nw = server.num_workers_alloc;
     for (int w = 0; w < nw; w++) {
         exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
@@ -13391,7 +13488,7 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
  * Contexts are written ONLY before their pthread_create (except mode/target_mode,
  * which follow the checkpoint protocol documented on polyThreadCtx). */
 static polyThreadCtx *tmPolyCtxs = NULL;
-static polyThreadCtx *tmSpare = NULL;   /* the one PARKED spare, NULL if none */
+static polyThreadCtx *tmSpare = NULL;   /* the one spare poly thread, NULL if none (fwd-declared at top) */
 
 static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
     serverAssert(tmPolyCtxs != NULL);
@@ -13422,15 +13519,16 @@ static int tmAllowedCores(void) {
 }
 
 void initExThreads(void) {
-    server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);   /* ee451 review: init loop
-        * only sets id/db/queues — ops_total/loop_seq/pf_* were formally uninitialized reads
-        * (benign via fresh mmap pages in practice; zcalloc makes it defined) */
+    /* ee451 (thread-modes step 3): ALLOC-sized — the spare's dormant worker slot (index
+     * num_workers) is fully built here so activation needs no allocation or resizing.
+     * zcalloc (numa): the stat/EWMA scalars must not be uninitialized reads. */
+    server.exThreads = zcalloc(sizeof(exThread) * server.num_workers_alloc);
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */
 #ifdef MADV_HUGEPAGE
     if (server.os_opts)
-        madvise(server.exThreads, sizeof(exThread) * server.num_workers, MADV_HUGEPAGE);
+        madvise(server.exThreads, sizeof(exThread) * server.num_workers_alloc, MADV_HUGEPAGE);
 #endif
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
@@ -13468,6 +13566,32 @@ void initExThreads(void) {
         }
         pinExToCore(server.exThreads[i].thread, i);   /* same core index either way — pin map unchanged */
     }
+    /* ee451 (thread-modes v1, step 3): provision the SPARE's full worker slot W = num_workers
+     * (dormant: the boot bucket table routes nothing to it, so it receives no traffic until an
+     * activation migration FLIPs buckets in). Same per-slot init a live worker gets — queues +
+     * freeback rings for every producer slot — plus explicit zeroing of the stat/EWMA scalars
+     * (the array is zmalloc'd, and unlike live workers nothing else primes them). NO thread is
+     * spawned for the slot: the spare poly thread (spawned by initIOThreads, which ran before
+     * this) BINDS it here and runs exSlice on it only while in EX mode. The plain tmSpare->ex
+     * store is safe: the spare reads ctx->ex only at a checkpoint ordered after a target_mode
+     * release/acquire pair, and every target store happens after this init (main thread). */
+    if (server.thread_modes && server.num_workers_alloc > server.num_workers) {
+        exThread *sp = &server.exThreads[server.num_workers];
+        memset(sp, 0, sizeof(*sp));
+        sp->id = server.num_workers;
+        sp->db = server.ex_dbs[server.num_workers];
+        for (int t = 0; t <= server.io_threads; t++) {
+            exQueueInit(&sp->queues[t]);
+            freebackRing *fb = &sp->freeback[t];
+            atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
+            atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
+        }
+        if (tmSpare) {
+            tmSpare->ex = sp;
+            serverLog(LL_NOTICE, "ee451 thread-modes: spare EX binding provisioned "
+                                 "(dormant worker slot %d, ex_slot %d)", sp->id, tmSpare->ex_slot);
+        }
+    }
 }
 
 
@@ -13503,10 +13627,11 @@ static void tmSpawnSpare(void) {
     aeSetAfterSleepProc(t->el, afterSleepIO);
 
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_PARKED, 0);
-    ctx->ex = NULL;                       /* not EX-capable: PARKED->EX needs bucket migration (step 3) */
+    ctx->ex = NULL;                       /* EX binding provisioned LATER by initExThreads (which runs
+                                           * after initIOThreads) when num_workers_alloc > num_workers */
     ctx->io = t;
     ctx->io_slot = server.io_threads;
-    ctx->ex_slot = server.num_workers;    /* reserved name only */
+    ctx->ex_slot = server.num_workers;    /* the spare's REAL worker slot once EX-capable (step 3) */
     ctx->io_listening = 0;                /* dormant until IO-entry */
     atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
     atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_relaxed);
@@ -13652,7 +13777,18 @@ void *ioThreadMain(void *arg) {
  * and the spare's PARKED->IO via tomokv-modeshift-test. IO-entry completes the
  * dormant listener: listen() joins the SO_REUSEPORT group (new connections
  * kernel-hash here from that instant) and the accept handler is registered on
- * the thread's OWN event loop before its first slice. */
+ * the thread's OWN event loop before its first slice.
+ *
+ * Step-3 transitions (spare-only, migration-backed — THREAD-MODES-DESIGN.md):
+ *   PARKED->EX  adopt EX identity + slice the (empty) pre-allocated shard slot;
+ *               the modeshift fn then migrates buckets IN via the v8d engine and
+ *               the coordinator publishes num_workers_live at the FLIP (go-live).
+ *   EX->PARKED  requested by the coordinator only AFTER the outbound migration's
+ *               teardown (all buckets flipped away, src copies cleaned): the park
+ *               checkpoint below drains the straggler queues until quiet, asserts
+ *               the shard is EMPTY (v1 invariant — never park data), then parks.
+ * Direct IO<->EX swaps and IO-exit are refused here AND at the config layer:
+ * v1's legal set is PARKED->IO, PARKED->EX, EX->PARKED, of the spare only. */
 void *polyThreadMain(void *arg) {
     polyThreadCtx *ctx = (polyThreadCtx *)arg;
     int cur = -1;              /* no mode entered yet (distinct from PARKED, which is a real mode) */
@@ -13668,7 +13804,8 @@ void *polyThreadMain(void *arg) {
             int ok = 1;
             switch (want) {
             case TOMO_MODE_IO:
-                if (!ctx->io) { ok = 0; break; }        /* EX-born: no listener/el until step 3 */
+                if (!ctx->io) { ok = 0; break; }        /* EX-born: no listener/el (not in v1) */
+                if (cur == TOMO_MODE_EX) { ok = 0; break; }   /* EX->IO direct: illegal — park first */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 if (!ctx->io_listening) {
                     /* IO-ENTRY (spare): make the pre-bound dormant listener live.
@@ -13691,7 +13828,8 @@ void *polyThreadMain(void *arg) {
                 }
                 break;
             case TOMO_MODE_EX:
-                if (!ctx->ex) { ok = 0; break; }        /* IO-born/spare: EX-entry needs bucket migration (step 3) */
+                if (!ctx->ex) { ok = 0; break; }        /* IO-born: no shard slot (not in v1) */
+                if (cur == TOMO_MODE_IO) { ok = 0; break; }   /* IO->EX direct: illegal — park first */
                 iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
                 if (!ex_inited) {
                     /* One-time EX setup, exactly as exThreadMain's preamble. */
@@ -13701,20 +13839,64 @@ void *polyThreadMain(void *arg) {
                     ex_inited = 1;
                     fprintf(stderr, "[worker %d] started (poly, iotid=%d)\n", ctx->ex->id, iotid);
                 }
+                if (cur == TOMO_MODE_PARKED) {
+                    /* ee451 (step 3): EX-ENTRY of the spare — it starts slicing its
+                     * pre-allocated shard slot, which is EMPTY (nothing routes here
+                     * until the activation migration FLIPs buckets in). */
+                    long long sz = 0;
+                    for (int d = 0; d < server.dbnum; d++) sz += dbSize(&ctx->ex->db[d]);
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is "
+                                         "worker %d (iotid=%d), shard holds %lld keys, spinning for buckets",
+                              ctx->ex->id, iotid, sz);
+                }
                 break;
             case TOMO_MODE_WB:
                 ok = 0;                                 /* 2s fork has no WB slice */
                 break;
             case TOMO_MODE_PARKED:
             default:
-                break;                                  /* parking touches no iotid-indexed state */
+                /* ee451 (step 3): parking is legal from birth (cur == -1) and from EX
+                 * after its buckets are gone; IO-exit needs the gradual conn drain (not
+                 * in v1). Parking itself touches no iotid-indexed state. */
+                if (cur == TOMO_MODE_IO) { ok = 0; break; }
+                if (cur == TOMO_MODE_EX) {
+                    /* EX-EXIT PARK CHECKPOINT. Only the reshard coordinator requests
+                     * this, strictly after the outbound migration's teardown — the
+                     * bucket table routes NOTHING here anymore and the live-set fan-outs
+                     * (KEYS/FLUSH) stopped at live--, one whole migration earlier. If a
+                     * migration involving this shard is somehow still active, stay EX
+                     * and retry at the next checkpoint (target_mode is still PARKED). */
+                    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
+                        (server.migration.src == ctx->ex->id || server.migration.dst == ctx->ex->id)) {
+                        ok = 0; break;
+                    }
+                    /* Drain stragglers: keep slicing (queues + freeback rings + reply
+                     * signals) until every source has stayed quiet for 50ms. */
+                    mstime_t quiet0 = mstime();
+                    while (mstime() - quiet0 < 50)
+                        if (exSlice(ctx->ex, &exctx)) quiet0 = mstime();
+                    /* V1 invariant: a parked shard is EMPTY — the outbound migration
+                     * moved the spare's whole range and nothing routes here. Fail loud
+                     * rather than park data. */
+                    long long resid = 0;
+                    for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
+                    if (resid != 0)
+                        serverLog(LL_WARNING, "thread-modes: parking spare worker %d with %lld keys "
+                                              "still in its shard — v1 invariant violated", ctx->ex->id, resid);
+                    serverAssert(resid == 0);
+                    serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT EX->PARKED complete — "
+                                         "spare worker %d parked (shard empty, queues quiet)", ctx->ex->id);
+                }
+                break;
             }
             if (ok) {
                 cur = want;
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
+                refused = -1;                           /* a successful shift re-arms rejection logging */
             } else if (refused != want) {
                 serverLog(LL_WARNING, "thread-modes: refused shift to mode %d (io_slot %d, ex_slot %d): "
-                                      "no binding for that mode in step 2", want, ctx->io_slot, ctx->ex_slot);
+                                      "no binding for that mode / transition not legal in v1",
+                          want, ctx->io_slot, ctx->ex_slot);
                 refused = want;                         /* log once; stay in current mode */
             }
         }
@@ -13735,32 +13917,112 @@ void *polyThreadMain(void *arg) {
     return NULL;
 }
 
-/* ee451 (thread-modes v1, step 2): control-plane entry for the modeshift test
- * knob — retarget the SPARE. Only PARKED->IO is in scope (IO-exit needs the
- * gradual drain, EX-entry/exit need bucket migration — both step 3). Returns 1
- * on success, 0 with *err set. Runs on the main thread (CONFIG SET); the spare
- * adopts the target at its next parked checkpoint (<= 50ms). */
+/* ee451 (thread-modes v1, step 2+3): control-plane entry for the modeshift test
+ * knob — retarget the SPARE. V1 legal transitions (spare-only; rejected both here
+ * and at the poly checkpoint):
+ *   1 = PARKED->IO  instant listener join (step 2).
+ *   2 = PARKED->EX  EX-entry (step 3): wake the spare onto its empty pre-allocated
+ *       shard slot, then migrate the TOP HALF of worker W-1's bucket range INTO it
+ *       with the v8d online-reshard engine (effect log + drain fence + FLIP). The
+ *       bucket-table FLIP is the go-live: the coordinator publishes num_workers_live
+ *       there. Seeding from W-1 (not "the hottest") keeps the ex_bucket_end
+ *       contiguity invariant that the FLIP arithmetic and the autotuner's boundary
+ *       math depend on (suffix move, dst == src+1); once the spare is LIVE,
+ *       reshardAutoTune rebalances genuinely hot load into it organically.
+ *   3 or 0 = EX->PARKED  EX-exit (step 3): num_workers_live-- FIRST (the autotuner
+ *       and KEYS/FLUSH fan-outs stop considering the spare while it keeps consuming),
+ *       then migrate ALL of the spare's buckets back to W-1; after teardown the
+ *       coordinator requests PARKED and the spare's park checkpoint drains, asserts
+ *       its shard EMPTY, and parks. Value 3 is the explicit park verb (no WB mode in
+ *       the 2s fork); IO-exit (IO->PARKED) and direct IO<->EX swaps stay rejected.
+ * Runs on the main thread (CONFIG SET) — the SAME thread as reshardAutoTune, so the
+ * live-set write, the EWMA-slot resets and the arm are atomic wrt the autotuner.
+ * Returns 1 on success, 0 with *err set (config.c rolls the value back). */
 int tomoModeshiftSpare(int mode, const char **err) {
-    if (mode == TOMO_MODE_PARKED && !server.thread_modes) return 1;   /* boot default, knob off — no-op */
+    if (mode == TOMO_MODE_PARKED && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
     if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
     if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
     int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
+    int W = server.num_workers;
     switch (mode) {
     case TOMO_MODE_IO:
         if (cur == TOMO_MODE_IO) return 1;            /* already there */
+        if (cur == TOMO_MODE_EX) { *err = "EX->IO direct is illegal — park first (modeshift 3)"; return 0; }
         atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_IO, memory_order_release);
         serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->IO (io_slot %d)",
                   tmSpare->io_slot);
         return 1;
-    case TOMO_MODE_PARKED:
+    case TOMO_MODE_EX: {
+        if (cur == TOMO_MODE_EX) return 1;            /* already there */
+        if (cur == TOMO_MODE_IO) { *err = "IO->EX direct is illegal — IO-exit is not implemented in v1"; return 0; }
+        if (!tmSpare->ex)
+            { *err = "spare has no EX binding (tomokv-ex-threads is 0, or the extra slot would exceed TOMO_EX_THREADS_MAX)"; return 0; }
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            { *err = "a migration is in flight — retry when it completes"; return 0; }
+        /* Seed range: the TOP HALF of worker W-1's contiguous range (a SUFFIX move to
+         * dst = src+1 — exactly the adjacency the FLIP bookkeeping handles; W-1 is the
+         * last live worker so its range always ends at TOMO_BUCKETS). */
+        int src = W - 1;
+        int lo_src = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
+        int hi_src = server.ex_bucket_end[src];
+        if (hi_src - lo_src < 2) { *err = "worker W-1 owns too few buckets to split"; return 0; }
+        int lo = lo_src + (hi_src - lo_src) / 2, hi = hi_src;
+        /* 1. Wake the spare into EX. It adopts at its parked checkpoint (<= 50ms poll)
+         * and MUST be slicing before the migration arms: the dst-side effect-log drain
+         * (migDrainB) runs inside exSlice, and a full log would stall the src worker. */
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_EX, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->EX (worker slot %d); "
+                             "will seed buckets [%d,%d) from worker %d after EX adoption", W, lo, hi, src);
+        int waited;
+        for (waited = 0; waited < 400; waited++) {    /* <= 2s; adoption is a 50ms poll */
+            if (atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX) break;
+            usleep(5000);
+        }
+        if (waited == 400) { *err = "spare did not adopt EX mode within 2s"; return 0; }
+        /* 2. Balancer-slot hygiene for the incoming worker (same thread as the
+         * autotuner — no race): fresh EWMAs, rate base = the counter's current value. */
+        mig_load_ewma[W] = mig_load_ewma_fast[W] = 0;
+        mig_last_ops[W] = server.exThreads[W].ops_total;
+        /* 3. Migration INTO the spare; the coordinator publishes num_workers_live at FLIP. */
+        server.tm_mig_spare_action = 1;
+        if (!reshardArm(lo, hi, src, W)) {
+            server.tm_mig_spare_action = 0;
+            *err = "migration already active"; return 0;
+        }
+        reshardBeginCutover();
+        return 1;
+    }
+    case TOMO_MODE_WB:          /* value 3 = the explicit park verb (no WB mode in the 2s fork) */
+    case TOMO_MODE_PARKED: {
         if (cur == TOMO_MODE_PARKED) return 1;        /* no-op */
-        *err = "IO-exit (gradual drain) is step 3 — cannot re-park a live IO spare";
-        return 0;
-    case TOMO_MODE_EX:
-        *err = "PARKED->EX needs bucket migration (step 3) — rejected";
-        return 0;
+        if (cur == TOMO_MODE_IO)
+            { *err = "IO-exit (gradual drain) is not implemented in v1 — cannot re-park a live IO spare"; return 0; }
+        /* cur == EX: migrate everything back, then park. */
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            { *err = "a migration is in flight — retry when it completes"; return 0; }
+        int lo = server.ex_bucket_end[W - 1];         /* spare owns [end[W-1], end[W]) */
+        int hi = server.ex_bucket_end[W];
+        /* Delist FIRST: the autotuner and the KEYS/FLUSH fan-outs stop considering the
+         * spare before its range starts moving; it keeps consuming until it parks. */
+        atomic_store_explicit(&server.num_workers_live, W, memory_order_release);
+        if (lo >= hi) {                               /* the autotuner already drained it — park directly */
+            serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT EX->PARKED — spare owns no buckets, parking directly");
+            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            return 1;
+        }
+        server.tm_mig_spare_action = 2;
+        if (!reshardArm(lo, hi, W, W - 1)) {
+            server.tm_mig_spare_action = 0;
+            atomic_store_explicit(&server.num_workers_live, W + 1, memory_order_release);  /* restore */
+            *err = "migration already active"; return 0;
+        }
+        serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare EX->PARKED: migrating "
+                             "buckets [%d,%d) back to worker %d; park follows teardown", lo, hi, W - 1);
+        reshardBeginCutover();
+        return 1;   /* async: the spare parks when the coordinator finishes */
+    }
     default:
-        *err = "no WB mode in the 2-stage fork";
+        *err = "invalid mode";
         return 0;
     }
 }

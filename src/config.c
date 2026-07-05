@@ -3233,9 +3233,12 @@ standardConfig static_configs[] = {
      * 1 = all tomokv threads run polyThreadMain with preset modes + one PARKED spare
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
     createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
-    /* ee451 (thread-modes v1, step 2): TEST driver for mode shifts until the balancer
-     * exists — CONFIG SET retargets the SPARE to the given tomoThreadMode (1=IO only;
-     * EX/WB/re-park rejected until step 3). Apply-fn validated; boot value inert. */
+    /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
+     * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
+     * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live
+     * at the table FLIP); 3 or 0 = EX->PARKED (migrate everything back, drain, assert-empty,
+     * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
+     * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
     createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 3, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
