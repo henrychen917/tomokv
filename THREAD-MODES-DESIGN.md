@@ -82,3 +82,13 @@ Supported by the role-purity audit: main already IS io thread 0 + cron; upstream
 (running_tid) are systematically defeated today — a formal token FIXES that class instead of faking it.
 Watch items: fork() points (BGSAVE — token holder forks at a quiesced checkpoint), signal handling
 thread, config-apply execution context (control plane = token holder). Startup/shutdown remain main's.
+
+### Cron token: performance framing (user hypothesis — confirmed with nuance)
+Cron work is CONSERVED (it still runs), so the aggregate win is not "cron disappears" — it is:
+(1) tail-latency fairness: main's 1/N connections stop eating serverCron/beforeSleep/INFO pauses
+    (today main is a degraded io thread; every tick is a p99 spike for its clients);
+(2) PRESSURE-AWARE TOKEN PLACEMENT: the token itself follows the balancer's idle/spin signal —
+    prefer the least-loaded holder, ideally a PARKED spare, so cron cost leaves the serving path
+    entirely (true throughput gain ≈ cron's full cost + zero cron jitter on any served connection);
+(3) uniform packing: the balancer can allocate main's core like any other (io1exN where the "1"
+    is merely the current token holder).
