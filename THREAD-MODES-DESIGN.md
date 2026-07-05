@@ -144,3 +144,12 @@ nothing ever shrinks a shard dict). Budgeted micro-arch style: steps scale with 
 (adaptive-spin state is the signal), yield instantly on real work — rehash cost MOVES from serving
 ops (upstream Redis's latency-spike model) into idle gaps. Caveat: dictPauseRehashing while the
 shard is a live v8d migration endpoint (bucket copy iterates the dict).
+
+### Refinement (user): RELOCATE-TO-RECOVER-BENEFIT first; delete only the truly void
+The decision test per duty: would moving it (io->ex, main->owner) RECOVER the benefit the original
+Redis design intended? If yes — move it; the duty survives, better-placed (e.g. active expiry: the
+decoy-pointed instance is void, but the BENEFIT is real and the shard-local version delivers it
+lock-free — that is a relocation, not a deletion; same for rehash/shrink, clientsCron, defrag-later).
+Only features truly useless/unsupported by design — replication, cluster, failover/ASM, maxmemory
+eviction — get deleted, and "at least from the loop": strip their per-tick checks from serverCron/
+beforeSleep (the recurring cost); the dormant code may remain compiled for optionality.
