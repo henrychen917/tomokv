@@ -2054,21 +2054,14 @@ typedef struct freebackRing {
 
 /* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
  * A thread is not born io/ex/wb — it HOLDS a mode and the balancer shifts the
- * mode mix. Step 1 only introduces the vocabulary + per-thread mode fields and
- * the slice/poly-main plumbing; thread creation still uses the static mains,
- * so nothing shifts yet. PARKED=0 so a zeroed struct is a parked thread. */
+ * mode mix. PARKED=0 so a zeroed struct is a parked thread. Step 2: the
+ * per-thread mode/target_mode atomics live on polyThreadCtx (mode is THREAD
+ * state, not exThread state — the spare has no exThread). */
 typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
 
 typedef struct exThread {
     int id;
     pthread_t thread;
-    /* ee451 (thread-modes v1): current + balancer-requested mode (tomoThreadMode
-     * values). `mode` is written by the thread itself at a safe transition
-     * checkpoint, read by the balancer; `target_mode` the reverse. Step 1: set
-     * once at init (static mix), never changes. Control-plane rate — no need
-     * for a dedicated cache line yet. */
-    _Atomic int mode;
-    _Atomic int target_mode;
     exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
@@ -2409,6 +2402,43 @@ typedef struct {
     int fd;
 } ioThreadArgs;
 
+/* ee451 (thread-modes v1, step 2): per-poly-thread context (tomokv-thread-modes=1).
+ * A poly thread owns a FIXED PAIR of identity slots for its whole life, assigned at
+ * creation and NEVER shared with another live thread — the historic worker-slot
+ * crash class was two live threads aliasing one __thread iotid slot, so slots are
+ * statically partitioned, never handed between threads:
+ *
+ *   io_slot: identity among IO producer slots — iotid while in IO mode. Slots
+ *     [1..io_threads] are IO-CAPABLE: per-slot client lists (initServer inits
+ *     t <= io_threads), worker queues[slot]/freeback[slot] (initExThreads inits +
+ *     exSlice/freebackDrainAll scan t <= io_threads) and fence_acked[slot] all
+ *     exist for them. Slot io_threads is the historically unfed "+1" producer
+ *     slot — the SPARE's. EX-born threads' io_slots (io_threads+1+w) are reserved
+ *     NAMES only (unique, but no listener/event loop and per-slot state above
+ *     io_threads is neither initialized nor scanned) — polyThreadMain refuses IO
+ *     mode without an io binding; step 3 provisions them with EX-exit migration.
+ *
+ *   ex_slot: identity among workers — iotid = TOMO_IO_THREADS_MAX+1+ex_slot while
+ *     in EX mode. Slots [0..num_workers-1] are EX-capable (own an exThread +
+ *     shard). The spare's (num_workers) and IO-born threads' (num_workers+1+i)
+ *     are reserved names: entering EX requires bucket migration (step 3), so
+ *     polyThreadMain refuses EX mode without an ex binding.
+ *
+ * mode is written ONLY by the owning thread, at a checkpoint (between slices,
+ * never mid-slice); target_mode ONLY by the control plane (the modeshift-test
+ * knob today, the balancer later). The iotid TLS store happens exclusively at
+ * that checkpoint, BEFORE the first slice of the new mode runs. */
+typedef struct polyThreadCtx {
+    exThread *ex;          /* EX binding (shard + queues); NULL = not EX-capable (step 2) */
+    ioThreadArgs *io;      /* IO binding (event loop + listener); NULL = not IO-capable */
+    int io_slot;           /* fixed IO identity (iotid in IO mode) */
+    int ex_slot;           /* fixed EX identity (iotid = TOMO_IO_THREADS_MAX+1+ex_slot in EX mode) */
+    int io_listening;      /* thread-private after boot: listener live (spare starts 0 = bound, dormant) */
+    _Atomic int mode;         /* tomoThreadMode; written by the thread at checkpoints */
+    _Atomic int target_mode;  /* tomoThreadMode; written by the control plane */
+    pthread_t thread;
+} polyThreadCtx;
+
 
 
 struct redisServer {
@@ -2440,6 +2470,14 @@ struct redisServer {
      * at startup. */
     int io_threads;
     int ex_threads;
+    /* ee451 (thread-modes v1, step 2): 0 (default) = static mains, exact legacy
+     * behavior; 1 = every tomokv thread runs polyThreadMain with a preset mode,
+     * plus one PARKED spare if configured threads < allowed cores. IMMUTABLE. */
+    int thread_modes;
+    /* ee451 (thread-modes v1, step 2): test-only shift driver — CONFIG SET
+     * tomokv-modeshift-test <tomoThreadMode> retargets the spare (1 = PARKED->IO).
+     * Apply-fn validated; EX/WB and IO-exit are rejected until step 3. */
+    int modeshift_test;
     int pipeline_ring_depth;
     unsigned int pipeline_ring_mask;
     int ex_queue_size;
@@ -5270,7 +5308,8 @@ client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled c
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
-void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1): unified mode-dispatching main — NOT wired yet */
+void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
+int tomoModeshiftSpare(int mode, const char **err);  /* ee451 (thread-modes step 2): retarget the spare; 0 + *err on invalid */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

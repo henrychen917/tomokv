@@ -2555,6 +2555,13 @@ static int updateDefragConfiguration(const char **err) {
     return 1;
 }
 
+/* ee451 (thread-modes v1, step 2): CONFIG SET tomokv-modeshift-test <mode> —
+ * retarget the spare poly thread. Invalid requests (knob off, no spare, EX/WB,
+ * re-parking a live spare) fail here and config.c rolls the value back. */
+static int updateTomokvModeshiftTest(const char **err) {
+    return tomoModeshiftSpare(server.modeshift_test, err);
+}
+
 static int updateJemallocBgThread(const char **err) {
     UNUSED(err);
     set_jemalloc_bg_thread(server.jemalloc_bg_thread);
@@ -3222,6 +3229,14 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
+    /* ee451 (thread-modes v1, step 2): 0 = static thread mains (exact legacy behavior);
+     * 1 = all tomokv threads run polyThreadMain with preset modes + one PARKED spare
+     * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
+    createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
+    /* ee451 (thread-modes v1, step 2): TEST driver for mode shifts until the balancer
+     * exists — CONFIG SET retargets the SPARE to the given tomoThreadMode (1=IO only;
+     * EX/WB/re-park rejected until step 3). Apply-fn validated; boot value inert. */
+    createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 3, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
