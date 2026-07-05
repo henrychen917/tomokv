@@ -1904,9 +1904,23 @@ typedef struct freebackRing {
  * saturating counters indexed by key hash (gshare: XOR'd with a global-history
  * register). MSB set => predict "forward". Per worker (no sharing). */
 
+/* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
+ * A thread is not born io/ex/wb — it HOLDS a mode and the balancer shifts the
+ * mode mix. Step 1 only introduces the vocabulary + per-thread mode fields and
+ * the slice/poly-main plumbing; thread creation still uses the static mains,
+ * so nothing shifts yet. PARKED=0 so a zeroed struct is a parked thread. */
+typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
+
 typedef struct exThread {
     int id;
     pthread_t thread;
+    /* ee451 (thread-modes v1): current + balancer-requested mode (tomoThreadMode
+     * values). `mode` is written by the thread itself at a safe transition
+     * checkpoint, read by the balancer; `target_mode` the reverse. Step 1: set
+     * once at init (static mix), never changes. Control-plane rate — no need
+     * for a dedicated cache line yet. */
+    _Atomic int mode;
+    _Atomic int target_mode;
     exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
@@ -5021,6 +5035,7 @@ client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled c
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
+void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1): unified mode-dispatching main — NOT wired yet */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

@@ -10209,6 +10209,259 @@ static inline void exExecFake(client *fake) {
 
 /* ee451 (v13): exSameKeyReadonly() deleted with the value-forwarding apparatus. */
 
+/* ee451 (thread-modes v1, step 1): EX slice context — ALL persistent loop-local
+ * state of exThreadMain's old while(1) body, hoisted so one pass (a "slice")
+ * can be driven by any thread main: exThreadMain today, polyThreadMain once
+ * modes shift (THREAD-MODES-DESIGN.md). Deliberately NOT in here: the __thread
+ * iotid assignment — that is mode-scoped IDENTITY (current_client[]/
+ * executing_client[] slots and queues[producer]/freeback[producer] indexing
+ * all derive from it); it stays in the thread main, and step 2 must swap it
+ * atomically at the mode-transition checkpoint. */
+typedef struct exSliceCtx {
+    /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
+     * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
+     * such fake->cdb == wcdb; the worker signals all its completions into this
+     * one CDB line, which the drain clears via the same captured fake->cdb. */
+    int wcdb;
+    int nq;             /* ee451 (v14): io_threads+1 — loop-invariant (immutable after startup), hoisted */
+    int scan_start;     /* worker-local producer-scan rotation cursor */
+    /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
+     * every ~0.5-1 µs, so yielding immediately on an empty poll causes
+     * the scheduler to take us off-CPU for tens of µs and we miss the
+     * next burst by a wide margin. Previously sched_yield was ~3% of
+     * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
+     * window first, fall back to yield only if still idle after that.
+     *
+     * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
+     * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
+     * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
+    int empty_rounds;
+    /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
+    int spin_pinned;
+    int spin_budget;
+    /* pop/execute scratch. Contents never persist across passes; it lives here
+     * (not on the slice stack) only so the slice body is the verbatim old loop. */
+    client *batch[WORKER_POP_BATCH];
+} exSliceCtx;
+
+/* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state exactly
+ * as the old exThreadMain preamble did — same values, same thread-start timing
+ * (num_cdb, io_threads and worker_spin are all immutable after startup, so
+ * capturing them here == capturing them at the top of the old thread main). */
+static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
+    ctx->wcdb = cdbIndexFor(worker->id);
+    ctx->nq = server.io_threads + 1;
+    ctx->scan_start = 0;
+    ctx->empty_rounds = 0;
+    ctx->spin_pinned = server.worker_spin > 0;
+    ctx->spin_budget = ctx->spin_pinned ? server.worker_spin : 32;
+}
+
+/* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
+ * migration duties, one full rotated producer-queue scan + batch exec + reply
+ * signals, then the adaptive idle-spin decision — moved VERBATIM from the old
+ * exThreadMain while(1) body (only the persistent locals moved into ctx).
+ * Returns 1 if this pass popped any work, 0 for an idle pass. */
+static int exSlice(exThread *worker, exSliceCtx *ctx) {
+    /* ee451 (S8): decref any zero-copy reply values the IO threads handed
+     * back after sending — done here on the worker so the shard's value
+     * refcounts are only ever mutated by this thread. */
+    freebackDrainAll(worker);
+
+    /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
+     * B replays the ordered effect log into its shard; A advances the cold-key scan during
+     * COPYING. Both are this-worker-only writes (single-writer preserved). */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+        /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
+        atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
+        int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
+        if (worker->id == server.migration.dst) {
+            if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
+        } else if (worker->id == server.migration.src) {
+            if (ph == MIG_COPYING) migServiceScanA(worker);
+            else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
+        }
+    }
+
+    int any = 0;
+    /* ee451: runtime worker pop/execute batch size, capped by the compile-time
+     * array max. Decoupled from the per-stage prefetch widths. */
+    /* ee451 (v14): pop batch dual-mode — STRICT (tomokv-worker-pop-batch = N) or AUTO (0):
+     * a saturating up/down controller in the micro-arch style (2-bit-predictor flavor):
+     * a full batch (saturated pop) doubles the cap; a sparse pass (< cap/4, nonzero)
+     * halves it. Current-signal only — a workload shift re-tunes within a few passes. */
+    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
+     * per-queue pop batch already prevents starvation across the per-IO SPSC
+     * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
+     * latency; rotating the start removes that bias. Per-queue FIFO — and thus
+     * per-connection ordering (a connection always feeds one queue) — is
+     * untouched; only the inter-queue visit order rotates, which was never
+     * ordered to begin with. */
+    if (++ctx->scan_start >= ctx->nq) ctx->scan_start = 0;
+    for (int k = 0; k < ctx->nq; k++) {
+        int i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
+        int n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+        if (n == 0) continue;
+        any = 1;
+
+        /* Warm the cache before executing the batch. */
+        exPrefetchBatch(ctx->batch, n);
+
+        worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
+
+        /* ee451: per-batch reply-ready signal coalescing accumulator.
+         * sig_parents holds the distinct parent clients seen in this
+         * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
+         * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
+         * release fetch_or per distinct parent after the inner loop. */
+        client *sig_parents[WORKER_POP_BATCH];
+        uint32_t sig_masks[WORKER_POP_BATCH];
+        int sig_n = 0;
+
+        /* Execute the batch in issue (queue) order — plain, one op at a time.
+         * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
+         * (paper negative result: neutral in every regime, real workloads lack same-key
+         * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
+         * The record/replay helpers in db.c remain dormant for the paper's artifact. */
+        for (int j = 0; j < n; ) {
+            client *fake = ctx->batch[j];
+
+            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
+             * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
+             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
+             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
+             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
+             * faults). Targets the big-DB cache-miss regime; 0 = off. */
+            if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = current batch n), N = strict */
+                int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
+                if (la < n) {
+                    client *nf = ctx->batch[la];
+                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
+                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+                }
+            }
+
+            /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
+             * every range primary this producer dispatched before it has executed on A; decrement
+             * the per-cutover barrier and free. No reply. */
+            if (fake->drain_ack) {
+                /* This sentinel came up queue slot `i`; mark that producer slot drained. */
+                atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                freeFakeClient(fake);
+                j++;
+                continue;
+            }
+
+            /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
+             * connection's earlier commands). Empty this worker's OWN shard DBs and free
+             * the fake. Fire-and-forget: no reply, no barrier. */
+            if (fake->is_flush) {
+                emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                freeFakeClient(fake);
+                j++;
+                continue;
+            }
+
+            /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
+             * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
+             * release-acquire chain across all subs so the last one sees every sub's
+             * buffer; the last sub publishes the head slot's reply bit (into the head's
+             * captured CDB, not this worker's wcdb) with release, pairing with the IO
+             * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
+            if (fake->csparent) {
+                csSubExec(fake);
+                csGroup *g = fake->csparent;
+                if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
+                    client *hp = g->head->parent;
+                    atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
+                                             1u << g->head->fake_slot);
+                }
+                j++;
+                continue;
+            }
+
+            exExecFake(fake);
+
+            /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
+             * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
+             * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
+             * downward. Drives the value-size-adaptive pf-w-value width. */
+            if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
+                int cur = (int)worker->w_ewma_vsize;
+                cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
+                worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
+            }
+
+            /* ee451: coalesced reply-ready signal — OR each fake's slot bit
+             * into a per-parent accumulator; one release fetch_or per
+             * distinct parent is flushed after the whole batch.
+             * ee451 (v4): with coalescing disabled, do an immediate release
+             * fetch_or per fake (sig_n stays 0 so the post-batch flush is a
+             * no-op). Both are correct: bits are only OR'd by workers and
+             * cleared by the one owning IO thread, so coalescing N ORs into
+             * one cannot lose a bit. */
+            {
+                client *p = fake->parent;
+                uint32_t bit = 1u << fake->fake_slot;
+                /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
+                 * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
+                int s;
+                for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
+                if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
+                sig_masks[s] |= bit;
+            }
+            j++;
+        }
+
+        /* ee451: flush coalesced signals — one release fetch_or per
+         * distinct parent. This release happens-after every proc() and
+         * argv release for ALL of that parent's fakes in this batch, so
+         * the draining IO thread's acquire-load of reply_ready_mask sees
+         * all their reply writes. Bits are only ever OR-ed by workers and
+         * cleared by the single owning IO thread, so coalescing N ORs into
+         * one is equivalent and cannot lose a bit. */
+        for (int s = 0; s < sig_n; s++)
+            atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[ctx->wcdb].v,  /* ee451 (S5): this worker's CDB */
+                                     sig_masks[s]);
+    }
+
+    if (any) {
+        /* AUTO pop-batch update (once per non-empty pass): saturate-up / sparse-down. */
+        /* ee451 (v14): AUTO pop-batch = MAX, honestly. Demand-adaptive caps were implemented
+         * two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both flap at
+         * quantization boundaries with zero throughput delta — the cap only BINDS when a queue
+         * holds more than cap items, which is exactly when the big batch is right. STRICT mode
+         * (N=1..16) remains for inter-queue latency-fairness capping if ever needed. */
+        if (!ctx->spin_pinned && ctx->empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
+            ctx->spin_budget += ctx->spin_budget >> 1;
+            if (ctx->spin_budget > 256) ctx->spin_budget = 256;
+        }
+        ctx->empty_rounds = 0;
+    } else if (ctx->empty_rounds < ctx->spin_budget) {
+        /* PAUSE-spin: stay hot, let the IO thread publish work during the
+         * small window without the cost of a context switch.
+         * ee451 (v14, controller): the spin budget is ADAPTIVE — no knobs.
+         * If work arrived while we were spinning, spinning paid: grow the
+         * window (x1.5, cap 256 rounds). If we exhausted the window and had
+         * to yield, it was wasted: halve it (floor 4). Multiplicative,
+         * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
+         * is the quantum (~30-60ns on Zen). */
+        for (int p = 0; p < 16; p++) exPauseCpu();
+        ctx->empty_rounds++;
+    } else {
+        /* Sustained idleness — give up the CPU; shrink the spin window. */
+        if (!ctx->spin_pinned) {
+            ctx->spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp — the old ternary let
+                                                  * 6>>1=3 land BELOW the floor (cycle-test catch) */
+            if (ctx->spin_budget < 4) ctx->spin_budget = 4;
+        }
+        sched_yield();
+        ctx->empty_rounds = 0;
+    }
+    return any;
+}
+
 void *exThreadMain(void *arg) {
     exThread *worker = (exThread *)arg;
     /* ee451: give this worker a PRIVATE iotid above the IO-thread range
@@ -10217,6 +10470,8 @@ void *exThreadMain(void *arg) {
      * IO-thread-0's slot in server.current_client[]/executing_client[], racing
      * the main thread. The fixed base TOMO_IO_THREADS_MAX+1 guarantees no overlap
      * with any IO-thread iotid regardless of the configured io_threads. */
+    /* ee451 (thread-modes v1): this TLS store is mode-scoped IDENTITY — when modes
+     * go dynamic (step 2) it must swap atomically at the transition checkpoint. */
     iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
 
 #ifdef HAVE_LIBURING
@@ -10231,229 +10486,11 @@ void *exThreadMain(void *arg) {
      * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
     exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
 
-    /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
-     * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
-     * such fake->cdb == wcdb; the worker signals all its completions into this
-     * one CDB line, which the drain clears via the same captured fake->cdb. */
-    int wcdb = cdbIndexFor(worker->id);
     fprintf(stderr, "[worker %d] started (iotid=%d)\n", worker->id, iotid);
-    client *batch[WORKER_POP_BATCH];
 
-    /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
-     * every ~0.5-1 µs, so yielding immediately on an empty poll causes
-     * the scheduler to take us off-CPU for tens of µs and we miss the
-     * next burst by a wide margin. Previously sched_yield was ~3% of
-     * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
-     * window first, fall back to yield only if still idle after that.
-     *
-     * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
-     * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
-     * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
-    int empty_rounds = 0;
-    /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
-    int spin_pinned = server.worker_spin > 0;
-    int spin_budget = spin_pinned ? server.worker_spin : 32;
-    int nq = server.io_threads + 1;         /* ee451 (v14): loop-invariant (immutable after startup) — hoisted */
-    int scan_start = 0;                 /* worker-local producer-scan rotation cursor */
-
-    while (1) {
-        /* ee451 (S8): decref any zero-copy reply values the IO threads handed
-         * back after sending — done here on the worker so the shard's value
-         * refcounts are only ever mutated by this thread. */
-        freebackDrainAll(worker);
-
-        /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
-         * B replays the ordered effect log into its shard; A advances the cold-key scan during
-         * COPYING. Both are this-worker-only writes (single-writer preserved). */
-        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
-            /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
-            atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
-            int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
-            if (worker->id == server.migration.dst) {
-                if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
-            } else if (worker->id == server.migration.src) {
-                if (ph == MIG_COPYING) migServiceScanA(worker);
-                else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
-            }
-        }
-
-        int any = 0;
-        /* ee451: runtime worker pop/execute batch size, capped by the compile-time
-         * array max. Decoupled from the per-stage prefetch widths. */
-        /* ee451 (v14): pop batch dual-mode — STRICT (tomokv-worker-pop-batch = N) or AUTO (0):
-         * a saturating up/down controller in the micro-arch style (2-bit-predictor flavor):
-         * a full batch (saturated pop) doubles the cap; a sparse pass (< cap/4, nonzero)
-         * halves it. Current-signal only — a workload shift re-tunes within a few passes. */
-        int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
-        /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
-         * per-queue pop batch already prevents starvation across the per-IO SPSC
-         * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
-         * latency; rotating the start removes that bias. Per-queue FIFO — and thus
-         * per-connection ordering (a connection always feeds one queue) — is
-         * untouched; only the inter-queue visit order rotates, which was never
-         * ordered to begin with. */
-        if (++scan_start >= nq) scan_start = 0;
-        for (int k = 0; k < nq; k++) {
-            int i = scan_start + k; if (i >= nq) i -= nq;
-            int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
-            if (n == 0) continue;
-            any = 1;
-
-            /* Warm the cache before executing the batch. */
-            exPrefetchBatch(batch, n);
-
-            worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
-
-            /* ee451: per-batch reply-ready signal coalescing accumulator.
-             * sig_parents holds the distinct parent clients seen in this
-             * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
-             * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
-             * release fetch_or per distinct parent after the inner loop. */
-            client *sig_parents[WORKER_POP_BATCH];
-            uint32_t sig_masks[WORKER_POP_BATCH];
-            int sig_n = 0;
-
-            /* Execute the batch in issue (queue) order — plain, one op at a time.
-             * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
-             * (paper negative result: neutral in every regime, real workloads lack same-key
-             * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
-             * The record/replay helpers in db.c remain dormant for the paper's artifact. */
-            for (int j = 0; j < n; ) {
-                client *fake = batch[j];
-
-                /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-                 * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
-                 * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-                 * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-                 * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-                 * faults). Targets the big-DB cache-miss regime; 0 = off. */
-                if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = current batch n), N = strict */
-                    int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
-                    if (la < n) {
-                        client *nf = batch[la];
-                        if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                            redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
-                    }
-                }
-
-                /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
-                 * every range primary this producer dispatched before it has executed on A; decrement
-                 * the per-cutover barrier and free. No reply. */
-                if (fake->drain_ack) {
-                    /* This sentinel came up queue slot `i`; mark that producer slot drained. */
-                    atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
-                    freeFakeClient(fake);
-                    j++;
-                    continue;
-                }
-
-                /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
-                 * connection's earlier commands). Empty this worker's OWN shard DBs and free
-                 * the fake. Fire-and-forget: no reply, no barrier. */
-                if (fake->is_flush) {
-                    emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
-                    freeFakeClient(fake);
-                    j++;
-                    continue;
-                }
-
-                /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
-                 * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
-                 * release-acquire chain across all subs so the last one sees every sub's
-                 * buffer; the last sub publishes the head slot's reply bit (into the head's
-                 * captured CDB, not this worker's wcdb) with release, pairing with the IO
-                 * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
-                if (fake->csparent) {
-                    csSubExec(fake);
-                    csGroup *g = fake->csparent;
-                    if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
-                        client *hp = g->head->parent;
-                        atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
-                                                 1u << g->head->fake_slot);
-                    }
-                    j++;
-                    continue;
-                }
-
-                exExecFake(fake);
-
-                /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
-                 * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
-                 * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
-                 * downward. Drives the value-size-adaptive pf-w-value width. */
-                if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
-                    int cur = (int)worker->w_ewma_vsize;
-                    cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
-                    worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
-                }
-
-                /* ee451: coalesced reply-ready signal — OR each fake's slot bit
-                 * into a per-parent accumulator; one release fetch_or per
-                 * distinct parent is flushed after the whole batch.
-                 * ee451 (v4): with coalescing disabled, do an immediate release
-                 * fetch_or per fake (sig_n stays 0 so the post-batch flush is a
-                 * no-op). Both are correct: bits are only OR'd by workers and
-                 * cleared by the one owning IO thread, so coalescing N ORs into
-                 * one cannot lose a bit. */
-                {
-                    client *p = fake->parent;
-                    uint32_t bit = 1u << fake->fake_slot;
-                    /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
-                     * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
-                    int s;
-                    for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
-                    if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
-                    sig_masks[s] |= bit;
-                }
-                j++;
-            }
-
-            /* ee451: flush coalesced signals — one release fetch_or per
-             * distinct parent. This release happens-after every proc() and
-             * argv release for ALL of that parent's fakes in this batch, so
-             * the draining IO thread's acquire-load of reply_ready_mask sees
-             * all their reply writes. Bits are only ever OR-ed by workers and
-             * cleared by the single owning IO thread, so coalescing N ORs into
-             * one is equivalent and cannot lose a bit. */
-            for (int s = 0; s < sig_n; s++)
-                atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[wcdb].v,  /* ee451 (S5): this worker's CDB */
-                                         sig_masks[s]);
-        }
-
-        if (any) {
-            /* AUTO pop-batch update (once per non-empty pass): saturate-up / sparse-down. */
-            /* ee451 (v14): AUTO pop-batch = MAX, honestly. Demand-adaptive caps were implemented
-             * two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both flap at
-             * quantization boundaries with zero throughput delta — the cap only BINDS when a queue
-             * holds more than cap items, which is exactly when the big batch is right. STRICT mode
-             * (N=1..16) remains for inter-queue latency-fairness capping if ever needed. */
-            if (!spin_pinned && empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
-                spin_budget += spin_budget >> 1;
-                if (spin_budget > 256) spin_budget = 256;
-            }
-            empty_rounds = 0;
-        } else if (empty_rounds < spin_budget) {
-            /* PAUSE-spin: stay hot, let the IO thread publish work during the
-             * small window without the cost of a context switch.
-             * ee451 (v14, controller): the spin budget is ADAPTIVE — no knobs.
-             * If work arrived while we were spinning, spinning paid: grow the
-             * window (x1.5, cap 256 rounds). If we exhausted the window and had
-             * to yield, it was wasted: halve it (floor 4). Multiplicative,
-             * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
-             * is the quantum (~30-60ns on Zen). */
-            for (int p = 0; p < 16; p++) exPauseCpu();
-            empty_rounds++;
-        } else {
-            /* Sustained idleness — give up the CPU; shrink the spin window. */
-            if (!spin_pinned) {
-                spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp — the old ternary let
-                                                 * 6>>1=3 land BELOW the floor (cycle-test catch) */
-                if (spin_budget < 4) spin_budget = 4;
-            }
-            sched_yield();
-            empty_rounds = 0;
-        }
-    }
+    exSliceCtx ctx;
+    exSliceInit(worker, &ctx);
+    while (1) exSlice(worker, &ctx);
     return NULL;
 }
 
@@ -10638,6 +10675,11 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
+        /* ee451 (thread-modes v1): static mode mix — every exThread is born EX and
+         * stays EX (nothing shifts modes yet). Explicit init: the array is
+         * zmalloc'd, not zeroed. */
+        atomic_store_explicit(&server.exThreads[i].mode, TOMO_MODE_EX, memory_order_relaxed);
+        atomic_store_explicit(&server.exThreads[i].target_mode, TOMO_MODE_EX, memory_order_relaxed);
         for (int t = 0; t <= server.io_threads; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
@@ -10697,16 +10739,95 @@ void initIOThreads(void) {
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
 }
+/* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
+ * persistent loop-local state of its own (the event loop owns all of it inside
+ * t->el), so there is no ioSliceCtx — a slice is exactly one aeProcessEventsIO()
+ * pass. Returns the number of events processed (0 = idle pass). NOTE for step 2:
+ * aeApiPoll blocks with tvp=NULL while replyWorking==0, so a mode check between
+ * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
+static int ioSlice(ioThreadArgs *t) {
+    return aeProcessEventsIO(t->el);
+}
+
 void *ioThreadMain(void *arg) {
     ioThreadArgs *t = (ioThreadArgs *)arg;
+    /* ee451 (thread-modes v1): mode-scoped IDENTITY — IO identity is the raw io
+     * thread id (EX identity is TOMO_IO_THREADS_MAX+1+id); queue/freeback
+     * producer slots and replyWorking[] index off it. Step 2 swaps it atomically
+     * at the mode-transition checkpoint. */
     iotid = t->id;
 
     fprintf(stderr, "IO thread %d started\n", t->id);
 
     while (1) {
-        aeProcessEventsIO(t->el);
+        ioSlice(t);
     }
 
+    return NULL;
+}
+
+/* ee451 (thread-modes v1, step 1): unified polymorphic thread main — reads the
+ * thread's atomic mode every iteration and runs ONE slice of that mode
+ * (THREAD-MODES-DESIGN.md). NOT WIRED YET: initExThreads/initIOThreads still
+ * spawn exThreadMain/ioThreadMain; this only has to compile in step 1. Before
+ * it can be wired, step 2 must provide:
+ *   - mode-scoped identity swap: the __thread iotid (EX = TOMO_IO_THREADS_MAX+1+id,
+ *     IO = io thread id) must change ATOMICALLY at a safe checkpoint, with
+ *     current_client[]/queues[producer]/freeback[producer] indexing valid for
+ *     both roles during the transition window (the historic worker-slot crash
+ *     class — see the iotid comment in exThreadMain);
+ *   - an IO binding (ioThreadArgs: event loop + SO_REUSEPORT listener) owned by
+ *     the balancer; entry 0 of server.ioThreads belongs to the main thread and
+ *     entries exist only for ids < ioThreadsNum;
+ *   - transition checkpoints (EX: post-drain-fence; IO: empty-loop pass; WB:
+ *     post-retire fence) driving mode = target_mode. */
+__attribute__((unused)) void *polyThreadMain(void *arg) {
+    exThread *worker = (exThread *)arg;
+
+    /* EX-mode identity + one-time EX setup, exactly as exThreadMain does it.
+     * Step 1 pins this thread's identity to EX for its whole life (the only
+     * mode whose slice touches iotid-indexed state here); step 2 moves this
+     * into the EX-entry transition. */
+    iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
+#ifdef HAVE_LIBURING
+    if (server.worker_direct_send) wdsEnsureRing(worker->id);
+#endif
+    exBindNumaLocal(worker->id);
+
+    exSliceCtx exctx;
+    exSliceInit(worker, &exctx);
+
+    while (1) {
+        switch (atomic_load_explicit(&worker->mode, memory_order_acquire)) {
+        case TOMO_MODE_IO:
+            /* Needs a real IO binding (see header comment). Until step 2 hands
+             * one over, only a pre-built per-thread ioThreadArgs slot (never the
+             * main thread's id 0) can be sliced; otherwise park-yield. */
+            if (worker->id >= 1 && worker->id < server.ioThreadsNum && server.ioThreads) {
+                ioSlice(&server.ioThreads[worker->id]);
+            } else {
+                sched_yield();
+            }
+            break;
+        case TOMO_MODE_EX:
+            exSlice(worker, &exctx);
+            break;
+        case TOMO_MODE_WB:
+            /* WB slices are 3s-only (write-back threads live in the 3-stage
+             * fork); stub in this 2s fork — park until the balancer retargets. */
+            sched_yield();
+            break;
+        case TOMO_MODE_PARKED:
+        default: {
+            /* Parked: cheap bounded wait, then re-check target. A futex-based
+             * park/wake (so mode changes apply instantly) comes with the
+             * balancer in step 2; 100µs re-check latency is fine until then. */
+            struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000 };
+            nanosleep(&ts, NULL);
+            break;
+        }
+        }
+    }
     return NULL;
 }
 
