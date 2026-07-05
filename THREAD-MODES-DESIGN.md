@@ -119,3 +119,19 @@ the owner is the sole shard writer):**
 Result: cron cost mostly vanishes from serving threads not by relocation but by LOCALITY — shard
 housekeeping runs on the shard's owner in otherwise-idle slices; client housekeeping on the client's
 owner; the token carries only what is genuinely singular. Absorbs tasks RP-2 (#18) and RP-3 (#19).
+
+### Deletion criteria (user): if it doesn't need to exist in Tomo KV, DELETE the task
+A duty is deleted (not relocated) when any of:
+ (a) its OBJECT doesn't exist here — e.g. every keyspace cron aimed at the DECOY server.db
+     (expire/rehash/defrag/eviction sampling of an empty-by-design keyspace);
+ (b) its FEATURE is unsupported by design (RP-1 boot-gates it) — replication cron, AOF-rewrite
+     scheduling, cluster/failover/ASM ticks, maxmemory eviction hooks: their per-tick checks are
+     dead branches burned every cycle;
+ (c) its MACHINERY was replaced wholesale — the upstream io-threads apparatus (IOThreadClientsCron,
+     pauseIOThread, handoff) which also carries the misleading am-I-main guards the audit flagged.
+Candidates pending a support decision (delete OR implement properly, never half-exist):
+ slowlog/latency-monitor for worker-executed commands (today they silently see nothing — the audit's
+ observability hole); CSC/tracking invalidation broadcast paths.
+Note: per-tick dead branches are themselves cron cost — deletion IS the perf fix. Consistent with the
+project's measured history: every deletion wave to date was perf-neutral-or-positive and shrank the
+audit surface.
