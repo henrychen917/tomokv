@@ -3303,6 +3303,9 @@ void initServer(void) {
      * controller is the queued follow-up). */
     if (server.pipeline_ring_depth == 0) { server.pipeline_ring_depth = TOMO_PIPELINE_DEPTH_MAX; serverLog(LL_NOTICE, "tomokv-pipeline-depth auto -> %d (max)", TOMO_PIPELINE_DEPTH_MAX); }
     if (server.ex_queue_size == 0)       { server.ex_queue_size = 2048;     serverLog(LL_NOTICE, "tomokv-ex-queue-depth auto -> 2048"); }
+    /* ee451 (AE-1): boot-sync the adaptive-drain budget into ae.c's plain global — config
+     * apply fns do not run during loadServerConfig, only on CONFIG SET. */
+    aeIODrainSpin = server.io_drain_spin;
     server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
     server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
     server.ex_dispatch_mask = server.ex_threads > 0 ? (uint64_t)(server.ex_threads - 1) : 0;  /* legacy/unused */

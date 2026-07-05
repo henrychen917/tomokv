@@ -33,6 +33,17 @@
  * below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
 
+/* ee451 (AE-1, ported from 2s): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0
+ * the IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
+ * which picks up finished worker replies — workers typically complete in ~1-5us) before
+ * falling back to the fixed 100us wait window; that fixed window was the low-pipeline
+ * latency floor. Plain int (not a server-struct read) because ae.o links into redis-cli
+ * without server.o; synced from server.io_drain_spin (tomokv-io-drain-spin) at boot and
+ * on CONFIG SET. 0 = off (always the 100us window, the old behavior). NOTE strict 3s: parse
+ * ifid threads (ifidx>=1) do not bump replyWorking for dispatched fakes (the WB drains/sends),
+ * so this applies to the ifidx-0 legacy reply path and the ring-full markStalled path. */
+int aeIODrainSpin = 0;
+
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT
@@ -478,17 +489,29 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
 
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
+    /* ee451 (AE-1): sleep policy. replyWorking==0 -> block until an fd event (tvp NULL).
+     * replyWorking>0 -> replies are in flight on workers: burn up to aeIODrainSpin
+     * ZERO-timeout passes (each still services fd events, and beforesleep above drains
+     * completed replies) so a 1-5us worker completion is picked up in ~that time instead
+     * of eating the 100us window; after the budget (wedged/slow worker) fall back to the
+     * 100us poll so the IO thread never turns into a pure busy-loop. */
+    static __thread int drainPasses = 0;
     struct timeval tv, *tvp = NULL;
-    if (replyWorking == 0){
-
-    }else{
+    if (replyWorking == 0) {
+        drainPasses = 0;
+    } else {
         tv.tv_sec = 0;
-        tv.tv_usec = 100;
+        if (drainPasses < aeIODrainSpin) {
+            drainPasses++;
+            tv.tv_usec = 0;     /* zero-timeout drain pass */
+        } else {
+            tv.tv_usec = 100;   /* budget exhausted: fixed fallback window */
+        }
         tvp = &tv;
     }
 
-
     numevents = aeApiPoll(eventLoop, tvp);
+    if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
     for (int j = 0; j < numevents; j++) {
         int fd = eventLoop->fired[j].fd;

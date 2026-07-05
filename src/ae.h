@@ -93,6 +93,7 @@ typedef struct aeEventLoop {
 } aeEventLoop;
 extern __thread int ifidx;
 extern __thread int replyWorking;
+extern int aeIODrainSpin; /* AE-1: zero-timeout drain passes while replyWorking>0; see ae.c */
 /* Prototypes */
 aeEventLoop *aeCreateEventLoop(int setsize);
 void aeDeleteEventLoop(aeEventLoop *eventLoop);
