@@ -180,3 +180,14 @@ New command family (control-plane; absorbs RP-3's observability holes):
   client arrays read-only; CLIENT KILL <id>: per-thread kill-request flag consumed in the owner's
   io slice (RP-3 items — now part of this API).
 Integration rules apply: MAINT ops on a migrating range obey the same matrix (tombstones/pause).
+
+## V1 VALIDATION STATUS (2026-07-05)
+- **2s oscillation soak PASSED** (4 loops io-bound<->ex-bound, 6min/phase, ASAN, ~50min): 9 live
+  shifts (4x PARKED->EX with bucket migration in, 4x EX->PARKED with migrate-out + empty-assert,
+  1x PARKED->IO finale). Conservation EXACT at every boundary (~14 checks: dbsize 2,002,300 +
+  4/4 sentinels). 0 ASAN reports, 0 crashes, no loop-over-loop drift.
+- **3s usability smoke PASSED** (full 3s benching deferred to Threadripper): strict boot 8 poly
+  threads; EX-join -> 2.18M mixed live; park; WB-join fenced repartition (watched clients stay
+  with old WB) -> 2.50M post-join (the 3rd WB measurably helped — an early balancer preview).
+- Engine note (pre-existing, both forks): v8d DRAINING-window transient read-miss (reproduced
+  knob-off; never data loss). Consider read-hold or double-read during the window, low priority.
