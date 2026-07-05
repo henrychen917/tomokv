@@ -1797,6 +1797,7 @@ typedef struct csGroup {
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
 void migCaptureEffect(redisDb *db, robj *keyobj); /* v8d: A-side post-commit effect-log capture */
+void migCaptureImplicitDelete(redisDb *db, robj *keyobj); /* implicit (expiry/evict) delete -> tombstone, gated to src worker's shard */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
 void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
 

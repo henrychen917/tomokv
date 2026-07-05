@@ -2914,8 +2914,10 @@ static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, lo
  * (which only fires for CMD_WRITE commands), so a range key A expires/evicts mid-migration would be
  * resurrected on B. Log a tombstone here. STRICTLY gate to worker A's own shard: a tombstone emitted
  * from any other db (e.g. the IO-side server.db, which never holds range keys) would tell B to delete
- * a still-live key = data loss. The key is already gone, so migCaptureEffect logs a tombstone. */
-static inline void migCaptureImplicitDelete(redisDb *db, robj *keyobj) {
+ * a still-live key = data loss. The key is already gone, so migCaptureEffect logs a tombstone.
+ * Exported (not static): the hash-field-expiry lazy paths in t_hash.c delete whole keys via raw
+ * dbDelete (never deleteExpiredKeyAndPropagate) and need the same tombstone capture. */
+void migCaptureImplicitDelete(redisDb *db, robj *keyobj) {
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
         server.exThreads && db == &server.exThreads[server.migration.src].db[db->id])
         migCaptureEffect(db, keyobj);
