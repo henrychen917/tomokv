@@ -304,7 +304,7 @@ endif
 
 # ee451 (v11-B): fresh io_uring network path. Build with `make USE_URING=yes` (needs liburing).
 # Defines HAVE_LIBURING (compiles the io_uring send/recv code) + links -luring. The path is still
-# gated at RUNTIME by `thredis-io-uring` (default off) so a USE_URING build defaults to epoll.
+# gated at RUNTIME by `tomokv-io-uring` (default off) so a USE_URING build defaults to epoll.
 ifeq ($(USE_URING),yes)
 	FINAL_CFLAGS+= -DHAVE_LIBURING
 	FINAL_LIBS+= -luring

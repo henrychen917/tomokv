@@ -3201,7 +3201,9 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
-    createBoolConfig("tomokv-worker-direct-send",    NULL, IMMUTABLE_CONFIG,  server.worker_direct_send,    0, NULL, NULL),
+    /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
+     * send-back lineage. On this fork only the knob + a struct field ever existed (no ring code at
+     * all), so it silently no-op'd while implying worker-direct replies. */
     createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("tomokv-uring-threestage",      NULL, IMMUTABLE_CONFIG,  server.uring_threestage,      0, NULL, NULL),
     createIntConfig("tomokv-wb-threads",             "tomokv-rob-threads", IMMUTABLE_CONFIG, 0, TOMO_IFID_THREADS_MAX, server.wb_threads, 0, INTEGER_CONFIG, NULL, NULL),
