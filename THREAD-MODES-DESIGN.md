@@ -135,3 +135,12 @@ Candidates pending a support decision (delete OR implement properly, never half-
 Note: per-tick dead branches are themselves cron cost — deletion IS the perf fix. Consistent with the
 project's measured history: every deletion wave to date was perf-neutral-or-positive and shrank the
 audit surface.
+
+### Shard-local rehash (user: yes — each shard rehashes when needed)
+Op-driven incremental rehash already works (owner-only, lock-free). The EX-local idle slice adds the
+two orphaned triggers: (1) COLD-DICT DRAIN — finish in-progress rehash on idle shards (today a cold
+mid-rehash dict holds both tables forever); (2) SHRINK-WHEN-SPARSE — fill < ~10% -> resize (today
+nothing ever shrinks a shard dict). Budgeted micro-arch style: steps scale with observed idleness
+(adaptive-spin state is the signal), yield instantly on real work — rehash cost MOVES from serving
+ops (upstream Redis's latency-spike model) into idle gaps. Caveat: dictPauseRehashing while the
+shard is a live v8d migration endpoint (bucket copy iterates the dict).
