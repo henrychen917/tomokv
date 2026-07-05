@@ -4041,10 +4041,14 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
             o->refcount = 1;
             return o;
         }
-        /* demand-grow: free list empty -> malloc, sized UP to the class so PUT re-files it to tier t */
+        /* demand-grow: free list empty -> malloc, sized UP to the class so PUT re-files it to tier t.
+         * ee451 (W6-P1): NON-greedy grow — greedy doubled the request (tier 4: 16K -> 32K+), so
+         * demand-grown objects would fail the PUT upper bound below and silently degenerate the
+         * top tier to pure malloc/free; non-greedy also halves demand-grown memory in every tier
+         * (alloc == class cap + allocator usable-size rounding, which the PUT bound allows for). */
         robj *o = createRawStringObject(ptr, len);
         if (sdsalloc(o->ptr) < operandTierCap[t])
-            o->ptr = sdsMakeRoomFor(o->ptr, (size_t)operandTierCap[t] - sdslen(o->ptr));
+            o->ptr = sdsMakeRoomForNonGreedy(o->ptr, (size_t)operandTierCap[t] - sdslen(o->ptr));
         return o;
     }
     if (ifidx <= TOMO_IFID_THREADS_MAX && operandPoolN[ifidx] > 0) {
@@ -4059,8 +4063,20 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 static inline void operandPoolPut(robj *o) {
     if (ifidx >= 0 && ifidx <= TOMO_IFID_THREADS_MAX) operandPoolOps[ifidx]++;   /* v14 op-clock */
     {   /* ee451 (v13): tiered hardwired */
+        /* ee451 (W6-P1): upper alloc bound. operandFloorTier floors ANY alloc >= 64 into the top
+         * tier, so a refcount-1 RAW argv value of 100KB-512MB (LPUSH/APPEND/HSET payloads, failed
+         * SET NX, ...) would be parked in the 16KB class and pinned FOREVER (sdscpylen on reuse
+         * never shrinks): 32 slots x 33 ifid rows of multi-MB sds. The old flat pool guarded this
+         * (OPERAND_POOL_MAX_SDS, 'Oversized sds aren't pooled (avoid hoarding)'); the tiered
+         * rewrite lost the guard. Bound = 2x top class: accepts demand-grown tier-4 objects
+         * (non-greedy request == 16384, but jemalloc usable-size rounding lifts sdsalloc to
+         * ~20K), rejects true one-off monsters. Worst-case hoard is now 32 x 32KB = 1MB per
+         * ifid row. The wb->ifid recycle ring funnels through this same PUT on drain, so one
+         * fix point covers both release paths (oversized ring objects get freed on the OWNER,
+         * which is exactly where their malloc lives). */
         if (ifidx <= TOMO_IFID_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
-            o->encoding == OBJ_ENCODING_RAW) {
+            o->encoding == OBJ_ENCODING_RAW &&
+            sdsalloc(o->ptr) <= (size_t)operandTierCap[OPERAND_NTIER-1] * 2) {
             int t = operandFloorTier(sdsalloc(o->ptr));
             if (t >= 0 && operandTierN[ifidx][t] < operandTierSlots[t]) {
                 sdsclear(o->ptr);                            /* reset length, keep capacity */
