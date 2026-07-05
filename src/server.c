@@ -5107,6 +5107,26 @@ int processCommand(client *c) {
      * Everything else routes through a fake. The fake's reply buffer is
      * what ends up on the wire, in dispatch order, via the flush walk. */
 
+    /* ee451 (RP-1 runtime; FLAGGED: user decision pending — option 1 of 3, see
+     * selfimprove/multibug_report.md): transactions are decoy-blind under sharding.
+     * EXEC runs its queued commands inline on the IO thread against the EMPTY decoy
+     * server.db (each inner call() bypasses dispatch classification, so no worker
+     * repoint ever happens): every write inside MULTI is acknowledged then invisible
+     * to sharded reads — silent data loss — and WATCH registers on the decoy's
+     * watched_keys, so shard writes never fire it (broken CAS, verified live).
+     * Until a sharded transaction path exists (multibug_report.md options 2/3),
+     * refuse to OPEN a transaction, loudly — the RP-1 principle at the command
+     * level. EXEC/DISCARD without MULTI already error upstream; UNWATCH is a no-op. */
+    if (server.num_workers > 0 &&
+        (c->cmd->proc == multiCommand || c->cmd->proc == watchCommand))
+    {
+        rejectCommandFormat(c, "%s is not supported with tomokv sharding "
+            "(tomokv-ex-threads=%d): transactions would execute against the empty "
+            "decoy DB and their writes be silently lost; run with tomokv-ex-threads 0 "
+            "to use MULTI/EXEC/WATCH", c->cmd->fullname, server.num_workers);
+        return C_OK;
+    }
+
     /* Queuing inside MULTI: writes to real->mstate and addReply(real).
      * Must run on real. Drain ring first. */
     if (c->flags & CLIENT_MULTI &&
