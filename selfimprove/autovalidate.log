@@ -1,0 +1,16 @@
+[10:17:50] 2sA build: sha=d6a03968:0 malloc=jemalloc-5.3.0
+[10:18:41] 3sA build: sha=397ba796:0 malloc=jemalloc-5.3.0
+[10:18:41] === 2sA knob-off equivalence (3 interleaved reps) ===
+[10:20:44] rep1 BASE g=7818197.12 m=6413125.38 p1=225759.24 | CAND g=7832833.06 m=6708139.09 p1=230952.42
+[10:22:49] rep2 BASE g=7898599.26 m=6578000.77 p1=233620.79 | CAND g=7834531.96 m=6725131.45 p1=236591.33
+[10:24:52] rep3 BASE g=7864975.67 m=6617703.14 p1=255496.37 | CAND g=7836723.91 m=6972631.52 p1=241404.81
+[10:24:52] === 2sA knob-on shift smoke ===
+[10:25:10] shifts: 4 (expect 4: EX,PARK,IO,IO->PARKED) dbsize=68096 (base=68096) ioexit-park=1
+[10:25:11] === 2sA ex0 mode ===
+[10:25:13] ex0: exists=1 multi=scripted-skip get=v crash=0
+ex0 15s: 1348907.74
+[10:25:28] ex0 post: alive=PONG crash=0
+[10:25:29] === 3sA strict + shift smoke ===
+[10:25:32] 3sA: get=v mget=1,2,
+[10:25:41] 3sA shifts: 4 crash=0 rt=v
+AUTOVALIDATE_DONE

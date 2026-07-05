@@ -62,3 +62,10 @@ Wave-6 fixes propagated to both autos (2s-auto tip 12357b4f2 incl. correct wds-p
 v12-K code is LIVE v1.6 lineage there; 3s tips incl. 3s-appropriate wds deletion w/ loud boot abort).
 ALL FOUR improve branches level and pushed. 3s-auto AE-1b: pending pick (bench-validated on 3s
 static — safe pick for user or next session).
+
+## CLOSING MEASUREMENTS
+Drain-spin default matrix (0/16/32/64/128 x P1/P4, interleaved x2): any spin>0 beats off by +5-8%
+P1; no value beats 32 consistently without a P4 guard loss (128: +2.6-5.4% P1 but -1.6/-3.6% P4)
+-> DEFAULT 32 KEPT, data-backed. 45-min soak of 2s-improve HEAD: PASS — RSS declined 318->224MB
+(decay+purging healthy), 2.87M ops sustained w/ reconnect churn, crash=0, responsive after.
+3s-auto AE-1b picked+pushed (88eac6236). ALL FOUR improve branches final + level.

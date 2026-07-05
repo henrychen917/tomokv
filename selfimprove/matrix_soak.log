@@ -1,0 +1,21 @@
+[14:46] === DRAIN-SPIN MATRIX (interleaved round-robin x2) ===
+[14:46] r1 spin=0 p1=221047.01 p4=1440095.06
+[14:47] r1 spin=16 p1=239805.23 p4=1472200.56
+[14:47] r1 spin=32 p1=224551.89 p4=1486906.51
+[14:48] r1 spin=64 p1=219086.00 p4=1471436.12
+[14:48] r1 spin=128 p1=236584.47 p4=1433787.71
+[14:49] r2 spin=0 p1=226971.19 p4=1455790.22
+[14:49] r2 spin=16 p1=239437.28 p4=1500910.77
+[14:50] r2 spin=32 p1=239505.96 p4=1457223.87
+[14:50] r2 spin=64 p1=227048.26 p4=1518271.35
+[14:51] r2 spin=128 p1=245775.05 p4=1447182.04
+[14:51] guard spin=32 p16get=5652606.15
+[14:51] === 45min SOAK (spin=32 default) ===
+[15:00] t=9min used_memory:143562152 used_memory_rss:317812736
+[15:09] t=18min used_memory:147068480 used_memory_rss:245407744
+[15:18] t=27min used_memory:145334480 used_memory_rss:230391808
+[15:27] t=36min used_memory:145404296 used_memory_rss:243548160
+[15:36] t=45min used_memory:74021720 used_memory_rss:223776768
+soak ops: 2866249.75
+[15:36] post-soak: alive=PONG crash=0
+MATRIX_SOAK_DONE
