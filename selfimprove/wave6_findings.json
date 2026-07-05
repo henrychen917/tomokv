@@ -1,0 +1,281 @@
+{
+  "summary": "Extended-phase wave 6 (box-free): io-uring reply/recv paths, expire machinery, 3s operand-pool tiers deep-read, fresh-eyes re-read of the AE-1 drain region (the one kept win — look for follow-on wins or hazards).",
+  "agentCount": 4,
+  "logs": [],
+  "result": {
+    "uring": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:3459-3500 (iouRecvDeliver) vs /shared/Projects/THredis-2s-improve/src/iothread.c:122,317,593,741",
+          "change": "Gate v12-G recv-ring delivery on the CLIENT_IO_READ_ENABLED ownership handshake (and disarm/park on handoff to main thread). iouRecvDeliver appends to querybuf and runs processInputBuffer unconditionally; readQueryFromClient (networking.c:4656-4661) checks io_flags and defers via atomicSetWithSync(c->pending_read,1) when the flag is cleared.",
+          "mechanism": "The main-thread handoff (iothread.c:122 sendPendingClientsToMainThreadIfNeeded, :317 assignClientToIOThread) clears CLIENT_IO_READ_ENABLED specifically so the IO thread stops touching the client while the main thread processes it — the asserts at iothread.c:593/741 codify this invariant. The epoll read path honors it; the io_uring recv reaper (iouRecvReap, runs on the IO thread's event loop) does not. With tomokv-io-uring-recv on, a CQE landing while the client sits in pending_clients_to_main_thread / mainThreadProcessingClients makes the IO thread run processInputBuffer/freeClientAsync concurrently with the main thread mutating the same client — data race, corruption, or a tripped serverAssert. This handoff fires for every isClientMustHandledByMainThread transition (blocked, pubsub, tracking, monitor, CLOSE_ASAP), so it is reachable under ordinary traffic, not just edge cases.",
+          "risk": "Fix must decide what to do with kernel-delivered bytes while ownership is with the main thread: buffering into querybuf also races (main thread reads querybuf), so either stash into a side buffer, or disarm the fd at handoff and re-arm on return (iothread.c:763-770 already has the re-bind site + a v12-G note). Doing nothing keeps a knob that silently corrupts state when enabled.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:3612-3620 (iouRecvDisarm) + /shared/Projects/THredis-2s-improve/src/iothread.c:163-172,225-235 (unbindClientFromIOThreadEventLoop / fetchClientFromIOThread)",
+          "change": "iouRecvDisarm must cancel the in-kernel multishot recv (io_uring_prep_cancel64 with the ((gen<<32)|fd) cookie, submit + reap under the existing pauseIOThread) — today it only NULLs the fdmap slot. There is no prep_cancel/ASYNC_CANCEL anywhere in the file.",
+          "mechanism": "The comment claims 'the kernel terminates the multishot when the fd is finally closed', which covers teardown only. On keepClientInMainThread migration the fd is NOT closed — it is rebound to server.el and read via epoll — but the old IO thread's still-armed multishot keeps consuming socket bytes into its provided buffer ring; the reaper then drops those CQEs as stale (fdmap slot NULL / gen mismatch at networking.c:3520-3522) and recycles the buffers. Result: silent, permanent loss of input bytes for any client migrated to the main thread while tomokv-io-uring-recv is on (protocol desync — client hangs or gets garbage framing). This is exactly the conn-migration interplay the task asked about; tmMigHandoff itself does not exist on this branch, but any future thread-modes port inherits this hole through the same unbind path.",
+          "risk": "Cancel must run on the owning IO thread's ring; unbind/fetch run on the main thread under pauseIOThread, so either submit the cancel from within the pause (ring ops from the wrong thread are safe here only because the owner is parked) or queue it for the IO thread — needs care but the pause window already exists for exactly this purpose.",
+          "risk_note": "",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:3357-3359 (reap loop in handleClientsWithPendingWritesUring)",
+          "change": "Retry io_uring_wait_cqe on -EINTR instead of `if (io_uring_wait_cqe(ring,&cqe) < 0 || cqe == NULL) break;`, and drain any leftover CQEs at pass start (or tag SQEs with a pass generation).",
+          "mechanism": "A signal (e.g. the watchdog SIGALRM) makes wait_cqe return -EINTR mid-reap; the break abandons up to n_submitted outstanding CQEs. Two consequences: (a) the abandoned sends' clients were already unlinked from clients_pending_write with no write handler installed and sentlen never advanced — reply wedge for those clients; (b) the stale CQEs are consumed by the NEXT beforesleep pass, where their user_data client pointers may now dangle (freeClientsInAsyncFreeQueue runs in beforeSleepIO between passes, server.c:2145) — `c->sentlen += res` / installClientWriteHandler on a freed client = UAF. The AE-1 drain-spin (d9602d936, ae.c:491-512) re-runs beforesleep up to 32 extra zero-timeout passes, multiplying submit/reap cycles and shrinking the window between 'CQE abandoned' and 'client freed'. Stale CQEs also miscount against the new pass's n_submitted, so fresh sends can go unreaped in that pass too.",
+          "risk": "Low-risk fix (EINTR retry loop + a startup drain); the pass-generation tag is more invasive but makes cross-pass CQEs provably inert.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/networking.c:3330-3335, 3352-3366 (SEND_ZC + synchronous notif wait)",
+          "change": "Flag/redesign before the real-NIC EPYC eval: with tomokv-io-uring-zc on, the reap loop synchronously blocks (`while (... notifs_seen < notifs_expected) io_uring_wait_cqe(...)`) until every SEND_ZC F_NOTIF arrives. For TCP zero-copy the kernel posts F_NOTIF only when the skb is freed — on a real NIC that is typically after the peer ACKs the data.",
+          "mechanism": "On loopback (all measurements so far) skbs free immediately, so this never showed up. On the planned 25GbE/EPYC target, every reply flush parks the entire IO-thread event loop for up to an RTT (and for however long TX completion takes under queuing), serializing all clients on that thread behind one ZC send. The AE-1 drain-spin makes beforesleep run more often, so the stall is paid more frequently at exactly the low-latency operating point it was built for. Correct behavior needs async notif reaping (leave notifs outstanding, reap on a later pass, keep c->buf pinned via a per-client inflight flag) rather than the current synchronous wait.",
+          "risk": "This is a design property, not a coded bug; severity depends on kernel skb-free timing on the real NIC (could range from mild latency inflation to multi-ms event-loop stalls). Cheap interim mitigation: leave io_uring_zc default-off for the EPYC bring-up and note it in the knob comment.",
+          "est": "speculative"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/ae_uring.c (whole file, 320 lines); /shared/Projects/THredis-2s-improve/src/networking.c:3625-3665 + /shared/Projects/THredis-2s-improve/src/server.h:1522-1538 + /shared/Projects/THredis-2s-improve/src/config.c:3185 (v12-K remnants); /shared/Projects/THredis-2s-improve/src/Makefile:305-309 (doc drift)",
+          "change": "Dead code / doc-drift sweep: (a) ae_uring.c is compiled nowhere — not in REDIS_SERVER_OBJ (Makefile:393), not #include'd by ae.c (backend chain is evport/epoll/kqueue/select only), zero references repo-wide — delete or move to an attic dir. (b) v12-K worker-direct send-back is foundation-only on this fork: wdsEnsureRing is called once at worker start (server.c:10296) but wdsRingOf has ZERO callers — no commit/reap protocol exists here — so the tomokv-worker-direct-send knob silently allocates a 2048-deep ring per worker and then does nothing (replies take the legacy path); the client wds_* fields (server.h:1533-1538) are written by no one. Either delete the remnants or mark the knob comment 'foundation only, no-op on this fork'. (c) Makefile:307 says the runtime gate is `thredis-io-uring` but config.c:3181 registers `tomokv-io-uring` (the thredis->tomokv rename missed the Makefile comment). (d) Minor stat drift: the uring send fast path bypasses writeToClient, so server.netstat[].out / net_output_bytes are never updated for uring-sent replies — INFO output-byte counters undercount when the knob is on.",
+          "mechanism": "Removes ~400 lines of never-executed code and a knob that misleads (v12-K was completed only on the memory-noted foundation commit; the protocol increments 2/3 never landed on 2s-improve-dev), and fixes comments that point operators at a knob name that does not exist.",
+          "risk": "Near zero for (a)/(c)/(d-comment); for (b) confirm no other branch merges expect the wds_* fields' struct layout before deleting them (they sit inside the cache-line-isolated reply_cdb region, so removal shifts the aligned field that follows — recheck the S3 isolation comment when editing).",
+          "est": "neutral-simpler"
+        }
+      ]
+    },
+    "expire": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "THredis-2s-improve/src/t_hash.c:785 and t_hash.c:1924 (identical lines in THredis-3s-improve/src/t_hash.c:785,1924); capture helper it bypasses: db.c:2918-2926 (2s) / db.c:2919-2927 (3s)",
+          "change": "Route the two HFE whole-key deletes through effect capture: after dbDelete(db,keyObj) in hashTypeGetValue (t_hash.c:785) and dbDelete(db,key) in hashTypeExpire (t_hash.c:1924), call migCaptureImplicitDelete (export it from db.c or add a public wrapper).",
+          "mechanism": "Tombstone-rule VERIFICATION: the plain-key lazy-expire path is COVERED — expireIfNeeded (db.c:3034-3100) deletes only on the owning worker and routes through deleteExpiredKeyAndPropagate -> migCaptureImplicitDelete (db.c:2913-2932), correctly gated to worker A's shard db, same-thread SPSC-ordered vs the exExecFake post-image hook (server.c:10248-10255 2s / 10324-10331 3s) and the cold scan (server.c:6248-6252, same worker loop). The HOLE is hash-field-TTL: lazy field expiry reached from whitelisted READ commands (HGET/HMGET/HEXISTS via HFE_LAZY_EXPIRE t_hash.c:2083/2512/2567/2992/3091; HRANDFIELD/HSCAN via hashTypeExpireIfNeeded t_hash.c:3155/3426) deletes the WHOLE KEY via raw dbDelete when the last field expires — never deleteExpiredKeyAndPropagate, and the commands are not CMD_WRITE so the exExecFake capture hook doesn't fire either. Mid-migration on worker A, a cold-scan PUT emitted earlier resurrects the key on B post-cutover (visible to EXISTS/TYPE/KEYS until an HFE-aware access self-heals it).",
+          "risk": "Narrow trigger (hash-field TTLs + live migration + no subsequent write to the key), but it is a real integration-matrix violation. Fix is one gated call per site behind the existing relaxed migration_active load — zero hot-path cost outside a migration; must reuse the src-shard gate so B-side or decoy deletes never emit tombstones (the data-loss failure mode the db.c:2917 comment warns about).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "THredis-2s-improve/src/server.c:6297-6301 (migHoldIfDraining holds CMD_WRITE only), 6404 (s_final sample), 10343 (B drains until MIG_DONE), producer: db.c:3092 + db.c:2918-2926, phase gate server.c:6172; 3s: server.c:6382-6386, 6489, db.c:2919-2927",
+          "change": "Close the DRAINING fence hole for implicit deletes: while phase==MIG_DRAINING, suppress lazy-expire DELETION (and hence tombstone capture) on worker A for in-range keys — return KEY_EXPIRED without deleting, mirroring the existing replica-suppression branch (db.c:3070-3078); apply the same gate to the HFE lazy deletes (t_hash.c:766/785/1924).",
+          "mechanism": "The drain fence proves all range WRITES dispatched pre-sentinel have executed, then samples s_final (server.c:6404) and flips once applied_seq==s_final. But READS keep flowing to A post-fence-ack until the flip (migHoldIfDraining gates only CMD_WRITE, server.c:6299), and a read that lazy-expires an in-range key appends a tombstone during DRAINING (migCaptureEffect logs in both COPYING and DRAINING per server.c:6172) — its fetch_add can land AFTER the s_final load, creating exactly the post-s_final log entry the hold comments (server.c:6293-6296, 6310-6314) declare must not exist. B keeps draining until phase==MIG_DONE (server.c:10343, through FLIPPED/CLEANUP), so the late tombstone is applied post-flip and can dbSyncDelete a post-flip client write to that key on B = silent data loss. Lazy expiry is the ONLY implicit-delete producer in that window (eviction/defrag banned by RP-1, active expiry decoy-dead). Suppressing the delete keeps A/B consistent: reads observe expired-as-missing, B lazily expires its own copy post-flip, A's stale copy dies in CLEANUP anyway.",
+          "risk": "Sub-millisecond race window (expiry must fire between the s_final sample and the flip, plus a post-flip write must beat B's next drain pass), so hard to repro — but mechanically sound and it defeats the protocol's central invariant. Fix must suppress delete and capture TOGETHER (delete-without-capture recreates rank-1's resurrection; capture-without-fence keeps the clobber).",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "THredis-2s-improve/src/server.c:3315-3336 (RP-1 guard, startup-only; 3s server.c:3417-3438); unguarded sinks: db.c:2953-2966 propagateDeletion -> server.c:4061-4074 alsoPropagate (global server.also_propagate, server.h:2677), expire.c:361 assert, db.c:2899 notifyKeyspaceEvent, db.c:2900 keyModified/tracking",
+          "change": "Extend the RP-1 refusal to the runtime arming paths: reject CONFIG SET appendonly yes / maxmemory>0 and inbound SYNC/PSYNC (repl_backlog/slaves creation) when num_workers>0, and enforce the whitelist header's documented-but-unenforced invariants (notify-keyspace-events must stay \"\", CLIENT TRACKING refused) — or alternatively no-op these sinks in worker context.",
+          "mechanism": "RP-1 only checks the startup config (comment says 'fail loud at startup'). config.c has no num_workers gate on any setter and replication.c none on sync (verified by grep). Once armed at runtime, shouldPropagate (server.c:4002-4013) returns true and every worker-side lazy-expire delete calls alsoPropagate on the single global redisOpArray — concurrent zrealloc/append from N workers + main thread = heap corruption, plus the main thread's serverAssert(server.also_propagate.numops==0) at expire.c:361 fires on the next cron tick. notify-keyspace-events != \"\" makes workers publish into shared pubsub state on every expiry (db.c:2899, t_hash.c:781/784); CLIENT TRACKING makes keyModified touch the global tracking table from workers. All are one operator command away from UB on an otherwise-supported deployment.",
+          "risk": "Requires an operator action to arm, so not reachable in the benchmark configs; guard-extension fix is mechanical but needs the full enumeration of arming paths (apply-fns for appendonly/maxmemory/notify, syncCommand, CLIENT TRACKING) — gating the sinks on worker context is the smaller, more future-proof patch.",
+          "est": "win"
+        },
+        {
+          "rank": 4,
+          "file_line": "THredis-2s-improve/src/t_hash.c:3479-3498 propagateHashFieldDeletion (called from the lazy path t_hash.c:769), enter/exitExecutionUnit on plain global server.execution_nesting (server.h:2400), postExecutionUnitOperations at t_hash.c:3494; identical in 3s t_hash.c:3479-3498",
+          "change": "Skip the propagation bookkeeping in worker context: gate propagateHashFieldDeletion's body (enterExecutionUnit / replication_allowed toggle / alsoPropagate / postExecutionUnitOperations) on not-a-worker, or make execution_nesting per-thread (the #4 perthread-dirty precedent). Propagation is a declared non-goal for fakes — same philosophy as the centralized isFake rewrite skip.",
+          "mechanism": "Unlike plain-key expiry (whose propagateDeletion is fully inert without AOF/slaves), every lazily-expired hash FIELD on a worker unconditionally executes: enterExecutionUnit(1,0) / exitExecutionUnit — non-atomic ++/-- on the shared server.execution_nesting int racing other workers and the main thread (a torn pair leaves it permanently nonzero, which suppresses lazy-expire in CMD_TOUCHES_ARBITRARY_KEYS contexts via confAllowsExpireDel db.c:2995 and makes postExecutionUnitOperations early-return on the main thread) — plus a save/restore toggle of the global server.replication_allowed racing concurrent shouldPropagate readers, an updateCachedTime store from a non-main thread, and stat_expired_subkeys++/stat_expiredkeys++ torn counters. This is reachable under the DEFAULT supported config the moment hash-field TTLs meet sharding: two workers expiring fields concurrently suffice.",
+          "risk": "Consequences under default config are corruption of control-plane counters (wrong expire-suppression decisions, stuck post-exec jobs) rather than data loss, and torn 8-byte stores are benign on x86-64 — but it is a genuine data race (UB) that TSAN/ASAN stress on the HFE path would trip. Fix is a small guard; keep the ex=0 unsharded path unchanged.",
+          "est": "win"
+        },
+        {
+          "rank": 5,
+          "file_line": "THredis-2s-improve/src/server.c:5306-5318 and 5348-5351 vs the actual whitelist 5410-5421 (3s: server.c:5399-5407, 5433-5436 vs ~5501); redundant per-site gate t_string.c:174 (both forks); central skips networking.c:5839/5946 (2s) = 5950/6057 (3s)",
+          "change": "Shave/doc-fix: rewrite the whitelist header's invariants block and the setCommand NOTE — they still say TTL-setting commands are 'intentionally excluded... TTLs would never fire' and 'Callers should use SET without TTL', contradicting the shipped whitelist (the v5 EX-fix added TTL/EXPIRE/SETEX/GETEX at 5410-5421 and the centralized isFake rewrite skips made them safe). State the actual invariant: TTL commands ARE dispatched, work single-shard, and are lazy-reclaim-only. Optionally annotate t_string.c:174's !c->isFake as a pure alloc-skip (it is redundant for safety since the central skip).",
+          "mechanism": "v5 machinery is confirmed present and centralized: fake mstate init at networking.c:215-221 (executing_cmd=-1 so the fake argv-swap path at 5866-5877 reads valid state), rewriteClientCommandVector/Argument early-return on isFake, replaceClientCommandVector keeps the execution-transform for fakes while syncing pending-cmd argv. The stale header is the exact text a future contributor consults before adding a command, and it currently gives the OPPOSITE of the shipped rule in the two places that matter (TTL commands, SET..EX) — a footgun for whitelist edits, zero code risk to fix.",
+          "risk": "None (comments only). Keep the t_string.c:174 gate itself — it saves a createStringObjectFromLongLong+decref per fake SET..EX, consistent with the instr/op obsession.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 6,
+          "file_line": "THredis-2s-improve/src/expire.c:374 (decoy walk), 387 (activeSubexpiresCycle), 361 (assert); ticked at server.c:1282-1288 + 2198 (3s: 1280, 2300); missing per-worker hook point: worker loop server.c:10335-10348 beside migServiceScanA",
+          "change": "Make the decoy-deadness explicit and shave the tick: gate activeExpireCycle/expireSlaveKeys out of databasesCron and the beforeSleep FAST cycle when num_workers>0 (one branch), which also removes the expire.c:361 assert from the rank-3 exposure surface. Note the real per-worker expiry cycle belongs in the worker loop next to the migration duties, per the cron-decomposition spec.",
+          "mechanism": "Confirmed dead as spec'd: activeExpireCycle walks server.db+(current_db%dbnum) (expire.c:374) — the empty decoy under sharding (RP-1 comment server.c:3316-3319) — so every SLOW/FAST tick is a no-op loop over empty kvstores whose only LIVE effect is the also_propagate assert; activeSubexpiresCycle (expire.c:387) means hash-field-TTL active reclamation is equally dead. Consequence worth keeping on the radar: in sharded mode TTL'd-but-never-touched keys (and all-expired hashes, which even HGET won't fully reclaim without an HFE-aware touch) are NEVER freed — unbounded RSS growth on SETEX-heavy workloads, and 'expired' keyspace notifications only fire on access. The estore/subexpires registration already lands in each worker's own shard db (single-writer preserved), so a per-worker cycle is a drop-in at server.c:10338-10348.",
+          "risk": "The gate itself is risk-free (the cycle already does nothing when sharded, and ex=0 mode keeps the tomoEx0Lock'd path). The per-worker cycle is future work — do NOT bolt it on casually: it must emit migration tombstones (rank 1's helper) and respect the DRAINING suppression (rank 2) or it reopens both holes.",
+          "est": "neutral-simpler"
+        }
+      ]
+    },
+    "pool": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4027-4029, 4064-4067 (and 4046-4047)",
+          "change": "Bound PUT filing by an upper alloc cap: reject sdsalloc > operandTierCap[OPERAND_NTIER-1] before pooling, and simultaneously switch the demand-grow at 4046-4047 to non-greedy room-making (_sdsMakeRoomFor(...,0)) so demand-grown tier-4 objects (currently greedy-doubled to 32KB) still pass the new bound.",
+          "mechanism": "operandFloorTier has no upper limit: GET refuses len > 16384 (line 4036) but PUT floors ANY alloc >= 64 into tier 4. A refcount-1 RAW argv value of 100KB-512MB (LPUSH/APPEND/HSET values are copied on store, failed SET NX, pubsub payloads — all retire with refcount 1) gets parked in the 16KB class and circulates forever: sdscpylen on reuse never shrinks, so 32 slots x 33 ifid rows can each pin a multi-MB sds. The old flat pool explicitly guarded this (OPERAND_POOL_MAX_SDS 512, comment 'Oversized sds aren't pooled (avoid hoarding)'); the tiered rewrite lost the guard. The recycle-ring path funnels through the same operandPoolPut, so one fix point covers both release paths. Gotcha: a naive alloc<=16384 bound alone would reject the pool's OWN demand-grown tier-4 objects (greedy sdsMakeRoomFor doubles tierCap to 32768), silently degenerating tier 4 to pure malloc/free — hence the paired non-greedy change (which also halves demand-grown memory in every tier, alloc exactly == class cap).",
+          "risk": "Low. Non-greedy grow is exact-fit by design here (objects are sized to a class, never grown in place afterward — GET guarantees len <= cap). Only behavioral change: oversized one-off values get freed instead of hoarded.",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4008-4013 (operandTierN, operandTierIdle, operandPoolOps arrays)",
+          "change": "Pad the per-ifidx hot counters to cache-line granularity (or fold them into the existing per-thread padded server.ifidThreads struct): operandPoolOps[33] is 4B/entry so 16 threads share one 64B line; operandTierN/operandTierIdle rows are 20B so ~3 ifid threads share each line.",
+          "mechanism": "operandPoolOps[ifidx]++ executes on EVERY pool GET and PUT (lines 4033, 4060) — i.e. per argv element per command — and operandTierN/operandTierIdle are written on every GET/PUT too. Each counter is thread-private by index but the lines are write-shared across ifid threads → classic false sharing on the hottest per-op path. The historical '-19% instr/op' validation could not see this: false sharing costs cycles/coherence traffic, not instructions, so it was invisible to the metric that validated the pool. Payoff grows with ifid thread count and is largest cross-CCD (the Threadripper target); the operandTier pointer arrays themselves are fine (10KB rows, hot top-of-stack indices never near row boundaries).",
+          "risk": "None functional — pure layout change, ~ a few KB extra static memory. Only cost is re-running the validation numbers.",
+          "est": "win"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4088-4095 (operandRecyclePush ring-full fallback) + /shared/Projects/THredis-3s-improve/src/server.h:1891 (FREEBACK_RING_SIZE 1024) + /shared/Projects/THredis-3s-improve/src/server.c:2209 (drain once per beforeSleepIfid)",
+          "change": "Add an overflow counter to the ring-full decrRefCount fallback (INFO stat), then if it fires under write-heavy pipelined load either enlarge the recycle ring or drain more often (e.g. also inside handleWorkerReplies between batches).",
+          "mechanism": "Ring capacity is 1024 operands per (owner-ifid, wb) pair but the owner drains only once per event-loop iteration. At 3 operands/SET, one ifid parsing >~340 pipelined writes per loop iteration (easily reached at P16 multi-M ops/s — exactly the '+22% write-heavy' regime the pool was validated in) overflows the ring from a single WB. The fallback is a silent cross-thread decrRefCount — precisely the cross-thread jemalloc churn the pool exists to eliminate — followed by demand-grow mallocs on the owner whose pool is now starved. The degradation is invisible today: no counter, and throughput just quietly converges back to non-pool behavior at the highest loads. Note also the adjacent stranded-tier quirk: freePendingCommand with oif==-1 (reclaimPendingCommand, c==NULL) on a strict-mode WB thread files into operandTier[wb_ifidx], which no GET ever drains — bounded (~1MB/wb worst case, item-1 hoard aside) but worth a guard while in there.",
+          "risk": "Counter is zero-risk. Ring enlargement costs memory (33x33 rings exist but only ifid x wb slots are used — sizing is already 33x over-provisioned, another simplification angle); more frequent drains need care to stay on the owner thread only.",
+          "est": "speculative"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:4014-4020 (operandPoolDecayDue) + 4129-4143 (operandPoolDecay), called from /shared/Projects/THredis-3s-improve/src/server.c:2216",
+          "change": "Hybridize the decay clock: keep the 8192-op tick but add a wall-time floor (e.g. serverCron also marks a tick due if >1s since last), and consider making the 8-idle-tick threshold effectively time-aware for shed decisions.",
+          "mechanism": "Op-clocking fixed the old runtime-coupling but created two burst pathologies. (a) Quiescence: when traffic stops, operandPoolOps stops advancing, so decay NEVER fires and all pooled memory (including any rank-1 hoards) is retained indefinitely — precisely when RSS release matters most; the validated 79->40MB decay win only materializes while traffic keeps flowing. (b) Phase-alternating bursts: 8 idle ticks = 65536 ops with no GET for a class; at multi-M ops/s a ~30-60ms burst of small-value traffic sheds the large-value tiers, so a workload alternating 64B and 16KB phases pays shed-then-demand-grow realloc thrash at every phase boundary ('idle' is workload-relative, not time-relative — the same 8 ticks means 30ms at peak load and infinity at zero load). The 90%-full veto (4137) protects only nearly-full classes; a half-full 16KB tier is shed anyway.",
+          "risk": "Low-moderate. The wall-time floor partially reintroduces the runtime coupling the v14 comment deliberately removed — keep the op-clock primary and the time floor coarse (seconds) to preserve that intent. Needs a bursty-load A/B, not just steady-state sweeps.",
+          "est": "speculative"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-3s-improve/src/networking.c:3995-3998, 4050-4056, 4075-4082",
+          "change": "Delete the flat operand pool remnants: operandPool/operandPoolN arrays (3997-3998), the flat-pool GET branch (4050-4056) and PUT branch (4075-4082), plus OPERAND_POOL_CAP/OPERAND_POOL_MAX_SDS defines; un-nest the now-pointless brace blocks in operandPoolGet/Put.",
+          "mechanism": "Since the v13 'tiered hardwired' change, the tiered branch in operandPoolPut is an unconditional-return block ({ if (...) {...return;} decrRefCount; return; }) so lines 4075-4082 are statically unreachable, and in operandPoolGet the flat branch (4050-4056) is only reached when ifidx > TOMO_IFID_THREADS_MAX, where operandPoolN is provably always 0 (never populated) — dead in practice. The dead flat arrays also waste static memory (33x256 pointers + a false-sharing-prone operandPoolN row) and, more importantly, the two-pool structure misleads readers into thinking there is a runtime fallback path when there is none. The v11-A comment block (3989-3994) should be updated too since it describes the deleted flat design. Preserve OPERAND_POOL_MAX_SDS conceptually as the rank-1 upper-bound guard.",
+          "risk": "Near-zero: compile + the existing churn/ASAN gate confirm; no behavior change by construction.",
+          "est": "neutral-simpler"
+        }
+      ]
+    },
+    "drain": {
+      "candidates": [
+        {
+          "rank": 1,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/ae.c:496-512",
+          "change": "Refresh the drain budget on REPLY progress, not just fd progress: keep a static __thread prevReplyWorking; after beforesleep, if replyWorking < prevReplyWorking (handleWorkerReplies retired something) reset drainPasses=0, then prevReplyWorking=replyWorking. Currently only numevents>0 (ae.c:512) or replyWorking==0 (ae.c:498) refreshes.",
+          "mechanism": "At moderate pipeline depths (P4-P16) a client burst puts N fakes in flight; replies retire one-by-one via beforesleep with zero inbound fd events until the client has all N. Each such productive pass still burns budget, so a >~30-60us burst exhausts 32 passes mid-burst and falls to the 100us window despite steady progress — exactly the latency floor AE-1 was built to remove. Reply retirement is progress by the same logic as fd events.",
+          "risk": "Low. Wedged-worker protection is preserved (no retirement -> budget still exhausts -> 100us fallback). Cost is one TLS int compare per pass. Guard cell: saturated P16 must stay flat (there fd events already refresh the budget, so the change should be invisible).",
+          "est": "win"
+        },
+        {
+          "rank": 2,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/config.c:3305 (default 32); ae.c:502-507",
+          "change": "Bench matrix for the default: spin in {0,16,32,64,128,512} x pipeline {1,4,16} x ratio {1:1,1:9} x value {64B,16KB} x clients {8,64}, interleaved A/B (mandatory per drift memory), load-gen on cores 8-15/server 0-7; record ops, avg+p99 lat, and server CPU%. Add a wedge cell (pause a worker via gdb, confirm CPU duty ~1% at any budget). Consider -1=auto per knob philosophy: budget ~= 100us / EWMA(measured pass cost), so the spin window self-derives to cover exactly the old fallback window on any hardware.",
+          "mechanism": "32 passes x ~1-2us/pass (epoll_wait(0) + beforeSleepIO) covers only ~30-60us of worker latency before the 100us cliff. Deeper worker queues, cross-shard, large values, or expire-heavy commands can exceed that; 64/128 would extend coverage nearly free at P1 (main thread already runs the unbounded analog via dont_sleep with no observed pathology). Saturated regimes self-refresh the budget via fd events, so larger defaults shouldn't hurt them — but that's the claim to falsify.",
+          "risk": "Bench-only until data lands. The one real risk of raising the default is slower fallback on a genuinely wedged worker (32->128 passes = +~100-200us before the 100us duty cycle kicks in) — negligible. If rank-1 (reply-progress refresh) lands first, re-run: it may make budget size nearly irrelevant, collapsing this knob per the retirement-study plan.",
+          "est": "speculative"
+        },
+        {
+          "rank": 3,
+          "file_line": "/shared/Projects/THredis-v13-2s-autothreads/src/server.c:11186-11197 (ioSlice busy_ewma_q4)",
+          "change": "Port guard for AE-1 -> autothreads fork (AE-1 not there yet; grep clean): the ingress signal folds aeProcessEventsIO's return (events/pass) into busy_ewma_q4, and zero-event drain passes 0-fold it. Either (a) skip the EWMA fold on drain passes (fold only when the pass blocked or returned events — export a flag from aeProcessEventsIO or fold only ne>0 with an episode-based idle decay), or (b) add a wall-time IO utilization signal alongside events/pass.",
+          "mechanism": "The prompt's hypothesis inverts: drain passes don't INFLATE io busy% — they DILUTE it. A latency-bound IO thread spinning 32 drain passes per reply multiplies zero-event passes, decaying busy_ewma_q4 toward 0 while the core burns 100% CPU; the balancer's TIME-weighted busy% (tm_busy_us) covers EX workers only. Post-port, the balancer would see drain-spinning IO threads as idle and could park/steal exactly the threads carrying the latency-critical load — same signal-calibration family as the pass/episode ratio bugs already fixed in step 4.",
+          "risk": "Prospective — zero risk in THredis-2s-improve today. Becomes a real mis-balancing hazard only at the port; cheap to prevent now by noting it in the port checklist. The fix itself must not re-inflate the signal on genuine 100us-timeout idle passes (those SHOULD decay it).",
+          "est": "speculative"
+        },
+        {
+          "rank": 4,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/ae.c:43 + config.c:2511-2514 + server.c:3196",
+          "change": "Make aeIODrainSpin a C11 _Atomic int (or redisAtomic) with relaxed load in aeProcessEventsIO and relaxed store in updateIODrainSpin; boot sync at server.c:3196 is pre-thread-creation and already race-free.",
+          "mechanism": "CONFIG SET executes inline on whichever IO thread owns the client (non-whitelist inline path), so updateIODrainSpin's plain store races other IO threads' plain loads — a formal C11 data race. Practically benign today: aligned 4-byte access (no tearing on x86-64), the extern global is reloaded per call across the opaque aeApiPoll boundary, and any stale value only shifts sleep policy for a few passes. But it's TSan bait and a template others will copy (the comment sells it as 'the ae.c global-mirror pattern').",
+          "risk": "None — relaxed atomics compile to the identical mov on x86-64. Pure hygiene + keeps future TSan runs clean; also future-proofs against a compiler hoisting the load if aeProcessEventsIO ever gets inlined into a loop with visible non-escaping semantics.",
+          "est": "neutral-simpler"
+        },
+        {
+          "rank": 5,
+          "file_line": "/shared/Projects/THredis-2s-improve/src/server.c:11132 (aeMain) / src/ae.c:479-480, 484-512 / src/server.c:2254-2289",
+          "change": "Timer-starvation verdict: NON-ISSUE, close it — but document the asymmetry in the AE-1 comment block. The drain path exists only in aeProcessEventsIO, run only by IO threads 1..N-1; the main thread runs aeProcessEvents, which executes processTimeEvents every iteration even under dont_sleep zero-timeout polling, so serverCron cannot be delayed by AE-1 under sustained P1. aeProcessEventsIO has never processed time events and initIOThreads registers none on t->el (iothread.c:923's IOThreadCron belongs to the separate upstream io-threads system, which uses aeMain).",
+          "mechanism": "Fresh-eyes value is the inverse finding: the main thread (iotid 0) already runs the UNBOUNDED analog of AE-1 — clients_pending_ex[0] non-empty -> dont_sleep -> zero-timeout every pass, no budget, no 100us fallback (server.c:2254/2289). So (a) budget-exhaustion behavior is asymmetric across client placement: main-thread clients never see the 100us floor, IO-thread clients can — a subtle per-thread latency skew in benchmarks; (b) a wedged worker busy-loops the main thread at 100% CPU forever, the exact pathology AE-1's budget prevents on IO threads.",
+          "risk": "Doc-only for the verdict. Optional follow-up (give the main thread the same budgeted fallback) would change long-standing behavior of the busiest thread — only do it with the rank-2 matrix as guard; the unbounded spin has been the de-facto P1 fast path since S2 and is part of why iotid-0 clients are fast.",
+          "est": "neutral-simpler"
+        }
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Read"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "r:uring",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a6542cc92161b7d2d",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783275539835,
+      "queuedAt": 1783275539826,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-2s-improve/src io-uring paths: iouEnsureRing + the io_uring_net recv/send plumbing (grep iou/io_uring in networking.c/server.c/iothread-adjacent files) + the uring-threestage remnants if present. These are DEFAULT-OFF experimental knobs — hunt: correctness hazards if enabled (stale assumptions from later refactors — thread-modes/conn-migration interpl…",
+      "lastProgressAt": 1783275892099,
+      "tokens": 69250,
+      "toolCalls": 23,
+      "durationMs": 352264,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/networking.c:3459-3500 (iouRecvDeliver) vs /shared/Projects/THredis-2s-improve/src/iothread.c:122,317,593,741\",\"change\":\"Gate v12-G recv-ring delivery on the CLIENT_IO_READ_ENABLED ownership handshake (and disarm/park on handoff to main thread). iouRecvDeliver appends to querybuf and runs processInputBuffer unconditional…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "r:expire",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "ad5abb54f02e88719",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783275539835,
+      "queuedAt": 1783275539826,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY close-read. /shared/Projects/THredis-2s-improve/src + /shared/Projects/THredis-3s-improve/src EXPIRE machinery: worker-side lazy expiry (expireIfNeeded under sharding — which thread deletes, effect on shard dbs), SET..EX/SETEX fake-mstate path (the v5 fix), TTL propagation-rewrite skips, activeExpireCycle current state (decoy-pointed = dead per cron-decomposition spec). Hunt: correctness…",
+      "lastProgressAt": 1783276427821,
+      "tokens": 129255,
+      "toolCalls": 55,
+      "durationMs": 887986,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"THredis-2s-improve/src/t_hash.c:785 and t_hash.c:1924 (identical lines in THredis-3s-improve/src/t_hash.c:785,1924); capture helper it bypasses: db.c:2918-2926 (2s) / db.c:2919-2927 (3s)\",\"change\":\"Route the two HFE whole-key deletes through effect capture: after dbDelete(db,keyObj) in hashTypeGetValue (t_hash.c:785) and dbDelete(db,key) in hashTypeExpire (t_h…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "r:pool",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a8d6e59e149308cbc",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783275539835,
+      "queuedAt": 1783275539826,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "READ-ONLY deep-read. /shared/Projects/THredis-3s-improve/src operand-pool TIERS (networking.c ~3990-4130: operandFloorTier, tier arrays, demand-grow, decay, wb->ifid recycle ring operandRecycleDrain/operandPoolPutRouted). Validated -19% instr/op historically. Fresh eyes: tier-boundary pathologies (values straddling classes), decay-tick interaction with the op-clock under bursty loads, recycle-ring…",
+      "lastProgressAt": 1783275791776,
+      "tokens": 31561,
+      "toolCalls": 7,
+      "durationMs": 251941,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-3s-improve/src/networking.c:4027-4029, 4064-4067 (and 4046-4047)\",\"change\":\"Bound PUT filing by an upper alloc cap: reject sdsalloc > operandTierCap[OPERAND_NTIER-1] before pooling, and simultaneously switch the demand-grow at 4046-4047 to non-greedy room-making (_sdsMakeRoomFor(...,0)) so demand-grown tier-4 objects (currently greedy-…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "r:drain-fresh",
+      "phaseIndex": 1,
+      "phaseTitle": "Read",
+      "agentId": "a931b1a93647567a1",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783275539836,
+      "queuedAt": 1783275539826,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "FRESH-EYES re-read of the AE-1 adaptive-drain change in /shared/Projects/THredis-2s-improve/src/ae.c (+config.c knob, the aeIODrainSpin global mirror) — the loop's kept win (+2.61% P1 2s / +4.66% 3s). Hunt follow-ons + hazards: (1) does the zero-timeout drain pass starve timer events on the MAIN thread (iotid 0 runs aeProcessEvents WITH timers — does the drain path skip processTimeEvents long enou…",
+      "lastProgressAt": 1783275836756,
+      "tokens": 48512,
+      "toolCalls": 20,
+      "durationMs": 296920,
+      "resultPreview": "{\"candidates\":[{\"rank\":1,\"file_line\":\"/shared/Projects/THredis-2s-improve/src/ae.c:496-512\",\"change\":\"Refresh the drain budget on REPLY progress, not just fd progress: keep a static __thread prevReplyWorking; after beforesleep, if replyWorking < prevReplyWorking (handleWorkerReplies retired something) reset drainPasses=0, then prevReplyWorking=replyWorking. Currently only numevents>0 (ae.c:512) or…"
+    }
+  ],
+  "totalTokens": 278578,
+  "totalToolCalls": 105
+}

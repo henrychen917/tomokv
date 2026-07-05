@@ -43,3 +43,22 @@ wb-early-out (multi-CDB + idle conns); + prior list (prefetch stages, de-content
 the allocator lever; syscall/latency-floor class = the only proven movers on loopback; box-serial
 discipline + hard timeouts mandatory (2 agent stalls recovered clean); adversarial pre-verification
 of mechanisms saved box time (tcache call exactly right).
+
+## WAVE-6 ADDENDUM (extended phase, 2026-07-06)
+NEW KEEPS: **AE-1b reply-progress drain refresh (+2.70% P1, all reps ahead; +0.46% P16)** [2s;
+port to 3s/autos pending]. SIX CORRECTNESS FIXES both static forks (pushed): HFE effect-capture
+tombstones; DRAINING-window lazy-expire suppression (reshard TTL-conservation smoked); RP-1
+RUNTIME gates (CONFIG SET appendonly/maxmemory + SYNC/PSYNC now refused under sharding); pool PUT
+alloc cap + non-greedy grow (3s RSS hazard); uring EINTR/handshake/multishot-cancel fixes;
+dead-code sweep (ae_uring.c, v12-K wds remnants). NEW PRE-EXISTING FINDS: ex0+SYNC crash in
+clientsCron (documented); ZC synchronous notif wait = event-loop stall on real NIC (EPYC bring-up:
+keep io_uring_zc OFF). INSIGHT for autothreads AE-1 port: drain passes DILUTE io-busy% (balancer
+signal interplay documented in wave6_findings.json).
+PENDING AT WRITE: AE-1b + wave-6 fix propagation to auto forks; 3s AE-1b port.
+
+## PROPAGATION COMPLETE (final state)
+AE-1b: 2s KEPT (+2.70% P1) c0a0a42ac; 3s KEPT (+7.3% P1 median) 96f886ecf; 2s-auto picked 12357b4f2.
+Wave-6 fixes propagated to both autos (2s-auto tip 12357b4f2 incl. correct wds-preservation — the
+v12-K code is LIVE v1.6 lineage there; 3s tips incl. 3s-appropriate wds deletion w/ loud boot abort).
+ALL FOUR improve branches level and pushed. 3s-auto AE-1b: pending pick (bench-validated on 3s
+static — safe pick for user or next session).

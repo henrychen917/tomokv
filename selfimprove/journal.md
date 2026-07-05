@@ -202,3 +202,13 @@ base_2s_auto/base_3s_auto frozen. Final validation workflow launched (wc8fafgus)
 equivalence + P1 AE-1 check + knob-on shift smoke + ex0 mode; 3s-auto strict smoke + shift cycle.
 After validation -> wind-down window (FINAL_REPORT.md + backup refresh) is authorized any time;
 re-read waves only if validation lands cleanly with time to spare.
+## WAVE 6 RESULTS + FIX BATCH LAUNCHED | 2026-07-06 ~00:00 UTC
+NOT DRY — 6 win-class correctness items: (default-on) HFE whole-key deletes bypass effect capture
+[tombstone hole]; DRAINING-window lazy-expire gap; RP-1 runtime arming bypass (CONFIG SET
+appendonly/PSYNC evade boot gates); (3s) pool PUT files ANY >=64B alloc into top tier (512MB values
+poolable = RSS hazard); (default-off uring) recv ownership-handshake bypass, uncancelled multishot
+= silent byte loss on migration, EINTR CQE abandonment (reply wedge + UAF, AMPLIFIED by AE-1
+drain). + AE-1 follow-on candidate (drain refresh on REPLY progress, P4-P16 mechanism) + ZC
+real-NIC design flag for EPYC + dead-code sweep (ae_uring.c compiled nowhere; v12-K wds remnants
+no-op) + drain-dilutes-io-busy% insight for the autothreads AE-1 port (signal interplay documented).
+Fixer (6402, both forks) + AE-1 follow-on applier (6399) launched: w4aacaa9a.
