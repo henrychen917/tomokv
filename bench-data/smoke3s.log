@@ -1,0 +1,10 @@
+[00:14:40] binary: sha=197269a9:0 malloc=jemalloc-5.3.0
+[00:14:42] boot: PONG; 8 poly log lines
+[00:14:42] ops: get=v mget=1,2, hgetall=f,x,
+[00:14:46] EX-join: MODESHIFT PARKED->EX; dbsize=200005 (base=200005)
+  15s mixed: 2178008.02
+[00:15:04] park: parked; dbsize=200005
+[00:15:07] WB-join: repartitioned WB 0 -> spare WB 1 (fenced; existing watched clients stay with WB 
+  post-WB 10s: 2498597.87
+[00:15:18] final: rt=v dbsize=200005 crash=0
+[00:15:18] SMOKE3S_DONE

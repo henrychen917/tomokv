@@ -1,0 +1,18 @@
+[02:34:14] === A: STATIC io4ex4 (legacy path) ===
+[02:34:20]   primed dbsize=2002000
+[02:37:20] static44 L1 io-phase: 5400792.30
+[02:40:20] static44 L1 ex-phase: 666379.40
+[02:43:20] static44 L2 io-phase: 5395453.77
+[02:46:21] static44 L2 ex-phase: 667831.29
+[02:46:21] static44 shifts: 0  crash: 0
+[02:46:22] === B: AUTO io3ex3+spare, BALANCER ON (zero manual shifts) ===
+[02:46:28]   primed dbsize=2002000
+[02:49:28] auto L1 io-phase: 4429129.67
+[02:52:28] auto L1 ex-phase: 608146.61
+[02:55:28] auto L2 io-phase: 4388168.88
+[02:58:28] auto L2 ex-phase: 605806.85
+[02:58:28] auto shifts: 6  crash: 0
+    MODESHIFT PARKED->EX complete
+    MODESHIFT EX->PARKED complete
+    MODESHIFT PARKED->EX complete
+OSCBENCH2_DONE

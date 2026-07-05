@@ -1,0 +1,56 @@
+[23:24:47] primed DBSIZE=2002300
+[23:24:47] === LOOP 1: IO-BOUND (spare PARKED) ===
+  io-phase ops: 1312725.04
+[23:30:48]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:30:48] === LOOP 1: shift spare -> EX ===
+[23:30:51]   shift->2: 4068383:M 04 Jul 2026 23:30:48.576 * ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is 
+[23:30:51]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:30:51] === LOOP 1: EX-BOUND (spare live EX) ===
+  ex-phase ops: 217316.30
+[23:36:51]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:36:51] === LOOP 1: park spare ===
+[23:36:54]   shift->3: 4068383:M 04 Jul 2026 23:36:53.743 * ee451 thread-modes: MODESHIFT EX->PARKED complete — spare wor
+[23:36:54]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:36:54] === LOOP 2: IO-BOUND (spare PARKED) ===
+  io-phase ops: 1239411.65
+[23:42:55]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:42:55] === LOOP 2: shift spare -> EX ===
+[23:42:58]   shift->2: 4068383:M 04 Jul 2026 23:42:55.887 * ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is 
+[23:42:58]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:42:58] === LOOP 2: EX-BOUND (spare live EX) ===
+  ex-phase ops: 217075.60
+[23:48:59]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:48:59] === LOOP 2: park spare ===
+[23:49:02]   shift->3: 4068383:M 04 Jul 2026 23:49:01.109 * ee451 thread-modes: MODESHIFT EX->PARKED complete — spare wor
+[23:49:02]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:49:02] === LOOP 3: IO-BOUND (spare PARKED) ===
+  io-phase ops: 1222621.71
+[23:55:02]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:55:02] === LOOP 3: shift spare -> EX ===
+[23:55:05]   shift->2: 4068383:M 04 Jul 2026 23:55:02.204 * ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is 
+[23:55:05]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[23:55:05] === LOOP 3: EX-BOUND (spare live EX) ===
+  ex-phase ops: 215705.89
+[00:01:06]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:01:06] === LOOP 3: park spare ===
+[00:01:09]   shift->3: 4068383:M 05 Jul 2026 00:01:08.488 * ee451 thread-modes: MODESHIFT EX->PARKED complete — spare wor
+[00:01:09]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:01:09] === LOOP 4: IO-BOUND (spare PARKED) ===
+  io-phase ops: 1218211.71
+[00:07:10]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:07:10] === LOOP 4: shift spare -> EX ===
+[00:07:13]   shift->2: 4068383:M 05 Jul 2026 00:07:10.590 * ee451 thread-modes: MODESHIFT PARKED->EX complete — spare is 
+[00:07:13]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:07:13] === LOOP 4: EX-BOUND (spare live EX) ===
+  ex-phase ops: 215566.42
+[00:13:13]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:13:13] === LOOP 4: park spare ===
+[00:13:16]   shift->3: 4068383:M 05 Jul 2026 00:13:15.875 * ee451 thread-modes: MODESHIFT EX->PARKED complete — spare wor
+[00:13:16]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:13:16] === FINALE: one-way shift -> 1 ===
+[00:13:19]   shift->1: 4068383:M 05 Jul 2026 00:13:16.776 * ee451 thread-modes: MODESHIFT PARKED->IO complete — spare is 
+[00:13:19]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+  finale ops: 1267625.91
+[00:14:20]   conserve: dbsize=2002300 (base=2002300) sentinels=4/4
+[00:14:20] ASAN files: 0  crash-lines: 0
+[00:14:40] OSCSOAK_2s_DONE
