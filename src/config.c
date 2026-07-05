@@ -2506,6 +2506,14 @@ static int updateProcTitleTemplate(const char **err) {
     return 1;
 }
 
+/* ee451 (AE-1, ported from 2s): mirror tomokv-io-drain-spin into ae.c's plain global (ae.o also
+ * links into redis-cli, so it cannot read the server struct directly). */
+static int updateIODrainSpin(const char **err) {
+    UNUSED(err);
+    aeIODrainSpin = server.io_drain_spin;
+    return 1;
+}
+
 static int updateHZ(const char **err) {
     UNUSED(err);
     /* Hz is more a hint from the user, so we accept values out of range
@@ -3297,6 +3305,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
+    createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
     createIntConfig("tomokv-pool-decay-ops", NULL, MODIFIABLE_CONFIG, 0, 16777216, server.pool_decay_ops, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto 8192 ops/tick; N=explicit */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
     createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
