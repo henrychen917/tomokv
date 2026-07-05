@@ -2516,7 +2516,15 @@ typedef struct tmMigMailbox {
     int req_count;                /* how many conns to move (REBALANCE) */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
-    int io_exiting;               /* IO-EXIT in progress: park once client count hits 0 */
+    _Atomic int io_exiting;       /* IO-EXIT in progress: park once client count hits 0.
+                                   * Written by the owner only, but read CROSS-THREAD by
+                                   * tmGatherLiveDests / the rebalance dest fallback /
+                                   * tomoMigrateTest — atomic (relaxed) so those reads are
+                                   * not C11 data races. Stays 1 from the exit request all
+                                   * the way THROUGH park adoption (cleared at the park
+                                   * checkpoint, next to accept_left — NOT at service-out
+                                   * step 4), so the parking thread is never selected as a
+                                   * migration destination in the request-park window. */
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
     int batch_dest;               /* REBALANCE: fixed destination for the current batch */
     unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
