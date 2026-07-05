@@ -2940,6 +2940,8 @@ struct redisServer {
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
     int cfg_num_cdb;           /* #75: explicit bus count (tomokv-num-cdb); 0=auto. IMMUTABLE. */
+    int io_drain_spin;         /* AE-1: tomokv-io-drain-spin; mirrored into ae.c's aeIODrainSpin
+                                * (boot sync in initServer + updateIODrainSpin on CONFIG SET). */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a
