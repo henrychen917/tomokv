@@ -6467,6 +6467,33 @@ static void migHoldKeyIfDraining(robj *key) {
     }
 }
 
+/* ee451 (W6-E2): DRAINING-window lazy-expire suppression. The drain fence proves every range
+ * WRITE dispatched before the sentinel has executed, then samples s_final — but READS keep
+ * flowing to worker A until the flip (migHoldIfDraining gates CMD_WRITE only), and a read that
+ * lazy-expires an in-range key appends a tombstone whose issued_seq fetch_add can land AFTER
+ * the s_final load. B keeps draining the log until phase==MIG_DONE, so that late tombstone is
+ * applied post-flip and can dbSyncDelete a post-flip client write to the same key on B =
+ * silent data loss. Lazy expiry is the ONLY implicit-delete producer in that window (eviction/
+ * defrag are banned by RP-1; active expiry walks the empty decoy). So while phase==DRAINING,
+ * suppress the DELETION (and with it the capture — they must go TOGETHER: delete-without-
+ * capture recreates the W6-E1 resurrection, capture-without-fence keeps the clobber) on worker
+ * A for in-range keys: the read observes expired-as-missing, the standard replica expire-read
+ * semantics (db.c masterhost branch). B lazily expires its own copy post-flip; A's stale copy
+ * dies in CLEANUP anyway. Callers: expireIfNeeded (non-forced path) + the two HFE lazy-expiry
+ * entry points in t_hash.c. Returns 1 = caller must treat as expired WITHOUT deleting.
+ * Sub-microsecond window, but it defeats the protocol's central invariant. */
+int migSuppressLazyExpire(redisDb *db, sds keyname) {
+    if (!__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        return 0;
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING)
+        return 0;
+    /* Same src-shard gate as migCaptureImplicitDelete: only worker A's own shard db matters
+     * (the decoy/B-side never hold range keys; suppressing there would be wrong AND pointless). */
+    if (!server.exThreads || db != &server.exThreads[server.migration.src].db[db->id])
+        return 0;
+    return migBucketInRange(migKeyBucket(keyname, sdslen(keyname)));
+}
+
 /* Worker A, on CLEANUP: delete its now-migrated [lo,hi) keys (single-writer). Collect-then-delete
  * (cannot mutate the dict mid-iteration). Then advance phase to DONE so the coordinator tears down. */
 static void migCleanupDeleteRangeA(exThread *A) {

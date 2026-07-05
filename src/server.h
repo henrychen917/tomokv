@@ -1794,6 +1794,7 @@ typedef struct csGroup {
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
 void migCaptureEffect(redisDb *db, robj *keyobj); /* v8d: A-side post-commit effect-log capture */
 void migCaptureImplicitDelete(redisDb *db, robj *keyobj); /* implicit (expiry/evict) delete -> tombstone, gated to src worker's shard */
+int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
 void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
 
