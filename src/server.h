@@ -2978,6 +2978,8 @@ struct redisServer {
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
+    int worker_pop_batch;      /* v14 dual-mode: 0=auto (saturating up/down) ; N=fixed pops/loop */
+    char *pin_cores;           /* v14: pin-mode 1 manual core list */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
     int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
     int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */

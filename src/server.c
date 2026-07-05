@@ -3281,9 +3281,21 @@ void initServer(void) {
      * all validated as powers of two, so (val - 1) is a valid mask for
      * each. getWorkerForCommand uses ex_dispatch_mask to replace
      * `hash % num_workers` with a single AND. */
+    /* ee451 (v14): thread counts are MANDATORY — no auto default (see README). */
+    if (server.ifid_threads < 0 || server.ex_threads < 0) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-ifid-threads and tomokv-ex-threads must be set explicitly (no default). "
+            "Example: --tomokv-ifid-threads 3 --tomokv-ex-threads 3. "
+            "tomokv-ex-threads 0 disables sharding; ANY worker count is valid (no power-of-two).");
+        exit(1);
+    }
+    /* ee451 (v14): 0 = auto ring depths (resolve to tuned defaults; demand-grow/decay ring
+     * controller is the queued follow-up). */
+    if (server.pipeline_ring_depth == 0) { server.pipeline_ring_depth = TOMO_PIPELINE_DEPTH_MAX; serverLog(LL_NOTICE, "tomokv-pipeline-depth auto -> %d (max)", TOMO_PIPELINE_DEPTH_MAX); }
+    if (server.ex_queue_size == 0)       { server.ex_queue_size = 2048;     serverLog(LL_NOTICE, "tomokv-ex-queue-depth auto -> 2048"); }
     server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
     server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
-    server.ex_dispatch_mask = (uint64_t)(server.ex_threads - 1);  /* legacy */
+    server.ex_dispatch_mask = server.ex_threads > 0 ? (uint64_t)(server.ex_threads - 1) : 0;  /* legacy/unused */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
      * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W (no
      * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
@@ -10085,7 +10097,10 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * configured window of the popped batch. The hash COMPUTE in pass 2 still runs
      * for all n (it is functional, not prefetch). */
     /* (v13) w1 replaced by per-stage widths w1a..w1d below */
-    int w3 = n < server.pf_w_entry  ? n : server.pf_w_entry;
+/* ee451 (v14): stage-width dual-mode — STRICT (N cap), 0 = off, AUTO (-1): width = CURRENT batch
+ * occupancy n (pure current-signal, micro-arch style — re-tunes on the very next batch). */
+#define PFW(w) ((w) == -1 ? (n) : ((n) < (w) ? (n) : (w)))
+    int w3 = PFW(server.pf_w_entry);
 
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
@@ -10095,7 +10110,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
     /* ee451 (v14): value-chase width ALWAYS adapts (bool + cache-kb knobs deleted):
      * width = (L3/(2*workers)) / EWMA-vsize, clamped [4, pf-w-value]. Self-derived budget,
      * self-measured size, recomputed every batch; pf-w-value stays as the cap (0 = off). */
-    int w4cap = server.pf_w_value;
+    int w4cap = server.pf_w_value == -1 ? 256 : server.pf_w_value;   /* -1 = AUTO: budget/EWMA controller decides */
     if (w4cap > 0) {
         long aw = pfw->pf_cached_w4;   /* ee451 (v14): cached (budget/ev computed in the 64-batch refresh) */
         if (aw < 4) aw = 4;
@@ -10123,10 +10138,10 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * pf-cmd stays deleted (command table is permanently L1-hot). */
     enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
     uint8_t st[WORKER_POP_BATCH];
-    int w1a = n < server.pf_w_struct   ? n : server.pf_w_struct;
-    int w1b = n < server.pf_w_argv     ? n : server.pf_w_argv;
-    int w1c = n < server.pf_w_keyobj   ? n : server.pf_w_keyobj;
-    int w1d = n < server.pf_w_keybytes ? n : server.pf_w_keybytes;
+    int w1a = PFW(server.pf_w_struct);
+    int w1b = PFW(server.pf_w_argv);
+    int w1c = PFW(server.pf_w_keyobj);
+    int w1d = PFW(server.pf_w_keybytes);
     for (int j = 0; j < n; j++) {
         st[j] = PFS_STRUCT;
         dts[j] = NULL;
@@ -10193,7 +10208,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
                 if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
-                if (j < server.pf_w_hash) {
+                if (j < (server.pf_w_hash == -1 ? n : server.pf_w_hash)) {   /* -1 = AUTO */
                     redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
                     issued = 1;
                 }
@@ -10329,7 +10344,7 @@ void *exThreadMain(void *arg) {
     /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
      * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
      * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
-    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==1) */
+    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
 
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
      * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
@@ -10353,6 +10368,8 @@ void *exThreadMain(void *arg) {
     /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
     int spin_pinned = server.worker_spin > 0;
     int spin_budget = spin_pinned ? server.worker_spin : 32;
+    int pop_cap = WORKER_POP_BATCH;     /* ee451 (v14): AUTO pop-batch controller (worker-local) */
+    int pop_pass_max = 0;
     int nq = server.ifid_threads + 1;         /* ee451 (v14): loop-invariant (immutable after startup) — hoisted */
     int scan_start = 0;                 /* worker-local producer-scan rotation cursor */
 
@@ -10380,7 +10397,8 @@ void *exThreadMain(void *arg) {
         int any = 0;
         /* ee451: runtime worker pop/execute batch size, capped by the compile-time
          * array max. Decoupled from the per-stage prefetch widths. */
-        int popmax = WORKER_POP_BATCH;   /* ee451 (v14): quantum hardcoded; clamps were dead */
+        /* ee451 (v14): dual-mode — STRICT (N) or AUTO (0): saturating up/down (2-bit-predictor flavor). */
+        int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : pop_cap;
         /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
          * per-queue pop batch already prevents starvation across the per-IO SPSC
          * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
@@ -10392,6 +10410,7 @@ void *exThreadMain(void *arg) {
         for (int k = 0; k < nq; k++) {
             int i = scan_start + k; if (i >= nq) i -= nq;
             int n = exQueuePopBatch(&worker->queues[i], batch, popmax);
+            if (n > pop_pass_max) pop_pass_max = n;
             if (n == 0) continue;
             any = 1;
 
@@ -10423,8 +10442,8 @@ void *exThreadMain(void *arg) {
                  * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
                  * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
                  * faults). Targets the big-DB cache-miss regime; 0 = off. */
-                if (server.pf_w_nextop) {
-                    int la = j + server.pf_w_nextop;
+                if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = batch n), N = strict */
+                    int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
                     if (la < n) {
                         client *nf = batch[la];
                         if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
@@ -10517,6 +10536,12 @@ void *exThreadMain(void *arg) {
         }
 
         if (any) {
+            if (server.worker_pop_batch == 0) {   /* AUTO pop-batch: saturate-up / sparse-down */
+                if (pop_pass_max >= pop_cap && pop_cap < WORKER_POP_BATCH) pop_cap <<= 1;
+                else if (pop_pass_max > 0 && pop_pass_max <= (pop_cap >> 2) && pop_cap > 2) pop_cap >>= 1;
+                if (pop_cap > WORKER_POP_BATCH) pop_cap = WORKER_POP_BATCH;
+            }
+            pop_pass_max = 0;
             if (!spin_pinned && empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
                 spin_budget += spin_budget >> 1;
                 if (spin_budget > 256) spin_budget = 256;
@@ -10610,7 +10635,7 @@ static int smartCoreFor(int logical) {
 
 static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
 #ifdef __linux__
-    if (server.pin_mode == 2) return;   /* OFF/float for cross-product benches */
+    if (server.pin_mode == 0) return;   /* 0 = FLOAT: no pinning */
     /* dragonfly/helio-style affinity-set-aware pinning: pin within the process's ALLOWED cpu set
      * (sched_getaffinity -> respects taskset/cgroup/cpuset), compacted to a dense list, round-robin.
      * Fixes the old `core_idx % NPROC_ONLN`, which used ABSOLUTE core numbers and silently failed
@@ -10633,10 +10658,39 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
         g_na = k;
     }
     if (g_na <= 0) return;
-    int core = g_abs[core_idx % g_na];           /* default (pin_mode 0): allowed-set round-robin */
-    if (server.pin_mode == 1) {                  /* smart: topology core, but only if it's allowed */
-        int sc = smartCoreFor(core_idx);
-        if (sc >= 0) for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
+    int core;
+    if (server.pin_mode == 1) {
+        /* 1 = MANUAL: tomokv-pin-cores list, thread-pin order, round-robin if short. */
+        static int g_man[CPU_SETSIZE]; static int g_nman = -1;
+        if (g_nman < 0) {
+            g_nman = 0;
+            const char *p = server.pin_cores;
+            while (p && *p && g_nman < CPU_SETSIZE) {
+                char *end; long v = strtol(p, &end, 10);
+                if (end == p) break;
+                if (v >= 0 && v < CPU_SETSIZE) g_man[g_nman++] = (int)v;
+                p = (*end == ',') ? end + 1 : end;
+            }
+            if (g_nman == 0)
+                serverLog(LL_WARNING, "pin-mode 1 (manual) but tomokv-pin-cores empty/unparsable — threads FLOAT");
+        }
+        if (g_nman == 0) return;
+        core = g_man[core_idx % g_nman];
+        int ok = 0; for (int k = 0; k < g_na; k++) if (g_abs[k] == core) { ok = 1; break; }
+        if (!ok) { serverLog(LL_WARNING, "pin-cores core %d not allowed; %s floats", core, what); return; }
+    } else {
+        /* 2 = AUTO (arch-aware): the topology decides the policy. Multiple L3 domains (CCDs) ->
+         * smart shared-L3 grouping (keep a worker near its io feeders' cache). A single L3 domain
+         * has no structure to exploit -> plain allowed-set round-robin IS the arch-aware answer
+         * (the smart ordering can pack SMT siblings there and measurably hurts). Machine identity,
+         * decided once. Respects taskset/cgroup affinity either way. */
+        core = g_abs[core_idx % g_na];
+        static int g_multi_l3 = -1;
+        if (g_multi_l3 < 0) g_multi_l3 = detectL3Domains() > 1 ? 1 : 0;
+        if (g_multi_l3) {
+            int sc = smartCoreFor(core_idx);
+            if (sc >= 0) for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
+        }
     }
     cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
     if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
