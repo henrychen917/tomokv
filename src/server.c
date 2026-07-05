@@ -14073,15 +14073,45 @@ void *polyThreadMain(void *arg) {
                 if (cur == TOMO_MODE_EX) { ok = 0; break; }   /* EX->IO direct: illegal — park first */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 if (!ctx->io_listening) {
-                    /* IO-ENTRY (spare): make the pre-bound dormant listener live.
+                    /* ee451 (rank-2 re-bind fix): an IO-EXIT CLOSES this slot's listener
+                     * (tmMigLeaveAcceptGroup — leaving the reuseport dispatch group closes
+                     * the fd, fd = -1), so a later PARKED->IO re-entry must first re-bind a
+                     * dormant socket, exactly like tmSpawnSpare. Without this, listen(-1)
+                     * failed forever and — worse — target_mode stayed IO != mode: the 3.1c
+                     * pending gate then rejected EVERY further shift request ("transition
+                     * pending"), bricking the thread until restart. On ANY failure below,
+                     * roll target_mode back to PARKED so no transition dangles
+                     * half-requested (same owner-thread target store as service-out step 4;
+                     * the pending gate keeps the control plane from storing concurrently). */
+                    if (ctx->io->fd < 0) {
+                        ctx->io->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+                        if (ctx->io->fd == ANET_ERR) {
+                            serverLog(LL_WARNING, "thread-modes: io thread %d listener re-bind failed: %s "
+                                                  "— rolling target back to PARKED", ctx->io_slot, server.neterr);
+                            ctx->io->fd = -1;
+                            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
+                            ok = 0; break;
+                        }
+                        anetNonBlock(NULL, ctx->io->fd);
+                    }
+                    /* IO-ENTRY (spare / re-entry): make the pre-bound dormant listener live.
                      * listen() joins the SO_REUSEPORT dispatch group — instant. */
                     if (listen(ctx->io->fd, server.tcp_backlog) != 0) {
-                        serverLog(LL_WARNING, "thread-modes: spare listen() failed: %s", strerror(errno));
+                        serverLog(LL_WARNING, "thread-modes: spare listen() failed: %s — rolling "
+                                              "target back to PARKED", strerror(errno));
+                        atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
                         ok = 0; break;
                     }
                     if (aeCreateFileEvent(ctx->io->el, ctx->io->fd, AE_READABLE,
                         connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
-                        serverLog(LL_WARNING, "thread-modes: spare accept-handler registration failed");
+                        /* The socket is LISTENING (in the dispatch group) but has no accept
+                         * handler — conns would hash to it and rot in its backlog. Close it
+                         * (leave the group); the next entry attempt re-binds from scratch. */
+                        serverLog(LL_WARNING, "thread-modes: spare accept-handler registration failed — "
+                                              "closing listener, rolling target back to PARKED");
+                        close(ctx->io->fd);
+                        ctx->io->fd = -1;
+                        atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
                         ok = 0; break;
                     }
                     ctx->io_listening = 1;
