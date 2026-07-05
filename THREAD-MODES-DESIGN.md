@@ -191,3 +191,18 @@ Integration rules apply: MAINT ops on a migrating range obey the same matrix (to
   with old WB) -> 2.50M post-join (the 3rd WB measurably helped — an early balancer preview).
 - Engine note (pre-existing, both forks): v8d DRAINING-window transient read-miss (reproduced
   knob-off; never data loss). Consider read-hold or double-read during the window, low priority.
+
+## GOAL CLARIFICATION (user): FIXED POOL, FLUID MIX — no thread create/destroy, no idle parking
+The steady-state vision: always N threads (= populated cores, e.g. 8), ALL working; the balancer moves
+the ROLE MIX (5io/3ex <-> 3io/5ex ...), one thread at a time. PARKED is a TRANSIENT CHECKPOINT inside
+a transition (the quiesce point between roles), never a destination. The v1 spare+park scaffolding
+generalizes: the balancer's actuator set becomes ANY thread, and min/max knobs bound the MIX, not a
+live count.
+Roadmap to full mix-shifting:
+- v1.5 EX->IO composed transition (EX-exit migration + instant IO-entry — both SHIPPED; chain them,
+  park becomes a millisecond waypoint);
+- v1.6 IO-EXIT (the missing piece): leave the reuseport accept group, drain pinned conns gradually
+  while HYBRID-serving (io slices for remaining conns interleaved with ex warmup after the shard
+  migration lands); balancer treats its cost like a slow DVFS transition;
+- v2 balancer actuates the full mix vector (nio+nex=N) through composed transitions, one move per
+  settle window, quorum-gated as specced.
