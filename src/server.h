@@ -4513,7 +4513,16 @@ int getSlotFromCommand(struct redisCommand *cmd, robj **argv, int argc);
 int doesCommandHaveKeys(struct redisCommand *cmd);
 int getChannelsFromCommand(struct redisCommand *cmd, robj **argv, int argc, getKeysResult *result);
 int doesCommandHaveChannelsWithFlags(struct redisCommand *cmd, int flags);
-void getKeysFreeResult(getKeysResult *result);
+/* Free the result of getKeysFromCommand. Inline (ee451 v14, teardown shave): this runs on
+ * every command teardown (freePendingCommand / reclaimPendingCommand), where the common case
+ * is "nothing to free" — either keys was never prepared (NULL: argc==0 / read_error /
+ * non-preprocessed paths; the out-of-line version paid a zfree(NULL) call for it) or keys
+ * points at the inline keysbuf. Folds the cross-TU call into one predicted-not-taken branch;
+ * only the rare heap-keys case (> MAX_KEYS_BUFFER) reaches zfree. */
+static inline void getKeysFreeResult(getKeysResult *result) {
+    if (result && result->keys && result->keys != result->keysbuf)
+        zfree(result->keys);
+}
 int extractKeysAndSlot(struct redisCommand *cmd, robj **argv, int argc, getKeysResult *result, int *slot);
 int sintercardGetKeys(struct redisCommand *cmd,robj **argv, int argc, getKeysResult *result);
 int zunionInterDiffGetKeys(struct redisCommand *cmd,robj **argv, int argc, getKeysResult *result);
