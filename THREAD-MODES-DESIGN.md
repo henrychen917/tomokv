@@ -65,3 +65,20 @@ window, one shift per window. p99 latency is the GUARDRAIL: if p99 degrades duri
 back off and extend settle (transitions are DVFS-like states; the balancer must respect their costs:
 EX shifts = migration ms, IO-exit = gradual drain). All signals current-value or leaky EWMA — no
 history accumulation, shifts re-evaluate on a dime.
+
+## Shift confidence (user): expensive transitions need SIGNAL CONSENSUS
+EX<->IO transitions cost real work (bucket migration / connection drain). The balancer must not act
+on one hot signal: require a QUORUM — e.g. >= 3 of the role's pressure signals beyond the hysteresis
+band, ALL sustained across the full settle window, AND the donor role showing headroom on >= 2 of its
+signals — before an expensive shift. Cheap transitions (WB repartition, PARKED->IO) may act on fewer.
+Micro-arch analog: confidence estimation before costly speculation — mispredicted shifts are the
+expensive recovery, so bias strongly toward NOT shifting (p99 guardrail can veto and extend settle).
+
+## Demoting the main thread (user proposal, step 5 candidate)
+Abolish "main is special" past startup/shutdown: main becomes an ordinary io-mode poly thread holding
+a transferable **CRON TOKEN** (serverCron/persistence-triggers/control-plane duties attach to the token,
+not the thread). If main ever shifts roles, the token passes to another io-mode thread at a checkpoint.
+Supported by the role-purity audit: main already IS io thread 0 + cron; upstream "am I main?" guards
+(running_tid) are systematically defeated today — a formal token FIXES that class instead of faking it.
+Watch items: fork() points (BGSAVE — token holder forks at a quiesced checkpoint), signal handling
+thread, config-apply execution context (control plane = token holder). Startup/shutdown remain main's.
