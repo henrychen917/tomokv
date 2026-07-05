@@ -2182,9 +2182,16 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     /* ee451 (thread-modes step 4, signal c): publish this thread's reply-ROB occupancy
      * (in-flight worker-dispatched ops) for the balancer — own padded line, one store. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
+    /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
+     * are re-registered before the rest of the pass processes their sockets. */
+    if (server.thread_modes) tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
+    /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
+     * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
+     * mid-drain is dropped from migrating_out before it is freed). */
+    if (server.thread_modes) tmMigServiceOut();
     freeClientsInAsyncFreeQueue();
 
     /* ee451 (v13, hot-path audit #17): the old once-per-second "stall dump" block here cost a
@@ -8562,12 +8569,25 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         for (j = 0; j < server.io_threads_num; j++) {
             atomicGet(server.stat_io_reads_processed[j], reads);
             atomicGet(server.stat_io_writes_processed[j], writes);
-            info = sdscatprintf(info, "io_thread_%d:clients=%d,reads=%lld,writes=%lld\r\n",
-                                       j, server.io_threads_clients_num[j], reads, writes);
+            /* ee451: report the AUTHORITATIVE live client count (listLength) — the
+             * io_threads_clients_num counter only grows in the tomokv path (no freeClient
+             * decrement) and is not a live count. */
+            info = sdscatprintf(info, "io_thread_%d:clients=%lu,reads=%lld,writes=%lld\r\n",
+                                       j, server.clients[j] ? listLength(server.clients[j]) : 0,
+                                       reads, writes);
             stat_total_reads_processed += reads;
             if (j != 0) stat_io_reads_processed += reads; /* Skip the main thread */
             stat_total_writes_processed += writes;
             if (j != 0) stat_io_writes_processed += writes; /* Skip the main thread */
+        }
+        /* ee451 (thread-modes v1.6): per-tomokv-io-thread live connection counts. The loop
+         * above runs upstream semantics (io_threads_num==1 here, so it only prints thread 0);
+         * this breaks out every tomokv io slot's authoritative listLength so connection
+         * migration / rebalancing is directly observable. */
+        if (server.custom_io_threads_active) {
+            for (int t = 0; t <= server.io_threads; t++)
+                info = sdscatprintf(info, "tomo_io_thread_%d:clients=%lu\r\n",
+                                    t, server.clients[t] ? listLength(server.clients[t]) : 0);
         }
         stat_io_ops_processed_calculated = 1;
     }
@@ -10891,6 +10911,24 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
 static polyThreadCtx *tmPolyCtxs = NULL;
 static polyThreadCtx *tmSpare = NULL;   /* the one spare poly thread, NULL if none (fwd-declared at top) */
 
+/* ee451 (thread-modes v1.6): connection-migration mailboxes, one per io-capable slot.
+ * Zero-initialized (static storage); live slots get lists/notifier from tmMigInitSlot. */
+tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];
+
+/* Map an io-mode iotid to its poly context (NULL for main / non-poly / unknown). */
+static polyThreadCtx *tmCtxForIotid(int id) {
+    if (!server.thread_modes || !tmPolyCtxs) return NULL;
+    if (id >= 1 && id < server.io_threads) return &tmPolyCtxs[id - 1];   /* io-born 1..io_threads-1 */
+    if (tmSpare && id == tmSpare->io_slot) return tmSpare;               /* the spare (io_slot == io_threads) */
+    return NULL;
+}
+
+/* Map an iotid to the event loop it pumps. */
+static aeEventLoop *tmElForIotid(int id) {
+    if (id == 0) return server.el;              /* main (excluded from migration in v1) */
+    return server.ioThreads[id].el;             /* 1..io_threads-1 and the spare (io_threads) */
+}
+
 static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
     serverAssert(tmPolyCtxs != NULL);
     switch (born_mode) {
@@ -11026,6 +11064,10 @@ static void tmSpawnSpare(void) {
     aeSetBeforeSleepProc(t->el, beforeSleepIO);
     aeSetAfterSleepProc(t->el, afterSleepIO);
 
+    /* ee451 (thread-modes v1.6): the spare's migration mailbox + wakeup fd (usable once the
+     * spare is in IO mode — it can then receive/rebalance conns like any io thread). */
+    tmMigInitSlot(server.io_threads, t->el);
+
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_PARKED, 0);
     ctx->ex = NULL;                       /* EX binding provisioned LATER by initExThreads (which runs
                                            * after initIOThreads) when num_workers_alloc > num_workers */
@@ -11098,6 +11140,10 @@ void initIOThreads(void) {
         /* Stripped down before/after sleep for IO threads */
         aeSetBeforeSleepProc(t->el, beforeSleepIO);
         aeSetAfterSleepProc(t->el, afterSleepIO);
+
+        /* ee451 (thread-modes v1.6): connection-migration mailbox + wakeup fd for this io
+         * thread (registered on its loop now, before the thread starts polling). */
+        tmMigInitSlot(i, t->el);
 
         /* Spin up the thread */
         if (server.thread_modes) {
@@ -11277,9 +11323,20 @@ void *polyThreadMain(void *arg) {
             case TOMO_MODE_PARKED:
             default:
                 /* ee451 (step 3): parking is legal from birth (cur == -1) and from EX
-                 * after its buckets are gone; IO-exit needs the gradual conn drain (not
-                 * in v1). Parking itself touches no iotid-indexed state. */
-                if (cur == TOMO_MODE_IO) { ok = 0; break; }
+                 * after its buckets are gone. ee451 (v1.6): IO->PARKED is now legal too,
+                 * but ONLY as the tail of a completed IO-EXIT — tmMigServiceOut left the
+                 * accept group (accept_left) and migrated every client off (clients==0)
+                 * before it requested PARK. Refuse a bare IO->PARKED (a live IO thread with
+                 * conns cannot just vanish). Parking itself touches no iotid-indexed state. */
+                if (cur == TOMO_MODE_IO) {
+                    tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
+                    if (!mb->accept_left || listLength(server.clients[ctx->io_slot]) != 0) {
+                        ok = 0; break;
+                    }
+                    mb->accept_left = 0;   /* exit consumed; a future IO re-entry starts clean */
+                    serverLog(LL_NOTICE, "ee451 thread-modes v1.6: MODESHIFT IO->PARKED complete — "
+                                         "io thread %d parked (0 clients, left accept group)", ctx->io_slot);
+                }
                 if (cur == TOMO_MODE_EX) {
                     /* EX-EXIT PARK CHECKPOINT. Only the reshard coordinator requests
                      * this, strictly after the outbound migration's teardown — the
@@ -11492,6 +11549,387 @@ int tomoSpareShift(int mode, const char **err) {
         *err = "invalid mode";
         return 0;
     }
+}
+
+/* ===================== ee451 (thread-modes v1.6): CONNECTION MIGRATION =====================
+ * Move a plain request/response client from io thread A to io thread B, zero loss.
+ * See THREAD-MODES-DESIGN.md "IO-EXIT v1.6 spec: connection MIGRATION".
+ *
+ * Fence: a client is QUIESCED = pipeline ring empty (dispatchid==flushid) AND replies
+ * fully flushed (no static buf / reply list / pending write / partial send). This is the
+ * SAME fence processCommand uses for stateful commands (isStatefulCommand gate). At that
+ * instant nothing in-flight references A (every dispatched fake retired under A's producer
+ * slot; the flush-walk dropped the client at flushid==dispatchid), and the partial parse
+ * state (querybuf/qb_pos) is client-struct-owned so it travels intact.
+ *
+ * Threading: the control plane (main) never touches another thread's epoll — it sets a
+ * REQUEST and wakes the source, which runs the whole protocol on its OWN event loop
+ * (tmMigServiceOut, in beforeSleepIO). The source hands the client to B's INBOX and wakes
+ * B; B re-registers the fd on its OWN loop (tmMigDrainInbox). No cross-thread epoll op. */
+
+/* Is this a plain request/response client, safe to migrate at a clean fence? v1 refuses
+ * anything stateful/special (leave it on A) — MULTI, blocked, watched keys, pubsub, replica/
+ * master/monitor links, tracking, ASM, closing/protected, and non-TCP conns. */
+static int tmClientMigratable(client *c) {
+    if (!c->conn) return 0;
+    if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
+    if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
+                    CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
+                    CLIENT_MONITOR | CLIENT_MASTER | CLIENT_SLAVE | CLIENT_TRACKING |
+                    CLIENT_LUA_DEBUG | CLIENT_LUA_DEBUG_SYNC | CLIENT_ASM_MIGRATING |
+                    CLIENT_ASM_IMPORTING | CLIENT_INTERNAL))
+        return 0;
+    if (c->watched_keys && listLength(c->watched_keys)) return 0;
+    if (c->pubsub_channels && dictSize(c->pubsub_channels)) return 0;
+    if (c->pubsub_patterns && dictSize(c->pubsub_patterns)) return 0;
+    if (c->pubsubshard_channels && dictSize(c->pubsubshard_channels)) return 0;
+    return 1;
+}
+
+/* The per-conn quiesce fence (see the file header). */
+static int tmClientQuiesced(client *c) {
+    if (c->dispatchid != c->flushid) return 0;             /* ring not empty (in-flight fakes) */
+    if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
+    if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
+    if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
+    if (server.worker_direct_send && (c->wds_busy || c->wds_inflight)) return 0;  /* v12-K in-flight sends */
+    return 1;
+}
+
+/* Gather the iotids of io threads eligible to RECEIVE migrated conns (in IO mode, not
+ * themselves exiting, != exclude). exclude<0 gathers all live io threads. Returns count. */
+static int tmGatherLiveDests(int exclude, int *out, int cap) {
+    int n = 0;
+    for (int id = 1; id <= server.io_threads && n < cap; id++) {
+        if (id == exclude) continue;
+        if (tm_mig_mbox[id].io_exiting) continue;
+        polyThreadCtx *ctx = tmCtxForIotid(id);
+        if (!ctx) continue;
+        if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
+        out[n++] = id;
+    }
+    return n;
+}
+
+/* Live per-io-thread connection count — the AUTHORITATIVE number, maintained by
+ * linkClient/unlinkClient (and by migration's own listDelNode/linkClient) on the owning
+ * thread. (server.io_threads_clients_num is a pre-existing vestigial counter that only ever
+ * grows in the tomokv path — createClient increments it but nothing decrements — so it must
+ * NOT be used for load decisions.) Reads are cross-thread-racy but non-torn: fine for a
+ * balancing heuristic. */
+static long tmIoThreadLoad(int id) {
+    return server.clients[id] ? (long)listLength(server.clients[id]) : 0;
+}
+
+static int tmLeastLoadedIoDest(int exclude) {
+    int dests[TOMO_IO_THREADS_MAX + 1];
+    int n = tmGatherLiveDests(exclude, dests, TOMO_IO_THREADS_MAX + 1);
+    int best = -1;
+    long bestload = LONG_MAX;
+    for (int i = 0; i < n; i++) {
+        long load = tmIoThreadLoad(dests[i]);
+        if (load < bestload) { bestload = load; best = dests[i]; }
+    }
+    return best;
+}
+
+/* Begin migrating a client off THIS thread: pause its reads (stop new input; in-flight ring
+ * keeps draining) and enroll it in the source's migrating_out set. Runs on the owning thread. */
+static void tmMigStartClient(client *c) {
+    c->flags |= CLIENT_MIGRATING;
+    connSetReadHandler(c->conn, NULL);     /* delete AE_READABLE on this thread's loop; writes stay live so replies flush */
+    listAddNodeTail(tm_mig_mbox[iotid].migrating_out, c);
+}
+
+/* Abort a migration (client became non-migratable mid-drain, e.g. ran SUBSCRIBE/MULTI):
+ * resume reads and leave it on this thread. */
+static void tmMigAbortClient(client *c) {
+    c->flags &= ~CLIENT_MIGRATING;
+    if (c->conn) connSetReadHandler(c->conn, readQueryFromClient);
+    serverLog(LL_NOTICE, "ee451 thread-modes v1.6: migration of client %llu ABORTED — became "
+                         "non-migratable during drain; left on io thread %d",
+              (unsigned long long)c->id, iotid);
+}
+
+/* IO-EXIT: leave the reuseport accept group so NO new conns hash here. Deletes the read
+ * event and CLOSES the listen fd (removes it from the kernel's SO_REUSEPORT dispatch set);
+ * other io threads own separate listen fds, so they are undisturbed. Runs on the owner. */
+static void tmMigLeaveAcceptGroup(int id) {
+    ioThreadArgs *t = &server.ioThreads[id];
+    if (t->fd >= 0) {
+        aeDeleteFileEvent(t->el, t->fd, AE_READABLE);
+        close(t->fd);
+        t->fd = -1;
+    }
+    polyThreadCtx *ctx = tmCtxForIotid(id);
+    if (ctx) ctx->io_listening = 0;
+    serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d LEFT the reuseport accept group", id);
+}
+
+/* Surgically detach a quiesced client from THIS thread's per-iotid structures, hand it to
+ * `dest`'s inbox, and wake dest. At quiesce the client sits only in clients[iotid] +
+ * clients_index[iotid] (the ring is empty ⇒ not in clients_pending_ex; replies flushed ⇒ not
+ * in clients_pending_write / _ref_reply; migratable ⇒ not in unblocked_clients). Runs on the
+ * owning (source) thread; dest re-registers on its own loop. */
+static void tmMigHandoff(client *c, int dest) {
+    /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
+     * handler + TLS state and nulls conn->el so dest's rebind assert holds). */
+#ifdef HAVE_LIBURING
+    if (server.io_uring_recv && c->conn && c->conn->fd >= 0) iouRecvDisarm(iotid, c->conn->fd);
+#endif
+    connUnbindEventLoop(c->conn);
+
+    /* 2. Unlink from the source's per-iotid client structures (NOT a full unlinkClient —
+     * the conn lives on). */
+    if (c->client_list_node) {
+        uint64_t idk = htonu64(c->id);
+        raxRemove(server.clients_index[iotid], (unsigned char *)&idk, sizeof(idk), NULL);
+        listDelNode(server.clients[iotid], c->client_list_node);
+        c->client_list_node = NULL;
+    }
+    if (server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;
+    c->flags &= ~CLIENT_MIGRATING;
+    /* (the live count is server.clients[iotid], already shrunk by the listDelNode above) */
+
+    /* 3. Re-owner and publish to dest's inbox, then wake dest. */
+    c->tid = dest;
+    tmMigMailbox *mb = &tm_mig_mbox[dest];
+    pthread_mutex_lock(&mb->inbox_lock);
+    listAddNodeTail(mb->inbox, c);
+    atomic_store_explicit(&mb->inbox_n, (int)listLength(mb->inbox), memory_order_release);
+    pthread_mutex_unlock(&mb->inbox_lock);
+    triggerEventNotifier(mb->notifier);
+}
+
+/* SOURCE side, called each pass from beforeSleepIO: pick up a control-plane request, keep
+ * marking migratable clients while exiting, complete quiesced handoffs, and park when an
+ * IO-EXIT has drained the last client. */
+void tmMigServiceOut(void) {
+    if (!server.thread_modes) return;
+    int id = iotid;
+    tmMigMailbox *mb = &tm_mig_mbox[id];
+    if (!mb->migrating_out) return;   /* not an io-capable migration slot */
+
+    /* 1. New control-plane request? */
+    if (atomic_load_explicit(&mb->req_pending, memory_order_acquire)) {
+        int kind = mb->req_kind, dest = mb->req_dest, count = mb->req_count;
+        atomic_store_explicit(&mb->req_pending, 0, memory_order_release);
+        if (kind == TM_MIGREQ_REBALANCE) {
+            mb->batch_dest = dest;
+            int started = 0;
+            listIter li; listNode *ln;
+            listRewind(server.clients[id], &li);
+            while (started < count && (ln = listNext(&li))) {
+                client *c = listNodeValue(ln);
+                if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) {
+                    tmMigStartClient(c); started++;
+                }
+            }
+            serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d REBALANCE — started %d/%d "
+                                 "conn migrations to io thread %d", id, started, count, dest);
+        } else if (kind == TM_MIGREQ_IOEXIT) {
+            mb->io_exiting = 1;
+            if (!mb->accept_left) { tmMigLeaveAcceptGroup(id); mb->accept_left = 1; }
+        }
+    }
+
+    /* 2. While exiting, keep marking newly-migratable clients (a client that was in MULTI/
+     * blocked when the exit began migrates once it becomes plain again). */
+    if (mb->io_exiting) {
+        listIter li; listNode *ln;
+        listRewind(server.clients[id], &li);
+        while ((ln = listNext(&li))) {
+            client *c = listNodeValue(ln);
+            if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) tmMigStartClient(c);
+        }
+    }
+
+    /* 3. Complete quiesced migrations. */
+    listIter li; listNode *ln;
+    listRewind(mb->migrating_out, &li);
+    while ((ln = listNext(&li))) {
+        client *c = listNodeValue(ln);
+        /* Died / closing during drain — drop it; the async-free pass reclaims it. */
+        if (!c->conn || (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY))) {
+            c->flags &= ~CLIENT_MIGRATING;
+            listDelNode(mb->migrating_out, ln);
+            continue;
+        }
+        /* Ran a stateful command mid-drain (e.g. SUBSCRIBE) — abort, leave on source. */
+        if (!tmClientMigratable(c)) {
+            tmMigAbortClient(c);
+            listDelNode(mb->migrating_out, ln);
+            continue;
+        }
+        if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */
+        int dest;
+        if (mb->io_exiting) {
+            int dests[TOMO_IO_THREADS_MAX + 1];
+            int nd = tmGatherLiveDests(id, dests, TOMO_IO_THREADS_MAX + 1);
+            if (nd == 0) continue;             /* no receiver right now — hold (retry next pass) */
+            dest = dests[mb->rr_cursor++ % nd];/* round-robin => even spread */
+        } else {
+            dest = mb->batch_dest;
+            polyThreadCtx *dctx = tmCtxForIotid(dest);
+            if (dest == id || !dctx || tm_mig_mbox[dest].io_exiting ||
+                atomic_load_explicit(&dctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
+                /* the chosen destination went away — fall back to least-loaded, else abort */
+                dest = tmLeastLoadedIoDest(id);
+                if (dest < 0) { tmMigAbortClient(c); listDelNode(mb->migrating_out, ln); continue; }
+            }
+        }
+        listDelNode(mb->migrating_out, ln);
+        serverLog(LL_VERBOSE, "ee451 thread-modes v1.6: io thread %d -> %d handed off client %llu",
+                  id, dest, (unsigned long long)c->id);
+        tmMigHandoff(c, dest);
+    }
+
+    /* 4. IO-EXIT completion: every client gone ⇒ park (polyThreadMain checkpoint allows
+     * IO->PARKED only because accept_left is set and the client list is empty). */
+    if (mb->io_exiting && listLength(mb->migrating_out) == 0 &&
+        listLength(server.clients[id]) == 0) {
+        mb->io_exiting = 0;
+        polyThreadCtx *ctx = tmCtxForIotid(id);
+        if (ctx) {
+            serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d IO-EXIT complete — all conns "
+                                 "migrated out, requesting PARK", id);
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
+        }
+    }
+}
+
+/* DEST side, called each pass from beforeSleepIO: adopt clients handed to this thread's inbox.
+ * Re-registers each fd on THIS loop, re-links into the per-iotid structures, resumes reads. */
+void tmMigDrainInbox(void) {
+    if (!server.thread_modes) return;
+    int id = iotid;
+    tmMigMailbox *mb = &tm_mig_mbox[id];
+    if (!mb->inbox) return;
+    if (atomic_load_explicit(&mb->inbox_n, memory_order_acquire) == 0) return;   /* common path: nothing */
+
+    aeEventLoop *my_el = tmElForIotid(id);
+    /* Pop one at a time under the push lock, process each outside the lock (never hold the
+     * lock across epoll ops). */
+    for (;;) {
+        pthread_mutex_lock(&mb->inbox_lock);
+        listNode *n = listFirst(mb->inbox);
+        client *c = NULL;
+        if (n) { c = listNodeValue(n); listDelNode(mb->inbox, n); }
+        atomic_store_explicit(&mb->inbox_n, (int)listLength(mb->inbox), memory_order_release);
+        pthread_mutex_unlock(&mb->inbox_lock);
+        if (!c) break;
+
+        /* c->conn->el is NULL (source unbound it); rebind to this loop, re-link, resume. */
+        connRebindEventLoop(c->conn, my_el);
+        linkClient(c);                                   /* into clients[id] + clients_index[id] (uses iotid); grows the live count */
+#ifdef HAVE_LIBURING
+        if (server.io_uring_recv) iouRecvArm(c);         /* re-arm multishot recv on this thread's ring */
+#endif
+        connSetReadHandler(c->conn, readQueryFromClient);/* AE_READABLE on this loop; pending socket data fires immediately (level-triggered) */
+        c->flags &= ~CLIENT_MIGRATING;
+        if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);   /* defensive: nothing should be pending at quiesce */
+        serverLog(LL_VERBOSE, "ee451 thread-modes v1.6: io thread %d ADOPTED migrated client %llu",
+                  id, (unsigned long long)c->id);
+    }
+}
+
+/* freeClient hook: a migrating client is dying on its source thread — drop it from the
+ * migrating_out set so the scan never dereferences a freed pointer. Runs on the owner. */
+void tmMigForgetOnFree(client *c) {
+    if (!(c->flags & CLIENT_MIGRATING)) return;
+    tmMigMailbox *mb = &tm_mig_mbox[iotid];
+    if (mb->migrating_out) {
+        listNode *ln = listSearchKey(mb->migrating_out, c);
+        if (ln) listDelNode(mb->migrating_out, ln);
+    }
+    c->flags &= ~CLIENT_MIGRATING;
+}
+
+/* Notifier fd handler: just consume the eventfd (the real work runs in beforeSleepIO). */
+static void tmMigNotifierHandler(aeEventLoop *el, int fd, void *clientData, int mask) {
+    UNUSED(el); UNUSED(fd); UNUSED(mask);
+    handleEventNotifier((eventNotifier *)clientData);
+}
+
+/* Build slot `io_slot`'s migration mailbox and register its wakeup fd on `el`. Called as
+ * each io thread's event loop is created (initIOThreads / tmSpawnSpare), before the thread
+ * starts polling — so registering on el from the main thread is race-free. */
+void tmMigInitSlot(int io_slot, aeEventLoop *el) {
+    if (!server.thread_modes) return;
+    tmMigMailbox *mb = &tm_mig_mbox[io_slot];
+    mb->inbox = listCreate();
+    mb->migrating_out = listCreate();
+    pthread_mutex_init(&mb->inbox_lock, NULL);
+    atomic_store(&mb->inbox_n, 0);
+    atomic_store(&mb->req_pending, 0);
+    mb->io_exiting = 0; mb->accept_left = 0; mb->rr_cursor = 0; mb->batch_dest = -1;
+    mb->notifier = createEventNotifier();
+    if (mb->notifier)
+        aeCreateFileEvent(el, getReadEventFd(mb->notifier), AE_READABLE,
+                          tmMigNotifierHandler, mb->notifier);
+}
+
+/* Control-plane entry (main thread) for CONFIG SET tomokv-modeshift-test 5|6. Picks the
+ * source/dest, publishes a request to the source's mailbox, and wakes it. The source runs
+ * the protocol on its own loop; this returns immediately. */
+int tomoMigrateTest(int val, const char **err) {
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.io_uring_recv) {
+        *err = "connection migration is not supported with tomokv-io-uring-recv in v1 "
+               "(multishot-recv buffers cannot follow the fd across threads)";
+        return 0;
+    }
+    int all[TOMO_IO_THREADS_MAX + 1];
+    int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* all live io threads */
+
+    if (val == 6) {   /* REBALANCE: half of the most-loaded io thread's conns -> least-loaded */
+        if (n < 2) { *err = "need >= 2 live io threads to rebalance"; return 0; }
+        int src = -1;
+        long srcload = -1;
+        for (int i = 0; i < n; i++) {
+            long l = tmIoThreadLoad(all[i]);
+            if (l > srcload) { srcload = l; src = all[i]; }
+        }
+        tmMigMailbox *mb = &tm_mig_mbox[src];
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) || mb->io_exiting)
+            { *err = "a migration is already in progress on the source io thread"; return 0; }
+        int dst = tmLeastLoadedIoDest(src);
+        if (dst < 0) { *err = "no destination io thread"; return 0; }
+        int count = (int)(tmIoThreadLoad(src) / 2);
+        if (count < 1) { *err = "source io thread has too few conns to rebalance"; return 0; }
+        mb->req_kind = TM_MIGREQ_REBALANCE;
+        mb->req_dest = dst;
+        mb->req_count = count;
+        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        triggerEventNotifier(mb->notifier);
+        serverLog(LL_NOTICE, "ee451 thread-modes v1.6: REBALANCE requested — io thread %d (load %ld) "
+                             "-> io thread %d (load %ld), up to %d conns",
+                  src, tmIoThreadLoad(src), dst, tmIoThreadLoad(dst), count);
+        return 1;
+    }
+    if (val == 5) {   /* IO-EXIT: highest io_slot live io thread migrates out + parks */
+        if (n < 2) { *err = "need >= 2 live io threads (one must remain to receive)"; return 0; }
+        int src = -1;
+        for (int i = 0; i < n; i++) if (all[i] > src) src = all[i];   /* highest io_slot */
+        int rem[TOMO_IO_THREADS_MAX + 1];
+        if (tmGatherLiveDests(src, rem, TOMO_IO_THREADS_MAX + 1) < 1)
+            { *err = "no other live io thread to receive the exiting thread's conns"; return 0; }
+        tmMigMailbox *mb = &tm_mig_mbox[src];
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) || mb->io_exiting)
+            { *err = "a migration/exit is already in progress on that io thread"; return 0; }
+        mb->req_kind = TM_MIGREQ_IOEXIT;
+        mb->req_dest = -1;
+        mb->req_count = 0;
+        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        triggerEventNotifier(mb->notifier);
+        serverLog(LL_NOTICE, "ee451 thread-modes v1.6: IO-EXIT requested — io thread %d leaves accept "
+                             "group + migrates %ld conns out, then parks", src, tmIoThreadLoad(src));
+        return 1;
+    }
+    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance)";
+    return 0;
 }
 
 /* ===================== ee451 (thread-modes step 4): QUORUM PRESSURE BALANCER =====================

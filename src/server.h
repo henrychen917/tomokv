@@ -445,6 +445,11 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 //ee451 new flag
 #define CLIENT_EX_PENDING (1ULL << 55) //new ee451
 #define CLIENT_PIPELINE_STALLED (1ULL << 56)
+/* ee451 (thread-modes v1.6): this client is being MIGRATED off its current io
+ * thread (reads paused, ring draining toward the quiesce fence). Cleared once the
+ * destination io thread re-registers it. Only ever set/read by the client's owning
+ * io thread and by the source thread during the drain window. */
+#define CLIENT_MIGRATING (1ULL << 57)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -2324,6 +2329,47 @@ typedef struct polyThreadCtx {
     _Atomic int target_mode;  /* tomoThreadMode; written by the control plane */
     pthread_t thread;
 } polyThreadCtx;
+
+/* ee451 (thread-modes v1.6): CONNECTION MIGRATION — move a plain request/response
+ * client from io thread A to io thread B with zero loss. An fd is process-global;
+ * only its epoll registration is thread-local, so the client struct (querybuf, reply
+ * buffers, pipeline ring) travels intact and only the epoll membership + per-iotid
+ * bookkeeping change hands. The handoff happens at the per-conn QUIESCE FENCE
+ * (dispatchid==flushid AND replies flushed) — the SAME fence stateful commands gate
+ * on (processCommand) — so nothing in-flight references A when B takes over.
+ *
+ * One mailbox per io-capable thread slot (indexed by iotid, 0..TOMO_IO_THREADS_MAX;
+ * main=0 is excluded from migration in v1). The control plane (main thread) never
+ * touches another thread's epoll: it only sets a REQUEST and wakes the source, which
+ * executes the whole protocol on its OWN event loop. Source hands the client to the
+ * destination's INBOX (mutex-guarded MPSC — migration is control-plane-rare, never a
+ * hot path) and wakes it; the destination re-registers on its own loop. */
+typedef enum {
+    TM_MIGREQ_NONE = 0,
+    TM_MIGREQ_REBALANCE,   /* move req_count conns to req_dest (no mode change) */
+    TM_MIGREQ_IOEXIT       /* leave accept group, move ALL migratable conns out, then park */
+} tmMigReqKind;
+
+typedef struct tmMigMailbox {
+    /* INBOX: clients migrating INTO this thread. Producers = source io threads (push
+     * under inbox_lock); consumer = this thread (drains in its beforeSleepIO). */
+    list *inbox;
+    pthread_mutex_t inbox_lock;
+    _Atomic int inbox_n;          /* == listLength(inbox), maintained under the lock; lets the
+                                   * consumer skip locking on the common (empty) path */
+    eventNotifier *notifier;      /* wakes this thread's loop on inbox push or new request */
+    /* SOURCE REQUEST (control plane -> this thread; published before req_pending). */
+    _Atomic int req_pending;      /* 0 = none; 1 = a request is waiting to be picked up */
+    int req_kind;                 /* tmMigReqKind */
+    int req_dest;                 /* destination iotid for REBALANCE (-1 = spread least-loaded) */
+    int req_count;                /* how many conns to move (REBALANCE) */
+    /* SOURCE working state (owning thread only; no lock — single writer). */
+    list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
+    int io_exiting;               /* IO-EXIT in progress: park once client count hits 0 */
+    int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
+    int batch_dest;               /* REBALANCE: fixed destination for the current batch */
+    unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
+} tmMigMailbox;
 
 
 
@@ -5150,6 +5196,13 @@ void *ioThreadMain(void *arg);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 int tomoModeshiftSpare(int mode, const char **err);  /* ee451 (thread-modes step 2): retarget the spare; 0 + *err on invalid */
 int tomoSpareShift(int mode, const char **err);      /* ee451 (thread-modes step 4): the actuator itself — callable by the balancer AND the config knob (both main thread) */
+/* ee451 (thread-modes v1.6): connection migration. */
+extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */
+void tmMigInitSlot(int io_slot, struct aeEventLoop *el);  /* build this slot's mailbox + register its wakeup fd on el */
+void tmMigServiceOut(void);                           /* source side: start + complete pending migrations (beforeSleepIO) */
+void tmMigDrainInbox(void);                           /* dest side: adopt incoming migrated clients (beforeSleepIO) */
+void tmMigForgetOnFree(client *c);                    /* freeClient hook: drop a dying client from migrating_out */
+int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

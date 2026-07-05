@@ -2486,6 +2486,9 @@ void freeClient(client *c) {
         freeClientAsync(c->parent);
         return;
     }
+    /* ee451 (thread-modes v1.6): if this real client is mid-migration, drop it from its
+     * source thread's migrating_out set so the scan never touches a freed pointer. */
+    if (c->flags & CLIENT_MIGRATING) tmMigForgetOnFree(c);
 #ifdef HAVE_LIBURING
     /* v12-G: drop this real client from its IO thread's multishot-recv map before teardown.
      * For Tomo KV the free runs on the owning IO thread (the same thread that reaps), so this is
