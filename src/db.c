@@ -3089,6 +3089,17 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * will have failed over and the new primary will send us the expire. */
     if (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)) return KEY_EXPIRED;
 
+    /* ee451 (W6-E2): mid-cutover DRAINING fence — on the src worker, an in-range lazy expire
+     * must not delete (its tombstone could land after the s_final sample and clobber a
+     * post-flip write on B; see migSuppressLazyExpire). Same expired-as-missing semantics as
+     * the replica branch above. NOT applied to EXPIRE_FORCE_DELETE_EXPIRED: forced deletes
+     * come from range WRITES, which the drain fence already proves executed pre-s_final (and
+     * post-fence range writes are held), so their captures are fence-covered — and write
+     * semantics require the physical delete. */
+    if (!(flags & EXPIRE_FORCE_DELETE_EXPIRED) &&
+        migSuppressLazyExpire(db, key ? key->ptr : kvobjGetKey(kv)))
+        return KEY_EXPIRED;
+
     /* Perform deletion */
     if (key) {
         deleteExpiredKeyAndPropagate(db, key);
