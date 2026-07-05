@@ -4021,6 +4021,12 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     int ok;
     long long ll;
     size_t querybuf_len = sdslen(c->querybuf); /* Cache sdslen */
+    /* ee451 (shave): per-command invariants, hoisted out of the per-arg loop.
+     * No callee below mutates c->flags or the pool knob, but the intervening
+     * opaque calls (memchr/string2ll/operandPoolGet) stop the compiler from
+     * CSE'ing these loads, so they were re-read once per ARGUMENT. */
+    const int is_master = (c->flags & CLIENT_MASTER) != 0;
+    const int use_operand_pool = server.opt_operand_pool;
 
     if (c->multibulklen == 0) {
         /* The pending command should have been reset */
@@ -4106,7 +4112,9 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     while(c->multibulklen) {
         /* Read bulk length if unknown */
         if (c->bulklen == -1) {
-            newline = memchr(c->querybuf+c->qb_pos,'\r',sdslen(c->querybuf) - c->qb_pos);
+            /* ee451 (shave): querybuf_len is maintained at every querybuf
+             * mutation in this function — no need to re-derive sdslen here. */
+            newline = memchr(c->querybuf+c->qb_pos,'\r',querybuf_len - c->qb_pos);
             if (newline == NULL) {
                 if (querybuf_len-c->qb_pos > PROTO_INLINE_MAX_SIZE) {
                     pcmd->read_error = CLIENT_READ_TOO_BIG_BUCK_COUNT_STRING;
@@ -4127,7 +4135,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             size_t bulklen_slen = newline - (c->querybuf + c->qb_pos + 1);
             ok = string2ll(c->querybuf+c->qb_pos+1,newline-(c->querybuf+c->qb_pos+1),&ll);
             if (!ok || ll < 0 ||
-                (!(c->flags & CLIENT_MASTER) && ll > server.proto_max_bulk_len)) {
+                (!is_master && ll > server.proto_max_bulk_len)) {
                 pcmd->read_error = CLIENT_READ_INVALID_BUCK_LENGTH;
                 return C_ERR;
             } else if (ll > 16384 && authRequired(c)) {
@@ -4136,7 +4144,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             }
 
             c->qb_pos = newline-c->querybuf+2;
-            if (!(c->flags & CLIENT_MASTER) && ll >= PROTO_MBULK_BIG_ARG) {
+            if (!is_master && ll >= PROTO_MBULK_BIG_ARG) {
                 /* When the client is not a master client (because master
                  * client's querybuf can only be trimmed after data applied
                  * and sent to replicas).
@@ -4183,7 +4191,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             /* Optimization: if a non-master client's buffer contains JUST our bulk element
              * instead of creating a new object by *copying* the sds we
              * just use the current sds string. */
-            if (!(c->flags & CLIENT_MASTER) &&
+            if (!is_master &&
                 c->qb_pos == 0 &&
                 c->bulklen >= PROTO_MBULK_BIG_ARG &&
                 querybuf_len == (size_t)(c->bulklen+2))
@@ -4207,7 +4215,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 if (pcmd->argc == 0)
                     arg = commandNameIntern(c->querybuf+c->qb_pos, c->bulklen);
                 if (arg == NULL)
-                    arg = server.opt_operand_pool   /* ee451 v11-A: pooled pull */
+                    arg = use_operand_pool   /* ee451 v11-A: pooled pull (knob hoisted) */
                         ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
                         : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
                 (pcmd->argv)[(pcmd->argc)++] = arg;
