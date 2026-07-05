@@ -10915,6 +10915,9 @@ static polyThreadCtx *tmSpare = NULL;   /* the one spare poly thread, NULL if no
  * Zero-initialized (static storage); live slots get lists/notifier from tmMigInitSlot. */
 tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];
 
+/* fwd (rank-1 inbox-wedge fix): the park checkpoint expels stranded inbox conns. */
+static int tmMigExpelInbox(int id);
+
 /* Map an io-mode iotid to its poly context (NULL for main / non-poly / unknown). */
 static polyThreadCtx *tmCtxForIotid(int id) {
     if (!server.thread_modes || !tmPolyCtxs) return NULL;
@@ -11333,7 +11336,27 @@ void *polyThreadMain(void *arg) {
                     if (!mb->accept_left || listLength(server.clients[ctx->io_slot]) != 0) {
                         ok = 0; break;
                     }
+                    /* ee451 (rank-1 inbox-wedge fix): a conn can be stranded in OUR INBOX by a
+                     * source's dest-validity TOCTOU (it validated this thread as a destination
+                     * just before io_exiting/mode became visible, then pushed). Inbox conns are
+                     * NOT in clients[id] — the guard above cannot see them — and a parked thread
+                     * runs clock_nanosleep only (no beforeSleepIO/tmMigDrainInbox): the conn
+                     * would wedge indefinitely. Expel strays to a live io thread; if none
+                     * exists, refuse the park — staying IO keeps the inbox drainable (next pass
+                     * adopts them and, io_exiting still set, re-migrates them out). */
+                    if (atomic_load_explicit(&mb->inbox_n, memory_order_acquire) != 0 &&
+                        !tmMigExpelInbox(ctx->io_slot)) {
+                        ok = 0; break;
+                    }
                     mb->accept_left = 0;   /* exit consumed; a future IO re-entry starts clean */
+                    /* ee451 (rank-1): io_exiting stays 1 from the exit request THROUGH park
+                     * adoption. Clearing it at tmMigServiceOut step 4 (pre-park) opened a
+                     * window where tmGatherLiveDests / the rebalance dest fallback saw
+                     * io_exiting==0 && mode==IO and picked the PARKING thread as a migration
+                     * destination. (Residual window: this clear precedes the mode=PARKED
+                     * publication by a few instructions — nanoseconds, vs a full service
+                     * pass before; the expel above catches anything that still lands.) */
+                    atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
                     serverLog(LL_NOTICE, "ee451 thread-modes v1.6: MODESHIFT IO->PARKED complete — "
                                          "io thread %d parked (0 clients, left accept group)", ctx->io_slot);
                 }
@@ -11602,7 +11625,7 @@ static int tmGatherLiveDests(int exclude, int *out, int cap) {
     int n = 0;
     for (int id = 1; id <= server.io_threads && n < cap; id++) {
         if (id == exclude) continue;
-        if (tm_mig_mbox[id].io_exiting) continue;
+        if (atomic_load_explicit(&tm_mig_mbox[id].io_exiting, memory_order_relaxed)) continue;
         polyThreadCtx *ctx = tmCtxForIotid(id);
         if (!ctx) continue;
         if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
@@ -11701,6 +11724,45 @@ static void tmMigHandoff(client *c, int dest) {
     triggerEventNotifier(mb->notifier);
 }
 
+/* ee451 (rank-1 inbox-wedge fix): expel every conn stranded in `id`'s INBOX to a live io
+ * thread (round-robin over tmGatherLiveDests). A conn lands here through the source-side
+ * dest-validity TOCTOU: a source validated `id` as a destination just before its
+ * io_exiting/mode change became visible, and pushed after. Stranded conns were never
+ * adopted (conn->el is NULL from the source's unbind; not linked in clients[id]), so
+ * re-handoff is a pure inbox->inbox move — re-owner + push + wake, no epoll/unlink work.
+ * Runs on the owning thread (the park checkpoint). Returns 1 if the inbox was emptied,
+ * 0 if no live destination exists (caller must refuse the park and retry: staying IO
+ * keeps the inbox drainable by the normal adopt/re-migrate passes). */
+static int tmMigExpelInbox(int id) {
+    tmMigMailbox *mb = &tm_mig_mbox[id];
+    int dests[TOMO_IO_THREADS_MAX + 1];
+    int nd = tmGatherLiveDests(id, dests, TOMO_IO_THREADS_MAX + 1);
+    if (nd == 0) return 0;
+    int moved = 0;
+    for (;;) {
+        pthread_mutex_lock(&mb->inbox_lock);
+        listNode *n = listFirst(mb->inbox);
+        client *c = NULL;
+        if (n) { c = listNodeValue(n); listDelNode(mb->inbox, n); }
+        atomic_store_explicit(&mb->inbox_n, (int)listLength(mb->inbox), memory_order_release);
+        pthread_mutex_unlock(&mb->inbox_lock);
+        if (!c) break;
+        int dest = dests[mb->rr_cursor++ % nd];
+        c->tid = dest;
+        tmMigMailbox *dmb = &tm_mig_mbox[dest];
+        pthread_mutex_lock(&dmb->inbox_lock);
+        listAddNodeTail(dmb->inbox, c);
+        atomic_store_explicit(&dmb->inbox_n, (int)listLength(dmb->inbox), memory_order_release);
+        pthread_mutex_unlock(&dmb->inbox_lock);
+        triggerEventNotifier(dmb->notifier);
+        moved++;
+    }
+    if (moved)
+        serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d expelled %d stranded inbox "
+                             "conn(s) to live io threads at park", id, moved);
+    return 1;
+}
+
 /* SOURCE side, called each pass from beforeSleepIO: pick up a control-plane request, keep
  * marking migratable clients while exiting, complete quiesced handoffs, and park when an
  * IO-EXIT has drained the last client. */
@@ -11728,14 +11790,15 @@ void tmMigServiceOut(void) {
             serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d REBALANCE — started %d/%d "
                                  "conn migrations to io thread %d", id, started, count, dest);
         } else if (kind == TM_MIGREQ_IOEXIT) {
-            mb->io_exiting = 1;
+            atomic_store_explicit(&mb->io_exiting, 1, memory_order_relaxed);
             if (!mb->accept_left) { tmMigLeaveAcceptGroup(id); mb->accept_left = 1; }
         }
     }
 
     /* 2. While exiting, keep marking newly-migratable clients (a client that was in MULTI/
      * blocked when the exit began migrates once it becomes plain again). */
-    if (mb->io_exiting) {
+    int exiting = atomic_load_explicit(&mb->io_exiting, memory_order_relaxed);   /* owner-written */
+    if (exiting) {
         listIter li; listNode *ln;
         listRewind(server.clients[id], &li);
         while ((ln = listNext(&li))) {
@@ -11763,7 +11826,7 @@ void tmMigServiceOut(void) {
         }
         if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */
         int dest;
-        if (mb->io_exiting) {
+        if (exiting) {
             int dests[TOMO_IO_THREADS_MAX + 1];
             int nd = tmGatherLiveDests(id, dests, TOMO_IO_THREADS_MAX + 1);
             if (nd == 0) continue;             /* no receiver right now — hold (retry next pass) */
@@ -11771,7 +11834,8 @@ void tmMigServiceOut(void) {
         } else {
             dest = mb->batch_dest;
             polyThreadCtx *dctx = tmCtxForIotid(dest);
-            if (dest == id || !dctx || tm_mig_mbox[dest].io_exiting ||
+            if (dest == id || !dctx ||
+                atomic_load_explicit(&tm_mig_mbox[dest].io_exiting, memory_order_relaxed) ||
                 atomic_load_explicit(&dctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 /* the chosen destination went away — fall back to least-loaded, else abort */
                 dest = tmLeastLoadedIoDest(id);
@@ -11785,12 +11849,18 @@ void tmMigServiceOut(void) {
     }
 
     /* 4. IO-EXIT completion: every client gone ⇒ park (polyThreadMain checkpoint allows
-     * IO->PARKED only because accept_left is set and the client list is empty). */
-    if (mb->io_exiting && listLength(mb->migrating_out) == 0 &&
+     * IO->PARKED only because accept_left is set and the client list is empty).
+     * ee451 (rank-1 inbox-wedge fix): io_exiting is NOT cleared here — it stays set until
+     * the park checkpoint actually adopts PARKED. Clearing it pre-park (while ctx->mode is
+     * still IO) let migration sources select this thread as a DEST in the request-park
+     * window; and a conn ADOPTED in that window wedged the exit forever with the exiting
+     * flag off (clients!=0 blocked the park, step-2 re-marking no longer ran). Kept set,
+     * step 2 keeps re-migrating late arrivals out and this block simply re-fires; the
+     * target_mode guard keeps the request/log one-shot per exit. */
+    if (exiting && listLength(mb->migrating_out) == 0 &&
         listLength(server.clients[id]) == 0) {
-        mb->io_exiting = 0;
         polyThreadCtx *ctx = tmCtxForIotid(id);
-        if (ctx) {
+        if (ctx && atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_PARKED) {
             serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d IO-EXIT complete — all conns "
                                  "migrated out, requesting PARK", id);
             atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
@@ -11862,7 +11932,8 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
     pthread_mutex_init(&mb->inbox_lock, NULL);
     atomic_store(&mb->inbox_n, 0);
     atomic_store(&mb->req_pending, 0);
-    mb->io_exiting = 0; mb->accept_left = 0; mb->rr_cursor = 0; mb->batch_dest = -1;
+    atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+    mb->accept_left = 0; mb->rr_cursor = 0; mb->batch_dest = -1;
     mb->notifier = createEventNotifier();
     if (mb->notifier)
         aeCreateFileEvent(el, getReadEventFd(mb->notifier), AE_READABLE,
@@ -11892,7 +11963,8 @@ int tomoMigrateTest(int val, const char **err) {
         }
         tmMigMailbox *mb = &tm_mig_mbox[src];
         if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
-            listLength(mb->migrating_out) || mb->io_exiting)
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed))
             { *err = "a migration is already in progress on the source io thread"; return 0; }
         int dst = tmLeastLoadedIoDest(src);
         if (dst < 0) { *err = "no destination io thread"; return 0; }
@@ -11917,7 +11989,8 @@ int tomoMigrateTest(int val, const char **err) {
             { *err = "no other live io thread to receive the exiting thread's conns"; return 0; }
         tmMigMailbox *mb = &tm_mig_mbox[src];
         if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
-            listLength(mb->migrating_out) || mb->io_exiting)
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed))
             { *err = "a migration/exit is already in progress on that io thread"; return 0; }
         mb->req_kind = TM_MIGREQ_IOEXIT;
         mb->req_dest = -1;
