@@ -1562,6 +1562,13 @@ typedef struct client {
      * worker A pops it in queue order and decrements *drain_ack, proving every range primary
      * dispatched before it has executed (no in-flight range write straddles the table flip). */
     _Atomic int *drain_ack;
+    /* ee451 (thread-modes step 4, p99 guardrail): dispatch timestamp (getMonotonicUs) on
+     * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
+     * dispatch (BEFORE the queue push) and read+cleared by the SAME IO thread at drain
+     * retire — the worker never touches it, so there is no cross-thread access. Gated on
+     * tomokv-thread-balance (a stale stamp surviving a balance-off window is discarded by
+     * the drain's 10s sanity cap). */
+    uint64_t tm_lat_stamp;
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (exPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -1934,6 +1941,29 @@ typedef struct exThread {
     unsigned pf_gate_tick;
     int pf_cached_w4;                   /* ee451 (v14): cached value-chase width (avoids budget/ev idiv per batch, gate-open path) */              /* recompute the divide every 64 batches; EWMA moves slowly */
     /* ee451 (v13): forward-predictor / bakeoff state removed with the VF apparatus. */
+    /* ee451 (thread-modes step 4, balancer signals): owner-written plain fields, sampled
+     * racily by the 4Hz balancer on the main thread (control plane tolerates torn/stale
+     * reads — EWMAs/monotonic counters only). All gated on tomokv-thread-balance so the
+     * balance-off hot path pays one predicted branch. */
+    unsigned int tm_qdepth_ewma_q4;  /* leaky EWMA (Q4, alpha 1/8) of STANDING queue backlog:
+                                      * items still waiting after a full pop pass (summed over
+                                      * producers). Folded on work passes; 0-folded on idle
+                                      * EPISODES (yield events), so it decays within µs of real
+                                      * idleness but is NOT diluted by cheap spin passes. HIGH =
+                                      * the worker is persistently behind its arrivals. */
+    unsigned int tm_work_slices;     /* passes that popped work (idle/spin-ratio numerator) */
+    unsigned int tm_idle_episodes;   /* sustained-idleness events (the sched_yield branch —
+                                      * one per exhausted spin window, NOT per spin pass: pass
+                                      * counts would weight 50ns spins against 100µs work
+                                      * passes and read ~0% busy on a saturated worker) */
+    unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
+                                      * event -> work-pass end; yields reset the mark without
+                                      * accumulating). The balancer's BUSY vote uses this TIME
+                                      * ratio: calibration showed the episode ratio saturates
+                                      * at 100% for any op rate whose gaps fit the spin window
+                                      * (a 10%-duty worker under a 64B storm never yields), so
+                                      * it cannot drive EX->PARKED. Wraps at ~71min; balancer
+                                      * deltas are wrap-safe. */
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2352,6 +2382,21 @@ struct redisServer {
      * IO<->EX swap are rejected, and WB is unreachable (no WB mode in the 2s fork —
      * value 3 is repurposed as the explicit park verb). Apply-fn validated. */
     int modeshift_test;
+    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. 0 (default) = off — no
+     * signal folding anywhere (every hook is behind this bool, so the hot path pays one
+     * predicted branch); 1 = serverCron's 4Hz balancer reads the pressure signals and
+     * autonomously shifts the SPARE PARKED<->EX (never ->IO: one-way in v1). Requires
+     * tomokv-thread-modes at boot, else FATAL-warned and forced back to 0. */
+    int thread_balance;
+    /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min: 1; max: the populated
+     * allowed-core allocation). V1 has one movable thread (the spare), so these only bound
+     * the SPARE's participation: ex-max blocks PARKED->EX when live workers would exceed
+     * it; ex-min blocks EX->PARKED when live workers would drop below it. The io bounds
+     * are validated + documented but INERT in v1 (the balancer performs no IO shifts). */
+    int ex_threads_min;
+    int ex_threads_max;
+    int io_threads_min;
+    int io_threads_max;
     /* ee451 (thread-modes v1, step 3): coordinator side-channel for spare transitions.
      * 0 = ordinary migration; 1 = spare ACTIVATION (coordinator publishes
      * num_workers_live at FLIP); 2 = spare DEACTIVATION (coordinator requests PARKED
@@ -5104,6 +5149,7 @@ void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 int tomoModeshiftSpare(int mode, const char **err);  /* ee451 (thread-modes step 2): retarget the spare; 0 + *err on invalid */
+int tomoSpareShift(int mode, const char **err);      /* ee451 (thread-modes step 4): the actuator itself — callable by the balancer AND the config knob (both main thread) */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

@@ -120,6 +120,32 @@ static int tmAllowedCores(void);   /* ee451 (thread-modes step 3): initServer ne
 static polyThreadCtx *tmSpare;     /* ee451 (thread-modes step 3): reshardCoordinator's park-request tail needs it; defined below */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
+
+/* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
+ * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
+ * io_threads = the spare's IO slot). Each field is written ONLY by the owning IO thread
+ * (no false sharing — the line is private) and read racily by the 4Hz balancer on the
+ * main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
+#define TM_LAT_RING 64
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
+    int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
+    unsigned lat_idx;   /* p99 guardrail ring cursor */
+    uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds */
+} tmIoSignal;
+static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+static void tomoThreadBalanceCron(void);   /* the 4Hz quorum balancer; defined with the poly-thread code below */
+
+/* ee451 (thread-modes step 4, p99 guardrail): stamp ~1/1024 worker-dispatched fakes with a
+ * dispatch timestamp. Called on the dispatching IO thread right BEFORE the queue push (the
+ * worker never reads the field, so there is no cross-thread access; the drain that reads it
+ * runs on this same thread). The unconditional stamp-or-zero store keeps recycled ring
+ * slots from carrying a stale stamp while balance is on. */
+static inline void tmLatMaybeStamp(client *fake) {
+    if (!server.thread_balance) return;
+    static __thread unsigned tm_lat_ctr = 0;
+    fake->tm_lat_stamp = ((++tm_lat_ctr & 1023u) == 0) ? getMonotonicUs() : 0;
+}
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -1712,6 +1738,11 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
      * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
     run_with_period(1000) reshardAutoTune();
 
+    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER — ~4-5Hz sampling of the
+     * per-thread pressure signals; shifts the SPARE PARKED<->EX on sustained quorum
+     * (no-op unless tomokv-thread-balance). Same main-thread control plane as above. */
+    run_with_period(250) tomoThreadBalanceCron();
+
     /* Clear the paused actions state if needed. */
     updatePausedActions();
 
@@ -2045,6 +2076,19 @@ void handleWorkerReplies(void) {
              * csReassemble NULLs csgroup. */
             int was_cs = (fake->csgroup != NULL);
 
+            /* ee451 (thread-modes step 4, signal f): p99 guardrail — retire a sampled
+             * dispatch stamp into this IO thread's 64-entry latency ring. Same-thread
+             * read of a field this thread wrote at dispatch; the 10s cap discards any
+             * stamp that went stale across a balance-off window. GUARDRAIL ONLY. */
+            if (server.thread_balance && fake->tm_lat_stamp) {
+                uint64_t tm_d = getMonotonicUs() - fake->tm_lat_stamp;
+                fake->tm_lat_stamp = 0;
+                if (tm_d < 10ULL * 1000 * 1000) {
+                    tmIoSignal *tm_s = &tm_io_sig[iotid];
+                    tm_s->lat_ring[tm_s->lat_idx++ & (TM_LAT_RING - 1)] = (uint32_t)tm_d;
+                }
+            }
+
             /* Clear the worker-pending flag BEFORE commandProcessed, because
              * resetClient() early-returns when the flag is set. */
             fake->flags &= ~CLIENT_EX_PENDING;
@@ -2135,6 +2179,9 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migPushFenceIfNeeded();
+    /* ee451 (thread-modes step 4, signal c): publish this thread's reply-ROB occupancy
+     * (in-flight worker-dispatched ops) for the balancer — own padded line, one store. */
+    if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
@@ -2158,6 +2205,9 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* ee451 (v8d): main thread is IO producer slot 0 — push its cutover drain-sentinel. */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migPushFenceIfNeeded();
+
+    /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
+    if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
 
     updatePeakMemory();
 
@@ -3323,6 +3373,14 @@ void initServer(void) {
     server.num_workers_alloc = server.num_workers;
     atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
     server.tm_mig_spare_action = 0;
+    /* ee451 (thread-modes step 4): the balancer runs on the poly-thread apparatus —
+     * without thread-modes there is nothing to shift. FATAL-warn + ignore at boot
+     * (the runtime CONFIG SET path rejects the same combination in its apply fn). */
+    if (server.thread_balance && !server.thread_modes) {
+        serverLog(LL_WARNING, "FATAL-config: tomokv-thread-balance requires tomokv-thread-modes=1 "
+                              "at boot — IGNORED, the balancer stays OFF");
+        server.thread_balance = 0;
+    }
     if (server.thread_modes && server.num_workers >= 1 &&
         server.num_workers + 1 <= TOMO_EX_THREADS_MAX &&
         server.io_threads + server.num_workers < tmAllowedCores()) {
@@ -5213,6 +5271,7 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
+        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
         exQueuePush(&server.exThreads[ex_id].queues[iotid], fake);
     } else {
     int cst = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csCommandType(fake) : -1;
@@ -5235,6 +5294,7 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
+        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
@@ -6078,6 +6138,19 @@ void flushAllShards(client *c, int dbid, int async) {
      * would rot unpopped. A dormant spare's shard is EMPTY by invariant (asserted at every
      * park), so skipping it loses nothing; a live spare consumes until it parks. */
     int nflush = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    /* ee451 (thread-modes step 4, hardening 3.1a): the spare's DEACTIVATION window — live--
+     * happens BEFORE the migrate-out, so a FLUSHALL here would skip the spare while it still
+     * OWNS keys; the outbound migration would then copy those survivors into worker W-1
+     * (resurrection after FLUSHALL). Include the spare in the fan-out whenever it is still
+     * in EX mode: it keeps slicing (and thus pops the sentinel) until the park checkpoint,
+     * whose 50ms-quiet drain re-slices on every pop. A spare observed EX here but parking in
+     * the same instant is covered by the EX-entry stale-sentinel sweep (polyThreadMain).
+     * NOTE the µs-scale FLUSHALL-vs-effect-log ordering window (dst may replay a pre-flush
+     * post-image after popping its own sentinel) is a pre-existing engine-wide caveat for
+     * ANY in-flight migration, not specific to the spare — tracked with the v8d engine. */
+    if (server.thread_modes && tmSpare && tmSpare->ex && nflush <= server.num_workers &&
+        atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX)
+        nflush = server.num_workers + 1;
     for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         sentinel->is_flush = 1;
@@ -6440,22 +6513,23 @@ static void *reshardCoordinator(void *arg) {
     while (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < hb0 + 3) usleep(50);
     migLogFree(server.migration.log);
     server.migration.log = NULL;
+    /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the spare-action flag
+     * strictly BEFORE the active=0 release-store. The instant active drops, the main thread
+     * may arm a NEW migration and write a NEW action; a late clear here could overwrite it
+     * (lost activation/deactivation tail: a live spare never published, or a park never
+     * requested). Before the release-store this coordinator is still the sole owner. */
+    int spare_act = server.tm_mig_spare_action;
+    server.tm_mig_spare_action = 0;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
 
     /* ee451 (thread-modes v1, step 3): spare transition tail. DEACTIVATION (action 2):
      * the spare's ENTIRE range is on dst, CLEANUP deleted the src copies and teardown is
      * complete — request PARKED. The spare's park checkpoint drains its (now traffic-less)
-     * queues, asserts the shard is empty, then parks. Clearing the flag here (for both
-     * actions) is race-free: the next migration can only be armed after the active=0
-     * publish above, by the same main thread that would set a new action first. */
-    {
-        int spare_act = server.tm_mig_spare_action;
-        server.tm_mig_spare_action = 0;
-        if (spare_act == 2 && tmSpare) {
-            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
-            serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
-        }
+     * queues, asserts the shard is empty, then parks. */
+    if (spare_act == 2 && tmSpare) {
+        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
     }
     return NULL;
 }
@@ -10341,6 +10415,9 @@ typedef struct exSliceCtx {
     /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
     int spin_pinned;
     int spin_budget;
+    /* ee451 (thread-modes step 4): time-accounting mark for the busy-time signal — the
+     * monotonic timestamp of the last accounting event (work-pass end or yield). */
+    uint64_t tm_mark;
     /* pop/execute scratch. Contents never persist across passes; it lives here
      * (not on the slice stack) only so the slice body is the verbatim old loop. */
     client *batch[WORKER_POP_BATCH];
@@ -10357,6 +10434,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->empty_rounds = 0;
     ctx->spin_pinned = server.worker_spin > 0;
     ctx->spin_budget = ctx->spin_pinned ? server.worker_spin : 32;
+    ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
 }
 
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
@@ -10401,10 +10479,25 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * untouched; only the inter-queue visit order rotates, which was never
      * ordered to begin with. */
     if (++ctx->scan_start >= ctx->nq) ctx->scan_start = 0;
+    int tm_pass_depth = 0;   /* ee451 (thread-modes step 4, signal a): items seen this pass */
     for (int k = 0; k < ctx->nq; k++) {
         int i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
         int n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
         if (n == 0) continue;
+
+        /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS
+         * START mark (busy time = pop..fold; inter-pass spins/yields implicitly idle — the
+         * earlier event-boundary accounting read ~100% busy on a 10%-duty worker because
+         * the adaptive spin window absorbs burst gaps without ever yielding). Standing
+         * backlog = what still waits AFTER we took a full batch, via the REAL tail (one
+         * acquire per work pass — cached_tail structurally under-reads standing depth ~2x,
+         * it only refreshes when the consumer drains to cache-empty). */
+        if (server.thread_balance) {
+            if (!any) ctx->tm_mark = getMonotonicUs();
+            unsigned int tm_h = atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed);
+            unsigned int tm_t = atomic_load_explicit(&worker->queues[i].tail, memory_order_acquire);
+            tm_pass_depth += (int)((tm_t - tm_h) & server.ex_queue_mask);
+        }
         any = 1;
 
         /* Warm the cache before executing the batch. */
@@ -10528,7 +10621,23 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                                      sig_masks[s]);
     }
 
+    /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
+     * work/spin/yield decision below — work passes fold the standing backlog and count a
+     * work slice; the YIELD branch (a sustained-idleness EPISODE) 0-folds the EWMA and
+     * counts an idle episode; cheap spin passes touch nothing (they'd both pollute the
+     * ratio — 50ns spins vs 100µs work passes — and dirty the loop). Fields are owner-
+     * written plain ints, racily sampled by the 4Hz balancer. */
+
     if (any) {
+        if (server.thread_balance) {
+            int tm_e = (int)worker->tm_qdepth_ewma_q4;
+            tm_e += ((tm_pass_depth << 4) - tm_e) >> 3;
+            worker->tm_qdepth_ewma_q4 = tm_e < 0 ? 0 : (unsigned int)tm_e;
+            worker->tm_work_slices++;
+            /* busy-TIME accounting: first-pop..here = this pass's WORK duration. Two vDSO
+             * clock reads per WORK pass (>=µs-scale), never per spin poll. */
+            worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
+        }
         /* AUTO pop-batch update (once per non-empty pass): saturate-up / sparse-down. */
         /* ee451 (v14): AUTO pop-batch = MAX, honestly. Demand-adaptive caps were implemented
          * two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both flap at
@@ -10557,6 +10666,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             ctx->spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp — the old ternary let
                                                   * 6>>1=3 land BELOW the floor (cycle-test catch) */
             if (ctx->spin_budget < 4) ctx->spin_budget = 4;
+        }
+        /* ee451 (thread-modes step 4, signals a+e): a genuine IDLE EPISODE — 0-fold the
+         * backlog EWMA (decays within µs of true idleness) and count the episode. (Busy
+         * time needs no reset here: it is clocked first-pop..fold within work passes.) */
+        if (server.thread_balance) {
+            worker->tm_qdepth_ewma_q4 -= worker->tm_qdepth_ewma_q4 >> 3;
+            worker->tm_idle_episodes++;
         }
         sched_yield();
         ctx->empty_rounds = 0;
@@ -11022,7 +11138,17 @@ void initIOThreads(void) {
  * aeApiPoll blocks with tvp=NULL while replyWorking==0, so a mode check between
  * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
 static int ioSlice(ioThreadArgs *t) {
-    return aeProcessEventsIO(t->el);
+    int ne = aeProcessEventsIO(t->el);
+    /* ee451 (thread-modes step 4, signal b): ingress-busy EWMA (Q4, alpha 1/8) of events
+     * per event-loop pass — 0-event (timeout/idle) passes decay it. Own padded line, owner-
+     * written; the balancer samples it racily. NOTE: the main thread runs aeMain (not this
+     * slice), so ingress covers io threads 1..N-1 (+ the spare while in IO mode) only —
+     * main's load is still visible to the balancer via its ROB/write-backlog signals. */
+    if (server.thread_balance) {
+        tmIoSignal *s = &tm_io_sig[t->id];
+        s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
+    }
+    return ne;
 }
 
 void *ioThreadMain(void *arg) {
@@ -11126,6 +11252,15 @@ void *polyThreadMain(void *arg) {
                     fprintf(stderr, "[worker %d] started (poly, iotid=%d)\n", ctx->ex->id, iotid);
                 }
                 if (cur == TOMO_MODE_PARKED) {
+                    /* ee451 (thread-modes step 4, hardening 3.1a): sweep STALE SENTINELS
+                     * before going live. A FLUSHALL fanned to the spare in the same instant
+                     * it parked can leave a flush sentinel rotting in a queue; executing it
+                     * NOW (shard still empty — emptying an empty shard is a no-op) is
+                     * harmless, whereas executing it after the seed migration would delete
+                     * live data. No migration can be active here: the modeshift/balancer
+                     * actuator checks migration_active and then blocks the main thread (the
+                     * only migration armer) until this checkpoint publishes EX mode. */
+                    while (exSlice(ctx->ex, &exctx)) ;
                     /* ee451 (step 3): EX-ENTRY of the spare — it starts slicing its
                      * pre-allocated shard slot, which is EMPTY (nothing routes here
                      * until the activation migration FLIPs buckets in). */
@@ -11224,11 +11359,50 @@ void *polyThreadMain(void *arg) {
  * Runs on the main thread (CONFIG SET) — the SAME thread as reshardAutoTune, so the
  * live-set write, the EWMA-slot resets and the arm are atomic wrt the autotuner.
  * Returns 1 on success, 0 with *err set (config.c rolls the value back). */
+/* ee451 (thread-modes step 4): factored into tomoSpareShift — the ACTUATOR, callable by
+ * both the config knob (manual override) and the balancer; both run on the main thread,
+ * so the single-control-plane-writer discipline is preserved. */
 int tomoModeshiftSpare(int mode, const char **err) {
+    return tomoSpareShift(mode, err);
+}
+
+int tomoSpareShift(int mode, const char **err) {
     if (mode == TOMO_MODE_PARKED && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
     if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
     if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
+    if (mode == TOMO_MODE_WB) mode = TOMO_MODE_PARKED;    /* value 3 = the explicit park verb (2s fork) */
     int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
+    /* ee451 (thread-modes step 4, hardening 3.1c): a transition may be PENDING — adopted
+     * target not yet reached (the coordinator's park request after a deactivation teardown
+     * is the long window: the spare is still EX for its ~50ms drain). The old code would
+     * silently OK a request matching the CURRENT mode (e.g. "-> EX" while parking), leaving
+     * the caller believing a state that evaporates moments later. Never silent-OK: requests
+     * matching the PENDING target are an idempotent OK; anything else is rejected loudly. */
+    int tgt = atomic_load_explicit(&tmSpare->target_mode, memory_order_acquire);
+    if (tgt != cur) {
+        if (mode == tgt) return 1;                        /* already heading there */
+        serverLog(LL_WARNING, "ee451 thread-modes: shift request to mode %d REJECTED — a transition "
+                              "to mode %d is pending on the spare (current mode %d); retry after it lands",
+                  mode, tgt, cur);
+        *err = "a spare mode transition is pending — retry after it completes";
+        return 0;
+    }
+    /* A spare-transition MIGRATION in flight is a pending state too — its tail retargets
+     * the spare no matter what the caller believes now (validated: a re-EX request during
+     * the deactivation migration silent-OK'd on mode==EX, then the armed migrate-out parked
+     * the spare anyway). Idempotent requests toward the transition's destination are OK;
+     * anything else rejects loudly. (Read is race-free enough on this thread: the action is
+     * set here pre-arm and cleared by the coordinator BEFORE the migration_active release,
+     * so a stale nonzero can only cause a spurious, safe, clearly-worded rejection.) */
+    if (server.tm_mig_spare_action != 0) {
+        int dest = (server.tm_mig_spare_action == 1) ? TOMO_MODE_EX : TOMO_MODE_PARKED;
+        if (mode == dest) return 1;                       /* already heading there */
+        serverLog(LL_WARNING, "ee451 thread-modes: shift request to mode %d REJECTED — a spare "
+                              "%s migration is in flight; retry after it completes",
+                  mode, server.tm_mig_spare_action == 1 ? "activation" : "deactivation");
+        *err = "a spare activation/deactivation migration is in flight — retry after it completes";
+        return 0;
+    }
     int W = server.num_workers;
     switch (mode) {
     case TOMO_MODE_IO:
@@ -11264,11 +11438,18 @@ int tomoModeshiftSpare(int mode, const char **err) {
             if (atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX) break;
             usleep(5000);
         }
-        if (waited == 400) { *err = "spare did not adopt EX mode within 2s"; return 0; }
+        if (waited == 400) {
+            /* ee451 (step 4): restore the target so no transition dangles half-requested.
+             * If the spare adopts EX in the same instant, the PARKED re-target just parks
+             * it again from its (still empty, unrouted) shard — self-correcting. */
+            atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            *err = "spare did not adopt EX mode within 2s"; return 0;
+        }
         /* 2. Balancer-slot hygiene for the incoming worker (same thread as the
          * autotuner — no race): fresh EWMAs, rate base = the counter's current value. */
         mig_load_ewma[W] = mig_load_ewma_fast[W] = 0;
         mig_last_ops[W] = server.exThreads[W].ops_total;
+        server.exThreads[W].tm_qdepth_ewma_q4 = 0;   /* ee451 (step 4): stale pre-park backlog EWMA must not vote */
         /* 3. Migration INTO the spare; the coordinator publishes num_workers_live at FLIP. */
         server.tm_mig_spare_action = 1;
         if (!reshardArm(lo, hi, src, W)) {
@@ -11310,6 +11491,295 @@ int tomoModeshiftSpare(int mode, const char **err) {
     default:
         *err = "invalid mode";
         return 0;
+    }
+}
+
+/* ===================== ee451 (thread-modes step 4): QUORUM PRESSURE BALANCER =====================
+ * Control plane: serverCron, run_with_period(250) (~4-5Hz), main thread only — the same thread as
+ * reshardAutoTune and the config apply fns, so every actuation shares the single-writer discipline.
+ *
+ * SIGNALS (all owner-written current-value/leaky-EWMA fields, sampled racily — no history):
+ *   a. worker queue backlog   exThread.tm_qdepth_ewma_q4 (items seen per pop pass, EWMA alpha 1/8)
+ *   b. io ingress busy        tm_io_sig[t].busy_ewma_q4  (aeProcessEventsIO events/pass EWMA)
+ *   c. reply ROB occupancy    tm_io_sig[t].rob           (replyWorking snapshot, per loop pass)
+ *   d. socket write backlog   listLength(clients_pending_write[t]) snapshot
+ *   e. idle/spin ratio        exThread.tm_work_slices / tm_idle_slices deltas -> busy%
+ *   f. p99 guardrail          tm_io_sig[t].lat_ring max ("max-ish" of 64 sampled latencies) — VETO ONLY
+ *
+ * QUORUM (bias strongly toward NOT shifting — mispredicted shifts are the expensive recovery):
+ *   EXPENSIVE grow (PARKED->EX, bucket migration): ALL THREE ex-pressure votes (mean backlog HIGH,
+ *   busy% HIGH i.e. idle/spin LOW, hottest-worker backlog HIGH) beyond the hysteresis band, PLUS
+ *   donor headroom = >=2 of 3 io-side signals showing slack (ingress not in distress, ROB below one
+ *   ring's worth per io thread, write backlog small), ALL sustained for the FULL settle window
+ *   (~3s = 12 consecutive ticks; one failing tick resets).
+ *   CHEAP shrink (EX->PARKED when ex-pressure collapsed): 2 signals (backlog LOW + busy% LOW below
+ *   the lower band — hysteresis gap vs the grow bands prevents flap) sustained for the settle window.
+ *   V1 actuator is THE SPARE ONLY, one-way policy: never auto ->IO (IO-exit doesn't exist yet, so an
+ *   IO spare would be a one-way trip out of the balancer's reach — manual override only).
+ *
+ * p99 VETO: at actuation the current p99 is snapshotted; if during the post-shift watch window p99
+ * degrades >2x (with an absolute floor to ignore idle noise) the balancer BACKS OFF: freezes for one
+ * settle window and DOUBLES the settle requirement for the next decision (one-shot — restored at the
+ * next actuation). It does not undo the shift (undo-on-blip = flap; the reverse quorum handles a
+ * genuinely inverted regime).
+ *
+ * BOUNDS: tomokv-ex-threads-min/max (0=auto: min 1, max = the populated allocation). V1 has one
+ * movable thread, so they only bound the spare's participation; the io bounds are inert in v1. */
+#define TM_BAL_SETTLE     12     /* ticks @ ~4-5Hz ≈ 3s settle window */
+#define TM_BAL_P99_FLOOR  500    /* us; veto ignores degradations under this (idle-noise guard) */
+static void tomoThreadBalanceCron(void) {
+    if (!server.thread_balance || !server.thread_modes || !server.exThreads) return;
+    static int inert_logged = 0;
+    if (!tmSpare || !tmSpare->ex) {
+        if (!inert_logged) {
+            serverLog(LL_WARNING, "[balance] no EX-capable spare poly thread — balancer inert "
+                                  "(need configured threads < allowed cores and a free worker slot)");
+            inert_logged = 1;
+        }
+        return;
+    }
+
+    /* ---- persistent controller state ---- */
+    static uint32_t prev_busy_us[TOMO_EX_THREADS_MAX + 1];
+    static mstime_t prev_wall = 0;
+    static int sustain_grow = 0, sustain_shrink = 0;
+    static int settle_need = TM_BAL_SETTLE;   /* doubled one-shot by a p99 veto */
+    static int freeze = 0;                    /* veto backoff: ticks with no decisions */
+    static int watch = 0;                     /* post-shift p99 watch ticks remaining */
+    static uint32_t p99_pre = 0;              /* pre-shift p99 snapshot (us) */
+    static mstime_t last_log = 0;
+    static int last_k = -1, last_dir = -1, standdown_logged = 0;
+
+    /* ---- 1. GATHER (racy relaxed reads of owner-written fields; deltas every tick so the
+     *         idle/spin ratio always spans exactly one balancer period) ---- */
+    int W = server.num_workers;
+    int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (nlive < 1) return;
+    mstime_t wall_now = mstime();
+    long wall_ms = prev_wall ? (long)(wall_now - prev_wall) : 0;
+    prev_wall = wall_now;
+    long qd_sum = 0, qd_max = 0;
+    int busy_sum = 0, busy_max = 0;
+    for (int w = 0; w < nlive && w <= TOMO_EX_THREADS_MAX; w++) {
+        exThread *et = &server.exThreads[w];
+        long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
+        qd_sum += qd; if (qd > qd_max) qd_max = qd;
+        /* busy% = TIME in work intervals / wall time (utilization). Episode/pass ratios
+         * were both calibrated out: passes weight 50ns spins vs 100µs work (reads ~0% on
+         * a saturated worker); episodes saturate at 100% whenever burst gaps fit the spin
+         * window (reads 100% on a 10%-duty worker under a small-value storm). */
+        uint32_t cb = et->tm_busy_us;
+        uint32_t db = cb - prev_busy_us[w];            /* wrap-safe */
+        prev_busy_us[w] = cb;
+        int b = wall_ms > 0 ? (int)(db / (uint32_t)(wall_ms * 10)) : 0;   /* us / (ms*1000) * 100 */
+        if (b > 100) b = 100;
+        busy_sum += b; if (b > busy_max) busy_max = b;
+    }
+    long qd_mean = qd_sum / nlive;
+    int busy_mean = busy_sum / nlive;
+    /* Light leaky smoothing of the hottest-worker busy ratio (alpha 1/2 per tick): the
+     * 200ms sampling window beats against burst cadence (a 90%-duty worker reads 100 on
+     * one tick and 40 on the next when its queue happens to empty mid-window). Current-
+     * signal only — two ticks of genuine idleness collapse it. */
+    static int busy_smooth = 0;
+    busy_smooth += (busy_max - busy_smooth) / 2;
+    long ing_sum = 0; int ing_cnt = 0;
+    for (int t = 1; t < server.io_threads; t++) {   /* main runs aeMain — no ingress EWMA (documented) */
+        ing_sum += tm_io_sig[t].busy_ewma_q4 >> 4; ing_cnt++;
+    }
+    int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : -1;   /* -1 = no io threads to sample */
+    long rob_total = 0, wb_total = 0;
+    for (int t = 0; t <= server.io_threads; t++) {
+        rob_total += tm_io_sig[t].rob;
+        if (server.clients_pending_write[t]) wb_total += (long)listLength(server.clients_pending_write[t]);
+    }
+    uint32_t p99 = 0;   /* max-ish of the sampled-latency rings = the guardrail's p99 approximation */
+    for (int t = 0; t <= server.io_threads; t++)
+        for (int i = 0; i < TM_LAT_RING; i++)
+            if (tm_io_sig[t].lat_ring[i] > p99) p99 = tm_io_sig[t].lat_ring[i];
+
+    /* ---- 2. BANDS — CONCURRENCY-NORMALIZED, not capacity-normalized. A closed-loop load
+     * generator bounds standing backlog by its own in-flight window (a -c32 -P8 client can
+     * never stack 256+ items no matter how far behind the workers fall), so bands derived
+     * from queue CAPACITY would never trigger. The honest question is "where does the live
+     * in-flight population SIT?": if most of rob_total is standing in worker queues, EX is
+     * the constraint; if the workers drain to ~zero standing, they keep up. Self-derives
+     * from offered load — no capacity constant, no hardware knowledge (knob philosophy). */
+    long rob_floor = 8L * nlive;                       /* below this in-flight, backlog is noise */
+    const int busy_hi = 75;                            /* % time in work passes (utilization) */
+    const int ing_distress = 32;                       /* events/pass: io thread drowning */
+    long wb_slack_bound  = 4L * server.io_threads;
+    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    long qd_abs_hi = 8L * popmax;                      /* "a worker stands >=8 full pop batches behind" */
+
+    /* ---- 3. VOTES (each ex-pressure vote = relative-to-in-flight OR absolute backlog:
+     * the relative form self-scales with offered concurrency; the absolute form catches
+     * the drain-lag regime where rob is inflated by completed-not-yet-drained replies) ---- */
+    int v_qd   = (rob_total >= rob_floor && qd_sum * 2 >= rob_total) ||
+                 qd_sum >= nlive * qd_abs_hi / 2;      /* ex 1: standing backlog dominates in-flight, or mean worker >=4 batches behind */
+    int v_busy = busy_smooth >= busy_hi;               /* ex 2: the loaded worker(s) saturated (smoothed max, not mean —
+                                                        * a skewed pair reads mean ~50-70 while its hot worker never
+                                                        * yields; the autotuner spreads load AFTER the spare joins) */
+    int v_hot  = (rob_total >= rob_floor && qd_max * 4 >= rob_total) ||
+                 qd_max >= qd_abs_hi;                  /* ex 3: one worker holds >=1/4 of in-flight, or >=8 batches behind */
+    int v_ing  = (ing_mean < ing_distress);            /* donor 1: ingress not in distress (true when unsampled) */
+    /* donor 2: the NON-queued in-flight population (executing + completed-awaiting-drain
+     * = the io-side share of rob) is modest — raw rob would double-count worker backlog. */
+    long rob_not_queued = rob_total - (qd_sum > rob_total ? rob_total : qd_sum);
+    int v_rob  = rob_not_queued < 2L * server.io_threads * server.pipeline_ring_depth;
+    int v_wb   = wb_total  < wb_slack_bound;           /* donor 3: socket write backlog small */
+    int k_grow = v_qd + v_busy + v_hot + v_ing + v_rob + v_wb;
+    int quorum_grow = (v_qd && v_busy && v_hot) && (v_ing + v_rob + v_wb >= 2);
+    int s_qd   = (rob_total < rob_floor || qd_sum * 8 < rob_total) &&
+                 qd_sum < qd_abs_hi / 2;               /* collapsed 1: backlog gone (relative AND absolute) */
+    /* collapsed 2: CAPACITY PROJECTION — the surviving workers could absorb the spare's
+     * share and still sit clear of the grow band (7/8 margin keeps park->grow flap
+     * impossible by construction: post-park utilization < busy_hi). Total load conserved
+     * across workers (the autotuner redistributes), so mean x nlive/(nlive-1) is the
+     * projected post-park mean. A fixed low-water band was calibrated out: real duty
+     * under an io-heavy small-value storm is 25-45%, which consolidation handles fine. */
+    int busy_after = nlive > 1 ? busy_mean * nlive / (nlive - 1) : 100;
+    int s_busy = busy_after <= busy_hi * 7 / 8;
+    int k_shrink = s_qd + s_busy;
+    int quorum_shrink = s_qd && s_busy;
+
+    /* ---- 4. SPARE STATE + one-way policy ---- */
+    int smode = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
+    int stgt  = atomic_load_explicit(&tmSpare->target_mode, memory_order_acquire);
+    if (smode == TOMO_MODE_IO || stgt == TOMO_MODE_IO) {
+        /* Manually shifted to IO (modeshift-test 1): IO-exit doesn't exist in v1, so the
+         * spare is out of the balancer's reach for good — stand down, loudly, once. */
+        if (!standdown_logged) {
+            serverLog(LL_WARNING, "[balance] spare is in IO mode (manual override) — balancer stands down "
+                                  "(no IO-exit in v1; one-way policy never auto-shifts ->IO)");
+            standdown_logged = 1;
+        }
+        return;
+    }
+    standdown_logged = 0;
+
+    /* ---- 5. p99 GUARDRAIL (watch the window after a shift; veto = back off + double settle).
+     * The watch starts ticking only once the shift's own migration has completed: the
+     * transition transient (drain-fence holds, effect-log replay — validated ~25ms p99
+     * during activation) is the shift's KNOWN cost, not a regression to veto on. */
+    if (watch > 0 && !atomic_load_explicit(&server.migration_active, memory_order_acquire)) {
+        watch--;
+        /* Skip the first TWO gated ticks: the 64-entry rings still hold samples stamped
+         * during the migration window, and at 1/1024 sampling they need ~400-600ms of
+         * post-shift load to turn over before the ring max reflects steady state
+         * (validated: a 30ms migration-hold sample survived one tick and false-vetoed). */
+        if (watch < TM_BAL_SETTLE - 2 &&
+            p99_pre > 0 && p99 > 2 * p99_pre && p99 > TM_BAL_P99_FLOOR) {
+            freeze = TM_BAL_SETTLE;                    /* back off: one settle window of no decisions */
+            settle_need = 2 * TM_BAL_SETTLE;           /* double settle — ONE-SHOT (restored at next shift) */
+            watch = 0;
+            sustain_grow = sustain_shrink = 0;
+            serverLog(LL_WARNING, "[balance] p99 VETO: %uus > 2x pre-shift %uus — backing off "
+                                  "(freeze %d ticks, next decision needs %d sustained ticks)",
+                      p99, p99_pre, freeze, settle_need);
+            return;
+        }
+    }
+
+    /* ---- 6. DECISION GATES ---- */
+    int dir = (smode == TOMO_MODE_PARKED) ? 1 : 2;     /* 1 = watching grow, 2 = watching shrink */
+    int k = (dir == 1) ? k_grow : k_shrink, kden = (dir == 1) ? 6 : 2;
+    int q = (dir == 1) ? quorum_grow : quorum_shrink;
+
+    /* Rate-limited pressure line: on vote-count/direction change, at most 1/s.
+     * ex/io scores: 0-100 composites (50 = at the pressure band) — worst signal wins. */
+    long ex_score = rob_total > 0 ? qd_sum * 100 / rob_total : 0;  /* 100 = ALL in-flight standing at workers */
+    if (busy_max > ex_score) ex_score = busy_max;
+    if (ex_score > 100) ex_score = 100;
+    long rob_bound = 2L * server.io_threads * server.pipeline_ring_depth;
+    long io_score = ing_mean > 0 ? (long)ing_mean * 50 / ing_distress : 0;
+    long rob_norm = rob_not_queued * 50 / (rob_bound > 0 ? rob_bound : 1);
+    long wb_norm  = wb_total * 50 / (wb_slack_bound > 0 ? wb_slack_bound : 1);
+    if (rob_norm > io_score) io_score = rob_norm;
+    if (wb_norm  > io_score) io_score = wb_norm;
+    if (io_score > 100) io_score = 100;
+    mstime_t now = mstime();
+    /* Emit on a vote/direction change (min 1s apart), or as a 2s heartbeat while the
+     * system shows ANY activity (an idle server logs nothing). */
+    int tm_active = rob_total > 0 || qd_mean > 0 || busy_mean > 0 || wb_total > 0;
+    if (((k != last_k || dir != last_dir) && now - last_log >= 1000) ||
+        (tm_active && now - last_log >= 2000)) {
+        serverLog(LL_NOTICE, "[balance] pressure ex=%ld io=%ld quorum %d/%d -> %s "
+                             "(qdsum %ld hot %ld busy %d/%d/%d%% | ing %d rob %ld wb %ld | p99 %uus, sustain %d/%d%s)",
+                  ex_score, io_score,
+                  k, kden, dir == 1 ? "watch PARKED->EX" : "watch EX->PARKED",
+                  qd_sum, qd_max, busy_mean, busy_max, busy_smooth, ing_mean, rob_total, wb_total, p99,
+                  dir == 1 ? sustain_grow : sustain_shrink, settle_need,
+                  freeze ? ", FROZEN" : "");
+        last_log = now; last_k = k; last_dir = dir;
+    }
+
+    if (freeze > 0) { freeze--; sustain_grow = sustain_shrink = 0; return; }
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* hold, don't reset */
+    if (stgt != smode) return;                          /* transition pending (e.g. park in flight) — hold */
+
+    /* ---- 7. SUSTAIN + ACTUATE (via tomoSpareShift — same main-thread actuator as the knob) ---- */
+    int ex_max_eff = server.ex_threads_max > 0 ?
+        (server.ex_threads_max < server.num_workers_alloc ? server.ex_threads_max : server.num_workers_alloc) :
+        server.num_workers_alloc;
+    int ex_min_eff = server.ex_threads_min > 0 ? server.ex_threads_min : 1;
+    const char *err = NULL;
+    if (dir == 1) {
+        sustain_shrink = 0;
+        /* SCHMITT-STYLE SUSTAIN: count qualifying ticks; a borderline tick (most votes
+         * still in favor) HOLDS the count rather than zeroing it — 200ms sampling beats
+         * against burst cadence, and one noise tick must not erase 2.5s of evidence.
+         * A clear-miss tick (vote majority gone) resets fully. */
+        if (q) sustain_grow++;
+        else if (k_grow <= 3) sustain_grow = 0;        /* clear miss (3 = the idle-donor baseline) */
+        if (sustain_grow >= settle_need) {
+            sustain_grow = 0;
+            if (W + 1 > ex_max_eff) {
+                if (now - last_log >= 5000) {
+                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-ex-threads-max %d blocks "
+                                         "PARKED->EX (would make %d live workers)", ex_max_eff, W + 1);
+                    last_log = now;
+                }
+                return;
+            }
+            p99_pre = p99;
+            if (tomoSpareShift(TOMO_MODE_EX, &err)) {
+                serverLog(LL_NOTICE, "[balance] pressure ex-side sustained %d ticks, quorum %d/6 -> "
+                                     "ACTION: spare PARKED->EX (migration-backed activation; p99 snapshot %uus)",
+                          settle_need, k_grow, p99_pre);
+                watch = TM_BAL_SETTLE;
+                settle_need = TM_BAL_SETTLE;           /* restore the one-shot doubled settle */
+            } else {
+                serverLog(LL_WARNING, "[balance] PARKED->EX actuation refused: %s", err ? err : "?");
+            }
+        }
+    } else {
+        sustain_grow = 0;
+        /* Same Schmitt shape for the cheap direction: hold on a borderline tick (one of
+         * the two collapse signals still low), reset only when pressure is clearly back. */
+        if (q) sustain_shrink++;
+        else if (k_shrink == 0) sustain_shrink = 0;
+        if (sustain_shrink >= settle_need) {
+            sustain_shrink = 0;
+            if (W < ex_min_eff) {
+                if (now - last_log >= 5000) {
+                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-ex-threads-min %d blocks "
+                                         "EX->PARKED (would leave %d live workers)", ex_min_eff, W);
+                    last_log = now;
+                }
+                return;
+            }
+            p99_pre = p99;
+            if (tomoSpareShift(TOMO_MODE_PARKED, &err)) {
+                serverLog(LL_NOTICE, "[balance] ex-pressure collapsed %d ticks, quorum %d/2 -> "
+                                     "ACTION: spare EX->PARKED (migrate-back + park; p99 snapshot %uus)",
+                          settle_need, k_shrink, p99_pre);
+                watch = TM_BAL_SETTLE;
+                settle_need = TM_BAL_SETTLE;
+            } else {
+                serverLog(LL_WARNING, "[balance] EX->PARKED actuation refused: %s", err ? err : "?");
+            }
+        }
     }
 }
 

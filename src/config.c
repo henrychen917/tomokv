@@ -2546,6 +2546,17 @@ static int updateTomokvModeshiftTest(const char **err) {
     return tomoModeshiftSpare(server.modeshift_test, err);
 }
 
+/* ee451 (thread-modes step 4): the balancer needs the poly-thread apparatus; reject a
+ * runtime enable without it (the boot-time config-file case is FATAL-warned + ignored
+ * in initServer — apply fns don't run during startup load). */
+static int updateTomokvThreadBalance(const char **err) {
+    if (server.thread_balance && !server.thread_modes) {
+        *err = "tomokv-thread-balance requires tomokv-thread-modes=1 (boot-time knob)";
+        return 0;
+    }
+    return 1;
+}
+
 static int updateJemallocBgThread(const char **err) {
     UNUSED(err);
     set_jemalloc_bg_thread(server.jemalloc_bg_thread);
@@ -3196,6 +3207,21 @@ standardConfig static_configs[] = {
      * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
      * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
     createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 3, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
+    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. Requires thread-modes at
+     * boot (else FATAL-warn + ignore). ON = serverCron samples the per-thread pressure
+     * signals ~4-5Hz and autonomously shifts the SPARE: PARKED->EX on a sustained
+     * expensive-shift quorum (3 ex-pressure signals + 2 io-slack donor signals, full ~3s
+     * settle), EX->PARKED on collapsed ex-pressure (2 signals + settle). Never auto ->IO.
+     * The modeshift-test knob above remains the manual override (same actuator). */
+    createBoolConfig("tomokv-thread-balance",        NULL, MODIFIABLE_CONFIG,  server.thread_balance,       0, NULL, updateTomokvThreadBalance),
+    /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min 1 / max = populated
+     * allocation). V1 has exactly one movable thread — the spare — so these only bound its
+     * participation: ex-max blocks PARKED->EX, ex-min blocks EX->PARKED. The io bounds are
+     * accepted + validated but INERT in v1 (the balancer never shifts IO; documented). */
+    createIntConfig("tomokv-ex-threads-min",         NULL, MODIFIABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_threads_min, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-ex-threads-max",         NULL, MODIFIABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_threads_max, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-io-threads-min",         NULL, MODIFIABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_threads_min, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-io-threads-max",         NULL, MODIFIABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_threads_max, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
