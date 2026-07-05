@@ -494,6 +494,20 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
      * of eating the 100us window; after the budget (wedged/slow worker) fall back to the
      * 100us poll so the IO thread never turns into a pure busy-loop. */
     static __thread int drainPasses = 0;
+    /* ee451 (AE-1b): REPLY progress also refreshes the budget, not just fd progress.
+     * At moderate pipeline depths (P4-P16) a client burst puts N fakes in flight and
+     * the replies retire one-by-one through beforesleep (above) with ZERO inbound fd
+     * events until the whole burst is answered — each such productive pass still
+     * burned budget, so a long burst exhausted it mid-burst and fell onto the 100us
+     * window despite steady progress. Retirement is progress by the same logic as an
+     * fd event, so re-arm the window. prevReplyWorking snapshots the post-beforesleep
+     * value: with no fd events in between, replyWorking can only have decreased via
+     * retirement (dispatches ride fd events, which reset the budget below anyway).
+     * Wedged-worker protection is preserved: no retirement -> no refresh -> budget
+     * exhausts -> 100us duty cycle exactly as before. */
+    static __thread int prevReplyWorking = 0;
+    if (replyWorking < prevReplyWorking) drainPasses = 0; /* reply progress: refresh */
+    prevReplyWorking = replyWorking;
     struct timeval tv, *tvp = NULL;
     if (replyWorking == 0) {
         drainPasses = 0;
