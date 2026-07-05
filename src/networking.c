@@ -3302,6 +3302,19 @@ static int handleClientsWithPendingWritesUring(void) {
     listIter li; listNode *ln;
     int n_submitted = 0;
 
+    /* ee451 (W6-U3): discard CQEs abandoned by a previous ABORTED pass (wait_cqe hard error
+     * mid-reap; see the EINTR retry below for the common cause it removes). Stale CQEs must
+     * never be interpreted: their user_data client pointers may dangle (freeClientsInAsyncFree-
+     * Queue runs in beforeSleepIO between passes — c->sentlen += res on a freed client = UAF)
+     * and they would miscount against THIS pass's n_submitted, leaving fresh sends unreaped.
+     * On a clean pass the reap loop below leaves the CQ empty (it synchronously waits for all
+     * results AND all ZC notifs), so anything found here is stale by construction. */
+    {
+        struct io_uring_cqe *stale; unsigned shead; unsigned nstale = 0;
+        io_uring_for_each_cqe(ring, shead, stale) { (void)stale; nstale++; }
+        if (nstale) io_uring_cq_advance(ring, nstale);
+    }
+
     listRewind(server.clients_pending_write[t], &li);
     while ((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
@@ -3356,7 +3369,14 @@ static int handleClientsWithPendingWritesUring(void) {
         int results_seen = 0, notifs_expected = 0, notifs_seen = 0;
         while (results_seen < n_submitted || notifs_seen < notifs_expected) {
             struct io_uring_cqe *cqe = NULL;
-            if (io_uring_wait_cqe(ring, &cqe) < 0 || cqe == NULL) break;
+            /* ee451 (W6-U3): retry on -EINTR — a signal (e.g. the watchdog SIGALRM) interrupting
+             * wait_cqe would otherwise abandon up to n_submitted outstanding CQEs: those clients
+             * were already unlinked from clients_pending_write with no write handler installed
+             * and sentlen never advanced = reply wedge, and the stale CQEs would poison the next
+             * pass (see the startup discard above, which stays as the hard-error backstop). */
+            int wrc;
+            do { wrc = io_uring_wait_cqe(ring, &cqe); } while (wrc == -EINTR);
+            if (wrc < 0 || cqe == NULL) break;
             client *c = io_uring_cqe_get_data(cqe);
             int res = cqe->res;
             unsigned cflags = cqe->flags;
@@ -3424,7 +3444,12 @@ static int handleClientsWithPendingWritesUring(void) {
 #define IOU_RECV_BGID    7                 /* buffer group id (distinct from the send ring) */
 #define IOU_RECV_DEPTH   2048
 
-typedef struct iouRecvSlot { client *c; uint32_t gen; } iouRecvSlot;
+/* stash (W6-U1): bytes the kernel delivered while the MAIN thread owned the client (handoff
+ * cleared CLIENT_IO_READ_ENABLED). querybuf is main-thread territory in that window, so the
+ * reaper parks the bytes here (slot is reaper-private) and marks pending_read — mirroring the
+ * epoll path's defer, except epoll can leave the bytes in the socket and we cannot. Flushed
+ * ahead of the next enabled delivery (byte order preserved) or into querybuf at disarm. */
+typedef struct iouRecvSlot { client *c; uint32_t gen; sds stash; } iouRecvSlot;
 typedef struct iouRecvState {
     struct io_uring ring;
     struct io_uring_buf_ring *br;
@@ -3522,7 +3547,31 @@ static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rma
 
         if (res > 0) {
             if (c && have_buf) {
-                if (!iouRecvDeliver(c, (char *)st->bufmem + (size_t)bid * IOU_RECV_BUFSZ, res)) {
+                const char *data = (const char *)st->bufmem + (size_t)bid * IOU_RECV_BUFSZ;
+                iouRecvSlot *slot = &st->fdmap[fd];
+                int alive = 1;
+                /* ee451 (W6-U1): honor the CLIENT_IO_READ_ENABLED ownership handshake. The
+                 * main-thread handoff (enqueuePendingClientsToMainThread) clears the flag so IO
+                 * code stops touching the client — the epoll read path defers via pending_read
+                 * (readQueryFromClient); this reaper used to append+processInputBuffer
+                 * unconditionally, racing the main thread on querybuf/argv (iothread.c asserts
+                 * codify the invariant). Flush any earlier stash first, re-checking the flag
+                 * between steps because a deliver can itself trigger a handoff mid-loop. */
+                if ((c->io_flags & CLIENT_IO_READ_ENABLED) && slot->stash) {
+                    sds pend = slot->stash; slot->stash = NULL;
+                    alive = iouRecvDeliver(c, pend, (int)sdslen(pend));
+                    sdsfree(pend);
+                }
+                if (alive) {
+                    if (!(c->io_flags & CLIENT_IO_READ_ENABLED)) {
+                        if (!slot->stash) slot->stash = sdsempty();
+                        slot->stash = sdscatlen(slot->stash, data, res);
+                        atomicSetWithSync(c->pending_read, 1);   /* mirror the epoll defer */
+                    } else if (!iouRecvDeliver(c, data, res)) {
+                        alive = 0;
+                    }
+                }
+                if (!alive) {
                     st->fdmap[fd].c = NULL;  /* client gone — don't re-arm, don't deref again */
                     c = NULL;
                 }
@@ -3614,13 +3663,49 @@ void iouRecvArm(client *c) {
     io_uring_submit(&st->ring);
 }
 
-/* Drop fd from the recv map. Called under the IO-thread pause during teardown/migration, so it
- * cannot race the reaper. The kernel terminates the multishot when the fd is finally closed;
- * any straggler CQE finds a NULL slot (or a stale generation) and is ignored. */
+/* Drop fd from the recv map AND cancel the in-kernel multishot. Callers run either on the
+ * owning IO thread (freeClient — Tomo KV frees on the accepting thread) or on the main thread
+ * UNDER pauseIOThread (unbindClientFromIOThreadEventLoop / fetchClientFromIOThread), so this
+ * cannot race the reaper; ring ops from the main thread are safe in the pause window precisely
+ * because the owner is parked. Any straggler CQE finds a NULL slot (or stale gen) and is ignored.
+ *
+ * ee451 (W6-U2): clearing the fd map only stops CQE INTERPRETATION — it does not stop the
+ * kernel. On keepClientInMainThread migration the fd is NOT closed (it is rebound to server.el
+ * and read via epoll), so a still-armed multishot would keep consuming socket bytes into the
+ * provided buffer ring, where the reaper drops them as stale and recycles the buffers = silent,
+ * permanent input loss (protocol desync) for any migrated client. So submit an ASYNC_CANCEL
+ * for the arm's exact ((gen<<32)|fd) user_data cookie. The cancel op reuses that same cookie as
+ * its OWN user_data, which keeps the reap loop inert by construction (slot already NULL). The
+ * fd-close teardown path never needed this, but the extra cancel there is harmless. */
 void iouRecvDisarm(int t, int fd) {
     iouRecvState *st = &iouRecvs[t];
     if (st->state != 1 || fd < 0 || fd >= st->fdcap) return;
-    st->fdmap[fd].c = NULL;
+    iouRecvSlot *slot = &st->fdmap[fd];
+    client *c = slot->c;
+    slot->c = NULL;
+    if (slot->stash) {
+        /* W6-U1: hand any handoff-window bytes to the client's querybuf. Safe in every caller
+         * context (owner thread, or main thread with the owner parked): nothing else touches
+         * this client here. Parsing happens on the client's next normal read pass; for the
+         * freeClient caller the querybuf is torn down right after — either way, no byte loss
+         * and no leak. */
+        if (c) {
+            if (!c->querybuf) c->querybuf = sdsempty();
+            c->querybuf = sdscatlen(c->querybuf, slot->stash, sdslen(slot->stash));
+            atomicSetWithSync(c->pending_read, 1);
+        }
+        sdsfree(slot->stash);
+        slot->stash = NULL;
+    }
+    if (c == NULL) return;                       /* nothing was armed on this fd */
+    uint64_t cookie = ((uint64_t)slot->gen << 32) | (uint32_t)fd;
+    struct io_uring_sqe *sqe = io_uring_get_sqe(&st->ring);
+    if (!sqe) { io_uring_submit(&st->ring); sqe = io_uring_get_sqe(&st->ring); }
+    if (sqe) {
+        io_uring_prep_cancel64(sqe, cookie, 0);
+        io_uring_sqe_set_data64(sqe, cookie);    /* self-inert at reap: slot is NULL */
+        io_uring_submit(&st->ring);
+    }
 }
 
 /* ===== v12-K: worker-direct in-order send-back — per-worker send ring (gated, default off) =====
