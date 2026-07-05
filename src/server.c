@@ -3286,7 +3286,7 @@ void initServer(void) {
         serverLog(LL_WARNING,
             "FATAL: tomokv-ifid-threads and tomokv-ex-threads must be set explicitly (no default). "
             "Example: --tomokv-ifid-threads 3 --tomokv-ex-threads 3. "
-            "tomokv-ex-threads 0 disables sharding; ANY worker count is valid (no power-of-two).");
+            "tomokv-ex-threads 0 disables sharding.");
         exit(1);
     }
     /* ee451 (v14): 0 = auto ring depths (resolve to tuned defaults; demand-grow/decay ring
@@ -3297,8 +3297,8 @@ void initServer(void) {
     server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
     server.ex_dispatch_mask = server.ex_threads > 0 ? (uint64_t)(server.ex_threads - 1) : 0;  /* legacy/unused */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
-     * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W (no
-     * power-of-two requirement). The adjacent-shift rebalancer later mutates this. */
+     * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W.
+     * The adjacent-shift rebalancer later mutates this. */
     {
         int W = server.ex_threads;
         for (int b = 0; b < TOMO_BUCKETS; b++)
@@ -5639,7 +5639,7 @@ int getWorkerForCommand(client *c) {
      * are gated on argc == 2 so only the single-key form dispatches.
      *
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
-     * short keys) + bitmask (num_workers is validated power-of-two at
+     * short keys) + the bucket indirection table (any worker count; resharding-aware at
      * config load, so server.ex_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
     return exIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
