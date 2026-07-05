@@ -206,3 +206,20 @@ Roadmap to full mix-shifting:
   migration lands); balancer treats its cost like a slow DVFS transition;
 - v2 balancer actuates the full mix vector (nio+nex=N) through composed transitions, one move per
   settle window, quorum-gated as specced.
+
+## IO-EXIT v1.6 spec: connection MIGRATION (fd handoff), zero loss (user requirement)
+Key: an fd is process-global; only epoll registration is thread-local. Per-conn quiesce point =
+RING-EMPTY (dispatchid==flushid) + replies flushed — the SAME fence stateful commands already use.
+At that instant nothing in-flight references the old thread (no fakes under its producer slot), and
+partial parse state is client-struct-owned (travels free).
+Protocol per conn (~us, client sees a sub-ms stall at most):
+ 1. pause reads (delete read event) -> ring drains (bounded: pipeline depth x service time);
+ 2. at quiesce: deregister fd from source epoll, unlink from source per-thread arrays;
+ 3. hand the client struct to the target io thread via SPSC mailbox (existing pattern), swap owner
+    identity fields;
+ 4. target registers fd, resumes handlers. Ordering safe: ring was empty, so old/new producer-slot
+    dispatches cannot interleave for this conn.
+IO-EXIT = leave reuseport accept group (no new conns) -> migrate existing conns in batches
+(idle instantly; busy via read-pause drain), spread least-loaded across remaining io threads ->
+last conn gone -> EX-entry. Seconds-bounded, ZERO connection loss. Also usable standalone as
+IO LOAD REBALANCING (hand hot conns to cold io threads) — same mechanism, no mode change.
