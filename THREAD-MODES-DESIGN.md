@@ -164,3 +164,19 @@ beforeSleep (the recurring cost); the dormant code may remain compiled for optio
 | housekeeping x pressure signals | idle-slice work masks idleness -> balancer thinks worker is busy | count housekeeping time as IDLE-EQUIVALENT for shift decisions (separate tick counter); serving-busy and housekeeping-busy are different signals |
 | expire storms x reshard EWMAs | synchronized mass expiry shifts shard sizes -> spurious migrations | existing significance floor + relative bar + settle window are the guard (verified once under storm test); expiry-driven size change is a REAL signal, just rate-limited |
 | reshardAutoTune x mode transitions | migration endpoint mid-transition | already enforced (step 3): live-- precedes deactivation arm; dormant spare never an endpoint; single control-plane writer |
+
+### TOMOKV maintenance/observability API (user): whole-server, or per-thread/shard
+New command family (control-plane; absorbs RP-3's observability holes):
+- `TOMOKV THREADS` — one line per thread: mode, identity slots, cron-token holder, pressure
+  snapshot (ingress/queue/ROB/write backlogs, idle-spin ratio), live/parked.
+- `TOMOKV STATS [ALL | THREAD <id> | SHARD <id>]` — aggregated or targeted: ops, shard sizes,
+  rehash state (tables held), pool tiers, EWMAs. Reads are LOCK-FREE relaxed snapshots of the
+  per-thread padded stat lines (monitoring needs freshness, not exactness).
+- `TOMOKV MAINT <expire|rehash|shrink|pool-decay> [ALL | SHARD <id>]` — on-demand housekeeping.
+  Delivery = the FLUSH-SENTINEL PATTERN GENERALIZED: an internal maintenance fake dispatched to the
+  owner worker through the NORMAL queue (ordered with traffic, no new locks); ALL = fan to every
+  live worker with the pending-barrier used by KEYS/FLUSHALL. Duty runs where the data lives.
+- INFO Keyspace: fold live shards (like DBSIZE already does); CLIENT LIST: walk all threads'
+  client arrays read-only; CLIENT KILL <id>: per-thread kill-request flag consumed in the owner's
+  io slice (RP-3 items — now part of this API).
+Integration rules apply: MAINT ops on a migrating range obey the same matrix (tombstones/pause).
