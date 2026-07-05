@@ -113,7 +113,7 @@ only scales I/O threads (execution stays single‑threaded); Dragonfly is a rigi
 8 cores we show three moderate splits — **`io5ex3`** (ingress‑leaning), **`io4ex4`** (balanced),
 **`io3ex5`** (execution‑leaning). The **extremes** `io6ex2` (ingress‑heavy) / `io2ex6` (worker‑heavy) are included below as edge rows: on a
 low‑core box each starves the opposite stage and usually loses — but they mark the ceiling of the dial
-(maximally ingress‑provisioned `io6ex2` **overtakes Redis on every DRAM read cell**).
+(maximally ingress‑provisioned `io6ex2` **overtakes Redis on the small/mid‑value DRAM read cells** — 512 B 1:9, hot‑key, FB‑ETC; Redis keeps 4 KB).
 
 ### Dispatch‑ and compute‑bound — where Tomo KV wins outright
 
@@ -142,18 +142,22 @@ Working set ~6 GB (512 B × 8 M keys, 4 KB × 1.4 M keys, pipeline 16):
 
 | Config | 512 B 1:9 | hot‑key | 4 KB 1:9 | FB‑ETC |
 | :--- | :--- | :--- | :--- | :--- |
-| Tomo `io5ex3` | 3.08 | 3.09 | **1.26** | 3.08 |
-| Tomo `io4ex4` | 2.53 | 2.52 | **1.26** | 2.51 |
+| Tomo `io5ex3` | 3.08 | 3.09 | 1.26 | 3.08 |
+| Tomo `io4ex4` | 2.53 | 2.52 | 1.26 | 2.51 |
+| Tomo `io3ex5` | 1.96 | 1.96 | 1.05 | 1.95 |
 | Tomo `io6ex2` *(ingress‑extreme)* | **3.44** | **3.55** | 1.22 | **3.43** |
 | Tomo `io2ex6` *(execution‑extreme)* | 1.41 | 1.40 | 0.77 | 1.39 |
 | Redis 8 | 3.23 | 3.36 | **1.27** | 3.21 |
 | Dragonfly | 0.87 | 0.81 | 0.63 | 2.20 |
 
-Here the moderate splits land **within ~5 % of Redis** and tie on 4 KB; Redis keeps a small edge on flat
-512 B reads at *those* splits — but the ingress‑heavy extreme **`io6ex2` beats Redis on all three DRAM read
-cells** (512 B 1:9 3.44 vs 3.23, hot‑key 3.55 vs 3.36, FB‑ETC 3.43 vs 3.21); dial ingress up when the
-workload is purely I/O‑bound. The worker‑heavy extreme `io2ex6` collapses here — 2 ingress threads can't
-feed the pipeline (the starvation cliff). This regime is
+This regime is purely I/O‑bound, and the table shows the cleanest demonstration of the dial in the whole
+document: throughput is **monotone in ingress share** — 3.44 (`io6ex2`) → 3.08 (`io5ex3`) → 2.53 (`io4ex4`)
+→ 1.96 (`io3ex5`) → 1.41 (`io2ex6`). Honest read against Redis: only the ingress ladder's top competes —
+**`io6ex2` beats Redis on 512 B 1:9 / hot‑key / FB‑ETC** (3.44/3.55/3.43 vs 3.23/3.36/3.21) while Redis
+keeps 4 KB 1:9 (1.27 vs 1.22); `io5ex3` lands within ~5–8 %; balanced and execution‑leaning splits trail by
+~20–40 % — as they should, since their cores are deliberately spent on execution this workload never uses.
+Dial ingress up for pure I/O‑bound work; the worker‑heavy extreme `io2ex6` marks the starvation cliff
+(2 ingress threads can't feed the pipeline). This regime is
 I/O‑bound — the value never fits a register‑cheap execution step, so it wants ingress, exactly the dial
 Tomo exposes. (hot‑key = Gaussian‑concentrated GETs; FB‑ETC = a Facebook‑ETC‑like mix: 1:30 write:read,
 Gaussian keys, small‑skewed value sizes. Dragonfly's low ≥ 256 B pipelined‑GET numbers are a known
@@ -201,55 +205,62 @@ into a few families:
 
 ## Configuration
 
-Tomo KV adds runtime knobs on top of every standard Redis directive. **Sensible defaults ship on** — most
-knobs exist for research and per‑workload tuning, not day‑to‑day use. The ones that matter most:
+Tomo KV follows one convention across its whole config surface, borrowed from CPU micro‑architecture:
+**every adaptive quantity has a hardware‑style AUTO mode (a continuous controller — saturating counters,
+leaky/EWMA integrators, multiplicative grow‑decay — driven only by *current* signals, so a workload that
+shifts on a dime re‑tunes within batches) and a STRICT number mode** (you pin the value, adaptation off).
+KV workloads are unpredictable at runtime; nothing calibrates‑then‑locks, and no controller accumulates
+history that makes it slow to change its mind.
 
-### Threading & topology
-| Knob | Default | Meaning |
+Value conventions: **mandatory** = you must set it (fatal at boot if unset) · **`-1` = AUTO** where `0`
+means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
+
+### Threading & topology (set these — they are the deliberate choices)
+
+| Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-io-threads` | auto | Number of **ingress** threads (parse + dispatch + reply). |
-| `tomokv-ex-threads` | auto | Number of **EX worker** threads (must be a power of two). |
-| `tomokv-pipeline-depth` | max | Per‑connection in‑flight command ring depth. |
-| `tomokv-ex-queue-depth` | max | Per‑(io,worker) SPSC dispatch queue depth. |
-| `tomokv-pin-mode` | 2 | Core‑pinning strategy (dense / shared‑L3‑aware). |
-| `tomokv-worker-pop-batch` | 16 | Max commands a worker drains per queue per sweep. |
+| `tomokv-io-threads` | **mandatory** ≥ 1 | Ingress threads (parse/dispatch/reply). No default — the io/ex split is the most consequential decision you make (see the performance section). |
+| `tomokv-ex-threads` | **mandatory** ≥ 0, **any count** | Execution workers (one shard each). `0` disables sharding. Power‑of‑two is **not** required (routing goes through the bucket table, not a mask). |
+| `tomokv-pin-mode` | `0` float · `1` manual · `2` auto (default) | `0`: no pinning, the scheduler decides. `1`: pin to the exact cores in `tomokv-pin-cores`. `2`: arch‑aware auto — topology‑smart placement (shared‑L3/CCD grouping, NUMA‑local shard memory), respecting taskset/cgroup affinity. |
+| `tomokv-pin-cores` | e.g. `"0,2,4,6"` | Manual core list for pin‑mode 1, applied in thread‑pin order (io threads first, then workers), round‑robin if short. |
+| `tomokv-pipeline-depth` | `0` auto (default) · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32) — a deeper ring never hurts shallow clients, it only costs idle memory; the per‑connection demand‑grow/decay ring controller (grow on ring‑full stall, decay at empty‑ring checkpoints) is the queued follow‑up. |
+| `tomokv-ex-queue-depth` | `0` auto (default) · pow2 ≤ 65536 | io→worker SPSC queue size. Auto resolves to 2048 (same roadmap note as above). |
 
-### Reply backend
-| Knob | Default | Meaning |
+### Batching, spin & prefetch (AUTO controllers with strict overrides)
+
+| Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-io-uring` | off | Master switch for the io_uring backend (build with `USE_URING=yes`). |
-| `tomokv-io-uring-reply-send` | off | Send replies via io_uring instead of epoll `write()`. |
-| `tomokv-io-uring-recv` | off | Multishot io_uring receive with provided buffer rings. |
-| `tomokv-io-uring-zc` / `-sqpoll` | off | Zero‑copy send (≥ threshold) / kernel submission polling. |
+| `tomokv-worker-pop-batch` | `0` auto (default) · 1–16 strict | Fakes a worker pops per queue visit. Auto: saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve) — 2‑bit‑predictor flavor. |
+| `tomokv-worker-spin` | `0` auto (default) · N strict rounds | Worker idle spin before yielding. Auto: multiplicative budget (spin that paid grows ×1.5, wasted window halves). |
+| `tomokv-pf-w-struct/-argv/-keyobj/-keybytes/-hash/-entry` | `-1` auto (default) · `0` off · N strict | Per‑stage scoreboard‑prefetcher widths. Auto: width = the *current* batch occupancy — zero history, re‑tunes on the next batch. |
+| `tomokv-pf-w-value` | `-1` auto (default) · `0` off · N strict cap | Value‑chase width. Auto: cache‑budget controller — width = (L3 / 2·workers) / EWMA(value size), leaky integrator, refreshed continuously. |
+| `tomokv-pf-w-nextop` | `-1` auto · `0` off (default) · N strict | Next‑op lookahead prefetch distance. Auto: lookahead = current batch. |
+| `tomokv-prefetch-min-keys` | `0` auto (default) · N strict | Prefetch enable gate. Auto: opens when the shard's self‑measured footprint (dbSize × (96 B + EWMA value size)) exceeds 8× the machine's detected L3 — prefetching a cache‑resident shard measurably hurts. |
+| `tomokv-pf-value-budget-kb` | `0` auto (default) · N strict | The value‑chase cache budget. Auto: L3 / (2 × workers). |
+| `tomokv-l3-kb` | `0` auto‑detect (default) · N strict | L3 size feeding the controllers. Pin it on VMs that hide cache topology from sysfs. |
 
-### Prefetch pipeline
-| Knob | Default | Meaning |
+### Load balancing (self‑driving reshard controller)
+
+| Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-opt-prefetch-worker` | on | Master switch for the worker prefetch pipeline. |
-| `tomokv-prefetch-adaptive-min-keys` | auto | Enable prefetch only once a shard exceeds this key count (DRAM‑bound). |
-| `tomokv-pf-fc` / `-argv` / `-cmd` / `-keyobj` | on | Individual pass‑1 prefetch stages. |
-| `tomokv-pf-w-struct` / `-hash` / `-entry` / `-value` | 256 | Per‑stage prefetch window widths. |
-| `tomokv-pf-w-nextop` | 256 | Execution‑adjacent next‑op look‑ahead distance. |
-| `tomokv-opt-hash-carry` | on | Compute each key's hash once; reuse through dispatch + lookup. |
+| `tomokv-reshard-min-ops` | `0` off · N ops/s (default 20000) | Significance floor + master switch. Everything else self‑derives: EWMA rates with a continuously recomputed alpha, an outlier trigger bar (mean + k·σ with a relative floor), settle windows in controller time — no calibration, no lock‑in. |
+| `tomokv-reshard-imbalance-pct` | `0` auto (default) · N strict | Trigger bar override: fixed percent‑of‑mean instead of the outlier bar. |
+| `tomokv-reshard-chunk` | `0` auto (default) · N strict | Migration granule. Auto: buckets/(16·workers), clamped. |
 
-### Dispatch & reply de‑contention
-| Knob | Default | Meaning |
+### Reply path & memory
+
+| Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-opt-batch-push` | on | Stage worker pushes, one tail release per batch. |
-| `tomokv-batch-push-eager` | on | Publish the staged batch at end of parse (kills worker starvation). |
-| `tomokv-opt-coalesce-signal` | on | Coalesce per‑parent reply‑ready signals. |
-| `tomokv-opt-spsc-cache` | on | Producer‑side SPSC index caching (avoids cross‑core loads). |
-| `tomokv-opt-multi-cdb` / `tomokv-num-cdb` | off / auto | Spread reply signaling across multiple CDB cache lines. |
-| `tomokv-opt-perthread-stats` | on | Cache‑line‑isolated per‑thread counters (no false sharing). |
+| `tomokv-num-cdb` | `0` auto (default) · N strict | Reply‑bus count. Auto: one bus per worker on multi‑CCD machines (de‑contention), a single bus on one CCD (nothing to de‑contend). Topology is machine identity, read once. |
+| `tomokv-zerocopy-min-value` | `0` off · N bytes (default 1024) | Zero‑copy reply threshold — strict by design: the copy‑vs‑bookkeeping crossover is a machine property, not a workload signal (measured ~1 KB here). |
+| `tomokv-opt-operand-pool` | bool (default off) | Argv‑operand recycling pool (tiered, demand‑grow, op‑clocked decay — the same controller style). Hardwired ON in the 3‑Stage edition; gated here pending 2‑Stage validation. |
 
-### Advanced
-Cross‑shard (`tomokv-opt-cross-shard`, `-cross-setop`, `-fanall`), online resharding
-(`tomokv-reshard-auto` and the `tomokv-reshard-*` family), memory (`tomokv-operand-pool`,
-`tomokv-zerocopy-min-value`), and a suite of research/experimental predictors
-(`tomokv-vf-*`, `tomokv-opt-ship-reuse`, `tomokv-opt-feedback-prefetch`) are available and default‑off.
-Run `redis-server --help` or see `config.c` for the full surface.
+### Kernel / io_uring (experimental, default off)
 
----
+`tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`, `tomokv-worker-direct-send`,
+`tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all
+immutable booleans, all default off. Loopback‑neutral in our measurements; they exist for real‑NIC
+evaluation.
 
 ## Building & running
 

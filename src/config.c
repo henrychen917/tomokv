@@ -2358,6 +2358,7 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
  * checks power-of-two. Signature matches the numeric-config validator type
  * (long long, const char **). */
 static int isValidMyPipelineDepth(long long val, const char **err) {
+    if (val == 0) return 1;   /* 0 = auto */
     if (val < 1 || (val & (val - 1)) != 0) {
         *err = "tomokv-pipeline-depth must be a power of two (e.g., 1, 2, 4, 8, 16, 32)";
         return 0;
@@ -2368,6 +2369,7 @@ static int isValidMyPipelineDepth(long long val, const char **err) {
 /* tomokv-ex-queue-depth must be a power of two (ring-buffer uses mask for
  * wrap-around). Upper bound enforced by createIntConfig. */
 static int isValidMyWorkerQueueDepth(long long val, const char **err) {
+    if (val == 0) return 1;   /* 0 = auto */
     if (val < 1 || (val & (val - 1)) != 0) {
         *err = "tomokv-ex-queue-depth must be a power of two (e.g., 64, 128, 256, 512, 1024, 2048)";
         return 0;
@@ -2378,14 +2380,6 @@ static int isValidMyWorkerQueueDepth(long long val, const char **err) {
 /* ee451 (v8): ANY worker count in [1, MAX] is allowed now. Dispatch goes through the
  * bucket->worker indirection table (exIndexForKey), not hash&(N-1), so num_workers no
  * longer has to be a power of two — that was the whole point of axing the limit. */
-static int isValidMyWorkerThreads(long long val, const char **err) {
-    if (val < 1 || val > TOMO_EX_THREADS_MAX) {
-        *err = "tomokv-ex-threads must be between 1 and 64";
-        return 0;
-    }
-    return 1;
-}
-
 static int isValidActiveDefrag(int val, const char **err) {
 #ifndef HAVE_DEFRAG
     if (val) {
@@ -3153,14 +3147,14 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
-    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_struct,    64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_argv,      64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keyobj,    64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_keybytes,  64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_hash,      64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_nextop,    0,  INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_entry,     64, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, 0, 256, server.pf_w_value,     64, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_argv, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keyobj, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keybytes, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_hash, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_nextop,   0,  INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_entry, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_value, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
     /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
     /* ee451: forward-predictor variant selector so each is independently sweepable.
@@ -3186,7 +3180,9 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
+    createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 0, 16, server.worker_pop_batch, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3290,16 +3286,16 @@ standardConfig static_configs[] = {
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
     /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
-    createIntConfig("tomokv-io-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_IO_THREADS_MAX, server.io_threads, IO_THREADS_NUM, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_THREADS_MAX, server.ex_threads, EX_THREADS_NUM, INTEGER_CONFIG, isValidMyWorkerThreads, NULL),
+    createIntConfig("tomokv-io-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal at boot */
+    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal; 0 = sharding off; ANY count (no pow2) */
     createIntConfig("tomokv-l3-kb", NULL, IMMUTABLE_CONFIG, 0, 1048576, server.l3_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto-detect (sysfs); N pins L3 KB for the auto formulas (VMs) */
     createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean */
     createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule */
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
-    createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, PIPELINE_DEPTH, INTEGER_CONFIG, isValidMyPipelineDepth, NULL),
-    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, EX_QUEUE_SIZE, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL),
+    createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
+    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */
