@@ -3319,7 +3319,7 @@ standardConfig static_configs[] = {
     /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); use these instead. */
     createIntConfig("tomokv-ifid-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_IFID_THREADS_MAX, server.ifid_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal */
-    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal; 0 = sharding off; ANY count (no pow2) */
+    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal; must be >= 1 (0 = sharding off is rejected at boot); ANY count (no pow2) */
     createIntConfig("tomokv-l3-kb", NULL, IMMUTABLE_CONFIG, 0, 1048576, server.l3_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto-detect (sysfs); N pins L3 KB for the auto formulas (VMs) */
     createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean */
     createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule */
