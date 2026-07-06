@@ -1272,11 +1272,6 @@ void clientsCron(void) {
  * incrementally in Redis databases, such as active key expiring, resizing,
  * rehashing. */
 void databasesCron(void) {
-    /* ee451 (BUGFIX ex=0): the cron walkers below (expire cycle, kvstore resize, incremental
-     * rehash, defrag) mutate server.db from the main thread; with tomokv-ex-threads 0 the IO
-     * threads execute commands against that same db, so exclude them for the cron pass.
-     * No-op when sharded (decoy is empty, workers own their shards). */
-    tomoEx0Lock();
     /* Expire keys by random sampling. Not required for slaves
      * as master will synthesize DELs for us. */
     if (server.active_expire_enabled) {
@@ -1331,7 +1326,6 @@ void databasesCron(void) {
             }
         }
     }
-    tomoEx0Unlock();   /* ee451 (BUGFIX ex=0) */
 }
 
 static inline void updateCachedTimeWithUs(int update_daylight_info, const long long ustime) {
@@ -2193,11 +2187,8 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     monotime cron_start_time_before_aof = getMonotonicUs();
 
-    if (server.active_expire_enabled && iAmMaster()) {
-        tomoEx0Lock();   /* ee451 (BUGFIX ex=0): main-thread expire walk vs IO-thread inline exec */
+    if (server.active_expire_enabled && iAmMaster())
         activeExpireCycle(ACTIVE_EXPIRE_CYCLE_FAST);
-        tomoEx0Unlock();
-    }
 
     if (moduleCount()) {
         moduleFireServerEvent(REDISMODULE_EVENT_EVENTLOOP,
@@ -4741,20 +4732,6 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * If C_OK is returned the client is still alive and valid and
  * other operations can be performed by the caller. Otherwise
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
-/* ee451 (BUGFIX finding-B, ex=0): with tomokv-ex-threads 0 (sharding OFF) every command executes
- * INLINE on its client's IO thread against the shared server.db — that db's structures (dict
- * incremental rehash, kvstore resize, expires, eviction pool, ready_keys) are single-writer by
- * design, so concurrent IO threads crash them (repro: dict.c:423 rehash assert in seconds under
- * memtier io4/ex0). Serialize EXECUTION with one global mutex, engaged only when num_workers==0:
- * parse + reply stay parallel on the IO threads, call() is mutually excluded — exactly upstream
- * Redis's io-threads execution model, which is the documented semantic of ex=0 ("sharding off").
- * The main-thread db walkers (databasesCron resize/rehash/expire, beforeSleep fast expire,
- * performEvictions) take the same lock. Sharded mode (num_workers>0) never touches the mutex:
- * workers own their shards and the decoy stays empty. */
-static pthread_mutex_t ex0_db_lock = PTHREAD_MUTEX_INITIALIZER;
-void tomoEx0Lock(void)   { if (!server.num_workers) pthread_mutex_lock(&ex0_db_lock); }
-void tomoEx0Unlock(void) { if (!server.num_workers) pthread_mutex_unlock(&ex0_db_lock); }
-
 int processCommand(client *c) {
 
     if (!scriptIsTimedout()) {
@@ -4944,11 +4921,7 @@ int processCommand(client *c) {
      * condition, to avoid mixing the propagation of scripts with the
      * propagation of DELs due to eviction. */
     if (server.maxmemory && !isInsideYieldingLongCommand()) {
-        /* ee451 (BUGFIX ex=0): maxmemory is boot-rejected when sharded, so evictions only ever
-         * run with num_workers==0 — the eviction pool + db deletes need the execution lock. */
-        tomoEx0Lock();
         int out_of_memory = (performEvictions() == EVICT_FAIL);
-        tomoEx0Unlock();
 
         /* performEvictions may evict keys, so we need flush pending tracking
          * invalidation keys. If we don't do this, we may get an invalidation
@@ -5180,11 +5153,9 @@ int processCommand(client *c) {
             return C_OK;
         }
         int flags = CMD_CALL_FULL;
-        tomoEx0Lock();   /* ee451 (BUGFIX ex=0): serialize execution on shared server.db */
         call(c, flags);
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
-        tomoEx0Unlock();
         return C_OK;
     }
 
@@ -5225,18 +5196,7 @@ int processCommand(client *c) {
      * canDispatchToWorker pre-guards) made every hot op fall through ~25-40 cycles of
      * always-false tests. Two proc compares restore the v4 floor for the hot pair; every
      * other command takes the full (unchanged) classification below. */
-    /* ee451 (BUGFIX finding-B, ex=0): every worker-dispatch branch below (express, cross-shard,
-     * whitelist) must gate on server.num_workers > 0. With tomokv-ex-threads 0 (sharding OFF —
-     * reachable since the config overhaul made thread counts mandatory; the old EX_THREADS_NUM
-     * config had floor 1 so ex=0 could not exist) server.exThreads is a zero-byte zmalloc and no
-     * worker thread runs: an express/whitelist push wedged the client forever (queue never
-     * drained) while scribbling unowned heap, and a cross-shard dispatch (EXISTS/DEL/MGET...)
-     * segfaulted in the nw=0 coalesce (NULL sub deref). The routing byte is stamped statically
-     * at populateCommandTable time (before the config is known), so it must be ignored at
-     * runtime here. With num_workers==0 everything falls through to the inline path: call(fake)
-     * against fake->db == server.db — the decoy IS the only DB, i.e. upstream single-threaded
-     * semantics, which is the meaning of ex=0. */
-    if ((fake->cmd->tomo_route & TOMO_R_EXPRESS) && server.num_workers > 0) {   /* ee451 (v14): routing byte */
+    if (fake->cmd->tomo_route & TOMO_R_EXPRESS) {   /* ee451 (v14): routing byte */
         int ex_id = getWorkerForCommand(fake);
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
@@ -5244,8 +5204,7 @@ int processCommand(client *c) {
         replyWorking++;
         exQueuePush(&server.exThreads[ex_id].queues[iotid], fake);
     } else {
-    int cst = ((fake->cmd->tomo_route & TOMO_R_CROSS) && server.num_workers > 0)
-                  ? csCommandType(fake) : -1;   /* ee451 (BUGFIX ex=0): no workers -> inline */
+    int cst = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csCommandType(fake) : -1;
     if (cst >= 0) {
         /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
@@ -5276,11 +5235,9 @@ int processCommand(client *c) {
 // fprintf(stderr, "inline [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
-        tomoEx0Lock();   /* ee451 (BUGFIX ex=0): serialize execution on shared server.db */
         call(fake, flags);
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
-        tomoEx0Unlock();
         /* Signal completion: set our bit in parent's ready mask. Release
          * order ensures the reply-buffer writes from call() are visible
          * to the drain thread when it acquire-loads the mask. */
@@ -5320,10 +5277,6 @@ int processCommand(client *c) {
  * When in doubt leave a command off — it will run inline on the IO
  * thread via the else branch in processCommand. */
 int canDispatchToWorker(client *c) {
-    /* ee451 (BUGFIX finding-B, ex=0): with tomokv-ex-threads 0 there are no worker threads and
-     * no shard DBs — nothing may ever be dispatched. Gate here (not only at the call site) so
-     * every present and future caller inherits the invariant. */
-    if (server.num_workers <= 0) return 0;
     redisCommandProc *p = c->cmd->proc;
 
     /* DEL is variadic-key; only the single-key form (argc == 2) is safe
