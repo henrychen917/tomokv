@@ -1722,6 +1722,10 @@ typedef struct client {
     size_t bufpos;
     size_t buf_usable_size; /* Usable size of buffer. */
     char *buf;
+#ifdef HAVE_LIBURING
+    int zc_bufslot;      /* ee451 (U3): registered send-buffer pool slot backing c->buf, or -1
+                          * (plain heap). Set by the ZC detach-swap; owner-thread-only field. */
+#endif
     uint8_t buf_encoded; /* True if c->buf content is encoded (e.g. for copy avoidance) */
     payloadHeader *last_header; /* Pointer to the last header in a buffer when using copy avoidance */
 #ifdef LOG_REQ_RES
@@ -2950,6 +2954,7 @@ struct redisServer {
     int io_uring_zc;           /* v12-H: io_uring ZERO-COPY SEND (IORING_OP_SEND_ZC) for mid-size static-buf replies. requires io_uring_net. default off. */
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int uring_bufring;         /* ee451 (U2): multishot-recv provided-buffer ring size. 0=auto (512); N rounded up to pow2, clamped [64,65536]. */
+    int uring_zc_min;          /* ee451 (U3): min reply bytes for zero-copy send (below: plain send's copy beats ZC's notif+bookkeeping). default 1024. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
@@ -5003,6 +5008,9 @@ void *exThreadMain(void *arg);
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
 void iouRecvArm(client *c);                       /* arm multishot recv for a freshly-bound IO-thread client */
 void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (teardown, under IO-thread pause) */
+/* ee451 (U3): zero-copy send registered-pool buffer lifecycle (detach-on-submit design). */
+void iouZcFreeClientBuf(client *c);               /* freeClient's buf teardown: pool slot vs heap */
+void iouZcOnClientUnbind(client *c);              /* migration off an IO thread (under pause): de-slot c->buf */
 #endif
 void initExThreads(void);
 void handleWorkerReplies(void);

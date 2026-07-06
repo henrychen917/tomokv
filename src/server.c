@@ -959,6 +959,16 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
     if(!server.reply_buffer_resizing_enabled)
         return 0;
 
+#ifdef HAVE_LIBURING
+    /* ee451 (U3): never realloc a c->buf that lives in the io_uring registered send-buffer
+     * pool — the fixed-buffer registration is bound to that exact memory, and the pool recycles
+     * whole buffers (detach-on-submit swaps them out) so shrink management is moot for them.
+     * Owner-thread read: this cron runs on the thread that owns the client (per-iotid clients
+     * lists), which is the only writer of zc_bufslot. */
+    if (c->zc_bufslot >= 0)
+        return 0;
+#endif
+
     /* Don't resize encoded buffers. When buf is encoded, we track the last
      * partially written payloadHeader pointer, so we can't
      * reallocate the buffer as it would invalidate this pointer. */
