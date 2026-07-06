@@ -5241,6 +5241,24 @@ int processCommand(client *c) {
     } else {
         /* Inline on IO thread — synchronous fake execution. */
         fake->cdb = 0;   /* ee451 (S5): inline path has no worker; CDB 0 */
+        /* ee451 (ORDER-1): mark the fake in-ring BEFORE call(), exactly like the
+         * express/whitelist branches above. Without CLIENT_EX_PENDING, addReply
+         * inside call() falls through _prepareClientToWrite()'s fake exemption
+         * and — for clients hosted on the main thread (running_tid ==
+         * IOTHREAD_MAIN_THREAD_ID) — enqueues the FAKE itself into
+         * clients_pending_write; handleClientsWithPendingWrites then writes
+         * fake->buf straight to the shared conn AHEAD of up to 31 older
+         * in-flight ring replies (reply reordering; repro: redis-cli --pipe
+         * undercount, its trailing inline ECHO sentinel jumped the SET replies).
+         * The drain (handleWorkerReplies) is the ONLY delivery path for ring
+         * fakes: it splices in ring order, blocking at the first incomplete
+         * slot. replyWorking++ pairs with the drain's was_ex_dispatched
+         * decrement like every dispatched fake; net zero before the sleep
+         * decision since the completion bit below is set synchronously. The
+         * flag is cleared where all ring fakes clear it: the drain (both the
+         * live-splice and the CLOSE_ASAP-teardown walk). */
+        fake->flags |= CLIENT_EX_PENDING;
+        replyWorking++;
         int flags = CMD_CALL_FULL;
 // fprintf(stderr, "inline [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
