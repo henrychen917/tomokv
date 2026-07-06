@@ -3431,7 +3431,7 @@ static int handleClientsWithPendingWritesUring(void) {
  * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every Tomo KV read
  * invariant intact. Perf is network-bound (≈neutral on loopback); this lands the infrastructure
  * for a real-NIC / EPYC evaluation. */
-#define IOU_RECV_NBUFS   512               /* provided buffers per IO thread (power of two) */
+#define IOU_RECV_NBUFS   512               /* AUTO provided-buffer count (tomokv-uring-bufring 0) */
 #define IOU_RECV_BUFSZ   PROTO_IOBUF_LEN   /* 16K each — matches the epoll read size */
 #define IOU_RECV_BGID    7                 /* buffer group id (distinct from the send ring) */
 #define IOU_RECV_DEPTH   2048
@@ -3445,9 +3445,10 @@ typedef struct iouRecvSlot { client *c; uint32_t gen; sds stash; } iouRecvSlot;
 typedef struct iouRecvState {
     struct io_uring ring;
     struct io_uring_buf_ring *br;
-    unsigned char *bufmem;     /* IOU_RECV_NBUFS * IOU_RECV_BUFSZ */
+    unsigned char *bufmem;     /* nbufs * IOU_RECV_BUFSZ */
     int efd;                   /* eventfd registered with the ring; read side lives in the el */
     int brmask;
+    int nbufs;                 /* provided-buffer count (tomokv-uring-bufring; 0=auto 512) */
     int state;                 /* 0 uninit, 1 ready, -1 failed */
     uint32_t gen;              /* monotonically increasing arm generation */
     iouRecvSlot *fdmap;        /* indexed by fd */
@@ -3469,6 +3470,12 @@ static void iouRecvPrepArm(iouRecvState *st, int fd) {
     io_uring_prep_recv_multishot(sqe, fd, NULL, 0, 0);
     sqe->flags |= IOSQE_BUFFER_SELECT;
     sqe->buf_group = IOU_RECV_BGID;
+    /* ee451 (U2): IORING_RECVSEND_POLL_FIRST — arm the poll wait directly instead of first
+     * attempting a (almost always empty: request/response pattern, the client is thinking)
+     * speculative receive. Saves the wasted recv attempt per arm/re-arm on RPC-shaped traffic
+     * (the VLDB'26 io_uring guidance for request/response workloads). Data already queued in
+     * the socket just completes the poll immediately — no semantic change. */
+    sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
     io_uring_sqe_set_data64(sqe, ((uint64_t)st->fdmap[fd].gen << 32) | (uint32_t)fd);
 }
 
@@ -3575,8 +3582,18 @@ static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rma
         } else { /* res < 0 */
             if (have_buf) iouRecvProvide(st, bid);
             if (res == -ENOBUFS) {
-                /* provided ring momentarily empty; multishot ended (no F_MORE). We just recycled
-                 * buffers above, so a re-arm below will find space. */
+                /* ee451 (U2, verified re-arm-after-exhaustion): provided ring momentarily empty;
+                 * the kernel ends the multishot (no F_MORE) so the generic !more re-arm below
+                 * re-issues it. Safe by construction: buffers are only held between CQE post and
+                 * this reap pass, and every buffered CQE processed above already recycled its
+                 * buffer via iouRecvProvide(), so by the time the re-arm SUBMITS (end of pass)
+                 * the ring has space again. Log once: recurring ENOBUFS means tomokv-uring-bufring
+                 * is undersized for the connection count / burst shape. */
+                static __thread int enobufs_logged = 0;
+                if (!enobufs_logged) { enobufs_logged = 1;
+                    serverLog(LL_NOTICE, "v12-G: provided buffer ring exhausted on IO thread %d "
+                              "(%d bufs) — recycled and re-armed; consider raising "
+                              "tomokv-uring-bufring", iotid, st->nbufs); }
             } else if (res == -ECANCELED || res == -EINTR) {
                 /* benign termination — re-arm if the client is still mapped */
             } else if (c) {
@@ -3606,31 +3623,56 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
     /* The recv ring is EVENTFD-driven (the kernel signals an eventfd on each CQE, which wakes the
      * IO thread's epoll loop) — it is NOT submission-heavy, so SQPOLL buys nothing here and in fact
      * regressed throughput AND corrupted multi-chunk (>16K) reads in testing. So the recv ring is
-     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring. */
-    int rc = io_uring_queue_init(IOU_RECV_DEPTH, &st->ring, 0);
+     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring.
+     *
+     * ee451 (U1 note): the SEND ring's SINGLE_ISSUER|DEFER_TASKRUN hygiene is deliberately NOT
+     * applied here. iouRecvDisarm() must submit the multishot ASYNC_CANCEL from the MAIN thread
+     * during the pauseIOThread window on client migration (unbind/fetch) — the W6-U2 input-loss
+     * fix. SINGLE_ISSUER rings reject any ring op from a non-submitter task (probed on 6.17:
+     * cross-task submit AND IORING_REGISTER_SYNC_CANCEL both fail -EINVAL on a SI|DTR ring), and
+     * a cancel deferred to the owner would reopen the exact byte-loss window W6-U2 closed. The
+     * pause protocol already serializes those cross-thread ops, so the plain ring is correct. */
+    struct io_uring_params rparams;
+    memset(&rparams, 0, sizeof(rparams));
+    /* ee451 (U2): runtime-sized provided-buffer ring. 0 = auto (512). Rounded up to the next
+     * power of two (buf_ring requirement), clamped to [64, 65536]. */
+    int nbufs = server.uring_bufring > 0 ? server.uring_bufring : IOU_RECV_NBUFS;
+    if (nbufs < 64) nbufs = 64;
+    if (nbufs > 65536) nbufs = 65536;
+    if (nbufs & (nbufs - 1)) {            /* round UP to power of two */
+        int p = 64;
+        while (p < nbufs) p <<= 1;
+        nbufs = p;
+    }
+    st->nbufs = nbufs;
+    /* CQ must absorb a burst of one CQE per provided buffer without overflow. */
+    rparams.flags = IORING_SETUP_CQSIZE;
+    rparams.cq_entries = (unsigned)(2 * nbufs > IOU_RECV_DEPTH ? 2 * nbufs : IOU_RECV_DEPTH);
+    int rc = io_uring_queue_init_params(IOU_RECV_DEPTH, &st->ring, &rparams);
+    if (rc < 0) rc = io_uring_queue_init(IOU_RECV_DEPTH, &st->ring, 0);
     if (rc < 0) { serverLog(LL_WARNING,"v12-G: recv ring queue_init failed on IO thread %d: %s", t, strerror(-rc)); st->state = -1; return -1; }
 
     int ret = 0;
-    st->br = io_uring_setup_buf_ring(&st->ring, IOU_RECV_NBUFS, IOU_RECV_BGID, 0, &ret);
+    st->br = io_uring_setup_buf_ring(&st->ring, st->nbufs, IOU_RECV_BGID, 0, &ret);
     if (!st->br) { serverLog(LL_WARNING,"v12-G: setup_buf_ring failed on IO thread %d: %s", t, strerror(ret<0?-ret:ret)); io_uring_queue_exit(&st->ring); st->state = -1; return -1; }
-    st->brmask = io_uring_buf_ring_mask(IOU_RECV_NBUFS);
-    st->bufmem = zmalloc((size_t)IOU_RECV_NBUFS * IOU_RECV_BUFSZ);
-    for (int i = 0; i < IOU_RECV_NBUFS; i++)
+    st->brmask = io_uring_buf_ring_mask(st->nbufs);
+    st->bufmem = zmalloc((size_t)st->nbufs * IOU_RECV_BUFSZ);
+    for (int i = 0; i < st->nbufs; i++)
         io_uring_buf_ring_add(st->br, st->bufmem + (size_t)i * IOU_RECV_BUFSZ, IOU_RECV_BUFSZ,
                               (unsigned short)i, st->brmask, i);
-    io_uring_buf_ring_advance(st->br, IOU_RECV_NBUFS);
+    io_uring_buf_ring_advance(st->br, st->nbufs);
 
     st->efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if (st->efd < 0 || io_uring_register_eventfd(&st->ring, st->efd) < 0) {
         serverLog(LL_WARNING,"v12-G: eventfd register failed on IO thread %d (efd=%d)", t, st->efd);
         if (st->efd >= 0) close(st->efd);
-        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        io_uring_free_buf_ring(&st->ring, st->br, st->nbufs, IOU_RECV_BGID);
         zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
     }
     if (aeCreateFileEvent(el, st->efd, AE_READABLE, iouRecvReap, NULL) != AE_OK) {
         serverLog(LL_WARNING,"v12-G: aeCreateFileEvent(efd) failed on IO thread %d", t);
         close(st->efd);
-        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        io_uring_free_buf_ring(&st->ring, st->br, st->nbufs, IOU_RECV_BGID);
         zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
     }
 
@@ -3638,8 +3680,11 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
     st->fdmap = zcalloc((size_t)st->fdcap * sizeof(iouRecvSlot));
     st->gen = 0;
     st->state = 1;
-    serverLog(LL_NOTICE, "v12-G: io_uring multishot-recv ring ready on IO thread %d (efd=%d, %d bufs)",
-              t, st->efd, IOU_RECV_NBUFS);
+    serverLog(LL_NOTICE, "v12-G: io_uring multishot-recv ring ready on IO thread %d (efd=%d, "
+              "%d provided bufs%s, POLL_FIRST, plain setup by design — see U1 note)",
+              t, st->efd, st->nbufs,
+              server.uring_bufring > 0 && server.uring_bufring != st->nbufs ?
+                  " [rounded up from tomokv-uring-bufring]" : "");
     return st->efd;
 }
 

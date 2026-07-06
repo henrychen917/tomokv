@@ -3206,6 +3206,9 @@ standardConfig static_configs[] = {
      * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed
      * here), so it silently no-op'd while implying worker-direct replies. */
     createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
+    /* ee451 (U2): provided-buffer ring size for multishot recv. 0 = auto (512); other values
+     * are rounded UP to a power of two and clamped to [64, 65536] at ring build. */
+    createIntConfig("tomokv-uring-bufring",          NULL, IMMUTABLE_CONFIG,  0, 65536,   server.uring_bufring, 0,    INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),

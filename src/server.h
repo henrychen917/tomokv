@@ -2949,6 +2949,7 @@ struct redisServer {
     int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
     int io_uring_zc;           /* v12-H: io_uring ZERO-COPY SEND (IORING_OP_SEND_ZC) for mid-size static-buf replies. requires io_uring_net. default off. */
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
+    int uring_bufring;         /* ee451 (U2): multishot-recv provided-buffer ring size. 0=auto (512); N rounded up to pow2, clamped [64,65536]. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
