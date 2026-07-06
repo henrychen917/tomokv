@@ -220,7 +220,7 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
 | `tomokv-io-threads` | **mandatory** ≥ 1 | Ingress threads (parse/dispatch/reply). No default — the io/ex split is the most consequential decision you make (see the performance section). |
-| `tomokv-ex-threads` | **mandatory** ≥ 0, **any count** | Execution workers (one shard each). `0` disables sharding. |
+| `tomokv-ex-threads` | **mandatory** ≥ 1, **any count** | Execution workers (one shard each). Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
 | `tomokv-pin-mode` | `0` float · `1` manual · `2` auto (default) | `0`: no pinning, the scheduler decides. `1`: pin to the exact cores in `tomokv-pin-cores`. `2`: arch‑aware auto — topology‑smart placement (shared‑L3/CCD grouping, NUMA‑local shard memory), respecting taskset/cgroup affinity. |
 | `tomokv-pin-cores` | e.g. `"0,2,4,6"` | Manual core list for pin‑mode 1, applied in thread‑pin order (io threads first, then workers), round‑robin if short. |
 | `tomokv-pipeline-depth` | `0` auto (default) · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32) — a deeper ring never hurts shallow clients, it only costs idle memory; the per‑connection demand‑grow/decay ring controller (grow on ring‑full stall, decay at empty‑ring checkpoints) is the queued follow‑up. |

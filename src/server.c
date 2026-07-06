@@ -3173,8 +3173,18 @@ void initServer(void) {
     if (server.io_threads < 0 || server.ex_threads < 0) {
         serverLog(LL_WARNING,
             "FATAL: tomokv-io-threads and tomokv-ex-threads must be set explicitly (no default). "
-            "Example: --tomokv-io-threads 4 --tomokv-ex-threads 4. "
-            "tomokv-ex-threads 0 disables sharding.");
+            "Example: --tomokv-io-threads 4 --tomokv-ex-threads 4.");
+        exit(1);
+    }
+    /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this
+     * server. It would run every command inline on the IO threads against the shared decoy
+     * server.db — a different execution model with its own concurrency machinery (a global
+     * execution mutex serializing call() + every main-thread db walker) that duplicates what
+     * upstream Redis io-threads already does, minus the maturity. Reject it at boot. */
+    if (server.ex_threads == 0) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-ex-threads must be >= 1 (sharding-off mode is not supported; "
+            "use upstream Redis for a single-executor deployment).");
         exit(1);
     }
     /* ee451 (v14): 0 = auto for the ring depths. Auto currently resolves to the tuned defaults
@@ -3320,7 +3330,7 @@ void initServer(void) {
             serverLog(LL_WARNING,
                 "FATAL: '%s' is not supported with tomokv sharding (tomokv-ex-threads=%d): the real "
                 "dataset lives in per-worker shard DBs that this subsystem does not see, so it would "
-                "silently lose or fail to manage that data. Disable it or run with tomokv-ex-threads=0.",
+                "silently lose or fail to manage that data. Disable it (use upstream Redis if you need it).",
                 bad, server.num_workers);
             exit(1);
         }
@@ -5122,8 +5132,8 @@ int processCommand(client *c) {
     {
         rejectCommandFormat(c, "%s is not supported with tomokv sharding "
             "(tomokv-ex-threads=%d): transactions would execute against the empty "
-            "decoy DB and their writes be silently lost; run with tomokv-ex-threads 0 "
-            "to use MULTI/EXEC/WATCH", c->cmd->fullname, server.num_workers);
+            "decoy DB and their writes be silently lost; use upstream Redis if you "
+            "need MULTI/EXEC/WATCH", c->cmd->fullname, server.num_workers);
         return C_OK;
     }
 
