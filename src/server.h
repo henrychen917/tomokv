@@ -5207,8 +5207,6 @@ void initExThreads(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
-void tomoEx0Lock(void);    /* ee451 (BUGFIX ex=0): global execution lock, engaged ONLY when */
-void tomoEx0Unlock(void);  /* num_workers==0 (sharding off) — serializes call() + db crons  */
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
