@@ -257,10 +257,19 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 
 ### Kernel / io_uring (experimental, default off)
 
-`tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`, `tomokv-worker-direct-send`,
+`tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`,
 `tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all
 immutable booleans, all default off. Loopback‑neutral in our measurements; they exist for real‑NIC
-evaluation.
+evaluation. The rings are built in the "fully exploited" shape (`IORING_SETUP_SINGLE_ISSUER |
+DEFER_TASKRUN` with plain‑ring fallback probing, registered ring fd, one batched submit per flush
+pass); multishot recv arms with `IORING_RECVSEND_POLL_FIRST`; zero‑copy send detaches the reply
+buffer on submit (registered‑buffer pool, `SEND_ZC[_FIXED]`) and reaps `F_NOTIF` completions
+asynchronously on later passes.
+
+| knob | values | meaning |
+|---|---|---|
+| `tomokv-uring-bufring` | `0` auto (512) · N (default 0) | Provided‑buffer ring size per IO thread for multishot recv; rounded up to a power of two, clamped to [64, 65536]. Boot log reports the effective size; an `ENOBUFS ... re-armed` notice means raise it. |
+| `tomokv-uring-zc-min` | N bytes (default 1024) | Minimum reply size for zero‑copy send — below it a copying send beats ZC's notif CQE + bookkeeping (same ~1 KiB machine property as `tomokv-zerocopy-min-value`). Modifiable at runtime. |
 
 ## Building & running
 
