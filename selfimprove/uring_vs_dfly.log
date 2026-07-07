@@ -1,0 +1,21 @@
+[05:13:30] === ROUND 1 ===
+[05:14:44]   dur_uring r1 done
+[05:15:56]   dur_epoll r1 done
+[05:17:08]   dfly_uring r1 done
+[05:18:22]   dfly_epoll r1 done
+[05:18:22] === ROUND 2 ===
+[05:19:35]   dur_uring r2 done
+[05:20:50]   dur_epoll r2 done
+[05:22:03]   dfly_uring r2 done
+[05:23:16]   dfly_epoll r2 done
+[05:23:16] === ROUND 3 ===
+[05:24:32]   dur_uring r3 done
+[05:25:47]   dur_epoll r3 done
+[05:27:01]   dfly_uring r3 done
+[05:28:15]   dfly_epoll r3 done
+[05:28:17] === MEDIANS ===
+[05:28:17] dur_uring  GET32=7.567  MIX32=6.689  GET512=2.499  GET4k=1.195
+[05:28:17] dur_epoll  GET32=7.996  MIX32=6.971  GET512=2.580  GET4k=1.272
+[05:28:17] dfly_uring  GET32=5.771  MIX32=5.453  GET512=0.823  GET4k=0.608
+[05:28:17] dfly_epoll  GET32=5.464  MIX32=5.104  GET512=1.029  GET4k=0.772
+URING_VS_DFLY_DONE
