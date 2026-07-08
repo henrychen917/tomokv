@@ -163,6 +163,50 @@ Tomo exposes. (hot‑key = Gaussian‑concentrated GETs; FB‑ETC = a Facebook�
 Gaussian keys, small‑skewed value sizes. Dragonfly's low ≥ 256 B pipelined‑GET numbers are a known
 loopback reply‑path artifact — its 32 B GET and FB‑ETC results are representative.)
 
+### Versus Garnet and Valkey — including the non‑pipelined (P1) regime
+
+Two more multi‑threaded engines target this exact workload: **Garnet** (Microsoft's shared‑store, epoch‑protected
+engine) and **Valkey** (the Linux‑Foundation Redis fork with async io‑threads). Same box, same harness, 8 cores
+each, Tomo at balanced `io4ex4` (**M ops/s**):
+
+| Engine | GET 32 B **P1** *(no pipelining)* | GET 32 B P32 | GET 512 B | GET 4 KB |
+| :--- | :--- | :--- | :--- | :--- |
+| Tomo `io4ex4` | 0.60 | 7.90 | 2.58 | **1.24** |
+| Dragonfly | 0.80 | 5.77 | 0.82 | 0.61 |
+| **Garnet** | 0.68 | **9.92** | **4.11** | 0.84 |
+| Valkey | **0.80** | 3.30 | 3.12 | 0.89 |
+
+Honest read: **Garnet is the fastest engine here on pipelined small/mid‑value GET.** Its no‑hop shared‑store
+design (the network thread executes the store op *inline*, made safe by epoch reclamation instead of sharding),
+plus AMAC batched prefetch and a serialize‑into‑the‑send‑buffer reply path, beat everyone on 32 B–512 B pipelined
+reads. **Tomo leads at 4 KB** — large values, where the ingress/execution hop amortizes and the zero‑copy send
+path wins — and beats Dragonfly on every cell. At **P1 (no pipelining)** Tomo is hop‑bound and trails: a single
+request has nothing to amortize the io→ex hop against. The dial mitigates this (ingress‑heavy splits do better at
+P1) but does not erase it — and the tunability caveat still applies: fixing Tomo at `io4ex4` understates it, since
+per‑cell its best split is higher (`io6ex2` reaches 3.44 at 512 B, near Garnet; `io5ex3` ~8.1 at 32 B). No
+competitor retunes its topology to the workload.
+
+**Hot keys — where the decoupled pipeline pays off structurally.** A single hammered key (**M ops/s**):
+
+| Engine | hot GET (1 key) | hot SET (1 key) |
+| :--- | :--- | :--- |
+| Tomo `io4ex4` | 8.40 | 5.52 |
+| Dragonfly | 2.82 | 1.89 |
+| Garnet | 10.88 | 6.20 |
+| Valkey | 4.07 | 2.51 |
+
+**Tomo does *not* collapse on a hot key; Dragonfly does** (2.82/1.89 — its shard‑per‑thread model pins all of a hot
+key's parse + execute + reply work onto one fiber). Tomo's ingress threads absorb the network cost in parallel
+while the single worker that owns the key does only the cheap L1‑resident in‑place op. Garnet's shared store scales
+hot reads best of all. (Dragonfly recovers with ≥ 16 hot keys, confirming the 1‑key figure is shard serialization.)
+
+**The trade Garnet makes for that throughput.** It is a managed (.NET) runtime. Under a sustained high‑load soak its
+*median* latency is actually better than Tomo's (0.58 vs 0.73 ms), but its *far tail* is heavier — a 72 ms max vs
+Tomo's 16 ms, the signature of a GC / JIT pause a C engine never incurs. It is also a Redis *subset* (no module/Lua
+compatibility) and carries the .NET runtime's memory and deployment footprint. The response is to adopt Garnet's
+*mechanisms* (batched prefetch, an open‑addressing table, serialize‑into‑send) inside Tomo's C, no‑GC, tunable
+engine — in progress on a dev branch.
+
 ### Honest scope
 
 All numbers are single‑node **loopback on one CCD**. The de‑contention machinery and the worker‑heavy end
@@ -187,8 +231,10 @@ into a few families:
   spills to DRAM. Hash‑carry computes each key's hash once and reuses it through dispatch and lookup.
 - **Dispatch & reply de‑contention.** Staged batch‑push with **eager per‑batch publish** (keeps cross‑CCD
   store‑batching without starving idle workers), per‑parent reply‑signal coalescing, a multi‑bus CDB to
-  spread reply signaling across cache lines, batched mask clears, and cache‑line‑isolated per‑thread
-  counters (dirty/stats) to kill false sharing.
+  spread reply signaling across cache lines, batched mask clears, cache‑line‑isolated per‑thread
+  counters (dirty/stats) to kill false sharing, and an **adaptive reply‑drain spin** — a short,
+  self‑tuning busy‑wait on the ingress reply path that removes the non‑pipelined (P1) latency floor
+  (+2.6 % P1 on the 2‑stage edition; +7.3 % on 3‑stage).
 - **Zero‑copy & large values.** Value objects can be forwarded to the ingress thread without a copy above a
   size threshold, with ownership returned to the owning worker via a free‑back ring so refcounts are only
   ever touched by the shard's owner.
