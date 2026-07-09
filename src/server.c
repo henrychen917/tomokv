@@ -1968,6 +1968,29 @@ static inline void markStalled(client *c) {
 #endif
 }
 
+/* ee451 (3s-wbtail-fix): back-pressured worker dispatch. exQueuePush stages a fake into the
+ * owning worker's SPSC queue and returns -1 when that queue is full. The hot dispatch sites used
+ * to IGNORE that failure while still advancing c->dispatchid -> the dropped fake consumed a pipeline
+ * ring slot the worker never ran, so its reply-ready bit was never set, flushid could never advance
+ * past it, the ring wedged full, and the client stalled forever with its tail replies undelivered
+ * (the single-hot-key P32 memtier end-of-run drain hang: rc=137, no Totals). A single hot key funnels
+ * every connection to ONE worker whose per-ifid queue (ex_queue_size) is smaller than
+ * clients*pipeline_ring_depth, so it overflows. Fix: on full, publish the staged tail so the worker
+ * can drain, spin (bounded by the worker's pop rate — a separate thread that never waits on this IO
+ * thread), then retry; this is exact back-pressure, no fake is ever lost. Mirrors csPushSpin. The
+ * fast path (queue not full) is unchanged: one stage, batched publish at flushExQueues (#E1/beforeSleep). */
+static inline void exDispatchPush(int ex_id, client *fake) {
+    exQueue *q = &server.exThreads[ex_id].queues[ifidx];
+    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
+    int spins = 0;
+    do {
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
+        exPauseCpu();
+        if ((++spins & 4095) == 0) sched_yield();
+    } while (exQueuePush(q, fake) != 0);
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+}
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -5337,7 +5360,7 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        exQueuePush(&server.exThreads[ex_id].queues[ifidx], fake);
+        exDispatchPush(ex_id, fake);
     } else {
     int cst = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csCommandType(fake) : -1;
     if (cst >= 0) {
@@ -5362,7 +5385,7 @@ int processCommand(client *c) {
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
-        exQueuePush(&server.exThreads[ex_id].queues[ifidx], fake);
+        exDispatchPush(ex_id, fake);
     } else {
         /* Inline on IO thread — synchronous fake execution. */
         fake->cdb = 0;   /* ee451 (S5): inline path has no worker; CDB 0 */
