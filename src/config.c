@@ -2514,6 +2514,14 @@ static int updateIODrainSpin(const char **err) {
     return 1;
 }
 
+/* ee451 (E): mirror tomokv-io-drain-userpoll into ae.c's plain global (same redis-cli
+ * link reason as updateIODrainSpin — ae.o cannot read the server struct directly). */
+static int updateIODrainUserpoll(const char **err) {
+    UNUSED(err);
+    aeIODrainUserpoll = server.io_drain_userpoll;
+    return 1;
+}
+
 static int updateHZ(const char **err) {
     UNUSED(err);
     /* Hz is more a hint from the user, so we accept values out of range
@@ -3325,6 +3333,9 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
     createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
+    createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_userpoll, 0, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* E: bounded userspace reply-drain re-check passes (pause + re-drain, NO epoll syscall) while replies are in flight, before aeApiPoll; replaces poll-for-a-memory-flag syscalls at low pipeline; 0 = off */
+    createIntConfig("tomokv-io-send-min-fill", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_send_min_fill, 0, INTEGER_CONFIG, NULL, NULL), /* #1: defer the worker-reply socket write until the ready-and-retired prefix reaches N replies OR the ring drains — coalesces thin high-pipeline sends; 0 = off (send every drain pass) */
+    createIntConfig("tomokv-pf-batch-min", NULL, MODIFIABLE_CONFIG, 0, 16, server.pf_batch_min, 0, INTEGER_CONFIG, NULL, NULL), /* B2: skip exPrefetchBatch when the popped worker batch has < N ops (no MLP at n=1, pays setup) — execute directly, hash recomputed on lookup; 0 = off (always prefetch) */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
     createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),

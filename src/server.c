@@ -2093,19 +2093,41 @@ void handleWorkerReplies(void) {
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
-            /* v12-J: route the worker-reply flush through the io_uring batched SEND ring instead
-             * of a direct per-client writeToClient. The IO thread STAYS the sole fd-writer (no new
-             * lifetime surface — unlike v12-K); we just defer the spliced reply onto this IO
-             * thread's clients_pending_write list, which handleClientsWithPendingWrites() (called
-             * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
-             * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
-             * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
-            if (server.io_uring_reply_send)
-                putClientInPendingWriteQueue(real);
-            else
-                /* writeToClient returning C_ERR means the conn errored; it calls
-                 * freeClientAsync(real) internally. We just stop touching real. */
-                (void)writeToClient(real, 0);
+            /* ee451 (#1, tomokv-io-send-min-fill): depth-aware send batching. Baseline sends
+             * the ready prefix EVERY drain pass; at high pipeline depth replies retire a few
+             * at a time across passes, so that is many thin send()s. When send-min-fill>0 and
+             * the ring is NOT yet drained, defer the write until the accumulated-but-unsent
+             * prefix reaches send-min-fill replies — one big send() instead of many thin ones.
+             * ORDER-SAFE: the splice loop already appended the fakes in flushid order onto
+             * real's output buffer; we only send that same in-order data LATER. The ring-drain
+             * condition (flushid==dispatchid) is the remaining-depth cap: it fires as soon as
+             * nothing more is in flight, so a low-pipeline burst (P1-P4) still flushes within
+             * `depth` passes ~ immediately (behavior effectively unchanged, aggressive), and a
+             * slow-worker prefix can never be held indefinitely (all fakes eventually retire,
+             * flushid reaches dispatchid, and we flush). unsent wraps with flushid. 0 = off. */
+            int do_send = 1;
+            if (server.io_send_min_fill > 0) {
+                unsigned int unsent = real->flushid - real->ex_last_sent_flushid;
+                int ring_drained = (real->flushid == real->dispatchid);
+                if (!ring_drained && unsent < (unsigned int)server.io_send_min_fill)
+                    do_send = 0;   /* accumulate — defer the socket write */
+            }
+            if (do_send) {
+                real->ex_last_sent_flushid = real->flushid;
+                /* v12-J: route the worker-reply flush through the io_uring batched SEND ring instead
+                 * of a direct per-client writeToClient. The IO thread STAYS the sole fd-writer (no new
+                 * lifetime surface — unlike v12-K); we just defer the spliced reply onto this IO
+                 * thread's clients_pending_write list, which handleClientsWithPendingWrites() (called
+                 * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
+                 * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
+                 * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
+                if (server.io_uring_reply_send)
+                    putClientInPendingWriteQueue(real);
+                else
+                    /* writeToClient returning C_ERR means the conn errored; it calls
+                     * freeClientAsync(real) internally. We just stop touching real. */
+                    (void)writeToClient(real, 0);
+            }
         }
 
         /* Ring fully drained and all ready bits consumed — drop off the
@@ -3195,6 +3217,7 @@ void initServer(void) {
     /* ee451 (AE-1): boot-sync the adaptive-drain budget into ae.c's plain global — config
      * apply fns do not run during loadServerConfig, only on CONFIG SET. */
     aeIODrainSpin = server.io_drain_spin;
+    aeIODrainUserpoll = server.io_drain_userpoll;   /* ee451 (E): boot-sync into ae.c's plain global */
 
     /* Derive runtime constants. pipeline_ring_depth and ex_queue_size are validated as powers
      * of two (masks below); ex_threads may be ANY count — worker routing goes through the
@@ -10371,7 +10394,21 @@ void *exThreadMain(void *arg) {
             any = 1;
 
             /* Warm the cache before executing the batch. */
-            exPrefetchBatch(batch, n);
+            /* ee451 (B2, tomokv-pf-batch-min): skip the 4-pass prefetch pipeline for tiny
+             * batches. At n=1 the software-pipelined prefetch gives no memory-level
+             * parallelism (nothing to overlap) but still pays its setup (dict resolve, hash
+             * compute, arrays). Execute directly instead; exExecFake recomputes the hash on
+             * lookup when no hint is armed. IMPORTANT: we must CLEAR prefetch_key_hash_valid
+             * on the skipped fakes — dictGetHash matches the armed hint by key POINTER, and
+             * this flag is otherwise only ever cleared inside exPrefetchBatch, so a reused
+             * fake could carry a stale valid=1 from a previous command and arm a WRONG hash
+             * for the current key (wrong-bucket miss). Clearing == exPrefetchBatch's own
+             * pass-start reset, so behavior matches "hint absent". 0 = off (always prefetch). */
+            if (server.pf_batch_min > 0 && n < server.pf_batch_min) {
+                for (int pj = 0; pj < n; pj++) batch[pj]->prefetch_key_hash_valid = 0;
+            } else {
+                exPrefetchBatch(batch, n);
+            }
 
             worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
 

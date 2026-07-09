@@ -1497,6 +1497,12 @@ typedef struct client {
     client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
+    /* ee451 (#1, tomokv-io-send-min-fill): real client only — flushid value at the last
+     * socket write. unsent = flushid - ex_last_sent_flushid = replies spliced onto the
+     * output buffer but not yet sent. Used by handleWorkerReplies to defer thin sends at
+     * high pipeline depth. Wraps together with flushid (unsigned), so the subtraction is
+     * correct across wrap. 0 on fakes (unused). */
+    unsigned int ex_last_sent_flushid;
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
@@ -2927,6 +2933,20 @@ struct redisServer {
     int cfg_num_cdb;           /* #75: explicit bus count (tomokv-num-cdb); 0=auto. IMMUTABLE. */
     int io_drain_spin;         /* AE-1: tomokv-io-drain-spin; mirrored into ae.c's aeIODrainSpin
                                 * (boot sync in initServer + updateIODrainSpin on CONFIG SET). */
+    int io_drain_userpoll;     /* E: tomokv-io-drain-userpoll; mirrored into ae.c's aeIODrainUserpoll
+                                * (boot sync in initServer + updateIODrainUserpoll on CONFIG SET).
+                                * Bounded userspace re-check passes (no epoll syscall) while worker
+                                * replies are in flight, before aeApiPoll. 0 = off. */
+    int io_send_min_fill;      /* #1: tomokv-io-send-min-fill; depth-aware send batching in
+                                * handleWorkerReplies. When >0 and worker replies are still in flight,
+                                * defer the socket write until the ready-and-retired prefix reaches this
+                                * many replies OR the ring drains (flushid==dispatchid) — one big send()
+                                * instead of many thin ones at high pipeline depth. 0 = off (send every
+                                * pass, byte-identical). Read directly (server.o). */
+    int pf_batch_min;          /* B2: tomokv-pf-batch-min; skip exPrefetchBatch when the popped worker
+                                * batch has < this many ops (the 4-pass MLP pipeline gives no benefit at
+                                * n=1 but pays setup; exExecFake recomputes the hash when the hint is
+                                * cleared). 0 = off (always prefetch). Read directly (server.o). */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a

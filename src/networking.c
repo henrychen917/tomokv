@@ -391,6 +391,7 @@ client *createClient(connection *conn) {
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
     c->flushid = 0;
+    c->ex_last_sent_flushid = 0;   /* ee451 (#1): depth-aware send-fill cursor */
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed

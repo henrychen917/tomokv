@@ -42,6 +42,29 @@ __thread int replyWorking = 0;
  * on CONFIG SET. 0 = off (always the 100us window, the old behavior). */
 int aeIODrainSpin = 0;
 
+/* ee451 (E, tomokv-io-drain-userpoll): userspace CDB drain-spin budget. When worker
+ * replies are still in flight, the reply-wait would otherwise spend an epoll_pwait2
+ * SYSCALL per pass polling for a MEMORY flag (the CDB reply-ready bit). This is the
+ * bound on how many userspace re-check passes (pause + re-run the reply drain, no
+ * syscall) aeProcessEventsIO does BEFORE it falls through to aeApiPoll. Plain int for
+ * the same redis-cli link reason as aeIODrainSpin; synced from server.io_drain_userpoll
+ * at boot and on CONFIG SET. 0 = off (byte-identical to baseline: straight to aeApiPoll). */
+int aeIODrainUserpoll = 0;
+
+/* ee451 (E): CPU pause hint for the userspace drain-spin (mirrors server.c's exPauseCpu,
+ * which is not visible in ae.c). On x86 emits PAUSE (yields the pipeline to the SMT sibling
+ * and does not burn memory bandwidth); on ARM YIELD; elsewhere a compiler barrier so the
+ * spin isn't optimized away. */
+static inline void aePauseCpu(void) {
+#if defined(__i386__) || defined(__x86_64__)
+    __builtin_ia32_pause();
+#elif defined(__aarch64__) || defined(__arm__)
+    __asm__ __volatile__("yield" ::: "memory");
+#else
+    __asm__ __volatile__("" ::: "memory");
+#endif
+}
+
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT
@@ -487,6 +510,26 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
 
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
+
+    /* ee451 (E, tomokv-io-drain-userpoll): userspace CDB drain-spin. If worker replies
+     * are still in flight after the beforesleep drain above, the AE-1 policy below would
+     * poll for their completion with an epoll_pwait2 SYSCALL (tv=0 passes). But a reply
+     * completion is signaled by a MEMORY flag (the CDB reply-ready bit), so it can be
+     * observed with a userspace re-check instead. Burn up to aeIODrainUserpoll bounded
+     * passes of: pause a little, then re-run the reply drain (beforesleep, which drains +
+     * sends ready CDB replies with NO epoll syscall). Break the instant replyWorking drops
+     * (a reply retired -> progress -> let epoll pick up the next inbound command). This
+     * changes NO drain logic (it reuses beforesleep); it only replaces polling syscalls
+     * with memory re-checks. Fair: the window is bounded and we always fall through to
+     * aeApiPoll below. 0 = off (byte-identical: straight to the AE-1 policy + aeApiPoll). */
+    if (replyWorking > 0 && aeIODrainUserpoll > 0 && eventLoop->beforesleep != NULL) {
+        int rw_entry = replyWorking;
+        for (int u = 0; u < aeIODrainUserpoll; u++) {
+            for (int p = 0; p < 16; p++) aePauseCpu();
+            eventLoop->beforesleep(eventLoop);
+            if (replyWorking < rw_entry) break;   /* progress -> go epoll for the next inbound */
+        }
+    }
     /* ee451 (AE-1): sleep policy. replyWorking==0 -> block until an fd event (tvp NULL).
      * replyWorking>0 -> replies are in flight on workers: burn up to aeIODrainSpin
      * ZERO-timeout passes (each still services fd events, and beforesleep above drains
