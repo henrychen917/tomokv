@@ -851,29 +851,31 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
         return;
     }
 
-    size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
-    if (len > reply_len) {
-        /* 2s-auto D1: fake buffer overflowed — under auto mode, grow (power-of-2, capped) for the
-         * NEXT dispatch. Truncation-proof: we only realloc when the buffer is completely empty
-         * (bufpos==0 && no reply list) AND the new size fits this reply — otherwise we just record
-         * the spill pressure and spill to the list as before (no partial reply is ever discarded). */
-        if (c->isFake && server.fake_buf_mode == -1) {
-            c->fake_buf_spill_ct++;
-            if (c->bufpos == 0 && listLength(c->reply) == 0 &&
-                c->buf_usable_size < FAKE_BUF_MAX_BYTES) {
-                size_t ns = c->buf_usable_size * 2;
-                if (ns > FAKE_BUF_MAX_BYTES) ns = FAKE_BUF_MAX_BYTES;
-                if (ns >= len) {
-                    zfree(c->buf);
-                    c->buf = zmalloc_usable(ns, &c->buf_usable_size);
-                    /* Retry the whole payload into the freshly grown buffer. */
-                    reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
-                }
-            }
+    /* 2s-auto D1: prospective grow of the fake reply buffer (auto mode) BEFORE the payload write,
+     * so it self-sizes to fit the reply instead of spilling to the list. Truncation-proof: we grow
+     * only while still building into buf (reply list empty), and we PRESERVE the already-written
+     * bytes (memcpy the current bufpos — the bulk length prefix was written by a prior call, so
+     * bufpos is usually > 0 at the value write, which is exactly why the old post-write guard was
+     * unreachable). If even the capped (FAKE_BUF_MAX_BYTES) buffer can't hold the value, the
+     * remainder spills to the list below exactly as before — no byte is ever discarded. */
+    if (c->isFake && server.fake_buf_mode == -1 && listLength(c->reply) == 0 &&
+        (size_t)c->bufpos + len > c->buf_usable_size && c->buf_usable_size < FAKE_BUF_MAX_BYTES) {
+        size_t need = (size_t)c->bufpos + len;
+        size_t ns = c->buf_usable_size ? c->buf_usable_size : (size_t)FAKE_BUF_START_BYTES;
+        while (ns < need && ns < FAKE_BUF_MAX_BYTES) ns <<= 1;
+        if (ns > FAKE_BUF_MAX_BYTES) ns = FAKE_BUF_MAX_BYTES;
+        if (ns > c->buf_usable_size) {
+            char *nb = zmalloc_usable(ns, &c->buf_usable_size);
+            if (c->bufpos > 0) memcpy(nb, c->buf, (size_t)c->bufpos);
+            zfree(c->buf);
+            c->buf = nb;
+            c->fake_buf_spill_ct++;   /* growth-pressure signal for the controller */
         }
-        if (len > reply_len)
-            _addReplyPayloadToList(c, c->reply, s + reply_len, len - reply_len, PLAIN_REPLY);
     }
+
+    size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
+    if (len > reply_len)
+        _addReplyPayloadToList(c, c->reply, s + reply_len, len - reply_len, PLAIN_REPLY);
 }
 
 /* Check if the client's pending_ref_reply_node is currently linked in the list.
