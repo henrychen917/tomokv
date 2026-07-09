@@ -105,6 +105,9 @@ const char *replstateToString(int replstate);
 static int isStatefulCommandSlow(struct redisCommand *cmd);   /* v14: stamp-time compare-chain */
 static inline int isStatefulCommand(struct redisCommand *cmd);  /* v14: per-op flag test */
 static void moveExecutionState(client *real, client *fake);
+static void moveExecutionStateSlim(client *real, client *fake);  /* 2s-auto T3 express-slim */
+void fakeRingAutoTune(void);       /* 2s-auto T3 1Hz global express-slim EWMA (main thread) */
+void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-reset (owning thread) */
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
 static void dispatchCrossShard(client *head, int ct);
@@ -1173,6 +1176,11 @@ int clientsCronRunClient(client *c) {
 
     if (clientsCronTrackExpansiveClients(c)) return 1;
 
+    /* 2s-auto D1/D3: per-connection fake-ring depth decay + buf window reset. Runs here
+     * (~once/sec per client, on the client's owning thread) so it never races the IO
+     * thread that owns the client's ring. */
+    fakeRingClientCron(c);
+
     /* Iterating all the clients in getMemoryOverheadData() is too slow and
      * in turn would make the INFO command too slow. So we perform this
      * computation incrementally and track the (not instantaneous but updated
@@ -1709,6 +1717,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
      * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
     run_with_period(1000) reshardAutoTune();
+    run_with_period(1000) fakeRingAutoTune();
 
     /* Clear the paused actions state if needed. */
     updatePausedActions();
@@ -2128,12 +2137,21 @@ void handleWorkerReplies(void) {
              * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
              * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
              * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
-            if (server.io_uring_reply_send)
+            if (server.io_uring_reply_send) {
                 putClientInPendingWriteQueue(real);
-            else
+            } else if (server.drain_tail_skip != 0) {   /* 2s-auto T2: -1/1 = auto */
+                /* writeToClient returning C_ERR means the conn errored; it calls
+                 * freeClientAsync(real) internally. We just stop touching real. If it
+                 * couldn't flush everything (short write / EAGAIN), enqueue for the
+                 * pending-write pass so the tail isn't dropped. */
+                (void)writeToClient(real, 0);
+                if (clientHasPendingReplies(real))
+                    putClientInPendingWriteQueue(real);
+            } else {                                     /* 0 = legacy: direct write only */
                 /* writeToClient returning C_ERR means the conn errored; it calls
                  * freeClientAsync(real) internally. We just stop touching real. */
                 (void)writeToClient(real, 0);
+            }
         }
 
         /* Ring fully drained and all ready bits consumed — drop off the
@@ -3223,6 +3241,7 @@ void initServer(void) {
     /* ee451 (AE-1): boot-sync the adaptive-drain budget into ae.c's plain global — config
      * apply fns do not run during loadServerConfig, only on CONFIG SET. */
     aeIODrainSpin = server.io_drain_spin;
+    aeIODrainUserpoll = server.io_drain_userpoll;   /* 2s-auto T1 */
 
     /* Derive runtime constants. pipeline_ring_depth and ex_queue_size are validated as powers
      * of two (masks below); ex_threads may be ANY count — worker routing goes through the
@@ -5210,8 +5229,31 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    client *fake = c->fakeClients[c->dispatchid & server.pipeline_ring_mask];
-    moveExecutionState(c, fake);
+    unsigned int fslot = c->dispatchid & server.pipeline_ring_mask;
+    /* 2s-auto D3: lazy-create the ring slot on first use (auto or fixed-N mode leaves
+     * unused slots NULL at createClient). fake_slot is stamped once and never changes. */
+    if (c->fakeClients[fslot] == NULL) {
+        c->fakeClients[fslot] = createFakeClient(c);
+        c->fakeClients[fslot]->fake_slot = fslot;
+        if (fslot + 1 > c->fake_ring_cur_depth) c->fake_ring_cur_depth = fslot + 1;
+    }
+    client *fake = c->fakeClients[fslot];
+    /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
+     * lookedcmd/realcmd/slot/reploff_next/read_error are unused by them. Gate reads c->cmd
+     * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
+     * fake->cmd POST-move — both resolve to the same command. */
+    int use_slim = 0;
+    if (server.express_slim != 0 && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+        if (server.express_slim == -1) {
+            static __thread int last_slim = 0;   /* Schmitt band [0.60,0.80] */
+            double thr = last_slim ? 0.60 : 0.80;
+            use_slim = last_slim = (server.express_hit_ewma > thr) ? 1 :
+                       (server.express_hit_ewma < 0.60 ? 0 : last_slim);
+        } else {
+            use_slim = (server.express_hit_ewma * 100.0) > (double)server.express_slim;
+        }
+    }
+    if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
@@ -6507,6 +6549,79 @@ static int      mig_ewma_primed = 0;
  * so it converges fully; a genuinely worse NEW imbalance resets and is handled immediately. */
 static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
 static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
+
+/* 2s-auto: shared dual-rate EWMA helper (mirrors reshardAutoTune alpha derivation). */
+static double ewmaAlpha2s(double rate, double ops_window) {
+    double a = rate / (4.0 * ops_window);
+    if (a < 0.05) a = 0.05;
+    if (a > 0.90) a = 0.90;
+    return a;
+}
+
+/* 2s-auto T3: GLOBAL express-slim hit-rate EWMA. Control plane only; runs 1Hz from serverCron
+ * on the MAIN thread. Touches NO client state — only per-command call counters and the
+ * per-worker ops_total (relaxed reads), so it is safe without any per-connection locking.
+ * (The per-connection D1/D3 work lives in fakeRingClientCron, driven per-client by clientsCron
+ * on each client's owning thread — server.clients is a PER-IO-THREAD array, not one global list,
+ * so a single main-thread walk here would both mistype and race the IO threads.) */
+void fakeRingAutoTune(void) {
+    /* express-slim hit-rate: fold GET+SET calls vs total worker ops (like reshardAutoTune). */
+    if (server.express_slim == -1 && server.exThreads && server.num_workers >= 1) {
+        static uint64_t es_last_hot = 0, es_last_tot = 0;
+        struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
+        if (g && s) {
+            uint64_t hot = (uint64_t)g->calls + (uint64_t)s->calls, tot = 0;
+            for (int w = 0; w < server.num_workers; w++) tot += server.exThreads[w].ops_total;
+            uint64_t dh = hot - es_last_hot, dt = tot - es_last_tot;
+            es_last_hot = hot; es_last_tot = tot;
+            if (dt > 0) {
+                double ratio = (double)dh / (double)dt; if (ratio > 1.0) ratio = 1.0;
+                double a = ewmaAlpha2s((double)dt, 100.0);
+                static int primed = 0;
+                server.express_hit_ewma = primed ? (a*ratio + (1.0-a)*server.express_hit_ewma) : ratio;
+                primed = 1;
+            }
+        }
+    }
+}
+
+/* 2s-auto D1/D3: per-connection fake-ring depth decay + fake-buf window reset. Called from
+ * clientsCronRunClient (~1Hz per client) on the client's OWNING thread (main-hosted clients on
+ * the main thread; IO-thread-hosted clients after CLIENT_IO_PENDING_CRON hands them back to the
+ * main thread). Single-writer w.r.t. the ring: depth shrink only frees slots >= the current
+ * dispatch gap and only when the ring is fully idle (inflight==0), so it never touches an
+ * in-flight fake. fake_slot / flushid / dispatchid are untouched. Value 0 (fixed/eager/legacy)
+ * skips both branches => exact v13-2s behavior. */
+void fakeRingClientCron(client *c) {
+    if (c->isFake || !c->conn) return;
+    if (server.fake_ring_depth_mode != -1 && server.fake_buf_mode != -1) return;
+    /* D3 depth decay: shrink toward EWMA high-water when the ring has been idle. */
+    if (server.fake_ring_depth_mode == -1) {
+        unsigned int inflight = c->dispatchid - c->flushid;
+        double a = 0.3;
+        c->fake_ring_hwm_ewma = a*(double)inflight + (1.0-a)*c->fake_ring_hwm_ewma;
+        unsigned int target = (unsigned int)(c->fake_ring_hwm_ewma * 1.25) + 1;
+        if (target < 1) target = 1;
+        if (target > (unsigned int)server.pipeline_ring_depth) target = (unsigned int)server.pipeline_ring_depth;
+        if (inflight == 0 && target < c->fake_ring_cur_depth) {
+            if (c->fake_ring_decay_skip > 0) { c->fake_ring_decay_skip--; }
+            else {
+                for (unsigned int slot = target; slot < c->fake_ring_cur_depth; slot++) {
+                    if (c->fakeClients[slot]) { freeFakeClient(c->fakeClients[slot]); c->fakeClients[slot] = NULL; }
+                }
+                c->fake_ring_cur_depth = target;
+                c->fake_ring_decay_skip = 2;
+            }
+        }
+    }
+    /* D1 buf width: grow is demand-pull at the spill site (networking.c); here we only reset
+     * the per-window pressure counters. */
+    if (server.fake_buf_mode == -1) {
+        c->fake_buf_spill_ct = 0;
+        c->fake_buf_ops = 0;
+    }
+}
+
 void reshardAutoTune(void) {
     /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
      * tick forever; every quantity is recomputed from the current signal — no calibration
@@ -9757,6 +9872,52 @@ static int isStatefulCommandSlow(struct redisCommand *cmd) {
 /* ee451 (v14): per-op hot-path check — one flag test instead of 19 proc compares. */
 static inline int isStatefulCommand(struct redisCommand *cmd) {
     return cmd && (cmd->tomo_route & TOMO_R_STATEFUL);
+}
+
+/* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
+ * Skips ONLY lookedcmd/realcmd/slot/reploff_next/read_error (unused by express commands —
+ * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
+ * moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd via
+ * fake->pending_cmds, so skipping it would leak/double-free. */
+static void moveExecutionStateSlim(client *real, client *fake) {
+    fake->argc     = real->argc;
+    fake->argv     = real->argv;
+    fake->argv_len = real->argv_len;
+    fake->cmd      = real->cmd;
+    fake->net_input_bytes_curr_cmd = real->net_input_bytes_curr_cmd;
+
+    /* pcmd MUST still move — commandProcessed(fake) frees it; skipping leaks/double-frees. */
+    pendingCommand *pcmd = popPendingCommandFromHead(&real->pending_cmds);
+    serverAssert(pcmd == real->current_pending_cmd);
+    fake->current_pending_cmd = pcmd;
+    addPendingCommand(&fake->pending_cmds, pcmd);
+    real->current_pending_cmd = NULL;
+    serverAssert(real->all_argv_len_sum >= pcmd->argv_len_sum);
+    real->all_argv_len_sum -= pcmd->argv_len_sum;
+    fake->all_argv_len_sum  = pcmd->argv_len_sum;
+
+    fake->resp          = real->resp;
+    fake->user          = real->user;
+    fake->authenticated = real->authenticated;
+    fake->conn          = real->conn;
+    fake->db            = real->db;
+    fake->flags = real->flags & (CLIENT_INTERNAL | CLIENT_ASKING |
+                                  CLIENT_READONLY | CLIENT_DENY_BLOCKING);
+    fake->bufpos      = 0;
+    fake->sentlen     = 0;
+    fake->reply_bytes = 0;
+    /* skipped (express-safe): lookedcmd, realcmd, reploff_next, read_error are unread by
+     * getCommand/setCommand's ->proc (the worker calls proc directly, NOT call()). slot IS
+     * touched by the worker prefetch (exPrefetchBatch: kvstoreGetDict(..., slot>0?slot:0)) and
+     * by getKeySlot's cache, so reset it to INVALID rather than leaving a stale value — cheap
+     * store, forces dict 0 selection (correct in the non-cluster sharding regime). */
+    fake->slot = -1;
+
+    real->argc     = 0;
+    real->argv     = NULL;
+    real->argv_len = 0;
+    real->cmd      = NULL;
+    real->net_input_bytes_curr_cmd = 0;
 }
 
 static void moveExecutionState(client *real, client *fake) {

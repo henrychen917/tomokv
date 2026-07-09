@@ -187,6 +187,8 @@ struct hdr_histogram;
 /* Protocol and I/O related defines */
 #define PROTO_IOBUF_LEN         (1024*16)  /* Generic I/O buffer size */
 #define PROTO_REPLY_CHUNK_BYTES (16*1024) /* 16k output buffer */
+#define FAKE_BUF_START_BYTES  (1024)    /* 2s-auto D1: auto-mode initial fake buf */
+#define FAKE_BUF_MAX_BYTES    (64*1024) /* 2s-auto D1: auto-mode cap */
 #define PROTO_INLINE_MAX_SIZE   (1024*64) /* Max size of inline reads */
 #define PROTO_MBULK_BIG_ARG     (1024*32)
 #define PROTO_RESIZE_THRESHOLD  (1024*32) /* Threshold for determining whether to resize query buffer */
@@ -1497,6 +1499,13 @@ typedef struct client {
     client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
+    /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
+    unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to pipeline_ring_depth */
+    unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
+    double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
+    double       fake_buf_ewma;         /* EWMA of fake buf_peak across flushes */
+    uint64_t     fake_buf_spill_ct;     /* spill events since last cron read */
+    uint64_t     fake_buf_ops;          /* fake flushes since last cron read */
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
@@ -2927,6 +2936,7 @@ struct redisServer {
     int cfg_num_cdb;           /* #75: explicit bus count (tomokv-num-cdb); 0=auto. IMMUTABLE. */
     int io_drain_spin;         /* AE-1: tomokv-io-drain-spin; mirrored into ae.c's aeIODrainSpin
                                 * (boot sync in initServer + updateIODrainSpin on CONFIG SET). */
+    int io_drain_userpoll;     /* 2s-auto T1: -1=auto, 0=syscall-only, N=fixed userpoll passes */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a
@@ -2959,6 +2969,11 @@ struct redisServer {
     int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
     int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */
     int reshard_chunk;         /* v14 dual-mode: 0=auto granule; N=explicit buckets */
+    int drain_tail_skip;       /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
+    int express_slim;          /* 2s-auto T3: -1=auto EWMA, 0=off, 1-100=fixed pct */
+    int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
+    int fake_buf_mode;         /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
+    double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1] */
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
     int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
