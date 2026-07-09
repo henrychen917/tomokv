@@ -180,11 +180,29 @@ Honest read: **Garnet is the fastest engine here on pipelined small/mid‑value 
 design (the network thread executes the store op *inline*, made safe by epoch reclamation instead of sharding),
 plus AMAC batched prefetch and a serialize‑into‑the‑send‑buffer reply path, beat everyone on 32 B–512 B pipelined
 reads. **Tomo leads at 4 KB** — large values, where the ingress/execution hop amortizes and the zero‑copy send
-path wins — and beats Dragonfly on every cell. At **P1 (no pipelining)** Tomo is hop‑bound and trails: a single
-request has nothing to amortize the io→ex hop against. The dial mitigates this (ingress‑heavy splits do better at
-P1) but does not erase it — and the tunability caveat still applies: fixing Tomo at `io4ex4` understates it, since
-per‑cell its best split is higher (`io6ex2` reaches 3.44 at 512 B, near Garnet; `io5ex3` ~8.1 at 32 B). No
-competitor retunes its topology to the workload.
+path wins — and beats Dragonfly on every cell. **At P1 the story is the dial.** At fixed `io4ex4` Tomo trails
+(0.60), because no‑pipe throughput is **io‑thread‑bound** — 512 connections' worth of `recv`/`send`/`epoll` land on
+the io side, and `io4ex4` under‑provisions it. Turn the dial toward ingress and it recovers, then overtakes:
+
+**The non‑pipelined (P1) regime — every result in one table.** GET 32 B, no pipelining, **M ops/s** (Tomo swept
+across the ingress/execution split, epoll vs io_uring; competitors at their 8‑thread config):
+
+| Config | P1 epoll | P1 io_uring |
+| :--- | :--- | :--- |
+| **Tomo `io6ex2`** | **0.82** | **0.84** |
+| Tomo `io5ex3` | 0.71 | 0.77 |
+| Tomo `io4ex4` | 0.60 | 0.65 |
+| Tomo `io2ex6` | 0.33 | 0.36 |
+| Dragonfly | 0.80 | — |
+| Valkey | 0.80 | — |
+| Garnet | 0.68 | — |
+
+P1 throughput is **monotone in ingress share** — 0.33 → 0.60 → 0.71 → 0.82, a **2.5× swing on the same hardware**.
+At `io6ex2` Tomo's P1 **beats Dragonfly and Valkey (0.80) and Garnet (0.68)**: the "trails at P1" was purely the
+fixed‑`io4ex4` pick, not the architecture. And **io_uring finally pays here** — a consistent **~+7 %** (its batched
+submit reclaims the per‑command `recv`+`send` syscalls that pipelining otherwise amortizes) — the one loopback
+regime where io_uring beats epoll, the mirror image of the pipelined regime where it's neutral (a real NIC should
+widen it). No competitor retunes its topology to the workload; this dial is Tomo's alone.
 
 **Hot keys — where the decoupled pipeline pays off structurally.** A single hammered key (**M ops/s**):
 
