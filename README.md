@@ -15,48 +15,36 @@
 ## What is Tomo KV?
 
 **Tomo KV** ("Tomasulo KV") is a fork of Redis that replaces the single‑threaded command loop with a
-**hardware‑inspired, out‑of‑order execution pipeline**. It keeps Redis's data structures, RESP protocol,
-and on‑disk formats, but runs commands the way a modern superscalar CPU runs instructions: many at once,
-out of order across independent units, yet **observably in order** to every client.
+**hardware‑inspired, out‑of‑order execution pipeline**. It keeps Redis's data structures, RESP protocol, and
+on‑disk formats, but runs commands the way a superscalar CPU runs instructions: many at once, out of order
+across independent units, yet **observably in order** to every client.
 
-The key insight is an old one from computer architecture. A CPU core sustains high throughput on a serial
-instruction stream by (1) **partitioning state** so independent instructions don't conflict, (2) executing
-them **out of order** on multiple functional units, and (3) using a **reorder buffer** to retire results in
-program order. A single‑threaded KV store like Redis faces the same problem — a serial stream of commands,
-most of them independent — and Tomo KV applies the same solution.
+Its defining feature is a single tunable knob — **how you split your cores between *ingress* threads
+(parse / dispatch / reply) and *execution* workers (run commands on owned shards)** — which lets you match
+the engine to your workload's bottleneck. No fixed‑model engine offers this: Redis only scales I/O threads
+(execution stays single‑threaded); Dragonfly and Garnet are rigid.
 
-The **2‑Stage** edition is the lean, low‑latency member of the family: a two‑stage pipeline (ingress →
-execute) where the ingress thread also emits replies. See [the family](#the-tomo-kv-family) for the
-throughput‑oriented 3‑Stage variant that adds a dedicated write‑back / reorder‑buffer stage.
+The **2‑Stage** edition is the lean, low‑latency member of the family. See [the family](#the-tomo-kv-family)
+for the throughput‑oriented **3‑Stage** variant that adds a dedicated write‑back / reorder‑buffer stage.
 
 ---
 
-## Inspiration: Tomasulo's algorithm, as a database
+## Architecture
 
-Tomo KV is a direct, deliberate translation of **Tomasulo's out‑of‑order execution algorithm** (IBM
-System/360 Model 91, 1967) into a key‑value server. The mapping is one‑to‑one — the code names its
-structures after the hardware they emulate (the reply bus is literally `reply_cdb`, the **Common Data
-Bus**; the 3‑Stage write‑back thread is aliased `tomokv-rob-threads`, the **Reorder Buffer**).
+Tomo KV is a direct translation of **Tomasulo's out‑of‑order execution algorithm** (IBM System/360 Model 91,
+1967) into a key‑value server. The mapping is one‑to‑one, and the code names its structures after the
+hardware they emulate (the reply bus is literally `reply_cdb`, the Common Data Bus; the 3‑Stage write‑back
+thread is aliased `tomokv-rob-threads`, the Reorder Buffer):
 
-| CPU (Tomasulo)                     | Tomo KV                                                                    |
-| :--------------------------------- | :------------------------------------------------------------------------ |
-| Instruction stream                 | Pipelined RESP command stream on a connection                             |
-| Issue / dispatch                   | **Ingress (io) thread** parses RESP and routes each command by key        |
-| Register file, partitioned         | **Per‑worker key‑shards** — each worker owns a disjoint slice of the keyspace |
-| Reservation stations / exec units  | **EX worker threads** executing against their own shard, in parallel      |
-| Hazard avoidance (RAW/WAR/WAW)     | **Single‑writer‑per‑shard**: one key ⇒ one worker ⇒ no cross‑worker hazards |
-| Common Data Bus (CDB)              | **`reply_cdb`** — the mask bus workers use to signal completion           |
-| Reorder buffer, in‑order commit    | **Per‑connection pipeline ring + `flushid`** — replies retire in issue order |
-
-Because each key is owned by exactly one worker, there are no locks on the data path and no cross‑worker
-data hazards to resolve. Commands to *different* keys execute fully in parallel and out of order; commands
-to the *same* key (or on one connection) are serialized and their replies are committed to the socket in
-the exact order the client sent them. **Linearizability per key and FIFO per connection are preserved** —
-the client cannot tell the work was reordered, exactly as a program cannot tell its instructions were.
-
----
-
-## Architecture — the 2‑stage pipeline
+| CPU (Tomasulo)                     | Tomo KV                                                                        |
+| :--------------------------------- | :---------------------------------------------------------------------------- |
+| Instruction stream                 | Pipelined RESP command stream on a connection                                 |
+| Issue / dispatch                   | **Ingress (io) thread** parses RESP and routes each command by key            |
+| Register file, partitioned         | **Per‑worker key‑shards** — each worker owns a disjoint slice of the keyspace  |
+| Reservation stations / exec units  | **EX worker threads** executing against their own shard, in parallel          |
+| Hazard avoidance (RAW/WAR/WAW)     | **Single‑writer‑per‑shard**: one key ⇒ one worker ⇒ no cross‑worker hazards    |
+| Common Data Bus (CDB)              | **`reply_cdb`** — the mask bus workers use to signal completion               |
+| Reorder buffer, in‑order commit    | **Per‑connection pipeline ring + `flushid`** — replies retire in issue order  |
 
 ```
                         ┌──────────────────────── ingress (io) thread ─────────────────────────┐
@@ -72,180 +60,180 @@ the client cannot tell the work was reordered, exactly as a program cannot tell 
                         └───────────────────────────┘   └───────────────────────────┘
 ```
 
-**Stage 1 — Ingress (io threads).** Each connection is pinned for life to one io thread via a
-per‑thread `SO_REUSEPORT` listener (the kernel load‑balances new connections across threads). The io
-thread reads, parses RESP, computes the key hash, and **dispatches** each command into a lock‑free SPSC
-queue for the worker that owns that key's shard. It also drains completed replies and writes them back to
-the socket, reordered into issue order.
+**Stage 1 — Ingress (io threads).** Each connection is pinned for life to one io thread via a per‑thread
+`SO_REUSEPORT` listener (the kernel load‑balances new connections across threads). The io thread reads,
+parses RESP, computes the key hash, and **dispatches** each command into a lock‑free SPSC queue for the
+worker that owns that key's shard. It also drains completed replies and writes them back to the socket,
+reordered into issue order.
 
-**Stage 2 — Execute (EX workers).** Each worker owns a disjoint partition of the keyspace (its own set of
-`redisDb` shards) and is the sole mutator of that partition. It pops a batch of commands, warms caches with
-a multi‑pass software prefetch pipeline, executes `cmd->proc()` directly against its shard, and signals
-completion on the Common Data Bus. No locks, no cross‑worker synchronization on the data path.
+**Stage 2 — Execute (EX workers).** Each worker owns a disjoint partition of the keyspace and is its sole
+mutator. It pops a batch of commands, warms caches with a multi‑pass software prefetch pipeline, executes
+`cmd->proc()` directly against its shard, and signals completion on the Common Data Bus. No locks, no
+cross‑worker synchronization on the data path.
 
 **Reply commit.** Completed commands retire through a per‑connection ring. The ingress thread advances a
-`flushid` cursor over the ready‑prefix and splices replies onto the socket **strictly in issue order**, so
-a command that finished early on an idle shard never overtakes an earlier command still running on a busy
-one.
+`flushid` cursor over the ready‑prefix and splices replies onto the socket **strictly in issue order**, so a
+command that finished early on an idle shard never overtakes an earlier command still running on a busy one.
+Replies leave over one of two interchangeable backends — classic **epoll** `write()`, or a
+**deeply‑integrated io_uring** send path (ring‑per‑thread, batched submits, registered ring fd).
 
-Replies leave the server over one of two interchangeable backends: classic **epoll** `write()`, or a
-**deeply‑integrated io_uring** send path (ring‑per‑thread, batched submits, registered ring fd). The
-backend is a runtime choice; correctness is identical.
+**Correctness.** Because each key is owned by exactly one worker, there are no locks on the data path and no
+cross‑worker hazards. Commands to *different* keys execute fully in parallel and out of order; commands to
+the *same* key (or one connection) are serialized and committed to the socket in the exact order the client
+sent them. **Linearizability per key and FIFO per connection are preserved** — the client cannot tell the
+work was reordered, exactly as a program cannot tell its instructions were.
 
 ---
 
-## Performance & the ingress/execution split
+## Performance
 
-Tomo KV's performance is inseparable from its defining knob: **how you split your cores between
-*ingress* threads (parse / dispatch / reply) and *execution* workers (run commands on owned shards).**
-So this section presents both together — the benchmarks, and the split that shapes them.
+Every number below is single node, loopback, **AMD Ryzen 7 7700X** (8 cores / 1 CCD); server and load
+generator (`memtier_benchmark`) each pinned to a disjoint set of 8 hyperthreads; **jemalloc on every
+binary**; median of interleaved reps, each sanity‑gated against its expected range (contended reads
+discarded and re‑run). Five workloads, five tables — each shows **all five 8‑core Tomo splits** against
+**Redis 8** (`io-threads 8`), **Dragonfly** (`proactor_threads 8`), **Garnet**, and **Valkey**
+(`io-threads 8`). All figures are **M ops/s**, higher is better.
 
-*Methodology.* Single node, loopback, AMD Ryzen 7 7700X (8 cores, single CCD); server and load
-generator each capped at 8 threads; `memtier_benchmark`; **jemalloc on every binary**; 3 interleaved
-reps (median reported), each number sanity‑gated against its normal range (contended reads discarded
-and re‑run). Baselines: Redis 8 (`io-threads 8`) and Dragonfly (`proactor_threads 8`).
+Because the ingress/execution split is Tomo's defining knob, read these tables as *one story*: **different
+workloads want different splits, and Tomo is the only engine that can retune to match.** Dispatch‑bound work
+wants ingress; execution‑bound work wants workers.
 
-### The knob — a CPU‑architecture idea
+### 1 · No pipeline (P1)
 
-You size ingress vs execution the way a CPU architect sizes fetch/decode/issue width against the number
-of execution units — to match *your* workload's bottleneck. No fixed‑model engine offers this: Redis
-only scales I/O threads (execution stays single‑threaded); Dragonfly is a rigid shard‑per‑core model. On
-8 cores we show three moderate splits — **`io5ex3`** (ingress‑leaning), **`io4ex4`** (balanced),
-**`io3ex5`** (execution‑leaning). The **extremes** `io6ex2` (ingress‑heavy) / `io2ex6` (worker‑heavy) are included below as edge rows: on a
-low‑core box each starves the opposite stage and usually loses — but they mark the ceiling of the dial
-(maximally ingress‑provisioned `io6ex2` **overtakes Redis on the small/mid‑value DRAM read cells** — 512 B 1:9, hot‑key, FB‑ETC; Redis keeps 4 KB).
+*Method: GET/SET 32 B, **pipeline = 1**, 2 M‑key cache‑resident DB, `-t8 -c64`. Latency‑hiding comes from
+512 concurrent connections, so throughput here is bounded by per‑command overhead, not latency.*
 
-### Dispatch‑ and compute‑bound — where Tomo KV wins outright
-
-Small‑value pipelined ops and CPU‑heavy commands (**M ops/s**, higher is better):
-
-| Config | GET 32 B | GET/SET 1:1 32 B | `BITCOUNT` 16 KB | `HGETALL` (80 f) | `ZRANGE` (80 m) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tomo `io5ex3`** | **8.09** | 5.77 | **3.88** | 0.47 | 0.82 |
-| **Tomo `io4ex4`** | 7.73 | **6.66** | 3.30 | **0.50** | **0.90** |
-| Tomo `io3ex5` | 6.04 | 5.61 | 2.54 | 0.48 | 0.88 |
-| Tomo `io6ex2` *(ingress‑extreme)* | 5.05 | 3.96 | 3.38 | 0.37 | 0.64 |
-| Tomo `io2ex6` *(execution‑extreme)* | 4.27 | 3.96 | 1.77 | **0.50** | 0.68 |
-| Redis 8 | 4.40 | 2.75 | 2.21 | 0.28 | 0.48 |
-| Dragonfly | 5.76 | 5.41 | 1.08 | 0.46 | 0.82 |
-
-Best‑split Tomo beats Redis **1.8× GET, 2.4× mixed, 1.8× `BITCOUNT`, 1.8× `HGETALL`, 1.9× `ZRANGE`**, and
-beats Dragonfly on every cell. And **the split is the story**: ingress‑leaning `io5ex3` wins the
-dispatch‑bound reads (GET, and `BITCOUNT` — its reply is a single integer, so it's dispatch‑bound); balanced
-`io4ex4` wins writes and big‑reply commands (mixed, `HGETALL`, `ZRANGE` — the worker does the
-mutation/serialization while ingress handles the larger sends). One knob spans both; no single Redis or
-Dragonfly configuration does.
-
-### DRAM‑resident — matched, not beaten (on 1‑CCD loopback)
-
-Working set ~6 GB (512 B × 8 M keys, 4 KB × 1.4 M keys, pipeline 16):
-
-| Config | 512 B 1:9 | hot‑key | 4 KB 1:9 | FB‑ETC |
-| :--- | :--- | :--- | :--- | :--- |
-| Tomo `io5ex3` | 3.08 | 3.09 | 1.26 | 3.08 |
-| Tomo `io4ex4` | 2.53 | 2.52 | 1.26 | 2.51 |
-| Tomo `io3ex5` | 1.96 | 1.96 | 1.05 | 1.95 |
-| Tomo `io6ex2` *(ingress‑extreme)* | **3.44** | **3.55** | 1.22 | **3.43** |
-| Tomo `io2ex6` *(execution‑extreme)* | 1.41 | 1.40 | 0.77 | 1.39 |
-| Redis 8 | 3.23 | 3.36 | **1.27** | 3.21 |
-| Dragonfly | 0.87 | 0.81 | 0.63 | 2.20 |
-
-This regime is purely I/O‑bound, and the table shows the cleanest demonstration of the dial in the whole
-document: throughput is **monotone in ingress share** — 3.44 (`io6ex2`) → 3.08 (`io5ex3`) → 2.53 (`io4ex4`)
-→ 1.96 (`io3ex5`) → 1.41 (`io2ex6`). Honest read against Redis: only the ingress ladder's top competes —
-**`io6ex2` beats Redis on 512 B 1:9 / hot‑key / FB‑ETC** (3.44/3.55/3.43 vs 3.23/3.36/3.21) while Redis
-keeps 4 KB 1:9 (1.27 vs 1.22); `io5ex3` lands within ~5–8 %; balanced and execution‑leaning splits trail by
-~20–40 % — as they should, since their cores are deliberately spent on execution this workload never uses.
-Dial ingress up for pure I/O‑bound work; the worker‑heavy extreme `io2ex6` marks the starvation cliff
-(2 ingress threads can't feed the pipeline). This regime is
-I/O‑bound — the value never fits a register‑cheap execution step, so it wants ingress, exactly the dial
-Tomo exposes. (hot‑key = Gaussian‑concentrated GETs; FB‑ETC = a Facebook‑ETC‑like mix: 1:30 write:read,
-Gaussian keys, small‑skewed value sizes. Dragonfly's low ≥ 256 B pipelined‑GET numbers are a known
-loopback reply‑path artifact — its 32 B GET and FB‑ETC results are representative.)
-
-### Versus Garnet and Valkey — including the non‑pipelined (P1) regime
-
-Two more multi‑threaded engines target this exact workload: **Garnet** (Microsoft's shared‑store, epoch‑protected
-engine) and **Valkey** (the Linux‑Foundation Redis fork with async io‑threads). Same box, same harness, 8 cores
-each, Tomo at balanced `io4ex4` (**M ops/s**):
-
-| Engine | GET 32 B **P1** *(no pipelining)* | GET 32 B P32 | GET 512 B | GET 4 KB |
-| :--- | :--- | :--- | :--- | :--- |
-| Tomo `io4ex4` | 0.60 | 7.90 | 2.58 | **1.24** |
-| Dragonfly | 0.80 | 5.77 | 0.82 | 0.61 |
-| **Garnet** | 0.68 | **9.92** | **4.11** | 0.84 |
-| Valkey | **0.80** | 3.30 | 3.12 | 0.89 |
-| Redis 8 (`io‑threads 8`) | 0.78 | 3.84 | 3.24 | 1.19 |
-
-Honest read: **Garnet is the fastest engine here on pipelined small/mid‑value GET.** Its no‑hop shared‑store
-design (the network thread executes the store op *inline*, made safe by epoch reclamation instead of sharding),
-plus AMAC batched prefetch and a serialize‑into‑the‑send‑buffer reply path, beat everyone on 32 B–512 B pipelined
-reads. **Tomo leads at 4 KB** — large values, where the ingress/execution hop amortizes and the zero‑copy send
-path wins — and beats Dragonfly on every cell. **At P1 the story is the dial.** At fixed `io4ex4` Tomo trails
-(0.60), because no‑pipe throughput is **io‑thread‑bound** — 512 connections' worth of `recv`/`send`/`epoll` land on
-the io side, and `io4ex4` under‑provisions it. Turn the dial toward ingress and it recovers, then overtakes:
-
-**The non‑pipelined (P1) regime — every result in one table.** GET 32 B, no pipelining, **M ops/s** (Tomo swept
-across the ingress/execution split, epoll vs io_uring; competitors at their 8‑thread config):
-
-| Config | P1 epoll | P1 io_uring |
+| Config | GET 32 B | SET 32 B |
 | :--- | :--- | :--- |
-| **Tomo `io6ex2`** | **0.82** | **0.84** |
-| Tomo `io5ex3` | 0.71 | 0.77 |
-| Tomo `io4ex4` | 0.60 | 0.65 |
-| Tomo `io2ex6` | 0.33 | 0.36 |
-| Dragonfly | 0.79 | 0.80 |
-| Valkey | 0.80 | *n/a* |
-| Redis 8 | 0.78 | *n/a* |
-| Garnet | 0.68 | *n/a* |
+| Tomo `io2ex6` | 0.33 | 0.32 |
+| Tomo `io3ex5` | 0.47 | 0.47 |
+| Tomo `io4ex4` | 0.60 | 0.59 |
+| Tomo `io5ex3` | 0.71 | 0.70 |
+| **Tomo `io6ex2`** | **0.82** | **0.81** |
+| Redis 8 | 0.79 | 0.79 |
+| Dragonfly | 0.80 | 0.79 |
+| Garnet | 0.67 | 0.64 |
+| Valkey | 0.81 | 0.80 |
 
-*Only **Tomo** and **Dragonfly** have both an epoll and an io_uring data path; **Valkey**, **Redis**, and **Garnet**
-are epoll‑only (no io_uring), so their io_uring cell is n/a.* P1 throughput is **monotone in ingress share** —
-0.33 → 0.60 → 0.71 → 0.82, a **2.5× swing on the same hardware**. At `io6ex2` Tomo's P1 **beats Dragonfly, Valkey,
-Redis (0.79–0.80) and Garnet (0.68)**: the "trails at P1" was purely the fixed‑`io4ex4` pick, not the architecture.
-And **io_uring pays for Tomo here** — a consistent **~+7 %** (its batched submit reclaims the per‑command
-`recv`+`send` syscalls that pipelining otherwise amortizes) — the one loopback regime where io_uring beats epoll,
-the mirror image of the pipelined regime where it's neutral (a real NIC should widen it). Notably Dragonfly's
-io_uring is *flat vs its own epoll* at P1 (0.80 vs 0.79) — the batched‑submit win is specific to Tomo's io path.
-No competitor retunes its topology to the workload; this dial is Tomo's alone.
+No‑pipe throughput is **io‑thread‑bound** — every command pays its own `recv`/`send`/`epoll`, and execution
+is idle. So it is *monotone in ingress share* (0.33 → 0.82, a 2.5× swing) and the dial is the whole story:
+at ingress‑heavy `io6ex2`, Tomo **leads the field** (0.82, past Valkey/Dragonfly ~0.80 and Garnet 0.67).
+The balanced `io4ex4` under‑provisions ingress here and trails — that is a config choice, not an
+architectural limit. Enabling the io_uring backend lifts Tomo `io6ex2` to **0.84** (its batched submit
+reclaims the per‑command syscalls that pipelining otherwise amortizes — the one loopback regime where
+io_uring beats epoll); Dragonfly's io_uring is flat vs its own epoll (0.80). *(Only Tomo and Dragonfly have
+an io_uring data path; Redis/Valkey/Garnet are epoll‑only.)*
 
-**Hot keys — a realistic (Gaussian) skew.** Hammering a *single* key is pathological; real hot‑key traffic is a
-*distribution*. So this uses a Gaussian key pattern (median 1 M, σ 100 k over a 2 M keyspace), with Tomo's **EWMA
-hot‑shard auto‑reshard active** (**M ops/s**):
+### 2 · Pipelined (P32)
 
-| Engine | hot GET (Gaussian) | hot SET (Gaussian) |
+*Method: GET/SET 32 B and 1:1 mixed, **pipeline = 32**, 2 M‑key cache‑resident DB, `-t8 -c25`.*
+
+| Config | GET | SET | GET/SET 1:1 |
+| :--- | :--- | :--- | :--- |
+| Tomo `io2ex6` | 4.38 | 4.23 | 4.10 |
+| Tomo `io3ex5` | 6.34 | 5.99 | 5.91 |
+| **Tomo `io4ex4`** | **7.92** | 6.04 | 6.63 |
+| Tomo `io5ex3` | 7.78 | 4.95 | 5.62 |
+| Tomo `io6ex2` | 5.45 | 3.78 | 3.91 |
+| Redis 8 | 3.59 | 2.38 | 2.59 |
+| Dragonfly | 5.75 | 5.25 | 5.42 |
+| **Garnet** | **9.90** | **8.83** | **9.43** |
+| Valkey | 3.21 | 2.45 | 2.76 |
+
+Deep pipelining amortizes the per‑command syscalls and the io→ex hop, so this is where raw execution
+throughput shows. **Garnet leads** — its no‑hop shared‑store design (the network thread executes the store
+op inline, made safe by epoch reclamation instead of sharding) has no dispatch hop to pay. Tomo's balanced
+`io4ex4` is **second and comfortably beats Dragonfly, Redis, and Valkey**; the dial peaks around
+`io4ex4`/`io5ex3` where ingress and execution are matched to this 32 B, both‑bound workload.
+
+### 3 · DRAM‑resident
+
+*Method: GET 512 B (2 M keys, ~1 GB) and GET 4 KB (1 M keys, ~4 GB) — working sets well past the 32 MB L3 —
+**pipeline = 16**, `-t8 -c25`.*
+
+| Config | GET 512 B | GET 4 KB |
 | :--- | :--- | :--- |
-| **Garnet** | **9.82** | **9.07** |
-| Tomo `io4ex4` | 7.83 | 6.65 |
-| Dragonfly | 5.70 | 5.24 |
-| Redis 8 | 3.81 | 2.35 |
-| Valkey | 3.21 | 2.39 |
+| Tomo `io2ex6` | 1.36 | 0.79 |
+| Tomo `io3ex5` | 2.01 | 1.03 |
+| Tomo `io4ex4` | 2.56 | **1.27** |
+| Tomo `io5ex3` | 3.11 | 1.18 |
+| **Tomo `io6ex2`** | **3.64** | 1.18 |
+| Redis 8 | 3.29 | 1.12 |
+| Dragonfly | 0.82 | 0.60 |
+| Garnet | **3.97** | 0.68 |
+| Valkey | 3.17 | 0.95 |
 
-Under realistic skew **no engine's sharding bottlenecks**: hash distribution spreads even a concentrated Gaussian
-across all shards, so every engine runs at ~its balanced‑load throughput (Tomo 7.83 ≈ its 7.90 plain GET). Tomo's
-EWMA load‑balancer stays correctly **idle — 0 reshards fired** (there is no hot *shard* to move). The `reshardAutoTune`
-controller samples each shard's ops/sec EWMA at 1 Hz and only migrates a genuinely hot bucket‑range — which a
-hash‑spread Gaussian never produces. (For the record, the *pathological* single‑key case *does* bottleneck a
-shard‑per‑thread engine — Dragonfly drops to ~2.8 M while Tomo's io/ex split holds ~8 M, since only the cheap
-in‑memory op lands on the one owner worker — but that corner is not a real workload.)
+Larger values make this I/O‑bound, so throughput is again monotone in ingress share (dial up for the send
+work). At 512 B, Garnet leads with **Tomo `io6ex2` close behind (3.64)** and past Redis/Valkey; at **4 KB
+Tomo `io4ex4` wins outright (1.27)** — the ingress/execution hop amortizes on large values and the
+zero‑copy send path pays. Dragonfly collapses above 256 B (0.82 / 0.60) — a known artifact of its
+reply‑builder capping the coalescing buffer, which fragments large‑value sends into many syscalls.
 
-**The trade Garnet makes for that throughput.** It is a managed (.NET) runtime. Under a sustained high‑load soak its
-*median* latency is actually better than Tomo's (0.58 vs 0.73 ms), but its *far tail* is heavier — a 72 ms max vs
-Tomo's 16 ms, the signature of a GC / JIT pause a C engine never incurs. It is also a Redis *subset* (no module/Lua
-compatibility) and carries the .NET runtime's memory and deployment footprint. The response is to adopt Garnet's
-*mechanisms* (batched prefetch, an open‑addressing table, serialize‑into‑send) inside Tomo's C, no‑GC, tunable
-engine — in progress on a dev branch.
+### 4 · Hot key
+
+*Method: **DRAM‑resident 8 M‑key DB (~724 MB)**, GET/SET 32 B, **pipeline = 32**, with a tight Gaussian
+key distribution (median 4 M, σ = 3 → a ~18‑key hot set — a "viral item," not one key). Tomo is shown with
+its **EWMA hot‑shard auto‑reshard off / on**, plus the reshards it fired; competitors have no equivalent.*
+
+| Config | hot GET (off / on) | hot SET (off / on) | reshards fired |
+| :--- | :--- | :--- | :--- |
+| Tomo `io2ex6` | 4.46 / 4.38 | 4.19 / 4.00 | 6 |
+| Tomo `io3ex5` | 6.22 / 6.22 | 5.79 / 5.82 | 0 |
+| Tomo `io4ex4` | 7.81 / 7.20 | 7.20 / 7.22 | 3 |
+| Tomo `io5ex3` | 9.14 / 9.16 | 8.05 / 7.95 | 0 |
+| **Tomo `io6ex2`** | **9.64** / 8.20 | 5.62 / 5.94 | 1 |
+| Redis 8 | 3.94 | 2.78 | — |
+| Dragonfly | 6.15 | 5.30 | — |
+| Garnet | 9.52 | 7.91 | — |
+| Valkey | 3.36 | 2.52 | — |
+
+Two honest findings here. **(1)** A realistic hot‑key skew *does not bottleneck sharding for anyone*:
+because keys are hash‑distributed, even a tight Gaussian spreads across all shards, so every engine runs at
+~its balanced throughput and the ingress dial dominates (hot‑key GET is dispatch‑bound → `io6ex2` tops it at
+9.64, essentially tying Garnet's 9.52). Only a literal single hammered key — not a real workload — bottlenecks
+a shard‑per‑thread engine (there Dragonfly drops to ~2.8 M while Tomo's io/ex split holds ~8 M).
+**(2) The EWMA reshard is net‑negative on this box.** When it fires (see the reshards column) it *costs*
+a few percent (io6ex2 9.64 → 8.20); when it stays idle the two columns are identical. On a single‑CCD,
+hash‑sharded engine the hot set is already balanced, so the controller is chasing transient noise and paying
+migration cost with no real hot *shard* to relieve. Its value is genuine sustained imbalance — the
+multi‑CCD / skewed‑population case — which is why it is a knob (`tomokv-reshard-min-ops`), default‑on but
+trivially disabled.
+
+### 5 · Non‑standard commands
+
+*Method: `BITCOUNT` on 16 KB strings (50 k keys), `HGETALL` on 80‑field hashes (10 k keys), `ZRANGE 0 -1`
+on 80‑member sorted sets (10 k keys), **pipeline = 16**, `-t8 -c25`.*
+
+| Config | `BITCOUNT` 16 KB | `HGETALL` (80 f) | `ZRANGE` (80 m) |
+| :--- | :--- | :--- | :--- |
+| **Tomo `io2ex6`** | 2.08 | **0.51** | **0.96** |
+| Tomo `io3ex5` | **2.16** | 0.50 | 0.95 |
+| Tomo `io4ex4` | 1.98 | 0.50 | 0.94 |
+| Tomo `io5ex3` | 1.68 | 0.47 | 0.83 |
+| Tomo `io6ex2` | 1.27 | 0.37 | 0.65 |
+| Redis 8 | 2.18 | 0.22 | 0.41 |
+| Dragonfly | 0.72 | 0.49 | 0.87 |
+| Garnet | **3.31** | *n/a* | *n/a* |
+| Valkey | 1.73 | 0.105 | 0.30 |
+
+This is the **mirror image of table 1**: compute‑ and reassembly‑heavy commands are *execution‑bound*, so
+the **worker‑leaning splits win** (`io2ex6`/`io3ex5` top every column) — exactly the opposite of dispatch‑bound
+GET wanting ingress. That is the dial's whole point. Tomo beats Redis **~2.3×** on `HGETALL` and `ZRANGE`
+(the worker does the field/member reassembly in parallel) and matches it on `BITCOUNT` (a single‑integer
+reply, so dispatch‑bound). Garnet tops `BITCOUNT` but **does not implement hashes or sorted sets** (n/a).
 
 ### Honest scope
 
-All numbers are single‑node **loopback on one CCD**. The de‑contention machinery and the worker‑heavy end
-of the dial are designed to pay on **multi‑CCD / real‑NIC** hardware (cross‑CCD transfers ~100–200 cycles
-vs cheap shared‑L3 here); that evaluation is pending on a Threadripper‑class box. Validation before every
-number: correctness (round‑trips, MGET, expiry, DEL, FLUSHDB) + a reconnect‑storm churn stress + (for
-structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with neighbouring
-measurements are investigated and re‑run, never reported.
+All numbers are single‑node **loopback on one CCD**. The de‑contention machinery, the worker‑heavy end of
+the dial, and the io_uring / EWMA‑reshard knobs are designed to pay on **multi‑CCD / real‑NIC** hardware
+(cross‑CCD transfers cost ~100–200 cycles vs cheap shared‑L3 here); that evaluation is pending on a
+Threadripper‑class box. Validation before every number: correctness round‑trips + a reconnect‑storm churn
+stress + (for structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with
+neighbouring measurements are investigated and re‑run, never reported.
 
-## Optimizations
+---
+
+## Under the hood
 
 Every optimization is an independent, runtime‑gated knob (see [Configuration](#configuration)). They fall
 into a few families:
@@ -253,35 +241,32 @@ into a few families:
 - **Out‑of‑order core.** Per‑worker keyspace partitioning, lock‑free SPSC dispatch queues with producer‑side
   index caching, single‑writer shards, and the CDB reply‑reorder protocol — the foundation everything else
   sits on.
-- **Software‑pipelined prefetch.** A multi‑pass, gem5‑style prefetch engine runs on the worker just ahead
-  of execution: it warms the command's fake‑client struct, argv, command descriptor, key object, then
+- **Software‑pipelined prefetch.** A multi‑pass, gem5‑style prefetch engine runs on the worker just ahead of
+  execution: it warms the command's fake‑client struct, argv, command descriptor, and key object, then
   chases the dict bucket → entry → value across a tunable window, plus an execution‑adjacent *next‑op*
   look‑ahead. A DB‑size‑adaptive gate turns it off for cache‑resident shards and on when the working set
   spills to DRAM. Hash‑carry computes each key's hash once and reuses it through dispatch and lookup.
 - **Dispatch & reply de‑contention.** Staged batch‑push with **eager per‑batch publish** (keeps cross‑CCD
   store‑batching without starving idle workers), per‑parent reply‑signal coalescing, a multi‑bus CDB to
-  spread reply signaling across cache lines, batched mask clears, cache‑line‑isolated per‑thread
-  counters (dirty/stats) to kill false sharing, and an **adaptive reply‑drain spin** — a short,
-  self‑tuning busy‑wait on the ingress reply path that removes the non‑pipelined (P1) latency floor
-  (+2.6 % P1 on the 2‑stage edition; +7.3 % on 3‑stage).
-- **Low‑pipe drain tuning** *(experimental — `low-pipe-hop` dev branch, all default‑off).* Three knobs for the
-  non‑pipelined / few‑connection regime: a **userspace CDB drain‑spin** (`tomokv-io-drain-userpoll`) that replaces
-  the epoll‑syscall reply‑wait with userspace re‑checks; **depth‑aware send‑fill** (`tomokv-io-send-min-fill`) that
-  coalesces the pipelined reply sends the adaptive drain would otherwise fragment at high depth; and **tiny‑batch
-  prefetch skip** (`tomokv-pf-batch-min`). Measured **neutral on single‑CCD loopback** (P1 there is io‑thread‑bound,
-  not reply‑poll‑bound — turn the ingress/execution dial instead), gated for the multi‑CCD / real‑NIC eval where the
-  saved syscalls and cross‑CCD coherence traffic should pay.
+  spread reply signaling across cache lines, batched mask clears, cache‑line‑isolated per‑thread counters to
+  kill false sharing, and an **adaptive reply‑drain spin** that removes the non‑pipelined latency floor.
+- **Low‑pipe drain tuning** *(experimental — `low-pipe-hop` dev branch, all default‑off).* A **userspace CDB
+  drain‑spin** (`tomokv-io-drain-userpoll`) that replaces the epoll‑syscall reply‑wait with userspace
+  re‑checks, **depth‑aware send‑fill** (`tomokv-io-send-min-fill`), and **tiny‑batch prefetch skip**
+  (`tomokv-pf-batch-min`). Measured neutral on single‑CCD loopback (P1 there is io‑thread‑bound, not
+  reply‑poll‑bound — turn the dial instead); gated for the multi‑CCD / real‑NIC eval.
 - **Zero‑copy & large values.** Value objects can be forwarded to the ingress thread without a copy above a
   size threshold, with ownership returned to the owning worker via a free‑back ring so refcounts are only
   ever touched by the shard's owner.
-- **Multi‑key & cross‑shard.** `MGET`/`MSET`/`DEL`/`EXISTS`/`UNLINK`/`TOUCH` and set operations are split
-  into per‑shard sub‑commands, dispatched in parallel, and reassembled — with `FLUSHALL`/`FLUSHDB` handled
-  by queue‑ordered flush sentinels.
-- **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core
-  pinning with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** reply
-  path (multishot recv, `SEND_ZC`, `SQPOLL`, registered ring fd).
-- **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with an optional
-  dual‑rate‑EWMA hot‑shard auto‑tuner, for rebalancing skewed keyspaces without downtime.
+- **Multi‑key & cross‑shard.** `MGET`/`MSET`/`DEL`/`EXISTS`/`UNLINK`/`TOUCH` and set operations are split into
+  per‑shard sub‑commands, dispatched in parallel, and reassembled — with `FLUSHALL`/`FLUSHDB` handled by
+  queue‑ordered flush sentinels.
+- **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
+  with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** reply path
+  (multishot recv, `SEND_ZC`, `SQPOLL`, registered ring fd).
+- **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with a dual‑rate‑EWMA
+  hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without downtime (see table 4 for its
+  workload‑dependence).
 
 ---
 
@@ -325,7 +310,7 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-reshard-min-ops` | `0` off · N ops/s (default 20000) | Significance floor + master switch. Everything else self‑derives: EWMA rates with a continuously recomputed alpha, an outlier trigger bar (mean + k·σ with a relative floor), settle windows in controller time — no calibration, no lock‑in. |
+| `tomokv-reshard-min-ops` | `0` off · N ops/s (default 20000) | Significance floor + master switch. Everything else self‑derives: EWMA rates with a continuously recomputed alpha, an outlier trigger bar (mean + k·σ with a relative floor), settle windows in controller time — no calibration, no lock‑in. Workload‑dependent (see table 4); `0` disables it. |
 | `tomokv-reshard-imbalance-pct` | `0` auto (default) · N strict | Trigger bar override: fixed percent‑of‑mean instead of the outlier bar. |
 | `tomokv-reshard-chunk` | `0` auto (default) · N strict | Migration granule. Auto: buckets/(16·workers), clamped. |
 
@@ -340,9 +325,10 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 ### Kernel / io_uring (experimental, default off)
 
 `tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`, `tomokv-worker-direct-send`,
-`tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all
-immutable booleans, all default off. Loopback‑neutral in our measurements; they exist for real‑NIC
-evaluation.
+`tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all immutable
+booleans, all default off. Loopback‑neutral except at P1 (see table 1); they exist for real‑NIC evaluation.
+
+---
 
 ## Building & running
 
