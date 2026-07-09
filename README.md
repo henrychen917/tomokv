@@ -175,6 +175,7 @@ each, Tomo at balanced `io4ex4` (**M ops/s**):
 | Dragonfly | 0.80 | 5.77 | 0.82 | 0.61 |
 | **Garnet** | 0.68 | **9.92** | **4.11** | 0.84 |
 | Valkey | **0.80** | 3.30 | 3.12 | 0.89 |
+| Redis 8 (`io‑threads 8`) | 0.78 | 3.84 | 3.24 | 1.19 |
 
 Honest read: **Garnet is the fastest engine here on pipelined small/mid‑value GET.** Its no‑hop shared‑store
 design (the network thread executes the store op *inline*, made safe by epoch reclamation instead of sharding),
@@ -193,30 +194,40 @@ across the ingress/execution split, epoll vs io_uring; competitors at their 8‑
 | Tomo `io5ex3` | 0.71 | 0.77 |
 | Tomo `io4ex4` | 0.60 | 0.65 |
 | Tomo `io2ex6` | 0.33 | 0.36 |
-| Dragonfly | 0.80 | — |
-| Valkey | 0.80 | — |
-| Garnet | 0.68 | — |
+| Dragonfly | 0.79 | 0.80 |
+| Valkey | 0.80 | *n/a* |
+| Redis 8 | 0.78 | *n/a* |
+| Garnet | 0.68 | *n/a* |
 
-P1 throughput is **monotone in ingress share** — 0.33 → 0.60 → 0.71 → 0.82, a **2.5× swing on the same hardware**.
-At `io6ex2` Tomo's P1 **beats Dragonfly and Valkey (0.80) and Garnet (0.68)**: the "trails at P1" was purely the
-fixed‑`io4ex4` pick, not the architecture. And **io_uring finally pays here** — a consistent **~+7 %** (its batched
-submit reclaims the per‑command `recv`+`send` syscalls that pipelining otherwise amortizes) — the one loopback
-regime where io_uring beats epoll, the mirror image of the pipelined regime where it's neutral (a real NIC should
-widen it). No competitor retunes its topology to the workload; this dial is Tomo's alone.
+*Only **Tomo** and **Dragonfly** have both an epoll and an io_uring data path; **Valkey**, **Redis**, and **Garnet**
+are epoll‑only (no io_uring), so their io_uring cell is n/a.* P1 throughput is **monotone in ingress share** —
+0.33 → 0.60 → 0.71 → 0.82, a **2.5× swing on the same hardware**. At `io6ex2` Tomo's P1 **beats Dragonfly, Valkey,
+Redis (0.79–0.80) and Garnet (0.68)**: the "trails at P1" was purely the fixed‑`io4ex4` pick, not the architecture.
+And **io_uring pays for Tomo here** — a consistent **~+7 %** (its batched submit reclaims the per‑command
+`recv`+`send` syscalls that pipelining otherwise amortizes) — the one loopback regime where io_uring beats epoll,
+the mirror image of the pipelined regime where it's neutral (a real NIC should widen it). Notably Dragonfly's
+io_uring is *flat vs its own epoll* at P1 (0.80 vs 0.79) — the batched‑submit win is specific to Tomo's io path.
+No competitor retunes its topology to the workload; this dial is Tomo's alone.
 
-**Hot keys — where the decoupled pipeline pays off structurally.** A single hammered key (**M ops/s**):
+**Hot keys — a realistic (Gaussian) skew.** Hammering a *single* key is pathological; real hot‑key traffic is a
+*distribution*. So this uses a Gaussian key pattern (median 1 M, σ 100 k over a 2 M keyspace), with Tomo's **EWMA
+hot‑shard auto‑reshard active** (**M ops/s**):
 
-| Engine | hot GET (1 key) | hot SET (1 key) |
+| Engine | hot GET (Gaussian) | hot SET (Gaussian) |
 | :--- | :--- | :--- |
-| Tomo `io4ex4` | 8.40 | 5.52 |
-| Dragonfly | 2.82 | 1.89 |
-| Garnet | 10.88 | 6.20 |
-| Valkey | 4.07 | 2.51 |
+| **Garnet** | **9.82** | **9.07** |
+| Tomo `io4ex4` | 7.83 | 6.65 |
+| Dragonfly | 5.70 | 5.24 |
+| Redis 8 | 3.81 | 2.35 |
+| Valkey | 3.21 | 2.39 |
 
-**Tomo does *not* collapse on a hot key; Dragonfly does** (2.82/1.89 — its shard‑per‑thread model pins all of a hot
-key's parse + execute + reply work onto one fiber). Tomo's ingress threads absorb the network cost in parallel
-while the single worker that owns the key does only the cheap L1‑resident in‑place op. Garnet's shared store scales
-hot reads best of all. (Dragonfly recovers with ≥ 16 hot keys, confirming the 1‑key figure is shard serialization.)
+Under realistic skew **no engine's sharding bottlenecks**: hash distribution spreads even a concentrated Gaussian
+across all shards, so every engine runs at ~its balanced‑load throughput (Tomo 7.83 ≈ its 7.90 plain GET). Tomo's
+EWMA load‑balancer stays correctly **idle — 0 reshards fired** (there is no hot *shard* to move). The `reshardAutoTune`
+controller samples each shard's ops/sec EWMA at 1 Hz and only migrates a genuinely hot bucket‑range — which a
+hash‑spread Gaussian never produces. (For the record, the *pathological* single‑key case *does* bottleneck a
+shard‑per‑thread engine — Dragonfly drops to ~2.8 M while Tomo's io/ex split holds ~8 M, since only the cheap
+in‑memory op lands on the one owner worker — but that corner is not a real workload.)
 
 **The trade Garnet makes for that throughput.** It is a managed (.NET) runtime. Under a sustained high‑load soak its
 *median* latency is actually better than Tomo's (0.58 vs 0.73 ms), but its *far tail* is heavier — a 72 ms max vs
@@ -253,6 +264,13 @@ into a few families:
   counters (dirty/stats) to kill false sharing, and an **adaptive reply‑drain spin** — a short,
   self‑tuning busy‑wait on the ingress reply path that removes the non‑pipelined (P1) latency floor
   (+2.6 % P1 on the 2‑stage edition; +7.3 % on 3‑stage).
+- **Low‑pipe drain tuning** *(experimental — `low-pipe-hop` dev branch, all default‑off).* Three knobs for the
+  non‑pipelined / few‑connection regime: a **userspace CDB drain‑spin** (`tomokv-io-drain-userpoll`) that replaces
+  the epoll‑syscall reply‑wait with userspace re‑checks; **depth‑aware send‑fill** (`tomokv-io-send-min-fill`) that
+  coalesces the pipelined reply sends the adaptive drain would otherwise fragment at high depth; and **tiny‑batch
+  prefetch skip** (`tomokv-pf-batch-min`). Measured **neutral on single‑CCD loopback** (P1 there is io‑thread‑bound,
+  not reply‑poll‑bound — turn the ingress/execution dial instead), gated for the multi‑CCD / real‑NIC eval where the
+  saved syscalls and cross‑CCD coherence traffic should pay.
 - **Zero‑copy & large values.** Value objects can be forwarded to the ingress thread without a copy above a
   size threshold, with ownership returned to the owning worker via a free‑back ring so refcounts are only
   ever touched by the shard's owner.
