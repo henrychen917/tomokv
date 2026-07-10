@@ -6499,6 +6499,8 @@ static double   mig_load_ewma[TOMO_EX_THREADS_MAX];
 static double   mig_load_ewma_fast[TOMO_EX_THREADS_MAX];  /* #89: fast-rate EWMA for dual-rate balancing+decay */
 static uint64_t mig_last_ops[TOMO_EX_THREADS_MAX];
 static int      mig_ewma_primed = 0;
+/* ee451 (reshard-better §1.2): consecutive-outlier counter, per worker (zero-init; sustain-ticks gate). */
+static uint16_t mig_hot_streak[TOMO_EX_THREADS_MAX];
 /* CONVERGENCE control (no permanent threshold change, no time cooldown): keep migrating a hotspot
  * ONLY while it is actually shrinking the peak load/capacity. mig_peak_pre = the peak metric we were
  * trying to reduce at the last migration; after a short settle (so the EWMA reflects the move), if
@@ -6574,29 +6576,64 @@ void reshardAutoTune(void) {
     hot_bar_fast = mean_fast + (margin_f > floor_f ? margin_f : floor_f);
     }
 
-    /* balanced (or too quiet) => clear convergence state and stay responsive. */
-    if (mean < (double)server.reshard_min_ops || hotv <= hot_bar) {
+    /* balanced (or too quiet) => clear convergence state and stay responsive.
+     * ee451 (reshard-better §1.3a): two-threshold Schmitt band. hot_bar (above) stays the FIRE
+     * bar; release_bar (halfway to mean) is the RELEASE bar. Between them is a hysteresis dead-band:
+     * hold (don't fire, don't reset the streak) so a worker that has already begun sustaining an
+     * outlier doesn't get its streak wiped by a single dip into the band. When sustain_ticks==0 the
+     * dead-band collapses back to the single legacy bar (hot_bar), i.e. BIT-FOR-BIT legacy. */
+    double release_bar = mean + 0.5 * (hot_bar - mean);   /* Schmitt: release halfway to mean */
+    if (mean < (double)server.reshard_min_ops ||
+        hotv <= (server.reshard_sustain_ticks != 0 ? release_bar : hot_bar)) {
         mig_peak_pre = 0; mig_settle = 0;
+        if (server.reshard_sustain_ticks != 0) mig_hot_streak[hot] = 0;
+        return;
+    }
+    if (server.reshard_sustain_ticks != 0 && hotv <= hot_bar) {
+        /* in the hysteresis dead-band: hold — don't fire, don't reset the streak. */
         return;
     }
     /* Settle: let the EWMA absorb the last migration before judging — the window IS the
      * EWMA's own time constant (ceil(1/alpha)+1 ticks), so it self-scales with the decay. */
     if (mig_settle > 0) { mig_settle--; return; }
-    /* NO-PROGRESS guard (fixed dimensionless 0.85): if the last migration didn't cut the
-     * peak by >15%, the hotspot is unbalanceable (a single hot key just relocates) — stop
-     * chasing. Self-resets via the balanced path when the pattern changes. */
-    if (mig_peak_pre > 0 && hotv > mig_peak_pre * 0.85) return;
+    /* NO-PROGRESS guard: if the last migration didn't cut the peak enough, the hotspot is
+     * unbalanceable (a single hot key just relocates) — stop chasing. Self-resets via the balanced
+     * path when the pattern changes.
+     * ee451 (reshard-better §1.3c): progress ratio is now a knob. 0 => legacy fixed 0.85 (>15% drop
+     * required); N (e.g. 70) => require an N% ceiling (stricter: halt sooner on unbalanceable
+     * single-key hotspots). A LOOSER ratio (e.g. 90) lets Fork A walk multiple chunks over multiple
+     * ticks (§1.4). When the knob is 0 this evaluates to * 0.85 => bit-for-bit legacy. */
+    double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
+    if (mig_peak_pre > 0 && hotv > mig_peak_pre * prog) return;
 
     /* #89 dual-rate: the FAST EWMA must ALSO see this worker hot — a hotspot that just died
      * stops being chased immediately; slow-EWMA lag can't trigger a stale migration. */
     if (mig_load_ewma_fast[hot] <= hot_bar_fast) return;
+
+    /* ee451 (reshard-better §1.3b): SUSTAIN gate. Only fire when the hot worker has been an
+     * outlier for K consecutive ticks — kills one-tick dispatch-spike false positives that inflate
+     * the slow EWMA for a tick but can't survive K ticks of hash-scattered Gaussian load. K=-1 auto
+     * = one EWMA time constant ceil(1/alpha). Gate the streak on the FAST EWMA (still hot). When the
+     * knob is 0 this whole block is skipped => bit-for-bit legacy. */
+    if (server.reshard_sustain_ticks != 0) {
+        int K = server.reshard_sustain_ticks;
+        if (K < 0) K = (int)ceil(1.0 / alpha);          /* -1 = auto: one EWMA time constant */
+        if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; return; }
+        if (++mig_hot_streak[hot] < K) return;          /* not sustained yet */
+        mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
+    }
 
     /* Cooler adjacent neighbour with genuinely-below-mean load. */
     int left = hot - 1, right = hot + 1, B = -1;
     if (left >= 0 && right < W) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
     else if (left >= 0)        B = left;
     else if (right < W)        B = right;
-    if (B < 0 || mig_load_ewma[B] >= mean) return;
+    /* ee451 (reshard-better §1.3d): cool-margin hardening. Neighbor must be BELOW a cool bar.
+     * 0 => legacy (< mean, bit-for-bit); -1 => auto 15% (< 0.85*mean, neighbor must be substantially
+     * cool — prevents ping-pong of a chunk between two near-mean neighbors); N => < mean*(1-N/100). */
+    double cm = (double)server.reshard_cool_margin_pct;
+    double cool_bar = (cm == 0) ? mean : (cm < 0 ? mean * 0.85 : mean * (1.0 - cm / 100.0));
+    if (B < 0 || mig_load_ewma[B] >= cool_bar) return;
 
     /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never
      * emptying the hot shard. */
@@ -6681,6 +6718,12 @@ void reshardDebug(client *c) {
         unsigned long long total = 0;
         for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
         addReplyLongLong(c, (long long)total);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "perworker")) {
+        /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
+         * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
+        addReplyArrayLen(c, server.num_workers);
+        for (int w = 0; w < server.num_workers; w++)
+            addReplyLongLong(c, (long long)server.exThreads[w].ops_total);
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
@@ -6708,7 +6751,7 @@ void reshardDebug(client *c) {
             sc, (unsigned long long)sx, dc, (unsigned long long)dx,
             (active && sc == dc && sx == dx) ? 1 : 0);
     } else {
-        addReplyError(c, "DEBUG RESHARD START|STATUS");
+        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS");
     }
 }
 /* ========================== end resharding (engine) ========================== */
