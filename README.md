@@ -87,6 +87,11 @@ work was reordered, exactly as a program cannot tell its instructions were.
 
 ## Performance
 
+> 📊 **Latest results & analysis:** see **[BENCHMARKS.md](BENCHMARKS.md)** — the 4 GB DRAM throughput
+> matrix (the io/ex dial vs. Redis/Valkey/Dragonfly/Garnet), the **YCSB ingress study** (Tomo wins
+> standard low‑pipeline YCSB across all workloads, +5–16%), and the reshard/EWMA analysis. A 25‑workload
+> real‑world suite is running and will extend it.
+
 Every number below is single node, loopback, **AMD Ryzen 7 7700X** (8 cores / 1 CCD); server and load
 generator (`memtier_benchmark`) each pinned to a disjoint set of 8 hyperthreads; **jemalloc on every
 binary**; median of interleaved reps, each sanity‑gated against its expected range (contended reads
