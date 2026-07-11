@@ -1778,6 +1778,7 @@ typedef struct csGroup {
      * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
+    int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
@@ -2964,6 +2965,8 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
+    int opt_mset_move;         /* xshard OPT-5: cross-shard MSET moves value robjs to the worker (argv_released_mask handoff) instead of dupStringObject copy. 1=move; 0=legacy per-value copy (DEFAULT — move is a wash on 1-CCD at 256B/4KB; kept as large-value/NUMA lever). */
+    int opt_setop_coalesce;    /* xshard: SINTER/SUNION/SDIFF coalesce to one sub/shard (setop_pos position map) instead of one sub/key. 1=coalesce (DEFAULT, k>=3); 0=legacy per-key subs. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
     char *pin_cores;           /* v14: pin-mode 1 manual core list ("0,2,4,6"), thread-pin order */

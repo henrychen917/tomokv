@@ -5818,26 +5818,30 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_SETOP: {
-        /* ee451 v11-F: gather THIS key's set members as fresh sds COPIES into our disjoint slot
-         * (cssub_idx). Worker owns sub->db (single-writer) so the non-safe iterator is safe and no
-         * concurrent mutation can occur mid-iteration. Missing key => empty contribution; a non-set
-         * key => flag WRONGTYPE for the coordinator. Copies are private (refcount-free) => the
-         * coordinator frees them after the pending barrier, no freeback ring needed. */
-        int idx = sub->cssub_idx;
-        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
-        if (o == NULL) { g->setmem[idx] = NULL; g->setcnt[idx] = 0; break; }
-        if (o->type != OBJ_SET) {
-            atomic_store_explicit(&g->err, 1, memory_order_relaxed);
-            g->setmem[idx] = NULL; g->setcnt[idx] = 0;
-            break;
+        /* ee451 v11-F: gather each of the sub's keys' set members as fresh sds COPIES into the
+         * per-ORIGINAL-KEY-POSITION slot. Worker owns sub->db (single-writer) so the non-safe iterator
+         * is safe. Missing key => empty contribution; a non-set key => flag WRONGTYPE. Copies are
+         * private (refcount-free) => coordinator frees them after the barrier.
+         * xshard OPT: COALESCED (setop_pos != NULL) — sub carries all of one shard's keys; slot =
+         * setop_pos[cssub_idx][j]. LEGACY (setop_pos == NULL) — one key per sub; slot = cssub_idx. */
+        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        for (int a = 1; a < sub->argc; a++) {
+            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (o == NULL) { g->setmem[idx] = NULL; g->setcnt[idx] = 0; continue; }
+            if (o->type != OBJ_SET) {
+                atomic_store_explicit(&g->err, 1, memory_order_relaxed);
+                g->setmem[idx] = NULL; g->setcnt[idx] = 0;
+                continue;
+            }
+            unsigned long sz = setTypeSize(o);
+            sds *arr = sz ? zmalloc(sizeof(sds) * sz) : NULL;
+            long m = 0;
+            setTypeIterator si; setTypeInitIterator(&si, o);
+            sds ele;
+            while ((ele = setTypeNextObject(&si)) != NULL) arr[m++] = ele;  /* fresh owned sds */
+            g->setmem[idx] = arr; g->setcnt[idx] = m;
         }
-        unsigned long sz = setTypeSize(o);
-        sds *arr = sz ? zmalloc(sizeof(sds) * sz) : NULL;
-        long m = 0;
-        setTypeIterator si; setTypeInitIterator(&si, o);
-        sds ele;
-        while ((ele = setTypeNextObject(&si)) != NULL) arr[m++] = ele;  /* fresh owned sds */
-        g->setmem[idx] = arr; g->setcnt[idx] = m;
         break;
     }
     default: break;
@@ -6016,8 +6020,26 @@ static void dispatchCrossShard(client *head, int ct) {
         robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
         sub->argv[sub->argc++] = key; incrRefCount(key);
         if (ct == CS_MSET) {
-            /* PRIVATE refcount-1 copy so the worker's setKey can consume it like a stock SET. */
-            sub->argv[sub->argc++] = dupStringObject(head->argv[2 + 2*i]);
+            int vpos = 2 + 2*i;
+            robj *val = head->argv[vpos];
+            if (server.opt_mset_move) {
+                /* xshard OPT-5: MOVE the value robj to the sub (no dupStringObject copy). The worker's
+                 * setKey CONSUMES it (kvobjSet embeds the robj into its shard dict — the sole owner),
+                 * then csSubExec NULLs the sub slot. To avoid the coordinator double-freeing the same
+                 * robj when it tears down the head's pending-command argv, relinquish the head's slot
+                 * via the SAME argv_released_mask contract exExecFake uses (server.c:10437): mask the
+                 * slot (<64) so freePendingCommand skips it (networking.c:6684), or NULL it (>=64, the
+                 * NULL-guard there also skips). No incrRefCount, no copy — the ref count is untouched
+                 * and only the worker ever mutates it => no cross-thread refcount (S8-safe). */
+                sub->argv[sub->argc++] = val;
+                if (head->current_pending_cmd && vpos < 64)
+                    head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
+                else
+                    head->argv[vpos] = NULL;
+            } else {
+                /* Legacy: PRIVATE refcount-1 copy so the worker's setKey can consume it like a stock SET. */
+                sub->argv[sub->argc++] = dupStringObject(val);
+            }
         }
     }
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
@@ -6063,16 +6085,63 @@ static void dispatchSetOp(client *head) {
     int op = (p == sunionCommand) ? CS_SETOP_UNION :
              (p == sdiffCommand)  ? CS_SETOP_DIFF  : CS_SETOP_INTER;
     int nkeys = head->argc - 1;          /* keys at argv[1..argc-1] */
+    int dbid = head->db->id;
     csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = CS_SETOP; g->setop = op; g->nkeys = nkeys; g->nsub = nkeys; g->head = head;
-    g->subs = zmalloc(sizeof(client*) * nkeys);
-    g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* per-sub member arrays (sub i fills slot i) */
+    g->ctype = CS_SETOP; g->setop = op; g->nkeys = nkeys; g->head = head;
+    g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
     g->setcnt = zcalloc(sizeof(long) * nkeys);
-    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
     atomic_store_explicit(&g->err, 0, memory_order_relaxed);
     head->csgroup = g;
     head->cdb = 0;
-    int dbid = head->db->id;
+
+    /* xshard OPT (SETOP coalesce): one sub per DISTINCT shard (like MGET/DEL) instead of one per key;
+     * setop_pos[si] maps the sub's local key -> its ORIGINAL position so setmem/setcnt stay position-
+     * indexed and csSetOpCompute is unchanged. Gated k>=3 (2-set ops already <=2 subs). SDIFF order is
+     * preserved because S[0] is built from the original position-0 key's slot. */
+    if (server.opt_setop_coalesce && nkeys >= 3) {
+        int nw = server.num_workers;
+        int *cnt = zcalloc(sizeof(int) * nw);
+        int *wof = zmalloc(sizeof(int) * nkeys);
+        for (int i = 0; i < nkeys; i++) {
+            robj *key = head->argv[1 + i];
+            int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+            wof[i] = w; cnt[w]++;
+        }
+        int nsub = 0; for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
+        g->nsub = nsub;
+        g->subs = zmalloc(sizeof(client*) * nsub);
+        g->setop_pos = zcalloc(sizeof(int*) * nsub);
+        atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+        client **wsub = zcalloc(sizeof(client*) * nw);
+        int *wsi = zmalloc(sizeof(int) * nw);
+        int *fill = zcalloc(sizeof(int) * nw);
+        int si = 0;
+        for (int w = 0; w < nw; w++) {
+            if (!cnt[w]) continue;
+            client *sub = createPooledFakeClient(head->parent);
+            sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+            sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
+            sub->argv = zmalloc(sizeof(robj*) * (1 + cnt[w]));   /* [CMD k k ...] */
+            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+            sub->argc = 1;
+            sub->db = &server.exThreads[w].db[dbid];
+            g->setop_pos[si] = zmalloc(sizeof(int) * cnt[w]);
+            wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
+        }
+        for (int i = 0; i < nkeys; i++) {
+            int w = wof[i]; client *sub = wsub[w]; int lsi = wsi[w];
+            sub->argv[sub->argc++] = head->argv[1 + i]; incrRefCount(head->argv[1 + i]);
+            g->setop_pos[lsi][fill[w]++] = i;
+        }
+        for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
+        zfree(cnt); zfree(wof); zfree(wsub); zfree(wsi); zfree(fill);
+        return;
+    }
+
+    /* Legacy: one sub per key. */
+    g->nsub = nkeys;
+    g->subs = zmalloc(sizeof(client*) * nkeys);
+    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[1 + i];
         int w = exIndexForKey(key->ptr, sdslen(key->ptr));
@@ -6096,7 +6165,7 @@ static void dispatchSetOp(client *head) {
  * visible. Builds temp set robjs (reusing setTypeAdd/IsMember — correct dedup + encoding) for the
  * membership tests INTER/DIFF need; UNION just dedups into one result set. */
 static void csSetOpCompute(client *dst, csGroup *g) {
-    int n = g->nsub;
+    int n = g->nkeys;   /* setmem/setcnt are indexed by ORIGINAL key position (nkeys), not sub count */
     if (g->setop == CS_SETOP_UNION) {
         robj *res = createIntsetObject();   /* setTypeAdd auto-upgrades encoding as needed */
         for (int i = 0; i < n; i++)
@@ -6206,13 +6275,14 @@ static void csReassemble(client *dst, client *head) {
      * coordinator — private refcount-free sds, safe to free cross-thread). Done whether or not dst
      * was set (the teardown path with dst==NULL still allocated them). */
     if (g->ctype == CS_SETOP) {
-        for (int i = 0; i < g->nsub; i++) {
+        for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
             if (g->setmem && g->setmem[i]) {
                 for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
                 zfree(g->setmem[i]);
             }
         }
         zfree(g->setmem); zfree(g->setcnt);
+        if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
     }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it. */
