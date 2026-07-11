@@ -1768,6 +1768,16 @@ typedef struct csGroup {
     redisAtomic int err;       /* CS_SETOP: a sub saw a non-set (WRONGTYPE) key */
     sds **setmem;              /* CS_SETOP: [nsub] arrays of member-sds copies (worker-alloc) */
     long *setcnt;              /* CS_SETOP: [nsub] member count for setmem[i] (0 if missing key) */
+    /* ee451 (xshard OPT-1): COALESCED MGET. Instead of one sub-fake PER KEY (k allocs / k argv /
+     * 2k refcounts / k cross-thread pushes / k reply-buffer page-faults, all serial on the
+     * coordinator), issue one sub PER DISTINCT SHARD carrying all that shard's keys, and preserve
+     * original key ORDER via position-indexed value slots: worker writes each value as a private
+     * sds COPY (refcount-free, like setmem => safe to free on the coordinator) into mget_vals[pos];
+     * coordinator emits mget_vals[0..nkeys-1] in order (NULL slot => nil). mget_pos[si] carries the
+     * original positions of sub si's keys (worker maps its local key j -> mget_pos[cssub_idx][j-1]).
+     * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
+    sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
+    int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
@@ -2952,6 +2962,7 @@ struct redisServer {
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
+    int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
     char *pin_cores;           /* v14: pin-mode 1 manual core list ("0,2,4,6"), thread-pin order */

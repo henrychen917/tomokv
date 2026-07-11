@@ -5669,11 +5669,46 @@ static void csSubExec(client *sub) {
     server.current_client[iotid].p = sub;
     switch (g->ctype) {
     case CS_MGET: {
-        /* Read element: matches mgetCommand per-key semantics (wrong-type -> nil, NOT error,
-         * so deliberately not getCommand). Serialize into the sub's own buffer. */
-        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
-        if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
-        else addReplyBulk(sub, o);
+        /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
+         * not getCommand. */
+        if (g->mget_vals) {
+            /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
+             * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
+             * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
+            int *pos = g->mget_pos[sub->cssub_idx];
+            /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
+             * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
+             * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each
+             * key's hash + prefetches its dict bucket; pass 2 arms the hash (single-shot hint, same
+             * exExecFake handshake) so lookup reuses it AND lands on a warm bucket. Pure hint => output
+             * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
+            enum { MGET_PF_MAX = 256 };
+            uint64_t hs[MGET_PF_MAX];
+            int nk = sub->argc - 1;
+            dict *d = kvstoreGetDict(sub->db->keys, sub->slot > 0 ? sub->slot : 0);
+            int use_pf = (server.opt_mget_coalesce >= 2) && d && d->ht_table[0] &&
+                         dictSize(d) > 0 && nk >= 2 && nk <= MGET_PF_MAX;
+            if (use_pf) {
+                for (int a = 1; a < sub->argc; a++) {
+                    uint64_t h = dictGetHash(d, sub->argv[a]->ptr);
+                    hs[a - 1] = h;
+                    redis_prefetch_read(&d->ht_table[0][h & DICTHT_SIZE_MASK(d->ht_size_exp[0])]);
+                }
+            }
+            for (int a = 1; a < sub->argc; a++) {
+                if (use_pf) dictArmHashHint(sub->argv[a]->ptr, hs[a - 1]);
+                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                if (o != NULL && o->type == OBJ_STRING)
+                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                   : sdsfromlonglong((long)o->ptr);
+            }
+            if (use_pf) dictDisarmHashHint();   /* defensive: clear any hint the last lookup didn't consume */
+        } else {
+            /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+            if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
+            else addReplyBulk(sub, o);
+        }
         break;
     }
     case CS_MSET: {
@@ -5806,6 +5841,57 @@ static void csPushSpin(int w, client *sub) {
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
 }
 
+/* xshard OPT-1: COALESCED MGET. Bucket the k keys by owning shard and issue ONE sub per distinct
+ * shard (each carrying [MGET k k ...] for its keys) instead of one sub per key. Original reply
+ * ORDER is preserved by position slots: g->mget_vals[i] holds key i's value (a private sds copy the
+ * worker writes) and g->mget_pos[si] lists the original positions of sub si's keys (so the worker
+ * maps its local key j -> mget_pos[cssub_idx][j-1] -> mget_vals[pos]). Collapses k createPooledFake
+ * / k argv-alloc / 2k incrRefCount / k csPushSpin / k reply-buffer page-faults down to <= num_workers.
+ * The head group `g` is already zcalloc'd (ctype/nkeys/head/cdb set by the caller). */
+static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid) {
+    int nw = server.num_workers;
+    int *cnt = zcalloc(sizeof(int) * nw);      /* keys owned by worker w */
+    int *wof = zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[1 + i];
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        wof[i] = w; cnt[w]++;
+    }
+    int nsub = 0;
+    for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
+    g->nsub = nsub;
+    g->subs = zmalloc(sizeof(client*) * nsub);
+    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
+    g->mget_pos  = zcalloc(sizeof(int*) * nsub);   /* per-sub original-position lists */
+    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    client **wsub = zcalloc(sizeof(client*) * nw); /* worker -> its sub (NULL if none) */
+    int *wsi = zmalloc(sizeof(int) * nw);          /* worker -> its sub index si */
+    int *fill = zcalloc(sizeof(int) * nw);         /* worker -> local key fill cursor */
+    int si = 0;
+    for (int w = 0; w < nw; w++) {
+        if (!cnt[w]) continue;
+        client *sub = createPooledFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->resp = head->resp;
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_EX_PENDING;
+        sub->argv = zmalloc(sizeof(robj*) * (1 + cnt[w]));   /* [MGET k k ...] */
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argc = 1;
+        sub->db = &server.exThreads[w].db[dbid];
+        g->mget_pos[si] = zmalloc(sizeof(int) * cnt[w]);
+        wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
+    }
+    for (int i = 0; i < nkeys; i++) {
+        int w = wof[i]; client *sub = wsub[w]; int lsi = wsi[w];
+        sub->argv[sub->argc++] = head->argv[1 + i]; incrRefCount(head->argv[1 + i]);
+        g->mget_pos[lsi][fill[w]++] = i;
+    }
+    for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
+    zfree(cnt); zfree(wof); zfree(wsub); zfree(wsi); zfree(fill);
+}
+
 /* Split the multi-key command on the ring-slot head fake into per-key sub-fakes and
  * dispatch them. head->argv already holds the command (moved in by moveExecutionState). */
 static void dispatchCrossShard(client *head, int ct) {
@@ -5818,6 +5904,10 @@ static void dispatchCrossShard(client *head, int ct) {
     g->results = NULL; g->result_ex = NULL;   /* reply-buffer design: no value forwarding */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
+
+    /* xshard OPT-1: coalesced MGET (one sub/shard, order preserved via position slots). Gated to
+     * k>=3: at k=2 the <=2 subs barely differ from per-key and the slot/pos allocs are pure overhead. */
+    if (ct == CS_MGET && server.opt_mget_coalesce >= 1 && nkeys >= 3) { dispatchMgetCoalesced(head, g, nkeys, dbid); return; }
 
     /* ee451 (v11): COALESCE keys-per-shard for DEL/EXISTS/MSET. These reassemble order-free
      * (rcount sum / shared.ok), so instead of one sub PER KEY we issue one sub PER DISTINCT SHARD
@@ -6040,8 +6130,17 @@ static void csReassemble(client *dst, client *head) {
         switch (g->ctype) {
         case CS_MGET:
             addReplyArrayLen(dst, g->nkeys);
-            for (int i = 0; i < g->nkeys; i++)
-                AddReplyFromClient(dst, g->subs[i]);   /* splice sub's element buffer in order */
+            if (g->mget_vals) {
+                /* xshard OPT-1: coalesced — emit position slots in original key order. addReplyBulkSds
+                 * consumes (frees) the sds; NULL the slot so teardown doesn't double-free. */
+                for (int i = 0; i < g->nkeys; i++) {
+                    if (g->mget_vals[i]) { addReplyBulkSds(dst, g->mget_vals[i]); g->mget_vals[i] = NULL; }
+                    else addReplyNull(dst);
+                }
+            } else {
+                for (int i = 0; i < g->nkeys; i++)
+                    AddReplyFromClient(dst, g->subs[i]);   /* legacy: splice sub's element buffer in order */
+            }
             break;
         case CS_MSET:
             addReply(dst, shared.ok);                  /* MSET always +OK once all subs are set */
@@ -6078,6 +6177,13 @@ static void csReassemble(client *dst, client *head) {
             }
         }
         zfree(g->setmem); zfree(g->setcnt);
+    }
+    /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
+     * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it. */
+    if (g->ctype == CS_MGET && g->mget_vals) {
+        for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
+        zfree(g->mget_vals);
+        if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]); zfree(g->mget_pos); }
     }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); zfree(g);
