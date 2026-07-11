@@ -87,10 +87,11 @@ work was reordered, exactly as a program cannot tell its instructions were.
 
 ## Performance
 
-> 📊 **Latest results & analysis:** see **[BENCHMARKS.md](BENCHMARKS.md)** — the 4 GB DRAM throughput
-> matrix (the io/ex dial vs. Redis/Valkey/Dragonfly/Garnet), the **YCSB ingress study** (Tomo wins
-> standard low‑pipeline YCSB across all workloads, +5–16%), and the reshard/EWMA analysis. A 25‑workload
-> real‑world suite is running and will extend it.
+> 📊 **Latest results & analysis:** see **[BENCHMARKS.md](BENCHMARKS.md)** — three regimes on a 1‑CCD
+> 7700X: the **DRAM throughput matrix** (deep pipeline — Tomo ~2.4× Redis), the **YCSB ingress study**
+> (low pipeline — Tomo wins all workloads +5–16%), and a **25‑workload real‑world suite** (realistic
+> P1–P8 — Tomo is the strongest general‑purpose engine, consistently #2 behind Garnet, a throughput‑only
+> cache with no data structures and a ~33 M‑key ceiling). Honest per‑workload table + weak spots inside.
 
 Every number below is single node, loopback, **AMD Ryzen 7 7700X** (8 cores / 1 CCD); server and load
 generator (`memtier_benchmark`) each pinned to a disjoint set of 8 hyperthreads; **jemalloc on every
