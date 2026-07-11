@@ -5881,19 +5881,52 @@ static void csPushSpin(int w, client *sub) {
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
 }
 
-/* xshard OPT-1: COALESCED MGET. Bucket the k keys by owning shard and issue ONE sub per distinct
- * shard (each carrying [MGET k k ...] for its keys) instead of one sub per key. Original reply
- * ORDER is preserved by position slots: g->mget_vals[i] holds key i's value (a private sds copy the
- * worker writes) and g->mget_pos[si] lists the original positions of sub si's keys (so the worker
- * maps its local key j -> mget_pos[cssub_idx][j-1] -> mget_vals[pos]). Collapses k createPooledFake
- * / k argv-alloc / 2k incrRefCount / k csPushSpin / k reply-buffer page-faults down to <= num_workers.
- * The head group `g` is already zcalloc'd (ctype/nkeys/head/cdb set by the caller). */
-static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid) {
+/* xshard (universal): the shared COALESCED scatter used by every 1-hop cross-shard read/scatter cmd
+ * (MGET/MSET/DEL/UNLINK/EXISTS/TOUCH/SINTER/SUNION/SDIFF, and future ones). Buckets `nkeys` keys by
+ * owning shard and issues ONE sub per DISTINCT shard carrying that shard's keys ([CMD k ...] or, for
+ * MSET, [CMD k v ...]). Sets g->subs + g->pending (relaxed, BEFORE any push). Commands differ on only
+ * three axes, captured by csCoalesceSpec: key_stride (MSET=2 else 1), per_key_extra argv slots per key
+ * (MSET value=1 else 0), cs_write (run migHoldKeyIfDraining per key). If spec->posmap != NULL the helper
+ * zcallocs *spec->posmap[nsub] and fills each sub's original-key-position list (so the reply can be
+ * reassembled in key order). append_extra (MSET value handling) runs once per key after the key append.
+ * The caller pre-zcallocs g + any result slots (mget_vals/setmem). Returns nsub. */
+typedef struct csCoalesceSpec {
+    int key_stride;      /* argv stride between keys: 1 (single-key cmds) or 2 (MSET k v) */
+    int per_key_extra;   /* extra argv slots appended per key (MSET value=1, else 0) */
+    int cs_write;        /* run migHoldKeyIfDraining on each key (writes only) */
+    int ***posmap;       /* if non-NULL (&g->mget_pos / &g->setop_pos): helper zcallocs *posmap[nsub] and fills per-sub position lists */
+} csCoalesceSpec;
+
+/* MSET value append — the S8-critical value-ownership logic, factored VERBATIM so the move/mask
+ * discipline is untouched (see the dispatchCrossShard commentary this replaced). */
+static void csAppendMsetValue(client *head, client *sub, int origpos) {
+    int vpos = 2 + 2*origpos;
+    robj *val = head->argv[vpos];
+    if (server.opt_mset_move) {
+        /* MOVE the value robj to the sub (no dupStringObject). Worker setKey CONSUMES it; relinquish the
+         * head's slot via the argv_released_mask contract (freePendingCommand skips masked/NULLed) — no
+         * cross-thread refcount (S8-safe). */
+        sub->argv[sub->argc++] = val;
+        if (head->current_pending_cmd && vpos < 64)
+            head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
+        else
+            head->argv[vpos] = NULL;
+    } else {
+        sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
+    }
+}
+
+static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
+                                const csCoalesceSpec *spec,
+                                void (*append_extra)(client *head, client *sub, int origpos)) {
     int nw = server.num_workers;
+    int stride = spec->key_stride;
     int *cnt = zcalloc(sizeof(int) * nw);      /* keys owned by worker w */
     int *wof = zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
-        robj *key = head->argv[1 + i];
+        robj *key = head->argv[1 + stride*i];
+        if (spec->cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
         int w = exIndexForKey(key->ptr, sdslen(key->ptr));
         wof[i] = w; cnt[w]++;
     }
@@ -5901,8 +5934,7 @@ static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid)
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
     g->subs = zmalloc(sizeof(client*) * nsub);
-    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
-    g->mget_pos  = zcalloc(sizeof(int*) * nsub);   /* per-sub original-position lists */
+    if (spec->posmap) *spec->posmap = zcalloc(sizeof(int*) * nsub);
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     client **wsub = zcalloc(sizeof(client*) * nw); /* worker -> its sub (NULL if none) */
@@ -5916,20 +5948,31 @@ static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid)
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * (1 + cnt[w]));   /* [MGET k k ...] */
+        sub->argv = zmalloc(sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
         sub->db = &server.exThreads[w].db[dbid];
-        g->mget_pos[si] = zmalloc(sizeof(int) * cnt[w]);
+        if (spec->posmap) (*spec->posmap)[si] = zmalloc(sizeof(int) * cnt[w]);
         wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
     }
     for (int i = 0; i < nkeys; i++) {
         int w = wof[i]; client *sub = wsub[w]; int lsi = wsi[w];
-        sub->argv[sub->argc++] = head->argv[1 + i]; incrRefCount(head->argv[1 + i]);
-        g->mget_pos[lsi][fill[w]++] = i;
+        sub->argv[sub->argc++] = head->argv[1 + stride*i]; incrRefCount(head->argv[1 + stride*i]);
+        if (append_extra) append_extra(head, sub, i);
+        if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     zfree(cnt); zfree(wof); zfree(wsub); zfree(wsi); zfree(fill);
+    return nsub;
+}
+
+/* xshard OPT-1: COALESCED MGET (thin wrapper over csBuildCoalescedSubs). Reply ORDER preserved by
+ * position slots: g->mget_vals[i] = key i's value (private sds copy); g->mget_pos[si] = sub si's keys'
+ * original positions. The head group `g` is already zcalloc'd (ctype/nkeys/head/cdb set by the caller). */
+static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid) {
+    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
+    csCoalesceSpec spec = { .key_stride = 1, .per_key_extra = 0, .cs_write = 0, .posmap = &g->mget_pos };
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, NULL);
 }
 
 /* Split the multi-key command on the ring-slot head fake into per-key sub-fakes and
@@ -5981,69 +6024,11 @@ static void dispatchCrossShard(client *head, int ct) {
         return;
     }
 
-    /* Coalesced path: bucket keys by owning shard. */
-    int nw = server.num_workers;
-    int *cnt = zcalloc(sizeof(int) * nw);     /* keys assigned to worker w */
-    int *wof = zmalloc(sizeof(int) * nkeys);  /* owning worker for key i */
-    for (int i = 0; i < nkeys; i++) {
-        robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
-        if (cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
-            migHoldKeyIfDraining(key);
-        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-        wof[i] = w; cnt[w]++;
-    }
-    int nsub = 0;
-    for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
-    g->nsub = nsub;
-    g->subs = zmalloc(sizeof(client*) * nsub);
-    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
-    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
-    client **wsub = zcalloc(sizeof(client*) * nw);   /* worker -> its sub (NULL if none) */
-    int si = 0;
-    for (int w = 0; w < nw; w++) {
-        if (!cnt[w]) continue;
-        client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
-        sub->resp = head->resp;
-        sub->conn = head->conn;
-        sub->flags |= CLIENT_EX_PENDING;
-        int per = (ct == CS_MSET) ? (1 + 2*cnt[w]) : (1 + cnt[w]);  /* [CMD k v...] or [CMD k...] */
-        sub->argv = zmalloc(sizeof(robj*) * per);
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        sub->argc = 1;   /* keys/pairs appended below in original order */
-        sub->db = &server.exThreads[w].db[dbid];
-        wsub[w] = sub;
-        g->subs[si++] = sub;
-    }
-    for (int i = 0; i < nkeys; i++) {
-        client *sub = wsub[wof[i]];
-        robj *key = (ct == CS_MSET) ? head->argv[1 + 2*i] : head->argv[1 + i];
-        sub->argv[sub->argc++] = key; incrRefCount(key);
-        if (ct == CS_MSET) {
-            int vpos = 2 + 2*i;
-            robj *val = head->argv[vpos];
-            if (server.opt_mset_move) {
-                /* xshard OPT-5: MOVE the value robj to the sub (no dupStringObject copy). The worker's
-                 * setKey CONSUMES it (kvobjSet embeds the robj into its shard dict — the sole owner),
-                 * then csSubExec NULLs the sub slot. To avoid the coordinator double-freeing the same
-                 * robj when it tears down the head's pending-command argv, relinquish the head's slot
-                 * via the SAME argv_released_mask contract exExecFake uses (server.c:10437): mask the
-                 * slot (<64) so freePendingCommand skips it (networking.c:6684), or NULL it (>=64, the
-                 * NULL-guard there also skips). No incrRefCount, no copy — the ref count is untouched
-                 * and only the worker ever mutates it => no cross-thread refcount (S8-safe). */
-                sub->argv[sub->argc++] = val;
-                if (head->current_pending_cmd && vpos < 64)
-                    head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
-                else
-                    head->argv[vpos] = NULL;
-            } else {
-                /* Legacy: PRIVATE refcount-1 copy so the worker's setKey can consume it like a stock SET. */
-                sub->argv[sub->argc++] = dupStringObject(val);
-            }
-        }
-    }
-    for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
-    zfree(cnt); zfree(wof); zfree(wsub);
+    /* Coalesced path (DEL/EXISTS/MSET): one sub per shard via the shared builder. */
+    csCoalesceSpec spec = { .key_stride = (ct == CS_MSET) ? 2 : 1,
+                            .per_key_extra = (ct == CS_MSET) ? 1 : 0,
+                            .cs_write = cs_write, .posmap = NULL };
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, (ct == CS_MSET) ? csAppendMsetValue : NULL);
 }
 
 /* ee451 v10-B: fan a no-key global read (KEYS) to ALL worker shards. One sub per worker runs the
@@ -6099,42 +6084,8 @@ static void dispatchSetOp(client *head) {
      * indexed and csSetOpCompute is unchanged. Gated k>=3 (2-set ops already <=2 subs). SDIFF order is
      * preserved because S[0] is built from the original position-0 key's slot. */
     if (server.opt_setop_coalesce && nkeys >= 3) {
-        int nw = server.num_workers;
-        int *cnt = zcalloc(sizeof(int) * nw);
-        int *wof = zmalloc(sizeof(int) * nkeys);
-        for (int i = 0; i < nkeys; i++) {
-            robj *key = head->argv[1 + i];
-            int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-            wof[i] = w; cnt[w]++;
-        }
-        int nsub = 0; for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
-        g->nsub = nsub;
-        g->subs = zmalloc(sizeof(client*) * nsub);
-        g->setop_pos = zcalloc(sizeof(int*) * nsub);
-        atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
-        client **wsub = zcalloc(sizeof(client*) * nw);
-        int *wsi = zmalloc(sizeof(int) * nw);
-        int *fill = zcalloc(sizeof(int) * nw);
-        int si = 0;
-        for (int w = 0; w < nw; w++) {
-            if (!cnt[w]) continue;
-            client *sub = createPooledFakeClient(head->parent);
-            sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
-            sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
-            sub->argv = zmalloc(sizeof(robj*) * (1 + cnt[w]));   /* [CMD k k ...] */
-            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-            sub->argc = 1;
-            sub->db = &server.exThreads[w].db[dbid];
-            g->setop_pos[si] = zmalloc(sizeof(int) * cnt[w]);
-            wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
-        }
-        for (int i = 0; i < nkeys; i++) {
-            int w = wof[i]; client *sub = wsub[w]; int lsi = wsi[w];
-            sub->argv[sub->argc++] = head->argv[1 + i]; incrRefCount(head->argv[1 + i]);
-            g->setop_pos[lsi][fill[w]++] = i;
-        }
-        for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
-        zfree(cnt); zfree(wof); zfree(wsub); zfree(wsi); zfree(fill);
+        csCoalesceSpec spec = { .key_stride = 1, .per_key_extra = 0, .cs_write = 0, .posmap = &g->setop_pos };
+        csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, NULL);
         return;
     }
 
