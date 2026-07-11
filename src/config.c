@@ -3198,6 +3198,7 @@ standardConfig static_configs[] = {
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createIntConfig("thredis-opt-mget-coalesce",     NULL, MODIFIABLE_CONFIG, 0, 2, server.opt_mget_coalesce, 1, INTEGER_CONFIG, NULL, NULL), /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); 2=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
+    createBoolConfig("thredis-xshard-guard",         NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX/*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
     createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),

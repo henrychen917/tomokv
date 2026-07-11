@@ -107,6 +107,7 @@ static inline int isStatefulCommand(struct redisCommand *cmd);  /* v14: per-op f
 static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
+static int isCrossShardUnsafe(struct redisCommand *cmd, int argc);
 static void dispatchCrossShard(client *head, int ct);
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/SUNION/SDIFF */
@@ -5165,6 +5166,20 @@ int processCommand(client *c) {
         return C_OK;
     }
 
+    /* xshard SAFE-GATE (multibug_report.md finding A): cross-shard multi-key commands NOT YET ported
+     * to the scatter-gather path would fall to the inline branch and run against the EMPTY decoy
+     * server.db => silent wrong result / acknowledged data loss (verified live: RENAME -> "no such
+     * key" on an existing key; MSETNX -> :1 while writing nothing; SINTERSTORE/ZUNIONSTORE -> :0
+     * storing empty; COPY -> :0). Reject loudly until each is ported, mirroring the MULTI/WATCH gate.
+     * The already-ported cross-shard cmds (MGET/MSET/DEL/UNLINK/EXISTS/TOUCH/KEYS/SINTER/SUNION/SDIFF)
+     * are NOT flagged here — they work. Gated by thredis-xshard-guard (default on). */
+    if (server.num_workers > 0 && server.xshard_guard && isCrossShardUnsafe(c->cmd, c->argc)) {
+        rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-ex-threads=%d): "
+            "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
+            "Use single-key equivalents or upstream Redis", c->cmd->fullname, server.num_workers);
+        return C_OK;
+    }
+
     /* Queuing inside MULTI: writes to real->mstate and addReply(real).
      * Must run on real. Drain ring first. */
     if (c->flags & CLIENT_MULTI &&
@@ -5631,6 +5646,27 @@ int exIndexForKey(const void *keyptr, size_t len) {
  * last sub (result==1) has acquired every earlier sub's release and therefore sees all
  * their reply-buffer writes; its release-OR of the head bit then synchronizes-with the IO
  * drain's acquire-load of the reply mask. So the drain sees every sub's buffer. */
+/* xshard SAFE-GATE: multi-key / multi-shard commands NOT yet ported to the scatter-gather path.
+ * Under sharding they fall to the inline branch and run against the empty decoy server.db => silent
+ * wrong result / acknowledged data loss (multibug_report.md finding A). Reject them loudly until each
+ * is ported. As a command IS ported to a real cross-shard path, remove it from this list. The already-
+ * handled cross-shard cmds (mget/mset/del/unlink/exists/touch/keys/sinter/sunion/sdiff) are NOT here. */
+static int isCrossShardUnsafe(struct redisCommand *cmd, int argc) {
+    if (!cmd) return 0;
+    void *p = cmd->proc;
+    return p == msetnxCommand ||
+           p == sinterstoreCommand || p == sunionstoreCommand || p == sdiffstoreCommand ||
+           p == sinterCardCommand ||
+           p == zunionCommand || p == zinterCommand || p == zdiffCommand || p == zinterCardCommand ||
+           p == zunionstoreCommand || p == zinterstoreCommand || p == zdiffstoreCommand ||
+           p == zmpopCommand || p == lmpopCommand || p == bzmpopCommand || p == blmpopCommand ||
+           p == pfmergeCommand || (p == pfcountCommand && argc > 2) ||
+           p == bitopCommand ||
+           p == renameCommand || p == renamenxCommand ||
+           p == copyCommand || p == smoveCommand ||
+           p == lmoveCommand || p == blmoveCommand || p == rpoplpushCommand || p == brpoplpushCommand;
+}
+
 static int csCommandType(client *c) {
     if (!c->cmd) return -1;   /* ee451 (v13): cross-shard HARDWIRED (off caused keyspace desync) */
     void *p = c->cmd->proc;

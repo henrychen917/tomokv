@@ -2963,6 +2963,7 @@ struct redisServer {
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
+    int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
     char *pin_cores;           /* v14: pin-mode 1 manual core list ("0,2,4,6"), thread-pin order */
