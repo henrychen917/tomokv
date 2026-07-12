@@ -1742,11 +1742,29 @@ typedef struct client {
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
  * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
-typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP } csCmdType;
+typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
 #define CS_SETOP_DIFF      2
+/* ee451 (universal xshard): 2-HOP phase machine. Read-then-write / move / conditional commands GATHER
+ * on the SOURCE shard(s) in HOP1, then the IO DRAIN (never a worker — a worker's iotid is not an SPSC
+ * producer slot) launches HOP2 to WRITE the serialized result to the DEST shard. Data crossing shards
+ * is a private refcount-free DUMP/sds blob (S8-safe: no live robj crosses a thread). */
+#define CS_PH_HOP1         0   /* default (zcalloc) => every 1-hop group is unaffected */
+#define CS_PH_HOP2         1
+/* g->err codes (reuse the existing atomic err; 0/1 keep SETOP's none/WRONGTYPE meaning). */
+#define CS_ERR_NONE        0
+#define CS_ERR_WRONGTYPE   1
+#define CS_ERR_NOKEY       2
+#define CS_ERR_NX_EXISTS   3
+#define CS_ERR_EMPTY       4
+/* HOP2 write op. */
+#define CS_H2_RESTORE      1   /* rdbLoad h2_payload -> dbAdd/overwrite dest (RENAME/COPY/*STORE) */
+/* reply shape after HOP2 / for 2-hop commands. */
+#define CS2_OK             1
+#define CS2_INT            2
+#define CS2_NIL            3
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -1779,6 +1797,18 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
+    /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
+    int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
+    int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
+    int h2_op;                 /* CS_H2_* write op for HOP2 */
+    int h2_dest_shard;         /* dest worker for the HOP2 write (-1 = none) */
+    int h2_del_shard;          /* worker to delete the src key on in HOP2 (moves; -1 = none) */
+    sds h2_key;                /* dest key (borrowed ptr into head->argv; valid until teardown) */
+    sds h2_delkey;             /* src key to delete in HOP2 (borrowed) */
+    sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
+    long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
+    int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
+    long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel

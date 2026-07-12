@@ -111,6 +111,8 @@ static int isCrossShardUnsafe(struct redisCommand *cmd, int argc);
 static void dispatchCrossShard(client *head, int ct);
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/SUNION/SDIFF */
+static void dispatchRename(client *head);   /* universal xshard: RENAME (2-hop move / same-shard proc) */
+static void csLaunchHop2(csGroup *g);       /* universal xshard: drain-thread HOP2 launcher */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
 static void migHoldIfDraining(client *fake);
@@ -2086,6 +2088,17 @@ void handleWorkerReplies(void) {
              * skip the normal head splice. commandProcessed(fake) below still retires the
              * head ring slot like any other fake. */
             if (fake->csgroup) {
+                csGroup *g = fake->csgroup;
+                if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
+                    atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
+                    /* universal xshard 2-HOP: HOP1 gather done, launch HOP2 write on THIS drain thread.
+                     * The head stays in flight — not retired, flushid NOT advanced, replyWorking untouched
+                     * — so the drain keeps polling; csLaunchHop2 clears the stale bit and the HOP2 sub
+                     * re-signals this same slot. Stop walking here (in-order retire): the head must retire
+                     * before any later ring slot, and it isn't retiring this pass. */
+                    csLaunchHop2(g);
+                    break;
+                }
                 csReassemble(real, fake);
             } else {
                 AddReplyFromClient(real, fake);
@@ -3852,7 +3865,7 @@ void populateCommandTable(void) {
         if (c->proc == mgetCommand || c->proc == msetCommand || c->proc == delCommand ||
             c->proc == unlinkCommand || c->proc == existsCommand || c->proc == touchCommand ||
             c->proc == keysCommand || c->proc == sinterCommand || c->proc == sunionCommand ||
-            c->proc == sdiffCommand) c->tomo_route |= TOMO_R_CROSS;
+            c->proc == sdiffCommand || c->proc == renameCommand) c->tomo_route |= TOMO_R_CROSS;
 
         retval1 = dictAdd(server.commands, sdsdup(c->fullname), c);
         /* Populate an additional dictionary that will be unaffected
@@ -5266,6 +5279,7 @@ int processCommand(client *c) {
         replyWorking++;
         if (cst == CS_KEYS) dispatchFanAll(fake);   /* ee451 v10-B: one sub per worker */
         else if (cst == CS_SETOP) dispatchSetOp(fake);  /* ee451 v11-F: per-key gather-compute */
+        else if (cst == CS_RENAME) dispatchRename(fake);   /* universal xshard: 2-hop move (or same-shard real proc) */
         else dispatchCrossShard(fake, cst);
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
@@ -5662,7 +5676,7 @@ static int isCrossShardUnsafe(struct redisCommand *cmd, int argc) {
            p == zmpopCommand || p == lmpopCommand || p == bzmpopCommand || p == blmpopCommand ||
            p == pfmergeCommand || (p == pfcountCommand && argc > 2) ||
            p == bitopCommand ||
-           p == renameCommand || p == renamenxCommand ||
+           p == renamenxCommand ||   /* renameCommand is ported (CS_RENAME); renamenx still guarded (step 4) */
            p == copyCommand || p == smoveCommand ||
            p == lmoveCommand || p == blmoveCommand || p == rpoplpushCommand || p == brpoplpushCommand;
 }
@@ -5691,6 +5705,9 @@ static int csCommandType(client *c) {
      * LIMIT parsing and the STORE variants' hop-2 write are separate follow-ups.) */
     if (c->argc >= 2 &&   /* ee451 (v13): cross-setop hardwired */
         (p == sinterCommand || p == sunionCommand || p == sdiffCommand)) return CS_SETOP;
+    /* universal xshard: RENAME src dst — 2-hop move when src/dst are on different shards; a single
+     * worker runs the real proc when they collide on one shard (dispatchRename decides). */
+    if (p == renameCommand && c->argc == 3) return CS_RENAME;
     return -1;
 }
 
@@ -5841,6 +5858,47 @@ static void csSubExec(client *sub) {
             sds ele;
             while ((ele = setTypeNextObject(&si)) != NULL) arr[m++] = ele;  /* fresh owned sds */
             g->setmem[idx] = arr; g->setcnt[idx] = m;
+        }
+        break;
+    }
+    case CS_RENAME: {
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        if (!g->has_hop2) {
+            /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
+            renameGenericCommand(sub, 0);
+        } else if (g->phase == CS_PH_HOP1) {
+            /* HOP1 (src shard, single-writer): read + serialize (RDB post-image + abs TTL) + delete src.
+             * Missing src => NOKEY, no delete. Blob is a private refcount-free sds => S8-safe to cross. */
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            if (o == NULL) {
+                atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+            } else {
+                rio r; rioInitWithBuffer(&r, sdsempty());
+                rdbSaveObjectType(&r, o);
+                rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
+                g->h2_payload = r.io.buffer.ptr;
+                long long ex = getExpire(sub->db, sub->argv[1]->ptr, NULL);
+                g->h2_pexpireat = (ex == -1) ? -1 : ex;
+                dbSyncDelete(sub->db, sub->argv[1]);
+                notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
+                markDirty(1);
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            }
+        } else {
+            /* HOP2 (dst shard, single-writer): RESTORE the blob onto dst (RENAME overwrites), restore TTL. */
+            robj *dstkey = sub->argv[1];
+            dbSyncDelete(sub->db, dstkey);
+            rio r; rioInitWithBuffer(&r, g->h2_payload);
+            int type = rdbLoadObjectType(&r);
+            int rerr = 0;
+            robj *val = rdbLoadObject(type, &r, dstkey, sub->db->id, &rerr);
+            if (val != NULL) {
+                dbAdd(sub->db, dstkey, &val);
+                if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
+            }
+            notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_to", dstkey, sub->db->id);
+            markDirty(1);
+            if (mig) migCaptureEffect(sub->db, dstkey);
         }
         break;
     }
@@ -6180,6 +6238,82 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * real client is being torn down (CLOSE_ASAP): skip the reply, just free the subs/group.
  * Called from the IO drain, which has acquire-synchronized with every sub via the head
  * completion bit (release-acquire chain through g->pending; see the block header). */
+/* universal xshard: RENAME src dst. Same-shard => ONE sub runs the real renameGenericCommand on that
+ * worker (typed/normal; reply spliced at reassemble). Cross-shard => 2-HOP move: HOP1 gather sub on
+ * src shard reads+serializes+deletes src (or flags NOKEY); the drain launches HOP2 to RESTORE the blob
+ * on dst. RENAME always overwrites dst, so deleting src in HOP1 is safe (transient state is MISSING). */
+static void dispatchRename(client *head) {
+    int dbid = head->db->id;
+    robj *src = head->argv[1], *dst = head->argv[2];
+    int src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
+    int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_RENAME; g->nkeys = 1; g->head = head;
+    head->csgroup = g; head->cdb = 0;
+    g->h2_pexpireat = -1;
+    atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
+    g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+
+    client *sub = createPooledFakeClient(head->parent);
+    sub->csparent = g; sub->cssub_idx = 0; sub->cmd = head->cmd;
+    sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
+    if (src_shard == dst_shard) {
+        /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
+        sub->argv = zmalloc(sizeof(robj*) * 3);
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argv[1] = src;           incrRefCount(src);
+        sub->argv[2] = dst;           incrRefCount(dst);
+        sub->argc = 3;
+    } else {
+        /* cross-shard: HOP1 gather sub carries only [RENAME src]; the drain handles dst in HOP2. */
+        g->has_hop2 = 1; g->phase = CS_PH_HOP1; g->h2_op = CS_H2_RESTORE; g->cs2_kind = CS2_OK;
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+            migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
+        }
+        sub->argv = zmalloc(sizeof(robj*) * 2);
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argv[1] = src;           incrRefCount(src);
+        sub->argc = 2;
+    }
+    sub->db = &server.exThreads[src_shard].db[dbid];
+    g->subs[0] = sub;
+    csPushSpin(src_shard, sub);
+}
+
+/* universal xshard: HOP2 launcher — runs on the IO DRAIN thread after the HOP1 barrier (a worker cannot
+ * push to an SPSC queue). Frees the HOP1 subs, builds the write sub(s) on the dest shard, resets pending,
+ * clears the STALE HOP1 ready bit BEFORE pushing HOP2 (so the worker's HOP2 set-bit isn't clobbered),
+ * sets phase=HOP2. The head keeps its ring slot; replyWorking is untouched so the drain keeps polling. */
+static void csLaunchHop2(csGroup *g) {
+    client *head = g->head;
+    int dbid = head->db->id;
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    zfree(g->subs); g->subs = NULL;
+
+    robj *dst = head->argv[2];   /* RENAME/COPY dest key (still valid — head in flight) */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migHoldKeyIfDraining(dst);
+    int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));   /* re-read AFTER the hold */
+    g->phase = CS_PH_HOP2;
+    g->nsub = 1;
+    g->subs = zmalloc(sizeof(client*));
+    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+    client *sub = createPooledFakeClient(head->parent);
+    sub->csparent = g; sub->cssub_idx = 0; sub->cmd = head->cmd;
+    sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
+    sub->argv = zmalloc(sizeof(robj*) * 2);
+    sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+    sub->argv[1] = dst;           incrRefCount(dst);
+    sub->argc = 2;
+    sub->db = &server.exThreads[dst_shard].db[dbid];
+    g->subs[0] = sub;
+    /* clear the stale HOP1 ready bit directly (atomic AND; this IO thread is the sole clearer) BEFORE
+     * pushing, so the HOP2 completion's set-bit survives; then push the write sub. */
+    atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+    csPushSpin(dst_shard, sub);
+}
+
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
     if (dst) {
@@ -6219,6 +6353,16 @@ static void csReassemble(client *dst, client *head) {
             else
                 csSetOpCompute(dst, g);
             break;
+        case CS_RENAME:
+            if (!g->has_hop2) {
+                /* same-shard: splice the real proc's reply (+OK or -ERR no such key). */
+                AddReplyFromClient(dst, g->subs[0]);
+            } else if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NOKEY) {
+                addReplyError(dst, "no such key");
+            } else {
+                addReply(dst, shared.ok);   /* cross-shard RENAME committed (HOP2 done) */
+            }
+            break;
         default: break;
         }
     }
@@ -6242,6 +6386,8 @@ static void csReassemble(client *dst, client *head) {
         zfree(g->mget_vals);
         if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]); zfree(g->mget_pos); }
     }
+    /* universal xshard: free the HOP2 serialized payload blob (private sds). */
+    if (g->h2_payload) sdsfree(g->h2_payload);
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); zfree(g);
     head->csgroup = NULL;
