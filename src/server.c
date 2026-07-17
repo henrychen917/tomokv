@@ -5704,6 +5704,20 @@ static int csEvalUnsafeCheck(client *c) {
 }
 static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
 
+/* SINTERCARD numkeys key... [LIMIT n]: 1 = well-formed => cross-shard. Malformed numkeys /
+ * overrun / bad tail => 0 => fall INLINE for the stock parse error (precedes key access). */
+static int csSintercardShapeOk(client *c) {
+    long long nk, lim;
+    if (getLongLongFromObject(c->argv[1], &nk) != C_OK || nk <= 0) return 0;
+    long long tail = 2 + nk;              /* first arg after the keys */
+    if (tail > c->argc) return 0;
+    if (tail == c->argc) return 1;        /* no LIMIT clause */
+    if (tail + 2 != c->argc) return 0;
+    if (strcasecmp(c->argv[tail]->ptr, "limit")) return 0;
+    if (getLongLongFromObject(c->argv[tail+1], &lim) != C_OK || lim < 0) return 0;
+    return 1;
+}
+
 /* COPY src dst [DB n] [REPLACE]: 1 = well-formed => cross-shard path. Malformed options / bad
  * int / out-of-range DB => 0 => fall INLINE, where the STOCK proc emits its exact error
  * (syntax/int/range checks all precede key access in copyCommand — decoy-safe). */
@@ -5766,6 +5780,27 @@ static const csCmdSpec csRegistry[] = {
 { .proc=smoveCommand, .name="smove", .ported=CS_PORT_OK, .ctype=CS_SMOVE,
   .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h1_extra_argi=3, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+/* step 5 — read-then-store set ops. Sources are READ-ONLY (no lost-update possible): HOP1 =
+ * the exact SINTER/SUNION/SDIFF member gather (keys start at argv[2], dst excluded); the
+ * coordinator computes the result and serializes it; HOP2 = ONE write sub on dst's shard
+ * (empty result => h2_payload NULL => the write sub DELETES dst, stock behavior). WRONGTYPE
+ * short-circuits in HOP1 => no write at all. SINTERCARD is the pure-1-hop count variant. */
+{ .proc=sinterstoreCommand, .name="sinterstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=sunionstoreCommand, .name="sunionstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_UNION, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=sdiffstoreCommand, .name="sdiffstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_DIFF, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=sinterCardCommand, .name="sintercard", .ported=CS_PORT_OK, .ctype=CS_SETCARD,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .cs2_kind=CS2_INT, .shape_ok=csSintercardShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
@@ -5780,10 +5815,6 @@ static const csCmdSpec csRegistry[] = {
 
 /* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
 { .proc=msetnxCommand,      .name="msetnx"      },
-{ .proc=sinterstoreCommand, .name="sinterstore" },
-{ .proc=sunionstoreCommand, .name="sunionstore" },
-{ .proc=sdiffstoreCommand,  .name="sdiffstore"  },
-{ .proc=sinterCardCommand,  .name="sintercard"  },
 { .proc=zunionCommand,      .name="zunion"      },
 { .proc=zinterCommand,      .name="zinter"      },
 { .proc=zdiffCommand,       .name="zdiff"       },
@@ -5915,10 +5946,10 @@ static void csRegistryBootAudit(void) {
     for (const csCmdSpec *s = csRegistry; s->proc; s++) {
         nrows++;
         /* Structural invariants for the currently-wired machinery (steps land additively):
-         * has_hop2/numkeys/block_reject are step-5+/8/9; shape_ok is TWOHOP-only today (COPY). */
+         * block_reject is step-8/9. A hop2-bearing GATHER row must name its dest key. */
         if (s->ported == CS_PORT_OK) {
-            serverAssert(!s->has_hop2 && !s->block_reject && !s->numkeys_argi);
-            if (s->shape_ok) serverAssert(s->route == CS_RT_TWOHOP);
+            serverAssert(!s->block_reject);
+            if (s->has_hop2) serverAssert(s->route == CS_RT_GATHER && s->dst_argi && s->h2_op);
             if (s->route == CS_RT_TWOHOP) serverAssert(s->src_argi && s->dst_argi && s->h2_op);
         }
     }
@@ -5980,8 +6011,9 @@ static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
 /* universal xshard HOP2 dest-side restore (worker, single-writer): rdbLoad the blob FIRST (a
  * load failure then never destroys dst), then overwrite dst + restore TTL + re-register the
  * DB-global HFE-subexpires and stream-IDMP indices (dbAdd does not — stock rename/copy
- * register them explicitly). `event` = keyspace notification ("rename_to"/"copy_to"). */
-static void csH2RestoreKey(client *sub, csGroup *g, const char *event, int mig) {
+ * register them explicitly). `nclass`+`event` = keyspace notification (NOTIFY_GENERIC
+ * "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
+static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event, int mig) {
     robj *dstkey = sub->argv[1];
     rio r; rioInitWithBuffer(&r, g->h2_payload);
     int type = rdbLoadObjectType(&r);
@@ -6000,7 +6032,7 @@ static void csH2RestoreKey(client *sub, csGroup *g, const char *event, int mig) 
         }
         if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
             incrRefCount(dstkey);
-        notifyKeyspaceEvent(NOTIFY_GENERIC, event, dstkey, sub->db->id);
+        notifyKeyspaceEvent(nclass, event, dstkey, sub->db->id);
         markDirty(1);
         if (mig) migCaptureEffect(sub->db, dstkey);
     } else {
@@ -6133,6 +6165,29 @@ static void csSubExec(client *sub) {
         atomic_fetch_add_explicit(&g->rcount, (long)n, memory_order_relaxed);
         break;
     }
+    case CS_SSTORE:
+        if (g->phase == CS_PH_HOP2) {
+            /* step 5 WRITE sub (dst shard, single-writer): h2_payload == NULL means the computed
+             * result was EMPTY => stock deletes dst and replies 0; else restore the serialized
+             * result set over dst. Sources were read-only — this is the only write. */
+            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+            if (g->h2_payload == NULL) {
+                if (dbSyncDelete(sub->db, sub->argv[1])) {
+                    notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            } else {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "sunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "sdiffstore"  : "sinterstore";
+                csH2RestoreKey(sub, g, NOTIFY_SET, ev, mig);
+            }
+            break;
+        }
+        /* HOP1 member gather is byte-identical to the read-only set-ops. */
+        /* fall through */
+    case CS_SETCARD:   /* pure 1-hop: same gather, count-only reassembly */
+        /* fall through */
     case CS_SETOP: {
         /* ee451 v11-F: gather each of the sub's keys' set members as fresh sds COPIES into the
          * per-ORIGINAL-KEY-POSITION slot. Worker owns sub->db (single-writer) so the non-safe iterator
@@ -6168,7 +6223,7 @@ static void csSubExec(client *sub) {
         } else if (g->phase == CS_PH_HOP1) {
             csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */, mig);
         } else {
-            csH2RestoreKey(sub, g, "rename_to", mig);
+            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to", mig);
         }
         break;
     }
@@ -6188,7 +6243,7 @@ static void csSubExec(client *sub) {
         } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
-            csH2RestoreKey(sub, g, "rename_to", mig);
+            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to", mig);
         } else {
             /* SRCOP: delete src (the NX verdict passed; both halves commit under ONE barrier). */
             if (dbSyncDelete(sub->db, sub->argv[1])) {
@@ -6211,7 +6266,7 @@ static void csSubExec(client *sub) {
             if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
                 atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
             } else {
-                csH2RestoreKey(sub, g, "copy_to", mig);
+                csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to", mig);
             }
         }
         break;
@@ -6437,6 +6492,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->winner = -1;
+    g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
 
@@ -6534,21 +6590,16 @@ static void dispatchFanAll(client *head) {
  * `dst`. Runs on the coordinator (IO drain) after the pending barrier, so every sub's setmem is
  * visible. Builds temp set robjs (reusing setTypeAdd/IsMember — correct dedup + encoding) for the
  * membership tests INTER/DIFF need; UNION just dedups into one result set. */
-static void csSetOpCompute(client *dst, csGroup *g) {
+/* Build the UNION/INTER/DIFF result as a temp OBJ_SET (coordinator-owned, refcount 1 — never
+ * crosses a thread; only a serialized blob does). Factored so the read-only set-ops (reply
+ * emission), the *STORE prep (DUMP-serialize), and SINTERCARD (count) share one compute. */
+static robj *csSetOpResultSet(csGroup *g) {
     int n = g->nkeys;   /* setmem/setcnt are indexed by ORIGINAL key position (nkeys), not sub count */
     if (g->setop == CS_SETOP_UNION) {
         robj *res = createIntsetObject();   /* setTypeAdd auto-upgrades encoding as needed */
         for (int i = 0; i < n; i++)
             for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(res, g->setmem[i][k]);
-        addReplySetLen(dst, setTypeSize(res));
-        setTypeIterator si; setTypeInitIterator(&si, res);
-        char *str; size_t len; int64_t llele;
-        while (setTypeNext(&si, &str, &len, &llele) != -1) {
-            if (str) addReplyBulkCBuffer(dst, str, len);
-            else addReplyBulkLongLong(dst, llele);
-        }
-        decrRefCount(res);
-        return;
+        return res;
     }
     /* INTER / DIFF: build a membership set per sub. */
     robj **S = zmalloc(sizeof(robj*) * n);
@@ -6580,6 +6631,13 @@ static void csSetOpCompute(client *dst, csGroup *g) {
             sdsfree(m);
         }
     }
+    for (int i = 0; i < n; i++) decrRefCount(S[i]);
+    zfree(S);
+    return res;
+}
+
+static void csSetOpCompute(client *dst, csGroup *g) {
+    robj *res = csSetOpResultSet(g);
     addReplySetLen(dst, setTypeSize(res));
     setTypeIterator so; setTypeInitIterator(&so, res);
     char *str; size_t len; int64_t llele;
@@ -6588,8 +6646,6 @@ static void csSetOpCompute(client *dst, csGroup *g) {
         else addReplyBulkLongLong(dst, llele);
     }
     decrRefCount(res);
-    for (int i = 0; i < n; i++) decrRefCount(S[i]);
-    zfree(S);
 }
 
 /* Reassemble a completed group's reply onto `dst` (the real client): array header + each
@@ -6707,6 +6763,24 @@ static int csLaunchHop2(csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
     case CS_COPY: break;   /* NX decided atomically at the dst write (no probe) */
+    case CS_SSTORE: {
+        /* step 5: compute the set-op result on the coordinator from the gathered members and
+         * serialize it (temp OBJ_SET never crosses a thread — only the blob does). EMPTY result
+         * still launches HOP2 with payload NULL: the write sub must DELETE a pre-existing dst
+         * (stock). WRONGTYPE was flagged in HOP1 => the generic err screen below skips all writes. */
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
+        robj *res = csSetOpResultSet(g);
+        long long card = (long long)setTypeSize(res);
+        g->cs2_intreply = card;
+        if (card > 0) {
+            rio r; rioInitWithBuffer(&r, sdsempty());
+            rdbSaveObjectType(&r, res);
+            rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
+            g->h2_payload = r.io.buffer.ptr;
+        }
+        decrRefCount(res);
+        break;
+    }
     case CS_SMOVE: {
         /* Decode the 5-bit verdict with STOCK precedence: src-missing => :0 (even if dst is
          * wrong-typed); any wrongtype => WRONGTYPE; member absent => :0; else move. */
@@ -6728,6 +6802,10 @@ static int csLaunchHop2(csGroup *g) {
 
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); g->subs = NULL;
+    /* posmaps are sized by the HOP1 sub count — free them NOW, before nsub is repurposed for
+     * the HOP2 plan (the generic teardown would walk them with the wrong bound => leak). */
+    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); g->setop_pos = NULL; }
+    if (g->mget_pos)  { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]);  zfree(g->mget_pos);  g->mget_pos  = NULL; }
 
     if (g->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
@@ -6831,22 +6909,49 @@ static void csReassemble(client *dst, client *head) {
             else addReply(dst, shared.cone);
             break;
         }
+        case CS_SSTORE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard set-store failed");
+            else addReplyLongLong(dst, g->cs2_intreply);   /* stored cardinality (0 = deleted dst) */
+            break;
+        }
+        case CS_SETCARD: {
+            /* SINTERCARD numkeys key... [LIMIT n]: intersection cardinality, clamped to LIMIT
+             * (0 = unlimited). Compute-then-clamp gives the same answer as stock's early-stop. */
+            if (atomic_load_explicit(&g->err, memory_order_relaxed))
+                addReplyErrorObject(dst, shared.wrongtypeerr);
+            else {
+                robj *res = csSetOpResultSet(g);
+                long long card = (long long)setTypeSize(res);
+                long long nk = 0, lim = 0;
+                getLongLongFromObject(head->argv[1], &nk);
+                int tail = 2 + (int)nk;
+                if (tail + 1 < head->argc) {
+                    getLongLongFromObject(head->argv[tail+1], &lim);
+                    if (lim > 0 && card > lim) card = lim;
+                }
+                addReplyLongLong(dst, card);
+                decrRefCount(res);
+            }
+            break;
+        }
         default: break;
         }
     }
     /* ee451 v11-F: free the gathered member copies (allocated on worker threads; freed here on the
      * coordinator — private refcount-free sds, safe to free cross-thread). Done whether or not dst
      * was set (the teardown path with dst==NULL still allocated them). */
-    if (g->ctype == CS_SETOP) {
+    if (g->setmem) {   /* CS_SETOP + step-5 CS_SSTORE/CS_SETCARD all gather into setmem */
         for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
-            if (g->setmem && g->setmem[i]) {
+            if (g->setmem[i]) {
                 for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
                 zfree(g->setmem[i]);
             }
         }
         zfree(g->setmem); zfree(g->setcnt);
-        if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
     }
+    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it. */
     if (g->ctype == CS_MGET && g->mget_vals) {
