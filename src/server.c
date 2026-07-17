@@ -5774,6 +5774,29 @@ static int csLmoveShapeOk(client *c)      { return csDirOk(c->argv[3]) && csDirO
 static int csBlmoveShapeOk(client *c)     { return csDirOk(c->argv[3]) && csDirOk(c->argv[4]) && csTimeoutOk(c->argv[5]); }
 static int csBrpoplpushShapeOk(client *c) { return csTimeoutOk(c->argv[3]); }
 
+/* L/ZMPOP [timeout] numkeys key... <LEFT|RIGHT / MIN|MAX> [COUNT n]: validate the tail after
+ * the keys (direction token + optional positive COUNT); B variants also the leading timeout.
+ * Malformed => fall INLINE for the stock parse errors (all precede key access). */
+static int csMpopTailOk(client *c, int zform) {
+    const csCmdSpec *s = c->cmd->cs_spec;
+    long long nk;
+    if (getLongLongFromObject(c->argv[(int)s->numkeys_argi], &nk) != C_OK || nk <= 0) return 0;
+    int j = csFirstKeyArg(s) + (int)nk;
+    if (j >= c->argc) return 0;                 /* direction token is mandatory */
+    const char *d = c->argv[j]->ptr;
+    if (zform) { if (strcasecmp(d, "min") && strcasecmp(d, "max")) return 0; }
+    else       { if (strcasecmp(d, "left") && strcasecmp(d, "right")) return 0; }
+    j++;
+    if (j == c->argc) return 1;
+    if (j + 2 != c->argc || strcasecmp(c->argv[j]->ptr, "count")) return 0;
+    long long cnt;
+    return getLongLongFromObject(c->argv[j+1], &cnt) == C_OK && cnt > 0;
+}
+static int csLmpopShapeOk(client *c)  { return csMpopTailOk(c, 0); }
+static int csZmpopShapeOk(client *c)  { return csMpopTailOk(c, 1); }
+static int csBlmpopShapeOk(client *c) { return csTimeoutOk(c->argv[1]) && csMpopTailOk(c, 0); }
+static int csBzmpopShapeOk(client *c) { return csTimeoutOk(c->argv[1]) && csMpopTailOk(c, 1); }
+
 /* BITOP op dst src...: op must be AND/OR/XOR/NOT; NOT takes exactly ONE source. Unknown op /
  * NOT-with-multiple fall INLINE for the stock errors (both precede key access). */
 static int csBitopShapeOk(client *c) {
@@ -5944,6 +5967,30 @@ static const csCmdSpec csRegistry[] = {
   .co_gate=CS_CO_ALWAYS, .has_hop2=1, .h2_op=CS_H2_SCATTER, .cs2_kind=CS2_INT },
   /* per_key_extra=0: the HOP1 wave carries KEYS ONLY (existence probe); the SCATTER wave
    * re-runs the k/v build with csAppendMsetValue (values still live in head->argv). */
+/* step 9 (final) — ordered pops. HOP1 probes every key's type+length in one wave (klen/ktype
+ * report lanes); the coordinator scans in ORIGINAL key order (stock precedence: first wrong
+ * type errors, first non-empty wins); HOP2 = ONE sub running the REAL single-key proc with a
+ * rewritten argv [CMD 1 winner DIR [COUNT n]] — the inner reply is stock-byte-exact by
+ * construction and a raced-empty winner yields the proc's own null array (bounded TOCTOU,
+ * documented). No winner => null array, which IS the blocking forms' timed-out shape, so
+ * reject-when-would-block again needs no special reassembly. This empties the original
+ * isCrossShardUnsafe blocklist: every one of its 21 commands is now ported. */
+{ .proc=lmpopCommand, .name="lmpop", .ported=CS_PORT_OK, .ctype=CS_LMPOP,
+  .route=CS_RT_GATHER, .min_argc=4, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .shape_ok=csLmpopShapeOk },
+{ .proc=zmpopCommand, .name="zmpop", .ported=CS_PORT_OK, .ctype=CS_ZMPOP,
+  .route=CS_RT_GATHER, .min_argc=4, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .shape_ok=csZmpopShapeOk },
+{ .proc=blmpopCommand, .name="blmpop", .ported=CS_PORT_OK, .ctype=CS_LMPOP,
+  .route=CS_RT_GATHER, .min_argc=5, .numkeys_argi=2, .firstkey_argi=3, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1, .shape_ok=csBlmpopShapeOk },
+{ .proc=bzmpopCommand, .name="bzmpop", .ported=CS_PORT_OK, .ctype=CS_ZMPOP,
+  .route=CS_RT_GATHER, .min_argc=5, .numkeys_argi=2, .firstkey_argi=3, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1, .shape_ok=csBzmpopShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
@@ -5956,10 +6003,6 @@ static const csCmdSpec csRegistry[] = {
 { .proc=fcallroCommand,    .name="fcall_ro",   .unsafe_check=csEvalUnsafeCheck },
 
 /* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
-{ .proc=zmpopCommand,       .name="zmpop"       },
-{ .proc=lmpopCommand,       .name="lmpop"       },
-{ .proc=bzmpopCommand,      .name="bzmpop"      },
-{ .proc=blmpopCommand,      .name="blmpop"      },
 { .proc=georadiusCommand,         .name="georadius"         },
 { .proc=georadiusbymemberCommand, .name="georadiusbymember" },
 { .proc=geosearchstoreCommand,    .name="geosearchstore"    },
@@ -6077,10 +6120,18 @@ static void csRegistryBootAudit(void) {
          * (SCATTER re-derives targets from the argv); TWOHOP rows carry src+dst+launcher;
          * block_reject rows are TWOHOP (their real procs could park a worker fake). */
         if (s->ported == CS_PORT_OK) {
-            if (s->block_reject) serverAssert(s->route == CS_RT_TWOHOP);
+            /* block_reject rows must never reach a raw proc that could park a worker fake:
+             * TWOHOP rows force the two-hop path; MPOP rows are GATHER with a coordinator-
+             * built HOP2 that always runs the NON-blocking proc form. */
+            if (s->block_reject)
+                serverAssert(s->route == CS_RT_TWOHOP ||
+                             s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP);
             if (s->has_hop2) {
                 serverAssert(s->route == CS_RT_GATHER && s->h2_op);
-                if (s->h2_op == CS_H2_PLAN) serverAssert(s->dst_argi);
+                /* PLAN rows name a static dest — except MPOP, whose prep rewrites the plan
+                 * to the dynamically-chosen winner key. */
+                if (s->h2_op == CS_H2_PLAN)
+                    serverAssert(s->dst_argi || s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP);
             }
             if (s->route == CS_RT_TWOHOP) serverAssert(s->src_argi && s->dst_argi && s->h2_op);
         }
@@ -6535,6 +6586,35 @@ static void csSubExec(client *sub) {
             } else {
                 csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to", mig);
             }
+        }
+        break;
+    }
+    case CS_LMPOP:
+        /* fall through — probe/pop shared with the zset form (expected type branches inside) */
+    case CS_ZMPOP: {
+        int exp_type = (g->ctype == CS_LMPOP) ? OBJ_LIST : OBJ_ZSET;
+        if (g->phase == CS_PH_HOP1) {
+            /* step 9 HOP1: per-key type+length report into the ORIGINAL-position lanes.
+             * ktype: 0 = missing, 1 = expected type, 2 = wrong type. */
+            int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+            for (int a = 1; a < sub->argc; a++) {
+                int idx = pos ? pos[a - 1] : sub->cssub_idx;
+                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                if (o == NULL) { g->ktype[idx] = 0; g->klen[idx] = 0; }
+                else if (o->type != exp_type) { g->ktype[idx] = 2; g->klen[idx] = 0; }
+                else {
+                    g->ktype[idx] = 1;
+                    g->klen[idx] = (long)(exp_type == OBJ_LIST ? listTypeLength(o) : zsetLength(o));
+                }
+            }
+        } else {
+            /* step 9 HOP2 (winner shard): run the REAL single-key NON-blocking proc on the
+             * rewritten argv [CMD 1 winner DIR [COUNT n]] — the reply (incl. a raced-empty
+             * null array) is stock-byte-exact and spliced at reassemble. */
+            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+            if (g->ctype == CS_LMPOP) lmpopCommand(sub);
+            else zmpopCommand(sub);
+            if (mig) migCaptureEffect(sub->db, sub->argv[2]);   /* winner key at argv[2] */
         }
         break;
     }
@@ -7237,6 +7317,32 @@ static int csLaunchHop2(csGroup *g) {
         if (atomic_load_explicit(&g->rcount, memory_order_relaxed) > 0)
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
+    case CS_LMPOP:
+    case CS_ZMPOP: {
+        /* step 9: scan the report lanes in ORIGINAL key order — stock precedence: the first
+         * wrong-typed key errors before any pop; the first non-empty key wins. No winner =>
+         * null array (identical to the blocking forms' timed-out shape). The winner rewrites
+         * the plan to a dynamic {SRCOP, firstkey+winner} single-sub HOP2. */
+        int winner = -1;
+        for (int i = 0; i < g->nkeys; i++) {
+            if (g->ktype[i] == 2) {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                break;
+            }
+            if (g->klen[i] > 0) { winner = i; break; }
+        }
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
+            if (winner < 0) {
+                atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+            } else {
+                g->winner = winner;
+                g->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
+                                         .key_argi = (int16_t)(csFirstKeyArg(g->spec) + winner) };
+                g->h2_nsub = 1;
+            }
+        }
+        break;
+    }
     case CS_SSTORE: {
         /* step 5: compute the set-op result on the coordinator from the gathered members and
          * serialize it (temp OBJ_SET never crosses a thread — only the blob does). EMPTY result
@@ -7397,7 +7503,29 @@ static int csLaunchHop2(csGroup *g) {
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
         shards[i] = exIndexForKey(key->ptr, sdslen(key->ptr));    /* re-route AFTER the hold */
         client *sub = csMakeSub(g, i, shards[i], dbid);
-        csSubSetKeyArgv(sub, head, key);
+        if (g->ctype == CS_LMPOP || g->ctype == CS_ZMPOP) {
+            /* step 9: rewrite to the single-key NON-blocking form the worker's real proc
+             * parses: [CMD 1 winner DIR [COUNT n]]. DIR/COUNT are copied from the head's
+             * tail (positions after the keys; B variants share the same tail layout). */
+            const csCmdSpec *s = g->spec;
+            long long nk = 0;
+            getLongLongFromObject(head->argv[(int)s->numkeys_argi], &nk);
+            int dpos = csFirstKeyArg(s) + (int)nk;      /* direction token */
+            int has_count = (dpos + 1 < head->argc);    /* [COUNT n] follows (shape-validated) */
+            sub->argv = zmalloc(sizeof(robj*) * (has_count ? 6 : 4));
+            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+            sub->argv[1] = createStringObject("1", 1);
+            sub->argv[2] = key;           incrRefCount(key);
+            sub->argv[3] = head->argv[dpos]; incrRefCount(head->argv[dpos]);
+            sub->argc = 4;
+            if (has_count) {
+                sub->argv[4] = head->argv[dpos+1]; incrRefCount(head->argv[dpos+1]);
+                sub->argv[5] = head->argv[dpos+2]; incrRefCount(head->argv[dpos+2]);
+                sub->argc = 6;
+            }
+        } else {
+            csSubSetKeyArgv(sub, head, key);
+        }
     }
     csHopCommit(g, n, CS_PH_HOP2, shards);
     return 1;
@@ -7615,6 +7743,15 @@ static void csReassemble(client *dst, client *head) {
             else addReply(dst, shared.cone);   /* scatter wave committed */
             break;
         }
+        case CS_LMPOP:
+        case CS_ZMPOP: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e == CS_ERR_NOKEY) addReplyNullArray(dst);  /* all empty / timed-out form */
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard MPOP failed");
+            else AddReplyFromClient(dst, g->subs[0]);  /* splice the real proc's stock reply */
+            break;
+        }
         default: break;
         }
     }
@@ -7640,8 +7777,10 @@ static void csReassemble(client *dst, client *head) {
         zfree(g->mget_vals);
         if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]); zfree(g->mget_pos); }
     }
-    /* universal xshard: free the HOP2 serialized payload blob (private sds). */
+    /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
+     * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
+    zfree(g->klen); zfree(g->ktype);
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); zfree(g);
     head->csgroup = NULL;

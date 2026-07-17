@@ -1745,7 +1745,7 @@ typedef struct client {
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
-               CS_LMOVE, CS_MSETNX } csCmdType;
+               CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
