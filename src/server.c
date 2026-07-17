@@ -107,7 +107,7 @@ static inline int isStatefulCommand(struct redisCommand *cmd);  /* v14: per-op f
 static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static int csCommandType(client *c);
-static int isCrossShardUnsafe(struct redisCommand *cmd, int argc);
+static int isCrossShardUnsafe(client *c);
 static void dispatchCrossShard(client *head, int ct);
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/SUNION/SDIFF */
@@ -2017,7 +2017,21 @@ void handleWorkerReplies(void) {
                 /* ee451 (v7): real is being torn down, but a completed cross-shard group
                  * still owns its sub-fakes + group struct — free them (dst=NULL: no reply)
                  * to avoid a leak. */
-                if (fake->csgroup) csReassemble(NULL, fake);
+                if (fake->csgroup) {
+                    csGroup *g = fake->csgroup;
+                    /* universal xshard: a 2-hop whose mutating HOP1 already committed MUST finish HOP2
+                     * even though the client is gone — else the write is half-applied (e.g. cross-shard
+                     * RENAME: src deleted in HOP1, dst never written => data LOSS). Mirror the live drain
+                     * gate: launch HOP2 and leave the head in flight (no retire, no flushid advance,
+                     * replyWorking stays up); a later teardown pass frees it (phase!=HOP1). */
+                    if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
+                        atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
+                        fake->flags |= CLIENT_EX_PENDING;   /* restore — cleared above; head still in flight */
+                        csLaunchHop2(g);
+                        break;   /* stop draining; HOP2 completes + retires on a later pass */
+                    }
+                    csReassemble(NULL, fake);
+                }
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
@@ -5186,7 +5200,7 @@ int processCommand(client *c) {
      * storing empty; COPY -> :0). Reject loudly until each is ported, mirroring the MULTI/WATCH gate.
      * The already-ported cross-shard cmds (MGET/MSET/DEL/UNLINK/EXISTS/TOUCH/KEYS/SINTER/SUNION/SDIFF)
      * are NOT flagged here — they work. Gated by thredis-xshard-guard (default on). */
-    if (server.num_workers > 0 && server.xshard_guard && isCrossShardUnsafe(c->cmd, c->argc)) {
+    if (server.num_workers > 0 && server.xshard_guard && isCrossShardUnsafe(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-ex-threads=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
             "Use single-key equivalents or upstream Redis", c->cmd->fullname, server.num_workers);
@@ -5665,9 +5679,21 @@ int exIndexForKey(const void *keyptr, size_t len) {
  * wrong result / acknowledged data loss (multibug_report.md finding A). Reject them loudly until each
  * is ported. As a command IS ported to a real cross-shard path, remove it from this list. The already-
  * handled cross-shard cmds (mget/mset/del/unlink/exists/touch/keys/sinter/sunion/sdiff) are NOT here. */
-static int isCrossShardUnsafe(struct redisCommand *cmd, int argc) {
+static int isCrossShardUnsafe(client *c) {
+    struct redisCommand *cmd = c->cmd;
+    int argc = c->argc;
     if (!cmd) return 0;
     void *p = cmd->proc;
+    /* geo reads/stores touch a source key (and STORE a dest) that isn't whitelisted => inline decoy. */
+    if (p == georadiusCommand || p == georadiusbymemberCommand || p == geosearchstoreCommand) return 1;
+    /* SORT is single-key-safe ONLY without BY/GET/STORE (those deref external keys / write a dest). */
+    if (p == sortCommand || p == sortroCommand) {
+        for (int i = 2; i < argc; i++) {
+            const char *a = c->argv[i]->ptr;
+            if (!strcasecmp(a, "by") || !strcasecmp(a, "get") || !strcasecmp(a, "store")) return 1;
+        }
+        return 0;
+    }
     return p == msetnxCommand ||
            p == sinterstoreCommand || p == sunionstoreCommand || p == sdiffstoreCommand ||
            p == sinterCardCommand ||
@@ -5885,20 +5911,35 @@ static void csSubExec(client *sub) {
                 if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         } else {
-            /* HOP2 (dst shard, single-writer): RESTORE the blob onto dst (RENAME overwrites), restore TTL. */
+            /* HOP2 (dst shard, single-writer): rdbLoad the blob FIRST (a load failure then never destroys
+             * dst), then overwrite dst + restore TTL + re-register the DB-global HFE-subexpires and
+             * stream-IDMP indices (dbAdd does not — stock renameGenericCommand registers them explicitly). */
             robj *dstkey = sub->argv[1];
-            dbSyncDelete(sub->db, dstkey);
             rio r; rioInitWithBuffer(&r, g->h2_payload);
             int type = rdbLoadObjectType(&r);
             int rerr = 0;
             robj *val = rdbLoadObject(type, &r, dstkey, sub->db->id, &rerr);
             if (val != NULL) {
+                int vtype = val->type;
+                uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
+                int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
+                dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
                 dbAdd(sub->db, dstkey, &val);
                 if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
+                if (hmn != EB_EXPIRE_TIME_INVALID) {
+                    robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
+                    if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
+                }
+                if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
+                    incrRefCount(dstkey);
+                notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_to", dstkey, sub->db->id);
+                markDirty(1);
+                if (mig) migCaptureEffect(sub->db, dstkey);
+            } else {
+                /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
+                 * rather than a false +OK; dst is left untouched. */
+                atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
             }
-            notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_to", dstkey, sub->db->id);
-            markDirty(1);
-            if (mig) migCaptureEffect(sub->db, dstkey);
         }
         break;
     }
@@ -6353,16 +6394,14 @@ static void csReassemble(client *dst, client *head) {
             else
                 csSetOpCompute(dst, g);
             break;
-        case CS_RENAME:
-            if (!g->has_hop2) {
-                /* same-shard: splice the real proc's reply (+OK or -ERR no such key). */
-                AddReplyFromClient(dst, g->subs[0]);
-            } else if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NOKEY) {
-                addReplyError(dst, "no such key");
-            } else {
-                addReply(dst, shared.ok);   /* cross-shard RENAME committed (HOP2 done) */
-            }
+        case CS_RENAME: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard: real proc reply */
+            else if (e == CS_ERR_NOKEY) addReplyError(dst, "no such key");
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard RENAME failed");
+            else addReply(dst, shared.ok);   /* cross-shard RENAME committed (HOP2 done) */
             break;
+        }
         default: break;
         }
     }
