@@ -5760,6 +5760,14 @@ static int csSintercardShapeOk(client *c) {
     return 1;
 }
 
+/* BITOP op dst src...: op must be AND/OR/XOR/NOT; NOT takes exactly ONE source. Unknown op /
+ * NOT-with-multiple fall INLINE for the stock errors (both precede key access). */
+static int csBitopShapeOk(client *c) {
+    const char *op = c->argv[1]->ptr;
+    if (!strcasecmp(op, "not")) return c->argc == 4;
+    return !strcasecmp(op, "and") || !strcasecmp(op, "or") || !strcasecmp(op, "xor");
+}
+
 /* COPY src dst [DB n] [REPLACE]: 1 = well-formed => cross-shard path. Malformed options / bad
  * int / out-of-range DB => 0 => fall INLINE, where the STOCK proc emits its exact error
  * (syntax/int/range checks all precede key access in copyCommand — decoy-safe). */
@@ -5879,11 +5887,26 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
   .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
   .cs2_kind=CS2_INT, .shape_ok=csZcardShapeOk },
+/* step 7 — byte/HLL ops over raw string images (mget_vals gather, always coalesced so the
+ * value slots exist on every path). PFCOUNT-multi is a pure 1-hop count; BITOP folds bytes
+ * on the coordinator and writes/deletes the string dst; PFMERGE gathers its DEST's current
+ * image too (firstkey=1 covers argv[1]=dst, exactly stock's merge loop) and always writes. */
+{ .proc=pfcountCommand, .name="pfcount", .ported=CS_PORT_OK, .ctype=CS_PFCOUNT,
+  .route=CS_RT_GATHER, .min_argc=3, .firstkey_argi=1, .key_stride=1,
+  .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS, .cs2_kind=CS2_INT },
+  /* min_argc=3 replaces the old safe_max_argc=2 UNPORTED row: PFCOUNT k stays inline/whitelist */
+{ .proc=bitopCommand, .name="bitop", .ported=CS_PORT_OK, .ctype=CS_BITOP,
+  .route=CS_RT_GATHER, .min_argc=4, .firstkey_argi=3, .dst_argi=2, .key_stride=1,
+  .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csBitopShapeOk },
+{ .proc=pfmergeCommand, .name="pfmerge", .ported=CS_PORT_OK, .ctype=CS_PFMERGE,
+  .route=CS_RT_GATHER, .min_argc=2, .firstkey_argi=1, .dst_argi=1, .key_stride=1,
+  .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
 { .proc=sortroCommand,   .name="sort_ro", .unsafe_check=csSortUnsafeCheck },
-{ .proc=pfcountCommand,  .name="pfcount", .safe_max_argc=2 },   /* PFCOUNT k stays inline */
 { .proc=evalCommand,       .name="eval",       .unsafe_check=csEvalUnsafeCheck },
 { .proc=evalShaCommand,    .name="evalsha",    .unsafe_check=csEvalUnsafeCheck },
 { .proc=evalRoCommand,     .name="eval_ro",    .unsafe_check=csEvalUnsafeCheck },
@@ -5897,8 +5920,6 @@ static const csCmdSpec csRegistry[] = {
 { .proc=lmpopCommand,       .name="lmpop"       },
 { .proc=bzmpopCommand,      .name="bzmpop"      },
 { .proc=blmpopCommand,      .name="blmpop"      },
-{ .proc=pfmergeCommand,     .name="pfmerge"     },
-{ .proc=bitopCommand,       .name="bitop"       },
 { .proc=lmoveCommand,       .name="lmove"       },
 { .proc=blmoveCommand,      .name="blmove"      },
 { .proc=rpoplpushCommand,   .name="rpoplpush"   },
@@ -6362,6 +6383,52 @@ static void csSubExec(client *sub) {
             } else {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             }
+        }
+        break;
+    }
+    case CS_BITOP:
+        if (g->phase == CS_PH_HOP2) {
+            /* step 7 WRITE: payload NULL => all sources empty/missing => delete dst + :0
+             * (stock); else the coordinator-folded string overwrites dst. */
+            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+            if (g->h2_payload == NULL) {
+                if (dbSyncDelete(sub->db, sub->argv[1])) {
+                    notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            } else {
+                csH2RestoreKey(sub, g, NOTIFY_STRING, "set", mig);
+            }
+            break;
+        }
+        /* string-image gather shared by the byte/HLL ops. */
+        /* fall through */
+    case CS_PFMERGE:
+        if (g->phase == CS_PH_HOP2) {
+            /* step 7 WRITE: PFMERGE always writes (an all-empty merge stores an empty HLL,
+             * stock creates the dest even with no data). Stock notifies "pfadd". */
+            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+            csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd", mig);
+            break;
+        }
+        /* fall through */
+    case CS_PFCOUNT: {
+        /* step 7 HOP1: gather each key's raw string image as a private sds copy into its
+         * mget_vals slot (rows are CS_CO_ALWAYS => slots exist on every path). Missing =>
+         * NULL slot (empty). Non-string => WRONGTYPE (stock: BITOP checkType; PF checkType
+         * inside isHLLObjectOrReply — same shared.wrongtypeerr). HLL header validation is
+         * coordinator-side (prep/reassemble) with stock's distinct error texts. */
+        int *pos = g->mget_pos[sub->cssub_idx];
+        for (int a = 1; a < sub->argc; a++) {
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (o == NULL) continue;
+            if (o->type != OBJ_STRING) {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                continue;
+            }
+            g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                           : sdsfromlonglong((long)o->ptr);
         }
         break;
     }
@@ -7029,6 +7096,71 @@ static int csLaunchHop2(csGroup *g) {
         decrRefCount(res);
         break;
     }
+    case CS_BITOP: {
+        /* step 7: fold the gathered source strings byte-wise (shorter/missing sources read as
+         * zero bytes, stock). All-empty => maxlen 0 => payload NULL => HOP2 deletes dst, :0.
+         * Reply value = result length. */
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
+        int n = g->nkeys;
+        int isnot = !strcasecmp(head->argv[1]->ptr, "not");
+        int opand = !strcasecmp(head->argv[1]->ptr, "and");
+        int opxor = !strcasecmp(head->argv[1]->ptr, "xor");
+        size_t maxlen = 0;
+        for (int i = 0; i < n; i++) {
+            size_t l = g->mget_vals[i] ? sdslen(g->mget_vals[i]) : 0;
+            if (l > maxlen) maxlen = l;
+        }
+        g->cs2_intreply = (long long)maxlen;
+        if (maxlen == 0) break;
+        sds out = sdsnewlen(NULL, maxlen);
+        for (size_t b = 0; b < maxlen; b++) {
+            unsigned char v = (g->mget_vals[0] && b < sdslen(g->mget_vals[0]))
+                                  ? (unsigned char)g->mget_vals[0][b] : 0;
+            if (isnot) {
+                v = ~v;
+            } else {
+                for (int i = 1; i < n; i++) {
+                    unsigned char x = (g->mget_vals[i] && b < sdslen(g->mget_vals[i]))
+                                          ? (unsigned char)g->mget_vals[i][b] : 0;
+                    if (opand) v &= x; else if (opxor) v ^= x; else v |= x;
+                }
+            }
+            out[b] = (char)v;
+        }
+        robj *res = createObject(OBJ_STRING, out);
+        rio r; rioInitWithBuffer(&r, sdsempty());
+        rdbSaveObjectType(&r, res);
+        rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
+        g->h2_payload = r.io.buffer.ptr;
+        decrRefCount(res);
+        break;
+    }
+    case CS_PFMERGE: {
+        /* step 7: wrap the gathered images (ownership transferred out of mget_vals) and run
+         * the stock-mirroring merge. PFMERGE ALWAYS writes — an all-empty merge stores a
+         * fresh empty HLL (stock creates the dest key even with no data). */
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
+        int n = g->nkeys, herr = 0;
+        robj **hl = zmalloc(sizeof(robj*) * n);
+        for (int i = 0; i < n; i++) {
+            hl[i] = g->mget_vals[i] ? createObject(OBJ_STRING, g->mget_vals[i]) : NULL;
+            g->mget_vals[i] = NULL;
+        }
+        robj *res = hllMergeObjects(hl, n, &herr);
+        for (int i = 0; i < n; i++) if (hl[i]) decrRefCount(hl[i]);
+        zfree(hl);
+        if (herr) {
+            atomic_store_explicit(&g->err, herr == 1 ? CS_ERR_BADHLL : CS_ERR_CORRUPT,
+                                  memory_order_relaxed);
+            break;   /* err screen below returns 0 => reassemble emits the stock text */
+        }
+        rio r; rioInitWithBuffer(&r, sdsempty());
+        rdbSaveObjectType(&r, res);
+        rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
+        g->h2_payload = r.io.buffer.ptr;
+        decrRefCount(res);
+        break;
+    }
     case CS_ZSTORE: {
         /* step 6: weighted compute + serialize; empty => payload NULL => HOP2 deletes dst.
          * Convert to listpack when small BEFORE dumping so the restored dst's encoding matches
@@ -7267,6 +7399,47 @@ static void csReassemble(client *dst, client *head) {
             }
             break;
         }
+        case CS_PFCOUNT: {
+            /* step 7: union cardinality of the gathered HLL images (1-hop; compute here). */
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else {
+                int n = g->nkeys, herr = 0;
+                robj **hl = zmalloc(sizeof(robj*) * n);
+                for (int i = 0; i < n; i++) {
+                    hl[i] = g->mget_vals[i] ? createObject(OBJ_STRING, g->mget_vals[i]) : NULL;
+                    g->mget_vals[i] = NULL;   /* ownership transferred */
+                }
+                uint64_t card = hllCountMulti(hl, n, &herr);
+                for (int i = 0; i < n; i++) if (hl[i]) decrRefCount(hl[i]);
+                zfree(hl);
+                if (herr == 1)
+                    addReplyError(dst, "-WRONGTYPE Key is not a valid HyperLogLog string value.");
+                else if (herr == 2)
+                    addReplyError(dst, "-INVALIDOBJ Corrupted HLL object detected");
+                else
+                    addReplyLongLong(dst, (long long)card);
+            }
+            break;
+        }
+        case CS_BITOP: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard BITOP failed");
+            else addReplyLongLong(dst, g->cs2_intreply);   /* result length (0 = deleted dst) */
+            break;
+        }
+        case CS_PFMERGE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e == CS_ERR_BADHLL)
+                addReplyError(dst, "-WRONGTYPE Key is not a valid HyperLogLog string value.");
+            else if (e == CS_ERR_CORRUPT)
+                addReplyError(dst, "-INVALIDOBJ Corrupted HLL object detected");
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard PFMERGE failed");
+            else addReply(dst, shared.ok);
+            break;
+        }
         default: break;
         }
     }
@@ -7285,8 +7458,9 @@ static void csReassemble(client *dst, client *head) {
     }
     if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
-     * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it. */
-    if (g->ctype == CS_MGET && g->mget_vals) {
+     * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
+     * (MGET + the step-7 string-image gathers BITOP/PFCOUNT/PFMERGE all use these slots.) */
+    if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         zfree(g->mget_vals);
         if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]); zfree(g->mget_pos); }

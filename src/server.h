@@ -1744,7 +1744,7 @@ typedef struct client {
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
-               CS_ZOP, CS_ZSTORE, CS_ZCARD } csCmdType;
+               CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -1761,6 +1761,12 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_ERR_NOKEY       2
 #define CS_ERR_NX_EXISTS   3
 #define CS_ERR_EMPTY       4
+#define CS_ERR_BADHLL      5   /* PF*: string is not a valid HLL (stock -WRONGTYPE ... text) */
+#define CS_ERR_CORRUPT     6   /* PF*: hllMerge detected corruption (stock -INVALIDOBJ text) */
+/* hyperloglog.c — xshard coordinator helpers over gathered HLL objects (step 7). */
+int isHLLObject(robj *o);
+uint64_t hllCountMulti(robj **hlls, int n, int *err);
+robj *hllMergeObjects(robj **hlls, int n, int *err);
 /* HOP2 launcher shape (registry row -> g->h2_op). Worker-side SEMANTICS stay in csSubExec's
  * ctype switch; this only tells csLaunchHop2 HOW to build the second wave. */
 #define CS_H2_NONE         0

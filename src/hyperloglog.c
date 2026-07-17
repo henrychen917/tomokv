@@ -1847,6 +1847,83 @@ void pfmergeCommand(client *c) {
     addReply(c,shared.ok);
 }
 
+/* ========================== xshard coordinator helpers ==================== */
+/* ee451 (xshard step 7): operate on GATHERED HLL objects (no db access — the caller
+ * reconstructed private robjs from worker-gathered string images). These mirror
+ * pfcountCommand's multi-key branch and pfmergeCommand's merge tail EXACTLY, with full
+ * access to the file-private hllhdr layout/encodings. */
+
+/* Reply-less validation core (same checks as isHLLObjectOrReply, no client). */
+int isHLLObject(robj *o) {
+    struct hllhdr *hdr;
+    if (o->type != OBJ_STRING) return C_ERR;
+    if (!sdsEncodedObject(o)) return C_ERR;
+    if (stringObjectLen(o) < sizeof(*hdr)) return C_ERR;
+    hdr = o->ptr;
+    if (hdr->magic[0] != 'H' || hdr->magic[1] != 'Y' ||
+        hdr->magic[2] != 'L' || hdr->magic[3] != 'L') return C_ERR;
+    if (hdr->encoding > HLL_MAX_ENCODING) return C_ERR;
+    if (hdr->encoding == HLL_DENSE && stringObjectLen(o) != HLL_DENSE_SIZE) return C_ERR;
+    return C_OK;
+}
+
+/* Union cardinality of n HLLs (NULL entries = empty HLL, like missing keys).
+ * *err: 0 ok, 1 invalid HLL header, 2 corrupt object during merge. */
+uint64_t hllCountMulti(robj **hlls, int n, int *err) {
+    uint8_t max[HLL_HDR_SIZE+HLL_REGISTERS], *registers;
+    struct hllhdr *hdr;
+    *err = 0;
+    memset(max, 0, sizeof(max));
+    hdr = (struct hllhdr*) max;
+    hdr->encoding = HLL_RAW;      /* Special internal-only encoding. */
+    registers = max + HLL_HDR_SIZE;
+    for (int j = 0; j < n; j++) {
+        if (hlls[j] == NULL) continue;
+        if (isHLLObject(hlls[j]) != C_OK) { *err = 1; return 0; }
+        if (hllMerge(registers, hlls[j]) == C_ERR) { *err = 2; return 0; }
+    }
+    return hllCount(hdr, NULL);
+}
+
+/* Merge n HLLs into a FRESH string robj shaped as stock pfmerge shapes its dest (sparse
+ * kept when every input is sparse, dense otherwise). The dest's CURRENT image must be one
+ * of the inputs (stock merges argv[1..] which includes dest). NULL with *err set on bad
+ * input. Registers are exactly stock's; the sparse byte layout may normalize differently
+ * from an in-place stock update (same registers => same counts/behavior). */
+robj *hllMergeObjects(robj **hlls, int n, int *err) {
+    uint8_t max[HLL_REGISTERS];
+    struct hllhdr *hdr;
+    int use_dense = 0;
+    *err = 0;
+    memset(max, 0, sizeof(max));
+    for (int j = 0; j < n; j++) {
+        robj *o = hlls[j];
+        if (o == NULL) continue;
+        if (isHLLObject(o) != C_OK) { *err = 1; return NULL; }
+        hdr = o->ptr;
+        if (hdr->encoding == HLL_DENSE) use_dense = 1;
+        if (hllMerge(max, o) == C_ERR) { *err = 2; return NULL; }
+    }
+    robj *res = createHLLObject();
+    if (use_dense) {
+        if (hllSparseToDense(res) == C_ERR) { *err = 2; decrRefCount(res); return NULL; }
+        hdr = res->ptr;
+        hllDenseCompress(hdr->registers, max);
+    } else {
+        for (int j = 0; j < HLL_REGISTERS; j++) {
+            if (max[j] == 0) continue;
+            hdr = res->ptr;
+            switch (hdr->encoding) {
+                case HLL_DENSE: hllDenseSet(hdr->registers, j, max[j]); break;
+                case HLL_SPARSE: hllSparseSet(res, j, max[j]); break;
+            }
+        }
+    }
+    hdr = res->ptr;   /* may have moved (hllSparseSet side effects) */
+    HLL_INVALIDATE_CACHE(hdr);
+    return res;
+}
+
 /* ========================== Testing / Debugging  ========================== */
 
 /* PFSELFTEST
