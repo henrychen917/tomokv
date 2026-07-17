@@ -3089,6 +3089,11 @@ struct redisServer {
     int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
     int fake_buf_mode;         /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1] */
+    /* ee451 (reshard-better §1.2): trigger-hardening mirrors — 0 = exact-legacy for A/B. */
+    int reshard_sustain_ticks;   /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks */
+    int reshard_progress_ratio;  /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (pct) */
+    int reshard_cool_margin_pct; /* 0=legacy (<mean); -1=auto 15%; N=neighbor < mean*(1-N/100) */
+    int reshard_heat_aware;      /* 0=adjacent-shift (legacy); 1=heat-aware direct move (deferred) */
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
     int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
