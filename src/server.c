@@ -106,13 +106,15 @@ static int isStatefulCommandSlow(struct redisCommand *cmd);   /* v14: stamp-time
 static inline int isStatefulCommand(struct redisCommand *cmd);  /* v14: per-op flag test */
 static void moveExecutionState(client *real, client *fake);
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
-static int csCommandType(client *c);
-static int isCrossShardUnsafe(client *c);
-static void dispatchCrossShard(client *head, int ct);
+static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
+static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
-static void dispatchSetOp(client *head);    /* ee451 v11-F: cross-shard SINTER/SUNION/SDIFF */
-static void dispatchRename(client *head);   /* universal xshard: RENAME (2-hop move / same-shard proc) */
-static void csLaunchHop2(csGroup *g);       /* universal xshard: drain-thread HOP2 launcher */
+static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
+static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
+static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
+void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
+static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HOP2 launcher; 1 = HOP2
+                                             * pushed (head stays in flight), 0 = fall to reassemble */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
 static void migHoldIfDraining(client *fake);
@@ -2027,8 +2029,9 @@ void handleWorkerReplies(void) {
                     if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
                         atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
                         fake->flags |= CLIENT_EX_PENDING;   /* restore — cleared above; head still in flight */
-                        csLaunchHop2(g);
-                        break;   /* stop draining; HOP2 completes + retires on a later pass */
+                        if (csLaunchHop2(g))
+                            break;   /* stop draining; HOP2 completes + retires on a later pass */
+                        fake->flags &= ~CLIENT_EX_PENDING;  /* prep refused (err) — retire this pass */
                     }
                     csReassemble(NULL, fake);
                 }
@@ -2104,13 +2107,14 @@ void handleWorkerReplies(void) {
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
                 if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
-                    atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
+                    atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE &&
                     /* universal xshard 2-HOP: HOP1 gather done, launch HOP2 write on THIS drain thread.
                      * The head stays in flight — not retired, flushid NOT advanced, replyWorking untouched
                      * — so the drain keeps polling; csLaunchHop2 clears the stale bit and the HOP2 sub
                      * re-signals this same slot. Stop walking here (in-order retire): the head must retire
-                     * before any later ring slot, and it isn't retiring this pass. */
-                    csLaunchHop2(g);
+                     * before any later ring slot, and it isn't retiring this pass. Returns 0 (prep
+                     * refused, HOP1 subs intact) => fall through to reassemble in THIS pass. */
+                    csLaunchHop2(g)) {
                     break;
                 }
                 csReassemble(real, fake);
@@ -3369,6 +3373,11 @@ void initServer(void) {
 
     server.num_workers = server.ex_threads;
 
+    /* ee451 (xshard registry): audit AFTER num_workers is final (populate runs in
+     * initServerConfig, before sharding config resolves) — asserts every row binds a live
+     * command, route bits are table-consistent, and logs the reject set on a sharded start. */
+    csRegistryBootAudit();
+
     /* ee451 (v14, role-purity RP-1): refuse configs that silently lose or corrupt SHARD data.
      * The real dataset lives in per-worker shard DBs; upstream AOF/replication/eviction machinery
      * still operates on the empty decoy server.db, so with sharding enabled: an AOF rewrite would
@@ -3872,14 +3881,10 @@ void populateCommandTable(void) {
         if (populateCommandStructure(c) == C_ERR)
             continue;
 
-        /* ee451 (v14): stamp the routing byte once (proc is set in the static table). */
-        c->tomo_route = 0;
-        if (isStatefulCommandSlow(c)) c->tomo_route |= TOMO_R_STATEFUL;
-        if (c->proc == getCommand || c->proc == setCommand) c->tomo_route |= TOMO_R_EXPRESS;
-        if (c->proc == mgetCommand || c->proc == msetCommand || c->proc == delCommand ||
-            c->proc == unlinkCommand || c->proc == existsCommand || c->proc == touchCommand ||
-            c->proc == keysCommand || c->proc == sinterCommand || c->proc == sunionCommand ||
-            c->proc == sdiffCommand || c->proc == renameCommand) c->tomo_route |= TOMO_R_CROSS;
+        /* ee451 (v14): stamp the routing byte once (proc is set in the static table).
+         * ee451 (xshard registry): TOMO_R_CROSS/XGUARD + cs_spec now derive from the registry
+         * table — one list, never two (csStampRoute recurses into subcommands). */
+        csStampRoute(c);
 
         retval1 = dictAdd(server.commands, sdsdup(c->fullname), c);
         /* Populate an additional dictionary that will be unaffected
@@ -5198,9 +5203,12 @@ int processCommand(client *c) {
      * server.db => silent wrong result / acknowledged data loss (verified live: RENAME -> "no such
      * key" on an existing key; MSETNX -> :1 while writing nothing; SINTERSTORE/ZUNIONSTORE -> :0
      * storing empty; COPY -> :0). Reject loudly until each is ported, mirroring the MULTI/WATCH gate.
-     * The already-ported cross-shard cmds (MGET/MSET/DEL/UNLINK/EXISTS/TOUCH/KEYS/SINTER/SUNION/SDIFF)
-     * are NOT flagged here — they work. Gated by thredis-xshard-guard (default on). */
-    if (server.num_workers > 0 && server.xshard_guard && isCrossShardUnsafe(c)) {
+     * ee451 (xshard registry): INVERTED to an allowlist — TOMO_R_XGUARD is stamped from the
+     * registry (UNPORTED row, or no row + multi-key-capable key specs), so future multi-key
+     * commands are denied by default; csGateReject applies the per-row argc hooks. Ported cmds
+     * never carry the bit. Gated by thredis-xshard-guard (default on). */
+    if (server.num_workers > 0 && server.xshard_guard &&
+        (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-ex-threads=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
             "Use single-key equivalents or upstream Redis", c->cmd->fullname, server.num_workers);
@@ -5284,17 +5292,14 @@ int processCommand(client *c) {
         replyWorking++;
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
-    int cst = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csCommandType(fake) : -1;
-    if (cst >= 0) {
-        /* The MGET's subs are now in flight on worker threads. Bump replyWorking so the
+    const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
+    if (csp) {
+        /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
-        if (cst == CS_KEYS) dispatchFanAll(fake);   /* ee451 v10-B: one sub per worker */
-        else if (cst == CS_SETOP) dispatchSetOp(fake);  /* ee451 v11-F: per-key gather-compute */
-        else if (cst == CS_RENAME) dispatchRename(fake);   /* universal xshard: 2-hop move (or same-shard real proc) */
-        else dispatchCrossShard(fake, cst);
+        csDispatch(fake, csp);   /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
@@ -5674,67 +5679,243 @@ int exIndexForKey(const void *keyptr, size_t len) {
  * last sub (result==1) has acquired every earlier sub's release and therefore sees all
  * their reply-buffer writes; its release-OR of the head bit then synchronizes-with the IO
  * drain's acquire-load of the reply mask. So the drain sees every sub's buffer. */
-/* xshard SAFE-GATE: multi-key / multi-shard commands NOT yet ported to the scatter-gather path.
- * Under sharding they fall to the inline branch and run against the empty decoy server.db => silent
- * wrong result / acknowledged data loss (multibug_report.md finding A). Reject them loudly until each
- * is ported. As a command IS ported to a real cross-shard path, remove it from this list. The already-
- * handled cross-shard cmds (mget/mset/del/unlink/exists/touch/keys/sinter/sunion/sdiff) are NOT here. */
-static int isCrossShardUnsafe(client *c) {
-    struct redisCommand *cmd = c->cmd;
-    int argc = c->argc;
-    if (!cmd) return 0;
-    void *p = cmd->proc;
-    /* geo reads/stores touch a source key (and STORE a dest) that isn't whitelisted => inline decoy. */
-    if (p == georadiusCommand || p == georadiusbymemberCommand || p == geosearchstoreCommand) return 1;
-    /* SORT is single-key-safe ONLY without BY/GET/STORE (those deref external keys / write a dest). */
-    if (p == sortCommand || p == sortroCommand) {
-        for (int i = 2; i < argc; i++) {
-            const char *a = c->argv[i]->ptr;
-            if (!strcasecmp(a, "by") || !strcasecmp(a, "get") || !strcasecmp(a, "store")) return 1;
-        }
-        return 0;
+/* ===================== xshard registry (parse+gather formalized as data) =====================
+ * One table drives: classification (csClassify), dispatch (csDispatch/dispatchGather/
+ * dispatchTwoHop), and the inverted SAFE-GATE (TOMO_R_XGUARD + csGateReject). PORTED rows are
+ * the allowlist; UNPORTED rows carry argc-dependent safety hooks; a multi-key-capable command
+ * with NO row is denied whenever it resolves >= 1 key (future commands are safe by default). */
+
+/* SORT/SORT_RO: single-key-safe ONLY without BY/GET/STORE (those deref external keys / write a
+ * dest => inline decoy corruption). Nonzero = reject this form. */
+static int csSortUnsafeCheck(client *c) {
+    for (int i = 2; i < c->argc; i++) {
+        const char *a = c->argv[i]->ptr;
+        if (!strcasecmp(a, "by") || !strcasecmp(a, "get") || !strcasecmp(a, "store")) return 1;
     }
-    return p == msetnxCommand ||
-           p == sinterstoreCommand || p == sunionstoreCommand || p == sdiffstoreCommand ||
-           p == sinterCardCommand ||
-           p == zunionCommand || p == zinterCommand || p == zdiffCommand || p == zinterCardCommand ||
-           p == zunionstoreCommand || p == zinterstoreCommand || p == zdiffstoreCommand ||
-           p == zmpopCommand || p == lmpopCommand || p == bzmpopCommand || p == blmpopCommand ||
-           p == pfmergeCommand || (p == pfcountCommand && argc > 2) ||
-           p == bitopCommand ||
-           p == renamenxCommand ||   /* renameCommand is ported (CS_RENAME); renamenx still guarded (step 4) */
-           p == copyCommand || p == smoveCommand ||
-           p == lmoveCommand || p == blmoveCommand || p == rpoplpushCommand || p == brpoplpushCommand;
+    return 0;
+}
+/* EVAL family: keyless scripts (numkeys==0) touch no shard data — keep them working; parse
+ * anomalies fall inline (arity/parse error precedes key access in the stock proc). */
+static int csEvalUnsafeCheck(client *c) {
+    long long nk;
+    if (c->argc < 3) return 0;
+    if (getLongLongFromObject(c->argv[2], &nk) != C_OK) return 0;
+    return nk != 0;
+}
+static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
+
+static const csCmdSpec csRegistry[] = {
+/* ================= PORTED (byte-exact vs the pre-registry dispatchers — the hard gate) ===== */
+{ .proc=mgetCommand,   .name="mget",   .ported=CS_PORT_OK, .ctype=CS_MGET,   .route=CS_RT_GATHER,
+  .min_argc=2, .key_stride=1, .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET,
+  .co_gate=CS_CO_MGETKNOB },
+{ .proc=msetCommand,   .name="mset",   .ported=CS_PORT_OK, .ctype=CS_MSET,   .route=CS_RT_GATHER,
+  .min_argc=3, .argc_odd=1, .key_stride=2, .per_key_extra=1, .cs_write=1,
+  .co_gate=CS_CO_ALWAYS, .append_extra=csAppendMsetValue },
+{ .proc=delCommand,    .name="del",    .ported=CS_PORT_OK, .ctype=CS_DEL,    .route=CS_RT_GATHER,
+  .min_argc=3, .key_stride=1, .cs_write=1, .co_gate=CS_CO_ALWAYS },
+  /* min_argc=3: DEL k stays on the worker whitelist (canDispatchToWorker argc==2) */
+{ .proc=unlinkCommand, .name="unlink", .ported=CS_PORT_OK, .ctype=CS_DEL,    .route=CS_RT_GATHER,
+  .min_argc=2, .key_stride=1, .cs_write=1, .co_gate=CS_CO_ALWAYS },
+{ .proc=existsCommand, .name="exists", .ported=CS_PORT_OK, .ctype=CS_EXISTS, .route=CS_RT_GATHER,
+  .min_argc=2, .key_stride=1, .co_gate=CS_CO_ALWAYS },
+{ .proc=touchCommand,  .name="touch",  .ported=CS_PORT_OK, .ctype=CS_EXISTS, .route=CS_RT_GATHER,
+  .min_argc=2, .key_stride=1, .co_gate=CS_CO_ALWAYS },
+{ .proc=keysCommand,   .name="keys",   .ported=CS_PORT_OK, .ctype=CS_KEYS,   .route=CS_RT_FANALL,
+  .min_argc=2, .max_argc=2 },
+{ .proc=sinterCommand, .name="sinter", .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
+  .setop=CS_SETOP_INTER, .min_argc=2, .key_stride=1,
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+{ .proc=sunionCommand, .name="sunion", .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
+  .setop=CS_SETOP_UNION, .min_argc=2, .key_stride=1,
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+{ .proc=sdiffCommand,  .name="sdiff",  .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
+  .setop=CS_SETOP_DIFF,  .min_argc=2, .key_stride=1,
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+{ .proc=renameCommand, .name="rename", .ported=CS_PORT_OK, .ctype=CS_RENAME, .route=CS_RT_TWOHOP,
+  .min_argc=3, .max_argc=3, .src_argi=1, .dst_argi=2,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
+
+/* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
+{ .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
+{ .proc=sortroCommand,   .name="sort_ro", .unsafe_check=csSortUnsafeCheck },
+{ .proc=pfcountCommand,  .name="pfcount", .safe_max_argc=2 },   /* PFCOUNT k stays inline */
+{ .proc=evalCommand,       .name="eval",       .unsafe_check=csEvalUnsafeCheck },
+{ .proc=evalShaCommand,    .name="evalsha",    .unsafe_check=csEvalUnsafeCheck },
+{ .proc=evalRoCommand,     .name="eval_ro",    .unsafe_check=csEvalUnsafeCheck },
+{ .proc=evalShaRoCommand,  .name="evalsha_ro", .unsafe_check=csEvalUnsafeCheck },
+{ .proc=fcallCommand,      .name="fcall",      .unsafe_check=csEvalUnsafeCheck },
+{ .proc=fcallroCommand,    .name="fcall_ro",   .unsafe_check=csEvalUnsafeCheck },
+
+/* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
+{ .proc=msetnxCommand,      .name="msetnx"      },
+{ .proc=sinterstoreCommand, .name="sinterstore" },
+{ .proc=sunionstoreCommand, .name="sunionstore" },
+{ .proc=sdiffstoreCommand,  .name="sdiffstore"  },
+{ .proc=sinterCardCommand,  .name="sintercard"  },
+{ .proc=zunionCommand,      .name="zunion"      },
+{ .proc=zinterCommand,      .name="zinter"      },
+{ .proc=zdiffCommand,       .name="zdiff"       },
+{ .proc=zinterCardCommand,  .name="zintercard"  },
+{ .proc=zunionstoreCommand, .name="zunionstore" },
+{ .proc=zinterstoreCommand, .name="zinterstore" },
+{ .proc=zdiffstoreCommand,  .name="zdiffstore"  },
+{ .proc=zmpopCommand,       .name="zmpop"       },
+{ .proc=lmpopCommand,       .name="lmpop"       },
+{ .proc=bzmpopCommand,      .name="bzmpop"      },
+{ .proc=blmpopCommand,      .name="blmpop"      },
+{ .proc=pfmergeCommand,     .name="pfmerge"     },
+{ .proc=bitopCommand,       .name="bitop"       },
+{ .proc=renamenxCommand,    .name="renamenx"    },
+{ .proc=copyCommand,        .name="copy"        },
+{ .proc=smoveCommand,       .name="smove"       },
+{ .proc=lmoveCommand,       .name="lmove"       },
+{ .proc=blmoveCommand,      .name="blmove"      },
+{ .proc=rpoplpushCommand,   .name="rpoplpush"   },
+{ .proc=brpoplpushCommand,  .name="brpoplpush"  },
+{ .proc=georadiusCommand,         .name="georadius"         },
+{ .proc=georadiusbymemberCommand, .name="georadiusbymember" },
+{ .proc=geosearchstoreCommand,    .name="geosearchstore"    },
+
+/* ============ UNPORTED — strays the old blocklist MISSED (silently broken on the decoy
+ * DB before the inversion; now loud + greppable instead of implicit-via-predicate) ====== */
+{ .proc=lcsCommand,                 .name="lcs"                  },
+{ .proc=zrangestoreCommand,         .name="zrangestore"          },
+{ .proc=georadiusroCommand,         .name="georadius_ro"         },
+{ .proc=georadiusbymemberroCommand, .name="georadiusbymember_ro" },
+{ .proc=blpopCommand,               .name="blpop"                },
+{ .proc=brpopCommand,               .name="brpop"                },
+{ .proc=xreadCommand,               .name="xread"                }, /* covers XREADGROUP iff same
+                                     * proc — the boot audit verifies every row binds */
+{ .proc=migrateCommand,             .name="migrate"              },
+{ .proc=NULL } /* sentinel */
+};
+
+static const csCmdSpec *csSpecLookup(redisCommandProc *p) {
+    if (!p) return NULL;
+    for (const csCmdSpec *s = csRegistry; s->proc; s++)
+        if (s->proc == p) return s;
+    return NULL;
 }
 
-static int csCommandType(client *c) {
-    if (!c->cmd) return -1;   /* ee451 (v13): cross-shard HARDWIRED (off caused keyspace desync) */
-    void *p = c->cmd->proc;
-    /* MGET: every form (incl. 1 key) — MGET is never on the single-key whitelist. */
-    if (p == mgetCommand   && c->argc >= 2) return CS_MGET;
-    /* MSET k1 v1 ...: argc must be odd (1 + 2*nkeys). Per-key SET subs; +OK after barrier. */
-    if (p == msetCommand   && c->argc >= 3 && (c->argc & 1)) return CS_MSET;
-    /* DEL: single-key (argc==2) stays on the efficient whitelist; only multi-key crosses. */
-    if (p == delCommand    && c->argc >= 3) return CS_DEL;
-    /* UNLINK/EXISTS/TOUCH are NOT on the whitelist, so even single-key needs cross-shard
-     * (else they run inline on the empty IO db). UNLINK uses sync delete (async-free from a
-     * worker crashes); TOUCH counts like EXISTS. */
-    if (p == unlinkCommand && c->argc >= 2) return CS_DEL;
-    if (p == existsCommand && c->argc >= 2) return CS_EXISTS;
-    if (p == touchCommand  && c->argc >= 2) return CS_EXISTS;
-    /* ee451 v10-B: KEYS pattern — fan to ALL shards (one sub per worker), concat results.
-     * Gated by opt_fanall (default off) until validated. argc==2 (KEYS pattern). */
-    if (p == keysCommand && c->argc == 2) return CS_KEYS;   /* ee451 (v13): fanall hardwired */
-    /* ee451 v11-F: cross-shard read-only set-ops. SINTER/SUNION/SDIFF take keys at argv[1..];
-     * each key may live on a different shard, so gather members per-key and compute on the
-     * coordinator. Gated by opt_cross_setop (default off) until validated. (SINTERCARD's numkeys/
-     * LIMIT parsing and the STORE variants' hop-2 write are separate follow-ups.) */
-    if (c->argc >= 2 &&   /* ee451 (v13): cross-setop hardwired */
-        (p == sinterCommand || p == sunionCommand || p == sdiffCommand)) return CS_SETOP;
-    /* universal xshard: RENAME src dst — 2-hop move when src/dst are on different shards; a single
-     * worker runs the real proc when they collide on one shard (dispatchRename decides). */
-    if (p == renameCommand && c->argc == 3) return CS_RENAME;
-    return -1;
+/* Can this command name more than one key? Derived from the declarative key specs.
+ * DELIBERATELY does NOT test getkeys_proc: SET (setGetKeys), BITFIELD, GETEX carry getkeys
+ * procs yet are single-key — testing it would reject every SET under sharding. Movable-key
+ * multi-key commands (SORT/GEO/XREAD/MIGRATE/EVAL) are caught by CMD_MOVABLE_KEYS / KEYNUM
+ * specs, and belt-and-braces by their explicit registry rows (row presence forces
+ * TOMO_R_XGUARD independently of this predicate). */
+static int cmdIsMultiKeyCapable(struct redisCommand *c) {
+    if (c->flags & CMD_MODULE) return 0;          /* module cmds keep today's behavior */
+    if (c->flags & CMD_MOVABLE_KEYS) return 1;
+    if (c->key_specs_num > 1) return 1;           /* RENAME/COPY/SMOVE/LCS/ZRANGESTORE */
+    for (int i = 0; i < c->key_specs_num; i++) {
+        keySpec *ks = &c->key_specs[i];
+        if (ks->find_keys_type == KSPEC_FK_KEYNUM) return 1;              /* numkeys */
+        if (ks->find_keys_type == KSPEC_FK_RANGE && ks->fk.range.lastkey != 0) return 1;
+    }
+    return 0;
+}
+
+/* Stamp tomo_route + cs_spec once at populate (recursing into subcommands — the boot audit
+ * asserts no subcommand carries TOMO_R_XGUARD today, so recursion is future-proofing only). */
+static void csStampRoute(struct redisCommand *c) {
+    c->tomo_route = 0;
+    c->cs_spec = csSpecLookup(c->proc);
+    if (isStatefulCommandSlow(c)) c->tomo_route |= TOMO_R_STATEFUL;
+    if (c->proc == getCommand || c->proc == setCommand) c->tomo_route |= TOMO_R_EXPRESS;
+    /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
+    if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
+    /* XGUARD: row presence (UNPORTED) forces the bit even where the key-spec predicate can't
+     * see the hazard (SORT_RO's BY/GET are options, not key specs). Stateful cmds exempt
+     * (WATCH k1 k2 / EXEC take the stateful path; none of the old blocklist is stateful). */
+    if (!(c->tomo_route & TOMO_R_STATEFUL) &&
+        ((c->cs_spec && c->cs_spec->ported == CS_PORT_UNPORTED) ||
+         (!c->cs_spec && cmdIsMultiKeyCapable(c))))
+        c->tomo_route |= TOMO_R_XGUARD;
+    if (c->subcommands_dict) {
+        dictIterator di; dictEntry *de;
+        dictInitIterator(&di, c->subcommands_dict);
+        while ((de = dictNext(&di)) != NULL) csStampRoute(dictGetVal(de));
+        dictResetIterator(&di);
+    }
+}
+
+/* xshard SAFE-GATE verdict — cold: only reached when TOMO_R_XGUARD is set. Allowlist semantics:
+ *  - UNPORTED row: unsafe_check / safe_max_argc decides this argc-form; else reject.
+ *  - NO row (predicate-flagged future/unknown cmd): deny iff THIS invocation resolves >= 1
+ *    actual key via the stock extractor (keyless forms keep working; extraction failure =>
+ *    deny, conservative). Runs only on commands about to be rejected — allocation irrelevant. */
+static int csGateReject(client *c) {
+    const csCmdSpec *s = c->cmd->cs_spec;
+    if (s) {
+        if (s->ported != CS_PORT_UNPORTED) return 0;  /* defensive; XGUARD implies UNPORTED */
+        if (s->unsafe_check) return s->unsafe_check(c);
+        if (s->safe_max_argc && c->argc <= s->safe_max_argc) return 0;
+        return 1;
+    }
+    getKeysResult r = GETKEYS_RESULT_INIT;
+    int n = getKeysFromCommandWithSpecs(c->cmd, c->argv, c->argc, GET_KEYSPEC_DEFAULT, &r);
+    getKeysFreeResult(&r);
+    return n != 0;
+}
+
+/* initServer-time (num_workers final, command table populated) — asserts the table binds and
+ * the derived route bits are consistent; logs the reject set once on a sharded start. */
+static void auditWalk(dict *commands, int *matched, int nrows) {
+    dictIterator di; dictEntry *de;
+    dictInitIterator(&di, commands);
+    while ((de = dictNext(&di)) != NULL) {
+        struct redisCommand *c = dictGetVal(de);
+        if (c->cs_spec) {
+            long idx = c->cs_spec - csRegistry;
+            serverAssert(idx >= 0 && idx < nrows);
+            matched[idx]++;
+        }
+        serverAssert(((c->tomo_route & TOMO_R_CROSS) != 0) ==
+                     (c->cs_spec && c->cs_spec->ported == CS_PORT_OK));
+        serverAssert(!(c->parent && (c->tomo_route & TOMO_R_XGUARD)));
+        if (server.num_workers > 0 && (c->tomo_route & TOMO_R_XGUARD))
+            serverLog(LL_NOTICE, "xshard-guard: %s %s under sharding", c->fullname,
+                      c->cs_spec ? "is argc-gated (unported row)"
+                                 : "will be REJECTED (no registry row)");
+        if (c->subcommands_dict) auditWalk(c->subcommands_dict, matched, nrows);
+    }
+    dictResetIterator(&di);
+}
+static void csRegistryBootAudit(void) {
+    int nrows = 0;
+    for (const csCmdSpec *s = csRegistry; s->proc; s++) {
+        nrows++;
+        /* Step-R structural invariants: no ported row uses machinery that only steps 4-9 wire. */
+        if (s->ported == CS_PORT_OK)
+            serverAssert(!s->shape_ok && !s->has_hop2 && !s->block_reject && !s->numkeys_argi);
+    }
+    int *matched = zcalloc(sizeof(int) * nrows);
+    auditWalk(server.commands, matched, nrows);
+    /* every row must bind >= 1 live command — BY PROC, rename-command-proof (catches a typo'd
+     * proc pointer silently un-porting a command): */
+    for (int i = 0; i < nrows; i++) serverAssert(matched[i] > 0);
+    zfree(matched);
+}
+
+/* Registry-driven classification (replaces the csCommandType compare chain). Cold: only under
+ * tomo_route & TOMO_R_CROSS. Row iff THIS argc-form goes cross-shard; NULL falls through to
+ * whitelist/inline exactly like csCommandType returning -1. Malformed numkeys / failed shape_ok
+ * => NULL => the stock proc raises its own parse error inline (parse precedes key access). */
+static const csCmdSpec *csClassify(client *c) {
+    if (!c->cmd) return NULL;
+    const csCmdSpec *s = c->cmd->cs_spec;
+    if (!s || s->ported != CS_PORT_OK) return NULL;
+    if (c->argc < s->min_argc) return NULL;
+    if (s->max_argc && c->argc > s->max_argc) return NULL;
+    if (s->argc_odd && !(c->argc & 1)) return NULL;
+    if (s->numkeys_argi) {                        /* no Step-R row sets this (boot-asserted) */
+        long long nk;
+        if (getLongLongFromObject(c->argv[s->numkeys_argi], &nk) != C_OK || nk <= 0 ||
+            csFirstKeyArg(s) + (nk - 1) * s->key_stride >= c->argc) return NULL;
+    }
+    if (s->shape_ok && !s->shape_ok(c)) return NULL;   /* dead at Step R (boot-asserted) */
+    return s;
 }
 
 /* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
@@ -5918,7 +6099,7 @@ static void csSubExec(client *sub) {
             rio r; rioInitWithBuffer(&r, g->h2_payload);
             int type = rdbLoadObjectType(&r);
             int rerr = 0;
-            robj *val = rdbLoadObject(type, &r, dstkey, sub->db->id, &rerr);
+            robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
             if (val != NULL) {
                 int vtype = val->type;
                 uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
@@ -5990,6 +6171,7 @@ static void csPushSpin(int w, client *sub) {
  * reassembled in key order). append_extra (MSET value handling) runs once per key after the key append.
  * The caller pre-zcallocs g + any result slots (mget_vals/setmem). Returns nsub. */
 typedef struct csCoalesceSpec {
+    int first_argi;      /* argv index of the first key; 0 => 1 (S*STORE/BITOP put keys later) */
     int key_stride;      /* argv stride between keys: 1 (single-key cmds) or 2 (MSET k v) */
     int per_key_extra;   /* extra argv slots appended per key (MSET value=1, else 0) */
     int cs_write;        /* run migHoldKeyIfDraining on each key (writes only) */
@@ -6020,10 +6202,11 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
                                 void (*append_extra)(client *head, client *sub, int origpos)) {
     int nw = server.num_workers;
     int stride = spec->key_stride;
+    int first = spec->first_argi ? spec->first_argi : 1;
     int *cnt = zcalloc(sizeof(int) * nw);      /* keys owned by worker w */
     int *wof = zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
-        robj *key = head->argv[1 + stride*i];
+        robj *key = head->argv[first + stride*i];
         if (spec->cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
         int w = exIndexForKey(key->ptr, sdslen(key->ptr));
@@ -6056,7 +6239,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     }
     for (int i = 0; i < nkeys; i++) {
         int w = wof[i]; client *sub = wsub[w]; int lsi = wsi[w];
-        sub->argv[sub->argc++] = head->argv[1 + stride*i]; incrRefCount(head->argv[1 + stride*i]);
+        sub->argv[sub->argc++] = head->argv[first + stride*i]; incrRefCount(head->argv[first + stride*i]);
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
@@ -6065,69 +6248,108 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     return nsub;
 }
 
-/* xshard OPT-1: COALESCED MGET (thin wrapper over csBuildCoalescedSubs). Reply ORDER preserved by
- * position slots: g->mget_vals[i] = key i's value (private sds copy); g->mget_pos[si] = sub si's keys'
- * original positions. The head group `g` is already zcalloc'd (ctype/nkeys/head/cdb set by the caller). */
-static void dispatchMgetCoalesced(client *head, csGroup *g, int nkeys, int dbid) {
-    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
-    csCoalesceSpec spec = { .key_stride = 1, .per_key_extra = 0, .cs_write = 0, .posmap = &g->mget_pos };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, NULL);
+/* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
+static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
+    client *head = g->head;
+    client *sub = createPooledFakeClient(head->parent);
+    sub->csparent = g; sub->cssub_idx = idx; sub->cmd = head->cmd;
+    sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
+    /* The sub serializes its reply into its OWN buffer on the worker; spliced at
+     * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
+    sub->conn = head->conn;
+    sub->flags |= CLIENT_EX_PENDING;
+    sub->db = &server.exThreads[shard].db[dbid];
+    g->subs[idx] = sub;
+    return sub;
+}
+static void csSubSetKeyArgv(client *sub, client *head, robj *key) {  /* argv = [CMD key] */
+    sub->argv = zmalloc(sizeof(robj*) * 2);
+    sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+    sub->argv[1] = key;           incrRefCount(key);
+    sub->argc = 2;
+}
+static void csSubCopyFullArgv(client *sub, client *head) {           /* same-shard TWOHOP */
+    sub->argv = zmalloc(sizeof(robj*) * head->argc);
+    for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
+    sub->argc = head->argc;
 }
 
-/* Split the multi-key command on the ring-slot head fake into per-key sub-fakes and
- * dispatch them. head->argv already holds the command (moved in by moveExecutionState). */
-static void dispatchCrossShard(client *head, int ct) {
-    /* MSET argv is [MSET k1 v1 k2 v2 ...] => nkeys = (argc-1)/2; the rest are [CMD k1 k2 ...]. */
-    int nkeys = (ct == CS_MSET) ? (head->argc - 1) / 2 : (head->argc - 1);
-    int dbid = head->db->id;
-    int cs_write = (ct == CS_MSET || ct == CS_DEL);   /* writes need the per-key cutover hold */
+static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined below FanAll) */
+
+/* xshard registry: the ONE gather dispatcher — replaces dispatchMgetCoalesced /
+ * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
+ * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
+ * key_stride/per_key_extra), write holds (cs_write), MSET value ownership (append_extra). */
+static void dispatchGather(client *head, const csCmdSpec *s) {
+    int first = csFirstKeyArg(s);
+    int nkeys, dbid = head->db->id;
+    if (s->numkeys_argi) { long long nk;                  /* validated by csClassify */
+        getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
+    else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = ct; g->nkeys = nkeys; g->head = head;
-    g->results = NULL; g->result_ex = NULL;   /* reply-buffer design: no value forwarding */
+    g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
+    g->spec = s; g->h2_dbid = dbid; g->winner = -1;
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
 
-    /* xshard OPT-1: coalesced MGET (one sub/shard, order preserved via position slots). Gated to
-     * k>=3: at k=2 the <=2 subs barely differ from per-key and the slot/pos allocs are pure overhead. */
-    if (ct == CS_MGET && server.opt_mget_coalesce >= 1 && nkeys >= 3) { dispatchMgetCoalesced(head, g, nkeys, dbid); return; }
-
-    /* ee451 (v11): COALESCE keys-per-shard for DEL/EXISTS/MSET. These reassemble order-free
-     * (rcount sum / shared.ok), so instead of one sub PER KEY we issue one sub PER DISTINCT SHARD
-     * carrying all of that shard's keys ([CMD k k ...]) or key-val pairs ([CMD k v k v ...]). That
-     * cuts the cross-thread fan-out from nkeys dispatches to <= num_workers. MGET stays per-key
-     * because its reply MUST be reassembled in original key order (per-position splice). */
-    int coalesce = (ct == CS_DEL || ct == CS_EXISTS || ct == CS_MSET);
+    int coalesce = 1;
+    switch (s->co_gate) {
+    /* coalesce gated to k>=3: at k=2 the <=2 subs barely differ from per-key and the
+     * slot/pos allocs are pure overhead (measured OPT-1 verdict). */
+    case CS_CO_MGETKNOB:  coalesce = (server.opt_mget_coalesce >= 1 && nkeys >= 3); break;
+    case CS_CO_SETOPKNOB: coalesce = (server.opt_setop_coalesce && nkeys >= 3);     break;
+    }
+    /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
+     * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
+    if (s->res_kind == CS_RES_SETMEM) {
+        g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
+        g->setcnt = zcalloc(sizeof(long) * nkeys);
+    }
+    if (s->res_kind == CS_RES_MGETVALS && coalesce)
+        g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
+    if (s->res_kind == CS_RES_KEYREPORT) {           /* step 9; dead at Step R */
+        g->klen  = zcalloc(sizeof(long) * nkeys);
+        g->ktype = zcalloc(sizeof(uint8_t) * nkeys);
+    }
+    if (s->has_hop2) {   /* step 5+ (*STORE/BITOP/PFMERGE/MSETNX); dead at Step R (boot-asserted) */
+        g->has_hop2 = 1; g->phase = CS_PH_HOP1;
+        g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
+        if (s->dst_argi)   g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
+        if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
+        atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
+    }
     if (!coalesce) {
+        /* THE one copy of the legacy per-key loop (was duplicated verbatim in
+         * dispatchCrossShard and dispatchSetOp). */
         g->nsub = nkeys;
         g->subs = zmalloc(sizeof(client*) * nkeys);
         atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
         atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
         for (int i = 0; i < nkeys; i++) {
-            robj *key = head->argv[1 + i];
+            robj *key = head->argv[first + i * s->key_stride];
             int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-            client *sub = createPooledFakeClient(head->parent);
-            sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
-            sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
-            /* The sub serializes its reply into its OWN buffer on the worker; spliced at
-             * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
-            sub->conn = head->conn;
-            sub->flags |= CLIENT_EX_PENDING;
-            sub->argv = zmalloc(sizeof(robj*) * 2);
-            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-            sub->argv[1] = key;           incrRefCount(key);
-            sub->argc = 2;
-            sub->db = &server.exThreads[w].db[dbid];
-            g->subs[i] = sub;
+            client *sub = csMakeSub(g, i, w, dbid);
+            csSubSetKeyArgv(sub, head, key);
             csPushSpin(w, sub);
         }
         return;
     }
+    /* Coalesced path: one sub per DISTINCT shard via the shared builder. */
+    csCoalesceSpec cs = {
+        .first_argi = first, .key_stride = s->key_stride,
+        .per_key_extra = s->per_key_extra, .cs_write = s->cs_write,
+        .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
+                  (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos : NULL };
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
+}
 
-    /* Coalesced path (DEL/EXISTS/MSET): one sub per shard via the shared builder. */
-    csCoalesceSpec spec = { .key_stride = (ct == CS_MSET) ? 2 : 1,
-                            .per_key_extra = (ct == CS_MSET) ? 1 : 0,
-                            .cs_write = cs_write, .posmap = NULL };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, (ct == CS_MSET) ? csAppendMsetValue : NULL);
+/* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
+static void csDispatch(client *head, const csCmdSpec *s) {
+    switch (s->route) {
+    case CS_RT_FANALL: dispatchFanAll(head); return;   /* verbatim, untouched */
+    case CS_RT_TWOHOP: dispatchTwoHop(head, s); return;
+    default:           dispatchGather(head, s); return;
+    }
 }
 
 /* ee451 v10-B: fan a no-key global read (KEYS) to ALL worker shards. One sub per worker runs the
@@ -6156,56 +6378,6 @@ static void dispatchFanAll(client *head) {
         sub->argc = head->argc;
         sub->db = &server.exThreads[w].db[dbid];
         g->subs[w] = sub;
-        csPushSpin(w, sub);
-    }
-}
-
-/* ee451 v11-F: split a read-only set-op (SINTER/SUNION/SDIFF) into one sub per key, each routed
- * to its key's shard. Mirrors dispatchCrossShard's per-key sub setup; the sub carries [CMD key]
- * (the worker only reads argv[1]). Each sub gathers its set's members into g->setmem[idx] (sds
- * copies); csReassemble computes the union/inter/diff on the coordinator and frees the copies. */
-static void dispatchSetOp(client *head) {
-    void *p = head->cmd->proc;
-    int op = (p == sunionCommand) ? CS_SETOP_UNION :
-             (p == sdiffCommand)  ? CS_SETOP_DIFF  : CS_SETOP_INTER;
-    int nkeys = head->argc - 1;          /* keys at argv[1..argc-1] */
-    int dbid = head->db->id;
-    csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = CS_SETOP; g->setop = op; g->nkeys = nkeys; g->head = head;
-    g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
-    g->setcnt = zcalloc(sizeof(long) * nkeys);
-    atomic_store_explicit(&g->err, 0, memory_order_relaxed);
-    head->csgroup = g;
-    head->cdb = 0;
-
-    /* xshard OPT (SETOP coalesce): one sub per DISTINCT shard (like MGET/DEL) instead of one per key;
-     * setop_pos[si] maps the sub's local key -> its ORIGINAL position so setmem/setcnt stay position-
-     * indexed and csSetOpCompute is unchanged. Gated k>=3 (2-set ops already <=2 subs). SDIFF order is
-     * preserved because S[0] is built from the original position-0 key's slot. */
-    if (server.opt_setop_coalesce && nkeys >= 3) {
-        csCoalesceSpec spec = { .key_stride = 1, .per_key_extra = 0, .cs_write = 0, .posmap = &g->setop_pos };
-        csBuildCoalescedSubs(head, g, nkeys, dbid, &spec, NULL);
-        return;
-    }
-
-    /* Legacy: one sub per key. */
-    g->nsub = nkeys;
-    g->subs = zmalloc(sizeof(client*) * nkeys);
-    atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
-    for (int i = 0; i < nkeys; i++) {
-        robj *key = head->argv[1 + i];
-        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-        client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = i; sub->cmd = head->cmd;
-        sub->resp = head->resp;
-        sub->conn = head->conn;
-        sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * 2);   /* [CMD key]; worker reads only argv[1] */
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        sub->argv[1] = key;           incrRefCount(key);
-        sub->argc = 2;
-        sub->db = &server.exThreads[w].db[dbid];
-        g->subs[i] = sub;
         csPushSpin(w, sub);
     }
 }
@@ -6279,80 +6451,118 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * real client is being torn down (CLOSE_ASAP): skip the reply, just free the subs/group.
  * Called from the IO drain, which has acquire-synchronized with every sub via the head
  * completion bit (release-acquire chain through g->pending; see the block header). */
-/* universal xshard: RENAME src dst. Same-shard => ONE sub runs the real renameGenericCommand on that
- * worker (typed/normal; reply spliced at reassemble). Cross-shard => 2-HOP move: HOP1 gather sub on
- * src shard reads+serializes+deletes src (or flags NOKEY); the drain launches HOP2 to RESTORE the blob
- * on dst. RENAME always overwrites dst, so deleting src in HOP1 is safe (transient state is MISSING). */
-static void dispatchRename(client *head) {
+/* universal xshard: 2-hop dispatcher (registry route CS_RT_TWOHOP; RENAME today, conditional
+ * moves in step 4). Same-shard => ONE sub carries the FULL original argv and the worker runs the
+ * real proc (typed/normal; reply spliced at reassemble). Cross-shard => HOP1 gather sub(s) on the
+ * src shard (+ a dst probe sub when the row asks, step 4+); the drain launches the g->h2sub[]
+ * plan stamped HERE from the row — csLaunchHop2 never reads head->argv positions directly. For
+ * RENAME the HOP1 sub reads+serializes+deletes src (or flags NOKEY) and HOP2 RESTOREs on dst;
+ * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
+static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int dbid = head->db->id;
-    robj *src = head->argv[1], *dst = head->argv[2];
+    robj *src = head->argv[(int)s->src_argi], *dst = head->argv[(int)s->dst_argi];
     int src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
     int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
     csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = CS_RENAME; g->nkeys = 1; g->head = head;
+    g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
+    g->h2_pexpireat = -1; g->h2_dbid = dbid; g->winner = -1;
     head->csgroup = g; head->cdb = 0;
-    g->h2_pexpireat = -1;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
-    g->nsub = 1; g->subs = zmalloc(sizeof(client*));
-    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
 
-    client *sub = createPooledFakeClient(head->parent);
-    sub->csparent = g; sub->cssub_idx = 0; sub->cmd = head->cmd;
-    sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
     if (src_shard == dst_shard) {
         /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
-        sub->argv = zmalloc(sizeof(robj*) * 3);
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        sub->argv[1] = src;           incrRefCount(src);
-        sub->argv[2] = dst;           incrRefCount(dst);
-        sub->argc = 3;
-    } else {
-        /* cross-shard: HOP1 gather sub carries only [RENAME src]; the drain handles dst in HOP2. */
-        g->has_hop2 = 1; g->phase = CS_PH_HOP1; g->h2_op = CS_H2_RESTORE; g->cs2_kind = CS2_OK;
-        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
-            migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
-        }
-        sub->argv = zmalloc(sizeof(robj*) * 2);
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        sub->argv[1] = src;           incrRefCount(src);
-        sub->argc = 2;
+        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+        client *sub = csMakeSub(g, 0, src_shard, dbid);
+        csSubCopyFullArgv(sub, head);
+        csPushSpin(src_shard, sub);
+        return;
     }
-    sub->db = &server.exThreads[src_shard].db[dbid];
-    g->subs[0] = sub;
-    csPushSpin(src_shard, sub);
+    /* cross-shard: stamp the HOP2 PLAN from the ROW; HOP1 sub 0 carries only [CMD src]
+     * (+ sub 1 = [CMD dst] probe when h1_probe_dst, step 4+ — verdict lands in g->probe). */
+    g->has_hop2 = 1; g->phase = CS_PH_HOP1;
+    g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
+    g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = s->dst_argi };
+    if (s->h2_del_src)
+        g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+        migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
+    }
+    int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
+    g->nsub = nh1; g->subs = zmalloc(sizeof(client*) * nh1);
+    atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
+    for (int i = 0; i < nh1; i++) {
+        client *sub = csMakeSub(g, i, i == 0 ? src_shard : dst_shard, dbid);
+        csSubSetKeyArgv(sub, head, i == 0 ? src : dst);
+    }
+    for (int i = 0; i < nh1; i++) csPushSpin(i == 0 ? src_shard : dst_shard, g->subs[i]);
 }
 
-/* universal xshard: HOP2 launcher — runs on the IO DRAIN thread after the HOP1 barrier (a worker cannot
- * push to an SPSC queue). Frees the HOP1 subs, builds the write sub(s) on the dest shard, resets pending,
- * clears the STALE HOP1 ready bit BEFORE pushing HOP2 (so the worker's HOP2 set-bit isn't clobbered),
- * sets phase=HOP2. The head keeps its ring slot; replyWorking is untouched so the drain keeps polling. */
-static void csLaunchHop2(csGroup *g) {
+/* universal xshard: hop-commit — the phase-transition protocol in exactly ONE place.
+ * ORDER IS THE PROTOCOL: pending -> phase -> clear stale ready bit -> push.
+ *  - pending before push: barrier armed before any worker can decrement.
+ *  - phase before push: workers read g->phase in csSubExec.
+ *  - bit-clear before FIRST push (atomic AND; this IO drain thread is the sole clearer):
+ *    the new hop's completion set-bit must never be clobbered. */
+static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
+    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+    g->phase = phase;
     client *head = g->head;
-    int dbid = head->db->id;
+    atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+    for (int i = 0; i < nsub; i++) csPushSpin(shards[i], g->subs[i]);
+}
+
+/* universal xshard: HOP2 launcher — runs on the IO DRAIN thread after the HOP1 barrier (a worker
+ * cannot push to an SPSC queue). Generalized off the registry-stamped g->h2sub[] plan: per-ctype
+ * PREP (may consume probe verdicts / build h2_payload / rewrite the plan), then free the HOP1
+ * subs and launch the plan via csHopCommit. Returns 1 iff HOP2 sub(s) were pushed (head stays in
+ * flight: no retire / flushid++ / replyWorking--). Returns 0 with HOP1 subs INTACT => the caller
+ * falls through to csReassemble in the same pass (emits the err/short reply, tears down). The
+ * head keeps its ring slot; replyWorking is untouched so the drain keeps polling. */
+static int csLaunchHop2(csGroup *g) {
+    client *head = g->head;
+    int dbid = g->h2_dbid;
+
+    /* --- per-ctype HOP2 PREP (deliberately a switch — S8 audit locality). Runs BEFORE HOP1
+     * subs are freed so it may read probe results. May set g->err (=> return 0), rewrite
+     * g->h2sub[] (step 9 MPOP winner), or serialize a coordinator-computed payload into
+     * g->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
+    switch (g->ctype) {
+    case CS_RENAME: break;
+    default: break;
+    }
+    if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
+
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     zfree(g->subs); g->subs = NULL;
 
-    robj *dst = head->argv[2];   /* RENAME/COPY dest key (still valid — head in flight) */
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
-        migHoldKeyIfDraining(dst);
-    int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));   /* re-read AFTER the hold */
-    g->phase = CS_PH_HOP2;
-    g->nsub = 1;
-    g->subs = zmalloc(sizeof(client*));
-    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
-    client *sub = createPooledFakeClient(head->parent);
-    sub->csparent = g; sub->cssub_idx = 0; sub->cmd = head->cmd;
-    sub->resp = head->resp; sub->conn = head->conn; sub->flags |= CLIENT_EX_PENDING;
-    sub->argv = zmalloc(sizeof(robj*) * 2);
-    sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-    sub->argv[1] = dst;           incrRefCount(dst);
-    sub->argc = 2;
-    sub->db = &server.exThreads[dst_shard].db[dbid];
-    g->subs[0] = sub;
-    /* clear the stale HOP1 ready bit directly (atomic AND; this IO thread is the sole clearer) BEFORE
-     * pushing, so the HOP2 completion's set-bit survives; then push the write sub. */
-    atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
-    csPushSpin(dst_shard, sub);
+    if (g->h2_op == CS_H2_SCATTER) {
+        /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
+         * re-runs the MSET write wave — values still live in head->argv (head is in flight;
+         * opt_mset_move + argv_released_mask discipline applies verbatim). csBuildCoalescedSubs
+         * arms pending before its own pushes. */
+        g->phase = CS_PH_HOP2;
+        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1, .cs_write = 1 };
+        csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
+        return 1;
+    }
+    /* --- generic plan launch: one sub per g->h2sub[] entry; cssub_idx IS the plan index, so
+     * csSubExec's ctype HOP2 cases read g->h2sub[sub->cssub_idx].action (step 4+). --- */
+    int n = g->h2_nsub, shards[CS_H2_MAX];
+    serverAssert(n > 0 && n <= CS_H2_MAX);
+    int mig = __builtin_expect(
+        atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+    g->nsub = n; g->subs = zmalloc(sizeof(client*) * n);
+    for (int i = 0; i < n; i++) {
+        robj *key = head->argv[g->h2sub[i].key_argi];
+        if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
+        shards[i] = exIndexForKey(key->ptr, sdslen(key->ptr));    /* re-route AFTER the hold */
+        client *sub = csMakeSub(g, i, shards[i], dbid);
+        csSubSetKeyArgv(sub, head, key);
+    }
+    csHopCommit(g, n, CS_PH_HOP2, shards);
+    return 1;
 }
 
 static void csReassemble(client *dst, client *head) {

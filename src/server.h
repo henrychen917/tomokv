@@ -1759,12 +1759,50 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_ERR_NOKEY       2
 #define CS_ERR_NX_EXISTS   3
 #define CS_ERR_EMPTY       4
-/* HOP2 write op. */
-#define CS_H2_RESTORE      1   /* rdbLoad h2_payload -> dbAdd/overwrite dest (RENAME/COPY/*STORE) */
+/* HOP2 launcher shape (registry row -> g->h2_op). Worker-side SEMANTICS stay in csSubExec's
+ * ctype switch; this only tells csLaunchHop2 HOW to build the second wave. */
+#define CS_H2_NONE         0
+#define CS_H2_PLAN         1   /* launch the g->h2sub[] plan (dest write +/- src-side op) */
+#define CS_H2_SCATTER      2   /* step 8 (MSETNX): re-run the coalesced write wave */
+/* HOP2 per-sub roles (g->h2sub[cssub_idx].action). */
+#define CS_H2A_WRITE       1   /* dest-side op: RESTORE / SET / SADD / PUSH per ctype */
+#define CS_H2A_SRCOP       2   /* src-side op: DEL / SREM / POP per ctype */
+#define CS_H2_MAX          3   /* dest-write + src-op + spare (probe subs live in HOP1) */
 /* reply shape after HOP2 / for 2-hop commands. */
 #define CS2_OK             1
 #define CS2_INT            2
 #define CS2_NIL            3
+/* ---- xshard registry: port state ---- */
+#define CS_PORT_UNPORTED   0   /* row exists for the SAFE-GATE only (argc hooks); reject */
+#define CS_PORT_OK         1   /* fully ported: classify + dispatch through the table */
+#define CS_PORT_EXEMPT     2   /* multi-key but deliberately allowed through the gate
+                                * (emergency compat escape; NO row uses it at ship time) */
+/* ---- xshard registry: route kind ---- */
+#define CS_RT_GATHER       0   /* scatter/gather over the command's own key list */
+#define CS_RT_FANALL       1   /* one sub per worker, full argv (KEYS) */
+#define CS_RT_TWOHOP       2   /* single-src gather (+opt dst probe) -> HOP2 plan (RENAME, moves) */
+/* ---- result slots dispatchGather allocates ---- */
+#define CS_RES_NONE        0
+#define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
+#define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
+#define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (step 9 LMPOP/ZMPOP probes) */
+/* ---- posmap selector for csBuildCoalescedSubs ---- */
+#define CS_POS_NONE        0
+#define CS_POS_MGET        1   /* &g->mget_pos  */
+#define CS_POS_SETOP       2   /* &g->setop_pos */
+/* ---- coalesce gate ---- */
+#define CS_CO_ALWAYS       0   /* MSET/DEL/EXISTS: always one sub per distinct shard */
+#define CS_CO_MGETKNOB     1   /* opt_mget_coalesce >= 1 && nkeys >= 3, else legacy per-key */
+#define CS_CO_SETOPKNOB    2   /* opt_setop_coalesce   && nkeys >= 3, else legacy per-key */
+/* argv-index accessor: 0 in a zero-initialized row means "keys start at argv[1]" */
+#define csFirstKeyArg(s) ((s)->firstkey_argi ? (int)(s)->firstkey_argi : 1)
+
+typedef struct csH2Sub {
+    uint8_t action;    /* CS_H2A_* — read as g->h2sub[sub->cssub_idx].action from step 4 on */
+    int16_t key_argi;  /* head->argv index of this sub's key. int16 NOT int8: the LMPOP
+                        * prep case rewrites it to firstkey+winner, which can exceed 127. */
+} csH2Sub;
+struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -1800,15 +1838,23 @@ typedef struct csGroup {
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
     int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
     int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
-    int h2_op;                 /* CS_H2_* write op for HOP2 */
-    int h2_dest_shard;         /* dest worker for the HOP2 write (-1 = none) */
-    int h2_del_shard;          /* worker to delete the src key on in HOP2 (moves; -1 = none) */
-    sds h2_key;                /* dest key (borrowed ptr into head->argv; valid until teardown) */
-    sds h2_delkey;             /* src key to delete in HOP2 (borrowed) */
+    int h2_op;                 /* CS_H2_* launcher shape (from the registry row) */
+    const struct csCmdSpec *spec; /* registry row, stamped at dispatch on GATHER/TWOHOP groups
+                                * (NULL on FANALL); COLD reads only (launch/reassemble) */
+    csH2Sub h2sub[CS_H2_MAX];  /* HOP2 plan, stamped at dispatch from the row; the csLaunchHop2
+                                * prep case may rewrite it (LMPOP winner) */
+    int h2_nsub;               /* planned HOP2 subs; 0 on all 1-hop groups */
+    int h2_dbid;               /* COPY DB option; dispatch inits to head->db->id */
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
     int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
+    /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
+     * provably implementable without a shape change): ---- */
+    redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
+    long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    int winner;                /* MPOP ordered-scan winner; dispatch sets -1 */
+    int hop_retries;           /* bounded MPOP re-probe counter (<= nkeys) */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
@@ -3263,6 +3309,52 @@ typedef enum {
 typedef void redisCommandProc(client *c);
 typedef int redisGetKeysProc(struct redisCommand *cmd, robj **argv, int argc, getKeysResult *result);
 
+/* ee451 (xshard registry): one row per cross-shard-RELEVANT command proc. PORTED rows drive
+ * classification and dispatch entirely from data; UNPORTED rows exist so the inverted SAFE-GATE
+ * can express argc-dependent safety and stay greppable. Matched to redisCommand by PROC POINTER
+ * once at populateCommandTable (cmd->cs_spec) — rename-command-proof, never scanned at runtime. */
+typedef struct csCmdSpec {
+    redisCommandProc *proc;   /* match key (populate-time only) */
+    const char *name;         /* boot-audit logging only; matching is by proc */
+    uint8_t ported;           /* CS_PORT_* */
+    int8_t  ctype;            /* csCmdType for csSubExec/csReassemble; -1 on UNPORTED rows */
+    uint8_t route;            /* CS_RT_* */
+    int8_t  setop;            /* CS_SETOP_* when ctype==CS_SETOP */
+    /* -- classification gates (fail => NOT cross-shard => whitelist/inline, as today) -- */
+    int16_t min_argc;         /* argc <  min_argc => fall through (DEL: 3 keeps argc==2
+                               * on the worker whitelist) */
+    int16_t max_argc;         /* 0 = unlimited (KEYS: 2) */
+    uint8_t argc_odd;         /* 1 => argc must be odd (MSET/MSETNX) */
+    int  (*shape_ok)(client *c); /* optional; 0 => fall through INLINE so the STOCK proc
+                               * emits its own parse error before any key access (BITOP
+                               * NOT n>1, bad LIMIT). NO ported Step-R row sets this. */
+    /* -- gather geometry (CS_RT_GATHER) -- */
+    int8_t  firstkey_argi;    /* 0 => 1. (S*STORE:2, ZUNIONSTORE:3, BITOP:3 ...) */
+    int8_t  numkeys_argi;     /* 0 => keys run to argc; else argv index of numkeys */
+    int8_t  key_stride;       /* 1, or 2 for MSET/MSETNX (k v pairs) */
+    int8_t  per_key_extra;    /* extra argv slots appended per key (MSET value = 1) */
+    uint8_t cs_write;         /* run migHoldKeyIfDraining per key (writes only) */
+    uint8_t res_kind;         /* CS_RES_* result slots to allocate */
+    uint8_t pos_kind;         /* CS_POS_* posmap for csBuildCoalescedSubs */
+    uint8_t co_gate;          /* CS_CO_* */
+    /* -- HOP2 geometry (CS_RT_TWOHOP, or CS_RT_GATHER with has_hop2) -- */
+    uint8_t has_hop2;         /* GATHER route: dest write follows the gather barrier */
+    int8_t  src_argi;         /* TWOHOP: argv index of the single gather/src key */
+    int8_t  dst_argi;         /* argv index of the dest key; 0 = none/dynamic (LMPOP
+                               * winner: prep case rewrites g->h2sub[0].key_argi) */
+    uint8_t h1_probe_dst;     /* TWOHOP: add a HOP1 probe sub on the dst shard (step 4+) */
+    uint8_t h2_del_src;       /* HOP2 plan also gets a CS_H2A_SRCOP sub on src */
+    uint8_t h2_op;            /* CS_H2_* launcher shape */
+    uint8_t cs2_kind;         /* CS2_* final reply shape tag */
+    uint8_t block_reject;     /* blocking variant: would-block => immediate timeout/nil
+                               * form from the csReassemble ctype case (step 9) */
+    /* -- callbacks (the ONLY code-bearing fields) -- */
+    void (*append_extra)(client *head, client *sub, int origpos); /* MSET value ownership */
+    int  (*unsafe_check)(client *c);  /* UNPORTED rows: nonzero => reject THIS form */
+    int16_t safe_max_argc;    /* UNPORTED rows without a hook: argc <= this falls through
+                               * (PFCOUNT: 2); 0 = always reject */
+} csCmdSpec;
+
 /* Redis command structure.
  *
  * Note that the command table is in commands.c and it is auto-generated.
@@ -3362,7 +3454,8 @@ typedef int redisGetKeysProc(struct redisCommand *cmd, robj **argv, int argc, ge
 /* ee451 (v14) routing byte bits (redisCommand.tomo_route), stamped at populate time. */
 #define TOMO_R_STATEFUL 1u   /* multi/exec/subscribe/auth/... — run on real client, ring-drained */
 #define TOMO_R_EXPRESS  2u   /* getCommand/setCommand — the express dispatch lane */
-#define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (mget/mset/del/unlink/exists/touch/keys/setops) */
+#define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (derived: registry row with ported==CS_PORT_OK) */
+#define TOMO_R_XGUARD   8u   /* multi-key-capable AND not table-PORTED => SAFE-GATE checks it */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
@@ -3417,6 +3510,8 @@ struct redisCommand {
     unsigned char tomo_route; /* ee451 (v14): routing byte, stamped once at populateCommandTable
                                * (struct END so commands.def positional init is unaffected);
                                * replaces per-op proc-pointer compare chains on dispatch. TOMO_R_* */
+    const struct csCmdSpec *cs_spec; /* ee451 (xshard registry): row or NULL, stamped at populate
+                               * (struct END for the same positional-init reason as tomo_route) */
 };
 
 struct redisError {
