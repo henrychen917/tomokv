@@ -322,7 +322,12 @@ static void resetFakeClientState(client *c, client *parent) {
 client *createFakeClient(client *parent) {
     client *c = zmalloc(sizeof(client));
     /* Cached heap, reused across pooled recycles: output buffer + reply list. */
-    c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+    /* 2s-auto D1: auto (-1) starts small and demand-grows at the spill site; fixed-N uses N;
+     * 0 = legacy 16KB. */
+    size_t start = (server.fake_buf_mode > 0) ? (size_t)server.fake_buf_mode
+                 : (server.fake_buf_mode == 0) ? PROTO_REPLY_CHUNK_BYTES
+                 : FAKE_BUF_START_BYTES;   /* -1 auto */
+    c->buf = zmalloc_usable(start, &c->buf_usable_size);
     c->reply = listCreate();
     listSetFreeMethod(c->reply, freeClientReplyValue);
     listSetDupMethod(c->reply, dupClientReplyValue);
@@ -341,6 +346,14 @@ client *createFakeClient(client *parent) {
 static client *xsubPool[TOMO_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
 static int xsubPoolN[TOMO_IO_THREADS_MAX + 1];
 
+/* 2s-auto D1: is this fake's buffer poolable given the fake-buf mode? In auto mode any width
+ * within [START,MAX] is reusable; fixed/legacy require the exact configured size. */
+static inline int isFakeBufPoolable(client *c) {
+    if (server.fake_buf_mode == 0) return c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES;
+    if (server.fake_buf_mode > 0)  return c->buf_usable_size == (size_t)server.fake_buf_mode;
+    return c->buf_usable_size >= FAKE_BUF_START_BYTES && c->buf_usable_size <= FAKE_BUF_MAX_BYTES;
+}
+
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] > 0) {
@@ -358,7 +371,7 @@ void freePooledFakeClient(client *c) {
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
-        c->buf && c->reply && c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES) {
+        c->buf && c->reply && isFakeBufPoolable(c)) {
         if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
         releaseAllBufReferences(c);
         listEmpty(c->reply);                 /* free reply blocks, keep the list object */
@@ -556,10 +569,23 @@ client *createClient(connection *conn) {
      * in parent->reply_ready_mask at completion.
      * Allocate exactly server.pipeline_ring_depth fakes; slots [depth, MAX) stay
      * NULL. Depth is immutable post-startup so we never grow the ring. */
-    for (int i = 0; i < server.pipeline_ring_depth; i++) {
+    /* 2s-auto D3: eager (mode 0) preallocs all pipeline_ring_depth fakes; auto (-1) and
+     * fixed-N modes leave slots NULL for lazy-create at the dispatch site. fakeClients was
+     * already memset to NULL above, so unfilled slots stay NULL. */
+    int eager = (server.fake_ring_depth_mode == 0);
+    int n = eager ? server.pipeline_ring_depth
+                  : (server.fake_ring_depth_mode > 0 ? server.fake_ring_depth_mode : 0);
+    if (n > server.pipeline_ring_depth) n = server.pipeline_ring_depth;
+    for (int i = 0; i < n; i++) {
         c->fakeClients[i] = createFakeClient(c);
         c->fakeClients[i]->fake_slot = (unsigned int)i;
     }
+    c->fake_ring_cur_depth  = (unsigned int)n;
+    c->fake_ring_decay_skip = 0;
+    c->fake_ring_hwm_ewma   = 0.0;
+    c->fake_buf_ewma        = 0.0;
+    c->fake_buf_spill_ct    = 0;
+    c->fake_buf_ops         = 0;
 
     return c;
 }
@@ -823,6 +849,28 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
     {
         _addReplyPayloadToList(c,server.pending_push_messages,s,len,PLAIN_REPLY);
         return;
+    }
+
+    /* 2s-auto D1: prospective grow of the fake reply buffer (auto mode) BEFORE the payload write,
+     * so it self-sizes to fit the reply instead of spilling to the list. Truncation-proof: we grow
+     * only while still building into buf (reply list empty), and we PRESERVE the already-written
+     * bytes (memcpy the current bufpos — the bulk length prefix was written by a prior call, so
+     * bufpos is usually > 0 at the value write, which is exactly why the old post-write guard was
+     * unreachable). If even the capped (FAKE_BUF_MAX_BYTES) buffer can't hold the value, the
+     * remainder spills to the list below exactly as before — no byte is ever discarded. */
+    if (c->isFake && server.fake_buf_mode == -1 && listLength(c->reply) == 0 &&
+        (size_t)c->bufpos + len > c->buf_usable_size && c->buf_usable_size < FAKE_BUF_MAX_BYTES) {
+        size_t need = (size_t)c->bufpos + len;
+        size_t ns = c->buf_usable_size ? c->buf_usable_size : (size_t)FAKE_BUF_START_BYTES;
+        while (ns < need && ns < FAKE_BUF_MAX_BYTES) ns <<= 1;
+        if (ns > FAKE_BUF_MAX_BYTES) ns = FAKE_BUF_MAX_BYTES;
+        if (ns > c->buf_usable_size) {
+            char *nb = zmalloc_usable(ns, &c->buf_usable_size);
+            if (c->bufpos > 0) memcpy(nb, c->buf, (size_t)c->bufpos);
+            zfree(c->buf);
+            c->buf = nb;
+            c->fake_buf_spill_ct++;   /* growth-pressure signal for the controller */
+        }
     }
 
     size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
@@ -3332,7 +3380,7 @@ static int handleClientsWithPendingWritesUring(void) {
              * below). Only worth it above a threshold (small replies: the copy is cheaper than the
              * pin + the extra notif CQE), and only for replies that fit the static buf (bigger ones
              * take the reply-list/writeToClient fallback). zc_flags=0; MSG_DONTWAIT non-blocking. */
-            if (server.io_uring_zc && pend >= IOU_ZC_MIN_BYTES) {
+            if (server.io_uring_zc && pend >= IOU_ZC_MIN_BYTES && c->buf_usable_size >= IOU_ZC_MIN_BYTES) {
                 io_uring_prep_send_zc(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT, 0);
                 static __thread int zc_logged = 0;
                 if (!zc_logged) { zc_logged = 1;

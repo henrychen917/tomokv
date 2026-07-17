@@ -41,6 +41,11 @@ __thread int replyWorking = 0;
  * without server.o; synced from server.io_drain_spin (tomokv-io-drain-spin) at boot and
  * on CONFIG SET. 0 = off (always the 100us window, the old behavior). */
 int aeIODrainSpin = 0;
+/* 2s-auto T1: mirrored from server.io_drain_userpoll (tomokv-io-drain-userpoll). -1 = auto
+ * (a thread-local EWMA picks userpoll-spin vs syscall drain); 0 = syscall-only (legacy AE-1
+ * behavior); N>0 = fixed userpoll passes. Plain int for the same reason as aeIODrainSpin
+ * (ae.o links into redis-cli without server.o); synced at boot + on CONFIG SET. */
+int aeIODrainUserpoll = -1;
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
@@ -506,8 +511,43 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
      * Wedged-worker protection is preserved: no retirement -> no refresh -> budget
      * exhausts -> 100us duty cycle exactly as before. */
     static __thread int prevReplyWorking = 0;
+    /* 2s-auto T1: thread-local dual-rate EWMA of replyWorking to pick userpoll spin vs syscall. */
+    static __thread double drain_ewma_fast = 0.0, drain_ewma_slow = 0.0;
+    static __thread int drain_mode = 0;        /* 0 = syscall, 1 = userpoll */
+    static __thread int drain_primed = 0, drain_trans = 0;
     if (replyWorking < prevReplyWorking) drainPasses = 0; /* reply progress: refresh */
     prevReplyWorking = replyWorking;
+
+    /* 2s-auto T1: fold replyWorking into the EWMA and (auto mode) pick a drain mode with a
+     * Schmitt band (fast<2 -> userpoll, fast>16 -> syscall) requiring 2 consecutive votes. */
+    if (aeIODrainUserpoll == -1 && replyWorking > 0) {
+        double a = 0.2, af = 0.4;
+        drain_ewma_slow = drain_primed ? (a *(double)replyWorking + (1.0-a) *drain_ewma_slow)  : (double)replyWorking;
+        drain_ewma_fast = drain_primed ? (af*(double)replyWorking + (1.0-af)*drain_ewma_fast) : (double)replyWorking;
+        drain_primed = 1;
+        int tgt = (drain_ewma_fast < 2.0) ? 1 : (drain_ewma_fast > 16.0 ? 0 : drain_mode);
+        if (tgt != drain_mode) { if (++drain_trans >= 2) { drain_mode = tgt; drain_trans = 0; } }
+        else drain_trans = 0;
+    }
+    /* 2s-auto T1: userpoll prefix — a bounded pause+beforesleep loop that breaks on reply
+     * progress, then falls through to the existing aeApiPoll below. Never a pure busy-loop: a
+     * wedged worker (replyWorking stuck) makes no progress => the loop exits => syscall poll. */
+    if (replyWorking > 0 && eventLoop->beforesleep != NULL &&
+        ((aeIODrainUserpoll == -1 && drain_mode == 1) || aeIODrainUserpoll > 0)) {
+        int limit = aeIODrainUserpoll > 0 ? aeIODrainUserpoll : 16;
+        int rw0 = replyWorking;
+        for (int u = 0; u < limit; u++) {
+            for (int p = 0; p < 16; p++) {
+#if defined(__i386__) || defined(__x86_64__)
+                __builtin_ia32_pause();
+#else
+                __asm__ __volatile__("" ::: "memory");
+#endif
+            }
+            eventLoop->beforesleep(eventLoop);
+            if (replyWorking < rw0) break;
+        }
+    }
     struct timeval tv, *tvp = NULL;
     if (replyWorking == 0) {
         drainPasses = 0;

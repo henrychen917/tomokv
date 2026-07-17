@@ -2514,6 +2514,14 @@ static int updateIODrainSpin(const char **err) {
     return 1;
 }
 
+/* ee451 (2s-auto T1): mirror tomokv-io-drain-userpoll into ae.c's plain global
+ * (ae.o also links into redis-cli, so it cannot read the server struct). */
+static int updateIODrainUserpoll(const char **err) {
+    UNUSED(err);
+    aeIODrainUserpoll = server.io_drain_userpoll;
+    return 1;
+}
+
 static int updateHZ(const char **err) {
     UNUSED(err);
     /* Hz is more a hint from the user, so we accept values out of range
@@ -3328,6 +3336,11 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
+    createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, -1, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
+    createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
+    createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
+    createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed live depth */
+    createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
     createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
