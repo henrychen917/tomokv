@@ -34,6 +34,7 @@
 #include "cluster_asm.h"
 #include "fwtree.h"
 #include "estore.h"
+#include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
 
 #include <time.h>
@@ -5704,6 +5705,47 @@ static int csEvalUnsafeCheck(client *c) {
 }
 static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
 
+/* step 6 Z-op tail validator: after the keys, accept only the flag set the stock form allows
+ * (WEIGHTS setnum-floats / AGGREGATE SUM|MIN|MAX / WITHSCORES / LIMIT n). Malformed => 0 =>
+ * fall INLINE for the stock error. KNOWN precedence corner (documented): a form that is BOTH
+ * wrong-typed on a key AND tail-malformed emits the tail error here vs stock's WRONGTYPE
+ * (stock reads keys before parsing the tail; the decoy read sees no type). */
+static int csZTailOk(client *c, int allow_w, int allow_a, int allow_ws, int allow_lim) {
+    const csCmdSpec *s = c->cmd->cs_spec;
+    long long nk;
+    if (getLongLongFromObject(c->argv[(int)s->numkeys_argi], &nk) != C_OK || nk <= 0) return 0;
+    int j = csFirstKeyArg(s) + (int)nk;      /* first tail token */
+    if (j > c->argc) return 0;
+    while (j < c->argc) {
+        int remaining = c->argc - j;
+        if (allow_w && remaining >= (int)nk + 1 && !strcasecmp(c->argv[j]->ptr, "weights")) {
+            for (int i = 1; i <= (int)nk; i++) {
+                double w;
+                if (getDoubleFromObject(c->argv[j+i], &w) != C_OK) return 0;
+            }
+            j += 1 + (int)nk;
+        } else if (allow_a && remaining >= 2 && !strcasecmp(c->argv[j]->ptr, "aggregate")) {
+            const char *a = c->argv[j+1]->ptr;
+            if (strcasecmp(a, "sum") && strcasecmp(a, "min") && strcasecmp(a, "max")) return 0;
+            j += 2;
+        } else if (allow_ws && !strcasecmp(c->argv[j]->ptr, "withscores")) {
+            j += 1;
+        } else if (allow_lim && remaining >= 2 && !strcasecmp(c->argv[j]->ptr, "limit")) {
+            long long lim;
+            if (getLongLongFromObject(c->argv[j+1], &lim) != C_OK || lim < 0) return 0;
+            j += 2;
+        } else {
+            return 0;
+        }
+    }
+    return 1;
+}
+static int csZopShapeOk(client *c)      { return csZTailOk(c, 1, 1, 1, 0); }  /* ZUNION/ZINTER */
+static int csZdiffShapeOk(client *c)    { return csZTailOk(c, 0, 0, 1, 0); }  /* ZDIFF */
+static int csZstoreShapeOk(client *c)   { return csZTailOk(c, 1, 1, 0, 0); }  /* Z*STORE (U/I) */
+static int csZdstoreShapeOk(client *c)  { return csZTailOk(c, 0, 0, 0, 0); }  /* ZDIFFSTORE */
+static int csZcardShapeOk(client *c)    { return csZTailOk(c, 0, 0, 0, 1); }  /* ZINTERCARD */
+
 /* SINTERCARD numkeys key... [LIMIT n]: 1 = well-formed => cross-shard. Malformed numkeys /
  * overrun / bad tail => 0 => fall INLINE for the stock parse error (precedes key access). */
 static int csSintercardShapeOk(client *c) {
@@ -5801,6 +5843,42 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
   .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
   .cs2_kind=CS2_INT, .shape_ok=csSintercardShapeOk },
+/* step 6 — zset family. HOP1 gathers (member,score) pairs per key (a plain-set source scores
+ * 1.0, stock); the coordinator applies WEIGHTS/AGGREGATE and computes into a temp zset whose
+ * skiplist order reproduces stock's reply order exactly. Store variants DUMP the (listpack-
+ * converted-if-small) result to the dst shard; empty => delete dst. WITHSCORES/LIMIT are
+ * reassemble-time. Tail-malformed forms fall inline for stock parse errors. */
+{ .proc=zunionCommand, .name="zunion", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
+  .setop=CS_SETOP_UNION, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .shape_ok=csZopShapeOk },
+{ .proc=zinterCommand, .name="zinter", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
+  .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .shape_ok=csZopShapeOk },
+{ .proc=zdiffCommand, .name="zdiff", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
+  .setop=CS_SETOP_DIFF, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .shape_ok=csZdiffShapeOk },
+{ .proc=zunionstoreCommand, .name="zunionstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_UNION, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
+  .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
+  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .shape_ok=csZstoreShapeOk },
+{ .proc=zinterstoreCommand, .name="zinterstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
+  .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
+  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .shape_ok=csZstoreShapeOk },
+{ .proc=zdiffstoreCommand, .name="zdiffstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_DIFF, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
+  .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
+  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .shape_ok=csZdstoreShapeOk },
+{ .proc=zinterCardCommand, .name="zintercard", .ported=CS_PORT_OK, .ctype=CS_ZCARD,
+  .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
+  .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .cs2_kind=CS2_INT, .shape_ok=csZcardShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
@@ -5815,13 +5893,6 @@ static const csCmdSpec csRegistry[] = {
 
 /* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
 { .proc=msetnxCommand,      .name="msetnx"      },
-{ .proc=zunionCommand,      .name="zunion"      },
-{ .proc=zinterCommand,      .name="zinter"      },
-{ .proc=zdiffCommand,       .name="zdiff"       },
-{ .proc=zinterCardCommand,  .name="zintercard"  },
-{ .proc=zunionstoreCommand, .name="zunionstore" },
-{ .proc=zinterstoreCommand, .name="zinterstore" },
-{ .proc=zdiffstoreCommand,  .name="zdiffstore"  },
 { .proc=zmpopCommand,       .name="zmpop"       },
 { .proc=lmpopCommand,       .name="lmpop"       },
 { .proc=bzmpopCommand,      .name="bzmpop"      },
@@ -6215,6 +6286,85 @@ static void csSubExec(client *sub) {
         }
         break;
     }
+    case CS_ZSTORE:
+        if (g->phase == CS_PH_HOP2) {
+            /* step 6 WRITE sub: empty result => delete dst + 0 (stock); else restore the
+             * serialized (listpack-converted-if-small) result zset over dst. */
+            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+            if (g->h2_payload == NULL) {
+                if (dbSyncDelete(sub->db, sub->argv[1])) {
+                    notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            } else {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "zunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "zdiffstore"  : "zinterstore";
+                csH2RestoreKey(sub, g, NOTIFY_ZSET, ev, mig);
+            }
+            break;
+        }
+        /* HOP1 (member,score) gather shared by the whole Z family. */
+        /* fall through */
+    case CS_ZOP:
+        /* fall through */
+    case CS_ZCARD: {
+        /* step 6: gather each key's (member, score) pairs as private copies. ZSET sources emit
+         * their real scores (listpack or skiplist encoding walked directly — worker owns the
+         * object); a plain SET source contributes score 1.0 (stock); missing => empty; any
+         * other type => WRONGTYPE. Slot logic identical to the set gather above. */
+        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        for (int a = 1; a < sub->argc; a++) {
+            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            g->setmem[idx] = NULL; g->setcnt[idx] = 0; g->zscore[idx] = NULL;
+            if (o == NULL) continue;
+            if (o->type == OBJ_ZSET) {
+                unsigned long sz = zsetLength(o);
+                if (!sz) continue;
+                sds *arr = zmalloc(sizeof(sds) * sz);
+                double *sc = zmalloc(sizeof(double) * sz);
+                long m = 0;
+                if (o->encoding == OBJ_ENCODING_LISTPACK) {
+                    unsigned char *lp = o->ptr, *p = lpFirst(lp);
+                    while (p) {
+                        unsigned int vlen; long long vll;
+                        unsigned char *vstr = lpGetValue(p, &vlen, &vll);
+                        arr[m] = vstr ? sdsnewlen((char *)vstr, vlen) : sdsfromlonglong(vll);
+                        p = lpNext(lp, p);                     /* score entry */
+                        vstr = lpGetValue(p, &vlen, &vll);
+                        if (vstr) { char b[128]; int bl = vlen < 127 ? (int)vlen : 127;
+                                    memcpy(b, vstr, bl); b[bl] = 0; sc[m] = strtod(b, NULL); }
+                        else sc[m] = (double)vll;
+                        m++;
+                        p = lpNext(lp, p);
+                    }
+                } else {   /* OBJ_ENCODING_SKIPLIST */
+                    zset *zs = o->ptr;
+                    zskiplistNode *zn = zs->zsl->header->level[0].forward;
+                    while (zn) {
+                        sds ele = zslGetNodeElement(zn);
+                        arr[m] = sdsdup(ele); sc[m] = zn->score; m++;
+                        zn = zn->level[0].forward;
+                    }
+                }
+                g->setmem[idx] = arr; g->setcnt[idx] = m; g->zscore[idx] = sc;
+            } else if (o->type == OBJ_SET) {
+                unsigned long sz = setTypeSize(o);
+                if (!sz) continue;
+                sds *arr = zmalloc(sizeof(sds) * sz);
+                double *sc = zmalloc(sizeof(double) * sz);
+                long m = 0;
+                setTypeIterator si; setTypeInitIterator(&si, o);
+                sds ele;
+                while ((ele = setTypeNextObject(&si)) != NULL) { arr[m] = ele; sc[m] = 1.0; m++; }
+                g->setmem[idx] = arr; g->setcnt[idx] = m; g->zscore[idx] = sc;
+            } else {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+            }
+        }
+        break;
+    }
     case CS_RENAME: {
         int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
@@ -6505,9 +6655,11 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     }
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
-    if (s->res_kind == CS_RES_SETMEM) {
+    if (s->res_kind == CS_RES_SETMEM || s->res_kind == CS_RES_ZSETMEM) {
         g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
         g->setcnt = zcalloc(sizeof(long) * nkeys);
+        if (s->res_kind == CS_RES_ZSETMEM)
+            g->zscore = zcalloc(sizeof(double*) * nkeys);  /* parallel score arrays */
     }
     if (s->res_kind == CS_RES_MGETVALS && coalesce)
         g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
@@ -6633,6 +6785,102 @@ static robj *csSetOpResultSet(csGroup *g) {
     }
     for (int i = 0; i < n; i++) decrRefCount(S[i]);
     zfree(S);
+    return res;
+}
+
+/* ---- step 6: weighted zset-op compute (coordinator) ---- */
+#define CS_AGGR_SUM 1
+#define CS_AGGR_MIN 2
+#define CS_AGGR_MAX 3
+/* Mirrors stock zunionInterAggregate exactly: SUM re-zeroes NaN; MIN/MAX drop NaN values
+ * naturally (NaN comparisons are false) — do NOT pre-zero non-first contributions. */
+static inline void csZAggr(double *target, double val, int aggregate) {
+    if (aggregate == CS_AGGR_SUM) {
+        *target = *target + val;
+        if (isnan(*target)) *target = 0.0;
+    } else if (aggregate == CS_AGGR_MIN) {
+        *target = val < *target ? val : *target;
+    } else {
+        *target = val > *target ? val : *target;
+    }
+}
+/* Parse WEIGHTS/AGGREGATE from the head's tail (already validated by the shape hook —
+ * lenient re-parse). weights[] defaults to 1.0. */
+static int csZParseOpts(client *head, int nkeys, double *weights) {
+    const csCmdSpec *s = head->cmd->cs_spec;
+    int aggregate = CS_AGGR_SUM;
+    for (int i = 0; i < nkeys; i++) weights[i] = 1.0;
+    int j = csFirstKeyArg(s) + nkeys;
+    while (j < head->argc) {
+        if (!strcasecmp(head->argv[j]->ptr, "weights") && j + nkeys < head->argc) {
+            for (int i = 0; i < nkeys; i++) getDoubleFromObject(head->argv[j+1+i], &weights[i]);
+            j += 1 + nkeys;
+        } else if (!strcasecmp(head->argv[j]->ptr, "aggregate") && j + 1 < head->argc) {
+            const char *a = head->argv[j+1]->ptr;
+            aggregate = !strcasecmp(a, "min") ? CS_AGGR_MIN :
+                        !strcasecmp(a, "max") ? CS_AGGR_MAX : CS_AGGR_SUM;
+            j += 2;
+        } else {
+            j++;   /* withscores / limit token / limit value */
+        }
+    }
+    return aggregate;
+}
+/* Build the weighted UNION/INTER/DIFF result as a temp OBJ_ZSET (skiplist encoding => rank
+ * iteration reproduces stock's reply order). Coordinator-owned; only a DUMP blob crosses. */
+static robj *csZSetOpResultZset(csGroup *g) {
+    int n = g->nkeys, out_flags;
+    double *weights = zmalloc(sizeof(double) * n);
+    int aggregate = csZParseOpts(g->head, n, weights);
+    robj *res = createZsetObject();
+    if (g->setop == CS_SETOP_UNION) {
+        /* stock zeroes EVERY NaN contribution before aggregating */
+        for (int i = 0; i < n; i++) {
+            for (long k = 0; k < g->setcnt[i]; k++) {
+                double sc = weights[i] * g->zscore[i][k];
+                if (isnan(sc)) sc = 0;
+                double old;
+                if (zsetScore(res, g->setmem[i][k], &old) == C_OK) {
+                    csZAggr(&old, sc, aggregate);
+                    zsetAdd(res, old, g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                } else {
+                    zsetAdd(res, sc, g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                }
+            }
+        }
+    } else {
+        /* INTER/DIFF: per-key temp zsets give membership + score probes. */
+        robj **Z = zmalloc(sizeof(robj*) * n);
+        for (int i = 1; i < n; i++) {
+            Z[i] = createZsetObject();
+            for (long k = 0; k < g->setcnt[i]; k++)
+                zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+        }
+        for (long k = 0; k < g->setcnt[0]; k++) {
+            sds m = g->setmem[0][k];
+            if (g->setop == CS_SETOP_INTER) {
+                /* stock zeroes only the FIRST contribution; later NaNs go through raw */
+                double sc = weights[0] * g->zscore[0][k];
+                if (isnan(sc)) sc = 0;
+                int in_all = 1;
+                for (int i = 1; i < n; i++) {
+                    double si;
+                    if (zsetScore(Z[i], m, &si) != C_OK) { in_all = 0; break; }
+                    csZAggr(&sc, weights[i] * si, aggregate);
+                }
+                if (in_all) zsetAdd(res, sc, m, ZADD_IN_NONE, &out_flags, NULL);
+            } else {   /* DIFF: key0 members absent everywhere else, raw key0 scores */
+                int in_others = 0;
+                double si;
+                for (int i = 1; i < n; i++)
+                    if (zsetScore(Z[i], m, &si) == C_OK) { in_others = 1; break; }
+                if (!in_others) zsetAdd(res, g->zscore[0][k], m, ZADD_IN_NONE, &out_flags, NULL);
+            }
+        }
+        for (int i = 1; i < n; i++) decrRefCount(Z[i]);
+        zfree(Z);
+    }
+    zfree(weights);
     return res;
 }
 
@@ -6773,6 +7021,34 @@ static int csLaunchHop2(csGroup *g) {
         long long card = (long long)setTypeSize(res);
         g->cs2_intreply = card;
         if (card > 0) {
+            rio r; rioInitWithBuffer(&r, sdsempty());
+            rdbSaveObjectType(&r, res);
+            rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
+            g->h2_payload = r.io.buffer.ptr;
+        }
+        decrRefCount(res);
+        break;
+    }
+    case CS_ZSTORE: {
+        /* step 6: weighted compute + serialize; empty => payload NULL => HOP2 deletes dst.
+         * Convert to listpack when small BEFORE dumping so the restored dst's encoding matches
+         * what stock's setKey would have stored. */
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
+        robj *res = csZSetOpResultZset(g);
+        long long card = (long long)zsetLength(res);
+        g->cs2_intreply = card;
+        if (card > 0) {
+            size_t maxelelen = 0, totelelen = 0;
+            zset *zs = res->ptr;
+            zskiplistNode *zn = zs->zsl->header->level[0].forward;
+            while (zn) {
+                sds ele = zslGetNodeElement(zn);
+                size_t l = sdslen(ele);
+                if (l > maxelelen) maxelelen = l;
+                totelelen += l;
+                zn = zn->level[0].forward;
+            }
+            zsetConvertToListpackIfNeeded(res, maxelelen, totelelen);
             rio r; rioInitWithBuffer(&r, sdsempty());
             rdbSaveObjectType(&r, res);
             rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
@@ -6936,20 +7212,76 @@ static void csReassemble(client *dst, client *head) {
             }
             break;
         }
+        case CS_ZOP: {
+            /* step 6 non-store ZUNION/ZINTER/ZDIFF: emit the temp zset in skiplist rank order
+             * (stock's exact reply order). WITHSCORES: RESP2 = flat 2N array, RESP3 = N pairs. */
+            if (atomic_load_explicit(&g->err, memory_order_relaxed))
+                addReplyErrorObject(dst, shared.wrongtypeerr);
+            else {
+                int withscores = 0;
+                long long nk = 0;
+                getLongLongFromObject(head->argv[1], &nk);
+                for (int j = 2 + (int)nk; j < head->argc; j++)
+                    if (!strcasecmp(head->argv[j]->ptr, "withscores")) { withscores = 1; break; }
+                robj *res = csZSetOpResultZset(g);
+                unsigned long length = zsetLength(res);
+                zset *zs = res->ptr;
+                zskiplistNode *zn = zs->zsl->header->level[0].forward;
+                if (withscores && dst->resp == 2) addReplyArrayLen(dst, length * 2);
+                else addReplyArrayLen(dst, length);
+                while (zn) {
+                    if (withscores && dst->resp > 2) addReplyArrayLen(dst, 2);
+                    sds ele = zslGetNodeElement(zn);
+                    addReplyBulkCBuffer(dst, ele, sdslen(ele));
+                    if (withscores) addReplyDouble(dst, zn->score);
+                    zn = zn->level[0].forward;
+                }
+                decrRefCount(res);
+            }
+            break;
+        }
+        case CS_ZSTORE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard zset-store failed");
+            else addReplyLongLong(dst, g->cs2_intreply);
+            break;
+        }
+        case CS_ZCARD: {
+            /* ZINTERCARD numkeys key... [LIMIT n] */
+            if (atomic_load_explicit(&g->err, memory_order_relaxed))
+                addReplyErrorObject(dst, shared.wrongtypeerr);
+            else {
+                robj *res = csZSetOpResultZset(g);
+                long long card = (long long)zsetLength(res);
+                long long nk = 0, lim = 0;
+                getLongLongFromObject(head->argv[1], &nk);
+                for (int j = 2 + (int)nk; j + 1 < head->argc; j++)
+                    if (!strcasecmp(head->argv[j]->ptr, "limit")) {
+                        getLongLongFromObject(head->argv[j+1], &lim);
+                        break;
+                    }
+                if (lim > 0 && card > lim) card = lim;
+                addReplyLongLong(dst, card);
+                decrRefCount(res);
+            }
+            break;
+        }
         default: break;
         }
     }
     /* ee451 v11-F: free the gathered member copies (allocated on worker threads; freed here on the
      * coordinator — private refcount-free sds, safe to free cross-thread). Done whether or not dst
      * was set (the teardown path with dst==NULL still allocated them). */
-    if (g->setmem) {   /* CS_SETOP + step-5 CS_SSTORE/CS_SETCARD all gather into setmem */
+    if (g->setmem) {   /* CS_SETOP + step-5/6 SSTORE/SETCARD/Z* all gather into setmem */
         for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
             if (g->setmem[i]) {
                 for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
                 zfree(g->setmem[i]);
             }
+            if (g->zscore && g->zscore[i]) zfree(g->zscore[i]);
         }
-        zfree(g->setmem); zfree(g->setcnt);
+        zfree(g->setmem); zfree(g->setcnt); zfree(g->zscore);
     }
     if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path

@@ -1743,7 +1743,8 @@ typedef struct client {
  * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
-               CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD } csCmdType;
+               CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
+               CS_ZOP, CS_ZSTORE, CS_ZCARD } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -1796,6 +1797,7 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
 #define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
 #define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (step 9 LMPOP/ZMPOP probes) */
+#define CS_RES_ZSETMEM     4   /* setmem/setcnt + parallel zscore[nkeys] (step 6 Z-ops) */
 /* ---- posmap selector for csBuildCoalescedSubs ---- */
 #define CS_POS_NONE        0
 #define CS_POS_MGET        1   /* &g->mget_pos  */
@@ -1834,6 +1836,8 @@ typedef struct csGroup {
     redisAtomic int err;       /* CS_SETOP: a sub saw a non-set (WRONGTYPE) key */
     sds **setmem;              /* CS_SETOP: [nsub] arrays of member-sds copies (worker-alloc) */
     long *setcnt;              /* CS_SETOP: [nsub] member count for setmem[i] (0 if missing key) */
+    double **zscore;           /* CS_Z*: [nkeys] per-key score arrays parallel to setmem
+                                * (worker-alloc; a plain-set source contributes 1.0 per stock) */
     /* ee451 (xshard OPT-1): COALESCED MGET. Instead of one sub-fake PER KEY (k allocs / k argv /
      * 2k refcounts / k cross-thread pushes / k reply-buffer page-faults, all serial on the
      * coordinator), issue one sub PER DISTINCT SHARD carrying all that shard's keys, and preserve
