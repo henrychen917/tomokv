@@ -5760,6 +5760,20 @@ static int csSintercardShapeOk(client *c) {
     return 1;
 }
 
+/* LMOVE family direction/timeout validation. Malformed forms fall INLINE for the stock parse
+ * errors (direction and timeout parsing both precede key access in the stock procs). */
+static int csDirOk(robj *o) {
+    const char *d = o->ptr;
+    return !strcasecmp(d, "left") || !strcasecmp(d, "right");
+}
+static int csTimeoutOk(robj *o) {
+    double t;
+    return getDoubleFromObject(o, &t) == C_OK && t >= 0 && !isnan(t);
+}
+static int csLmoveShapeOk(client *c)      { return csDirOk(c->argv[3]) && csDirOk(c->argv[4]); }
+static int csBlmoveShapeOk(client *c)     { return csDirOk(c->argv[3]) && csDirOk(c->argv[4]) && csTimeoutOk(c->argv[5]); }
+static int csBrpoplpushShapeOk(client *c) { return csTimeoutOk(c->argv[3]); }
+
 /* BITOP op dst src...: op must be AND/OR/XOR/NOT; NOT takes exactly ONE source. Unknown op /
  * NOT-with-multiple fall INLINE for the stock errors (both precede key access). */
 static int csBitopShapeOk(client *c) {
@@ -5903,6 +5917,33 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .min_argc=2, .firstkey_argi=1, .dst_argi=1, .key_stride=1,
   .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
+/* step 8 — list moves (peek-then-move: HOP1 peeks the element WITHOUT popping + probes dst's
+ * type; a failing verdict (empty src => nil, wrong-typed dst => -ERR) never pops, the H3
+ * guard; HOP2 = push-dst + pop-src under ONE barrier) and MSETNX (existence probe wave, then
+ * the CS_H2_SCATTER arm re-runs the MSET write wave; best-effort-NX between phases is the
+ * documented plan relaxation). Blocking variants are reject-when-would-block: with data the
+ * path is identical; would-block replies the timed-out form (nil) immediately — and since
+ * empty-src already replies nil, the shapes converge. B rows force the two-hop path even on
+ * one shard: their real procs could PARK a worker fake (blockForKeys) which must never run. */
+{ .proc=lmoveCommand, .name="lmove", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
+  .route=CS_RT_TWOHOP, .min_argc=5, .max_argc=5, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .shape_ok=csLmoveShapeOk },
+{ .proc=rpoplpushCommand, .name="rpoplpush", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
+  .route=CS_RT_TWOHOP, .min_argc=3, .max_argc=3, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN },
+{ .proc=blmoveCommand, .name="blmove", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
+  .route=CS_RT_TWOHOP, .min_argc=6, .max_argc=6, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .shape_ok=csBlmoveShapeOk },
+{ .proc=brpoplpushCommand, .name="brpoplpush", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
+  .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .shape_ok=csBrpoplpushShapeOk },
+{ .proc=msetnxCommand, .name="msetnx", .ported=CS_PORT_OK, .ctype=CS_MSETNX,
+  .route=CS_RT_GATHER, .min_argc=3, .argc_odd=1, .key_stride=2, .cs_write=1,
+  .co_gate=CS_CO_ALWAYS, .has_hop2=1, .h2_op=CS_H2_SCATTER, .cs2_kind=CS2_INT },
+  /* per_key_extra=0: the HOP1 wave carries KEYS ONLY (existence probe); the SCATTER wave
+   * re-runs the k/v build with csAppendMsetValue (values still live in head->argv). */
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
@@ -5915,15 +5956,10 @@ static const csCmdSpec csRegistry[] = {
 { .proc=fcallroCommand,    .name="fcall_ro",   .unsafe_check=csEvalUnsafeCheck },
 
 /* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
-{ .proc=msetnxCommand,      .name="msetnx"      },
 { .proc=zmpopCommand,       .name="zmpop"       },
 { .proc=lmpopCommand,       .name="lmpop"       },
 { .proc=bzmpopCommand,      .name="bzmpop"      },
 { .proc=blmpopCommand,      .name="blmpop"      },
-{ .proc=lmoveCommand,       .name="lmove"       },
-{ .proc=blmoveCommand,      .name="blmove"      },
-{ .proc=rpoplpushCommand,   .name="rpoplpush"   },
-{ .proc=brpoplpushCommand,  .name="brpoplpush"  },
 { .proc=georadiusCommand,         .name="georadius"         },
 { .proc=georadiusbymemberCommand, .name="georadiusbymember" },
 { .proc=geosearchstoreCommand,    .name="geosearchstore"    },
@@ -6037,11 +6073,15 @@ static void csRegistryBootAudit(void) {
     int nrows = 0;
     for (const csCmdSpec *s = csRegistry; s->proc; s++) {
         nrows++;
-        /* Structural invariants for the currently-wired machinery (steps land additively):
-         * block_reject is step-8/9. A hop2-bearing GATHER row must name its dest key. */
+        /* Structural invariants: a PLAN-launching hop2 GATHER row must name its dest key
+         * (SCATTER re-derives targets from the argv); TWOHOP rows carry src+dst+launcher;
+         * block_reject rows are TWOHOP (their real procs could park a worker fake). */
         if (s->ported == CS_PORT_OK) {
-            serverAssert(!s->block_reject);
-            if (s->has_hop2) serverAssert(s->route == CS_RT_GATHER && s->dst_argi && s->h2_op);
+            if (s->block_reject) serverAssert(s->route == CS_RT_TWOHOP);
+            if (s->has_hop2) {
+                serverAssert(s->route == CS_RT_GATHER && s->h2_op);
+                if (s->h2_op == CS_H2_PLAN) serverAssert(s->dst_argi);
+            }
             if (s->route == CS_RT_TWOHOP) serverAssert(s->src_argi && s->dst_argi && s->h2_op);
         }
     }
@@ -6187,6 +6227,16 @@ static void csSubExec(client *sub) {
         }
         break;
     }
+    case CS_MSETNX:
+        if (g->phase == CS_PH_HOP1) {
+            /* step 8 HOP1: existence probe (subs carry KEYS ONLY). Any hit fails the NX. */
+            for (int a = 1; a < sub->argc; a++)
+                if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE) != NULL)
+                    atomic_fetch_add_explicit(&g->rcount, 1, memory_order_relaxed);
+            break;
+        }
+        /* HOP2 scatter wave: subs are [CMD k v k v ...] — identical to the MSET writer. */
+        /* fall through */
     case CS_MSET: {
         /* ee451 (v11): COALESCED — sub->argv is [CMD k v k v ...] for ALL of this shard's pairs.
          * Per pair: encode, setKey (consumes the value ref; kvobjSet embeds it, swaps the slot to
@@ -6484,6 +6534,84 @@ static void csSubExec(client *sub) {
                 atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
             } else {
                 csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to", mig);
+            }
+        }
+        break;
+    }
+    case CS_LMOVE: {
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        if (!g->has_hop2) {
+            /* same-shard fast path (NON-blocking rows only — the dispatcher forces two-hop for
+             * block_reject rows so a worker never runs parking machinery). */
+            if (sub->cmd->proc == rpoplpushCommand) {
+                rpoplpushCommand(sub);
+            } else {
+                lmoveCommand(sub);
+            }
+        } else if (g->phase == CS_PH_HOP1) {
+            if (sub->cssub_idx == 0) {
+                /* src shard: PEEK the FROM-end element WITHOUT popping (H3: a failing dst
+                 * verdict must not lose the element). Empty list == missing (stock nil). */
+                robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+                long long bits = 0;
+                if (o == NULL) bits |= CS_PR_SRC_MISSING;
+                else if (o->type != OBJ_LIST) bits |= CS_PR_SRC_WRONGTYPE;
+                else if (listTypeLength(o) == 0) bits |= CS_PR_SRC_MISSING;
+                else {
+                    int fromleft = (g->h2_flags & CS_H2F_FROM_LEFT) != 0;
+                    listTypeIterator li; listTypeEntry entry;
+                    listTypeInitIterator(&li, o, fromleft ? 0 : -1,
+                                         fromleft ? LIST_TAIL : LIST_HEAD);
+                    if (listTypeNext(&li, &entry)) {
+                        size_t vlen; long long vll;
+                        unsigned char *vstr = listTypeGetValue(&entry, &vlen, &vll);
+                        g->h2_payload = vstr ? sdsnewlen((char *)vstr, vlen)
+                                             : sdsfromlonglong(vll);
+                    } else {
+                        bits |= CS_PR_SRC_MISSING;   /* defensive: iterator found nothing */
+                    }
+                }
+                if (bits) atomic_fetch_or_explicit(&g->probe, bits, memory_order_relaxed);
+            } else {
+                /* dst probe: existing non-list => WRONGTYPE before any pop (stock order). */
+                robj *o = lookupKeyRead(sub->db, sub->argv[1]);
+                if (o != NULL && o->type != OBJ_LIST)
+                    atomic_fetch_or_explicit(&g->probe, CS_PR_DST_WRONGTYPE, memory_order_relaxed);
+            }
+        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+            /* dst shard: push the moved element (create the list if missing, stock). */
+            int toleft = (g->h2_flags & CS_H2F_TO_LEFT) != 0;
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            robj *val = createStringObject(g->h2_payload, sdslen(g->h2_payload));
+            if (o == NULL) {
+                robj *nl = createListListpackObject();
+                listTypePush(nl, val, toleft ? LIST_HEAD : LIST_TAIL);
+                dbAdd(sub->db, sub->argv[1], &nl);
+                notifyKeyspaceEvent(NOTIFY_LIST, toleft ? "lpush" : "rpush", sub->argv[1], sub->db->id);
+                markDirty(1);
+            } else if (o->type == OBJ_LIST) {   /* type-conflict race => skip (bounded) */
+                listTypePush(o, val, toleft ? LIST_HEAD : LIST_TAIL);
+                notifyKeyspaceEvent(NOTIFY_LIST, toleft ? "lpush" : "rpush", sub->argv[1], sub->db->id);
+                markDirty(1);
+            }
+            decrRefCount(val);
+            if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+        } else {
+            /* SRCOP: pop the FROM end; delete the key when emptied (stock). */
+            int fromleft = (g->h2_flags & CS_H2F_FROM_LEFT) != 0;
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            if (o != NULL && o->type == OBJ_LIST) {
+                robj *popped = listTypePop(o, fromleft ? LIST_HEAD : LIST_TAIL);
+                if (popped) {
+                    decrRefCount(popped);
+                    notifyKeyspaceEvent(NOTIFY_LIST, fromleft ? "lpop" : "rpop", sub->argv[1], sub->db->id);
+                    if (listTypeLength(o) == 0) {
+                        dbSyncDelete(sub->db, sub->argv[1]);
+                        notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                    }
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         }
         break;
@@ -6999,9 +7127,23 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
             long long n;                                     /* "db n" (validated) */
             getLongLongFromObject(head->argv[j+1], &n); g->h2_dbid = (int)n; j++;
         }
+    } else if (s->ctype == CS_LMOVE) {
+        /* Directions once here (shape_ok validated the tokens). RPOPLPUSH = RIGHT->LEFT. */
+        redisCommandProc *p = head->cmd->proc;
+        int fromleft, toleft;
+        if (p == rpoplpushCommand || p == brpoplpushCommand) { fromleft = 0; toleft = 1; }
+        else {
+            fromleft = !strcasecmp(head->argv[3]->ptr, "left");
+            toleft   = !strcasecmp(head->argv[4]->ptr, "left");
+        }
+        if (fromleft) g->h2_flags |= CS_H2F_FROM_LEFT;
+        if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
     }
 
-    if (src_shard == dst_shard && g->h2_dbid == dbid) {
+    /* block_reject rows never take the raw-proc fast path: a would-block form would run
+     * blockForKeys on a WORKER fake (parking machinery is IO-thread state). The two-hop
+     * path on a single shard is correct (both hops land on the same worker, in order). */
+    if (src_shard == dst_shard && g->h2_dbid == dbid && !s->block_reject) {
         /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
         g->nsub = 1; g->subs = zmalloc(sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -7078,6 +7220,23 @@ static int csLaunchHop2(csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
     case CS_COPY: break;   /* NX decided atomically at the dst write (no probe) */
+    case CS_LMOVE: {
+        /* step 8: peek verdict. Empty/missing src => nil (identical to the blocking rows'
+         * timed-out form — reject-when-would-block converges); any wrongtype => -ERR with
+         * NOTHING popped (H3). Else the plan pushes+pops under one barrier. */
+        long long pr = atomic_load_explicit(&g->probe, memory_order_relaxed);
+        if (pr & (CS_PR_SRC_WRONGTYPE | CS_PR_DST_WRONGTYPE))
+            atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+        else if (pr & CS_PR_SRC_MISSING)
+            atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+        break;
+    }
+    case CS_MSETNX:
+        /* step 8: any probed key present => :0, nothing written (the H4-style guard); else
+         * the CS_H2_SCATTER branch below re-runs the MSET write wave. */
+        if (atomic_load_explicit(&g->rcount, memory_order_relaxed) > 0)
+            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+        break;
     case CS_SSTORE: {
         /* step 5: compute the set-op result on the coordinator from the gathered members and
          * serialize it (temp OBJ_SET never crosses a thread — only the blob does). EMPTY result
@@ -7438,6 +7597,22 @@ static void csReassemble(client *dst, client *head) {
                 addReplyError(dst, "-INVALIDOBJ Corrupted HLL object detected");
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard PFMERGE failed");
             else addReply(dst, shared.ok);
+            break;
+        }
+        case CS_LMOVE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard: real proc */
+            else if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e == CS_ERR_NOKEY) addReplyNull(dst);  /* empty src / would-block form */
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard LMOVE failed");
+            else addReplyBulkCBuffer(dst, g->h2_payload, sdslen(g->h2_payload));
+            break;
+        }
+        case CS_MSETNX: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_NX_EXISTS) addReply(dst, shared.czero);  /* something existed */
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard MSETNX failed");
+            else addReply(dst, shared.cone);   /* scatter wave committed */
             break;
         }
         default: break;

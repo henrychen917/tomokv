@@ -1744,7 +1744,8 @@ typedef struct client {
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
-               CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE } csCmdType;
+               CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
+               CS_LMOVE, CS_MSETNX } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -1778,6 +1779,8 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define CS_H2_MAX          3   /* dest-write + src-op + spare (probe subs live in HOP1) */
 /* HOP2 flags (g->h2_flags, from options parsed at dispatch/prep). */
 #define CS_H2F_REPLACE     1   /* COPY REPLACE: overwrite dst instead of NX-failing */
+#define CS_H2F_FROM_LEFT   2   /* LMOVE family: pop src from LEFT (else RIGHT) */
+#define CS_H2F_TO_LEFT     4   /* LMOVE family: push dst on LEFT (else RIGHT) */
 /* HOP1 probe-verdict bits (atomic fetch_or into g->probe; disjoint writers per sub,
  * published to the coordinator by the pending barrier). */
 #define CS_PR_DST_EXISTS    1  /* probe sub: dst key present (RENAMENX NX verdict) */
