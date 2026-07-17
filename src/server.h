@@ -1742,7 +1742,8 @@ typedef struct client {
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
  * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
-typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME } csCmdType;
+typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
+               CS_RENAMENX, CS_COPY, CS_SMOVE } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -1768,6 +1769,15 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_H2A_WRITE       1   /* dest-side op: RESTORE / SET / SADD / PUSH per ctype */
 #define CS_H2A_SRCOP       2   /* src-side op: DEL / SREM / POP per ctype */
 #define CS_H2_MAX          3   /* dest-write + src-op + spare (probe subs live in HOP1) */
+/* HOP2 flags (g->h2_flags, from options parsed at dispatch/prep). */
+#define CS_H2F_REPLACE     1   /* COPY REPLACE: overwrite dst instead of NX-failing */
+/* HOP1 probe-verdict bits (atomic fetch_or into g->probe; disjoint writers per sub,
+ * published to the coordinator by the pending barrier). */
+#define CS_PR_DST_EXISTS    1  /* probe sub: dst key present (RENAMENX NX verdict) */
+#define CS_PR_DST_WRONGTYPE 2  /* probe sub: dst present with wrong type (SMOVE) */
+#define CS_PR_SRC_MISSING   4  /* src sub: src key absent (SMOVE :0) */
+#define CS_PR_SRC_WRONGTYPE 8  /* src sub: src wrong type (SMOVE WRONGTYPE) */
+#define CS_PR_MEMBER       16  /* src sub: member present in src set (SMOVE) */
 /* reply shape after HOP2 / for 2-hop commands. */
 #define CS2_OK             1
 #define CS2_INT            2
@@ -1845,6 +1855,7 @@ typedef struct csGroup {
                                 * prep case may rewrite it (LMPOP winner) */
     int h2_nsub;               /* planned HOP2 subs; 0 on all 1-hop groups */
     int h2_dbid;               /* COPY DB option; dispatch inits to head->db->id */
+    int h2_flags;              /* CS_H2F_* (COPY REPLACE), parsed at dispatch */
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
     int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
@@ -3343,6 +3354,8 @@ typedef struct csCmdSpec {
     int8_t  dst_argi;         /* argv index of the dest key; 0 = none/dynamic (LMPOP
                                * winner: prep case rewrites g->h2sub[0].key_argi) */
     uint8_t h1_probe_dst;     /* TWOHOP: add a HOP1 probe sub on the dst shard (step 4+) */
+    int8_t  h1_extra_argi;    /* TWOHOP: head->argv index appended to HOP1 sub 0's argv
+                               * (SMOVE member — sub owns its own copy; 0 = none) */
     uint8_t h2_del_src;       /* HOP2 plan also gets a CS_H2A_SRCOP sub on src */
     uint8_t h2_op;            /* CS_H2_* launcher shape */
     uint8_t cs2_kind;         /* CS2_* final reply shape tag */

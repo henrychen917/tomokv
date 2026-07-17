@@ -5704,6 +5704,24 @@ static int csEvalUnsafeCheck(client *c) {
 }
 static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
 
+/* COPY src dst [DB n] [REPLACE]: 1 = well-formed => cross-shard path. Malformed options / bad
+ * int / out-of-range DB => 0 => fall INLINE, where the STOCK proc emits its exact error
+ * (syntax/int/range checks all precede key access in copyCommand — decoy-safe). */
+static int csCopyShapeOk(client *c) {
+    for (int j = 3; j < c->argc; j++) {
+        if (!strcasecmp(c->argv[j]->ptr, "replace")) continue;
+        if (!strcasecmp(c->argv[j]->ptr, "db") && j + 1 < c->argc) {
+            long long n;
+            if (getLongLongFromObject(c->argv[j+1], &n) != C_OK) return 0;
+            if (n < 0 || n >= server.dbnum) return 0;
+            j++;
+            continue;
+        }
+        return 0;   /* unknown token => stock syntax error inline */
+    }
+    return 1;
+}
+
 static const csCmdSpec csRegistry[] = {
 /* ================= PORTED (byte-exact vs the pre-registry dispatchers — the hard gate) ===== */
 { .proc=mgetCommand,   .name="mget",   .ported=CS_PORT_OK, .ctype=CS_MGET,   .route=CS_RT_GATHER,
@@ -5735,6 +5753,19 @@ static const csCmdSpec csRegistry[] = {
 { .proc=renameCommand, .name="rename", .ported=CS_PORT_OK, .ctype=CS_RENAME, .route=CS_RT_TWOHOP,
   .min_argc=3, .max_argc=3, .src_argi=1, .dst_argi=2,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
+/* step 4 — conditional moves (dump-WITHOUT-delete in HOP1; a failing verdict leaves src intact,
+ * the H4 data-loss guard). RENAMENX decides NX from the HOP1 dst probe; COPY decides NX
+ * atomically AT the dst write (no probe — single-writer makes check-at-write TOCTOU-free);
+ * SMOVE gathers a 5-bit verdict (src exists/type/member + dst type) and moves the member sds. */
+{ .proc=renamenxCommand, .name="renamenx", .ported=CS_PORT_OK, .ctype=CS_RENAMENX,
+  .route=CS_RT_TWOHOP, .min_argc=3, .max_argc=3, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=copyCommand, .name="copy", .ported=CS_PORT_OK, .ctype=CS_COPY,
+  .route=CS_RT_TWOHOP, .min_argc=3, .max_argc=6, .src_argi=1, .dst_argi=2,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csCopyShapeOk },
+{ .proc=smoveCommand, .name="smove", .ported=CS_PORT_OK, .ctype=CS_SMOVE,
+  .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
+  .h1_probe_dst=1, .h1_extra_argi=3, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
@@ -5766,9 +5797,6 @@ static const csCmdSpec csRegistry[] = {
 { .proc=blmpopCommand,      .name="blmpop"      },
 { .proc=pfmergeCommand,     .name="pfmerge"     },
 { .proc=bitopCommand,       .name="bitop"       },
-{ .proc=renamenxCommand,    .name="renamenx"    },
-{ .proc=copyCommand,        .name="copy"        },
-{ .proc=smoveCommand,       .name="smove"       },
 { .proc=lmoveCommand,       .name="lmove"       },
 { .proc=blmoveCommand,      .name="blmove"      },
 { .proc=rpoplpushCommand,   .name="rpoplpush"   },
@@ -5886,9 +5914,13 @@ static void csRegistryBootAudit(void) {
     int nrows = 0;
     for (const csCmdSpec *s = csRegistry; s->proc; s++) {
         nrows++;
-        /* Step-R structural invariants: no ported row uses machinery that only steps 4-9 wire. */
-        if (s->ported == CS_PORT_OK)
-            serverAssert(!s->shape_ok && !s->has_hop2 && !s->block_reject && !s->numkeys_argi);
+        /* Structural invariants for the currently-wired machinery (steps land additively):
+         * has_hop2/numkeys/block_reject are step-5+/8/9; shape_ok is TWOHOP-only today (COPY). */
+        if (s->ported == CS_PORT_OK) {
+            serverAssert(!s->has_hop2 && !s->block_reject && !s->numkeys_argi);
+            if (s->shape_ok) serverAssert(s->route == CS_RT_TWOHOP);
+            if (s->route == CS_RT_TWOHOP) serverAssert(s->src_argi && s->dst_argi && s->h2_op);
+        }
     }
     int *matched = zcalloc(sizeof(int) * nrows);
     auditWalk(server.commands, matched, nrows);
@@ -5916,6 +5948,66 @@ static const csCmdSpec *csClassify(client *c) {
     }
     if (s->shape_ok && !s->shape_ok(c)) return NULL;   /* dead at Step R (boot-asserted) */
     return s;
+}
+
+/* universal xshard HOP1 source-side dump (worker, single-writer): serialize the key's RDB
+ * post-image + abs TTL into g->h2_payload / g->h2_pexpireat (private refcount-free sds =>
+ * S8-safe to cross threads). del: 1 = delete src after dump (RENAME — always overwrites, so
+ * the transient state is MISSING never DUPLICATE); 0 = dump only (conditional moves: a failing
+ * NX verdict must leave src intact, the H4 guard); -1 = read-only lookup, no delete (COPY —
+ * stock uses lookupKeyRead). Missing key => CS_ERR_NOKEY, nothing written. */
+static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
+    robj *o = (del < 0) ? lookupKeyRead(sub->db, sub->argv[1])
+                        : lookupKeyWrite(sub->db, sub->argv[1]);
+    if (o == NULL) {
+        atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+        return;
+    }
+    rio r; rioInitWithBuffer(&r, sdsempty());
+    rdbSaveObjectType(&r, o);
+    rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
+    g->h2_payload = r.io.buffer.ptr;
+    long long ex = getExpire(sub->db, sub->argv[1]->ptr, NULL);
+    g->h2_pexpireat = (ex == -1) ? -1 : ex;
+    if (del > 0) {
+        dbSyncDelete(sub->db, sub->argv[1]);
+        notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
+        markDirty(1);
+        if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+    }
+}
+
+/* universal xshard HOP2 dest-side restore (worker, single-writer): rdbLoad the blob FIRST (a
+ * load failure then never destroys dst), then overwrite dst + restore TTL + re-register the
+ * DB-global HFE-subexpires and stream-IDMP indices (dbAdd does not — stock rename/copy
+ * register them explicitly). `event` = keyspace notification ("rename_to"/"copy_to"). */
+static void csH2RestoreKey(client *sub, csGroup *g, const char *event, int mig) {
+    robj *dstkey = sub->argv[1];
+    rio r; rioInitWithBuffer(&r, g->h2_payload);
+    int type = rdbLoadObjectType(&r);
+    int rerr = 0;
+    robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
+    if (val != NULL) {
+        int vtype = val->type;
+        uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
+        int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
+        dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
+        dbAdd(sub->db, dstkey, &val);
+        if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
+        if (hmn != EB_EXPIRE_TIME_INVALID) {
+            robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
+            if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
+        }
+        if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
+            incrRefCount(dstkey);
+        notifyKeyspaceEvent(NOTIFY_GENERIC, event, dstkey, sub->db->id);
+        markDirty(1);
+        if (mig) migCaptureEffect(sub->db, dstkey);
+    } else {
+        /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
+         * rather than a false success; dst is left untouched. */
+        atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
+    }
 }
 
 /* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
@@ -6074,52 +6166,108 @@ static void csSubExec(client *sub) {
             /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
             renameGenericCommand(sub, 0);
         } else if (g->phase == CS_PH_HOP1) {
-            /* HOP1 (src shard, single-writer): read + serialize (RDB post-image + abs TTL) + delete src.
-             * Missing src => NOKEY, no delete. Blob is a private refcount-free sds => S8-safe to cross. */
-            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
-            if (o == NULL) {
-                atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+            csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */, mig);
+        } else {
+            csH2RestoreKey(sub, g, "rename_to", mig);
+        }
+        break;
+    }
+    case CS_RENAMENX: {
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        if (!g->has_hop2) {
+            renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
+        } else if (g->phase == CS_PH_HOP1) {
+            if (sub->cssub_idx == 0) {
+                /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
+                csH1DumpKey(sub, g, 0, mig);
             } else {
-                rio r; rioInitWithBuffer(&r, sdsempty());
-                rdbSaveObjectType(&r, o);
-                rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
-                g->h2_payload = r.io.buffer.ptr;
-                long long ex = getExpire(sub->db, sub->argv[1]->ptr, NULL);
-                g->h2_pexpireat = (ex == -1) ? -1 : ex;
-                dbSyncDelete(sub->db, sub->argv[1]);
+                /* dst probe: NX verdict for the coordinator. */
+                if (lookupKeyRead(sub->db, sub->argv[1]) != NULL)
+                    atomic_fetch_or_explicit(&g->probe, CS_PR_DST_EXISTS, memory_order_relaxed);
+            }
+        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+            /* Probe said absent; a dst appearing in the barrier->write window is overwritten
+             * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
+            csH2RestoreKey(sub, g, "rename_to", mig);
+        } else {
+            /* SRCOP: delete src (the NX verdict passed; both halves commit under ONE barrier). */
+            if (dbSyncDelete(sub->db, sub->argv[1])) {
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
                 markDirty(1);
                 if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
+        }
+        break;
+    }
+    case CS_COPY: {
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        if (!g->has_hop2) {
+            copyCommand(sub);               /* same-shard same-db: real proc (options native) */
+        } else if (g->phase == CS_PH_HOP1) {
+            /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
+            csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */, mig);
         } else {
-            /* HOP2 (dst shard, single-writer): rdbLoad the blob FIRST (a load failure then never destroys
-             * dst), then overwrite dst + restore TTL + re-register the DB-global HFE-subexpires and
-             * stream-IDMP indices (dbAdd does not — stock renameGenericCommand registers them explicitly). */
-            robj *dstkey = sub->argv[1];
-            rio r; rioInitWithBuffer(&r, g->h2_payload);
-            int type = rdbLoadObjectType(&r);
-            int rerr = 0;
-            robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
-            if (val != NULL) {
-                int vtype = val->type;
-                uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
-                int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
-                dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
-                dbAdd(sub->db, dstkey, &val);
-                if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
-                if (hmn != EB_EXPIRE_TIME_INVALID) {
-                    robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
-                    if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
-                }
-                if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
-                    incrRefCount(dstkey);
-                notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_to", dstkey, sub->db->id);
-                markDirty(1);
-                if (mig) migCaptureEffect(sub->db, dstkey);
+            /* dst shard/db: NX decided HERE atomically (single-writer) — no probe, no TOCTOU. */
+            if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
+                atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
             } else {
-                /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
-                 * rather than a false +OK; dst is left untouched. */
-                atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
+                csH2RestoreKey(sub, g, "copy_to", mig);
+            }
+        }
+        break;
+    }
+    case CS_SMOVE: {
+        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+        if (!g->has_hop2) {
+            smoveCommand(sub);              /* same-shard: real proc (samekey/no-op handled) */
+        } else if (g->phase == CS_PH_HOP1) {
+            if (sub->cssub_idx == 0) {
+                /* src shard, argv = [SMOVE src member]: existence/type/membership verdict. */
+                robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+                long long bits = 0;
+                if (o == NULL) bits |= CS_PR_SRC_MISSING;
+                else if (o->type != OBJ_SET) bits |= CS_PR_SRC_WRONGTYPE;
+                else if (setTypeIsMember(o, sub->argv[2]->ptr)) bits |= CS_PR_MEMBER;
+                if (bits) atomic_fetch_or_explicit(&g->probe, bits, memory_order_relaxed);
+            } else {
+                /* dst probe: type verdict (stock WRONGTYPEs on a non-set dst BEFORE moving). */
+                robj *o = lookupKeyRead(sub->db, sub->argv[1]);
+                if (o != NULL) {
+                    long long bits = CS_PR_DST_EXISTS;
+                    if (o->type != OBJ_SET) bits |= CS_PR_DST_WRONGTYPE;
+                    atomic_fetch_or_explicit(&g->probe, bits, memory_order_relaxed);
+                }
+            }
+        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+            /* dst shard: SADD member (h2_payload = coordinator's private member copy). */
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            if (o == NULL) {
+                robj *ns = setTypeCreate(g->h2_payload, 1);
+                setTypeAdd(ns, g->h2_payload);
+                dbAdd(sub->db, sub->argv[1], &ns);
+                notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
+                markDirty(1);
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            } else if (o->type == OBJ_SET) {   /* type-conflict race => skip (bounded) */
+                if (setTypeAdd(o, g->h2_payload)) {
+                    notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
+            }
+        } else {
+            /* SRCOP: SREM member from src; delete src when emptied (stock behavior). */
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            if (o != NULL && o->type == OBJ_SET) {
+                if (setTypeRemove(o, g->h2_payload)) {
+                    notifyKeyspaceEvent(NOTIFY_SET, "srem", sub->argv[1], sub->db->id);
+                    if (setTypeSize(o) == 0) {
+                        dbSyncDelete(sub->db, sub->argv[1]);
+                        notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                    }
+                    markDirty(1);
+                }
+                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         }
         break;
@@ -6469,7 +6617,20 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
 
-    if (src_shard == dst_shard) {
+    if (s->ctype == CS_COPY) {
+        /* Parse DB n / REPLACE once here (shape_ok already validated form + range). The dest
+         * db drives the HOP2 sub's shard-db binding. CRITICAL: a DB!=src form must NEVER run
+         * the raw proc on a worker — stock copyCommand derefs server.db+n (the DECOY) for the
+         * DB option, so cross-db goes through the two-hop path even on one shard (both hops
+         * bind exThreads[w].db[*] correctly; same worker is fine). */
+        for (int j = 3; j < head->argc; j++) {
+            if (!strcasecmp(head->argv[j]->ptr, "replace")) { g->h2_flags |= CS_H2F_REPLACE; continue; }
+            long long n;                                     /* "db n" (validated) */
+            getLongLongFromObject(head->argv[j+1], &n); g->h2_dbid = (int)n; j++;
+        }
+    }
+
+    if (src_shard == dst_shard && g->h2_dbid == dbid) {
         /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
         g->nsub = 1; g->subs = zmalloc(sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -6493,7 +6654,17 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
         client *sub = csMakeSub(g, i, i == 0 ? src_shard : dst_shard, dbid);
-        csSubSetKeyArgv(sub, head, i == 0 ? src : dst);
+        if (i == 0 && s->h1_extra_argi) {
+            /* sub 0 carries [CMD src extra] (SMOVE member) — the sub owns its own refs. */
+            robj *extra = head->argv[(int)s->h1_extra_argi];
+            sub->argv = zmalloc(sizeof(robj*) * 3);
+            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+            sub->argv[1] = src;           incrRefCount(src);
+            sub->argv[2] = extra;         incrRefCount(extra);
+            sub->argc = 3;
+        } else {
+            csSubSetKeyArgv(sub, head, i == 0 ? src : dst);
+        }
     }
     for (int i = 0; i < nh1; i++) csPushSpin(i == 0 ? src_shard : dst_shard, g->subs[i]);
 }
@@ -6529,6 +6700,28 @@ static int csLaunchHop2(csGroup *g) {
      * g->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
     switch (g->ctype) {
     case CS_RENAME: break;
+    case CS_RENAMENX:
+        /* NX verdict from the HOP1 dst probe. NOKEY from the src sub is handled by the
+         * generic err screen below (src untouched — nothing was deleted in HOP1). */
+        if (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS)
+            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+        break;
+    case CS_COPY: break;   /* NX decided atomically at the dst write (no probe) */
+    case CS_SMOVE: {
+        /* Decode the 5-bit verdict with STOCK precedence: src-missing => :0 (even if dst is
+         * wrong-typed); any wrongtype => WRONGTYPE; member absent => :0; else move. */
+        long long pr = atomic_load_explicit(&g->probe, memory_order_relaxed);
+        if (pr & CS_PR_SRC_MISSING)
+            atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+        else if (pr & (CS_PR_SRC_WRONGTYPE | CS_PR_DST_WRONGTYPE))
+            atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+        else if (!(pr & CS_PR_MEMBER))
+            atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+        else
+            /* private member copy for the HOP2 workers (coordinator-side dup; argv stable). */
+            g->h2_payload = sdsdup(head->argv[3]->ptr);
+        break;
+    }
     default: break;
     }
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
@@ -6610,6 +6803,32 @@ static void csReassemble(client *dst, client *head) {
             else if (e == CS_ERR_NOKEY) addReplyError(dst, "no such key");
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard RENAME failed");
             else addReply(dst, shared.ok);   /* cross-shard RENAME committed (HOP2 done) */
+            break;
+        }
+        case CS_RENAMENX: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard: real proc reply */
+            else if (e == CS_ERR_NOKEY) addReplyError(dst, "no such key");  /* missing src */
+            else if (e == CS_ERR_NX_EXISTS) addReply(dst, shared.czero);    /* dst present, src intact */
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard RENAMENX failed");
+            else addReply(dst, shared.cone);
+            break;
+        }
+        case CS_COPY: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard same-db: real proc */
+            else if (e == CS_ERR_NOKEY || e == CS_ERR_NX_EXISTS) addReply(dst, shared.czero);
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard COPY failed");
+            else addReply(dst, shared.cone);
+            break;
+        }
+        case CS_SMOVE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard: real proc reply */
+            else if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e == CS_ERR_NOKEY) addReply(dst, shared.czero); /* src/member absent */
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard SMOVE failed");
+            else addReply(dst, shared.cone);
             break;
         }
         default: break;
