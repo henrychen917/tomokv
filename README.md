@@ -256,23 +256,40 @@ into a few families:
   store‑batching without starving idle workers), per‑parent reply‑signal coalescing, a multi‑bus CDB to
   spread reply signaling across cache lines, batched mask clears, cache‑line‑isolated per‑thread counters to
   kill false sharing, and an **adaptive reply‑drain spin** that removes the non‑pipelined latency floor.
-- **Low‑pipe drain tuning** *(experimental — `low-pipe-hop` dev branch, all default‑off).* A **userspace CDB
-  drain‑spin** (`tomokv-io-drain-userpoll`) that replaces the epoll‑syscall reply‑wait with userspace
-  re‑checks, **depth‑aware send‑fill** (`tomokv-io-send-min-fill`), and **tiny‑batch prefetch skip**
-  (`tomokv-pf-batch-min`). Measured neutral on single‑CCD loopback (P1 there is io‑thread‑bound, not
-  reply‑poll‑bound — turn the dial instead); gated for the multi‑CCD / real‑NIC eval.
+- **Self‑tuning ingress/reply controllers** *(merged, all default `-1`=auto).* Five continuous controllers on
+  the ingress and fake‑ring path, each with a strict override: a **userspace CDB drain‑spin**
+  (`tomokv-io-drain-userpoll`, replaces the epoll‑syscall reply‑wait with EWMA‑gated userspace re‑checks), a
+  **drain tail‑skip** (`tomokv-drain-tail-skip`), an **express‑slim** state‑move for GET/SET keyed on the
+  live hit‑rate (`tomokv-express-slim`), a **per‑connection fake‑ring depth** demand‑grow/decay
+  (`tomokv-fake-ring-depth`), and a **per‑connection fake‑buf width** auto‑sizer (`tomokv-fake-buf`). Measured
+  neutral on single‑CCD loopback (P1 there is io‑thread‑bound, not reply‑poll‑bound — turn the dial instead);
+  designed to pay on the multi‑CCD / real‑NIC eval.
 - **Zero‑copy & large values.** Value objects can be forwarded to the ingress thread without a copy above a
   size threshold, with ownership returned to the owning worker via a free‑back ring so refcounts are only
   ever touched by the shard's owner.
-- **Multi‑key & cross‑shard.** `MGET`/`MSET`/`DEL`/`EXISTS`/`UNLINK`/`TOUCH` and set operations are split into
-  per‑shard sub‑commands, dispatched in parallel, and reassembled — with `FLUSHALL`/`FLUSHDB` handled by
-  queue‑ordered flush sentinels.
+- **Multi‑key & cross‑shard.** Every multi‑key command is split into per‑shard sub‑commands, dispatched in
+  parallel, and reassembled — driven by a **per‑command registry** (one table stamps classification,
+  scatter geometry and reply shape) rather than a hand‑maintained list. Reads (`MGET`/`EXISTS`/`TOUCH`/
+  `SINTER`/`SUNION`/`SDIFF`) gather in a single hop; writes run a **two‑hop phase machine** (gather → coordinator
+  compute → single‑writer destination write) that preserves single‑writer‑per‑shard and never lets a live
+  object cross a thread — values cross as private serialized bytes. Served cross‑shard: `MSET`/`DEL`/`UNLINK`,
+  conditional moves (`RENAME`/`RENAMENX`/`COPY`/`SMOVE`), read‑then‑store (`SINTERSTORE`/`SUNIONSTORE`/
+  `SDIFFSTORE`/`SINTERCARD`, `ZUNION`/`ZINTER`/`ZDIFF` ±`STORE`, `ZINTERCARD`), byte/HLL ops (`BITOP`,
+  multi‑key `PFCOUNT`, `PFMERGE`), list moves (`LMOVE`/`RPOPLPUSH`, `MSETNX`) and ordered pops
+  (`LMPOP`/`ZMPOP`); blocking variants (`BLMOVE`/`BLMPOP`/…) reply the immediate result when data is
+  available and the timed‑out form when they would block (no cross‑shard client parking). A **SAFE‑GATE**
+  (`thredis-xshard-guard`, default on) rejects any remaining unported multi‑key command with a clear error
+  instead of letting it run against the empty decoy DB. `FLUSHALL`/`FLUSHDB` are handled by queue‑ordered
+  flush sentinels.
 - **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
   with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** reply path
   (multishot recv, `SEND_ZC`, `SQPOLL`, registered ring fd).
 - **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with a dual‑rate‑EWMA
   hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without downtime (see table 4 for its
-  workload‑dependence).
+  workload‑dependence). Opt‑in trigger hardening (sustain window, Schmitt hysteresis, cool‑margin) suppresses
+  spurious ping‑pong on marginal imbalance. The cross‑shard writes above stay correct across a live cutover:
+  in‑range writes are captured to the migration effect log and held at the drain fence exactly like every
+  single‑key write.
 
 ---
 
@@ -296,8 +313,8 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-ex-threads` | **mandatory** ≥ 1, **any count** | Execution workers (one shard each). Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
 | `tomokv-pin-mode` | `0` float · `1` manual · `2` auto (default) | `0`: no pinning, the scheduler decides. `1`: pin to the exact cores in `tomokv-pin-cores`. `2`: arch‑aware auto — topology‑smart placement (shared‑L3/CCD grouping, NUMA‑local shard memory), respecting taskset/cgroup affinity. |
 | `tomokv-pin-cores` | e.g. `"0,2,4,6"` | Manual core list for pin‑mode 1, applied in thread‑pin order (io threads first, then workers), round‑robin if short. |
-| `tomokv-pipeline-depth` | `0` auto (default) · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32) — a deeper ring never hurts shallow clients, it only costs idle memory; the per‑connection demand‑grow/decay ring controller (grow on ring‑full stall, decay at empty‑ring checkpoints) is the queued follow‑up. |
-| `tomokv-ex-queue-depth` | `0` auto (default) · pow2 ≤ 65536 | io→worker SPSC queue size. Auto resolves to 2048 (same roadmap note as above). |
+| `tomokv-pipeline-depth` | `0` auto (default) · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
+| `tomokv-ex-queue-depth` | `0` auto (default) · pow2 ≤ 65536 | io→worker SPSC queue size. Auto resolves to 2048. |
 
 ### Batching, spin & prefetch (AUTO controllers with strict overrides)
 
@@ -311,6 +328,11 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-prefetch-min-keys` | `0` auto (default) · N strict | Prefetch enable gate. Auto: opens when the shard's self‑measured footprint (dbSize × (96 B + EWMA value size)) exceeds 8× the machine's detected L3 — prefetching a cache‑resident shard measurably hurts. |
 | `tomokv-pf-value-budget-kb` | `0` auto (default) · N strict | The value‑chase cache budget. Auto: L3 / (2 × workers). |
 | `tomokv-l3-kb` | `0` auto‑detect (default) · N strict | L3 size feeding the controllers. Pin it on VMs that hide cache topology from sysfs. |
+| `tomokv-io-drain-userpoll` | `-1` auto (default) · `0` syscall‑only · N userpoll passes | Reply‑wait drain mode. Auto: EWMA of in‑flight replies with a Schmitt band picks userspace re‑checks vs an epoll syscall. |
+| `tomokv-drain-tail-skip` | `-1`/`1` auto (default) · `0` legacy | Skip the tail drain pass when work is already pending. |
+| `tomokv-express-slim` | `-1` auto (default) · `0` off · 1–100 fixed pct | Slim state‑move for GET/SET, engaged when the live GET+SET hit‑rate clears the threshold (auto: EWMA + Schmitt). |
+| `tomokv-fake-ring-depth` | `-1` auto (default) · `0` eager · N fixed | Per‑connection live fake‑ring depth. Auto: lazy‑create, demand‑grow on stall, decay at empty‑ring checkpoints. |
+| `tomokv-fake-buf` | `-1` auto (default) · `0` 16 KB legacy · N bytes | Per‑connection fake output‑buffer width. Auto: demand‑grow at the spill site (capped). |
 
 ### Load balancing (self‑driving reshard controller)
 
@@ -319,6 +341,9 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-reshard-min-ops` | `0` off · N ops/s (default 20000) | Significance floor + master switch. Everything else self‑derives: EWMA rates with a continuously recomputed alpha, an outlier trigger bar (mean + k·σ with a relative floor), settle windows in controller time — no calibration, no lock‑in. Workload‑dependent (see table 4); `0` disables it. |
 | `tomokv-reshard-imbalance-pct` | `0` auto (default) · N strict | Trigger bar override: fixed percent‑of‑mean instead of the outlier bar. |
 | `tomokv-reshard-chunk` | `0` auto (default) · N strict | Migration granule. Auto: buckets/(16·workers), clamped. |
+| `tomokv-reshard-sustain-ticks` | `0` legacy (default) · `-1` auto · N ticks | Require K consecutive outlier ticks before firing (opt‑in trigger hardening). |
+| `tomokv-reshard-progress-ratio` | `0` legacy (default) · N pct | Keep migrating a hotspot only while the peak keeps shrinking by ≥ this fraction. |
+| `tomokv-reshard-cool-margin-pct` | `0` legacy (default) · `-1` auto · N pct | Schmitt cool‑margin: the neighbour must sit below mean·(1−N/100) to receive a move. |
 
 ### Reply path & memory
 
@@ -362,11 +387,14 @@ Tomo KV builds and runs like stock Redis and speaks unmodified RESP2/RESP3, so e
 ## Compatibility & scope
 
 Tomo KV targets the **sharded, high‑throughput data‑plane** use case. The full string/hash/list/set/zset
-command set runs on the worker path. Features that assume a single global keyspace or a serial main thread —
-cluster mode, replication/AOF propagation, blocking commands, pub/sub, scripting, and multi‑key `SCAN` — are
-outside the current scope; where a command cannot be served correctly under sharding it is rejected with a
-clear error rather than served incorrectly. This is a research engine focused on the parallel‑execution
-thesis, not a drop‑in replacement for every Redis deployment.
+command set runs on the worker path, and the multi‑key surface (moves, read‑then‑store set/zset ops, byte/HLL
+ops, list moves, ordered pops) is served **cross‑shard** through the scatter‑gather registry described above.
+Blocking commands are served non‑blocking (immediate result, or the timed‑out form rather than parking a
+client across shards). Features that assume a single global keyspace or a serial main thread — cluster mode,
+replication/AOF propagation, pub/sub, keyed scripting, and multi‑key `SCAN` — remain outside scope. Every
+multi‑key command that has **no** correct cross‑shard implementation is rejected loudly by the SAFE‑GATE
+(`thredis-xshard-guard`) rather than served incorrectly against the decoy keyspace. This is a research engine
+focused on the parallel‑execution thesis, not a drop‑in replacement for every Redis deployment.
 
 ---
 
