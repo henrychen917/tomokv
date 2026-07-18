@@ -583,9 +583,6 @@ client *createClient(connection *conn) {
     c->fake_ring_cur_depth  = (unsigned int)n;
     c->fake_ring_decay_skip = 0;
     c->fake_ring_hwm_ewma   = 0.0;
-    c->fake_buf_ewma        = 0.0;
-    c->fake_buf_spill_ct    = 0;
-    c->fake_buf_ops         = 0;
 
     return c;
 }
@@ -869,7 +866,6 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
             if (c->bufpos > 0) memcpy(nb, c->buf, (size_t)c->bufpos);
             zfree(c->buf);
             c->buf = nb;
-            c->fake_buf_spill_ct++;   /* growth-pressure signal for the controller */
         }
     }
 

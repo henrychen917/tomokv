@@ -6983,7 +6983,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
-    g->spec = s; g->h2_dbid = dbid; g->winner = -1;
+    g->spec = s; g->h2_dbid = dbid;
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
@@ -7260,7 +7260,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
-    g->h2_pexpireat = -1; g->h2_dbid = dbid; g->winner = -1;
+    g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
 
@@ -7435,7 +7435,6 @@ static int csLaunchHop2(csGroup *g) {
             if (winner < 0) {
                 atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
             } else {
-                g->winner = winner;
                 g->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
                                          .key_argi = csFirstKeyArg(g->spec) + winner };
                 g->h2_nsub = 1;
@@ -7470,28 +7469,32 @@ static int csLaunchHop2(csGroup *g) {
         int isnot = !strcasecmp(head->argv[1]->ptr, "not");
         int opand = !strcasecmp(head->argv[1]->ptr, "and");
         int opxor = !strcasecmp(head->argv[1]->ptr, "xor");
+        /* hoist each source's ptr+len ONCE (review #7: sdslen was re-called per byte per source,
+         * maxlen*n redundant length calls). */
+        const unsigned char **sp = zmalloc(sizeof(*sp) * n);
+        size_t *sl = zmalloc(sizeof(*sl) * n);
         size_t maxlen = 0;
         for (int i = 0; i < n; i++) {
-            size_t l = g->mget_vals[i] ? sdslen(g->mget_vals[i]) : 0;
-            if (l > maxlen) maxlen = l;
+            sp[i] = g->mget_vals[i] ? (const unsigned char *)g->mget_vals[i] : NULL;
+            sl[i] = sp[i] ? sdslen(g->mget_vals[i]) : 0;
+            if (sl[i] > maxlen) maxlen = sl[i];
         }
         g->cs2_intreply = (long long)maxlen;
-        if (maxlen == 0) break;
+        if (maxlen == 0) { zfree(sp); zfree(sl); break; }
         sds out = sdsnewlen(NULL, maxlen);
         for (size_t b = 0; b < maxlen; b++) {
-            unsigned char v = (g->mget_vals[0] && b < sdslen(g->mget_vals[0]))
-                                  ? (unsigned char)g->mget_vals[0][b] : 0;
+            unsigned char v = (b < sl[0]) ? sp[0][b] : 0;
             if (isnot) {
                 v = ~v;
             } else {
                 for (int i = 1; i < n; i++) {
-                    unsigned char x = (g->mget_vals[i] && b < sdslen(g->mget_vals[i]))
-                                          ? (unsigned char)g->mget_vals[i][b] : 0;
+                    unsigned char x = (b < sl[i]) ? sp[i][b] : 0;
                     if (opand) v &= x; else if (opxor) v ^= x; else v |= x;
                 }
             }
             out[b] = (char)v;
         }
+        zfree(sp); zfree(sl);
         robj *res = createObject(OBJ_STRING, out);
         rio r; rioInitWithBuffer(&r, sdsempty());
         rdbSaveObjectType(&r, res);
@@ -8388,12 +8391,8 @@ void fakeRingClientCron(client *c) {
             }
         }
     }
-    /* D1 buf width: grow is demand-pull at the spill site (networking.c); here we only reset
-     * the per-window pressure counters. */
-    if (server.fake_buf_mode == -1) {
-        c->fake_buf_spill_ct = 0;
-        c->fake_buf_ops = 0;
-    }
+    /* D1 buf width: grow is pure demand-pull at the spill site (networking.c); no controller
+     * state to reset here (the dead pressure counters were removed in the review cleanup). */
 }
 
 void reshardAutoTune(void) {

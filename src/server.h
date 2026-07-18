@@ -1503,9 +1503,6 @@ typedef struct client {
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to pipeline_ring_depth */
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
-    double       fake_buf_ewma;         /* EWMA of fake buf_peak across flushes */
-    uint64_t     fake_buf_spill_ct;     /* spill events since last cron read */
-    uint64_t     fake_buf_ops;          /* fake flushes since last cron read */
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
@@ -1890,8 +1887,6 @@ typedef struct csGroup {
      * provably implementable without a shape change): ---- */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
     long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
-    int winner;                /* MPOP ordered-scan winner; dispatch sets -1 */
-    int hop_retries;           /* bounded MPOP re-probe counter (<= nkeys) */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
