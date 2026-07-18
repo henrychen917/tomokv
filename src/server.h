@@ -1829,8 +1829,10 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 
 typedef struct csH2Sub {
     uint8_t action;    /* CS_H2A_* — read as g->h2sub[sub->cssub_idx].action from step 4 on */
-    int16_t key_argi;  /* head->argv index of this sub's key. int16 NOT int8: the LMPOP
-                        * prep case rewrites it to firstkey+winner, which can exceed 127. */
+    int32_t key_argi;  /* head->argv index of this sub's key. int32 NOT int16 (review #3): the
+                        * LMPOP/ZMPOP prep rewrites it to firstkey+winner, and argc can reach the
+                        * ~1M multibulk limit, so int16 (max 32767) truncated to a negative index
+                        * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
 typedef struct csGroup {

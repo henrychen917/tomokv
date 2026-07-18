@@ -124,8 +124,8 @@ static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HO
 static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
-static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
-static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id */
+static inline int migBucketInRange(int b);
+static inline int migKeyBucket(const void *p, size_t len);
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 (auto)); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
@@ -6208,6 +6208,18 @@ static const csCmdSpec *csClassify(client *c) {
     return s;
 }
 
+/* ee451 (migration-safety, review v2): the same-shard 2-hop fast path runs the real proc on the
+ * worker, which — unlike exExecFake (:12197) — does no migration effect capture. Capture BOTH
+ * move keys (src=argv[1], dst=argv[2]) after the proc so an in-range write during COPYING reaches
+ * B via the effect log. migCaptureEffect self-gates on migration_active + src-shard + in-range, so
+ * this is a no-op outside a migration, on the wrong worker, or for out-of-range keys; capturing an
+ * unmodified key (COPY's src) re-logs its current image, which replay applies idempotently. */
+static void csCaptureMoveKeys(client *sub) {
+    if (!__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) return;
+    if (sub->argc > 1 && sub->argv[1]) migCaptureEffect(sub->db, sub->argv[1]);
+    if (sub->argc > 2 && sub->argv[2]) migCaptureEffect(sub->db, sub->argv[2]);
+}
+
 /* universal xshard HOP1 source-side dump (worker, single-writer): serialize the key's RDB
  * post-image + abs TTL into g->h2_payload / g->h2_pexpireat (private refcount-free sds =>
  * S8-safe to cross threads). del: 1 = delete src after dump (RENAME — always overwrites, so
@@ -6582,6 +6594,7 @@ static void csSubExec(client *sub) {
         if (!g->has_hop2) {
             /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
             renameGenericCommand(sub, 0);
+            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */, mig);
         } else {
@@ -6593,6 +6606,7 @@ static void csSubExec(client *sub) {
         int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
+            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
@@ -6619,7 +6633,8 @@ static void csSubExec(client *sub) {
     case CS_COPY: {
         int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
-            copyCommand(sub);               /* same-shard same-db: real proc (options native) */
+            copyCommand(sub);               /* same-shard, no DB option: real proc */
+            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
             csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */, mig);
@@ -6672,6 +6687,7 @@ static void csSubExec(client *sub) {
             } else {
                 lmoveCommand(sub);
             }
+            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: PEEK the FROM-end element WITHOUT popping (H3: a failing dst
@@ -6744,6 +6760,7 @@ static void csSubExec(client *sub) {
         int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             smoveCommand(sub);              /* same-shard: real proc (samekey/no-op handled) */
+            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard, argv = [SMOVE src member]: existence/type/membership verdict. */
@@ -7234,6 +7251,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     robj *src = head->argv[(int)s->src_argi], *dst = head->argv[(int)s->dst_argi];
     int src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
     int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
+    int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid; g->winner = -1;
@@ -7242,14 +7260,16 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
 
     if (s->ctype == CS_COPY) {
         /* Parse DB n / REPLACE once here (shape_ok already validated form + range). The dest
-         * db drives the HOP2 sub's shard-db binding. CRITICAL: a DB!=src form must NEVER run
-         * the raw proc on a worker — stock copyCommand derefs server.db+n (the DECOY) for the
-         * DB option, so cross-db goes through the two-hop path even on one shard (both hops
-         * bind exThreads[w].db[*] correctly; same worker is fine). */
+         * db drives the HOP2 sub's shard-db binding. CRITICAL: ANY DB option (even DB==current)
+         * must never run the raw proc on a worker — stock copyCommand's selectDb() repoints the
+         * fake's c->db to the empty DECOY server.db, so the copy reads/writes nothing (silent
+         * loss, review finding #2). Flag it => forced through the 2-hop path, which binds
+         * exThreads[w].db[dbid] on both hops. */
         for (int j = 3; j < head->argc; j++) {
             if (!strcasecmp(head->argv[j]->ptr, "replace")) { g->h2_flags |= CS_H2F_REPLACE; continue; }
             long long n;                                     /* "db n" (validated) */
             getLongLongFromObject(head->argv[j+1], &n); g->h2_dbid = (int)n; j++;
+            copy_has_db = 1;
         }
     } else if (s->ctype == CS_LMOVE) {
         /* Directions once here (shape_ok validated the tokens). RPOPLPUSH = RIGHT->LEFT. */
@@ -7264,21 +7284,30 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
     }
 
-    /* ee451 (migration-safety, review 2026-07-17): the same-shard fast path runs the real proc
-     * via csSubExec, which bypasses BOTH exExecFake's general migCaptureEffect (:12197) AND the
-     * DRAINING fence hold — so an in-range write during a live migration's COPYING window (after
-     * that bucket's cold scan) is never logged and gets DELETED by CLEANUP => silent data loss
-     * (confirmed: same-shard RENAMENX post-scan/pre-cutover lost its write). When a migration is
-     * live AND either key falls in the migrating range, force the 2-hop path instead: its HOP1/
-     * HOP2 branches hold (migHoldKeyIfDraining) + capture (migCaptureEffect) like every other
-     * cross-shard write, and csLaunchHop2 re-routes after the hold if the range flips mid-op.
-     * Free outside a migration (the hot byte is always 0; the range checks short-circuit). */
-    int mig_in_range =
-        __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
-        (migBucketInRange(migKeyBucket(src->ptr, sdslen(src->ptr))) ||
-         migBucketInRange(migKeyBucket(dst->ptr, sdslen(dst->ptr))));
-    if (src_shard == dst_shard && g->h2_dbid == dbid && !s->block_reject && !mig_in_range) {
-        /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
+    int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
+    /* Migration fate of each key: a same-shard pair with the SAME fate (both in the migrating
+     * range or both out) stays co-located through the cutover, so the real proc still finds both
+     * on one worker. A SPLIT pair (exactly one bucket in range) ends up on DIFFERENT shards after
+     * the flip — the fast path would then run the real proc on the wrong worker and miss the
+     * other key. Route split pairs (and COPY-with-DB, finding #2) through the 2-hop path, which
+     * places each key independently. */
+    int src_in = mig && migBucketInRange(migKeyBucket(src->ptr, sdslen(src->ptr)));
+    int dst_in = mig && migBucketInRange(migKeyBucket(dst->ptr, sdslen(dst->ptr)));
+    /* block_reject rows never take the raw-proc fast path (a would-block form would run
+     * blockForKeys on a WORKER fake — parking machinery is IO-thread state). Everything else
+     * same-shard runs the real proc, which handles all stock semantics INCLUDING the samekey
+     * no-op (findings #0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
+    if (src_shard == dst_shard && !s->block_reject && !copy_has_db && !(src_in ^ dst_in)) {
+        /* ee451 (migration-safety, review 2026-07-17 v2): the real proc via csSubExec bypasses
+         * exExecFake's general migCaptureEffect (:12197) and the DRAINING fence. Make THIS path
+         * migration-safe like every other write path: when the co-located pair is IN the range,
+         * hold both keys during DRAINING (no-op during COPYING) and re-read the shard after the
+         * hold so a mid-op flip routes to the new owner; then capture both keys' effects after
+         * the proc runs (csSubExec same-shard branches). Free outside a migration. */
+        if (src_in || dst_in) {
+            migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
+            src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));   /* both moved together */
+        }
         g->nsub = 1; g->subs = zmalloc(sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
         client *sub = csMakeSub(g, 0, src_shard, dbid);
@@ -7293,8 +7322,12 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = s->dst_argi };
     if (s->h2_del_src)
         g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+    if (mig) {
+        /* hold BOTH keys THEN re-read shards (finding #1: HOP1 subs were routed with pre-hold
+         * shard values, so a dst-probe could land on the stale owner after a DRAINING flip). */
         migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
+        src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
+        dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
     }
     int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
     g->nsub = nh1; g->subs = zmalloc(sizeof(client*) * nh1);
@@ -7391,7 +7424,7 @@ static int csLaunchHop2(csGroup *g) {
             } else {
                 g->winner = winner;
                 g->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
-                                         .key_argi = (int16_t)(csFirstKeyArg(g->spec) + winner) };
+                                         .key_argi = csFirstKeyArg(g->spec) + winner };
                 g->h2_nsub = 1;
             }
         }
@@ -8281,21 +8314,32 @@ static double ewmaAlpha2s(double rate, double ops_window) {
  * on each client's owning thread — server.clients is a PER-IO-THREAD array, not one global list,
  * so a single main-thread walk here would both mistype and race the IO threads.) */
 void fakeRingAutoTune(void) {
-    /* express-slim hit-rate: fold GET+SET calls vs total worker ops (like reshardAutoTune). */
-    if (server.express_slim == -1 && server.exThreads && server.num_workers >= 1) {
+    /* express-slim hit-rate: fold GET+SET calls vs total worker ops (like reshardAutoTune).
+     * Review #5: fold in BOTH auto (-1) AND fixed (1..100) modes — the fixed-pct gate at :5304
+     * thresholds against this EWMA, so gating the fold on == -1 left fixed mode reading a
+     * permanent 0 (inert). Only mode 0 (off) skips. */
+    if (server.express_slim != 0 && server.exThreads && server.num_workers >= 1) {
         static uint64_t es_last_hot = 0, es_last_tot = 0;
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
         if (g && s) {
             uint64_t hot = (uint64_t)g->calls + (uint64_t)s->calls, tot = 0;
             for (int w = 0; w < server.num_workers; w++) tot += server.exThreads[w].ops_total;
-            uint64_t dh = hot - es_last_hot, dt = tot - es_last_tot;
-            es_last_hot = hot; es_last_tot = tot;
-            if (dt > 0) {
-                double ratio = (double)dh / (double)dt; if (ratio > 1.0) ratio = 1.0;
-                double a = ewmaAlpha2s((double)dt, 100.0);
-                static int primed = 0;
-                server.express_hit_ewma = primed ? (a*ratio + (1.0-a)*server.express_hit_ewma) : ratio;
-                primed = 1;
+            /* Review #6: CONFIG RESETSTAT zeroes command `calls` but not the per-worker
+             * ops_total, so hot can drop below the cached high-water while tot does not — the
+             * unsigned dh/dt would wrap to ~2^64. Detect the counter reset and rebaseline
+             * (skip this tick's fold) instead of spiking the EWMA to a bogus 100%. */
+            if (hot < es_last_hot || tot < es_last_tot) {
+                es_last_hot = hot; es_last_tot = tot;
+            } else {
+                uint64_t dh = hot - es_last_hot, dt = tot - es_last_tot;
+                es_last_hot = hot; es_last_tot = tot;
+                if (dt > 0) {
+                    double ratio = (double)dh / (double)dt; if (ratio > 1.0) ratio = 1.0;
+                    double a = ewmaAlpha2s((double)dt, 100.0);
+                    static int primed = 0;
+                    server.express_hit_ewma = primed ? (a*ratio + (1.0-a)*server.express_hit_ewma) : ratio;
+                    primed = 1;
+                }
             }
         }
     }

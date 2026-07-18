@@ -53,6 +53,8 @@ one "$tag SMOVE-src"   $mg '$C del @A @B >/dev/null; $C sadd @A m1 m2 >/dev/null
 one "$tag LMOVE"       $mg '$C del @A @B >/dev/null; $C rpush @A e1 e2 e3 >/dev/null'              '$C lmove @A @B left right|tr -d "\r"' '$C lrange @B 0 -1|tr -d "\r"' e1
 one "$tag RPOPLPUSH"   $mg '$C del @A @B >/dev/null; $C rpush @A e1 e2 e3 >/dev/null'              '$C rpoplpush @A @B|tr -d "\r"'     '$C lrange @B 0 -1|tr -d "\r"'   e3
 one "$tag RENAME-samekey" $mg '$C set @A skv >/dev/null'                                          '$C rename @A @A|tr -d "\r"'        '$C get @A|tr -d "\r"'           skv
+one "$tag SMOVE-samekey" $mg '$C del @A >/dev/null; $C sadd @A m1 m2 >/dev/null'                    '$C smove @A @A m1|tr -d "\r"'      '$C sismember @A m1|tr -d "\r"'  1
+one "$tag COPY-samekey"  $mg '$C set @A ckv >/dev/null'                                             '$C copy @A @A 2>&1|tr -d "\r"'     '$C get @A|tr -d "\r"'           ckv
 done
 pkill -9 -f 'redis-server.*6405' 2>/dev/null
 say "=== MIGSAFE DONE: fails=$fail ==="
