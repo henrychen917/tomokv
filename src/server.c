@@ -124,6 +124,8 @@ static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HO
 static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
+static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
+static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 (auto)); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
@@ -7262,10 +7264,20 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
     }
 
-    /* block_reject rows never take the raw-proc fast path: a would-block form would run
-     * blockForKeys on a WORKER fake (parking machinery is IO-thread state). The two-hop
-     * path on a single shard is correct (both hops land on the same worker, in order). */
-    if (src_shard == dst_shard && g->h2_dbid == dbid && !s->block_reject) {
+    /* ee451 (migration-safety, review 2026-07-17): the same-shard fast path runs the real proc
+     * via csSubExec, which bypasses BOTH exExecFake's general migCaptureEffect (:12197) AND the
+     * DRAINING fence hold — so an in-range write during a live migration's COPYING window (after
+     * that bucket's cold scan) is never logged and gets DELETED by CLEANUP => silent data loss
+     * (confirmed: same-shard RENAMENX post-scan/pre-cutover lost its write). When a migration is
+     * live AND either key falls in the migrating range, force the 2-hop path instead: its HOP1/
+     * HOP2 branches hold (migHoldKeyIfDraining) + capture (migCaptureEffect) like every other
+     * cross-shard write, and csLaunchHop2 re-routes after the hold if the range flips mid-op.
+     * Free outside a migration (the hot byte is always 0; the range checks short-circuit). */
+    int mig_in_range =
+        __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
+        (migBucketInRange(migKeyBucket(src->ptr, sdslen(src->ptr))) ||
+         migBucketInRange(migKeyBucket(dst->ptr, sdslen(dst->ptr))));
+    if (src_shard == dst_shard && g->h2_dbid == dbid && !s->block_reject && !mig_in_range) {
         /* same shard: worker runs the real proc; has_hop2=0 => reassemble splices the sub's buffer. */
         g->nsub = 1; g->subs = zmalloc(sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
