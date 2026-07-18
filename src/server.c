@@ -6211,9 +6211,13 @@ static const csCmdSpec *csClassify(client *c) {
 /* ee451 (migration-safety, review v2): the same-shard 2-hop fast path runs the real proc on the
  * worker, which — unlike exExecFake (:12197) — does no migration effect capture. Capture BOTH
  * move keys (src=argv[1], dst=argv[2]) after the proc so an in-range write during COPYING reaches
- * B via the effect log. migCaptureEffect self-gates on migration_active + src-shard + in-range, so
- * this is a no-op outside a migration, on the wrong worker, or for out-of-range keys; capturing an
- * unmodified key (COPY's src) re-logs its current image, which replay applies idempotently. */
+ * B via the effect log. migCaptureEffect gates on migration_active + phase + in-range (NOT a
+ * shard check): a no-op outside a migration and for out-of-range keys. The "only the src worker
+ * reaches this with an in-range key" property rests on the ROUTING INVARIANT (in-range keys map
+ * to migration.src until cutover), NOT on any self-gate here — so this must stay on the key's
+ * owning worker; do not relax the routing gate above without re-checking the single-producer
+ * A->B log contract. Capturing an unmodified key (COPY's src) re-logs its current image, which
+ * replay applies idempotently. */
 static void csCaptureMoveKeys(client *sub) {
     if (!__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) return;
     if (sub->argc > 1 && sub->argv[1]) migCaptureEffect(sub->db, sub->argv[1]);
@@ -6230,7 +6234,9 @@ static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
     robj *o = (del < 0) ? lookupKeyRead(sub->db, sub->argv[1])
                         : lookupKeyWrite(sub->db, sub->argv[1]);
     if (o == NULL) {
-        atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+        /* don't clobber an error the dispatcher pre-set (COPY same-object wins over NOKEY). */
+        if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE)
+            atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
         return;
     }
     rio r; rioInitWithBuffer(&r, sdsempty());
@@ -7294,9 +7300,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int src_in = mig && migBucketInRange(migKeyBucket(src->ptr, sdslen(src->ptr)));
     int dst_in = mig && migBucketInRange(migKeyBucket(dst->ptr, sdslen(dst->ptr)));
     /* block_reject rows never take the raw-proc fast path (a would-block form would run
-     * blockForKeys on a WORKER fake — parking machinery is IO-thread state). Everything else
-     * same-shard runs the real proc, which handles all stock semantics INCLUDING the samekey
-     * no-op (findings #0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
+     * blockForKeys on a WORKER fake — parking machinery is IO-thread state). COPY with a DB
+     * option never takes it (finding #2 — the raw proc's selectDb repoints to the decoy). Its
+     * same-object case ("COPY k k DB <cur>") is caught in the 2-hop COPY prep (re-review). Every
+     * other same-shard pair runs the real proc, which handles all stock semantics INCLUDING the
+     * samekey no-op (#0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
     if (src_shard == dst_shard && !s->block_reject && !copy_has_db && !(src_in ^ dst_in)) {
         /* ee451 (migration-safety, review 2026-07-17 v2): the real proc via csSubExec bypasses
          * exExecFake's general migCaptureEffect (:12197) and the DRAINING fence. Make THIS path
@@ -7315,6 +7323,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         csPushSpin(src_shard, sub);
         return;
     }
+    /* re-review: COPY same key + same dest-db is stock's "source and destination objects are the
+     * same" error, decided BEFORE any lookup — set it HERE (pre-HOP1) so it wins over a HOP1
+     * NOKEY (missing src still errors). csH1DumpKey won't clobber a pre-set err. */
+    if (s->ctype == CS_COPY && sdscmp(src->ptr, dst->ptr) == 0 && g->h2_dbid == dbid)
+        atomic_store_explicit(&g->err, CS_ERR_SAMEOBJ, memory_order_relaxed);
     /* cross-shard: stamp the HOP2 PLAN from the ROW; HOP1 sub 0 carries only [CMD src]
      * (+ sub 1 = [CMD dst] probe when h1_probe_dst, step 4+ — verdict lands in g->probe). */
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
@@ -7386,7 +7399,7 @@ static int csLaunchHop2(csGroup *g) {
         if (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS)
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
-    case CS_COPY: break;   /* NX decided atomically at the dst write (no probe) */
+    case CS_COPY: break;   /* same-object caught at dispatch; NX decided at the dst write (no probe) */
     case CS_LMOVE: {
         /* step 8: peek verdict. Empty/missing src => nil (identical to the blocking rows'
          * timed-out form — reject-when-would-block converges); any wrongtype => -ERR with
@@ -7676,7 +7689,8 @@ static void csReassemble(client *dst, client *head) {
         }
         case CS_COPY: {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
-            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard same-db: real proc */
+            if (!g->has_hop2) AddReplyFromClient(dst, g->subs[0]);  /* same-shard no-DB: real proc */
+            else if (e == CS_ERR_SAMEOBJ) addReplyErrorObject(dst, shared.sameobjecterr);
             else if (e == CS_ERR_NOKEY || e == CS_ERR_NX_EXISTS) addReply(dst, shared.czero);
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard COPY failed");
             else addReply(dst, shared.cone);

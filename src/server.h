@@ -1773,6 +1773,8 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_ERR_EMPTY       4
 #define CS_ERR_BADHLL      5   /* PF*: string is not a valid HLL (stock -WRONGTYPE ... text) */
 #define CS_ERR_CORRUPT     6   /* PF*: hllMerge detected corruption (stock -INVALIDOBJ text) */
+#define CS_ERR_SAMEOBJ     7   /* COPY same key + same dest-db (stock "source and destination
+                                * objects are the same"); 2-hop path has no raw-proc guard */
 /* hyperloglog.c — xshard coordinator helpers over gathered HLL objects (step 7). */
 int isHLLObject(robj *o);
 uint64_t hllCountMulti(robj **hlls, int n, int *err);
