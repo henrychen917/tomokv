@@ -124,8 +124,8 @@ static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HO
 static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
-static inline int migBucketInRange(int b);
-static inline int migKeyBucket(const void *p, size_t len);
+static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
+static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 (auto)); defined late */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
@@ -7130,6 +7130,31 @@ static robj *csSetOpResultSet(csGroup *g) {
     return res;
 }
 
+/* review #2: SINTERCARD / ZINTERCARD early-stop. Cardinality needs only membership (scores and
+ * weights don't change the count), so iterate key0's gathered members and count those present in
+ * every other gathered key, stopping the moment `limit` matches are found (0 = unlimited) —
+ * never materializing the full intersection (the old path built the whole result set, then
+ * clamped). setmem[0] holds a single key's members => already distinct, so this counts distinct
+ * intersection members. Missing/empty key => its membership set is empty => count 0 (stock). */
+static long long csInterCardLimited(csGroup *g, long long limit) {
+    int n = g->nkeys;
+    robj **S = zcalloc(sizeof(robj*) * n);   /* S[0] unused; S[1..] are membership probes */
+    for (int i = 1; i < n; i++) {
+        S[i] = createIntsetObject();
+        for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+    }
+    long long card = 0;
+    for (long k = 0; k < g->setcnt[0]; k++) {
+        int in_all = 1;
+        for (int j = 1; j < n; j++)
+            if (!setTypeIsMember(S[j], g->setmem[0][k])) { in_all = 0; break; }
+        if (in_all && ++card == limit && limit > 0) break;   /* early stop at LIMIT */
+    }
+    for (int i = 1; i < n; i++) decrRefCount(S[i]);
+    zfree(S);
+    return card;
+}
+
 /* ---- step 6: weighted zset-op compute (coordinator) ---- */
 #define CS_AGGR_SUM 1
 #define CS_AGGR_MIN 2
@@ -7255,8 +7280,13 @@ static void csSetOpCompute(client *dst, csGroup *g) {
 static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int dbid = head->db->id;
     robj *src = head->argv[(int)s->src_argi], *dst = head->argv[(int)s->dst_argi];
-    int src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
-    int dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
+    /* review #1: hash each key ONCE. The bucket is stable across a cutover (only the
+     * bucket->worker table flips), so worker = ex_bucket_table[bkt] can be re-read after the
+     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket. */
+    int src_bkt = migKeyBucket(src->ptr, sdslen(src->ptr));
+    int dst_bkt = migKeyBucket(dst->ptr, sdslen(dst->ptr));
+    int src_shard = server.ex_bucket_table[src_bkt];
+    int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
@@ -7297,8 +7327,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
      * the flip — the fast path would then run the real proc on the wrong worker and miss the
      * other key. Route split pairs (and COPY-with-DB, finding #2) through the 2-hop path, which
      * places each key independently. */
-    int src_in = mig && migBucketInRange(migKeyBucket(src->ptr, sdslen(src->ptr)));
-    int dst_in = mig && migBucketInRange(migKeyBucket(dst->ptr, sdslen(dst->ptr)));
+    int src_in = mig && migBucketInRange(src_bkt);
+    int dst_in = mig && migBucketInRange(dst_bkt);
     /* block_reject rows never take the raw-proc fast path (a would-block form would run
      * blockForKeys on a WORKER fake — parking machinery is IO-thread state). COPY with a DB
      * option never takes it (finding #2 — the raw proc's selectDb repoints to the decoy). Its
@@ -7314,7 +7344,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
          * the proc runs (csSubExec same-shard branches). Free outside a migration. */
         if (src_in || dst_in) {
             migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
-            src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));   /* both moved together */
+            src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (bucket stable) */
         }
         g->nsub = 1; g->subs = zmalloc(sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -7339,8 +7369,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         /* hold BOTH keys THEN re-read shards (finding #1: HOP1 subs were routed with pre-hold
          * shard values, so a dst-probe could land on the stale owner after a DRAINING flip). */
         migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
-        src_shard = exIndexForKey(src->ptr, sdslen(src->ptr));
-        dst_shard = exIndexForKey(dst->ptr, sdslen(dst->ptr));
+        src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (buckets stable) */
+        dst_shard = server.ex_bucket_table[dst_bkt];
     }
     int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
     g->nsub = nh1; g->subs = zmalloc(sizeof(client*) * nh1);
@@ -7716,22 +7746,16 @@ static void csReassemble(client *dst, client *head) {
             break;
         }
         case CS_SETCARD: {
-            /* SINTERCARD numkeys key... [LIMIT n]: intersection cardinality, clamped to LIMIT
-             * (0 = unlimited). Compute-then-clamp gives the same answer as stock's early-stop. */
+            /* SINTERCARD numkeys key... [LIMIT n]: intersection cardinality with LIMIT early-stop
+             * (0 = unlimited) — same answer as stock's early-stop, without materializing the set. */
             if (atomic_load_explicit(&g->err, memory_order_relaxed))
                 addReplyErrorObject(dst, shared.wrongtypeerr);
             else {
-                robj *res = csSetOpResultSet(g);
-                long long card = (long long)setTypeSize(res);
                 long long nk = 0, lim = 0;
                 getLongLongFromObject(head->argv[1], &nk);
                 int tail = 2 + (int)nk;
-                if (tail + 1 < head->argc) {
-                    getLongLongFromObject(head->argv[tail+1], &lim);
-                    if (lim > 0 && card > lim) card = lim;
-                }
-                addReplyLongLong(dst, card);
-                decrRefCount(res);
+                if (tail + 1 < head->argc) getLongLongFromObject(head->argv[tail+1], &lim);
+                addReplyLongLong(dst, csInterCardLimited(g, lim));
             }
             break;
         }
@@ -7771,12 +7795,11 @@ static void csReassemble(client *dst, client *head) {
             break;
         }
         case CS_ZCARD: {
-            /* ZINTERCARD numkeys key... [LIMIT n] */
+            /* ZINTERCARD numkeys key... [LIMIT n]: cardinality needs only membership, so the same
+             * early-stop counter serves it (no weighted-zset materialize). */
             if (atomic_load_explicit(&g->err, memory_order_relaxed))
                 addReplyErrorObject(dst, shared.wrongtypeerr);
             else {
-                robj *res = csZSetOpResultZset(g);
-                long long card = (long long)zsetLength(res);
                 long long nk = 0, lim = 0;
                 getLongLongFromObject(head->argv[1], &nk);
                 for (int j = 2 + (int)nk; j + 1 < head->argc; j++)
@@ -7784,9 +7807,7 @@ static void csReassemble(client *dst, client *head) {
                         getLongLongFromObject(head->argv[j+1], &lim);
                         break;
                     }
-                if (lim > 0 && card > lim) card = lim;
-                addReplyLongLong(dst, card);
-                decrRefCount(res);
+                addReplyLongLong(dst, csInterCardLimited(g, lim));
             }
             break;
         }

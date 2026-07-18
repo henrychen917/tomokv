@@ -3337,7 +3337,6 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
     createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
     createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
-    createIntConfig("tomokv-reshard-heat-aware",      NULL, MODIFIABLE_CONFIG,  0, 1,       server.reshard_heat_aware,      0, INTEGER_CONFIG, NULL, NULL), /* 0=adjacent-shift (legacy); 1=heat-aware direct move (§2B, deferred — mirror only) */
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
