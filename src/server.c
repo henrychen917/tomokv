@@ -7131,26 +7131,32 @@ static robj *csSetOpResultSet(csGroup *g) {
 }
 
 /* review #2: SINTERCARD / ZINTERCARD early-stop. Cardinality needs only membership (scores and
- * weights don't change the count), so iterate key0's gathered members and count those present in
- * every other gathered key, stopping the moment `limit` matches are found (0 = unlimited) —
- * never materializing the full intersection (the old path built the whole result set, then
- * clamped). setmem[0] holds a single key's members => already distinct, so this counts distinct
- * intersection members. Missing/empty key => its membership set is empty => count 0 (stock). */
+ * weights don't change the count). Intersection is symmetric, so drive the outer scan off the
+ * SMALLEST gathered key (like stock) and probe the others — this bounds the scan and makes the
+ * `limit` early-stop maximally effective, then never materializes the full intersection. A member
+ * from one gathered key is already distinct, so this counts distinct intersection members; any
+ * missing/empty key makes its probe (or the base) empty => count 0 (stock). Membership uses the
+ * same intset-probe idiom as csSetOpResultSet's INTER branch; keep them consistent so SINTER and
+ * SINTERCARD never disagree on cardinality (the step-5/6 A/B tests assert this). */
 static long long csInterCardLimited(csGroup *g, long long limit) {
     int n = g->nkeys;
-    robj **S = zcalloc(sizeof(robj*) * n);   /* S[0] unused; S[1..] are membership probes */
-    for (int i = 1; i < n; i++) {
+    /* base = the smallest set: fewest candidates to scan (and if it is empty, the answer is 0). */
+    int base = 0;
+    for (int i = 1; i < n; i++) if (g->setcnt[i] < g->setcnt[base]) base = i;
+    robj **S = zcalloc(sizeof(robj*) * n);   /* S[base] unused; the rest are membership probes */
+    for (int i = 0; i < n; i++) {
+        if (i == base) continue;
         S[i] = createIntsetObject();
         for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
     }
     long long card = 0;
-    for (long k = 0; k < g->setcnt[0]; k++) {
+    for (long k = 0; k < g->setcnt[base]; k++) {
         int in_all = 1;
-        for (int j = 1; j < n; j++)
-            if (!setTypeIsMember(S[j], g->setmem[0][k])) { in_all = 0; break; }
+        for (int j = 0; j < n; j++)
+            if (j != base && !setTypeIsMember(S[j], g->setmem[base][k])) { in_all = 0; break; }
         if (in_all && ++card == limit && limit > 0) break;   /* early stop at LIMIT */
     }
-    for (int i = 1; i < n; i++) decrRefCount(S[i]);
+    for (int i = 0; i < n; i++) if (S[i]) decrRefCount(S[i]);
     zfree(S);
     return card;
 }
