@@ -7985,13 +7985,18 @@ static void migLogFree(migLog *L) {
     while (h != t) { migEntryFree(L->slots[h & L->cap_mask]); h++; }
     zfree(L->slots); zfree(L);
 }
-/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate. */
+/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate.
+ * Full test is the wrap-safe MONOTONIC compare: in-flight = t - head, full when it reaches cap.
+ * (The old check compared a MASKED (t+1) against the RAW monotonic head, which can only match
+ * while head < cap — after B's first 64K pops the backpressure was permanently disarmed, so a
+ * lagging B let A lap the ring and clobber unconsumed entries: silently lost effects after FLIP
+ * and a double-free of lapped slots in migLogFree. Unsigned subtraction stays correct across
+ * the 2^32 counter wrap because cap divides 2^32.) */
 static void migLogPush(migLog *L, migLogEntry *e) {
     unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
-    unsigned int next = (t + 1) & L->cap_mask;
-    while (next == L->cached_head) {
+    while (t - L->cached_head > L->cap_mask) {
         L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
-        if (next == L->cached_head) { exPauseCpu(); }   /* full: let B drain */
+        if (t - L->cached_head > L->cap_mask) { exPauseCpu(); }   /* full: let B drain */
     }
     L->slots[t & L->cap_mask] = e;
     atomic_store_explicit(&L->tail, t + 1, memory_order_release);
@@ -8093,10 +8098,38 @@ static void migServiceScanA(exThread *A) {
         atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
 }
 
-/* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side; the
- * caller has already validated lo<hi, src/dst adjacency, and that no migration is in flight. ---- */
+/* Arm-time invariant check (ee451 review). The whole engine ASSUMES [lo,hi) is a boundary-
+ * aligned suffix/prefix of src's contiguous range but never checked it: migScanA scans ONLY
+ * src's dicts and cleanup deletes ONLY from src, while FLIP rewrites the WHOLE range — so an
+ * arm over buckets owned by a third worker made those keys unreachable post-flip (data loss),
+ * a concurrent in-range writer on that third worker became a SECOND producer on the SPSC
+ * effect log (lost-update/heap corruption), and a misaligned arm desynchronized ex_bucket_end,
+ * after which the AUTO tuner itself armed ownership-violating migrations. Reject all of it
+ * here. Caller must hold mig_arm_lock and have (acquire-)seen migration_active == 0, which
+ * orders these table/end reads after the previous migration's FLIP writes. */
+static int reshardRangeValid(int lo, int hi, int src, int dst) {
+    if (dst != src + 1 && dst != src - 1) return 0;               /* adjacent workers only */
+    int s_lo = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
+    int s_hi = server.ex_bucket_end[src];
+    if (lo < s_lo || hi > s_hi) return 0;                         /* inside src's range */
+    if (lo == s_lo && hi == s_hi) return 0;                       /* would empty src */
+    if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
+    for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
+        if (server.ex_bucket_table[b] != (uint8_t)src) return 0;
+    return 1;
+}
+
+/* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side (DEBUG
+ * RESHARD START on an IO thread, reshardAutoTune on the main thread — mig_arm_lock serializes
+ * the check-then-publish so two racing armers can't both pass the active gate and leak a log). ---- */
+static _Atomic int mig_arm_lock = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
-    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return 0; /* one at a time */
+    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
+        !reshardRangeValid(lo, hi, src, dst)) {
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        return 0;
+    }
     server.migration.log = migLogCreate(1u << 16);          /* 64k entries; A backpressures if B lags */
     atomic_store_explicit(&server.migration.issued_seq, 0, memory_order_relaxed);
     atomic_store_explicit(&server.migration.applied_seq, 0, memory_order_relaxed);
@@ -8110,6 +8143,7 @@ static int reshardArm(int lo, int hi, int src, int dst) {
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
     atomic_store_explicit(&server.migration_active, 1, memory_order_release); /* published LAST */
+    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
     serverLog(LL_NOTICE, "ee451 reshard ARM: buckets [%d,%d) worker %d -> %d (COPYING)", lo, hi, src, dst);
     return 1;
 }
@@ -8619,7 +8653,12 @@ void reshardDebug(client *c) {
             src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
-        if (!reshardArm(lo, hi, src, dst)) { addReplyError(c, "migration already active"); return; }
+        if (!reshardArm(lo, hi, src, dst)) {
+            addReplyError(c, "arm rejected: migration already active, or invalid range "
+                             "(dst must be src+-1; [lo,hi) must be a boundary-aligned, non-total "
+                             "sub-range of src's contiguous bucket range, fully owned by src)");
+            return;
+        }
         addReply(c, shared.ok);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "cutover")) {
         if (!reshardBeginCutover())
