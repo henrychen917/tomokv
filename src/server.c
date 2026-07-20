@@ -6405,6 +6405,13 @@ static void csSubExec(client *sub) {
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
+    case CS_LOCAL:
+        /* xshard-localfast: full original argv, every key on THIS worker — run the stock proc
+         * (typed reply/errors verbatim into the sub buffer; spliced at reassembly). Read-only
+         * rows only (dispatch gate), so no effect-capture is needed. Same idiom as the two-hop
+         * same-shard branches (renameGenericCommand/copyCommand/smoveCommand above). */
+        sub->cmd->proc(sub);
+        break;
     case CS_KEYS: {
         /* ee451 v10-B: iterate THIS shard (sub owns it on the worker thread; single-writer, so the
          * non-safe full iterator is safe), emit each matching key as a BARE bulk (NO array header —
@@ -6985,12 +6992,43 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
  * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
  * key_stride/per_key_extra), write holds (cs_write), MSET value ownership (append_extra). */
+/* ee451 xshard-localfast: every key of this READ-ONLY multi-key command lives on ONE worker —
+ * run the REAL PROC there via a single sub carrying the full original argv, and splice its reply
+ * verbatim at reassembly (exact same pattern as the two-hop same-shard fast path). No gather, no
+ * member copies, no coordinator compute. Discovered by the co-location bench: a co-located
+ * 10k-pair SINTER paid the full gather+compute (~10x over running the stock proc locally).
+ * Restricted to !cs_write && !has_hop2 rows: reads need no migration effect-capture, and their
+ * migration semantics are identical to the gather subs they replace (same worker, same window).
+ * Real-proc error/reply semantics are stock by construction. */
+static void dispatchLocalReal(client *head, int w, int dbid) {
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
+    g->subs = zmalloc(sizeof(client*));
+    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    head->csgroup = g;
+    head->cdb = 0;
+    client *sub = csMakeSub(g, 0, w, dbid);
+    csSubCopyFullArgv(sub, head);
+    csPushSpin(w, sub);
+}
+
 static void dispatchGather(client *head, const csCmdSpec *s) {
     int first = csFirstKeyArg(s);
     int nkeys, dbid = head->db->id;
     if (s->numkeys_argi) { long long nk;                  /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
+    /* xshard-localfast: single-owner read-only fast path (see dispatchLocalReal). */
+    if (server.xshard_localfast && !s->cs_write && !s->has_hop2 && nkeys >= 1) {
+        int w0 = -1, same = 1;
+        for (int i = 0; i < nkeys; i++) {
+            robj *key = head->argv[first + i * s->key_stride];
+            int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+            if (w0 < 0) w0 = w; else if (w != w0) { same = 0; break; }
+        }
+        if (same) { dispatchLocalReal(head, w0, dbid); return; }
+    }
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
@@ -7772,6 +7810,10 @@ static void csReassemble(client *dst, client *head) {
              * bulks (subs emitted no header of their own). */
             addReplyArrayLen(dst, (long)atomic_load_explicit(&g->rcount, memory_order_relaxed));
             for (int i = 0; i < g->nsub; i++) AddReplyFromClient(dst, g->subs[i]);
+            break;
+        case CS_LOCAL:
+            /* xshard-localfast: the single sub ran the real proc — splice its reply verbatim. */
+            AddReplyFromClient(dst, g->subs[0]);
             break;
         case CS_SETOP:
             /* ee451 v11-F: WRONGTYPE if any key was a non-set (matches Redis, which errors before

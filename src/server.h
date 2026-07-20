@@ -1769,7 +1769,10 @@ typedef struct client {
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
-               CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP } csCmdType;
+               CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
+               CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
+                         * REAL PROC with the full original argv; reply spliced verbatim */
+             } csCmdType;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -3095,6 +3098,10 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
+    int xshard_localfast;      /* xshard-localfast: READ-ONLY multi-key command whose keys ALL
+                                * route to one worker runs the REAL PROC there (no gather, no
+                                * coordinator compute). Co-location bench: gather path cost a
+                                * co-located 10k-pair SINTER ~10x over local. 1=on (DEFAULT). */
     int opt_mset_move;         /* xshard OPT-5: cross-shard MSET moves value robjs to the worker (argv_released_mask handoff) instead of dupStringObject copy. 1=move; 0=legacy per-value copy (DEFAULT — move is a wash on 1-CCD at 256B/4KB; kept as large-value/NUMA lever). */
     int opt_setop_coalesce;    /* xshard: SINTER/SUNION/SDIFF coalesce to one sub/shard (setop_pos position map) instead of one sub/key. 1=coalesce (DEFAULT, k>=3); 0=legacy per-key subs. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
