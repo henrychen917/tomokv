@@ -320,7 +320,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
 
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
             /* ee451 (S6, v13): per-thread contention-free — HARDWIRED (knob retired) */
-            server.kstat[iotid].hits++;
+            tomoRelaxedBump(server.kstat[iotid].hits, 1);
         }
         /* TODO: Use separate hits stats for WRITE */
     } else {
@@ -328,7 +328,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
         if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
             /* ee451 (S6, v13): hardwired */
-            server.kstat[iotid].misses++;
+            tomoRelaxedBump(server.kstat[iotid].misses, 1);
         }
         /* TODO: Use separate misses stats and notify event for WRITE */
     }
@@ -406,11 +406,11 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                 else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
             }
             if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
-                server.kstat[iotid].hits++;
+                tomoRelaxedBump(server.kstat[iotid].hits, 1);
             }
         } else {
             if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
-                server.kstat[iotid].misses++;
+                tomoRelaxedBump(server.kstat[iotid].misses, 1);
             }
         }
         return v;

@@ -1476,6 +1476,16 @@ typedef struct {
  * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
 #define TOMO_BUCKETS 16384
 #define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
+/* ee451 review: single-writer stat-counter idiom. Each such counter has exactly ONE writer
+ * thread, so a relaxed load+store pair (NOT atomic_fetch_add — that is a lock'd RMW) compiles
+ * to plain mov/add on x86-64: zero hot-path cost, while cross-thread readers get defined,
+ * untorn values instead of the previous plain-access C data race (UB; torn 32-bit halves on
+ * ILP32 targets could wrap a rate delta by ~2^32 and false-trigger the reshard balancer). */
+#define tomoRelaxedBump(field, delta) \
+    atomic_store_explicit(&(field), \
+        atomic_load_explicit(&(field), memory_order_relaxed) + (delta), memory_order_relaxed)
+#define tomoRelaxedRead(field) atomic_load_explicit(&(field), memory_order_relaxed)
+#define tomoRelaxedSet(field, v) atomic_store_explicit(&(field), (v), memory_order_relaxed)
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.pipeline_ring_mask */
@@ -1506,6 +1516,11 @@ typedef struct client {
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to pipeline_ring_depth */
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
+    unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
+                                         * consumed+reset by the cron fold (ee451 review: the
+                                         * 1Hz point sample read 0 for every sub-second burst,
+                                         * so the "hwm" EWMA decayed to ~1 and the ring was
+                                         * freed + rebuilt every ~3s even for busy clients) */
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
@@ -2025,7 +2040,7 @@ typedef struct exThread {
     /* ee451 (v8d): monotonic per-worker op counter (control-plane only). Bumped relaxed in the
      * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
      * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
-    uint64_t ops_total;
+    _Atomic uint64_t ops_total;   /* single-writer (owning worker); tomoRelaxedBump/Read */
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
@@ -2560,8 +2575,8 @@ struct redisServer {
      * them and CONFIG RESETSTAT zeroes them. Pure stats, no control-flow read,
      * so this also removes a genuine non-atomic data race on the globals. */
     struct {
-        long long hits;
-        long long misses;
+        _Atomic long long hits;     /* single-writer per slot; tomoRelaxedBump/Read/Set */
+        _Atomic long long misses;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#A2): per-thread network byte counters. stat_net_input/output_bytes were single shared
@@ -2571,8 +2586,11 @@ struct redisServer {
      * hardwired-on (v13, knob retired); readers fold via getNetInput/OutputBytes(). The legacy atomics stay
      * as the fold BASELINE (repl paths + resets still use them). */
     struct {
-        long long in;
-        long long out;
+        _Atomic long long in;       /* single-writer per slot; tomoRelaxedBump/Read/Set. Note the
+                                     * cross-thread RESETSTAT zeroing keeps its lost-update window
+                                     * (an in-flight owner bump can overwrite the reset) but is now
+                                     * defined behavior; exact resets would need per-slot baselines. */
+        _Atomic long long out;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
     } netstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     long long stat_active_defrag_hits;      /* number of allocations moved */
@@ -3090,7 +3108,11 @@ struct redisServer {
     int express_slim;          /* 2s-auto T3: -1=auto EWMA, 0=off, 1-100=fixed pct */
     int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
     int fake_buf_mode;         /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
-    double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1] */
+    _Atomic double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1];
+                                        * single-writer (main cron), read by IO threads in the
+                                        * dispatch hot path — tomoRelaxedRead ONCE per decision
+                                        * (the old double-read Schmitt gate could act on two
+                                        * different values) */
     /* ee451 (reshard-better §1.2): trigger-hardening mirrors — 0 = exact-legacy for A/B. */
     int reshard_sustain_ticks;   /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks */
     int reshard_progress_ratio;  /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (pct) */

@@ -1953,12 +1953,12 @@ static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].in;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.netstat[i].in);
     return s;
 }
 long long getNetOutputBytes(void) {
     long long s; atomicGet(server.stat_net_output_bytes, s);
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].out;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.netstat[i].out);
     return s;
 }
 
@@ -3117,8 +3117,8 @@ void resetServerStats(void) {
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
-        server.kstat[i].hits = 0;
-        server.kstat[i].misses = 0;
+        tomoRelaxedSet(server.kstat[i].hits, 0);
+        tomoRelaxedSet(server.kstat[i].misses, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -3154,8 +3154,8 @@ void resetServerStats(void) {
     atomicSet(server.stat_net_input_bytes, 0);
     atomicSet(server.stat_net_output_bytes, 0);
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
-        server.netstat[i].in = 0;
-        server.netstat[i].out = 0;
+        tomoRelaxedSet(server.netstat[i].in, 0);
+        tomoRelaxedSet(server.netstat[i].out, 0);
     }
     atomicSet(server.stat_net_repl_input_bytes, 0);
     atomicSet(server.stat_net_repl_output_bytes, 0);
@@ -5282,6 +5282,14 @@ int processCommand(client *c) {
         return C_OK;
     }
 
+    /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
+     * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
+     * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
+     * EWMA decayed to ~1 and the cron freed + the next burst re-created 15/16 of the ring
+     * every ~3s (pure alloc/free churn). One compare on state this path already dirties. */
+    unsigned int inflight_now = c->dispatchid - c->flushid + 1;   /* incl. this dispatch */
+    if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
+
     unsigned int fslot = c->dispatchid & server.pipeline_ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (auto or fixed-N mode leaves
      * unused slots NULL at createClient). fake_slot is stamped once and never changes. */
@@ -5297,13 +5305,15 @@ int processCommand(client *c) {
      * fake->cmd POST-move — both resolve to the same command. */
     int use_slim = 0;
     if (server.express_slim != 0 && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+        /* ee451 review: load the cross-thread EWMA ONCE — the old double read could observe two
+         * different values inside one Schmitt comparison (and was a plain-load data race). */
+        double ehw = tomoRelaxedRead(server.express_hit_ewma);
         if (server.express_slim == -1) {
             static __thread int last_slim = 0;   /* Schmitt band [0.60,0.80] */
             double thr = last_slim ? 0.60 : 0.80;
-            use_slim = last_slim = (server.express_hit_ewma > thr) ? 1 :
-                       (server.express_hit_ewma < 0.60 ? 0 : last_slim);
+            use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
         } else {
-            use_slim = (server.express_hit_ewma * 100.0) > (double)server.express_slim;
+            use_slim = (ehw * 100.0) > (double)server.express_slim;
         }
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
@@ -7095,37 +7105,55 @@ static robj *csSetOpResultSet(csGroup *g) {
             for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(res, g->setmem[i][k]);
         return res;
     }
-    /* INTER / DIFF: build a membership set per sub. */
-    robj **S = zmalloc(sizeof(robj*) * n);
-    for (int i = 0; i < n; i++) {
+    if (g->setop == CS_SETOP_INTER) {
+        /* Any missing/empty input => empty intersection (matches Redis, which returns ASAP on
+         * an empty input) — and lets us skip EVERY temp-set build below. */
+        for (int i = 0; i < n; i++)
+            if (g->setcnt[i] == 0) return createIntsetObject();
+        /* ee451 review: drive the scan off the LARGEST input and build membership probes only
+         * for the others. Per-member temp-set INSERTION costs more than a membership PROBE
+         * (measured ~1.4x for sets, ~5x for zset skiplists), so exclude the biggest build —
+         * NOT the smallest scan (the intuitive smallest-driver choice regresses). Scanning the
+         * raw gathered sds array also kills the old S[0]-iterator walk's per-member
+         * sdsnewlen/sdsfree churn. Intersection is symmetric => identical result contents;
+         * set reply order is unspecified (oracles sort). Same probe idiom as
+         * csInterCardLimited — keep them consistent (SINTER never disagrees with SINTERCARD). */
+        int d = 0;
+        for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+        robj **S = zcalloc(sizeof(robj*) * n);   /* S[d] unused: raw array drives the scan */
+        for (int i = 0; i < n; i++) {
+            if (i == d) continue;
+            S[i] = createIntsetObject();
+            for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+        }
+        robj *res = createIntsetObject();
+        for (long k = 0; k < g->setcnt[d]; k++) {
+            int in_all = 1;
+            for (int j = 0; j < n; j++)
+                if (j != d && !setTypeIsMember(S[j], g->setmem[d][k])) { in_all = 0; break; }
+            if (in_all) setTypeAdd(res, g->setmem[d][k]);
+        }
+        for (int i = 0; i < n; i++) if (S[i]) decrRefCount(S[i]);
+        zfree(S);
+        return res;
+    }
+    /* CS_SETOP_DIFF: members of subs[0] absent from subs[1..]. The driver MUST stay input 0
+     * (DIFF is asymmetric) — but its temp set is still unnecessary: scan the raw gathered
+     * array (one key's members are already distinct) and probe temp sets built for 1..n-1.
+     * Empty base => empty result, skip all builds. */
+    robj *res = createIntsetObject();
+    if (g->setcnt[0] == 0) return res;
+    robj **S = zcalloc(sizeof(robj*) * n);       /* S[0] unused */
+    for (int i = 1; i < n; i++) {
         S[i] = createIntsetObject();
         for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
     }
-    robj *res = createIntsetObject();
-    if (g->setop == CS_SETOP_INTER) {
-        /* Member of subs[0] that is present in EVERY other sub. If any key is missing/empty its
-         * membership set is empty => nothing survives => empty intersection (matches Redis). */
-        setTypeIterator si; setTypeInitIterator(&si, S[0]);
-        char *str; size_t len; int64_t llele;
-        while (setTypeNext(&si, &str, &len, &llele) != -1) {
-            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
-            int in_all = 1;
-            for (int j = 1; j < n; j++) if (!setTypeIsMember(S[j], m)) { in_all = 0; break; }
-            if (in_all) setTypeAdd(res, m);
-            sdsfree(m);
-        }
-    } else { /* CS_SETOP_DIFF: members of subs[0] absent from subs[1..] */
-        setTypeIterator si; setTypeInitIterator(&si, S[0]);
-        char *str; size_t len; int64_t llele;
-        while (setTypeNext(&si, &str, &len, &llele) != -1) {
-            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
-            int in_others = 0;
-            for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], m)) { in_others = 1; break; }
-            if (!in_others) setTypeAdd(res, m);
-            sdsfree(m);
-        }
+    for (long k = 0; k < g->setcnt[0]; k++) {
+        int in_others = 0;
+        for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], g->setmem[0][k])) { in_others = 1; break; }
+        if (!in_others) setTypeAdd(res, g->setmem[0][k]);
     }
-    for (int i = 0; i < n; i++) decrRefCount(S[i]);
+    for (int i = 1; i < n; i++) decrRefCount(S[i]);
     zfree(S);
     return res;
 }
@@ -7143,6 +7171,7 @@ static long long csInterCardLimited(csGroup *g, long long limit) {
     /* base = the smallest set: fewest candidates to scan (and if it is empty, the answer is 0). */
     int base = 0;
     for (int i = 1; i < n; i++) if (g->setcnt[i] < g->setcnt[base]) base = i;
+    if (g->setcnt[base] == 0) return 0;      /* empty input => 0; skip all probe builds */
     robj **S = zcalloc(sizeof(robj*) * n);   /* S[base] unused; the rest are membership probes */
     for (int i = 0; i < n; i++) {
         if (i == base) continue;
@@ -7221,37 +7250,80 @@ static robj *csZSetOpResultZset(csGroup *g) {
                 }
             }
         }
-    } else {
-        /* INTER/DIFF: per-key temp zsets give membership + score probes. */
-        robj **Z = zmalloc(sizeof(robj*) * n);
-        for (int i = 1; i < n; i++) {
-            Z[i] = createZsetObject();
-            for (long k = 0; k < g->setcnt[i]; k++)
-                zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
-        }
-        for (long k = 0; k < g->setcnt[0]; k++) {
-            sds m = g->setmem[0][k];
-            if (g->setop == CS_SETOP_INTER) {
-                /* stock zeroes only the FIRST contribution; later NaNs go through raw */
-                double sc = weights[0] * g->zscore[0][k];
-                if (isnan(sc)) sc = 0;
+    } else if (g->setop == CS_SETOP_INTER) {
+        /* Any empty input => empty intersection; skip every temp-zset build. */
+        int has_empty = 0;
+        for (int i = 0; i < n; i++) if (g->setcnt[i] == 0) { has_empty = 1; break; }
+        if (!has_empty) {
+            /* ee451 review: drive the scan off the LARGEST input and build temp zsets only for
+             * the others. The old code always scanned input 0 raw and REBUILT every other input
+             * as a skiplist — with the big input in position 1+ that reconstruction dominated
+             * (measured 5.2x argv-order cliff; skiplist insert ~5x a probe). The score fold is
+             * decoupled from the driver: contributions are collected per input, then folded in
+             * STOCK's order — cardinality-ascending (tie: original index), NaN->0 applied to the
+             * FIRST FOLDED contribution only (t_zset.c sorts sources by cardinality before
+             * aggregating). This also FIXES a stock divergence: the old argv-order fold zeroed
+             * input 0's NaN, so ZINTER 2 big small WEIGHTS 1 inf returned 0 where stock (small
+             * sorts first, inf*score NaN->0, then SUM big's contribution) returns the score. */
+            int d = 0;
+            for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+            int *ord = zmalloc(sizeof(int) * n);   /* fold order: (setcnt, index) ascending */
+            for (int i = 0; i < n; i++) ord[i] = i;
+            for (int i = 1; i < n; i++) {          /* insertion sort — n is small */
+                int v = ord[i], j = i - 1;
+                while (j >= 0 && (g->setcnt[ord[j]] > g->setcnt[v] ||
+                       (g->setcnt[ord[j]] == g->setcnt[v] && ord[j] > v))) { ord[j+1] = ord[j]; j--; }
+                ord[j+1] = v;
+            }
+            robj **Z = zcalloc(sizeof(robj*) * n); /* Z[d] unused: raw arrays drive the scan */
+            for (int i = 0; i < n; i++) {
+                if (i == d) continue;
+                Z[i] = createZsetObject();
+                for (long k = 0; k < g->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+            }
+            double *contrib = zmalloc(sizeof(double) * n);
+            for (long k = 0; k < g->setcnt[d]; k++) {
+                sds m = g->setmem[d][k];
                 int in_all = 1;
-                for (int i = 1; i < n; i++) {
+                contrib[d] = weights[d] * g->zscore[d][k];
+                for (int i = 0; i < n; i++) {
+                    if (i == d) continue;
                     double si;
                     if (zsetScore(Z[i], m, &si) != C_OK) { in_all = 0; break; }
-                    csZAggr(&sc, weights[i] * si, aggregate);
+                    contrib[i] = weights[i] * si;
                 }
-                if (in_all) zsetAdd(res, sc, m, ZADD_IN_NONE, &out_flags, NULL);
-            } else {   /* DIFF: key0 members absent everywhere else, raw key0 scores */
+                if (!in_all) continue;
+                double sc = contrib[ord[0]];
+                if (isnan(sc)) sc = 0;             /* stock zeroes only the first folded */
+                for (int i = 1; i < n; i++) csZAggr(&sc, contrib[ord[i]], aggregate);
+                zsetAdd(res, sc, m, ZADD_IN_NONE, &out_flags, NULL);
+            }
+            zfree(contrib); zfree(ord);
+            for (int i = 0; i < n; i++) if (Z[i]) decrRefCount(Z[i]);
+            zfree(Z);
+        }
+    } else {
+        /* DIFF: key0 members absent everywhere else, raw key0 scores. Driver MUST stay input 0
+         * (asymmetric); temp zsets only for 1..n-1 (as before). Empty base => empty result. */
+        if (g->setcnt[0] > 0) {
+            robj **Z = zmalloc(sizeof(robj*) * n);
+            for (int i = 1; i < n; i++) {
+                Z[i] = createZsetObject();
+                for (long k = 0; k < g->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+            }
+            for (long k = 0; k < g->setcnt[0]; k++) {
+                sds m = g->setmem[0][k];
                 int in_others = 0;
                 double si;
                 for (int i = 1; i < n; i++)
                     if (zsetScore(Z[i], m, &si) == C_OK) { in_others = 1; break; }
                 if (!in_others) zsetAdd(res, g->zscore[0][k], m, ZADD_IN_NONE, &out_flags, NULL);
             }
+            for (int i = 1; i < n; i++) decrRefCount(Z[i]);
+            zfree(Z);
         }
-        for (int i = 1; i < n; i++) decrRefCount(Z[i]);
-        zfree(Z);
     }
     zfree(weights);
     return res;
@@ -7985,13 +8057,18 @@ static void migLogFree(migLog *L) {
     while (h != t) { migEntryFree(L->slots[h & L->cap_mask]); h++; }
     zfree(L->slots); zfree(L);
 }
-/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate. */
+/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate.
+ * Full test is the wrap-safe MONOTONIC compare: in-flight = t - head, full when it reaches cap.
+ * (The old check compared a MASKED (t+1) against the RAW monotonic head, which can only match
+ * while head < cap — after B's first 64K pops the backpressure was permanently disarmed, so a
+ * lagging B let A lap the ring and clobber unconsumed entries: silently lost effects after FLIP
+ * and a double-free of lapped slots in migLogFree. Unsigned subtraction stays correct across
+ * the 2^32 counter wrap because cap divides 2^32.) */
 static void migLogPush(migLog *L, migLogEntry *e) {
     unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
-    unsigned int next = (t + 1) & L->cap_mask;
-    while (next == L->cached_head) {
+    while (t - L->cached_head > L->cap_mask) {
         L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
-        if (next == L->cached_head) { exPauseCpu(); }   /* full: let B drain */
+        if (t - L->cached_head > L->cap_mask) { exPauseCpu(); }   /* full: let B drain */
     }
     L->slots[t & L->cap_mask] = e;
     atomic_store_explicit(&L->tail, t + 1, memory_order_release);
@@ -8093,10 +8170,38 @@ static void migServiceScanA(exThread *A) {
         atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
 }
 
-/* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side; the
- * caller has already validated lo<hi, src/dst adjacency, and that no migration is in flight. ---- */
+/* Arm-time invariant check (ee451 review). The whole engine ASSUMES [lo,hi) is a boundary-
+ * aligned suffix/prefix of src's contiguous range but never checked it: migScanA scans ONLY
+ * src's dicts and cleanup deletes ONLY from src, while FLIP rewrites the WHOLE range — so an
+ * arm over buckets owned by a third worker made those keys unreachable post-flip (data loss),
+ * a concurrent in-range writer on that third worker became a SECOND producer on the SPSC
+ * effect log (lost-update/heap corruption), and a misaligned arm desynchronized ex_bucket_end,
+ * after which the AUTO tuner itself armed ownership-violating migrations. Reject all of it
+ * here. Caller must hold mig_arm_lock and have (acquire-)seen migration_active == 0, which
+ * orders these table/end reads after the previous migration's FLIP writes. */
+static int reshardRangeValid(int lo, int hi, int src, int dst) {
+    if (dst != src + 1 && dst != src - 1) return 0;               /* adjacent workers only */
+    int s_lo = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
+    int s_hi = server.ex_bucket_end[src];
+    if (lo < s_lo || hi > s_hi) return 0;                         /* inside src's range */
+    if (lo == s_lo && hi == s_hi) return 0;                       /* would empty src */
+    if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
+    for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
+        if (server.ex_bucket_table[b] != (uint8_t)src) return 0;
+    return 1;
+}
+
+/* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side (DEBUG
+ * RESHARD START on an IO thread, reshardAutoTune on the main thread — mig_arm_lock serializes
+ * the check-then-publish so two racing armers can't both pass the active gate and leak a log). ---- */
+static _Atomic int mig_arm_lock = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
-    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return 0; /* one at a time */
+    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
+        !reshardRangeValid(lo, hi, src, dst)) {
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        return 0;
+    }
     server.migration.log = migLogCreate(1u << 16);          /* 64k entries; A backpressures if B lags */
     atomic_store_explicit(&server.migration.issued_seq, 0, memory_order_relaxed);
     atomic_store_explicit(&server.migration.applied_seq, 0, memory_order_relaxed);
@@ -8110,6 +8215,7 @@ static int reshardArm(int lo, int hi, int src, int dst) {
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
     atomic_store_explicit(&server.migration_active, 1, memory_order_release); /* published LAST */
+    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
     serverLog(LL_NOTICE, "ee451 reshard ARM: buckets [%d,%d) worker %d -> %d (COPYING)", lo, hi, src, dst);
     return 1;
 }
@@ -8367,7 +8473,7 @@ void fakeRingAutoTune(void) {
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
         if (g && s) {
             uint64_t hot = (uint64_t)g->calls + (uint64_t)s->calls, tot = 0;
-            for (int w = 0; w < server.num_workers; w++) tot += server.exThreads[w].ops_total;
+            for (int w = 0; w < server.num_workers; w++) tot += tomoRelaxedRead(server.exThreads[w].ops_total);
             /* Review #6: CONFIG RESETSTAT zeroes command `calls` but not the per-worker
              * ops_total, so hot can drop below the cached high-water while tot does not — the
              * unsigned dh/dt would wrap to ~2^64. Detect the counter reset and rebaseline
@@ -8381,7 +8487,8 @@ void fakeRingAutoTune(void) {
                     double ratio = (double)dh / (double)dt; if (ratio > 1.0) ratio = 1.0;
                     double a = ewmaAlpha2s((double)dt, 100.0);
                     static int primed = 0;
-                    server.express_hit_ewma = primed ? (a*ratio + (1.0-a)*server.express_hit_ewma) : ratio;
+                    double prev = tomoRelaxedRead(server.express_hit_ewma);   /* single writer: us */
+                    tomoRelaxedSet(server.express_hit_ewma, primed ? (a*ratio + (1.0-a)*prev) : ratio);
                     primed = 1;
                 }
             }
@@ -8399,11 +8506,18 @@ void fakeRingAutoTune(void) {
 void fakeRingClientCron(client *c) {
     if (c->isFake || !c->conn) return;
     if (server.fake_ring_depth_mode != -1 && server.fake_buf_mode != -1) return;
-    /* D3 depth decay: shrink toward EWMA high-water when the ring has been idle. */
+    /* D3 depth decay: shrink toward the EWMA of the TRUE per-window high-water (dispatch-
+     * updated fake_ring_hwm_win, consumed+reset here) when the ring has been idle. Folding
+     * the instantaneous gap alone read 0 for sub-second bursts => decay-to-1 => recurring
+     * teardown/rebuild churn (ee451 review). A busy P16 client now folds 16 every window
+     * (=> target stays 16+, zero churn); a genuinely idle client folds 0s and still decays
+     * to 1 within a few windows, preserving D3's memory-reclaim purpose. */
     if (server.fake_ring_depth_mode == -1) {
         unsigned int inflight = c->dispatchid - c->flushid;
+        unsigned int hwm = c->fake_ring_hwm_win > inflight ? c->fake_ring_hwm_win : inflight;
+        c->fake_ring_hwm_win = 0;
         double a = 0.3;
-        c->fake_ring_hwm_ewma = a*(double)inflight + (1.0-a)*c->fake_ring_hwm_ewma;
+        c->fake_ring_hwm_ewma = a*(double)hwm + (1.0-a)*c->fake_ring_hwm_ewma;
         unsigned int target = (unsigned int)(c->fake_ring_hwm_ewma * 1.25) + 1;
         if (target < 1) target = 1;
         if (target > (unsigned int)server.pipeline_ring_depth) target = (unsigned int)server.pipeline_ring_depth;
@@ -8448,7 +8562,7 @@ void reshardAutoTune(void) {
     double sum_ewma = 0, sum_fast = 0, sum_rate = 0, hotv = -1;
     int hot = 0;
     for (int w = 0; w < W; w++) {
-        uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
+        uint64_t ops = tomoRelaxedRead(server.exThreads[w].ops_total);   /* relaxed read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
         mig_last_ops[w] = ops;
         sum_rate += (double)rate;
@@ -8619,7 +8733,12 @@ void reshardDebug(client *c) {
             src < 0 || dst < 0 || src >= server.num_workers || dst >= server.num_workers || src == dst) {
             addReplyError(c, "bad range/workers"); return;
         }
-        if (!reshardArm(lo, hi, src, dst)) { addReplyError(c, "migration already active"); return; }
+        if (!reshardArm(lo, hi, src, dst)) {
+            addReplyError(c, "arm rejected: migration already active, or invalid range "
+                             "(dst must be src+-1; [lo,hi) must be a boundary-aligned, non-total "
+                             "sub-range of src's contiguous bucket range, fully owned by src)");
+            return;
+        }
         addReply(c, shared.ok);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "cutover")) {
         if (!reshardBeginCutover())
@@ -8629,14 +8748,14 @@ void reshardDebug(client *c) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
          * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
         unsigned long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
+        for (int w = 0; w < server.num_workers; w++) total += tomoRelaxedRead(server.exThreads[w].ops_total);
         addReplyLongLong(c, (long long)total);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "perworker")) {
         /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
          * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
         addReplyArrayLen(c, server.num_workers);
         for (int w = 0; w < server.num_workers; w++)
-            addReplyLongLong(c, (long long)server.exThreads[w].ops_total);
+            addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
@@ -10142,12 +10261,12 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
  * normally 0) into a single total for INFO. */
 static long long keyspaceHitsTotal(void) {
     long long s = server.stat_keyspace_hits;
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].hits);
     return s;
 }
 static long long keyspaceMissesTotal(void) {
     long long s = server.stat_keyspace_misses;
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].misses);
     return s;
 }
 
@@ -12403,7 +12522,7 @@ void *exThreadMain(void *arg) {
             /* Warm the cache before executing the batch. */
             exPrefetchBatch(batch, n);
 
-            worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
+            tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
 
             /* ee451: per-batch reply-ready signal coalescing accumulator.
              * sig_parents holds the distinct parent clients seen in this
@@ -12736,7 +12855,9 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
 }
 
 void initExThreads(void) {
-    server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
+    server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);   /* ee451 review: init loop
+        * only sets id/db/queues — ops_total/loop_seq/pf_* were formally uninitialized reads
+        * (benign via fresh mmap pages in practice; zcalloc makes it defined) */
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */

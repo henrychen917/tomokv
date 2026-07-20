@@ -61,4 +61,6 @@ done
 crash=$(grep -icE 'REDIS BUG|signal [0-9]|Assertion|Segmentation' "$D/s.log")
 echo "=== RESULT: $wrong CORRUPT, $empty empty (of 200); alive=$(timeout 5 $CLI ping 2>/dev/null|tr -d '\r'); crash=$crash ==="
 timeout 8 $CLI shutdown nosave >/dev/null 2>&1
-[ "$wrong" = 0 ] && [ "$crash" = 0 ] && { echo "VERDICT: PASS"; exit 0; } || { echo "VERDICT: FAIL"; exit 1; }
+# empty is a FAILURE too: this harness has no kill-storm and each canary GET is retried 3x after the
+# churn settles, so an empty reply means the canary key is GONE (silent data loss), not a stall.
+[ "$wrong" = 0 ] && [ "$empty" = 0 ] && [ "$crash" = 0 ] && { echo "VERDICT: PASS"; exit 0; } || { echo "VERDICT: FAIL"; exit 1; }
