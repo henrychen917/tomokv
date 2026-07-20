@@ -3225,7 +3225,7 @@ int writeToClient(client *c, int handler_installed) {
                 zmalloc_used_memory() < server.maxmemory) &&
                 is_normal_client) break;
         }
-        server.netstat[iotid].out += totwritten;   /* ee451 (#A2, v13): hardwired */
+        tomoRelaxedBump(server.netstat[iotid].out, totwritten);   /* ee451 (#A2, v13): hardwired */
     }
     c->net_output_bytes += totwritten;
 
@@ -3533,7 +3533,7 @@ static int iouRecvDeliver(client *c, const char *data, int len) {
     size_t qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
     c->io_lastinteraction = server.unixtime;
-    server.netstat[iotid].in += len;               /* ee451 (#A2, v13): hardwired */
+    tomoRelaxedBump(server.netstat[iotid].in, len);               /* ee451 (#A2, v13): hardwired */
     c->net_input_bytes += len;
     server.stat_io_reads_processed[iotid] += 1;    /* ee451 (v13,#18): see writes_processed note */
 
@@ -4851,7 +4851,7 @@ void readQueryFromClient(connection *conn) {
         }
         atomicIncr(server.stat_net_repl_input_bytes, nread);
     } else {
-        server.netstat[iotid].in += nread;         /* ee451 (#A2, v13): hardwired */
+        tomoRelaxedBump(server.netstat[iotid].in, nread);         /* ee451 (#A2, v13): hardwired */
     }
     c->net_input_bytes += nread;
 

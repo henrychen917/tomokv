@@ -1953,12 +1953,12 @@ static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].in;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.netstat[i].in);
     return s;
 }
 long long getNetOutputBytes(void) {
     long long s; atomicGet(server.stat_net_output_bytes, s);
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.netstat[i].out;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.netstat[i].out);
     return s;
 }
 
@@ -3117,8 +3117,8 @@ void resetServerStats(void) {
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
-        server.kstat[i].hits = 0;
-        server.kstat[i].misses = 0;
+        tomoRelaxedSet(server.kstat[i].hits, 0);
+        tomoRelaxedSet(server.kstat[i].misses, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -3154,8 +3154,8 @@ void resetServerStats(void) {
     atomicSet(server.stat_net_input_bytes, 0);
     atomicSet(server.stat_net_output_bytes, 0);
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {   /* ee451 (#A2) */
-        server.netstat[i].in = 0;
-        server.netstat[i].out = 0;
+        tomoRelaxedSet(server.netstat[i].in, 0);
+        tomoRelaxedSet(server.netstat[i].out, 0);
     }
     atomicSet(server.stat_net_repl_input_bytes, 0);
     atomicSet(server.stat_net_repl_output_bytes, 0);
@@ -5305,13 +5305,15 @@ int processCommand(client *c) {
      * fake->cmd POST-move — both resolve to the same command. */
     int use_slim = 0;
     if (server.express_slim != 0 && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+        /* ee451 review: load the cross-thread EWMA ONCE — the old double read could observe two
+         * different values inside one Schmitt comparison (and was a plain-load data race). */
+        double ehw = tomoRelaxedRead(server.express_hit_ewma);
         if (server.express_slim == -1) {
             static __thread int last_slim = 0;   /* Schmitt band [0.60,0.80] */
             double thr = last_slim ? 0.60 : 0.80;
-            use_slim = last_slim = (server.express_hit_ewma > thr) ? 1 :
-                       (server.express_hit_ewma < 0.60 ? 0 : last_slim);
+            use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
         } else {
-            use_slim = (server.express_hit_ewma * 100.0) > (double)server.express_slim;
+            use_slim = (ehw * 100.0) > (double)server.express_slim;
         }
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
@@ -8471,7 +8473,7 @@ void fakeRingAutoTune(void) {
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
         if (g && s) {
             uint64_t hot = (uint64_t)g->calls + (uint64_t)s->calls, tot = 0;
-            for (int w = 0; w < server.num_workers; w++) tot += server.exThreads[w].ops_total;
+            for (int w = 0; w < server.num_workers; w++) tot += tomoRelaxedRead(server.exThreads[w].ops_total);
             /* Review #6: CONFIG RESETSTAT zeroes command `calls` but not the per-worker
              * ops_total, so hot can drop below the cached high-water while tot does not — the
              * unsigned dh/dt would wrap to ~2^64. Detect the counter reset and rebaseline
@@ -8485,7 +8487,8 @@ void fakeRingAutoTune(void) {
                     double ratio = (double)dh / (double)dt; if (ratio > 1.0) ratio = 1.0;
                     double a = ewmaAlpha2s((double)dt, 100.0);
                     static int primed = 0;
-                    server.express_hit_ewma = primed ? (a*ratio + (1.0-a)*server.express_hit_ewma) : ratio;
+                    double prev = tomoRelaxedRead(server.express_hit_ewma);   /* single writer: us */
+                    tomoRelaxedSet(server.express_hit_ewma, primed ? (a*ratio + (1.0-a)*prev) : ratio);
                     primed = 1;
                 }
             }
@@ -8559,7 +8562,7 @@ void reshardAutoTune(void) {
     double sum_ewma = 0, sum_fast = 0, sum_rate = 0, hotv = -1;
     int hot = 0;
     for (int w = 0; w < W; w++) {
-        uint64_t ops = server.exThreads[w].ops_total;     /* relaxed plain read of a per-thread stat */
+        uint64_t ops = tomoRelaxedRead(server.exThreads[w].ops_total);   /* relaxed read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
         mig_last_ops[w] = ops;
         sum_rate += (double)rate;
@@ -8745,14 +8748,14 @@ void reshardDebug(client *c) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
          * commands (which bypass the main instantaneous_ops_per_sec metric). Poll + diff for RPS. */
         unsigned long long total = 0;
-        for (int w = 0; w < server.num_workers; w++) total += server.exThreads[w].ops_total;
+        for (int w = 0; w < server.num_workers; w++) total += tomoRelaxedRead(server.exThreads[w].ops_total);
         addReplyLongLong(c, (long long)total);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "perworker")) {
         /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
          * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
         addReplyArrayLen(c, server.num_workers);
         for (int w = 0; w < server.num_workers; w++)
-            addReplyLongLong(c, (long long)server.exThreads[w].ops_total);
+            addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
@@ -10258,12 +10261,12 @@ static sds sdscatHistograms(sds info, int dbnum, keysizesHist histogram, const c
  * normally 0) into a single total for INFO. */
 static long long keyspaceHitsTotal(void) {
     long long s = server.stat_keyspace_hits;
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].hits;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].hits);
     return s;
 }
 static long long keyspaceMissesTotal(void) {
     long long s = server.stat_keyspace_misses;
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += server.kstat[i].misses;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].misses);
     return s;
 }
 
@@ -12519,7 +12522,7 @@ void *exThreadMain(void *arg) {
             /* Warm the cache before executing the batch. */
             exPrefetchBatch(batch, n);
 
-            worker->ops_total += (uint64_t)n;   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
+            tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer */
 
             /* ee451: per-batch reply-ready signal coalescing accumulator.
              * sig_parents holds the distinct parent clients seen in this
@@ -12852,7 +12855,9 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
 }
 
 void initExThreads(void) {
-    server.exThreads = zmalloc(sizeof(exThread) * server.num_workers);
+    server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);   /* ee451 review: init loop
+        * only sets id/db/queues — ops_total/loop_seq/pf_* were formally uninitialized reads
+        * (benign via fresh mmap pages in practice; zcalloc makes it defined) */
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */

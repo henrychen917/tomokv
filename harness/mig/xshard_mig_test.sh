@@ -5,24 +5,24 @@
 # verify each effect is present + correct AFTER the flip (proves capture/replay + hold-rerouting
 # carried the HOP2 writes). Also STATUS checksums, dbsize, alive. ASAN=1 supported.
 set -u
-REPO=/shared/Projects/THredis-v13-2s; CLI="/shared/Projects/redis/src/redis-cli -p 6405"
-D=/tmp/xsmig; rm -rf $D; mkdir -p $D/srv
-SI=/shared/Projects/overnight_sweep/selfimprove
-L=$SI/xshard_mig_test.log; : >"$L"
-say(){ echo "$*" | tee -a "$L"; }
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CLI="$REPO/src/redis-cli -p ${PORT:=6405}"
+D=$(mktemp -d); mkdir -p $D/srv
+trap 'pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; rm -rf "$D"' EXIT
+say(){ echo "$*"; }
 ASAN=${ASAN:-0}
-pkill -9 -f 'redis-server.*6405' 2>/dev/null; sleep 1
+pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; sleep 1
 if [ "$ASAN" = 1 ]; then
   ( cd $REPO && make distclean >/dev/null 2>&1 && make -j SANITIZER=address MALLOC=libc USE_URING=yes ) >$D/b.log 2>&1
   nm $REPO/src/redis-server 2>/dev/null|grep -qi asan || { say "ASAN BUILD FAIL"; exit 1; }
   export ASAN_OPTIONS="detect_leaks=1:halt_on_error=0:log_path=$D/asan:abort_on_error=0"
 fi
-taskset -c 0-7 $REPO/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 \
+$REPO/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 \
   --tomokv-reshard-min-ops 0 --enable-debug-command yes \
-  --save '' --appendonly no --protected-mode no --dir $D/srv --port 6405 >$D/s.log 2>&1 &
+  --save '' --appendonly no --protected-mode no --dir $D/srv --port $PORT >$D/s.log 2>&1 &
 PID=$!
 for i in $(seq 1 150); do timeout 2 $CLI ping >/dev/null 2>&1 && break; sleep 0.4; done
-[ "$(timeout 3 $CLI ping|tr -d '\r')" = PONG ] || { say "BOOT FAIL"; tail $D/s.log|tee -a "$L"; exit 1; }
+[ "$(timeout 3 $CLI ping|tr -d '\r')" = PONG ] || { say "BOOT FAIL"; tail $D/s.log; exit 1; }
 say "booted (ASAN=$ASAN)"
 fail=0
 ck(){ local desc="$1" got="$2" want="$3"; case "$got" in $want) say "  OK   $desc";; *) say "  FAIL $desc -> '$got' (want $want)"; fail=$((fail+1));; esac; }
@@ -30,13 +30,18 @@ finfo(){ timeout 5 $CLI debug reshard find "$1" 2>/dev/null | tr -d '\r'; }
 bucket_of(){ finfo "$1" | grep -o 'bucket=[0-9]*' | cut -d= -f2; }
 shard_of(){ finfo "$1" | grep -o 'routed_ex=[0-9]*' | cut -d= -f2; }
 
-# Collect key sets: IN = bucket in [0,512) (so shard src = owner of those buckets now);
+# Migration range = w0's suffix half [NB/8, NB/4): a VALID boundary-aligned arm — the old
+# [0,512) prefix-to-right arm is now rejected by reshardRangeValid. NB derived from probes.
+maxb=0; for i in $(seq 1 60); do
+  b=$(bucket_of "nbp:$i"); [ -n "$b" ] && [ "$b" -gt "$maxb" ] && maxb=$b; done
+NB=4096; [ "$maxb" -ge 4096 ] && NB=16384; MLO=$((NB/8)); MHI=$((NB/4))
+# Collect key sets: IN = bucket in [MLO,MHI) (so shard src = owner of those buckets now);
 # OUT = bucket outside. Also note src worker from an in-range key.
-say "=== classify candidate keys ==="
+say "=== classify candidate keys (range [$MLO,$MHI)) ==="
 IN=(); OUT=(); SRC=""
-for i in $(seq 1 400); do
+for i in $(seq 1 2000); do
   k="mg:$i"; b=$(bucket_of "$k")
-  if [ -n "$b" ] && [ "$b" -lt 512 ]; then IN+=("$k"); [ -z "$SRC" ] && SRC=$(shard_of "$k")
+  if [ -n "$b" ] && [ "$b" -ge "$MLO" ] && [ "$b" -lt "$MHI" ]; then IN+=("$k"); [ -z "$SRC" ] && SRC=$(shard_of "$k")
   else OUT+=("$k"); fi
   [ ${#IN[@]} -ge 24 ] && [ ${#OUT[@]} -ge 12 ] && break
 done
@@ -68,8 +73,8 @@ MS_A="${IN[18]:-mg:x3}"; MS_B="${IN[19]:-mg:x4}"; $CLI del "$MS_A" "$MS_B" >/dev
 LP_A="${IN[20]:-mg:x5}"; $CLI del "$LP_A" >/dev/null; $CLI rpush "$LP_A" p1 p2 >/dev/null  # LMPOP winner in-range
 db0=$(timeout 5 $CLI dbsize|tr -d '\r')
 
-say "=== ARM migration [0,512) w$SRC -> w$DST, then mid-flight barrage ==="
-ck "arm" "$(timeout 5 $CLI debug reshard start 0 512 $SRC $DST 2>&1|tr -d '\r')" 'OK'
+say "=== ARM migration [$MLO,$MHI) w$SRC -> w$DST, then mid-flight barrage ==="
+ck "arm" "$(timeout 5 $CLI debug reshard start $MLO $MHI $SRC $DST 2>&1|tr -d '\r')" 'OK'
 ck "active" "$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | grep -o 'active=[0-9]*')" 'active=1'
 # barrage WHILE ACTIVE (capture/hold window). Every write goes through the 2-hop/coalesced paths.
 ck "mid RENAME"      "$($CLI rename "${K[0]}" migren:out 2>&1|tr -d '\r')" 'OK'
@@ -91,6 +96,17 @@ for i in $(seq 1 100); do
   [ "$sd" = 1 ] && break; sleep 0.2
 done
 ck "scan_done" "$sd" '1'
+# Convergence (src range-checksum == dst range-checksum under double-write) is only meaningful WHILE
+# ACTIVE, and STATUS only computes it then — a post-cutover STATUS always reports converged=0
+# (active gates the ternary). Poll for it HERE, before cutover.
+conv=0; cst=""
+for i in $(seq 1 50); do
+  cst=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
+  case "$cst" in *converged=1*) conv=1; break;; esac
+  sleep 0.2
+done
+say "  pre-cutover STATUS: $cst"
+ck "checksums converged" "$conv" '1'
 ck "cutover" "$(timeout 5 $CLI debug reshard cutover 2>&1|tr -d '\r')" 'OK'
 for i in $(seq 1 100); do
   ph=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | grep -o 'active=[0-9]*' | cut -d= -f2)
@@ -99,7 +115,6 @@ done
 st=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
 say "  final STATUS: $st"
 ck "migration done" "$ph" '0'
-case "$st" in *converged=1*) say "  OK   checksums converged";; *) say "  FAIL not converged: $st"; fail=$((fail+1));; esac
 
 say "=== POST-FLIP effect verification (replay carried every write) ==="
 ck "post RENAME moved"      "$($CLI get migren:out|tr -d '\r')" 'ren_src_val'
@@ -127,9 +142,9 @@ crash=$(grep -icE 'crash|=== REDIS BUG|signal [0-9]|Assertion|Segmentation' $D/s
 ck "zero crash lines" "$crash" '0'
 if [ "$ASAN" = 1 ]; then
   sleep 1; fnd=$(cat $D/asan.* 2>/dev/null | grep -E "ERROR|SUMMARY" | head -10)
-  say "=== ASAN ==="; [ -n "$fnd" ] && { say "FINDINGS:"; echo "$fnd"|tee -a "$L"; fail=$((fail+1)); } || say "  (none)"
+  say "=== ASAN ==="; [ -n "$fnd" ] && { say "FINDINGS:"; echo "$fnd"; fail=$((fail+1)); } || say "  (none)"
 fi
-timeout 8 $CLI shutdown nosave >/dev/null 2>&1; kill $PID 2>/dev/null; sleep 1; pkill -9 -f 'redis-server.*6405' 2>/dev/null
+timeout 8 $CLI shutdown nosave >/dev/null 2>&1; kill $PID 2>/dev/null; sleep 1; pkill -9 -f "redis-server.*:$PORT" 2>/dev/null
 if [ "$ASAN" = 1 ]; then
   ( cd $REPO && make distclean >/dev/null 2>&1 && make -j USE_URING=yes ) >$D/rb.log 2>&1 && say "rebuilt non-ASAN"
 fi

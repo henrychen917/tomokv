@@ -3,28 +3,36 @@
 # correctly). Fresh server per case. Keys forced in-range; write runs post-scan/pre-cutover;
 # verify effect present on destination after cutover. If any is LOST, that's a second bug.
 set -u
-R=/shared/Projects/THredis-v13-2s; C="/shared/Projects/redis/src/redis-cli -p 6405"
-D=/shared/Projects/.claude/jobs/fd085c8e/tmp/mb4
-L=/shared/Projects/overnight_sweep/selfimprove/xshard_migsafe_gather.log; : >"$L"
-say(){ echo "$*" | tee -a "$L"; }
+R="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+C="$R/src/redis-cli -p ${PORT:=6405}"
+D=$(mktemp -d)
+trap 'pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; rm -rf "$D"' EXIT
+say(){ echo "$*"; }
 fail=0
-boot(){ pkill -9 -f 'redis-server.*6405' 2>/dev/null; sleep 1; rm -rf $D; mkdir -p $D
-  taskset -c 0-7 $R/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 --tomokv-reshard-min-ops 0 \
-    --enable-debug-command yes --save '' --appendonly no --protected-mode no --dir $D --port 6405 >$D/s.log 2>&1 &
+boot(){ pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; sleep 1; rm -rf "$D"; mkdir -p "$D"
+  $R/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 --tomokv-reshard-min-ops 0 \
+    --enable-debug-command yes --save '' --appendonly no --protected-mode no --dir "$D" --port $PORT >"$D/s.log" 2>&1 &
   for i in $(seq 1 60); do timeout 2 $C ping >/dev/null 2>&1 && break; sleep 0.4; done; }
 sh(){ $C debug reshard find "$1" 2>/dev/null|tr -d '\r'|grep -o 'routed_ex=[0-9]*'|cut -d= -f2; }
 bk(){ $C debug reshard find "$1" 2>/dev/null|tr -d '\r'|grep -o 'bucket=[0-9]*'|cut -d= -f2; }
+# migration range = w0's suffix half [NB/8, NB/4) — valid boundary-aligned arm (the old [0,512)
+# prefix-to-right arm is rejected by reshardRangeValid now). NB derived from routing probes.
+NB=""
+derive_nb(){ [ -n "$NB" ] && return; local maxb=0 b
+  for i in $(seq 1 60); do b=$(bk "nbp:$i"); [ -n "$b" ] && [ "$b" -gt "$maxb" ] && maxb=$b; done
+  NB=4096; [ "$maxb" -ge 4096 ] && NB=16384; MLO=$((NB/8)); MHI=$((NB/4)); }
 # yield N distinct in-range keys
-inkeys(){ local n=$1 out="" k; local i=1; while [ $i -le 3000 ] && [ $(echo $out|wc -w) -lt $n ]; do k="g:$i"; local x=$(bk "$k"); [ -n "$x" ] && [ "$x" -lt 512 ] && out="$out $k"; i=$((i+1)); done; echo $out; }
+inkeys(){ local n=$1 out="" k; local i=1; while [ $i -le 5000 ] && [ $(echo $out|wc -w) -lt $n ]; do k="g:$i"; local x=$(bk "$k"); [ -n "$x" ] && [ "$x" -ge "$MLO" ] && [ "$x" -lt "$MHI" ] && out="$out $k"; i=$((i+1)); done; echo $out; }
 
 one(){ local label="$1" mig="$2" setup="$3" op="$4" verify="$5" want="$6"
   boot
-  for i in $(seq 1 5000); do echo "set fill:$i v$i"; done | $C --pipe >/dev/null 2>&1
+  derive_nb
+  for i in $(seq 1 5000); do echo "set fill:$i v$i"; done | timeout -s KILL 30 $C --pipe >/dev/null 2>&1
   eval "$setup"
   local rep
   if [ "$mig" = 1 ]; then
     local S=$(sh "$KA") T; T=$(( (S+1)%4 ))
-    $C debug reshard start 0 512 $S $T >/dev/null 2>&1
+    $C debug reshard start $MLO $MHI $S $T >/dev/null 2>&1
     local sd=0; for i in $(seq 1 400); do sd=$($C debug reshard status 2>/dev/null|tr -d '\r'|grep -o 'scan_done=[0-9]*'|cut -d= -f2); [ "$sd" = 1 ] && break; sleep 0.02; done
     rep=$(eval "$op")
     $C debug reshard cutover >/dev/null 2>&1
@@ -66,6 +74,6 @@ one "$tag PFMERGE" $mg 'read KD KX <<< "$(inkeys 2)"; KA=$KD; $C del $KD >/dev/n
 one "$tag MGET-read" $mg 'read K1 K2 <<< "$(inkeys 2)"; KA=$K1; $C set $K1 r1 >/dev/null; $C set $K2 r2 >/dev/null' \
   '$C mget $K1 $K2|tr -d "\r"|tr "\n" ","' '$C mget $K1 $K2|tr -d "\r"|tr "\n" ","' 'r1,r2,'
 done
-pkill -9 -f 'redis-server.*6405' 2>/dev/null
+pkill -9 -f "redis-server.*:$PORT" 2>/dev/null
 say "=== MIGSAFE-GATHER DONE: fails=$fail ==="
 [ "$fail" = 0 ] && say "VERDICT: PASS" || say "VERDICT: FAIL"
