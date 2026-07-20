@@ -14,9 +14,9 @@ moves**.
 - The keyspace for each logical db is **one shared `kvstore` of 16384 bucket-dicts**
   (`num_dicts_bits = 14` — this is kvstore's native cluster-slot configuration, so we reuse its
   per-slot dict array, size index, and rehash list for free).
-- **bucket = `xxh64(key) & 16383`** (was `& 4095`). `ex_bucket_table[bucket] -> worker` (now
-  `uint16[16384]`) decides which worker *owns* — and therefore exclusively touches — each
-  bucket-dict.
+- **bucket = `xxh64(key) & 16383`** (was `& 4095`). `ex_bucket_table[bucket] -> worker` decides
+  which worker *owns* — and therefore exclusively touches — each bucket-dict. The table element is
+  a worker id (≤64), so it stays `uint8_t`; only the array *length* grows to 16384 (16KB).
 - **Hot path stays 100% lock-free.** Each bucket-dict has exactly one owner at a time, so a worker
   mutating its owned slots races nothing. The single-writer invariant (`exExecFake`,
   `src/server.c:12269`; SPSC queues, `src/server.h:1949`) is preserved — the unit of exclusivity
@@ -65,7 +65,7 @@ full keyspace-wide-op rework (S2) except where S0/S1 forces it.
 
 | Stage | Change | Gate |
 |-------|--------|------|
-| **S0.1** | `TOMO_BUCKETS` 4096→16384; `ex_bucket_table` uint8→uint16; update every bucket/table site. Routing-only, behavior-identical. | `xshard_corruption` + `xshard_intercard` PASS; perf spot-check neutral |
+| **S0.1** | `TOMO_BUCKETS` 4096→16384 (element stays uint8 worker-id; only length grows). Routing-only, behavior-identical. | `xshard_corruption` + `xshard_intercard` PASS; perf spot-check neutral |
 | **S0.2** | Collapse per-worker 1-dict kvstores → one shared 16384-dict kvstore per db; per-worker partitioned aggregates; ownership static 1:1 with today's ranges. | byte-exact + perf-neutral vs S0.1 |
 | **S1** | Delete the copy engine; reshard = drain-fence + `ex_bucket_table[b]` flip. | migration correctness under live reshard; measured EWMA cost drop |
 | S2 *(later)* | Fix keyspace-wide ops (SCAN especially) for the shared model. | — |

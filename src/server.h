@@ -1469,9 +1469,12 @@ typedef struct {
  * ex_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
  * number of workers can own buckets) while keeping xxhash, and (b) is the foundation for
  * adaptive resharding: each worker owns a CONTIGUOUS bucket range, so rebalancing only
- * shifts a boundary between adjacent workers. 4096 buckets = uint8_t table (≤64 workers)
- * = 4KB, L1-resident on the hot path. */
-#define TOMO_BUCKETS 4096
+ * shifts a boundary between adjacent workers. The table ELEMENT is a worker id (<= 64,
+ * TOMO_EX_THREADS_MAX), so it stays uint8_t regardless of bucket count; only the array
+ * LENGTH scales with TOMO_BUCKETS. 16384 buckets = 16KB uint8_t table, still small/L2, and
+ * 16384 == kvstore's native cluster-slot count so the shared-keyspace kvstore (one dict per
+ * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
+#define TOMO_BUCKETS 16384
 #define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */

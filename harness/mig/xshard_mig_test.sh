@@ -30,13 +30,17 @@ finfo(){ timeout 5 $CLI debug reshard find "$1" 2>/dev/null | tr -d '\r'; }
 bucket_of(){ finfo "$1" | grep -o 'bucket=[0-9]*' | cut -d= -f2; }
 shard_of(){ finfo "$1" | grep -o 'routed_ex=[0-9]*' | cut -d= -f2; }
 
-# Collect key sets: IN = bucket in [0,512) (so shard src = owner of those buckets now);
+# Migration range [0,MIG_HI): 1/8 of TOMO_BUCKETS, inside worker 0's [0, TOMO_BUCKETS/W) range at
+# W=4. Scaled to the bucket count (2048 @ 16384 buckets) so ~1/8 of sampled keys land in-range
+# regardless of granularity. Sample enough keys that >=16 land in the 1/8 range.
+MIG_HI=${MIG_HI:-2048}
+# Collect key sets: IN = bucket in [0,MIG_HI) (so shard src = owner of those buckets now);
 # OUT = bucket outside. Also note src worker from an in-range key.
-say "=== classify candidate keys ==="
+say "=== classify candidate keys (range [0,$MIG_HI)) ==="
 IN=(); OUT=(); SRC=""
-for i in $(seq 1 400); do
+for i in $(seq 1 1200); do
   k="mg:$i"; b=$(bucket_of "$k")
-  if [ -n "$b" ] && [ "$b" -lt 512 ]; then IN+=("$k"); [ -z "$SRC" ] && SRC=$(shard_of "$k")
+  if [ -n "$b" ] && [ "$b" -lt "$MIG_HI" ]; then IN+=("$k"); [ -z "$SRC" ] && SRC=$(shard_of "$k")
   else OUT+=("$k"); fi
   [ ${#IN[@]} -ge 24 ] && [ ${#OUT[@]} -ge 12 ] && break
 done
@@ -68,8 +72,8 @@ MS_A="${IN[18]:-mg:x3}"; MS_B="${IN[19]:-mg:x4}"; $CLI del "$MS_A" "$MS_B" >/dev
 LP_A="${IN[20]:-mg:x5}"; $CLI del "$LP_A" >/dev/null; $CLI rpush "$LP_A" p1 p2 >/dev/null  # LMPOP winner in-range
 db0=$(timeout 5 $CLI dbsize|tr -d '\r')
 
-say "=== ARM migration [0,512) w$SRC -> w$DST, then mid-flight barrage ==="
-ck "arm" "$(timeout 5 $CLI debug reshard start 0 512 $SRC $DST 2>&1|tr -d '\r')" 'OK'
+say "=== ARM migration [0,$MIG_HI) w$SRC -> w$DST, then mid-flight barrage ==="
+ck "arm" "$(timeout 5 $CLI debug reshard start 0 $MIG_HI $SRC $DST 2>&1|tr -d '\r')" 'OK'
 ck "active" "$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | grep -o 'active=[0-9]*')" 'active=1'
 # barrage WHILE ACTIVE (capture/hold window). Every write goes through the 2-hop/coalesced paths.
 ck "mid RENAME"      "$($CLI rename "${K[0]}" migren:out 2>&1|tr -d '\r')" 'OK'
@@ -91,6 +95,18 @@ for i in $(seq 1 100); do
   [ "$sd" = 1 ] && break; sleep 0.2
 done
 ck "scan_done" "$sd" '1'
+# Convergence (src range-checksum == dst range-checksum under double-write) is only meaningful WHILE
+# ACTIVE, and STATUS only computes it then — a post-cutover STATUS always reports converged=0
+# (active gates the ternary). Poll for it HERE, before cutover, once the cold scan is done and the
+# effect log has drained.
+conv=0; cst=""
+for i in $(seq 1 50); do
+  cst=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
+  case "$cst" in *converged=1*) conv=1; break;; esac
+  sleep 0.2
+done
+say "  pre-cutover STATUS: $cst"
+ck "checksums converged" "$conv" '1'
 ck "cutover" "$(timeout 5 $CLI debug reshard cutover 2>&1|tr -d '\r')" 'OK'
 for i in $(seq 1 100); do
   ph=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | grep -o 'active=[0-9]*' | cut -d= -f2)
@@ -99,7 +115,6 @@ done
 st=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
 say "  final STATUS: $st"
 ck "migration done" "$ph" '0'
-case "$st" in *converged=1*) say "  OK   checksums converged";; *) say "  FAIL not converged: $st"; fail=$((fail+1));; esac
 
 say "=== POST-FLIP effect verification (replay carried every write) ==="
 ck "post RENAME moved"      "$($CLI get migren:out|tr -d '\r')" 'ren_src_val'
