@@ -40,8 +40,8 @@ writer() {
     if [ $((RANDOM%50)) -eq 0 ]; then $CLI -p $PORT del "set:$s" >/dev/null 2>&1; fi
   done
 }
-reader & reader & reader & writer & writer &
-wait
+reader & r1=$!; reader & r2=$!; reader & r3=$!; writer & w1=$!; writer & w2=$!
+wait "$r1" "$r2" "$r3" "$w1" "$w2"   # only the readers/writers — bare `wait` would also block on $SRV (eternal hang)
 sleep 1
 $CLI -p $PORT ping >/dev/null 2>&1 && echo "SERVER ALIVE after churn" || echo "SERVER DIED"
 $CLI -p $PORT shutdown nosave >/dev/null 2>&1; sleep 1

@@ -24,17 +24,17 @@ END=$(( $(date +%s) + SECS ))
 ( while [ "$(date +%s)" -lt "$END" ]; do
     $RB -p $PORT -n 100000 -c 50 -P 1  -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1
     $RB -p $PORT -n 100000 -c 50 -P 8  -q MSET k1 a k2 b k3 c k4 d k5 e k6 f k7 g k8 h >/dev/null 2>&1
-  done ) &
+  done ) & W1=$!
 ( while [ "$(date +%s)" -lt "$END" ]; do
     $RB -p $PORT -n 100000 -c 50 -P 16 -q MGET k1 k2 k3 k4 k5 k6 k7 k8 >/dev/null 2>&1
-  done ) &
+  done ) & W2=$!
 ( while [ "$(date +%s)" -lt "$END" ]; do
     $RB -p $PORT -n 50000 -c 30 -P 4 -q SINTER hs1 hs2 >/dev/null 2>&1
     $RB -p $PORT -n 50000 -c 30 -P 4 -q SUNION hs1 hs2 >/dev/null 2>&1
     $RB -p $PORT -n 50000 -c 30 -P 4 -q DEL k1 k2 k3 k4 k5 k6 k7 k8 >/dev/null 2>&1
     $RB -p $PORT -n 50000 -c 30 -P 4 -q EXISTS k1 k2 k3 k4 k5 k6 k7 k8 >/dev/null 2>&1
-  done ) &
-wait
+  done ) & W3=$!
+wait "$W1" "$W2" "$W3"   # only the churn subshells — bare `wait` would also block on the backgrounded server (eternal hang)
 sleep 1
 ALIVE=no; $CLI -p $PORT ping >/dev/null 2>&1 && ALIVE=yes
 $CLI -p $PORT shutdown nosave >/dev/null 2>&1; sleep 1

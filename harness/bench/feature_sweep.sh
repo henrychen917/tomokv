@@ -104,6 +104,7 @@ PY
 hammer_run(){ # label  -> launches 6 procs hammering /tmp/hot_keys.txt for 25s, sums ops/sec
   local label="$1"
   : > /tmp/bench_b_ops.txt
+  local hpids=()   # capture only the load procs — bare `wait` would also block on the backgrounded server
   for i in $(seq 1 6); do
     taskset -c $LG_CORES python3 - 25 >> /tmp/bench_b_ops.txt 2>/dev/null <<'PY' &
 import socket,sys,time
@@ -124,8 +125,9 @@ while time.time()-t0 < dur:
     ops+=B
 print(ops/(time.time()-t0))
 PY
+    hpids+=($!)
   done
-  wait
+  wait "${hpids[@]}"
   local total=$(awk '{s+=$1} END{printf "%.0f", s}' /tmp/bench_b_ops.txt)
   printf "  %-28s aggregate GET ops/sec = %s\n" "$label" "$total" | tee -a $R
 }
