@@ -21,6 +21,22 @@ running `redis-server` from the THredis tree; start it with `--enable-debug-comm
 | `bench/feature_sweep.sh` | Cross-shard fan-out throughput, EWMA efficacy, migration overhead. |
 | `bench/place_keys_on_worker.py` | Place N keys (chosen via `keys.py`) onto one target worker to create controlled worker-skew. |
 | `CROSS_SHARD_DESIGN.md` | Cross-shard scatter-gather design write-up. |
+| `xshard_corruption.sh` | **Cross-shard data-integrity gate.** Heavy cross-shard churn (RENAMENX/COPY/SMOVE/LMOVE/SINTERCARD/ZINTERCARD) + concurrent memtier load, then verifies 200 untouched canary keys are byte-exact. `VERDICT: PASS` = 0 corrupt. Env: `PORT`, `REDIS_CLI`, `MEMTIER`, `IO_THREADS`, `EX_THREADS`. |
+| `xshard_intercard.sh` | **SINTERCARD/ZINTERCARD count-correctness** over cross-shard keys — every LIMIT/disjoint/ordering/3-set edge; asserts SINTER and SINTERCARD agree. |
+| `mass_kill_stall.sh` | **Mass-hard-kill teardown-stall metric.** Under cross-shard churn + a kill-9 storm, measures PING recovery time per trial. Current design: transient stall, always recovers (worst a few s); a `WEDGED` trial is a real regression. This is the before/after metric for the non-blocking-dispatch refactor. |
+
+### Self-contained gates (portable, hang-proof)
+`xshard_corruption.sh`, `xshard_intercard.sh`, and `mass_kill_stall.sh` boot their own server from
+`./src/redis-server`, run to a `VERDICT:`, and exit non-zero on failure — run them straight from a
+built tree (`bash harness/xshard_corruption.sh`) with no setup. They obey three **hang-proof rules**
+that every stress harness here MUST follow (a bare `wait` once turned a transient stall into a
+43-hour false "wedge"):
+1. **Never a bare `wait`.** A script that backgrounds the server with `&` and then calls `wait` with
+   no args blocks on the *server* job forever. Capture churn/load PIDs and `wait "$P1" "$P2" ...`.
+2. **`timeout -s KILL` every client** (and `pkill -9` orphans in an EXIT trap) so a stalled server
+   can never freeze the harness — and remember `timeout … cmd & MPID=$!` makes `$MPID` the *wrapper*;
+   also `pkill` the child by pattern, or the orphaned child runs on.
+3. **Force-kill the server by PID** at the end; don't rely on `wait` to reap it.
 
 ## Methodology notes (learned the hard way)
 
