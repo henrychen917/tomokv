@@ -583,6 +583,7 @@ client *createClient(connection *conn) {
     c->fake_ring_cur_depth  = (unsigned int)n;
     c->fake_ring_decay_skip = 0;
     c->fake_ring_hwm_ewma   = 0.0;
+    c->fake_ring_hwm_win    = 0;
 
     return c;
 }

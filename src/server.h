@@ -1503,6 +1503,11 @@ typedef struct client {
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to pipeline_ring_depth */
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
+    unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
+                                         * consumed+reset by the cron fold (ee451 review: the
+                                         * 1Hz point sample read 0 for every sub-second burst,
+                                         * so the "hwm" EWMA decayed to ~1 and the ring was
+                                         * freed + rebuilt every ~3s even for busy clients) */
     /* Real-client: bitmap of which ring slots have completed replies.
      * Bit N corresponds to fakeClients[N]. Workers set bits with
      * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire

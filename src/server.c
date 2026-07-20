@@ -5282,6 +5282,14 @@ int processCommand(client *c) {
         return C_OK;
     }
 
+    /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
+     * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
+     * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
+     * EWMA decayed to ~1 and the cron freed + the next burst re-created 15/16 of the ring
+     * every ~3s (pure alloc/free churn). One compare on state this path already dirties. */
+    unsigned int inflight_now = c->dispatchid - c->flushid + 1;   /* incl. this dispatch */
+    if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
+
     unsigned int fslot = c->dispatchid & server.pipeline_ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (auto or fixed-N mode leaves
      * unused slots NULL at createClient). fake_slot is stamped once and never changes. */
@@ -7095,37 +7103,55 @@ static robj *csSetOpResultSet(csGroup *g) {
             for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(res, g->setmem[i][k]);
         return res;
     }
-    /* INTER / DIFF: build a membership set per sub. */
-    robj **S = zmalloc(sizeof(robj*) * n);
-    for (int i = 0; i < n; i++) {
+    if (g->setop == CS_SETOP_INTER) {
+        /* Any missing/empty input => empty intersection (matches Redis, which returns ASAP on
+         * an empty input) — and lets us skip EVERY temp-set build below. */
+        for (int i = 0; i < n; i++)
+            if (g->setcnt[i] == 0) return createIntsetObject();
+        /* ee451 review: drive the scan off the LARGEST input and build membership probes only
+         * for the others. Per-member temp-set INSERTION costs more than a membership PROBE
+         * (measured ~1.4x for sets, ~5x for zset skiplists), so exclude the biggest build —
+         * NOT the smallest scan (the intuitive smallest-driver choice regresses). Scanning the
+         * raw gathered sds array also kills the old S[0]-iterator walk's per-member
+         * sdsnewlen/sdsfree churn. Intersection is symmetric => identical result contents;
+         * set reply order is unspecified (oracles sort). Same probe idiom as
+         * csInterCardLimited — keep them consistent (SINTER never disagrees with SINTERCARD). */
+        int d = 0;
+        for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+        robj **S = zcalloc(sizeof(robj*) * n);   /* S[d] unused: raw array drives the scan */
+        for (int i = 0; i < n; i++) {
+            if (i == d) continue;
+            S[i] = createIntsetObject();
+            for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+        }
+        robj *res = createIntsetObject();
+        for (long k = 0; k < g->setcnt[d]; k++) {
+            int in_all = 1;
+            for (int j = 0; j < n; j++)
+                if (j != d && !setTypeIsMember(S[j], g->setmem[d][k])) { in_all = 0; break; }
+            if (in_all) setTypeAdd(res, g->setmem[d][k]);
+        }
+        for (int i = 0; i < n; i++) if (S[i]) decrRefCount(S[i]);
+        zfree(S);
+        return res;
+    }
+    /* CS_SETOP_DIFF: members of subs[0] absent from subs[1..]. The driver MUST stay input 0
+     * (DIFF is asymmetric) — but its temp set is still unnecessary: scan the raw gathered
+     * array (one key's members are already distinct) and probe temp sets built for 1..n-1.
+     * Empty base => empty result, skip all builds. */
+    robj *res = createIntsetObject();
+    if (g->setcnt[0] == 0) return res;
+    robj **S = zcalloc(sizeof(robj*) * n);       /* S[0] unused */
+    for (int i = 1; i < n; i++) {
         S[i] = createIntsetObject();
         for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
     }
-    robj *res = createIntsetObject();
-    if (g->setop == CS_SETOP_INTER) {
-        /* Member of subs[0] that is present in EVERY other sub. If any key is missing/empty its
-         * membership set is empty => nothing survives => empty intersection (matches Redis). */
-        setTypeIterator si; setTypeInitIterator(&si, S[0]);
-        char *str; size_t len; int64_t llele;
-        while (setTypeNext(&si, &str, &len, &llele) != -1) {
-            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
-            int in_all = 1;
-            for (int j = 1; j < n; j++) if (!setTypeIsMember(S[j], m)) { in_all = 0; break; }
-            if (in_all) setTypeAdd(res, m);
-            sdsfree(m);
-        }
-    } else { /* CS_SETOP_DIFF: members of subs[0] absent from subs[1..] */
-        setTypeIterator si; setTypeInitIterator(&si, S[0]);
-        char *str; size_t len; int64_t llele;
-        while (setTypeNext(&si, &str, &len, &llele) != -1) {
-            sds m = str ? sdsnewlen(str, len) : sdsfromlonglong(llele);
-            int in_others = 0;
-            for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], m)) { in_others = 1; break; }
-            if (!in_others) setTypeAdd(res, m);
-            sdsfree(m);
-        }
+    for (long k = 0; k < g->setcnt[0]; k++) {
+        int in_others = 0;
+        for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], g->setmem[0][k])) { in_others = 1; break; }
+        if (!in_others) setTypeAdd(res, g->setmem[0][k]);
     }
-    for (int i = 0; i < n; i++) decrRefCount(S[i]);
+    for (int i = 1; i < n; i++) decrRefCount(S[i]);
     zfree(S);
     return res;
 }
@@ -7143,6 +7169,7 @@ static long long csInterCardLimited(csGroup *g, long long limit) {
     /* base = the smallest set: fewest candidates to scan (and if it is empty, the answer is 0). */
     int base = 0;
     for (int i = 1; i < n; i++) if (g->setcnt[i] < g->setcnt[base]) base = i;
+    if (g->setcnt[base] == 0) return 0;      /* empty input => 0; skip all probe builds */
     robj **S = zcalloc(sizeof(robj*) * n);   /* S[base] unused; the rest are membership probes */
     for (int i = 0; i < n; i++) {
         if (i == base) continue;
@@ -7221,37 +7248,80 @@ static robj *csZSetOpResultZset(csGroup *g) {
                 }
             }
         }
-    } else {
-        /* INTER/DIFF: per-key temp zsets give membership + score probes. */
-        robj **Z = zmalloc(sizeof(robj*) * n);
-        for (int i = 1; i < n; i++) {
-            Z[i] = createZsetObject();
-            for (long k = 0; k < g->setcnt[i]; k++)
-                zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
-        }
-        for (long k = 0; k < g->setcnt[0]; k++) {
-            sds m = g->setmem[0][k];
-            if (g->setop == CS_SETOP_INTER) {
-                /* stock zeroes only the FIRST contribution; later NaNs go through raw */
-                double sc = weights[0] * g->zscore[0][k];
-                if (isnan(sc)) sc = 0;
+    } else if (g->setop == CS_SETOP_INTER) {
+        /* Any empty input => empty intersection; skip every temp-zset build. */
+        int has_empty = 0;
+        for (int i = 0; i < n; i++) if (g->setcnt[i] == 0) { has_empty = 1; break; }
+        if (!has_empty) {
+            /* ee451 review: drive the scan off the LARGEST input and build temp zsets only for
+             * the others. The old code always scanned input 0 raw and REBUILT every other input
+             * as a skiplist — with the big input in position 1+ that reconstruction dominated
+             * (measured 5.2x argv-order cliff; skiplist insert ~5x a probe). The score fold is
+             * decoupled from the driver: contributions are collected per input, then folded in
+             * STOCK's order — cardinality-ascending (tie: original index), NaN->0 applied to the
+             * FIRST FOLDED contribution only (t_zset.c sorts sources by cardinality before
+             * aggregating). This also FIXES a stock divergence: the old argv-order fold zeroed
+             * input 0's NaN, so ZINTER 2 big small WEIGHTS 1 inf returned 0 where stock (small
+             * sorts first, inf*score NaN->0, then SUM big's contribution) returns the score. */
+            int d = 0;
+            for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+            int *ord = zmalloc(sizeof(int) * n);   /* fold order: (setcnt, index) ascending */
+            for (int i = 0; i < n; i++) ord[i] = i;
+            for (int i = 1; i < n; i++) {          /* insertion sort — n is small */
+                int v = ord[i], j = i - 1;
+                while (j >= 0 && (g->setcnt[ord[j]] > g->setcnt[v] ||
+                       (g->setcnt[ord[j]] == g->setcnt[v] && ord[j] > v))) { ord[j+1] = ord[j]; j--; }
+                ord[j+1] = v;
+            }
+            robj **Z = zcalloc(sizeof(robj*) * n); /* Z[d] unused: raw arrays drive the scan */
+            for (int i = 0; i < n; i++) {
+                if (i == d) continue;
+                Z[i] = createZsetObject();
+                for (long k = 0; k < g->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+            }
+            double *contrib = zmalloc(sizeof(double) * n);
+            for (long k = 0; k < g->setcnt[d]; k++) {
+                sds m = g->setmem[d][k];
                 int in_all = 1;
-                for (int i = 1; i < n; i++) {
+                contrib[d] = weights[d] * g->zscore[d][k];
+                for (int i = 0; i < n; i++) {
+                    if (i == d) continue;
                     double si;
                     if (zsetScore(Z[i], m, &si) != C_OK) { in_all = 0; break; }
-                    csZAggr(&sc, weights[i] * si, aggregate);
+                    contrib[i] = weights[i] * si;
                 }
-                if (in_all) zsetAdd(res, sc, m, ZADD_IN_NONE, &out_flags, NULL);
-            } else {   /* DIFF: key0 members absent everywhere else, raw key0 scores */
+                if (!in_all) continue;
+                double sc = contrib[ord[0]];
+                if (isnan(sc)) sc = 0;             /* stock zeroes only the first folded */
+                for (int i = 1; i < n; i++) csZAggr(&sc, contrib[ord[i]], aggregate);
+                zsetAdd(res, sc, m, ZADD_IN_NONE, &out_flags, NULL);
+            }
+            zfree(contrib); zfree(ord);
+            for (int i = 0; i < n; i++) if (Z[i]) decrRefCount(Z[i]);
+            zfree(Z);
+        }
+    } else {
+        /* DIFF: key0 members absent everywhere else, raw key0 scores. Driver MUST stay input 0
+         * (asymmetric); temp zsets only for 1..n-1 (as before). Empty base => empty result. */
+        if (g->setcnt[0] > 0) {
+            robj **Z = zmalloc(sizeof(robj*) * n);
+            for (int i = 1; i < n; i++) {
+                Z[i] = createZsetObject();
+                for (long k = 0; k < g->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+            }
+            for (long k = 0; k < g->setcnt[0]; k++) {
+                sds m = g->setmem[0][k];
                 int in_others = 0;
                 double si;
                 for (int i = 1; i < n; i++)
                     if (zsetScore(Z[i], m, &si) == C_OK) { in_others = 1; break; }
                 if (!in_others) zsetAdd(res, g->zscore[0][k], m, ZADD_IN_NONE, &out_flags, NULL);
             }
+            for (int i = 1; i < n; i++) decrRefCount(Z[i]);
+            zfree(Z);
         }
-        for (int i = 1; i < n; i++) decrRefCount(Z[i]);
-        zfree(Z);
     }
     zfree(weights);
     return res;
@@ -8433,11 +8503,18 @@ void fakeRingAutoTune(void) {
 void fakeRingClientCron(client *c) {
     if (c->isFake || !c->conn) return;
     if (server.fake_ring_depth_mode != -1 && server.fake_buf_mode != -1) return;
-    /* D3 depth decay: shrink toward EWMA high-water when the ring has been idle. */
+    /* D3 depth decay: shrink toward the EWMA of the TRUE per-window high-water (dispatch-
+     * updated fake_ring_hwm_win, consumed+reset here) when the ring has been idle. Folding
+     * the instantaneous gap alone read 0 for sub-second bursts => decay-to-1 => recurring
+     * teardown/rebuild churn (ee451 review). A busy P16 client now folds 16 every window
+     * (=> target stays 16+, zero churn); a genuinely idle client folds 0s and still decays
+     * to 1 within a few windows, preserving D3's memory-reclaim purpose. */
     if (server.fake_ring_depth_mode == -1) {
         unsigned int inflight = c->dispatchid - c->flushid;
+        unsigned int hwm = c->fake_ring_hwm_win > inflight ? c->fake_ring_hwm_win : inflight;
+        c->fake_ring_hwm_win = 0;
         double a = 0.3;
-        c->fake_ring_hwm_ewma = a*(double)inflight + (1.0-a)*c->fake_ring_hwm_ewma;
+        c->fake_ring_hwm_ewma = a*(double)hwm + (1.0-a)*c->fake_ring_hwm_ewma;
         unsigned int target = (unsigned int)(c->fake_ring_hwm_ewma * 1.25) + 1;
         if (target < 1) target = 1;
         if (target > (unsigned int)server.pipeline_ring_depth) target = (unsigned int)server.pipeline_ring_depth;
