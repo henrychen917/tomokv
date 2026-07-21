@@ -7058,6 +7058,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
 
 static void csPipeSubExec(client *sub, csGroup *g) {
     int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+    int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZCARD);   /* Z family: zsets + sets (score 1) */
     switch (g->pipe_stage) {
     case CS_PIPE_SIZES:
         for (int a = 1; a < sub->argc; a++) {
@@ -7065,44 +7066,97 @@ static void csPipeSubExec(client *sub, csGroup *g) {
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             long sz = 0;
             if (o) {
-                if (o->type != OBJ_SET)
-                    atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
-                else sz = (long)setTypeSize(o);
+                if (o->type == OBJ_SET) sz = (long)setTypeSize(o);
+                else if (isz && o->type == OBJ_ZSET) sz = (long)zsetLength(o);
+                else atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             }
             g->pipe_scard[idx] = sz;
         }
         break;
     case CS_PIPE_GATHER1: {
-        /* argv = [CMD smallest-key]; ship its members as private sds copies (candidates). */
+        /* argv = [CMD smallest-key]; ship its members (and, for CS_ZOP, raw scores into the
+         * smallest key's matrix column) as private copies (candidates). */
         robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
         if (o == NULL) break;                          /* raced away => empty result */
-        if (o->type != OBJ_SET) {
+        long n; sds *arr; long w = 0; double *gsc = NULL;
+        if (o->type == OBJ_SET) {
+            n = (long)setTypeSize(o);
+            if (n == 0) break;
+            arr = zmalloc(sizeof(sds) * n);
+            if (g->ctype == CS_ZOP) gsc = zmalloc(sizeof(double) * n);
+            setTypeIterator si; setTypeInitIterator(&si, o);
+            char *str; size_t len; int64_t ll;
+            while (w < n && setTypeNext(&si, &str, &len, &ll) != -1) {
+                if (gsc) gsc[w] = 1.0;                 /* stock: set source scores 1.0 */
+                arr[w++] = str ? sdsnewlen(str, len) : sdsfromlonglong(ll);
+            }
+        } else if (isz && o->type == OBJ_ZSET) {
+            n = (long)zsetLength(o);
+            if (n == 0) break;
+            arr = zmalloc(sizeof(sds) * n);
+            if (g->ctype == CS_ZOP) gsc = zmalloc(sizeof(double) * n);
+            if (o->encoding == OBJ_ENCODING_LISTPACK) {
+                unsigned char *lp = o->ptr, *p = lpFirst(lp);
+                while (p && w < n) {
+                    unsigned int vlen; long long vll;
+                    unsigned char *vstr = lpGetValue(p, &vlen, &vll);
+                    arr[w] = vstr ? sdsnewlen((char *)vstr, vlen) : sdsfromlonglong(vll);
+                    p = lpNext(lp, p);
+                    vstr = lpGetValue(p, &vlen, &vll);
+                    double s;
+                    if (vstr) { char b[128]; int bl = vlen < 127 ? (int)vlen : 127;
+                                memcpy(b, vstr, bl); b[bl] = 0; s = strtod(b, NULL); }
+                    else s = (double)vll;
+                    if (gsc) gsc[w] = s;
+                    w++; p = lpNext(lp, p);
+                }
+            } else {
+                zset *zs = o->ptr;
+                zskiplistNode *zn = zs->zsl->header->level[0].forward;
+                while (zn && w < n) {
+                    arr[w] = sdsdup(zslGetNodeElement(zn));
+                    if (gsc) gsc[w] = zn->score;
+                    w++; zn = zn->level[0].forward;
+                }
+            }
+        } else {
             atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             break;
         }
-        long n = (long)setTypeSize(o);
-        if (n == 0) break;
-        sds *arr = zmalloc(sizeof(sds) * n);
-        long w = 0;
-        setTypeIterator si; setTypeInitIterator(&si, o);
-        char *str; size_t len; int64_t ll;
-        while (w < n && setTypeNext(&si, &str, &len, &ll) != -1)
-            arr[w++] = str ? sdsnewlen(str, len) : sdsfromlonglong(ll);
         g->pipe_cand = arr; g->pipe_ncand = w;
+        if (gsc) {                                     /* CS_ZOP: matrix column [smallest] */
+            g->pipe_cscore = zcalloc(sizeof(double) * (size_t)w * g->nkeys);
+            for (long c = 0; c < w; c++)
+                g->pipe_cscore[c * g->nkeys + g->pipe_smallest] = gsc[c];
+            zfree(gsc);
+        }
         break;
     }
     case CS_PIPE_PROBE:
-        /* Candidates vs EVERY key on this shard, in place. Missing key => empty intersection. */
+        /* Candidates vs EVERY key on this shard, in place. Missing key => empty intersection.
+         * CS_ZOP also records each key's raw score into its matrix column (pipe_probe_pos maps
+         * argv slot -> original key position; coordinator-written pre-push). */
         for (int a = 1; a < sub->argc; a++) {
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             if (o == NULL) { memset(g->pipe_verdict, 0, g->pipe_ncand); return; }
-            if (o->type != OBJ_SET) {
+            int kpos = (a - 1 < g->pipe_probe_nk) ? g->pipe_probe_pos[a - 1] : 0;
+            if (o->type == OBJ_SET) {
+                for (long c = 0; c < g->pipe_ncand; c++) {
+                    if (!g->pipe_verdict[c]) continue;
+                    if (!setTypeIsMember(o, g->pipe_cand[c])) g->pipe_verdict[c] = 0;
+                    else if (g->pipe_cscore) g->pipe_cscore[c * g->nkeys + kpos] = 1.0;
+                }
+            } else if (isz && o->type == OBJ_ZSET) {
+                for (long c = 0; c < g->pipe_ncand; c++) {
+                    double s;
+                    if (!g->pipe_verdict[c]) continue;
+                    if (zsetScore(o, g->pipe_cand[c], &s) != C_OK) g->pipe_verdict[c] = 0;
+                    else if (g->pipe_cscore) g->pipe_cscore[c * g->nkeys + kpos] = s;
+                }
+            } else {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
                 return;
             }
-            for (long c = 0; c < g->pipe_ncand; c++)
-                if (g->pipe_verdict[c] && !setTypeIsMember(o, g->pipe_cand[c]))
-                    g->pipe_verdict[c] = 0;
         }
         break;
     }
@@ -7170,7 +7224,12 @@ static int csPipeAdvance(csGroup *g) {
         long w = 0;
         for (long c = 0; c < g->pipe_ncand; c++) {
             if (g->pipe_verdict[c]) {
-                g->pipe_cand[w] = g->pipe_cand[c];
+                if (w != c) {
+                    g->pipe_cand[w] = g->pipe_cand[c];
+                    if (g->pipe_cscore)                /* matrix rows travel with candidates */
+                        memmove(&g->pipe_cscore[w * g->nkeys],
+                                &g->pipe_cscore[c * g->nkeys], sizeof(double) * g->nkeys);
+                }
                 g->pipe_verdict[w] = 1; w++;
             } else sdsfree(g->pipe_cand[c]);
         }
@@ -7199,7 +7258,9 @@ static int csPipeAdvance(csGroup *g) {
         for (int i = 0; i < nk; i++) {
             robj *k = head->argv[first + kidx[i] * s->key_stride];
             sub->argv[i+1] = k; incrRefCount(k);
+            g->pipe_probe_pos[i] = kidx[i];            /* argv slot -> original key position */
         }
+        g->pipe_probe_nk = nk;
         sub->argc = nk + 1;
         csPushSpin(w, sub);
         return 1;
@@ -7244,9 +7305,10 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         }
         if (same) { dispatchLocalReal(head, w0, dbid); return; }
     }
-    /* merge-execution pipeline: cross-shard INTER family, read-only rows only. */
+    /* merge-execution pipeline: cross-shard INTER family (sets + zsets), read-only rows only. */
     if (server.xshard_pipeline && !s->cs_write && !s->has_hop2 && nkeys >= 2 &&
-        (s->ctype == CS_SETOP || s->ctype == CS_SETCARD) && s->setop == CS_SETOP_INTER) {
+        (s->ctype == CS_SETOP || s->ctype == CS_SETCARD ||
+         s->ctype == CS_ZOP   || s->ctype == CS_ZCARD) && s->setop == CS_SETOP_INTER) {
         dispatchPipeline(head, s, nkeys, first, dbid);
         return;
     }
@@ -8017,6 +8079,59 @@ static void csReassemble(client *dst, client *head) {
                 long long card = g->pipe_ncand;
                 if (lim > 0 && card > lim) card = lim;
                 addReplyLongLong(dst, card);
+            } else if (g->ctype == CS_ZCARD) {
+                long long nk = 0, lim = 0;             /* ZINTERCARD numkeys key... [LIMIT n] */
+                getLongLongFromObject(head->argv[1], &nk);
+                int tail = 2 + (int)nk;
+                if (tail + 1 < head->argc) getLongLongFromObject(head->argv[tail+1], &lim);
+                long long card = g->pipe_ncand;
+                if (lim > 0 && card > lim) card = lim;
+                addReplyLongLong(dst, card);
+            } else if (g->ctype == CS_ZOP) {
+                /* Stock-exact fold: weights applied per contribution, keys folded in
+                 * cardinality-ascending order (tie: original index), NaN->0 on the FIRST
+                 * folded contribution only; result emitted in (score, member) rank order
+                 * like the temp-zset path (stock reply order). */
+                int n = g->nkeys;
+                double *weights = zmalloc(sizeof(double) * n);
+                int aggregate = csZParseOpts(head, n, weights);
+                int ws = 0;                            /* WITHSCORES present? */
+                for (int a = csFirstKeyArg(g->spec) + n; a < head->argc; a++)
+                    if (!strcasecmp(head->argv[a]->ptr, "withscores")) { ws = 1; break; }
+                int *ord = zmalloc(sizeof(int) * n);
+                for (int i = 0; i < n; i++) ord[i] = i;
+                for (int i = 1; i < n; i++) {          /* insertion sort by (scard, idx) */
+                    int v = ord[i], j = i - 1;
+                    while (j >= 0 && (g->pipe_scard[ord[j]] > g->pipe_scard[v] ||
+                           (g->pipe_scard[ord[j]] == g->pipe_scard[v] && ord[j] > v))) {
+                        ord[j+1] = ord[j]; j--;
+                    }
+                    ord[j+1] = v;
+                }
+                typedef struct { sds m; double s; } zpair;
+                zpair *out = zmalloc(sizeof(zpair) * (g->pipe_ncand ? g->pipe_ncand : 1));
+                for (long c = 0; c < g->pipe_ncand; c++) {
+                    double sc = weights[ord[0]] * g->pipe_cscore[c * n + ord[0]];
+                    if (isnan(sc)) sc = 0;
+                    for (int i = 1; i < n; i++)
+                        csZAggr(&sc, weights[ord[i]] * g->pipe_cscore[c * n + ord[i]], aggregate);
+                    out[c].m = g->pipe_cand[c]; out[c].s = sc;
+                }
+                /* rank order (score asc, member lex asc) = skiplist order */
+                for (long i = 1; i < g->pipe_ncand; i++) {   /* insertion sort; candidates are small */
+                    zpair v = out[i]; long j = i - 1;
+                    while (j >= 0 && (out[j].s > v.s ||
+                           (out[j].s == v.s && sdscmp(out[j].m, v.m) > 0))) {
+                        out[j+1] = out[j]; j--;
+                    }
+                    out[j+1] = v;
+                }
+                addReplyArrayLen(dst, g->pipe_ncand * (ws ? 2 : 1));
+                for (long c = 0; c < g->pipe_ncand; c++) {
+                    addReplyBulkCBuffer(dst, out[c].m, sdslen(out[c].m));
+                    if (ws) addReplyDouble(dst, out[c].s);
+                }
+                zfree(out); zfree(ord); zfree(weights);
             } else {
                 addReplySetLen(dst, g->pipe_ncand);
                 for (long c = 0; c < g->pipe_ncand; c++)
@@ -8024,7 +8139,7 @@ static void csReassemble(client *dst, client *head) {
             }
         }
         for (long c = 0; c < g->pipe_ncand; c++) sdsfree(g->pipe_cand[c]);
-        zfree(g->pipe_cand); zfree(g->pipe_verdict);
+        zfree(g->pipe_cand); zfree(g->pipe_verdict); zfree(g->pipe_cscore);
         zfree(g->pipe_scard); zfree(g->pipe_order); zfree(g->pipe_shard_of);
         g->pipe_cand = NULL; g->pipe_ncand = 0;
         /* fall through to the generic teardown (subs/posmaps/group) with dst handled */

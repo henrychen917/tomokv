@@ -1920,6 +1920,12 @@ typedef struct csGroup {
     uint8_t *pipe_verdict;     /* [pipe_ncand] worker-written per-candidate survive flags */
     int  *pipe_shard_of;       /* [nkeys] key -> worker (stamped at dispatch) */
     int   pipe_smallest;       /* key position of the globally smallest set */
+    /* Z extension: cand-major per-key contribution matrix (CS_ZOP only; NULL for counts).
+     * pipe_cscore[c*nkeys + k] = raw score of candidate c in key k (weights applied at the
+     * reassemble fold, in stock cardinality-ascending key order). Rows compact with cand. */
+    double *pipe_cscore;
+    int pipe_probe_pos[64];    /* original key positions of the in-flight PROBE sub's argv */
+    int pipe_probe_nk;
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
     /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
      * provably implementable without a shape change): ---- */
