@@ -8057,22 +8057,11 @@ static void migLogFree(migLog *L) {
     while (h != t) { migEntryFree(L->slots[h & L->cap_mask]); h++; }
     zfree(L->slots); zfree(L);
 }
-/* A-side push; spins (draining nothing, B consumes concurrently) if full — bounded by B's rate.
- * Full test is the wrap-safe MONOTONIC compare: in-flight = t - head, full when it reaches cap.
- * (The old check compared a MASKED (t+1) against the RAW monotonic head, which can only match
- * while head < cap — after B's first 64K pops the backpressure was permanently disarmed, so a
- * lagging B let A lap the ring and clobber unconsumed entries: silently lost effects after FLIP
- * and a double-free of lapped slots in migLogFree. Unsigned subtraction stays correct across
- * the 2^32 counter wrap because cap divides 2^32.) */
-static void migLogPush(migLog *L, migLogEntry *e) {
-    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
-    while (t - L->cached_head > L->cap_mask) {
-        L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
-        if (t - L->cached_head > L->cap_mask) { exPauseCpu(); }   /* full: let B drain */
-    }
-    L->slots[t & L->cap_mask] = e;
-    atomic_store_explicit(&L->tail, t + 1, memory_order_release);
-}
+/* (The blocking A-side push is GONE — wedge fix: A must never block mid-command, because a
+ * blocked A stops popping its SPSC queues, which starves the drain fence and cascades into a
+ * whole-server livelock. All pushes now go through migLogTryPush + the deferred-capture
+ * overflow below. The full test stays the wrap-safe monotonic compare: in-flight = t - head,
+ * full at cap; unsigned subtraction is correct across the 2^32 wrap because cap divides it.) */
 /* B-side pop; NULL if empty. */
 static migLogEntry *migLogPop(migLog *L) {
     unsigned int h = atomic_load_explicit(&L->head, memory_order_relaxed);
@@ -8080,6 +8069,72 @@ static migLogEntry *migLogPop(migLog *L) {
     migLogEntry *e = L->slots[h & L->cap_mask];
     atomic_store_explicit(&L->head, h + 1, memory_order_release);
     return e;
+}
+
+/* ee451 (wedge fix): non-blocking A-side push. Stamps the entry's seq AT PUSH TIME (single
+ * producer => relaxed fetch_add) so ring order == seq order stays monotone even when entries
+ * are deferred; coalesced-away entries simply never consume a seq (no gaps). Returns 0 full. */
+static int migLogTryPush(migLog *L, migLogEntry *e) {
+    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
+    if (t - L->cached_head > L->cap_mask) {
+        L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
+        if (t - L->cached_head > L->cap_mask) return 0;    /* full — caller defers */
+    }
+    e->seq = atomic_fetch_add_explicit(&server.migration.issued_seq, 1, memory_order_relaxed);
+    L->slots[t & L->cap_mask] = e;
+    atomic_store_explicit(&L->tail, t + 1, memory_order_release);
+    return 1;
+}
+
+/* ee451 (wedge fix): A-side deferred-capture overflow. ROOT CAUSE of the whole-server wedge
+ * (hunt v1/v2, 2026-07-20): a hot in-range collection key (200k SADDs to one set mid-COPYING)
+ * makes every write capture the FULL post-image — a growing multi-MB blob — while B pays an
+ * rdbLoad per blob, ~1000x slower than A captures. The 64K ring fills; A used to BLOCK inside
+ * migLogPush mid-command, so it stopped popping its SPSC queues (fence sentinels included —
+ * C.2 could never complete), and every IO thread eventually wedged in exDispatchPush routing
+ * anything to A: alive-but-unresponsive server, all threads at 100%, crash=0.
+ * Fix: A NEVER blocks on capture. Ring-full captures park in this A-private list keyed by
+ * keyname with LAST-WRITE-WINS replacement — which also collapses the N-writes-to-one-key
+ * amplification into a single freshest post-image (the O(n^2) blob volume dies with it).
+ * Flushed opportunistically from A's loop, and BLOCKING (A-waits-on-B only; B never waits on
+ * A => the wait graph stays acyclic) at the three points whose semantics need an empty defer
+ * set: fence-sentinel ack, scan_done, and CLEANUP->DONE. Per-key order holds because once the
+ * set is non-empty ALL captures route through it (<=1 pending entry per key; seqs are stamped
+ * only at real push). Linear key scan is fine: the pathological case is few distinct hot keys,
+ * and steady flush keeps the set small. All access is worker-A-thread-only. */
+typedef struct migOfEnt { migLogEntry *e; struct migOfEnt *next; } migOfEnt;
+static migOfEnt *mig_overflow_head = NULL;
+static int mig_scan_wrapped = 0;               /* wedge fix: sticky scan-complete (pre-overflow) */
+static void migOverflowPut(migLogEntry *e) {
+    for (migOfEnt *p = mig_overflow_head; p; p = p->next) {
+        if (sdslen(p->e->key) == sdslen(e->key) &&
+            memcmp(p->e->key, e->key, sdslen(e->key)) == 0) {
+            migEntryFree(p->e); p->e = e; return;          /* LWW replace, no seq consumed */
+        }
+    }
+    migOfEnt *n = zmalloc(sizeof(*n)); n->e = e; n->next = mig_overflow_head;
+    mig_overflow_head = n;
+}
+static void migOverflowFlush(int block) {
+    migLog *L = server.migration.log;
+    while (mig_overflow_head) {
+        /* Non-blocking mode honors the same ~1K occupancy ceiling as the capture fast path —
+         * otherwise every capture would defer only to have its snapshot promoted right here,
+         * and the amplification cap would be a no-op. Blocking mode (fence ack / scan_done /
+         * CLEANUP) pushes regardless: those points REQUIRE an empty defer set, and by then
+         * the entries are maximally coalesced (one per key). */
+        if (!block) {
+            unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
+                                    atomic_load_explicit(&L->head, memory_order_relaxed);
+            if (inflight >= 1024) return;
+        }
+        if (!migLogTryPush(L, mig_overflow_head->e)) {
+            if (!block) return;
+            exPauseCpu(); continue;                        /* A waits only on B's drain */
+        }
+        migOfEnt *done = mig_overflow_head;
+        mig_overflow_head = done->next; zfree(done);
+    }
 }
 
 /* ---- A side: capture the post-image/tombstone of a range key AFTER its mutation commits.
@@ -8091,7 +8146,8 @@ void migCaptureEffect(redisDb *db, robj *keyobj) {
     if (ph != MIG_COPYING && ph != MIG_DRAINING) return;   /* both phases are pre-flip: A still logs */
     if (!migBucketInRange(migKeyBucket(keyobj->ptr, sdslen(keyobj->ptr)))) return;
     migLogEntry *e = zcalloc(sizeof(*e));
-    e->seq = atomic_fetch_add_explicit(&server.migration.issued_seq, 1, memory_order_relaxed);
+    /* wedge fix: seq is stamped at PUSH time (migLogTryPush), not here — a deferred entry must
+     * not hold a seq older than entries that reach the ring before it. */
     e->dbid = db->id;
     e->key = sdsdup(keyobj->ptr);
     robj *val = lookupKeyReadWithFlags(db, keyobj, LOOKUP_NOEFFECTS);   /* A reads its own shard */
@@ -8104,7 +8160,19 @@ void migCaptureEffect(redisDb *db, robj *keyobj) {
         long long ex = getExpire(db, keyobj->ptr, NULL);
         e->pexpireat = (ex == -1) ? -1 : ex;
     }
-    migLogPush(server.migration.log, e);
+    /* wedge fix: NEVER block here (see migOverflowPut block comment). Route through the
+     * overflow whenever it is non-empty so per-key order is preserved. Part 2: start
+     * COALESCING well before the ring is full — a hot collection key otherwise lands
+     * thousands of full-post-image snapshots in the ring (O(n^2) member-loads for B, the
+     * minutes-deep backlog behind the B-side stall). Past ~1K in-flight entries, new
+     * captures defer + LWW-coalesce instead, capping snapshot amplification at the
+     * threshold while leaving plain-workload captures (shallow ring) on the fast path. */
+    migLog *L = server.migration.log;
+    unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
+                            atomic_load_explicit(&L->head, memory_order_relaxed);
+    migOverflowFlush(0);
+    if (mig_overflow_head || inflight >= 1024 || !migLogTryPush(L, e))
+        migOverflowPut(e);
 }
 
 /* ---- B side: apply one log entry to B's shard, in order (overwrite / delete, LWW). ---- */
@@ -8124,10 +8192,17 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
     }
     decrRefCount(keyobj);
 }
-/* B drains the whole log that is currently available, publishing applied_seq. Called from B's loop. */
+/* B drains a BOUNDED batch of the log per loop iteration, publishing applied_seq.
+ * ee451 (wedge fix, part 2): the unbounded while-drain was the OTHER half of the livelock —
+ * with a deep backlog of big blobs (each rdbLoad can be ~100ms for a hot collection key's
+ * snapshot), one call ran for minutes, B stopped popping its OWN SPSC queues, every dispatch
+ * touching a B-owned key spun its IO thread in exDispatchPush, and the server progressively
+ * died while A (post part-1) stayed innocent. Bounding the batch keeps B serving clients;
+ * convergence just takes as long as B's real throughput allows. */
 static void migDrainB(exThread *B) {
     migLogEntry *e;
-    while ((e = migLogPop(server.migration.log)) != NULL) {
+    int budget = 64;
+    while (budget-- > 0 && (e = migLogPop(server.migration.log)) != NULL) {
         uint64_t seq = e->seq;
         migApplyOne(B, e);
         migEntryFree(e);
@@ -8165,8 +8240,12 @@ static int migScanA(exThread *A, int batch) {
 /* Worker A drives the cold scan from its own loop, a small batch per iteration so serving is
  * never starved. Publishes scan_done (release) when the whole keyspace has been emitted once. */
 static void migServiceScanA(exThread *A) {
+    migOverflowFlush(0);       /* wedge fix: A's loop opportunistically drains deferred captures */
     if (atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed)) return;
-    if (migScanA(A, 64))
+    if (!mig_scan_wrapped && migScanA(A, 64)) mig_scan_wrapped = 1;
+    /* scan_done promises every cold-copy capture is IN the ring (the coordinator's convergence
+     * gate counts issued vs applied) — so it must also wait for the defer set to drain. */
+    if (mig_scan_wrapped && !mig_overflow_head)
         atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
 }
 
@@ -8209,7 +8288,7 @@ static int reshardArm(int lo, int hi, int src, int dst) {
     atomic_store_explicit(&server.migration.scan_done, 0, memory_order_relaxed);
     /* fence_gen is MONOTONIC across migrations (never reset) so producers' thread-local
      * mig_local_fence_gen always differs from a fresh cutover's gen and they push their sentinel. */
-    mig_scan_cursor = 0; mig_scan_dbid = 0;
+    mig_scan_cursor = 0; mig_scan_dbid = 0; mig_scan_wrapped = 0;   /* wedge fix: reset sticky */
     server.migration.lo = lo; server.migration.hi = hi;
     server.migration.src = src; server.migration.dst = dst;
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
@@ -8320,6 +8399,8 @@ static void migCleanupDeleteRangeA(exThread *A) {
         }
         zfree(batch);
     }
+    migOverflowFlush(1);   /* wedge fix: belt-and-braces — B drains until phase==DONE, so any
+                            * straggler deferred capture must be pushed BEFORE we advance. */
     atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
     serverLog(LL_NOTICE, "ee451 reshard CLEANUP: worker %d deleted migrated range [%d,%d)",
               server.migration.src, lo, hi);
@@ -12560,6 +12641,10 @@ void *exThreadMain(void *arg) {
                  * every range primary this producer dispatched before it has executed on A; decrement
                  * the per-cutover barrier and free. No reply. */
                 if (fake->drain_ack) {
+                    /* wedge fix: every capture from work popped BEFORE this sentinel must be in
+                     * the ring before we ack — the coordinator samples s_final off issued_seq
+                     * after the last ack. Blocking flush is safe here: A waits only on B. */
+                    migOverflowFlush(1);
                     /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                     atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                     freeFakeClient(fake);
