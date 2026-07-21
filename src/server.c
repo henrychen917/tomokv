@@ -117,6 +117,9 @@ static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
 static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
+static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
+                                             * next stage dispatched (head stays in flight) */
+static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
 static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HOP2 launcher; 1 = HOP2
                                              * pushed (head stays in flight), 0 = fall to reassemble */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
@@ -2118,6 +2121,12 @@ void handleWorkerReplies(void) {
              * head ring slot like any other fake. */
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
+                /* merge-exec pipeline: a completed stage either dispatches the next one (head
+                 * stays in flight, exactly like the HOP2 launch below) or falls through to
+                 * reassemble the final survivors. */
+                if (g->pipe_stage && csPipeAdvance(g)) {
+                    break;
+                }
                 if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
                     atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE &&
                     /* universal xshard 2-HOP: HOP1 gather done, launch HOP2 write on THIS drain thread.
@@ -6306,6 +6315,11 @@ static void csSubExec(client *sub) {
     if (!sub->argv || !sub->argv[1]) return;
     client *saved = server.current_client[iotid].p;
     server.current_client[iotid].p = sub;
+    if (g->pipe_stage) {                    /* merge-exec pipeline stage op (reads only) */
+        csPipeSubExec(sub, g);
+        server.current_client[iotid].p = saved;
+        return;
+    }
     switch (g->ctype) {
     case CS_MGET: {
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
@@ -6992,6 +7006,207 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
  * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
  * key_stride/per_key_extra), write holds (cs_write), MSET value ownership (append_extra). */
+/* ==== ee451 MERGE-EXECUTION pipeline (v1: SINTER/SINTERCARD, knob tomokv-xshard-pipeline) ====
+ * Naming per design: TIERED-TRANSLATION routing (bucket -> node -> worker, page-table-like) +
+ * MERGE-EXECUTION multi-key (merge-sort-like: local work where the data lives, then a merge of
+ * result-sized partials — for intersections the merge SHRINKS monotonically, so ordering it
+ * smallest-first bounds ALL cross-thread traffic by k_shards x |smallest input| instead of the
+ * total input volume the gather route pays; measured headroom ~25x at 500k/10 skew).
+ * Stage machine, driven from the IO drain exactly like csLaunchHop2 (head stays in flight
+ * between stages; stale completion bit cleared on each re-arm):
+ *   SIZES:   one coalesced sub per shard reports each key's setTypeSize (type-checked) into
+ *            pipe_scard[] — no members move. Any missing/empty key => empty result, done.
+ *   GATHER1: one sub ships ONLY the globally-smallest key's members (the candidate list).
+ *   PROBE:   per remaining shard in ascending-size order, one sub probes the candidates
+ *            against ALL that shard's keys IN PLACE (owner-legal reads; setTypeIsMember on
+ *            its own live objects) and clears the verdict byte of any non-member. The
+ *            coordinator compacts survivors between hops, so candidates only shrink.
+ * All stages are READS: CLOSE_ASAP teardown needs no special casing (unlike the mutating
+ * 2-hop). pipe_cand/verdict cross threads under the same release/acquire discipline as every
+ * sub payload: coordinator writes BEFORE csPushSpin (release), worker reads after pop
+ * (acquire); worker writes verdicts BEFORE its completion-bit release, drain reads after
+ * acquire. Migration-safe like any gather read: each stage re-routes via exIndexForKey at
+ * dispatch time. */
+#define CS_PIPE_SIZES   1
+#define CS_PIPE_GATHER1 2
+#define CS_PIPE_PROBE   3
+
+static void csPipeFreeStageSubs(csGroup *g) {
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    zfree(g->subs); g->subs = NULL; g->nsub = 0;
+}
+
+static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
+    g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
+    head->csgroup = g;
+    head->cdb = 0;
+    g->pipe_scard = zcalloc(sizeof(long) * nkeys);
+    g->pipe_shard_of = zmalloc(sizeof(int) * nkeys);
+    g->pipe_stage = CS_PIPE_SIZES;
+    for (int i = 0; i < nkeys; i++) {
+        robj *k = head->argv[first + i * s->key_stride];
+        g->pipe_shard_of[i] = exIndexForKey(k->ptr, sdslen(k->ptr));
+    }
+    /* SIZES subs via the shared coalesced builder (one sub per distinct shard; posmap maps
+     * each sub-local key back to its ORIGINAL position for pipe_scard writes). */
+    csCoalesceSpec cs = { .first_argi = first, .key_stride = s->key_stride,
+                          .posmap = &g->setop_pos };
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, NULL);
+}
+
+static void csPipeSubExec(client *sub, csGroup *g) {
+    int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+    switch (g->pipe_stage) {
+    case CS_PIPE_SIZES:
+        for (int a = 1; a < sub->argc; a++) {
+            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            long sz = 0;
+            if (o) {
+                if (o->type != OBJ_SET)
+                    atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                else sz = (long)setTypeSize(o);
+            }
+            g->pipe_scard[idx] = sz;
+        }
+        break;
+    case CS_PIPE_GATHER1: {
+        /* argv = [CMD smallest-key]; ship its members as private sds copies (candidates). */
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+        if (o == NULL) break;                          /* raced away => empty result */
+        if (o->type != OBJ_SET) {
+            atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+            break;
+        }
+        long n = (long)setTypeSize(o);
+        if (n == 0) break;
+        sds *arr = zmalloc(sizeof(sds) * n);
+        long w = 0;
+        setTypeIterator si; setTypeInitIterator(&si, o);
+        char *str; size_t len; int64_t ll;
+        while (w < n && setTypeNext(&si, &str, &len, &ll) != -1)
+            arr[w++] = str ? sdsnewlen(str, len) : sdsfromlonglong(ll);
+        g->pipe_cand = arr; g->pipe_ncand = w;
+        break;
+    }
+    case CS_PIPE_PROBE:
+        /* Candidates vs EVERY key on this shard, in place. Missing key => empty intersection. */
+        for (int a = 1; a < sub->argc; a++) {
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (o == NULL) { memset(g->pipe_verdict, 0, g->pipe_ncand); return; }
+            if (o->type != OBJ_SET) {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                return;
+            }
+            for (long c = 0; c < g->pipe_ncand; c++)
+                if (g->pipe_verdict[c] && !setTypeIsMember(o, g->pipe_cand[c]))
+                    g->pipe_verdict[c] = 0;
+        }
+        break;
+    }
+}
+
+/* Drain-side stage driver. Returns 1 = next stage dispatched (head stays in flight, caller
+ * breaks like the HOP2 launch); 0 = pipeline finished or erred (caller reassembles now). */
+static int csPipeAdvance(csGroup *g) {
+    client *head = g->head;
+    const csCmdSpec *s = g->spec;
+    int dbid = g->h2_dbid, first = csFirstKeyArg(s);
+    if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
+
+    if (g->pipe_stage == CS_PIPE_SIZES) {
+        int sm = 0;
+        for (int i = 1; i < g->nkeys; i++)
+            if (g->pipe_scard[i] < g->pipe_scard[sm]) sm = i;
+        g->pipe_smallest = sm;
+        if (g->pipe_scard[sm] == 0) return 0;          /* empty input => empty intersection */
+        /* Distinct-shard visit order for PROBE, ascending by that shard's smallest key size
+         * (cheapest eliminators first => candidates shrink earliest). */
+        g->pipe_order = zmalloc(sizeof(int) * g->nkeys);
+        int ns = 0;
+        for (int i = 0; i < g->nkeys; i++) {
+            int w = g->pipe_shard_of[i], seen = 0;
+            for (int j = 0; j < ns; j++) if (g->pipe_order[j] == w) { seen = 1; break; }
+            if (!seen) g->pipe_order[ns++] = w;
+        }
+        for (int i = 1; i < ns; i++) {                 /* insertion sort by shard-min size */
+            int v = g->pipe_order[i], j = i - 1;
+            long vmin = -1, jmin;
+            for (int k2 = 0; k2 < g->nkeys; k2++)
+                if (g->pipe_shard_of[k2] == v && (vmin < 0 || g->pipe_scard[k2] < vmin))
+                    vmin = g->pipe_scard[k2];
+            while (j >= 0) {
+                jmin = -1;
+                for (int k2 = 0; k2 < g->nkeys; k2++)
+                    if (g->pipe_shard_of[k2] == g->pipe_order[j] &&
+                        (jmin < 0 || g->pipe_scard[k2] < jmin)) jmin = g->pipe_scard[k2];
+                if (jmin <= vmin) break;
+                g->pipe_order[j+1] = g->pipe_order[j]; j--;
+            }
+            g->pipe_order[j+1] = v;
+        }
+        g->pipe_nshard = ns; g->pipe_next = 0;
+        /* re-arm: GATHER1 single sub for the smallest key (re-route: bucket may have flipped) */
+        csPipeFreeStageSubs(g);
+        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        g->pipe_stage = CS_PIPE_GATHER1;
+        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+        robj *smk = head->argv[first + sm * s->key_stride];
+        int w = exIndexForKey(smk->ptr, sdslen(smk->ptr));
+        client *sub = csMakeSub(g, 0, w, dbid);
+        csSubSetKeyArgv(sub, head, smk);
+        csPushSpin(w, sub);
+        return 1;
+    }
+
+    if (g->pipe_stage == CS_PIPE_GATHER1) {
+        if (g->pipe_ncand == 0) return 0;              /* raced-empty => empty result */
+        g->pipe_verdict = zmalloc((size_t)g->pipe_ncand);
+        memset(g->pipe_verdict, 1, (size_t)g->pipe_ncand);
+    } else {                                            /* a PROBE hop completed: compact */
+        long w = 0;
+        for (long c = 0; c < g->pipe_ncand; c++) {
+            if (g->pipe_verdict[c]) {
+                g->pipe_cand[w] = g->pipe_cand[c];
+                g->pipe_verdict[w] = 1; w++;
+            } else sdsfree(g->pipe_cand[c]);
+        }
+        g->pipe_ncand = w;
+        if (w == 0) return 0;                          /* nothing survives => done */
+    }
+
+    /* Launch the next PROBE hop: this shard's keys, excluding the smallest key itself. */
+    while (g->pipe_next < g->pipe_nshard) {
+        int shard = g->pipe_order[g->pipe_next++];
+        int kidx[64], nk = 0;                          /* argv cap; overflow falls back below */
+        for (int i = 0; i < g->nkeys && nk < 64; i++)
+            if (g->pipe_shard_of[i] == shard && i != g->pipe_smallest) kidx[nk++] = i;
+        if (nk == 0) continue;                         /* only the smallest key lived here */
+        csPipeFreeStageSubs(g);
+        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        g->pipe_stage = CS_PIPE_PROBE;
+        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+        /* re-route at launch (migration-safe); keys of one shard share routing so key 0 decides */
+        robj *k0 = head->argv[first + kidx[0] * s->key_stride];
+        int w = exIndexForKey(k0->ptr, sdslen(k0->ptr));
+        client *sub = csMakeSub(g, 0, w, dbid);
+        sub->argv = zmalloc(sizeof(robj*) * (nk + 1));
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        for (int i = 0; i < nk; i++) {
+            robj *k = head->argv[first + kidx[i] * s->key_stride];
+            sub->argv[i+1] = k; incrRefCount(k);
+        }
+        sub->argc = nk + 1;
+        csPushSpin(w, sub);
+        return 1;
+    }
+    return 0;                                          /* chain exhausted: survivors final */
+}
+
 /* ee451 xshard-localfast: every key of this READ-ONLY multi-key command lives on ONE worker —
  * run the REAL PROC there via a single sub carrying the full original argv, and splice its reply
  * verbatim at reassembly (exact same pattern as the two-hop same-shard fast path). No gather, no
@@ -7028,6 +7243,12 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
             if (w0 < 0) w0 = w; else if (w != w0) { same = 0; break; }
         }
         if (same) { dispatchLocalReal(head, w0, dbid); return; }
+    }
+    /* merge-execution pipeline: cross-shard INTER family, read-only rows only. */
+    if (server.xshard_pipeline && !s->cs_write && !s->has_hop2 && nkeys >= 2 &&
+        (s->ctype == CS_SETOP || s->ctype == CS_SETCARD) && s->setop == CS_SETOP_INTER) {
+        dispatchPipeline(head, s, nkeys, first, dbid);
+        return;
     }
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
@@ -7782,6 +8003,33 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    if (g->pipe_stage) {
+        /* merge-exec pipeline: final survivors live in pipe_cand (or an error/empty result).
+         * Emits stock reply shapes; teardown below frees the pipe arrays. */
+        if (dst) {
+            if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) {
+                addReplyErrorObject(dst, shared.wrongtypeerr);
+            } else if (g->ctype == CS_SETCARD) {
+                long long nk = 0, lim = 0;
+                getLongLongFromObject(head->argv[1], &nk);
+                int tail = 2 + (int)nk;
+                if (tail + 1 < head->argc) getLongLongFromObject(head->argv[tail+1], &lim);
+                long long card = g->pipe_ncand;
+                if (lim > 0 && card > lim) card = lim;
+                addReplyLongLong(dst, card);
+            } else {
+                addReplySetLen(dst, g->pipe_ncand);
+                for (long c = 0; c < g->pipe_ncand; c++)
+                    addReplyBulkCBuffer(dst, g->pipe_cand[c], sdslen(g->pipe_cand[c]));
+            }
+        }
+        for (long c = 0; c < g->pipe_ncand; c++) sdsfree(g->pipe_cand[c]);
+        zfree(g->pipe_cand); zfree(g->pipe_verdict);
+        zfree(g->pipe_scard); zfree(g->pipe_order); zfree(g->pipe_shard_of);
+        g->pipe_cand = NULL; g->pipe_ncand = 0;
+        /* fall through to the generic teardown (subs/posmaps/group) with dst handled */
+        dst = NULL;
+    }
     if (dst) {
         switch (g->ctype) {
         case CS_MGET:

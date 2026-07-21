@@ -1903,6 +1903,23 @@ typedef struct csGroup {
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
     int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
+    /* ee451 merge-execution pipeline (v1: SINTER/SINTERCARD; knob tomokv-xshard-pipeline).
+     * Stage machine driven from the drain like the 2-hop launcher: SIZES (per-shard sub
+     * reports per-key set sizes) -> GATHER1 (smallest key's members only) -> PROBE chain
+     * (per remaining shard ascending-size, candidates probed in place, survivors shrink).
+     * All stages are READS: CLOSE_ASAP teardown needs no special casing (unlike 2-hop).
+     * pipe_cand is coordinator-written BEFORE the stage sub is pushed (SPSC release/acquire
+     * publishes it); pipe_verdict is worker-written, drain-acquired via the completion bit. */
+    int pipe_stage;            /* 0=off, CS_PIPE_* otherwise */
+    int pipe_next;             /* next index into pipe_order for the PROBE chain */
+    int pipe_nshard;           /* distinct shards */
+    long *pipe_scard;          /* [nkeys] per-key size from SIZES (missing key = 0) */
+    int  *pipe_order;          /* [nshard] shard visit order for PROBE (ascending min-key-size) */
+    sds  *pipe_cand;           /* [pipe_ncand] candidate members (coordinator-owned copies) */
+    long  pipe_ncand;          /* live candidates (compacted between stages) */
+    uint8_t *pipe_verdict;     /* [pipe_ncand] worker-written per-candidate survive flags */
+    int  *pipe_shard_of;       /* [nkeys] key -> worker (stamped at dispatch) */
+    int   pipe_smallest;       /* key position of the globally smallest set */
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
     /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
      * provably implementable without a shape change): ---- */
@@ -3098,6 +3115,10 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
+    int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->
+                                * gather-smallest -> shrinking probe chain; traffic bounded by
+                                * k_shards x |smallest| instead of total input volume. 0=off
+                                * (gather path, DEFAULT for A/B), 1=on. */
     int xshard_localfast;      /* xshard-localfast: READ-ONLY multi-key command whose keys ALL
                                 * route to one worker runs the REAL PROC there (no gather, no
                                 * coordinator compute). Co-location bench: gather path cost a
