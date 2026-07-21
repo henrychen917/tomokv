@@ -3175,21 +3175,21 @@ standardConfig static_configs[] = {
      * socket-write, and real workloads lack the same-key runs it needs (mean run 1.008). With this off,
      * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
      * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
-    createIntConfig("tomokv-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, INT_MAX, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
     createIntConfig("tomokv-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
-    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_argv, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keyobj, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keybytes, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_hash, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_argv, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keyobj, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keybytes, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_hash, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
     createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_nextop,   0,  INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_entry, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_value, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_entry, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_value, 0, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
     /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
     /* ee451: forward-predictor variant selector so each is independently sweepable.
@@ -3205,10 +3205,10 @@ standardConfig static_configs[] = {
      * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
-    createIntConfig("thredis-opt-mget-coalesce",     NULL, MODIFIABLE_CONFIG, 0, 2, server.opt_mget_coalesce, 1, INTEGER_CONFIG, NULL, NULL), /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); 2=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
+    createIntConfig("thredis-opt-mget-coalesce",     NULL, MODIFIABLE_CONFIG, 0, 2, server.opt_mget_coalesce, 0, INTEGER_CONFIG, NULL, NULL), /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); 2=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
     createBoolConfig("thredis-xshard-guard",         NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX/*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
     createBoolConfig("thredis-opt-mset-move",        NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL), /* xshard OPT-5: MSET moves values to the worker (argv_released_mask) instead of dupStringObject copy. DEFAULT OFF — a wash on 1-CCD at 256B AND 4KB (MSET is dispatch/insert-bound, not value-copy-bound); validated-correct + ASAN-clean, kept as a large-value/NUMA lever (re-measure on Threadripper). */
-    createBoolConfig("thredis-opt-setop-coalesce",   NULL, MODIFIABLE_CONFIG, server.opt_setop_coalesce, 1, NULL, NULL), /* xshard: SINTER/SUNION/SDIFF one sub/shard (was one/key). default on. */
+    createBoolConfig("thredis-opt-setop-coalesce",   NULL, MODIFIABLE_CONFIG, server.opt_setop_coalesce, 0, NULL, NULL), /* xshard: SINTER/SUNION/SDIFF one sub/shard (was one/key). default on. */
     createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
@@ -3221,10 +3221,10 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
-    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
+    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 0, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
     createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
-    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 0, 16, server.worker_pop_batch, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 0, 16, server.worker_pop_batch, 8, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3339,12 +3339,12 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
-    createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
-    createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, -1, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
-    createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
-    createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
-    createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed live depth */
-    createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
+    createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 32, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
+    createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, 0, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
+    createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   0, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
+    createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      0, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
+    createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, 16, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed live depth */
+    createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     16384, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
     createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
