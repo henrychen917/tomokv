@@ -15577,31 +15577,50 @@ static int tmNodeOfIoSlot(int io_slot) {
  * regressed it REVERTS the flip and RAISES that node's threshold (integral term => stability), so a
  * bad decision is undone and not retried until the pressure clearly warrants it. Good flips let the
  * threshold decay back toward eager. Each node reads only its own workers/io threads. ---- */
+/* Self-calibrating EXTREMUM-SEEKING flip controller (2026-07-22 user directive: "nothing set in
+ * stone, no static number, it's all relative — thresholds adjusted by pre/post-flip numbers").
+ * The ONLY ground truth is measured node throughput. Every decision is a RELATIVE comparison of a
+ * pre-flip vs post-flip rate against the MEASURED noise of that rate — a z-score. There is no
+ * absolute pressure threshold and no fixed operating point: the controller does gradient ascent on
+ * throughput, keeps a flip only if the gain exceeds the noise floor, reverts otherwise, follows the
+ * gradient to the peak, and then holds — re-probing on an exponential backoff and immediately
+ * re-exploring when throughput shifts (a workload change). The pressure signals only HINT the very
+ * first search direction. Warmup is adaptive: it waits until the post-flip bucket rebalance has
+ * settled (rate change fell back inside the noise) before judging, so a good config isn't rejected
+ * mid-rebalance. */
 typedef struct {
-    int      sustain_front, sustain_back;
-    /* PID self-tuned per-DIRECTION trigger thresholds (Q4; SEED 16 = 1.0x, but NOT a floor — the
-     * controller tunes each one BOTH ways from outcomes: a KEPT flip lowers that direction's
-     * threshold (be more eager next time — the flip paid off), a REVERTED flip raises it (be more
-     * cautious). The seed is just an initial condition the loop tunes away from — the operating
-     * threshold is learned, never static. */
-    int      thr_front_q4, thr_back_q4;
-    int      settle;         /* post-flip cooldown ticks (per node) */
-    int      measure;        /* ticks left in the post-flip outcome window; 0 = not measuring */
-    int      last_dir;       /* +1 = last flip grew front, -1 = grew back (for revert) */
-    int      last_io_slot, last_w;
-    uint64_t perf_ref_cmds;  /* per-node ops_total snapshot at flip, for the post-flip rate */
-    mstime_t perf_ref_ms;
-    double   perf_before;    /* rolling ops/sec just before the flip */
+    /* measured throughput distribution (the relative scale for every decision) */
+    double   mean;           /* EWMA of node ops/sec */
+    double   var;            /* EWMA of squared deviation => noise variance; sqrt = the significance unit */
+    uint64_t ops_prev; mstime_t ops_prev_ms; int primed;
+    /* extremum-seeking state */
+    int      dir;            /* current gradient search direction (+1 front / -1 back); 0 = unset */
+    int      phase;          /* 0 idle, 1 warmup (await rebalance settle), 2 measure */
+    int      wait;           /* idle ticks before the next probe (exponential backoff when stable) */
+    int      backoff;        /* current backoff exponent (grows when a probe finds no gain) */
+    int      probed_mask;    /* directions probed with no gain since the last move (bit0 front, bit1 back) */
+    int      converged;      /* both neighbours measured no better => sitting at the optimum: stop probing */
+    double   conv_mean;      /* SLOW baseline of the converged throughput (tracks genuine drift; the fast
+                              * mean diverging from it = a workload shift, not noise) */
+    int      shift_run;      /* consecutive ticks the fast mean is >3σ off conv_mean (shift persistence) */
+    int      warm_ticks, meas_ticks;  /* elapsed ticks in the current phase (adaptive caps) */
+    int      settle_run;     /* consecutive warmup ticks with the rate change inside the noise */
+    double   warm_prev;      /* mean at the previous warmup tick, to detect the settle plateau */
+    uint64_t ref_ops; mstime_t ref_ms;  /* measure-window open snapshot */
+    double   before;         /* smoothed rate just before the probe flip */
+    int      last_dir;       /* direction of the probe under evaluation */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
 
-#define TM_FCTL_EAGER      6    /* eager sustain: ~1.5s (half the old fixed sustain — we revert on regret) */
-#define TM_FCTL_MEASURE    16   /* outcome window: ~4s of post-flip steady state before judging */
-#define TM_FCTL_REGRESS_Q7 12   /* revert if post-flip ops/sec < before * (1 - 12/128) ≈ 90.6% */
-#define TM_FCTL_THR_MAX_Q4 64   /* self-tune ceiling 4.0x (cautious cap — never fully lock a node out) */
-#define TM_FCTL_THR_MIN_Q4 6    /* self-tune floor ~0.38x (eager cap — a persistently-good direction fires readily) */
-#define TM_FCTL_UP_Q4      12   /* threshold step on a REVERTED (bad) flip: raise = more cautious */
-#define TM_FCTL_DOWN_Q4    4    /* threshold step on a KEPT (good) flip: lower = more eager */
+/* Dimensionless DYNAMICS only (smoothing rates + the signal-exceeds-noise boundary + backoff shape).
+ * None is an operating threshold in throughput or pressure units — those are all derived per-tick
+ * from the measured rate and its noise. */
+#define FESC_ALPHA      0.25   /* throughput mean/variance EWMA rate */
+#define FESC_SETTLE_N   3      /* warmup ends after this many consecutive settled ticks (rate change < noise) */
+#define FESC_WARM_CAP   48     /* safety cap on warmup (~12s) if it never plateaus — NOT a control knob */
+#define FESC_MEAS_N     10     /* measure-window ticks (~2.5s of settled steady state) */
+#define FESC_WAIT_BASE  8      /* base idle ticks between probes (~2s); backoff multiplies this */
+#define FESC_BACKOFF_MAX 5     /* cap: max idle between probes ~ 2^5 * base (~64s) when firmly at optimum */
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. numa_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -15617,21 +15636,15 @@ static void tomoFlipController(void) {
     if (server.tm_flip_ctx) return;                         /* a flip is mid-flight */
 
     static mstime_t prev_wall = 0, last_log = 0;
-    static uint32_t prev_busy_us[TOMO_EX_THREADS_MAX + 1];
     mstime_t now = mstime();
     long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
     prev_wall = now;
     if (wall_ms <= 0) return;
 
-    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
-    const long qd_hi = 4L * popmax, qd_lo = 1L * popmax;    /* base worker-backlog bands (batches behind) */
-    const int  ing_hi = 20, ing_lo = 12;                   /* base io ingress events/pass bands */
     int nnodes = tmNumNodes();
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
-        flipCtlState *fc = &fctl[node];
-        if (fc->thr_front_q4 == 0) fc->thr_front_q4 = 16;  /* lazy seed to 1.0x (then self-tuned both ways) */
-        if (fc->thr_back_q4  == 0) fc->thr_back_q4  = 16;
+        flipCtlState *fc = &fctl[node];   /* zero-init is the correct PID start (I=0, bias=0, unprimed) */
 
         /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
          * (a converted-to-IO worker's counter freezes => contributes 0 delta; the workers that
@@ -15647,15 +15660,11 @@ static void tomoFlipController(void) {
         int w0, w1;
         if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
         else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
-        int w_live = 0; long qd_max = 0; int busy_max = 0;
+        int w_live = 0; long qd_max = 0;                     /* qd_max: observability only (logged) */
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
             long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
             if (qd > qd_max) qd_max = qd;
-            uint32_t cb = et->tm_busy_us, db = cb - prev_busy_us[w];
-            prev_busy_us[w] = cb;
-            int b = (int)(db / (uint32_t)(wall_ms * 10)); if (b > 100) b = 100;
-            if (b > busy_max) busy_max = b;
             /* count a worker "live as EX" only if it is actually in EX mode (converted ones are IO) */
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
@@ -15673,83 +15682,124 @@ static void tomoFlipController(void) {
         }
         int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : 0;
 
-        /* --- rolling node throughput proxy (global cmd counter; single node => exact) --- */
-        /* --- outcome measurement of the previous flip --- */
-        if (fc->measure > 0) {
-            if (--fc->measure == 0) {
-                double dt = (double)(now - fc->perf_ref_ms);
-                double perf_after = dt > 0 ? (double)(node_ops - fc->perf_ref_cmds) * 1000.0 / dt : fc->perf_before;
-                double floor = fc->perf_before * (1.0 - (double)TM_FCTL_REGRESS_Q7 / 128.0);
-                /* Tune the threshold OF THE DIRECTION we just flipped, both ways (PID self-tuning). */
-                int *thr = (fc->last_dir > 0) ? &fc->thr_front_q4 : &fc->thr_back_q4;
-                if (fc->perf_before > 1000.0 && perf_after < floor) {
-                    const char *err = NULL;
-                    if (tmFlipDo(node, -fc->last_dir, &err)) {   /* REVERT the regretted flip */
-                        *thr += TM_FCTL_UP_Q4; if (*thr > TM_FCTL_THR_MAX_Q4) *thr = TM_FCTL_THR_MAX_Q4;
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] REGRET: %.0f->%.0f ops/s after %s -> REVERT + raise %s thr to %.2fx",
-                                  node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                                  fc->last_dir > 0 ? "front" : "back", *thr / 16.0);
-                    }
-                    fc->settle = 4 * TM_FCTL_EAGER;          /* cool down harder after a revert */
-                } else {
-                    /* the flip paid off: LOWER that direction's threshold => more eager next time */
-                    *thr -= TM_FCTL_DOWN_Q4; if (*thr < TM_FCTL_THR_MIN_Q4) *thr = TM_FCTL_THR_MIN_Q4;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] KEEP: %.0f->%.0f ops/s after %s -> lower %s thr to %.2fx",
-                              node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                              fc->last_dir > 0 ? "front" : "back", *thr / 16.0);
-                    fc->settle = 2 * TM_FCTL_EAGER;
-                }
-            }
-            continue;                                        /* don't stack a new flip while measuring */
-        }
-        if (fc->settle > 0) { fc->settle--; fc->sustain_front = fc->sustain_back = 0; continue; }
-        if (w_live < 1) continue;
+        /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
+         * any decision is measured against; nothing here is an absolute number). --- */
+        double inst = (fc->primed && now > fc->ops_prev_ms)
+                    ? (double)(node_ops - fc->ops_prev) * 1000.0 / (double)(now - fc->ops_prev_ms) : 0.0;
+        fc->ops_prev = node_ops; fc->ops_prev_ms = now;
+        if (!fc->primed) { fc->primed = 1; fc->mean = inst; fc->var = 0; }
+        else { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
+        double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
 
-        /* --- self-tuned per-direction pressure test (node-local). qd_hi_n / ing_hi_n are the SEED
-         * bands scaled by each direction's learned multiplier — HIGHER = more cautious (fires later),
-         * LOWER = more eager (fires sooner). No static operating threshold: thr_{front,back}_q4 are
-         * moved both ways by outcomes above. --- */
-        long qd_hi_n  = qd_hi * fc->thr_back_q4 / 16;         /* back-pressure (grow-back) trigger */
-        int  ing_hi_n = (int)((long)ing_hi * fc->thr_front_q4 / 16);  /* front-pressure (grow-front) trigger */
         int can_front = (w_live > 1);
         int can_back  = (io_live_node > 0) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
                                                            : (io_live_node > server.io_per_node));
-        int want_back  = can_back  && (qd_max >= qd_hi_n) && (ing_mean <= ing_hi);
-        int want_front = can_front && (ing_mean >= ing_hi_n) && (qd_max <= qd_lo);
-        if (want_back)       { fc->sustain_back++;  fc->sustain_front = 0; }
-        else if (want_front) { fc->sustain_front++; fc->sustain_back  = 0; }
-        else { if (qd_max < qd_lo) fc->sustain_back = 0;
-               if (ing_mean < ing_lo || qd_max > qd_hi_n) fc->sustain_front = 0; }
 
-        if ((fc->sustain_front || fc->sustain_back) && now - last_log >= 2000) {
-            serverLog(LL_NOTICE, "[flip-ctl n%d] qd_max %ld/%ld ing %d/%d busy %d%% | w_live=%d io=%d thrF=%.2fx thrB=%.2fx | F%d/B%d",
-                      node, qd_max, qd_hi_n, ing_mean, ing_hi_n, busy_max, w_live, io_live_node,
-                      fc->thr_front_q4 / 16.0, fc->thr_back_q4 / 16.0, fc->sustain_front, fc->sustain_back);
-            last_log = now;
+        /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
+         * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
+         * consecutive ticks (all relative), capped for safety only. ===== */
+        if (fc->phase == 1) {
+            fc->warm_ticks++;
+            double drift = fabs(fc->mean - fc->warm_prev);
+            fc->warm_prev = fc->mean;
+            if (drift < sigma) fc->settle_run++; else fc->settle_run = 0;
+            if (fc->settle_run >= FESC_SETTLE_N || fc->warm_ticks >= FESC_WARM_CAP) {
+                fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
+            }
+            continue;
         }
 
-        int dir = 0;
-        if (fc->sustain_back  >= TM_FCTL_EAGER) dir = -1;
-        else if (fc->sustain_front >= TM_FCTL_EAGER) dir = +1;
-        if (dir) {
-            const char *err = NULL;
-            fc->sustain_front = fc->sustain_back = 0;
-            fc->perf_before = fc->perf_ref_ms ? (double)(node_ops - fc->perf_ref_cmds) * 1000.0 / (double)(now - fc->perf_ref_ms) : 0;
-            if (tmFlipDo(node, dir, &err)) {
-                fc->last_dir = dir;
-                fc->perf_ref_cmds = node_ops; fc->perf_ref_ms = now;
-                fc->measure = TM_FCTL_MEASURE;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] EAGER %s (qd %ld ing %d thr %.2fx, ref %.0f ops/s) -> measuring",
-                          node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", qd_max, ing_mean,
-                          (dir > 0 ? fc->thr_front_q4 : fc->thr_back_q4) / 16.0, fc->perf_before);
-                break;                                       /* one flip per tick (single migration gate) */
-            } else if (err) {
-                serverLog(LL_WARNING, "[flip-ctl n%d] %s refused: %s", node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", err);
-                fc->settle = TM_FCTL_EAGER;
+        /* ===== PHASE 2: measure the settled post-flip rate, compare to the pre-flip rate in units of
+         * the measured noise (z-score). Gain beyond the noise => climb; anything else => revert. ===== */
+        if (fc->phase == 2) {
+            if (++fc->meas_ticks < FESC_MEAS_N) continue;
+            double dt = (double)(now - fc->ref_ms);
+            double after = dt > 0 ? (double)(node_ops - fc->ref_ops) * 1000.0 / dt : fc->before;
+            double z = (after - fc->before) / sigma;         /* RELATIVE: delta in noise units */
+            if (z > 1.0) {
+                /* signal-exceeds-noise GAIN: keep it, keep climbing the same way, probe again soon.
+                 * We MOVED, so the neighbourhood is new — clear the probed set and any convergence. */
+                fc->backoff = 0; fc->wait = FESC_WAIT_BASE;
+                fc->probed_mask = 0; fc->converged = 0;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> keep + climb",
+                          node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
+            } else {
+                /* no significant gain (flat or loss): REVERT to the known-good config and mark this
+                 * neighbour explored. Once BOTH neighbours are no better we are AT the optimum =>
+                 * CONVERGE and stop probing (only a measured workload shift re-opens the search). */
+                const char *err = NULL;
+                if (tmFlipDo(node, -fc->last_dir, &err))
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> REVERT",
+                              node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
+                fc->probed_mask |= (fc->last_dir > 0) ? 1 : 2;
+                fc->dir = -fc->last_dir;                     /* explore the other direction next time */
+                if ((fc->probed_mask & 3) == 3) {            /* both neighbours worse => optimum found */
+                    fc->converged = 1; fc->conv_mean = fc->mean; fc->shift_run = 0;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] CONVERGED at %.0f ops/s (both neighbours worse) -> hold",
+                              node, fc->conv_mean);
+                } else {
+                    if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
+                }
+                fc->wait = FESC_WAIT_BASE << fc->backoff;
+            }
+            fc->phase = 0;
+            continue;
+        }
+
+        /* ===== PHASE 0: idle/hold. When converged, sit at the optimum and only re-open the search
+         * if the live rate has DRIFTED off the convergence throughput by more than the noise (a
+         * workload shift). Otherwise count down the backoff. Never probe a near-idle server. ===== */
+        if (w_live < 1) continue;
+        if (fc->converged) {
+            /* conv_mean is a SLOW baseline: it tracks genuine drift so noise never accumulates, while a
+             * FAST/large move outpaces it. Re-explore only when the fast mean stays >3σ off the baseline
+             * for several consecutive ticks (a real workload shift, not a transient dip). */
+            fc->conv_mean += 0.02 * (fc->mean - fc->conv_mean);
+            if (fabs(fc->mean - fc->conv_mean) > 3.0 * sigma) fc->shift_run++; else fc->shift_run = 0;
+            if (fc->shift_run >= 4) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] workload shift: baseline %.0f vs %.0f ops/s (sigma %.0f) -> re-open search",
+                          node, fc->conv_mean, fc->mean, sigma);
+                fc->converged = 0; fc->probed_mask = 0; fc->backoff = 0; fc->wait = 0;
+            } else {
+                if (now - last_log >= 5000) {
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD (converged) %.0f ops/s (baseline %.0f) | w_live=%d io=%d",
+                              node, fc->mean, fc->conv_mean, w_live, io_live_node);
+                    last_log = now;
+                }
+                continue;
             }
         }
-        /* keep a rolling perf reference for the NEXT flip's before-snapshot */
-        if (!fc->measure) { fc->perf_ref_cmds = node_ops; fc->perf_ref_ms = now; }
+        if (fc->mean < 1000.0) continue;                      /* near-idle: nothing to optimize */
+        if (fc->wait > 0) { fc->wait--;
+            if (now - last_log >= 3000) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] idle: %.0f ops/s (sigma %.0f) wait=%d backoff=%d dir=%d | w_live=%d io=%d ing=%d qd=%ld",
+                          node, fc->mean, sigma, fc->wait, fc->backoff, fc->dir, w_live, io_live_node, ing_mean, qd_max);
+                last_log = now;
+            }
+            continue;
+        }
+
+        /* Probe direction = the current search direction; the very first probe grows front by default
+         * (io is the usual first bottleneck), and the throughput gradient corrects any wrong guess by
+         * reverting + reversing — so no pressure THRESHOLD is needed, only the measured outcome. */
+        int dir = fc->dir;
+        if (dir == 0) dir = can_front ? +1 : (can_back ? -1 : 0);
+        if (dir > 0 && !can_front) dir = can_back ? -1 : 0;
+        else if (dir < 0 && !can_back) dir = can_front ? +1 : 0;
+        if (dir == 0) { fc->wait = FESC_WAIT_BASE; continue; }
+
+        const char *err = NULL;
+        fc->before = fc->mean;
+        if (tmFlipDo(node, dir, &err)) {
+            fc->last_dir = dir; fc->dir = dir;
+            fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
+            serverLog(LL_NOTICE, "[flip-ctl n%d] PROBE %s (baseline %.0f ops/s, sigma %.0f) -> settle+measure",
+                      node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", fc->before, sigma);
+            break;                                           /* one flip per tick (single migration gate) */
+        } else if (err) {
+            fc->dir = -dir;                                  /* that way is blocked — try the other next */
+            fc->wait = FESC_WAIT_BASE;
+        }
     }
 }
 
