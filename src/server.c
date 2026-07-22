@@ -15531,89 +15531,210 @@ static void tomoThreadBalanceCron(void) {
  * + ingress events/pass EWMA), Schmitt sustain + a post-flip settle cooldown; the flip actuators
  * enforce the per-role bounds. No-op unless tomokv-thread-balance (which also feeds busy_ewma_q4,
  * so the grow-front client rebalance runs EWMA-weighted rather than conn-count when this is on). */
+/* Per-node flip actuators (numa_nodes>=2). Defined below; see the node-scoped implementations. */
+static int tomoGrowFrontNode(int node, const char **err);
+static int tomoGrowBackNode(int node, const char **err);
+
+/* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
+ * load balancing and flip decisions are ALL within-node; cross-node balancing is disabled). Nodes
+ * partition the pool: node n owns worker indices [n*ex_per_node, (n+1)*ex_per_node) — a contiguous
+ * bucket slice by construction (ex_bucket_end is monotone) — and base io slots [n*io_per_node,
+ * (n+1)*io_per_node). A converted worker keeps its node membership while serving as an IO thread.
+ * numa_nodes==1 => the whole server is node 0 (identical to the pre-node behavior). ---- */
+#define TM_MAXNODE 16
+static inline int tmNumNodes(void) { return server.numa_nodes > 0 ? server.numa_nodes : 1; }
+static inline int tmNodeOfWorker(int w) {
+    return (server.ex_per_node > 0) ? (w / server.ex_per_node) : 0;
+}
+/* Node of an io slot: base slots split by io_per_node; a growth slot inherits the node of the
+ * worker that converted into it (its ctx keeps the ex binding). Falls back to 0. */
+static int tmNodeOfIoSlot(int io_slot) {
+    if (io_slot < server.io_threads)
+        return (server.io_per_node > 0) ? (io_slot / server.io_per_node) : 0;
+    polyThreadCtx *ctx = tmCtxForIotid(io_slot);
+    if (ctx && ctx->ex) return tmNodeOfWorker(ctx->ex->id);
+    return 0;
+}
+
+/* ---- PID-style per-node flip controller (2026-07-22 user directive). Per node, it eagerly flips
+ * on sustained internal pressure, then MEASURES the throughput outcome over a window; if throughput
+ * regressed it REVERTS the flip and RAISES that node's threshold (integral term => stability), so a
+ * bad decision is undone and not retried until the pressure clearly warrants it. Good flips let the
+ * threshold decay back toward eager. Each node reads only its own workers/io threads. ---- */
+typedef struct {
+    int      sustain_front, sustain_back;
+    int      thr_q4;         /* adaptive threshold multiplier, Q4 (16 = 1.0x); raised on a bad flip */
+    int      settle;         /* post-flip cooldown ticks (per node) */
+    int      measure;        /* ticks left in the post-flip outcome window; 0 = not measuring */
+    int      last_dir;       /* +1 = last flip grew front, -1 = grew back (for revert) */
+    int      last_io_slot, last_w;
+    uint64_t perf_ref_cmds;  /* command-counter snapshot at flip, for the post-flip rate */
+    mstime_t perf_ref_ms;
+    double   perf_before;    /* rolling ops/sec just before the flip */
+} flipCtlState;
+static flipCtlState fctl[TM_MAXNODE];
+
+#define TM_FCTL_EAGER      6    /* eager sustain: ~1.5s (half the old fixed sustain — we revert on regret) */
+#define TM_FCTL_MEASURE    16   /* outcome window: ~4s of post-flip steady state before judging */
+#define TM_FCTL_REGRESS_Q7 12   /* revert if post-flip ops/sec < before * (1 - 12/128) ≈ 90.6% */
+#define TM_FCTL_THR_MAX_Q4 64   /* threshold cap 4.0x (never fully lock a node out) */
+
+/* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. numa_nodes==1 uses
+ * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
+static int tmFlipDo(int node, int dir, const char **err) {
+    if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
+    return dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err);
+}
+
 static void tomoFlipController(void) {
     if (!server.thread_balance || !server.thread_modes || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
     if (server.tm_flip_ctx) return;                         /* a flip is mid-flight */
-    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
 
-    static mstime_t prev_wall = 0;
+    static mstime_t prev_wall = 0, last_log = 0;
     static uint32_t prev_busy_us[TOMO_EX_THREADS_MAX + 1];
-    static int sustain_front = 0, sustain_back = 0, settle = 0;
-    static mstime_t last_log = 0;
-
-    if (settle > 0) { settle--; sustain_front = sustain_back = 0; return; }
-
-    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
-    int w_live  = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
-    if (w_live < 1) return;
-
     mstime_t now = mstime();
     long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
     prev_wall = now;
     if (wall_ms <= 0) return;
 
-    /* worker STANDING QUEUE BACKLOG (the true "need more workers" signal — busy% saturates under
-     * any heavy load even when the workers keep up, so it flaps; a deep standing queue means work
-     * arrives faster than it drains). Hottest worker's EWMA backlog, plus busy% for context/log. */
-    long qd_max = 0; int busy_max = 0, busy_sum = 0;
-    for (int w = 0; w < w_live && w <= TOMO_EX_THREADS_MAX; w++) {
-        exThread *et = &server.exThreads[w];
-        long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
-        if (qd > qd_max) qd_max = qd;
-        uint32_t cb = et->tm_busy_us, db = cb - prev_busy_us[w];
-        prev_busy_us[w] = cb;
-        int b = (int)(db / (uint32_t)(wall_ms * 10)); if (b > 100) b = 100;
-        busy_sum += b; if (b > busy_max) busy_max = b;
-    }
-    int busy_mean = busy_sum / w_live;
-
-    /* io ingress busy (events/pass EWMA) mean over the live io threads (1..io_live-1; main runs
-     * aeMain, no ingress EWMA — documented). Growth io slots ARE covered (io_live tracks them). */
-    long ing_sum = 0; int ing_cnt = 0;
-    for (int t = 1; t < io_live && t <= TOMO_IO_THREADS_MAX; t++) { ing_sum += tm_io_sig[t].busy_ewma_q4 >> 4; ing_cnt++; }
-    int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : 0;
-
-    /* Schmitt bands: a HI threshold arms a direction, a LO threshold disarms it; between the two
-     * the sustain count HOLDS (the ~250ms sampling window beats against burst cadence, so a single
-     * dip past a lone threshold must not erase seconds of evidence). Back-pressure is QUEUE-DEPTH:
-     * a worker standing >= a few full pop batches behind genuinely needs relief; front-pressure is
-     * ingress-saturated WHILE the workers keep up (qd low) — else growing front would starve them. */
     int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
-    const long qd_hi = 4L * popmax, qd_lo = 1L * popmax;    /* worker backlog arm/disarm (batches behind) */
-    const int  ing_hi = 20, ing_lo = 12;                   /* io ingress events/pass arm/disarm */
-    int can_front = (w_live > 1);                           /* grow-front needs >= 2 live workers */
-    int can_back  = (io_live > server.io_threads);          /* grow-back needs a grown io slot */
-    /* BACK: workers standing deeply behind AND io not itself drowning -> add a worker. */
-    int want_back  = can_back  && (qd_max >= qd_hi) && (ing_mean <= ing_hi);
-    /* FRONT: io ingress saturated AND workers keeping up (shallow queues) -> add an io thread. */
-    int want_front = can_front && (ing_mean >= ing_hi) && (qd_max <= qd_lo);
+    const long qd_hi = 4L * popmax, qd_lo = 1L * popmax;    /* base worker-backlog bands (batches behind) */
+    const int  ing_hi = 20, ing_lo = 12;                   /* base io ingress events/pass bands */
+    int nnodes = tmNumNodes();
 
-    if (want_back)       { sustain_back++;  sustain_front = 0; }
-    else if (want_front) { sustain_front++; sustain_back  = 0; }
-    else {                                                  /* borderline: HOLD; only a clear miss resets */
-        if (qd_max < qd_lo)      sustain_back  = 0;         /* workers clearly keeping up */
-        if (ing_mean < ing_lo || qd_max > qd_hi) sustain_front = 0;  /* io calm, or workers now backed up */
-    }
+    for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
+        flipCtlState *fc = &fctl[node];
+        if (fc->thr_q4 == 0) fc->thr_q4 = 16;              /* lazy init to 1.0x */
 
-    if ((sustain_front || sustain_back) && now - last_log >= 2000) {
-        serverLog(LL_NOTICE, "[flip-ctl] qd_max %ld (hi %ld) busy %d/%d%% ing %d | io_live=%d w_live=%d | sustain F%d/B%d/%d",
-                  qd_max, qd_hi, busy_mean, busy_max, ing_mean, io_live, w_live, sustain_front, sustain_back, TM_BAL_SETTLE);
-        last_log = now;
-    }
+        /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
+         * (a converted-to-IO worker's counter freezes => contributes 0 delta; the workers that
+         * absorbed its buckets show the load). stat_numcommands is NOT usable — worker-thread
+         * execution never bumps it in this sharded fork. --- */
+        int s0 = (nnodes == 1) ? 0 : node * server.ex_per_node;
+        int s1 = (nnodes == 1) ? server.num_workers : (node + 1) * server.ex_per_node;
+        uint64_t node_ops = 0;
+        for (int w = s0; w < s1 && w < server.num_workers_alloc; w++)
+            node_ops += tomoRelaxedRead(server.exThreads[w].ops_total);
 
-    const char *err = NULL;
-    if (sustain_back >= TM_BAL_SETTLE) {
-        sustain_back = 0;
-        if (tomoGrowBack(&err))
-            { serverLog(LL_NOTICE, "[flip-ctl] back-pressure sustained (busy_max %d, ing %d) -> GROW-BACK", busy_max, ing_mean); settle = 4 * TM_BAL_SETTLE; }
-        else serverLog(LL_WARNING, "[flip-ctl] GROW-BACK refused: %s", err ? err : "?");
-    } else if (sustain_front >= TM_BAL_SETTLE) {
-        sustain_front = 0;
-        if (tomoGrowFront(&err))
-            { serverLog(LL_NOTICE, "[flip-ctl] front-pressure sustained (ing %d, busy_mean %d) -> GROW-FRONT", ing_mean, busy_mean); settle = 4 * TM_BAL_SETTLE; }
-        else serverLog(LL_WARNING, "[flip-ctl] GROW-FRONT refused: %s", err ? err : "?");
+        /* --- node-local signals: workers [w0,w1), io slots owned by this node --- */
+        int w0, w1;
+        if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
+        else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
+        int w_live = 0; long qd_max = 0; int busy_max = 0;
+        for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
+            exThread *et = &server.exThreads[w];
+            long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
+            if (qd > qd_max) qd_max = qd;
+            uint32_t cb = et->tm_busy_us, db = cb - prev_busy_us[w];
+            prev_busy_us[w] = cb;
+            int b = (int)(db / (uint32_t)(wall_ms * 10)); if (b > 100) b = 100;
+            if (b > busy_max) busy_max = b;
+            /* count a worker "live as EX" only if it is actually in EX mode (converted ones are IO) */
+            polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
+            if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
+        }
+        long ing_sum = 0; int ing_cnt = 0, io_live_node = 0;
+        int io_hi = server.io_threads + server.tm_ngrow_io;
+        for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
+            polyThreadCtx *ic = tmCtxForIotid(t);
+            if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
+                if (t >= server.io_threads) continue;      /* growth slot not live */
+            }
+            if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
+            ing_sum += tm_io_sig[t].busy_ewma_q4 >> 4; ing_cnt++;
+            io_live_node++;
+        }
+        int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : 0;
+
+        /* --- rolling node throughput proxy (global cmd counter; single node => exact) --- */
+        /* --- outcome measurement of the previous flip --- */
+        if (fc->measure > 0) {
+            if (--fc->measure == 0) {
+                double dt = (double)(now - fc->perf_ref_ms);
+                double perf_after = dt > 0 ? (double)(node_ops - fc->perf_ref_cmds) * 1000.0 / dt : fc->perf_before;
+                double floor = fc->perf_before * (1.0 - (double)TM_FCTL_REGRESS_Q7 / 128.0);
+                if (fc->perf_before > 1000.0 && perf_after < floor) {
+                    const char *err = NULL;
+                    if (tmFlipDo(node, -fc->last_dir, &err)) {   /* REVERT */
+                        fc->thr_q4 += 12; if (fc->thr_q4 > TM_FCTL_THR_MAX_Q4) fc->thr_q4 = TM_FCTL_THR_MAX_Q4;
+                        serverLog(LL_NOTICE, "[flip-ctl n%d] REGRET: %.0f->%.0f ops/s after %s -> REVERT + raise thr to %.2fx",
+                                  node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
+                                  fc->thr_q4 / 16.0);
+                    }
+                    fc->settle = 4 * TM_FCTL_EAGER;          /* cool down harder after a revert */
+                } else {
+                    /* flip stuck: reward with a small threshold decay toward eager */
+                    if (fc->thr_q4 > 16) fc->thr_q4 -= 4; if (fc->thr_q4 < 16) fc->thr_q4 = 16;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] KEEP: %.0f->%.0f ops/s after %s (thr %.2fx)",
+                              node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
+                              fc->thr_q4 / 16.0);
+                    fc->settle = 2 * TM_FCTL_EAGER;
+                }
+            }
+            continue;                                        /* don't stack a new flip while measuring */
+        }
+        if (fc->settle > 0) { fc->settle--; fc->sustain_front = fc->sustain_back = 0; continue; }
+        if (w_live < 1) continue;
+
+        /* --- adaptive-threshold pressure test (node-local) --- */
+        long qd_hi_n = qd_hi * fc->thr_q4 / 16;              /* raising thr makes flips HARDER = stable */
+        int  ing_hi_n = (int)((long)ing_hi * fc->thr_q4 / 16);
+        int can_front = (w_live > 1);
+        int can_back  = (io_live_node > 0) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
+                                                           : (io_live_node > server.io_per_node));
+        int want_back  = can_back  && (qd_max >= qd_hi_n) && (ing_mean <= ing_hi);
+        int want_front = can_front && (ing_mean >= ing_hi_n) && (qd_max <= qd_lo);
+        if (want_back)       { fc->sustain_back++;  fc->sustain_front = 0; }
+        else if (want_front) { fc->sustain_front++; fc->sustain_back  = 0; }
+        else { if (qd_max < qd_lo) fc->sustain_back = 0;
+               if (ing_mean < ing_lo || qd_max > qd_hi_n) fc->sustain_front = 0; }
+
+        if ((fc->sustain_front || fc->sustain_back) && now - last_log >= 2000) {
+            serverLog(LL_NOTICE, "[flip-ctl n%d] qd_max %ld/%ld busy %d%% ing %d | w_live=%d io=%d thr=%.2fx | F%d/B%d",
+                      node, qd_max, qd_hi_n, busy_max, ing_mean, w_live, io_live_node, fc->thr_q4 / 16.0,
+                      fc->sustain_front, fc->sustain_back);
+            last_log = now;
+        }
+
+        int dir = 0;
+        if (fc->sustain_back  >= TM_FCTL_EAGER) dir = -1;
+        else if (fc->sustain_front >= TM_FCTL_EAGER) dir = +1;
+        if (dir) {
+            const char *err = NULL;
+            fc->sustain_front = fc->sustain_back = 0;
+            fc->perf_before = fc->perf_ref_ms ? (double)(node_ops - fc->perf_ref_cmds) * 1000.0 / (double)(now - fc->perf_ref_ms) : 0;
+            if (tmFlipDo(node, dir, &err)) {
+                fc->last_dir = dir;
+                fc->perf_ref_cmds = node_ops; fc->perf_ref_ms = now;
+                fc->measure = TM_FCTL_MEASURE;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] EAGER %s (qd %ld ing %d thr %.2fx, ref %.0f ops/s) -> measuring",
+                          node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", qd_max, ing_mean, fc->thr_q4 / 16.0, fc->perf_before);
+                break;                                       /* one flip per tick (single migration gate) */
+            } else if (err) {
+                serverLog(LL_WARNING, "[flip-ctl n%d] %s refused: %s", node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", err);
+                fc->settle = TM_FCTL_EAGER;
+            }
+        }
+        /* keep a rolling perf reference for the NEXT flip's before-snapshot */
+        if (!fc->measure) { fc->perf_ref_cmds = node_ops; fc->perf_ref_ms = now; }
     }
+}
+
+/* Per-node flip actuators — STAGED (numa_nodes>=2). The single-node global actuators
+ * (tomoGrowFront/Back) rely on a CONTIGUOUS num_workers_live (grow-front always converts the highest
+ * global worker), which stays correct because a single node converts top-down. With multiple nodes
+ * each converting its OWN highest worker, liveness becomes non-contiguous and every num_workers_live
+ * fan-out (KEYS/FLUSH/RANDOMKEY/balancer) would skip live workers. Correct multi-node flip therefore
+ * needs a per-worker live_as_ex flag + fan-out updates + concurrent-migration slots — tracked as the
+ * next stage. Until then these refuse cleanly so numa_nodes==1 (the default + the 1-simnode bench)
+ * is fully live and numa_nodes>=2 boots + does within-node EWMA scoping without an incorrect flip. */
+static int tomoGrowFrontNode(int node, const char **err) {
+    UNUSED(node); *err = "per-node grow-front is staged (numa_nodes>=2 needs per-worker liveness)"; return 0;
+}
+static int tomoGrowBackNode(int node, const char **err) {
+    UNUSED(node); *err = "per-node grow-back is staged (numa_nodes>=2 needs per-worker liveness)"; return 0;
 }
 
 //ee451
