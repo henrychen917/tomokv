@@ -8656,7 +8656,7 @@ static void migOverflowFlush(int block) {
         if (!block) {
             unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
                                     atomic_load_explicit(&L->head, memory_order_relaxed);
-            if (inflight >= 1024) return;
+            if (inflight >= 64) return;
         }
         if (!migLogTryPush(L, mig_overflow_head->e)) {
             if (!block) return;
@@ -8694,14 +8694,14 @@ void migCaptureEffect(redisDb *db, robj *keyobj) {
      * overflow whenever it is non-empty so per-key order is preserved. Part 2: start
      * COALESCING well before the ring is full — a hot collection key otherwise lands
      * thousands of full-post-image snapshots in the ring (O(n^2) member-loads for B, the
-     * minutes-deep backlog behind the B-side stall). Past ~1K in-flight entries, new
+     * minutes-deep backlog behind the B-side stall). Past ~64 in-flight entries (was 1K: at ~20ms per hot-key blob apply, 1K deep = the observed ~20s DRAINING hold on an in-range write; 64 bounds it to ~1.3s), new
      * captures defer + LWW-coalesce instead, capping snapshot amplification at the
      * threshold while leaving plain-workload captures (shallow ring) on the fast path. */
     migLog *L = server.migration.log;
     unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
                             atomic_load_explicit(&L->head, memory_order_relaxed);
     migOverflowFlush(0);
-    if (mig_overflow_head || inflight >= 1024 || !migLogTryPush(L, e))
+    if (mig_overflow_head || inflight >= 64 || !migLogTryPush(L, e))
         migOverflowPut(e);
 }
 
