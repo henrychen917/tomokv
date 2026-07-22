@@ -1905,6 +1905,11 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
+    int mcmd_borrow;           /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow MGET (numa_nodes>=2):
+                                * each sub carries ONE node's keys but they span multiple workers, so the sub
+                                * reads each key from its TRUE owner db under that owner's per-worker lock
+                                * (tomo_wkr_lock) rather than from sub->db. Set by tomoMgetPerNodeDispatch;
+                                * csSubExec CS_MGET takes the borrow branch. 0 = normal same-shard coalesced. */
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
     int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
     int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */

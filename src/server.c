@@ -113,6 +113,8 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
 static void tomoMgetLockBorrow(client *fake);              /* M-command lock-borrow experiment */
+static void tomoMgetPerNodeDispatch(client *head);        /* per-node worker-borrow MGET (numa_nodes>=2) */
+static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
@@ -5525,17 +5527,27 @@ int processCommand(client *c) {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
     if (csp && server.mcmd_lock && csp->ctype == CS_MGET &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
-        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow — dispatch the WHOLE MGET to the FIRST key's
-         * owner worker (getWorkerForCommand hashes argv[1]); that worker borrows the other keys under
-         * per-worker locks and executes on-thread (exec off the IO thread), replying via the normal
-         * worker drain. exExecFake routes an mcmd_lock MGET fake to tomoMgetLockBorrow. */
-        int owner = getWorkerForCommand(fake);
-        fake->cdb = cdbIndexFor(owner);
-        fake->db = &server.exThreads[owner].db[fake->db->id];
-        fake->flags |= CLIENT_EX_PENDING;
-        replyWorking++;
-        tmLatMaybeStamp(fake);
-        exDispatchPush(owner, fake);
+        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow. Two shapes:
+         *  - MULTI-NODE (numa_nodes>=2, >=2 keys): SCATTER the keys BY NODE — one borrow-exec sub per
+         *    node dispatched to a node-local worker (the node's first-seen key owner); each sub borrows
+         *    ONLY its node's keys, and the IO drain reassembles the per-node partials in key order
+         *    (tomoMgetPerNodeDispatch). Keeps every borrow node-local (no cross-node db reads).
+         *  - SINGLE-NODE (or <2 keys): dispatch the WHOLE MGET to the first key's owner worker
+         *    (getWorkerForCommand hashes argv[1]); that worker borrows the others on-thread and replies
+         *    via the normal worker drain (exExecFake routes the fake to tomoMgetLockBorrow). */
+        if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
+            replyWorking++;
+            tmLatMaybeStamp(fake);
+            tomoMgetPerNodeDispatch(fake);   /* builds the per-node group + dispatches subs; head waits */
+        } else {
+            int owner = getWorkerForCommand(fake);
+            fake->cdb = cdbIndexFor(owner);
+            fake->db = &server.exThreads[owner].db[fake->db->id];
+            fake->flags |= CLIENT_EX_PENDING;
+            replyWorking++;
+            tmLatMaybeStamp(fake);
+            exDispatchPush(owner, fake);
+        }
     } else if (csp) {
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
@@ -5960,6 +5972,87 @@ static void tomoMgetLockBorrow(client *fake) {
         else addReplyNull(fake);
     }
     zfree(vals); zfree(done);
+}
+
+/* Per-node worker-borrow MGET (numa_nodes>=2). SCATTER-then-COMBINE: group the MGET's keys BY NODE
+ * (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty node carrying that node's keys and their
+ * ORIGINAL positions, dispatched to a node-local worker (the node's first-seen key owner). On the
+ * worker, csSubExec's CS_MGET borrow branch reads each key from its TRUE owner db under the owner's
+ * per-worker lock and writes the value COPY into mget_vals[original_pos]; the last sub to complete
+ * signals the head slot, and the IO drain reassembles mget_vals in key order (csReassemble). The head
+ * is NOT pushed — it waits on the pending barrier exactly like any gather group. Reuses the coalesced
+ * MGET group machinery (mget_vals + mget_pos + CS_MGET reassemble/teardown); the only new piece is the
+ * per-key borrow read. For numa_nodes==1 the caller uses tomoMgetLockBorrow instead (one node => this
+ * would degenerate to a single sub). */
+static void tomoMgetPerNodeDispatch(client *head) {
+    int nkeys = head->argc - 1;
+    int dbid  = head->db->id;
+    int nn    = server.numa_nodes > 0 ? server.numa_nodes : 1;
+
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_MGET; g->nkeys = nkeys; g->head = head;
+    g->mcmd_borrow = 1;
+    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
+    head->csgroup = g;
+    head->cdb = 0;                                  /* group-head completion routes to CDB 0 (drain clears it) */
+
+    /* pass 1: node of each key + per-node key count + a node-local executor (first key's owner in node). */
+    int *node_of = zmalloc(sizeof(int) * nkeys);   /* node index for key i */
+    int *ncnt    = zcalloc(sizeof(int) * nn);      /* keys owned within node n */
+    int *nexec   = zmalloc(sizeof(int) * nn);      /* executor worker for node n */
+    for (int n = 0; n < nn; n++) nexec[n] = -1;
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[1 + i];
+        int w = tomoWkrOf(key->ptr, sdslen(key->ptr));
+        int node = tmNodeOfWorker(w);
+        if (node < 0 || node >= nn) node = 0;      /* defensive: keep grouping in-bounds */
+        node_of[i] = node; ncnt[node]++;
+        if (nexec[node] < 0) nexec[node] = w;      /* node's first-seen key owner runs the node's sub */
+    }
+    int nsub = 0;
+    for (int n = 0; n < nn; n++) if (ncnt[n]) nsub++;
+    g->nsub = nsub;
+    g->subs = zmalloc(sizeof(client *) * nsub);
+    g->mget_pos = zcalloc(sizeof(int *) * nsub);
+    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+
+    /* pass 2: one sub per non-empty node (argv = [MGET, node's keys...]); db carries dbid only. */
+    client **nsubp = zcalloc(sizeof(client *) * nn);   /* node -> its sub */
+    int *nsi   = zmalloc(sizeof(int) * nn);            /* node -> sub index */
+    int *nfill = zcalloc(sizeof(int) * nn);            /* node -> per-sub fill cursor */
+    int si = 0;
+    for (int n = 0; n < nn; n++) {
+        if (!ncnt[n]) continue;
+        int w = nexec[n];
+        client *sub = createPooledFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->resp = head->resp;
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_EX_PENDING;
+        sub->argv = zmalloc(sizeof(robj *) * (1 + ncnt[n]));
+        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        sub->argc = 1;
+        sub->db = &server.exThreads[w].db[dbid];   /* dbid via db->id; borrow reads use each key's true owner */
+        g->mget_pos[si] = zmalloc(sizeof(int) * ncnt[n]);
+        nsubp[n] = sub; nsi[n] = si; g->subs[si++] = sub;
+    }
+
+    /* pass 3: fill each sub's keys + original positions in original key order. */
+    for (int i = 0; i < nkeys; i++) {
+        int n = node_of[i];
+        client *sub = nsubp[n];
+        robj *key = head->argv[1 + i];
+        sub->argv[sub->argc++] = key; incrRefCount(key);
+        g->mget_pos[nsi[n]][nfill[n]++] = i;       /* this sub-local key -> original position i */
+    }
+
+    /* pass 4: dispatch each node's sub to its node-local executor worker. Head stays in flight. */
+    for (int n = 0; n < nn; n++)
+        if (ncnt[n]) csPushSpin(nexec[n], nsubp[n]);
+
+    zfree(node_of); zfree(ncnt); zfree(nexec);
+    zfree(nsubp); zfree(nsi); zfree(nfill);
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -6577,6 +6670,27 @@ static void csSubExec(client *sub) {
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
             int *pos = g->mget_pos[sub->cssub_idx];
+            if (__builtin_expect(g->mcmd_borrow, 0)) {
+                /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys belong to ONE
+                 * node but SPAN multiple workers, so read each from its TRUE owner db under that owner's
+                 * per-worker lock (excludes the owner's concurrent single-key ops). Blocking lock (not the
+                 * trylock-backlog of tomoMgetLockBorrow) so a present key is NEVER reported nil under
+                 * writers; per-key lock/unlock (no hold across keys) + node-disjoint executors => no cycle.
+                 * No cross-key dict prefetch (keys land on different dicts). Value COPY -> position slot. */
+                int borrow_dbid = sub->db->id;
+                for (int a = 1; a < sub->argc; a++) {
+                    robj *key = sub->argv[a];
+                    int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
+                    tomoWkrLock(owner);
+                    robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[borrow_dbid],
+                                                     key, LOOKUP_NOEFFECTS);
+                    if (o != NULL && o->type == OBJ_STRING)
+                        g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                       : sdsfromlonglong((long)o->ptr);
+                    tomoWkrUnlock(owner);
+                }
+                break;
+            }
             /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
              * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
              * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each

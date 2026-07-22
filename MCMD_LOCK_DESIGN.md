@@ -77,3 +77,30 @@ workloads the io/ex optimum shifts to worker-heavy — the opposite of single-ke
 NEXT: per-node scatter+combine (multi-node: one first-key-owner PER NODE, IO combines partials);
 extend to SINTER/EXISTS; single-shard/1-key MGET short-circuit (MGET1==GET1); hybrid vs scatter at
 very high N on few-worker configs.
+
+## S3'' PER-NODE scatter+combine (2026-07-22) — DONE + VALIDATED (numa_nodes>=2)
+tomoMgetPerNodeDispatch: groups the MGET's keys BY NODE (node = tmNodeOfWorker(owner)), issues ONE
+borrow-exec sub per non-empty node dispatched to a node-local worker (the node's first-seen key
+owner). Each sub carries its node's keys + their ORIGINAL positions and reads each key from its TRUE
+owner db under that owner's per-worker lock (csSubExec CS_MGET g->mcmd_borrow branch), writing the
+value COPY into mget_vals[pos]; the IO drain reassembles in key order (csReassemble) — REUSES the
+coalesced MGET group machinery (mget_vals + mget_pos + CS_MGET reassemble/teardown), the only new
+piece is the per-key borrow read. Every borrow stays NODE-LOCAL (no cross-node db reads) — the point
+of the split; on real NUMA that keeps the remote-memory reads out of the hot path.
+ROUTING: numa_nodes>=2 AND >=2 keys => per-node group; else (numa_nodes==1, or MGET1) => the S3'
+single-worker borrow (tomoMgetLockBorrow, whole fake to the first key's owner). MGET1==GET1 (single
+path, no group alloc).
+VALIDATION (io2ex2/node = io4ex4, 2 logical nodes): per-node borrow BYTE-EXACT vs scatter across 60
+varied MGETs (2-50 keys, present+absent mix, 1553 reply lines); 20s concurrent stress (16-conn SET
+writers @ ~107k rps churning the SAME keyspace + 8303 multi-node MGET reads) => 0 reader errors, 0
+asserts/segv, server alive — the per-worker lock coordinates the node-local borrow read with the
+owner's concurrent single-key SET (S2 lock), no rehash-during-borrow crash. numa=1 regression: still
+byte-exact, GET/SET 118-121k, no crash. GET/SET/MGET1 sanity clean on numa=2.
+SEMANTIC NOTE (shared with S3' single-node borrow): the borrow read uses LOOKUP_NOEFFECTS (pure read
+— it must not lazy-expire/LRU-mutate a NON-owned db from the borrower thread), so a logically-expired
+key still returns its value until the owner's active-expire cycle (scatter's LOOKUP_NONE would report
+nil + delete). Accepted, consistent property of the whole lock-borrow experiment (knob default OFF).
+NEXT: extend the per-node borrow to EXISTS/SINTER/writes (writes need the scattered write-subs to also
+take the owner lock — currently only single-key ops do, via exExecFake S2); bench per-node vs scatter
+on real NUMA (on this single-CCD sim there is no remote-memory penalty, so the split shows correctness
++ parity, not the NUMA-locality speedup it targets).
