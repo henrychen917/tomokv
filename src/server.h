@@ -2576,6 +2576,7 @@ struct redisServer {
                                           * (generalizes the old single-tmSpare tail to any thread) */
     int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
+    int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
      * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
      * `tomokv-ex-queue-depth`). pipeline_ring_mask and

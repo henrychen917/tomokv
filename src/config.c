@@ -3251,6 +3251,7 @@ standardConfig static_configs[] = {
      * 1 = all tomokv threads run polyThreadMain with preset modes + one PARKED spare
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
     createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
+    createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
      * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live

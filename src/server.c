@@ -8932,6 +8932,13 @@ static void migHoldIfDraining(client *fake) {
      * try, a later iteration catches it — so a held producer always contributes its sentinel. */
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
+        /* cron-fold deadlock guard: the cutover coordinator runs ONLY on the main thread (iotid 0,
+         * from beforeSleep). If the main thread is itself a range-write producer and lands in this
+         * spin it can never reach beforeSleep to advance DRAINING->FLIP, so it would hang forever
+         * (io threads spin fine — they only push their sentinel). Pump the coordinator here so the
+         * very fence we're blocked on can drain. IO threads (iotid != 0) must NOT touch the
+         * main-owned coordinator state. */
+        if (iotid == 0) reshardCoordinatorTick();
         exPauseCpu();
     }
 }
@@ -8946,6 +8953,7 @@ static void migHoldKeyIfDraining(robj *key) {
     if (!migBucketInRange(migKeyBucket(key->ptr, sdslen(key->ptr)))) return;
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
+        if (iotid == 0) reshardCoordinatorTick();   /* cron-fold deadlock guard — see migHoldIfDraining */
         exPauseCpu();
     }
 }
@@ -13294,7 +13302,12 @@ typedef struct exSliceCtx {
  * capturing them here == capturing them at the top of the old thread main). */
 static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->wcdb = cdbIndexFor(worker->id);
-    ctx->nq = server.io_threads + 1;
+    /* flip: scan the flip growth producer slots too (a converted worker running as an IO thread
+     * dispatches from io_slot in [io_threads, io_threads+tm_ngrow_io)). Their queues are allocated
+     * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
+     * this the worker never drains a grown io thread's dispatch queue and its replies never return
+     * (replyWorking pins, the grown io thread's conns wedge). */
+    ctx->nq = server.io_threads + 1 + (server.thread_modes ? server.tm_ngrow_io : 0);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_pinned = server.worker_spin > 0;
@@ -13783,6 +13796,18 @@ static polyThreadCtx *tmCtxForIotid(int id) {
     if (!server.thread_modes || !tmPolyCtxs) return NULL;
     if (id >= 1 && id < server.io_threads) return &tmPolyCtxs[id - 1];   /* io-born 1..io_threads-1 */
     if (tmSpare && id == tmSpare->io_slot) return tmSpare;               /* the spare (io_slot == io_threads) */
+    /* flip growth slots (io_threads..io_threads+tm_ngrow_io): a converted EX worker now running
+     * as IO. grow-front converts the highest live worker first (io_slot io_threads, io_threads+1,
+     * ...), so grown io_slot S was given to worker w = (num_workers-1) - (S - io_threads). Without
+     * this, tmGatherLiveDests/the REBALANCE dest-validation can't see a converted io thread as a
+     * live migration target and the new thread stays idle. */
+    if (id >= server.io_threads && id < server.io_threads + server.tm_ngrow_io) {
+        int w = (server.num_workers - 1) - (id - server.io_threads);
+        if (w >= 1 && w < server.num_workers) {
+            polyThreadCtx *ctx = &tmPolyCtxs[(server.io_threads - 1) + w];
+            if (ctx->io_slot == id) return ctx;                          /* io != NULL by construction */
+        }
+    }
     return NULL;
 }
 
@@ -14416,6 +14441,8 @@ int tomoGrowFront(const char **err) {
     return 1;
 }
 
+static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined below */
+
 /* Drive a grow-front flip to completion (main thread, from beforeSleep). Non-blocking: each call
  * advances one edge. After the migration parks the flipping worker, bring it to IO and publish
  * io_threads_live. */
@@ -14436,6 +14463,9 @@ void tmFlipTick(void) {
                                  "(io_slot %d now accepting)",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed), ctx->io_slot);
+            /* EWMA client rebalance: pull existing conns onto the freshly-online io thread so it
+             * carries its share of load immediately (otherwise it only gets new accepts). */
+            if (server.tm_flip_rebalance) tmRebalanceOntoNewIo(ctx->io_slot);
             server.tm_flip_ctx = NULL; server.tm_flip_target = 0;
         }
     }
@@ -14627,7 +14657,11 @@ static int tmClientQuiesced(client *c) {
  * themselves exiting, != exclude). exclude<0 gathers all live io threads. Returns count. */
 static int tmGatherLiveDests(int exclude, int *out, int cap) {
     int n = 0;
-    for (int id = 1; id <= server.io_threads && n < cap; id++) {
+    /* Bound includes the flip growth slots (io_threads..io_threads+tm_ngrow_io): a converted
+     * worker running as IO is a valid migration dest. The mode==IO gate below excludes any
+     * grown slot that isn't currently live, so widening the range is safe. */
+    int hi = server.io_threads + server.tm_ngrow_io;
+    for (int id = 1; id <= hi && n < cap; id++) {
         if (id == exclude) continue;
         if (atomic_load_explicit(&tm_mig_mbox[id].io_exiting, memory_order_relaxed)) continue;
         polyThreadCtx *ctx = tmCtxForIotid(id);
@@ -14646,6 +14680,69 @@ static int tmGatherLiveDests(int exclude, int *out, int cap) {
  * balancing heuristic. */
 static long tmIoThreadLoad(int id) {
     return server.clients[id] ? (long)listLength(server.clients[id]) : 0;
+}
+
+/* flip: ingress-busy EWMA of io thread `id` (events-per-pass, Q4 fixed-point). Reflects real
+ * work, not just conn count: 5 busy conns can outweigh 20 idle ones. Cross-thread-racy read of
+ * a single int (non-torn) — fine for a balancing heuristic. 0 when the thread has been idle. */
+static double tmIoThreadBusy(int id) {
+    return (id >= 0 && id <= TOMO_IO_THREADS_MAX) ? (double)tm_io_sig[id].busy_ewma_q4 : 0.0;
+}
+
+/* flip: after a grow-front brings io thread `new_id` online (it starts with ~0 conns), pull
+ * existing connections onto it so per-thread load equalizes — otherwise the new thread sits idle
+ * (pre-existing conns stay pinned to the original io threads; only fresh accepts reach it via
+ * REUSEPORT) and the flip yields no throughput. EWMA-weighted when the ingress EWMA is primed:
+ * each source sheds conns in proportion to its busy-EWMA excess, converting excess-busy to a
+ * conn count via the source's own per-conn busy. Falls back to conn-count balancing when the
+ * EWMA is cold (idle server) — equal conn count is the safe default when per-conn load is
+ * unknown. One TM_MIGREQ_REBALANCE per over-target source, all targeting new_id; sources busy
+ * with an in-flight migration are skipped and re-picked on the controller's next tick. */
+static void tmRebalanceOntoNewIo(int new_id) {
+    int all[TOMO_IO_THREADS_MAX + 1];
+    int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* every live io thread, incl. new_id */
+    if (n < 2) return;
+    long   tot_conns = 0;
+    double tot_busy  = 0;
+    for (int i = 0; i < n; i++) { tot_conns += tmIoThreadLoad(all[i]); tot_busy += tmIoThreadBusy(all[i]); }
+    if (tot_conns < n) return;                                     /* < 1 conn/thread: nothing to spread */
+    int    ewma_hot    = (tot_busy > (double)n);                   /* EWMA primed & non-trivial */
+    long   conn_target = tot_conns / n;
+    double busy_target = tot_busy / (double)n;
+    int posted = 0;
+    for (int i = 0; i < n; i++) {
+        int src = all[i];
+        if (src == new_id) continue;
+        long nc = tmIoThreadLoad(src);
+        if (nc < 2) continue;                                      /* leave singletons alone */
+        int count;
+        if (ewma_hot) {
+            double busy = tmIoThreadBusy(src);
+            if (busy <= busy_target) continue;
+            double per_conn = busy / (double)nc;                   /* nc >= 2 here */
+            count = per_conn > 0.0 ? (int)((busy - busy_target) / per_conn) : 0;
+        } else {
+            if (nc <= conn_target) continue;
+            count = (int)(nc - conn_target);
+        }
+        if (count < 1) continue;
+        if (count > nc - 1) count = (int)(nc - 1);                 /* never strand a source at 0 conns */
+        tmMigMailbox *mb = &tm_mig_mbox[src];
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) continue;   /* busy — next tick */
+        mb->req_kind  = TM_MIGREQ_REBALANCE;
+        mb->req_dest  = new_id;
+        mb->req_count = count;
+        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        triggerEventNotifier(mb->notifier);
+        posted++;
+    }
+    if (posted)
+        serverLog(LL_NOTICE, "ee451 flip: EWMA rebalance onto new io thread %d — %d source(s), "
+                             "%s balancing (conn_target %ld, busy_target %.0f, total %ld conns/%d threads)",
+                  new_id, posted, ewma_hot ? "EWMA-busy" : "conn-count", conn_target, busy_target,
+                  tot_conns, n);
 }
 
 static int tmLeastLoadedIoDest(int exclude) {
