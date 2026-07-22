@@ -2316,6 +2316,8 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_IDLE)
             reshardCoordinatorTick();
     }
+    /* flip: drive a grow-front conversion to completion (park -> IO -> publish). Cheap when idle. */
+    if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
@@ -3359,6 +3361,14 @@ void initServer(void) {
         server.numa_nodes = 1; server.io_per_node = server.io_threads;
         server.ex_per_node = server.ex_threads; server.cores_per_node = server.io_threads + server.ex_threads;
     }
+    /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
+     * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
+    server.tm_ngrow_io = 0;
+    if (server.thread_modes && server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
+        server.tm_ngrow_io = server.ex_threads - 1;
+        if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
+            server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
+    }
     /* Internal flip bounds from the node budget (min 1 of each role, max cores_per_node-1). */
     server.io_threads_min = 1; server.ex_threads_min = 1;
     server.io_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
@@ -3458,8 +3468,10 @@ void initServer(void) {
     server.memory_tracking_enabled = server.key_memory_histograms || clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_MEM);
     resetReplicationBuffer();
 
-    /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). */
-    for (int t = 0; t <= server.io_threads; t++) {
+    /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). flip: include
+     * the growth io slots [io_threads .. io_threads+ngrow_io) so a converted worker running IO has
+     * live per-iotid structures (handleWorkerReplies/beforeSleepIO index these by iotid). */
+    for (int t = 0; t <= server.io_threads + server.tm_ngrow_io; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -8849,7 +8861,11 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
      * the spare's ENTIRE range back to its neighbor — "would empty src" is the POINT there.
      * The exemption is spare-slot-only (src == num_workers): base workers can still never be
      * emptied by an arm, manual or auto. */
-    if (lo == s_lo && hi == s_hi && src != server.num_workers) return 0;   /* would empty src */
+    /* "would empty src" is REJECTED for normal load-balance moves, but is the POINT for a
+     * spare deactivation (src == num_workers) OR a grow-front flip (tm_flip_ctx converting the
+     * highest live worker entirely out to its neighbor). Exempt both. */
+    if (lo == s_lo && hi == s_hi && src != server.num_workers && server.tm_flip_ctx == NULL)
+        return 0;   /* would empty src */
     if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
     for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
         if (server.ex_bucket_table[b] != (uint8_t)src) return 0;
@@ -9013,7 +9029,9 @@ static void reshardCoordinatorTick(void) {
      * SPARE's producer slot — fence it too. While the spare is parked/dormant its queue
      * just stays empty and the ~2ms idle-ack below clears it; once it has shifted to IO
      * its in-flight dispatches are drained exactly like any other producer's. */
-    int nprod = server.io_threads + (server.thread_modes ? 1 : 0);
+    /* flip: cover all POSSIBLE producer slots (base io + growth io slots a converted worker may
+     * run). Slots that never went live have empty queues => idle-acked in C.2, harmless. */
+    int nprod = server.io_threads + (server.thread_modes ? (server.tm_ngrow_io > 0 ? server.tm_ngrow_io : 1) : 0);
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: cold scan wrapped + B caught up => converge; else wait (hold state). */
@@ -9139,9 +9157,15 @@ static void reshardCoordinatorTick(void) {
      * the spare's ENTIRE range is on dst, CLEANUP deleted the src copies and teardown is
      * complete — request PARKED. The spare's park checkpoint drains its (now traffic-less)
      * queues, asserts the shard is empty, then parks. */
-    if (spare_act == 2 && tmSpare) {
-        atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
-        serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
+    if (spare_act == 2) {
+        /* flip: park the thread whose range was just moved out — the FLIP ctx (an active worker
+         * converting to IO) if set, else the spare (legacy deactivation). tmFlipTick brings a
+         * flip ctx onward to IO after it parks. */
+        polyThreadCtx *fc = server.tm_flip_ctx ? server.tm_flip_ctx : tmSpare;
+        if (fc) {
+            atomic_store_explicit(&fc->target_mode, TOMO_MODE_PARKED, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 thread-modes: buckets returned to worker %d — park requested", dst);
+        }
     }
     atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
 }
@@ -13811,7 +13835,12 @@ void initExThreads(void) {
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
         server.exThreads[i].db = server.ex_dbs[i];
-        for (int t = 0; t <= server.io_threads; t++) {
+        /* flip: init queues/freeback for EVERY possible producer slot, including the growth io
+         * slots [io_threads .. io_threads+ngrow_io) that a converted worker will run as an IO
+         * thread. Without this, the 2nd+ grow-front conversion pushes to an uninitialized queue
+         * (crash). Slot io_threads (spare / 1st conversion) was already covered by <=io_threads. */
+        int nprod_slots = server.io_threads + server.tm_ngrow_io;
+        for (int t = 0; t <= nprod_slots; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
             freebackRing *fb = &server.exThreads[i].freeback[t];
@@ -13979,12 +14008,7 @@ void initIOThreads(void) {
     /* flip: reserve growth io slots [io_threads .. io_threads+ngrow_io) for EX workers that
      * convert to IO (grow-front). ngrow_io = num_workers-1 (worker 0 is the >=1 EX floor).
      * Capped so io_threads+ngrow_io <= TOMO_IO_THREADS_MAX. Dormant bindings built below. */
-    int ngrow_io = 0;
-    if (server.thread_modes && server.num_workers > 1)
-        ngrow_io = server.num_workers - 1;
-    if (server.io_threads + ngrow_io > TOMO_IO_THREADS_MAX)
-        ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
-    server.tm_ngrow_io = ngrow_io;
+    int ngrow_io = server.tm_ngrow_io;   /* computed early in initServer (per-iotid arrays sized for it) */
     atomic_store_explicit(&server.io_threads_live, server.io_threads, memory_order_relaxed);
     server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + spare + ngrow_io));
     server.custom_io_threads_active = 1;
@@ -14351,6 +14375,70 @@ void *polyThreadMain(void *arg) {
  * so the single-control-plane-writer discipline is preserved. */
 int tomoModeshiftSpare(int mode, const char **err) {
     return tomoSpareShift(mode, err);
+}
+
+/* ---- FLIP: fixed-pool role conversion (grow-front). Converts the highest live EX worker into an
+ * IO thread IN PLACE (same core), keeping the total thread count constant. Composes the validated
+ * legs: migrate the worker's buckets to its neighbor (v8d), park it, then PARKED->IO (activate its
+ * dormant io binding -> joins the REUSEPORT accept group). io_threads_live++ / num_workers_live--.
+ * Async: arms the migration + sets the flip ctx; tmFlipTick (beforeSleep) drives park->IO. ---- */
+int tomoGrowFront(const char **err) {
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; return 0; }
+    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
+    if (io_live >= server.io_threads + server.tm_ngrow_io) { *err = "no growth io slot available"; return 0; }
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; return 0; }
+    int w = live - 1;                                   /* highest live worker converts */
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
+    if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; return 0; }
+    if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; return 0; }
+    /* Migrate w's WHOLE range to its neighbor w-1 (prefix move, dst=src-1 — the FLIP bookkeeping
+     * handles it; validated by reshardRangeValid's boundary+ownership checks). */
+    int lo = (w == 0) ? 0 : server.ex_bucket_end[w - 1];
+    int hi = server.ex_bucket_end[w];
+    if (hi <= lo) { *err = "converting worker owns no buckets"; return 0; }
+    server.tm_flip_ctx = ctx;
+    server.tm_flip_target = TOMO_MODE_IO;
+    /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
+     * while it keeps draining, exactly like the spare deactivation. */
+    atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
+    server.tm_mig_spare_action = 2;                     /* coordinator tail parks tm_flip_ctx */
+    if (!reshardArm(lo, hi, w, w - 1)) {
+        server.tm_mig_spare_action = 0; server.tm_flip_ctx = NULL;
+        atomic_store_explicit(&server.num_workers_live, live, memory_order_release);
+        *err = "reshardArm rejected the grow-front migration"; return 0;
+    }
+    reshardBeginCutover();
+    serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d converting to IO (io_slot %d); "
+                         "range [%d,%d) -> worker %d, then park->IO", w, ctx->io_slot, lo, hi, w - 1);
+    return 1;
+}
+
+/* Drive a grow-front flip to completion (main thread, from beforeSleep). Non-blocking: each call
+ * advances one edge. After the migration parks the flipping worker, bring it to IO and publish
+ * io_threads_live. */
+void tmFlipTick(void) {
+    polyThreadCtx *ctx = server.tm_flip_ctx;
+    if (!ctx) return;
+    if (server.tm_flip_target == TOMO_MODE_IO) {
+        int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
+        int tgt = atomic_load_explicit(&ctx->target_mode, memory_order_acquire);
+        if (m == TOMO_MODE_EX) return;                 /* still draining/migrating; coordinator will park it */
+        if (m == TOMO_MODE_PARKED && tgt == TOMO_MODE_PARKED) {
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);  /* PARKED->IO */
+            return;
+        }
+        if (m == TOMO_MODE_IO) {                        /* conversion complete */
+            atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT complete — io_threads_live=%d num_workers_live=%d "
+                                 "(io_slot %d now accepting)",
+                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
+                      atomic_load_explicit(&server.num_workers_live, memory_order_relaxed), ctx->io_slot);
+            server.tm_flip_ctx = NULL; server.tm_flip_target = 0;
+        }
+    }
 }
 
 int tomoSpareShift(int mode, const char **err) {
@@ -14932,7 +15020,8 @@ int tomoMigrateTest(int val, const char **err) {
                              "group + migrates %ld conns out, then parks", src, tmIoThreadLoad(src));
         return 1;
     }
-    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance)";
+    if (val == 7) return tomoGrowFront(err);   /* flip: convert highest EX worker -> IO (4/4->5/3) */
+    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance, 7 = grow-front)";
     return 0;
 }
 

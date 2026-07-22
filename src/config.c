@@ -2564,6 +2564,7 @@ static int updateDefragConfiguration(const char **err) {
 static int updateTomokvModeshiftTest(const char **err) {
     if (server.modeshift_test == 5 || server.modeshift_test == 6)
         return tomoMigrateTest(server.modeshift_test, err);
+    if (server.modeshift_test == 7) return tomoGrowFront(err);   /* flip: grow-front (EX->IO) */
     return tomoModeshiftSpare(server.modeshift_test, err);
 }
 
@@ -3256,7 +3257,7 @@ standardConfig static_configs[] = {
      * at the table FLIP); 3 or 0 = EX->PARKED (migrate everything back, drain, assert-empty,
      * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
      * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
-    createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 6, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
+    createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 7, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
     /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. Requires thread-modes at
      * boot (else FATAL-warn + ignore). ON = serverCron samples the per-thread pressure
      * signals ~4-5Hz and autonomously shifts the SPARE: PARKED->EX on a sustained

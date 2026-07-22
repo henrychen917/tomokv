@@ -5466,6 +5466,8 @@ void tmMigInitSlot(int io_slot, struct aeEventLoop *el);  /* build this slot's m
 void tmMigServiceOut(void);                           /* source side: start + complete pending migrations (beforeSleepIO) */
 void tmMigDrainInbox(void);                           /* dest side: adopt incoming migrated clients (beforeSleepIO) */
 void tmMigForgetOnFree(client *c);                    /* freeClient hook: drop a dying client from migrating_out */
+int tomoGrowFront(const char **err);
+void tmFlipTick(void);
 int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
