@@ -9343,13 +9343,10 @@ void reshardAutoTune(void) {
     int W = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     if (W < 2) return;
 
-    /* flip: a completed role-flip dumped a worker's whole range on its neighbour (a known, large
-     * bucket imbalance). For a short window after that, run AGGRESSIVELY — bypass the settle window
-     * and the sustain streak so the very next detection of the hot worker fires a rebalance — so the
-     * imbalance is evened out RIGHT AWAY instead of over the balancer's normal multi-second cadence.
-     * The outlier/adjacency/validation gates still apply, so this only moves genuinely-hot load. */
-    int kick = server.tm_rebalance_now;
-    if (kick > 0) server.tm_rebalance_now = kick - 1;
+    /* flip: a completed role-flip transferred the converted worker's EWMA weight onto its neighbour
+     * (reshardKickAfterFlip), so the imbalance is already REAL in the EWMA and the NORMAL trigger +
+     * sustain path below detects it — no special bypass needed. The imbalance-proportional chunk
+     * (below) then evens it out in ~one move. */
 
     /* Continuous decay: the EWMA window spans 4x min-ops in OPERATIONS, from the previous
      * tick's mean rate — the workload's own throughput sets the time constant, re-derived
@@ -9425,7 +9422,7 @@ void reshardAutoTune(void) {
     }
     /* Settle: let the EWMA absorb the last migration before judging — the window IS the
      * EWMA's own time constant (ceil(1/alpha)+1 ticks), so it self-scales with the decay. */
-    if (mig_settle > 0 && !kick) { mig_settle--; return; }   /* flip kick: don't wait out the settle window */
+    if (mig_settle > 0) { mig_settle--; return; }
     /* NO-PROGRESS guard: if the last migration didn't cut the peak enough, the hotspot is
      * unbalanceable (a single hot key just relocates) — stop chasing. Self-resets via the balanced
      * path when the pattern changes.
@@ -9449,10 +9446,8 @@ void reshardAutoTune(void) {
         int K = server.reshard_sustain_ticks;
         if (K < 0) K = (int)ceil(1.0 / alpha);          /* -1 = auto: one EWMA time constant */
         if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; return; }
-        if (!kick) {                                     /* flip kick: fire on first hot detection, skip the streak */
-            if (++mig_hot_streak[hot] < K) return;      /* not sustained yet */
-            mig_hot_streak[hot] = 0;                     /* consume; re-earn for the next fire */
-        }
+        if (++mig_hot_streak[hot] < K) return;          /* not sustained yet */
+        mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
     }
 
     /* Cooler adjacent neighbour with genuinely-below-mean load. WITHIN-NODE ONLY (2026-07-22 user
@@ -9474,24 +9469,27 @@ void reshardAutoTune(void) {
     double cool_bar = (cm == 0) ? mean : (cm < 0 ? mean * 0.85 : mean * (1.0 - cm / 100.0));
     if (B < 0 || mig_load_ewma[B] >= cool_bar) return;
 
-    /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never
-     * emptying the hot shard. */
-    /* ee451 (v14, controller): chunk granule self-scales with shard size — TOMO_BUCKETS/(16*W)
-     * clamped [16, 256]: bigger keyspaces move proportionally bigger chunks (same convergence
-     * step count at any scale), small worker counts don't over-move. Knob retired. */
-    int chunk = server.reshard_chunk;
-    if (chunk <= 0) {          /* 0 = auto: proportional granule */
-        chunk = TOMO_BUCKETS / (16 * W);
-        if (chunk < 16) chunk = 16;
-        if (chunk > 256) chunk = 256;
-    }
-    /* flip kick: the flip-induced imbalance is LARGE (a whole worker range dumped on a neighbour),
-     * so move much bigger chunks during the aggressive window — a few big moves even it out in ~2-3s
-     * instead of a dozen small ones. Capped at half the hot range so the hot shard is never emptied. */
-    if (kick) { chunk *= 8; int cap = (TOMO_BUCKETS / (2 * W)); if (chunk > cap) chunk = cap; }
+    /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never emptying
+     * the hot shard. CHUNK SIZE ∝ THE IMBALANCE (2026-07-22 user: transfer size should be based on
+     * how imbalanced the weights are). To equalize hot(load Lh, range R) with cool(load Lc), the
+     * per-bucket rate is ~Lh/R, so moving X = (Lh-Lc)/2 / (Lh/R) = (Lh-Lc)*R/(2*Lh) buckets lands both
+     * at ~the mean in ONE move: a big imbalance (a flip's whole-range dump) evens out at once; a small
+     * drift moves a small chunk. A fixed floor keeps progress; capped at half the hot range so the hot
+     * shard is never emptied. The tomokv-reshard-chunk knob still overrides with a fixed granule. */
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
-    if (hot_hi - hot_lo <= chunk) return;
+    int hrange = hot_hi - hot_lo;
+    int chunk = server.reshard_chunk;
+    if (chunk <= 0) {          /* 0 = auto: imbalance-proportional */
+        double Lh = mig_load_ewma[hot], Lc = mig_load_ewma[B];
+        double frac = (Lh > 0.0) ? (Lh - Lc) / (2.0 * Lh) : 0.0;   /* fraction of the hot range to shed */
+        if (frac < 0.0) frac = 0.0;
+        chunk = (int)(frac * (double)hrange);
+        if (chunk < 16) chunk = 16;                      /* floor: always make progress */
+    }
+    { int cap = hrange / 2; if (cap < 1) cap = hrange - 1;          /* never empty the hot shard */
+      if (chunk > cap) chunk = cap; }
+    if (hrange <= chunk || chunk < 1) return;
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
     else              { lo = hot_lo; hi = hot_lo + chunk; }
@@ -9507,17 +9505,22 @@ void reshardAutoTune(void) {
     }
 }
 
-/* flip: called on a role-flip completion (grow-front/back) to make the EWMA bucket balancer
- * even out the flip-induced imbalance RIGHT AWAY. Clears the settle window + hot streaks and opens
- * an aggressive window (tm_rebalance_now) during which reshardAutoTune bypasses its sustain/settle
- * gates — so the first hot-worker detection fires a rebalance on the very next balancer tick instead
- * of after its normal multi-second sustain. Idempotent; main-thread only (same thread as the
- * balancer and the flip actuator). */
-void reshardKickAfterFlip(void) {
+/* flip: called on a role-flip completion. Instead of a special "kick" that bypasses the balancer's
+ * gates (2026-07-22 user: cleaner to just move the load weight and let EWMA figure it out), TRANSFER
+ * the converting worker's smoothed load onto the neighbour that absorbed its bucket range. That makes
+ * the true post-flip imbalance immediately REAL in the EWMA, so the balancer's NORMAL trigger/sustain
+ * logic sees it and rebalances via its ordinary path — the imbalance-proportional chunk (below) then
+ * evens it out in ~one move. from_w<0 => no transfer (grow-back's seed already half-splits the range,
+ * so it starts balanced); we still clear the settle so the balancer can act promptly. Main-thread. */
+void reshardKickAfterFlip(int from_w, int to_w) {
+    if (from_w >= 0 && to_w >= 0 && from_w < TOMO_EX_THREADS_MAX && to_w < TOMO_EX_THREADS_MAX) {
+        mig_load_ewma[to_w]      += mig_load_ewma[from_w];
+        mig_load_ewma_fast[to_w] += mig_load_ewma_fast[from_w];
+        mig_load_ewma[from_w] = mig_load_ewma_fast[from_w] = 0.0;
+    }
     mig_settle = 0;
     mig_peak_pre = 0;
     for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) mig_hot_streak[w] = 0;
-    server.tm_rebalance_now = 12;    /* ~12 balancer ticks (~12s) of aggressive, sustain-bypassed rebalancing */
 }
 
 /* Content checksum over all keys of worker `wid`'s shard whose bucket ∈ [lo,hi). Order-independent
@@ -14607,7 +14610,9 @@ void tmFlipTick(void) {
             /* EWMA client rebalance: pull existing conns onto the freshly-online io thread so it
              * carries its share of load immediately (otherwise it only gets new accepts). */
             if (server.tm_flip_rebalance) tmRebalanceOntoNewIo(ctx->io_slot);
-            reshardKickAfterFlip();   /* even out the grow-front bucket imbalance RIGHT AWAY */
+            /* transfer the converted worker's load weight onto the neighbour that took its range,
+             * so the EWMA balancer sees the imbalance and evens it out via its normal path. */
+            reshardKickAfterFlip(ctx->ex ? ctx->ex->id : -1, ctx->ex ? ctx->ex->id - 1 : -1);
             server.tm_flip_ctx = NULL; server.tm_flip_target = 0;
         }
         return;
@@ -14680,7 +14685,7 @@ void tmFlipTick(void) {
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — num_workers_live=%d io_threads_live=%d",
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
-            reshardKickAfterFlip();   /* even out the seed-migration bucket imbalance RIGHT AWAY */
+            reshardKickAfterFlip(-1, -1);   /* grow-back's seed already half-splits: no weight transfer, just let the balancer act promptly */
             server.tm_flip_ctx = NULL; server.tm_flip_target = 0; server.tm_flip_phase = 0;
             return;
         }
