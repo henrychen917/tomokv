@@ -2497,8 +2497,9 @@ typedef struct polyThreadCtx {
  * hot path) and wakes it; the destination re-registers on its own loop. */
 typedef enum {
     TM_MIGREQ_NONE = 0,
-    TM_MIGREQ_REBALANCE,   /* move req_count conns to req_dest (no mode change) */
-    TM_MIGREQ_IOEXIT       /* leave accept group, move ALL migratable conns out, then park */
+    TM_MIGREQ_REBALANCE,     /* move req_count conns to req_dest (no mode change) */
+    TM_MIGREQ_IOEXIT,        /* leave accept group, move ALL migratable conns out, then park */
+    TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
 } tmMigReqKind;
 
 typedef struct tmMigMailbox {
@@ -2576,6 +2577,7 @@ struct redisServer {
                                           * (generalizes the old single-tmSpare tail to any thread) */
     int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
     int tm_flip_phase;             /* grow-back phase machine: 0=await park, 1=await EX, 2=await seed FLIP */
+    int tm_flip_ticks;             /* grow-back phase-0 watchdog: ticks awaiting park; abort if it stalls */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */

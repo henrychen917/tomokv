@@ -9059,7 +9059,12 @@ static void reshardCoordinatorTick(void) {
      * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
      * also see the new fence_gen (release/acquire on phase carries the prior stores) — otherwise a
      * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
-    for (int t = 0; t <= server.io_threads; t++)
+    /* flip (review [1] data-loss fix): reset EVERY producer slot the C.2 drain check spans (nprod =
+     * io_threads + tm_ngrow_io), not just [0, io_threads]. A grown io slot (converted worker acting as
+     * an IO producer) that idle-acked (fence_acked==1) in an EARLIER migration would otherwise keep
+     * that stale 1 into THIS cutover; C.2 then treats it as already-drained and the FLIP proceeds while
+     * an in-flight range write is still queued from that live producer => silent lost write. */
+    for (int t = 0; t < nprod; t++)
         atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
     atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
@@ -12854,7 +12859,13 @@ void freebackPush(int ex_id, robj *obj) {
  * on the worker thread (single-writer for its shard => no refcount race).
  * Called once per worker loop iteration. */
 static inline void freebackDrainAll(exThread *worker) {
-    for (int t = 0; t <= server.io_threads; t++) {
+    /* flip (review [4] wedge fix): a converted worker runs as an IO PRODUCER at a growth io slot
+     * (io_threads..io_threads+tm_ngrow_io-1) and can push zero-copy reply-value decrefs into
+     * freeback[that slot]; the owning worker must drain those slots too, else the 16-entry ring
+     * fills and freebackPush spins forever (wedging that IO thread + leaking every forwarded value).
+     * The growth slots are alloc-sized and empty until live, so the extra iterations are no-ops. */
+    int nfb = server.io_threads + server.tm_ngrow_io;
+    for (int t = 0; t <= nfb; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
@@ -14079,7 +14090,12 @@ void initIOThreads(void) {
          * pin narrows an affinity mask, decide the spare, and size the poly registry. */
         int allowed = tmAllowedCores();
         int configured = server.io_threads + server.num_workers;   /* io (incl. main) + workers */
-        spare = configured < allowed ? 1 : 0;
+        /* flip (review [2] collision fix): the spare and the flip growth slots are competing designs
+         * that both claim io_slot == io_threads. When the flip is active (tm_ngrow_io > 0 — the
+         * always-full-pool / numa model), NEVER provision a spare: its dormant binding would be
+         * overwritten by tmMakeDormantIoBinding(io_threads) and its ctx would alias the top worker's
+         * growth slot (iotid worker-slot aliasing => crash). They are mutually exclusive. */
+        spare = (configured < allowed && server.tm_ngrow_io == 0) ? 1 : 0;
         int npoly = (server.io_threads - 1) + server.num_workers + spare;
         tmPolyCtxs = zcalloc(sizeof(polyThreadCtx) * (npoly > 0 ? npoly : 1));
         serverLog(LL_NOTICE, "ee451 thread-modes ON: %d poly threads (%d io-born, %d ex-born, %d spare; "
@@ -14466,6 +14482,7 @@ int tomoModeshiftSpare(int mode, const char **err) {
  * Async: arms the migration + sets the flip ctx; tmFlipTick (beforeSleep) drives park->IO. ---- */
 static int tmGatherLiveDests(int exclude, int *out, int cap);   /* defined below */
 static long tmIoThreadLoad(int id);                             /* defined below */
+static int tmClientMigratable(client *c);                       /* defined below */
 
 int tomoGrowFront(const char **err) {
     if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
@@ -14483,7 +14500,18 @@ int tomoGrowFront(const char **err) {
      * handles it; validated by reshardRangeValid's boundary+ownership checks). */
     int lo = (w == 0) ? 0 : server.ex_bucket_end[w - 1];
     int hi = server.ex_bucket_end[w];
-    if (hi <= lo) { *err = "converting worker owns no buckets"; return 0; }
+    if (hi <= lo) {
+        /* review [5]: a ZERO-BUCKET worker (a grow-back seeded it empty because its neighbour was too
+         * small, or the balancer drained it) must still be RECLAIMABLE — otherwise the pool is stuck a
+         * core short forever. No range to migrate: park it directly (its shard is empty, so the park
+         * checkpoint's drain+empty assertion holds) and let tmFlipTick convert PARKED->IO. */
+        server.tm_flip_ctx = ctx; server.tm_flip_target = TOMO_MODE_IO;
+        atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
+        atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, park->IO directly (io_slot %d)",
+                  w, ctx->io_slot);
+        return 1;
+    }
     server.tm_flip_ctx = ctx;
     server.tm_flip_target = TOMO_MODE_IO;
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
@@ -14528,9 +14556,21 @@ int tomoGrowBack(const char **err) {
     int rem[TOMO_IO_THREADS_MAX + 1];
     if (tmGatherLiveDests(io_slot, rem, TOMO_IO_THREADS_MAX + 1) < 1)
         { *err = "no other live io thread to receive the exiting thread's conns"; return 0; }
+    /* review [3]: refuse if a persistently non-migratable conn (pubsub/blocked/MULTI) is pinned here
+     * — IO-EXIT could never drain it and phase 0 would wait forever. (A conn that becomes
+     * non-migratable DURING the exit is caught by the phase-0 timeout-abort in tmFlipTick.) The read
+     * is racy but on the same main thread cadence as the actuator; a false negative is handled by the
+     * timeout. */
+    if (server.clients[io_slot]) {
+        listIter li; listNode *ln; listRewind(server.clients[io_slot], &li);
+        while ((ln = listNext(&li)))
+            if (!tmClientMigratable((client *)listNodeValue(ln)))
+                { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; return 0; }
+    }
     server.tm_flip_ctx = ctx;
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT park */
+    server.tm_flip_ticks = 0;                           /* phase-0 watchdog (review [3] abort) */
     server.tm_flip_wslot = ctx->ex->id;                /* the worker index this thread revives as */
     /* IO-EXIT: leave accept group + migrate every conn out (round-robin => even split), then park. */
     mb->req_kind = TM_MIGREQ_IOEXIT;
@@ -14575,7 +14615,27 @@ void tmFlipTick(void) {
     if (server.tm_flip_target == TOMO_MODE_EX) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
         if (server.tm_flip_phase == 0) {               /* awaiting IO-EXIT to park the thread */
-            if (m != TOMO_MODE_PARKED) return;         /* still draining conns out */
+            if (m != TOMO_MODE_PARKED) {               /* still draining conns out */
+                /* review [3] watchdog: if a conn became non-migratable mid-drain (ran SUBSCRIBE/
+                 * MULTI/BLPOP) the thread can never reach clients==0 and would wait forever, wedging
+                 * the controller (tm_flip_ctx stuck => no more flips). Bound the wait: on timeout,
+                 * ABORT — tell the thread to re-join the accept group (stay IO) and clear the flip.
+                 * io_threads_live was NOT decremented yet (that happens on park), so the pool
+                 * accounting is already correct. ~40 ticks ≈ 10s >> a normal drain. */
+                if (++server.tm_flip_ticks >= 40) {
+                    tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
+                    mb->req_kind = TM_MIGREQ_IOEXIT_CANCEL; mb->req_dest = -1; mb->req_count = 0;
+                    atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+                    triggerEventNotifier(mb->notifier);
+                    serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d could not park "
+                                          "(pinned non-migratable conn); re-joining accept group, staying IO",
+                              ctx->io_slot);
+                    server.tm_flip_ctx = NULL; server.tm_flip_target = 0; server.tm_flip_phase = 0;
+                    server.tm_flip_ticks = 0;
+                }
+                return;
+            }
+            server.tm_flip_ticks = 0;
             atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread parked (io_threads_live=%d); reviving as EX",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
@@ -14952,6 +15012,30 @@ static void tmMigLeaveAcceptGroup(int id) {
     serverLog(LL_NOTICE, "ee451 thread-modes v1.6: io thread %d LEFT the reuseport accept group", id);
 }
 
+/* Re-JOIN the reuseport accept group in place (owner thread). Mirrors the PARKED->IO re-entry:
+ * re-bind a dormant listener if the fd was closed, listen() to rejoin the group, register the accept
+ * handler. Used to ABORT an IO-EXIT (review [3]) so a thread that could not park (a pinned
+ * non-migratable conn) resumes as a normal IO thread instead of wedging the controller. Returns 1 on
+ * success. */
+static int tmMigRejoinAcceptGroup(int id) {
+    polyThreadCtx *ctx = tmCtxForIotid(id);
+    if (!ctx || !ctx->io) return 0;
+    if (ctx->io_listening) return 1;
+    if (ctx->io->fd < 0) {
+        ctx->io->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+        if (ctx->io->fd == ANET_ERR) { ctx->io->fd = -1; return 0; }
+        anetNonBlock(NULL, ctx->io->fd);
+    }
+    if (listen(ctx->io->fd, server.tcp_backlog) != 0) return 0;
+    if (aeCreateFileEvent(ctx->io->el, ctx->io->fd, AE_READABLE,
+                          connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
+        close(ctx->io->fd); ctx->io->fd = -1; return 0;
+    }
+    ctx->io_listening = 1;
+    serverLog(LL_NOTICE, "ee451 flip: io thread %d RE-JOINED the accept group (IO-EXIT aborted)", id);
+    return 1;
+}
+
 /* Surgically detach a quiesced client from THIS thread's per-iotid structures, hand it to
  * `dest`'s inbox, and wake dest. At quiesce the client sits only in clients[iotid] +
  * clients_index[iotid] (the ring is empty ⇒ not in clients_pending_ex; replies flushed ⇒ not
@@ -15055,6 +15139,13 @@ void tmMigServiceOut(void) {
         } else if (kind == TM_MIGREQ_IOEXIT) {
             atomic_store_explicit(&mb->io_exiting, 1, memory_order_relaxed);
             if (!mb->accept_left) { tmMigLeaveAcceptGroup(id); mb->accept_left = 1; }
+        } else if (kind == TM_MIGREQ_IOEXIT_CANCEL) {
+            /* review [3]: the flip controller gave up on this grow-back (a pinned non-migratable conn
+             * never let the thread park). Stop exiting and resume as a normal IO thread: clear the
+             * exit flags and re-join the accept group. Any conns already migrated out stay put (they
+             * were just rebalanced); the stuck conn keeps being served here. */
+            atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+            if (mb->accept_left) { tmMigRejoinAcceptGroup(id); mb->accept_left = 0; }
         }
     }
 
@@ -15765,9 +15856,16 @@ static void tomoFlipController(void) {
                  * neighbour explored. Once BOTH neighbours are no better we are AT the optimum =>
                  * CONVERGE and stop probing (only a measured workload shift re-opens the search). */
                 const char *err = NULL;
-                if (tmFlipDo(node, -fc->last_dir, &err))
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> REVERT",
-                              node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
+                if (!tmFlipDo(node, -fc->last_dir, &err)) {
+                    /* review [6]: the revert flip was REFUSED (transient — e.g. a migration slot busy,
+                     * or the pool momentarily at a bound). Do NOT record this neighbour as explored or
+                     * converge on a state we never actually returned to — stay in phase 2 and retry the
+                     * revert next tick (meas_ticks is already past the window, so we re-enter here). */
+                    serverLog(LL_WARNING, "[flip-ctl n%d] revert refused: %s — retry next tick", node, err ? err : "?");
+                    return;
+                }
+                serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> REVERT",
+                          node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
                 fc->probed_mask |= (fc->last_dir > 0) ? 1 : 2;
                 fc->dir = -fc->last_dir;                     /* explore the other direction next time */
                 if ((fc->probed_mask & 3) == 3) {            /* both neighbours worse => optimum found */
