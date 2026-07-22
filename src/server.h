@@ -3327,6 +3327,7 @@ struct redisServer {
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
+    int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
     int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->

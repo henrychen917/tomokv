@@ -3253,6 +3253,7 @@ standardConfig static_configs[] = {
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
     createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
+    createBoolConfig("tomokv-mcmd-lock",             NULL, MODIFIABLE_CONFIG,  server.mcmd_lock,             0, NULL, NULL), /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off) */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
      * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live

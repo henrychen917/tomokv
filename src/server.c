@@ -112,6 +112,7 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
+static void tomoMgetLockBorrow(client *fake);              /* M-command lock-borrow experiment */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
@@ -5522,7 +5523,17 @@ int processCommand(client *c) {
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
-    if (csp) {
+    if (csp && server.mcmd_lock && csp->ctype == CS_MGET &&
+        !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
+        /* EXPERIMENT (2s-numa-mcmd-lock): lock-borrow instead of scatter-gather — read every key
+         * inline on THIS IO thread under per-bucket locks, no worker dispatch. Retire exactly like
+         * the inline path (build the reply onto the fake, then set the completion bit). */
+        fake->cdb = 0;
+        fake->flags |= CLIENT_EX_PENDING;
+        replyWorking++;
+        tomoMgetLockBorrow(fake);
+        atomicFetchOrWithRelease(fake->parent->reply_cdb[fake->cdb].v, 1u << fake->fake_slot);
+    } else if (csp) {
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
@@ -5882,6 +5893,64 @@ int exIndexForKey(const void *keyptr, size_t len) {
      * extra L1-resident load vs the old direct mask, in exchange for arbitrary worker counts
      * and online resharding. */
     return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
+}
+
+/* ==== M-command lock-borrow (EXPERIMENT, 2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
+ * One byte per bucket, CAS-locked. The lock is a RARE-path safety mechanism: single-key ops stay on
+ * their owner (single-writer), so a borrower almost never collides — the lock is essentially always
+ * uncontended. tomoBktTrylock returns 1 on success (non-blocking; the M-executor BACKLOGS a contended
+ * bucket and moves on rather than spinning). tomoBktLock CAS-spins (owner side, when the knob is on).
+ * All inert while server.mcmd_lock == 0 (the default lock-free path is byte-for-byte unchanged). */
+static _Atomic uint8_t tomo_bkt_lock[TOMO_BUCKETS];
+static inline int tomoBktBucket(const void *keyptr, size_t len) {
+    return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
+}
+static inline int tomoBktTrylock(int b) {
+    uint8_t expected = 0;
+    return atomic_compare_exchange_strong_explicit(&tomo_bkt_lock[b], &expected, 1,
+                                                   memory_order_acquire, memory_order_relaxed);
+}
+static inline void tomoBktLock(int b) {
+    for (;;) { if (tomoBktTrylock(b)) return; exPauseCpu(); }
+}
+static inline void tomoBktUnlock(int b) {
+    atomic_store_explicit(&tomo_bkt_lock[b], 0, memory_order_release);
+}
+
+/* Lock-borrow MGET (S3 prototype): this IO thread reads every key DIRECTLY from its owning worker's
+ * shard db under the key's per-bucket lock — no sub-fake scatter, no worker dispatch, no gather. A
+ * contended bucket is BACKLOGGED (skipped this pass, retried next) rather than spun on. LOOKUP_NOEFFECTS
+ * => a pure read that never mutates the owner's db (no lazy-expire/LRU/stats), so it's safe to read a
+ * non-owned db under the lock. Values are copied under the lock (owner may free after unlock), then the
+ * reply is assembled IN KEY ORDER. Builds the reply onto `fake` exactly like the inline path; the
+ * caller sets the completion bit. Correct with no concurrent single-key WRITES to these buckets (an
+ * MGET-heavy phase leaves the workers idle); full concurrency with writers needs the owner-side lock. */
+static void tomoMgetLockBorrow(client *fake) {
+    int nk = fake->argc - 1;
+    int dbid = fake->db->id;
+    robj **vals = zmalloc(sizeof(robj *) * nk);
+    unsigned char *done = zcalloc(nk);
+    for (int i = 0; i < nk; i++) vals[i] = NULL;
+    int remaining = nk, guard = 0;
+    while (remaining > 0 && guard++ < nk * 16 + 16) {
+        for (int i = 0; i < nk; i++) {
+            if (done[i]) continue;
+            robj *key = fake->argv[i + 1];
+            int b = tomoBktBucket(key->ptr, sdslen(key->ptr));
+            if (!tomoBktTrylock(b)) continue;                 /* contended -> backlog, retry next pass */
+            int owner = server.ex_bucket_table[b];
+            robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
+            if (o && o->type == OBJ_STRING) vals[i] = dupStringObject(o);   /* private copy under the lock */
+            tomoBktUnlock(b);
+            done[i] = 1; remaining--;
+        }
+    }
+    addReplyArrayLen(fake, nk);
+    for (int i = 0; i < nk; i++) {
+        if (vals[i]) { addReplyBulk(fake, vals[i]); decrRefCount(vals[i]); }
+        else addReplyNull(fake);
+    }
+    zfree(vals); zfree(done);
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
