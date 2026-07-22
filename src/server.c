@@ -117,6 +117,15 @@ static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
 static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
+#define CO_IDLE          0
+#define CO_WAIT_CONVERGE 1
+#define CO_DRAINING      2
+#define CO_WAIT_APPLIED  3
+#define CO_WAIT_REFS     4
+#define CO_WAIT_DONE     5
+#define CO_QUIESCE       6
+static void reshardCoordinatorTick(void);   /* zero-thread-churn cutover state machine (main) */
+static _Atomic int co_state;                /* CO_* above; main-owned, IO threads CAS-arm only */
 static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
                                              * next stage dispatched (head stays in flight) */
 static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
@@ -2293,8 +2302,13 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
     /* ee451 (v8d): main thread is IO producer slot 0 — push its cutover drain-sentinel. */
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
         migPushFenceIfNeeded();
+        /* zero-thread-churn: advance the cutover coordinator state machine (replaces the
+         * per-migration detached thread; ticks every main-loop pass, >=cron cadence idle). */
+        if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_IDLE)
+            reshardCoordinatorTick();
+    }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
@@ -8942,8 +8956,17 @@ static void migCleanupDeleteRangeA(exThread *A) {
 
 /* ---- Cutover coordinator (detached thread): DRAINING -> fence -> B-caught-up -> FLIP -> ref-fence
  * -> CLEANUP -> DONE. Short-lived; usleep-spins on the monotone counters. ---- */
-static void *reshardCoordinator(void *arg) {
-    (void)arg;
+/* ee451 (zero-thread-churn): the cutover coordinator is a MAIN-THREAD TICK STATE MACHINE, not
+ * a per-migration detached thread (user rule: thread count fixed boot->shutdown; the old
+ * pthread_create-per-migration was the last violation). Called from beforeSleep every main-loop
+ * iteration (>=serverCron cadence when idle); every wait below is a non-blocking check that
+ * holds its state until true. State/aux are main-thread-owned; the cross-thread trigger
+ * (DEBUG RESHARD CUTOVER on an IO thread) CASes co_state IDLE->1 and everything else is read
+ * from server.migration under the active flag. Ordering and log lines are IDENTICAL to the
+ * retired thread version. */
+static monotime co_empty_since[TOMO_IO_THREADS_MAX + 1];
+static uint64_t co_s_final, co_hb0;
+static void reshardCoordinatorTick(void) {
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
     /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..io_threads-1) =
@@ -8954,12 +8977,11 @@ static void *reshardCoordinator(void *arg) {
      * its in-flight dispatches are drained exactly like any other producer's. */
     int nprod = server.io_threads + (server.thread_modes ? 1 : 0);
 
-    /* Phase B-fence: wait out the cold scan and let B drain the cold copy before cutover. This lets
-     * the coordinator be spawned immediately at ARM (full-auto) OR after a manual COPYING window —
-     * either way it does not raise the drain fence until the bulk copy has converged. */
-    while (!atomic_load_explicit(&server.migration.scan_done, memory_order_acquire)) usleep(200);
-    while (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) <
-           atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire)) usleep(200);
+    if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
+        /* Phase B-fence: cold scan wrapped + B caught up => converge; else wait (hold state). */
+        if (!atomic_load_explicit(&server.migration.scan_done, memory_order_acquire)) return;
+        if (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) <
+            atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire)) return;
 
     /* Phase C.1: raise the drain fence, THEN open DRAINING. Order matters: fence_acked/fence_gen are
      * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
@@ -8971,37 +8993,45 @@ static void *reshardCoordinator(void *arg) {
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
     atomic_store_explicit(&server.migration.phase, MIG_DRAINING, memory_order_release);
 
-    serverLog(LL_NOTICE, "ee451 reshard DRAINING: fence raised, nprod=%d", nprod);
+        serverLog(LL_NOTICE, "ee451 reshard DRAINING: fence raised, nprod=%d", nprod);
+        for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) co_empty_since[t] = 0;
+        atomic_store_explicit(&co_state, CO_DRAINING, memory_order_release);
+        return;
+    }
+
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_DRAINING) {
     /* C.2: each producer slot is "drained" when EITHER A popped its drain sentinel (busy producer
      * pushed one — proving every range primary it dispatched before is executed) OR A's queue from
      * that slot has stayed empty for a stretch (idle producer blocked in epoll — nothing in flight,
      * so no sentinel will ever come). This needs no cross-thread wake of idle IO threads. */
-    int empty_cnt[TOMO_IO_THREADS_MAX + 1] = {0};
-    for (;;) {
         int pending = 0;
+        monotime now = getMonotonicUs();
         for (int t = 0; t < nprod; t++) {
             if (atomic_load_explicit(&server.migration.fence_acked[t], memory_order_acquire)) continue;
             exQueue *q = &server.exThreads[src].queues[t];
             unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
             unsigned int tl = atomic_load_explicit(&q->tail, memory_order_acquire);
             if (h == tl) {                       /* queue empty right now */
-                if (++empty_cnt[t] >= 40) {      /* ~2ms continuously empty => idle producer, no in-flight */
+                if (co_empty_since[t] == 0) co_empty_since[t] = now;
+                if (now - co_empty_since[t] >= 2000) {   /* 2ms continuously empty => idle producer */
                     atomic_store_explicit(&server.migration.fence_acked[t], 1, memory_order_release);
                     continue;
                 }
-            } else empty_cnt[t] = 0;
+            } else co_empty_since[t] = 0;
             pending = 1;
         }
-        if (!pending) break;
-        usleep(50);
+        if (pending) return;
+        co_s_final = atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire);
+        serverLog(LL_NOTICE, "ee451 reshard fence drained: S_final=%llu", (unsigned long long)co_s_final);
+        atomic_store_explicit(&co_state, CO_WAIT_APPLIED, memory_order_release);
+        return;
     }
-    uint64_t s_final = atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire);
-    serverLog(LL_NOTICE, "ee451 reshard fence drained: S_final=%llu", (unsigned long long)s_final);
 
-    /* C.3: wait until B has replayed the entire log up to the freeze point (B == A for [lo,hi)). */
-    while (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) < s_final)
-        usleep(50);
-
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_APPLIED) {
+        /* C.3: B must replay the entire log up to the freeze point. */
+        if (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) < co_s_final)
+            return;
+        uint64_t s_final = co_s_final;
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
@@ -9025,24 +9055,36 @@ static void *reshardCoordinator(void *arg) {
                   dst, server.num_workers_alloc);
     }
 
-    /* Phase D.1: ref-fence — A may not free its range values until every zero-copy reply still
-     * pointing into them (owner_ex==A, bucket∈range) has been flushed. No-op when zerocopy is
-     * gated off (small values). */
-    while (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) usleep(50);
+        atomic_store_explicit(&co_state, CO_WAIT_REFS, memory_order_release);
+        return;
+    }
+
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
+        /* Phase D.1: ref-fence (no-op when zerocopy gated off). */
+        if (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) return;
 
     /* D.2: hand cleanup to worker A (single writer of its shard); it deletes the range and -> DONE.
      * Once phase==DONE, worker B's drain gate (phase!=MIG_DONE) stops it calling migDrainB, so B
      * will not touch the log again. */
-    atomic_store_explicit(&server.migration.phase, MIG_CLEANUP, memory_order_release);
-    while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DONE) usleep(50);
+        atomic_store_explicit(&server.migration.phase, MIG_CLEANUP, memory_order_release);
+        atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
+        return;
+    }
+
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_DONE) {
+        if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DONE) return;
+        co_hb0 = atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire);
+        atomic_store_explicit(&co_state, CO_QUIESCE, memory_order_release);
+        return;
+    }
 
     /* D.3: RCU-style teardown — NO timing guess. (1) Wait for worker B's heartbeat to advance several
      * iterations so it has provably looped past the phase==DONE gate and is out of migDrainB. (2) Free
      * the log and NULL it. (3) Publish migration_active=0 LAST — the sole "one migration at a time"
      * gate (reshardArm/reshardAutoTune) so a new migration cannot start (and overwrite migration.log)
      * until the old log is fully freed. Closes the teardown UAF and the re-arm double-free. */
-    uint64_t hb0 = atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire);
-    while (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < hb0 + 3) usleep(50);
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_QUIESCE) return;
+    if (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < co_hb0 + 3) return;
     migLogFree(server.migration.log);
     server.migration.log = NULL;
     /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the spare-action flag
@@ -9063,7 +9105,7 @@ static void *reshardCoordinator(void *arg) {
         atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_PARKED, memory_order_release);
         serverLog(LL_NOTICE, "ee451 thread-modes: spare's buckets returned to worker %d — park requested", dst);
     }
-    return NULL;
+    atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
 }
 
 /* Spawn the detached cutover coordinator. It internally waits for the cold copy to converge before
@@ -9071,9 +9113,10 @@ static void *reshardCoordinator(void *arg) {
 static int reshardBeginCutover(void) {
     if (!atomic_load_explicit(&server.migration_active, memory_order_acquire)) return 0;
     if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_COPYING) return 0;
-    pthread_t t;
-    if (pthread_create(&t, NULL, reshardCoordinator, NULL) != 0) return 0;
-    pthread_detach(t);
+    int expect = CO_IDLE;   /* zero-thread-churn: arm the main-thread tick machine (CAS: DEBUG
+                             * CUTOVER runs on an IO thread; the tick itself is main-only) */
+    if (!atomic_compare_exchange_strong_explicit(&co_state, &expect, CO_WAIT_CONVERGE,
+                                                 memory_order_acq_rel, memory_order_relaxed)) return 0;
     return 1;
 }
 
