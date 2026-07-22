@@ -9321,6 +9321,14 @@ void reshardAutoTune(void) {
      * alphas, trigger bar, settle window and progress bar are all self-derived. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
+    /* flip: never arm a load-balance migration WHILE a role-flip is in progress. A flip runs its own
+     * migrations (range move, then the grow-back seed) across several beforeSleep ticks with brief
+     * migration_active==0 gaps between the stages; if the balancer stole the migration slot in one of
+     * those gaps, the flip's next reshardArm would be rejected and tmFlipTick would stall with
+     * tm_flip_ctx set (the controller's top guard then blocks ALL flips until it clears). Deferring the
+     * balancer until the flip completes is exactly right — the post-flip kick (tm_rebalance_now) then
+     * makes it rebalance aggressively the instant tm_flip_ctx clears. */
+    if (server.tm_flip_ctx != NULL) return;
     /* ee451 (thread-modes step 3): balance over the LIVE worker set. A dormant spare must
      * never be a migration endpoint (its thread isn't running exSlice — buckets flipped to
      * it would blackhole every op on them); a LIVE spare participates fully, so hot load
