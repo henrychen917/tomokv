@@ -14458,7 +14458,7 @@ static int tmClientQuiesced(client *c) {
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
     if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
-    if (server.worker_direct_send && (c->wds_busy || c->wds_inflight)) return 0;  /* v12-K in-flight sends */
+    /* (v12-K worker_direct_send wds_busy/wds_inflight fence absent on the numa lineage — stripped) */
     return 1;
 }
 
