@@ -12728,6 +12728,9 @@ static inline void freebackDrainAll(exThread *worker) {
 }
 
 int exQueuePush(exQueue *q, client *c) {
+    /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
+     * Gated so the default (off) hot path pays nothing. */
+    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
      * flushExQueues() (handleWorkerReplies top), batching up to
@@ -12783,6 +12786,36 @@ client *exQueuePop(exQueue *q) {
  * count is computed against the consumer-private cached_tail, refreshed with a
  * single acquire-load of the real tail only when the cache shows empty. We copy
  * out n items, then a single release store of head publishes the advance. */
+/* strict-order: peek the head job's arrival stamp without consuming. Returns 0 if empty.
+ * SPSC-safe: the consumer owns head and the producer never overwrites an unconsumed slot. */
+static inline int exQueuePeekArrival(exQueue *q, uint64_t *arr) {
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+    if (((q->cached_tail - h) & server.ex_queue_mask) == 0) {
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        if (((q->cached_tail - h) & server.ex_queue_mask) == 0) return 0;
+    }
+    *arr = q->jobs[h & server.ex_queue_mask]->arrival_us;
+    return 1;
+}
+/* strict-order: pop a run from head while it stays within `ceil` (global-oldest + epsilon),
+ * bounded by max. Head is the queue's oldest (monotonic), so this is a contiguous FIFO prefix. */
+int exQueuePopOrdered(exQueue *q, client **out, int max, uint64_t ceil) {
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+    unsigned int avail = (q->cached_tail - h) & server.ex_queue_mask;
+    if (avail == 0) {
+        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        avail = (q->cached_tail - h) & server.ex_queue_mask;
+        if (avail == 0) return 0;
+    }
+    int n = 0;
+    while (n < max && (unsigned)n < avail) {
+        client *c = q->jobs[(h + n) & server.ex_queue_mask];
+        if (c->arrival_us > ceil) break;
+        out[n++] = c;
+    }
+    if (n) atomic_store_explicit(&q->head, h + n, memory_order_release);
+    return n;
+}
 int exQueuePopBatch(exQueue *q, client **out, int max) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     /* Masked subtraction — wraps correctly even when tail has wrapped
@@ -13237,9 +13270,26 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * ordered to begin with. */
     if (++ctx->scan_start >= ctx->nq) ctx->scan_start = 0;
     int tm_pass_depth = 0;   /* ee451 (thread-modes step 4, signal a): items seen this pass */
+    int so = server.strict_order;   /* 0 = off (batched rotation); N>0 = cross-queue merge, eps=(N-1)us */
     for (int k = 0; k < ctx->nq; k++) {
-        int i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
-        int n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+        int i, n;
+        if (__builtin_expect(so != 0, 0)) {
+            /* strict-order: execute the GLOBALLY-oldest queued command first, so a fresh op on
+             * one IO thread's queue can't jump ahead of older ones on another's. Pick the
+             * min-arrival head across queues, pop a run within eps of it (eps=(so-1)us keeps
+             * near-contemporaries batched; so==1 => strict single-tsc). Per-connection order is
+             * untouched (each queue stays FIFO). */
+            uint64_t best = 0; i = -1;
+            for (int q = 0; q < ctx->nq; q++) {
+                uint64_t a;
+                if (exQueuePeekArrival(&worker->queues[q], &a) && (i < 0 || a < best)) { i = q; best = a; }
+            }
+            if (i < 0) break;   /* all queues drained this pass */
+            n = exQueuePopOrdered(&worker->queues[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
+        } else {
+            i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
+            n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+        }
         if (n == 0) continue;
 
         /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS

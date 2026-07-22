@@ -1576,6 +1576,10 @@ typedef struct client {
      * tomokv-thread-balance (a stale stamp surviving a balance-off window is discarded by
      * the drain's 10s sanity cap). */
     uint64_t tm_lat_stamp;
+    uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
+                                * tomokv-strict-order != 0). Within a queue it is monotonic
+                                * (single producer), so the head is that queue's oldest; the
+                                * worker merges queues by picking the globally-oldest head. */
     /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
      * the worker prefetch stage (exPrefetchBatch) and reused at command
      * execution via dictArmHashHint() to avoid hashing the key twice. Valid
@@ -3246,6 +3250,7 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
+    int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
     int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->
                                 * gather-smallest -> shrinking probe chain; traffic bounded by
                                 * k_shards x |smallest| instead of total input volume. 0=off
