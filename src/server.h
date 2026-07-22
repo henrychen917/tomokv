@@ -2575,6 +2575,8 @@ struct redisServer {
                                           * reshard coordinator tail retargets THIS thread's mode
                                           * (generalizes the old single-tmSpare tail to any thread) */
     int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
+    int tm_flip_phase;             /* grow-back phase machine: 0=await park, 1=await EX, 2=await seed FLIP */
+    int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
@@ -5468,6 +5470,7 @@ void tmMigServiceOut(void);                           /* source side: start + co
 void tmMigDrainInbox(void);                           /* dest side: adopt incoming migrated clients (beforeSleepIO) */
 void tmMigForgetOnFree(client *c);                    /* freeClient hook: drop a dying client from migrating_out */
 int tomoGrowFront(const char **err);
+int tomoGrowBack(const char **err);
 void tmFlipTick(void);
 int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
