@@ -5896,25 +5896,32 @@ int exIndexForKey(const void *keyptr, size_t len) {
 }
 
 /* ==== M-command lock-borrow (EXPERIMENT, 2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
- * One byte per bucket, CAS-locked. The lock is a RARE-path safety mechanism: single-key ops stay on
- * their owner (single-writer), so a borrower almost never collides — the lock is essentially always
- * uncontended. tomoBktTrylock returns 1 on success (non-blocking; the M-executor BACKLOGS a contended
- * bucket and moves on rather than spinning). tomoBktLock CAS-spins (owner side, when the knob is on).
- * All inert while server.mcmd_lock == 0 (the default lock-free path is byte-for-byte unchanged). */
-static _Atomic uint8_t tomo_bkt_lock[TOMO_BUCKETS];
+ * The lock granularity MUST match the data-structure granularity. In non-cluster mode a worker's
+ * shard db is ONE dict (kvstore slot_count_bits==0), NOT one-dict-per-bucket — so a borrower's
+ * dictFind and the owner's dictAdd/rehash touch the SAME dict and a per-BUCKET lock does not exclude
+ * them (SIGSEGV during rehash). Hence the lock is PER-WORKER: the owner takes its own worker lock for
+ * every op; a borrower takes the OWNING worker's lock to read that worker's db. This is coarse (all
+ * of a worker's keys share one lock), so borrowers to the same worker serialize with each other and
+ * with the owner — the fine-grained "buckets rarely collide" win needs a per-bucket kvstore (the
+ * shared-keyspace S0 change). tomoWkrTrylock is non-blocking (M-executor BACKLOGS + moves on); inert
+ * while mcmd_lock==0 (the lock-free path is byte-for-byte unchanged). */
+static _Atomic uint8_t tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
 static inline int tomoBktBucket(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
 }
-static inline int tomoBktTrylock(int b) {
+static inline int tomoWkrOf(const void *keyptr, size_t len) {
+    return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
+}
+static inline int tomoWkrTrylock(int w) {
     uint8_t expected = 0;
-    return atomic_compare_exchange_strong_explicit(&tomo_bkt_lock[b], &expected, 1,
+    return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w], &expected, 1,
                                                    memory_order_acquire, memory_order_relaxed);
 }
-static inline void tomoBktLock(int b) {
-    for (;;) { if (tomoBktTrylock(b)) return; exPauseCpu(); }
+static inline void tomoWkrLock(int w) {
+    for (;;) { if (tomoWkrTrylock(w)) return; exPauseCpu(); }
 }
-static inline void tomoBktUnlock(int b) {
-    atomic_store_explicit(&tomo_bkt_lock[b], 0, memory_order_release);
+static inline void tomoWkrUnlock(int w) {
+    atomic_store_explicit(&tomo_wkr_lock[w], 0, memory_order_release);
 }
 
 /* Lock-borrow MGET (S3 prototype): this IO thread reads every key DIRECTLY from its owning worker's
@@ -5936,12 +5943,11 @@ static void tomoMgetLockBorrow(client *fake) {
         for (int i = 0; i < nk; i++) {
             if (done[i]) continue;
             robj *key = fake->argv[i + 1];
-            int b = tomoBktBucket(key->ptr, sdslen(key->ptr));
-            if (!tomoBktTrylock(b)) continue;                 /* contended -> backlog, retry next pass */
-            int owner = server.ex_bucket_table[b];
+            int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
+            if (!tomoWkrTrylock(owner)) continue;             /* owner busy -> backlog, retry next pass */
             robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
             if (o && o->type == OBJ_STRING) vals[i] = dupStringObject(o);   /* private copy under the lock */
-            tomoBktUnlock(b);
+            tomoWkrUnlock(owner);
             done[i] = 1; remaining--;
         }
     }
@@ -13360,7 +13366,20 @@ static inline void exExecFake(client *fake) {
             dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
             hh_armed = 1;
         }
+        /* S2 (mcmd-lock EXPERIMENT): the owner worker must hold this key's bucket lock across its op
+         * so it never mutates/rehashes the bucket while an M-command borrower (an IO thread) is
+         * reading it. Single-key hot path only: argv[1] is the sole key of GET/SET/single-key subs
+         * (when the knob is on, MGET goes lock-borrow so workers run only single-key ops — coalesced
+         * multi-key subs would need per-key locking, tracked as a gap). Inert when the knob is off:
+         * the lock-free path pays a single predicted-not-taken branch. No deadlock — the worker holds
+         * exactly ONE bucket and borrowers TRYLOCK (never block), so there is no lock cycle. */
+        int mlk_wkr = -1;
+        if (__builtin_expect(server.mcmd_lock, 0) && fake->argc >= 2 && fake->argv && fake->argv[1]) {
+            mlk_wkr = tomoWkrOf(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
+            tomoWkrLock(mlk_wkr);
+        }
         fake->cmd->proc(fake);
+        if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
         if (hh_armed) dictDisarmHashHint();
         server.current_client[iotid].p = NULL;
         server.executing_client[iotid].p = NULL;
