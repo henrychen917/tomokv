@@ -2569,6 +2569,13 @@ struct redisServer {
      * reshard coordinator (increment at FLIP — the bucket remap IS the go-live). */
     int num_workers_alloc;
     _Atomic int num_workers_live;
+    _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
+                                    * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
+    struct polyThreadCtx *tm_flip_ctx;   /* the poly ctx currently converting (NULL = none); the
+                                          * reshard coordinator tail retargets THIS thread's mode
+                                          * (generalizes the old single-tmSpare tail to any thread) */
+    int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
+    int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
      * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
      * `tomokv-ex-queue-depth`). pipeline_ring_mask and

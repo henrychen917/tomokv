@@ -13828,9 +13828,20 @@ void initExThreads(void) {
              * setting iotid BEFORE the first slice runs. */
             polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
             ctx->ex = &server.exThreads[i];
-            ctx->io = NULL;
             ctx->ex_slot = i;
-            ctx->io_slot = server.io_threads + 1 + i;
+            /* flip: convertible workers [1 .. num_workers-1] get a DORMANT io binding so they can
+             * grow-front (EX->IO in place). io_slot is contiguous-on-conversion: the highest worker
+             * converts first and takes io_slot io_threads, next takes io_threads+1, ... => worker i
+             * gets io_slot = io_threads + (num_workers-1 - i). Worker 0 is the >=1 EX floor: no io
+             * binding. Bindings for slots >= io_threads were built in initIOThreads. */
+            int gidx = (server.num_workers - 1) - i;   /* 0 for the top worker */
+            if (i >= 1 && gidx >= 0 && gidx < server.tm_ngrow_io) {
+                ctx->io = &server.ioThreads[server.io_threads + gidx];
+                ctx->io_slot = server.io_threads + gidx;
+            } else {
+                ctx->io = NULL;
+                ctx->io_slot = server.io_threads + 1 + i;   /* reserved name only (worker 0 / capped) */
+            }
             ctx->io_listening = 0;
             atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
             atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_relaxed);
@@ -13884,6 +13895,22 @@ void initExThreads(void) {
  * historically unfed "+1" producer slot: worker queues[slot]/freeback[slot],
  * the per-slot client lists and fence_acked[slot] are all already initialized
  * and scanned for slot <= io_threads, so activation needs no resizing. */
+/* flip: build a DORMANT io binding (event loop + bound-but-not-listening REUSEPORT socket +
+ * migration mailbox) at server.ioThreads[slot]. No thread — an existing EX worker's poly thread
+ * adopts it when it converts to IO (grow-front). Factored from tmSpawnSpare's body. */
+static void tmMakeDormantIoBinding(int slot) {
+    ioThreadArgs *t = &server.ioThreads[slot];
+    t->id = slot;
+    t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
+    if (t->el == NULL) { serverLog(LL_WARNING, "flip: event loop alloc failed for io slot %d", slot); exit(1); }
+    t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+    if (t->fd == ANET_ERR) { serverLog(LL_WARNING, "flip: dormant listener bind failed slot %d: %s", slot, server.neterr); exit(1); }
+    anetNonBlock(NULL, t->fd);
+    aeSetBeforeSleepProc(t->el, beforeSleepIO);
+    aeSetAfterSleepProc(t->el, afterSleepIO);
+    tmMigInitSlot(slot, t->el);   /* conn-migration inbox + wakeup, usable once the worker runs IO */
+}
+
 static void tmSpawnSpare(void) {
     ioThreadArgs *t = &server.ioThreads[server.io_threads];
     t->id = server.io_threads;
@@ -13949,7 +13976,17 @@ void initIOThreads(void) {
                   npoly, server.io_threads - 1, server.num_workers, spare, configured, allowed);
     }
     /* +1 entry when a spare exists: its dormant io binding lives at [io_threads]. */
-    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + spare));
+    /* flip: reserve growth io slots [io_threads .. io_threads+ngrow_io) for EX workers that
+     * convert to IO (grow-front). ngrow_io = num_workers-1 (worker 0 is the >=1 EX floor).
+     * Capped so io_threads+ngrow_io <= TOMO_IO_THREADS_MAX. Dormant bindings built below. */
+    int ngrow_io = 0;
+    if (server.thread_modes && server.num_workers > 1)
+        ngrow_io = server.num_workers - 1;
+    if (server.io_threads + ngrow_io > TOMO_IO_THREADS_MAX)
+        ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
+    server.tm_ngrow_io = ngrow_io;
+    atomic_store_explicit(&server.io_threads_live, server.io_threads, memory_order_relaxed);
+    server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + spare + ngrow_io));
     server.custom_io_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
     for (int i = 1; i < server.io_threads; i++) {
@@ -14013,6 +14050,11 @@ void initIOThreads(void) {
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
     if (spare) tmSpawnSpare();
+    /* flip: build the dormant io bindings for the growth slots [io_threads .. io_threads+ngrow_io).
+     * A converting EX worker's poly thread adopts one at grow-front (its io_slot is stamped in the
+     * ex-born ctx spawn, contiguous: worker W-1 -> io_threads, W-2 -> io_threads+1, ...). */
+    for (int g = 0; g < server.tm_ngrow_io; g++)
+        tmMakeDormantIoBinding(server.io_threads + g);
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
