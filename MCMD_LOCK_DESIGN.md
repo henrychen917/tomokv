@@ -58,3 +58,22 @@ optimum for M-heavy workloads shifts toward io (more readers); io7ex1 may beat i
 NEXT: S2 owner-side bucket lock (for MIXED workloads with concurrent single-key writes — currently
 only pure-MGET-safe); measure the single-key GET/SET hot-path lock cost; then hybrid (lock-borrow for
 small N, scatter for wide N); per-node executor (S5); extend to SINTER/EXISTS/writes.
+
+## S3' WORKER-borrow (2026-07-22, user redesign: move exec off IO onto the EX thread)
+IO dispatches the WHOLE MGET to the FIRST key's owner worker (getWorkerForCommand hashes argv[1]);
+that worker borrows the other keys under per-worker locks and executes on-thread, replying via the
+normal worker drain (exExecFake routes an mcmd_lock MGET fake to tomoMgetLockBorrow). Different MGETs
+go to different first-key owners => execution SPREADS across all workers. Byte-exact; mixed SET+MGET
+integrity 5/5, crash=0.
+RESULT (scatter vs worker-borrow):
+  io6ex2 (2 workers): MGET1..16 = +24/+20/+17/-6/-21%  (few workers => few executors => loses at high N)
+  io4ex4 (4 workers): MGET4/8/16 = +105/+83/+43%
+  io2ex6 (6 workers): MGET4/8/16 = +190/+241/+216%
+KEY INSIGHT: scatter makes MGET favor IO-heavy (the few IO threads bottleneck on gather); worker-borrow
+FLIPS it — MGET now favors WORKER-heavy, because the workers do the parallel borrow-execution and the
+IO threads only dispatch+combine. Worker-borrow's BEST config (io4ex4 MGET8=2.38M) beats scatter's BEST
+(io6ex2 ~1.92M) by ~24%, AND frees the IO threads AND is multi-node-ready. So for M-command-heavy
+workloads the io/ex optimum shifts to worker-heavy — the opposite of single-key GET.
+NEXT: per-node scatter+combine (multi-node: one first-key-owner PER NODE, IO combines partials);
+extend to SINTER/EXISTS; single-shard/1-key MGET short-circuit (MGET1==GET1); hybrid vs scatter at
+very high N on few-worker configs.

@@ -5525,14 +5525,17 @@ int processCommand(client *c) {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
     if (csp && server.mcmd_lock && csp->ctype == CS_MGET &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
-        /* EXPERIMENT (2s-numa-mcmd-lock): lock-borrow instead of scatter-gather — read every key
-         * inline on THIS IO thread under per-bucket locks, no worker dispatch. Retire exactly like
-         * the inline path (build the reply onto the fake, then set the completion bit). */
-        fake->cdb = 0;
+        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow — dispatch the WHOLE MGET to the FIRST key's
+         * owner worker (getWorkerForCommand hashes argv[1]); that worker borrows the other keys under
+         * per-worker locks and executes on-thread (exec off the IO thread), replying via the normal
+         * worker drain. exExecFake routes an mcmd_lock MGET fake to tomoMgetLockBorrow. */
+        int owner = getWorkerForCommand(fake);
+        fake->cdb = cdbIndexFor(owner);
+        fake->db = &server.exThreads[owner].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        tomoMgetLockBorrow(fake);
-        atomicFetchOrWithRelease(fake->parent->reply_cdb[fake->cdb].v, 1u << fake->fake_slot);
+        tmLatMaybeStamp(fake);
+        exDispatchPush(owner, fake);
     } else if (csp) {
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
@@ -13373,13 +13376,23 @@ static inline void exExecFake(client *fake) {
          * multi-key subs would need per-key locking, tracked as a gap). Inert when the knob is off:
          * the lock-free path pays a single predicted-not-taken branch. No deadlock — the worker holds
          * exactly ONE bucket and borrowers TRYLOCK (never block), so there is no lock cycle. */
-        int mlk_wkr = -1;
-        if (__builtin_expect(server.mcmd_lock, 0) && fake->argc >= 2 && fake->argv && fake->argv[1]) {
-            mlk_wkr = tomoWkrOf(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
-            tomoWkrLock(mlk_wkr);
+        if (__builtin_expect(server.mcmd_lock, 0) && fake->cmd->proc == mgetCommand) {
+            /* worker-borrow MGET: this (first-key-owner) worker reads own + borrowed keys under
+             * per-worker locks and builds the reply — NOT the stock mgetCommand (which would only
+             * see this worker's shard). Its own key reads take this worker's lock too, coordinating
+             * with other workers borrowing from here. */
+            tomoMgetLockBorrow(fake);
+        } else {
+            /* S2: single-key hot path takes this key's owner-worker lock across the proc so it never
+             * mutates/rehashes a bucket a borrower is reading. */
+            int mlk_wkr = -1;
+            if (__builtin_expect(server.mcmd_lock, 0) && fake->argc >= 2 && fake->argv && fake->argv[1]) {
+                mlk_wkr = tomoWkrOf(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
+                tomoWkrLock(mlk_wkr);
+            }
+            fake->cmd->proc(fake);
+            if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
         }
-        fake->cmd->proc(fake);
-        if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
         if (hh_armed) dictDisarmHashHint();
         server.current_client[iotid].p = NULL;
         server.executing_client[iotid].p = NULL;
