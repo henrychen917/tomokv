@@ -158,6 +158,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 } tmIoSignal;
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 static void tomoThreadBalanceCron(void);   /* the 4Hz quorum balancer; defined with the poly-thread code below */
+static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 
 /* ee451 (thread-modes step 4, p99 guardrail): stamp ~1/1024 worker-dispatched fakes with a
  * dispatch timestamp. Called on the dispatching IO thread right BEFORE the queue push (the
@@ -1771,6 +1772,10 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
      * per-thread pressure signals; shifts the SPARE PARKED<->EX on sustained quorum
      * (no-op unless tomokv-thread-balance). Same main-thread control plane as above. */
     run_with_period(250) tomoThreadBalanceCron();
+    /* ee451 (flip): the always-full-pool auto flip controller — moves the io/ex boundary by
+     * grow-front/grow-back on sustained front/back EWMA pressure (no-op unless thread-balance
+     * and there is flip headroom; inert while the spare model is in use). */
+    run_with_period(250) tomoFlipController();
 
     /* Clear the paused actions state if needed. */
     updatePausedActions();
@@ -15515,6 +15520,99 @@ static void tomoThreadBalanceCron(void) {
                 serverLog(LL_WARNING, "[balance] EX->PARKED actuation refused: %s", err ? err : "?");
             }
         }
+    }
+}
+
+/* AUTO FLIP CONTROLLER (main thread, ~4Hz from serverCron). The always-full-pool analog of the
+ * spare balancer: with no spare, it moves the io/ex boundary by grow-front (ex->io) / grow-back
+ * (io->ex) within the node budget, keeping total threads constant. FRONT pressure (io ingress
+ * saturated while the workers have slack) -> grow-front; BACK pressure (workers saturated while io
+ * has slack) -> grow-back. Same signal philosophy as the spare balancer (worker busy% utilization
+ * + ingress events/pass EWMA), Schmitt sustain + a post-flip settle cooldown; the flip actuators
+ * enforce the per-role bounds. No-op unless tomokv-thread-balance (which also feeds busy_ewma_q4,
+ * so the grow-front client rebalance runs EWMA-weighted rather than conn-count when this is on). */
+static void tomoFlipController(void) {
+    if (!server.thread_balance || !server.thread_modes || !server.exThreads) return;
+    if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
+    if (server.tm_flip_ctx) return;                         /* a flip is mid-flight */
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
+
+    static mstime_t prev_wall = 0;
+    static uint32_t prev_busy_us[TOMO_EX_THREADS_MAX + 1];
+    static int sustain_front = 0, sustain_back = 0, settle = 0;
+    static mstime_t last_log = 0;
+
+    if (settle > 0) { settle--; sustain_front = sustain_back = 0; return; }
+
+    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
+    int w_live  = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (w_live < 1) return;
+
+    mstime_t now = mstime();
+    long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
+    prev_wall = now;
+    if (wall_ms <= 0) return;
+
+    /* worker STANDING QUEUE BACKLOG (the true "need more workers" signal — busy% saturates under
+     * any heavy load even when the workers keep up, so it flaps; a deep standing queue means work
+     * arrives faster than it drains). Hottest worker's EWMA backlog, plus busy% for context/log. */
+    long qd_max = 0; int busy_max = 0, busy_sum = 0;
+    for (int w = 0; w < w_live && w <= TOMO_EX_THREADS_MAX; w++) {
+        exThread *et = &server.exThreads[w];
+        long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
+        if (qd > qd_max) qd_max = qd;
+        uint32_t cb = et->tm_busy_us, db = cb - prev_busy_us[w];
+        prev_busy_us[w] = cb;
+        int b = (int)(db / (uint32_t)(wall_ms * 10)); if (b > 100) b = 100;
+        busy_sum += b; if (b > busy_max) busy_max = b;
+    }
+    int busy_mean = busy_sum / w_live;
+
+    /* io ingress busy (events/pass EWMA) mean over the live io threads (1..io_live-1; main runs
+     * aeMain, no ingress EWMA — documented). Growth io slots ARE covered (io_live tracks them). */
+    long ing_sum = 0; int ing_cnt = 0;
+    for (int t = 1; t < io_live && t <= TOMO_IO_THREADS_MAX; t++) { ing_sum += tm_io_sig[t].busy_ewma_q4 >> 4; ing_cnt++; }
+    int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : 0;
+
+    /* Schmitt bands: a HI threshold arms a direction, a LO threshold disarms it; between the two
+     * the sustain count HOLDS (the ~250ms sampling window beats against burst cadence, so a single
+     * dip past a lone threshold must not erase seconds of evidence). Back-pressure is QUEUE-DEPTH:
+     * a worker standing >= a few full pop batches behind genuinely needs relief; front-pressure is
+     * ingress-saturated WHILE the workers keep up (qd low) — else growing front would starve them. */
+    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    const long qd_hi = 4L * popmax, qd_lo = 1L * popmax;    /* worker backlog arm/disarm (batches behind) */
+    const int  ing_hi = 20, ing_lo = 12;                   /* io ingress events/pass arm/disarm */
+    int can_front = (w_live > 1);                           /* grow-front needs >= 2 live workers */
+    int can_back  = (io_live > server.io_threads);          /* grow-back needs a grown io slot */
+    /* BACK: workers standing deeply behind AND io not itself drowning -> add a worker. */
+    int want_back  = can_back  && (qd_max >= qd_hi) && (ing_mean <= ing_hi);
+    /* FRONT: io ingress saturated AND workers keeping up (shallow queues) -> add an io thread. */
+    int want_front = can_front && (ing_mean >= ing_hi) && (qd_max <= qd_lo);
+
+    if (want_back)       { sustain_back++;  sustain_front = 0; }
+    else if (want_front) { sustain_front++; sustain_back  = 0; }
+    else {                                                  /* borderline: HOLD; only a clear miss resets */
+        if (qd_max < qd_lo)      sustain_back  = 0;         /* workers clearly keeping up */
+        if (ing_mean < ing_lo || qd_max > qd_hi) sustain_front = 0;  /* io calm, or workers now backed up */
+    }
+
+    if ((sustain_front || sustain_back) && now - last_log >= 2000) {
+        serverLog(LL_NOTICE, "[flip-ctl] qd_max %ld (hi %ld) busy %d/%d%% ing %d | io_live=%d w_live=%d | sustain F%d/B%d/%d",
+                  qd_max, qd_hi, busy_mean, busy_max, ing_mean, io_live, w_live, sustain_front, sustain_back, TM_BAL_SETTLE);
+        last_log = now;
+    }
+
+    const char *err = NULL;
+    if (sustain_back >= TM_BAL_SETTLE) {
+        sustain_back = 0;
+        if (tomoGrowBack(&err))
+            { serverLog(LL_NOTICE, "[flip-ctl] back-pressure sustained (busy_max %d, ing %d) -> GROW-BACK", busy_max, ing_mean); settle = 4 * TM_BAL_SETTLE; }
+        else serverLog(LL_WARNING, "[flip-ctl] GROW-BACK refused: %s", err ? err : "?");
+    } else if (sustain_front >= TM_BAL_SETTLE) {
+        sustain_front = 0;
+        if (tomoGrowFront(&err))
+            { serverLog(LL_NOTICE, "[flip-ctl] front-pressure sustained (ing %d, busy_mean %d) -> GROW-FRONT", ing_mean, busy_mean); settle = 4 * TM_BAL_SETTLE; }
+        else serverLog(LL_WARNING, "[flip-ctl] GROW-FRONT refused: %s", err ? err : "?");
     }
 }
 
