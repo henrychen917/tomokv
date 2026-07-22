@@ -159,6 +159,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 static void tomoThreadBalanceCron(void);   /* the 4Hz quorum balancer; defined with the poly-thread code below */
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
+static int tmNumNodes(void);               /* logical node helpers, defined below */
+static int tmNodeOfWorker(int w);
+static int tmNodeOfIoSlot(int io_slot);
 
 /* ee451 (thread-modes step 4, p99 guardrail): stamp ~1/1024 worker-dispatched fakes with a
  * dispatch timestamp. Called on the dispatching IO thread right BEFORE the queue push (the
@@ -9429,11 +9432,18 @@ void reshardAutoTune(void) {
         mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
     }
 
-    /* Cooler adjacent neighbour with genuinely-below-mean load. */
+    /* Cooler adjacent neighbour with genuinely-below-mean load. WITHIN-NODE ONLY (2026-07-22 user
+     * directive: no EWMA balancing across nodes — cross-node is the expensive copy tier, not this
+     * O(1) ownership flip). A neighbor in a different logical node is excluded; if the hot worker
+     * sits at a node boundary with no same-node cooler neighbor, no migration fires. numa_nodes==1
+     * => tmNodeOfWorker is always 0 => bit-for-bit the previous adjacent selection. */
     int left = hot - 1, right = hot + 1, B = -1;
-    if (left >= 0 && right < W) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
-    else if (left >= 0)        B = left;
-    else if (right < W)        B = right;
+    int hnode = tmNodeOfWorker(hot);
+    int lok = (left >= 0)  && (tmNodeOfWorker(left)  == hnode);
+    int rok = (right < W)  && (tmNodeOfWorker(right) == hnode);
+    if (lok && rok) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
+    else if (lok)   B = left;
+    else if (rok)   B = right;
     /* ee451 (reshard-better §1.3d): cool-margin hardening. Neighbor must be BELOW a cool bar.
      * 0 => legacy (< mean, bit-for-bit); -1 => auto 15% (< 0.85*mean, neighbor must be substantially
      * cool — prevents ping-pong of a chunk between two near-mean neighbors); N => < mean*(1-N/100). */
@@ -14809,7 +14819,13 @@ static double tmIoThreadBusy(int id) {
  * with an in-flight migration are skipped and re-picked on the controller's next tick. */
 static void tmRebalanceOntoNewIo(int new_id) {
     int all[TOMO_IO_THREADS_MAX + 1];
-    int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* every live io thread, incl. new_id */
+    int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);  /* every live io thread, incl. new_id */
+    /* WITHIN-NODE ONLY (2026-07-22 user directive): pull existing conns only from io threads in the
+     * SAME logical node as the newly-online io thread — client load balancing never crosses nodes.
+     * numa_nodes==1 => all threads are node 0 => unfiltered (identical to before). */
+    int node = tmNodeOfIoSlot(new_id), n = 0;
+    for (int i = 0; i < n0; i++)
+        if (tmNumNodes() == 1 || tmNodeOfIoSlot(all[i]) == node) all[n++] = all[i];
     if (n < 2) return;
     long   tot_conns = 0;
     double tot_busy  = 0;
@@ -15542,8 +15558,8 @@ static int tomoGrowBackNode(int node, const char **err);
  * (n+1)*io_per_node). A converted worker keeps its node membership while serving as an IO thread.
  * numa_nodes==1 => the whole server is node 0 (identical to the pre-node behavior). ---- */
 #define TM_MAXNODE 16
-static inline int tmNumNodes(void) { return server.numa_nodes > 0 ? server.numa_nodes : 1; }
-static inline int tmNodeOfWorker(int w) {
+static int tmNumNodes(void) { return server.numa_nodes > 0 ? server.numa_nodes : 1; }
+static int tmNodeOfWorker(int w) {
     return (server.ex_per_node > 0) ? (w / server.ex_per_node) : 0;
 }
 /* Node of an io slot: base slots split by io_per_node; a growth slot inherits the node of the
@@ -15563,12 +15579,17 @@ static int tmNodeOfIoSlot(int io_slot) {
  * threshold decay back toward eager. Each node reads only its own workers/io threads. ---- */
 typedef struct {
     int      sustain_front, sustain_back;
-    int      thr_q4;         /* adaptive threshold multiplier, Q4 (16 = 1.0x); raised on a bad flip */
+    /* PID self-tuned per-DIRECTION trigger thresholds (Q4; SEED 16 = 1.0x, but NOT a floor — the
+     * controller tunes each one BOTH ways from outcomes: a KEPT flip lowers that direction's
+     * threshold (be more eager next time — the flip paid off), a REVERTED flip raises it (be more
+     * cautious). The seed is just an initial condition the loop tunes away from — the operating
+     * threshold is learned, never static. */
+    int      thr_front_q4, thr_back_q4;
     int      settle;         /* post-flip cooldown ticks (per node) */
     int      measure;        /* ticks left in the post-flip outcome window; 0 = not measuring */
     int      last_dir;       /* +1 = last flip grew front, -1 = grew back (for revert) */
     int      last_io_slot, last_w;
-    uint64_t perf_ref_cmds;  /* command-counter snapshot at flip, for the post-flip rate */
+    uint64_t perf_ref_cmds;  /* per-node ops_total snapshot at flip, for the post-flip rate */
     mstime_t perf_ref_ms;
     double   perf_before;    /* rolling ops/sec just before the flip */
 } flipCtlState;
@@ -15577,7 +15598,10 @@ static flipCtlState fctl[TM_MAXNODE];
 #define TM_FCTL_EAGER      6    /* eager sustain: ~1.5s (half the old fixed sustain — we revert on regret) */
 #define TM_FCTL_MEASURE    16   /* outcome window: ~4s of post-flip steady state before judging */
 #define TM_FCTL_REGRESS_Q7 12   /* revert if post-flip ops/sec < before * (1 - 12/128) ≈ 90.6% */
-#define TM_FCTL_THR_MAX_Q4 64   /* threshold cap 4.0x (never fully lock a node out) */
+#define TM_FCTL_THR_MAX_Q4 64   /* self-tune ceiling 4.0x (cautious cap — never fully lock a node out) */
+#define TM_FCTL_THR_MIN_Q4 6    /* self-tune floor ~0.38x (eager cap — a persistently-good direction fires readily) */
+#define TM_FCTL_UP_Q4      12   /* threshold step on a REVERTED (bad) flip: raise = more cautious */
+#define TM_FCTL_DOWN_Q4    4    /* threshold step on a KEPT (good) flip: lower = more eager */
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. numa_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -15606,7 +15630,8 @@ static void tomoFlipController(void) {
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
         flipCtlState *fc = &fctl[node];
-        if (fc->thr_q4 == 0) fc->thr_q4 = 16;              /* lazy init to 1.0x */
+        if (fc->thr_front_q4 == 0) fc->thr_front_q4 = 16;  /* lazy seed to 1.0x (then self-tuned both ways) */
+        if (fc->thr_back_q4  == 0) fc->thr_back_q4  = 16;
 
         /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
          * (a converted-to-IO worker's counter freezes => contributes 0 delta; the workers that
@@ -15655,21 +15680,23 @@ static void tomoFlipController(void) {
                 double dt = (double)(now - fc->perf_ref_ms);
                 double perf_after = dt > 0 ? (double)(node_ops - fc->perf_ref_cmds) * 1000.0 / dt : fc->perf_before;
                 double floor = fc->perf_before * (1.0 - (double)TM_FCTL_REGRESS_Q7 / 128.0);
+                /* Tune the threshold OF THE DIRECTION we just flipped, both ways (PID self-tuning). */
+                int *thr = (fc->last_dir > 0) ? &fc->thr_front_q4 : &fc->thr_back_q4;
                 if (fc->perf_before > 1000.0 && perf_after < floor) {
                     const char *err = NULL;
-                    if (tmFlipDo(node, -fc->last_dir, &err)) {   /* REVERT */
-                        fc->thr_q4 += 12; if (fc->thr_q4 > TM_FCTL_THR_MAX_Q4) fc->thr_q4 = TM_FCTL_THR_MAX_Q4;
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] REGRET: %.0f->%.0f ops/s after %s -> REVERT + raise thr to %.2fx",
+                    if (tmFlipDo(node, -fc->last_dir, &err)) {   /* REVERT the regretted flip */
+                        *thr += TM_FCTL_UP_Q4; if (*thr > TM_FCTL_THR_MAX_Q4) *thr = TM_FCTL_THR_MAX_Q4;
+                        serverLog(LL_NOTICE, "[flip-ctl n%d] REGRET: %.0f->%.0f ops/s after %s -> REVERT + raise %s thr to %.2fx",
                                   node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                                  fc->thr_q4 / 16.0);
+                                  fc->last_dir > 0 ? "front" : "back", *thr / 16.0);
                     }
                     fc->settle = 4 * TM_FCTL_EAGER;          /* cool down harder after a revert */
                 } else {
-                    /* flip stuck: reward with a small threshold decay toward eager */
-                    if (fc->thr_q4 > 16) fc->thr_q4 -= 4; if (fc->thr_q4 < 16) fc->thr_q4 = 16;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] KEEP: %.0f->%.0f ops/s after %s (thr %.2fx)",
+                    /* the flip paid off: LOWER that direction's threshold => more eager next time */
+                    *thr -= TM_FCTL_DOWN_Q4; if (*thr < TM_FCTL_THR_MIN_Q4) *thr = TM_FCTL_THR_MIN_Q4;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] KEEP: %.0f->%.0f ops/s after %s -> lower %s thr to %.2fx",
                               node, fc->perf_before, perf_after, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                              fc->thr_q4 / 16.0);
+                              fc->last_dir > 0 ? "front" : "back", *thr / 16.0);
                     fc->settle = 2 * TM_FCTL_EAGER;
                 }
             }
@@ -15678,9 +15705,12 @@ static void tomoFlipController(void) {
         if (fc->settle > 0) { fc->settle--; fc->sustain_front = fc->sustain_back = 0; continue; }
         if (w_live < 1) continue;
 
-        /* --- adaptive-threshold pressure test (node-local) --- */
-        long qd_hi_n = qd_hi * fc->thr_q4 / 16;              /* raising thr makes flips HARDER = stable */
-        int  ing_hi_n = (int)((long)ing_hi * fc->thr_q4 / 16);
+        /* --- self-tuned per-direction pressure test (node-local). qd_hi_n / ing_hi_n are the SEED
+         * bands scaled by each direction's learned multiplier — HIGHER = more cautious (fires later),
+         * LOWER = more eager (fires sooner). No static operating threshold: thr_{front,back}_q4 are
+         * moved both ways by outcomes above. --- */
+        long qd_hi_n  = qd_hi * fc->thr_back_q4 / 16;         /* back-pressure (grow-back) trigger */
+        int  ing_hi_n = (int)((long)ing_hi * fc->thr_front_q4 / 16);  /* front-pressure (grow-front) trigger */
         int can_front = (w_live > 1);
         int can_back  = (io_live_node > 0) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
                                                            : (io_live_node > server.io_per_node));
@@ -15692,9 +15722,9 @@ static void tomoFlipController(void) {
                if (ing_mean < ing_lo || qd_max > qd_hi_n) fc->sustain_front = 0; }
 
         if ((fc->sustain_front || fc->sustain_back) && now - last_log >= 2000) {
-            serverLog(LL_NOTICE, "[flip-ctl n%d] qd_max %ld/%ld busy %d%% ing %d | w_live=%d io=%d thr=%.2fx | F%d/B%d",
-                      node, qd_max, qd_hi_n, busy_max, ing_mean, w_live, io_live_node, fc->thr_q4 / 16.0,
-                      fc->sustain_front, fc->sustain_back);
+            serverLog(LL_NOTICE, "[flip-ctl n%d] qd_max %ld/%ld ing %d/%d busy %d%% | w_live=%d io=%d thrF=%.2fx thrB=%.2fx | F%d/B%d",
+                      node, qd_max, qd_hi_n, ing_mean, ing_hi_n, busy_max, w_live, io_live_node,
+                      fc->thr_front_q4 / 16.0, fc->thr_back_q4 / 16.0, fc->sustain_front, fc->sustain_back);
             last_log = now;
         }
 
@@ -15710,7 +15740,8 @@ static void tomoFlipController(void) {
                 fc->perf_ref_cmds = node_ops; fc->perf_ref_ms = now;
                 fc->measure = TM_FCTL_MEASURE;
                 serverLog(LL_NOTICE, "[flip-ctl n%d] EAGER %s (qd %ld ing %d thr %.2fx, ref %.0f ops/s) -> measuring",
-                          node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", qd_max, ing_mean, fc->thr_q4 / 16.0, fc->perf_before);
+                          node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", qd_max, ing_mean,
+                          (dir > 0 ? fc->thr_front_q4 : fc->thr_back_q4) / 16.0, fc->perf_before);
                 break;                                       /* one flip per tick (single migration gate) */
             } else if (err) {
                 serverLog(LL_WARNING, "[flip-ctl n%d] %s refused: %s", node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", err);
