@@ -2598,6 +2598,16 @@ struct redisServer {
      * the SPARE's participation: ex-max blocks PARKED->EX when live workers would exceed
      * it; ex-min blocks EX->PARKED when live workers would drop below it. The io bounds
      * are validated + documented but INERT in v1 (the balancer performs no IO shifts). */
+    /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS
+     * fully active (no spare/reserve). io_per_node + ex_per_node = cores_per_node. io_threads /
+     * ex_threads are DERIVED (nodes * per-node). Static mode fixes the split; dynamic lets the
+     * balancer flip the io/ex boundary WITHIN each node's core budget. */
+    int numa_nodes;            /* node count (1 = single node / sim off) */
+    int cores_per_node;        /* cores (threads) per node; pool = numa_nodes * cores_per_node */
+    int io_per_node;           /* IO threads per node (static split) */
+    int ex_per_node;           /* EX workers per node (static split); io_per_node+ex_per_node<=cores_per_node */
+    /* Internal flip bounds — DERIVED from the node budget (min 1 each, max cores_per_node-1);
+     * no longer user knobs. The balancer reads these; the node budget is the real bound. */
     int ex_threads_min;
     int ex_threads_max;
     int io_threads_min;

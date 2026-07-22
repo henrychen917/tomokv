@@ -3332,13 +3332,44 @@ void initServer(void) {
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
 
-    /* ee451 (v14): thread counts are MANDATORY — no auto default. The right split is a
-     * deliberate, workload-facing choice (see README: Performance & the ingress/execution
-     * split); a silent default hides the most important decision the operator makes. */
+    /* ee451 node-topology (2026-07-22): the pool is numa_nodes * cores_per_node threads, always
+     * fully active. Resolve io_threads/ex_threads from the node model when given; else fall back to
+     * the legacy io-threads/ex-threads (single node). io_threads/ex_threads are the GLOBAL totals
+     * (nodes * per-node) that the rest of the server consumes. */
+    if (server.io_per_node > 0 || server.ex_per_node > 0 || server.cores_per_node > 0) {
+        int nodes = server.numa_nodes > 0 ? server.numa_nodes : 1;
+        int ipn = server.io_per_node, epn = server.ex_per_node, cpn = server.cores_per_node;
+        if (cpn > 0 && ipn > 0 && epn == 0) epn = cpn - ipn;      /* derive the complement */
+        if (cpn > 0 && epn > 0 && ipn == 0) ipn = cpn - epn;
+        if (cpn == 0) cpn = ipn + epn;                            /* cores = the split total */
+        if (ipn <= 0 || epn <= 0 || ipn + epn > cpn) {
+            serverLog(LL_WARNING, "FATAL: node topology invalid (io-per-node=%d ex-per-node=%d "
+                      "cores-per-node=%d): need io>=1, ex>=1, io+ex<=cores.", ipn, epn, cpn);
+            exit(1);
+        }
+        server.numa_nodes = nodes; server.cores_per_node = cpn;
+        server.io_per_node = ipn; server.ex_per_node = epn;
+        server.io_threads = nodes * ipn;                         /* GLOBAL totals */
+        server.ex_threads = nodes * epn;
+        serverLog(LL_NOTICE, "ee451 node topology: %d node(s) x %d cores (io %d + ex %d per node) "
+                  "=> io_threads=%d ex_threads=%d (pool always fully active)",
+                  nodes, cpn, ipn, epn, server.io_threads, server.ex_threads);
+    } else if (server.io_threads >= 0 && server.ex_threads >= 0) {
+        /* Legacy io-threads/ex-threads => single-node topology. */
+        server.numa_nodes = 1; server.io_per_node = server.io_threads;
+        server.ex_per_node = server.ex_threads; server.cores_per_node = server.io_threads + server.ex_threads;
+    }
+    /* Internal flip bounds from the node budget (min 1 of each role, max cores_per_node-1). */
+    server.io_threads_min = 1; server.ex_threads_min = 1;
+    server.io_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
+    server.ex_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
+    /* ee451 (v14): thread counts are MANDATORY — no auto default (either the node model above or
+     * the legacy io/ex-threads must resolve them). */
     if (server.io_threads < 0 || server.ex_threads < 0) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-io-threads and tomokv-ex-threads must be set explicitly (no default). "
-            "Example: --tomokv-io-threads 4 --tomokv-ex-threads 4.");
+            "FATAL: set the thread pool explicitly — either the node model "
+            "(--tomokv-numa-nodes N --tomokv-io-per-node I --tomokv-ex-per-node E) or the legacy "
+            "--tomokv-io-threads / --tomokv-ex-threads.");
         exit(1);
     }
     /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this

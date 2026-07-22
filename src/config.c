@@ -3268,10 +3268,13 @@ standardConfig static_configs[] = {
      * allocation). V1 has exactly one movable thread — the spare — so these only bound its
      * participation: ex-max blocks PARKED->EX, ex-min blocks EX->PARKED. The io bounds are
      * accepted + validated but INERT in v1 (the balancer never shifts IO; documented). */
-    createIntConfig("tomokv-ex-threads-min",         NULL, MODIFIABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_threads_min, 0, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-ex-threads-max",         NULL, MODIFIABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_threads_max, 0, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-io-threads-min",         NULL, MODIFIABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_threads_min, 0, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-io-threads-max",         NULL, MODIFIABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_threads_max, 0, INTEGER_CONFIG, NULL, NULL),
+    /* ee451 node-topology config (min/max knobs removed — bounds come from the node budget).
+     * pool = numa-nodes * cores-per-node threads, always fully active. Static split via
+     * io-per-node/ex-per-node; dynamic (leave those 0) lets the balancer flip within the budget. */
+    createIntConfig("tomokv-numa-nodes",             NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_THREADS_MAX, server.numa_nodes,     1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive from io+ex per node (or legacy io/ex-threads) */
+    createIntConfig("tomokv-io-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static IO/node; 0 = derive from legacy io-threads */
+    createIntConfig("tomokv-ex-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static EX/node; 0 = derive from legacy ex-threads */
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
