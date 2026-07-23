@@ -184,8 +184,15 @@ overhead. **The NUMA-locality payoff is untestable on this box and awaits real m
 **Scope.** Only *reads* are **borrowed** today (`MGET`, `EXISTS`); multi-key *writes* (`MSET`,
 `DEL`, `*STORE`) still use the base scatter path — but now safely, since those sub-commands take the
 owner lock under the knob. `TOUCH` (which shares `EXISTS`'s shape but exists for its access-time
-side-effect) is deliberately kept on the scatter path. Extending the *borrow* itself to set-ops and
-writes is future work.
+side-effect) and single-key `EXISTS` are deliberately kept on the scatter path. Extending the
+*borrow* itself to set-ops and writes is future work.
+
+**Effect exactness.** A borrow returns **byte-exact values** vs the scatter path (including `nil` for
+a logically-expired key). Because the borrow reads a *non-owned* db it uses a pure-read lookup, so it
+intentionally skips three write-side *effects* the scatter path performs: it does not lazily delete an
+expired key (a later access does), does not bump the `keyspace_hits`/`keyspace_misses` counters, and
+does not fire the `keymiss` keyspace notification. These are inherent to the lock-borrow design (and
+shared with the single-node borrow); the knob is off by default.
 
 ---
 
@@ -200,7 +207,7 @@ writes is future work.
 | `tomokv-thread-modes` | `off` | no | Enable dual-binding poly threads (required for role-flip). |
 | `tomokv-thread-balance` | `off` | yes | Enable the auto flip controller + EWMA-weighted balancing. |
 | `tomokv-flip-rebalance` | `on` | yes | Re-spread clients / transfer EWMA weight on each flip. |
-| `tomokv-mcmd-lock` | `off` | yes | **Experimental** per-node M-command lock-borrow (MGET/EXISTS). |
+| `tomokv-mcmd-lock` | `off` | **no** | **Experimental** per-node M-command lock-borrow (MGET/EXISTS). Boot-only: a runtime toggle would race in-flight borrow groups. |
 | `tomokv-reshard-imbalance-pct` | `0` (auto) | yes | Within-node hot-worker bar; `0` = auto outlier detection. |
 | `tomokv-reshard-min-ops` | `20000` | yes | Minimum ops before a within-node reshard may fire. |
 

@@ -5525,10 +5525,13 @@ int processCommand(client *c) {
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
-    /* review fix: TOUCH shares CS_EXISTS but its POINT is the access-time bump; the borrow reads with
-     * LOOKUP_NOEFFECTS (== LOOKUP_NOTOUCH) and would silently drop it. Borrow only genuine EXISTS. */
+    /* review fixes: (a) TOUCH shares CS_EXISTS but its POINT is the access-time bump; the borrow reads
+     * with LOOKUP_NOEFFECTS (== LOOKUP_NOTOUCH) and would silently drop it, so borrow only genuine
+     * EXISTS. (b) single-key EXISTS keeps the scatter single-owner localfast (dispatchLocalReal, no
+     * group alloc) — only borrow multi-key EXISTS. Single-key MGET stays on the borrow (MGET1==GET1). */
     if (csp && server.mcmd_lock &&
-        (csp->ctype == CS_MGET || (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand)) &&
+        (csp->ctype == CS_MGET ||
+         (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand && (fake->argc - 1) >= 2)) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
         /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow for the independent-per-key READ family
          * (MGET values, EXISTS count). Two shapes:
@@ -5994,7 +5997,11 @@ static void tomoMgetLockBorrow(client *fake) {
  * (mget_vals + mget_pos for MGET, rcount for EXISTS); the only new piece is the per-key borrow read.
  * Every borrow stays NODE-LOCAL (no cross-node db reads) — the point of the split on real NUMA. Works
  * for numa_nodes==1 too (one node => one sub, borrows all keys); the MGET caller keeps the cheaper
- * single-worker fast path (tomoMgetLockBorrow) for that case. */
+ * single-worker fast path (tomoMgetLockBorrow) for that case.
+ * MAINTENANCE (review): passes 2-4 below intentionally mirror csBuildCoalescedSubs' pooled-sub
+ * construction contract (argv[0]/key incrRefCount, csparent/cssub_idx/resp/conn/CLIENT_EX_PENDING,
+ * mget_pos fill, csPushSpin) — grouping BY NODE instead of BY WORKER plus the borrow read is the only
+ * real difference. Any change to that shared sub-construction contract must be reflected in BOTH. */
 static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     int nkeys = head->argc - 1;
     int dbid  = head->db->id;

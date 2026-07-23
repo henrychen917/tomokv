@@ -153,8 +153,32 @@ they lock worker->id — inert when the knob is off (predicted-not-taken branch;
     keys/call, cleanup one-shot). VALIDATED: 8 populated within-node migrations (w2<->w3, real data,
     36 ARM/FLIP/CLEANUP/DONE) driven to DONE while 1,259,685 MGET/EXISTS borrow + SET ops ran =>
     0 integrity errors, no crash, byte-exact (dbsize + endpoints intact).
-  [F3 ACCEPTED] LOOKUP_NOEFFECTS expiry divergence (expired-unreaped key reads present/stale vs
-    scatter's nil+delete) — the intrinsic, documented lock-borrow semantic, shared with the single-
-    node borrow; the knob is default-off. Not fixed by design.
 NET: with the knob on, the borrow read is now safe against single-key ops, scattered multi-key
 reads+writes, AND online migration. Set-op/store BORROW (vs scatter) and real-NUMA bench remain TODO.
+
+## Review round 2 (verified report wf_b9329c3c, applied 2026-07-22)
+The full verified report confirmed the 3 above AND surfaced a 4th CONFIRMED crash + refined F3:
+  [R2-1 CONFIRMED CRASH — config-toggle lifetime] g->mcmd_borrow is snapshotted at DISPATCH, but the
+    owner/write/migration locks all gate on the LIVE server.mcmd_lock. `CONFIG SET tomokv-mcmd-lock 0`
+    mid-load left in-flight borrow groups still locking while single-key/scatter/migration writers
+    STOPPED locking => rehash-during-read corruption. FIX: tomokv-mcmd-lock is now IMMUTABLE_CONFIG
+    (boot-only) — the snapshot and the live value can never disagree. Validated: CONFIG SET is
+    rejected at runtime; A/B is now done with two servers (borrow vs scatter), still byte-exact.
+  [R2-2 CONFIRMED — observability] LOOKUP_NOEFFECTS = NONOTIFY|NOSTATS|NOTOUCH|NOEXPIRE. Beyond
+    expiry/touch, it also SUPPRESSES the keyspace_hits/keyspace_misses counters and the `keymiss`
+    keyspace notification that the scatter path (LOOKUP_NONE) fires. ACCEPTED + documented: the
+    RETURNED VALUES are byte-exact (see F3 correction); only these side-effects are skipped, which is
+    intrinsic to a borrow that must not mutate a non-owned db, and is shared with the single-node
+    borrow. Knob default-off. Not fixed by design.
+  [R2-3 cleanup] single-key EXISTS on numa>=2 was allocating a full csGroup for one key. FIX: gate the
+    EXISTS borrow to (argc-1)>=2 so single-key EXISTS keeps the scatter single-owner localfast
+    (dispatchLocalReal, no group). Single-key MGET stays on tomoMgetLockBorrow (MGET1==GET1).
+  [R2-4 cleanup] tomoMPerNodeDispatch duplicates csBuildCoalescedSubs' sub-construction scaffolding —
+    left in place (node-grouping + borrow are the real deltas) with a MAINTENANCE comment marking the
+    shared contract so a future change touches both. Refactor deferred.
+  [F3 CORRECTED — the expiry findings were REFUTED] LOOKUP_NOEXPIRE maps to EXPIRE_AVOID_DELETE_EXPIRED,
+    so expireIfNeeded still returns KEY_EXPIRED for a logically-expired key — the borrow returns
+    nil/absent, SAME as scatter/stock. The ONLY divergence is that the borrow does not lazily DELETE
+    the expired key (leaves it for a later access), plus the R2-2 stats/notify. Values match; my
+    earlier "reads stale value" wording was wrong. (Note: shard dbs have no active-expire cycle, so an
+    unreaped expired key persists until a mutating access — a pre-existing shard property, not new.)
