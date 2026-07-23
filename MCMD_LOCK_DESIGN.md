@@ -100,7 +100,17 @@ SEMANTIC NOTE (shared with S3' single-node borrow): the borrow read uses LOOKUP_
 — it must not lazy-expire/LRU-mutate a NON-owned db from the borrower thread), so a logically-expired
 key still returns its value until the owner's active-expire cycle (scatter's LOOKUP_NONE would report
 nil + delete). Accepted, consistent property of the whole lock-borrow experiment (knob default OFF).
-NEXT: extend the per-node borrow to EXISTS/SINTER/writes (writes need the scattered write-subs to also
-take the owner lock — currently only single-key ops do, via exExecFake S2); bench per-node vs scatter
-on real NUMA (on this single-CCD sim there is no remote-memory penalty, so the split shows correctness
-+ parity, not the NUMA-locality speedup it targets).
+EXTENDED to EXISTS (2026-07-22): tomoMgetPerNodeDispatch generalized to tomoMPerNodeDispatch(head,
+ctype) covering the independent-per-key READ family — CS_MGET (value copies -> mget_vals[pos]) and
+CS_EXISTS (present-count -> g->rcount). Same node-grouping + node-local borrow skeleton; EXISTS skips
+the position slots (a count needs no order). EXISTS routes through the per-node path for BOTH numa
+modes (nn==1 => one sub = a single-node EXISTS borrow); MGET keeps its cheaper single-worker fast path
+(tomoMgetLockBorrow) for numa==1. VALIDATED: EXISTS+MGET byte-exact vs scatter on numa=1 AND numa=2
+(100 mixed present/absent cmds each), concurrent stress (16-conn SET writers @ same keyspace +
+EXISTS/MGET borrow readers) 0 errors / 0 crash / alive on both.
+NEXT: extend to SINTER/SETOP (gather members under lock -> setmem) and to WRITES (MSET/DEL) — writes
+need the scattered write-subs to ALSO take the owner lock (currently only single-key ops do, via
+exExecFake S2; a per-node MGET/EXISTS borrow is safe against single-key writes but NOT against a
+concurrent scattered MSET/DEL sub on the same worker db — a known gap while only reads are borrowed).
+Bench per-node vs scatter on real NUMA (on this single-CCD sim there is no remote-memory penalty, so
+the split shows correctness + parity, not the NUMA-locality speedup it targets).

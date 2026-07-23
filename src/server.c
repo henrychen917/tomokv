@@ -113,7 +113,7 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
 static void tomoMgetLockBorrow(client *fake);              /* M-command lock-borrow experiment */
-static void tomoMgetPerNodeDispatch(client *head);        /* per-node worker-borrow MGET (numa_nodes>=2) */
+static void tomoMPerNodeDispatch(client *head, csCmdType ctype); /* per-node worker-borrow MGET/EXISTS */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
@@ -5525,21 +5525,23 @@ int processCommand(client *c) {
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
-    if (csp && server.mcmd_lock && csp->ctype == CS_MGET &&
+    if (csp && server.mcmd_lock && (csp->ctype == CS_MGET || csp->ctype == CS_EXISTS) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
-        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow. Two shapes:
+        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow for the independent-per-key READ family
+         * (MGET values, EXISTS count). Two shapes:
          *  - MULTI-NODE (numa_nodes>=2, >=2 keys): SCATTER the keys BY NODE — one borrow-exec sub per
          *    node dispatched to a node-local worker (the node's first-seen key owner); each sub borrows
          *    ONLY its node's keys, and the IO drain reassembles the per-node partials in key order
-         *    (tomoMgetPerNodeDispatch). Keeps every borrow node-local (no cross-node db reads).
-         *  - SINGLE-NODE (or <2 keys): dispatch the WHOLE MGET to the first key's owner worker
+         *    (tomoMPerNodeDispatch). Keeps every borrow node-local (no cross-node db reads). EXISTS also
+         *    routes here for numa_nodes==1 (nn==1 => one sub = a single-node EXISTS borrow).
+         *  - SINGLE-NODE MGET (or <2 keys): dispatch the WHOLE MGET to the first key's owner worker
          *    (getWorkerForCommand hashes argv[1]); that worker borrows the others on-thread and replies
          *    via the normal worker drain (exExecFake routes the fake to tomoMgetLockBorrow). */
         if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
             replyWorking++;
             tmLatMaybeStamp(fake);
-            tomoMgetPerNodeDispatch(fake);   /* builds the per-node group + dispatches subs; head waits */
-        } else {
+            tomoMPerNodeDispatch(fake, csp->ctype);   /* per-node group + dispatch subs; head waits */
+        } else if (csp->ctype == CS_MGET) {
             int owner = getWorkerForCommand(fake);
             fake->cdb = cdbIndexFor(owner);
             fake->db = &server.exThreads[owner].db[fake->db->id];
@@ -5547,6 +5549,10 @@ int processCommand(client *c) {
             replyWorking++;
             tmLatMaybeStamp(fake);
             exDispatchPush(owner, fake);
+        } else {   /* CS_EXISTS, numa_nodes==1: single-node borrow via the group path (nn==1 => one sub) */
+            replyWorking++;
+            tmLatMaybeStamp(fake);
+            tomoMPerNodeDispatch(fake, csp->ctype);
         }
     } else if (csp) {
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
@@ -5974,25 +5980,28 @@ static void tomoMgetLockBorrow(client *fake) {
     zfree(vals); zfree(done);
 }
 
-/* Per-node worker-borrow MGET (numa_nodes>=2). SCATTER-then-COMBINE: group the MGET's keys BY NODE
- * (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty node carrying that node's keys and their
- * ORIGINAL positions, dispatched to a node-local worker (the node's first-seen key owner). On the
- * worker, csSubExec's CS_MGET borrow branch reads each key from its TRUE owner db under the owner's
- * per-worker lock and writes the value COPY into mget_vals[original_pos]; the last sub to complete
- * signals the head slot, and the IO drain reassembles mget_vals in key order (csReassemble). The head
- * is NOT pushed — it waits on the pending barrier exactly like any gather group. Reuses the coalesced
- * MGET group machinery (mget_vals + mget_pos + CS_MGET reassemble/teardown); the only new piece is the
- * per-key borrow read. For numa_nodes==1 the caller uses tomoMgetLockBorrow instead (one node => this
- * would degenerate to a single sub). */
-static void tomoMgetPerNodeDispatch(client *head) {
+/* Per-node worker-borrow for the independent-per-key READ family (CS_MGET, CS_EXISTS). SCATTER-then-
+ * COMBINE: group the command's keys BY NODE (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty
+ * node carrying that node's keys, dispatched to a node-local worker (the node's first-seen key owner).
+ * On the worker, csSubExec's borrow branch reads each key from its TRUE owner db under the owner's
+ * per-worker lock — MGET writes the value COPY into mget_vals[original_pos], EXISTS counts present keys
+ * into g->rcount. The last sub to complete signals the head slot and the IO drain reassembles
+ * (csReassemble): MGET emits mget_vals in key order, EXISTS emits the summed count. The head is NOT
+ * pushed — it waits on the pending barrier like any gather group. Reuses the coalesced group machinery
+ * (mget_vals + mget_pos for MGET, rcount for EXISTS); the only new piece is the per-key borrow read.
+ * Every borrow stays NODE-LOCAL (no cross-node db reads) — the point of the split on real NUMA. Works
+ * for numa_nodes==1 too (one node => one sub, borrows all keys); the MGET caller keeps the cheaper
+ * single-worker fast path (tomoMgetLockBorrow) for that case. */
+static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     int nkeys = head->argc - 1;
     int dbid  = head->db->id;
     int nn    = server.numa_nodes > 0 ? server.numa_nodes : 1;
+    int is_mget = (ctype == CS_MGET);              /* else CS_EXISTS (count, no position slots) */
 
     csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = CS_MGET; g->nkeys = nkeys; g->head = head;
+    g->ctype = ctype; g->nkeys = nkeys; g->head = head;
     g->mcmd_borrow = 1;
-    g->mget_vals = zcalloc(sizeof(sds) * nkeys);   /* position-indexed value slots (NULL = nil) */
+    if (is_mget) g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
     head->csgroup = g;
     head->cdb = 0;                                  /* group-head completion routes to CDB 0 (drain clears it) */
 
@@ -6013,11 +6022,11 @@ static void tomoMgetPerNodeDispatch(client *head) {
     for (int n = 0; n < nn; n++) if (ncnt[n]) nsub++;
     g->nsub = nsub;
     g->subs = zmalloc(sizeof(client *) * nsub);
-    g->mget_pos = zcalloc(sizeof(int *) * nsub);
+    if (is_mget) g->mget_pos = zcalloc(sizeof(int *) * nsub);
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
 
-    /* pass 2: one sub per non-empty node (argv = [MGET, node's keys...]); db carries dbid only. */
+    /* pass 2: one sub per non-empty node (argv = [CMD, node's keys...]); db carries dbid only. */
     client **nsubp = zcalloc(sizeof(client *) * nn);   /* node -> its sub */
     int *nsi   = zmalloc(sizeof(int) * nn);            /* node -> sub index */
     int *nfill = zcalloc(sizeof(int) * nn);            /* node -> per-sub fill cursor */
@@ -6034,17 +6043,17 @@ static void tomoMgetPerNodeDispatch(client *head) {
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
         sub->db = &server.exThreads[w].db[dbid];   /* dbid via db->id; borrow reads use each key's true owner */
-        g->mget_pos[si] = zmalloc(sizeof(int) * ncnt[n]);
+        if (is_mget) g->mget_pos[si] = zmalloc(sizeof(int) * ncnt[n]);
         nsubp[n] = sub; nsi[n] = si; g->subs[si++] = sub;
     }
 
-    /* pass 3: fill each sub's keys + original positions in original key order. */
+    /* pass 3: fill each sub's keys (MGET also records each key's original position). */
     for (int i = 0; i < nkeys; i++) {
         int n = node_of[i];
         client *sub = nsubp[n];
         robj *key = head->argv[1 + i];
         sub->argv[sub->argc++] = key; incrRefCount(key);
-        g->mget_pos[nsi[n]][nfill[n]++] = i;       /* this sub-local key -> original position i */
+        if (is_mget) g->mget_pos[nsi[n]][nfill[n]++] = i;   /* sub-local key -> original position i */
     }
 
     /* pass 4: dispatch each node's sub to its node-local executor worker. Head stays in flight. */
@@ -6776,8 +6785,24 @@ static void csSubExec(client *sub) {
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; count present keys (lazy expiry applied).
          * Duplicate key args are separate argv entries, so EXISTS k k correctly counts 2 if present. */
         long present = 0;
-        for (int a = 1; a < sub->argc; a++)
-            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
+        if (__builtin_expect(g->mcmd_borrow, 0)) {
+            /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys span multiple
+             * workers within ONE node — count each from its TRUE owner db under the owner's per-worker
+             * lock (excludes concurrent single-key ops). LOOKUP_NOEFFECTS (pure read from a non-owned
+             * db; shares the borrow's no-lazy-expire semantic with tomoMgetLockBorrow). */
+            int borrow_dbid = sub->db->id;
+            for (int a = 1; a < sub->argc; a++) {
+                robj *key = sub->argv[a];
+                int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
+                tomoWkrLock(owner);
+                if (lookupKeyReadWithFlags(&server.exThreads[owner].db[borrow_dbid], key, LOOKUP_NOEFFECTS))
+                    present++;
+                tomoWkrUnlock(owner);
+            }
+        } else {
+            for (int a = 1; a < sub->argc; a++)
+                if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
+        }
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
