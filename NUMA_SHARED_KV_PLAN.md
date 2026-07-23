@@ -283,3 +283,25 @@ consuming the dispatch bucket — 2-3 hashes per write) is untouched and remains
 METHODOLOGY RULE (add to the box's lore): cross-campaign comparisons are invalid even for hardware
 counters; conclusions require same-campaign interleaving, and ±5% path-level swings can be pure
 code-layout lottery. Anything finer than that needs the EPYC/TR box.
+
+## 2026-07-23 — flip-controller convergence + abort fixes (sweep tripwire findings)
+10h competitive sweep's early tripwire (tomo p32 get −35% / set −69% vs preflight, 70 flips/family)
+exposed three controller defects; all fixed + validated before sweep relaunch:
+1. **Convergence lock never engaged**: phase-2 judge `z>1.0` used within-window tick-sigma, but
+   before/after windows are separated by settle+measure gaps whose drift is 3-10x sigma on this box
+   → false GAINs (which keep the flip AND clear probed_mask) → endless churn. Fix: self-calibrating
+   null scale `fc->null_abs` = EWMA(1/4) of |after−before| over REVERTED probes (they are literal
+   null experiments); gain now requires `z>1.0 && delta > 2*null_abs`; re-open bar `3σ + 2*null_abs`;
+   FESC_MEAS_N 10→16.
+2. **Watchdog counted event-loop iterations, not time**: tmFlipTick runs per beforeSleep, so the
+   "40 ticks ≈ 10s" grow-back park watchdog fired after ~1ms under load — flips aborted before the
+   IO thread saw IOEXIT. Fix: `tm_flip_abort_ms` wall-clock 10s deadline.
+3. **Aborts were invisible to the controller**: it "measured" the never-applied flip, judged
+   NO-GAIN, and "reverted" — an uncommanded net move (observed live: aborted grow-back + revert =
+   uncommanded grow-front; explains a desynced 7io/1ex hold). Fix: `tm_flip_aborted` flag; probe
+   aborts cancel the probe (no null feed, no probed_mask bit, backoff, other direction next);
+   revert aborts re-issue the revert until it lands (checked before the converged-hold block, since
+   CONVERGED latches at revert-issue time).
+Validation (3min GET → 3min HGETALL shift): flips 70→8, CONVERGED+HOLD engages (9.1M), 0 aborts,
+shift re-opens in ~3s and re-converges in 12s at 6io/2ex; HGETALL phase +64% vs the desynced run
+(651k vs 396k). GET steady 8.9-9.4M ops/s across both runs.

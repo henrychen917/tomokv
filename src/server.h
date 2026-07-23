@@ -2608,7 +2608,12 @@ struct redisServer {
                                           * (generalizes the old single-tmSpare tail to any thread) */
     int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
     int tm_flip_phase;             /* grow-back phase machine: 0=await park, 1=await EX, 2=await seed FLIP */
-    int tm_flip_ticks;             /* grow-back phase-0 watchdog: ticks awaiting park; abort if it stalls */
+    mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the park; abort past
+                                    * it. TIME, not ticks: tmFlipTick runs per event-loop iteration, so a tick
+                                    * count is load-dependent (40 iterations ~ 1ms under P32 load). */
+    int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
+                                    * CANCEL the in-flight probe (config never left baseline: nothing to
+                                    * measure, nothing to revert). */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */

@@ -15244,7 +15244,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
     server.tm_flip_ctx = ctx;
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT park */
-    server.tm_flip_ticks = 0;                           /* phase-0 watchdog (review [3] abort) */
+    server.tm_flip_abort_ms = mstime() + 10000;         /* phase-0 watchdog deadline (review [3] abort) */
     server.tm_flip_wslot = ctx->ex->id;                /* the worker index this thread revives as */
     /* IO-EXIT: leave accept group + migrate every conn out (round-robin => even split), then park. */
     mb->req_kind = TM_MIGREQ_IOEXIT;
@@ -15307,8 +15307,8 @@ void tmFlipTick(void) {
                  * the controller (tm_flip_ctx stuck => no more flips). Bound the wait: on timeout,
                  * ABORT — tell the thread to re-join the accept group (stay IO) and clear the flip.
                  * io_threads_live was NOT decremented yet (that happens on park), so the pool
-                 * accounting is already correct. ~40 ticks ≈ 10s >> a normal drain. */
-                if (++server.tm_flip_ticks >= 40) {
+                 * accounting is already correct. 10s wall clock >> a normal drain. */
+                if (mstime() >= server.tm_flip_abort_ms) {
                     tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
                     mb->req_kind = TM_MIGREQ_IOEXIT_CANCEL; mb->req_dest = -1; mb->req_count = 0;
                     atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
@@ -15317,11 +15317,10 @@ void tmFlipTick(void) {
                                           "(pinned non-migratable conn); re-joining accept group, staying IO",
                               ctx->io_slot);
                     server.tm_flip_ctx = NULL; server.tm_flip_target = 0; server.tm_flip_phase = 0;
-                    server.tm_flip_ticks = 0;
+                    server.tm_flip_aborted = 1;         /* tell the controller its probe never applied */
                 }
                 return;
             }
-            server.tm_flip_ticks = 0;
             atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
             if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);   /* per-node flip accounting */
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread parked (io_threads_live=%d); reviving as EX",
@@ -16423,12 +16422,17 @@ typedef struct {
     double   conv_mean;      /* SLOW baseline of the converged throughput (tracks genuine drift; the fast
                               * mean diverging from it = a workload shift, not noise) */
     int      shift_run;      /* consecutive ticks the fast mean is >3σ off conv_mean (shift persistence) */
+    double   null_abs;       /* EWMA of |after-before| over REVERTED probes = measured BETWEEN-window noise
+                              * (the null distribution). Gains must beat it; re-opens must beat it. Self-
+                              * calibrating: a drifty box learns a high bar, a quiet box stays sensitive. */
     int      warm_ticks, meas_ticks;  /* elapsed ticks in the current phase (adaptive caps) */
     int      settle_run;     /* consecutive warmup ticks with the rate change inside the noise */
     double   warm_prev;      /* mean at the previous warmup tick, to detect the settle plateau */
     uint64_t ref_ops; mstime_t ref_ms;  /* measure-window open snapshot */
     double   before;         /* smoothed rate just before the probe flip */
     int      last_dir;       /* direction of the probe under evaluation */
+    int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
+    int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
 
@@ -16438,7 +16442,7 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FESC_ALPHA      0.25   /* throughput mean/variance EWMA rate */
 #define FESC_SETTLE_N   3      /* warmup ends after this many consecutive settled ticks (rate change < noise) */
 #define FESC_WARM_CAP   48     /* safety cap on warmup (~12s) if it never plateaus — NOT a control knob */
-#define FESC_MEAS_N     10     /* measure-window ticks (~2.5s of settled steady state) */
+#define FESC_MEAS_N     16     /* measure-window ticks (~4s settled — longer window averages between-window drift) */
 #define FESC_WAIT_BASE  8      /* base idle ticks between probes (~2s); backoff multiplies this */
 #define FESC_BACKOFF_MAX 5     /* cap: max idle between probes ~ 2^5 * base (~64s) when firmly at optimum */
 
@@ -16540,12 +16544,55 @@ static void tomoFlipController(void) {
 
         /* ===== PHASE 2: measure the settled post-flip rate, compare to the pre-flip rate in units of
          * the measured noise (z-score). Gain beyond the noise => climb; anything else => revert. ===== */
+        /* ee451 (abort observation, revert case): a previously-issued REVERT aborted mid-flight —
+         * the config is physically stuck at the no-gain neighbour while the controller (and a
+         * possible CONVERGED latch, which is taken at revert-ISSUE time) believes it is back at
+         * baseline. Re-issue the revert until it lands, waiting between attempts (the pin that
+         * caused the abort tends to persist briefly). Checked before the hold block on purpose:
+         * a converged controller must still repair its position. */
+        if (fc->phase == 0 && fc->revert_dir && server.tm_flip_aborted) {
+            server.tm_flip_aborted = 0;
+            fc->revert_retry = 1;
+            fc->wait = FESC_WAIT_BASE;
+            serverLog(LL_WARNING, "[flip-ctl n%d] REVERT (%s) aborted mid-flight -> will re-issue",
+                      node, fc->revert_dir > 0 ? "grow-front" : "grow-back");
+        }
+        if (fc->phase == 0 && fc->revert_retry) {
+            if (fc->wait > 0) { fc->wait--; continue; }
+            const char *err = NULL;
+            if (tmFlipDo(node, fc->revert_dir, &err)) { fc->revert_retry = 0; break; } /* one flip per tick */
+            fc->wait = FESC_WAIT_BASE;                   /* refused (transient) — retry after a pause */
+            continue;
+        }
+        /* ee451 (abort observation): the ACTUATION of the in-flight probe aborted (a conn became
+         * non-migratable mid-drain and the park timed out) — the config never left baseline. There
+         * is nothing to measure and nothing to revert; measuring anyway and then "reverting" would
+         * apply a real net move the controller never commanded (observed live: aborted grow-back +
+         * revert => uncommanded grow-front). Cancel the probe: no null feed, no probed_mask bit
+         * (this neighbour was never measured), back off (pins tend to persist), try the other
+         * direction first next time. */
+        if (fc->phase != 0 && server.tm_flip_aborted) {
+            server.tm_flip_aborted = 0;
+            serverLog(LL_WARNING, "[flip-ctl n%d] probe %s ABORTED at actuation -> cancel (no revert)",
+                      node, fc->last_dir > 0 ? "grow-front" : "grow-back");
+            fc->dir = -fc->last_dir;
+            if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
+            fc->wait = FESC_WAIT_BASE << fc->backoff;
+            fc->phase = 0;
+            continue;
+        }
         if (fc->phase == 2) {
             if (++fc->meas_ticks < FESC_MEAS_N) continue;
             double dt = (double)(now - fc->ref_ms);
             double after = dt > 0 ? (double)(node_ops - fc->ref_ops) * 1000.0 / dt : fc->before;
             double z = (after - fc->before) / sigma;         /* RELATIVE: delta in noise units */
-            if (z > 1.0) {
+            /* ee451 (convergence fix): tick-sigma measures WITHIN-window noise, but before/after are
+             * separated by a settle+measure gap — the relevant null is the BETWEEN-window drift,
+             * empirically 3-10x larger on this box. fc->null_abs learns it from reverted probes
+             * (they are literal null experiments: flip+unflip, no true change). A gain must beat
+             * both scales; until the first null observation the sigma test alone applies. */
+            int real_gain = (z > 1.0) && ((after - fc->before) > 2.0 * fc->null_abs);
+            if (real_gain) {
                 /* signal-exceeds-noise GAIN: keep it, keep climbing the same way, probe again soon.
                  * We MOVED, so the neighbourhood is new — clear the probed set and any convergence. */
                 fc->backoff = 0; fc->wait = FESC_WAIT_BASE;
@@ -16565,8 +16612,15 @@ static void tomoFlipController(void) {
                     serverLog(LL_WARNING, "[flip-ctl n%d] revert refused: %s — retry next tick", node, err ? err : "?");
                     return;
                 }
-                serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> REVERT",
-                          node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
+                serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f, null %.0f) after %s -> REVERT",
+                          node, z, fc->before, after, sigma, fc->null_abs, fc->last_dir > 0 ? "grow-front" : "grow-back");
+                fc->revert_dir = -fc->last_dir; fc->revert_retry = 0;   /* watch for a mid-flight abort */
+                /* null-scale learning: this probe measured "no true change" — its |delta| samples the
+                 * between-window noise. EWMA (1/4) tracks slow drift-regime changes. */
+                {
+                    double d = fabs(after - fc->before);
+                    fc->null_abs += 0.25 * (d - fc->null_abs);
+                }
                 fc->probed_mask |= (fc->last_dir > 0) ? 1 : 2;
                 fc->dir = -fc->last_dir;                     /* explore the other direction next time */
                 if ((fc->probed_mask & 3) == 3) {            /* both neighbours worse => optimum found */
@@ -16591,7 +16645,7 @@ static void tomoFlipController(void) {
              * FAST/large move outpaces it. Re-explore only when the fast mean stays >3σ off the baseline
              * for several consecutive ticks (a real workload shift, not a transient dip). */
             fc->conv_mean += 0.02 * (fc->mean - fc->conv_mean);
-            if (fabs(fc->mean - fc->conv_mean) > 3.0 * sigma) fc->shift_run++; else fc->shift_run = 0;
+            if (fabs(fc->mean - fc->conv_mean) > 3.0 * sigma + 2.0 * fc->null_abs) fc->shift_run++; else fc->shift_run = 0;
             if (fc->shift_run >= 4) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] workload shift: baseline %.0f vs %.0f ops/s (sigma %.0f) -> re-open search",
                           node, fc->conv_mean, fc->mean, sigma);
@@ -16643,6 +16697,8 @@ static void tomoFlipController(void) {
         const char *err = NULL;
         fc->before = fc->mean;
         if (tmFlipDo(node, dir, &err)) {
+            server.tm_flip_aborted = 0;                  /* clear any stale abort from a manual flip */
+            fc->revert_dir = 0; fc->revert_retry = 0;    /* new probe anchors on the ACTUAL config */
             fc->last_dir = dir; fc->dir = dir;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             serverLog(LL_NOTICE, "[flip-ctl n%d] PROBE %s (baseline %.0f ops/s, sigma %.0f) -> settle+measure",
