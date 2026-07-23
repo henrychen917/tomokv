@@ -6070,30 +6070,28 @@ static inline int tomoHfeProc(redisCommandProc *p) {
 static void tomoMgetLockBorrow(client *fake) {
     int nk = fake->argc - 1;
     int dbid = fake->db->id;
-    robj **vals = zmalloc(sizeof(robj *) * nk);
-    unsigned char *done = zcalloc(nk);
-    for (int i = 0; i < nk; i++) vals[i] = NULL;
-    int remaining = nk, guard = 0;
-    while (remaining > 0 && guard++ < nk * 16 + 16) {
-        for (int i = 0; i < nk; i++) {
-            if (done[i]) continue;
-            robj *key = fake->argv[i + 1];
-            int bkt = tomoBktBucket(key->ptr, sdslen(key->ptr));
-            int owner = (int)server.ex_bucket_table[bkt];
-            fake->tomo_bkt = bkt; fake->tomo_bkt_ptr = key->ptr;   /* hash-carry for the lookup below */
-            if (!tomoWkrTrylock(owner)) continue;             /* owner busy -> backlog, retry next pass */
-            robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
-            if (o && o->type == OBJ_STRING) vals[i] = dupStringObject(o);   /* private copy under the lock */
-            tomoWkrUnlock(owner);
-            done[i] = 1; remaining--;
-        }
-    }
+    /* opt-loop C3: SINGLE-PASS — append each value directly into the fake's reply buffer while
+     * holding the owner's lock (the value cannot be freed mid-copy), in key order. The previous
+     * shape (trylock-backlog into a robj copy array, then a second serialize pass) paid a
+     * dupStringObject alloc + serialize + free per key; blocking per-key locks are fine now that
+     * every writer honors the discipline (uncontended CAS; one lock held at a time => no cycle).
+     * Lock hold grows by the buffer append (may realloc) — small values, acceptable. */
     addReplyArrayLen(fake, nk);
     for (int i = 0; i < nk; i++) {
-        if (vals[i]) { addReplyBulk(fake, vals[i]); decrRefCount(vals[i]); }
-        else addReplyNull(fake);
+        robj *key = fake->argv[i + 1];
+        int bkt = tomoBktBucket(key->ptr, sdslen(key->ptr));
+        int owner = (int)server.ex_bucket_table[bkt];
+        fake->tomo_bkt = bkt; fake->tomo_bkt_ptr = key->ptr;   /* hash-carry for the lookup below */
+        tomoWkrLock(owner);
+        robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
+        if (o && o->type == OBJ_STRING) {
+            if (sdsEncodedObject(o)) addReplyBulkCBuffer(fake, o->ptr, sdslen(o->ptr));
+            else addReplyBulkLongLong(fake, (long)o->ptr);
+        } else {
+            addReplyNull(fake);
+        }
+        tomoWkrUnlock(owner);
     }
-    zfree(vals); zfree(done);
 }
 
 /* Per-node worker-borrow for the independent-per-key READ family (CS_MGET, CS_EXISTS). SCATTER-then-
@@ -6125,10 +6123,14 @@ static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     head->csgroup = g;
     head->cdb = 0;                                  /* group-head completion routes to CDB 0 (drain clears it) */
 
-    /* pass 1: node of each key + per-node key count + a node-local executor (first key's owner in node). */
-    int *node_of = zmalloc(sizeof(int) * nkeys);   /* node index for key i */
-    int *ncnt    = zcalloc(sizeof(int) * nn);      /* keys owned within node n */
-    int *nexec   = zmalloc(sizeof(int) * nn);      /* executor worker for node n */
+    /* pass 1: node of each key + per-node key count + a node-local executor (first key's owner in node).
+     * opt-loop C2a: scratch lives on the STACK — 6 malloc/free pairs per command were ~5-8% of the
+     * cross-node MGET/EXISTS instruction budget. Node-indexed arrays are bounded [16]; the per-key
+     * node map uses a fixed frame for the common case and falls back to heap only for huge MGETs. */
+    int node_of_stk[128];
+    int *node_of = (nkeys <= 128) ? node_of_stk : zmalloc(sizeof(int) * nkeys);
+    int ncnt[16] = {0};                            /* keys owned within node n */
+    int nexec[16];                                 /* executor worker for node n */
     for (int n = 0; n < nn; n++) nexec[n] = -1;
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[1 + i];
@@ -6147,9 +6149,9 @@ static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
 
     /* pass 2: one sub per non-empty node (argv = [CMD, node's keys...]); db carries dbid only. */
-    client **nsubp = zcalloc(sizeof(client *) * nn);   /* node -> its sub */
-    int *nsi   = zmalloc(sizeof(int) * nn);            /* node -> sub index */
-    int *nfill = zcalloc(sizeof(int) * nn);            /* node -> per-sub fill cursor */
+    client *nsubp[16] = {0};                           /* node -> its sub */
+    int nsi[16];                                       /* node -> sub index */
+    int nfill[16] = {0};                               /* node -> per-sub fill cursor */
     int si = 0;
     for (int n = 0; n < nn; n++) {
         if (!ncnt[n]) continue;
@@ -6180,8 +6182,7 @@ static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     for (int n = 0; n < nn; n++)
         if (ncnt[n]) csPushSpin(nexec[n], nsubp[n]);
 
-    zfree(node_of); zfree(ncnt); zfree(nexec);
-    zfree(nsubp); zfree(nsi); zfree(nfill);
+    if (node_of != node_of_stk) zfree(node_of);
 }
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
@@ -7472,8 +7473,13 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     int nw = server.num_workers_alloc;
     int stride = spec->key_stride;
     int first = spec->first_argi ? spec->first_argi : 1;
-    int *cnt = zcalloc(sizeof(int) * nw);      /* keys owned by worker w */
-    int *wof = zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
+    /* opt-loop C2b: same stackification as the per-node dispatch — 5 heap pairs per scatter
+     * command. Worker-indexed arrays are bounded by the compile-time max; the per-key owner map
+     * uses a fixed frame with heap fallback for huge commands. */
+    int cnt[TOMO_EX_THREADS_MAX + 1];
+    memset(cnt, 0, sizeof(int) * nw);
+    int wof_stk[128];
+    int *wof = (nkeys <= 128) ? wof_stk : zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
         if (spec->cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
@@ -7488,9 +7494,11 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     if (spec->posmap) *spec->posmap = zcalloc(sizeof(int*) * nsub);
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
-    client **wsub = zcalloc(sizeof(client*) * nw); /* worker -> its sub (NULL if none) */
-    int *wsi = zmalloc(sizeof(int) * nw);          /* worker -> its sub index si */
-    int *fill = zcalloc(sizeof(int) * nw);         /* worker -> local key fill cursor */
+    client *wsub[TOMO_EX_THREADS_MAX + 1];         /* worker -> its sub (NULL if none) */
+    int wsi[TOMO_EX_THREADS_MAX + 1];              /* worker -> its sub index si */
+    int fill[TOMO_EX_THREADS_MAX + 1];             /* worker -> local key fill cursor */
+    memset(wsub, 0, sizeof(client*) * nw);
+    memset(fill, 0, sizeof(int) * nw);
     int si = 0;
     for (int w = 0; w < nw; w++) {
         if (!cnt[w]) continue;
@@ -7513,7 +7521,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
-    zfree(cnt); zfree(wof); zfree(wsub); zfree(wsi); zfree(fill);
+    if (wof != wof_stk) zfree(wof);
     return nsub;
 }
 
@@ -13712,7 +13720,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
                 dict *d = kvstoreGetDict(fake->db->keys,
                     server.ex_threads > 0
-                        ? tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr))
+                        ? (fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr
+                               ? fake->tomo_bkt   /* opt-loop C1: reuse the dispatch-carried bucket */
+                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
                         : (fake->slot > 0 ? fake->slot : 0));
                 if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
                 uint64_t h = dictGetHash(d, fake->argv[1]->ptr);

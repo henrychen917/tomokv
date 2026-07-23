@@ -221,3 +221,17 @@ HEXPIRE/HTTL work node-locked; SHARDNUMSUB counts; RANDOMKEY 30/30 non-nil at as
 battery 108/108; corruption harness PASS; 60s stress 1.83M ops / 27 conversions / 0 errors / 0
 crashes; perf geomean 0.991 vs original (campaigns: 0.997/1.006/0.991 — parity within drift; incr
 1.01/hset 1.00 vs set 0.91/get 0.93 same-path split proves drift not cost).
+
+## Optimization loop (2026-07-23, ~2h): instruction-metered, 3 keepers
+METHOD: perf-stat instructions at fixed n, idle-corrected (work = instr - 12.7B/s x wall) — ~1-3%
+repeatable vs the box's ±10% rps drift; every keeper has an internal control (untouched paths flat).
+- C1 PFS_HASH reuses the dispatch-carried bucket: WASH (~40 of 5100 instr/op) — kept as cleanup.
+- C2 stackified the M-dispatch scratch (6 heap pairs in tomoMPerNodeDispatch, 5 in
+  csBuildCoalescedSubs; [16]/[TOMO_EX_THREADS_MAX+1] stack frames, >128-key heap fallback):
+  exists8 -7.1%, mset8 -4.2%, mget8 -2.6% work/op (numa=2 cross-node paths).
+- C3 single-pass MGET borrow (append to the reply buffer under each owner lock, key order; replaces
+  trylock-backlog + dupStringObject + serialize + free): numa=1 mget8 -13.8% work/op
+  (20026->17256 instr); get/exists8 controls ±0.4%. rps: 680-698k -> 780-800k (+15%).
+VALIDATION: battery 108/108 at numa=1 AND numa=2; 1.26M MGET-heavy churn ops 0 errors.
+Not pursued (documented): csGroup/slot monoblock alloc (teardown ownership shared with the
+coalesced path — fiddly), inline sub argv (S8 argv-ownership contract risk), knob sweeps (rps-noisy).
