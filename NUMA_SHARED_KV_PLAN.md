@@ -240,3 +240,16 @@ repeatable vs the box's ±10% rps drift; every keeper has an internal control (u
 VALIDATION: battery 108/108 at numa=1 AND numa=2; 1.26M MGET-heavy churn ops 0 errors.
 Not pursued (documented): csGroup/slot monoblock alloc (teardown ownership shared with the
 coalesced path — fiddly), inline sub argv (S8 argv-ownership contract risk), knob sweeps (rps-noisy).
+
+## RPS campaign (2026-07-23): 5 interleaved rounds x 3 builds x 2 topologies, median-of-5
+Per-cell spreads 8-25% across rounds (the box's drift); medians reduce to ~±3-5% resolution.
+head/preopt (the optimization loop's end-to-end effect): numa=1 geomean 1.005 (mget8 1.07 — the C3
+target cell), numa=2 geomean 1.011 (mget8 1.03, mset8 1.03, exists8 1.02, sinter 1.04 — every
+C2-targeted cell slightly positive). VERDICT: the loop's instruction wins DO surface in medians as
++2-7% on the targeted M-command cells (cross-node paths are partially instruction-bound), ~+1%
+overall — small, real, in the right places; earlier "wash" was a 3-sample view.
+head/orig (shared vs physical shards): numa=1 geomean 1.036 (sinter 1.15, get 1.06), numa=2 0.986
+(set 0.95, exists8 0.94, mset8 1.06). Sixth campaign: 0.986/0.997/1.006/0.991/1.036/0.986 —
+PARITY within this box's measurement ability, oscillating around 1.0.
+Validation on optimized HEAD: corruption harness PASS (0/200), battery 108/108 both topologies,
+1.26M-op churn clean (from the opt-loop gate).
