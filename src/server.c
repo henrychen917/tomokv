@@ -3432,8 +3432,15 @@ void initServer(void) {
         int W = server.ex_threads;
         for (int b = 0; b < TOMO_BUCKETS; b++)
             server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
+        /* ee451 (non-pow2 fix): end[i] must be the EXACT boundary of the table formula above —
+         * table[b]==i iff b in [ceil(i*B/W), ceil((i+1)*B/W)), so end[i] = CEIL((i+1)*B/W).
+         * The old floor form disagreed with the table whenever W does not divide TOMO_BUCKETS
+         * (any non-power-of-2 W): boundary buckets were owned by worker i per the table but
+         * attributed to worker i+1 per the ends, so reshardRangeValid's ownership walk rejected
+         * EVERY arm (flips + balancer dead on 3/6/etc.-worker configs). Identical values for
+         * power-of-2 W (all prior validated configs). */
         for (int i = 0; i < W; i++)
-            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
+            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS + W - 1) / W);
         /* ee451 (thread-modes v1, step 3): canonical EMPTY suffix range for every slot
          * above the configured workers (the spare's slot W among them): end[i] =
          * TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing. The spare
@@ -10050,7 +10057,7 @@ void reshardDebug(client *c) {
         /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
          * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
         addReplyArrayLen(c, server.num_workers_alloc);   /* alloc: spare slot visible (0 when dormant) */
-        for (int w = 0; w < server.num_workers; w++)
+        for (int w = 0; w < server.num_workers_alloc; w++)   /* MUST match the header (protocol desync hang) */
             addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
@@ -16513,11 +16520,22 @@ static void tomoFlipController(void) {
          * scores identically (zero), and a flip is pure churn on noise. Observational fact, not a
          * threshold: any nonzero pressure re-enables probing immediately. */
         if (node_idle) { fc->wait = FESC_WAIT_BASE; continue; }
-        /* Probe direction = the current search direction; the very first probe grows front by default
-         * (io is the usual first bottleneck), and the throughput gradient corrects any wrong guess by
-         * reverting + reversing — so no pressure THRESHOLD is needed, only the measured outcome. */
+        /* Probe direction. ee451 (user design): pick the FIRST direction by comparing io-side vs
+         * ex-side throughput. At steady state the two rates are equal (every op flows io->ex), so
+         * their difference is precisely the queue-depth trend: standing worker-queue depth means ex
+         * lags io (grow back, add a worker); dry queues mean the workers drain everything io can
+         * feed them (dispatch/io-bound — grow front). Observational, unit-free, no thresholds; the
+         * extremum gradient still corrects any wrong first guess by reverting + reversing. */
         int dir = fc->dir;
-        if (dir == 0) dir = can_front ? +1 : (can_back ? -1 : 0);
+        if (dir == 0) {
+            int want = (qd_max > 0) ? -1 : +1;
+            dir = (want > 0) ? (can_front ? +1 : (can_back ? -1 : 0))
+                             : (can_back ? -1 : (can_front ? +1 : 0));
+            if (dir != 0)
+                serverLog(LL_NOTICE, "[flip-ctl n%d] first-probe dir=%s (qd_max=%ld: %s)",
+                          node, dir > 0 ? "FRONT" : "BACK", qd_max,
+                          qd_max > 0 ? "worker queues standing => ex lags io" : "queues dry => io-bound");
+        }
         if (dir > 0 && !can_front) dir = can_back ? -1 : 0;
         else if (dir < 0 && !can_back) dir = can_front ? +1 : 0;
         if (dir == 0) { fc->wait = FESC_WAIT_BASE; continue; }

@@ -146,3 +146,25 @@ even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA 
   (keeps probe-reverting at the optimum = churn), seed-burst overreaction (8 flips during a 3s
   seed), probe-cost accounting (each probe is a real flip), alternatives to evaluate: windowed
   median instead of EWMA, paired-probe with settle-discard, UCB-style exploration budgets.
+
+## Any-core pool + fixes (2026-07-22 night)
+- **Any core = worker or io** (>=1 io + >=1 ex per node): delivered by POOL BOOT — 1io+(cpn-1)ex
+  per node; every non-base core flips both ways via the per-node actuators; the guards ARE the
+  constraint (grow-front refuses at 1 ex/node, grow-back refuses at the base 1 io/node). Validated
+  numa=2 cpn=4: each node independently 1/3->2/2->3/1 and back, guards refusing at both edges,
+  loads clean, 0 crashes. The one pinned core per node (base io; main on node0) is exactly the
+  required min-io.
+- **CRITICAL pre-existing fix: non-power-of-2 worker counts were entirely broken** — ex_bucket_end
+  used floor((i+1)B/W) while ex_bucket_table used floor(bW/B); the boundary bucket disagreed unless
+  W | 16384, so reshardRangeValid's ownership walk rejected EVERY arm (no flips, no balancer moves)
+  on 3/6/12-worker configs. All prior validation used powers of 2 and never saw it. Fix: end[i] =
+  ceil((i+1)B/W) (exact table boundary; identical for pow2).
+- **DEBUG RESHARD PERWORKER protocol desync fixed** (arraylen=alloc vs loop=num_workers -> CLI hang
+  when the spare slot is allocated).
+- **Flip direction chooser (user design)**: first-probe direction = io-vs-ex throughput comparison.
+  At steady state the two rates are equal, so their difference IS the queue-depth trend: standing
+  worker queues => ex lags => grow back; dry queues => io-bound => grow front. Unit-free, no
+  thresholds; gradient still corrects wrong guesses. Validated: GET load logs "first-probe
+  dir=FRONT (qd_max=0)" and monotone-climbs to 7io/1ex @1.73M.
+- TEST GOTCHA (cost a false-positive round): CONFIG SET with an UNCHANGED value skips the apply
+  callback (returns OK, no-op) — modeshift-test must toggle through 0 between repeats.
