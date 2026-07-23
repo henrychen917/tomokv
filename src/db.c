@@ -551,12 +551,15 @@ int calculateKeySlot(sds key) {
 
 /* Return slot-specific dictionary for key based on key's hash slot when cluster mode is enabled, else 0.*/
 int getKeySlot(sds key) {
-    if (!server.cluster_enabled)
-        /* ee451 (shared-kv S0.2a): NO per-client cached-slot fast path in tomo mode — the cluster
-         * cache is only valid because cluster REJECTS cross-slot commands; tomo multi-key commands
-         * (MGET borrow, coalesced subs) legitimately span buckets, so a cached argv[1] slot would
-         * route argv[2..] to the WRONG dict. Always compute (pure xxh64, ~ns on short keys). */
-        return server.ex_threads > 0 ? tomoKeyBucket(key, sdslen(key)) : 0;
+    if (!server.cluster_enabled) {
+        if (server.ex_threads <= 0) return 0;
+        /* ee451 (hash-carry): the dispatch stamped argv[1]'s bucket on the executing fake. POINTER
+         * match (not content) makes this safe for multi-key procs — only the exact carried sds hits;
+         * every other key falls through to the computation. The sds is alive for the exec window. */
+        client *cc = server.current_client[iotid].p;
+        if (cc && cc->tomo_bkt_ptr == (const void *)key) return cc->tomo_bkt;
+        return tomoKeyBucket(key, sdslen(key));
+    }
     /* This is performance optimization that uses pre-set slot id from the current command,
      * in order to avoid calculation of the key hash.
      *

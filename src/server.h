@@ -1575,6 +1575,10 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
+    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): argv[1]'s sds ptr whose bucket was computed at
+                                * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
+                                * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
+    int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
     struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
                                 * workers rendezvous at their sentinels; the LAST arrival empties the
                                 * shared node kvstore while the others spin (µs), preserving the

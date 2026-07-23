@@ -184,3 +184,21 @@ even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA 
   parity; original self-drifts ±9%; possible <=5% residual within noise — re-measure on EPYC/TR).
 VERDICT: no regression outside the box's drift envelope for single-key OR cross-shard; one
 measured win (SINTERCARD +22%); everything byte-exact.
+
+## Hash-carry + the "consistent tilt" investigation (2026-07-22 late night)
+User observed campaign-1 family ratios tilted below 1.0 (8/14 cells). Mechanistic audit found REAL
+uniform costs: getKeySlot computes xxh64 per db access (writes pay 2-3x: lookupKeyWrite + dbAdd +
+expires) + write-path aggregate atomics + tiny-dict locality at 30k keys (~6 keys/dict).
+FIX (hash-carry): dispatch computes argv[1]'s bucket ONCE and stamps it on the fake
+(tomo_bkt_ptr/tomo_bkt); getKeySlot consumes on POINTER match via current_client (safe for
+multi-key procs — only the exact carried sds hits); borrow loop re-arms per key; hint cleared at
+exec end (ring fakes recycle without re-init — a stale ptr could collide with a recycled sds on the
+stamp-skipping inline path => wrong bucket; the clear closes it). Gate: 108/108 byte-exact battery
++ 2.34M churn ops 0 errors.
+RESULT (best-of-3 interleaved): set 1.00 get 1.04 incr 1.00 lpush 1.05 mget8 1.06 mset8 1.10
+del8 1.09 — every campaign-1 negative cell flipped positive — BUT sadd 0.93 hset 0.92 zadd 0.89
+flipped negative. EVERY family has now been observed on both sides of parity across campaigns =>
+the per-cell sign is CAMPAIGN DRIFT, not a stable regression. Geomeans: 0.997 (pre-carry) ->
+1.006 (post-carry) — consistent with a small real gain from removing 1-2 hashes/op. 3M-key check:
+GET 0.955 / SET 1.060 (wash; no large-DB tiny-dict penalty). DEFINITIVE settle needs the low-noise
+EPYC/TR box (this box shows +/-10% per-family campaign swings).

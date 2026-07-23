@@ -5970,7 +5970,13 @@ int getWorkerForCommand(client *c) {
      * short keys) + the bucket indirection table (any worker count; resharding-aware at
      * config load, so server.ex_dispatch_mask = num_workers - 1
      * gives uniform dispatch in a single AND instruction). */
-    return exIndexForKey(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+    /* ee451 (hash-carry): compute the bucket ONCE here and carry it on the fake — the worker-side
+     * getKeySlot (lookupKey + dbAdd + expires all recompute it) consumes via pointer match. */
+    {
+        int b = tomoKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[1]->ptr;
+        return (int)server.ex_bucket_table[b];
+    }
 }
 
 /* ee451: single source of truth for key -> worker shard mapping. Used by dispatch
@@ -6048,7 +6054,9 @@ static void tomoMgetLockBorrow(client *fake) {
         for (int i = 0; i < nk; i++) {
             if (done[i]) continue;
             robj *key = fake->argv[i + 1];
-            int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
+            int bkt = tomoBktBucket(key->ptr, sdslen(key->ptr));
+            int owner = (int)server.ex_bucket_table[bkt];
+            fake->tomo_bkt = bkt; fake->tomo_bkt_ptr = key->ptr;   /* hash-carry for the lookup below */
             if (!tomoWkrTrylock(owner)) continue;             /* owner busy -> backlog, retry next pass */
             robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
             if (o && o->type == OBJ_STRING) vals[i] = dupStringObject(o);   /* private copy under the lock */
@@ -13789,6 +13797,10 @@ static inline void exExecFake(client *fake) {
             if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
         }
         if (hh_armed) dictDisarmHashHint();
+        /* ee451 (hash-carry): the hint MUST NOT outlive this execution — ring fakes recycle without
+         * re-init, and a stale ptr could collide with a recycled sds address on a later command that
+         * skips the dispatch stamp (inline path) => wrong bucket. One clear covers every exec path. */
+        fake->tomo_bkt_ptr = NULL;
         server.current_client[iotid].p = NULL;
         server.executing_client[iotid].p = NULL;
         /* ee451 (v8d): online-resharding effect capture. If a migration is live and this was a
