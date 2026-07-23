@@ -168,3 +168,19 @@ even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA 
   dir=FRONT (qd_max=0)" and monotone-climbs to 7io/1ex @1.73M.
 - TEST GOTCHA (cost a false-positive round): CONFIG SET with an UNCHANGED value skips the apply
   callback (returns OK, no-op) — modeshift-test must toggle through 0 between repeats.
+
+## Full regression vs original physical shards (2026-07-22 night, post ac5738bb9)
+- Harness battery on HEAD: xshard_corruption PASS (0/200 corrupt), xshard_intercard PASS,
+  setop_oracle PASS=30 FAIL=0.
+- BYTE-EXACT battery vs original build: **108/108 identical** — strings/INCR/expire-family/hash/
+  list/set/zset/bitops/HLL single-key + full cross-shard surface (MGET/MSET/DEL/UNLINK/EXISTS/
+  TOUCH/KEYS/SINTER/SUNION/SDIFF/SINTERCARD/ZINTER/ZUNION/ZDIFF/ZINTERCARD/*STORE x5/RENAME/
+  RENAMENX/COPY/SMOVE/LMOVE/RPOPLPUSH/MSETNX/LMPOP/ZMPOP/PFCOUNT/PFMERGE/BITOP) incl. WRONGTYPE
+  and miss cases.
+- PERF per family (best-of-2 interleaved, numa=2 io2ex2/node): geomean HEAD/original = **0.997**.
+  set 0.97 get 0.94* incr 0.96 lpush 0.90* sadd 0.99 hset 1.01 zadd 1.06 spop 1.00 | mget8 0.95
+  mset8 0.96 exists8 1.04 del8 0.96 sinter 1.04 **sintercard 1.22** (node-local payoff).
+  *drift-checked +3 rounds: get 1.07/1.04/0.95 (pure noise), lpush 0.88/0.95/0.98 (converges to
+  parity; original self-drifts ±9%; possible <=5% residual within noise — re-measure on EPYC/TR).
+VERDICT: no regression outside the box's drift envelope for single-key OR cross-shard; one
+measured win (SINTERCARD +22%); everything byte-exact.
