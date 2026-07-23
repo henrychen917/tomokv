@@ -18,21 +18,28 @@ is O(keys-in-range), not O(1); the "shared db" does not exist.
 This fork implements S0.2 + S1 (following `SHARED_KEYSPACE_DESIGN.md`), so within-node EWMA reshards
 become ownership flips and cross-shard within a node collapses toward local work.
 
-## Target model
+## Target model (user-refined 2026-07-22: db-per-NODE, not one global)
 
-- **One shared `kvstore` per logical db**, `num_dicts_bits = 14` (16384 bucket-dicts). `redisDb.keys`
-  is already a `kvstore*`; kvstore already supports 16384-dict mode (cluster path). We change the
-  **configuration + the dict-selection source**, not the data structure.
+- **One physical `kvstore` per NODE per logical db** (`node_dbs[node][dbid]`; e.g. 4 nodes × 4
+  cores = 4 physical dbs). Every worker of a node points at its node's db
+  (`exThreads[w].db = node_dbs[tmNodeOfWorker(w)]`). `num_dicts_bits = 14` (16384 bucket-dicts;
+  the cluster-path configuration kvstore already supports); a node's kvstore only ever populates
+  its own contiguous bucket range — dict index stays the GLOBAL bucket id, so `getKeySlot` is
+  uniform and no per-node re-basing exists.
 - **dict index = ownership bucket = `xxh64(key) & 16383`** — the SAME value `ex_bucket_table` keys
-  on. So `owner(bucket)` is the exclusive toucher of `dict[bucket]`; the single-writer invariant
-  shrinks from "a whole worker-db" to "a bucket-dict." Hot path stays lock-free.
-- **NUMA locality** comes from first-touch: a node's worker is the first to populate its owned
-  bucket-dicts, so those dicts' pages land in that node's memory. (No per-node kvstore needed; a
-  per-node split would only add cross-node-copy paths the EWMA balancer never uses since cross-node
-  balancing is disabled.)
-- **Reshard = drain + flip.** Move bucket `b` A→B: drain A's in-flight ops on `b` (reuse
-  `migHoldIfDraining`), release-fence, `ex_bucket_table[b] = B`, hand off partitioned aggregates.
-  No dict move, no key copy.
+  on. `owner(bucket)` is the exclusive toucher of `dict[bucket]` ("virtual buckets": a node's
+  workers own disjoint slices of the shared node db). The single-writer invariant shrinks from
+  "a whole worker-db" to "a bucket-dict" — **no sync on the hot path**; only M-commands ever touch
+  another worker's slice, under the per-worker lock ("we still lock every time, but we never
+  contend" — the uncontended-CAS discipline from MCMD_LOCK_DESIGN.md).
+- **NUMA locality is structural**: the whole node kvstore (dict array, aggregates, bucket-dicts)
+  belongs to one node — first-touch by node-local workers places it in node memory. No cross-node
+  shared cache lines at all (a single global kvstore would share its dict-pointer array + aggregate
+  lines across nodes).
+- **Reshard = drain + flip.** Cross-node balancing is disabled by design, so EVERY reshard (EWMA
+  move or flip grow-front/back bucket handoff) is within one node = within one kvstore: drain A's
+  in-flight ops on `b` (reuse `migHoldIfDraining`), release-fence, `ex_bucket_table[b] = B`, hand
+  off partitioned aggregates. No dict move, no key copy — the copy engine dies entirely.
 
 ## The one real cost — shared kvstore aggregate state (must partition)
 
@@ -51,7 +58,7 @@ become ownership flips and cross-shard within a node collapses toward local work
 | Stage | Change | Gate |
 |-------|--------|------|
 | **S0.2a** | Dict-selection routes by `xxh64(key)&16383` (a worker fake carries its bucket in `->slot`; `getKeySlot` returns it). Keep per-worker kvstores but move them to `num_dicts_bits=14`; a worker only ever touches its owned bucket-dicts. Per-worker aggregates unchanged (still isolated → no race yet). | boot + `xshard_corruption` + smoke MGET/SET byte-exact |
-| **S0.2b** | Collapse the per-worker kvstores into ONE shared kvstore per db; partition the aggregate counters per-worker (new API on kvstore or a side table); DBSIZE/dbSize sum across workers. Ownership static 1:1 with today. | byte-exact + perf-neutral; ASAN clean under churn |
+| **S0.2b** | Collapse the per-worker kvstores into ONE kvstore per NODE per db (`node_dbs[node][dbid]`, all node workers share it); kvstore global stats (key_count/non_empty/Fenwick) skipped via flag, per-WORKER key counts kept server-side (owner-only writes, no atomics; owner = `ex_bucket_table[slot]`, available at every dbAdd/delete since slot==bucket); DBSIZE/RANDOMKEY read the per-worker counts. Ownership static 1:1 with today. | byte-exact + perf-neutral; ASAN clean under churn |
 | **S0.2c** | Point `expires` (+ subexpires) kvstores at the shared model; fix DBSIZE/KEYS/RANDOMKEY/FLUSH cross-worker code (mostly simplifies). SCAN left on its decoy (pre-existing). | byte-exact; `validate_all.sh` |
 | **S1** | Delete `migApplyOne`/`migScanA`/`migCleanupDeleteRangeA` copy engine; reshard = drain-fence + `ex_bucket_table[b]` flip + partitioned-aggregate handoff. | migration correctness under live reshard (mig harness) + measured EWMA cost drop vs copy engine |
 | **S1.5** | First-touch NUMA placement of bucket-dicts (node-local memory). | perf on real NUMA (deferred to hardware) |

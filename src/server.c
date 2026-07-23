@@ -3520,6 +3520,15 @@ void initServer(void) {
     if (server.cluster_enabled) {
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
+    } else if (server.ex_threads > 0) {
+        /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
+         * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
+         * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
+         * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
+         * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
+         * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
+         * that benign stale-read race into a use-after-free. Dicts persist once created. */
+        slot_count_bits = TOMO_BUCKET_BITS;
     }
 
     /* Keep server.db allocated so legacy code paths don't crash.
@@ -5922,6 +5931,12 @@ int exIndexForKey(const void *keyptr, size_t len) {
     return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
 }
 
+/* ee451 (shared-kv S0.2a): key -> ownership bucket == kvstore dict index. Exported for db.c's
+ * getKeySlot/calculateKeySlot (xxh64 is file-static here). Pure function, any thread. */
+int tomoKeyBucket(const void *keyptr, size_t len) {
+    return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
+}
+
 /* ==== M-command lock-borrow (EXPERIMENT, 2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
  * The lock granularity MUST match the data-structure granularity. In non-cluster mode a worker's
  * shard db is ONE dict (kvstore slot_count_bits==0), NOT one-dict-per-bucket — so a borrower's
@@ -6718,19 +6733,25 @@ static void csSubExec(client *sub) {
              * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
             enum { MGET_PF_MAX = 256 };
             uint64_t hs[MGET_PF_MAX];
+            dict *ds[MGET_PF_MAX];   /* ee451 (shared-kv S0.2a): per-key bucket-dict (was one dict) */
             int nk = sub->argc - 1;
-            dict *d = kvstoreGetDict(sub->db->keys, sub->slot > 0 ? sub->slot : 0);
-            int use_pf = (server.opt_mget_coalesce >= 2) && d && d->ht_table[0] &&
-                         dictSize(d) > 0 && nk >= 2 && nk <= MGET_PF_MAX;
+            int use_pf = (server.opt_mget_coalesce >= 2) && nk >= 2 && nk <= MGET_PF_MAX;
             if (use_pf) {
                 for (int a = 1; a < sub->argc; a++) {
-                    uint64_t h = dictGetHash(d, sub->argv[a]->ptr);
-                    hs[a - 1] = h;
-                    redis_prefetch_read(&d->ht_table[0][h & DICTHT_SIZE_MASK(d->ht_size_exp[0])]);
+                    /* S0.2a: one shard's keys now span many bucket-dicts — resolve each key's own
+                     * dict (dict index == bucket). Hash function is shared across all bucket-dicts
+                     * (same dictType), so the armed hint stays valid for the real lookup. */
+                    dict *d = kvstoreGetDict(sub->db->keys,
+                                             tomoKeyBucket(sub->argv[a]->ptr, sdslen(sub->argv[a]->ptr)));
+                    if (d && d->ht_table[0] && dictSize(d) > 0) {
+                        uint64_t h = dictGetHash(d, sub->argv[a]->ptr);
+                        ds[a - 1] = d; hs[a - 1] = h;
+                        redis_prefetch_read(&d->ht_table[0][h & DICTHT_SIZE_MASK(d->ht_size_exp[0])]);
+                    } else ds[a - 1] = NULL;   /* empty/absent bucket-dict: no prefetch, no hint */
                 }
             }
             for (int a = 1; a < sub->argc; a++) {
-                if (use_pf) dictArmHashHint(sub->argv[a]->ptr, hs[a - 1]);
+                if (use_pf && ds[a - 1]) dictArmHashHint(sub->argv[a]->ptr, hs[a - 1]);
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
                 if (o != NULL && o->type == OBJ_STRING)
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
@@ -13420,8 +13441,13 @@ static inline void exPrefetchBatch(client **batch, int n) {
             }
             case PFS_HASH: {
                 /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
-                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ. */
-                dict *d = kvstoreGetDict(fake->db->keys, fake->slot > 0 ? fake->slot : 0);
+                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
+                 * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
+                 * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
+                dict *d = kvstoreGetDict(fake->db->keys,
+                    server.ex_threads > 0
+                        ? tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr))
+                        : (fake->slot > 0 ? fake->slot : 0));
                 if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
                 uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
                 fake->prefetch_key_hash = h;

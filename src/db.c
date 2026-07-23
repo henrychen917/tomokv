@@ -541,12 +541,22 @@ kvobj *dbAddByLink(redisDb *db, robj *key, robj **valref, dictEntryLink *link) {
  * and always calculates CRC hash.
  * This is useful when slot needs to be calculated for a key that user didn't request for, such as in case of eviction. */
 int calculateKeySlot(sds key) {
-    return server.cluster_enabled ? keyHashSlot(key, (int) sdslen(key)) : 0;
+    if (!server.cluster_enabled)
+        /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket. Same xxh64
+         * the dispatch router uses (exIndexForKey), so owner(bucket) is the exclusive toucher
+         * of dict[bucket]. Non-sharded (ex_threads unset) keeps the single dict 0. */
+        return server.ex_threads > 0 ? tomoKeyBucket(key, sdslen(key)) : 0;
+    return keyHashSlot(key, (int) sdslen(key));
 }
 
 /* Return slot-specific dictionary for key based on key's hash slot when cluster mode is enabled, else 0.*/
 int getKeySlot(sds key) {
-    if (!server.cluster_enabled) return 0;
+    if (!server.cluster_enabled)
+        /* ee451 (shared-kv S0.2a): NO per-client cached-slot fast path in tomo mode — the cluster
+         * cache is only valid because cluster REJECTS cross-slot commands; tomo multi-key commands
+         * (MGET borrow, coalesced subs) legitimately span buckets, so a cached argv[1] slot would
+         * route argv[2..] to the WRONG dict. Always compute (pure xxh64, ~ns on short keys). */
+        return server.ex_threads > 0 ? tomoKeyBucket(key, sdslen(key)) : 0;
     /* This is performance optimization that uses pre-set slot id from the current command,
      * in order to avoid calculation of the key hash.
      *

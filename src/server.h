@@ -1481,6 +1481,11 @@ typedef struct {
  * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
 #define TOMO_BUCKETS 16384
 #define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
+/* ee451 (shared-kv S0.2a): kvstore dict-count bits for tomo sharding. dict index == ownership
+ * bucket == xxh64(key) & TOMO_BUCKET_MASK — the SAME value ex_bucket_table keys on — so each
+ * bucket-dict has exactly one owning worker (single-writer preserved at bucket granularity).
+ * 14 bits == 16384 == kvstore's native cluster-slot configuration (well-tested path). */
+#define TOMO_BUCKET_BITS 14
 /* ee451 review: single-writer stat-counter idiom. Each such counter has exactly ONE writer
  * thread, so a relaxed load+store pair (NOT atomic_fetch_add — that is a lock'd RMW) compiles
  * to plain mov/add on x86-64: zero hot-path cost, while cross-thread readers get defined,
@@ -5465,6 +5470,7 @@ void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
+int tomoKeyBucket(const void *keyptr, size_t len);  /* ee451 (S0.2a): key->bucket == kvstore dict index (db.c getKeySlot) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
