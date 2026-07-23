@@ -5559,7 +5559,7 @@ int processCommand(client *c) {
      * with LOOKUP_NOEFFECTS (== LOOKUP_NOTOUCH) and would silently drop it, so borrow only genuine
      * EXISTS. (b) single-key EXISTS keeps the scatter single-owner localfast (dispatchLocalReal, no
      * group alloc) — only borrow multi-key EXISTS. Single-key MGET stays on the borrow (MGET1==GET1). */
-    if (csp && server.mcmd_lock &&
+    if (csp && server.mcmd_lock && !server.mcmd_nodelocal &&
         (csp->ctype == CS_MGET ||
          (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand && (fake->argc - 1) >= 2)) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
@@ -7794,7 +7794,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
          * optimized paths. */
         if (same_node && server.shared_node_dbs && server.mcmd_lock &&
             ((s->ctype == CS_SETOP && s->setop == CS_SETOP_INTER) ||
-             s->ctype == CS_SETCARD || s->ctype == CS_ZCARD || s->ctype == CS_EXISTS)) {
+             s->ctype == CS_SETCARD || s->ctype == CS_ZCARD || s->ctype == CS_EXISTS ||
+             (s->ctype == CS_MGET && server.mcmd_nodelocal))) {   /* A/B: stock MGET vs borrow */
             dispatchLocalReal(head, w0, dbid, node0 + 1);   /* node-locked stock exec */
             return;
         }

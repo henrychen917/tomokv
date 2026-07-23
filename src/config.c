@@ -3253,7 +3253,8 @@ standardConfig static_configs[] = {
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
     createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
-    createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             0, NULL, NULL), /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */
+    createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             0, NULL, NULL),
+    createBoolConfig("tomokv-mcmd-nodelocal",        NULL, IMMUTABLE_CONFIG,   server.mcmd_nodelocal,        0, NULL, NULL), /* EXPERIMENT A/B: MGET/EXISTS via node-locked stock proc instead of borrow (same-node); boot-only */ /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
      * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live
