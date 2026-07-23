@@ -231,7 +231,12 @@ repeatable vs the box's ±10% rps drift; every keeper has an internal control (u
   exists8 -7.1%, mset8 -4.2%, mget8 -2.6% work/op (numa=2 cross-node paths).
 - C3 single-pass MGET borrow (append to the reply buffer under each owner lock, key order; replaces
   trylock-backlog + dupStringObject + serialize + free): numa=1 mget8 -13.8% work/op
-  (20026->17256 instr); get/exists8 controls ±0.4%. rps: 680-698k -> 780-800k (+15%).
+  (20026->17256 instr); get/exists8 controls ±0.4%. CORRECTION: loopback rps is a WASH (interleaved
+  x3: pre 680-701k vs post 614-702k) — the path is not instruction-bound at this operating point on
+  this box (savings deepen worker idle-spin); the work/op reduction pays off only where workers are
+  the bottleneck (worker-heavy splits, higher load, real NUMA). The commit message's "+15% rps"
+  claim was WRONG (an unverified assumption that slipped past the sanity gate) — this note is the
+  authoritative record.
 VALIDATION: battery 108/108 at numa=1 AND numa=2; 1.26M MGET-heavy churn ops 0 errors.
 Not pursued (documented): csGroup/slot monoblock alloc (teardown ownership shared with the
 coalesced path — fiddly), inline sub argv (S8 argv-ownership contract risk), knob sweeps (rps-noisy).
