@@ -13720,9 +13720,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
                 dict *d = kvstoreGetDict(fake->db->keys,
                     server.ex_threads > 0
-                        ? (fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr
-                               ? fake->tomo_bkt   /* opt-loop C1: reuse the dispatch-carried bucket */
-                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
+                        ? tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr))
                         : (fake->slot > 0 ? fake->slot : 0));
                 if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
                 uint64_t h = dictGetHash(d, fake->argv[1]->ptr);

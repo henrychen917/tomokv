@@ -266,3 +266,20 @@ cache misses than the physical-shard build at numa=2 (SET is measurably cheaper)
 both builds). The asymmetry that motivated suspicion (head ahead at numa=1, behind at numa=2) is
 itself the drift fingerprint: a real shared-kvstore cost would hit numa=1 HARDER (4-way sharing vs
 2-way). Residual: GET cycles/op +1.6% — below this box's actionable threshold; recheck on EPYC/TR.
+
+## numa=1 head-vs-preopt GET/SET cells (2026-07-23, user flag) — investigated, refuted; C1 retired
+Campaign cells said numa=1 head/pre get 0.95 / set 0.97. Direct interleaved counter probes:
+- Probe A (head+C1 vs preopt): SET clearly BETTER (-5% instr, -14.6% L1d, +4.9% rps); GET slightly
+  worse (+2.9% instr, +6.4% L1d, -1.9% rps) — suspected C1's PFS_HASH hint read.
+- Probe B (three-way with C1 reverted, fresh preopt interleave): the SAME preopt binary measured
+  +6.6% more instr/op than in probe A => EVEN COUNTERS drift ±6% ACROSS campaigns (only
+  same-campaign interleaved comparisons are trustworthy). -C1 improved GET ~2% but WORSENED SET ~7%
+  vs +C1 — code-alignment lottery swings individual paths ±5-7% on any rebuild.
+- What survives: in probe B's fresh interleave, head BEAT preopt on both (GET +6.6% rps, SET +0.9%).
+  The campaign's 0.95/0.97 do not reproduce under direct comparison => drift.
+DECISION: C1 retired (revert kept) — its designed benefit was ~40 instr behind a compare, unmeasurable
+at this box's floor; when a change can't be measured, less code wins. The hash-carry proper (getKeySlot
+consuming the dispatch bucket — 2-3 hashes per write) is untouched and remains.
+METHODOLOGY RULE (add to the box's lore): cross-campaign comparisons are invalid even for hardware
+counters; conclusions require same-campaign interleaving, and ±5% path-level swings can be pure
+code-layout lottery. Anything finer than that needs the EPYC/TR box.
