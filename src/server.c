@@ -3427,8 +3427,13 @@ void initServer(void) {
         int W = server.ex_threads;
         for (int b = 0; b < TOMO_BUCKETS; b++)
             server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
+        /* ee451 (non-pow2 fix, ported from shared-kv ac5738bb9): end[i] must be the EXACT boundary
+         * of the table formula (table[b]==i iff b in [ceil(iB/W), ceil((i+1)B/W))) — the floor form
+         * disagreed on boundary buckets whenever W does not divide TOMO_BUCKETS, so
+         * reshardRangeValid's ownership walk rejected EVERY arm on non-power-of-2 worker counts
+         * (flips + balancer dead on 3/6/12-worker configs). Identical for power-of-2 W. */
         for (int i = 0; i < W; i++)
-            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS) / W);
+            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS + W - 1) / W);
         /* ee451 (thread-modes v1, step 3): canonical EMPTY suffix range for every slot
          * above the configured workers (the spare's slot W among them): end[i] =
          * TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing. The spare
@@ -9823,7 +9828,7 @@ void reshardDebug(client *c) {
         /* ee451 (reshard-better §3.0): per-worker monotonic op-counter VECTOR (DEBUG RESHARD OPS is a
          * SUM only). Poll + diff per index to SEE the balance shift a migration produces. */
         addReplyArrayLen(c, server.num_workers_alloc);   /* alloc: spare slot visible (0 when dormant) */
-        for (int w = 0; w < server.num_workers; w++)
+        for (int w = 0; w < server.num_workers_alloc; w++)   /* MUST match the header (protocol desync hang) */
             addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
