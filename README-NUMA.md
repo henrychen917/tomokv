@@ -1,267 +1,206 @@
 <div align="center">
 
-# Tomo KV · NUMA (role-flipping)
+# Tomo KV · NUMA — shared node keyspace + role-flipping cores
 
-**A NUMA-aware evolution of the Tomo KV 2-stage engine: a fixed pool of threads that
-*flip role* (ingress ⇄ worker) on demand, driven by a self-tuning controller, with all
-load balancing kept strictly inside a NUMA node.**
+**One physical database per NUMA node. Bucket-granular ownership inside it. Resharding that moves
+a table entry instead of data. A fixed pool of cores that flip between ingress and execution under
+a self-tuning controller — any core, either role, at least one of each per node.**
 
-*Logical nodes partition the pool · threads convert io↔ex without changing the total · an
-extremum-seeking controller finds the best split · hot-key + client balancing stay node-local.*
-
-`fixed-pool role-flip` · `within-node EWMA balancing` · `per-node M-command lock-borrow` · `RESP-compatible`
+`db-per-node` · `O(1) ownership-flip resharding` · `any-core role-flipping` · `self-tuning split` · `RESP-compatible`
 
 </div>
 
 ---
 
-> This document covers **only what the NUMA version adds** on top of the base engine. For the
-> core Tomasulo-style 2-stage pipeline (ingress parse/dispatch → out-of-order sharded execution →
-> in-issue-order reply commit), the performance methodology, and the base configuration knobs, see
-> [`README.md`](README.md). Everything there still applies; this is a superset.
+> This is the NUMA edition of the Tomo KV 2-Stage engine. The base pipeline (ingress parse/dispatch
+> → out-of-order sharded execution → in-issue-order reply commit), the performance methodology, and
+> the base knobs are documented in [`README.md`](README.md) — everything there still applies. The
+> sibling branch `2s-numa-mcmd-lock-dev` preserves the previous **physically-sharded** model
+> (one isolated kvstore per worker, copy-engine resharding) as a maintained alternative; this
+> branch (`2s-numa-shared-kv-dev`) is the shared-keyspace evolution. The two are kept
+> **byte-exact-interchangeable** (verified 108/108 across every command family) so either can be
+> benchmarked against the other at any time.
 
-## What the NUMA version adds
-
-The base engine fixes the ingress/worker split at boot (`tomokv-io-threads` / `tomokv-ex-threads`).
-On a multi-socket / multi-CCD box that is two problems at once: (a) the *right* split depends on the
-live workload (dispatch-bound traffic wants more ingress; execution-bound traffic wants more
-workers), and (b) a thread and the memory it touches should live on the **same** NUMA node, or every
-access pays a cross-node hop.
-
-The NUMA version addresses both without ever growing or shrinking the thread pool:
-
-1. **Logical NUMA nodes** partition the fixed pool. Each node owns a contiguous slice of workers
-   (and their keyspace buckets) plus a slice of ingress slots. A key's data, the worker that owns
-   it, and the ingress threads that serve it are all pinned to one node.
-2. **Fixed-pool role-flipping.** Threads are *dual-binding* ("poly") — a thread can serve as an
-   ingress (io) thread or as an execution (ex) worker. **Grow-front** converts a worker into an
-   ingress thread (ex→io); **grow-back** converts one back (io→ex). The **total** thread count is
-   constant; only the boundary moves, and only *within a node's budget*.
-3. **A self-tuning flip controller** (extremum-seeking) measures each node's own throughput and
-   moves its boundary toward the maximum — no static thresholds, no hand-set target ratio.
-4. **Within-node balancing only.** The EWMA hot-key bucket balancer and the client load balancer
-   both operate **strictly inside a node**; cross-node balancing is deliberately disabled so data
-   never migrates across the NUMA boundary. Each node decides from its own internal signals, and
-   nodes act concurrently.
-5. **Per-node M-command lock-borrow** (experimental) executes multi-key reads (`MGET`, `EXISTS`)
-   node-locally instead of scattering them across every shard.
-
----
-
-## The logical-node model
-
-Set the topology at boot (all immutable):
+## The model in one picture
 
 ```
-tomokv-numa-nodes    N     # number of logical nodes (1 = single node = base 2-stage behavior)
-tomokv-io-per-node   I     # ingress threads per node
-tomokv-ex-per-node   E     # execution workers per node
+node 0 (4 cores)                          node 1 (4 cores)
+┌───────────────────────────────┐         ┌───────────────────────────────┐
+│  ONE physical db (kvstore)    │         │  ONE physical db (kvstore)    │
+│  16384 bucket-dicts           │         │  16384 bucket-dicts           │
+│  ┌─────────┬─────────┐        │         │  ┌─────────┬─────────┐        │
+│  │ w0 owns │ w1 owns │ ...    │         │  │ w3 owns │ w4 owns │ ...    │
+│  │ buckets │ buckets │        │         │  │ buckets │ buckets │        │
+│  └─────────┴─────────┘        │         │  └─────────┴─────────┘        │
+│  io ⇄ ex flipping cores       │         │  io ⇄ ex flipping cores       │
+│  (≥1 io, ≥1 ex, rest float)   │         │  (≥1 io, ≥1 ex, rest float)   │
+└───────────────────────────────┘         └───────────────────────────────┘
+        no cross-node data, locks, or cache lines — ever
 ```
 
-The pool is `N × (I + E)` threads, always fully active. Node `n` owns:
+- **Physical shards = nodes.** Each node owns one `kvstore` per logical db. 4 nodes → 4 physical
+  dbs. Nothing about a node's keyspace — dict array, aggregates, bucket-dicts — is ever touched
+  from another node.
+- **Virtual shards = workers.** The kvstore's **dict index is the ownership bucket**
+  (`xxh64(key) & 16383` — the same value the routing table uses). Each worker of a node owns a
+  contiguous slice of bucket-dicts. The single-writer invariant of the base engine survives intact,
+  just at bucket granularity: **the hot path has zero synchronization**.
+- **Locks exist but are never contended.** Multi-key commands may cross ownership inside a node;
+  they take cheap per-worker CAS locks (`tomokv-mcmd-lock`). Single-key traffic takes its own lock
+  only when the knob is on. "Lock every time, never wait" — measured uncontended.
 
-* **worker slots** `[n·E, (n+1)·E)` — and, by construction (bucket ranges are monotone), a
-  contiguous slice of the `16384` keyspace buckets. `tmNodeOfWorker(w) = w / E`.
-* **ingress slots** `[n·I, (n+1)·I)`.
+## Resharding is an ownership flip, not a copy
 
-A worker that flips to serve as an ingress thread **keeps its node membership** — it just changes
-role. So the io/ex boundary can move inside a node while every thread and every bucket it touches
-stays node-resident.
+Because every key already lives in `dict[bucket]` of its node's shared kvstore, moving a bucket
+range between two workers of a node **moves no data**: the existing drain-fence quiesces in-flight
+writes to the range (microseconds), then `ex_bucket_table[b] = new_owner` — done. The entire
+copy engine (scan → effect-log → replay → cleanup) is dead code in this mode.
 
-`tomokv-numa-nodes 1` collapses the whole model to node 0 and is byte-for-byte the base 2-stage
-engine.
+Measured against the physical-shard copy engine (2M keys, ⅛ of the keyspace, concurrent GET load):
 
----
+| | copy engine (physical shards) | **ownership flip (this branch)** |
+|---|---|---|
+| worst concurrent-GET sample during reshard | 837k (**−45% crater**) | **1412k (−7% blip)** |
+| data moved | O(keys × value size) | **zero** |
+| wall time (64B values) | ~270ms | ~270ms (both = coordinator phase latency) |
 
-## Fixed-pool role-flipping
+The flip is size-independent — the gap widens with real data. Cheap reshards are what make the
+EWMA balancer and the flip controller's continuous probing affordable.
 
-Instead of a spare/parked thread (which would leave capacity idle), every thread is always doing
-useful work in one of two roles. A flip is a bounded, online migration:
+## Any core, either role
 
-* **grow-front (ex→io):** the highest-indexed worker in the node stops popping its dispatch queue,
-  hands its buckets to a neighbouring worker (via the online-reshard machinery — effect-log copy +
-  drain-fence cutover, byte-exact under load), and re-binds as an ingress thread. Ingress capacity
-  goes up by one, worker capacity down by one.
-* **grow-back (io→ex):** the reverse — a converted ingress slot re-binds as a worker and reclaims a
-  bucket range.
+Threads are poly-bound: a core can serve as an **ingress (io)** thread or an **execution (ex)**
+worker, and converts online in both directions:
 
-The migration is the same drain-fence cutover the reshard controller uses, so a flip **under live
-traffic** is byte-exact and never drops or reorders a reply. Clients on a converting ingress thread
-are re-spread evenly across the node's remaining ingress threads.
+- **grow-front** (ex→io): the node's highest live worker hands its buckets to its neighbor (an O(1)
+  flip), parks, and joins the accept group as an io thread. Clients rebalance onto it.
+- **grow-back** (io→ex): a converted io thread drains its connections out (even split), parks, and
+  revives as a worker, seeded with half its neighbor's range.
 
-### The self-tuning flip controller (extremum-seeking)
+Boot each node as `1 io + (cores−1) ex` and **every non-base core floats**; the guards are exactly
+the invariant you want — grow-front refuses at 1 ex/node, grow-back refuses at the 1 base io/node.
+A 4-core node covers the full range 1io/3ex ⇄ 3io/1ex. **Nodes flip independently** (each node's
+controller decides from its own signals; conversions serialize through the single migration gate,
+~ms each). Validated: repeated full-range sweeps on both nodes under load — 68 grow-fronts + 68
+grow-backs + 152 reshards in one 8-minute run, 19.6M integrity-verified operations, zero errors.
 
-The controller is **mathematically driven, not threshold-driven** — there is no static "flip when
-io > 80%" rule. Per node, once per control tick (~4 Hz) it:
+### The flip controller
 
-1. Maintains an **EWMA mean + variance** of that node's measured throughput (sum of the node's
-   workers' `ops_total` deltas — the only proxy that survives a worker freezing on conversion).
-2. **Probes** by flipping one step in the current search direction (first probe grows front, since
-   ingress is the usual first bottleneck).
-3. After an **adaptive warmup** (it waits for the reshard to settle, not a fixed number of ticks),
-   compares the new throughput against the pre-flip baseline as a **z-score** (gain measured in
-   units of the node's own noise σ). Better → keep going that direction. Worse → **revert and
-   reverse**.
-4. **Converges** when both neighbouring configurations show no significant gain, and **locks**; a
-   sustained workload shift (tracked by a slow baseline) re-opens exploration.
+Per node, an extremum-seeker on **measured node throughput** (EWMA mean ± variance — every decision
+is scored in units of the node's own noise; nothing is an absolute threshold):
 
-Because the outcome is measured, a wrong initial guess self-corrects, and the controller will climb
-all the way to an aggressive split (e.g. 6 ingress / 2 workers) when — and only when — the workload
-actually rewards it. Nothing is set in stone; every bound is relative to the node's own numbers.
+- **Direction** comes from comparing io-side vs ex-side throughput. At steady state the two rates
+  are equal, so their difference *is* the queue-depth trend: standing worker queues ⇒ execution
+  lags ⇒ grow back; dry queues ⇒ dispatch-bound ⇒ grow front.
+- **Probes** flip one step, wait for the reshard to settle (adaptively — not a fixed delay), and
+  judge the throughput delta as a z-score. Better → continue; worse → revert and reverse.
+- **Idle ticks carry no information** and freeze the estimator (folding them was the historical
+  σ≈2×mean bug that made every gate meaningless); a node with no offered load never probes.
 
-> **Status.** The flip controller and actuators are **fully live for `tomokv-numa-nodes 1`** (the
-> whole server is node 0). For `tomokv-numa-nodes ≥ 2` the per-node controller *runs* (it measures
-> each node and logs its decisions) and within-node balancing + the per-node M-command borrow are
-> live, but the multi-node flip **actuators are staged** (`tomoGrowFrontNode` / `tomoGrowBackNode`
-> refuse cleanly, pending per-worker liveness accounting). So a ≥2-node server boots, balances, and
-> serves correctly, but does not yet perform the role-flip itself. This is the next milestone.
+Observed behavior: on a uniform GET load the controller climbs monotonically
+(1.39M → 1.56M → 1.64M → 1.72M → **1.74M ops/s at 7io/1ex**, σ ≈ 0.5–1% of mean), beating the
+static 4io/4ex baseline by ~9% once settled. Known remaining work: convergence-lock engagement
+(it keeps probe-reverting at the optimum), probe-cost accounting, and alternative estimators
+(windowed median, paired probes, UCB budgets).
 
----
+## Multi-key commands
 
-## Within-node load balancing
+Three execution strategies, each measured into its role:
 
-Two independent balancers, both **node-scoped**:
+| path | commands | why |
+|---|---|---|
+| **fine-grained borrow** | `MGET`, `EXISTS` | one worker executes the whole command, taking each key's owner lock per key. Beats both scatter (+24–190% depending on shape) and the stock-proc alternative (measured 0.81–0.93× — group machinery dominates at small N). |
+| **node-locked stock proc** | `SINTER`, `SINTERCARD`, `ZINTERCARD`, `TOUCH` (same-node) | the stock command runs on one worker under all the node's locks — byte-exact with every stock side-effect, +22–51% on intersections. Unions/zops stay off it (measured losers: reference computes them 4-way-parallel on io threads). |
+| **scatter / pipeline / 2-hop** | everything else (`MSET`, `DEL`, unions, `*STORE`, `RENAME`, `LMOVE`, …) | the base engine's paths, now lock-coordinated with the borrowers when the knob is on. |
 
-* **EWMA hot-key bucket balancer** (the self-driving reshard controller from the base engine, now
-  node-local). Each worker keeps an EWMA of its load; when one worker runs hot relative to its
-  same-node neighbours, a proportional slice of its buckets migrates to the coolest **same-node**
-  neighbour. The transfer size is **imbalance-proportional** — `chunk ≈ (L_hot − L_cool)/(2·L_hot)`
-  of the hot worker's range — so a small imbalance moves a few buckets and a large one moves many,
-  instead of a fixed step. When a worker is flipped away, its EWMA weight is **added to its
-  neighbour** and the controller re-derives the new balance from there (no artificial "kick").
-* **Client load balancing** across the node's ingress threads (even split on connect and on any
-  grow-front/grow-back that vacates an ingress slot).
+Cross-node commands split by node and combine. All of it is byte-exact against both the scatter
+reference and the physical-shard branch.
 
-Cross-node balancing is **off by design**: a bucket never migrates across the NUMA boundary, so a
-key's data stays on the node that owns it for its whole lifetime.
+## Verification status
 
----
-
-## Per-node M-command lock-borrow (experimental)
-
-Knob: `tomokv-mcmd-lock` (boolean, **default off**). When off, multi-key commands use the base
-scatter-gather path and this code is inert.
-
-The base engine executes a cross-shard `MGET`/`EXISTS` by *scattering* it into one sub-command per
-owning worker, dispatching each across an SPSC queue, then gathering and reordering the replies —
-N cross-thread round-trips per command. The lock-borrow path instead **executes node-locally**:
-
-* The command's keys are grouped **by node**. One sub per node is dispatched to a node-local worker
-  (the node's first-seen key owner).
-* That worker **borrows** each of its node's keys directly from the key's true owner db, under a
-  cheap per-worker spinlock (`tomo_wkr_lock`) that mutually excludes the owner's single-key hot path
-  (which takes the same lock). Reads use `LOOKUP_NOEFFECTS` (a pure read that never mutates a
-  non-owned db).
-* `MGET` writes each value copy into its original position slot; `EXISTS` counts present keys. The
-  IO thread reassembles the per-node partials in key order.
-
-Every borrow stays **inside the node** — the point of the split on real NUMA, where a cross-node db
-read would be the expensive case. For `tomokv-numa-nodes 1` an `MGET` uses an even cheaper single-
-worker borrow (no group allocation); `EXISTS` uses the one-sub form of the same path.
-
-**Lock discipline (post-review).** Introducing "a borrower reads another worker's db" breaks the
-base engine's single-writer-per-worker-db invariant. To restore it, **when the knob is on, *every*
-worker-db access takes the per-worker lock** — the single-key hot path, the scattered multi-key
-sub-commands (reads *and* writes), and the online-migration apply/scan/cleanup. All of those run on
-the owning worker's own thread, so they lock that worker; a borrower locks each key's true owner. The
-lock is a 1-byte CAS and the whole discipline is inert when the knob is off (the base lock-free path
-is byte-for-byte unchanged).
-
-**Validation (this repo, `io4ex4` = 2 logical nodes on a single-CCD box):**
-
-| Check | Result |
+| gate | result |
 |---|---|
-| Byte-exact vs scatter (MGET+EXISTS, present/absent mix) | identical, numa=1 **and** numa=2 |
-| 60 s integrity stress (writers hold `key:i==v-i`, readers verify) | 2.35 M ops, **0 integrity errors**, no crash |
-| Concurrent **multi-key** MSET+DEL vs borrow reads | 0.88 M ops, **0 errors**, no rehash-during-borrow crash |
-| Concurrent **online migration** (8 within-node reshards, real data) vs borrow reads | 1.26 M ops, **0 errors**, byte-exact |
-| Throughput, borrow vs scatter, saturated (`-P16 -c16`) | **parity** (0.99–1.19×), within run-to-run noise |
+| Byte-exact vs physical-shard branch | **108/108** checks (all families: strings/expire/hash/list/set/zset/bits/HLL + full cross-shard incl. 2-hop) |
+| Cross-shard corruption harness | PASS (0/200 canaries, max sharing) |
+| Intercard + setop oracles | PASS / 30-0 |
+| Megastress (8 min: flips + reshards + FLUSHALL + verified load) | 19.6M ops, 0 integrity errors, 0 crashes |
+| **AddressSanitizer** (4 min, flips + flushes + mixed load) | 8.8M ops, **0 ASAN reports** |
+| Throughput vs physical shards | geomean **1.006** (per-family ±10% campaign drift on this box; no reproducible regression) |
+| Reshard service impact | −7% blip vs the copy engine's −45% crater |
 
-The throughput result is *expected* parity: a single physical CCD has no remote-memory penalty, so
-the node-locality advantage cannot show up here — the measurement proves the per-node split adds no
-overhead. **The NUMA-locality payoff is untestable on this box and awaits real multi-CCD hardware.**
+All numbers are from a single-CCD development box: they establish **correctness and no-overhead**.
+The NUMA-locality wins the design targets (node-local memory, no cross-node cache lines) are
+structural but **unmeasurable here** — they await multi-CCD hardware.
 
-**Scope.** Only *reads* are **borrowed** today (`MGET`, `EXISTS`); multi-key *writes* (`MSET`,
-`DEL`, `*STORE`) still use the base scatter path — but now safely, since those sub-commands take the
-owner lock under the knob. `TOUCH` (which shares `EXISTS`'s shape but exists for its access-time
-side-effect) and single-key `EXISTS` are deliberately kept on the scatter path. Extending the
-*borrow* itself to set-ops and writes is future work.
+## Configuration
 
-**Effect exactness.** A borrow returns **byte-exact values** vs the scatter path (including `nil` for
-a logically-expired key). Because the borrow reads a *non-owned* db it uses a pure-read lookup, so it
-intentionally skips three write-side *effects* the scatter path performs: it does not lazily delete an
-expired key (a later access does), does not bump the `keyspace_hits`/`keyspace_misses` counters, and
-does not fire the `keymiss` keyspace notification. These are inherent to the lock-borrow design (and
-shared with the single-node borrow); the knob is off by default.
-
----
-
-## Configuration (NUMA-specific)
-
-| Knob | Default | Mutable | Meaning |
+| knob | default | mutable | meaning |
 |---|---|---|---|
-| `tomokv-numa-nodes` | `1` | no | Number of logical nodes. `1` = base 2-stage. |
-| `tomokv-io-per-node` | `0` | no | Ingress threads per node (`0` = derive from `tomokv-io-threads`). |
-| `tomokv-ex-per-node` | `0` | no | Workers per node (`0` = derive from `tomokv-ex-threads`). |
-| `tomokv-cores-per-node` | `0` | no | Cores per node (`0` = derive from io+ex per node). |
-| `tomokv-thread-modes` | `off` | no | Enable dual-binding poly threads (required for role-flip). |
-| `tomokv-thread-balance` | `off` | yes | Enable the auto flip controller + EWMA-weighted balancing. |
-| `tomokv-flip-rebalance` | `on` | yes | Re-spread clients / transfer EWMA weight on each flip. |
-| `tomokv-mcmd-lock` | `off` | **no** | **Experimental** per-node M-command lock-borrow (MGET/EXISTS). Boot-only: a runtime toggle would race in-flight borrow groups. |
-| `tomokv-reshard-imbalance-pct` | `0` (auto) | yes | Within-node hot-worker bar; `0` = auto outlier detection. |
-| `tomokv-reshard-min-ops` | `20000` | yes | Minimum ops before a within-node reshard may fire. |
+| `tomokv-numa-nodes` | 1 | no | logical node count (1 = single big node) |
+| `tomokv-io-per-node` / `tomokv-ex-per-node` | derive | no | boot split per node; `1 io + (cores−1) ex` enables full any-core flipping |
+| `tomokv-thread-modes` | off | no | poly threads (required for flipping) |
+| `tomokv-thread-balance` | off | yes | the per-node flip controller + EWMA-weighted balancing |
+| `tomokv-flip-rebalance` | on | yes | client re-spread + EWMA weight transfer at each flip |
+| `tomokv-mcmd-lock` | off | **no** | the lock discipline + borrow/node-local paths. Boot-only: a runtime toggle would race in-flight groups. |
+| `tomokv-mcmd-nodelocal` | off | no | A/B experiment: MGET/EXISTS via stock proc instead of borrow (measured slower; kept for re-testing) |
+| `tomokv-modeshift-test` | 0 | yes | test hooks: `7`/`8` global grow front/back, `70+n`/`80+n` per-node (n<10). Note: setting an unchanged value is a no-op — toggle through 0 between repeats. |
 
-The base engine's threading, batching/spin/prefetch, reply-path, and io_uring knobs all still apply
-— see [`README.md`](README.md).
+Reshard tuning (`tomokv-reshard-*`) and every base-engine knob apply unchanged.
 
----
+Sizing note: with `N` nodes × `C` cores, you get `N` physical dbs; the number of *virtual* shards
+(per-worker ownership ranges) at any moment equals the live ex workers — between `N` (1/node) and
+`N×(C−1)` (all-but-one per node). The fine ownership granularity underneath is always 16384
+buckets, and worker counts need **not** be powers of two.
 
 ## Building & running
 
 ```sh
-# Build (epoll backend)
-make -C src -j
+make -C src USE_URING=yes -j        # or plain `make -C src -j` for the epoll backend
 
-# …or with the io_uring backend
-make -C src USE_URING=yes -j
-
-# Run a 2-node instance: 2 ingress + 2 workers per node (io4/ex4 total),
-# auto flip controller on, per-node M-command borrow on:
+# 2 NUMA nodes × 4 cores, full any-core flipping, self-tuning split, M-command locks:
 ./src/redis-server --port 6379 \
-    --tomokv-numa-nodes 2 \
-    --tomokv-io-per-node 2 --tomokv-ex-per-node 2 \
-    --tomokv-io-threads 4 --tomokv-ex-threads 4 \
+    --tomokv-numa-nodes 2 --tomokv-io-per-node 1 --tomokv-ex-per-node 3 \
+    --tomokv-io-threads 2 --tomokv-ex-threads 6 \
     --tomokv-thread-modes yes --tomokv-thread-balance yes \
-    --tomokv-mcmd-lock yes \
-    --save ''
+    --tomokv-mcmd-lock yes --save ''
 
-# Single-node (base 2-stage) with the LIVE role-flip controller:
+# Single big node (whole server is node 0), flip controller live:
 ./src/redis-server --port 6379 \
-    --tomokv-numa-nodes 1 --tomokv-io-threads 6 --tomokv-ex-threads 2 \
+    --tomokv-numa-nodes 1 --tomokv-io-threads 4 --tomokv-ex-threads 4 \
     --tomokv-thread-modes yes --tomokv-thread-balance yes --save ''
 
-# Talk to it with any Redis client
 redis-cli -p 6379 ping
 ```
 
-Boolean knobs take `yes`/`no`. Topology knobs are immutable (set at boot); balancing and mcmd-lock
-knobs are runtime-mutable via `CONFIG SET`.
+Boolean knobs take `yes`/`no`. Pin the server to one node-set of cores and the load generator
+elsewhere for meaningful numbers.
 
----
+## Known gaps (honest list)
 
-## Status & scope
+- **HFE (hash-field TTLs)**: the estore keeps single-writer aggregates — `HEXPIRE`-family on a
+  shared node db is not MT-safe yet.
+- **Spare-thread mode**: activation into a shared node is rejected (the spare keeps a private db);
+  the flip model replaces the spare anyway.
+- **SCAN** on shard data: unchanged from the base engine (decoy-bound).
+- **Concurrent per-node migrations**: nodes *decide* independently but conversions serialize
+  through one migration gate (~ms each); true concurrency needs per-node migration state.
+- **Controller convergence-lock** doesn't engage at the optimum yet (it keeps probe-reverting) —
+  cheap probes make this churn tolerable, but it's the top controller TODO.
+- A pre-existing mass-connection-kill livelock (`freeClientsInAsyncFreeQueue`) reproduces on both
+  branches with a now-deterministic recipe (see `NUMA_SHARED_KV_PLAN.md`) — not introduced here,
+  still to be root-caused.
 
-| Area | State |
-|---|---|
-| Logical-node topology + node-local buckets/ingress | **live** (all node counts) |
-| Within-node EWMA hot-key balancing + client balancing | **live** |
-| Role-flip controller + actuators, `numa-nodes 1` | **live** (extremum-seeking, byte-exact under load) |
-| Per-node role-flip actuators, `numa-nodes ≥ 2` | **staged** (controller runs; actuators refuse pending per-worker liveness) |
-| Per-node M-command lock-borrow (`MGET`/`EXISTS`) | **live, experimental** (default off); byte-exact + integrity-validated, adversarially reviewed (safe vs single-key ops, scattered multi-key reads+writes, and online migration) |
-| M-command *borrow* for set-ops / writes | **not yet** (multi-key writes still scatter — safely — under the lock) |
-| Real multi-CCD / multi-socket NUMA measurement | **pending hardware** (sim shows correctness + parity only) |
+## The Tomo KV family
 
-All correctness results in this document were produced on a single-CCD development box, where the
-role-flip and lock-borrow paths are validated for **correctness and no-overhead** but cannot exhibit
-the cross-node-locality speedup they are designed for. Those numbers must be re-measured on true
-NUMA hardware before any performance claim is made.
+| edition | branch | keyspace | reshard |
+|---|---|---|---|
+| 2-Stage (base) | — | per-worker isolated | copy engine |
+| NUMA · physical shards | `2s-numa-mcmd-lock-dev` | per-worker isolated | copy engine |
+| **NUMA · shared node db** (this) | `2s-numa-shared-kv-dev` | **one per node, bucket-owned** | **O(1) ownership flip** |
+
+Design documents: `NUMA_SHARED_KV_PLAN.md` (implementation log + every measured result),
+`MCMD_LOCK_DESIGN.md` (the lock-borrow evolution), `SHARED_KEYSPACE_DESIGN.md` (the original
+proposal this implements, refined to db-per-node).
+
+Tomo KV is a research fork of [Redis](https://github.com/redis/redis) (8.x) and inherits its data
+types, protocol, and command surface.
