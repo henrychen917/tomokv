@@ -135,6 +135,9 @@ void updateSlotHist(keysizesHist kvstoreHist, keysizesHist dictHist, uint32_t ty
 }
 
 void updateKeysizesHist(redisDb *db, int didx, uint32_t type, int64_t oldLen, int64_t newLen) {
+    /* review [7]: on a SHARED node db multiple workers RMW the same kvstore-level histograms —
+     * lost updates / unsigned underflow. Histograms are observability-only: disable there. */
+    if (server.shared_node_dbs && kvstoreIsSharedMT(db->keys)) return;
     kvstoreMetadata *kvstoreMeta = kvstoreGetMetadata(db->keys);
     kvstoreDictMetadata *dictMeta = kvstoreGetDictMeta(db->keys, didx, 0);
     updateSlotHist(kvstoreMeta->keysizes_hist, dictMeta ? dictMeta->keysizes_hist : NULL, type, oldLen, newLen);
@@ -557,7 +560,11 @@ int getKeySlot(sds key) {
          * match (not content) makes this safe for multi-key procs — only the exact carried sds hits;
          * every other key falls through to the computation. The sds is alive for the exec window. */
         client *cc = server.current_client[iotid].p;
-        if (cc && cc->tomo_bkt_ptr == (const void *)key) return cc->tomo_bkt;
+        /* review [8]: only FAKES carry the hint (dispatch stamps them; CLIENT_EX_PENDING is set on
+         * every exec path). Real clients zmalloc'd by createClient never initialize the field —
+         * the flags check keeps us from ever reading it there. */
+        if (cc && (cc->flags & CLIENT_EX_PENDING) && cc->tomo_bkt_ptr == (const void *)key)
+            return cc->tomo_bkt;
         return tomoKeyBucket(key, sdslen(key));
     }
     /* This is performance optimization that uses pre-set slot id from the current command,
@@ -929,7 +936,13 @@ robj *dbRandomKey(redisDb *db) {
                 kvobj *kv = dictGetKV(de);
                 sds key = kvobjGetKey(kv);
                 robj *keyobj = createStringObject(key, sdslen(key));
-                if (expireIfNeeded(db, keyobj, kv, 0) != KEY_VALID) {
+                /* review [5]: expireIfNeeded may DELETE from the shared node kvstore — a node-locked
+                 * stock proc could be iterating this dict. Take our own worker lock (borrowers and
+                 * node-lockers take it too => mutual exclusion); argc==1 means S2 never covered us. */
+                if (server.mcmd_lock) tomoWkrLockPub(wid);
+                int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                if (server.mcmd_lock) tomoWkrUnlockPub(wid);
+                if (kvalid != KEY_VALID) {
                     decrRefCount(keyobj);
                     continue;                                /* expired: search for another key */
                 }
@@ -1204,6 +1217,10 @@ redisDb *initTempDb(void) {
     if (server.cluster_enabled) {
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
+    } else if (server.ex_threads > 0) {
+        /* review [4]: tomo getKeySlot returns BUCKETS (xxh64&16383) — a 1-dict tempDb would be
+         * indexed out of bounds on the replica diskless-load swapdb path. Same bits as initServer. */
+        slot_count_bits = TOMO_BUCKET_BITS;
     }
     redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
     for (int i=0; i<server.dbnum; i++) {

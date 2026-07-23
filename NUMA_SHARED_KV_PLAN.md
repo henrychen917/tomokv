@@ -202,3 +202,22 @@ the per-cell sign is CAMPAIGN DRIFT, not a stable regression. Geomeans: 0.997 (p
 1.006 (post-carry) — consistent with a small real gain from removing 1-2 hashes/op. 3M-key check:
 GET 0.955 / SET 1.060 (wash; no large-DB tiny-dict penalty). DEFINITIVE settle needs the low-noise
 EPYC/TR box (this box shows +/-10% per-family campaign swings).
+
+## Adversarial review round (wf_021200d6, 2026-07-23) — 15 confirmed root causes, 14 fixed
+Fixed: [0] concurrent-flush cross-barrier deadlock + [1] main-thread flush-vs-migration deadlock +
+[2] flush-vs-flip TOCTOU => ONE tomo_flush_gate (serializes flushes; waiting flushers pump the
+coordinator/tick when on main; reshardArm refuses while held; last barrier participant releases).
+[3] HFE estore races => node-locked exec under mcmd-lock, honest error without. [4] tempDb 0-bit
+kvstore OOB on replica swapdb => tomo 14-bit bits. [5] RANDOMKEY expire-delete unlocked => own-worker
+lock. [6] RANDOMKEY node-size weighting (nil on non-empty) => bucket-range-width weights. [7] keysize
+histogram races => disabled on shared dbs. [8] hash-carry hint read on uninitialized real clients =>
+CLIENT_EX_PENDING guard. [9] SHARDNUMSUB wrong slot => 0 in non-cluster. [10] global grow hooks
+corrupt per-node prefixes => refuse on multi-node. [11] [16] node arrays vs numa-nodes<=64 => config
+capped 16. [13] straggler sub lands on just-parked worker => converted workers keep draining their
+EX queues in IO mode. [14] balancer cron legacy prefix walk => tmWorkerLive predicate.
+NOT fixed (accepted): [12] flush stop-the-node duration (semantics documented in README-NUMA §5).
+Validation of fixes: 15 concurrent FLUSHALLs + flush-vs-flip hammering => no deadlock, PONG;
+HEXPIRE/HTTL work node-locked; SHARDNUMSUB counts; RANDOMKEY 30/30 non-nil at asymmetric flip state;
+battery 108/108; corruption harness PASS; 60s stress 1.83M ops / 27 conversions / 0 errors / 0
+crashes; perf geomean 0.991 vs original (campaigns: 0.997/1.006/0.991 — parity within drift; incr
+1.01/hset 1.00 vs set 0.91/get 0.93 same-path split proves drift not cost).

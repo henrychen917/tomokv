@@ -675,7 +675,9 @@ NULL
         int j;
         addReplyArrayLen(c, (c->argc-2)*2);
         for (j = 2; j < c->argc; j++) {
-            unsigned int slot = calculateKeySlot(c->argv[j]->ptr);
+            /* review [9]: non-cluster shard channels are STORED at slot 0 (ssubscribe computes a
+             * slot only under cluster_enabled) — look them up at 0 too, else count is always 0. */
+            unsigned int slot = server.cluster_enabled ? calculateKeySlot(c->argv[j]->ptr) : 0;
             dict *clients = kvstoreDictFetchValue(server.pubsubshard_channels, slot, c->argv[j]);
 
             addReplyBulk(c,c->argv[j]);

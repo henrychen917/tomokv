@@ -5520,6 +5520,8 @@ int tomoGrowBack(const char **err);
 void tmFlipTick(void);
 int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
 int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: modeshift-test 70+n / 80+n */
+void tomoWkrLockPub(int w);                            /* per-worker mcmd lock (db.c RANDOMKEY expire) */
+void tomoWkrUnlockPub(int w);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

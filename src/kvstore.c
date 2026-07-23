@@ -47,6 +47,7 @@ struct _kvstore {
 /* ee451 (S0.2b): SHARED_MT helpers. GCC/Clang __atomic builtins on the plain fields so the
  * single-writer path (flag off) keeps plain loads/stores with zero codegen change. */
 static inline int kvstoreSharedMT(kvstore *kvs) { return kvs->flags & KVSTORE_SHARED_MT; }
+int kvstoreIsSharedMT(kvstore *kvs) { return kvstoreSharedMT(kvs); }   /* public (db.c histogram gate) */
 static inline void kvstoreMtLock(kvstore *kvs) {
     while (__atomic_test_and_set(&kvs->mt_lock, __ATOMIC_ACQUIRE)) { /* rare + short hold */ }
 }

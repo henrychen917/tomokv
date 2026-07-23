@@ -3279,7 +3279,7 @@ standardConfig static_configs[] = {
     /* ee451 node-topology config (min/max knobs removed — bounds come from the node budget).
      * pool = numa-nodes * cores-per-node threads, always fully active. Static split via
      * io-per-node/ex-per-node; dynamic (leave those 0) lets the balancer flip within the budget. */
-    createIntConfig("tomokv-numa-nodes",             NULL, IMMUTABLE_CONFIG, 1, TOMO_EX_THREADS_MAX, server.numa_nodes,     1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-numa-nodes",             NULL, IMMUTABLE_CONFIG, 1, 16, server.numa_nodes,     1, INTEGER_CONFIG, NULL, NULL), /* review [11]: per-node liveness arrays are [16] */
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive from io+ex per node (or legacy io/ex-threads) */
     createIntConfig("tomokv-io-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static IO/node; 0 = derive from legacy io-threads */
     createIntConfig("tomokv-ex-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static EX/node; 0 = derive from legacy ex-threads */

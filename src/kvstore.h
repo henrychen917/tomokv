@@ -95,6 +95,7 @@ typedef struct {
  *   - rehashing list: guarded by a per-kvstore spinlock (rehash start/finish only — rare)
  * Single-writer kvstores (flag off) are bit-for-bit unchanged. */
 #define KVSTORE_SHARED_MT (1<<2)
+int kvstoreIsSharedMT(kvstore *kvs);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));
 void kvstoreRelease(kvstore *kvs);

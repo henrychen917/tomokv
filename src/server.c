@@ -5946,16 +5946,27 @@ int getWorkerForCommand(client *c) {
         int nmax = server.num_workers_alloc;
         long long total = 0;
         int last_live = 0;
+        /* review [6]: on SHARED node dbs dbSize is the whole-node count for every worker — a live
+         * zero-bucket worker would be picked with full node weight and then return nil from its
+         * empty range. Weight by OWNED-RANGE WIDTH instead (∝ expected keys under uniform hashing;
+         * zero-bucket workers get zero weight). Non-shared keeps exact per-worker sizes. */
         for (int w = 0; w < nmax; w++) {
             if (!tmWorkerLive(w)) continue;
-            total += dbSize(&server.exThreads[w].db[dbid]);
+            long long s = server.shared_node_dbs
+                ? (long long)(server.ex_bucket_end[w] - (w ? server.ex_bucket_end[w - 1] : 0))
+                : (long long)dbSize(&server.exThreads[w].db[dbid]);
+            if (s < 0) s = 0;
+            total += s;
             last_live = w;
         }
         if (total <= 0) return 0;
         long long pick = (long long)(random() % total);
         for (int w = 0; w < nmax; w++) {
             if (!tmWorkerLive(w)) continue;
-            long long s = dbSize(&server.exThreads[w].db[dbid]);
+            long long s = server.shared_node_dbs
+                ? (long long)(server.ex_bucket_end[w] - (w ? server.ex_bucket_end[w - 1] : 0))
+                : (long long)dbSize(&server.exThreads[w].db[dbid]);
+            if (s < 0) s = 0;
             if (pick < s) return w;
             pick -= s;
         }
@@ -6033,6 +6044,19 @@ static inline void tomoWkrLock(int w) {
 }
 static inline void tomoWkrUnlock(int w) {
     atomic_store_explicit(&tomo_wkr_lock[w], 0, memory_order_release);
+}
+/* public wrappers (db.c RANDOMKEY expire-delete, review [5]) */
+void tomoWkrLockPub(int w) { tomoWkrLock(w); }
+void tomoWkrUnlockPub(int w) { tomoWkrUnlock(w); }
+
+/* review [3]: the hash-field-TTL family (estore writers AND readers — estore internals are
+ * single-writer, so racy reads are unsafe too). */
+static inline int tomoHfeProc(redisCommandProc *p) {
+    return p == hexpireCommand   || p == hpexpireCommand   ||
+           p == hexpireatCommand || p == hpexpireatCommand ||
+           p == hpersistCommand  || p == hexpiretimeCommand ||
+           p == httlCommand      || p == hpttlCommand      ||
+           p == hgetexCommand    || p == hgetdelCommand;
 }
 
 /* Lock-borrow MGET (S3 prototype): this IO thread reads every key DIRECTLY from its owning worker's
@@ -8976,6 +9000,12 @@ typedef struct tomoFlushBar {
     struct tomoFlushBar *base;      /* array head (for refs + free) */
 } tomoFlushBar;
 
+/* review [0][1][2]: ONE shared-mode flush at a time, mutually exclusive with migrations/flips.
+ * Acquired by the flusher (spinning flushers pump the coordinator when they ARE the main thread —
+ * the [1] deadlock); held across census+push (bucket boundaries frozen: reshardArm refuses while
+ * set — the [2] TOCTOU); released by the LAST barrier participant. */
+static _Atomic int tomo_flush_gate = 0;
+
 void flushAllShards(client *c, int dbid, int async) {
     if (!server.exThreads || server.num_workers <= 0) return;
     /* Queue one flush-sentinel fake to each worker THROUGH the SPSC ring, so it is FIFO-ordered
@@ -9012,7 +9042,21 @@ void flushAllShards(client *c, int dbid, int async) {
      * makes this wedge-proof. Flush waits out any active migration first so bucket boundaries are
      * stable while we count arrivals. */
     if (server.shared_node_dbs) {
-        while (atomic_load_explicit(&server.migration_active, memory_order_acquire)) usleep(200);
+        /* [0]: serialize concurrent flushes (cross-barrier rendezvous deadlock otherwise).
+         * [1]: while waiting, the MAIN thread must keep pumping the coordinator/flip machines
+         *      (they only run on it) or a main-thread client's flush waits on itself.
+         * [2]: hold the gate BEFORE the migration/flip wait, and keep it until the last barrier
+         *      participant releases — reshardArm refuses while it is set, so bucket boundaries
+         *      cannot move between the census and the pushes. */
+        while (atomic_exchange_explicit(&tomo_flush_gate, 1, memory_order_acq_rel)) {
+            if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); }
+            usleep(100);
+        }
+        while (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+               server.tm_flip_ctx != NULL) {
+            if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); }
+            usleep(100);
+        }
         int wpn = server.ex_per_node;
         /* ee451 (per-node flip): scan ALL worker slots — the global live sum can be smaller than a
          * live worker's slot index once nodes flip independently. The zero-bucket skip below already
@@ -9027,7 +9071,7 @@ void flushAllShards(client *c, int dbid, int async) {
             atomic_fetch_add_explicit(&bars[w / wpn].pending, 1, memory_order_relaxed);
             total++;
         }
-        if (total == 0) { zfree(bars); }
+        if (total == 0) { zfree(bars); atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release); }
         else {
             atomic_store_explicit(&bars[0].refs, total, memory_order_relaxed); /* array-level free count */
             for (int w = 0; w < nshard; w++) {
@@ -9338,7 +9382,8 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
 static _Atomic int mig_arm_lock = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
-    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
+    if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||        /* review [2]: flush froze boundaries */
+        atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
         !reshardRangeValid(lo, hi, src, dst)) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
@@ -13779,7 +13824,25 @@ static inline void exExecFake(client *fake) {
          * multi-key subs would need per-key locking, tracked as a gap). Inert when the knob is off:
          * the lock-free path pays a single predicted-not-taken branch. No deadlock — the worker holds
          * exactly ONE bucket and borrowers TRYLOCK (never block), so there is no lock cycle. */
-        if (__builtin_expect(server.mcmd_lock, 0) && fake->cmd->proc == mgetCommand) {
+        if (__builtin_expect(server.shared_node_dbs, 0) && tomoHfeProc(fake->cmd->proc)) {
+            /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
+             * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
+             * them. Under mcmd-lock: run the proc holding ALL the node's worker locks (ascending —
+             * the same discipline as node-locked CS_LOCAL => mutual exclusion with every locked
+             * path). Without mcmd-lock there is no safe execution: reply an honest error. */
+            if (!server.mcmd_lock) {
+                addReplyError(fake, "HFE commands require tomokv-mcmd-lock yes with shared node dbs");
+            } else {
+                int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+                int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+                int node = (wid >= 0 && wpn > 0) ? wid / wpn : 0;
+                int wlo = node * wpn, whi = wlo + wpn;
+                if (whi > server.num_workers) whi = server.num_workers;
+                for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
+                fake->cmd->proc(fake);
+                for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
+            }
+        } else if (__builtin_expect(server.mcmd_lock, 0) && fake->cmd->proc == mgetCommand) {
             /* worker-borrow MGET: this (first-key-owner) worker reads own + borrowed keys under
              * per-worker locks and builds the reply — NOT the stock mgetCommand (which would only
              * see this worker's shard). Its own key reads take this worker's lock too, coordinating
@@ -14050,8 +14113,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                     } else {
                         while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
                     }
-                    if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1)
+                    if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1) {
                         zfree(bar->base);
+                        atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release);  /* [2] release */
+                    }
                 } else {
                     emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
                 }
@@ -15005,7 +15070,15 @@ void *polyThreadMain(void *arg) {
         }
 
         switch (cur) {
-        case TOMO_MODE_IO: ioSlice(ctx->io);        break;
+        case TOMO_MODE_IO:
+            ioSlice(ctx->io);
+            /* review [13]: a converted worker's EX queues can still receive a STRAGGLER sub — an
+             * IO thread that snapshotted the live set, stalled past the park's 50ms quiet-drain,
+             * and pushed (KEYS fan / flush sentinel). Unconsumed, it would hang the group barrier
+             * forever. Keep draining the dormant EX binding each loop: empty-queue scan is a few
+             * loads, and a straggler executes against the (empty-range) shard correctly. */
+            if (ctx->ex) exSlice(ctx->ex, &exctx);
+            break;
         case TOMO_MODE_EX: exSlice(ctx->ex, &exctx); break;
         default: {
             /* PARKED (or never-entered): 50ms bounded wait, then re-check target.
@@ -15117,6 +15190,9 @@ static int tomoGrowFrontWorker(int w, const char **err) {
 int tomoGrowFront(const char **err) {
     if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    /* review [10]: the global sum is NOT the highest live worker once nodes flip independently —
+     * converting sum-1 would corrupt the per-node prefix. Multi-node must use the per-node hooks. */
+    if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 70+n)"; return 0; }
     int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; return 0; }
     return tomoGrowFrontWorker(live - 1, err);          /* highest live worker converts */
@@ -15176,6 +15252,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
 int tomoGrowBack(const char **err) {
     if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 80+n)"; return 0; }  /* review [10] */
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
     if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; return 0; }
     return tomoGrowBackSlot(io_live - 1, err);          /* highest grown io thread (LIFO with grow-front) */
@@ -16050,7 +16127,10 @@ static void tomoThreadBalanceCron(void) {
     prev_wall = wall_now;
     long qd_sum = 0, qd_max = 0;
     int busy_sum = 0, busy_max = 0;
-    for (int w = 0; w < nlive && w <= TOMO_EX_THREADS_MAX; w++) {
+    /* review [14]: per-node flips make the live set per-node prefixes — the legacy [0,nlive) walk
+     * would fold a parked worker's frozen signals and miss live high-slot workers entirely. */
+    for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++) {
+        if (!tmWorkerLive(w)) continue;
         exThread *et = &server.exThreads[w];
         long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
         qd_sum += qd; if (qd > qd_max) qd_max = qd;
