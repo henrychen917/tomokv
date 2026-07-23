@@ -16397,11 +16397,20 @@ static void tomoFlipController(void) {
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
          * any decision is measured against; nothing here is an absolute number). --- */
-        double inst = (fc->primed && now > fc->ops_prev_ms)
+        /* inst needs only a prior BASELINE sample (ops_prev_ms), not a primed EWMA — priming now
+         * waits for the first NONZERO rate (see below), so gating inst on primed would deadlock. */
+        double inst = (fc->ops_prev_ms != 0 && now > fc->ops_prev_ms)
                     ? (double)(node_ops - fc->ops_prev) * 1000.0 / (double)(now - fc->ops_prev_ms) : 0.0;
         fc->ops_prev = node_ops; fc->ops_prev_ms = now;
-        if (!fc->primed) { fc->primed = 1; fc->mean = inst; fc->var = 0; }
-        else { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
+        /* ee451 (controller-inputs fix): IDLE ticks carry NO information about any config's merit —
+         * folding their inst≈0 into the EWMA variance is what blew sigma past the mean (observed
+         * "baseline 78826 ops/s, sigma 157652"), turning every z-score gate into noise. A tick is
+         * idle when the node executed nothing AND shows no queued/ingress pressure — a purely
+         * observational fact, not a threshold. Idle ticks freeze mean/var (and the settle/judge
+         * phases below see an unchanged mean rather than a crater). */
+        int node_idle = (inst <= 0.0) && (qd_max == 0) && (ing_mean == 0);
+        if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
+        else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
 
         int can_front = (w_live > 1);
@@ -16499,6 +16508,11 @@ static void tomoFlipController(void) {
             continue;
         }
 
+        /* ee451 (controller-inputs fix): a probe only makes sense when there is OFFERED LOAD to
+         * measure against — with no executed ops, no queue depth, and no ingress busy, every config
+         * scores identically (zero), and a flip is pure churn on noise. Observational fact, not a
+         * threshold: any nonzero pressure re-enables probing immediately. */
+        if (node_idle) { fc->wait = FESC_WAIT_BASE; continue; }
         /* Probe direction = the current search direction; the very first probe grows front by default
          * (io is the usual first bottleneck), and the throughput gradient corrects any wrong guess by
          * reverting + reversing — so no pressure THRESHOLD is needed, only the measured outcome. */

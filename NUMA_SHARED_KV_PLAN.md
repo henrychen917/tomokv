@@ -124,3 +124,25 @@ static as expected (actuators staged). (2) n2-vs-n1: MGET8 0.77x re-confirms the
 at small N on one CCD (matches the earlier 0.73-0.86x sweep); MSET8 1.11x — n2 FASTER on multi-key
 writes: TWO kvstores halve the write-path aggregate-atomic contention (per-node dbs pay on writes
 even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA re-measure pending.
+
+## Per-node flip + controller-inputs fix (2026-07-22 late)
+- **Per-node actuators LIVE** (was staged): per-node live prefixes (tm_node_wlive) + tmWorkerLive
+  predicate; all global-prefix consumers converted (RANDOMKEY weight, KEYS fan, autotuner fold/var/
+  neighbor, DEBUG bounds, FLUSH scan). Same algorithm as a big node at any wpn>=2: convert the
+  node's highest live worker. Test hook: modeshift-test 70+n/80+n. Validated: both nodes
+  independently 2/2->3/1 and back, under load (667k ops 0 errors), non-prefix live set exact
+  (KEYS/DBSIZE/RANDOMKEY/MGET). Node flips serialize through the single migration gate (decisions
+  independent; concurrent migrations = future).
+- **MGET/EXISTS stock-vs-borrow A/B** (tomokv-mcmd-nodelocal): stock node-locked MGET = 0.81-0.93x
+  of the borrow => borrow stays (group machinery dominates at small N; EXISTS parity proves it).
+- **Controller inputs FIXED**: idle ticks were folded into the EWMA variance => sigma 2x mean =>
+  z-gates were noise (controller climbed on garbage). Fix: idle ticks (inst==0 && qd==0 && ing==0)
+  freeze mean/var; probing requires offered pressure; priming waits for the first NONZERO rate
+  (inst gated on ops_prev_ms baseline, NOT primed — chicken-and-egg fixed). Result: sigma 0.5-1%
+  of mean (was 200%), monotone-gain climb 1.39M->1.74M GET reaching 7io/1ex — and settled-flip GET
+  (1.74M) BEATS static 4/4 (~1.6M), resolving the matrix's 0.92x mid-climb artifact. numa=2: both
+  node controllers probe independently.
+- REMAINING controller agenda (the "explore flip algorithms" study): convergence-LOCK not engaging
+  (keeps probe-reverting at the optimum = churn), seed-burst overreaction (8 flips during a 3s
+  seed), probe-cost accounting (each probe is a real flip), alternatives to evaluate: windowed
+  median instead of EWMA, paired-probe with settle-discard, UCB-style exploration budgets.
