@@ -408,6 +408,10 @@ focused on the parallel‑execution thesis, not a drop‑in replacement for ever
 Both share the same out‑of‑order core, optimization set, and RESP surface; they differ only in whether reply
 commit runs on the ingress thread (2‑Stage) or on a dedicated reorder‑buffer thread (3‑Stage).
 
+**Tomo KV · NUMA** builds on the 2‑Stage core with a fixed pool of *role‑flipping* threads (ingress ⇄
+worker, driven by a self‑tuning controller), logical NUMA nodes, strictly within‑node load balancing, and a
+per‑node lock‑borrow path for multi‑key reads — see **[`README-NUMA.md`](README-NUMA.md)**.
+
 ---
 
 ## Credits
