@@ -253,3 +253,16 @@ head/orig (shared vs physical shards): numa=1 geomean 1.036 (sinter 1.15, get 1.
 PARITY within this box's measurement ability, oscillating around 1.0.
 Validation on optimized HEAD: corruption harness PASS (0/200), battery 108/108 both topologies,
 1.26M-op churn clean (from the opt-loop gate).
+
+## GET/SET numa=2 "deficit" investigation (2026-07-23)
+The 5-round campaign showed numa=2 head/orig get 0.97 / set 0.95 — flagged for investigation since
+GET/SET are the headline. Microarch probe (3 interleaved rounds each, perf counters on the server
+during fixed-n runs; counters repeatable 1-3% vs rps's 8-20% spreads):
+  GET: instr/op -0.9%, cycles/op +1.6%, L1d-miss/op -2.2%, rps -1.5% (rounds fully interleaved)
+  SET: instr/op -2.3%, cycles/op -2.2%, L1d-miss/op -3.1%, rps +1.9%
+VERDICT: NO structural GET/SET deficit — head does equal-or-LESS work per op with equal-or-fewer
+cache misses than the physical-shard build at numa=2 (SET is measurably cheaper). The campaign's
+0.97/0.95 cells were drift (SET flipped to +1.9% in this probe; GET's rounds scatter 1.40-1.62M on
+both builds). The asymmetry that motivated suspicion (head ahead at numa=1, behind at numa=2) is
+itself the drift fingerprint: a real shared-kvstore cost would hit numa=1 HARDER (4-way sharing vs
+2-way). Residual: GET cycles/op +1.6% — below this box's actionable threshold; recheck on EPYC/TR.
