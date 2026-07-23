@@ -102,3 +102,25 @@ lands.
 - NEXT: S1.5 first-touch NUMA placement (needs real hardware); then the cross-shard payoff — run
   within-node multi-key commands as stock procs on the node kvstore (widened xshard_localfast) and
   simplify the per-node borrow to a shared-kvstore access.
+
+## Bench matrix (2026-07-22, post park-fix 5a7b2326c; single-CCD sim, server 0-7 / loadgen 8-15)
+Configs: n2 = 2 simnodes (2io+2ex/node), n1 = 1 simnode (4io+4ex); flip = thread-modes+balance;
+all with mcmd-lock on. Mean of 2 interleaved rounds, ~±15% box drift. MIX = 4 op types concurrent
+(sum of stream rates). 0 crashes in all 28 runs; n1-flip controller reached 6io/2ex BOTH rounds.
+
+test     n2-static  n2-flip  n1-static  n1-flip | n2flip/st n1flip/st n2st/n1st
+SET         1314k    1412k      1431k     1446k |   1.07      1.01      0.92
+GET         1531k    1506k      1598k     1465k |   0.98      0.92      0.96
+MGET8        537k     576k       697k      692k |   1.07      0.99      0.77
+MSET8        682k     642k       616k      672k |   0.94      1.09      1.11
+MIX         3456k    3441k      3558k     3602k |   1.00      1.01      0.97
+SEThot      1617k    1543k      1612k     1594k |   0.95      0.99      1.00
+GEThot      1569k    1715k      1524k     1620k |   1.09      1.06      1.03
+
+VERDICTS: (1) flip-vs-static is a WASH on this box (within drift) except GEThot (+6-9%, positive in
+4/4 rounds — the only consistent flip win) and n1 GET (0.92x both rounds — mid-bench probe churn +
+6/2 not clearly optimal for uniform GET on the 2s fork; needs a settled-state re-measure). n2 flip ==
+static as expected (actuators staged). (2) n2-vs-n1: MGET8 0.77x re-confirms the per-node-split cost
+at small N on one CCD (matches the earlier 0.73-0.86x sweep); MSET8 1.11x — n2 FASTER on multi-key
+writes: TWO kvstores halve the write-path aggregate-atomic contention (per-node dbs pay on writes
+even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA re-measure pending.
