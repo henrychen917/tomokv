@@ -79,4 +79,26 @@ lands.
 ## Status
 
 - Forked `2s-numa-shared-kv-dev` off the NUMA branch (has S0.1 + the flip/mcmd-lock work).
-- Plan written (this file). Next: implement **S0.2a** and gate it on the corruption harness.
+- **S0.2a DONE + gated** (commit 1ecf550f7): dict index == bucket, 16384-dict kvstores, per-worker
+  isolation kept. Corruption+intercard PASS, 6 live copy-reshards clean, perf 0.98x (wash).
+- **S0.2b + S1 DONE + gated** (this commit): per-NODE physical dbs (ex_dbs[w] aliases
+  node_dbs[w/wpn]; spare slot private), KVSTORE_SHARED_MT (atomic aggregates, Fenwick skipped +
+  linear-scan fallbacks, rehash-list spinlock, release-published dict creation), per-node FLUSH
+  rendezvous barrier, worker-range RANDOMKEY, node-summed DBSIZE, per-worker-range KEYS subs, and
+  **reshard = drain-fence + O(1) ownership flip** (no scan, no log, no cleanup; cross-node/spare
+  arms rejected — same-physical-db required). Gate: smoke all-green (DBSIZE/KEYS exact, RANDOMKEY,
+  TTL, FLUSHALL-under-load), 10 flips under 951k concurrent borrow+write ops => 0 integrity errors
+  (issued=applied=0 — nothing copied), corruption harness PASS at MAX sharing (numa=1: 4 workers on
+  ONE kvstore), intercard PASS, perf A/B vs S0.2a: GET 1.02x / SET 1.05x (neutral).
+- **Wedge found during gating = PRE-EXISTING, not S0.2b**: flips + mass connection-kill + FLUSHALL
+  livelocks the server (all threads R). Bisected: reproduces IDENTICALLY on the S0.2a parent (and
+  matches the documented freeClientsInAsyncFreeQueue mass-hard-kill livelock that repros on legacy).
+  Deterministic recipe: 10 DEBUG-RESHARD flips under load, then kill 16 bench conns, then FLUSHALL.
+  The flush barrier itself traced clean (4 arrivals / 2 empties per flush). TODO: root-cause the
+  legacy livelock separately.
+- KNOWN GAPS: estore (HFE) aggregates not MT-safe on shared dbs; thread-modes SPARE activation
+  into a shared node is rejected (private array) pending integration; S2 keyspace-wide ops
+  (SCAN on shards) unchanged.
+- NEXT: S1.5 first-touch NUMA placement (needs real hardware); then the cross-shard payoff — run
+  within-node multi-key commands as stock procs on the node kvstore (widened xshard_localfast) and
+  simplify the per-node borrow to a shared-kvstore access.

@@ -84,6 +84,17 @@ typedef struct {
 
 #define KVSTORE_ALLOCATE_DICTS_ON_DEMAND (1<<0)
 #define KVSTORE_FREE_EMPTY_DICTS (1<<1)
+/* ee451 (shared-kv S0.2b): this kvstore is shared by MULTIPLE writer threads, each owning a
+ * DISJOINT set of dict indexes (tomo node-db: one owner-worker per bucket-dict; dict content
+ * itself is never touched cross-owner). Aggregate bookkeeping adapts:
+ *   - key_count / non_empty_dicts / bucket_count / allocated_dicts / rehash overhead: relaxed
+ *     atomics (node-local cache line, rare-to-per-op writers)
+ *   - Fenwick dict_sizes: SKIPPED (multi-writer log-n tree walk on every add/delete); the
+ *     non-empty-dict queries it served fall back to a linear dicts[] scan (iteration users are
+ *     cold: KEYS / checksums / empty), and fair-random callers are rerouted by the server
+ *   - rehashing list: guarded by a per-kvstore spinlock (rehash start/finish only — rare)
+ * Single-writer kvstores (flag off) are bit-for-bit unchanged. */
+#define KVSTORE_SHARED_MT (1<<2)
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));
 void kvstoreRelease(kvstore *kvs);

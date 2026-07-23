@@ -3619,24 +3619,45 @@ void initServer(void) {
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
     }
-    /* ee451 (thread-modes v1, step 3): sized by num_workers_alloc — the spare's dormant
-     * shard dbs (slot num_workers) are pre-built at boot so PARKED->EX needs no allocation. */
-    server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers_alloc);
-    for (int w = 0; w < server.num_workers_alloc; w++) {
-        server.ex_dbs[w] = zmalloc(sizeof(redisDb) * server.dbnum);
-        for (j = 0; j < server.dbnum; j++) {
-            server.ex_dbs[w][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
-            server.ex_dbs[w][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
-            server.ex_dbs[w][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-            server.ex_dbs[w][j].expires_cursor = 0;
-            server.ex_dbs[w][j].blocking_keys = dictCreate(&keylistDictType);
-            server.ex_dbs[w][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-            server.ex_dbs[w][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.ex_dbs[w][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.ex_dbs[w][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-            server.ex_dbs[w][j].watched_keys = dictCreate(&keylistDictType);
-            server.ex_dbs[w][j].id = j;
-            server.ex_dbs[w][j].avg_ttl = 0;
+    /* ee451 (shared-kv S0.2b): ONE physical db array per NODE — every worker of a node ALIASES
+     * its node's array (ex_dbs[w] = node_dbs[node]), so a node's workers share one kvstore and
+     * each owns the bucket-dicts of its range (dict index == bucket, S0.2a). Sharing (wpn > 1)
+     * marks the kvstores KVSTORE_SHARED_MT (atomic aggregates, Fenwick off, rehash-list lock).
+     * The spare slot (num_workers) keeps a PRIVATE array (+1): its shard is empty by invariant,
+     * and spare activation into a shared node is rejected at reshardArm (different physical db).
+     * KNOWN GAP: estore (hash-field TTLs) keeps single-writer aggregates — HFE commands on a
+     * SHARED node db can race estore internals; tracked, not exercised by the gates. */
+    {
+        int nnodes = server.numa_nodes > 0 ? server.numa_nodes : 1;
+        int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+        server.shared_node_dbs = (wpn > 1);
+        server.n_node_dbs = nnodes;
+        int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
+        server.node_dbs = zmalloc(sizeof(redisDb *) * (nnodes + 1));
+        for (int n = 0; n < nnodes + 1; n++) {              /* [nnodes] = spare-private array */
+            server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
+            for (j = 0; j < server.dbnum; j++) {
+                server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
+                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags);
+                server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+                server.node_dbs[n][j].expires_cursor = 0;
+                server.node_dbs[n][j].blocking_keys = dictCreate(&keylistDictType);
+                server.node_dbs[n][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
+                server.node_dbs[n][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
+                server.node_dbs[n][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+                server.node_dbs[n][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
+                server.node_dbs[n][j].watched_keys = dictCreate(&keylistDictType);
+                server.node_dbs[n][j].id = j;
+                server.node_dbs[n][j].avg_ttl = 0;
+            }
+        }
+        /* ee451 (thread-modes v1, step 3): sized by num_workers_alloc — the spare's dormant
+         * shard dbs (slot num_workers) are pre-built at boot so PARKED->EX needs no allocation. */
+        server.ex_dbs = zmalloc(sizeof(redisDb *) * server.num_workers_alloc);
+        for (int w = 0; w < server.num_workers_alloc; w++) {
+            int n = (w < server.num_workers) ? (w / wpn) : nnodes;   /* spare -> private array */
+            if (n > nnodes) n = nnodes;                              /* defensive clamp */
+            server.ex_dbs[w] = server.node_dbs[n];
         }
     }
 
@@ -6852,9 +6873,37 @@ static void csSubExec(client *sub) {
         int plen = sdslen(pattern);
         int allkeys = (pattern[0] == '*' && plen == 1);
         unsigned long n = 0;
+        dictEntry *de;
+        if (server.shared_node_dbs) {
+            /* ee451 (shared-kv S0.2b): sub->db is the NODE's shared kvstore — a full iteration
+             * would (a) count every node key wpn times across the node's subs and (b) walk
+             * sibling workers' dicts cross-thread (rehash race). Iterate ONLY this worker's own
+             * bucket range; the fan's per-worker subs then tile the keyspace exactly once.
+             * cssub_idx == the worker id on the FANALL path. */
+            int w = sub->cssub_idx;
+            int blo = w ? server.ex_bucket_end[w - 1] : 0;
+            int bhi = server.ex_bucket_end[w];
+            for (int b = blo; b < bhi; b++) {
+                dict *d = kvstoreGetDict(sub->db->keys, b);
+                if (!d || dictSize(d) == 0) continue;
+                dictIterator *di = dictGetIterator(d);   /* own dict: non-safe full iterator ok */
+                while ((de = dictNext(di)) != NULL) {
+                    kvobj *kv = dictGetKV(de);
+                    sds key = kvobjGetKey(kv);
+                    if (allkeys || stringmatchlen(pattern, plen, key, sdslen(key), 0)) {
+                        if (!keyIsExpired(sub->db, NULL, kv)) {
+                            addReplyBulkCBuffer(sub, key, sdslen(key));
+                            n++;
+                        }
+                    }
+                }
+                dictReleaseIterator(di);
+            }
+            atomic_fetch_add_explicit(&g->rcount, (long)n, memory_order_relaxed);
+            break;
+        }
         kvstoreIterator kvs_it;
         kvstoreIteratorInit(&kvs_it, sub->db->keys);
-        dictEntry *de;
         while ((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
             kvobj *kv = dictGetKV(de);
             sds key = kvobjGetKey(kv);
@@ -8831,6 +8880,19 @@ static void csReassemble(client *dst, client *head) {
  * DBs (FLUSHALL); else a single DB (FLUSHDB). The mutex serializes concurrent flushes so the
  * per-worker flush_* fields are never clobbered mid-flight. Synchronous: returns only after
  * every shard is emptied. Works whether c is the real client or its inline ring-slot fake. */
+/* ee451 (shared-kv S0.2b): per-node flush rendezvous. One struct per node per flush; sentinels
+ * carry their node's pointer. Workers arriving at their sentinel fetch_sub(pending); the LAST
+ * (result 1) runs the single kvstoreEmpty of the shared node db and release-publishes done; the
+ * others acquire-spin on done (µs — bounded by the node siblings reaching their own sentinels,
+ * all of which were pushed before any could be popped). refs (bars[0]) counts total participants;
+ * the last to leave frees the array. */
+typedef struct tomoFlushBar {
+    _Atomic int pending;            /* node workers not yet at their sentinel */
+    _Atomic int done;               /* last arrival completed the empty */
+    _Atomic int refs;               /* [0] only: total participants across nodes; last frees */
+    struct tomoFlushBar *base;      /* array head (for refs + free) */
+} tomoFlushBar;
+
 void flushAllShards(client *c, int dbid, int async) {
     if (!server.exThreads || server.num_workers <= 0) return;
     /* Queue one flush-sentinel fake to each worker THROUGH the SPSC ring, so it is FIFO-ordered
@@ -8857,6 +8919,52 @@ void flushAllShards(client *c, int dbid, int async) {
     if (server.thread_modes && tmSpare && tmSpare->ex && nflush <= server.num_workers &&
         atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX)
         nflush = server.num_workers + 1;
+    /* ee451 (shared-kv S0.2b): with per-node SHARED kvstores, per-worker emptyDbStructure would
+     * run wpn concurrent kvstoreEmpty's on the SAME kvstore (races the rehash list / dict frees).
+     * Instead: sentinels still fan to every BUCKET-OWNING worker (preserving the per-connection
+     * FIFO barrier — each worker must pass its pre-flush queue before the empty), plus a per-node
+     * rendezvous: the LAST worker of a node to reach its sentinel performs the ONE kvstoreEmpty
+     * while its siblings spin (µs). Zero-bucket workers (incl. flip-converted slots, whose queues
+     * may be unconsumed) own no keys and hold no in-flight data ops — skipped, which is also what
+     * makes this wedge-proof. Flush waits out any active migration first so bucket boundaries are
+     * stable while we count arrivals. */
+    if (server.shared_node_dbs) {
+        while (atomic_load_explicit(&server.migration_active, memory_order_acquire)) usleep(200);
+        int wpn = server.ex_per_node;
+        int nshard = nflush > server.num_workers ? server.num_workers : nflush;
+        tomoFlushBar *bars = zcalloc(sizeof(tomoFlushBar) * (server.n_node_dbs + 1));
+        for (int n = 0; n <= server.n_node_dbs; n++) bars[n].base = bars;
+        int total = 0;
+        for (int w = 0; w < nshard; w++) {
+            int blo = w ? server.ex_bucket_end[w - 1] : 0;
+            if (blo >= server.ex_bucket_end[w]) continue;        /* zero-bucket: owns nothing */
+            atomic_fetch_add_explicit(&bars[w / wpn].pending, 1, memory_order_relaxed);
+            total++;
+        }
+        if (total == 0) { zfree(bars); }
+        else {
+            atomic_store_explicit(&bars[0].refs, total, memory_order_relaxed); /* array-level free count */
+            for (int w = 0; w < nshard; w++) {
+                int blo = w ? server.ex_bucket_end[w - 1] : 0;
+                if (blo >= server.ex_bucket_end[w]) continue;
+                client *sentinel = createFakeClient(c);
+                sentinel->is_flush = 1;
+                sentinel->flush_dbid = dbid;
+                sentinel->flush_async = 0;
+                sentinel->flush_bar = &bars[w / wpn];
+                csPushSpin(w, sentinel);
+            }
+        }
+        /* live spare (private db, slot num_workers): plain per-worker empty, no barrier */
+        if (nflush > server.num_workers) {
+            client *sentinel = createFakeClient(c);
+            sentinel->is_flush = 1; sentinel->flush_dbid = dbid; sentinel->flush_async = 0;
+            csPushSpin(server.num_workers, sentinel);
+        }
+        (void)async;
+        emptyDbStructure(server.db, dbid, async, NULL);
+        return;
+    }
     for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         sentinel->is_flush = 1;
@@ -8991,6 +9099,9 @@ static void migOverflowFlush(int block) {
  * Runs on worker A (single writer of [lo,hi)), in commit order. Captures the RESULT (not the
  * command) so SPOP/INCRBYFLOAT/relative-TTL are deterministic by construction. ---- */
 void migCaptureEffect(redisDb *db, robj *keyobj) {
+    /* ee451 (shared-kv S0.2b/S1): with per-node shared kvstores nothing ever moves — a reshard is
+     * a drain-fence + ownership-table flip over the SAME dict[b]. No post-images, no log. */
+    if (server.shared_node_dbs) return;
     if (!atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return;
     int ph = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
     if (ph != MIG_COPYING && ph != MIG_DRAINING) return;   /* both phases are pre-flip: A still logs */
@@ -9146,11 +9257,23 @@ static int reshardArm(int lo, int hi, int src, int dst) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
     }
+    /* ee451 (shared-kv S0.2b/S1): a reshard between workers of DIFFERENT physical dbs (cross-node,
+     * or the spare's private array) is impossible in shared mode — the data lives in the source
+     * node's dict[b] and a table flip would strand it. Same-node moves are the only kind the
+     * balancer/flip machinery issues (both node-scoped); reject anything else here so a manual
+     * DEBUG RESHARD can't corrupt. */
+    if (server.shared_node_dbs && server.ex_dbs[src] != server.ex_dbs[dst]) {
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        serverLog(LL_WARNING, "ee451 reshard ARM rejected: workers %d and %d are on different "
+                  "physical node dbs (shared-kv mode moves ownership, never data)", src, dst);
+        return 0;
+    }
     server.migration.log = migLogCreate(1u << 16);          /* 64k entries; A backpressures if B lags */
     atomic_store_explicit(&server.migration.issued_seq, 0, memory_order_relaxed);
     atomic_store_explicit(&server.migration.applied_seq, 0, memory_order_relaxed);
     atomic_store_explicit(&server.migration.outstanding_a_refs, 0, memory_order_relaxed);
-    atomic_store_explicit(&server.migration.scan_done, 0, memory_order_relaxed);
+    /* ee451 (shared-kv S1): no cold scan — data never moves; the fence+flip is the whole cutover. */
+    atomic_store_explicit(&server.migration.scan_done, server.shared_node_dbs ? 1 : 0, memory_order_relaxed);
     /* fence_gen is MONOTONIC across migrations (never reset) so producers' thread-local
      * mig_local_fence_gen always differs from a fresh cutover's gen and they push their sentinel. */
     mig_scan_cursor = 0; mig_scan_dbid = 0; mig_scan_wrapped = 0;   /* wedge fix: reset sticky */
@@ -9405,7 +9528,10 @@ static void reshardCoordinatorTick(void) {
     /* D.2: hand cleanup to worker A (single writer of its shard); it deletes the range and -> DONE.
      * Once phase==DONE, worker B's drain gate (phase!=MIG_DONE) stops it calling migDrainB, so B
      * will not touch the log again. */
-        atomic_store_explicit(&server.migration.phase, MIG_CLEANUP, memory_order_release);
+        /* ee451 (shared-kv S1): nothing to clean — the flipped range's data lives in the SAME
+         * dict[b] the new owner now serves; there is no stale source copy. Straight to DONE. */
+        atomic_store_explicit(&server.migration.phase,
+                              server.shared_node_dbs ? MIG_DONE : MIG_CLEANUP, memory_order_release);
         atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
         return;
     }
@@ -13687,6 +13813,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
         atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
         int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
+        /* ee451 (shared-kv S1): in shared mode the copy engine never runs — no scan, no replay,
+         * no cleanup (the fence+flip in the coordinator is the whole reshard). The loop_seq
+         * heartbeat above MUST keep beating either way: the coordinator's RCU teardown waits on it. */
+        if (!server.shared_node_dbs) {
         if (worker->id == server.migration.dst) {
             if (ph != MIG_DONE) migDrainB(worker);   /* migApplyOne self-locks per entry when mcmd-lock on */
         } else if (worker->id == server.migration.src) {
@@ -13699,6 +13829,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             if (ph == MIG_COPYING) migServiceScanA(worker);
             else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
             if (mig_lk) tomoWkrUnlock(worker->id);
+        }
         }
     }
 
@@ -13808,7 +13939,23 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * connection's earlier commands). Empty this worker's OWN shard DBs and free
              * the fake. Fire-and-forget: no reply, no barrier. */
             if (fake->is_flush) {
-                emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                if (fake->flush_bar) {
+                    /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
+                     * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings
+                     * provably past their pre-flush commands = quiesced at this barrier); the others
+                     * spin (µs). Last participant overall frees the barrier array. */
+                    tomoFlushBar *bar = fake->flush_bar;
+                    if (atomic_fetch_sub_explicit(&bar->pending, 1, memory_order_acq_rel) == 1) {
+                        emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                        atomic_store_explicit(&bar->done, 1, memory_order_release);
+                    } else {
+                        while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
+                    }
+                    if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1)
+                        zfree(bar->base);
+                } else {
+                    emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                }
                 freeFakeClient(fake);
                 j++;
                 continue;

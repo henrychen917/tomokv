@@ -40,8 +40,19 @@ struct _kvstore {
     unsigned long long bucket_count;       /* Total number of buckets in this kvstore across dictionaries. */
     fenwickTree *dict_sizes;               /* Binary indexed tree (BIT) that describes cumulative key frequencies up until given dict-index. */
     size_t overhead_hashtable_rehashing;   /* The overhead of dictionaries rehashing. */
+    volatile unsigned char mt_lock;        /* ee451 (S0.2b KVSTORE_SHARED_MT): spinlock for the rehashing list (rare: rehash start/finish) */
     void *metadata[];                      /* conditionally allocated based on "flags" */
 };
+
+/* ee451 (S0.2b): SHARED_MT helpers. GCC/Clang __atomic builtins on the plain fields so the
+ * single-writer path (flag off) keeps plain loads/stores with zero codegen change. */
+static inline int kvstoreSharedMT(kvstore *kvs) { return kvs->flags & KVSTORE_SHARED_MT; }
+static inline void kvstoreMtLock(kvstore *kvs) {
+    while (__atomic_test_and_set(&kvs->mt_lock, __ATOMIC_ACQUIRE)) { /* rare + short hold */ }
+}
+static inline void kvstoreMtUnlock(kvstore *kvs) {
+    __atomic_clear(&kvs->mt_lock, __ATOMIC_RELEASE);
+}
 
 /**********************************/
 /*** Helpers **********************/
@@ -81,13 +92,24 @@ static int getAndClearDictIndexFromCursor(kvstore *kvs, unsigned long long *curs
 
 /* Updates binary index tree (Fenwick tree), updates key count for a given dict */
 static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
-    kvs->key_count += delta;
-
     dict *d = kvstoreGetDict(kvs, didx);
     size_t dsize = dictSize(d);
     /* Increment if dsize is 1 and delta is positive (first element inserted, dict becomes non-empty).
      * Decrement if dsize is 0 (dict becomes empty). */
     int non_empty_dicts_delta = (dsize == 1 && delta > 0) ? 1 : (dsize == 0) ? -1 : 0;
+
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): multiple owner-threads add/delete in disjoint dicts of this kvstore.
+         * Aggregates via relaxed atomics (node-local line); the Fenwick tree is SKIPPED — a
+         * multi-writer log-n tree walk per op is the one hot-path cost sharing would add, and
+         * its consumers (non-empty iteration / fair random) have linear fallbacks. */
+        __atomic_fetch_add(&kvs->key_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        if (non_empty_dicts_delta)
+            __atomic_fetch_add(&kvs->non_empty_dicts, non_empty_dicts_delta, __ATOMIC_RELAXED);
+        return;
+    }
+
+    kvs->key_count += delta;
     kvs->non_empty_dicts += non_empty_dicts_delta;
 
     /* BIT does not need to be calculated when there's only one dict. */
@@ -102,6 +124,16 @@ static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
 static dict *createDictIfNeeded(kvstore *kvs, int didx) {
     dict *d = kvstoreGetDict(kvs, didx);
     if (d) return d;
+
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): didx has ONE owner thread (only it creates this dict), but other
+         * threads read dicts[didx] (cross-owner prefetch peeks, iteration). Release-publish
+         * the fully-built dict; count via atomic (owners of different didx race the counter). */
+        d = dictCreate(&kvs->dtype);
+        __atomic_store_n(&kvs->dicts[didx], d, __ATOMIC_RELEASE);
+        __atomic_fetch_add(&kvs->allocated_dicts, 1, __ATOMIC_RELAXED);
+        return d;
+    }
 
     kvs->dicts[didx] = dictCreate(&kvs->dtype);
     kvs->allocated_dicts++;
@@ -148,6 +180,18 @@ void kvstoreFreeDictIfNeeded(kvstore *kvs, int didx) {
 static void kvstoreDictRehashingStarted(dict *d) {
     kvstore *kvs = d->type->userdata;
     kvstoreDictMetaBase *metadata = (kvstoreDictMetaBase *)dictMetadata(d);
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): rehash starts on any owner thread — the shared list needs the lock
+         * (rare event: a dict grow/shrink boundary, not per-op). */
+        kvstoreMtLock(kvs);
+        listAddNodeTail(kvs->rehashing, d);
+        metadata->rehashing_node = listLast(kvs->rehashing);
+        kvstoreMtUnlock(kvs);
+        unsigned long long from, to;
+        dictRehashingInfo(d, &from, &to);
+        __atomic_fetch_add(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        return;
+    }
     listAddNodeTail(kvs->rehashing, d);
     metadata->rehashing_node = listLast(kvs->rehashing);
 
@@ -163,6 +207,18 @@ static void kvstoreDictRehashingStarted(dict *d) {
 static void kvstoreDictRehashingCompleted(dict *d) {
     kvstore *kvs = d->type->userdata;
     kvstoreDictMetaBase *metadata = (kvstoreDictMetaBase *)dictMetadata(d);
+    if (kvstoreSharedMT(kvs)) {
+        kvstoreMtLock(kvs);
+        if (metadata->rehashing_node) {
+            listDelNode(kvs->rehashing, metadata->rehashing_node);
+            metadata->rehashing_node = NULL;
+        }
+        kvstoreMtUnlock(kvs);
+        unsigned long long from, to;
+        dictRehashingInfo(d, &from, &to);
+        __atomic_fetch_sub(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        return;
+    }
     if (metadata->rehashing_node) {
         listDelNode(kvs->rehashing, metadata->rehashing_node);
         metadata->rehashing_node = NULL;
@@ -178,6 +234,10 @@ static void kvstoreDictRehashingCompleted(dict *d) {
  * sum of buckets for a DB. */
 static void kvstoreDictBucketChanged(dict *d, long long delta) {
     kvstore *kvs = d->type->userdata;
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): table-size changes on any owner thread */
+        __atomic_fetch_add(&kvs->bucket_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        return;
+    }
     kvs->bucket_count += delta;
 }
 
@@ -520,6 +580,21 @@ int kvstoreFindDictIndexByKeyIndex(kvstore *kvs, unsigned long target) {
         return 0;
     assert(target <= kvstoreSize(kvs));
 
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): Fenwick is not maintained under sharing — linear accumulate. Racy
+         * dictSize reads make this an approximate fair-random under concurrent writes (fine:
+         * random is random); exact-target overrun falls back to the last non-empty dict. */
+        unsigned long acc = 0; int last = 0;
+        for (int i = 0; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (!d) continue;
+            size_t s = dictSize(d);
+            if (!s) continue;
+            last = i; acc += s;
+            if (acc >= target) return i;
+        }
+        return last;
+    }
     return fwTreeFindIndex(kvs->dict_sizes, target);
 }
 
@@ -529,6 +604,13 @@ int kvstoreGetFirstNonEmptyDictIndex(kvstore *kvs) {
         return -1;
     if (kvs->num_dicts == 1)
         return 0;
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): linear scan (iteration users are cold) */
+        for (int i = 0; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (d && dictSize(d)) return i;
+        }
+        return -1;
+    }
     return fwTreeFindFirstNonEmpty(kvs->dict_sizes);
 }
 
@@ -536,6 +618,13 @@ int kvstoreGetFirstNonEmptyDictIndex(kvstore *kvs) {
 int kvstoreGetNextNonEmptyDictIndex(kvstore *kvs, int didx) {
     if (kvs->num_dicts == 1) {
         assert(didx == 0);
+        return -1;
+    }
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): linear scan (iteration users are cold) */
+        for (int i = didx + 1; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (d && dictSize(d)) return i;
+        }
         return -1;
     }
     return fwTreeFindNextNonEmpty(kvs->dict_sizes, didx);

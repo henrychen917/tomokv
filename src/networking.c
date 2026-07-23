@@ -147,6 +147,7 @@ static void resetFakeClientState(client *c, client *parent) {
     c->csparent = NULL;
     c->cssub_idx = 0;
     c->is_flush = 0;
+    c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->drain_ack = NULL;
     c->tm_lat_stamp = 0;   /* ee451 (thread-modes step 4): p99-guardrail dispatch stamp, 0 = unsampled */
 

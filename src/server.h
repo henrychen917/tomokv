@@ -1575,6 +1575,11 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
+    struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
+                                * workers rendezvous at their sentinels; the LAST arrival empties the
+                                * shared node kvstore while the others spin (µs), preserving the
+                                * per-connection FIFO flush semantics without concurrent kvstoreEmpty
+                                * races. NULL = private db (spare slot / sharing off): empty directly. */
     /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command;
      * worker A pops it in queue order and decrements *drain_ack, proving every range primary
      * dispatched before it has executed (no in-flight range write straddles the table flip). */
@@ -2678,6 +2683,14 @@ struct redisServer {
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
     } migration;
     redisDb **ex_dbs;
+    /* ee451 (shared-kv S0.2b): the PHYSICAL db arrays — one per NODE (+1 private for the spare
+     * slot). ex_dbs[w] ALIASES node_dbs[tmNodeOfWorker(w)], so every existing exThreads[w].db
+     * access lands on the node's shared kvstore; a worker owns the bucket-dicts of its bucket
+     * range within it (dict index == bucket). shared_node_dbs gates every behavior fork
+     * (SHARED_MT kvstores, flush barrier, reshard=flip, capture off). */
+    redisDb **node_dbs;
+    int n_node_dbs;            /* node count (excludes the +1 spare-private array) */
+    int shared_node_dbs;       /* 1 = workers share per-node kvstores (workers-per-node > 1) */
     redisDb *db;
     dict *commands;             /* Command table */
     dict *orig_commands;        /* Command table before command renaming. */

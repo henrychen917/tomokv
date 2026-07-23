@@ -893,6 +893,49 @@ robj *dbRandomKey(redisDb *db) {
     int maxtries = 100;
     int allvolatile = kvstoreSize(db->keys) == kvstoreSize(db->expires);
 
+    /* ee451 (shared-kv S0.2b): on a SHARED node db, sample ONLY this worker's own bucket range —
+     * walking another worker's dict races its owner (the pre-share code sampled a whole per-worker
+     * kvstore, which was the same restriction expressed structurally). RANDOMKEY is routed to a
+     * worker (getWorkerForCommand size-weight), so the executing thread's identity IS the range.
+     * Distribution: fair within the worker's range; across workers it follows the router's
+     * weighting — same two-level shape as before sharing. */
+    if (server.shared_node_dbs && server.num_workers > 0) {
+        int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+        if (wid >= 0 && wid < server.num_workers && db == &server.exThreads[wid].db[db->id]) {
+            int blo = wid ? server.ex_bucket_end[wid - 1] : 0;
+            int bhi = server.ex_bucket_end[wid];
+            for (int tries = 0; tries < 100; tries++) {
+                unsigned long long total = 0;
+                for (int b = blo; b < bhi; b++) {
+                    dict *d = kvstoreGetDict(db->keys, b);
+                    if (d) total += dictSize(d);
+                }
+                if (total == 0) return NULL;
+                unsigned long long target = ((unsigned long long)rand() << 16 | rand()) % total;
+                dict *pick = NULL;
+                for (int b = blo; b < bhi; b++) {
+                    dict *d = kvstoreGetDict(db->keys, b);
+                    if (!d) continue;
+                    size_t s = dictSize(d);
+                    if (target < s) { pick = d; break; }
+                    target -= s;
+                }
+                if (!pick) return NULL;                      /* raced a delete: retry */
+                de = dictGetFairRandomKey(pick);
+                if (!de) continue;
+                kvobj *kv = dictGetKV(de);
+                sds key = kvobjGetKey(kv);
+                robj *keyobj = createStringObject(key, sdslen(key));
+                if (expireIfNeeded(db, keyobj, kv, 0) != KEY_VALID) {
+                    decrRefCount(keyobj);
+                    continue;                                /* expired: search for another key */
+                }
+                return keyobj;
+            }
+            return NULL;                                     /* all tries hit expired keys */
+        }
+    }
+
     while(1) {
         robj *keyobj;
         int randomSlot = kvstoreGetFairRandomDictIndex(db->keys, accessKeysShouldSkipDictIndex, 16, 1);
@@ -2199,10 +2242,18 @@ void dbsizeCommand(client *c) {
     if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;
-        /* ee451 (thread-modes step 3): fold over ALL alloc'd slots — covers a live spare's
-         * shard with no liveness ordering to get wrong (a dormant spare's shard adds 0). */
-        for (int w = 0; w < server.num_workers_alloc; w++)
-            total += dbSize(&server.exThreads[w].db[dbid]);
+        if (server.shared_node_dbs) {
+            /* ee451 (shared-kv S0.2b): workers of a node ALIAS one physical kvstore — summing
+             * per worker would count each node wpn times. Sum the distinct node dbs (+ the
+             * spare's private array, empty unless a live spare holds keys). */
+            for (int n = 0; n <= server.n_node_dbs; n++)
+                total += dbSize(&server.node_dbs[n][dbid]);
+        } else {
+            /* ee451 (thread-modes step 3): fold over ALL alloc'd slots — covers a live spare's
+             * shard with no liveness ordering to get wrong (a dormant spare's shard adds 0). */
+            for (int w = 0; w < server.num_workers_alloc; w++)
+                total += dbSize(&server.exThreads[w].db[dbid]);
+        }
         addReplyLongLong(c, total);
         return;
     }
