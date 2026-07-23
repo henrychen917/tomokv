@@ -9701,6 +9701,7 @@ static void reshardCoordinatorTick(void) {
     server.tm_mig_spare_action = 0;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+    atomic_fetch_add_explicit(&server.reshard_done_seq, 1, memory_order_relaxed);
 
     /* ee451 (thread-modes v1, step 3): spare transition tail. DEACTIVATION (action 2):
      * the spare's ENTIRE range is on dst, CLEANUP deleted the src copies and teardown is
@@ -9838,6 +9839,114 @@ void fakeRingClientCron(client *c) {
      * state to reset here (the dead pressure counters were removed in the review cleanup). */
 }
 
+/* ee451 (post-flip re-level): a role-flip leaves a KNOWN skew (grow-back seeds the revived worker
+ * by halving one neighbour; grow-front merges a whole range onto one worker) — after a 7io->4io
+ * cascade the layout was [8k,4k,2k,2k] buckets and uniform load ran at 75%% of even-split capacity.
+ * No estimation needed: while tm_relevel_pending, walk live-worker boundaries against the exact
+ * even-count targets and fix the first one that is off, ONE range-flip per tick (moves are O(1)
+ * drain-fence table flips — size-independent, so one big move beats a chunk cascade). Clears the
+ * flag when every boundary is within tolerance. The EWMA balancer then refines for hot keys. */
+static void reshardRelevelTick(void) {
+    int c[TOMO_EX_THREADS_MAX] = {0};
+    for (int b = 0; b < TOMO_BUCKETS; b++) c[server.ex_bucket_table[b]]++;
+    int wmax = server.num_workers_alloc;
+    int lo_n = 0;                                       /* global prefix: ranges are ordered by index */
+    for (int w0 = 0; w0 < wmax; ) {
+        int node = tmNodeOfWorker(w0);
+        int live[TOMO_EX_THREADS_MAX], k = 0, span = 0;
+        int w = w0;
+        for (; w < wmax && tmNodeOfWorker(w) == node; w++) {
+            span += c[w];
+            if (tmWorkerLive(w)) live[k++] = w;
+        }
+        if (k >= 2 && span > 0) {
+            int pfx = 0;
+            for (int i = 0; i + 1 < k; i++) {
+                pfx += c[live[i]];
+                int cur = lo_n + pfx;
+                int tgt = lo_n + (int)(((long)span * (i + 1)) / k);
+                int d = cur - tgt;
+                if (d >= 64 || d <= -64) {
+                    int src = d > 0 ? live[i] : live[i + 1];
+                    int dst = d > 0 ? live[i + 1] : live[i];
+                    int mlo = d > 0 ? tgt : cur;
+                    int mhi = d > 0 ? cur : tgt;
+                    if (reshardArm(mlo, mhi, src, dst)) {
+                        reshardBeginCutover();
+                        serverLog(LL_NOTICE, "ee451 reshard RELEVEL: [%d,%d) %d -> %d (boundary %d, target %d)",
+                                  mlo, mhi, src, dst, cur, tgt);
+                    }
+                    return;                             /* one move per tick; re-walk next tick */
+                }
+            }
+        }
+        lo_n += span;
+        w0 = w;
+    }
+    server.tm_relevel_pending = 0;                      /* every boundary within tolerance */
+    serverLog(LL_NOTICE, "ee451 reshard RELEVEL: layout even — done");
+}
+
+/* ee451 (diffusion leveling): the outlier trigger above/below has a structural blind spot for
+ * BIMODAL skews — after a grow-back cascade the layout can be e.g. [37%,37%,12%,13%]: sigma is
+ * inflated by the hot PAIR (no single worker is a k-sigma outlier), and even when the hot worker
+ * fires, its only ADJACENT neighbour is the equally-hot twin, so the cool-neighbour check blocks
+ * the move — the cool workers aren't adjacent (observed live: 3.5min hold at 4.7M vs 5.8M even).
+ * Leveling a CONTIGUOUS partition is a diffusion problem: find the steepest adjacent downhill
+ * boundary and shift an imbalance-proportional chunk across it. Self-contained state (own settle/
+ * peak/streaks) so the outlier path's convergence resets can't re-trigger it into ping-pong. */
+static double   mig_diff_peak = 0;
+static int      mig_diff_settle = 0;
+static uint16_t mig_diff_streak[TOMO_EX_THREADS_MAX];
+static void reshardDiffusionPass(double mean, double alpha) {
+    if (mean < (double)server.reshard_min_ops) return;
+    if (mig_diff_settle > 0) { mig_diff_settle--; return; }
+    int wmax = server.num_workers_alloc;
+    int bw = -1; double bdiff = 0, bhi = 0;
+    for (int w = 0; w + 1 < wmax; w++) {
+        if (!tmWorkerLive(w) || !tmWorkerLive(w + 1)) { mig_diff_streak[w] = 0; continue; }
+        if (tmNodeOfWorker(w) != tmNodeOfWorker(w + 1)) { mig_diff_streak[w] = 0; continue; }
+        double La = mig_load_ewma[w], Lb = mig_load_ewma[w + 1];
+        double hi = La > Lb ? La : Lb, lo = La < Lb ? La : Lb;
+        /* pair condition: a REAL step (quarter of a fair share) on a loaded boundary — scale-free
+         * in mean units, unreachable on uniform load (per-worker EWMA jitter is ~3-5% of mean).
+         * 0.5*mean stalled mid-cascade ([37,25,24,13] residual diffs ~0.45*mean held a 25% skew). */
+        if (hi - lo > 0.25 * mean && hi > 0.35 * mean) {
+            if (hi - lo > bdiff) { bdiff = hi - lo; bw = w; bhi = hi; }
+        } else mig_diff_streak[w] = 0;
+    }
+    if (bw < 0) { mig_diff_peak = 0; return; }
+    /* no-progress guard (same idea as the outlier path): if the last diffusion move didn't cut the
+     * pair peak, the boundary hosts an unbalanceable hot key — stop chasing until the pattern moves. */
+    double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
+    if (mig_diff_peak > 0 && bhi > mig_diff_peak * prog) return;
+    int K = server.reshard_sustain_ticks;
+    if (K < 0 || K == 0) K = (int)ceil(1.0 / alpha);      /* auto: one EWMA time constant */
+    if (++mig_diff_streak[bw] < K) return;                 /* not sustained yet */
+    mig_diff_streak[bw] = 0;
+    int hot = mig_load_ewma[bw] > mig_load_ewma[bw + 1] ? bw : bw + 1;
+    int B   = (hot == bw) ? bw + 1 : bw;
+    int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
+    int hot_hi = server.ex_bucket_end[hot];
+    int hrange = hot_hi - hot_lo;
+    double Lh = mig_load_ewma[hot], Lc = mig_load_ewma[B];
+    double frac = (Lh > 0.0) ? (Lh - Lc) / (2.0 * Lh) : 0.0;
+    int chunk = (int)(frac * (double)hrange);
+    if (chunk < 16) chunk = 16;
+    { int cap = hrange / 2; if (cap < 1) cap = hrange - 1; if (chunk > cap) chunk = cap; }
+    if (hrange <= chunk || chunk < 1) return;
+    int lo, hi;
+    if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
+    else              { lo = hot_lo; hi = hot_lo + chunk; }
+    if (reshardArm(lo, hi, hot, B)) {
+        reshardBeginCutover();
+        mig_diff_peak = bhi;
+        mig_diff_settle = (int)(1.0 / alpha) + 1;
+        serverLog(LL_NOTICE, "ee451 reshard DIFFUSE: boundary w%d|w%d (%.0f vs %.0f ops), moving [%d,%d) %d -> %d",
+                  hot, B, mig_load_ewma[hot], mig_load_ewma[B], lo, hi, hot, B);
+    }
+}
+
 void reshardAutoTune(void) {
     /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
      * tick forever; every quantity is recomputed from the current signal — no calibration
@@ -9901,6 +10010,7 @@ void reshardAutoTune(void) {
     }
     mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's alpha */
     if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* bootstrap seed only */
+    if (server.tm_relevel_pending) { reshardRelevelTick(); return; }  /* exact post-flip re-level first */
 
     /* Trigger: the hot shard must be a statistical OUTLIER of the workload's own spread —
      * bar = mean + max(k*sigma, 0.25*mean). k = 0.8*sqrt(W-1) capped 2.0 (a one-hot vector's
@@ -9940,6 +10050,7 @@ void reshardAutoTune(void) {
         hotv <= (server.reshard_sustain_ticks != 0 ? release_bar : hot_bar)) {
         mig_peak_pre = 0; mig_settle = 0;
         if (server.reshard_sustain_ticks != 0) mig_hot_streak[hot] = 0;
+        reshardDiffusionPass(mean, alpha);       /* bimodal skews read as "balanced" here */
         return;
     }
     if (server.reshard_sustain_ticks != 0 && hotv <= hot_bar) {
@@ -9995,7 +10106,7 @@ void reshardAutoTune(void) {
      * cool — prevents ping-pong of a chunk between two near-mean neighbors); N => < mean*(1-N/100). */
     double cm = (double)server.reshard_cool_margin_pct;
     double cool_bar = (cm == 0) ? mean : (cm < 0 ? mean * 0.85 : mean * (1.0 - cm / 100.0));
-    if (B < 0 || mig_load_ewma[B] >= cool_bar) return;
+    if (B < 0 || mig_load_ewma[B] >= cool_bar) { reshardDiffusionPass(mean, alpha); return; }
 
     /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never emptying
      * the hot shard. CHUNK SIZE ∝ THE IMBALANCE (2026-07-22 user: transfer size should be based on
@@ -15294,6 +15405,7 @@ void tmFlipTick(void) {
             /* transfer the converted worker's load weight onto the neighbour that took its range,
              * so the EWMA balancer sees the imbalance and evens it out via its normal path. */
             reshardKickAfterFlip(ctx->ex ? ctx->ex->id : -1, ctx->ex ? ctx->ex->id - 1 : -1);
+            server.tm_relevel_pending = 1;             /* even out the merged range across the live set */
             server.tm_flip_ctx = NULL; server.tm_flip_target = 0;
         }
         return;
@@ -15368,6 +15480,7 @@ void tmFlipTick(void) {
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
             reshardKickAfterFlip(-1, -1);   /* grow-back's seed already half-splits: no weight transfer, just let the balancer act promptly */
+            server.tm_relevel_pending = 1;  /* the half-split only touched ONE neighbour — re-level all */
             server.tm_flip_ctx = NULL; server.tm_flip_target = 0; server.tm_flip_phase = 0;
             return;
         }
@@ -16422,11 +16535,17 @@ typedef struct {
     double   conv_mean;      /* SLOW baseline of the converged throughput (tracks genuine drift; the fast
                               * mean diverging from it = a workload shift, not noise) */
     int      shift_run;      /* consecutive ticks the fast mean is >3σ off conv_mean (shift persistence) */
-    double   null_abs;       /* EWMA of |after-before| over REVERTED probes = measured BETWEEN-window noise
-                              * (the null distribution). Gains must beat it; re-opens must beat it. Self-
-                              * calibrating: a drifty box learns a high bar, a quiet box stays sensitive. */
+    double   null_abs;       /* EWMA of |baseline(N+1)-baseline(N)| over CONSECUTIVE probes launched from
+                              * the SAME config = honest between-window drift (the null distribution).
+                              * NOT fed from reverted-probe deltas: those include real losses and real-but-
+                              * rejected gains, and feeding them back is circular (a rejected +19% gain
+                              * would teach a null that keeps rejecting it — observed live). */
+    double   null_ref;       /* baseline of the last reverted probe (the config we are still at) */
+    int      null_ref_valid; /* null_ref refers to the CURRENT config (cleared when a GAIN moves us) */
     int      warm_ticks, meas_ticks;  /* elapsed ticks in the current phase (adaptive caps) */
     int      settle_run;     /* consecutive warmup ticks with the rate change inside the noise */
+    uint64_t rs_prev;        /* reshard_done_seq at the previous warmup tick (quiescence detector) */
+    int      rs_quiet;       /* consecutive warmup ticks with no reshard completing */
     double   warm_prev;      /* mean at the previous warmup tick, to detect the settle plateau */
     uint64_t ref_ops; mstime_t ref_ms;  /* measure-window open snapshot */
     double   before;         /* smoothed rate just before the probe flip */
@@ -16440,7 +16559,7 @@ static flipCtlState fctl[TM_MAXNODE];
  * None is an operating threshold in throughput or pressure units — those are all derived per-tick
  * from the measured rate and its noise. */
 #define FESC_ALPHA      0.25   /* throughput mean/variance EWMA rate */
-#define FESC_SETTLE_N   3      /* warmup ends after this many consecutive settled ticks (rate change < noise) */
+#define FESC_SETTLE_N   5      /* warmup ends after this many settled ticks (rate plateau AND reshard-quiet; cache warmup needs the extra room) */
 #define FESC_WARM_CAP   48     /* safety cap on warmup (~12s) if it never plateaus — NOT a control knob */
 #define FESC_MEAS_N     16     /* measure-window ticks (~4s settled — longer window averages between-window drift) */
 #define FESC_WAIT_BASE  8      /* base idle ticks between probes (~2s); backoff multiplies this */
@@ -16536,7 +16655,16 @@ static void tomoFlipController(void) {
             double drift = fabs(fc->mean - fc->warm_prev);
             fc->warm_prev = fc->mean;
             if (drift < sigma) fc->settle_run++; else fc->settle_run = 0;
-            if (fc->settle_run >= FESC_SETTLE_N || fc->warm_ticks >= FESC_WARM_CAP) {
+            /* reshard quiescence: a flip triggers a bucket-range move plus EWMA-balancer follow-ups,
+             * and the moved buckets are cache-cold for their new worker. Measuring during that
+             * transient under-reads the config (observed: 4io/4ex probed at 4.56M mid-rebalance vs
+             * 5.8M settled => the climb parked in a 30%-worse config). Require the rate plateau AND
+             * a few ticks with no reshard completing; WARM_CAP still bounds the wait. */
+            uint64_t rs = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
+            if (rs == fc->rs_prev) fc->rs_quiet++; else fc->rs_quiet = 0;
+            fc->rs_prev = rs;
+            if ((fc->settle_run >= FESC_SETTLE_N && fc->rs_quiet >= FESC_SETTLE_N) ||
+                fc->warm_ticks >= FESC_WARM_CAP) {
                 fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
             }
             continue;
@@ -16591,12 +16719,14 @@ static void tomoFlipController(void) {
              * empirically 3-10x larger on this box. fc->null_abs learns it from reverted probes
              * (they are literal null experiments: flip+unflip, no true change). A gain must beat
              * both scales; until the first null observation the sigma test alone applies. */
-            int real_gain = (z > 1.0) && ((after - fc->before) > 2.0 * fc->null_abs);
+            int real_gain = (z > 1.0) && ((after - fc->before) > 2.0 * fc->null_abs)
+                                     && ((after - fc->before) > 0.02 * fc->before);
             if (real_gain) {
                 /* signal-exceeds-noise GAIN: keep it, keep climbing the same way, probe again soon.
                  * We MOVED, so the neighbourhood is new — clear the probed set and any convergence. */
                 fc->backoff = 0; fc->wait = FESC_WAIT_BASE;
                 fc->probed_mask = 0; fc->converged = 0;
+                fc->null_ref_valid = 0;                      /* we MOVED: old baseline is another config */
                 serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> keep + climb",
                           node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
             } else {
@@ -16615,21 +16745,15 @@ static void tomoFlipController(void) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f, null %.0f) after %s -> REVERT",
                           node, z, fc->before, after, sigma, fc->null_abs, fc->last_dir > 0 ? "grow-front" : "grow-back");
                 fc->revert_dir = -fc->last_dir; fc->revert_retry = 0;   /* watch for a mid-flight abort */
-                /* null-scale learning: this probe measured "no true change" — its |delta| samples the
-                 * between-window noise. EWMA (1/4) tracks slow drift-regime changes. */
-                {
-                    double d = fabs(after - fc->before);
-                    fc->null_abs += 0.25 * (d - fc->null_abs);
-                }
+                fc->null_ref = fc->before; fc->null_ref_valid = 1;      /* we are BACK at this config */
                 fc->probed_mask |= (fc->last_dir > 0) ? 1 : 2;
                 fc->dir = -fc->last_dir;                     /* explore the other direction next time */
-                if ((fc->probed_mask & 3) == 3) {            /* both neighbours worse => optimum found */
-                    fc->converged = 1; fc->conv_mean = fc->mean; fc->shift_run = 0;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] CONVERGED at %.0f ops/s (both neighbours worse) -> hold",
-                              node, fc->conv_mean);
-                } else {
-                    if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
-                }
+                /* NOTE: convergence is NOT decided here. At judge time w_live/io_live still reflect
+                 * the MID-PROBE config (the revert above is async), so can_front/can_back lie about
+                 * the baseline we are returning to — deciding here made pool-edge convergence
+                 * unreachable (observed: endless single-direction re-probes at max backoff). The
+                 * probe-launch path re-checks with honest baseline counts and latches there. */
+                if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
                 fc->wait = FESC_WAIT_BASE << fc->backoff;
             }
             fc->phase = 0;
@@ -16650,6 +16774,8 @@ static void tomoFlipController(void) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] workload shift: baseline %.0f vs %.0f ops/s (sigma %.0f) -> re-open search",
                           node, fc->conv_mean, fc->mean, sigma);
                 fc->converged = 0; fc->probed_mask = 0; fc->backoff = 0; fc->wait = 0;
+                fc->null_abs = 0; fc->null_ref_valid = 0;    /* old regime's drift scale is meaningless */
+                fc->dir = 0;                                  /* let the qd-trend chooser repick */
             } else {
                 if (now - last_log >= 5000) {
                     serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD (converged) %.0f ops/s (baseline %.0f) | w_live=%d io=%d",
@@ -16674,6 +16800,38 @@ static void tomoFlipController(void) {
          * scores identically (zero), and a flip is pure churn on noise. Observational fact, not a
          * threshold: any nonzero pressure re-enables probing immediately. */
         if (node_idle) { fc->wait = FESC_WAIT_BASE; continue; }
+        fc->before = fc->mean;
+        /* Same-config null harvest + regime guard — BEFORE the convergence check so a workload swap
+         * resets probed_mask instead of latching a stale convergence. The previous probe REVERTED,
+         * so this launch observes the same config again: |baseline diff| across the gap IS the
+         * between-window drift, uncontaminated by any real flip effect. A jump >50%% of scale is a
+         * WORKLOAD SWAP between runs, not drift: restart the search context, don't poison the null. */
+        if (fc->null_ref_valid) {
+            double nd = fabs(fc->before - fc->null_ref);
+            double nscale = fc->before > fc->null_ref ? fc->before : fc->null_ref;
+            if (nd > 0.5 * nscale) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] regime change between probes (%.0f -> %.0f) -> reset search",
+                          node, fc->null_ref, fc->before);
+                fc->probed_mask = 0; fc->backoff = 0;
+                fc->null_abs = 0; fc->null_ref_valid = 0;
+            } else {
+                fc->null_abs += 0.25 * (nd - fc->null_abs);
+            }
+        }
+        /* Converge-at-launch: every REACHABLE neighbour measured worse. A direction the pool cannot
+         * flip (min-1-ex, or io at its configured floor — only EX-origin threads flip back) counts
+         * as explored: waiting for an unprobeable neighbour would make convergence unreachable at a
+         * pool edge (observed live at the 4io/4ex boot: can_back false => 50min churn, 0 CONVERGED).
+         * Decided HERE because live counts honestly describe the baseline config at launch time. */
+        {
+            int unavail = (can_front ? 0 : 1) | (can_back ? 0 : 2);
+            if (((fc->probed_mask | unavail) & 3) == 3) {
+                fc->converged = 1; fc->conv_mean = fc->mean; fc->shift_run = 0;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] CONVERGED at %.0f ops/s (all reachable neighbours worse) -> hold",
+                          node, fc->conv_mean);
+                continue;
+            }
+        }
         /* Probe direction. ee451 (user design): pick the FIRST direction by comparing io-side vs
          * ex-side throughput. At steady state the two rates are equal (every op flows io->ex), so
          * their difference is precisely the queue-depth trend: standing worker-queue depth means ex
@@ -16692,19 +16850,28 @@ static void tomoFlipController(void) {
         }
         if (dir > 0 && !can_front) dir = can_back ? -1 : 0;
         else if (dir < 0 && !can_back) dir = can_front ? +1 : 0;
+        /* don't waste a probe on a neighbour already measured worse while the other is open
+         * (both-probed / probed+unreachable already converged above) */
+        if (dir != 0 && (fc->probed_mask & (dir > 0 ? 1 : 2))) {
+            int od = -dir;
+            if ((od > 0 && can_front) || (od < 0 && can_back)) dir = od;
+        }
         if (dir == 0) { fc->wait = FESC_WAIT_BASE; continue; }
 
         const char *err = NULL;
-        fc->before = fc->mean;
         if (tmFlipDo(node, dir, &err)) {
             server.tm_flip_aborted = 0;                  /* clear any stale abort from a manual flip */
             fc->revert_dir = 0; fc->revert_retry = 0;    /* new probe anchors on the ACTUAL config */
             fc->last_dir = dir; fc->dir = dir;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
+            fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
+            fc->rs_quiet = 0;
             serverLog(LL_NOTICE, "[flip-ctl n%d] PROBE %s (baseline %.0f ops/s, sigma %.0f) -> settle+measure",
                       node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", fc->before, sigma);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
+            serverLog(LL_NOTICE, "[flip-ctl n%d] probe %s refused: %s -> try other dir",
+                      node, dir > 0 ? "grow-front" : "grow-back", err);
             fc->dir = -dir;                                  /* that way is blocked — try the other next */
             fc->wait = FESC_WAIT_BASE;
         }

@@ -305,3 +305,31 @@ exposed three controller defects; all fixed + validated before sweep relaunch:
 Validation (3min GET → 3min HGETALL shift): flips 70→8, CONVERGED+HOLD engages (9.1M), 0 aborts,
 shift re-opens in ~3s and re-converges in 12s at 6io/2ex; HGETALL phase +64% vs the desynced run
 (651k vs 396k). GET steady 8.9-9.4M ops/s across both runs.
+
+## 2026-07-23 (cont) — second tripwire round: null poisoning, edge convergence, flip-skew leveling
+Relaunched sweep tripped again (118 flips/50min, 0 CONVERGED, p1 stuck −15%). Root causes + fixes:
+4. **Null self-poisoning**: feeding |delta| of REVERTED probes into null_abs is circular — rejected
+   real gains (p1 grow-front +19%, five times) sustain the very null that rejects them, and real
+   losses (p32 −1.7M) inflate it further. Fix: null samples now come from CONSECUTIVE probe
+   baselines at the SAME config (honest between-window drift, ~2-4k at p1 vs the poisoned 115k);
+   >50% baseline jump = workload swap → reset search context instead of sampling. Plus a 2%
+   relative gain floor for the null_abs=0 cold start.
+5. **Convergence unreachable at pool edges**: only EX-origin threads flip back (io floor = configured
+   io_threads), so the "back" probed_mask bit could never set at the boot config. Fix: unavailable
+   directions count as explored; latch moved to probe-launch time (phase-2 judge sees MID-PROBE
+   live counts — the revert is async — and lied about baseline reachability). Launch also skips
+   re-probing a known-worse direction.
+6. **Settle gate measured mid-rebalance**: post-flip bucket moves + cache warmup under-read the new
+   config (4io/4ex probed 4.56M vs 5.8M settled) → hill-climb parked in worse configs. Fix:
+   reshard_done_seq quiescence gate — settle requires rate plateau AND no reshard completing for
+   SETTLE_N (3→5) ticks; WARM_CAP still bounds.
+7. **Flip-skew leveling**: a 7io→4io grow-back cascade leaves [8k,4k,2k,2k] bucket counts (LIFO
+   neighbour-halving) = 75% of even capacity, and the EWMA outlier balancer is structurally blind
+   to it (bimodal skew inflates sigma; cool workers not adjacent to hot). Fixes: (a) exact post-flip
+   RELEVEL cascade — while tm_relevel_pending, walk live boundaries vs even-count targets, one O(1)
+   range-flip per tick, EWMA balancing paused; (b) DIFFUSE pass as general safety net — steepest
+   adjacent-pair imbalance (>0.25*mean) shifts an imbalance-proportional chunk, own settle/streak/
+   no-progress state.
+Validation (A: p1 GET / B: p32 GET / C: 80f HGETALL, one server session): A 809k conv@7 flips
+(+34% vs stuck); B 6.54M avg, holds 6.87M at leveled 4io/4ex — ABOVE the 6.29M churned preflight
+and 5.8M skewed baselines; C 457k conv at floor. Total 18 flips, 3 CONVERGED, 2 re-opens, 0 aborts.

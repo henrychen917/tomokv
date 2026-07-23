@@ -2614,6 +2614,15 @@ struct redisServer {
     int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
                                     * CANCEL the in-flight probe (config never left baseline: nothing to
                                     * measure, nothing to revert). */
+    int tm_relevel_pending;        /* a completed role-flip left a deterministically skewed bucket
+                                    * layout (grow-back seeds by halving ONE neighbour; grow-front
+                                    * dumps a whole range on one worker). While set, the balancer
+                                    * tick runs an exact even-count re-level cascade (one O(1)
+                                    * range-flip per tick) instead of EWMA balancing. */
+    _Atomic uint64_t reshard_done_seq;  /* bumped on every completed bucket-range move; the flip
+                                    * controller's settle gate waits for this to go QUIET before
+                                    * judging a probe (a mid-rebalance measurement under-reads the
+                                    * new config and wedges the hill-climb in a worse one). */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
