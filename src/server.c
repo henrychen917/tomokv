@@ -7745,9 +7745,10 @@ static int csPipeAdvance(csGroup *g) {
  * Restricted to !cs_write && !has_hop2 rows: reads need no migration effect-capture, and their
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
-static void dispatchLocalReal(client *head, int w, int dbid) {
+static void dispatchLocalReal(client *head, int w, int dbid, int node_lock) {
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
+    g->cs_node_lock = node_lock;   /* set BEFORE the push: the sub may execute immediately */
     g->subs = zmalloc(sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
@@ -7764,15 +7765,39 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     if (s->numkeys_argi) { long long nk;                  /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
-    /* xshard-localfast: single-owner read-only fast path (see dispatchLocalReal). */
+    /* xshard-localfast: single-owner read-only fast path (see dispatchLocalReal).
+     * ee451 (shared-kv payoff): widened to single-NODE — with per-node shared kvstores, a read
+     * whose keys all live in ONE node runs the STOCK proc on the first key's owner worker under
+     * ALL of that node's worker locks (ascending; released after the proc). Byte-exact incl.
+     * every stock side-effect (lazy expiry, LRU touch, stats, notify — under the owning worker's
+     * lock via the shared dict). Requires mcmd-lock (the lock discipline) + shared node dbs.
+     * Same-WORKER stays the plain single-lock localfast regardless. */
     if (server.xshard_localfast && !s->cs_write && !s->has_hop2 && nkeys >= 1) {
-        int w0 = -1, same = 1;
+        int w0 = -1, same = 1, node0 = -1, same_node = 1;
         for (int i = 0; i < nkeys; i++) {
             robj *key = head->argv[first + i * s->key_stride];
             int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-            if (w0 < 0) w0 = w; else if (w != w0) { same = 0; break; }
+            int nd = tmNodeOfWorker(w);
+            if (w0 < 0) { w0 = w; node0 = nd; }
+            else {
+                if (w != w0) same = 0;
+                if (nd != node0) { same_node = 0; break; }
+            }
         }
-        if (same) { dispatchLocalReal(head, w0, dbid); return; }
+        if (same) { dispatchLocalReal(head, w0, dbid, 0); return; }
+        /* Measured gate (payoff bench, 200-member sets): node-local WINS intersection-shaped ops
+         * (small result, per-shard round-trips dominate: SINTER +40-51%, SINTERCARD +22%,
+         * ZINTERCARD +6%) and LOSES result-heavy ones (SUNION 0.61x — the reference computes
+         * unions on the IO threads, 4-way parallel across pipelined requests, while node-local
+         * funnels one worker; ZINTER 0.87x — the reference largest-driver fold beats the stock
+         * accumulator). So: INTER-family + counts + TOUCH only; unions/diffs/zops keep their
+         * optimized paths. */
+        if (same_node && server.shared_node_dbs && server.mcmd_lock &&
+            ((s->ctype == CS_SETOP && s->setop == CS_SETOP_INTER) ||
+             s->ctype == CS_SETCARD || s->ctype == CS_ZCARD || s->ctype == CS_EXISTS)) {
+            dispatchLocalReal(head, w0, dbid, node0 + 1);   /* node-locked stock exec */
+            return;
+        }
     }
     /* merge-execution pipeline: cross-shard INTER family (sets + zsets), read-only rows only. */
     if (server.xshard_pipeline && !s->cs_write && !s->has_hop2 && nkeys >= 2 &&
@@ -13977,9 +14002,21 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                  * mutates/reads. Borrow subs (g->mcmd_borrow) self-lock per key and skip this. Inert
                  * when the knob is off. */
                 int cs_lk = (__builtin_expect(server.mcmd_lock, 0) && !g->mcmd_borrow);
-                if (cs_lk) tomoWkrLock(worker->id);
-                csSubExec(fake);
-                if (cs_lk) tomoWkrUnlock(worker->id);
+                if (cs_lk && g->cs_node_lock) {
+                    /* ee451 (shared-kv payoff): node-locked CS_LOCAL — the stock proc reads keys
+                     * owned by SEVERAL workers of this node's shared kvstore; hold every node
+                     * worker's lock across it (ascending => cycle-free vs S2/borrow/other nodes). */
+                    int node = g->cs_node_lock - 1, wpn = server.ex_per_node;
+                    int wlo = node * wpn, whi = wlo + wpn;
+                    if (whi > server.num_workers) whi = server.num_workers;
+                    for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
+                    csSubExec(fake);
+                    for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
+                } else {
+                    if (cs_lk) tomoWkrLock(worker->id);
+                    csSubExec(fake);
+                    if (cs_lk) tomoWkrUnlock(worker->id);
+                }
                 if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
                     client *hp = g->head->parent;
                     atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,

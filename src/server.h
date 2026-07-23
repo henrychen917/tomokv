@@ -1915,6 +1915,10 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
+    int cs_node_lock;          /* ee451 (shared-kv payoff): CS_LOCAL sub must hold ALL of node (val-1)'s
+                                * worker locks across the stock proc — its keys span multiple owners
+                                * within ONE shared node kvstore. 0 = plain single-owner localfast.
+                                * Ascending acquisition order => no lock cycle with S2/borrow/other nodes. */
     int mcmd_borrow;           /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow MGET (numa_nodes>=2):
                                 * each sub carries ONE node's keys but they span multiple workers, so the sub
                                 * reads each key from its TRUE owner db under that owner's per-worker lock
