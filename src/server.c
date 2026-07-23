@@ -14894,12 +14894,24 @@ void *polyThreadMain(void *arg) {
                         if (exSlice(ctx->ex, &exctx)) quiet0 = mstime();
                     /* V1 invariant: a parked shard is EMPTY — the outbound migration
                      * moved the spare's whole range and nothing routes here. Fail loud
-                     * rather than park data. */
+                     * rather than park data.
+                     * ee451 (shared-kv): under per-node sharing ctx->ex->db IS the node's shared
+                     * kvstore — its keys legitimately remain (the outbound migration FLIPPED
+                     * ownership; data never moves). The park invariant becomes "this worker owns
+                     * ZERO buckets" (nothing routes here), not "zero keys in the kvstore". */
                     long long resid = 0;
-                    for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
-                    if (resid != 0)
-                        serverLog(LL_WARNING, "thread-modes: parking spare worker %d with %lld keys "
-                                              "still in its shard — v1 invariant violated", ctx->ex->id, resid);
+                    if (server.shared_node_dbs) {
+                        for (int b = 0; b < TOMO_BUCKETS; b++)
+                            if (server.ex_bucket_table[b] == ctx->ex->id) resid++;
+                        if (resid != 0)
+                            serverLog(LL_WARNING, "thread-modes: parking worker %d still owning %lld "
+                                                  "buckets — flip invariant violated", ctx->ex->id, resid);
+                    } else {
+                        for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
+                        if (resid != 0)
+                            serverLog(LL_WARNING, "thread-modes: parking spare worker %d with %lld keys "
+                                                  "still in its shard — v1 invariant violated", ctx->ex->id, resid);
+                    }
                     serverAssert(resid == 0);
                     serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT EX->PARKED complete — "
                                          "spare worker %d parked (shard empty, queues quiet)", ctx->ex->id);
