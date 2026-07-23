@@ -165,6 +165,11 @@ static void tomoFlipController(void);      /* the 4Hz auto flip controller (alwa
 static int tmNumNodes(void);               /* logical node helpers, defined below */
 static int tmNodeOfWorker(int w);
 static int tmNodeOfIoSlot(int io_slot);
+static int tmWorkerLive(int w);            /* per-node flip: worker-slot liveness (per-node prefixes) */
+static void tmNodeWliveAdd(int w, int delta);   /* per-node flip: node live-count bookkeeping */
+static void tmNodeIoliveAdd(int w_of_ctx, int delta);
+static int tomoGrowFrontNode(int node, const char **err);  /* per-node flip actuators */
+static int tomoGrowBackNode(int node, const char **err);
 
 /* ee451 (thread-modes step 4, p99 guardrail): stamp ~1/1024 worker-dispatched fakes with a
  * dispatch timestamp. Called on the dispatching IO thread right BEFORE the queue push (the
@@ -3560,6 +3565,16 @@ void initServer(void) {
      * for the EX-capable subset of that. */
     server.num_workers_alloc = server.num_workers;
     atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
+    /* ee451 (per-node flip): per-node live prefixes — full at boot. */
+    {
+        int nn = server.numa_nodes > 0 ? server.numa_nodes : 1;
+        int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+        int ipn = server.io_per_node > 0 ? server.io_per_node : server.io_threads;
+        for (int n = 0; n < 16 && n < nn; n++) {
+            atomic_store_explicit(&server.tm_node_wlive[n], wpn, memory_order_relaxed);
+            atomic_store_explicit(&server.tm_node_iolive[n], ipn, memory_order_relaxed);
+        }
+    }
     server.tm_mig_spare_action = 0;
     /* ee451 (thread-modes step 4): the balancer runs on the poly-thread apparatus —
      * without thread-modes there is nothing to shift. FATAL-warn + ignore at boot
@@ -5918,17 +5933,26 @@ int getWorkerForCommand(client *c) {
         /* ee451 (thread-modes step 3): weight over the LIVE worker set — the returned index
          * is dispatched to, so it must be a consuming worker. A live spare is included; a
          * dormant one has an empty shard (zero weight) and must never be picked. */
-        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+        /* ee451 (per-node flip): the live set is per-node prefixes, no longer one global prefix —
+         * iterate all slots through the liveness predicate. numa==1 is bit-identical (predicate
+         * degrades to the global prefix). */
+        int nmax = server.num_workers_alloc;
         long long total = 0;
-        for (int w = 0; w < nlive; w++) total += dbSize(&server.exThreads[w].db[dbid]);
+        int last_live = 0;
+        for (int w = 0; w < nmax; w++) {
+            if (!tmWorkerLive(w)) continue;
+            total += dbSize(&server.exThreads[w].db[dbid]);
+            last_live = w;
+        }
         if (total <= 0) return 0;
         long long pick = (long long)(random() % total);
-        for (int w = 0; w < nlive; w++) {
+        for (int w = 0; w < nmax; w++) {
+            if (!tmWorkerLive(w)) continue;
             long long s = dbSize(&server.exThreads[w].db[dbid]);
             if (pick < s) return w;
             pick -= s;
         }
-        return nlive - 1;
+        return last_live;
     }
     /* Assumes argv[1] is the command's sole key. canDispatchToWorker
      * enforces this invariant — every whitelisted command above is of
@@ -5956,6 +5980,17 @@ int exIndexForKey(const void *keyptr, size_t len) {
  * getKeySlot/calculateKeySlot (xxh64 is file-static here). Pure function, any thread. */
 int tomoKeyBucket(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
+}
+
+/* ee451 (per-node flip): is worker slot w in the LIVE (consuming) set? numa==1 keeps the legacy
+ * global prefix [0, num_workers_live) — including a live spare at slot num_workers. numa>=2 uses
+ * the per-NODE prefixes (grow-front parks the node's highest worker => per-node contiguity). */
+static int tmWorkerLive(int w) {
+    if (server.numa_nodes <= 1 || server.ex_per_node <= 0)
+        return w < atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (w >= server.num_workers) return 0;             /* spare: unsupported with numa>=2 */
+    return (w % server.ex_per_node) <
+           atomic_load_explicit(&server.tm_node_wlive[w / server.ex_per_node], memory_order_acquire);
 }
 
 /* ==== M-command lock-borrow (EXPERIMENT, 2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
@@ -7889,7 +7924,13 @@ static void dispatchFanAll(client *head) {
      * between the activation FLIP and live++ — sub-second windows), the spare's keys are
      * invisible to KEYS — the same weak-consistency class KEYS already has under any
      * migration (dictScan dup/miss). */
-    int nw = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    /* ee451 (per-node flip): the live set is per-node prefixes — enumerate via tmWorkerLive
+     * (numa==1: bit-identical to the old [0, live) walk). cssub_idx stays the WORKER id, not the
+     * sub index — the shared-kv CS_KEYS range iteration derives the bucket range from it. */
+    int lw[TOMO_EX_THREADS_MAX + 1];
+    int nw = 0;
+    for (int w = 0; w < server.num_workers_alloc; w++)
+        if (tmWorkerLive(w)) lw[nw++] = w;
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = zmalloc(sizeof(client*) * nw);
@@ -7899,7 +7940,8 @@ static void dispatchFanAll(client *head) {
     head->csgroup = g;
     head->cdb = 0;
     int dbid = head->db->id;
-    for (int w = 0; w < nw; w++) {
+    for (int i = 0; i < nw; i++) {
+        int w = lw[i];
         client *sub = createPooledFakeClient(head->parent);
         sub->csparent = g; sub->cssub_idx = w; sub->cmd = head->cmd;
         sub->resp = head->resp;
@@ -7909,7 +7951,7 @@ static void dispatchFanAll(client *head) {
         for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
         sub->argc = head->argc;
         sub->db = &server.exThreads[w].db[dbid];
-        g->subs[w] = sub;
+        g->subs[i] = sub;
         csPushSpin(w, sub);
     }
 }
@@ -8957,7 +8999,10 @@ void flushAllShards(client *c, int dbid, int async) {
     if (server.shared_node_dbs) {
         while (atomic_load_explicit(&server.migration_active, memory_order_acquire)) usleep(200);
         int wpn = server.ex_per_node;
-        int nshard = nflush > server.num_workers ? server.num_workers : nflush;
+        /* ee451 (per-node flip): scan ALL worker slots — the global live sum can be smaller than a
+         * live worker's slot index once nodes flip independently. The zero-bucket skip below already
+         * excludes parked/converted slots (park asserts zero buckets owned). */
+        int nshard = server.num_workers;
         tomoFlushBar *bars = zcalloc(sizeof(tomoFlushBar) * (server.n_node_dbs + 1));
         for (int n = 0; n <= server.n_node_dbs; n++) bars[n].base = bars;
         int total = 0;
@@ -9539,6 +9584,7 @@ static void reshardCoordinatorTick(void) {
          * to the live set (num_workers_live++). dst == the current live count (workers 0..live-1
          * plus this new index), so the increment lands it at dst+1. */
         atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        tmNodeWliveAdd(dst, +1);                             /* per-node flip accounting */
         serverLog(LL_NOTICE, "ee451 flip: GROW-BACK worker %d LIVE (num_workers_live=%d)",
                   dst, atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
     }
@@ -9768,7 +9814,11 @@ void reshardAutoTune(void) {
      * core-capacity normalization was a one-shot calibration AND poisoned the spread). */
     double sum_ewma = 0, sum_fast = 0, sum_rate = 0, hotv = -1;
     int hot = 0;
-    for (int w = 0; w < W; w++) {
+    /* ee451 (per-node flip): W is the global SUM; the live set is per-node prefixes. Scan every
+     * slot through the predicate (parked slots skipped; their EWMA was zeroed at the flip). */
+    int wmax = server.num_workers_alloc;
+    for (int w = 0; w < wmax; w++) {
+        if (!tmWorkerLive(w)) continue;
         uint64_t ops = tomoRelaxedRead(server.exThreads[w].ops_total);   /* relaxed read of a per-thread stat */
         uint64_t rate = ops - mig_last_ops[w];
         mig_last_ops[w] = ops;
@@ -9798,7 +9848,8 @@ void reshardAutoTune(void) {
         hot_bar_fast = eff * mean_fast;
     } else {
     double var = 0, var_fast = 0;
-    for (int w = 0; w < W; w++) {
+    for (int w = 0; w < wmax; w++) {
+        if (!tmWorkerLive(w)) continue;                /* ee451 (per-node flip): live set only */
         double d = mig_load_ewma[w] - mean;            var += d * d;
         double df = mig_load_ewma_fast[w] - mean_fast; var_fast += df * df;
     }
@@ -9864,8 +9915,10 @@ void reshardAutoTune(void) {
      * => tmNodeOfWorker is always 0 => bit-for-bit the previous adjacent selection. */
     int left = hot - 1, right = hot + 1, B = -1;
     int hnode = tmNodeOfWorker(hot);
-    int lok = (left >= 0)  && (tmNodeOfWorker(left)  == hnode);
-    int rok = (right < W)  && (tmNodeOfWorker(right) == hnode);
+    /* ee451 (per-node flip): `right < W` was a global-prefix liveness test — with per-node prefixes
+     * a live high-slot worker could sit above the shrunken global sum. Use the predicate. */
+    int lok = (left >= 0)  && tmWorkerLive(left)  && (tmNodeOfWorker(left)  == hnode);
+    int rok = tmWorkerLive(right) && (tmNodeOfWorker(right) == hnode);
     if (lok && rok) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
     else if (lok)   B = left;
     else if (rok)   B = right;
@@ -9968,11 +10021,12 @@ void reshardDebug(client *c) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
         int lo = atoi(c->argv[3]->ptr), hi = atoi(c->argv[4]->ptr);
         int src = atoi(c->argv[5]->ptr), dst = atoi(c->argv[6]->ptr);
-        /* ee451 (thread-modes step 3): bound by the LIVE set — manual migrations may target a
-         * live spare, never a dormant one (its thread isn't consuming; use modeshift 2). */
-        int nlive = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+        /* ee451 (thread-modes step 3 + per-node flip): membership via the liveness predicate — the
+         * live set is per-node prefixes, no longer bounded by the global sum. */
         if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi ||
-            src < 0 || dst < 0 || src >= nlive || dst >= nlive || src == dst) {
+            src < 0 || dst < 0 || src == dst ||
+            src >= server.num_workers_alloc || dst >= server.num_workers_alloc ||
+            !tmWorkerLive(src) || !tmWorkerLive(dst)) {
             addReplyError(c, "bad range/workers"); return;
         }
         if (!reshardArm(lo, hi, src, dst)) {
@@ -14984,20 +15038,29 @@ static int tmGatherLiveDests(int exclude, int *out, int cap);   /* defined below
 static long tmIoThreadLoad(int id);                             /* defined below */
 static int tmClientMigratable(client *c);                       /* defined below */
 
-int tomoGrowFront(const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
-    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
-    if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; return 0; }
+/* ee451 (per-node flip): node liveness bookkeeping — no-ops on numa==1 (globals carry it). */
+static void tmNodeWliveAdd(int w, int delta) {
+    if (server.numa_nodes <= 1 || server.ex_per_node <= 0) return;
+    atomic_fetch_add_explicit(&server.tm_node_wlive[w / server.ex_per_node], delta, memory_order_release);
+}
+static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inherits its EX worker's node */
+    if (server.numa_nodes <= 1 || server.ex_per_node <= 0) return;
+    atomic_fetch_add_explicit(&server.tm_node_iolive[w_of_ctx / server.ex_per_node], delta, memory_order_release);
+}
+
+/* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. Callers have
+ * validated liveness order; this does the ctx/migration mechanics + BOTH global and node counts. */
+static int tomoGrowFrontWorker(int w, const char **err) {
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
     if (io_live >= server.io_threads + server.tm_ngrow_io) { *err = "no growth io slot available"; return 0; }
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; return 0; }
-    int w = live - 1;                                   /* highest live worker converts */
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
     if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; return 0; }
     if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; return 0; }
+    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     /* Migrate w's WHOLE range to its neighbor w-1 (prefix move, dst=src-1 — the FLIP bookkeeping
-     * handles it; validated by reshardRangeValid's boundary+ownership checks). */
+     * handles it; validated by reshardRangeValid's boundary+ownership checks). Same-node by
+     * construction: w is its node's highest LIVE worker and live_n >= 2, so w-1 is node-internal. */
     int lo = (w == 0) ? 0 : server.ex_bucket_end[w - 1];
     int hi = server.ex_bucket_end[w];
     if (hi <= lo) {
@@ -15007,6 +15070,7 @@ int tomoGrowFront(const char **err) {
          * checkpoint's drain+empty assertion holds) and let tmFlipTick convert PARKED->IO. */
         server.tm_flip_ctx = ctx; server.tm_flip_target = TOMO_MODE_IO;
         atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
+        tmNodeWliveAdd(w, -1);
         atomic_store_explicit(&ctx->target_mode, TOMO_MODE_PARKED, memory_order_release);
         serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, park->IO directly (io_slot %d)",
                   w, ctx->io_slot);
@@ -15017,16 +15081,26 @@ int tomoGrowFront(const char **err) {
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
      * while it keeps draining, exactly like the spare deactivation. */
     atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
+    tmNodeWliveAdd(w, -1);
     server.tm_mig_spare_action = 2;                     /* coordinator tail parks tm_flip_ctx */
     if (!reshardArm(lo, hi, w, w - 1)) {
         server.tm_mig_spare_action = 0; server.tm_flip_ctx = NULL;
         atomic_store_explicit(&server.num_workers_live, live, memory_order_release);
+        tmNodeWliveAdd(w, +1);
         *err = "reshardArm rejected the grow-front migration"; return 0;
     }
     reshardBeginCutover();
     serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d converting to IO (io_slot %d); "
                          "range [%d,%d) -> worker %d, then park->IO", w, ctx->io_slot, lo, hi, w - 1);
     return 1;
+}
+
+int tomoGrowFront(const char **err) {
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; return 0; }
+    return tomoGrowFrontWorker(live - 1, err);          /* highest live worker converts */
 }
 
 static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined below */
@@ -15038,13 +15112,10 @@ static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined bel
  * then parks. tmFlipTick then revives it PARKED->EX and seeds it a bucket range from its neighbor.
  * Only a GROWN io slot can grow back (a native io thread / main has no EX binding). Non-blocking:
  * arms IO-EXIT here, tmFlipTick drives the rest. */
-int tomoGrowBack(const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
-    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
-    if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; return 0; }
+/* Core grow-back: convert grown io slot `io_slot` back to its EX worker. Callers pick the slot
+ * (global: highest grown; per-node: the node's highest IO-mode grown slot). */
+static int tomoGrowBackSlot(int io_slot, const char **err) {
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; return 0; }
-    int io_slot = io_live - 1;                          /* highest grown io thread (LIFO with grow-front) */
     polyThreadCtx *ctx = tmCtxForIotid(io_slot);
     if (!ctx || !ctx->ex) { *err = "grown io thread has no EX binding to revive"; return 0; }
     if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) { *err = "thread not in IO mode"; return 0; }
@@ -15083,6 +15154,14 @@ int tomoGrowBack(const char **err) {
     return 1;
 }
 
+int tomoGrowBack(const char **err) {
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
+    if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; return 0; }
+    return tomoGrowBackSlot(io_live - 1, err);          /* highest grown io thread (LIFO with grow-front) */
+}
+
 /* Drive a flip to completion (main thread, from beforeSleep). Non-blocking: each call advances one
  * edge. GROW-FRONT (target IO): after the migration parks the flipping worker, bring it to IO and
  * publish io_threads_live. GROW-BACK (target EX): a 3-phase machine — await IO-EXIT park, revive
@@ -15100,6 +15179,7 @@ void tmFlipTick(void) {
         }
         if (m == TOMO_MODE_IO) {                        /* conversion complete */
             atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);   /* per-node flip accounting */
             serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT complete — io_threads_live=%d num_workers_live=%d "
                                  "(io_slot %d now accepting)",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
@@ -15139,6 +15219,7 @@ void tmFlipTick(void) {
             }
             server.tm_flip_ticks = 0;
             atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
+            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);   /* per-node flip accounting */
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread parked (io_threads_live=%d); reviving as EX",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
             atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_release);  /* PARKED->EX */
@@ -15154,6 +15235,7 @@ void tmFlipTick(void) {
             int hi_src = server.ex_bucket_end[src];
             if (hi_src - lo_src < 2) {                  /* neighbor too small to split — leave worker empty-but-live */
                 atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+                tmNodeWliveAdd(w, +1);                       /* per-node flip accounting */
                 serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — worker %d LIVE (no seed; neighbor too small) "
                                      "num_workers_live=%d", w,
                           atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
@@ -15873,7 +15955,10 @@ int tomoMigrateTest(int val, const char **err) {
         return 1;
     }
     if (val == 7) return tomoGrowFront(err);   /* flip: convert highest EX worker -> IO (4/4->5/3) */
-    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance, 7 = grow-front)";
+    if (val == 8) return tomoGrowBack(err);    /* flip: convert highest grown io thread back -> EX */
+    if (val >= 70 && val < 80) return tomoGrowFrontNode(val - 70, err);  /* per-node grow-front (n<10) */
+    if (val >= 80 && val < 90) return tomoGrowBackNode(val - 80, err);   /* per-node grow-back  (n<10) */
+    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance, 7/8 = grow front/back, 70+n / 80+n = per-node)";
     return 0;
 }
 
@@ -16178,8 +16263,6 @@ static void tomoThreadBalanceCron(void) {
  * enforce the per-role bounds. No-op unless tomokv-thread-balance (which also feeds busy_ewma_q4,
  * so the grow-front client rebalance runs EWMA-weighted rather than conn-count when this is on). */
 /* Per-node flip actuators (numa_nodes>=2). Defined below; see the node-scoped implementations. */
-static int tomoGrowFrontNode(int node, const char **err);
-static int tomoGrowBackNode(int node, const char **err);
 
 /* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
  * load balancing and flip decisions are ALL within-node; cross-node balancing is disabled). Nodes
@@ -16448,11 +16531,46 @@ static void tomoFlipController(void) {
  * needs a per-worker live_as_ex flag + fan-out updates + concurrent-migration slots — tracked as the
  * next stage. Until then these refuse cleanly so numa_nodes==1 (the default + the 1-simnode bench)
  * is fully live and numa_nodes>=2 boots + does within-node EWMA scoping without an incorrect flip. */
+/* ee451 (per-node flip, LIVE): the per-worker-liveness groundwork landed (tm_node_wlive prefixes +
+ * tmWorkerLive predicate + fan-out/balancer conversions), so each node flips INDEPENDENTLY with the
+ * same algorithm as a single big node: convert the node's HIGHEST live worker (LIFO within the
+ * node), hand its range to the node-internal neighbor via the O(1) flip reshard. Conversions from
+ * different nodes serialize through the single global migration gate (one flip in flight at a
+ * time) — each node still DECIDES from its own controller state; truly concurrent migrations are a
+ * future stage (needs per-node migration state). */
+/* ee451 (per-node flip): config-hook entry — 70+n = grow-front(node n), 80+n = grow-back(node n). */
+int tomoNodeFlipTest(int val, const char **err) {
+    if (val >= 70 && val < 80) return tomoGrowFrontNode(val - 70, err);   /* 70+n, n<10 */
+    if (val >= 80 && val < 90) return tomoGrowBackNode(val - 80, err);    /* 80+n, n<10 */
+    *err = "bad per-node flip test value"; return 0;
+}
+
 static int tomoGrowFrontNode(int node, const char **err) {
-    UNUSED(node); *err = "per-node grow-front is staged (numa_nodes>=2 needs per-worker liveness)"; return 0;
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
+    int wpn = server.ex_per_node;
+    if (wpn <= 0) { *err = "no per-node topology"; return 0; }
+    int live_n = atomic_load_explicit(&server.tm_node_wlive[node], memory_order_acquire);
+    if (live_n <= 1) { *err = "need >= 2 live EX workers in the node"; return 0; }
+    return tomoGrowFrontWorker(node * wpn + live_n - 1, err);   /* node's highest live worker */
 }
 static int tomoGrowBackNode(int node, const char **err) {
-    UNUSED(node); *err = "per-node grow-back is staged (numa_nodes>=2 needs per-worker liveness)"; return 0;
+    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
+    if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
+    /* The node's highest grown io slot currently serving IO (LIFO within the node). */
+    int pick = -1;
+    for (int g = 0; g < server.tm_ngrow_io; g++) {
+        int slot = server.io_threads + g;
+        polyThreadCtx *c = tmCtxForIotid(slot);
+        if (!c || !c->ex) continue;
+        if (tmNodeOfWorker(c->ex->id) != node) continue;
+        if (atomic_load_explicit(&c->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
+        if (slot > pick) pick = slot;
+    }
+    if (pick < 0) { *err = "no grown io thread in this node to convert back"; return 0; }
+    return tomoGrowBackSlot(pick, err);
 }
 
 //ee451

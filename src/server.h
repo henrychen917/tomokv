@@ -2589,6 +2589,14 @@ struct redisServer {
      * reshard coordinator (increment at FLIP — the bucket remap IS the go-live). */
     int num_workers_alloc;
     _Atomic int num_workers_live;
+    /* ee451 (per-node flip): per-NODE live prefixes. Node n's live workers are the prefix
+     * [n*ex_per_node, n*ex_per_node + tm_node_wlive[n]) — grow-front converts the node's HIGHEST
+     * live worker (LIFO within the node), so per-node contiguity holds even though the GLOBAL live
+     * set is no longer one prefix. num_workers_live stays the SUM (legacy consumers see totals);
+     * membership tests go through tmWorkerLive(). tm_node_iolive counts the node's live io threads
+     * (base + grown). numa_nodes==1: node 0 mirrors the globals (identical behavior). */
+    _Atomic int tm_node_wlive[16];       /* TM_MAXNODE — keep in sync with server.c */
+    _Atomic int tm_node_iolive[16];
     _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
                                     * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
     struct polyThreadCtx *tm_flip_ctx;   /* the poly ctx currently converting (NULL = none); the
@@ -5507,6 +5515,7 @@ int tomoGrowFront(const char **err);
 int tomoGrowBack(const char **err);
 void tmFlipTick(void);
 int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
+int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: modeshift-test 70+n / 80+n */
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");
