@@ -5525,7 +5525,10 @@ int processCommand(client *c) {
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
-    if (csp && server.mcmd_lock && (csp->ctype == CS_MGET || csp->ctype == CS_EXISTS) &&
+    /* review fix: TOUCH shares CS_EXISTS but its POINT is the access-time bump; the borrow reads with
+     * LOOKUP_NOEFFECTS (== LOOKUP_NOTOUCH) and would silently drop it. Borrow only genuine EXISTS. */
+    if (csp && server.mcmd_lock &&
+        (csp->ctype == CS_MGET || (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand)) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
         /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow for the independent-per-key READ family
          * (MGET values, EXISTS count). Two shapes:
@@ -8998,6 +9001,12 @@ void migCaptureEffect(redisDb *db, robj *keyobj) {
 static void migApplyOne(exThread *B, migLogEntry *e) {
     redisDb *bdb = &B->db[e->dbid];
     robj *keyobj = createStringObject(e->key, sdslen(e->key));
+    /* review fix (mcmd-lock): this mutates B's shard db from B's drain (NOT the S2-locked op path),
+     * so a concurrent per-node borrow read of B (another node executor, under tomo_wkr_lock[B]) would
+     * race the dbSyncDelete/dbAdd rehash -> heap corruption. Take B's own worker lock per entry (short
+     * hold; a 64-entry migDrainB batch stays interruptible by borrowers). Inert when the knob is off. */
+    int mig_lk = __builtin_expect(server.mcmd_lock, 0);
+    if (mig_lk) tomoWkrLock(B->id);
     dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
     if (e->blob != NULL) {                                  /* PUT */
         rio r; rioInitWithBuffer(&r, e->blob);
@@ -9009,6 +9018,7 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
             if (e->pexpireat >= 0) setExpire(NULL, bdb, keyobj, e->pexpireat);
         }
     }
+    if (mig_lk) tomoWkrUnlock(B->id);
     decrRefCount(keyobj);
 }
 /* B drains a BOUNDED batch of the log per loop iteration, publishing applied_seq.
@@ -13645,10 +13655,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
         int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
         if (worker->id == server.migration.dst) {
-            if (ph != MIG_DONE) migDrainB(worker);   /* stop touching the log once teardown begins */
+            if (ph != MIG_DONE) migDrainB(worker);   /* migApplyOne self-locks per entry when mcmd-lock on */
         } else if (worker->id == server.migration.src) {
+            /* review fix (mcmd-lock): A's cold-key scan (dictFind rehash) and CLEANUP range-delete both
+             * touch A's shard db and, unlike migApplyOne, are not naturally per-entry — so hold A's own
+             * worker lock across them to exclude a concurrent per-node borrow read of A. Scan is bounded
+             * (64 keys/call); cleanup is one-shot. Inert when the knob is off. */
+            int mig_lk = __builtin_expect(server.mcmd_lock, 0);
+            if (mig_lk) tomoWkrLock(worker->id);
             if (ph == MIG_COPYING) migServiceScanA(worker);
             else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
+            if (mig_lk) tomoWkrUnlock(worker->id);
         }
     }
 
@@ -13771,8 +13788,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * captured CDB, not this worker's wcdb) with release, pairing with the IO
              * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
             if (fake->csparent) {
-                csSubExec(fake);
                 csGroup *g = fake->csparent;
+                /* review fix (mcmd-lock): a per-node borrow read (another node executor) reads THIS
+                 * worker's db under tomo_wkr_lock, so every scatter sub that touches this worker's db
+                 * (writes: MSET/DEL/*STORE; reads: MGET/EXISTS/SETOP/KEYS gather) must take the same
+                 * lock — otherwise its dictAdd/dictFind rehash races the borrower -> heap corruption.
+                 * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
+                 * mutates/reads. Borrow subs (g->mcmd_borrow) self-lock per key and skip this. Inert
+                 * when the knob is off. */
+                int cs_lk = (__builtin_expect(server.mcmd_lock, 0) && !g->mcmd_borrow);
+                if (cs_lk) tomoWkrLock(worker->id);
+                csSubExec(fake);
+                if (cs_lk) tomoWkrUnlock(worker->id);
                 if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
                     client *hp = g->head->parent;
                     atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,

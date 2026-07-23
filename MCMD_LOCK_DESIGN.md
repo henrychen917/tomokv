@@ -114,3 +114,47 @@ exExecFake S2; a per-node MGET/EXISTS borrow is safe against single-key writes b
 concurrent scattered MSET/DEL sub on the same worker db — a known gap while only reads are borrowed).
 Bench per-node vs scatter on real NUMA (on this single-CCD sim there is no remote-memory penalty, so
 the split shows correctness + parity, not the NUMA-locality speedup it targets).
+
+## Per-node bench + stress (2026-07-22, io4ex4 = io2ex2/node, 2 logical nodes, single-CCD sim)
+SANITY-GATE note: unpipelined -c16 caps at ~100-120k rps (load-gen/latency bound, == the GET baseline)
+— that regime cannot reveal server-side differences. SATURATED bench uses -P16 -c16 (server-bound,
+millions rps, matches the design-doc MGET range). Best-of-2 interleaved, borrow(mcmd-lock=yes) vs
+scatter(mcmd-lock=no) on the SAME server (100k keys):
+  MGET4 0.98x | MGET8 1.11x | MGET16 0.98x | MGET32 1.17x
+  EXISTS8 0.98x | EXISTS16 0.92x | EXISTS32 0.95x
+=> PARITY (0.92-1.17x, within the ~15% run-to-run drift on this box). Expected: a single physical CCD
+has no remote-memory penalty, so per-node's NUMA-locality advantage cannot manifest here — the result
+is "no gross overhead from the per-node group split", NOT a speedup. The NUMA-locality payoff is
+untestable until real multi-CCD hardware (Threadripper). (MGET32 +17% hints the borrow's fewer
+cross-thread round-trips help at high N even without NUMA, consistent with S3'.)
+INTEGRITY STRESS (60s, mcmd-lock on): 8 writers holding the invariant key:i==v-i (incl. 10% DEL+reSET)
++ 6 readers issuing MGET+EXISTS and ASSERTING every non-nil key:i reads back v-i and every EXISTS
+count <= arity => 2,351,627 ops, 0 integrity errors, 0 asserts/segv, server alive. Confirms the
+borrower/owner per-worker-lock coordination yields no torn / wrong-slot / stale-worker reads under
+concurrent single-key SET+DEL writes.
+
+## Adversarial code review (2026-07-22, max, wf_b9329c3c) + FIXES
+The review found the borrow read broke the single-writer-per-worker-db invariant against MORE writers
+than the initial validation exercised. THE UNIFYING FIX: when mcmd-lock is on, EVERY worker-db access
+(not just the single-key S2 path) takes tomo_wkr_lock. All gap sites run ON the draining worker, so
+they lock worker->id — inert when the knob is off (predicted-not-taken branch; default path unchanged).
+  [F1 CRASH] scattered multi-key WRITES (MSET/DEL/*STORE) AND reads (SETOP/KEYS gather) run via
+    csSubExec with NO lock => their dictAdd/dictFind rehash races a borrower on the same worker.
+    FIX: the drain wraps csSubExec in tomoWkrLock(worker->id) for non-borrow subs (borrow subs self-
+    lock per key). VALIDATED: 30s concurrent cross-shard MSET+DEL(multi-key) + MGET/EXISTS borrow =>
+    884,977 ops, 0 integrity errors, no crash (this crashed before the fix).
+  [F2 CORRECTNESS] TOUCH shares CS_EXISTS but its POINT is the access-time bump; borrow's
+    LOOKUP_NOEFFECTS (==NOTOUCH) silently dropped it. FIX: borrow only genuine EXISTS
+    (fake->cmd->proc==existsCommand); TOUCH falls back to scatter. VALIDATED byte-exact + count=3.
+  [F4 CRASH] migration db mutations on worker threads (migApplyOne on dst; migServiceScanA cold-scan
+    + migCleanupDeleteRangeA range-delete on src) run from the drain, NOT the S2 path, so they race a
+    borrow read of the same worker. FIX: migApplyOne self-locks per entry (short hold, keeps the
+    64-entry migDrainB batch interruptible); scan+cleanup lock at the drain call site (scan is 64
+    keys/call, cleanup one-shot). VALIDATED: 8 populated within-node migrations (w2<->w3, real data,
+    36 ARM/FLIP/CLEANUP/DONE) driven to DONE while 1,259,685 MGET/EXISTS borrow + SET ops ran =>
+    0 integrity errors, no crash, byte-exact (dbsize + endpoints intact).
+  [F3 ACCEPTED] LOOKUP_NOEFFECTS expiry divergence (expired-unreaped key reads present/stale vs
+    scatter's nil+delete) — the intrinsic, documented lock-borrow semantic, shared with the single-
+    node borrow; the knob is default-off. Not fixed by design.
+NET: with the knob on, the borrow read is now safe against single-key ops, scattered multi-key
+reads+writes, AND online migration. Set-op/store BORROW (vs scatter) and real-NUMA bench remain TODO.
