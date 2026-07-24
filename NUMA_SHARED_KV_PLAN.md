@@ -333,3 +333,29 @@ Relaunched sweep tripped again (118 flips/50min, 0 CONVERGED, p1 stuck −15%). 
 Validation (A: p1 GET / B: p32 GET / C: 80f HGETALL, one server session): A 809k conv@7 flips
 (+34% vs stuck); B 6.54M avg, holds 6.87M at leveled 4io/4ex — ABOVE the 6.29M churned preflight
 and 5.8M skewed baselines; C 457k conv at floor. Total 18 flips, 3 CONVERGED, 2 re-opens, 0 aborts.
+
+## 2026-07-23 (cont) — p32 deficit ROOT CAUSE ablation (10 configs x3, static 4io/4ex, medians)
+The −20% "all-features" p32 gap DECOMPOSED (GET M ops/s, median of 3, interleaved):
+  orig-w anchor         7.66      (README-era reference)
+  HEAD knobs-OFF (A)    7.38   -3.6% vs orig  = unconditional shared-kv code drift
+  +mcmd-lock  PRE (B)   6.98   -5.4% vs A     = the lock discipline as shipped
+  +mcmd-lock POST (Bx)  7.36   +5.4% vs B     = LOCK-PAD FIX works, now ~1% over knobs-off
+  +modes+bal  (C)       6.34   -14% vs A      = **THE DOMINANT OVERHEAD** (flip machinery+balancer)
+  all-on PRE  (D)       6.01   -21.5% vs orig = the sweep config (churned)
+  all-on POST (Dx)      6.37   -16.9% vs orig = staged fixes so far (lock+struct+gate)
+  gate-closed (Ap)      7.39   +1.4% vs Ax    = prefetch-gate basis fix confirmed (cache-resident)
+  wpn=1 privKV (F)      7.46   +2.3% vs Ax    = shared-node-db SHARED_MT atomics cost ~2%
+REFRAMING: mcmd-lock was NOT the elephant (fixed, ~1% now). thread-modes+thread-balance is −14%,
+even holding the SAME 4/4 config a static build uses. Root cause (overhead-review finders, verified):
+- **F1 exThread false sharing** (server.h:2113-2152): db@819520 (read per-dispatched-op by IO
+  threads) shares a 64B line with w_ewma_vsize (per-op worker write), ops_total, pf caches, and the
+  thread-balance-written tm_qdepth_ewma_q4/tm_busy_us. Owner dirties the line every op => IO's db
+  read misses cross-core every dispatch; thread-balance adds more per-pass writes to the same line.
+  #1 lever. Fix: mirror db into read-only ex_db_base[] + split tm_* onto their own line.
+- Secondary: exSlice probes ex_threads-1 dormant growth queues/pass when thread_modes on; per-pass
+  depth-probe acquire load + 2 vDSO clock reads under balance; feature-mask to collapse 8-10 per-op
+  knob loads; HFE 10-proc-compare chain; dead value-forwarding residue in lookupKeyReadWithFlags.
+Fixes staged (uncommitted): lock 64B padding + carried-bucket reuse (server.c ~6030/13975/13834),
+client-struct tail reorder (server.h), prefetch-gate per-worker basis (server.c 13726).
+OPEN QUESTION being measured now: is C's −14% machinery-active steady cost, or controller-probe
+transient in the 75s cell? (converged-hold vs static, same 4/4 — decides fix priority.)

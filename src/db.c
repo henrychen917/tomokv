@@ -397,34 +397,11 @@ long readFwdValCost(void) {
  * the key. */
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     serverAssert(!(flags & LOOKUP_WRITE));
-    /* ee451: replay a forwarded value for a same-key read run. */
-    if (readFwdMode == 2 && key->ptr == readFwdKey) {
-        kvobj *v = readFwdVal;
-        if (v) {
-            /* Mirror lookupKey()'s read-side bookkeeping so eviction and hit
-             * stats stay faithful (the non-volatile gate already ensured no
-             * expiry work is owed). */
-            if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)) {
-                if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) updateLFU(v);
-                else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM)) v->lru = LRU_CLOCK();
-            }
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
-                tomoRelaxedBump(server.kstat[iotid].hits, 1);
-            }
-        } else {
-            if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) { /* ee451 (S6, v13): hardwired */
-                tomoRelaxedBump(server.kstat[iotid].misses, 1);
-            }
-        }
-        return v;
-    }
-    kvobj *v = lookupKey(db, key, flags, NULL);
-    /* ee451: record the first resolved value of a same-key read run. */
-    if (readFwdMode == 1 && key->ptr == readFwdKey) {
-        readFwdVal = v;
-        readFwdMode = 2;
-    }
-    return v;
+    /* ee451 (flip-actuator, F4): value-forwarding is a permanently-disabled paper negative result
+     * (see [[thredis-forwarding-abandoned]]); readFwdMode has ZERO live setters, so the record/replay
+     * branches that ran per read op (2 TLS loads + 2 compares + 2 branches on the hottest read fn)
+     * were dead weight. Removed; the arm/disarm/replay helpers stay defined for the artifact. */
+    return lookupKey(db, key, flags, NULL);
 }
 
 /* Like lookupKeyReadWithFlags(), but does not use any flag, which is the

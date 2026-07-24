@@ -1575,15 +1575,6 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
-    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): argv[1]'s sds ptr whose bucket was computed at
-                                * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
-                                * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
-    int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
-    struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
-                                * workers rendezvous at their sentinels; the LAST arrival empties the
-                                * shared node kvstore while the others spin (µs), preserving the
-                                * per-connection FIFO flush semantics without concurrent kvstoreEmpty
-                                * races. NULL = private db (spare slot / sharing off): empty directly. */
     /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command;
      * worker A pops it in queue order and decrements *drain_ack, proving every range primary
      * dispatched before it has executed (no in-flight range write straddles the table flip). */
@@ -1789,6 +1780,21 @@ typedef struct client {
 
     redisAtomic int pending_read; /* Flag indicating an IO thread client residing
                                    * in main thread has received a read event. */
+    /* ee451 (struct-layout fix): the three shared-kv additions below were originally inserted
+     * mid-struct (after flush_async), shifting every downstream exec-hot field +24B and splitting
+     * the reply-control cluster across two cachelines (+1 cross-core transfer per op at the IO
+     * drain, +1 RFO on the worker's next reply build — measured ~2-5%%). Parked at the TAIL so the
+     * pre-shared-kv hot-field offsets are restored; these fields are dispatch/exec-warm anyway and
+     * ride whatever line the tail gives them. */
+    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): argv[1]'s sds ptr whose bucket was computed at
+                                * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
+                                * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
+    int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
+    struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
+                                * workers rendezvous at their sentinels; the LAST arrival empties the
+                                * shared node kvstore while the others spin (µs), preserving the
+                                * per-connection FIFO flush semantics without concurrent kvstoreEmpty
+                                * races. NULL = private db (spare slot / sharing off): empty directly. */
 } client;
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
@@ -2101,10 +2107,18 @@ typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } 
 typedef struct exThread {
     int id;
     pthread_t thread;
+    /* ee451 (flip-actuator, F1): db is IO-thread READ-HOT — processCommand loads
+     * server.exThreads[ex_id].db per dispatched op (express/MGET/worker dispatch paths) — but is
+     * assigned ONCE in initExThreads and never mutated (the per-node shared kvstore pointer is
+     * immutable across reshard/flip/spare-activation). Keep it on this boot-immutable, writer-free
+     * head line (id/thread) instead of the tail line the owning worker dirties every op
+     * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
+    redisDb *db;
     exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
-    redisDb *db;
+    /* ee451 (flip-actuator, F1): `db` relocated to the head line above; the owner-written fields
+     * below now have NO IO-thread reader on their line (no dispatch false-sharing). */
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
     /* ee451 (gem5): EWMA of served read reply size (≈ value bytes), alpha=1/16. Drives
      * value-size-adaptive pf-w-value: big values ⇒ narrower value-chase (avoid LFB oversub). */

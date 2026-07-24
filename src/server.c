@@ -6027,7 +6027,12 @@ static int tmWorkerLive(int w) {
  * with the owner — the fine-grained "buckets rarely collide" win needs a per-bucket kvstore (the
  * shared-keyspace S0 change). tomoWkrTrylock is non-blocking (M-executor BACKLOGS + moves on); inert
  * while mcmd_lock==0 (the lock-free path is byte-for-byte unchanged). */
-static _Atomic uint8_t tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
+/* One PADDED cacheline per worker: the lock bytes were 65 contiguous bytes on ONE 64B line, so with
+ * mcmd-lock on, every worker's per-op CAS+store ping-ponged that line across all EX cores (~2 remote
+ * RFOs per op at ZERO logical contention — single-key ops lock their OWN byte). Padding makes the
+ * steady-state cost a local uncontended CAS (~20cy); cross-worker traffic only on real borrows. */
+static struct { _Atomic uint8_t v; uint8_t pad[63]; }
+    __attribute__((aligned(64))) tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
 static inline int tomoBktBucket(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
 }
@@ -6036,14 +6041,14 @@ static inline int tomoWkrOf(const void *keyptr, size_t len) {
 }
 static inline int tomoWkrTrylock(int w) {
     uint8_t expected = 0;
-    return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w], &expected, 1,
+    return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w].v, &expected, 1,
                                                    memory_order_acquire, memory_order_relaxed);
 }
 static inline void tomoWkrLock(int w) {
     for (;;) { if (tomoWkrTrylock(w)) return; exPauseCpu(); }
 }
 static inline void tomoWkrUnlock(int w) {
-    atomic_store_explicit(&tomo_wkr_lock[w], 0, memory_order_release);
+    atomic_store_explicit(&tomo_wkr_lock[w].v, 0, memory_order_release);
 }
 /* public wrappers (db.c RANDOMKEY expire-delete, review [5]) */
 void tomoWkrLockPub(int w) { tomoWkrLock(w); }
@@ -13718,9 +13723,23 @@ static inline void exPrefetchBatch(client **batch, int n) {
             }
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
         }
-        if (n > 0 && batch[0]->db && dbSize(batch[0]->db) < auto_min) {
-            for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
-            return;
+        if (n > 0 && batch[0]->db) {
+            unsigned long long est = dbSize(batch[0]->db);
+            /* shared node-db: dbSize is the NODE aggregate, but this worker only ever touches its
+             * own bucket range — its resident set is aggregate * range/16384. Gating on the raw
+             * aggregate opened the prefetch FSM at 4x the true per-worker set (2.0M node vs 500k
+             * per worker squeaked past the L3 gate by 0.6%) in cache-resident regimes. */
+            if (server.shared_node_dbs) {
+                int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+                int wlo = (wid == 0) ? 0 : server.ex_bucket_end[wid - 1];
+                int span = server.ex_bucket_end[wid] - wlo;
+                if (span < 0) span = 0;
+                est = (est * (unsigned long long)span) >> 14;   /* /16384 buckets */
+            }
+            if (est < auto_min) {
+                for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
+                return;
+            }
         }
     }
 
@@ -13831,7 +13850,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
                 dict *d = kvstoreGetDict(fake->db->keys,
                     server.ex_threads > 0
-                        ? tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr))
+                        ? ((fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
+                               ? fake->tomo_bkt
+                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
                         : (fake->slot > 0 ? fake->slot : 0));
                 if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
                 uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
@@ -13971,8 +13992,14 @@ static inline void exExecFake(client *fake) {
             /* S2: single-key hot path takes this key's owner-worker lock across the proc so it never
              * mutates/rehashes a bucket a borrower is reading. */
             int mlk_wkr = -1;
-            if (__builtin_expect(server.mcmd_lock, 0) && fake->argc >= 2 && fake->argv && fake->argv[1]) {
-                mlk_wkr = tomoWkrOf(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
+            if (server.mcmd_lock && fake->argc >= 2 && fake->argv && fake->argv[1]) {
+                /* dispatch already hashed this key and stamped the bucket on the fake (hash-carry);
+                 * re-hashing here was a 3rd xxh64 of the same bytes. Pointer-match guard as in
+                 * db.c getKeySlot; the ex_bucket_table load stays FRESH (reshard-safe). */
+                int b = (fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
+                            ? fake->tomo_bkt
+                            : tomoBktBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
+                mlk_wkr = (int)server.ex_bucket_table[b];
                 tomoWkrLock(mlk_wkr);
             }
             fake->cmd->proc(fake);
