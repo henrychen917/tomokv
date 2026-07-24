@@ -6790,6 +6790,18 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
  * array element (bulk value, or nil for missing / non-string) into the sub's own buffer.
  * Matches mgetCommand's per-key semantics exactly: a wrong-type key replies nil, NOT an
  * error (so this is deliberately not getCommand, which would WRONGTYPE). */
+/* ee451 FLATSTORE: KEYS fan flat-iteration callback (whole-table walk filtered to the worker's
+ * bucket range by kvstoreFlatIterRange). */
+typedef struct { client *sub; const char *pat; int plen, allkeys; unsigned long n; } keysFlatCtx;
+static void keysFlatCB(dictEntry *masked, void *priv) {
+    keysFlatCtx *x = (keysFlatCtx *)priv;
+    kvobj *kv = dictGetKV(masked);
+    sds key = kvobjGetKey(kv);
+    if (x->allkeys || stringmatchlen(x->pat, x->plen, key, sdslen(key), 0)) {
+        if (!keyIsExpired(x->sub->db, NULL, kv)) { addReplyBulkCBuffer(x->sub, key, sdslen(key)); x->n++; }
+    }
+}
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -6967,6 +6979,12 @@ static void csSubExec(client *sub) {
             int w = sub->cssub_idx;
             int blo = w ? server.ex_bucket_end[w - 1] : 0;
             int bhi = server.ex_bucket_end[w];
+            if (kvstoreIsFlat(sub->db->keys)) {
+                keysFlatCtx kctx = { sub, pattern, (int)plen, allkeys, 0 };
+                kvstoreFlatIterRange(sub->db->keys, blo, bhi, keysFlatCB, &kctx);
+                atomic_fetch_add_explicit(&g->rcount, (long)kctx.n, memory_order_relaxed);
+                break;
+            }
             for (int b = blo; b < bhi; b++) {
                 dict *d = kvstoreGetDict(sub->db->keys, b);
                 if (!d || dictSize(d) == 0) continue;

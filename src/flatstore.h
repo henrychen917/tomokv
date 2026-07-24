@@ -70,6 +70,7 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot);
 /* iteration helpers (whole-table walk; Stage 4 adds a resumable cursor) */
 typedef void (*flatIterCB)(dictEntry *masked_kv, void *priv);
 void       flatIterAll(flatTable *t, flatIterCB cb, void *priv);
+void       flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv);
 dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi);   /* one LIVE slot with bucket in [blo,bhi); MASKED */
 
 #endif /* FLATSTORE_H */

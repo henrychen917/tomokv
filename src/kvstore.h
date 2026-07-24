@@ -96,6 +96,9 @@ typedef struct {
  * Single-writer kvstores (flag off) are bit-for-bit unchanged. */
 #define KVSTORE_SHARED_MT (1<<2)
 #define KVSTORE_FLAT (1<<3)   /* ee451 FLATSTORE: one lock-free open-addressing table replaces the dicts[] */
+int kvstoreIsFlat(kvstore *kvs);
+void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv);
+void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
 int kvstoreIsSharedMT(kvstore *kvs);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));

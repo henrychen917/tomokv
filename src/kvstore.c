@@ -72,6 +72,14 @@ static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
 static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
     return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
 }
+int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
+void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
+    if (kvs->flat) flatIterRange(kvs->flat, blo, bhi, cb, priv);
+}
+void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi) {
+    dictEntry *mk = kvs->flat ? flatRandomKeyInRange(kvs->flat, blo, bhi) : NULL;
+    return mk ? (void *)flatDecodeKV(mk) : NULL;
+}
 
 /**********************************/
 /*** Helpers **********************/

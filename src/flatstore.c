@@ -116,6 +116,18 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     return old;   /* caller retires/frees (Stage 1); Stage 0 leaks (caller may decrRefCount directly) */
 }
 
+void flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv) {
+    if (!t) return;
+    for (uint64_t i = 0; i < t->size; i++) {
+        uint64_t c = atomic_load_explicit(&t->slots[i].ctrl, memory_order_acquire);
+        if (!FLAT_IS_LIVE(c)) continue;
+        int b = (int)flat_ctrl_bkt(c);
+        if (b < blo || b >= bhi) continue;
+        dictEntry *mk = atomic_load_explicit(&t->slots[i].kv, memory_order_acquire);
+        if (mk) cb(mk, priv);
+    }
+}
+
 void flatIterAll(flatTable *t, flatIterCB cb, void *priv) {
     if (!t) return;
     for (uint64_t i = 0; i < t->size; i++) {
