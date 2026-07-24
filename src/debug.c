@@ -277,43 +277,53 @@ void xorObjectDigest(redisDb *db, robj *keyobj, unsigned char *digest, robj *o) 
  * the result. For list instead we use a feedback entering the output digest
  * as input in order to ensure that a different ordered list will result in
  * a different digest. */
-void computeDatasetDigest(unsigned char *final) {
+/* ee451: XOR every key's per-key digest of ONE physical db into `final` (order-independent). */
+static void digestOneDb(redisDb *db, unsigned char *final) {
     unsigned char digest[20];
     dictEntry *de;
+    kvstoreIterator kvs_it;
+    kvstoreIteratorInit(&kvs_it, db->keys);   /* flat-aware (KVSTORE_FLAT branch) */
+    while ((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
+        robj *keyobj;
+        memset(digest,0,20);
+        kvobj *kv = dictGetKV(de);
+        sds key = kvobjGetKey(kv);
+        keyobj = createStringObject(key,sdslen(key));
+        mixDigest(digest,key,sdslen(key));
+        xorObjectDigest(db, keyobj, digest, kv);
+        xorDigest(final,digest,20);
+        decrRefCount(keyobj);
+    }
+    kvstoreIteratorReset(&kvs_it);
+}
+
+void computeDatasetDigest(unsigned char *final) {
     int j;
     uint32_t aux;
 
     memset(final,0,20); /* Start with a clean result */
 
     for (j = 0; j < server.dbnum; j++) {
-        redisDb *db = server.db+j;
-        if (kvstoreSize(db->keys) == 0)
-            continue;
-
-        /* hash the DB id, so the same dataset moved in a different DB will lead to a different digest */
-        aux = htonl(j);
-        mixDigest(final,&aux,sizeof(aux));
-
-        /* Iterate this DB writing every entry */
-        kvstoreIterator kvs_it;
-        kvstoreIteratorInit(&kvs_it, db->keys);
-        while((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
-            robj *keyobj;
-
-            memset(digest,0,20); /* This key-val digest */
-            kvobj *kv = dictGetKV(de);
-            sds key = kvobjGetKey(kv);
-            keyobj = createStringObject(key,sdslen(key));
-
-            mixDigest(digest,key,sdslen(key));
-
-            xorObjectDigest(db, keyobj, digest, kv);
-
-            /* We can finally xor the key-val digest to the final digest */
-            xorDigest(final,digest,20);
-            decrRefCount(keyobj);
+        /* ee451: the keyspace lives in the shard/node dbs, not the (empty) decoy server.db — iterating
+         * server.db here digested ZERO keys. Digest the physical dbs holding dbid j: under shared_node_dbs
+         * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard. */
+        if (server.shared_node_dbs && server.node_dbs) {
+            unsigned long long sz = 0;
+            for (int n = 0; n <= server.n_node_dbs; n++) sz += kvstoreSize(server.node_dbs[n][j].keys);
+            if (sz == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));   /* mix DB id ONCE per db */
+            for (int n = 0; n <= server.n_node_dbs; n++) digestOneDb(&server.node_dbs[n][j], final);
+        } else if (server.exThreads) {
+            unsigned long long sz = 0;
+            for (int w = 0; w < server.num_workers_alloc; w++) sz += kvstoreSize(server.exThreads[w].db[j].keys);
+            if (sz == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
+            for (int w = 0; w < server.num_workers_alloc; w++) digestOneDb(&server.exThreads[w].db[j], final);
+        } else {
+            if (kvstoreSize(server.db[j].keys) == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
+            digestOneDb(&server.db[j], final);
         }
-        kvstoreIteratorReset(&kvs_it);
     }
 }
 
