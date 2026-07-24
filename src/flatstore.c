@@ -31,6 +31,17 @@ flatTable *flatTableNew(uint64_t want_size) {
     return t;
 }
 
+/* teardown-only: free the LIVE kvobjs (which flatTableFree deliberately does NOT, since at resize
+ * they migrate to the new table) then release the table. Single-threaded shutdown/release, no readers. */
+void flatTableDestroy(flatTable *t) {
+    if (!t) return;
+    for (uint64_t i = 0; i < t->size; i++) {
+        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
+        if (FLAT_IS_LIVE(w)) decrRefCount((robj *)dictGetKV(flat_word_ptr(w)));
+    }
+    flatTableFree(t);
+}
+
 void flatTableFree(flatTable *t) {
     if (!t) return;
     /* drain any still-pending retired garbage (values DELETED from this table, not the live keys

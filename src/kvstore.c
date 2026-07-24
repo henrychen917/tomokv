@@ -340,6 +340,20 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
 }
 
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* holistic-review fix: FLUSHDB/FLUSHALL was a silent no-op on a flat kvstore (its dicts are
+         * unused), so keys survived the flush, leaked, and key_count desynced. Tombstone every live
+         * slot via the single-store flatDelete and QSBR-retire its value — cross-node MGET does
+         * lock-free BORROW reads of this table, so the free MUST be grace-deferred (mirrors DEL). The
+         * count resets at the tail of this function zero key_count. */
+        flatTable *t = kvs->flat;
+        if (t) for (uint64_t i = 0; i < t->size; i++) {
+            uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
+            if (FLAT_IS_LIVE(w)) flatRetire(t, flatDelete(t, i));
+        }
+        UNUSED(callback);
+        /* fall through: the dict loop is a no-op (dicts NULL under flat); the tail resets counts. */
+    }
     for (int didx = 0; didx < kvs->num_dicts; didx++) {
         dict *d = kvstoreGetDict(kvs, didx);
         if (!d)
@@ -366,6 +380,14 @@ void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
 }
 
 void kvstoreRelease(kvstore *kvs) {
+    if (kvs->flags & KVSTORE_FLAT) {   /* holistic-review fix: free the flat table + its live kvobjs (dicts are unused) */
+        flatTableDestroy(kvs->flat);
+        zfree(kvs->dicts);
+        listRelease(kvs->rehashing);
+        if (kvs->dict_sizes) fwTreeDestroy(kvs->dict_sizes);
+        zfree(kvs);
+        return;
+    }
     for (int didx = 0; didx < kvs->num_dicts; didx++) {
         dict *d = kvstoreGetDict(kvs, didx);
         if (!d)

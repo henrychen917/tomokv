@@ -5959,9 +5959,16 @@ static void flatReclaimTable(flatTable *t) {
     while (*pp) {
         flatBatch *b = *pp;
         int ready = 1;
-        for (int w = 0; w < b->nworkers; w++)
+        for (int w = 0; w < b->nworkers; w++) {
+            /* holistic-review fix: SKIP non-live (parked/dormant) slots. loop_seq is bumped only in
+             * exSlice, so a parked worker's loop_seq is frozen — waiting on it (e.g. the thread-modes
+             * spare at index num_workers) stalls the grace FOREVER and leaks every retired value. A
+             * parked worker holds no in-flight lock-free pointer (it parked at a safe point between
+             * passes), so excluding it from the grace is sound. */
+            if (!tmWorkerLive(w)) continue;
             if (atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire)
                     < b->snap[w] + FLAT_QSBR_MARGIN) { ready = 0; break; }
+        }
         if (!ready) { pp = &b->next; continue; }
         flatRetireNode *n = b->head;
         while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }

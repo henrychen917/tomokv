@@ -74,6 +74,7 @@ flatTable *flatTableNew(uint64_t want_size);
 flatTable *flatTableAllocFor(flatTable *old);
 int        flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t slot_budget);
 void       flatTableFree(flatTable *t);
+void       flatTableDestroy(flatTable *t);   /* teardown: free LIVE kvobjs too (release, not resize) */
 
 /* Core ops — self-contained on flatTable (the kvstore wrapper owns key_count / per-owner counts /
  * Stage-1 retire). `h` is the full xxh64(key). t->used/t->tombs are maintained here. */

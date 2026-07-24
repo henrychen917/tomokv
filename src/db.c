@@ -2904,13 +2904,23 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
         if (kv->type == OBJ_HASH)
             subexpiry = estoreRemove(db->subexpires, slot, kv);
 
+        /* holistic-review fix: kvobjSetExpire reallocs a not-yet-expirable kv and decrRefCounts the
+         * OLD one, which under a flat store would free it SYNCHRONOUSLY while a lock-free cross-shard
+         * borrow reader may still hold it (UAF), and would leave the slot pointing at freed memory in
+         * the gap before SetAtLink. Pin the old across the realloc and QSBR-retire it (mirrors
+         * dbSetValue's kvstoreFlatRetireRaw). No-op for non-flat (no lock-free readers). */
+        int flat_keys = kvstoreIsFlat(db->keys);
+        if (flat_keys) incrRefCount(kv);
         kvobj *kvnew = kvobjSetExpire(kv, when); /* release kv if reallocated */
         /* if kvobj was reallocated, update dict */
         if (kv != kvnew) {
             kvstoreDictSetAtLink(db->keys, slot, kvnew, &keyLink, 0);
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(db, slot, kvnew, oldsize, kvobjAllocSize(kvnew));
+            if (flat_keys) kvstoreFlatRetireRaw(db->keys, kv);  /* grace-deferred free of the old */
             kv = kvnew;
+        } else if (flat_keys) {
+            decrRefCount(kv);   /* not reallocated (no internal free) — drop the pin */
         }
         /* Now add to expires */
         dictEntry *de = kvstoreDictAddRaw(db->expires, slot, kv, NULL);
