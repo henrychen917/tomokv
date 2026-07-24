@@ -62,9 +62,11 @@ typedef struct flatTable {
     uint64_t  gen;                 /* bumped on a rebuild (Stage 2); a cursor carrying gen restarts on change */
     _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
     flatBatch *batches;            /* QSBR: closed batches (main-thread only) */
+    _Atomic int resize_needed;     /* set by insert at high load; the main-thread coordinator grows it */
 } flatTable;
 
 flatTable *flatTableNew(uint64_t want_size);
+flatTable *flatTableGrow(flatTable *old);   /* STW rebuild into a 2x table (recomputes each key hash) */
 void       flatTableFree(flatTable *t);
 
 /* Core ops — self-contained on flatTable (the kvstore wrapper owns key_count / per-owner counts /

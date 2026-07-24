@@ -74,6 +74,7 @@ static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
 flatTable *kvstoreFlatTable(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) ? kvs->flat : NULL; }
+void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw) { kvs->flat = nw; }   /* Stage-2: swap (workers parked) */
 void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (unmasked) kvobj */
     if (kvs->flat && rawkv) flatRetire(kvs->flat, flatKvMask(kvs, rawkv));
 }
@@ -325,9 +326,8 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
 
     kvs->flat = NULL;
     if (kvs->flags & KVSTORE_FLAT) {
-        /* ee451 FLATSTORE stage 0: pre-size generously (resize is stage 2). 8M slots * 16B = 128MB,
-         * holds ~3.4M keys at 0.45 load. The dicts[] above stay NULL (unused under flat). */
-        kvs->flat = flatTableNew(1ULL << 23);
+        /* ee451 FLATSTORE: start small (256K slots * 16B = 4MB) and grow online (Stage 2). */
+        kvs->flat = flatTableNew(1ULL << 18);
     }
     kvs->rehashing = listCreate();
     kvs->key_count = 0;

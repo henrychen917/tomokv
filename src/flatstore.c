@@ -24,6 +24,7 @@ flatTable *flatTableNew(uint64_t want_size) {
     t->mask = sz - 1;
     atomic_store_explicit(&t->used, 0, memory_order_relaxed);
     atomic_store_explicit(&t->tombs, 0, memory_order_relaxed);
+    atomic_store_explicit(&t->resize_needed, 0, memory_order_relaxed);   /* zmalloc'd — must init */
     t->gen = 0;
     atomic_store_explicit(&t->retire_stack, NULL, memory_order_relaxed);
     t->batches = NULL;
@@ -32,6 +33,16 @@ flatTable *flatTableNew(uint64_t want_size) {
 
 void flatTableFree(flatTable *t) {
     if (!t) return;
+    /* drain any still-pending retired garbage (values DELETED from this table, not the live keys
+     * which were moved to the new table). Safe to free immediately: called with all workers parked
+     * (resize) or at shutdown, so no lock-free reader is active. */
+    flatRetireNode *n = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
+    while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
+    for (flatBatch *b = t->batches; b; ) {
+        flatBatch *bn = b->next;
+        for (flatRetireNode *m = b->head; m; ) { flatRetireNode *mx = m->next; decrRefCount((robj *)dictGetKV(m->masked_kv)); zfree(m); m = mx; }
+        zfree(b); b = bn;
+    }
     zfree(t->slots);
     zfree(t);
 }
@@ -98,8 +109,11 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
             if (atomic_compare_exchange_strong_explicit(&t->slots[i].ctrl, &expect, newctrl,
                     memory_order_acq_rel, memory_order_acquire)) {                 /* W1 */
                 atomic_store_explicit(&t->slots[i].kv, masked_kv, memory_order_release); /* W2 */
-                atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed);
+                uint64_t u = atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed) + 1;
                 if (FLAT_IS_TOMB(c)) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);
+                /* trigger a grow at 60% (used+tombs)/size — headroom before the probe walls fill. */
+                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 10 >= t->size * 6)
+                    atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
                 return i;
             }
             /* CAS lost: `expect` now holds the winner's ctrl. If a foreign key took it, re-probe
@@ -132,6 +146,23 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     atomic_fetch_sub_explicit(&t->used, 1, memory_order_relaxed);
     atomic_fetch_add_explicit(&t->tombs, 1, memory_order_relaxed);
     return old;   /* caller retires/frees (Stage 1); Stage 0 leaks (caller may decrRefCount directly) */
+}
+
+flatTable *flatTableGrow(flatTable *old) {
+    flatTable *nw = flatTableNew(old->size * 2);
+    nw->gen = old->gen + 1;
+    for (uint64_t i = 0; i < old->size; i++) {
+        uint64_t c = atomic_load_explicit(&old->slots[i].ctrl, memory_order_relaxed);
+        if (!FLAT_IS_LIVE(c)) continue;
+        dictEntry *mk = atomic_load_explicit(&old->slots[i].kv, memory_order_relaxed);
+        if (!mk) continue;
+        sds k = kvobjGetKey(dictGetKV(mk));                 /* recompute the full hash (ctrl lacks h[15:14]) */
+        uint64_t h = tomoKeyHash(k, sdslen(k)), slot;
+        flatFindForWrite(nw, h, k, sdslen(k), &slot);        /* fresh table: finds an EMPTY slot */
+        flatInsert(nw, h, mk, slot);
+    }
+    atomic_store_explicit(&nw->resize_needed, 0, memory_order_relaxed);
+    return nw;
 }
 
 void flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv) {

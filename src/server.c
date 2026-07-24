@@ -2325,6 +2325,7 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 }
 
 void flatReclaimAll(void);
+void flatResizeCoordinate(void);
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
@@ -2340,7 +2341,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
 
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending). */
-    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) flatReclaimAll();
+    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatResizeCoordinate(); }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
@@ -5976,6 +5977,60 @@ void flatReclaimAll(void) {
         }
 }
 
+static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
+static _Atomic int tomo_flush_gate;   /* fwd decl (real def below near flush) */
+/* ee451 FLATSTORE Stage-2: online resize coordinator (main thread, beforeSleep). When any node
+ * table has flagged resize_needed, arm (mutually exclusive with reshard via mig_arm_lock), park all
+ * live workers, rebuild each flagged table into a 2x table, swap it in, free the old, resume. The
+ * pause is O(live keys) (STW rebuild) — Stage 5 makes it cooperative. */
+void flatResizeCoordinate(void) {
+    if (!server.shared_node_dbs || !server.thredis_flat_store || !server.node_dbs) return;
+    int any = 0;
+    for (int n = 0; n < server.n_node_dbs && !any; n++)
+        for (int j = 0; j < server.dbnum; j++) {
+            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
+            if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) { any = 1; break; }
+        }
+    if (!any) return;
+    /* FIX C: exclusive with reshard. */
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
+    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;   /* reshard arming — retry */
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+        atomic_load_explicit(&tomo_flush_gate, memory_order_acquire)) {
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release); return;
+    }
+    /* park all live workers */
+    atomic_store_explicit(&server.flat_resize_active, 1, memory_order_release);
+    int W = server.num_workers_alloc, parked = 0;
+    for (long spins = 0; spins < 20000000L; spins++) {
+        int all = 1;
+        for (int w = 0; w < W; w++)
+            if (tmWorkerLive(w) && !atomic_load_explicit(&server.exThreads[w].resize_parked, memory_order_acquire)) { all = 0; break; }
+        if (all) { parked = 1; break; }
+        sched_yield();
+    }
+    if (!parked) {   /* couldn't quiesce (a worker wedged?) — abort, retry next pass */
+        atomic_store_explicit(&server.flat_resize_active, 0, memory_order_release);
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        serverLog(LL_WARNING, "FLATSTORE resize: workers did not park — aborting, will retry");
+        return;
+    }
+    for (int n = 0; n < server.n_node_dbs; n++)
+        for (int j = 0; j < server.dbnum; j++) {
+            kvstore *kvs = server.node_dbs[n][j].keys;
+            flatTable *t = kvstoreFlatTable(kvs);
+            if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) {
+                flatTable *nw = flatTableGrow(t);
+                serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d grew %llu -> %llu slots",
+                          n, j, (unsigned long long)t->size, (unsigned long long)nw->size);
+                kvstoreFlatSwap(kvs, nw);
+                flatTableFree(t);   /* frees old slots + drains its retire garbage; live keys moved to nw */
+            }
+        }
+    atomic_store_explicit(&server.flat_resize_active, 0, memory_order_release);  /* workers resume */
+    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+}
+
 int getWorkerForCommand(client *c) {
     /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
      * selection probability == its share of the keyspace, so (a) the result distribution mirrors
@@ -9462,6 +9517,7 @@ static int reshardArm(int lo, int hi, int src, int dst) {
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||        /* review [2]: flush froze boundaries */
         atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
+        atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) || /* FIX C: excl. flat resize */
         !reshardRangeValid(lo, hi, src, dst)) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
@@ -14218,6 +14274,15 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * acquire). Was migration-only, which left the grace unable to complete in steady state. Also
      * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
     atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_release);
+
+    /* ee451 FLATSTORE Stage-2: park while a table is being rebuilt. The worker exec path is the ONLY
+     * flat-table access (prefetch bails on flat), so parking every worker here fully quiesces the
+     * table for the coordinator's swap. Ack via resize_parked so the coordinator knows all are idle. */
+    if (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_acquire), 0)) {
+        atomic_store_explicit(&worker->resize_parked, 1, memory_order_release);
+        while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) sched_yield();
+        atomic_store_explicit(&worker->resize_parked, 0, memory_order_release);
+    }
 
     /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
      * B replays the ordered effect log into its shard; A advances the cold-key scan during

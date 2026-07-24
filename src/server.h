@@ -2143,6 +2143,7 @@ typedef struct exThread {
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
+    _Atomic int resize_parked;  /* FLATSTORE Stage-2: 1 while this worker is parked in the resize gate */
     _Atomic uint64_t loop_seq;
     unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
     unsigned pf_gate_tick;
@@ -2669,6 +2670,7 @@ struct redisServer {
     int io_threads;
     int ex_threads;
     int thredis_flat_store;     /* ee451 FLATSTORE knob (0/1) */
+    _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
     /* ee451 (thread-modes v1, step 2): 0 (default) = static mains, exact legacy
      * behavior; 1 = every tomokv thread runs polyThreadMain with a preset mode,
      * plus one PARKED spare if configured threads < allowed cores. IMMUTABLE. */
