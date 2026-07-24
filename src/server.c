@@ -3663,7 +3663,7 @@ void initServer(void) {
             server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
             for (j = 0; j < server.dbnum; j++) {
                 server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
-                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags);
+                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags & ~KVSTORE_FLAT);  /* review [crit]: expires stays on the dict path (its insert path AddRaw has no flat branch) */
                 server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
                 server.node_dbs[n][j].expires_cursor = 0;
                 server.node_dbs[n][j].blocking_keys = dictCreate(&keylistDictType);

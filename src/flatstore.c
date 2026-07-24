@@ -45,7 +45,7 @@ static inline int flatKeyMatch(dictEntry *masked, const char *key, size_t klen) 
 dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
     if (!t) return NULL;
     uint64_t mask = t->mask, tag = flat_tag_of(h);
-    for (uint64_t i = h & mask; ; i = (i + 1) & mask) {
+    for (uint64_t i = h & mask, probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
         uint64_t c = atomic_load_explicit(&t->slots[i].ctrl, memory_order_acquire);   /* R2 */
         if (FLAT_IS_EMPTY(c)) return NULL;                        /* I-NO-EMPTY-BEFORE-KEY */
         if (FLAT_IS_LIVE(c) && flat_ctrl_tag(c) == tag) {
@@ -60,7 +60,7 @@ dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
 int flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uint64_t *slot) {
     uint64_t mask = t->mask, tag = flat_tag_of(h);
     int have_tomb = 0; uint64_t tomb_at = 0;
-    for (uint64_t i = h & mask; ; i = (i + 1) & mask) {
+    for (uint64_t i = h & mask, probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
         uint64_t c = atomic_load_explicit(&t->slots[i].ctrl, memory_order_acquire);
         if (FLAT_IS_EMPTY(c)) { *slot = have_tomb ? tomb_at : i; return 0; }  /* absent -> insert here */
         if (FLAT_IS_TOMB(c)) { if (!have_tomb) { have_tomb = 1; tomb_at = i; } continue; }
@@ -69,13 +69,15 @@ int flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uin
             if (flatKeyMatch(mk, key, klen)) { *slot = i; return 1; }         /* found live key */
         }
     }
+    *slot = have_tomb ? tomb_at : (h & mask);   /* full wrap w/o EMPTY: reuse a tomb, else home slot */
+    return 0;
 }
 
 uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hint_slot) {
     uint64_t mask = t->mask;
     uint64_t newctrl = flat_ctrl_of(h, h & 0x3FFF);
     uint64_t i = hint_slot;
-    for (;;) {
+    for (uint64_t probes = 0; probes <= mask; probes++, i = i) {
         uint64_t c = atomic_load_explicit(&t->slots[i].ctrl, memory_order_acquire);
         if (FLAT_IS_EMPTY(c) || FLAT_IS_TOMB(c)) {
             uint64_t expect = c;
@@ -93,6 +95,8 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
         }
         i = (i + 1) & mask;   /* occupied by another key: keep probing for a free/tomb slot */
     }
+    serverPanic("flatstore INSERT: table full (%llu slots) — resize is stage 2; pre-size larger",
+                (unsigned long long)t->size);
 }
 
 dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new) {
