@@ -74,6 +74,43 @@ stock kvstore was never built for. The `KVSTORE_SHARED_MT` mode adapts the bookk
 
 Single-writer kvstores (the flag off) are bit-for-bit unchanged.
 
+### FLATSTORE — the lock-free flat table (opt-in: `thredis-flat-store 1`)
+
+A node's keyspace is 16384 per-bucket dicts so a reshard is an O(1) ownership flip (no key copy).
+But 16384 dict *headers* (≈1.6 MB of `struct dict` + scattered hash tables) don't fit L2, so a
+random lookup pays a cold header miss — a measured ~4.5% p32 tax versus a single-table layout, and
+more on multi-CCD hardware. FLATSTORE removes it by replacing the 16384 dicts with **one lock-free
+open-addressing table per node**, so a lookup hits one warm header:
+
+- each 16-byte slot is `{ _Atomic ctrl, _Atomic kv }`, where `ctrl` packs a **48-bit hash tag**, the
+  **14-bit ownership bucket**, and `TOMB`/`OCCUPIED` bits (`0` = empty);
+- **GET** is a lock-free linear probe (acquire-load `ctrl`, stop on empty, acquire-load the value);
+- **INSERT** claims a slot with one release-CAS on `ctrl` (the one-owner-per-bucket rule means the
+  CAS only ever resolves cross-*key* physical collisions, never same-key races), then publishes the
+  value; **DELETE** tombstones;
+- **reshard stays O(1)** — the bucket is a per-slot tag, a pure function of the key and independent
+  of ownership, so the flip is still just the `ex_bucket_table` write with zero table work.
+
+Measured on a Ryzen 7 7700X (8c/1CCD), all features on, converged, medians:
+
+| Regime | dict (default) | FLATSTORE | Δ |
+| :--- | :--- | :--- | :--- |
+| p32 GET (steady) | 7.39M | **7.73M** | +4.5% |
+| p32 SET (steady) | 4.67M | **5.54M** | **+18.7%** |
+| p32 GET (during a role-flip) | 6.40M | **7.68M** | flat holds |
+| p32 GET (during a client-lb rebalance) | 6.87M | **7.44M** | flat holds |
+
+The SET win is the lock-free CAS insert versus the dict's rehash/expand path; the flat table is also
+far steadier through a reshard, because lock-free reads aren't disrupted by the flip the way a
+per-bucket dict is.
+
+> **Status: Stage 0, opt-in (default off).** GET/SET/DEL/MGET/EXISTS/KEYS/RANDOMKEY are correct
+> (single-thread and under concurrent multi-worker load, verified by an adversarial review that
+> caught and fixed two crash classes on the async-delete and TTL paths). The table is pre-sized (no
+> online resize yet — Stage 2) and **leaks on delete** (safe reclamation of a value a lock-free
+> reader may still hold needs the QSBR pass — Stage 1). Until those land it is not the default
+> execution path; the proven 16384-dict store remains the default.
+
 ### The lock discipline
 
 Multi-key commands may legitimately touch buckets owned by several workers of a node. With
@@ -207,7 +244,7 @@ of the free.
 |---|---|---|---|
 | `tomokv-thread-modes` | off | no | poly-bound threads (prerequisite for any flipping) |
 | `tomokv-thread-balance` | off | yes | the per-node flip controller + EWMA-weighted client balancing |
-| `tomokv-flip-rebalance` | on | yes | client re-spread and load-weight transfer at each conversion |
+| `tomokv-flip-rebalance` | on | yes | client re-spread and load-weight transfer at each conversion; also gates the **continuous client-lb** (below) |
 | `tomokv-modeshift-test` | 0 | yes | manual actuator hooks: `7`/`8` = grow front/back (single-node only), `70+n`/`80+n` = per-node (n < 10). Setting an unchanged value is a no-op — toggle through 0 between repeats. |
 
 ### Multi-key / locking
@@ -217,11 +254,26 @@ of the free.
 | `tomokv-mcmd-lock` | off | no | the per-worker lock discipline + borrow and node-locked paths. Boot-only: a runtime toggle would race in-flight commands against the lock gates. Off = base lock-free engine, scatter-only multi-key. |
 | `tomokv-mcmd-nodelocal` | off | no | experiment: route `MGET`/`EXISTS` through the node-locked stock proc instead of the borrow |
 
+### Storage engine
+
+| knob | default | mutable | meaning |
+|---|---|---|---|
+| `thredis-flat-store` | off | no | replace the node's 16384-dict kvstore with the lock-free **FLATSTORE** open-addressing table (see *Shared-kvstore mechanics*). Requires a shared node (workers-per-node > 1). Stage 0 / opt-in — pre-sized, leaks on delete; not yet the default execution path. |
+
 ### Balancer
 
 `tomokv-reshard-*` (chunk, imbalance bar, sustain, min-ops, cool margin, progress ratio) tune the
-within-node EWMA balancer exactly as in the base engine; `0` means self-derived. All other base
-knobs — batching, spin, prefetch stages, reply path, io_uring — apply unchanged.
+within-node EWMA **bucket** balancer exactly as in the base engine; `0` means self-derived.
+
+**Continuous client-lb.** The connection balancer now mirrors the bucket balancer: a 1 Hz cron
+(beside the reshard autotune) that, within a node, moves the minimal set of connections off an io
+thread that is a *sustained* busy-outlier (busy-EWMA mean + 25% bar + a short sustain streak) onto
+the least-loaded thread — a damped, half-the-excess move that converges instead of chasing a single
+hot connection. It runs whenever `tomokv-thread-modes` is on (busy is maintained there), so client
+load is balanced continuously, not only at a flip. `DEBUG TOMO-IOLOAD` dumps per-thread mode, conn
+count, and busy for inspection.
+
+All other base knobs — batching, spin, prefetch stages, reply path, io_uring — apply unchanged.
 
 ### Example
 
