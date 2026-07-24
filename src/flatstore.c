@@ -224,6 +224,18 @@ void flatIterAll(flatTable *t, flatIterCB cb, void *priv) {
     }
 }
 
+dictEntry *flatIterNext(flatTable *t, unsigned long long *cursor) {
+    if (!t) return NULL;
+    for (uint64_t i = *cursor; i < t->size; i++) {
+        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_acquire);
+        if (!FLAT_IS_LIVE(w)) continue;
+        *cursor = i + 1;
+        return flat_word_ptr(w);
+    }
+    *cursor = t->size;
+    return NULL;
+}
+
 dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi) {
     if (!t) return NULL;
     /* reservoir sample one LIVE slot whose (recomputed) bucket is in [blo,bhi). Whole-table walk. */

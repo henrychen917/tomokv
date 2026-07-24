@@ -1697,10 +1697,18 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
             /* ee451: save the main logical db (usually empty under sharding) AND every
              * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
             if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
-            if (server.exThreads) {
-                /* ee451 (thread-modes step 3): ALL alloc'd slots — a LIVE spare's shard holds
-                 * real keys that a num_workers-bounded loop would silently drop from the save
-                 * (data loss on reload); a dormant spare's shard is empty (harmless section). */
+            if (server.shared_node_dbs && server.node_dbs) {
+                /* ee451 FLATSTORE / shared-kv: every worker on a node ALIASES that node's one physical
+                 * db (exThreads[w].db[j].keys == node_dbs[node][j].keys), so a per-worker loop would
+                 * write each node's whole table once PER worker -> wpn-fold duplication -> reload
+                 * "Duplicated key found in RDB" panic. Save each node's db ONCE (plus the spare-private
+                 * array at index n_node_dbs, empty by invariant in shared mode but saved for safety). */
+                for (int n = 0; n <= server.n_node_dbs; n++)
+                    if (rdbSaveDb(rdb, &server.node_dbs[n][j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            } else if (server.exThreads) {
+                /* ee451 (thread-modes step 3): non-shared sharding — one worker per physical db (no
+                 * aliasing). ALL alloc'd slots: a LIVE spare's shard holds real keys a num_workers-
+                 * bounded loop would drop (data loss); a dormant spare's shard is empty (harmless). */
                 for (int w = 0; w < server.num_workers_alloc; w++)
                     if (rdbSaveDb(rdb, &server.exThreads[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
             }
@@ -3912,7 +3920,15 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
         /* If there is no slot info, it means that it's either not cluster mode or we are trying to load legacy RDB file.
          * In this case we want to estimate number of keys per slot and resize accordingly. */
         if (should_expand_db) {
-            dbExpand(db, db_size, 0);
+            if (server.shared_node_dbs && server.node_dbs) {
+                /* ee451 FLATSTORE: this section's db_size keys reload (by deterministic hash) to their
+                 * original node; pre-size EACH node's flat table for dbid so the load can't hit the
+                 * table-full panic. Repeated per-node sections converge each node to max(db_size)*3. */
+                for (int n = 0; n <= server.n_node_dbs; n++)
+                    kvstoreExpand(server.node_dbs[n][db->id].keys, db_size, 0, NULL);
+            } else {
+                dbExpand(db, db_size, 0);
+            }
             dbExpandExpires(db, expires_size, 0);
             should_expand_db = 0;
             serverLog(LL_VERBOSE, "DB %d resized: %lu key buckets, %lu expire buckets",

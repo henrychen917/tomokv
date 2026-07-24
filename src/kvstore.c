@@ -503,6 +503,23 @@ unsigned long long kvstoreScan(kvstore *kvs, unsigned long long cursor,
  * `dictTryExpand` call and in case of `dictExpand` call it signifies no expansion was performed.
  */
 int kvstoreExpand(kvstore *kvs, uint64_t newsize, int try_expand, kvstoreExpandShouldSkipDictIndex *skip_cb) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* ee451 FLATSTORE: pre-size the flat table to hold `newsize` keys at <=1/3 load. Only called
+         * during RDB load, which is single-threaded and runs before clients connect (workers idle),
+         * so a straight rebuild + swap is race-free. Prevents the mid-load table-full panic (the
+         * beforeSleep resize coordinator never runs inside the tight load loop). */
+        flatTable *t = kvs->flat;
+        uint64_t want = newsize ? newsize * 3 : 0;
+        if (t && want > t->size) {
+            flatTable *nw = flatTableNew(want);
+            uint64_t cursor = 0;
+            flatTableCopyChunk(t, nw, &cursor, t->size);   /* copy any existing live keys in one shot */
+            kvs->flat = nw;
+            flatTableFree(t);
+        }
+        (void)try_expand; (void)skip_cb;
+        return 1;
+    }
     for (int i = 0; i < kvs->num_dicts; i++) {
         if (skip_cb && skip_cb(i)) continue;
         dict *d = createDictIfNeeded(kvs, i);
@@ -738,6 +755,12 @@ void kvstoreMoveDict(kvstore *kvs, kvstore *dst, int didx) {
 void kvstoreIteratorInit(kvstoreIterator *kvs_it, kvstore *kvs) {
     kvs_it->kvs = kvs;
     kvs_it->didx = -1;
+    if (kvs->flags & KVSTORE_FLAT) {   /* ee451 FLATSTORE: walk the flat table by slot cursor, no dicts */
+        kvs_it->flat_cursor = 0;
+        kvs_it->next_didx = -1;
+        dictInitSafeIterator(&kvs_it->di, NULL);
+        return;
+    }
     kvs_it->next_didx = kvstoreGetFirstNonEmptyDictIndex(kvs_it->kvs); /* Finds first non-empty dict index. */
     dictInitSafeIterator(&kvs_it->di, NULL);
 }
@@ -774,12 +797,15 @@ dict *kvstoreIteratorNextDict(kvstoreIterator *kvs_it) {
 }
 
 int kvstoreIteratorGetCurrentDictIndex(kvstoreIterator *kvs_it) {
+    if (kvs_it->kvs->flags & KVSTORE_FLAT) return 0;   /* ee451 FLATSTORE: single logical shard */
     assert(kvs_it->didx >= 0 && kvs_it->didx < kvs_it->kvs->num_dicts);
     return kvs_it->didx;
 }
 
 /* Returns next entry. */
 dictEntry *kvstoreIteratorNext(kvstoreIterator *kvs_it) {
+    if (kvs_it->kvs->flags & KVSTORE_FLAT)   /* ee451 FLATSTORE: resumable slot walk */
+        return flatIterNext(kvs_it->kvs->flat, &kvs_it->flat_cursor);
     dictEntry *de = kvs_it->di.d ? dictNext(&kvs_it->di) : NULL;
     if (!de) { /* No current dict or reached the end of the dictionary. */
 

@@ -37,6 +37,7 @@ typedef struct _kvstoreIterator {
     long long didx;
     long long next_didx;
     dictIterator di;
+    unsigned long long flat_cursor;   /* ee451 FLATSTORE: next slot index when kvs is flat */
 } kvstoreIterator;
 
 /* Structure for kvstore dict iterator that allows iterating the corresponding dict. */
