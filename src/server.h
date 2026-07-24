@@ -2143,7 +2143,7 @@ typedef struct exThread {
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
-    _Atomic int resize_parked;  /* FLATSTORE Stage-2: 1 while this worker is parked in the resize gate */
+    _Atomic int in_flat_section;  /* FLATSTORE Stage-2 (review fix): 1 while this worker is INSIDE an exSlice batch that may touch a flat table. Coordinator drains this to 0 to quiesce — IDENTITY-COMPLETE (covers flipped/parking workers the old tmWorkerLive predicate missed). */
     _Atomic uint64_t loop_seq;
     unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
     unsigned pf_gate_tick;

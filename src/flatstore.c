@@ -111,8 +111,9 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
                 atomic_store_explicit(&t->slots[i].kv, masked_kv, memory_order_release); /* W2 */
                 uint64_t u = atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed) + 1;
                 if (FLAT_IS_TOMB(c)) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);
-                /* trigger a grow at 60% (used+tombs)/size — headroom before the probe walls fill. */
-                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 10 >= t->size * 6)
+                /* flag a rebuild at 50% (used+tombs)/size — leaves 0.5*size headroom for inserts to
+                 * outrun the beforeSleep coordinator before the table-full wall (review fix #3). */
+                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 2 >= t->size)
                     atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
                 return i;
             }
@@ -149,7 +150,15 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
 }
 
 flatTable *flatTableGrow(flatTable *old) {
-    flatTable *nw = flatTableNew(old->size * 2);
+    /* Pick the target by LIVE load, never by (used+tombs): if the rebuild was flagged mostly by
+     * tombstone accumulation (live set small), rebuild SAME size to reclaim the tombs WITHOUT
+     * growing (review fix #8 — else delete/TTL churn on a bounded live set doubles unboundedly).
+     * Double (or more) only when the live set genuinely needs it. Land <= 1/3 live load so we don't
+     * immediately re-cross the 0.5 trigger. Never shrink below old->size (shrink is a later stage). */
+    uint64_t used = atomic_load_explicit(&old->used, memory_order_relaxed);
+    uint64_t target = old->size;
+    while (used * 3 > target) target <<= 1;
+    flatTable *nw = flatTableNew(target);
     nw->gen = old->gen + 1;
     for (uint64_t i = 0; i < old->size; i++) {
         uint64_t c = atomic_load_explicit(&old->slots[i].ctrl, memory_order_relaxed);

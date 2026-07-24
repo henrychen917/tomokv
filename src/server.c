@@ -5999,35 +5999,46 @@ void flatResizeCoordinate(void) {
         atomic_load_explicit(&tomo_flush_gate, memory_order_acquire)) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release); return;
     }
-    /* park all live workers */
-    atomic_store_explicit(&server.flat_resize_active, 1, memory_order_release);
-    int W = server.num_workers_alloc, parked = 0;
+    /* Announce the resize (seq_cst pairs with each worker's seq_cst announce+check in exSlice), then
+     * DRAIN every allocated worker's in_flat_section to 0. New sections are blocked at the gate; we
+     * wait only for in-flight ones to finish. This predicate is IDENTITY-COMPLETE — it observes any
+     * worker actually touching a table regardless of liveness/mode (review fix #1/#2/#5). */
+    atomic_store_explicit(&server.flat_resize_active, 1, memory_order_seq_cst);
+    int W = server.num_workers_alloc, quiesced = 0;
     for (long spins = 0; spins < 20000000L; spins++) {
         int all = 1;
         for (int w = 0; w < W; w++)
-            if (tmWorkerLive(w) && !atomic_load_explicit(&server.exThreads[w].resize_parked, memory_order_acquire)) { all = 0; break; }
-        if (all) { parked = 1; break; }
+            if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) { all = 0; break; }
+        if (all) { quiesced = 1; break; }
         sched_yield();
     }
-    if (!parked) {   /* couldn't quiesce (a worker wedged?) — abort, retry next pass */
-        atomic_store_explicit(&server.flat_resize_active, 0, memory_order_release);
+    if (!quiesced) {   /* a worker is wedged mid-batch — abort, retry next pass (table not yet full) */
+        atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        serverLog(LL_WARNING, "FLATSTORE resize: workers did not park — aborting, will retry");
+        serverLog(LL_WARNING, "FLATSTORE resize: workers did not quiesce — aborting, will retry");
         return;
     }
-    for (int n = 0; n < server.n_node_dbs; n++)
+    /* Grow ONE table per pass (review fix #4): each flatTableGrow is O(live keys) and runs on the
+     * main thread with all workers parked, so bounding the pause to a single table keeps the STW
+     * window short; the remaining flagged tables are picked up on subsequent beforeSleep passes. */
+    for (int n = 0; n < server.n_node_dbs; n++) {
+        int done = 0;
         for (int j = 0; j < server.dbnum; j++) {
             kvstore *kvs = server.node_dbs[n][j].keys;
             flatTable *t = kvstoreFlatTable(kvs);
             if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) {
                 flatTable *nw = flatTableGrow(t);
-                serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d grew %llu -> %llu slots",
-                          n, j, (unsigned long long)t->size, (unsigned long long)nw->size);
+                serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots (live=%llu)",
+                          n, j, (unsigned long long)t->size, (unsigned long long)nw->size,
+                          (unsigned long long)atomic_load_explicit(&t->used, memory_order_relaxed));
                 kvstoreFlatSwap(kvs, nw);
                 flatTableFree(t);   /* frees old slots + drains its retire garbage; live keys moved to nw */
+                done = 1; break;
             }
         }
-    atomic_store_explicit(&server.flat_resize_active, 0, memory_order_release);  /* workers resume */
+        if (done) break;
+    }
+    atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
     atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
 }
 
@@ -14275,13 +14286,19 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
     atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_release);
 
-    /* ee451 FLATSTORE Stage-2: park while a table is being rebuilt. The worker exec path is the ONLY
-     * flat-table access (prefetch bails on flat), so parking every worker here fully quiesces the
-     * table for the coordinator's swap. Ack via resize_parked so the coordinator knows all are idle. */
-    if (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_acquire), 0)) {
-        atomic_store_explicit(&worker->resize_parked, 1, memory_order_release);
+    /* ee451 FLATSTORE Stage-2 (review fix #1/#2/#5): announce we are entering a flat section, then
+     * check for a pending resize. This runs on EVERY worker that reaches exSlice — live, flipped
+     * EX->IO draining stragglers, or mid EX->PARKED — so the coordinator's drain-to-zero predicate is
+     * IDENTITY-COMPLETE (the old tmWorkerLive filter skipped exactly the flipped/parking workers that
+     * can still read the table -> UAF) and STALE-FREE (the flag is cleared at every batch end, so a
+     * prior resize's ack can never satisfy the next one). The seq_cst store-then-load here pairs with
+     * the coordinator's seq_cst set-active-then-scan: in the total order at least one side observes the
+     * other, so the coordinator can never free the table between our check and our first table access. */
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
         while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) sched_yield();
-        atomic_store_explicit(&worker->resize_parked, 0, memory_order_release);
+        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
     }
 
     /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
@@ -14582,6 +14599,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         sched_yield();
         ctx->empty_rounds = 0;
     }
+    /* leave the flat section — the coordinator's drain-to-zero can now observe us idle (exSlice has
+     * this single return, so this covers every exit path). */
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
     return any;
 }
 
