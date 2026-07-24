@@ -13,6 +13,7 @@
  */
 
 #include "server.h"
+#include "flatstore.h"
 #ifdef HAVE_LIBURING
 #include <liburing.h>   /* v12-K: worker-direct send-back uses io_uring sends from the worker loop */
 #endif
@@ -2323,6 +2324,7 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
     updateCachedTime(1);
 }
 
+void flatReclaimAll(void);
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
@@ -2336,6 +2338,9 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     }
     /* flip: drive a grow-front conversion to completion (park -> IO -> publish). Cheap when idle. */
     if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
+
+    /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending). */
+    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) flatReclaimAll();
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
@@ -5934,6 +5939,42 @@ static uint64_t xxh64(const void *input, size_t len) {
 
 /* ee451 FLATSTORE: public full-64-bit key hash (xxh64 is file-static). */
 uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
+
+/* ee451 FLATSTORE Stage-1 QSBR reclaim (main thread, beforeSleep). Close the table's retire stack
+ * into a batch stamped with every worker's loop_seq, then free any batch whose stamp every worker
+ * has passed (all pre-retire lock-free readers have since finished a full pass). */
+static void flatReclaimTable(flatTable *t) {
+    flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
+    if (pend) {
+        flatBatch *b = zmalloc(sizeof(*b));
+        b->head = pend;
+        int nw = server.num_workers_alloc; if (nw > 64) nw = 64;
+        b->nworkers = nw;
+        for (int w = 0; w < nw; w++)
+            b->snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
+        b->next = t->batches; t->batches = b;
+    }
+    flatBatch **pp = &t->batches;
+    while (*pp) {
+        flatBatch *b = *pp;
+        int ready = 1;
+        for (int w = 0; w < b->nworkers; w++)
+            if (atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire)
+                    < b->snap[w] + FLAT_QSBR_MARGIN) { ready = 0; break; }
+        if (!ready) { pp = &b->next; continue; }
+        flatRetireNode *n = b->head;
+        while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
+        *pp = b->next; zfree(b);
+    }
+}
+void flatReclaimAll(void) {
+    if (!server.shared_node_dbs || !server.node_dbs) return;
+    for (int n = 0; n < server.n_node_dbs; n++)
+        for (int j = 0; j < server.dbnum; j++) {
+            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
+            if (t) flatReclaimTable(t);
+        }
+}
 
 int getWorkerForCommand(client *c) {
     /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
@@ -14170,12 +14211,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * refcounts are only ever mutated by this thread. */
     freebackDrainAll(worker);
 
+    /* ee451 (FLATSTORE FIX D): bump loop_seq on EVERY pass with RELEASE ordering. It is the QSBR
+     * quiescence signal — flatReclaim frees a retired kvobj only once every worker's loop_seq has
+     * advanced past the retire snapshot, so any lock-free reader that acquire-loaded the old pointer
+     * BEFORE the retire has since finished a full pass (release here happens-before the reclaimer's
+     * acquire). Was migration-only, which left the grace unable to complete in steady state. Also
+     * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
+    atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_release);
+
     /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
      * B replays the ordered effect log into its shard; A advances the cold-key scan during
      * COPYING. Both are this-worker-only writes (single-writer preserved). */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
-        /* heartbeat so the cutover coordinator can confirm B has quiesced before freeing the log */
-        atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_relaxed);
         int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
         /* ee451 (shared-kv S1): in shared mode the copy engine never runs — no scan, no replay,
          * no cleanup (the fence+flip in the coordinator is the whole reshard). The loop_seq

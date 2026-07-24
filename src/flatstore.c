@@ -25,6 +25,8 @@ flatTable *flatTableNew(uint64_t want_size) {
     atomic_store_explicit(&t->used, 0, memory_order_relaxed);
     atomic_store_explicit(&t->tombs, 0, memory_order_relaxed);
     t->gen = 0;
+    atomic_store_explicit(&t->retire_stack, NULL, memory_order_relaxed);
+    t->batches = NULL;
     return t;
 }
 
@@ -32,6 +34,18 @@ void flatTableFree(flatTable *t) {
     if (!t) return;
     zfree(t->slots);
     zfree(t);
+}
+
+/* QSBR retire: lock-free Treiber push of a retired value onto the table's pending stack. Called by
+ * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimTable). */
+void flatRetire(flatTable *t, dictEntry *masked_kv) {
+    if (!masked_kv) return;
+    flatRetireNode *n = zmalloc(sizeof(*n));
+    n->masked_kv = masked_kv;
+    flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
+    do { n->next = head; }
+    while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
+             memory_order_release, memory_order_relaxed));
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

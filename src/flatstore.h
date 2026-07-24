@@ -39,6 +39,20 @@ typedef struct flatSlot {
     _Atomic(dictEntry *) kv;       /* tag-masked kvobj pointer (decode via dictGetKV); NULL when not LIVE */
 } flatSlot;                        /* 16 B => 4 slots / 64B line */
 
+/* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
+ * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack; the main thread
+ * periodically CLOSES the stack into a batch stamped with every worker's loop_seq, and frees a
+ * batch only once every worker has advanced past that stamp (so all pre-retire readers finished).
+ * One stamp per batch amortizes the snapshot over many deletes. */
+typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
+#define FLAT_QSBR_MARGIN 2
+typedef struct flatBatch {
+    flatRetireNode *head;
+    uint64_t snap[64 + 1];         /* loop_seq of each worker at close (TOMO_EX_THREADS_MAX) */
+    int nworkers;
+    struct flatBatch *next;
+} flatBatch;
+
 typedef struct flatTable {
     flatSlot *slots;               /* size entries, 64B-aligned, zcalloc'd (all EMPTY) */
     uint64_t  size;                /* power of two */
@@ -46,6 +60,8 @@ typedef struct flatTable {
     _Atomic uint64_t used;         /* LIVE slot count (approx; relaxed) */
     _Atomic uint64_t tombs;        /* TOMB slot count (approx; relaxed) */
     uint64_t  gen;                 /* bumped on a rebuild (Stage 2); a cursor carrying gen restarts on change */
+    _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
+    flatBatch *batches;            /* QSBR: closed batches (main-thread only) */
 } flatTable;
 
 flatTable *flatTableNew(uint64_t want_size);
@@ -66,6 +82,7 @@ dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new);
 /* delete the key at `slot` (FIX A order: null kv BEFORE tombstone, else a reused slot clobbers a
  * live key). Returns the OLD masked kv for the caller to retire / free. */
 dictEntry *flatDelete(flatTable *t, uint64_t slot);
+void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free until grace */
 
 /* iteration helpers (whole-table walk; Stage 4 adds a resumable cursor) */
 typedef void (*flatIterCB)(dictEntry *masked_kv, void *priv);

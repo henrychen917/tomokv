@@ -99,6 +99,7 @@ typedef struct {
 int kvstoreIsFlat(kvstore *kvs);
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv);
 void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
+struct flatTable *kvstoreFlatTable(kvstore *kvs);
 int kvstoreIsSharedMT(kvstore *kvs);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));

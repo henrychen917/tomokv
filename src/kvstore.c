@@ -73,6 +73,7 @@ static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
     return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
+flatTable *kvstoreFlatTable(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) ? kvs->flat : NULL; }
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
     if (kvs->flat) flatIterRange(kvs->flat, blo, bhi, cb, priv);
 }
@@ -1081,9 +1082,7 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, int table_index) {
     if (kvs->flags & KVSTORE_FLAT) {
         flatTable *t = kvs->flat;
-        (void)flatDelete(t, flatSlotOf(t, link));       /* Stage-0 LEAK-on-delete: freeing the old
-             * kvobj inline is (a) wrong (keyDestructor wants a dict*, not kvs) and (b) a UAF vs a
-             * concurrent lock-free reader on a foreign worker's bucket. QSBR reclaim is Stage 1. */
+        flatRetire(t, flatDelete(t, flatSlotOf(t, link)));   /* QSBR: defer free past a reader grace */
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         (void)table_index;
         return;
@@ -1099,7 +1098,7 @@ int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
         flatTable *t = kvs->flat;
         size_t len = sdslen((sds)key);
         uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
-        (void)flatDelete(t, slot);                       /* Stage-0 leak-on-delete (see above) */
+        flatRetire(t, flatDelete(t, slot));              /* QSBR: defer free past a reader grace */
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         return DICT_OK;
     }
