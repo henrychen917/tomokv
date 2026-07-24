@@ -65,9 +65,9 @@ static inline void kvstoreMtUnlock(kvstore *kvs) {
     __atomic_clear(&kvs->mt_lock, __ATOMIC_RELEASE);
 }
 
-/* ee451 FLATSTORE: a flat "link" is &slot->kv; recover the slot index. */
+/* ee451 FLATSTORE: a flat "link" is &slot->w; recover the slot index. */
 static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
-    return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, kv)) - t->slots);
+    return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, w)) - t->slots);
 }
 static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
     return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
@@ -992,7 +992,7 @@ dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLi
         flatTable *t = kvs->flat;
         size_t len = sdslen((sds)key);
         uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), key, len, &slot);
-        dictEntryLink link = (dictEntryLink)&t->slots[slot].kv;
+        dictEntryLink link = (dictEntryLink)&t->slots[slot].w;
         if (bucket) *bucket = link;               /* insert-or-found position */
         return found ? link : NULL;
     }
@@ -1031,7 +1031,7 @@ void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link,
              * Here we just null the slot's value (the dict path's "null the key" — freeObjAsync
              * already freed it), without tombstoning or decrementing. */
             uint64_t sl = flatSlotOf(t, *link);
-            atomic_store_explicit(&t->slots[sl].kv, NULL, memory_order_relaxed);
+            atomic_store_explicit(&t->slots[sl].w, FLAT_TOMB, memory_order_release);
         } else {
             dictEntry *masked = flatKvMask(kvs, kv);
             flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */
@@ -1074,7 +1074,7 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
         size_t len = sdslen((sds)key);
         uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot);
         if (table_index) *table_index = 0;
-        return found ? (dictEntryLink)&t->slots[slot].kv : NULL;
+        return found ? (dictEntryLink)&t->slots[slot].w : NULL;
     }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)

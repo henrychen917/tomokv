@@ -16,28 +16,30 @@
 #include <stdatomic.h>
 #include "dict.h"      /* dictEntry (a no_value slot stores the tag-masked kvobj pointer directly) */
 
-/* ctrl word layout (0 == EMPTY, the calloc initial state):
- *   [63:16] 48-bit hashtag = xxh64(key) >> 16
- *   [15: 2] 14-bit ownership bucket = xxh64(key) & 16383
- *   [1]     TOMB   (slot was live, key deleted; kv==NULL; re-usable by an insert)
- *   [0]     OCCUPIED (a key claimed this slot) */
-#define FLAT_OCCUPIED  0x1ULL
-#define FLAT_TOMB      0x2ULL
-#define FLAT_TAG_MASK  0xFFFFFFFFFFFF0000ULL      /* [63:16] */
-
-/* build the OCCUPIED-live ctrl for a key with 64-bit hash h and its 14-bit bucket b */
-#define flat_ctrl_of(h, b)  (((uint64_t)(h) & FLAT_TAG_MASK) | (((uint64_t)(b) & 0x3FFFULL) << 2) | FLAT_OCCUPIED)
-#define flat_tag_of(h)      ((uint64_t)(h) & FLAT_TAG_MASK)
-#define flat_ctrl_tag(c)    ((uint64_t)(c) & FLAT_TAG_MASK)
-#define flat_ctrl_bkt(c)    (((uint64_t)(c) >> 2) & 0x3FFFULL)   /* the 14-bit bucket, for reshard-range filters */
-#define FLAT_IS_EMPTY(c)    ((c) == 0)
-#define FLAT_IS_TOMB(c)     ((c) & FLAT_TOMB)
-#define FLAT_IS_LIVE(c)     (((c) & (FLAT_OCCUPIED | FLAT_TOMB)) == FLAT_OCCUPIED)
+/* 8B SINGLE-WORD slot (memory: half the old 16B two-word slot). The tag and flags live in the unused
+ * high bits of the masked kv pointer — x86-64 user pointers are canonical 48-bit, so [47:0] holds the
+ * pointer losslessly and [63:48] are ours. Layout:
+ *   [63:49] 15-bit hashtag = xxh64(key) >> 49   (skips a key deref on a non-matching probe)
+ *   [48]    TOMB
+ *   [47:0]  masked kvobj pointer (dictEncodeStoredKey; low 3 bits carry the no-value encoding)
+ * States: whole word 0 == EMPTY (the calloc state; the only probe STOP). [47:0] != 0 == LIVE. Any
+ * non-zero word with [47:0] == 0 == "dead" (TOMB, or async-precleared) — reusable, never stops a probe.
+ * The single word means INSERT is ONE CAS (tag|ptr published atomically, no ctrl/kv ordering window)
+ * and DELETE is ONE store — the old 16B FIX-A two-step is gone. The 14-bit ownership bucket is NO
+ * longer stored; the rare range scans (KEYS / RANDOMKEY / reshard) recompute it from the key. */
+#define FLAT_PTR_MASK   0x0000FFFFFFFFFFFFULL      /* [47:0] the masked pointer */
+#define FLAT_TOMB       0x0001000000000000ULL      /* [48] */
+#define FLAT_TAG_SHIFT  49
+#define flat_tag_of(h)      (((uint64_t)(h) >> FLAT_TAG_SHIFT) & 0x7FFFULL)      /* 15-bit tag from the hash */
+#define flat_word_tag(w)    (((uint64_t)(w) >> FLAT_TAG_SHIFT) & 0x7FFFULL)
+#define flat_word_ptr(w)    ((dictEntry *)(uintptr_t)((uint64_t)(w) & FLAT_PTR_MASK))
+#define flat_make(h, mp)    (((uint64_t)flat_tag_of(h) << FLAT_TAG_SHIFT) | ((uint64_t)(uintptr_t)(mp) & FLAT_PTR_MASK))
+#define FLAT_IS_EMPTY(w)    ((uint64_t)(w) == 0)
+#define FLAT_IS_LIVE(w)     (((uint64_t)(w) & FLAT_PTR_MASK) != 0)   /* has a pointer => a live key */
 
 typedef struct flatSlot {
-    _Atomic uint64_t ctrl;         /* tag|bucket|flags; 0 = EMPTY */
-    _Atomic(dictEntry *) kv;       /* tag-masked kvobj pointer (decode via dictGetKV); NULL when not LIVE */
-} flatSlot;                        /* 16 B => 4 slots / 64B line */
+    _Atomic uint64_t w;            /* [63:49] tag | [48] TOMB | [47:0] masked kv ptr; 0 = EMPTY. 8 B => 8/64B line */
+} flatSlot;
 
 /* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
  * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack; the main thread

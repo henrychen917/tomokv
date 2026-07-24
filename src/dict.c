@@ -158,7 +158,11 @@ static inline dictEntry *encodeMaskedPtr(const void *ptr, unsigned int bits) {
 }
 
 static inline void *decodeMaskedPtr(const dictEntry *de) {
-    return (void *)((uintptr_t)(void *)de & ~ENTRY_PTR_MASK);
+    /* ee451 FLATSTORE: also strip the high 16 bits [63:48]. A flat-store 8B slot word carries a
+     * 15-bit hash tag there, and its masked kv pointer is decoded generically via this path
+     * (dictGetKV(*link) on &slot->w). Canonical x86-64 user pointers have bits [63:48] == 0, so this
+     * mask is a no-op for every real dict entry and only clears the flat tag. */
+    return (void *)((uintptr_t)(void *)de & ~(uintptr_t)ENTRY_PTR_MASK & 0x0000FFFFFFFFFFFFULL);
 }
 
 /* Encode a key pointer for storage in a no_value dict bucket.
