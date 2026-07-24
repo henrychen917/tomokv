@@ -15791,6 +15791,14 @@ static long tmIoThreadLoad(int id) {
 static double tmIoThreadBusy(int id) {
     return (id >= 0 && id <= TOMO_IO_THREADS_MAX) ? (double)tm_io_sig[id].busy_ewma_q4 : 0.0;
 }
+/* ee451 (client-lb unify): public accessors for DEBUG TOMO-IOLOAD. */
+long tmIoThreadLoadPub(int id) { return tmIoThreadLoad(id); }
+int  tmIoModePub(int id) {
+    if (id < 0 || id > TOMO_IO_THREADS_MAX) return -1;
+    polyThreadCtx *ctx = tmCtxForIotid(id);
+    if (!ctx) return -1;
+    return (int)atomic_load_explicit(&ctx->mode, memory_order_acquire);
+}
 
 /* flip: after a grow-front brings io thread `new_id` online (it starts with ~0 conns), pull
  * existing connections onto it so per-thread load equalizes — otherwise the new thread sits idle
@@ -15863,6 +15871,30 @@ static int tmLeastLoadedIoDest(int exclude) {
         long load = tmIoThreadLoad(dests[i]);
         if (load < bestload) { bestload = load; best = dests[i]; }
     }
+    return best;
+}
+
+/* ee451 (client-lb unify): load-aware connection placement — the single policy for spreading conns
+ * across live io threads, replacing the two round-robin sites. Picks the live dest (excluding
+ * `exclude`) that is least loaded AFTER this placement = current conn count PLUS conns already placed
+ * THIS batch (in_flight[], indexed by io slot, caller-zeroed) so a burst of handoffs spreads by real
+ * load instead of clumping on a stale least-count (the async apply lags). Unlike round-robin it folds
+ * in each dest's EXISTING imbalance, matching grow-front's rebalance intent — both converge to equal
+ * per-thread load. Conn count is the safe metric when per-conn busy is unknown (same rationale as
+ * tmRebalanceOntoNewIo's cold-EWMA fallback). in_flight may be NULL for a one-shot placement.
+ * Re-gathers the live set each call, so it tracks io threads appearing/leaving via flips. */
+static int tmPlaceConnDest(int exclude, long *in_flight) {
+    int dests[TOMO_IO_THREADS_MAX + 1];
+    int n = tmGatherLiveDests(exclude, dests, TOMO_IO_THREADS_MAX + 1);
+    if (n == 0) return -1;
+    int best = -1;
+    long bestload = LONG_MAX;
+    for (int i = 0; i < n; i++) {
+        int d = dests[i];
+        long load = tmIoThreadLoad(d) + (in_flight ? in_flight[d] : 0);
+        if (load < bestload) { bestload = load; best = d; }
+    }
+    if (best >= 0 && in_flight) in_flight[best]++;
     return best;
 }
 
@@ -15972,6 +16004,7 @@ static int tmMigExpelInbox(int id) {
     int dests[TOMO_IO_THREADS_MAX + 1];
     int nd = tmGatherLiveDests(id, dests, TOMO_IO_THREADS_MAX + 1);
     if (nd == 0) return 0;
+    long inflight[TOMO_IO_THREADS_MAX + 1] = {0};   /* client-lb unify: load-aware spread */
     int moved = 0;
     for (;;) {
         pthread_mutex_lock(&mb->inbox_lock);
@@ -15981,7 +16014,8 @@ static int tmMigExpelInbox(int id) {
         atomic_store_explicit(&mb->inbox_n, (int)listLength(mb->inbox), memory_order_release);
         pthread_mutex_unlock(&mb->inbox_lock);
         if (!c) break;
-        int dest = dests[mb->rr_cursor++ % nd];
+        int dest = tmPlaceConnDest(id, inflight);       /* least-loaded live io, not round-robin */
+        if (dest < 0) dest = dests[moved % nd];         /* live set vanished mid-loop: safe fallback */
         c->tid = dest;
         tmMigMailbox *dmb = &tm_mig_mbox[dest];
         pthread_mutex_lock(&dmb->inbox_lock);
@@ -16049,6 +16083,7 @@ void tmMigServiceOut(void) {
     }
 
     /* 3. Complete quiesced migrations. */
+    long mig_inflight[TOMO_IO_THREADS_MAX + 1] = {0};   /* client-lb unify: per-pass load-aware spread */
     listIter li; listNode *ln;
     listRewind(mb->migrating_out, &li);
     while ((ln = listNext(&li))) {
@@ -16068,10 +16103,12 @@ void tmMigServiceOut(void) {
         if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */
         int dest;
         if (exiting) {
-            int dests[TOMO_IO_THREADS_MAX + 1];
-            int nd = tmGatherLiveDests(id, dests, TOMO_IO_THREADS_MAX + 1);
-            if (nd == 0) continue;             /* no receiver right now — hold (retry next pass) */
-            dest = dests[mb->rr_cursor++ % nd];/* round-robin => even spread */
+            /* ee451 (client-lb unify): place each quiesced conn on the currently least-loaded live
+             * io thread (conn count + this-pass in-flight), NOT round-robin — so grow-back spreads by
+             * real load and folds in existing per-thread imbalance, the same intent as grow-front's
+             * rebalance. Re-gathers the live set each call, so it tracks the shrinking io set. */
+            dest = tmPlaceConnDest(id, mig_inflight);
+            if (dest < 0) continue;            /* no receiver right now — hold (retry next pass) */
         } else {
             dest = mb->batch_dest;
             polyThreadCtx *dctx = tmCtxForIotid(dest);
