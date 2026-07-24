@@ -2670,6 +2670,7 @@ struct redisServer {
     int io_threads;
     int ex_threads;
     int thredis_flat_store;     /* ee451 FLATSTORE knob (0/1) */
+    int flat_load_pct;          /* ee451 FLATSTORE: target peak load %% (resize trigger); higher = less memory, longer probes */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
     /* ee451 (thread-modes v1, step 2): 0 (default) = static mains, exact legacy
      * behavior; 1 = every tomokv thread runs polyThreadMain with a preset mode,

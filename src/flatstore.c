@@ -129,9 +129,11 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
                     memory_order_acq_rel, memory_order_acquire)) {   /* publishes tag|ptr atomically */
                 uint64_t u = atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed) + 1;
                 if (w != 0) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);  /* reused a tomb */
-                /* flag a rebuild at 50% (used+tombs)/size — leaves 0.5*size headroom for inserts to
-                 * outrun the beforeSleep coordinator before the table-full wall (review fix #3). */
-                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 2 >= t->size)
+                /* flag a rebuild at flat_load_pct% (used+tombs)/size. Higher = fuller table = less
+                 * memory but longer linear-probe chains; (1-load_pct)*size is the burst headroom
+                 * before the table-full wall. Default 70 (measured: ~half the table mem of 50, GET
+                 * unaffected — dense 8-slots/line absorbs the extra probe). */
+                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 100 >= t->size * (uint64_t)server.flat_load_pct)
                     atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
                 return i;
             }
@@ -174,7 +176,13 @@ flatTable *flatTableAllocFor(flatTable *old) {
      * <= 1/3 live load so we don't immediately re-cross the 0.5 trigger. Never shrink below old->size. */
     uint64_t used = atomic_load_explicit(&old->used, memory_order_relaxed);
     uint64_t target = old->size;
-    while (used * 3 > target) target <<= 1;
+    /* A resize at load T intrinsically halves to T/2, so a SINGLE double is always enough (used<=size).
+     * Double only when the live set alone is over half the trigger (used >= (load_pct/2)% of size); if
+     * the trigger fired mostly on tombstones (live set smaller), rebuild SAME size to GC them without
+     * growing. Table then oscillates ~(load_pct/2 .. load_pct); avg ~0.75*load_pct = the B/key vs
+     * probe-length knob. NB: a while-loop with a tight multiplier double-jumps to 4x when `used`
+     * overshoots the trigger just past a power-of-two boundary — hence the single conditional. */
+    if (used * 200 >= old->size * (uint64_t)server.flat_load_pct) target = old->size * 2;
     flatTable *nw = flatTableNew(target);
     nw->gen = old->gen + 1;
     return nw;
