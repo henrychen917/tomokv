@@ -1025,13 +1025,13 @@ void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link,
             flatInsert(t, h, masked, slot);
             __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         } else if (kv == NULL) {
-            /* review [crit] + count fix: the async-delete path calls SetAtLink(NULL,link,0) AND then
-             * kvstoreDictTwoPhaseUnlinkFree — so the actual tombstone + key_count-- must happen in
-             * TwoPhaseUnlinkFree ONLY (it runs for both sync and async), else async double-counts.
-             * Here we just null the slot's value (the dict path's "null the key" — freeObjAsync
-             * already freed it), without tombstoning or decrementing. */
-            uint64_t sl = flatSlotOf(t, *link);
-            atomic_store_explicit(&t->slots[sl].w, FLAT_TOMB, memory_order_release);
+            /* ee451 FLATSTORE (8B-slot review fix): preclearing a slot to FLAT_TOMB here is UNSAFE —
+             * FLAT_TOMB is immediately reusable, so a concurrent cross-key insert could claim the slot
+             * before the follow-up flatDelete blindly clobbers it (key loss + UAF). dbGenericDelete no
+             * longer takes the preclear path for a flat store (it routes every delete through the
+             * single-store flatDelete in TwoPhaseUnlinkFree), so this must be unreachable. Guard it. */
+            assert(0 && "FLATSTORE: SetAtLink(NULL) preclear forbidden on a flat store — "
+                        "delete must route through the single-store flatDelete path");
         } else {
             dictEntry *masked = flatKvMask(kvs, kv);
             flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */

@@ -1015,12 +1015,22 @@ int dbGenericDelete(redisDb *db, robj *key, int async, int flags) {
         if (kvobjGetExpire(kv) != -1)
             kvstoreDictDelete(db->expires, slot, key->ptr);
 
-        if (async) {
+        /* ee451 FLATSTORE (8B-slot review fix): the async path's freeObjAsync + SetAtLink(NULL)
+         * preclear is UNSAFE on a flat store. The 8B slot has no "occupied-but-no-value" state, so
+         * the preclear must store FLAT_TOMB — which is immediately reusable, so a concurrent cross-key
+         * insert can claim the slot in the window before flatDelete, which then blindly clobbers it
+         * (silent key loss + UAF of the reinserted value). freeObjAsync is also not QSBR-safe against
+         * lock-free readers. So for flat, ALWAYS take the single-store path: TwoPhaseUnlinkFree's one
+         * atomic flatDelete tombstones the still-LIVE slot (no reuse window) and flatRetire defers the
+         * free past the reader grace — same as the sync path. */
+        if (async && !kvstoreIsFlat(db->keys)) {
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(db, slot, kv, kvobjAllocSize(kv), -1);
             freeObjAsync(key, kv, db->id);
             /* Set the key to NULL in the main dictionary. */
             kvstoreDictSetAtLink(db->keys, slot, NULL, &link, 0);
+        } else if (async && server.memory_tracking_enabled) {
+            updateSlotAllocSize(db, slot, kv, kvobjAllocSize(kv), -1);   /* flat: still account the drop */
         }
         kvstoreDictTwoPhaseUnlinkFree(db->keys, slot, link, table);
 
