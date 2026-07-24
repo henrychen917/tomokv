@@ -1776,7 +1776,9 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
     /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
      * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
+    void tmClientBalanceCron(void);
     run_with_period(1000) reshardAutoTune();
+    run_with_period(1000) tmClientBalanceCron();
     run_with_period(1000) fakeRingAutoTune();
 
     /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER — ~4-5Hz sampling of the
@@ -15332,7 +15334,8 @@ int tomoModeshiftSpare(int mode, const char **err) {
  * dormant io binding -> joins the REUSEPORT accept group). io_threads_live++ / num_workers_live--.
  * Async: arms the migration + sets the flip ctx; tmFlipTick (beforeSleep) drives park->IO. ---- */
 static int tmGatherLiveDests(int exclude, int *out, int cap);   /* defined below */
-static long tmIoThreadLoad(int id);                             /* defined below */
+static long tmIoThreadLoad(int id);
+static int tmPlaceConnDest(int exclude, long *in_flight);                             /* defined below */
 static int tmClientMigratable(client *c);                       /* defined below */
 
 /* ee451 (per-node flip): node liveness bookkeeping — no-ops on numa==1 (globals carry it). */
@@ -15860,6 +15863,52 @@ static void tmRebalanceOntoNewIo(int new_id) {
                              "%s balancing (conn_target %ld, busy_target %.0f, total %ld conns/%d threads)",
                   new_id, posted, ewma_hot ? "EWMA-busy" : "conn-count", conn_target, busy_target,
                   tot_conns, n);
+}
+
+/* ee451 (client-lb continuous trigger): the connection analog of the bucket balancer
+ * (reshardAutoTune). Runs every 1s from serverCron and, WITHIN a node, moves the minimal set of
+ * conns off an io thread that is a SUSTAINED busy-outlier onto the least-loaded thread — to a
+ * tolerance band, not chasing every blip. Same shape as reshardAutoTune: mean + 25%% outlier bar +
+ * sustain streak + imbalance-proportional move. This makes client lb TRIGGER the same way as key lb
+ * instead of only on flips. Gated by the same tm_flip_rebalance knob. */
+static int cli_hot_streak[TOMO_IO_THREADS_MAX + 1];
+void tmClientBalanceCron(void) {
+    if (!server.thread_modes || !server.tm_flip_rebalance) return;
+    int all[TOMO_IO_THREADS_MAX + 1];
+    int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);
+    int nnodes = tmNumNodes();
+    for (int node = 0; node < nnodes; node++) {
+        int dests[TOMO_IO_THREADS_MAX + 1], n = 0;
+        for (int i = 0; i < n0; i++)
+            if (nnodes == 1 || tmNodeOfIoSlot(all[i]) == node) dests[n++] = all[i];
+        if (n < 2) continue;
+        double tot_busy = 0; long tot_conns = 0;
+        for (int i = 0; i < n; i++) { tot_busy += tmIoThreadBusy(dests[i]); tot_conns += tmIoThreadLoad(dests[i]); }
+        if (tot_busy <= (double)n || tot_conns < n) continue;            /* idle / trivial */
+        double mean = tot_busy / n;
+        int hot = -1; double hotv = -1;
+        for (int i = 0; i < n; i++) { double b = tmIoThreadBusy(dests[i]); if (b > hotv) { hotv = b; hot = dests[i]; } }
+        if (hot < 0 || hotv <= mean * 1.25) { if (hot >= 0) cli_hot_streak[hot] = 0; continue; }  /* within band */
+        if (++cli_hot_streak[hot] < 3) continue;                         /* sustain 3 ticks (kill blips) */
+        cli_hot_streak[hot] = 0;
+        long nc = tmIoThreadLoad(hot);
+        if (nc < 2) continue;
+        double per_conn = hotv / (double)nc;
+        int count = per_conn > 0.0 ? (int)((hotv - mean) / per_conn) : 0;
+        if (count < 1) continue;
+        if (count > nc - 1) count = (int)(nc - 1);
+        int dst = tmPlaceConnDest(hot, NULL);                            /* least-loaded live dest */
+        if (dst < 0 || dst == hot) continue;
+        tmMigMailbox *mb = &tm_mig_mbox[hot];
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) continue;
+        mb->req_kind = TM_MIGREQ_REBALANCE; mb->req_dest = dst; mb->req_count = count;
+        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        triggerEventNotifier(mb->notifier);
+        serverLog(LL_NOTICE, "ee451 client-lb: io %d busy-outlier (%.0f vs mean %.0f) -> %d conn(s) to io %d",
+                  hot, hotv, mean, count, dst);
+    }
 }
 
 static int tmLeastLoadedIoDest(int exclude) {
