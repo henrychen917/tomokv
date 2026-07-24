@@ -13762,7 +13762,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * NOT span/16384 — dividing by 16384 in multi-node under-estimates by ~numa_nodes and
                  * wrongly closes the gate in the memory-bound regime prefetch is meant for. */
                 if (server.numa_nodes <= 1) {
-                    est = (est * (unsigned long long)span) >> 14;   /* single node: /16384 (shift) */
+                    est = (est * (unsigned long long)span) / TOMO_BUCKETS;  /* single node; compiles to a shift */
                 } else {
                     int node_span = TOMO_BUCKETS / server.numa_nodes;
                     est = (est * (unsigned long long)span) / (node_span > 0 ? node_span : 1);
