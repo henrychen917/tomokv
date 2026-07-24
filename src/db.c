@@ -701,7 +701,9 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         oldsize = kvobjAllocSize(old);
 
     if ((old->refcount == 1 && old->encoding != OBJ_ENCODING_EMBSTR) &&
-        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) && (!freeModuleMeta))
+        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) && (!freeModuleMeta) &&
+        !kvstoreIsFlat(db->keys))   /* FLATSTORE: in-place mutates a LIVE table object a cross-shard
+                                     * reader may be reading (data race) -- force the copy path. */
     {
         /* Keep old object in the database. Just swap it's ptr, type and
          * encoding with the content of val. */
@@ -765,12 +767,11 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         }
     }
 
-    if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
-        /* In multi-threaded mode, the OBJ_ENCODING_RAW string object usually is
-         * allocated in the IO thread, so we defer the free to the IO thread.
-         * Besides, we never free a string object in BIO threads, so, even with
-         * lazyfree-lazy-server-del enabled, a fallback to main thread freeing
-         * due to defer free failure doesn't go against the config intention. */
+    if (kvstoreIsFlat(db->keys)) {
+        /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
+         * reader may still hold it). Transfers old's ref to the QSBR retire list. */
+        kvstoreFlatRetireRaw(db->keys, old);
+    } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
     } else if (server.lazyfree_lazy_server_del) {
         freeObjAsync(key, old, db->id);

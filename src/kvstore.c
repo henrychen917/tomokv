@@ -74,6 +74,9 @@ static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
 flatTable *kvstoreFlatTable(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) ? kvs->flat : NULL; }
+void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (unmasked) kvobj */
+    if (kvs->flat && rawkv) flatRetire(kvs->flat, flatKvMask(kvs, rawkv));
+}
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
     if (kvs->flat) flatIterRange(kvs->flat, blo, bhi, cb, priv);
 }
