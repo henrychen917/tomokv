@@ -2625,6 +2625,12 @@ struct redisServer {
     mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the park; abort past
                                     * it. TIME, not ticks: tmFlipTick runs per event-loop iteration, so a tick
                                     * count is load-dependent (40 iterations ~ 1ms under P32 load). */
+    int tm_flip_aborted_node;      /* review [races]: the NODE whose probe aborted. tm_flip_aborted is a
+                                    * server-global but the controller keeps per-node state and scans
+                                    * every node each tick; without this tag a peer node (in a routine
+                                    * post-revert backoff) would consume the flag and re-issue its own
+                                    * already-landed revert = uncommanded cross-node flip. Consumers
+                                    * gate on node==this. numa_nodes==1 => always 0 => no behaviour change. */
     int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
                                     * CANCEL the in-flight probe (config never left baseline: nothing to
                                     * measure, nothing to revert). */

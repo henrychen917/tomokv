@@ -9867,29 +9867,51 @@ static void reshardRelevelTick(void) {
         if (k >= 2 && span > 0) {
             int pfx = 0;
             for (int i = 0; i + 1 < k; i++) {
+                int lo_i = lo_n + pfx;                  /* live[i]'s own low boundary */
                 pfx += c[live[i]];
-                int cur = lo_n + pfx;
+                int cur = lo_n + pfx;                   /* boundary between live[i] and live[i+1] */
                 int tgt = lo_n + (int)(((long)span * (i + 1)) / k);
                 int d = cur - tgt;
-                if (d >= 64 || d <= -64) {
-                    int src = d > 0 ? live[i] : live[i + 1];
-                    int dst = d > 0 ? live[i + 1] : live[i];
-                    int mlo = d > 0 ? tgt : cur;
-                    int mhi = d > 0 ? cur : tgt;
-                    if (reshardArm(mlo, mhi, src, dst)) {
-                        reshardBeginCutover();
-                        serverLog(LL_NOTICE, "ee451 reshard RELEVEL: [%d,%d) %d -> %d (boundary %d, target %d)",
-                                  mlo, mhi, src, dst, cur, tgt);
-                    }
+                if (d < 64 && d > -64) continue;        /* within tolerance — next boundary */
+                /* review [wedge fix]: the ideal target can lie beyond what the SRC worker actually
+                 * owns (e.g. a [200,200,15984] post-flip skew needs [200,5461) moved off a worker
+                 * that only owns [200,400)). reshardArm/reshardRangeValid then rejects EVERY tick and
+                 * tm_relevel_pending never clears => EWMA balancing + diffusion starve forever.
+                 * Clamp the move to src's owned range (never empty src): the relevel then BUBBLES
+                 * toward even over a few ticks. A boundary whose clamped move is empty (neighbour has
+                 * 1 bucket) is skipped, not returned on — so a blocked leftmost boundary can't wedge
+                 * the walk; the imbalance is really at a later boundary. */
+                int src, dst, mlo, mhi;
+                if (d > 0) {                            /* live[i] too big: shed a suffix rightward */
+                    src = live[i]; dst = live[i + 1];
+                    mlo = tgt < (lo_i + 1) ? (lo_i + 1) : tgt;   /* keep >=1 bucket in src */
+                    mhi = cur;
+                } else {                                /* live[i] too small: pull a prefix leftward */
+                    src = live[i + 1]; dst = live[i];
+                    int src_hi = cur + c[live[i + 1]];
+                    mlo = cur;
+                    mhi = tgt > (src_hi - 1) ? (src_hi - 1) : tgt; /* keep >=1 bucket in src */
+                }
+                if (mhi - mlo < 1) continue;            /* clamped to empty — try the next boundary */
+                if (reshardArm(mlo, mhi, src, dst)) {
+                    reshardBeginCutover();
+                    serverLog(LL_NOTICE, "ee451 reshard RELEVEL: [%d,%d) %d -> %d (boundary %d, target %d)",
+                              mlo, mhi, src, dst, cur, tgt);
                     return;                             /* one move per tick; re-walk next tick */
                 }
+                /* arm refused (transient) — try the next boundary rather than spin on this one */
             }
         }
         lo_n += span;
         w0 = w;
     }
-    server.tm_relevel_pending = 0;                      /* every boundary within tolerance */
-    serverLog(LL_NOTICE, "ee451 reshard RELEVEL: layout even — done");
+    /* Reached only when NO boundary armed a move this tick: either everything is within tolerance,
+     * or every off-boundary was clamped-empty / arm-refused. Either way relevel is done making
+     * progress — clear the flag so the EWMA balancer + diffusion (the general-purpose levelers) take
+     * over. Because each armed move strictly cuts the deviation from even and this clears the instant
+     * nothing can move, the flag cannot get stuck set (the reviewed wedge is impossible). */
+    server.tm_relevel_pending = 0;
+    serverLog(LL_NOTICE, "ee451 reshard RELEVEL: layout even (or handed off) — done");
 }
 
 /* ee451 (diffusion leveling): the outlier trigger above/below has a structural blind spot for
@@ -13734,7 +13756,17 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 int wlo = (wid == 0) ? 0 : server.ex_bucket_end[wid - 1];
                 int span = server.ex_bucket_end[wid] - wlo;
                 if (span < 0) span = 0;
-                est = (est * (unsigned long long)span) >> 14;   /* /16384 buckets */
+                /* review [#4]: dbSize is the NODE's kvstore key count, and a node's kvstore spans only
+                 * its OWN contiguous bucket sub-range (cross-node reshard is refused, so the per-node
+                 * span is the boot-invariant 16384/numa_nodes). The worker's share is span/NODE-span,
+                 * NOT span/16384 — dividing by 16384 in multi-node under-estimates by ~numa_nodes and
+                 * wrongly closes the gate in the memory-bound regime prefetch is meant for. */
+                if (server.numa_nodes <= 1) {
+                    est = (est * (unsigned long long)span) >> 14;   /* single node: /16384 (shift) */
+                } else {
+                    int node_span = TOMO_BUCKETS / server.numa_nodes;
+                    est = (est * (unsigned long long)span) / (node_span > 0 ? node_span : 1);
+                }
             }
             if (est < auto_min) {
                 for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
@@ -15456,7 +15488,8 @@ void tmFlipTick(void) {
                                           "(pinned non-migratable conn); re-joining accept group, staying IO",
                               ctx->io_slot);
                     server.tm_flip_ctx = NULL; server.tm_flip_target = 0; server.tm_flip_phase = 0;
-                    server.tm_flip_aborted = 1;         /* tell the controller its probe never applied */
+                    server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
+                    server.tm_flip_aborted = 1;         /* tell the OWNING node's controller its probe never applied */
                 }
                 return;
             }
@@ -16705,7 +16738,8 @@ static void tomoFlipController(void) {
          * baseline. Re-issue the revert until it lands, waiting between attempts (the pin that
          * caused the abort tends to persist briefly). Checked before the hold block on purpose:
          * a converged controller must still repair its position. */
-        if (fc->phase == 0 && fc->revert_dir && server.tm_flip_aborted) {
+        if (fc->phase == 0 && fc->revert_dir && server.tm_flip_aborted &&
+            node == server.tm_flip_aborted_node) {       /* review [races]: only the owning node consumes */
             server.tm_flip_aborted = 0;
             fc->revert_retry = 1;
             fc->wait = FESC_WAIT_BASE;
@@ -16726,7 +16760,8 @@ static void tomoFlipController(void) {
          * revert => uncommanded grow-front). Cancel the probe: no null feed, no probed_mask bit
          * (this neighbour was never measured), back off (pins tend to persist), try the other
          * direction first next time. */
-        if (fc->phase != 0 && server.tm_flip_aborted) {
+        if (fc->phase != 0 && server.tm_flip_aborted &&
+            node == server.tm_flip_aborted_node) {       /* review [races]: only the owning node consumes */
             server.tm_flip_aborted = 0;
             serverLog(LL_WARNING, "[flip-ctl n%d] probe %s ABORTED at actuation -> cancel (no revert)",
                       node, fc->last_dir > 0 ? "grow-front" : "grow-back");
