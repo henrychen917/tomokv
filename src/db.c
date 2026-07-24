@@ -891,6 +891,20 @@ robj *dbRandomKey(redisDb *db) {
         if (wid >= 0 && wid < server.num_workers && db == &server.exThreads[wid].db[db->id]) {
             int blo = wid ? server.ex_bucket_end[wid - 1] : 0;
             int bhi = server.ex_bucket_end[wid];
+            if (kvstoreIsFlat(db->keys)) {
+                for (int tries = 0; tries < 100; tries++) {
+                    kvobj *kv = kvstoreFlatRandomKeyInRange(db->keys, blo, bhi);
+                    if (!kv) return NULL;
+                    sds key = kvobjGetKey(kv);
+                    robj *keyobj = createStringObject(key, sdslen(key));
+                    if (server.mcmd_lock) tomoWkrLockPub(wid);
+                    int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                    if (server.mcmd_lock) tomoWkrUnlockPub(wid);
+                    if (kvalid != KEY_VALID) { decrRefCount(keyobj); continue; }
+                    return keyobj;
+                }
+                return NULL;
+            }
             for (int tries = 0; tries < 100; tries++) {
                 unsigned long long total = 0;
                 for (int b = blo; b < bhi; b++) {

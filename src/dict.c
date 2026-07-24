@@ -164,6 +164,14 @@ static inline void *decodeMaskedPtr(const dictEntry *de) {
 /* Encode a key pointer for storage in a no_value dict bucket.
  * For odd keys (like SDS strings), the key can be stored directly.
  * For even keys, we need to tag it with ENTRY_PTR_IS_EVEN_KEY. */
+/* ee451 FLATSTORE: encode a raw key/kvobj into a no_value stored pointer, given the dictType
+ * directly (the flat kvstore has no dict struct). keyDup applies if the type defines it. */
+dictEntry *dictEncodeStoredKey(const dictType *dt, dict *dup_owner, void *key) {
+    void *added = dt->keyDup ? dt->keyDup(dup_owner, key) : key;
+    if (dt->keys_are_odd) return (dictEntry *)added;
+    return encodeMaskedPtr(added, ENTRY_PTR_IS_EVEN_KEY);
+}
+
 static inline dictEntry *encodeEntryKey(dict *d, void *key) {
     if (d->type->keys_are_odd) {
         debugAssert(((uintptr_t)key & ENTRY_PTR_IS_ODD_KEY) == ENTRY_PTR_IS_ODD_KEY);

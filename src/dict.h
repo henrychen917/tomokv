@@ -322,4 +322,6 @@ uint64_t dictGetUnsignedIntegerVal(const dictEntry *de);
 int dictTest(int argc, char *argv[], int flags);
 #endif
 
+dictEntry *dictEncodeStoredKey(const dictType *dt, dict *dup_owner, void *key);  /* ee451 FLATSTORE */
+
 #endif /* __DICT_H */

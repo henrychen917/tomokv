@@ -1776,7 +1776,9 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
     /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
      * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
+    void tmClientBalanceCron(void);
     run_with_period(1000) reshardAutoTune();
+    run_with_period(1000) tmClientBalanceCron();
     run_with_period(1000) fakeRingAutoTune();
 
     /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER — ~4-5Hz sampling of the
@@ -3655,12 +3657,13 @@ void initServer(void) {
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
         int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
+        if (server.thredis_flat_store && server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE */
         server.node_dbs = zmalloc(sizeof(redisDb *) * (nnodes + 1));
         for (int n = 0; n < nnodes + 1; n++) {              /* [nnodes] = spare-private array */
             server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
             for (j = 0; j < server.dbnum; j++) {
                 server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
-                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags);
+                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags & ~KVSTORE_FLAT);  /* review [crit]: expires stays on the dict path (its insert path AddRaw has no flat branch) */
                 server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
                 server.node_dbs[n][j].expires_cursor = 0;
                 server.node_dbs[n][j].blocking_keys = dictCreate(&keylistDictType);
@@ -5929,6 +5932,9 @@ static uint64_t xxh64(const void *input, size_t len) {
     return h;
 }
 
+/* ee451 FLATSTORE: public full-64-bit key hash (xxh64 is file-static). */
+uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
+
 int getWorkerForCommand(client *c) {
     /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
      * selection probability == its share of the keyspace, so (a) the result distribution mirrors
@@ -6786,6 +6792,18 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
  * array element (bulk value, or nil for missing / non-string) into the sub's own buffer.
  * Matches mgetCommand's per-key semantics exactly: a wrong-type key replies nil, NOT an
  * error (so this is deliberately not getCommand, which would WRONGTYPE). */
+/* ee451 FLATSTORE: KEYS fan flat-iteration callback (whole-table walk filtered to the worker's
+ * bucket range by kvstoreFlatIterRange). */
+typedef struct { client *sub; const char *pat; int plen, allkeys; unsigned long n; } keysFlatCtx;
+static void keysFlatCB(dictEntry *masked, void *priv) {
+    keysFlatCtx *x = (keysFlatCtx *)priv;
+    kvobj *kv = dictGetKV(masked);
+    sds key = kvobjGetKey(kv);
+    if (x->allkeys || stringmatchlen(x->pat, x->plen, key, sdslen(key), 0)) {
+        if (!keyIsExpired(x->sub->db, NULL, kv)) { addReplyBulkCBuffer(x->sub, key, sdslen(key)); x->n++; }
+    }
+}
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -6963,6 +6981,12 @@ static void csSubExec(client *sub) {
             int w = sub->cssub_idx;
             int blo = w ? server.ex_bucket_end[w - 1] : 0;
             int bhi = server.ex_bucket_end[w];
+            if (kvstoreIsFlat(sub->db->keys)) {
+                keysFlatCtx kctx = { sub, pattern, (int)plen, allkeys, 0 };
+                kvstoreFlatIterRange(sub->db->keys, blo, bhi, keysFlatCB, &kctx);
+                atomic_fetch_add_explicit(&g->rcount, (long)kctx.n, memory_order_relaxed);
+                break;
+            }
             for (int b = blo; b < bhi; b++) {
                 dict *d = kvstoreGetDict(sub->db->keys, b);
                 if (!d || dictSize(d) == 0) continue;
@@ -15003,7 +15027,9 @@ static int ioSlice(ioThreadArgs *t) {
      * written; the balancer samples it racily. NOTE: the main thread runs aeMain (not this
      * slice), so ingress covers io threads 1..N-1 (+ the spare while in IO mode) only —
      * main's load is still visible to the balancer via its ROB/write-backlog signals. */
-    if (server.thread_balance) {
+    if (server.thread_modes) {   /* was thread_balance: busy is consumed by BOTH the flip controller
+                                  * and the continuous client-lb, so maintain it whenever the flip
+                                  * machinery is on (one cheap EWMA/pass). */
         tmIoSignal *s = &tm_io_sig[t->id];
         s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     }
@@ -15310,7 +15336,8 @@ int tomoModeshiftSpare(int mode, const char **err) {
  * dormant io binding -> joins the REUSEPORT accept group). io_threads_live++ / num_workers_live--.
  * Async: arms the migration + sets the flip ctx; tmFlipTick (beforeSleep) drives park->IO. ---- */
 static int tmGatherLiveDests(int exclude, int *out, int cap);   /* defined below */
-static long tmIoThreadLoad(int id);                             /* defined below */
+static long tmIoThreadLoad(int id);
+static int tmPlaceConnDest(int exclude, long *in_flight);                             /* defined below */
 static int tmClientMigratable(client *c);                       /* defined below */
 
 /* ee451 (per-node flip): node liveness bookkeeping — no-ops on numa==1 (globals carry it). */
@@ -15771,6 +15798,7 @@ static double tmIoThreadBusy(int id) {
 }
 /* ee451 (client-lb unify): public accessors for DEBUG TOMO-IOLOAD. */
 long tmIoThreadLoadPub(int id) { return tmIoThreadLoad(id); }
+double tmIoBusyPub(int id) { return tmIoThreadBusy(id); }
 int  tmIoModePub(int id) {
     if (id < 0 || id > TOMO_IO_THREADS_MAX) return -1;
     polyThreadCtx *ctx = tmCtxForIotid(id);
@@ -15838,6 +15866,66 @@ static void tmRebalanceOntoNewIo(int new_id) {
                              "%s balancing (conn_target %ld, busy_target %.0f, total %ld conns/%d threads)",
                   new_id, posted, ewma_hot ? "EWMA-busy" : "conn-count", conn_target, busy_target,
                   tot_conns, n);
+}
+
+/* ee451 (client-lb continuous trigger): the connection analog of the bucket balancer
+ * (reshardAutoTune). Runs every 1s from serverCron and, WITHIN a node, moves the minimal set of
+ * conns off an io thread that is a SUSTAINED busy-outlier onto the least-loaded thread — to a
+ * tolerance band, not chasing every blip. Same shape as reshardAutoTune: mean + 25%% outlier bar +
+ * sustain streak + imbalance-proportional move. This makes client lb TRIGGER the same way as key lb
+ * instead of only on flips. Gated by the same tm_flip_rebalance knob. */
+static int cli_hot_streak[TOMO_IO_THREADS_MAX + 1];
+void tmClientBalanceCron(void) {
+    if (!server.thread_modes || !server.tm_flip_rebalance) return;
+    int all[TOMO_IO_THREADS_MAX + 1];
+    int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);
+    int nnodes = tmNumNodes();
+    for (int node = 0; node < nnodes; node++) {
+        int dests[TOMO_IO_THREADS_MAX + 1], n = 0;
+        for (int i = 0; i < n0; i++)
+            if (nnodes == 1 || tmNodeOfIoSlot(all[i]) == node) dests[n++] = all[i];
+        if (n < 2) continue;
+        double tot_busy = 0; long tot_conns = 0;
+        for (int i = 0; i < n; i++) { tot_busy += tmIoThreadBusy(dests[i]); tot_conns += tmIoThreadLoad(dests[i]); }
+        if (tot_conns < n) continue;                                     /* trivial */
+        /* Prefer the busy-EWMA signal; fall back to conn count while busy is unprimed (cold start /
+         * busy just enabled), so the balancer still equalizes on connection count. */
+        int use_busy = tot_busy > (double)n;
+        double mean = use_busy ? (tot_busy / n) : ((double)tot_conns / n);
+        if (mean <= 0) continue;
+        int hot = -1; double hotv = -1;
+        for (int i = 0; i < n; i++) {
+            double v = use_busy ? tmIoThreadBusy(dests[i]) : (double)tmIoThreadLoad(dests[i]);
+            if (v > hotv) { hotv = v; hot = dests[i]; }
+        }
+        if (hot < 0 || hotv <= mean * 1.25) { if (hot >= 0) cli_hot_streak[hot] = 0; continue; }  /* within band */
+        if (++cli_hot_streak[hot] < 3) continue;                         /* sustain 3 ticks (kill blips) */
+        cli_hot_streak[hot] = 0;
+        long nc = tmIoThreadLoad(hot);
+        if (nc < 2) continue;
+        int count;
+        if (use_busy) { double per_conn = hotv / (double)nc; count = per_conn > 0.0 ? (int)((hotv - mean) / per_conn) : 0; }
+        else          { count = (int)(hotv - mean); }   /* conn-count excess directly */
+        /* DAMP: move HALF the excess (geometric convergence, no overshoot) and cap at a third of the
+         * source's conns — the busy is NOT uniform per conn (a few hot conns dominate), so a full-
+         * excess move over-shoots and relocates the hotspot (thrash). A gentle step + the 3-tick
+         * sustain + 25%% band converges without chasing a single hot connection. */
+        count /= 2;
+        { int cap = (int)(nc / 3); if (cap < 1) cap = 1; if (count > cap) count = cap; }
+        if (count < 1) continue;
+        if (count > nc - 1) count = (int)(nc - 1);
+        int dst = tmPlaceConnDest(hot, NULL);                            /* least-loaded live dest */
+        if (dst < 0 || dst == hot) continue;
+        tmMigMailbox *mb = &tm_mig_mbox[hot];
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) continue;
+        mb->req_kind = TM_MIGREQ_REBALANCE; mb->req_dest = dst; mb->req_count = count;
+        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        triggerEventNotifier(mb->notifier);
+        serverLog(LL_NOTICE, "ee451 client-lb: io %d busy-outlier (%.0f vs mean %.0f) -> %d conn(s) to io %d",
+                  hot, hotv, mean, count, dst);
+    }
 }
 
 static int tmLeastLoadedIoDest(int exclude) {

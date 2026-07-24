@@ -13,6 +13,15 @@
  */
 
 #include "fmacros.h"
+#include "flatstore.h"
+#include "sds.h"
+/* ee451 FLATSTORE: server-level bits used by the flat branch, forward-declared to keep kvstore.c
+ * below server.h in the layering. kvobj = struct redisObject; the stored slot ptr is tag-masked
+ * (ENTRY_PTR_MASK low 3 bits), decoded by masking them off. */
+typedef struct redisObject kvobj;
+sds kvobjGetKey(const kvobj *kv);
+uint64_t tomoKeyHash(const void *key, size_t len);
+#define flatDecodeKV(de) ((kvobj *)((uintptr_t)(void *)(de) & ~(uintptr_t)7))
 
 #include <string.h>
 #include <stddef.h>
@@ -27,6 +36,7 @@
 
 struct _kvstore {
     int flags;
+    flatTable *flat;    /* ee451 FLATSTORE: non-NULL when KVSTORE_FLAT; replaces dict usage */
     kvstoreType *type;
     dictType dtype;
     dict **dicts;
@@ -53,6 +63,22 @@ static inline void kvstoreMtLock(kvstore *kvs) {
 }
 static inline void kvstoreMtUnlock(kvstore *kvs) {
     __atomic_clear(&kvs->mt_lock, __ATOMIC_RELEASE);
+}
+
+/* ee451 FLATSTORE: a flat "link" is &slot->kv; recover the slot index. */
+static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
+    return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, kv)) - t->slots);
+}
+static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
+    return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
+}
+int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
+void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
+    if (kvs->flat) flatIterRange(kvs->flat, blo, bhi, cb, priv);
+}
+void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi) {
+    dictEntry *mk = kvs->flat ? flatRandomKeyInRange(kvs->flat, blo, bhi) : NULL;
+    return mk ? (void *)flatDecodeKV(mk) : NULL;
 }
 
 /**********************************/
@@ -293,6 +319,12 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
             createDictIfNeeded(kvs, i);
     }
 
+    kvs->flat = NULL;
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* ee451 FLATSTORE stage 0: pre-size generously (resize is stage 2). 8M slots * 16B = 128MB,
+         * holds ~3.4M keys at 0.45 load. The dicts[] above stay NULL (unused under flat). */
+        kvs->flat = flatTableNew(1ULL << 23);
+    }
     kvs->rehashing = listCreate();
     kvs->key_count = 0;
     kvs->non_empty_dicts = 0;
@@ -916,6 +948,10 @@ void *kvstoreDictFetchValue(kvstore *kvs, int didx, const void *key)
 }
 
 dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        size_t len = sdslen((sds)key);
+        return flatGet(kvs->flat, tomoKeyHash(key, len), key, len);   /* masked; caller decodes */
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return NULL;
@@ -948,6 +984,14 @@ dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
  */
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket) {
     if (bucket) *bucket = NULL;    
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = kvs->flat;
+        size_t len = sdslen((sds)key);
+        uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), key, len, &slot);
+        dictEntryLink link = (dictEntryLink)&t->slots[slot].kv;
+        if (bucket) *bucket = link;               /* insert-or-found position */
+        return found ? link : NULL;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d) return NULL;
     return dictFindLink(d, key, bucket);
@@ -967,6 +1011,29 @@ dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLi
  *          - If not set, update the key of an existing dictEntry.
  */
 void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = kvs->flat;
+        if (newItem) {
+            dictEntry *masked = flatKvMask(kvs, kv);       /* raw kvobj -> tag-masked stored ptr */
+            sds k = kvobjGetKey((kvobj *)kv);              /* kv is the RAW (unmasked) kvobj */
+            uint64_t h = tomoKeyHash(k, sdslen(k));
+            uint64_t slot; flatFindForWrite(t, h, k, sdslen(k), &slot);
+            flatInsert(t, h, masked, slot);
+            __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        } else if (kv == NULL) {
+            /* review [crit] + count fix: the async-delete path calls SetAtLink(NULL,link,0) AND then
+             * kvstoreDictTwoPhaseUnlinkFree — so the actual tombstone + key_count-- must happen in
+             * TwoPhaseUnlinkFree ONLY (it runs for both sync and async), else async double-counts.
+             * Here we just null the slot's value (the dict path's "null the key" — freeObjAsync
+             * already freed it), without tombstoning or decrementing. */
+            uint64_t sl = flatSlotOf(t, *link);
+            atomic_store_explicit(&t->slots[sl].kv, NULL, memory_order_relaxed);
+        } else {
+            dictEntry *masked = flatKvMask(kvs, kv);
+            flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */
+        }
+        return;
+    }
     dict *d;
     if (newItem) {
         d = createDictIfNeeded(kvs, didx);
@@ -998,6 +1065,13 @@ void kvstoreDictSetVal(kvstore *kvs, int didx, dictEntry *de, void *val) {
 }
 
 dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *key, int *table_index) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = kvs->flat;
+        size_t len = sdslen((sds)key);
+        uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot);
+        if (table_index) *table_index = 0;
+        return found ? (dictEntryLink)&t->slots[slot].kv : NULL;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return NULL;
@@ -1005,6 +1079,15 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
 }
 
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, int table_index) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = kvs->flat;
+        (void)flatDelete(t, flatSlotOf(t, link));       /* Stage-0 LEAK-on-delete: freeing the old
+             * kvobj inline is (a) wrong (keyDestructor wants a dict*, not kvs) and (b) a UAF vs a
+             * concurrent lock-free reader on a foreign worker's bucket. QSBR reclaim is Stage 1. */
+        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        (void)table_index;
+        return;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     dictTwoPhaseUnlinkFree(d, link, table_index);
     cumulativeKeyCountAdd(kvs, didx, -1);
@@ -1012,6 +1095,14 @@ void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, i
 }
 
 int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = kvs->flat;
+        size_t len = sdslen((sds)key);
+        uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
+        (void)flatDelete(t, slot);                       /* Stage-0 leak-on-delete (see above) */
+        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        return DICT_OK;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return DICT_ERR;
