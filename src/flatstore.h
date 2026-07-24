@@ -101,6 +101,12 @@ void       flatIterAll(flatTable *t, flatIterCB cb, void *priv);
  * and advances *cursor past it; NULL when the table is exhausted. Used by kvstoreIterator (RDB/AOF/
  * DIGEST). Per-call safe on a live table (reclaim/resize run only in beforeSleep). */
 dictEntry *flatIterNext(flatTable *t, unsigned long long *cursor);
+/* SCAN slice: scan up to *budget slots from `start` (decrementing *budget), stopping when *budget hits
+ * 0, *sampled reaches count, or the table ends (*hit_end set). Emits each LIVE slot's masked kv via cb.
+ * Per-call safe: the caller is a worker exSlice batch (in_flat_section blocks resize/free; loop_seq
+ * covers its QSBR grace for the kvobjs it derefs). */
+uint64_t flatScanSlice(flatTable *t, uint64_t start, uint64_t *budget, int *hit_end,
+                       dictScanFunction *cb, void *priv, long *sampled, long count);
 void       flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv);
 dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi);   /* one LIVE slot with bucket in [blo,bhi); MASKED */
 

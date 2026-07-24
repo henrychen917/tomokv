@@ -13,6 +13,7 @@
  */
 
 #include "server.h"
+#include "flatstore.h"   /* ee451 FLATSTORE: flat SCAN slice */
 #include "cluster.h"
 #include "atomicvar.h"
 #include "latency.h"
@@ -1947,6 +1948,37 @@ static int scanShouldSkipDict(dict *d, int didx) {
  *
  * In the case of a Hash object the function returns both the field and value
  * of every element on the Hash. */
+/* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. Runs on a
+ * worker (dispatched via canDispatchToWorker), so it holds in_flat_section (resize can't free/relocate
+ * a table mid-slice) + loop_seq (QSBR grace covers the kvobjs it derefs across nodes). One worker
+ * reads all node tables lock-free with no double-counting (one physical table per node).
+ * cursor: [63:52] node | [51:32] gen(low 20) | [31:0] slot. cursor 0 = start AND done.
+ * Resize-stability: a resize is the ONLY thing that relocates a live key and it ALWAYS bumps gen, so
+ * a gen mismatch on resume means "restart this node at slot 0" (the new table holds all live keys). */
+static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, long count,
+                                      dictScanFunction *cb, scanData *data) {
+    int node = (int)((cursor >> 52) & 0xFFF);
+    unsigned long gen_lo = (unsigned long)((cursor >> 32) & 0xFFFFF);
+    uint64_t slot = (uint64_t)(cursor & 0xFFFFFFFFULL);
+    uint64_t budget = (uint64_t)count * 10 + 64;    /* bound total slots scanned this call (sparse-table guard) */
+    int nmax = server.n_node_dbs;                   /* nodes 0..nmax (index nmax = spare-private, empty) */
+    while (node <= nmax) {
+        flatTable *t = kvstoreFlatTable(server.node_dbs[node][db->id].keys);
+        if (!t) { node++; slot = 0; gen_lo = 0; continue; }
+        unsigned long cur_gen = (unsigned long)(t->gen & 0xFFFFF);
+        if (slot != 0 && gen_lo != cur_gen) slot = 0;   /* a resize happened between calls -> restart node */
+        int hit_end = 0;
+        slot = flatScanSlice(t, slot, &budget, &hit_end, cb, data, &data->sampled, count);
+        if (!hit_end)                                   /* paused mid-node -> resume here (gen for restart detection) */
+            return ((unsigned long long)node << 52) |
+                   (((unsigned long long)cur_gen & 0xFFFFF) << 32) | (slot & 0xFFFFFFFFULL);
+        node++; slot = 0; gen_lo = 0;                   /* finished this node */
+        if (data->sampled >= count || budget == 0)      /* budget spent at a node boundary -> resume next node@0 */
+            return (node <= nmax) ? ((unsigned long long)node << 52) : 0;
+    }
+    return 0;                                           /* all nodes swept */
+}
+
 void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
     int i, j;
     listNode *node;
@@ -2084,15 +2116,20 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
         if (o == NULL && use_pattern && server.cluster_enabled) {
             onlydidx = patternHashSlot(pat, patlen);
         }
-        do {
-            /* In cluster mode there is a separate dictionary for each slot.
-             * If cursor is empty, we should try exploring next non-empty slot. */
-            if (o == NULL) {
-                cursor = kvstoreScan(c->db->keys, cursor, onlydidx, scanCallback, scanShouldSkipDict, &data);
-            } else {
-                cursor = dictScan(ht, cursor, scanCallback, &data);
-            }
-        } while (cursor && maxiterations-- && data.sampled < count);
+        if (o == NULL && server.shared_node_dbs && server.node_dbs && kvstoreIsFlat(c->db->keys)) {
+            /* ee451 FLATSTORE: composite-cursor walk over all node flat tables (this runs on a worker). */
+            cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data);
+        } else {
+            do {
+                /* In cluster mode there is a separate dictionary for each slot.
+                 * If cursor is empty, we should try exploring next non-empty slot. */
+                if (o == NULL) {
+                    cursor = kvstoreScan(c->db->keys, cursor, onlydidx, scanCallback, scanShouldSkipDict, &data);
+                } else {
+                    cursor = dictScan(ht, cursor, scanCallback, &data);
+                }
+            } while (cursor && maxiterations-- && data.sampled < count);
+        }
     } else if (o->type == OBJ_SET) {
         unsigned long array_reply_len = 0;
         void *replylen = NULL;

@@ -236,6 +236,19 @@ dictEntry *flatIterNext(flatTable *t, unsigned long long *cursor) {
     return NULL;
 }
 
+uint64_t flatScanSlice(flatTable *t, uint64_t start, uint64_t *budget, int *hit_end,
+                       dictScanFunction *cb, void *priv, long *sampled, long count) {
+    uint64_t i = start, size = t ? t->size : 0;
+    while (i < size && *budget > 0 && *sampled < count) {
+        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_acquire);
+        i++; (*budget)--;
+        if (!FLAT_IS_LIVE(w)) continue;
+        cb(priv, flat_word_ptr(w), NULL);   /* scanCallback: filter + append + sampled++ */
+    }
+    *hit_end = (i >= size);
+    return i;
+}
+
 dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi) {
     if (!t) return NULL;
     /* reservoir sample one LIVE slot whose (recomputed) bucket is in [blo,bhi). Whole-table walk. */

@@ -5712,6 +5712,11 @@ int processCommand(client *c) {
 int canDispatchToWorker(client *c) {
     redisCommandProc *p = c->cmd->proc;
 
+    /* ee451 FLATSTORE: top-level SCAN must run on a WORKER (exSlice) so its cross-node lock-free
+     * reads are covered by in_flat_section (no resize/free mid-slice) + loop_seq (QSBR grace). Only
+     * under a flat shared kvstore; otherwise SCAN keeps its existing (inline) handling. */
+    if (p == scanCommand) return server.thredis_flat_store && server.shared_node_dbs;
+
     /* DEL is variadic-key; only the single-key form (argc == 2) is safe
      * to dispatch. Multi-key DEL would cross shards and silently lose
      * keys whose hash targets a different worker. */
@@ -6097,6 +6102,16 @@ void flatResizeCoordinate(void) {
 }
 
 int getWorkerForCommand(client *c) {
+    /* ee451 FLATSTORE: SCAN's argv[1] is a cursor (not a key). The flat SCAN cursor is stateless
+     * (encodes node|gen|slot), so ANY live worker can resume it — route to the first live worker
+     * (never a dormant spare, which wouldn't run exSlice and would hang the dispatched fake). */
+    if (c->cmd && c->cmd->proc == scanCommand && server.exThreads) {
+        /* SCAN has no key, so the keyed path below never sets tomo_bkt — leave it valid (0) so the
+         * post-exec LB accounting (worker->lb_grp_ops[TOMO_LB_GROUP(tomo_bkt)]) doesn't index OOB. */
+        c->tomo_bkt = 0; c->tomo_bkt_ptr = NULL;
+        for (int w = 0; w < server.num_workers_alloc; w++) if (tmWorkerLive(w)) return w;
+        return 0;
+    }
     /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
      * selection probability == its share of the keyspace, so (a) the result distribution mirrors
      * uniform key sampling, and (b) empty shards have zero weight => the picked shard is non-empty
