@@ -149,29 +149,34 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     return old;   /* caller retires/frees (Stage 1); Stage 0 leaks (caller may decrRefCount directly) */
 }
 
-flatTable *flatTableGrow(flatTable *old) {
-    /* Pick the target by LIVE load, never by (used+tombs): if the rebuild was flagged mostly by
-     * tombstone accumulation (live set small), rebuild SAME size to reclaim the tombs WITHOUT
-     * growing (review fix #8 — else delete/TTL churn on a bounded live set doubles unboundedly).
-     * Double (or more) only when the live set genuinely needs it. Land <= 1/3 live load so we don't
-     * immediately re-cross the 0.5 trigger. Never shrink below old->size (shrink is a later stage). */
+flatTable *flatTableAllocFor(flatTable *old) {
+    /* Pick the target by LIVE load, never (used+tombs): if flagged mostly by tombstone accumulation
+     * (live set small), rebuild SAME size to reclaim tombs WITHOUT growing (else delete/TTL churn on
+     * a bounded live set doubles unboundedly); double (or more) only when the live set needs it. Land
+     * <= 1/3 live load so we don't immediately re-cross the 0.5 trigger. Never shrink below old->size. */
     uint64_t used = atomic_load_explicit(&old->used, memory_order_relaxed);
     uint64_t target = old->size;
     while (used * 3 > target) target <<= 1;
     flatTable *nw = flatTableNew(target);
     nw->gen = old->gen + 1;
-    for (uint64_t i = 0; i < old->size; i++) {
+    return nw;
+}
+
+int flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t slot_budget) {
+    uint64_t i = *cursor, end = i + slot_budget;
+    if (end > old->size) end = old->size;
+    for (; i < end; i++) {
         uint64_t c = atomic_load_explicit(&old->slots[i].ctrl, memory_order_relaxed);
         if (!FLAT_IS_LIVE(c)) continue;
         dictEntry *mk = atomic_load_explicit(&old->slots[i].kv, memory_order_relaxed);
         if (!mk) continue;
         sds k = kvobjGetKey(dictGetKV(mk));                 /* recompute the full hash (ctrl lacks h[15:14]) */
         uint64_t h = tomoKeyHash(k, sdslen(k)), slot;
-        flatFindForWrite(nw, h, k, sdslen(k), &slot);        /* fresh table: finds an EMPTY slot */
+        flatFindForWrite(nw, h, k, sdslen(k), &slot);        /* fresh target: finds an EMPTY slot */
         flatInsert(nw, h, mk, slot);
     }
-    atomic_store_explicit(&nw->resize_needed, 0, memory_order_relaxed);
-    return nw;
+    *cursor = i;
+    return i >= old->size;   /* 1 => whole old table scanned (copy complete) */
 }
 
 void flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv) {

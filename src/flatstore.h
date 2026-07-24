@@ -66,7 +66,11 @@ typedef struct flatTable {
 } flatTable;
 
 flatTable *flatTableNew(uint64_t want_size);
-flatTable *flatTableGrow(flatTable *old);   /* STW rebuild into a 2x table (recomputes each key hash) */
+/* Stage-2 cooperative resize: alloc a right-sized empty target (size by LIVE load, not used+tombs,
+ * so tomb churn rebuilds same-size), then copy live slots in bounded chunks across beforeSleep passes
+ * (workers parked throughout, so `old` is immutable here). flatTableCopyChunk returns 1 when done. */
+flatTable *flatTableAllocFor(flatTable *old);
+int        flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t slot_budget);
 void       flatTableFree(flatTable *t);
 
 /* Core ops — self-contained on flatTable (the kvstore wrapper owns key_count / per-owner counts /
