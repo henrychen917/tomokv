@@ -29,6 +29,7 @@
  * and DELETE is ONE store — the old 16B FIX-A two-step is gone. The 14-bit ownership bucket is NO
  * longer stored; the rare range scans (KEYS / RANDOMKEY / reshard) recompute it from the key. */
 #define FLAT_PTR_MASK   0x0000FFFFFFFFFFFFULL      /* [47:0] the masked pointer */
+#define FLAT_MIN_SIZE   (1ULL << 18)               /* initial + shrink floor: 256K slots (4MB @ 8B) */
 #define FLAT_TOMB       0x0001000000000000ULL      /* [48] */
 #define FLAT_TAG_SHIFT  49
 #define flat_tag_of(h)      (((uint64_t)(h) >> FLAT_TAG_SHIFT) & 0x7FFFULL)      /* 15-bit tag from the hash */

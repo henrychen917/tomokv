@@ -164,8 +164,13 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     uint64_t w = atomic_load_explicit(&t->slots[slot].w, memory_order_relaxed);
     dictEntry *old = flat_word_ptr(w);
     atomic_store_explicit(&t->slots[slot].w, FLAT_TOMB, memory_order_release);
-    atomic_fetch_sub_explicit(&t->used, 1, memory_order_relaxed);
+    uint64_t nu = atomic_fetch_sub_explicit(&t->used, 1, memory_order_relaxed) - 1;
     atomic_fetch_add_explicit(&t->tombs, 1, memory_order_relaxed);
+    /* flag a SHRINK when the live set falls below load_pct/4 of the table (hysteresis: grow trigger is
+     * load_pct, post-grow load is load_pct/2, so this is well clear). The coordinator rebuilds smaller
+     * via flatTableAllocFor, reusing the same quiesce+copy machine. */
+    if (t->size > FLAT_MIN_SIZE && nu * 400 <= t->size * (uint64_t)server.flat_load_pct)
+        atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
     return old;
 }
 
@@ -182,7 +187,15 @@ flatTable *flatTableAllocFor(flatTable *old) {
      * growing. Table then oscillates ~(load_pct/2 .. load_pct); avg ~0.75*load_pct = the B/key vs
      * probe-length knob. NB: a while-loop with a tight multiplier double-jumps to 4x when `used`
      * overshoots the trigger just past a power-of-two boundary — hence the single conditional. */
-    if (used * 200 >= old->size * (uint64_t)server.flat_load_pct) target = old->size * 2;
+    if (used * 200 >= old->size * (uint64_t)server.flat_load_pct) {
+        target = old->size * 2;                     /* grow: live set alone is over half the trigger */
+    } else {
+        /* SHRINK toward the smallest size that still holds `used` at <= load_pct/2, floored at
+         * FLAT_MIN_SIZE. Reclaims a table left peak-sized after a mass delete/expire. Same-size when
+         * halving would over-fill (tomb-GC case), so it never thrashes a moderately-loaded table. */
+        while (target > FLAT_MIN_SIZE && (target >> 1) * (uint64_t)server.flat_load_pct >= used * 200)
+            target >>= 1;
+    }
     flatTable *nw = flatTableNew(target);
     nw->gen = old->gen + 1;
     return nw;

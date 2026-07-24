@@ -327,7 +327,7 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
     kvs->flat = NULL;
     if (kvs->flags & KVSTORE_FLAT) {
         /* ee451 FLATSTORE: start small (256K slots * 16B = 4MB) and grow online (Stage 2). */
-        kvs->flat = flatTableNew(1ULL << 18);
+        kvs->flat = flatTableNew(FLAT_MIN_SIZE);
     }
     kvs->rehashing = listCreate();
     kvs->key_count = 0;
