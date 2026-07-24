@@ -42,7 +42,7 @@ static inline int flatKeyMatch(dictEntry *masked, const char *key, size_t klen) 
     return sdslen(k) == klen && memcmp(k, key, klen) == 0;
 }
 
-kvobj *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
+dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
     if (!t) return NULL;
     uint64_t mask = t->mask, tag = flat_tag_of(h);
     for (uint64_t i = h & mask; ; i = (i + 1) & mask) {
@@ -50,7 +50,7 @@ kvobj *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
         if (FLAT_IS_EMPTY(c)) return NULL;                        /* I-NO-EMPTY-BEFORE-KEY */
         if (FLAT_IS_LIVE(c) && flat_ctrl_tag(c) == tag) {
             dictEntry *mk = atomic_load_explicit(&t->slots[i].kv, memory_order_acquire); /* R3 */
-            if (flatKeyMatch(mk, key, klen)) return dictGetKV(mk);
+            if (flatKeyMatch(mk, key, klen)) return mk;   /* masked; caller decodes */
             /* kv==NULL (mid-insert publish) or tag-collision on a different key: keep probing */
         }
         /* TOMB or non-matching OCCUPIED: keep probing */
@@ -126,7 +126,7 @@ void flatIterAll(flatTable *t, flatIterCB cb, void *priv) {
     }
 }
 
-kvobj *flatRandomKeyInRange(flatTable *t, int blo, int bhi) {
+dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi) {
     if (!t) return NULL;
     /* reservoir sample one LIVE slot whose ctrl-bucket is in [blo,bhi). Whole-table walk (Stage 0
      * correctness; Stage 4 replaces with a per-owner fair draw off flat_owner_used). */
@@ -142,5 +142,5 @@ kvobj *flatRandomKeyInRange(flatTable *t, int blo, int bhi) {
         /* 1/seen chance to replace — uniform over live-in-range slots without knowing the count */
         if ((((uint64_t)rand() << 32) | (uint32_t)rand()) % seen == 0) pick = mk;
     }
-    return pick ? dictGetKV(pick) : NULL;
+    return pick;   /* masked; caller decodes */
 }

@@ -53,7 +53,7 @@ void       flatTableFree(flatTable *t);
 
 /* Core ops — self-contained on flatTable (the kvstore wrapper owns key_count / per-owner counts /
  * Stage-1 retire). `h` is the full xxh64(key). t->used/t->tombs are maintained here. */
-kvobj     *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen);
+dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen);   /* returns MASKED kvobj (decode via dictGetKV), NULL if absent */
 /* find-for-write: returns 1 and *slot = index of the FOUND live key, or 0 and *slot = index to
  * INSERT into (first TOMB seen on the probe, else the terminating EMPTY). */
 int        flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uint64_t *slot);
@@ -70,6 +70,6 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot);
 /* iteration helpers (whole-table walk; Stage 4 adds a resumable cursor) */
 typedef void (*flatIterCB)(dictEntry *masked_kv, void *priv);
 void       flatIterAll(flatTable *t, flatIterCB cb, void *priv);
-kvobj     *flatRandomKeyInRange(flatTable *t, int blo, int bhi);   /* one LIVE slot with bucket in [blo,bhi) */
+dictEntry *flatRandomKeyInRange(flatTable *t, int blo, int bhi);   /* one LIVE slot with bucket in [blo,bhi); MASKED */
 
 #endif /* FLATSTORE_H */

@@ -3655,6 +3655,7 @@ void initServer(void) {
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
         int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
+        if (server.thredis_flat_store && server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE */
         server.node_dbs = zmalloc(sizeof(redisDb *) * (nnodes + 1));
         for (int n = 0; n < nnodes + 1; n++) {              /* [nnodes] = spare-private array */
             server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
@@ -5928,6 +5929,9 @@ static uint64_t xxh64(const void *input, size_t len) {
     h ^= h >> 32;
     return h;
 }
+
+/* ee451 FLATSTORE: public full-64-bit key hash (xxh64 is file-static). */
+uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 
 int getWorkerForCommand(client *c) {
     /* ee451 v10-B: RANDOMKEY has no key arg. Route to a SIZE-WEIGHTED random shard: each shard's
