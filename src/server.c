@@ -15027,7 +15027,9 @@ static int ioSlice(ioThreadArgs *t) {
      * written; the balancer samples it racily. NOTE: the main thread runs aeMain (not this
      * slice), so ingress covers io threads 1..N-1 (+ the spare while in IO mode) only —
      * main's load is still visible to the balancer via its ROB/write-backlog signals. */
-    if (server.thread_balance) {
+    if (server.thread_modes) {   /* was thread_balance: busy is consumed by BOTH the flip controller
+                                  * and the continuous client-lb, so maintain it whenever the flip
+                                  * machinery is on (one cheap EWMA/pass). */
         tmIoSignal *s = &tm_io_sig[t->id];
         s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     }
@@ -15796,6 +15798,7 @@ static double tmIoThreadBusy(int id) {
 }
 /* ee451 (client-lb unify): public accessors for DEBUG TOMO-IOLOAD. */
 long tmIoThreadLoadPub(int id) { return tmIoThreadLoad(id); }
+double tmIoBusyPub(int id) { return tmIoThreadBusy(id); }
 int  tmIoModePub(int id) {
     if (id < 0 || id > TOMO_IO_THREADS_MAX) return -1;
     polyThreadCtx *ctx = tmCtxForIotid(id);
@@ -15884,17 +15887,31 @@ void tmClientBalanceCron(void) {
         if (n < 2) continue;
         double tot_busy = 0; long tot_conns = 0;
         for (int i = 0; i < n; i++) { tot_busy += tmIoThreadBusy(dests[i]); tot_conns += tmIoThreadLoad(dests[i]); }
-        if (tot_busy <= (double)n || tot_conns < n) continue;            /* idle / trivial */
-        double mean = tot_busy / n;
+        if (tot_conns < n) continue;                                     /* trivial */
+        /* Prefer the busy-EWMA signal; fall back to conn count while busy is unprimed (cold start /
+         * busy just enabled), so the balancer still equalizes on connection count. */
+        int use_busy = tot_busy > (double)n;
+        double mean = use_busy ? (tot_busy / n) : ((double)tot_conns / n);
+        if (mean <= 0) continue;
         int hot = -1; double hotv = -1;
-        for (int i = 0; i < n; i++) { double b = tmIoThreadBusy(dests[i]); if (b > hotv) { hotv = b; hot = dests[i]; } }
+        for (int i = 0; i < n; i++) {
+            double v = use_busy ? tmIoThreadBusy(dests[i]) : (double)tmIoThreadLoad(dests[i]);
+            if (v > hotv) { hotv = v; hot = dests[i]; }
+        }
         if (hot < 0 || hotv <= mean * 1.25) { if (hot >= 0) cli_hot_streak[hot] = 0; continue; }  /* within band */
         if (++cli_hot_streak[hot] < 3) continue;                         /* sustain 3 ticks (kill blips) */
         cli_hot_streak[hot] = 0;
         long nc = tmIoThreadLoad(hot);
         if (nc < 2) continue;
-        double per_conn = hotv / (double)nc;
-        int count = per_conn > 0.0 ? (int)((hotv - mean) / per_conn) : 0;
+        int count;
+        if (use_busy) { double per_conn = hotv / (double)nc; count = per_conn > 0.0 ? (int)((hotv - mean) / per_conn) : 0; }
+        else          { count = (int)(hotv - mean); }   /* conn-count excess directly */
+        /* DAMP: move HALF the excess (geometric convergence, no overshoot) and cap at a third of the
+         * source's conns — the busy is NOT uniform per conn (a few hot conns dominate), so a full-
+         * excess move over-shoots and relocates the hotspot (thrash). A gentle step + the 3-tick
+         * sustain + 25%% band converges without chasing a single hot connection. */
+        count /= 2;
+        { int cap = (int)(nc / 3); if (cap < 1) cap = 1; if (count > cap) count = cap; }
         if (count < 1) continue;
         if (count > nc - 1) count = (int)(nc - 1);
         int dst = tmPlaceConnDest(hot, NULL);                            /* least-loaded live dest */

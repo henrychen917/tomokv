@@ -903,13 +903,14 @@ NULL
          * spread conns load-aware. Only IO-mode slots serve conns. */
         extern long tmIoThreadLoadPub(int id);
         extern int tmIoModePub(int id);
+        extern double tmIoBusyPub(int id);
         sds o = sdsempty();
         for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
             int md = tmIoModePub(t);
             if (md < 0) continue;                 /* slot not allocated */
-            o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld\n", t,
+            o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld busy=%.0f\n", t,
                              md == 1 ? "IO" : (md == 2 ? "EX" : (md == 0 ? "PARKED" : "?")),
-                             tmIoThreadLoadPub(t));
+                             tmIoThreadLoadPub(t), tmIoBusyPub(t));
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
