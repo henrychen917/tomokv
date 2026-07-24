@@ -1,16 +1,20 @@
-/* ee451 FLATSTORE core — lock-free open-addressing table (Stage 0). See flatstore.h for layout.
+/* ee451 FLATSTORE core — lock-free open-addressing table (8B single-word slots). See flatstore.h
+ * for the slot layout ([63:49] tag | [48] TOMB | [47:0] masked kv ptr; 0 = EMPTY).
  *
- * PROTOCOL (verified SOUND-WITH-FIXES; C11 orderings load-bearing):
- *  GET   : R1 acquire-load table; probe from h&mask; R2 acquire-load ctrl (stop on EMPTY, NEVER on
- *          kv==NULL under a tag match); on LIVE+tag-match R3 acquire-load kv, decode, compare key.
- *  INSERT: probe recording first TOMB; W1 acq_rel CAS ctrl {EMPTY|TOMB}->OCCUPIED|tag|bkt (loser
- *          re-probes from the winner's now-LIVE ctrl); W2 release-store kv.
- *  DELETE: FIX A order — D2' relaxed-store kv=NULL FIRST, then D1 release-store ctrl=TOMB. Nulling
- *          an OCCUPIED slot's kv is race-free (only the sole owner writes a LIVE slot's kv; inserts
- *          only claim EMPTY/TOMB), and it closes the window where a slot reused between D1 and D2
- *          would let a new insert's kv be clobbered by the late D2 (a lost live key).
+ * PROTOCOL (C11 orderings load-bearing; the single 8B word makes each op one atomic access):
+ *  GET   : acquire-load the table; probe from h&mask; acquire-load the word — STOP only on EMPTY(0);
+ *          on LIVE (ptr bits set) + tag match, decode flat_word_ptr and compare the key. Tag and ptr
+ *          are one word, so there is no mid-publish window where the tag is set but the ptr is not.
+ *  INSERT: probe recording the first reusable (EMPTY/tomb) slot; ONE acq_rel CAS word {reusable}->
+ *          (tag|ptr) publishes the value atomically (loser re-probes from the winner's word).
+ *  DELETE: ONE release-store word=FLAT_TOMB. No two-step: the merged word can't expose a half state,
+ *          and a slot is only ever tombstoned by its single owner (the async-delete preclear that
+ *          used a reusable intermediate was removed — dbGenericDelete routes flat through this store).
+ *  OVERWRITE: owner-exclusive read-modify-write keeping [63:48], swapping only the ptr bits [47:0].
  *  Single-writer-per-KEY (one owner per bucket) means the CAS only ever resolves cross-KEY physical
- *  collisions; a key is never inserted/deleted by two threads at once. */
+ *  collisions; a key is never inserted/deleted by two threads at once. A deleted/overwritten value is
+ *  QSBR-retired (flatRetire) and freed only after every live worker's loop_seq grace, so concurrent
+ *  lock-free readers (incl. cross-shard MGET borrow) never dereference freed memory. */
 #include "server.h"          /* dictGetKV, kvobj, kvobjGetKey, sds, zcalloc, serverAssert */
 #include "flatstore.h"
 #include <string.h>

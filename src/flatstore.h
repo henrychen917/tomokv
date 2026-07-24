@@ -8,7 +8,8 @@
  * collision with ONE CAS (single-writer-per-KEY is guaranteed by the one-owner-per-bucket rule, so
  * the CAS only resolves cross-KEY hash collisions). See flatstore.c for the protocol + invariants.
  *
- * Stage 0: GET/INSERT/DELETE(tombstone), pre-sized, leak-on-delete (QSBR is Stage 1), knob-gated. */
+ * GET/INSERT/DELETE(tombstone) lock-free; QSBR reclaim on delete/overwrite; online cooperative
+ * resize (Stage 2); 8B single-word slots. Knob-gated (--thredis-flat-store). */
 #ifndef FLATSTORE_H
 #define FLATSTORE_H
 
@@ -85,11 +86,11 @@ int        flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t kl
 /* insert masked_kv for hash h; hint_slot from flatFindForWrite. Arbitrates cross-key slot collision
  * with one CAS (loser re-probes). Returns the slot actually claimed. */
 uint64_t   flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hint_slot);
-/* replace the kv at `slot` (same key, ctrl unchanged); returns the OLD masked kv for the caller to
- * retire (Stage 1) / free. */
+/* replace the value at `slot` (same key: keep the tag/flag bits, swap the ptr bits); returns the
+ * OLD masked kv for the caller to QSBR-retire. Owner-exclusive. */
 dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new);
-/* delete the key at `slot` (FIX A order: null kv BEFORE tombstone, else a reused slot clobbers a
- * live key). Returns the OLD masked kv for the caller to retire / free. */
+/* delete the key at `slot`: ONE release-store word=FLAT_TOMB. Returns the OLD masked kv (NULL if the
+ * slot was already cleared) for the caller to QSBR-retire. Owner-exclusive single store. */
 dictEntry *flatDelete(flatTable *t, uint64_t slot);
 void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free until grace */
 
