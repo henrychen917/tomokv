@@ -1481,6 +1481,14 @@ typedef struct {
  * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
 #define TOMO_BUCKETS 16384
 #define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
+/* ee451 (flatstore lb): coarse per-node load-tracking GROUPS for minimal-perturbation balancing.
+ * A group aggregates (TOMO_BUCKETS/TOMO_LB_GROUPS) contiguous buckets. Per-worker relaxed counters
+ * per group (single-writer = the owning worker) give the balancer per-GROUP load (sum over workers)
+ * and per-WORKER load (sum over its groups) at 1Hz, cheaply (256*4B = 1KB/worker, L1-resident). The
+ * balancer moves the minimal set of groups to reach a tolerance band instead of chasing the hottest.
+ * 64 buckets/group at 16384 => granular enough to place load on any worker without per-bucket cost. */
+#define TOMO_LB_GROUPS 256
+#define TOMO_LB_GROUP(bkt) ((unsigned)(bkt) / (TOMO_BUCKETS / TOMO_LB_GROUPS))
 /* ee451 (shared-kv S0.2a): kvstore dict-count bits for tomo sharding. dict index == ownership
  * bucket == xxh64(key) & TOMO_BUCKET_MASK — the SAME value ex_bucket_table keys on — so each
  * bucket-dict has exactly one owning worker (single-writer preserved at bucket granularity).
@@ -2127,6 +2135,11 @@ typedef struct exThread {
      * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
      * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
     _Atomic uint64_t ops_total;   /* single-writer (owning worker); tomoRelaxedBump/Read */
+    /* ee451 (flatstore lb): coarse per-group op counts, single-writer (owning worker), non-atomic
+     * (the balancer's 1Hz relaxed read tolerates a torn word — it is an approximate load signal).
+     * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
+     * groups of its own virtual shard; the balancer sums across workers for per-group load. */
+    uint32_t lb_grp_ops[TOMO_LB_GROUPS];
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */

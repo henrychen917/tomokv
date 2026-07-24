@@ -898,6 +898,34 @@ NULL
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
         reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-lbgroups")) {
+        /* ee451 (flatstore lb): dump coarse per-group load + per-worker totals + the hottest groups,
+         * so the minimal-move balancer's signal can be validated (DEBUG TOMO-LBGROUPS [topN]). */
+        int topN = (c->argc >= 3) ? atoi(c->argv[2]->ptr) : 8;
+        if (topN < 1) topN = 1; if (topN > TOMO_LB_GROUPS) topN = TOMO_LB_GROUPS;
+        int W = server.num_workers_alloc;
+        unsigned long long grp[TOMO_LB_GROUPS]; unsigned long long wtot[TOMO_EX_THREADS_MAX+1];
+        for (int g = 0; g < TOMO_LB_GROUPS; g++) grp[g] = 0;
+        for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++) {
+            wtot[w] = 0;
+            for (int g = 0; g < TOMO_LB_GROUPS; g++) { unsigned long long v = server.exThreads[w].lb_grp_ops[g]; grp[g] += v; wtot[w] += v; }
+        }
+        sds o = sdsempty();
+        o = sdscatprintf(o, "groups=%d buckets_per_group=%d workers=%d\n", TOMO_LB_GROUPS, TOMO_BUCKETS/TOMO_LB_GROUPS, W);
+        for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++)
+            o = sdscatprintf(o, "worker %d ops=%llu\n", w, wtot[w]);
+        /* top-N hottest groups by total load + which worker(s) own them */
+        for (int n = 0; n < topN; n++) {
+            int best = -1; unsigned long long bv = 0;
+            for (int g = 0; g < TOMO_LB_GROUPS; g++) if (grp[g] > bv) { bv = grp[g]; best = g; }
+            if (best < 0 || bv == 0) break;
+            int owner = server.ex_bucket_table[best * (TOMO_BUCKETS/TOMO_LB_GROUPS)];
+            o = sdscatprintf(o, "hot group %d (buckets %d-%d) load=%llu owner_w=%d\n",
+                             best, best*(TOMO_BUCKETS/TOMO_LB_GROUPS), (best+1)*(TOMO_BUCKETS/TOMO_LB_GROUPS)-1, bv, owner);
+            grp[best] = 0;
+        }
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else if (!strcasecmp(c->argv[1]->ptr,"set-active-expire") &&
                c->argc == 3)
     {

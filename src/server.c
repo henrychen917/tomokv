@@ -14345,6 +14345,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
 
             exExecFake(fake);
 
+            /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
+             * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1
+             * increment to the owner's private array — the minimal-move balancer's load signal. */
+            if (fake->argc >= 2) worker->lb_grp_ops[TOMO_LB_GROUP(fake->tomo_bkt)]++;
+
             /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
              * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
              * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
