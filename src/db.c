@@ -1782,6 +1782,7 @@ typedef struct {
     int no_values; /* set to 1 means to return keys only */
     sds typename; /* typename string, NULL means no type filter */
     redisDb *db;  /* database reference for expiration checks */
+    int avoid_expire_del; /* ee451 FLATSTORE: filter expired keys read-only (no cross-owner delete) */
 } scanData;
 
 /* Helper function to compare key type in scan commands */
@@ -1841,7 +1842,11 @@ void scanCallback(void *privdata, const dictEntry *de, dictEntryLink plink) {
     if (!o) {
         /* Expiration check first - only for database keyspace scanning.
          * Use kv obj to avoid robj creation. */
-        if (expireIfNeeded(data->db, NULL, kv, 0) != KEY_VALID)
+        /* ee451 FLATSTORE: on a flat SCAN one worker walks EVERY owner's keys, so it must NOT
+         * physically expire a key it doesn't own (that flatDelete would race the real owner's writes
+         * -> single-writer violation / double-retire, and cross-node it propagates a phantom DEL).
+         * AVOID_DELETE filters the expired key from the reply and leaves reaping to its owner. */
+        if (expireIfNeeded(data->db, NULL, kv, data->avoid_expire_del ? EXPIRE_AVOID_DELETE_EXPIRED : 0) != KEY_VALID)
             return;
 
         /* Type filtering - only for database keyspace scanning */
@@ -2100,6 +2105,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * to prevent a long hang time caused by filtering too many keys;
          * 6. data.no_values: to control whether values will be returned or
          * only keys are returned. */
+        int flat_scan = (o == NULL && server.shared_node_dbs && server.node_dbs && kvstoreIsFlat(c->db->keys));
         scanData data = {
             .keys = keys,
             .o = o,
@@ -2109,6 +2115,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
             .no_values = no_values,
             .typename = typename,
             .db = c->db,
+            .avoid_expire_del = flat_scan,
         };
 
         /* A pattern may restrict all matching keys to one cluster slot. */
@@ -2116,7 +2123,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
         if (o == NULL && use_pattern && server.cluster_enabled) {
             onlydidx = patternHashSlot(pat, patlen);
         }
-        if (o == NULL && server.shared_node_dbs && server.node_dbs && kvstoreIsFlat(c->db->keys)) {
+        if (flat_scan) {
             /* ee451 FLATSTORE: composite-cursor walk over all node flat tables (this runs on a worker). */
             cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data);
         } else {
