@@ -898,6 +898,21 @@ NULL
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
         reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-ioload")) {
+        /* ee451 (client-lb unify): per-io-thread live conn counts (+ mode), to validate that flips
+         * spread conns load-aware. Only IO-mode slots serve conns. */
+        extern long tmIoThreadLoadPub(int id);
+        extern int tmIoModePub(int id);
+        sds o = sdsempty();
+        for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+            int md = tmIoModePub(t);
+            if (md < 0) continue;                 /* slot not allocated */
+            o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld\n", t,
+                             md == 1 ? "IO" : (md == 2 ? "EX" : (md == 0 ? "PARKED" : "?")),
+                             tmIoThreadLoadPub(t));
+        }
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-lbgroups")) {
         /* ee451 (flatstore lb): dump coarse per-group load + per-worker totals + the hottest groups,
          * so the minimal-move balancer's signal can be validated (DEBUG TOMO-LBGROUPS [topN]). */
