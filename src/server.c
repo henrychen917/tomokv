@@ -198,8 +198,21 @@ _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, 
 static __thread int flat_extern_depth;
 static inline int flatIsExternThread(void) { return iotid <= TOMO_IO_THREADS_MAX; }  /* io identity, not a worker */
 static inline void flatExternEnter(void) {
-    if (flatIsExternThread() && ++flat_extern_depth == 1)
-        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);
+    if (!flatIsExternThread() || ++flat_extern_depth != 1) return;
+    atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);
+    /* Mirror the worker park at exSlice. Publishing in_flat suffices for the QSBR grace (which only
+     * defers frees of RETIRED values), but not for the table REBUILD: the coordinator frees the whole
+     * old table, so a thread entering a region after the quiesce check would walk freed slots.
+     * iotid 0 (main) is EXEMPT and must be — the coordinator is pumped from main's own beforeSleep,
+     * so main waiting here would deadlock, and it cannot race: main's regions and its coordinator run
+     * on the same thread, serialized. Measured free (interleaved A/B: gate on 4.540/4.503/4.580M vs
+     * gate off 4.516/4.460/4.446M p32 SET). */
+    if (iotid == 0) return;
+    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
+        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 0, memory_order_seq_cst);  /* let it drain */
+        while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) sched_yield();
+        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);  /* re-enter, re-check */
+    }
 }
 static inline void flatExternExit(void) {
     if (flatIsExternThread() && --flat_extern_depth == 0)
@@ -6016,8 +6029,10 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 /* Close a retire list into a grace batch: snapshot every worker's loop_seq (and main's) right now.
  * `spare` (optional) is a recycle list of spent headers — a batch is ~544B and the worker closes one
  * per pass under write load, so recycling keeps the steady state allocation-free. */
-static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch *reuse) {
-    flatBatch *b = reuse ? reuse : zmalloc(sizeof(*b));
+static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
+    flatBatch *b = NULL;
+    if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
+    if (!b) b = zmalloc(sizeof(*b));
     b->head = pend;
     int nw = server.num_workers_alloc; if (nw > 64) nw = 64;
     b->nworkers = nw;
@@ -6066,19 +6081,20 @@ static int flatBatchReady(const flatBatch *b) {
     return 1;
 }
 
-static void flatBatchFree(flatBatch *b) {
+static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     flatRetireNode *n = b->head;
     while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
-    zfree(b);
+    if (spare && spare_n && *spare_n < FLAT_BATCH_SPARE_MAX) { b->next = *spare; *spare = b; (*spare_n)++; }
+    else zfree(b);
 }
 
 /* Free every batch in *pp whose grace has passed (list surgery in place). */
-static void flatDrainReadyBatches(flatBatch **pp) {
+static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_n) {
     while (*pp) {
         flatBatch *b = *pp;
         if (!flatBatchReady(b)) { pp = &b->next; continue; }
         *pp = b->next;
-        flatBatchFree(b);
+        flatBatchFree(b, spare, spare_n);
     }
 }
 
@@ -6088,34 +6104,24 @@ static void flatDrainReadyBatches(flatBatch **pp) {
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
  * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
 static void flatWorkerReclaim(exThread *worker) {
-    /* AMORTIZED + SINGLE-SLOT (review [scalability], [memory-growth] x2).
-     * The grace check reads REMOTE cache lines — every other worker's loop_seq/in_flat_section and
-     * every io identity's in_flat — and it cannot early-exit in the common (ready) case, so doing it
-     * on every pass costs O(W^2) cross-core traffic for bookkeeping that only needs to happen
-     * occasionally. Retires still accumulate per-op into the worker-local list (free, no atomics);
-     * only this bookkeeping is periodic. At 4 workers the difference is invisible, but it is what
-     * makes the design scale to a 24-core multi-CCD box where a remote line is 2-3x costlier.
-     *
-     * At most ONE outstanding batch per worker, with the header reused forever: while a batch waits
-     * out its grace, new retires simply keep accumulating in the local list (coalescing) instead of
-     * minting another ~552B header that could not be freed yet. That removes the unbounded
-     * header churn AND the recycle free-list entirely; the only cost is slightly longer retention. */
-    if (++worker->flat_reclaim_tick < FLAT_RECLAIM_EVERY) return;
-    worker->flat_reclaim_tick = 0;
-
-    if (worker->flat_batch) {
-        if (!flatBatchReady(worker->flat_batch)) return;   /* still waiting — keep accumulating */
-        flatRetireNode *n = worker->flat_batch->head;
-        while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
-        worker->flat_batch->head = NULL;
-        worker->flat_batch_free = worker->flat_batch;      /* keep the header for reuse */
-        worker->flat_batch = NULL;
-    }
     if (worker->flat_retire_local) {
-        flatBatch *b = worker->flat_batch_free;
-        worker->flat_batch_free = NULL;
-        worker->flat_batch = flatBatchClose(worker->flat_retire_local, NULL, b);
+        /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
+         * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
+         * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
+         * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
+         * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
+        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
         worker->flat_retire_local = NULL;
+        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+        else worker->flat_batches_local = b;
+        worker->flat_batches_tail = b;
+    }
+    /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
+    while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
+        flatBatch *b = worker->flat_batches_local;
+        worker->flat_batches_local = b->next;
+        if (!worker->flat_batches_local) worker->flat_batches_tail = NULL;
+        flatBatchFree(b, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
     }
 }
 
@@ -6136,9 +6142,9 @@ static void flatReclaimTable(flatTable *t) {
      * threads land here), so an unconditional `lock xchg` would dirty the line for nothing. */
     if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
         flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
-        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL);
+        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL, NULL);
     }
-    if (t->batches) flatDrainReadyBatches(&t->batches);
+    if (t->batches) flatDrainReadyBatches(&t->batches, NULL, NULL);
 }
 void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
@@ -6225,6 +6231,17 @@ void flatResizeCoordinate(void) {
         int W = server.num_workers_alloc, all = 1;
         for (int w = 0; w < W; w++)
             if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) { all = 0; break; }
+        /* review [resize-quiesce]: NON-WORKER identities must be drained too. KEYS / RANDOMKEY /
+         * SAVE / DEBUG DIGEST / DEBUG RELOAD are not worker-dispatchable, so they execute INLINE on
+         * whichever io thread accepted the client and iterate old->slots via flatIterNext — while
+         * this coordinator swaps the table and calls flatTableFree(flat_rz_old) below. Draining only
+         * exThreads left that a use-after-free. Same constituency the QSBR grace uses. */
+        if (all) {
+            int io_hi = server.io_threads + server.tm_ngrow_io;
+            if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
+            for (int t = 0; t <= io_hi; t++)
+                if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) { all = 0; break; }
+        }
         if (!all) {
             if (getMonotonicUs() - flat_rz_arm_us > FLAT_RZ_QUIESCE_DEADLINE_US) {
                 /* a worker is stuck in a long command — unpark everyone and retry later so we never
