@@ -2192,13 +2192,10 @@ typedef struct exThread {
      * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
      * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
     char flat_pad[CACHE_LINE_SIZE];
-    struct flatRetireNode *flat_retire_local;
-    struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
-    struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
-    struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
-    int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
-                                             * batches, and freeing them all would otherwise park an
-                                             * unbounded free-list for the process lifetime */
+    struct flatRetireNode *flat_retire_local;   /* this worker's retire list (no atomics) */
+    struct flatBatch *flat_batch;               /* the ONE outstanding grace batch (NULL = none) */
+    struct flatBatch *flat_batch_free;          /* its header, kept for reuse — no alloc churn */
+    unsigned flat_reclaim_tick;                 /* amortizes the remote-reading grace check */
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {

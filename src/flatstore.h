@@ -49,7 +49,7 @@ typedef struct flatSlot {
  * batch only once every worker has advanced past that stamp (so all pre-retire readers finished).
  * One stamp per batch amortizes the snapshot over many deletes. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
-#define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
+#define FLAT_RECLAIM_EVERY 8   /* run the grace check every Nth worker pass (it reads remote lines) */
 #define FLAT_QSBR_MARGIN 2
 
 /* Per-worker retire SINK (ee451 FLATSTORE reclaim-capacity fix). A worker thread points this at its
