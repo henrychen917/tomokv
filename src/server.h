@@ -2209,6 +2209,7 @@ typedef struct exThread {
     struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
     struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
     struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
+    unsigned flat_node_tick;                /* periodic trim of the retire-node pool */
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */

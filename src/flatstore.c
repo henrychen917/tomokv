@@ -66,9 +66,40 @@ void flatTableFree(flatTable *t) {
  * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimTable). */
 __thread flatRetireNode **flat_local_sink = NULL;   /* see flatstore.h: worker-local retire sink */
 
+/* Retire-node recycling.
+ *
+ * flatRetire used to zmalloc() a node per retire and flatBatchFree() zfree() it again, i.e. ONE
+ * malloc/free pair per overwrite that the dict store never pays. That is the whole flat-vs-dict
+ * allocator delta measured on p32 SET (~10.2% of EX cycles under flat vs ~4.4% under dict, with
+ * je_edata_heap_remove_first and je_tcache_bin_flush_small appearing ONLY under flat).
+ *
+ * Nodes are pure scratch: they never outlive the batch that frees them and hold no reader-visible
+ * state, so they can be recycled freely. The pool is __thread and both ends of the cycle (retire and
+ * batch-free) run on the owning worker, so recycling also keeps the block in its own jemalloc arena
+ * -- the same property the per-worker reclaim fix was introduced to preserve. */
+__thread flatRetireNode *flat_node_pool = NULL;
+__thread unsigned flat_node_pool_n = 0;
+__thread unsigned flat_node_pool_peak = 0;
+
+/* Peak-with-reset trim (the jemalloc/Redis-querybuf policy already used elsewhere in this tree):
+ * each window keeps only what the previous window actually demanded, so a burst does not pin memory
+ * forever and a steady load never allocates. Called from the worker's periodic tick. */
+void flatNodePoolTrim(void) {
+    while (flat_node_pool_n > flat_node_pool_peak) {
+        flatRetireNode *n = flat_node_pool;
+        if (!n) break;
+        flat_node_pool = n->next;
+        flat_node_pool_n--;
+        zfree(n);
+    }
+    flat_node_pool_peak = 0;
+}
+
 void flatRetire(flatTable *t, dictEntry *masked_kv) {
     if (!masked_kv) return;
-    flatRetireNode *n = zmalloc(sizeof(*n));
+    flatRetireNode *n = flat_node_pool;
+    if (n) { flat_node_pool = n->next; flat_node_pool_n--; }
+    else    { n = zmalloc(sizeof(*n)); }
     n->masked_kv = masked_kv;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */

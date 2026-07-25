@@ -61,6 +61,10 @@ typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *nex
  * retires outrun reclaim, RSS 233MB -> 38GB in 180s -> OOM/wedge). NULL on non-worker threads (main,
  * bio), which keep using the shared lock-free stack + main-thread reclaim. */
 extern __thread flatRetireNode **flat_local_sink;
+extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (see flatstore.c) */
+extern __thread unsigned flat_node_pool_n, flat_node_pool_peak;
+#define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
+void flatNodePoolTrim(void);
 typedef struct flatBatch {
     flatRetireNode *head;
     uint64_t snap[64 + 1];         /* loop_seq of each worker at close (TOMO_EX_THREADS_MAX) */
