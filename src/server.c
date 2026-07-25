@@ -155,16 +155,27 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
  * main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
 #define TM_LAT_RING 64
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    /* LINE 0 — read-mostly, polled by EVERY worker in flatBatchReady. Nothing hot-written may share
+     * it. 52cb11a0f put q_full_events immediately before in_flat, so a queue-full burst invalidated
+     * this line on every worker on each event; in_flat now owns the line outright. */
+    _Atomic int in_flat;/* FLATSTORE QSBR: >0 while THIS io identity (0 = main, 1..N = io threads) is
+                         * inside code that may hold a raw flat kvobj pointer. Mirrors the workers'
+                         * in_flat_section. Written only by the owning thread, read by every worker's
+                         * grace check — read-mostly, so it stays Shared. */
+    char _pad_in_flat[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+
+    /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
     int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
     unsigned lat_idx;   /* p99 guardrail ring cursor */
     unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
-    _Atomic int in_flat;/* FLATSTORE QSBR: >0 while THIS io identity (0 = main, 1..N = io threads) is
-                         * inside code that may hold a raw flat kvobj pointer. Mirrors the workers'
-                         * in_flat_section. Written only by the owning thread (its own cache line),
-                         * read by every worker's grace check — read-mostly, so it stays Shared. */
     uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds */
 } tmIoSignal;
+/* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
+ * not share a line with any counter this thread writes on the data path. */
+_Static_assert(offsetof(tmIoSignal, in_flat) / CACHE_LINE_SIZE
+               != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
+               "in_flat shares a cache line with q_full_events (false sharing on the QSBR grace)");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 /* KNOB: -1 = AUTO (tuned default), 0 = OFF (no batching — pop one item per pass), N = STATIC. */
 static inline int tomoPopBatch(void) {
@@ -3523,10 +3534,21 @@ void initServer(void) {
          * back-pressure — deriving below the old default measurably regressed throughput. AUTO may
          * only ever add headroom, never remove it. */
         long want = 4L * (server.io_threads + 1) * server.pipeline_ring_depth;
-        long p2 = 2048; while (p2 < want && p2 < TOMO_EX_QUEUE_SIZE_MAX) p2 <<= 1;
+        long p2 = 2048;                       /* floor: deriving BELOW the old default regressed throughput */
+        while (p2 < want && p2 < TOMO_EX_QUEUE_SIZE_MAX) p2 <<= 1;
         server.ex_queue_size = (int)p2;
-        serverLog(LL_NOTICE, "tomokv-ex-queue-depth auto -> %d (derived: 4 x (io_threads+1) x pipeline_depth)",
-                  server.ex_queue_size);
+        /* jobs[] is a STATIC array of TOMO_EX_QUEUE_SIZE_MAX per (worker, io) pair, so the cap cannot
+         * be raised here without paying memory on every pair. Report what was actually derived, and
+         * say so when the cap binds — silently clamping is how an undersized ring stays invisible. */
+        if (want > TOMO_EX_QUEUE_SIZE_MAX)
+            serverLog(LL_WARNING,
+                      "tomokv-ex-queue-depth auto -> %d (CLAMPED at max; 4 x (io_threads+1) x pipeline_depth = %ld). "
+                      "Watch INFO tomokv_ex_queue_full: sustained growth means this ring is undersized.",
+                      server.ex_queue_size, want);
+        else
+            serverLog(LL_NOTICE,
+                      "tomokv-ex-queue-depth auto -> %d (4 x (io_threads+1) x pipeline_depth = %ld, floored at 2048)",
+                      server.ex_queue_size, want);
     }
     else if (server.ex_queue_size == 0) {
         /* A worker dispatch queue cannot be "off" — the queue IS the dispatch path. Reject rather
@@ -10311,15 +10333,17 @@ void fakeRingClientCron(client *c) {
         if (inflight == 0 && target < c->fake_ring_cur_depth) {
             if (c->fake_ring_decay_skip > 0) { c->fake_ring_decay_skip--; }
             else {
-                for (unsigned int slot = target; slot < c->fake_ring_cur_depth; slot++) {
+                /* Round UP to the ring's power-of-two modulus FIRST, then free only what falls
+                 * outside it. Freeing from `target` while shrinking to p2 >= target left slots
+                 * [target, p2) freed but still inside the modulus, so the next trip around the ring
+                 * recreated every one of them — the shrink/re-grow churn this decay exists to avoid. */
+                unsigned int p2 = 1; while (p2 < target) p2 <<= 1;
+                for (unsigned int slot = p2; slot < c->fake_ring_cur_depth; slot++) {
                     if (c->fakeClients[slot]) { freeFakeClient(c->fakeClients[slot]); c->fakeClients[slot] = NULL; }
                 }
-                c->fake_ring_cur_depth = target;
-                /* Shrink the RING as well (power of two >= target). Safe here: inflight == 0, so no
-                 * slot is live and remapping the mask cannot strand an in-flight reply. Without this
-                 * the modulus stayed at MAX, the index walked every slot, and the freed fakes were
-                 * immediately re-created — the measured shrink/re-grow churn. */
-                unsigned int p2 = 1; while (p2 < target) p2 <<= 1;
+                c->fake_ring_cur_depth = p2 < c->fake_ring_cur_depth ? p2 : c->fake_ring_cur_depth;
+                /* Safe here: inflight == 0, so no slot is live and remapping the mask cannot strand
+                 * an in-flight reply. */
                 if (p2 < c->ring_size) { c->ring_size = p2; c->ring_mask = p2 - 1; }
                 c->fake_ring_decay_skip = 2;
             }

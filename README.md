@@ -313,14 +313,14 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-ex-threads` | **mandatory** ≥ 1, **any count** | Execution workers (one shard each). Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
 | `tomokv-pin-mode` | `0` float · `1` manual · `2` auto (default) | `0`: no pinning, the scheduler decides. `1`: pin to the exact cores in `tomokv-pin-cores`. `2`: arch‑aware auto — topology‑smart placement (shared‑L3/CCD grouping, NUMA‑local shard memory), respecting taskset/cgroup affinity. |
 | `tomokv-pin-cores` | e.g. `"0,2,4,6"` | Manual core list for pin‑mode 1, applied in thread‑pin order (io threads first, then workers), round‑robin if short. |
-| `tomokv-pipeline-depth` | `0` auto (default) · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
-| `tomokv-ex-queue-depth` | `0` auto (default) · pow2 ≤ 65536 | io→worker SPSC queue size. Auto resolves to 2048. |
+| `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
+| `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
 ### Batching, spin & prefetch (AUTO controllers with strict overrides)
 
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-worker-pop-batch` | `0` auto (default) · 1–16 strict | Fakes a worker pops per queue visit. Auto: saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve) — 2‑bit‑predictor flavor. |
+| `tomokv-worker-pop-batch` | `-1` auto (default, 16) · `0` off (one pop per pass) · N static | Fakes a worker pops per queue visit. Auto: saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve) — 2‑bit‑predictor flavor. |
 | `tomokv-worker-spin` | `0` auto (default) · N strict rounds | Worker idle spin before yielding. Auto: multiplicative budget (spin that paid grows ×1.5, wasted window halves). |
 | `tomokv-pf-w-struct/-argv/-keyobj/-keybytes/-hash/-entry` | `-1` auto (default) · `0` off · N strict | Per‑stage scoreboard‑prefetcher widths. Auto: width = the *current* batch occupancy — zero history, re‑tunes on the next batch. |
 | `tomokv-pf-w-value` | `-1` auto (default) · `0` off · N strict cap | Value‑chase width. Auto: cache‑budget controller — width = (L3 / 2·workers) / EWMA(value size), leaky integrator, refreshed continuously. |
@@ -331,7 +331,7 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-io-drain-userpoll` | `-1` auto (default) · `0` syscall‑only · N userpoll passes | Reply‑wait drain mode. Auto: EWMA of in‑flight replies with a Schmitt band picks userspace re‑checks vs an epoll syscall. |
 | `tomokv-drain-tail-skip` | `-1`/`1` auto (default) · `0` legacy | Skip the tail drain pass when work is already pending. |
 | `tomokv-express-slim` | `-1` auto (default) · `0` off · 1–100 fixed pct | Slim state‑move for GET/SET, engaged when the live GET+SET hit‑rate clears the threshold (auto: EWMA + Schmitt). |
-| `tomokv-fake-ring-depth` | `-1` auto (default) · `0` eager · N fixed | Per‑connection live fake‑ring depth. Auto: lazy‑create, demand‑grow on stall, decay at empty‑ring checkpoints. |
+| `tomokv-fake-ring-depth` | `-1` auto (default) · `0` off · N fixed | Per‑connection live fake‑ring depth. Auto: lazy‑create, demand‑grow on stall, decay at empty‑ring checkpoints. |
 | `tomokv-fake-buf` | `-1` auto (default) · `0` 16 KB legacy · N bytes | Per‑connection fake output‑buffer width. Auto: demand‑grow at the spill site (capped). |
 
 ### Load balancing (self‑driving reshard controller)
