@@ -575,10 +575,24 @@ client *createClient(connection *conn) {
     /* 2s-auto D3: eager (mode 0) preallocs all pipeline_ring_depth fakes; auto (-1) and
      * fixed-N modes leave slots NULL for lazy-create at the dispatch site. fakeClients was
      * already memset to NULL above, so unfilled slots stay NULL. */
-    int eager = (server.fake_ring_depth_mode == 0);
-    int n = eager ? server.pipeline_ring_depth
-                  : (server.fake_ring_depth_mode > 0 ? server.fake_ring_depth_mode : 0);
-    if (n > server.pipeline_ring_depth) n = server.pipeline_ring_depth;
+    /* KNOB CONVENTION: -1 = AUTO (lazy grow + decay), 0 = OFF (no preallocation at all — slots are
+     * created on demand only), N > 0 = STATIC (exactly N fakes, no decay). 0 previously meant EAGER
+     * (preallocate the FULL ring), i.e. the exact opposite of "off, no allocation". */
+    /* UNIFIED RING: one policy decides BOTH the depth (slot modulus + in-flight cap) and the
+     * preallocation. -1 = AUTO: full depth, decays toward measured demand. 0 = OFF: depth 1.
+     * N = STATIC: exactly N (rounded UP to a power of two, since the slot index is masked). */
+    {
+        unsigned int want = (unsigned int)server.pipeline_ring_depth;      /* auto = resolved max */
+        if (server.fake_ring_depth_mode == 0) want = 1;                    /* OFF */
+        else if (server.fake_ring_depth_mode > 0) want = (unsigned int)server.fake_ring_depth_mode;
+        if (want < 1) want = 1;
+        unsigned int p2 = 1; while (p2 < want) p2 <<= 1;                   /* mask needs a power of two */
+        if (p2 > (unsigned int)server.pipeline_ring_depth) p2 = (unsigned int)server.pipeline_ring_depth;
+        c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
+    }
+    /* Preallocate only for STATIC N (its depth never changes); AUTO and OFF create on demand. */
+    int n = server.fake_ring_depth_mode > 0 ? (int)c->ring_size : 0;
+    if (n > (int)c->ring_size) n = (int)c->ring_size;
     for (int i = 0; i < n; i++) {
         c->fakeClients[i] = createFakeClient(c);
         c->fakeClients[i]->fake_slot = (unsigned int)i;

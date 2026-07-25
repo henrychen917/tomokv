@@ -1531,7 +1531,20 @@ typedef struct client {
     unsigned int dispatchid;
     unsigned int flushid;
     /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
-    unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to pipeline_ring_depth */
+    unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to ring_size */
+    /* UNIFIED per-connection ring (merges tomokv-pipeline-depth with tomokv-fake-ring-depth: they
+     * described the same physical ring and disagreed — the in-flight gate used the GLOBAL depth while
+     * the depth controller only set an initial prealloc COUNT, so a static N never actually capped
+     * anything and slot indices cycled over all MAX slots, lazily creating every one of them).
+     * ring_size is the effective depth AND the slot modulus, so N now genuinely means N.
+     *   -1 = AUTO   : starts at MAX (no throughput change) and DECAYS toward measured demand
+     *    0 = OFF    : size 1, no pipelining, one fake
+     *    N = STATIC : exactly N (rounded to a power of two), no grow, no decay
+     * Resizing only ever happens at an EMPTY-ring checkpoint (dispatchid == flushid), because the
+     * mask remaps slots; growth is applied there (fast), decay in cron (slow). */
+    unsigned int ring_size;             /* power of two, <= TOMO_PIPELINE_DEPTH_MAX */
+    unsigned int ring_mask;             /* ring_size - 1 */
+    unsigned int ring_want_grow;        /* set on a ring-full stall; applied at the next empty ring */
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
     unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;

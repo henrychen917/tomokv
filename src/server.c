@@ -158,6 +158,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
     int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
     unsigned lat_idx;   /* p99 guardrail ring cursor */
+    unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
     _Atomic int in_flat;/* FLATSTORE QSBR: >0 while THIS io identity (0 = main, 1..N = io threads) is
                          * inside code that may hold a raw flat kvobj pointer. Mirrors the workers'
                          * in_flat_section. Written only by the owning thread (its own cache line),
@@ -165,6 +166,13 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds */
 } tmIoSignal;
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+/* KNOB: -1 = AUTO (tuned default), 0 = OFF (no batching — pop one item per pass), N = STATIC. */
+static inline int tomoPopBatch(void) {
+    if (server.worker_pop_batch < 0) return WORKER_POP_BATCH;
+    if (server.worker_pop_batch == 0) return 1;
+    return server.worker_pop_batch;
+}
+
 /* build-time layout guard (FLATSTORE reclaim): the worker-private retire fields must NOT share a
  * cache line with loop_seq / in_flat_section, which every OTHER worker polls in flatBatchReady —
  * a per-retire write next to them would ping-pong the line. */
@@ -207,12 +215,12 @@ static inline void flatExternEnter(void) {
      * so main waiting here would deadlock, and it cannot race: main's regions and its coordinator run
      * on the same thread, serialized. Measured free (interleaved A/B: gate on 4.540/4.503/4.580M vs
      * gate off 4.516/4.460/4.446M p32 SET). */
-    if (iotid == 0) return;
-    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
-        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 0, memory_order_seq_cst);  /* let it drain */
-        while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) sched_yield();
-        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);  /* re-enter, re-check */
-    }
+    /* NOTE: readers deliberately do NOT park on flat_resize_active. An earlier revision did, mirroring
+     * the worker park — but workers park because they are WRITERS (the copy needs the old table
+     * immutable), whereas io threads here are READERS, and parking them blocked all client I/O for
+     * the entire rebuild: PING itself stopped answering for seconds on a large table. Readers are
+     * made safe instead by DEFERRING the old table's free until every reader has left its region
+     * (flatTableRetire / flatRetiredTablesTryFree) — publish-new-then-defer-free, i.e. RCU. */
 }
 static inline void flatExternExit(void) {
     if (flatIsExternThread() && --flat_extern_depth == 0)
@@ -2110,6 +2118,13 @@ long long getNetOutputBytes(void) {
 static inline void exDispatchPush(int ex_id, client *fake) {
     exQueue *q = &server.exThreads[ex_id].queues[iotid];
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
+    /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
+     * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
+     * undersized tomokv-ex-queue-depth showed up only as unexplained latency. Count it (INFO:
+     * tomokv_ex_queue_full) so the sizing is observable, per the "expose the state" rule. Plain
+     * increment on a per-io-identity line: this thread is its only writer, and it is off the fast
+     * path by construction (we are already about to spin). */
+    tm_io_sig[iotid].q_full_events++;
     int spins = 0;
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
@@ -2151,7 +2166,7 @@ void handleWorkerReplies(void) {
             close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
             cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
-                unsigned int slot = real->flushid & server.pipeline_ring_mask;
+                unsigned int slot = real->flushid & real->ring_mask;
                 if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
@@ -2221,7 +2236,7 @@ void handleWorkerReplies(void) {
 
         cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & server.pipeline_ring_mask;
+            unsigned int slot = real->flushid & real->ring_mask;
             if (!(mask & (1u << slot))) break;   /* head of ring not done */
 
             client *fake = real->fakeClients[slot];
@@ -2349,7 +2364,7 @@ void handleWorkerReplies(void) {
          * wake it. processInputBuffer will re-evaluate and dispatch whatever
          * was sitting in pending_cmds. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < (unsigned int)server.pipeline_ring_depth)
+            (real->dispatchid - real->flushid) < real->ring_size)
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -2391,6 +2406,7 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 
 void flatReclaimAll(void);
 void flatResizeCoordinate(void);
+static void flatRetiredTablesTryFree(void);   /* RCU: free tables replaced by a rebuild */
 
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
@@ -2409,7 +2425,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
      * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
      * region flags (see flatBatchReady), not by a counter here. */
-    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatResizeCoordinate(); }
+    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
@@ -3485,11 +3501,39 @@ void initServer(void) {
             "use upstream Redis for a single-executor deployment).");
         exit(1);
     }
-    /* ee451 (v14): 0 = auto for the ring depths. Auto currently resolves to the tuned defaults
-     * (16 / 2048); the per-connection demand-grow/decay ring controller is the queued follow-up
-     * (grow on ring-full stall, decay at empty-ring checkpoints — branch-predictor style). */
-    if (server.pipeline_ring_depth == 0) { server.pipeline_ring_depth = TOMO_PIPELINE_DEPTH_MAX; serverLog(LL_NOTICE, "tomokv-pipeline-depth auto -> %d (max; ring cycles all slots anyway — the demand-grow/decay controller will trim per-connection memory)", TOMO_PIPELINE_DEPTH_MAX); }
-    if (server.ex_queue_size == 0)       { server.ex_queue_size = 2048;      serverLog(LL_NOTICE, "tomokv-ex-queue-depth auto -> 2048"); }
+    /* KNOB CONVENTION (house rule): -1 = AUTO (self-derive), 0 = OFF (no allocation), N > 0 = STATIC.
+     * These two used to treat 0 as AUTO, which made 0 mean the opposite of the rule (it allocated the
+     * MAXIMUM). Defaults moved to -1 so the out-of-the-box behaviour is unchanged; an explicit 0 now
+     * means what it says. */
+    if (server.pipeline_ring_depth < 0) {
+        server.pipeline_ring_depth = TOMO_PIPELINE_DEPTH_MAX;
+        serverLog(LL_NOTICE, "tomokv-pipeline-depth auto -> %d (max; the ring cycles all slots anyway — the per-connection decay controller trims the memory)", TOMO_PIPELINE_DEPTH_MAX);
+    } else if (server.pipeline_ring_depth == 0) {
+        server.pipeline_ring_depth = 1;   /* OFF: no pipeline ring, one in-flight command per client */
+        serverLog(LL_NOTICE, "tomokv-pipeline-depth 0 = OFF -> ring disabled (depth 1)");
+    }
+    if (server.ex_queue_size < 0) {
+        /* AUTO derives from the configured shape instead of a magic constant: every io identity can
+         * have up to pipeline_ring_depth commands in flight per connection, and they all funnel into
+         * one SPSC ring per (worker, io) pair. Size it to hold a full round from every io producer,
+         * with 4x headroom for burst, rounded to a power of two and clamped to the ring maximum.
+         * Exhaustion is counted (INFO tomokv_ex_queue_full) so an undersized ring is visible. */
+        /* Producers x in-flight-per-producer, floored at the previously tuned 2048: the formula
+         * counts io PRODUCERS but not the CLIENT count each one multiplexes, which dominates real
+         * back-pressure — deriving below the old default measurably regressed throughput. AUTO may
+         * only ever add headroom, never remove it. */
+        long want = 4L * (server.io_threads + 1) * server.pipeline_ring_depth;
+        long p2 = 2048; while (p2 < want && p2 < TOMO_EX_QUEUE_SIZE_MAX) p2 <<= 1;
+        server.ex_queue_size = (int)p2;
+        serverLog(LL_NOTICE, "tomokv-ex-queue-depth auto -> %d (derived: 4 x (io_threads+1) x pipeline_depth)",
+                  server.ex_queue_size);
+    }
+    else if (server.ex_queue_size == 0) {
+        /* A worker dispatch queue cannot be "off" — the queue IS the dispatch path. Reject rather
+         * than silently substituting a size, so 0 never means something surprising here. */
+        serverLog(LL_WARNING, "tomokv-ex-queue-depth 0 is invalid (the queue is the dispatch path; use -1 for auto) — using auto 2048");
+        server.ex_queue_size = 2048;
+    }
     /* ee451 (AE-1): boot-sync the adaptive-drain budget into ae.c's plain global — config
      * apply fns do not run during loadServerConfig, only on CONFIG SET. */
     aeIODrainSpin = server.io_drain_spin;
@@ -3711,8 +3755,12 @@ void initServer(void) {
      * never written -> would only widen the per-reply drain scan) and at NUM_CDB_MAX. So the knob accepts
      * up to 256 but the effective count scales with the worker count. */
     {
-        int req = server.cfg_num_cdb > 0 ? server.cfg_num_cdb
-                                         : (detectL3Domains() > 1 ? server.num_workers : 1);   /* ee451 (v14): topology-auto — bus-per-worker only when there are multiple L3 domains (CCDs) to de-contend; single-CCD keeps v4's single-bus shape */
+        /* -1 = AUTO (topology: bus-per-worker only with multiple L3 domains/CCDs to de-contend;
+         * single-CCD keeps the single-bus shape), 0 = OFF (exactly one bus, feature disabled),
+         * N > 0 = STATIC. 0 previously meant AUTO, contradicting the house rule. */
+        int req = server.cfg_num_cdb > 0  ? server.cfg_num_cdb
+                : server.cfg_num_cdb == 0 ? 1
+                                          : (detectL3Domains() > 1 ? server.num_workers : 1);
         if (req > server.num_workers) req = server.num_workers;
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
@@ -5582,7 +5630,18 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
-    if (c->dispatchid - c->flushid == (unsigned int)server.pipeline_ring_depth) {
+    /* Apply a pending GROW here: the ring is empty, so remapping slots is a no-op. Growth is fast
+     * (every drain is a checkpoint); decay is slow (cron). One predictable compare on the hot path. */
+    if (__builtin_expect(c->ring_want_grow && c->dispatchid == c->flushid, 0)) {
+        /* AUTO only. OFF (0) must stay at depth 1 and STATIC (N) must stay at N — growing them would
+         * re-create the very bug this unification fixes (a configured depth that does not cap). */
+        if (server.fake_ring_depth_mode == -1 && c->ring_size < (unsigned int)server.pipeline_ring_depth) {
+            c->ring_size <<= 1; c->ring_mask = c->ring_size - 1;
+        }
+        c->ring_want_grow = 0;
+    }
+    if (c->dispatchid - c->flushid == c->ring_size) {
+        c->ring_want_grow = 1;   /* demand signal: this client wants a deeper ring */
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
@@ -5602,7 +5661,7 @@ int processCommand(client *c) {
     unsigned int inflight_now = c->dispatchid - c->flushid + 1;   /* incl. this dispatch */
     if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
 
-    unsigned int fslot = c->dispatchid & server.pipeline_ring_mask;
+    unsigned int fslot = c->dispatchid & c->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (auto or fixed-N mode leaves
      * unused slots NULL at createClient). fake_slot is stamped once and never changes. */
     if (c->fakeClients[fslot] == NULL) {
@@ -6136,6 +6195,34 @@ static void flatWorkerReclaim(exThread *worker) {
  * lost node whose ->next dangles onto a freed one => double free). Keeping the list strictly
  * worker-private is what makes the hot path atomic-free. */
 
+
+/* ---- RCU retirement of a REPLACED table -------------------------------------------------------
+ * After a rebuild the new table is published (kvstoreFlatSwap) and the old one must not be freed
+ * while any reader may still be walking it. Readers are the io identities running inline commands
+ * (KEYS/SAVE/DEBUG DIGEST/...) and the workers. Freeing it inline forced those readers to park for
+ * the whole rebuild, which stalled client I/O; deferring the free instead lets them run untouched.
+ * Bounded: at most a couple of tables can be pending, and each is freed at the first beforeSleep
+ * where every reader is provably outside a flat region. */
+#define FLAT_RETIRED_TABLES_MAX 8
+static flatTable *flat_retired_tables[FLAT_RETIRED_TABLES_MAX];
+static int flat_retired_n;
+static void flatTableRetire(flatTable *t) {
+    if (!t) return;
+    if (flat_retired_n < FLAT_RETIRED_TABLES_MAX) { flat_retired_tables[flat_retired_n++] = t; return; }
+    flatTableFree(t);   /* pathological backlog: fall back to the old inline behaviour */
+}
+static void flatRetiredTablesTryFree(void) {
+    if (!flat_retired_n) return;
+    int io_hi = server.io_threads + server.tm_ngrow_io;
+    if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
+    for (int t = 0; t <= io_hi; t++)
+        if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) return;   /* a reader is inside */
+    for (int w = 0; w < server.num_workers_alloc && w <= TOMO_EX_THREADS_MAX; w++)
+        if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) return;
+    for (int i = 0; i < flat_retired_n; i++) flatTableFree(flat_retired_tables[i]);
+    flat_retired_n = 0;
+}
+
 static void flatReclaimTable(flatTable *t) {
     /* review [efficiency]: peek before the RMW — with the worker path taking every retire from a
      * worker thread, this shared stack is empty on the vast majority of calls (only non-worker
@@ -6269,7 +6356,7 @@ void flatResizeCoordinate(void) {
                   (unsigned long long)flat_rz_new->size,
                   (unsigned long long)atomic_load_explicit(&flat_rz_old->used, memory_order_relaxed));
         kvstoreFlatSwap(flat_rz_kvs, flat_rz_new);
-        flatTableFree(flat_rz_old);   /* frees old slots + drains its retire garbage; live keys moved to new */
+        flatTableRetire(flat_rz_old);   /* RCU: free once every reader has left its region */   /* frees old slots + drains its retire garbage; live keys moved to new */
         atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         flat_rz_old = flat_rz_new = NULL; flat_rz_kvs = NULL;
@@ -7801,7 +7888,9 @@ static void csFreeSub(client *sub) {
 static void csPushSpin(int w, client *sub) {
     exQueue *q = &server.exThreads[w].queues[iotid];
     int spins = 0;
+    int counted = 0;
     while (exQueuePush(q, sub) != 0) {
+        if (!counted) { tm_io_sig[iotid].q_full_events++; counted = 1; }   /* see exDispatchPush */
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exPauseCpu();
@@ -10207,7 +10296,7 @@ void fakeRingClientCron(client *c) {
         c->fake_ring_hwm_ewma = a*(double)hwm + (1.0-a)*c->fake_ring_hwm_ewma;
         unsigned int target = (unsigned int)(c->fake_ring_hwm_ewma * 1.25) + 1;
         if (target < 1) target = 1;
-        if (target > (unsigned int)server.pipeline_ring_depth) target = (unsigned int)server.pipeline_ring_depth;
+        if (target > c->ring_size) target = c->ring_size;
         if (inflight == 0 && target < c->fake_ring_cur_depth) {
             if (c->fake_ring_decay_skip > 0) { c->fake_ring_decay_skip--; }
             else {
@@ -10215,6 +10304,12 @@ void fakeRingClientCron(client *c) {
                     if (c->fakeClients[slot]) { freeFakeClient(c->fakeClients[slot]); c->fakeClients[slot] = NULL; }
                 }
                 c->fake_ring_cur_depth = target;
+                /* Shrink the RING as well (power of two >= target). Safe here: inflight == 0, so no
+                 * slot is live and remapping the mask cannot strand an in-flight reply. Without this
+                 * the modulus stayed at MAX, the index walked every slot, and the freed fakes were
+                 * immediately re-created — the measured shrink/re-grow churn. */
+                unsigned int p2 = 1; while (p2 < target) p2 <<= 1;
+                if (p2 < c->ring_size) { c->ring_size = p2; c->ring_mask = p2 - 1; }
                 c->fake_ring_decay_skip = 2;
             }
         }
@@ -12509,7 +12604,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         }
 
         if (sections++) info = sdscat(info,"\r\n");
+        /* Adaptive-sizing observability ("expose the state"): worker-queue exhaustion is the signal
+         * that tomokv-ex-queue-depth is undersized. The ring back-pressures rather than growing, so
+         * without this counter an undersized ring is invisible except as unexplained latency. */
+        unsigned long long tomo_qfull = 0;
+        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
+            "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
+            "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
+            "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,
             "total_commands_processed:%lld\r\n", server.stat_numcommands,
             "instantaneous_ops_per_sec:%lld\r\n", getInstantaneousMetric(STATS_METRIC_COMMAND),
@@ -14590,7 +14693,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * a saturating up/down controller in the micro-arch style (2-bit-predictor flavor):
      * a full batch (saturated pop) doubles the cap; a sparse pass (< cap/4, nonzero)
      * halves it. Current-signal only — a workload shift re-tunes within a few passes. */
-    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    int popmax = tomoPopBatch();
     /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
      * per-queue pop batch already prevents starvation across the per-IO SPSC
      * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
@@ -16878,7 +16981,7 @@ static void tomoThreadBalanceCron(void) {
     const int busy_hi = 75;                            /* % time in work passes (utilization) */
     const int ing_distress = 32;                       /* events/pass: io thread drowning */
     long wb_slack_bound  = 4L * server.io_threads;
-    int popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+    int popmax = tomoPopBatch();
     long qd_abs_hi = 8L * popmax;                      /* "a worker stands >=8 full pop batches behind" */
 
     /* ---- 3. VOTES (each ex-pressure vote = relative-to-in-flight OR absolute backlog:
@@ -17290,7 +17393,7 @@ static void tomoFlipController(void) {
          * free, no absolute operating point): io_sat = ingress / ing_distress(32 events/pass);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
          * constraint (grow front); <0 => ex is the constraint (grow back). --- */
-        int fc_popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+        int fc_popmax = tomoPopBatch();
         long fc_qd_hi = 8L * fc_popmax;
         double io_sat = (double)ing_mean / 32.0;
         double ex_sat = fmax((double)fc->busy_smooth / 75.0,

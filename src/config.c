@@ -2358,7 +2358,10 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
  * checks power-of-two. Signature matches the numeric-config validator type
  * (long long, const char **). */
 static int isValidMyPipelineDepth(long long val, const char **err) {
-    if (val == 0) return 1;   /* 0 = auto */
+    /* KNOB CONVENTION: -1 = AUTO, 0 = OFF, N = STATIC power of two. -1 is BOTH the documented auto
+     * value and the default; rejecting it made every explicit spelling of the default a fatal boot
+     * error (the shipped default only worked because init bypasses validation). */
+    if (val <= 0) return 1;
     if (val < 1 || (val & (val - 1)) != 0) {
         *err = "tomokv-pipeline-depth must be a power of two (e.g., 1, 2, 4, 8, 16, 32)";
         return 0;
@@ -2369,7 +2372,8 @@ static int isValidMyPipelineDepth(long long val, const char **err) {
 /* tomokv-ex-queue-depth must be a power of two (ring-buffer uses mask for
  * wrap-around). Upper bound enforced by createIntConfig. */
 static int isValidMyWorkerQueueDepth(long long val, const char **err) {
-    if (val == 0) return 1;   /* 0 = auto */
+    /* -1 = AUTO (derived), 0 = OFF (rejected at resolve time with a warning), N = STATIC power of two. */
+    if (val <= 0) return 1;
     if (val < 1 || (val & (val - 1)) != 0) {
         *err = "tomokv-ex-queue-depth must be a power of two (e.g., 64, 128, 256, 512, 1024, 2048)";
         return 0;
@@ -3207,7 +3211,7 @@ standardConfig static_configs[] = {
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the
      * design review. num_cdb is resolved once at init from this. Default OFF. */
-    createIntConfig("tomokv-num-cdb", NULL, IMMUTABLE_CONFIG, 0, NUM_CDB_MAX, server.cfg_num_cdb, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-num-cdb", NULL, IMMUTABLE_CONFIG, -1, NUM_CDB_MAX, server.cfg_num_cdb, -1, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
     createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
@@ -3289,7 +3293,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
     createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
-    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, 0, 16, server.worker_pop_batch, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3408,11 +3412,11 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, -1, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
     createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
     createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
-    createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed live depth */
+    createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=AUTO (lazy grow + decay), 0=OFF (no prealloc, purely on demand), N=STATIC cap */
     createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
-    createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, 0, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* 0 = auto */
-    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, 0, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
+    createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* -1 = auto, 0 = off (depth 1), N = static power of two */
+    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, -1, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */
