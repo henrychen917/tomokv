@@ -62,7 +62,7 @@ typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *nex
  * bio), which keep using the shared lock-free stack + main-thread reclaim. */
 extern __thread flatRetireNode **flat_local_sink;
 extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (see flatstore.c) */
-extern __thread unsigned flat_node_pool_n, flat_node_pool_peak;
+extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
 void flatNodePoolTrim(void);
 typedef struct flatBatch {

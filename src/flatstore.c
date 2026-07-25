@@ -79,27 +79,36 @@ __thread flatRetireNode **flat_local_sink = NULL;   /* see flatstore.h: worker-l
  * -- the same property the per-worker reclaim fix was introduced to preserve. */
 __thread flatRetireNode *flat_node_pool = NULL;
 __thread unsigned flat_node_pool_n = 0;
-__thread unsigned flat_node_pool_peak = 0;
+__thread unsigned flat_node_pool_lowat = 0;   /* min occupancy this window = never-needed surplus */
+__thread unsigned flat_node_tick = 0;
 
-/* Peak-with-reset trim (the jemalloc/Redis-querybuf policy already used elsewhere in this tree):
- * each window keeps only what the previous window actually demanded, so a burst does not pin memory
- * forever and a steady load never allocates. Called from the worker's periodic tick. */
+/* Low-water scavenger (glibc/tcmalloc shape). The minimum occupancy reached during a window is by
+ * definition the number of nodes the window never needed, so that many are returned to the
+ * allocator and the mark is re-armed at the current level. A steady write load keeps its whole
+ * working set and never calls the allocator; a burst is given back one window later.
+ *
+ * (v1 tracked the PEAK of the pool's own occupancy instead, which n can never exceed -- so the
+ * trim loop never executed and the pool only ever grew to its cap.) */
 void flatNodePoolTrim(void) {
-    while (flat_node_pool_n > flat_node_pool_peak) {
+    unsigned excess = flat_node_pool_lowat;
+    while (excess-- > 0 && flat_node_pool) {
         flatRetireNode *n = flat_node_pool;
-        if (!n) break;
         flat_node_pool = n->next;
         flat_node_pool_n--;
         zfree(n);
     }
-    flat_node_pool_peak = 0;
+    flat_node_pool_lowat = flat_node_pool_n;
 }
 
 void flatRetire(flatTable *t, dictEntry *masked_kv) {
     if (!masked_kv) return;
     flatRetireNode *n = flat_node_pool;
-    if (n) { flat_node_pool = n->next; flat_node_pool_n--; }
-    else    { n = zmalloc(sizeof(*n)); }
+    if (n) {
+        flat_node_pool = n->next;
+        if (--flat_node_pool_n < flat_node_pool_lowat) flat_node_pool_lowat = flat_node_pool_n;
+    } else {
+        n = zmalloc(sizeof(*n));
+    }
     n->masked_kv = masked_kv;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */

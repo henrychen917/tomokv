@@ -6148,7 +6148,7 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
         /* Recycle instead of zfree: this is the flat-only malloc/free pair per overwrite. */
         if (flat_node_pool_n < FLAT_NODE_POOL_CAP) {
             n->next = flat_node_pool; flat_node_pool = n;
-            if (++flat_node_pool_n > flat_node_pool_peak) flat_node_pool_peak = flat_node_pool_n;
+            flat_node_pool_n++;
         } else {
             zfree(n);
         }
@@ -14656,8 +14656,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         flat_local_sink = &worker->flat_retire_local;
         /* Peak-with-reset trim of the recycled retire nodes: a burst is released one window later,
          * a steady write load keeps its whole working set and never calls the allocator. */
-        if (__builtin_expect(++worker->flat_node_tick >= 4096u, 0)) {
-            worker->flat_node_tick = 0;
+        if (__builtin_expect(++flat_node_tick >= 4096u, 0)) {
+            flat_node_tick = 0;
             flatNodePoolTrim();
         }
         flatWorkerReclaim(worker);
