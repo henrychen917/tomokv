@@ -16944,6 +16944,19 @@ typedef struct {
     int      last_dir;       /* direction of the probe under evaluation */
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
+    /* pressure-directed control (2026-07-24): deadzones + the imbalance snapshot at flip time */
+    int      dz_init;        /* deadzones seeded to FLIP_DZ_BASE once */
+    double   dz_front;       /* min io-lead (front pressure) to grow-front; raised after a bad front */
+    double   dz_back;        /* min ex-lead (back pressure) to grow-back; raised after a bad back */
+    double   imb_at_flip;    /* io_sat-ex_sat at the last flip (sets the raised deadzone on revert) */
+    int      busy_smooth;    /* leaky-smoothed hottest-ex-worker utilization % (back-pressure signal) */
+    int      just_settled;   /* a climb just ended => pin the deadzones from the next fresh imbalance */
+    double   imb_ewma;       /* EWMA of io_sat-ex_sat — the smoothed DECISION signal (start + pin) */
+    int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
+    double   best_rate;      /* best throughput seen in the current climb (the look-ahead reference) */
+    int      best_dist;      /* steps taken since best_rate was set (0 = at the best) */
+    int      revert_steps;   /* walk-back-to-best counter after an exhausted coast (>0 => repositioning) */
+    int      walkback_armed; /* a walk-back step is in flight; confirm it landed (no abort) before counting */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
 
@@ -16956,6 +16969,31 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FESC_MEAS_N     16     /* measure-window ticks (~4s settled — longer window averages between-window drift) */
 #define FESC_WAIT_BASE  8      /* base idle ticks between probes (~2s); backoff multiplies this */
 #define FESC_BACKOFF_MAX 5     /* cap: max idle between probes ~ 2^5 * base (~64s) when firmly at optimum */
+
+/* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
+ * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
+ * from the io-vs-ex saturation imbalance (unit-free, each role's live signal normalized to the
+ * quorum-balancer's calibrated distress band); THROUGHPUT only VETOES (revert a measured regress).
+ * A per-direction DEADZONE gives hysteresis: after a reverted flip it is raised to the pre-flip
+ * imbalance + margin so the same unprofitable move is not retried until pressure clearly exceeds the
+ * level that just failed. Balanced-within-deadzone => HOLD (no probe, no measurement churn) — the
+ * common case on a stable workload, which is what makes steady-state overhead ~free. --- */
+#define FLIP_DZ_BASE     0.25  /* base deadzone: the busier role must LEAD by >25% of its distress
+                                * band before a flip (kills noise-driven oscillation) */
+#define FLIP_DZ_RAISE    1.5   /* when a climb ends, deadzone := |settle-point imbalance| * this (>1)
+                                * (settle pressure +7.5%): no re-trigger on a fluctuation, but a real
+                                * workload shift (pressure well past the settle point) still climbs.
+                                * Momentum + this settle-pin replace the old absolute saturation floor:
+                                * the climb rides the throughput gradient regardless of absolute
+                                * saturation, and only the settled operating point gets a deadzone. */
+#define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
+#define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
+                                * before giving up and walking back to it. Crosses a single-config dip
+                                * (real, or a false one from a transient-inflated start baseline —
+                                * e.g. p1 io4/ex4 reads ~740k during the p32->p1 startup burst but is
+                                * really 595k, so io5/ex3=714k looks like a dip yet io6/ex2=814k
+                                * recovers). Bounds exploration to COAST+1 steps => no ratchet. */
+#define FLIP_WAIT_REVERT 12    /* longer pause after a REVERT (~3s) so the reverted config settles */
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. numa_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -17039,11 +17077,70 @@ static void tomoFlipController(void) {
         int can_back  = (io_live_node > 0) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
                                                            : (io_live_node > server.io_per_node));
 
+        /* --- BACK pressure = ex-worker utilization: per-worker busy-us delta / wall (0-100),
+         * hottest worker, leaky-smoothed — mirrors the quorum balancer's busy signal. Combined with
+         * standing queue depth (qd_max) so a saturated-OR-backlogged ex side both read as pressure. */
+        static uint32_t fc_prev_busy_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
+        static mstime_t fc_prev_busy_wall[TM_MAXNODE];
+        /* review [signal]: the busy% delta must be divided by the wall interval OVER THE SAME SPAN as
+         * the tm_busy_us delta. The shared `wall_ms` is once-per-entry, but a node's body may be
+         * SKIPPED for a tick (an earlier node's flip breaks the loop; a refused revert returns), so
+         * fc_prev_busy_us[node] can span 2+ ticks while `wall_ms` spans 1 => a ~2x inflated busy% on
+         * that node. Track the wall per node so both deltas cover the same interval. */
+        long node_wall_ms = fc_prev_busy_wall[node] ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
+        fc_prev_busy_wall[node] = now;
+        int busy_max = 0;
+        for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
+            exThread *et = &server.exThreads[w];
+            uint32_t cb = et->tm_busy_us, db = cb - fc_prev_busy_us[node][w];
+            fc_prev_busy_us[node][w] = cb;
+            int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0;   /* us/(ms*1000)*100 */
+            if (b > 100) b = 100;
+            if (b > busy_max) busy_max = b;
+        }
+        fc->busy_smooth += (busy_max - fc->busy_smooth) / 2;
+        /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
+         * free, no absolute operating point): io_sat = ingress / ing_distress(32 events/pass);
+         * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
+         * constraint (grow front); <0 => ex is the constraint (grow back). --- */
+        int fc_popmax = server.worker_pop_batch > 0 ? server.worker_pop_batch : WORKER_POP_BATCH;
+        long fc_qd_hi = 8L * fc_popmax;
+        double io_sat = (double)ing_mean / 32.0;
+        double ex_sat = fmax((double)fc->busy_smooth / 75.0,
+                             fc_qd_hi > 0 ? (double)qd_max / (double)fc_qd_hi : 0.0);
+        double imbalance = io_sat - ex_sat;
+        /* smoothed imbalance — the DECISION signal (start direction + settle-pin) uses this, not the
+         * raw per-tick imbalance, so a single-tick pressure spike can neither start a spurious climb
+         * nor cause the settle-pin to be captured from a low tick (both seen as io7/ex1 oscillation:
+         * steady -imbalance ~0.55 but a lone 0.42 tick pinned dz_back=0.45, letting later 0.55 ticks
+         * re-trigger grow-back). Raw imbalance stays for logging/observability. */
+        if (!node_idle) fc->imb_ewma += FESC_ALPHA * (imbalance - fc->imb_ewma);
+        if (!fc->dz_init) { fc->dz_front = fc->dz_back = FLIP_DZ_BASE; fc->dz_init = 1; }
+
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
          * consecutive ticks (all relative), capped for safety only. ===== */
         if (fc->phase == 1) {
             fc->warm_ticks++;
+            /* INSTANT-GAIN fast path (user 2026-07-24): a flip's moved buckets are cache-cold for
+             * their new owner, so an early DIP may be only the rebalance transient — wait for it to
+             * settle before judging (the plateau logic below). But an early GAIN is unambiguous: the
+             * config is already clearly faster than before the flip, so accept it NOW and keep
+             * climbing, no need to wait out the settle+measure window. (mean is an EWMA, so exceeding
+             * before+band already implies a sustained rise, not a single-tick spike.) */
+            if (fc->mean > fc->best_rate + fmax(2.0 * sigma, 0.02 * fc->best_rate)) {
+                /* review [1,8]: the config has clearly recovered above the best (past the cache-cold
+                 * rebalance dip) — skip the remaining plateau WAIT and go straight to MEASURE. Crucially
+                 * best_rate is then set from that SETTLED window (PHASE 2), NOT from the still-rising
+                 * EWMA mean, so a multi-tick post-flip transient (backlog drain / startup burst) cannot
+                 * ratchet best_rate up on an unmeasured spike (which could halt the climb short of the
+                 * true peak or park past it). Still faster than the full settle: skips the ~up-to-12s
+                 * plateau detection, keeping the ~4s measure window. */
+                fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] EARLY-MEASURE %s (mean %.0f > best %.0f) -> measure now",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->mean, fc->best_rate);
+                continue;
+            }
             double drift = fabs(fc->mean - fc->warm_prev);
             fc->warm_prev = fc->mean;
             if (drift < sigma) fc->settle_run++; else fc->settle_run = 0;
@@ -17062,44 +17159,26 @@ static void tomoFlipController(void) {
             continue;
         }
 
-        /* ===== PHASE 2: measure the settled post-flip rate, compare to the pre-flip rate in units of
-         * the measured noise (z-score). Gain beyond the noise => climb; anything else => revert. ===== */
-        /* ee451 (abort observation, revert case): a previously-issued REVERT aborted mid-flight —
-         * the config is physically stuck at the no-gain neighbour while the controller (and a
-         * possible CONVERGED latch, which is taken at revert-ISSUE time) believes it is back at
-         * baseline. Re-issue the revert until it lands, waiting between attempts (the pin that
-         * caused the abort tends to persist briefly). Checked before the hold block on purpose:
-         * a converged controller must still repair its position. */
-        if (fc->phase == 0 && fc->revert_dir && server.tm_flip_aborted &&
-            node == server.tm_flip_aborted_node) {       /* review [races]: only the owning node consumes */
-            server.tm_flip_aborted = 0;
-            fc->revert_retry = 1;
-            fc->wait = FESC_WAIT_BASE;
-            serverLog(LL_WARNING, "[flip-ctl n%d] REVERT (%s) aborted mid-flight -> will re-issue",
-                      node, fc->revert_dir > 0 ? "grow-front" : "grow-back");
-        }
-        if (fc->phase == 0 && fc->revert_retry) {
-            if (fc->wait > 0) { fc->wait--; continue; }
-            const char *err = NULL;
-            if (tmFlipDo(node, fc->revert_dir, &err)) { fc->revert_retry = 0; break; } /* one flip per tick */
-            fc->wait = FESC_WAIT_BASE;                   /* refused (transient) — retry after a pause */
-            continue;
-        }
-        /* ee451 (abort observation): the ACTUATION of the in-flight probe aborted (a conn became
-         * non-migratable mid-drain and the park timed out) — the config never left baseline. There
-         * is nothing to measure and nothing to revert; measuring anyway and then "reverting" would
-         * apply a real net move the controller never commanded (observed live: aborted grow-back +
-         * revert => uncommanded grow-front). Cancel the probe: no null feed, no probed_mask bit
-         * (this neighbour was never measured), back off (pins tend to persist), try the other
-         * direction first next time. */
+        /* ===== PHASE 2: measure the settled post-flip rate against the BEST rate this climb (the
+         * look-ahead reference); gain => keep climbing, else coast/overshoot. ===== */
+        /* ee451 (abort observation): the ACTUATION of the in-flight step aborted (a conn became
+         * non-migratable mid-drain and the park timed out) — the config never left its pre-step
+         * value. There is nothing to measure and nothing to revert; measuring anyway and then
+         * "reverting" would apply a real net move the controller never commanded (observed live:
+         * aborted grow-back + revert => uncommanded grow-front). END the climb (dir=0 => idle, NOT a
+         * committed opposite climb — momentum semantics) and pause a FIXED interval before re-reading
+         * pressure (the pin that caused the abort tends to persist briefly; a fixed, non-monotonic
+         * backoff so repeated aborts never latch the controller idle for a minute). */
         if (fc->phase != 0 && server.tm_flip_aborted &&
             node == server.tm_flip_aborted_node) {       /* review [races]: only the owning node consumes */
             server.tm_flip_aborted = 0;
-            serverLog(LL_WARNING, "[flip-ctl n%d] probe %s ABORTED at actuation -> cancel (no revert)",
+            serverLog(LL_WARNING, "[flip-ctl n%d] step %s ABORTED at actuation -> end climb, pin, pause",
                       node, fc->last_dir > 0 ? "grow-front" : "grow-back");
-            fc->dir = -fc->last_dir;
-            if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
-            fc->wait = FESC_WAIT_BASE << fc->backoff;
+            fc->dir = 0;
+            fc->just_settled = 1;        /* review [5]: PIN the deadzones at this (pre-step) config so
+                                          * the next idle tick can't immediately re-fire the same flip */
+            fc->revert_steps = 0; fc->walkback_armed = 0;   /* abandon any in-flight walk-back */
+            fc->wait = FLIP_WAIT_REVERT;
             fc->phase = 0;
             continue;
         }
@@ -17107,167 +17186,181 @@ static void tomoFlipController(void) {
             if (++fc->meas_ticks < FESC_MEAS_N) continue;
             double dt = (double)(now - fc->ref_ms);
             double after = dt > 0 ? (double)(node_ops - fc->ref_ops) * 1000.0 / dt : fc->before;
-            double z = (after - fc->before) / sigma;         /* RELATIVE: delta in noise units */
-            /* ee451 (convergence fix): tick-sigma measures WITHIN-window noise, but before/after are
-             * separated by a settle+measure gap — the relevant null is the BETWEEN-window drift,
-             * empirically 3-10x larger on this box. fc->null_abs learns it from reverted probes
-             * (they are literal null experiments: flip+unflip, no true change). A gain must beat
-             * both scales; until the first null observation the sigma test alone applies. */
-            int real_gain = (z > 1.0) && ((after - fc->before) > 2.0 * fc->null_abs)
-                                     && ((after - fc->before) > 0.02 * fc->before);
-            if (real_gain) {
-                /* signal-exceeds-noise GAIN: keep it, keep climbing the same way, probe again soon.
-                 * We MOVED, so the neighbourhood is new — clear the probed set and any convergence. */
-                fc->backoff = 0; fc->wait = FESC_WAIT_BASE;
-                fc->probed_mask = 0; fc->converged = 0;
-                fc->null_ref_valid = 0;                      /* we MOVED: old baseline is another config */
-                serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN z=%.1f (%.0f->%.0f, sigma %.0f) after %s -> keep + climb",
-                          node, z, fc->before, after, sigma, fc->last_dir > 0 ? "grow-front" : "grow-back");
+            /* MOMENTUM HILL-CLIMB with 1-step LOOK-AHEAD (user design 2026-07-24: "if throughput
+             * increases keep going till you overshoot, go back, set deadzone"). Pressure picked the
+             * INITIAL direction; the THROUGHPUT gradient drives continuation, judged against the BEST
+             * rate seen this climb (not just the previous step). A step that beats the best => keep
+             * going, reset the coast budget. A step that does NOT beat the best => COAST up to
+             * FLIP_COAST such steps (crosses a single-config dip — real, or a false dip from a
+             * transient-inflated start baseline); once the coast budget is spent we have clearly
+             * overshot the peak => WALK BACK best_dist steps to the best config and end. Bounding the
+             * coast to FLIP_COAST+1 steps means no unbounded drift (no ratchet). */
+            double band = fmax(2.0 * sigma, 0.02 * fc->best_rate);
+            if (after > fc->best_rate + band) {
+                fc->best_rate = after; fc->best_dist = 0;   /* improved on the best => keep climbing */
+                fc->wait = FLIP_WAIT_KEEP;                  /* fc->dir unchanged => PHASE 0 steps again */
+                serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN %s (best %.0f, sigma %.0f) -> keep climbing",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, sigma);
+            } else if (++fc->best_dist <= FLIP_COAST) {
+                fc->wait = FLIP_WAIT_KEEP;                  /* coast: bet the next step recovers past a dip */
+                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, dist %d) -> keep climbing",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
             } else {
-                /* no significant gain (flat or loss): REVERT to the known-good config and mark this
-                 * neighbour explored. Once BOTH neighbours are no better we are AT the optimum =>
-                 * CONVERGE and stop probing (only a measured workload shift re-opens the search). */
-                const char *err = NULL;
-                if (!tmFlipDo(node, -fc->last_dir, &err)) {
-                    /* review [6]: the revert flip was REFUSED (transient — e.g. a migration slot busy,
-                     * or the pool momentarily at a bound). Do NOT record this neighbour as explored or
-                     * converge on a state we never actually returned to — stay in phase 2 and retry the
-                     * revert next tick (meas_ticks is already past the window, so we re-enter here). */
-                    serverLog(LL_WARNING, "[flip-ctl n%d] revert refused: %s — retry next tick", node, err ? err : "?");
-                    return;
-                }
-                serverLog(LL_NOTICE, "[flip-ctl n%d] NO-GAIN z=%.1f (%.0f->%.0f, sigma %.0f, null %.0f) after %s -> REVERT",
-                          node, z, fc->before, after, sigma, fc->null_abs, fc->last_dir > 0 ? "grow-front" : "grow-back");
-                fc->revert_dir = -fc->last_dir; fc->revert_retry = 0;   /* watch for a mid-flight abort */
-                fc->null_ref = fc->before; fc->null_ref_valid = 1;      /* we are BACK at this config */
-                fc->probed_mask |= (fc->last_dir > 0) ? 1 : 2;
-                fc->dir = -fc->last_dir;                     /* explore the other direction next time */
-                /* NOTE: convergence is NOT decided here. At judge time w_live/io_live still reflect
-                 * the MID-PROBE config (the revert above is async), so can_front/can_back lie about
-                 * the baseline we are returning to — deciding here made pool-edge convergence
-                 * unreachable (observed: endless single-direction re-probes at max backoff). The
-                 * probe-launch path re-checks with honest baseline counts and latches there. */
-                if (fc->backoff < FESC_BACKOFF_MAX) fc->backoff++;
-                fc->wait = FESC_WAIT_BASE << fc->backoff;
+                /* coast spent without beating the best => overshot. Walk back best_dist steps to the
+                 * best config, then end the climb (PHASE 0 pins the deadzones there). */
+                fc->revert_steps = fc->best_dist;
+                fc->wait = 0;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s (%.0f vs best %.0f) -> walk back %d step(s) to best",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
             }
             fc->phase = 0;
             continue;
         }
 
-        /* ===== PHASE 0: idle/hold. When converged, sit at the optimum and only re-open the search
-         * if the live rate has DRIFTED off the convergence throughput by more than the noise (a
-         * workload shift). Otherwise count down the backoff. Never probe a near-idle server. ===== */
+        /* ===== PHASE 0: momentum hill-climb. Pressure picks the INITIAL direction; while each step
+         * increases throughput we keep flipping the SAME direction (PHASE 2 above); on overshoot we
+         * step back. When the climb ends we pin BOTH deadzones at the settled operating point so
+         * neither direction re-triggers until pressure clearly exceeds it — this is what makes the
+         * steady state cheap AND stops edge oscillation without any absolute floor. ===== */
         if (w_live < 1) continue;
-        if (fc->converged) {
-            /* conv_mean is a SLOW baseline: it tracks genuine drift so noise never accumulates, while a
-             * FAST/large move outpaces it. Re-explore only when the fast mean stays >3σ off the baseline
-             * for several consecutive ticks (a real workload shift, not a transient dip). */
-            fc->conv_mean += 0.02 * (fc->mean - fc->conv_mean);
-            if (fabs(fc->mean - fc->conv_mean) > 3.0 * sigma + 2.0 * fc->null_abs) fc->shift_run++; else fc->shift_run = 0;
-            if (fc->shift_run >= 4) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] workload shift: baseline %.0f vs %.0f ops/s (sigma %.0f) -> re-open search",
-                          node, fc->conv_mean, fc->mean, sigma);
-                fc->converged = 0; fc->probed_mask = 0; fc->backoff = 0; fc->wait = 0;
-                fc->null_abs = 0; fc->null_ref_valid = 0;    /* old regime's drift scale is meaningless */
-                fc->dir = 0;                                  /* let the qd-trend chooser repick */
-            } else {
-                if (now - last_log >= 5000) {
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD (converged) %.0f ops/s (baseline %.0f) | w_live=%d io=%d",
-                              node, fc->mean, fc->conv_mean, w_live, io_live_node);
-                    last_log = now;
-                }
-                continue;
-            }
+        if (node_idle || fc->mean < 1000.0) {              /* no offered load — nothing to optimize */
+            fc->wait = FESC_WAIT_BASE; fc->just_settled = 0;
+            fc->idle_stable = 0;
+            continue;
         }
-        if (fc->mean < 1000.0) continue;                      /* near-idle: nothing to optimize */
-        if (fc->wait > 0) { fc->wait--;
+        /* mean-CAUGHT-UP tracker: a climb may only START once the EWMA mean has caught up to the live
+         * instantaneous rate, so its first baseline isn't the inflated tail of a workload transition
+         * still decaying (a p32->p1 switch leaves mean ABOVE inst for ~3-4s; flipping then misreads
+         * the first step's before-rate high, so a real gain reads as a wash and stops the climb one
+         * step in). |Δmean|<sigma alone passed too early on that slow tail — require mean≈inst. Runs
+         * every active tick; a climb's own config changes reset it (only the START path consumes it). */
+        if (fabs(fc->mean - inst) < 2.0 * sigma) { if (fc->idle_stable < 1000) fc->idle_stable++; } else fc->idle_stable = 0;
+        if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] idle: %.0f ops/s (sigma %.0f) wait=%d backoff=%d dir=%d | w_live=%d io=%d ing=%d qd=%ld",
-                          node, fc->mean, sigma, fc->wait, fc->backoff, fc->dir, w_live, io_live_node, ing_mean, qd_max);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d",
+                          node, fc->mean, io_sat, ex_sat, fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node);
                 last_log = now;
             }
             continue;
         }
 
-        /* ee451 (controller-inputs fix): a probe only makes sense when there is OFFERED LOAD to
-         * measure against — with no executed ops, no queue depth, and no ingress busy, every config
-         * scores identically (zero), and a flip is pure churn on noise. Observational fact, not a
-         * threshold: any nonzero pressure re-enables probing immediately. */
-        if (node_idle) { fc->wait = FESC_WAIT_BASE; continue; }
-        fc->before = fc->mean;
-        /* Same-config null harvest + regime guard — BEFORE the convergence check so a workload swap
-         * resets probed_mask instead of latching a stale convergence. The previous probe REVERTED,
-         * so this launch observes the same config again: |baseline diff| across the gap IS the
-         * between-window drift, uncontaminated by any real flip effect. A jump >50%% of scale is a
-         * WORKLOAD SWAP between runs, not drift: restart the search context, don't poison the null. */
-        if (fc->null_ref_valid) {
-            double nd = fabs(fc->before - fc->null_ref);
-            double nscale = fc->before > fc->null_ref ? fc->before : fc->null_ref;
-            if (nd > 0.5 * nscale) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] regime change between probes (%.0f -> %.0f) -> reset search",
-                          node, fc->null_ref, fc->before);
-                fc->probed_mask = 0; fc->backoff = 0;
-                fc->null_abs = 0; fc->null_ref_valid = 0;
-            } else {
-                fc->null_abs += 0.25 * (nd - fc->null_abs);
-            }
+        /* Finalize a just-ended climb: pin BOTH deadzones at this settled operating point from the
+         * FRESH imbalance (any step-back has landed during the wait). The side we were NOT pressured
+         * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
+         * re-open the search, but a genuine workload shift (pressure well past this) still will. */
+        if (fc->just_settled) {
+            fc->dz_front = (fc->imb_ewma > 0) ? fmax(FLIP_DZ_BASE, fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
+            fc->dz_back  = (fc->imb_ewma < 0) ? fmax(FLIP_DZ_BASE, -fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
+            fc->just_settled = 0;
         }
-        /* Converge-at-launch: every REACHABLE neighbour measured worse. A direction the pool cannot
-         * flip (min-1-ex, or io at its configured floor — only EX-origin threads flip back) counts
-         * as explored: waiting for an unprobeable neighbour would make convergence unreachable at a
-         * pool edge (observed live at the 4io/4ex boot: can_back false => 50min churn, 0 CONVERGED).
-         * Decided HERE because live counts honestly describe the baseline config at launch time. */
-        {
-            int unavail = (can_front ? 0 : 1) | (can_back ? 0 : 2);
-            if (((fc->probed_mask | unavail) & 3) == 3) {
-                fc->converged = 1; fc->conv_mean = fc->mean; fc->shift_run = 0;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] CONVERGED at %.0f ops/s (all reachable neighbours worse) -> hold",
-                          node, fc->conv_mean);
+
+        /* WALK-BACK: after an exhausted coast (or a coasted climb that hit a pool edge/refusal), step
+         * back toward the best config — reverse of the climb direction, best_dist steps.
+         * review [2,10]: ABORT-SAFE. tmFlipDo returns on ARM, not completion, and the step can abort
+         * later; so confirm the previous step LANDED (no abort for this node) before counting it — never
+         * decrement on a step that didn't physically happen. review [7]: only consume THIS node's abort. */
+        if (fc->revert_steps > 0) {
+            if (server.tm_flip_aborted && node == server.tm_flip_aborted_node) {
+                server.tm_flip_aborted = 0;                  /* previous step aborted: config unchanged */
+                fc->walkback_armed = 0; fc->wait = FLIP_WAIT_REVERT;   /* re-issue it after a pause */
+            } else if (fc->walkback_armed) {
+                fc->walkback_armed = 0;                      /* previous step landed => count it */
+                if (--fc->revert_steps == 0) { fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT; continue; }
+            }
+            if (fc->wait > 0) { fc->wait--; continue; }
+            const char *err = NULL;
+            if (tmFlipDo(node, -fc->last_dir, &err)) { fc->walkback_armed = 1; break; }  /* one flip/tick */
+            fc->wait = FESC_WAIT_BASE;                        /* refused (transient) — retry next tick */
+            continue;
+        }
+
+        /* MID-CLIMB: keep flipping the SAME direction while the pool allows it (momentum). */
+        if (fc->dir != 0) {
+            int d = fc->dir;
+            int can = (d > 0) ? can_front : can_back;
+            if (!can) {
+                /* pool edge — the climb cannot continue. review [3,4]: if we COASTED past the best
+                 * (best_dist>0) the current position is NOT the best, so walk back to it; otherwise
+                 * this IS the best — hold and let the finalizer pin the deadzones. */
+                if (fc->best_dist > 0) {
+                    fc->revert_steps = fc->best_dist; fc->walkback_armed = 0;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge %d past best -> walk back",
+                              node, d > 0 ? "grow-front" : "grow-back", fc->best_dist);
+                } else {
+                    fc->dir = 0; fc->just_settled = 1;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge -> hold",
+                              node, d > 0 ? "grow-front" : "grow-back");
+                }
                 continue;
             }
+            fc->before = fc->mean; fc->imb_at_flip = imbalance;
+            const char *err = NULL;
+            if (tmFlipDo(node, d, &err)) {
+                if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped */
+                fc->revert_dir = 0; fc->revert_retry = 0;
+                fc->last_dir = d;
+                fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
+                fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
+                fc->rs_quiet = 0;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] CLIMB %s io_sat=%.2f ex_sat=%.2f (baseline %.0f ops/s) -> settle+confirm",
+                          node, d > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, fc->before);
+                break;                                       /* one flip per tick (single migration gate) */
+            } else if (err) {
+                /* review [9]: a REFUSAL is transient (a migration slot momentarily busy), NOT a
+                 * permanent operating point — do NOT pin the deadzone; pause and RETRY (dir kept). */
+                serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s refused: %s -> retry", node, d > 0 ? "grow-front" : "grow-back", err);
+                fc->wait = FESC_WAIT_BASE;
+            }
+            continue;
         }
-        /* Probe direction. ee451 (user design): pick the FIRST direction by comparing io-side vs
-         * ex-side throughput. At steady state the two rates are equal (every op flows io->ex), so
-         * their difference is precisely the queue-depth trend: standing worker-queue depth means ex
-         * lags io (grow back, add a worker); dry queues mean the workers drain everything io can
-         * feed them (dispatch/io-bound — grow front). Observational, unit-free, no thresholds; the
-         * extremum gradient still corrects any wrong first guess by reverting + reversing. */
-        int dir = fc->dir;
-        if (dir == 0) {
-            int want = (qd_max > 0) ? -1 : +1;
-            dir = (want > 0) ? (can_front ? +1 : (can_back ? -1 : 0))
-                             : (can_back ? -1 : (can_front ? +1 : 0));
-            if (dir != 0)
-                serverLog(LL_NOTICE, "[flip-ctl n%d] first-probe dir=%s (qd_max=%ld: %s)",
-                          node, dir > 0 ? "FRONT" : "BACK", qd_max,
-                          qd_max > 0 ? "worker queues standing => ex lags io" : "queues dry => io-bound");
-        }
-        if (dir > 0 && !can_front) dir = can_back ? -1 : 0;
-        else if (dir < 0 && !can_back) dir = can_front ? +1 : 0;
-        /* don't waste a probe on a neighbour already measured worse while the other is open
-         * (both-probed / probed+unreachable already converged above) */
-        if (dir != 0 && (fc->probed_mask & (dir > 0 ? 1 : 2))) {
-            int od = -dir;
-            if ((od > 0 && can_front) || (od < 0 && can_back)) dir = od;
-        }
-        if (dir == 0) { fc->wait = FESC_WAIT_BASE; continue; }
 
+        /* IDLE: pressure decides whether to START a climb. */
+        int want = 0;
+        if (fc->imb_ewma > fc->dz_front && can_front) want = +1;        /* io is the constraint => EX->IO */
+        else if (-fc->imb_ewma > fc->dz_back && can_back) want = -1;    /* ex is the constraint => IO->EX */
+
+        if (want == 0) {
+            /* balanced within the deadzones: the stable, low-cost HOLD. The deadzones stay PINNED at
+             * the last settle point (no decay) — a genuine workload shift produces pressure well past
+             * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
+             * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
+            if (now - last_log >= 5000) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d",
+                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back, w_live, io_live_node);
+                last_log = now;
+            }
+            continue;
+        }
+
+        /* STABILITY GATE: pressure wants a climb, but only START once the throughput mean has settled
+         * (see the tracker above) so the first step's baseline is trustworthy. */
+        if (fc->idle_stable < FESC_SETTLE_N) {
+            if (now - last_log >= 3000) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f",
+                          node, want > 0 ? "grow-front" : "grow-back", fc->mean, fc->idle_stable, FESC_SETTLE_N, io_sat, ex_sat);
+                last_log = now;
+            }
+            continue;
+        }
+
+        fc->before = fc->mean;
+        fc->imb_at_flip = imbalance;
         const char *err = NULL;
-        if (tmFlipDo(node, dir, &err)) {
-            server.tm_flip_aborted = 0;                  /* clear any stale abort from a manual flip */
-            fc->revert_dir = 0; fc->revert_retry = 0;    /* new probe anchors on the ACTUAL config */
-            fc->last_dir = dir; fc->dir = dir;
+        if (tmFlipDo(node, want, &err)) {
+            if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped clear */
+            fc->revert_dir = 0; fc->revert_retry = 0;    /* new climb anchors on the ACTUAL config */
+            fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
+            fc->last_dir = want; fc->dir = want;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
-            serverLog(LL_NOTICE, "[flip-ctl n%d] PROBE %s (baseline %.0f ops/s, sigma %.0f) -> settle+measure",
-                      node, dir > 0 ? "GROW-FRONT" : "GROW-BACK", fc->before, sigma);
+            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f imb=%.2f > dz%.2f (baseline %.0f ops/s) -> settle+confirm",
+                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance,
+                      want > 0 ? fc->dz_front : fc->dz_back, fc->before);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
-            serverLog(LL_NOTICE, "[flip-ctl n%d] probe %s refused: %s -> try other dir",
-                      node, dir > 0 ? "grow-front" : "grow-back", err);
-            fc->dir = -dir;                                  /* that way is blocked — try the other next */
-            fc->wait = FESC_WAIT_BASE;
+            serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);
+            fc->wait = FESC_WAIT_BASE;                       /* blocked (transient) — pause and re-read */
         }
     }
 }
