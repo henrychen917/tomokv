@@ -158,9 +158,58 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
     int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
     unsigned lat_idx;   /* p99 guardrail ring cursor */
+    _Atomic int in_flat;/* FLATSTORE QSBR: >0 while THIS io identity (0 = main, 1..N = io threads) is
+                         * inside code that may hold a raw flat kvobj pointer. Mirrors the workers'
+                         * in_flat_section. Written only by the owning thread (its own cache line),
+                         * read by every worker's grace check — read-mostly, so it stays Shared. */
     uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds */
 } tmIoSignal;
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+/* build-time layout guard (FLATSTORE reclaim): the worker-private retire fields must NOT share a
+ * cache line with loop_seq / in_flat_section, which every OTHER worker polls in flatBatchReady —
+ * a per-retire write next to them would ping-pong the line. */
+_Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, loop_seq) / 64,
+               "flat_retire_local shares a cache line with loop_seq (false sharing)");
+_Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, in_flat_section) / 64,
+               "flat_retire_local shares a cache line with in_flat_section (false sharing)");
+
+/* NON-WORKER quiescence for the FLATSTORE QSBR grace (see flatBatchReady).
+ * Workers prove quiescence with loop_seq / in_flat_section. Every OTHER thread that can execute a
+ * command must do the same, because such a thread walks the shared flat tables holding RAW,
+ * un-refcounted kvobj pointers: rdbSaveRio/rdbSaveDb (SAVE, DEBUG RELOAD, shutdown save),
+ * computeDatasetDigest (DEBUG DIGEST), KEYS/RANDOMKEY, plus performEvictions and activeExpireCycle.
+ *
+ * CRITICAL (review): this must cover ALL io identities, not just main. Clients are accepted on
+ * per-IO-thread SO_REUSEPORT listeners and live their whole life on that thread, so those commands
+ * execute inline on whichever io thread owns the client — main handles only ~1/io_threads of them.
+ * An earlier version gated these markers on `iotid == 0`, which made them inert on precisely the
+ * threads doing the walking (a use-after-free, and one that worker-side reclaim makes far easier to
+ * hit because it shrinks the retire->free window from ~200-400us to a few us).
+ *
+ * A FLAG, not a counter: a counter that only advances in beforeSleep cannot advance while the thread
+ * is inside a long command, so it would pin the grace and stall reclaim indefinitely (== the OOM
+ * wedge this whole change set out to fix). A flag clears when the region ends, so it can never
+ * deadlock, and "not in a region" is itself proof the thread holds no flat pointer — anything it
+ * enters later reads a table the retired value was already unlinked from.
+ *
+ * COST: workers never execute call() (they run cmd->proc directly from exExecFake), and the common
+ * io-thread path DISPATCHES rather than executing inline, so this is off the hot path entirely; the
+ * flags are read-mostly, so a worker's grace check hits its own cache. */
+static __thread int flat_extern_depth;
+static inline int flatIsExternThread(void) { return iotid <= TOMO_IO_THREADS_MAX; }  /* io identity, not a worker */
+static inline void flatExternEnter(void) {
+    if (flatIsExternThread() && ++flat_extern_depth == 1)
+        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);
+}
+static inline void flatExternExit(void) {
+    if (flatIsExternThread() && --flat_extern_depth == 0)
+        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 0, memory_order_seq_cst);
+}
+static inline void flatExternScopeEnd(const int *unused) { (void)unused; flatExternExit(); }
+/* RAII guard so every return path of a long function is covered — a leaked flag stalls reclaim. */
+#define FLAT_EXTERN_REGION() \
+    const int flat_extern_guard __attribute__((cleanup(flatExternScopeEnd))) = (flatExternEnter(), 0)
+
 static void tomoThreadBalanceCron(void);   /* the 4Hz quorum balancer; defined with the poly-thread code below */
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 static int tmNumNodes(void);               /* logical node helpers, defined below */
@@ -1345,7 +1394,9 @@ void databasesCron(void) {
      * as master will synthesize DELs for us. */
     if (server.active_expire_enabled) {
         if (iAmMaster()) {
+            flatExternEnter();   /* FLATSTORE QSBR: samples/deletes hold raw flat pointers */
             activeExpireCycle(ACTIVE_EXPIRE_CYCLE_SLOW);
+            flatExternExit();
         } else {
             expireSlaveKeys();
         }
@@ -1790,6 +1841,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
      * grow-front/grow-back on sustained front/back EWMA pressure (no-op unless thread-balance
      * and there is flip headroom; inert while the spare model is in use). */
     run_with_period(250) tomoFlipController();
+
 
     /* Clear the paused actions state if needed. */
     updatePausedActions();
@@ -2326,6 +2378,7 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 
 void flatReclaimAll(void);
 void flatResizeCoordinate(void);
+
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
 
@@ -2340,7 +2393,9 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* flip: drive a grow-front conversion to completion (park -> IO -> publish). Cheap when idle. */
     if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
 
-    /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending). */
+    /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
+     * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
+     * region flags (see flatBatchReady), not by a counter here. */
     if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatResizeCoordinate(); }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
@@ -4588,6 +4643,7 @@ static bool commandVisibleForClient(client *c, struct redisCommand *cmd) {
  *
  */
 void call(client *c, int flags) {
+    FLAT_EXTERN_REGION();   /* FLATSTORE QSBR: main may hold raw flat pointers for this command */
     long long dirty;
     uint64_t client_old_flags = c->flags;
     struct redisCommand *real_cmd = c->realcmd;
@@ -5251,7 +5307,13 @@ int processCommand(client *c) {
      * condition, to avoid mixing the propagation of scripts with the
      * propagation of DELs due to eviction. */
     if (server.maxmemory && !isInsideYieldingLongCommand()) {
+        /* FLATSTORE QSBR: evictionPoolPopulate/performEvictions deref RAW flat kvobjs
+         * (evict.c) and run OUTSIDE call(), so they need their own region marker. Scoped to just
+         * this call rather than all of processCommand: marking main busy for ordinary dispatch
+         * delays worker reclaim and measured -17% on p32 SET. */
+        flatExternEnter();
         int out_of_memory = (performEvictions() == EVICT_FAIL);
+        flatExternExit();
 
         /* performEvictions may evict keys, so we need flush pending tracking
          * invalidation keys. If we don't do this, we may get an invalidation
@@ -5949,36 +6011,127 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 /* ee451 FLATSTORE Stage-1 QSBR reclaim (main thread, beforeSleep). Close the table's retire stack
  * into a batch stamped with every worker's loop_seq, then free any batch whose stamp every worker
  * has passed (all pre-retire lock-free readers have since finished a full pass). */
-static void flatReclaimTable(flatTable *t) {
-    flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
-    if (pend) {
-        flatBatch *b = zmalloc(sizeof(*b));
-        b->head = pend;
-        int nw = server.num_workers_alloc; if (nw > 64) nw = 64;
-        b->nworkers = nw;
-        for (int w = 0; w < nw; w++)
-            b->snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
-        b->next = t->batches; t->batches = b;
+/* (flat_main quiescence pair is defined above beforeSleep.) */
+
+/* Close a retire list into a grace batch: snapshot every worker's loop_seq (and main's) right now.
+ * `spare` (optional) is a recycle list of spent headers — a batch is ~544B and the worker closes one
+ * per pass under write load, so recycling keeps the steady state allocation-free. */
+static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
+    flatBatch *b = NULL;
+    if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
+    if (!b) b = zmalloc(sizeof(*b));
+    b->head = pend;
+    int nw = server.num_workers_alloc; if (nw > 64) nw = 64;
+    b->nworkers = nw;
+    for (int w = 0; w < nw; w++)
+        b->snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
+    b->next = next;
+    return b;
+}
+
+/* Can every thread that might have held a pointer to this batch's values have dropped it?
+ * Per worker, EITHER is sufficient:
+ *   (a) its loop_seq advanced past snap + MARGIN  => it passed a quiescent point since the retire; or
+ *   (b) it is not currently inside a flat section => it holds no flat pointer at all, and any section
+ *       it enters later reads a table the retired value was already unlinked from.
+ * review [residual-leak]: (b) REPLACES the old `!tmWorkerLive(w) -> skip`, which was unsound now that
+ * the retire->free latency is microseconds instead of seconds: "non-live" is NOT "quiesced" in this
+ * fork — grow-front publishes num_workers_live-- BEFORE arming the migration, and a converting worker
+ * keeps slicing and keeps executing straggler subs (e.g. a CS_KEYS sub runs flatIterRange, which
+ * derefs every live kvobj in the node table). Such a worker was SKIPPED by the old predicate while
+ * actively reading => UAF. in_flat_section is the honest signal (it is exactly "inside an exSlice
+ * batch that may touch a flat table") and it still lets a genuinely parked worker be skipped, so the
+ * grace never stalls. Non-worker threads are covered by their own region flags. */
+static int flatBatchReady(const flatBatch *b) {
+    /* NON-WORKER threads (main + every io thread): each must be OUTSIDE a flat region. A thread not
+     * in a region provably holds no flat pointer, and any region it enters later reads a table the
+     * retired value was already unlinked from. Covers every thread that executes commands inline —
+     * which is where SAVE / DEBUG DIGEST / DEBUG RELOAD / KEYS actually run (clients are pinned to
+     * the io thread that accepted them, so these are usually NOT on main). Read-mostly flags. */
+    int io_hi = server.io_threads + server.tm_ngrow_io;
+    if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
+    for (int t = 0; t <= io_hi; t++)
+        if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) return 0;
+    /* WORKERS: EITHER loop_seq advanced past the snapshot + margin (passed a quiescent point), OR the
+     * worker is not inside a flat section right now (holds nothing). The second clause is what makes
+     * a PARKED worker skippable without stalling the grace, and — unlike the old
+     * "if (!tmWorkerLive(w)) continue" — it does NOT skip a converting worker that is still executing
+     * straggler commands and reading the table. */
+    for (int w = 0; w < b->nworkers; w++) {
+        exThread *et = &server.exThreads[w];
+        if (atomic_load_explicit(&et->loop_seq, memory_order_acquire) >= b->snap[w] + FLAT_QSBR_MARGIN)
+            continue;
+        if (!atomic_load_explicit(&et->in_flat_section, memory_order_seq_cst))
+            continue;
+        return 0;
     }
-    flatBatch **pp = &t->batches;
+    return 1;
+}
+
+static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
+    flatRetireNode *n = b->head;
+    while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
+    if (spare && spare_n && *spare_n < FLAT_BATCH_SPARE_MAX) { b->next = *spare; *spare = b; (*spare_n)++; }
+    else zfree(b);
+}
+
+/* Free every batch in *pp whose grace has passed (list surgery in place). */
+static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_n) {
     while (*pp) {
         flatBatch *b = *pp;
-        int ready = 1;
-        for (int w = 0; w < b->nworkers; w++) {
-            /* holistic-review fix: SKIP non-live (parked/dormant) slots. loop_seq is bumped only in
-             * exSlice, so a parked worker's loop_seq is frozen — waiting on it (e.g. the thread-modes
-             * spare at index num_workers) stalls the grace FOREVER and leaks every retired value. A
-             * parked worker holds no in-flight lock-free pointer (it parked at a safe point between
-             * passes), so excluding it from the grace is sound. */
-            if (!tmWorkerLive(w)) continue;
-            if (atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire)
-                    < b->snap[w] + FLAT_QSBR_MARGIN) { ready = 0; break; }
-        }
-        if (!ready) { pp = &b->next; continue; }
-        flatRetireNode *n = b->head;
-        while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
-        *pp = b->next; zfree(b);
+        if (!flatBatchReady(b)) { pp = &b->next; continue; }
+        *pp = b->next;
+        flatBatchFree(b, spare, spare_n);
     }
+}
+
+/* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
+ * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
+ * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
+ * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
+ * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
+static void flatWorkerReclaim(exThread *worker) {
+    if (worker->flat_retire_local) {
+        /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
+         * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
+         * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
+         * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
+         * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
+        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+        worker->flat_retire_local = NULL;
+        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+        else worker->flat_batches_local = b;
+        worker->flat_batches_tail = b;
+    }
+    /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
+    while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
+        flatBatch *b = worker->flat_batches_local;
+        worker->flat_batches_local = b->next;
+        if (!worker->flat_batches_local) worker->flat_batches_tail = NULL;
+        flatBatchFree(b, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+    }
+}
+
+/* NOTE (deliberate non-feature): main does NOT adopt a non-live worker's pending local retires.
+ * It is unnecessary — the residual is BOUNDED, never growing:
+ *   - a PARKED worker runs no exSlice, so it executes no commands and creates no new retires;
+ *   - a converted EX->IO worker still reaches exSlice to drain stragglers, so it keeps running
+ *     flatWorkerReclaim and frees its own list;
+ * so a stopped worker holds at most the retires of its final pass (plus <=2 un-graced batches),
+ * all freed the moment it runs again. It would also be UNSAFE: main cannot steal the list race-free
+ * while a non-live worker can still enter exSlice and push (the steal and the push interleave into a
+ * lost node whose ->next dangles onto a freed one => double free). Keeping the list strictly
+ * worker-private is what makes the hot path atomic-free. */
+
+static void flatReclaimTable(flatTable *t) {
+    /* review [efficiency]: peek before the RMW — with the worker path taking every retire from a
+     * worker thread, this shared stack is empty on the vast majority of calls (only non-worker
+     * threads land here), so an unconditional `lock xchg` would dirty the line for nothing. */
+    if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
+        flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
+        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL, NULL);
+    }
+    if (t->batches) flatDrainReadyBatches(&t->batches, NULL, NULL);
 }
 void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
@@ -10634,6 +10787,7 @@ void closeListeningSockets(int unlink_unix_socket) {
  *
  * On success, this function returns C_OK and then it's OK to call exit(0). */
 int prepareForShutdown(int flags) {
+    FLAT_EXTERN_REGION();   /* FLATSTORE QSBR: a synchronous shutdown save walks the flat tables */
     if (isShutdownInitiated()) return C_ERR;
 
     /* When SHUTDOWN is called while the server is loading a dataset in
@@ -10723,6 +10877,7 @@ int abortShutdown(void) {
  * sequence was successful and it's OK to call exit(). If C_ERR is returned,
  * it's not safe to call exit(). */
 int finishShutdown(void) {
+    FLAT_EXTERN_REGION();   /* FLATSTORE QSBR: the shutdown save walks every flat table */
 
     int save = server.shutdown_flags & SHUTDOWN_SAVE;
     int nosave = server.shutdown_flags & SHUTDOWN_NOSAVE;
@@ -14355,6 +14510,14 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * acquire). Was migration-only, which left the grace unable to complete in steady state. Also
      * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
     atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_release);
+
+    /* ee451 FLATSTORE reclaim-capacity fix: retire to THIS worker's own list (no CAS) and free our
+     * own graced batches here — same-arena frees on a thread that has the cycles. Must be set before
+     * any command executes in this pass; harmless when flat is off (nothing ever retires). */
+    if (server.thredis_flat_store) {          /* review [gating]: default-ON — do NOT hint it unlikely */
+        flat_local_sink = &worker->flat_retire_local;
+        flatWorkerReclaim(worker);
+    }
 
     /* ee451 FLATSTORE Stage-2 (review fix #1/#2/#5): announce we are entering a flat section, then
      * check for a pending resize. This runs on EVERY worker that reaches exSlice — live, flipped

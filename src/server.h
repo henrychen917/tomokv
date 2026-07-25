@@ -2161,8 +2161,12 @@ typedef struct exThread {
                                       * the worker is persistently behind its arrivals. */
     /* ee451 (rank-5 cleanup): tm_work_slices / tm_idle_episodes deleted — v1 scaffolding
      * for the pass/episode busy ratios that calibration ruled OUT (see tm_busy_us below);
-     * they were written on the hot path and read by nothing. Tail block still packs in
-     * one 64B line (db .. tm_busy_us), so the padded layout is unchanged. */
+     * they were written on the hot path and read by nothing.
+     * NOTE: the FLATSTORE reclaim fields above added 24B to this region, so the old
+     * "tail block packs in one 64B line" claim no longer holds verbatim. They are
+     * worker-private (written only by the owning worker), so they share a line only with
+     * other worker-private fields — the property that matters is that they are NOT next to
+     * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
                                       * accumulating). The balancer's BUSY vote uses this TIME
@@ -2171,6 +2175,30 @@ typedef struct exThread {
                                       * (a 10%-duty worker under a 64B storm never yields), so
                                       * it cannot drive EX->PARKED. Wraps at ~71min; balancer
                                       * deltas are wrap-safe. */
+    /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
+     * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
+     * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any
+     * other thread, so they need no atomics — that is what makes the retire path atomic-free, and it
+     * is why main must NOT steal them (a non-live worker can still enter exSlice and push; see the
+     * NOTE above flatReclaimTable in server.c). The worker frees its own values once the grace
+     * passes: same jemalloc arena as the allocation, on a thread that has the cycles.
+     * PLACEMENT: appended at the very END of the struct on purpose. Inserting them mid-struct shifted
+     * the carefully-tuned hot block (the `db`/tm_* line the F1 false-sharing fix established) and
+     * measured -16% on p32 SET; appending leaves every pre-existing field's relative layout intact,
+     * and they still sit far from loop_seq/in_flat_section, which every worker polls in
+     * flatBatchReady. */
+    /* PAD: force the worker-private reclaim fields onto their own cache line. Without this they
+     * land on the same line as loop_seq / in_flat_section (build-time _Static_assert in server.c
+     * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
+     * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
+    char flat_pad[CACHE_LINE_SIZE];
+    struct flatRetireNode *flat_retire_local;
+    struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
+    struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
+    struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
+    int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
+                                             * batches, and freeing them all would otherwise park an
+                                             * unbounded free-list for the process lifetime */
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {

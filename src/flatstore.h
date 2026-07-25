@@ -49,7 +49,18 @@ typedef struct flatSlot {
  * batch only once every worker has advanced past that stamp (so all pre-retire readers finished).
  * One stamp per batch amortizes the snapshot over many deletes. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
+#define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
 #define FLAT_QSBR_MARGIN 2
+
+/* Per-worker retire SINK (ee451 FLATSTORE reclaim-capacity fix). A worker thread points this at its
+ * own retire-list head at the top of every exSlice pass; flatRetire then pushes there with NO atomics
+ * and the OWNING worker frees the batch itself once the grace passes. Rationale: in this sharded
+ * design a key's values are allocated AND retired by the same owning worker, so the worker-side free
+ * hits jemalloc's thread cache (same arena) — whereas freeing them on the main/bio thread is a
+ * cross-arena free on an already-saturated thread, which at ~5M overwrites/s cannot keep up (measured:
+ * retires outrun reclaim, RSS 233MB -> 38GB in 180s -> OOM/wedge). NULL on non-worker threads (main,
+ * bio), which keep using the shared lock-free stack + main-thread reclaim. */
+extern __thread flatRetireNode **flat_local_sink;
 typedef struct flatBatch {
     flatRetireNode *head;
     uint64_t snap[64 + 1];         /* loop_seq of each worker at close (TOMO_EX_THREADS_MAX) */
