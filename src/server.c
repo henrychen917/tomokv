@@ -15567,6 +15567,44 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         }
         if (n == 0) continue;
 
+        /* RETIRE-AWARE REORDERING (user design 2026-07-26). A fake whose client-ring slot is NOT
+         * the client's next-to-retire slot cannot have its reply DELIVERED yet regardless of when
+         * we execute it: handleWorkerReplies splices in ring order and blocks at the first
+         * incomplete slot. So running it now buys that client nothing, while another client's
+         * head-of-ring command could retire immediately. Partition head-ready first.
+         *
+         * This is a Pareto move, not a latency/throughput trade: deferred work was already gated
+         * on earlier commands, and nothing is dropped — the whole batch still executes this pass.
+         *
+         * STABILITY IS LOAD-BEARING: the partition must preserve relative order WITHIN each group.
+         * Two commands of the SAME client for the SAME key sit in this one queue, and per-key FIFO
+         * is what makes same-key ordering correct (see TASK#43) — an unstable swap-partition could
+         * apply SET k v2 before SET k v1. Two passes over a scratch array give a stable partition;
+         * a same-client pair can never invert across groups either, since "head-ready" is by
+         * definition the earliest unretired slot.
+         *
+         * parent->flushid is read relaxed: it only advances, so a stale read under-reports progress
+         * => we call a head-ready fake "deferred" => conservative, never incorrect. */
+        if (__builtin_expect(n > 1 && server.tomo_retire_sched, 0)) {
+            client *ord[WORKER_POP_BATCH];
+            int t = 0;
+            for (int j = 0; j < n; j++) {
+                client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
+                if (pr && !f->drain_ack && !f->is_flush &&
+                    f->fake_slot == (pr->flushid & pr->ring_mask))
+                    ord[t++] = f;
+            }
+            if (t > 0 && t < n) {                     /* mixed batch: reordering can help */
+                for (int j = 0; j < n; j++) {
+                    client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
+                    if (!(pr && !f->drain_ack && !f->is_flush &&
+                          f->fake_slot == (pr->flushid & pr->ring_mask)))
+                        ord[t++] = f;
+                }
+                memcpy(ctx->batch, ord, (size_t)n * sizeof(*ord));
+            }
+        }
+
         /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS
          * START mark (busy time = pop..fold; inter-pass spins/yields implicitly idle — the
          * earlier event-boundary accounting read ~100% busy on a 10%-duty worker because
