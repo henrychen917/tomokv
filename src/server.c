@@ -6110,7 +6110,14 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 /* Close a retire list into a grace batch: snapshot every worker's loop_seq (and main's) right now.
  * `spare` (optional) is a recycle list of spent headers — a batch is ~544B and the worker closes one
  * per pass under write load, so recycling keeps the steady state allocation-free. */
+/* QSBR reclaim observability. Incremented once per BATCH (not per retire), so this is off the hot
+ * path entirely. pending = closed - freed is the direct measure of whether the grace is making
+ * progress; RSS is a poor proxy because jemalloc retains freed spans. Exposed as
+ * INFO tomokv_flat_batches_{closed,freed,pending} per this tree's "expose the state" rule. */
+static _Atomic unsigned long flat_batches_closed_n, flat_batches_freed_n;
+
 static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
+    atomic_fetch_add_explicit(&flat_batches_closed_n, 1, memory_order_relaxed);
     flatBatch *b = NULL;
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
     if (!b) b = zmalloc(sizeof(*b));
@@ -6163,6 +6170,7 @@ static int flatBatchReady(const flatBatch *b) {
 }
 
 static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
+    atomic_fetch_add_explicit(&flat_batches_freed_n, 1, memory_order_relaxed);
     flatRetireNode *n = b->head;
     while (n) {
         flatRetireNode *nx = n->next;
@@ -12645,6 +12653,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long tomo_qfull = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
+            "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
+            "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
+            "tomokv_flat_batches_pending:%lu\r\n",
+                atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed) -
+                atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
