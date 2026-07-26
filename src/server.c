@@ -7207,7 +7207,7 @@ static void tomoMgetFlatNative(client *fake) {
     int nk = fake->argc - 1;
     int dbid = fake->db->id;
     addReplyArrayLen(fake, nk);
-    for (int base = 0; base < nk; base += TOMO_MWAVE) {
+    for (int base = 0; base < nk; base += TOMO_MSUBWAVE) {
         int nw = nk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
         uint64_t h[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *dbs[TOMO_MWAVE];
         tomoFlatMWaveProbe(dbid, fake->argv + 1 + base, nw, h, mk, dbs);
@@ -7995,7 +7995,7 @@ static void csSubExec(client *sub) {
                  * the locked borrow below pays THREE (tomoWkrOf + getKeySlot + kvstoreDictFind). */
                 if (__builtin_expect(g->mcmd_flat, 1)) {
                     int nkk = sub->argc - 1;
-                    for (int base = 0; base < nkk; base += TOMO_MWAVE) {
+                    for (int base = 0; base < nkk; base += TOMO_MSUBWAVE) {
                         int nw = nkk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
                         uint64_t fh[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *fdbs[TOMO_MWAVE];
                         tomoFlatMWaveProbe(borrow_dbid, sub->argv + 1 + base, nw, fh, mk, fdbs);
@@ -8126,7 +8126,7 @@ static void csSubExec(client *sub) {
         if (kvstoreIsFlat(sub->db->keys)) {
             flatTable *t = kvstoreFlatTable(sub->db->keys);
             int npairs = (sub->argc - 1) / 2;
-            for (int base = 0; base < npairs; base += TOMO_MWAVE) {
+            for (int base = 0; base < npairs; base += TOMO_MSUBWAVE) {
                 int nw = npairs - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
                 uint64_t h[TOMO_MWAVE];
                 for (int i = 0; i < nw; i++) {                    /* A0: k+v robj headers */
