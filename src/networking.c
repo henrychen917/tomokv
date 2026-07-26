@@ -6885,7 +6885,12 @@ void shrinkPendingCommandPool(void) {
     while (server.cmd_pool.size > target_size) {
         pendingCommand *cmd = server.cmd_pool.pool[--server.cmd_pool.size];
         if (cmd) {
-            freePendingCommand(NULL, cmd);
+            /* RAW free — the shrink's whole purpose is RELEASING memory; freePendingCommand would
+             * re-pool the pcmd (with its argv) into pcmdPool[0] and retain it (review finding 15).
+             * Shared-pool entries are already reset (argc==0, no live argv refs, keys_result
+             * cleared at reclaim), so the raw frees are sufficient. */
+            zfree(cmd->argv);
+            zfree(cmd);
             server.cmd_pool.pool[server.cmd_pool.size] = NULL;
         }
     }

@@ -138,7 +138,17 @@ client* scriptGetCaller(void) {
 /* interrupt function for scripts, should be call
  * from time to time to reply some special command (like ping)
  * and also check if the run should be terminated. */
+uint64_t tomoScriptGateEpoch(void);        /* server.c */
+int tomoScriptKillRequested(uint64_t epoch);
+
 int scriptInterrupt(scriptRunCtx *run_ctx) {
+    /* TomoKV kill word: polled by EVERY owner (main or io thread) — this is the only kill path an
+     * io-thread owner has (no PEWB there), and it also serves foreign SCRIPT KILL for main owners.
+     * Epoch-tagged: a kill aimed at a finished script can never hit a later one. */
+    if (tomoScriptKillRequested(tomoScriptGateEpoch()) &&
+        !mustObeyClient(run_ctx->original_client))
+        run_ctx->flags |= SCRIPT_KILLED;
+
     if (run_ctx->flags & SCRIPT_TIMEDOUT) {
         /* script already timedout
            we just need to precess some events and return */
@@ -152,7 +162,22 @@ int scriptInterrupt(scriptRunCtx *run_ctx) {
 
     long long elapsed = elapsedMs(run_ctx->start_time);
     if (elapsed < server.busy_reply_threshold) {
-        return SCRIPT_CONTINUE;
+        return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
+    }
+
+    /* TomoKV: an IO-THREAD owner must not enter timedout mode at all — enterScriptTimedoutMode's
+     * blockingOperationStarts mutates the plain global blocking_op_nesting and updateCachedTime,
+     * both main-thread state (review finding 6); protectClient/PEWB are main-only (finding above).
+     * The io owner just keeps running and keeps polling the kill word; log once per second. */
+    if (iotid != 0) {
+        static __thread long long last_busy_log_ms;
+        if (server.mstime - last_busy_log_ms > 1000) {
+            last_busy_log_ms = server.mstime;
+            serverLog(LL_WARNING, "Slow script on io thread %d (%lld ms); SCRIPT KILL works from "
+                                  "any connection (kill word), PEWB does not run here.",
+                      iotid, elapsed);
+        }
+        return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
     }
 
     serverLog(LL_WARNING,
@@ -344,8 +369,15 @@ void scriptResetRun(scriptRunCtx *run_ctx) {
     curr_run_ctx = NULL;
 }
 
-/* return true if a script is currently running */
+/* return true if a script is currently running.
+ * TomoKV: safe to call from ANY thread. curr_run_ctx points into the OWNER thread's stack frame;
+ * a foreign thread must never dereference or even trust it (it races scriptResetRun's teardown —
+ * review findings 4/5/14). While the gate is armed by another identity this returns 0, which is
+ * the correct phase-1 semantic: to a foreign thread there IS no script it may interact with
+ * (script-family commands are rejected at the gate; kills go through the kill word). */
+int tomoScriptForeignArmed(void);   /* server.c: gate word owned there */
 int scriptIsRunning(void) {
+    if (tomoScriptForeignArmed()) return 0;
     return curr_run_ctx != NULL;
 }
 

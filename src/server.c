@@ -210,7 +210,52 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     char _pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
 } tomoScriptStw;
 static tomoScriptStw tomo_script_stw;
-static __thread int tomo_stw_held;   /* this thread's current command holds the gate */
+static __thread int tomo_stw_held;             /* this thread's current command holds the gate */
+static __thread client *tomo_stw_owner_real;   /* the REAL client whose command armed the gate —
+                                                * release and family-admission key on THIS, not on
+                                                * the thread: a nested processCommand during the
+                                                * owner's PEWB runs a DIFFERENT client on the SAME
+                                                * thread (review findings 1/9/12/13). */
+static _Atomic uint64_t tomo_script_kill       /* epoch of the script to kill; 0 = none. Foreign
+                                                * SCRIPT KILL/FUNCTION KILL set this and reply +OK;
+                                                * the owner polls it in scriptInterrupt. Epoch-
+                                                * tagged so a stale kill can never hit a later,
+                                                * innocent script (review finding 8). */
+    __attribute__((aligned(CACHE_LINE_SIZE)));
+
+/* Accessors for script.c (tomo_script_stw is static here).
+ * tomoScriptForeignArmed: is a script armed by an identity OTHER than this thread? Used to make
+ * scriptIsRunning() safe to call from ANY thread — a foreign thread must never dereference
+ * curr_run_ctx (it points into the owner's stack frame; review findings 4/5/14). */
+int tomoScriptForeignArmed(void) {
+    uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
+    return (w & 0xff) != 0 && (w & 0xff) != (uint64_t)(iotid + 1);
+}
+uint64_t tomoScriptGateEpoch(void) {
+    return atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire) >> 16;
+}
+int tomoScriptKillRequested(uint64_t epoch) {
+    return epoch != 0 &&
+           atomic_load_explicit(&tomo_script_kill, memory_order_acquire) == epoch;
+}
+
+/* INVOCATION-scoped release guard (cleanup attribute, the FLAT_EXTERN_REGION idiom). The gate is
+ * released when the processCommand invocation that ACQUIRED it returns — every return path: the
+ * normal post-call epilogue, and every reject between the CAS and call() (OOM, ACL, SAFE-GATE,
+ * stalls). A nested processCommand (owner's PEWB) has its own guard with acquired=0, so it can
+ * never release the outer script's gate — the exact bug the thread-scoped flag had. */
+typedef struct { int acquired; } tomoStwGuard;
+static void tomoStwGuardEnd(tomoStwGuard *g) {
+    if (!g->acquired) return;
+    tomo_stw_held = 0;
+    tomo_stw_owner_real = NULL;
+    uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+    /* clear a kill aimed at this epoch so it cannot fire on a later script */
+    uint64_t k = atomic_load_explicit(&tomo_script_kill, memory_order_relaxed);
+    if (k == (cur >> 16)) atomic_store_explicit(&tomo_script_kill, 0, memory_order_relaxed);
+    /* RELEASE orders scriptResetRun's curr_run_ctx clear (inside call()) before the word free. */
+    atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
+}
 
 /* The script FAMILY: every command whose proc reads or mutates the shared lua/function state.
  * FUNCTION KILL/STATS excluded here would be phase-2 refinements; in phase 1 they are family too
@@ -5345,6 +5390,10 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
 int processCommand(client *c) {
 
+    /* Script-fence release guard: fires on EVERY return of THIS invocation; no-op unless the
+     * family block below acquired the gate. See tomoStwGuardEnd. */
+    tomoStwGuard stw_guard __attribute__((cleanup(tomoStwGuardEnd))) = {0};
+
     /* Script-fence entry gate (phase 1). One acquire load of a line that is never written while no
      * script runs. While a script is armed on ANOTHER identity, the stock asserts below MUST NOT
      * run: they read the process-global script state cross-thread — that read was the crash. */
@@ -5439,6 +5488,50 @@ int processCommand(client *c) {
 
             }
         }
+    }
+
+    /* Script fence: the FAMILY serializes on the gate word, and this block sits BEFORE
+     * getCommandFlags because evalGetCommandFlags/fcallGetCommandFlags dictFind the process-global
+     * lctx.lua_scripts / functions registry — dictFind advances incremental rehash, so a foreign
+     * thread running it while the owner's SCRIPT LOAD/luaCreateFunction dictAdds is a heap race
+     * (review findings 2/3/10/11). Only static c->cmd state is read here. */
+    if (__builtin_expect(server.num_workers > 0 && (c->cmd->tomo_route & TOMO_R_SCRIPTFAM), 0)) {
+        uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
+        if ((w & 0xff) != 0) {
+            /* ARMED. Admission keys on the OWNING CLIENT, not the thread: a second client on the
+             * owner's own thread (nested PEWB) must be rejected exactly like a foreign thread. The
+             * owner client itself never re-enters processCommand mid-script. */
+            /* Kill protocol: foreign SCRIPT KILL / FUNCTION KILL never touch curr_run_ctx — they
+             * set the epoch-tagged kill word; the owner polls it in scriptInterrupt (works for io-
+             * thread owners too, which have no PEWB — review finding 8's unkillable wedge). */
+            if (c->cmd->proc == functionKillCommand ||
+                (c->cmd->proc == scriptCommand && c->argc == 2 &&
+                 !strcasecmp(c->argv[1]->ptr, "kill")))
+            {
+                atomic_store_explicit(&tomo_script_kill, w >> 16, memory_order_seq_cst);
+                addReply(c, shared.ok);
+                return C_OK;
+            }
+            rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
+                                   "in phase 1); use SCRIPT KILL / FUNCTION KILL or retry when it "
+                                   "completes");
+            return C_OK;
+        }
+        /* FREE: acquire with an EMPTY ring (the stateful drain idiom). */
+        if (c->dispatchid != c->flushid) {
+            c->flags |= CLIENT_PIPELINE_STALLED;
+            return C_OK;
+        }
+        uint64_t desired = ((w >> 16) + 1) << 16 | (uint64_t)(iotid + 1);
+        if (!atomic_compare_exchange_strong_explicit(&tomo_script_stw.word, &w, desired,
+                                                     memory_order_seq_cst, memory_order_seq_cst)) {
+            rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
+                                   "in phase 1); try again when it completes");
+            return C_OK;
+        }
+        tomo_stw_held = 1;
+        tomo_stw_owner_real = c;
+        stw_guard.acquired = 1;   /* THIS invocation releases, on any return path */
     }
 
     const uint64_t cmd_flags = getCommandFlags(c);
@@ -5770,34 +5863,6 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    /* Script fence (phase 1): the FAMILY serializes on the gate word. Foreign-armed => -BUSY
-     * (never park in phase 1); free or self-armed => the stateful branch below acquires. */
-    if (__builtin_expect(server.num_workers > 0 && (c->cmd->tomo_route & TOMO_R_SCRIPTFAM), 0)) {
-        uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
-        if ((w & 0xff) != 0 && (w & 0xff) != (uint64_t)(iotid + 1)) {
-            rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
-                                   "in phase 1); try again when it completes");
-            return C_OK;
-        }
-        if ((w & 0xff) == 0) {
-            /* Drain own ring first (the stateful idiom): the fence must not arm above in-flight
-             * dispatches of THIS client. */
-            if (c->dispatchid != c->flushid) {
-                c->flags |= CLIENT_PIPELINE_STALLED;
-                return C_OK;
-            }
-            uint64_t desired = ((w >> 16) + 1) << 16 | (uint64_t)(iotid + 1);
-            if (!atomic_compare_exchange_strong_explicit(&tomo_script_stw.word, &w, desired,
-                                                         memory_order_seq_cst, memory_order_seq_cst)) {
-                rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
-                                       "in phase 1); try again when it completes");
-                return C_OK;
-            }
-            tomo_stw_held = 1;
-        }
-        /* self-armed re-entry (timedout PEWB on main) falls through and executes */
-    }
-
     /* Queuing inside MULTI: writes to real->mstate and addReply(real).
      * Must run on real. Drain ring first. */
     if (c->flags & CLIENT_MULTI &&
@@ -5820,26 +5885,14 @@ int processCommand(client *c) {
     /* Stateful commands — run on real with ring drained. */
     if (isStatefulCommand(c->cmd)) {
         if (c->dispatchid != c->flushid) {
-            /* A held gate must not leak across a stall park (the retry re-enters processCommand
-             * and re-acquires; epoch arithmetic makes the double-arm harmless but the release
-             * would then unpair). Phase 1: release before parking. */
-            if (tomo_stw_held) {
-                tomo_stw_held = 0;
-                uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
-                atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
-            }
+            /* A held gate is released by the invocation guard on this return; the retry
+             * re-acquires (epoch bumps — harmless). */
             c->flags |= CLIENT_PIPELINE_STALLED;
             return C_OK;
         }
         int flags = CMD_CALL_FULL;
         call(c, flags);
-        /* Script-fence release: scriptResetRun NULLed curr_run_ctx inside call(), so any thread
-         * that sees the word freed also sees the script state cleared (release store orders it). */
-        if (tomo_stw_held) {
-            tomo_stw_held = 0;
-            uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
-            atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
-        }
+        /* Script-fence release happens in the invocation guard at return (nesting-safe). */
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
         return C_OK;
@@ -5857,15 +5910,7 @@ int processCommand(client *c) {
         c->ring_want_grow = 0;
     }
     if (c->dispatchid - c->flushid == c->ring_size) {
-        if (__builtin_expect(tomo_stw_held, 0)) {
-            /* Should be unreachable: the family acquire requires an EMPTY ring, and one push cannot
-             * fill it. If a future edit breaks that argument, releasing here turns a permanent
-             * script wedge into a spurious retry. */
-            tomo_stw_held = 0;
-            uint64_t stw_cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
-            atomic_store_explicit(&tomo_script_stw.word, stw_cur & ~0xffULL, memory_order_release);
-            serverLog(LL_WARNING, "script fence: released at ring-full stall (unexpected path)");
-        }
+        /* (script fence: a held gate is released by the invocation guard on this return) */
         c->ring_want_grow = 1;   /* demand signal: this client wants a deeper ring */
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
@@ -6028,16 +6073,10 @@ int processCommand(client *c) {
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
         call(fake, flags);
-        /* Script-fence release (phase 1): EVAL executes HERE (the family is not worker-whitelisted,
-         * so it always takes this inline else-branch). scriptResetRun NULLed curr_run_ctx inside
-         * call(); the release store below orders that clear before any thread sees the word free.
-         * (First fence build leaked the gate by releasing only in the stateful branch — caught by
-         * the eval-after-eval check in validation.) */
-        if (__builtin_expect(tomo_stw_held, 0)) {
-            tomo_stw_held = 0;
-            uint64_t stw_cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
-            atomic_store_explicit(&tomo_script_stw.word, stw_cur & ~0xffULL, memory_order_release);
-        }
+        /* Script-fence release happens in the invocation guard at processCommand return — after
+         * this point, and after scriptResetRun's curr_run_ctx clear inside call() (the guard's
+         * release store orders it). Nesting-safe: a nested PEWB processCommand has its own
+         * guard with acquired=0 (review findings 1/9/12/13). */
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
         /* Signal completion: set our bit in parent's ready mask. Release
