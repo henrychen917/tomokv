@@ -147,6 +147,9 @@ static int tmAllowedCores(void);   /* ee451 (thread-modes step 3): initServer ne
 static polyThreadCtx *tmSpare;     /* ee451 (thread-modes step 3): reshardCoordinator's park-request tail needs it; defined below */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
+static void tomoBatchExecSub(client *sub);        /* thredis-batch-ctx: worker-side batch executor */
+static void tomoBatchReassemble(client *dst, csGroup *g);  /* thredis-batch-ctx: order-preserving fold */
+static void tomoBatchFreeGroup(csGroup *g);       /* thredis-batch-ctx: teardown (IO thread only) */
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
@@ -7957,6 +7960,15 @@ static void keysFlatCB(dictEntry *masked, void *priv) {
 
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
+    /* thredis-batch-ctx: batch subs carry NO argv (their work item is a key-index list into the
+     * group's flat arrays), so they must be routed BEFORE the argv guard below. */
+    if (g->ctype == CS_BATCH) {
+        client *bsaved = server.current_client[iotid].p;
+        server.current_client[iotid].p = sub;
+        tomoBatchExecSub(sub);
+        server.current_client[iotid].p = bsaved;
+        return;
+    }
     if (!sub->argv || !sub->argv[1]) return;
     client *saved = server.current_client[iotid].p;
     server.current_client[iotid].p = sub;
@@ -8819,6 +8831,615 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
+}
+
+/* ================================================================================================
+ * PIPELINE BATCH EXECUTION CONTEXT  (thredis-batch-ctx)  --  pure scatter-gather, NO locks
+ * ================================================================================================
+ * THESIS. The single-executor M-read designs (tomoMgetLockBorrow / tomoMgetFlatNative) win on
+ * dispatch cost but VIOLATE same-client pipeline ordering, because they let ONE worker read keys it
+ * does not own: "SET b NEW; MGET a b" from one connection can have its MGET run on b's NON-owner
+ * while b's SET is still queued on b's OWNER, so the MGET reads the pre-SET value (measured:
+ * 2000+/6000 stale). Per-key SPSC FIFO into the OWNER's queue is exactly what makes ordering
+ * correct. This arm therefore keeps the scatter-gather ROUTING bit-for-bit and wins purely by
+ * amortizing the PARSE / DISPATCH / EXECUTE / REASSEMBLE machinery over a whole pipeline run.
+ *
+ * WHAT IS AMORTIZED (pipeline run of n express commands spanning w distinct owner workers):
+ *              per-command express lane                 batch context
+ *   parse      n x acquirePendingCommand                1 x scan + 1 x memcpy of the run's bytes
+ *              + n x argc robj allocs                   (read keys never become robjs at all)
+ *   route      n x xxh64 on IO + n x xxh64 on worker    n x xxh64 on IO, REUSED by the worker probe
+ *   dispatch   n x ring slot + n x SPSC push            1 ring slot + w SPSC pushes
+ *   execute    n x exExecFake preamble/epilogue         w x wave-batched in-order execution
+ *   drain      n x mask bit + n x commandProcessed      1 mask bit + 1 commandProcessed
+ *   flush      1 writev                                 1 writev (unchanged: replies fold into the
+ *                                                       real client's buffer in one pass)
+ *
+ * ORDERING (the acceptance criterion; regression = 6000 rounds of "SET b NEW; MGET a b" asserting
+ * element 2 == NEW):
+ *  (1) INTRA-BATCH. bkeys[k].owner is resolved ONCE per key at build time from the live bucket
+ *      table, so every occurrence of the SAME KEY BYTES within one batch resolves to the SAME owner
+ *      and lands in the SAME sub. csBatchBuildSubs fills bpos[si] by walking the batch in ASCENDING
+ *      key index, and tomoBatchExecSub consumes bpos[si] in that same ascending order, so two ops on
+ *      one key execute in the order the client wrote them. Concretely for the regression case: b's
+ *      SET and b's MGET element are both entries of owner(b)'s sub, the SET has the lower key index,
+ *      so it executes first and the MGET element observes NEW.
+ *  (2) BATCH vs BATCH / BATCH vs SINGLE COMMAND. Subs are pushed with csPushSpin, into
+ *      server.exThreads[w].queues[iotid] -- the SAME single-producer queue the per-command express
+ *      lane pushes into via exDispatchPush. A client is served by one IO identity, its dispatches are
+ *      strictly sequential, and an SPSC ring is FIFO, so a key's work items reach its owner in
+ *      dispatch order no matter which side issued them. This is the same guarantee the express lane
+ *      already relies on for two consecutive SETs of one key; we neither add to it nor weaken it.
+ *  (3) REPLY ORDER. A batch occupies exactly ONE pipeline ring slot, and handleWorkerReplies retires
+ *      ring slots strictly in order (it breaks at the first slot whose ready bit is unset), so the
+ *      batch's replies land between the replies of the commands dispatched before and after it.
+ *      Inside the batch, tomoBatchReassemble walks bops[] in ORIGINAL COMMAND ORDER.
+ *  No point in this design reads or writes a key in a db other than its owner's, so the stale-read
+ *  failure mode is not merely avoided -- it is unreachable.
+ *
+ * SAFETY. A batch sub touches ONLY sub->db (its own shard) on its owner worker, exactly like the
+ * per-command express GET/SET that worker runs off the same queue, so it inherits that path's
+ * discipline verbatim: no locks (the owner is the sole mutator of its own keys), QSBR cover from the
+ * enclosing exSlice, markDirty into the per-thread dirty shard, notifyKeyspaceEvent where the stock
+ * proc calls it. It deliberately does NOT inherit tomoMgetFlatNative's grower co-op lock: that lock
+ * exists only to protect a NON-OWNER's byte copy against the owner's in-place APPEND/SETRANGE, and
+ * here the copier IS the owner.
+ * KNOWN DELTAS vs the stock procs, each closed by a gate in csBatchGateOk: reads take the flat probe
+ * and are therefore LOOKUP_NOEFFECTS (no LRU/LFU touch, no keyspace hit/miss stats, no lazy-expire
+ * delete) exactly like tomoMgetFlatNative -- hence the maxmemory==0 gate; no command is propagated
+ * (the worker path never runs call(), so this matches the existing express lane) -- hence the
+ * AOF/replica gates. */
+
+/* ---- knob folding: effective minimum express-run length that forms a batch ---- */
+static inline int csBatchMinRun(void) {
+    int k = server.batch_ctx;
+    if (k == 0) return 0;                       /* OFF: one predictable compare, no alloc, no scan */
+    if (k < 0) return TOMO_BATCH_AUTO_MIN;      /* -1 auto: self-derived, no hardware knowledge */
+    return k < 2 ? 2 : k;
+}
+
+/* ---- global preconditions. Everything the batch executor does NOT reimplement is excluded here,
+ * so the executor itself stays a straight line. All are cheap loads, re-checked per attempt; a knob
+ * flipped mid-flight can only stop FUTURE batches, never change one already dispatched. ---- */
+static int csBatchGateOk(client *c) {
+    if (!server.exThreads || server.num_workers <= 0) return 0;
+    if (!server.thredis_flat_store) return 0;        /* reads probe the flat table directly */
+    if (server.cluster_enabled) return 0;
+    if (server.mcmd_lock) return 0;                  /* borrow readers need the owner lock we skip */
+    if (server.maxmemory) return 0;                  /* flat probe skips the LRU/LFU touch (DELTAS) */
+    if (server.masterhost || listLength(server.slaves)) return 0;
+    if (server.aof_state != AOF_OFF) return 0;
+    if (server.loading) return 0;
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        return 0;                                    /* owner is stamped at build; let the fence drain */
+    if (c->flags & (CLIENT_MULTI | CLIENT_MASTER | CLIENT_SLAVE | CLIENT_MONITOR |
+                    CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PENDING_COMMAND |
+                    CLIENT_CLOSE_AFTER_REPLY | CLIENT_CLOSE_ASAP | CLIENT_TRACKING |
+                    CLIENT_PIPELINE_STALLED)) return 0;
+    if (!c->conn || c->isFake) return 0;
+    /* representative check: shard dbs are all built the same way under thredis-flat-store, so one
+     * probe proves the executor's flat fast path is live. (The executor still has a correct generic
+     * fallback for a NULL table -- this gate is about performance, not safety.) */
+    if (!kvstoreFlatTable(server.exThreads[0].db[c->db->id].keys)) return 0;
+    return 1;
+}
+
+/* ================================ 1. BATCH PARSE ================================================
+ * ONE pass over the querybuf that recognizes ONLY the express set, writing a compact execution
+ * context instead of pendingCommand+argv. Anything else -- an unknown verb, a SET carrying options,
+ * a malformed frame, or a partially-received command -- ENDS the batch at that byte and the caller's
+ * unchanged per-command path picks up exactly there (correctness first). */
+typedef struct csBatchScan { const char *p, *end; } csBatchScan;
+
+/* "<prefix><decimal>\r\n". 0 = need-more / malformed. */
+static int csBatchNum(csBatchScan *s, char prefix, long long *out) {
+    const char *p = s->p;
+    if (p >= s->end || *p != prefix) return 0;
+    p++;
+    long long v = 0;
+    int digits = 0;
+    while (p < s->end && *p >= '0' && *p <= '9') {
+        if (digits > 12) return 0;                     /* absurd length: hand it to the stock parser */
+        v = v * 10 + (*p - '0');
+        p++; digits++;
+    }
+    if (!digits || p + 1 >= s->end || p[0] != '\r' || p[1] != '\n') return 0;
+    s->p = p + 2;
+    *out = v;
+    return 1;
+}
+
+/* "$len\r\n<bytes>\r\n". 0 = need-more / malformed (cursor restored). */
+static int csBatchBulk(csBatchScan *s, const char **bp, uint32_t *blen) {
+    const char *save = s->p;
+    long long n;
+    if (!csBatchNum(s, '$', &n)) { s->p = save; return 0; }
+    if (n < 0 || n > server.proto_max_bulk_len) { s->p = save; return 0; }
+    if (s->p + n + 2 > s->end) { s->p = save; return 0; }
+    if (s->p[n] != '\r' || s->p[n + 1] != '\n') { s->p = save; return 0; }
+    *bp = s->p; *blen = (uint32_t)n;
+    s->p += n + 2;
+    return 1;
+}
+
+static inline int csBatchIs(const char *a, uint32_t alen, const char *lit, uint32_t litlen) {
+    if (alen != litlen) return 0;
+    for (uint32_t i = 0; i < alen; i++) {
+        char x = a[i];
+        if (x >= 'A' && x <= 'Z') x = (char)(x - 'A' + 'a');
+        if (x != lit[i]) return 0;
+    }
+    return 1;
+}
+
+/* verb -> TB_* op, or -1. ONLY the plain forms: a SET with any option (EX/NX/GET/KEEPTTL/...) has a
+ * different reply shape and TTL semantics, so it is not express and simply ends the batch. */
+static int csBatchOpOf(const char *v, uint32_t vlen, long long argc) {
+    if (csBatchIs(v, vlen, "get",  3)) return argc == 2 ? TB_GET  : -1;
+    if (csBatchIs(v, vlen, "set",  3)) return argc == 3 ? TB_SET  : -1;
+    if (csBatchIs(v, vlen, "del",  3)) return argc >= 2 ? TB_DEL  : -1;
+    if (csBatchIs(v, vlen, "mget", 4)) return argc >= 2 ? TB_MGET : -1;
+    if (csBatchIs(v, vlen, "mset", 4)) return (argc >= 3 && (argc & 1)) ? TB_MSET : -1;
+    return -1;
+}
+
+/* Scan the express run. Offsets in keys[] are RELATIVE TO `base` (the first querybuf byte of the
+ * run), so one memcpy of [base, base+consumed) turns them into arena offsets unchanged.
+ * Returns op count; *consumed = bytes the run occupies (0 unless a whole command frame committed). */
+static int csBatchScanRun(const char *base, const char *end,
+                          tomoBatchOp *ops, tomoBatchKey *keys,
+                          int *nkeys_out, size_t *consumed) {
+    csBatchScan s = { base, end };
+    const char *committed = base;
+    int nops = 0, nkeys = 0;
+
+    while (nops < TOMO_BATCH_MAX_OPS && nkeys < TOMO_BATCH_MAX_KEYS && s.p < s.end) {
+        const char *cmd_start = s.p;
+        long long argc;
+        if (!csBatchNum(&s, '*', &argc)) break;               /* inline / partial / not multibulk */
+        if (argc < 2 || argc > 1024) { s.p = cmd_start; break; }
+        const char *verb; uint32_t vlen;
+        if (!csBatchBulk(&s, &verb, &vlen)) { s.p = cmd_start; break; }
+        int op = csBatchOpOf(verb, vlen, argc);
+        if (op < 0) { s.p = cmd_start; break; }               /* not express: END the batch here */
+
+        int stride = (op == TB_SET || op == TB_MSET) ? 2 : 1;
+        int opk = (int)((argc - 1) / stride);
+        uint8_t kind = (op == TB_SET || op == TB_MSET) ? TB_K_SET
+                     : (op == TB_DEL)                  ? TB_K_DEL : TB_K_READ;
+        if (opk <= 0 || nkeys + opk > TOMO_BATCH_MAX_KEYS) { s.p = cmd_start; break; }
+
+        int kbase = nkeys, ok = 1;
+        for (int i = 0; i < opk; i++) {
+            const char *kp; uint32_t klen;
+            if (!csBatchBulk(&s, &kp, &klen)) { ok = 0; break; }
+            tomoBatchKey *bk = &keys[kbase + i];
+            bk->koff = (uint32_t)(kp - base); bk->klen = klen;
+            bk->voff = 0; bk->vlen = 0; bk->kind = kind;
+            bk->owner = 0; bk->sub = 0; bk->hash = 0;
+            if (stride == 2) {
+                const char *vp; uint32_t vl;
+                if (!csBatchBulk(&s, &vp, &vl)) { ok = 0; break; }
+                bk->voff = (uint32_t)(vp - base); bk->vlen = vl;
+            }
+        }
+        if (!ok) { s.p = cmd_start; break; }                  /* partial frame: leave it in querybuf */
+
+        ops[nops].op = (uint8_t)op;
+        ops[nops].kidx = (uint32_t)kbase;
+        ops[nops].nkeys = (uint32_t)opk;
+        nops++; nkeys += opk;
+        committed = s.p;                                      /* whole command frame present */
+    }
+    *nkeys_out = nkeys;
+    *consumed = (size_t)(committed - base);
+    return nops;
+}
+
+/* free every batch-owned array on the group (IO thread only; subs and the group itself are freed by
+ * the shared csReassemble teardown). Idempotent. */
+static void tomoBatchFreeGroup(csGroup *g) {
+    if (g->bpos)  { for (int i = 0; i < g->nsub; i++) zfree(g->bpos[i]);  zfree(g->bpos);  g->bpos = NULL; }
+    if (g->bemit) { for (int i = 0; i < g->nsub; i++) zfree(g->bemit[i]); zfree(g->bemit); g->bemit = NULL; }
+    zfree(g->bemit_len); g->bemit_len = NULL;
+    zfree(g->bemit_cap); g->bemit_cap = NULL;
+    zfree(g->bcnt);      g->bcnt = NULL;
+    zfree(g->bhaswrite); g->bhaswrite = NULL;
+    zfree(g->bvoff);     g->bvoff = NULL;
+    zfree(g->bvlen);     g->bvlen = NULL;
+    zfree(g->bdel);      g->bdel = NULL;
+    zfree(g->bops);      g->bops = NULL;
+    zfree(g->bkeys);     g->bkeys = NULL;
+    zfree(g->barena);    g->barena = NULL;
+}
+
+/* ================================ 2. BATCH DISPATCH =============================================
+ * Group the batch's keys BY OWNER WORKER and issue ONE coalesced work item per owner -- exactly the
+ * shape MSET already uses ([CMD k v k v ...]) except the payload is a key-INDEX list into the
+ * group's flat arrays, so no robj is built for any read key. bpos[si] is filled by a single
+ * ASCENDING walk of the batch, so it is sorted by key index; that sortedness IS the same-key
+ * ordering guarantee (see ORDERING (1) above). */
+static int csBatchBuildSubs(client *head, csGroup *g, int dbid) {
+    int nw = server.num_workers_alloc;             /* ALLOC-sized: exIndexForKey can return the spare */
+    int cnt[TOMO_EX_THREADS_MAX + 1];
+    int wsi[TOMO_EX_THREADS_MAX + 1];
+    client *wsub[TOMO_EX_THREADS_MAX + 1];
+    memset(cnt, 0, sizeof(int) * nw);
+    memset(wsi, 0, sizeof(int) * nw);
+    memset(wsub, 0, sizeof(client *) * nw);
+
+    for (int k = 0; k < g->bnkeys; k++) {
+        tomoBatchKey *bk = &g->bkeys[k];
+        bk->hash = tomoKeyHash(g->barena + bk->koff, bk->klen);  /* the ONLY hash of this key, ever */
+        bk->owner = (int32_t)server.ex_bucket_table[bk->hash & TOMO_BUCKET_MASK];
+        if (bk->owner < 0 || bk->owner >= nw) bk->owner = 0;     /* defensive: keep grouping in-bounds */
+        cnt[bk->owner]++;
+    }
+    int nsub = 0;
+    for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
+    if (nsub <= 0) return 0;
+
+    g->nsub      = nsub;
+    g->subs      = zmalloc(sizeof(client *) * nsub);
+    g->bpos      = zcalloc(sizeof(int *)    * nsub);
+    g->bcnt      = zcalloc(sizeof(int)      * nsub);
+    g->bhaswrite = zcalloc(sizeof(uint8_t)  * nsub);
+    g->bemit     = zcalloc(sizeof(char *)   * nsub);
+    g->bemit_len = zcalloc(sizeof(size_t)   * nsub);
+    g->bemit_cap = zcalloc(sizeof(size_t)   * nsub);
+    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
+
+    int si = 0;
+    for (int w = 0; w < nw; w++) {
+        if (!cnt[w]) continue;
+        client *sub = createPooledFakeClient(head->parent);
+        sub->csparent = g; sub->cssub_idx = si;
+        sub->cmd = NULL; sub->argv = NULL; sub->argc = 0;   /* batch subs carry an index list, no argv */
+        sub->resp = head->resp;
+        sub->conn = head->conn;
+        sub->flags |= CLIENT_EX_PENDING;
+        sub->db = &server.exThreads[w].db[dbid];
+        g->bpos[si] = zmalloc(sizeof(int) * cnt[w]);
+        wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
+    }
+    /* ASCENDING walk over ops, then keys within an op: bpos[si] comes out sorted by batch key index,
+     * i.e. by program order. This loop is the whole ordering proof. */
+    for (int op = 0; op < g->bnops; op++) {
+        for (uint32_t i = 0; i < g->bops[op].nkeys; i++) {
+            int k = (int)g->bops[op].kidx + (int)i;
+            int lsi = wsi[g->bkeys[k].owner];
+            g->bkeys[k].sub = lsi;                          /* reply-slot mapping: key -> emit arena */
+            g->bpos[lsi][g->bcnt[lsi]++] = k;
+            if (g->bkeys[k].kind != TB_K_READ) g->bhaswrite[lsi] = 1;
+        }
+    }
+    /* v8d: a batch WRITE must observe the same cutover hold every scattered write takes. The gate
+     * refuses to FORM a batch while a migration is live, so this only covers the arm-in-between. */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
+        for (int k = 0; k < g->bnkeys; k++) {
+            if (g->bkeys[k].kind == TB_K_READ) continue;
+            robj *ko = createStringObject(g->barena + g->bkeys[k].koff, g->bkeys[k].klen);
+            migHoldKeyIfDraining(ko);
+            decrRefCount(ko);
+        }
+    }
+    for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
+    return nsub;
+}
+
+/* Entry point, called from processInputBuffer BEFORE the per-command parse. Returns 1 iff it
+ * consumed querybuf bytes (caller re-enters its loop), 0 iff nothing was touched. */
+int tomoBatchTryDispatch(client *c) {
+    int minrun = csBatchMinRun();
+    if (minrun == 0) return 0;                          /* knob OFF: zero alloc, zero scan */
+    if (!csBatchGateOk(c)) return 0;
+    if (c->reqtype != 0 && c->reqtype != PROTO_REQ_MULTIBULK) return 0;
+    if (c->pending_cmds.len) return 0;                  /* the stock parser owns a partial command */
+    if (!c->querybuf || c->qb_pos >= sdslen(c->querybuf)) return 0;
+    const char *base = c->querybuf + c->qb_pos;
+    const char *end  = c->querybuf + sdslen(c->querybuf);
+    if (*base != '*') return 0;
+    /* A batch needs exactly ONE free ring slot. If the ring is full we return 0 and the unchanged
+     * per-command path does its own stall bookkeeping (ring_want_grow / CLIENT_PIPELINE_STALLED) --
+     * we never duplicate that state machine. */
+    if (c->dispatchid - c->flushid >= c->ring_size) return 0;
+
+    /* Cheap pre-filter: the smallest express frame ("*2\r\n$3\r\nGET\r\n$1\r\nk\r\n") is 22 bytes,
+     * so a buffer holding fewer than 20*minrun unread bytes provably cannot contain minrun express
+     * commands. One integer compare keeps the depth-1 (non-pipelined) regime from paying a scan
+     * whose result would be thrown away and re-parsed by the stock path. */
+    if ((size_t)(end - base) < (size_t)minrun * 20) return 0;
+
+    /* Scan into per-IO-identity scratch (allocated once, reused forever): a failed attempt must cost
+     * ZERO allocation, and the success path copies only the exact-sized prefix into the group. */
+    static __thread tomoBatchOp  *tb_ops;
+    static __thread tomoBatchKey *tb_keys;
+    if (!tb_ops)  tb_ops  = zmalloc(sizeof(tomoBatchOp)  * TOMO_BATCH_MAX_OPS);
+    if (!tb_keys) tb_keys = zmalloc(sizeof(tomoBatchKey) * TOMO_BATCH_MAX_KEYS);
+    int nkeys = 0; size_t consumed = 0;
+    int nops = csBatchScanRun(base, end, tb_ops, tb_keys, &nkeys, &consumed);
+    if (nops < minrun || nkeys <= 0 || consumed == 0) return 0;
+
+    /* ONE memcpy of the run's wire bytes: key and value payloads become arena-relative, so they
+     * survive the querybuf trim at the end of processInputBuffer while the batch is in flight. */
+    csGroup *g = zcalloc(sizeof(csGroup));
+    g->ctype = CS_BATCH;
+    g->nkeys = nkeys;
+    g->bnops = nops; g->bnkeys = nkeys;
+    g->bops  = zmalloc(sizeof(tomoBatchOp)  * nops);   memcpy(g->bops,  tb_ops,  sizeof(tomoBatchOp)  * nops);
+    g->bkeys = zmalloc(sizeof(tomoBatchKey) * nkeys);  memcpy(g->bkeys, tb_keys, sizeof(tomoBatchKey) * nkeys);
+    g->barena = zmalloc(consumed);
+    memcpy(g->barena, base, consumed);
+    g->barena_len = consumed;
+    g->bvoff = zcalloc(sizeof(uint32_t) * nkeys);
+    g->bvlen = zcalloc(sizeof(uint32_t) * nkeys);       /* TB_RES_NIL == 0 == the right default */
+    g->bdel  = zcalloc(sizeof(uint8_t)  * nkeys);
+
+    /* claim the ring slot (mirrors the tail of processCommand's non-stateful path) */
+    unsigned int fslot = c->dispatchid & c->ring_mask;
+    if (c->fakeClients[fslot] == NULL) {
+        c->fakeClients[fslot] = createFakeClient(c);
+        c->fakeClients[fslot]->fake_slot = fslot;
+        if (fslot + 1 > c->fake_ring_cur_depth) c->fake_ring_cur_depth = fslot + 1;
+    }
+    client *head = c->fakeClients[fslot];
+    head->resp = c->resp;
+    head->user = c->user;
+    head->authenticated = c->authenticated;
+    head->conn = c->conn;
+    head->db = c->db;
+    head->cmd = NULL; head->argv = NULL; head->argc = 0; head->argv_len = 0;
+    head->current_pending_cmd = NULL;
+    head->lookedcmd = NULL; head->realcmd = NULL; head->slot = -1;
+    head->flags = c->flags & (CLIENT_INTERNAL | CLIENT_ASKING | CLIENT_READONLY | CLIENT_DENY_BLOCKING);
+    /* TASK#43: a batch carrying ANY write must disarm this client's single-executor M-read fast
+     * paths until it retires, exactly like a dispatched write fake. Use the SAME dispatch-time mark
+     * the express lane sets (CLIENT_TOMO_WRITE) and take the SAME single increment below, so the
+     * drain's existing retire accounting covers a batch with no new code and no new contract. */
+    int has_write = 0;
+    for (int op = 0; op < nops; op++)
+        if (g->bops[op].op != TB_GET && g->bops[op].op != TB_MGET) { has_write = 1; break; }
+    if (has_write) head->flags |= CLIENT_TOMO_WRITE;
+    head->bufpos = 0; head->sentlen = 0; head->reply_bytes = 0;
+    head->csgroup = g;
+    head->cdb = 0;                                       /* group-head completion routes to CDB 0 */
+    g->head = head;
+
+    if (csBatchBuildSubs(head, g, c->db->id) <= 0) {     /* unreachable (nkeys>0); fail closed */
+        head->csgroup = NULL;
+        tomoBatchFreeGroup(g);
+        zfree(g);
+        return 0;
+    }
+
+    /* dispatch bookkeeping — the same lines every cross-shard head executes. Enrolling on the
+     * flush-walk list AFTER the pushes is safe (and is what keeps the fail-closed branch above from
+     * having to un-enroll): dispatch and drain run on the SAME IO identity, and nothing between the
+     * pushes and here re-enters the event loop — csPushSpin's full-queue spin only yields the CPU. */
+    if (c->dispatchid == c->flushid) listAddNodeTail(server.clients_pending_ex[iotid], c);
+    unsigned int inflight_now = c->dispatchid - c->flushid + 1;
+    if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
+    replyWorking++;                                      /* subs in flight; drain decrements (was_cs) */
+    tmLatMaybeStamp(head);
+    c->dispatchid++;
+
+    if (has_write) c->inflight_writes++;   /* paired with the drain's CLIENT_TOMO_WRITE decrement */
+
+    c->qb_pos += consumed;
+    resetClientQbufState(c);
+    return 1;
+}
+
+/* ================================ 3. BATCH EXECUTE ==============================================
+ * Runs on the OWNER worker over that owner's key-index list in ASCENDING batch order.
+ * Wave discipline (tomoFlatMWaveProbe's shape, adapted to arena bytes + precomputed hashes):
+ *   A  prefetch the wave's key bytes
+ *   B  prefetch the wave's first-probe slot lines
+ *   C  probe-all            -- READ-ONLY SUBS ONLY
+ *   D  prefetch hit value lines
+ *   E  execute / emit in order
+ * C+D are applied only when the sub carries no writes (bhaswrite==0, i.e. the MGET/GET-heavy case
+ * the wave exists for). If the sub carries a write, a probe-all result could predate a write to the
+ * same key later in the same wave, so the probe is folded INTO the in-order pass instead; A and B
+ * remain, and they are provably semantics-free (a prefetch never faults and its result is never read
+ * as program state -- the same argument the flat-native MGET already relies on). */
+#define TB_EMIT_START 1024
+
+static char *csBatchEmitReserve(csGroup *g, int si, size_t need) {
+    if (g->bemit_len[si] + need > g->bemit_cap[si]) {
+        size_t cap = g->bemit_cap[si] ? g->bemit_cap[si] : TB_EMIT_START;
+        while (cap < g->bemit_len[si] + need) cap <<= 1;
+        g->bemit[si] = zrealloc(g->bemit[si], cap);
+        g->bemit_cap[si] = cap;
+    }
+    return g->bemit[si] + g->bemit_len[si];
+}
+
+/* Append the complete RESP element for key index k into this sub's CONTIGUOUS emit arena and record
+ * its (offset,length) slot. This is the reply-slot mapping the IO thread folds back in command
+ * order: one alloc per SUB (not per key) and exactly the byte-copy count the per-command path pays
+ * today (worker -> fake buffer -> real buffer). */
+static void csBatchEmitBulk(csGroup *g, int si, int k, const char *val, size_t vlen) {
+    char hdr[32];
+    hdr[0] = '$';
+    int hlen = 1 + ll2string(hdr + 1, sizeof(hdr) - 1, (long long)vlen);
+    hdr[hlen++] = '\r'; hdr[hlen++] = '\n';
+    size_t total = (size_t)hlen + vlen + 2;
+    char *dst = csBatchEmitReserve(g, si, total);
+    memcpy(dst, hdr, (size_t)hlen);
+    memcpy(dst + hlen, val, vlen);
+    dst[total - 2] = '\r'; dst[total - 1] = '\n';
+    g->bvoff[k] = (uint32_t)g->bemit_len[si];
+    g->bvlen[k] = (uint32_t)total;
+    g->bemit_len[si] += total;
+}
+
+static void csBatchEmitLongLong(csGroup *g, int si, int k, long long v) {
+    char tmp[32];
+    int n = ll2string(tmp, sizeof(tmp), v);
+    csBatchEmitBulk(g, si, k, tmp, (size_t)n);
+}
+
+/* Read one key this worker OWNS, straight off its own flat table with the hash the IO thread already
+ * computed. `mk` is the caller's probe (read-only sub) or NULL (probe here, inside the ordered pass). */
+static void csBatchRead(csGroup *g, client *sub, int si, int k, dictEntry *mk, flatTable *t) {
+    tomoBatchKey *bk = &g->bkeys[k];
+    kvobj *o;
+    robj *tmpkey = NULL;
+    if (__builtin_expect(t != NULL, 1)) {
+        if (!mk) mk = flatGet(t, bk->hash, g->barena + bk->koff, bk->klen);
+        o = mk ? dictGetKV(mk) : NULL;
+        if (o && keyIsExpired(sub->db, NULL, o)) o = NULL;   /* LOOKUP_NOEFFECTS outcome */
+    } else {
+        /* No flat table on this shard (the dispatch gate normally excludes it). Generic lookup with
+         * one temporary key robj -- correct, just not the fast path. */
+        tmpkey = createStringObject(g->barena + bk->koff, bk->klen);
+        o = lookupKeyReadWithFlags(sub->db, tmpkey, LOOKUP_NOEFFECTS);
+    }
+    if (!o)                       g->bvlen[k] = TB_RES_NIL;
+    /* GET replies WRONGTYPE, MGET replies nil -- record the verdict, let the fold pick the shape. */
+    else if (o->type != OBJ_STRING) g->bvlen[k] = TB_RES_WRONGTYPE;
+    else if (o->encoding == OBJ_ENCODING_INT) csBatchEmitLongLong(g, si, k, (long long)(long)o->ptr);
+    else                                      csBatchEmitBulk(g, si, k, o->ptr, sdslen((sds)o->ptr));
+    if (tmpkey) decrRefCount(tmpkey);
+}
+
+/* SET / MSET pair. Key and value robjs are built HERE, on the OWNING worker -- i.e. NUMA-local to
+ * the shard that will hold them, instead of on the IO thread as the per-command parse does. Same
+ * alloc count as today for writes, better placement. */
+static void csBatchSet(csGroup *g, client *sub, int k) {
+    tomoBatchKey *bk = &g->bkeys[k];
+    robj *key = createStringObject(g->barena + bk->koff, bk->klen);
+    robj *val = createStringObject(g->barena + bk->voff, bk->vlen);
+    val = tryObjectEncoding(val);                       /* stock SET/MSET do exactly this */
+    setKey(sub, sub->db, key, &val, SETKEY_EMBED_RAW);  /* takes our ref; do NOT decr val */
+    notifyKeyspaceEvent(NOTIFY_STRING, "set", key, sub->db->id);
+    markDirty(1);
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migCaptureEffect(sub->db, key);
+    decrRefCount(key);                                  /* the kvobj embeds its own copy of the key */
+}
+
+/* DEL. expireIfNeeded is db.c-private, so the logically-expired case is decided from the probe the
+ * wave already needs: an expired key is still physically removed (cleanup) but NOT counted, which is
+ * exactly delGenericCommand's KEY_DELETED continue. A missing key allocates nothing. */
+static void csBatchDel(csGroup *g, client *sub, int k, flatTable *t) {
+    tomoBatchKey *bk = &g->bkeys[k];
+    robj *key = createStringObject(g->barena + bk->koff, bk->klen);
+    int live;
+    if (__builtin_expect(t != NULL, 1)) {
+        dictEntry *mk = flatGet(t, bk->hash, g->barena + bk->koff, bk->klen);
+        kvobj *o = mk ? dictGetKV(mk) : NULL;
+        live = (o && !keyIsExpired(sub->db, NULL, o));
+    } else {
+        live = lookupKeyReadWithFlags(sub->db, key, LOOKUP_NOEFFECTS) != NULL;
+    }
+    int deleted = server.lazyfree_lazy_user_del ? dbAsyncDelete(sub->db, key)
+                                                : dbSyncDelete(sub->db, key);
+    if (deleted && live) {
+        keyModified(sub, sub->db, key, NULL, 1);
+        notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, sub->db->id);
+        markDirty(1);
+        g->bdel[k] = 1;
+    }
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        migCaptureEffect(sub->db, key);
+    decrRefCount(key);
+}
+
+static void tomoBatchExecSub(client *sub) {
+    csGroup *g = sub->csparent;
+    int si = sub->cssub_idx;
+    int n = g->bcnt[si];
+    const int *pos = g->bpos[si];
+    flatTable *t = kvstoreFlatTable(sub->db->keys);
+    int ro = !g->bhaswrite[si];
+
+    for (int b = 0; b < n; b += TOMO_MWAVE) {
+        int nwv = n - b; if (nwv > TOMO_MWAVE) nwv = TOMO_MWAVE;
+
+        for (int i = 0; i < nwv; i++)                                  /* A: key bytes */
+            redis_prefetch_read(g->barena + g->bkeys[pos[b + i]].koff);
+        if (t) for (int i = 0; i < nwv; i++)                           /* B: first-probe slot lines */
+            redis_prefetch_read(&t->slots[g->bkeys[pos[b + i]].hash & t->mask]);
+
+        if (ro) {
+            dictEntry *mk[TOMO_MWAVE];
+            for (int i = 0; i < nwv; i++) {                            /* C: probe-all */
+                tomoBatchKey *bk = &g->bkeys[pos[b + i]];
+                mk[i] = t ? flatGet(t, bk->hash, g->barena + bk->koff, bk->klen) : NULL;
+            }
+            for (int i = 0; i < nwv; i++) {                            /* D: hit value lines */
+                if (!mk[i]) continue;
+                kvobj *o = dictGetKV(mk[i]);
+                if (o->encoding != OBJ_ENCODING_INT && o->ptr)
+                    redis_prefetch_read((char *)o->ptr - 1);
+            }
+            for (int i = 0; i < nwv; i++)                              /* E: emit in order */
+                csBatchRead(g, sub, si, pos[b + i], mk[i], t);
+            continue;
+        }
+        /* Sub carries writes: probe INSIDE the ordered pass so no read can observe a pre-write
+         * snapshot of a key this same sub writes earlier in the batch. */
+        for (int i = 0; i < nwv; i++) {
+            int k = pos[b + i];
+            switch (g->bkeys[k].kind) {
+            case TB_K_READ: csBatchRead(g, sub, si, k, NULL, t); break;
+            case TB_K_SET:  csBatchSet(g, sub, k);               break;
+            case TB_K_DEL:  csBatchDel(g, sub, k, t);            break;
+            default: break;
+            }
+        }
+    }
+    /* NOTE (deliberate gap): exExecFake attributes each single-key op to its bucket's coarse LB group
+     * (worker->lb_grp_ops[TOMO_LB_GROUP(fake->tomo_bkt)]). Batch subs do not, for the same reason the
+     * existing coalesced cross-shard subs do not — the balancer's load signal is per-op and this path
+     * has no per-op fake. With the knob ON the flip/LB controller therefore under-counts batch traffic;
+     * that is why the knob is an A/B experiment knob and not a default. Wiring it is one increment per
+     * key inside the loops above (bucket == bkeys[k].hash & TOMO_BUCKET_MASK, already in hand). */
+}
+
+/* ================================ 4. BATCH RECONSTRUCTION =======================================
+ * Fold every op's reply into the REAL client's output in ORIGINAL COMMAND ORDER, reading each key's
+ * result from its owner's emit arena via the (sub, offset, length) slot map. Everything appends to
+ * one client buffer, so the drain's single writeToClient/putClientInPendingWriteQueue sends the
+ * whole batch as ONE writev -- piped and M-command replies flush together by construction. */
+static void tomoBatchReassemble(client *dst, csGroup *g) {
+    for (int op = 0; op < g->bnops; op++) {
+        tomoBatchOp *o = &g->bops[op];
+        switch (o->op) {
+        case TB_GET: {
+            int k = (int)o->kidx;
+            uint32_t len = g->bvlen[k];
+            if (len == TB_RES_NIL)            addReplyNull(dst);
+            else if (len == TB_RES_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else addReplyProto(dst, g->bemit[g->bkeys[k].sub] + g->bvoff[k], len);
+            break;
+        }
+        case TB_MGET: {
+            addReplyArrayLen(dst, (long)o->nkeys);
+            for (uint32_t i = 0; i < o->nkeys; i++) {
+                int k = (int)o->kidx + (int)i;
+                uint32_t len = g->bvlen[k];
+                /* MGET reports a wrong-type key as nil (stock per-key semantics), never an error. */
+                if (len == TB_RES_NIL || len == TB_RES_WRONGTYPE) addReplyNull(dst);
+                else addReplyProto(dst, g->bemit[g->bkeys[k].sub] + g->bvoff[k], len);
+            }
+            break;
+        }
+        case TB_SET:
+        case TB_MSET:
+            addReply(dst, shared.ok);        /* plain SET/MSET are unconditional +OK (options excluded) */
+            break;
+        case TB_DEL: {
+            long ndel = 0;
+            for (uint32_t i = 0; i < o->nkeys; i++) ndel += g->bdel[(int)o->kidx + (int)i];
+            addReplyLongLong(dst, ndel);
+            break;
+        }
+        default: break;
+        }
+    }
 }
 
 /* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
@@ -9957,6 +10578,17 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    /* thredis-batch-ctx: a batch group owns none of the generic result lanes below (no mget_vals,
+     * no setmem, no argv on the head), so it folds and tears down on its own short path. dst==NULL
+     * is the CLOSE_ASAP teardown: free everything, emit nothing. */
+    if (g->ctype == CS_BATCH) {
+        if (dst) tomoBatchReassemble(dst, g);
+        tomoBatchFreeGroup(g);
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        zfree(g->subs); zfree(g);
+        head->csgroup = NULL;
+        return;
+    }
     if (g->pipe_stage) {
         /* merge-exec pipeline: final survivors live in pipe_cand (or an error/empty result).
          * Emits stock reply shapes; teardown below frees the pipe arrays. */

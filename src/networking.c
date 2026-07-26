@@ -4605,6 +4605,20 @@ int processInputBuffer(client *c) {
          * The same applies for clients we want to terminate ASAP. */
         if (c->flags & (CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP)) break;
 
+        /* thredis-batch-ctx (default OFF): absorb a whole RUN of express GET/SET/DEL/MGET/MSET
+         * straight off the wire into ONE batch context -- one pipeline ring slot and one coalesced
+         * work item per OWNER worker -- instead of parsing, dispatching and draining each command
+         * separately. Routing is unchanged (every key still goes to ITS OWN owner's SPSC queue),
+         * so same-client per-key ordering is preserved exactly; the proof is above
+         * tomoBatchTryDispatch (server.c). Attempted only where the per-command dispatch below
+         * actually happens (running_tid == main) and only when lookahead > 1, which is exactly the
+         * !authRequired(c) condition computed at the top of this function. Returns 0 without
+         * touching a single field when it cannot form a batch, so the unchanged path below runs. */
+        if (server.batch_ctx != 0 && lookahead > 1 &&
+            c->running_tid == IOTHREAD_MAIN_THREAD_ID &&
+            tomoBatchTryDispatch(c))
+            continue;
+
         /* Determine if we need to parse more commands from the query buffer.
          * Only parse when there are no ready commands waiting to be processed. */
         const int parse_more = !c->pending_cmds.ready_len;

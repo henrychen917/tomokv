@@ -1837,9 +1837,57 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
                CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
-               CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
-                         * REAL PROC with the full original argv; reply spliced verbatim */
+               CS_LOCAL, /* xshard-localfast: all keys on ONE worker -> single sub runs the
+                          * REAL PROC with the full original argv; reply spliced verbatim */
+               CS_BATCH /* thredis-batch-ctx: a whole RUN of express GET/SET/DEL/MGET/MSET
+                         * absorbed off the wire into ONE ring slot; one coalesced work item
+                         * per OWNER worker; replies reassembled in original command order */
              } csCmdType;
+
+/* ==== BATCH EXECUTION CONTEXT (thredis-batch-ctx) =======================================
+ * PURE scatter-gather batching: routing is IDENTICAL to today's per-command express lane
+ * (every key goes to ITS OWN owner worker's SPSC queue), only the PARSE / DISPATCH /
+ * EXECUTE / REASSEMBLE machinery is amortized over a whole pipeline run. No lock is taken
+ * and no worker ever reads a key it does not own -- that is what keeps same-client per-key
+ * ordering intact (see the ordering proof above tomoBatchTryDispatch in server.c).
+ *
+ * A batch is scanned STRAIGHT OFF c->querybuf into these two flat arrays (no pendingCommand,
+ * no per-arg robj, no per-command ring slot). Byte payloads live in ONE arena copied out of
+ * the querybuf with a single memcpy, so the querybuf can be trimmed while the batch flies. */
+#define TB_GET   0
+#define TB_SET   1
+#define TB_DEL   2
+#define TB_MGET  3
+#define TB_MSET  4
+#define TOMO_BATCH_MAX_OPS   4096   /* hard ceiling on ops absorbed into one batch */
+#define TOMO_BATCH_MAX_KEYS  8192   /* hard ceiling on keys absorbed into one batch */
+#define TOMO_BATCH_AUTO_MIN  4      /* -1 (auto): minimum express run that forms a batch */
+/* bvlen[] sentinels: a real value's arena slot always carries its RESP framing ("$0\r\n\r\n"
+ * for the empty string = 6 bytes), so 0 is free to mean "nil". */
+#define TB_RES_NIL        0u
+#define TB_RES_WRONGTYPE  0xffffffffu
+
+typedef struct tomoBatchOp {
+    uint8_t  op;        /* TB_* */
+    uint32_t kidx;      /* index of this op's first key in csGroup.bkeys[] */
+    uint32_t nkeys;     /* 1 for GET/SET; >=1 for DEL/MGET/MSET */
+} tomoBatchOp;
+
+/* per-key work kind -- what the owner worker does with this key, independent of which op it
+ * came from (GET and an MGET element are the same work; SET and an MSET pair are the same). */
+#define TB_K_READ 0
+#define TB_K_SET  1
+#define TB_K_DEL  2
+
+typedef struct tomoBatchKey {
+    uint32_t koff, klen;  /* key bytes at csGroup.barena + koff */
+    uint32_t voff, vlen;  /* value bytes (SET/MSET only; vlen==0 && voff==0 => none) */
+    uint64_t hash;        /* tomoKeyHash(key) -- computed ONCE on the IO thread, reused by
+                           * the owner worker for its flat probe (kills the worker re-hash) */
+    int32_t  owner;       /* owning worker, resolved from the LIVE bucket table at build */
+    int32_t  sub;         /* index of the sub that carries this key (reply-slot mapping) */
+    uint8_t  kind;        /* TB_K_* */
+} tomoBatchKey;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -2012,6 +2060,30 @@ typedef struct csGroup {
      * provably implementable without a shape change): ---- */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
     long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    /* ---- CS_BATCH (thredis-batch-ctx). All zero on every other group kind. ----
+     * Cross-thread contract, identical in shape to the mget_vals/mget_pos precedent above:
+     * the IO thread writes EVERYTHING below before csPushSpin (release); each worker then
+     * writes ONLY the result lanes of the keys IT OWNS (disjoint indices => no atomics and
+     * no locks); the last sub's pending-barrier fetch_sub(ACQ_REL) plus the head's release
+     * fetch_or publish them to the drain, which is the sole reader. */
+    char        *barena;      /* one memcpy of the batch's wire bytes (key + value payloads) */
+    size_t       barena_len;
+    tomoBatchOp *bops;        /* [bnops] ops in ORIGINAL COMMAND ORDER -- the reply order */
+    int          bnops;
+    tomoBatchKey *bkeys;      /* [bnkeys] keys in original batch order */
+    int          bnkeys;
+    int        **bpos;        /* [nsub] per-sub GLOBAL key-index lists, ASCENDING batch order
+                               * -- this array's order IS the intra-owner execution order and
+                               * therefore the same-key ordering guarantee */
+    int         *bcnt;        /* [nsub] length of bpos[si] */
+    uint8_t     *bhaswrite;   /* [nsub] 1 => this sub carries at least one SET/MSET/DEL key */
+    char       **bemit;       /* [nsub] worker-built CONTIGUOUS arena of RESP-encoded read
+                               * elements (one alloc per sub, not per key); IO thread frees */
+    size_t      *bemit_len;   /* [nsub] bytes used in bemit[si] */
+    size_t      *bemit_cap;   /* [nsub] capacity of bemit[si] */
+    uint32_t    *bvoff;       /* [bnkeys] read result: offset into bemit[bkeys[k].sub] */
+    uint32_t    *bvlen;       /* [bnkeys] read result: TB_RES_NIL / TB_RES_WRONGTYPE / bytes */
+    uint8_t     *bdel;        /* [bnkeys] DEL result: 1 if this key was actually deleted */
 } csGroup;
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
@@ -3498,6 +3570,14 @@ struct redisServer {
     int reshard_chunk;         /* v14 dual-mode: 0=auto granule; N=explicit buckets */
     int drain_tail_skip;       /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
     int express_slim;          /* 2s-auto T3: -1=auto EWMA, 0=off, 1-100=fixed pct */
+    int batch_ctx;             /* thredis-batch-ctx: PIPELINE BATCH CONTEXT. 0=off (DEFAULT -- the
+                                * per-command express path is byte-for-byte untouched); N>=2 = form a
+                                * batch as soon as N consecutive wire commands are all in the express
+                                * set {GET,SET,DEL,MGET,MSET}; -1 = auto (threshold self-derived from
+                                * TOMO_BATCH_AUTO_MIN, no hardware knowledge -- knob philosophy). A
+                                * batch takes ONE ring slot and issues ONE coalesced work item per
+                                * OWNER worker; routing is unchanged, so per-key SPSC FIFO -- and
+                                * hence same-client ordering -- is preserved exactly. */
     int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
     int fake_buf_mode;         /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     _Atomic double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1];
@@ -5618,6 +5698,10 @@ void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
+/* thredis-batch-ctx: try to absorb a run of express commands straight off c->querybuf into ONE
+ * batch context and dispatch it. Returns 1 iff it consumed input (caller re-enters its loop),
+ * 0 iff nothing was touched (caller runs the unchanged per-command path). */
+int tomoBatchTryDispatch(client *c);
 int tomoKeyBucket(const void *keyptr, size_t len);  /* ee451 (S0.2a): key->bucket == kvstore dict index (db.c getKeySlot) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
