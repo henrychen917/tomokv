@@ -75,12 +75,21 @@ run_suite $SD/command_sweep.sh       $PF/command_sweep.tsv        $'\tFAIL' $'\t
 run_suite $SD/stress_reclaim.sh      $PF/stress_reclaim.out       'FAIL:'
 
 say "──────────────────────────────────────────────────────────────────────"
+# PER-VERSION LEDGER: every run is archived and appended to the history, keyed by binary sha —
+# this is the stress bench run for EVERY version; the history is how regressions across versions
+# are seen at a glance.
+mkdir -p $PF/preflight_reports
+GITDESC=$(cd "$(dirname "$BIN")/.." 2>/dev/null && git describe --always --dirty 2>/dev/null || echo unknown)
+cp $REPORT $PF/preflight_reports/${BINSHA}_$(date -u +%Y%m%d_%H%M%S).txt
 if [ "$FAILS" = 0 ]; then
   echo "$BINSHA $(date -u +%s)" > $PF/preflight.GO
+  printf "%s\t%s\t%s\t%s\tGO\t0\t%s\tsmoke=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$SUSPECTS" "$SMOKE" >> $PF/preflight_history.tsv
   say "VERDICT: GO  (suspects: $SUSPECTS)  stamp: $PF/preflight.GO"
+  say "history: $PF/preflight_history.tsv  report archived: preflight_reports/${BINSHA}_*.txt"
   exit 0
 else
   rm -f $PF/preflight.GO
+  printf "%s\t%s\t%s\t%s\tNO-GO\t%s\t%s\tsmoke=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$FAILS" "$SUSPECTS" "$SMOKE" >> $PF/preflight_history.tsv
   say "VERDICT: NO-GO — $FAILS failing checks (suspects: $SUSPECTS). Stamp removed."
   exit 1
 fi
