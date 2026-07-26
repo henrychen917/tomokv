@@ -14,7 +14,9 @@
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
-#   5. feature_sweep.sh        oracle equivalence vs stock Redis + toggles +
+#   5. correctness_suite.sh   ordering/boundary invariants (each check exists
+#                              because a real bug got past a weaker one)
+#   6. feature_sweep.sh        oracle equivalence vs stock Redis + toggles +
 #                              persistence + known-issues ledger
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
 #                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
@@ -69,6 +71,7 @@ run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
 run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
+run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/command_sweep.sh       $PF/command_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
