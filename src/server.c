@@ -6500,13 +6500,17 @@ static void flatWorkerReclaim(exThread *worker) {
  * the whole rebuild, which stalled client I/O; deferring the free instead lets them run untouched.
  * Bounded: at most a couple of tables can be pending, and each is freed at the first beforeSleep
  * where every reader is provably outside a flat region. */
-#define FLAT_RETIRED_TABLES_MAX 8
-static flatTable *flat_retired_tables[FLAT_RETIRED_TABLES_MAX];
+static flatTable **flat_retired_tables;
 static int flat_retired_n;
+static int flat_retired_cap;
 static void flatTableRetire(flatTable *t) {
     if (!t) return;
-    if (flat_retired_n < FLAT_RETIRED_TABLES_MAX) { flat_retired_tables[flat_retired_n++] = t; return; }
-    flatTableFree(t);   /* pathological backlog: fall back to the old inline behaviour */
+    if (flat_retired_n == flat_retired_cap) {
+        flat_retired_cap = flat_retired_cap ? flat_retired_cap * 2 : 8;
+        flat_retired_tables = zrealloc(flat_retired_tables,
+                                      sizeof(*flat_retired_tables) * (size_t)flat_retired_cap);
+    }
+    flat_retired_tables[flat_retired_n++] = t;
 }
 static void flatRetiredTablesTryFree(void) {
     if (!flat_retired_n) return;
@@ -8571,10 +8575,11 @@ static int csPipeAdvance(csGroup *g) {
     /* Launch the next PROBE hop: this shard's keys, excluding the smallest key itself. */
     while (g->pipe_next < g->pipe_nshard) {
         int shard = g->pipe_order[g->pipe_next++];
-        int kidx[64], nk = 0;                          /* argv cap; overflow falls back below */
-        for (int i = 0; i < g->nkeys && nk < 64; i++)
+        int *kidx = zmalloc(sizeof(*kidx) * (size_t)g->nkeys);
+        int nk = 0;
+        for (int i = 0; i < g->nkeys; i++)
             if (g->pipe_shard_of[i] == shard && i != g->pipe_smallest) kidx[nk++] = i;
-        if (nk == 0) continue;                         /* only the smallest key lived here */
+        if (nk == 0) { zfree(kidx); continue; }        /* only the smallest key lived here */
         csPipeFreeStageSubs(g);
         atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
         g->pipe_stage = CS_PIPE_PROBE;
@@ -8586,11 +8591,14 @@ static int csPipeAdvance(csGroup *g) {
         client *sub = csMakeSub(g, 0, w, dbid);
         sub->argv = zmalloc(sizeof(robj*) * (nk + 1));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+        zfree(g->pipe_probe_pos);
+        g->pipe_probe_pos = zmalloc(sizeof(*g->pipe_probe_pos) * (size_t)nk);
         for (int i = 0; i < nk; i++) {
             robj *k = head->argv[first + kidx[i] * s->key_stride];
             sub->argv[i+1] = k; incrRefCount(k);
             g->pipe_probe_pos[i] = kidx[i];            /* argv slot -> original key position */
         }
+        zfree(kidx);
         g->pipe_probe_nk = nk;
         sub->argc = nk + 1;
         csPushSpin(w, sub);
@@ -9512,6 +9520,7 @@ static void csReassemble(client *dst, client *head) {
         }
         for (long c = 0; c < g->pipe_ncand; c++) sdsfree(g->pipe_cand[c]);
         zfree(g->pipe_cand); zfree(g->pipe_verdict); zfree(g->pipe_cscore);
+        zfree(g->pipe_probe_pos);
         zfree(g->pipe_scard); zfree(g->pipe_order); zfree(g->pipe_shard_of);
         g->pipe_cand = NULL; g->pipe_ncand = 0;
         /* fall through to the generic teardown (subs/posmaps/group) with dst handled */
@@ -14436,7 +14445,9 @@ int exQueuePopOrdered(exQueue *q, client **out, int max, uint64_t ceil) {
         if (c->arrival_us > ceil) break;
         out[n++] = c;
     }
-    if (n) atomic_store_explicit(&q->head, h + n, memory_order_release);
+    if (n) atomic_store_explicit(&q->head,
+                                 (h + (unsigned int)n) & server.ex_queue_mask,
+                                 memory_order_release);
     return n;
 }
 int exQueuePopBatch(exQueue *q, client **out, int max) {
@@ -14954,7 +14965,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * BEFORE the retire has since finished a full pass (release here happens-before the reclaimer's
      * acquire). Was migration-only, which left the grace unable to complete in steady state. Also
      * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
-    atomic_fetch_add_explicit(&worker->loop_seq, 1, memory_order_release);
+    uint64_t next_loop_seq =
+        atomic_load_explicit(&worker->loop_seq, memory_order_relaxed) + 1;
+    atomic_store_explicit(&worker->loop_seq, next_loop_seq, memory_order_release);
 
     /* ee451 FLATSTORE reclaim-capacity fix: retire to THIS worker's own list (no CAS) and free our
      * own graced batches here — same-arena frees on a thread that has the cycles. Must be set before

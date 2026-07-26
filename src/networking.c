@@ -347,7 +347,11 @@ client *createFakeClient(client *parent) {
  * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
 #define XSUB_POOL_CAP 96
 static client *xsubPool[TOMO_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
-static int xsubPoolN[TOMO_IO_THREADS_MAX + 1];
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    int n;
+    char pad[CACHE_LINE_SIZE - sizeof(int)];
+} ioLocalPoolCount;
+static ioLocalPoolCount xsubPoolN[TOMO_IO_THREADS_MAX + 1];
 
 /* 2s-auto D1: is this fake's buffer poolable given the fake-buf mode? In auto mode any width
  * within [START,MAX] is reusable; fixed/legacy require the exact configured size. */
@@ -359,8 +363,8 @@ static inline int isFakeBufPoolable(client *c) {
 
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
-    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] > 0) {
-        client *c = xsubPool[t][--xsubPoolN[t]];
+    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n > 0) {
+        client *c = xsubPool[t][--xsubPoolN[t].n];
         /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
          * (ensured at free time). Re-init every other field to the pristine state. */
         resetFakeClientState(c, parent);
@@ -373,7 +377,7 @@ void freePooledFakeClient(client *c) {
     int t = iotid;
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
-    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t] < XSUB_POOL_CAP &&
+    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n < XSUB_POOL_CAP &&
         c->buf && c->reply && isFakeBufPoolable(c)) {
         if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
         releaseAllBufReferences(c);
@@ -387,7 +391,7 @@ void freePooledFakeClient(client *c) {
         reqresReset(c, 1);
 #endif
         serverAssert(c->all_argv_len_sum == 0 && c->pending_cmds.len == 0);
-        xsubPool[t][xsubPoolN[t]++] = c;
+        xsubPool[t][xsubPoolN[t].n++] = c;
         return;
     }
     freeFakeClient(c);
@@ -4106,7 +4110,7 @@ static void setProtocolError(const char *errstr, client *c) {
 #define OPERAND_POOL_CAP 256
 #define OPERAND_POOL_MAX_SDS 512
 static robj *operandPool[TOMO_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
-static int operandPoolN[TOMO_IO_THREADS_MAX + 1];
+static ioLocalPoolCount operandPoolN[TOMO_IO_THREADS_MAX + 1];
 
 /* R1 (alloc census): per-io-thread pendingCommand freelist. Same thread-locality argument as
  * operandPool above: acquire (parse) and the terminal freePendingCommand both run on the client's
@@ -4117,11 +4121,11 @@ static int operandPoolN[TOMO_IO_THREADS_MAX + 1];
 #define PCMD_POOL_CAP 128
 #define PCMD_POOL_MAX_ARGV 64          /* don't hoard oversized argv arrays */
 static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_CAP];
-static int pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
+static ioLocalPoolCount pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
 
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (iotid <= TOMO_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
-        robj *o = operandPool[iotid][--operandPoolN[iotid]];
+    if (iotid <= TOMO_IO_THREADS_MAX && operandPoolN[iotid].n > 0) {
+        robj *o = operandPool[iotid][--operandPoolN[iotid].n];
         o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
         o->refcount = 1;
         return o;
@@ -4131,10 +4135,10 @@ static inline robj *operandPoolGet(const char *ptr, size_t len) {
 
 static inline void operandPoolPut(robj *o) {
     if (iotid <= TOMO_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
-        o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid] < OPERAND_POOL_CAP &&
+        o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid].n < OPERAND_POOL_CAP &&
         sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
         sdsclear(o->ptr);                        /* reset length, keep capacity */
-        operandPool[iotid][operandPoolN[iotid]++] = o;
+        operandPool[iotid][operandPoolN[iotid].n++] = o;
         return;
     }
     decrRefCount(o);
@@ -6635,8 +6639,8 @@ static pendingCommand *acquirePendingCommand(void) {
     /* R1: per-io-thread freelist (see pcmdPool above). argv/argv_len survive recycling, so a hit
      * skips both the struct alloc and the argv realloc. The memset mirrors initPendingCommand —
      * every OTHER field must come back zero (argv_released_mask, keys_result, flags, links). */
-    if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] > 0) {
-        pcmd = pcmdPool[iotid][--pcmdPoolN[iotid]];
+    if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n > 0) {
+        pcmd = pcmdPool[iotid][--pcmdPoolN[iotid].n];
         robj **argv = pcmd->argv;
         int argv_len = pcmd->argv_len;
         memset(pcmd, 0, sizeof(pendingCommand));
@@ -6781,16 +6785,16 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
 
         /* R1: recycle pcmd WITH its argv attached (both allocs skipped on the next acquire).
          * Guarded to the owning-io-identity pool; oversized argv arrays are not hoarded. */
-        if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] < PCMD_POOL_CAP &&
+        if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP &&
             pcmd->argv_len <= PCMD_POOL_MAX_ARGV)
         {
-            pcmdPool[iotid][pcmdPoolN[iotid]++] = pcmd;
+            pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
             return;
         }
         zfree(pcmd->argv);
-    } else if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] < PCMD_POOL_CAP) {
+    } else if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP) {
         /* argv-less pcmd (parse aborted early): still worth recycling the struct. */
-        pcmdPool[iotid][pcmdPoolN[iotid]++] = pcmd;
+        pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
         return;
     }
 
