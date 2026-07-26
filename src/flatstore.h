@@ -44,13 +44,16 @@ typedef struct flatSlot {
 } flatSlot;
 
 /* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
- * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack; the main thread
- * periodically CLOSES the stack into a batch stamped with every worker's loop_seq, and frees a
- * batch only once every worker has advanced past that stamp (so all pre-retire readers finished).
- * One stamp per batch amortizes the snapshot over many deletes. */
+ * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack (or the worker-local
+ * sink); workers and main CLOSE lists into batches stamped with BOTH every worker's loop_seq AND
+ * every io identity's flat_epoch (only the identities inside a region at close — io_pin_mask). A
+ * batch frees once every stamped constituency has either advanced past its stamp or left the region
+ * it was in at close. One stamp per batch amortizes the snapshot over many deletes. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
-#define FLAT_QSBR_MARGIN 2
+#define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
+                              * snapshot. The io clause needs no margin — the epoch publish is a
+                              * full barrier before any table access. */
 
 /* Per-worker retire SINK (ee451 FLATSTORE reclaim-capacity fix). A worker thread points this at its
  * own retire-list head at the top of every exSlice pass; flatRetire then pushes there with NO atomics
@@ -68,6 +71,10 @@ void flatNodePoolTrim(void);
 typedef struct flatBatch {
     flatRetireNode *head;
     uint64_t snap[64 + 1];         /* loop_seq of each worker at close (TOMO_EX_THREADS_MAX) */
+    uint64_t io_snap[32 + 1];      /* tm_io_sig[t].flat_epoch at close; VALID ONLY for bits set in
+                                    * io_pin_mask (TOMO_IO_THREADS_MAX + 1 — _Static_assert'd in
+                                    * server.c; this header cannot see server.h) */
+    uint64_t io_pin_mask;          /* bit t set iff io_snap[t] was ODD (inside a region) at close */
     int nworkers;
     struct flatBatch *next;
 } flatBatch;

@@ -155,14 +155,19 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
  * main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
 #define TM_LAT_RING 64
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
-    /* LINE 0 — read-mostly, polled by EVERY worker in flatBatchReady. Nothing hot-written may share
-     * it. 52cb11a0f put q_full_events immediately before in_flat, so a queue-full burst invalidated
-     * this line on every worker on each event; in_flat now owns the line outright. */
-    _Atomic int in_flat;/* FLATSTORE QSBR: >0 while THIS io identity (0 = main, 1..N = io threads) is
-                         * inside code that may hold a raw flat kvobj pointer. Mirrors the workers'
-                         * in_flat_section. Written only by the owning thread, read by every worker's
-                         * grace check — read-mostly, so it stays Shared. */
-    char _pad_in_flat[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+    /* LINE 0 — read-mostly, snapshotted by every batch close (flatBatchClose) and probed per-batch
+     * in flatBatchReady only while that batch's io_pin_mask bit is set. Nothing hot-written may
+     * share it. 52cb11a0f put q_full_events immediately before the grace word, so a queue-full
+     * burst invalidated this line on every worker on each event; the grace word owns the line. */
+    _Atomic uint64_t flat_epoch;
+                        /* FLATSTORE QSBR region EPOCH for THIS io identity (0 = main, 1..N = io
+                         * threads, io_threads[+ngrow) = spare/flip growth slots).
+                         *   EVEN  => OUTSIDE any flat region; the value is the epoch it last left at.
+                         *   ODD   => INSIDE the region that began at this value.
+                         *   0 (BSS) => never entered, outside.
+                         * Monotone, strictly increasing, written ONLY by the thread that owns this
+                         * slot (see flat_slot_owned), read by the workers' grace machinery. */
+    char _pad_flat_epoch[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
 
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
@@ -173,10 +178,29 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
-_Static_assert(offsetof(tmIoSignal, in_flat) / CACHE_LINE_SIZE
+_Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
-               "in_flat shares a cache line with q_full_events (false sharing on the QSBR grace)");
+               "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
+_Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
+               "flatBatch.io_snap[32+1] in flatstore.h must match TOMO_IO_THREADS_MAX+1");
+_Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
+               "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+
+/* §1.2 — fail-safe foreign-reader pin. Threads with NO registered io slot (module thread-safe
+ * RM_Call, any pthread that never assigns iotid) can still reach call(). They must not publish into
+ * slot 0 — under an epoch that would write a plausible EVEN value into MAIN's slot and license a
+ * free while main is inside its region. They instead take this global pin, which blocks EVERY grace
+ * for the duration: fail-safe, exactly the old flag behaviour, and ~always zero in this fork. */
+static _Atomic int flat_foreign_active __attribute__((aligned(CACHE_LINE_SIZE)));
+static char _pad_flat_foreign[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+static inline int flatIoHi(void);            /* fwd; defined with the region machinery below */
+static int flatIoPinnedCount(void) {         /* INFO gauge: io identities currently inside a region */
+    int n = 0, hi = flatIoHi();
+    for (int t = 0; t <= hi; t++)
+        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_relaxed) & 1) n++;
+    return n;
+}
 /* KNOB: -1 = AUTO (tuned default), 0 = OFF (no batching — pop one item per pass), N = STATIC. */
 static inline int tomoPopBatch(void) {
     if (server.worker_pop_batch < 0) return WORKER_POP_BATCH;
@@ -205,37 +229,110 @@ _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, 
  * threads doing the walking (a use-after-free, and one that worker-side reclaim makes far easier to
  * hit because it shrinks the retire->free window from ~200-400us to a few us).
  *
- * A FLAG, not a counter: a counter that only advances in beforeSleep cannot advance while the thread
- * is inside a long command, so it would pin the grace and stall reclaim indefinitely (== the OOM
- * wedge this whole change set out to fix). A flag clears when the region ends, so it can never
- * deadlock, and "not in a region" is itself proof the thread holds no flat pointer — anything it
- * enters later reads a table the retired value was already unlinked from.
+ * AN EPOCH, not a flag. The counter is bumped on region ENTRY, not at a quiescent point, so a
+ * thread stuck inside a long command holds a high, pinned, ODD value that is NEWER than every batch
+ * closed afterwards — the exact inverse of the failure the old comment feared from counters. The
+ * PARITY supplies the escape hatch it was reaching for: EVEN means "outside", a never-entered or
+ * PARKED or vacated slot is frozen EVEN, and a frozen EVEN slot passes every grace forever with no
+ * registration/deregistration protocol. A pure monotone counter with no parity WOULD stall on a
+ * parked slot; the encoding is mandatory, not cosmetic. This restores the exact two-clause
+ * disjunction the worker side has had all along (loop_seq advanced OR not in a section) — only the
+ * io side lacked the counter, and that asymmetry was the defect: under the old flag, one long
+ * inline region on ANY of the 33 identities blocked EVERY batch on EVERY worker for its whole
+ * duration, including batches closed while the region was already open.
  *
  * COST: workers never execute call() (they run cmd->proc directly from exExecFake), and the common
  * io-thread path DISPATCHES rather than executing inline, so this is off the hot path entirely; the
  * flags are read-mostly, so a worker's grace check hits its own cache. */
-static __thread int flat_extern_depth;
-static inline int flatIsExternThread(void) { return iotid <= TOMO_IO_THREADS_MAX; }  /* io identity, not a worker */
+#define FLAT_SLOT_WORKER (-1)   /* registered as a WORKER: quiescence via loop_seq/in_flat_section */
+#define FLAT_SLOT_NONE   (-2)   /* NOT registered: bio, module background, anything that never sets iotid */
+
+static __thread int      flat_extern_depth;                  /* nesting depth (ALL threads now) */
+static __thread int      flat_slot_owned  = FLAT_SLOT_NONE;  /* io slot this thread may publish into */
+static __thread int      flat_epoch_slot  = -1;              /* slot LATCHED at the outermost enter */
+static __thread uint64_t flat_epoch_val;                     /* the ODD value published at that enter */
+static __thread int      flat_foreign_held;                  /* 1 => this thread holds the global pin */
+
+/* ONE bound expression for the io constituency. Boot-fixed (server.io_threads and tm_ngrow_io are
+ * computed once in initServer), so slot MEMBERSHIP never changes at runtime — only occupancy. Every
+ * writer AND every reader must use this, so the reader constituency can never be narrower than the
+ * writer set. */
+static inline int flatIoHi(void) {
+    int hi = server.io_threads + server.tm_ngrow_io;
+    return hi > TOMO_IO_THREADS_MAX ? TOMO_IO_THREADS_MAX : hi;
+}
+
+/* Positive slot claim. Called at EVERY site that assigns iotid; nothing else may publish an epoch.
+ * This replaces the old flatIsExternThread() gate on the mutable default-zero `iotid`, under which
+ * an unregistered thread reaching call() published into (and CLEARED) main's slot — a cleared
+ * boolean under the flag, a licence to free under a live reader under an epoch. */
+static inline void flatRegisterIoSlot(int slot) {
+    serverAssert(slot >= 0 && slot <= flatIoHi());
+    serverAssert(flat_extern_depth == 0);      /* identity must never change inside a region */
+    flat_slot_owned = slot;
+}
+static inline void flatRegisterWorker(void) {
+    serverAssert(flat_extern_depth == 0);
+    flat_slot_owned = FLAT_SLOT_WORKER;
+}
+
+/* The reader's publish and the reclaimer's snapshot are a Dekker (StoreLoad) pair: publish-then-probe
+ * vs unlink-then-snapshot. On x86-64 a seq_cst store compiles to a locked RMW and is already a full
+ * barrier; on a weakly-ordered target (ARM64 stlr) it is NOT, and the explicit fence is mandatory.
+ * Keep this macro even though it is a no-op on the shipping target — it is the written form of the
+ * obligation. */
+#if defined(__x86_64__) || defined(__i386__)
+#define FLAT_PUBLISH_FENCE() ((void)0)
+#else
+#define FLAT_PUBLISH_FENCE() atomic_thread_fence(memory_order_seq_cst)
+#endif
+
+static void flatExternForeignEnter(void);   /* cold path, defined below */
+static void flatExternForeignExit(void);
+
+/* NOTE: readers deliberately do NOT park on flat_resize_active. An earlier revision did, mirroring
+ * the worker park — but workers park because they are WRITERS (the copy needs the old table
+ * immutable), whereas io threads here are READERS, and parking them blocked all client I/O for
+ * the entire rebuild: PING itself stopped answering for seconds on a large table. Readers are
+ * made safe instead by DEFERRING the old table's free until every reader has left its region
+ * (flatTableRetire / flatRetiredTablesTryFree) — publish-new-then-defer-free, i.e. RCU. */
 static inline void flatExternEnter(void) {
-    if (!flatIsExternThread() || ++flat_extern_depth != 1) return;
-    atomic_store_explicit(&tm_io_sig[iotid].in_flat, 1, memory_order_seq_cst);
-    /* Mirror the worker park at exSlice. Publishing in_flat suffices for the QSBR grace (which only
-     * defers frees of RETIRED values), but not for the table REBUILD: the coordinator frees the whole
-     * old table, so a thread entering a region after the quiesce check would walk freed slots.
-     * iotid 0 (main) is EXEMPT and must be — the coordinator is pumped from main's own beforeSleep,
-     * so main waiting here would deadlock, and it cannot race: main's regions and its coordinator run
-     * on the same thread, serialized. Measured free (interleaved A/B: gate on 4.540/4.503/4.580M vs
-     * gate off 4.516/4.460/4.446M p32 SET). */
-    /* NOTE: readers deliberately do NOT park on flat_resize_active. An earlier revision did, mirroring
-     * the worker park — but workers park because they are WRITERS (the copy needs the old table
-     * immutable), whereas io threads here are READERS, and parking them blocked all client I/O for
-     * the entire rebuild: PING itself stopped answering for seconds on a large table. Readers are
-     * made safe instead by DEFERRING the old table's free until every reader has left its region
-     * (flatTableRetire / flatRetiredTablesTryFree) — publish-new-then-defer-free, i.e. RCU. */
+    if (++flat_extern_depth != 1) return;          /* NESTED: publish nothing (EXEC/Lua/RM_Call) */
+    int s = flat_slot_owned;
+    if (s == FLAT_SLOT_WORKER) return;             /* worker: covered by loop_seq + in_flat_section */
+    if (__builtin_expect(s == FLAT_SLOT_NONE, 0)) { flatExternForeignEnter(); return; }
+    /* FAIL-SAFE arithmetic: (cur|1)+2 is ALWAYS odd and ALWAYS strictly greater than cur, so even
+     * if the "slot is even at an outermost enter" invariant were ever violated (slot aliasing), the
+     * worst outcome is a spurious PIN — never a false "outside", which would be a use-after-free.
+     * Do NOT simplify to cur+1. */
+    uint64_t v = (atomic_load_explicit(&tm_io_sig[s].flat_epoch, memory_order_relaxed) | 1ULL) + 2;
+    flat_epoch_slot = s;                           /* LATCH: exit must not re-resolve identity */
+    flat_epoch_val  = v;
+    atomic_store_explicit(&tm_io_sig[s].flat_epoch, v, memory_order_seq_cst);
+    FLAT_PUBLISH_FENCE();
 }
 static inline void flatExternExit(void) {
-    if (flatIsExternThread() && --flat_extern_depth == 0)
-        atomic_store_explicit(&tm_io_sig[iotid].in_flat, 0, memory_order_seq_cst);
+    if (--flat_extern_depth != 0) return;          /* inner scope of a nested region */
+    if (__builtin_expect(flat_foreign_held, 0))    { flatExternForeignExit(); return; }
+    int s = flat_epoch_slot;
+    if (s < 0) return;                             /* worker, or nothing was published */
+    /* -> EVEN. RELEASE is exactly the LoadStore edge required: every slot word this region read is
+     * ordered before the store that publishes "I hold nothing". One locked op CHEAPER than the old
+     * flag exit (seq_cst store -> release store = plain mov on x86). */
+    atomic_store_explicit(&tm_io_sig[s].flat_epoch, flat_epoch_val + 1, memory_order_release);
+    flat_epoch_slot = -1;
+}
+static void flatExternForeignEnter(void) {
+    flat_foreign_held = 1;
+    atomic_fetch_add_explicit(&flat_foreign_active, 1, memory_order_seq_cst);
+    static _Atomic int warned;
+    if (!atomic_exchange_explicit(&warned, 1, memory_order_relaxed))
+        serverLog(LL_WARNING, "FLATSTORE QSBR: a thread with no registered io slot executed a command; "
+                              "reclamation is pinned while such a thread is inside a command");
+}
+static void flatExternForeignExit(void) {
+    flat_foreign_held = 0;
+    atomic_fetch_sub_explicit(&flat_foreign_active, 1, memory_order_seq_cst);
 }
 static inline void flatExternScopeEnd(const int *unused) { (void)unused; flatExternExit(); }
 /* RAII guard so every return path of a long function is covered — a leaked flag stalls reclaim. */
@@ -3598,6 +3695,7 @@ void initServer(void) {
     server.rdb_pipe_read = -1;
     server.rdb_child_exit_pipe = -1;
     server.main_thread_id = pthread_self();
+    flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
@@ -6107,8 +6205,10 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
  * has passed (all pre-retire lock-free readers have since finished a full pass). */
 /* (flat_main quiescence pair is defined above beforeSleep.) */
 
-/* Close a retire list into a grace batch: snapshot every worker's loop_seq (and main's) right now.
- * `spare` (optional) is a recycle list of spent headers — a batch is ~544B and the worker closes one
+/* Close a retire list into a grace batch: snapshot every worker's loop_seq AND every io identity's
+ * region epoch right now (the old close never stamped io identities at all — the flag was probed
+ * repeatedly at check time instead, which is what made one long region block everything).
+ * `spare` (optional) is a recycle list of spent headers — a batch is ~816B and the worker closes one
  * per pass under write load, so recycling keeps the steady state allocation-free. */
 /* QSBR reclaim observability. Incremented once per BATCH (not per retire), so this is off the hot
  * path entirely. pending = closed - freed is the direct measure of whether the grace is making
@@ -6124,8 +6224,31 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
     b->head = pend;
     int nw = server.num_workers_alloc; if (nw > 64) nw = 64;
     b->nworkers = nw;
+
+    /* MANDATORY StoreLoad fence. Every value in this batch was unlinked with a RELEASE store
+     * (flatOverwrite / flatDelete) BEFORE this point — worker path by program order through
+     * flat_local_sink, main path via the release-CAS push and the acquire exchange at the stack
+     * drain. x86 permits StoreLoad reordering, so without this fence the unlink store and the
+     * snapshot loads below can BOTH be stale: the reader misses the unlink and keeps its pointer,
+     * we miss its publish and record it as outside => premature free. Before this change the pair
+     * was closed only ACCIDENTALLY by the lock-xadd on t->tombs inside flatDelete and the loop_seq
+     * fetch_add in exSlice. ~30 cycles, once per exSlice pass. Do not remove. */
+    atomic_thread_fence(memory_order_seq_cst);
+
     for (int w = 0; w < nw; w++)
         b->snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
+
+    /* io identities: snapshot the region epoch. Only ODD slots (inside a region right now) can ever
+     * hold a pointer into this batch, so only they are recorded — an EVEN slot at this instant holds
+     * nothing, and anything it enters LATER reads a table these values were already unlinked from. */
+    int io_hi = flatIoHi();
+    uint64_t mask = 0;
+    for (int t = 0; t <= io_hi; t++) {
+        uint64_t v = atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst);
+        if (v & 1) { b->io_snap[t] = v; mask |= 1ULL << t; }
+    }
+    b->io_pin_mask = mask;
+
     b->next = next;
     return b;
 }
@@ -6144,15 +6267,28 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
  * batch that may touch a flat table") and it still lets a genuinely parked worker be skipped, so the
  * grace never stalls. Non-worker threads are covered by their own region flags. */
 static int flatBatchReady(const flatBatch *b) {
-    /* NON-WORKER threads (main + every io thread): each must be OUTSIDE a flat region. A thread not
-     * in a region provably holds no flat pointer, and any region it enters later reads a table the
-     * retired value was already unlinked from. Covers every thread that executes commands inline —
-     * which is where SAVE / DEBUG DIGEST / DEBUG RELOAD / KEYS actually run (clients are pinned to
-     * the io thread that accepted them, so these are usually NOT on main). Read-mostly flags. */
-    int io_hi = server.io_threads + server.tm_ngrow_io;
-    if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
-    for (int t = 0; t <= io_hi; t++)
-        if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) return 0;
+    /* NON-WORKER identities. Slot t blocks this batch iff BOTH:
+     *   (i)  it was INSIDE a region when the batch closed (bit t set in io_pin_mask), AND
+     *   (ii) it is STILL inside that same region (its epoch is unchanged).
+     * Any other state is provably safe:
+     *   - bit clear   => t held nothing at close, and any region it enters later reads a table these
+     *                    values were already unlinked from (today's argument, applied once at the
+     *                    earliest safe instant instead of repeatedly at check time);
+     *   - epoch moved => t left that region (exit, or exit+re-enter); it advances ONLY at an
+     *                    outermost enter and an outermost exit, both points where t provably holds
+     *                    no raw flat pointer. Directly analogous to the workers' loop_seq clause.
+     * These are the inline readers: SAVE / DEBUG DIGEST / DEBUG RELOAD / EVAL / DEBUG SLEEP (KEYS is
+     * CS_KEYS/fan-all and runs as worker subs, not inline). Steady state: io_pin_mask == 0 and this
+     * is ONE predictable test, versus the old unconditional 33 seq_cst loads across 33 distinct
+     * cache lines on EVERY readiness check of EVERY batch. */
+    if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
+        return 0;                                   /* unregistered reader inside: fail-safe global pin */
+    uint64_t m = b->io_pin_mask;
+    while (m) {
+        int t = __builtin_ctzll(m); m &= m - 1;
+        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == b->io_snap[t])
+            return 0;                               /* still inside the region it was in at close */
+    }
     /* WORKERS: EITHER loop_seq advanced past the snapshot + margin (passed a quiescent point), OR the
      * worker is not inside a flat section right now (holds nothing). The second clause is what makes
      * a PARKED worker skippable without stalling the grace, and — unlike the old
@@ -6188,7 +6324,12 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     else zfree(b);
 }
 
-/* Free every batch in *pp whose grace has passed (list surgery in place). */
+/* Free every batch in *pp whose grace has passed (list surgery in place).
+ * MONOTONICITY makes a head-first prefix drain sound for BOTH clauses now: for FIFO batches B1
+ * closed before B2, snap1 <= snap2 per worker (loop_seq monotone) and io_snap1[t] <= io_snap2[t]
+ * per io slot (flat_epoch strictly increasing), so B2 ready => B1 ready. Under the old FLAG the io
+ * clause was order-independent: one pinned flag made the head not-ready forever while the list grew
+ * unbounded behind it — the degenerate case this change removes. */
 static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_n) {
     while (*pp) {
         flatBatch *b = *pp;
@@ -6254,10 +6395,13 @@ static void flatTableRetire(flatTable *t) {
 }
 static void flatRetiredTablesTryFree(void) {
     if (!flat_retired_n) return;
-    int io_hi = server.io_threads + server.tm_ngrow_io;
-    if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
+    /* DELIBERATELY still "is anyone inside NOW", all-or-nothing — a retired TABLE has no per-batch
+     * close stamp yet (per-table epoch stamping is the follow-up). Mechanical parity change only:
+     * ODD epoch == inside a region. */
+    if (atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst)) return;
+    int io_hi = flatIoHi();
     for (int t = 0; t <= io_hi; t++)
-        if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) return;   /* a reader is inside */
+        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst) & 1) return;   /* a reader is inside */
     for (int w = 0; w < server.num_workers_alloc && w <= TOMO_EX_THREADS_MAX; w++)
         if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) return;
     for (int i = 0; i < flat_retired_n; i++) flatTableFree(flat_retired_tables[i]);
@@ -6365,10 +6509,18 @@ void flatResizeCoordinate(void) {
          * this coordinator swaps the table and calls flatTableFree(flat_rz_old) below. Draining only
          * exThreads left that a use-after-free. Same constituency the QSBR grace uses. */
         if (all) {
-            int io_hi = server.io_threads + server.tm_ngrow_io;
-            if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
-            for (int t = 0; t <= io_hi; t++)
-                if (atomic_load_explicit(&tm_io_sig[t].in_flat, memory_order_seq_cst)) { all = 0; break; }
+            /* MUTUAL EXCLUSION, not a grace: flatTableCopyChunk needs the old table IMMUTABLE for
+             * the whole rebuild (relaxed loads, never-revisited cursor, no CAS — a concurrent
+             * mutator silently loses keys or copies already-retired kvobjs forward). The epoch
+             * change is mechanical here (ODD == inside), semantics deliberately unchanged; do NOT
+             * "optimize" this into the per-batch stamp comparison, which answers a different
+             * question. This scan also (accidentally but importantly) prevents COPYING during a
+             * DEBUG RELOAD: main's region stays ODD for the whole load, and dbAddRDBLoad is a
+             * NON-WORKER writer of the shared node dbs. */
+            if (atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst)) all = 0;
+            int io_hi = flatIoHi();
+            for (int t = 0; all && t <= io_hi; t++)
+                if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst) & 1) { all = 0; break; }
         }
         if (!all) {
             if (getMonotonicUs() - flat_rz_arm_us > FLAT_RZ_QUIESCE_DEADLINE_US) {
@@ -12658,6 +12810,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_batches_pending:%lu\r\n",
                 atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed) -
                 atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
+            "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
+            "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
@@ -15030,6 +15184,7 @@ void *exThreadMain(void *arg) {
     /* ee451 (thread-modes v1): this TLS store is mode-scoped IDENTITY — when modes
      * go dynamic (step 2) it must swap atomically at the transition checkpoint. */
     iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
+    flatRegisterWorker();   /* FLATSTORE QSBR: quiescence via loop_seq/in_flat_section, never an io slot */
 
     /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
      * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
@@ -15589,6 +15744,7 @@ void *ioThreadMain(void *arg) {
      * producer slots and replyWorking[] index off it. Step 2 swaps it atomically
      * at the mode-transition checkpoint. */
     iotid = t->id;
+    flatRegisterIoSlot(t->id);   /* FLATSTORE QSBR: claim this io slot's epoch word */
 
     fprintf(stderr, "IO thread %d started\n", t->id);
 
@@ -15647,7 +15803,9 @@ void *polyThreadMain(void *arg) {
             case TOMO_MODE_IO:
                 if (!ctx->io) { ok = 0; break; }        /* EX-born: no listener/el (not in v1) */
                 if (cur == TOMO_MODE_EX) { ok = 0; break; }   /* EX->IO direct: illegal — park first */
+                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
+                flatRegisterIoSlot(ctx->io_slot);
                 if (!ctx->io_listening) {
                     /* ee451 (rank-2 re-bind fix): an IO-EXIT CLOSES this slot's listener
                      * (tmMigLeaveAcceptGroup — leaving the reuseport dispatch group closes
@@ -15701,7 +15859,9 @@ void *polyThreadMain(void *arg) {
             case TOMO_MODE_EX:
                 if (!ctx->ex) { ok = 0; break; }        /* IO-born: no shard slot (not in v1) */
                 if (cur == TOMO_MODE_IO) { ok = 0; break; }   /* IO->EX direct: illegal — park first */
+                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
+                flatRegisterWorker();
                 if (!ex_inited) {
                     /* One-time EX setup, exactly as exThreadMain's preamble. */
                     /* v12-K absent on numa lineage — stripped */
