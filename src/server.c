@@ -7111,7 +7111,20 @@ static void tomoMgetLockBorrow(client *fake) {
  * buffers, networking.c:358-396), so a wave-total byte reservation would only hoist predictable
  * size-check branches while the memcpy itself is compulsory — marginal, skipped per the
  * no-new-layers rule; D warms the SOURCE side, the only DRAM-cold half of that copy. */
+/* SUB-WAVE STAGING (user design 2026-07-26). Staging N then executing N front-loads the whole
+ * wave's prefetch issue cost onto the FIRST key's latency: with a 32-wide wave the head key waits
+ * for 32 prefetch issues before its own probe. Each issue is only a few ns against the ~100ns miss
+ * being hidden, so the head should still come out ahead — but the tail is where it would show
+ * (p99.9 rising while p50 falls is exactly the head-of-wave tax made visible).
+ *
+ * So the wave is chunked: stage TOMO_MSUBWAVE, execute TOMO_MSUBWAVE, repeat. This keeps the
+ * prefetch-to-use distance long enough to cover the miss while bounding the head's wait to one
+ * sub-wave. 8 is the starting point: >= the ~10-12 outstanding-miss capacity per sub-wave pair in
+ * flight, and 4x shorter head-wait than the full 32. Both values FIXED, not knobs — this is a
+ * microarchitectural property, not a workload one (knob philosophy). If the DRAM cells show p99.9
+ * regression, halve it; if they show no tail cost, raise it toward TOMO_MWAVE. */
 #define TOMO_MWAVE 32
+#define TOMO_MSUBWAVE 8
 static inline void tomoFlatMWaveProbe(int dbid, robj **keys, int nw,
                                       uint64_t *h, dictEntry **mk, redisDb **dbs) {
     int owner[TOMO_MWAVE];             /* PASS-B hint only; the RAW emit re-derives at lock time */
@@ -7195,7 +7208,7 @@ static void tomoMgetFlatNative(client *fake) {
     int dbid = fake->db->id;
     addReplyArrayLen(fake, nk);
     for (int base = 0; base < nk; base += TOMO_MWAVE) {
-        int nw = nk - base; if (nw > TOMO_MWAVE) nw = TOMO_MWAVE;
+        int nw = nk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
         uint64_t h[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *dbs[TOMO_MWAVE];
         tomoFlatMWaveProbe(dbid, fake->argv + 1 + base, nw, h, mk, dbs);
         for (int i = 0; i < nw; i++) {
@@ -7983,7 +7996,7 @@ static void csSubExec(client *sub) {
                 if (__builtin_expect(g->mcmd_flat, 1)) {
                     int nkk = sub->argc - 1;
                     for (int base = 0; base < nkk; base += TOMO_MWAVE) {
-                        int nw = nkk - base; if (nw > TOMO_MWAVE) nw = TOMO_MWAVE;
+                        int nw = nkk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
                         uint64_t fh[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *fdbs[TOMO_MWAVE];
                         tomoFlatMWaveProbe(borrow_dbid, sub->argv + 1 + base, nw, fh, mk, fdbs);
                         for (int i = 0; i < nw; i++) {
@@ -8114,7 +8127,7 @@ static void csSubExec(client *sub) {
             flatTable *t = kvstoreFlatTable(sub->db->keys);
             int npairs = (sub->argc - 1) / 2;
             for (int base = 0; base < npairs; base += TOMO_MWAVE) {
-                int nw = npairs - base; if (nw > TOMO_MWAVE) nw = TOMO_MWAVE;
+                int nw = npairs - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
                 uint64_t h[TOMO_MWAVE];
                 for (int i = 0; i < nw; i++) {                    /* A0: k+v robj headers */
                     int a = 1 + 2 * (base + i);
