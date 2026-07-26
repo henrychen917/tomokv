@@ -19,7 +19,9 @@
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
 #                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
 #                              anti-thrash, client/key/flip LB families)
-#   7. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
+#   7. command_sweep.sh        per-command-type throughput by DISPATCH CLASS
+#                              vs committed baselines (75%/90% FAIL/SUSPECT)
+#   8. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
 #
 # Verdict rules: any FAIL => NO-GO. SUSPECT => listed loudly, does not block
 # (sanity-gate rule: a suspect number means STOP AND LOOK, and the report says
@@ -69,6 +71,7 @@ run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
+run_suite $SD/command_sweep.sh       $PF/command_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/stress_reclaim.sh      $PF/stress_reclaim.out       'FAIL:'
 
 say "──────────────────────────────────────────────────────────────────────"
