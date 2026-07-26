@@ -15586,24 +15586,29 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
          * parent->flushid is read relaxed: it only advances, so a stale read under-reports progress
          * => we call a head-ready fake "deferred" => conservative, never incorrect.
          *
-         * CROSS-SHARD SUBS ARE EXCLUDED (pr->isFake): a sub's parent is the HEAD FAKE, not the real
-         * client, so its ring_mask/flushid carry no client-ring meaning and the head-ready test is
-         * garbage for them. Reordering on that garbage hoisted an MGET sub ahead of the SET it had
-         * to follow in the same owner queue — 5625/6000 stale reads, caught by the TASK#43
-         * regression. Only genuine ring fakes of a real client are eligible. */
+         * CROSS-SHARD SUBS ARE EXCLUDED via f->csparent — and the discriminator matters: csMakeSub
+         * builds subs with createPooledFakeClient(head->parent), so a sub's parent is the REAL
+         * CLIENT (an isFake test on the parent does NOT catch them — that was a wrong first fix).
+         * A sub's fake_slot carries no client-ring meaning (pooled/stale, frequently 0), so it can
+         * coincidentally equal flushid & ring_mask, get called head-ready, and be hoisted AHEAD of
+         * the SET it must follow in the same owner queue: 5625/6000 stale reads.
+         *
+         * With subs excluded, a ring fake can only ever move EARLIER relative to subs, which is
+         * safe: for a ring fake to be head-ready every earlier command of that client must already
+         * have retired, so no sub of an earlier command can still be in this queue. */
         if (__builtin_expect(n > 1 && server.tomo_retire_sched, 0)) {
             client *ord[WORKER_POP_BATCH];
             int t = 0;
             for (int j = 0; j < n; j++) {
                 client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
-                if (pr && !pr->isFake && !f->drain_ack && !f->is_flush &&
+                if (pr && !f->csparent && !f->drain_ack && !f->is_flush &&
                     f->fake_slot == (pr->flushid & pr->ring_mask))
                     ord[t++] = f;
             }
             if (t > 0 && t < n) {                     /* mixed batch: reordering can help */
                 for (int j = 0; j < n; j++) {
                     client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
-                    if (!(pr && !pr->isFake && !f->drain_ack && !f->is_flush &&
+                    if (!(pr && !f->csparent && !f->drain_ack && !f->is_flush &&
                           f->fake_slot == (pr->flushid & pr->ring_mask)))
                         ord[t++] = f;
                 }
