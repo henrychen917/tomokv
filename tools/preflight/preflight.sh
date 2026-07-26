@@ -1,0 +1,85 @@
+#!/bin/bash
+# ============================ TOMOKV PRE-FLIGHT ============================
+# The canonical gate that runs BEFORE any full comparison benchmark. One entry
+# point, one verdict: GO or NO-GO. A comparison sweep must refuse to start
+# without a fresh GO stamp for the exact binary it will measure (see the stamp
+# contract at the bottom).
+#
+# Usage:
+#   tools/preflight/preflight.sh <path-to-redis-server-binary> [SMOKE=1 env]
+#
+# Suites (each must exist next to this script; missing suite = NO-GO in full
+# mode, SKIP in SMOKE):
+#   1. knob_matrix.sh          every knob x {-1,0,N}: boots, echoes, serves
+#   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
+#   3. numa2_validate.sh       2-simnode correctness
+#   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
+#   5. feature_sweep.sh        oracle equivalence vs stock Redis + toggles +
+#                              persistence + known-issues ledger
+#   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
+#                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
+#                              anti-thrash, client/key/flip LB families)
+#   7. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
+#
+# Verdict rules: any FAIL => NO-GO. SUSPECT => listed loudly, does not block
+# (sanity-gate rule: a suspect number means STOP AND LOOK, and the report says
+# exactly where). KNOWN => expected-broken ledger, changes flip it to FAIL
+# inside the owning suite.
+set -u
+exec 9>/tmp/tomo_preflight.lock
+flock -n 9 || { echo "another preflight is running"; exit 2; }
+
+SD="$(cd "$(dirname "$0")" && pwd)"
+BIN="${1:?usage: preflight.sh <redis-server binary>}"
+[ -x "$BIN" ] || { echo "NO-GO: binary not executable: $BIN"; exit 1; }
+BINSHA=$(sha256sum "$BIN" | cut -c1-16)
+PF=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+REPORT=$PF/preflight_report.txt
+: > $REPORT
+SMOKE=${SMOKE:-0}
+say(){ echo "$@" | tee -a $REPORT; }
+say "TOMOKV PREFLIGHT  $(date -u +%F' '%T)  bin=$BIN sha=$BINSHA smoke=$SMOKE"
+say "──────────────────────────────────────────────────────────────────────"
+
+FAILS=0; SUSPECTS=0
+run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
+  local name=$(basename "$1")
+  if [ ! -x "$1" ]; then
+    if [ "$SMOKE" = 1 ]; then say "SKIP  $name (missing, smoke mode)"; return; fi
+    say "FAIL  $name — suite missing (full mode requires every suite)"; FAILS=$((FAILS+1)); return
+  fi
+  say "RUN   $name ..."
+  TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1
+  local f=0 s=0
+  [ -f "$2" ] && { f=$(grep -cE "$3" "$2" 2>/dev/null || true); s=$(grep -cE "${4:-__none__}" "$2" 2>/dev/null || true); }
+  if [ "${f:-0}" -gt 0 ]; then
+    say "FAIL  $name — $f failing checks:"; grep -E "$3" "$2" | head -5 | sed 's/^/        /' | tee -a $REPORT
+    FAILS=$((FAILS+f))
+  else
+    say "PASS  $name$([ "${s:-0}" -gt 0 ] && echo "  (⚠ $s SUSPECT — read $2)")"
+  fi
+  SUSPECTS=$((SUSPECTS+${s:-0}))
+}
+
+# NOTE: sub-suites currently carry this box's workdir internally; TOMO_BIN is
+# exported for the ported ones. Portability cleanup is tracked, not blocking.
+run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
+run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
+run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
+run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
+run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
+run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
+run_suite $SD/stress_reclaim.sh      $PF/stress_reclaim.out       'FAIL:'
+
+say "──────────────────────────────────────────────────────────────────────"
+if [ "$FAILS" = 0 ]; then
+  echo "$BINSHA $(date -u +%s)" > $PF/preflight.GO
+  say "VERDICT: GO  (suspects: $SUSPECTS)  stamp: $PF/preflight.GO"
+  exit 0
+else
+  rm -f $PF/preflight.GO
+  say "VERDICT: NO-GO — $FAILS failing checks (suspects: $SUSPECTS). Stamp removed."
+  exit 1
+fi
+# STAMP CONTRACT: comparison benchmarks read $PF/preflight.GO and require
+# (a) sha match with the tomo binary they boot, (b) age < 24h. See comp gate.
