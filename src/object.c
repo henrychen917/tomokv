@@ -289,7 +289,11 @@ kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
         size_t size = sizeof(kvobj);
         size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
         size += 4 + len; /* embstr header (3) + nullterm (1) */
-        if (size <= CACHE_LINE_SIZE) {
+        /* CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
+         * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
+         * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
+         * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
+        if (size <= 192u && len <= 255) {
             kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
         } else {
             kv = kvobjCreate(OBJ_STRING, key, sdsnewlen(val->ptr, len), keyMetaBits);
