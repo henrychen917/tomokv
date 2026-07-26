@@ -464,17 +464,21 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  * link - Optional link to bucket where the key should be added.
  *          On return, get updated, by need, to the inserted key.
  *          
- * keymeta - Defines metadata to be attached to the key. Including optional 
+ * keymeta - Defines metadata to be attached to the key. Including optional
  *           expiration and modules metadata to be copied (REQUIRED).
+ *
+ * embedRawOk - see kvobjSetEx(): non-zero only when the caller guarantees the
+ *           stored value is final (never mutated in place through *valref
+ *           without dbUnshareStringValue()).
  */
-kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link, 
-                     const KeyMetaSpec *keymeta) 
+kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
+                     const KeyMetaSpec *keymeta, int embedRawOk)
 {
     int slot = getKeySlot(key->ptr);
     dictEntryLink tmp = NULL;
     if (link == NULL) link = &tmp;
     robj *val = *valref;
-    kvobj *kv = kvobjSet(key->ptr, val, keymeta->metabits);
+    kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, embedRawOk);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -504,17 +508,19 @@ kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
     return kv;
 }
 
-/* Read dbAddInternal() comment */
+/* Read dbAddInternal() comment. No RAW-embed: callers of the generic add path
+ * (SETRANGE/SETBIT/PFADD fresh-create, RM_StringTruncate, ...) may mutate the
+ * stored sds in place right after adding, which requires OBJ_ENCODING_RAW. */
 kvobj *dbAdd(redisDb *db, robj *key, robj **valref) {
     KeyMetaSpec keyMetaEmpty; /* No metadata added */
     keyMetaSpecInit(&keyMetaEmpty);
-    return dbAddInternal(db, key, valref, NULL, &keyMetaEmpty);
+    return dbAddInternal(db, key, valref, NULL, &keyMetaEmpty, 0);
 }
 
 kvobj *dbAddByLink(redisDb *db, robj *key, robj **valref, dictEntryLink *link) {
     KeyMetaSpec keyMetaEmpty; /* No metadata added */
     keyMetaSpecInit(&keyMetaEmpty);
-    return dbAddInternal(db, key, valref, link, &keyMetaEmpty);
+    return dbAddInternal(db, key, valref, link, &keyMetaEmpty, 0);
 }
 
 /* Returns key's hash slot when cluster mode is enabled, or 0 when disabled.
@@ -597,9 +603,12 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
     if (link != NULL)
         return NULL;
 
-    /* Create kvobj with metadata bits from KeyMetaSpec */
+    /* Create kvobj with metadata bits from KeyMetaSpec.
+     * CANDIDATE (census rank-3): RDB-loaded values are final (the loader never
+     * mutates them in place after the add), so RAW-embedding is safe here and
+     * keeps a reloaded dataset allocation-layout-identical to a written one. */
     robj *val = *valref;
-    kvobj *kv = kvobjSet(key, val, keyMetaSpec->metabits);
+    kvobj *kv = kvobjSetEx(key, val, keyMetaSpec->metabits, 1);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1);
 
@@ -642,9 +651,13 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   replacement (in which case we need to emit deletion signals), or just an
  *   update of a value of an existing key (when false).
  * - The `link` is optional, can save lookup, if provided.
+ * - 'embedRawOk': see kvobjSetEx(). Non-zero only when the caller guarantees
+ *   the stored value is final (SETKEY_EMBED_RAW path). MUST stay 0 for the
+ *   dbUnshareStringValue() path, which depends on the replacement staying
+ *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
-static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link, 
-                       int overwrite, int updateKeySizes, int keepTTL) {
+static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -725,8 +738,8 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     } else {
         /* Replace the old value at its location in the key space. */
         val->lru = old->lru;
-        
-        kvNew = kvobjSet(key->ptr, val, newKeyMetaBits);
+
+        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -785,15 +798,21 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
 /* Replace an existing key with a new value, we just replace value and don't
  * emit any events */
 void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
-    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1);
+    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0);
 }
 
 /* Replace an existing key with a new value (don't emit any events)
  *
  * parameter 'link' is optional. If provided, saves lookup.
- */
+ *
+ * No RAW-embed here (embedRawOk=0): dbUnshareStringValueByLink() funnels
+ * through this function and its whole point is to leave an OBJ_ENCODING_RAW
+ * value in the db that the caller (APPEND/SETRANGE/SETBIT/PFADD/StringDMA)
+ * can then realloc in place through kv->ptr. Embedding here would hand those
+ * callers an sds living inside the kvobj allocation -- heap corruption on the
+ * first sdscatlen/sdsgrowzero/sdsResize. */
 void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink link) {
-    dbSetValue(db, key, val, link, 0, 1, 1);
+    dbSetValue(db, key, val, link, 0, 1, 1, 0);
 }
 
 /* High level Set operation. This function can be used in order to set
@@ -846,7 +865,8 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
-        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL);
+        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL,
+                   (flags & SETKEY_EMBED_RAW) != 0);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -854,7 +874,10 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
     } else {
         /* Add the new key to the database */
-        dbAddByLink(db, key, valref, link);
+        KeyMetaSpec keyMetaEmpty; /* No metadata added */
+        keyMetaSpecInit(&keyMetaEmpty);
+        dbAddInternal(db, key, valref, link, &keyMetaEmpty,
+                      (flags & SETKEY_EMBED_RAW) != 0);
     }
 
     /* Signal key modification and update LRM timestamp. */
@@ -2445,7 +2468,7 @@ void renameGenericCommand(client *c, int nx) {
 
     dbDelete(c->db,c->argv[1]);
     
-    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta);
+    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta, 0);
 
     /* If hash with HFEs, register in DB subexpires */
     if (minHashExpireTime != EB_EXPIRE_TIME_INVALID)
@@ -2544,7 +2567,7 @@ void moveCommand(client *c) {
     incrRefCount(kv);            /* ref counter = 1->2 */
     dbDelete(src,c->argv[1]);    /* ref counter = 2->1 */
 
-    dbAddInternal(dst, c->argv[1], &kv, &dstBucket, &keymeta);
+    dbAddInternal(dst, c->argv[1], &kv, &dstBucket, &keymeta, 0);
 
     /* If object of type hash with expiration on fields. Taken care to add the
      * hash to subexpires of `dst` only after dbDelete(). */
@@ -2670,7 +2693,7 @@ void copyCommand(client *c) {
     keyMetaSpecInit(&keymeta);
     if (o->metabits) keyMetaOnCopy(o, key, newkey, c->db->id, dst->id, &keymeta);
 
-    kvobj *kvCopy = dbAddInternal(dst, newkey, &newobj, NULL, &keymeta);
+    kvobj *kvCopy = dbAddInternal(dst, newkey, &newobj, NULL, &keymeta, 0);
 
     /* If minExpiredField was set, then the object is hash with expiration
      * on fields and need to register it in global HFE DS */

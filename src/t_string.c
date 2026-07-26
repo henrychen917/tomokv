@@ -150,6 +150,11 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
     /* When expire is not NULL, we avoid deleting the TTL so it can be updated later instead of being deleted and then created again. */
     setkey_flags |= ((flags & OBJ_KEEPTTL) || expire) ? SETKEY_KEEPTTL : 0;
     setkey_flags |= found ? SETKEY_ALREADY_EXIST : SETKEY_DOESNT_EXIST;
+    /* CANDIDATE (census rank-3): the SET family stores a final value -- nothing
+     * mutates it in place through *valref afterwards -- so a small RAW value
+     * (45B+, which parsing never makes EMBSTR) may be embedded into the kvobj
+     * allocation. See kvobjSetEx(). */
+    setkey_flags |= SETKEY_EMBED_RAW;
 
     setKeyByLink(c, c->db, key, valref, setkey_flags, &link);
     /* If there's an expiration, setExpireByLink may reallocate the object.
@@ -549,7 +554,7 @@ void getdelCommand(client *c) {
 void getsetCommand(client *c) {
     if (getGenericCommand(c) == C_ERR) return;
     c->argv[2] = tryObjectEncoding(c->argv[2]);
-    setKey(c, c->db, c->argv[1], &c->argv[2], 0);
+    setKey(c, c->db, c->argv[1], &c->argv[2], SETKEY_EMBED_RAW);
     incrRefCount(c->argv[2]);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[1],c->db->id);
     markDirty(1);
@@ -615,10 +620,15 @@ void setrangeCommand(client *c) {
         size_t oldsize = 0;
         if (server.memory_tracking_enabled)
             oldsize = kvobjAllocSize(kv);
+        /* FLAT-NATIVE M-reads: the in-place grow can realloc (FREE) the PUBLISHED sds out from
+         * under a lock-free MGET reader, and the memcpy would tear its copy — bracket both with
+         * the key-owner's worker lock (tomoStrGrowLock; inert -1 when flat-native is off). */
+        int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
         kv->ptr = sdsgrowzero(kv->ptr,offset+value_len);
+        memcpy((char*)kv->ptr+offset,value,value_len);
+        tomoStrGrowUnlock(gw);
         if (server.memory_tracking_enabled)
             updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
-        memcpy((char*)kv->ptr+offset,value,value_len);
         keyModified(c,c->db,c->argv[1],kv,1);
         notifyKeyspaceEvent(NOTIFY_STRING,
             "setrange",c->argv[1],c->db->id);
@@ -708,8 +718,9 @@ void msetGenericCommand(client *c, int nx) {
 
     for (j = 1; j < c->argc; j += 2) {
         c->argv[j+1] = tryObjectEncoding(c->argv[j+1]);
-        /* if 'NX', no need set flags SETKEY_DOESNT_EXIST. Already verified earlier! */
-        setKey(c, c->db, c->argv[j], &(c->argv[j+1]) , 0 /*flags*/);
+        /* if 'NX', no need set flags SETKEY_DOESNT_EXIST. Already verified earlier!
+         * SETKEY_EMBED_RAW: MSET values are final, see kvobjSetEx(). */
+        setKey(c, c->db, c->argv[j], &(c->argv[j+1]) , SETKEY_EMBED_RAW);
         incrRefCount(c->argv[j+1]);  /* refcnt not incr by setKey() */
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
     }
@@ -774,8 +785,9 @@ void msetexCommand(client *c) {
 
         c->argv[val_idx] = tryObjectEncoding(c->argv[val_idx]);
 
-        /* Handle KEEPTTL - preserve existing TTL */
-        int setkey_flags = 0;
+        /* Handle KEEPTTL - preserve existing TTL.
+         * SETKEY_EMBED_RAW: MSETEX values are final, see kvobjSetEx(). */
+        int setkey_flags = SETKEY_EMBED_RAW;
         if (args.flags & OBJ_KEEPTTL) {
             setkey_flags |= SETKEY_KEEPTTL;
         }
@@ -824,7 +836,11 @@ void incrDecrCommand(client *c, long long incr) {
         value >= LONG_MIN && value <= LONG_MAX)
     {
         new = o;
-        o->ptr = (void*)((long)value);
+        /* FLAT-NATIVE M-reads: lock-free INT readers load ->ptr with a relaxed atomic; publish
+         * with the matching relaxed atomic store (identical single mov on x86-64 — zero cost,
+         * kept unconditional). The word IS the value, not a pointer to freeable memory, so no
+         * lock is needed on either side. */
+        __atomic_store_n(&o->ptr, (void*)((long)value), __ATOMIC_RELAXED);
         updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr),
                            OBJ_STRING,
                            (int64_t) sdigits10(oldvalue),
@@ -934,7 +950,12 @@ void appendCommand(client *c) {
         o = dbUnshareStringValueByLink(c->db,c->argv[1],o,link);
         if (server.memory_tracking_enabled)
             oldsize = kvobjAllocSize(o);
+        /* FLAT-NATIVE M-reads: the in-place cat reallocs (FREES) the PUBLISHED sds out from under
+         * a lock-free MGET reader — bracket it with the key-owner's worker lock (inert when off).
+         * The unshare above is already safe: it swaps in a NEW object and QSBR-retires the old. */
+        int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
         o->ptr = sdscatlen(o->ptr,append->ptr,append_len);
+        tomoStrGrowUnlock(gw);
         if (server.memory_tracking_enabled)
             updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), o, oldsize, kvobjAllocSize(o));
         totlen = sdslen(o->ptr);

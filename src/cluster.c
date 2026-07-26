@@ -292,8 +292,11 @@ void restoreCommand(client *c) {
         return;
     }
 
-    /* Create the key and set the TTL if any */
-    kvobj *kv = dbAddInternal(c->db, key, &obj, NULL, &keymeta);
+    /* Create the key and set the TTL if any.
+     * embedRawOk=1: RESTORE payloads come from rdbLoadObject() and are final
+     * (same provenance as dbAddRDBLoad; nothing below mutates a string value,
+     * only HASH/STREAM registration reads). See kvobjSetEx(). */
+    kvobj *kv = dbAddInternal(c->db, key, &obj, NULL, &keymeta, 1);
 
     /* If minExpiredField was set, then the object is hash with expiration
      * on fields and need to register it in global HFE DS */

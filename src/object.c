@@ -276,27 +276,70 @@ kvobj *kvobjSetExpire(kvobj *kv, long long expire) {
     return kv;
 }
 
+/* CANDIDATE (census rank-3): the embed-fit arithmetic, shared by the EMBSTR and
+ * RAW branches of kvobjSetEx(). Metadata is discarded from the sum since we
+ * don't have to be accurate and it is placed before the object.
+ * CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
+ * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
+ * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
+ * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
+static inline int kvobjEmbedStringFits(const sds key, size_t len) {
+    size_t size = sizeof(kvobj);
+    size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
+    size += 4 + len; /* embstr header (3) + nullterm (1) */
+    return size <= 192u && len <= 255;
+}
+
 /* This functions may reallocate the value. The new allocation is returned and
  * the old object's reference counter is decremented and possibly freed. Use the
- * returned object instead of 'val' after calling this function. */
-kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
+ * returned object instead of 'val' after calling this function.
+ *
+ * embedRawOk (CANDIDATE census rank-3): when non-zero, an OBJ_ENCODING_RAW
+ * string value that passes the same 192-byte arithmetic as the EMBSTR branch
+ * is COPIED into the kvobj allocation (result encoding OBJ_ENCODING_EMBSTR)
+ * instead of adopting/duplicating the sds into a second allocation. Values of
+ * 45B+ always arrive RAW from parsing (createStringObject()'s 44-byte EMBSTR
+ * limit), so without this they pay the second allocation and its extra cache
+ * line on every value-length read, GET reply and overwrite free.
+ *
+ * Pass 0 (or call kvobjSet()) whenever the caller may later mutate the stored
+ * value in place through kv->ptr without first going through
+ * dbUnshareStringValue() (which requires and produces OBJ_ENCODING_RAW): an
+ * embedded sds lives inside the kvobj allocation and must never be handed to
+ * sdscatlen/sdsgrowzero/sdsResize/sdsRemoveFreeSpace. Concrete offenders if
+ * this were unconditional: PFADD fresh-create then hllSparseAdd's sdsResize;
+ * SETRANGE/SETBIT fresh-create then sdsgrowzero; RM_StringTruncate
+ * fresh-create then sdsgrowzero. Keeping 0 on the metadata-realloc callers
+ * (kvobjSetExpire, keymeta) also preserves today's guarantee that a RAW
+ * value's sds pointer survives a metadata realloc (RM_StringDMA pointers). */
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int embedRawOk) {
     kvobj *kv;
     if (val->type == OBJ_STRING && val->encoding == OBJ_ENCODING_EMBSTR) {
         size_t len = sdslen(val->ptr);
 
-        /* Embed when the sum is less than a cache line (Metadata is discarded 
-         * since we don't have to be accurate and it is placed before the object) */
-        size_t size = sizeof(kvobj);
-        size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
-        size += 4 + len; /* embstr header (3) + nullterm (1) */
-        /* CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
-         * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
-         * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
-         * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
-        if (size <= 192u && len <= 255) {
+        /* Embed when the sum is small (see kvobjEmbedStringFits) */
+        if (kvobjEmbedStringFits(key, len)) {
             kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
         } else {
             kv = kvobjCreate(OBJ_STRING, key, sdsnewlen(val->ptr, len), keyMetaBits);
+        }
+    } else if (embedRawOk && val->type == OBJ_STRING &&
+               val->encoding == OBJ_ENCODING_RAW &&
+               kvobjEmbedStringFits(key, sdslen(val->ptr)))
+    {
+        /* CANDIDATE (census rank-3): RAW single-allocation embed. The <=170B
+         * memcpy (inside kvobjCreateEmbedString -> sdsnewplacement) is noise
+         * next to the saved malloc/free pair of the separate value sds. */
+        size_t len = sdslen(val->ptr);
+        kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
+        /* Mirror the adopt path's consumption contract (below): with
+         * refcount==1 the value sds is consumed here -- the bytes were already
+         * copied, so free it and clear val->ptr so the decrRefCount() at the
+         * end doesn't see it. With refcount>1 other holders keep using val
+         * untouched, exactly like the sdsdup() path below. */
+        if (val->refcount == 1) {
+            sdsfree(val->ptr);
+            val->ptr = NULL;
         }
     } else {
         /* Create a new object with embedded key. Reuse ptr if possible. */
@@ -327,9 +370,14 @@ kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
     /* Transfer module metadata from `val` to new `kv` (if `val` of type kvobj with metadata). */
     if (val->metabits & KEY_META_MASK_MODULES)
         keyMetaTransition((kvobj *) val, kv);
-    
+
     decrRefCount(val);
     return kv;
+}
+
+/* Historical-behavior wrapper: never RAW-embeds. See kvobjSetEx(). */
+kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
+    return kvobjSetEx(key, val, keyMetaBits, 0);
 }
 
 /* Create a string object with EMBSTR encoding if it is smaller than

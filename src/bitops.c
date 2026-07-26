@@ -858,8 +858,12 @@ void setbitCommand(client *c) {
     }
 
     size_t strOldSize, strGrowSize;
+    /* FLAT-NATIVE M-reads: the growzero inside lookupStringForBitCommand can realloc (FREE) the
+     * PUBLISHED sds out from under a lock-free MGET reader, and the byte store below would tear
+     * its copy — bracket the mutation with the key-owner's worker lock (inert when off). */
+    int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen((sds)c->argv[1]->ptr));
     kvobj *o = lookupStringForBitCommand(c, bitoffset, &strOldSize, &strGrowSize);
-    if (o == NULL) return;
+    if (o == NULL) { tomoStrGrowUnlock(gw); return; }
 
     /* Get current values */
     byte = bitoffset >> 3;
@@ -883,9 +887,10 @@ void setbitCommand(client *c) {
          * update the keysizes histogram. Otherwise, the histogram already 
          * updated in lookupStringForBitCommand() by calling dbAdd(). */
         if ((strOldSize > 0) && (strGrowSize != 0))
-            updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_STRING, 
+            updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_STRING,
                                strOldSize, strOldSize + strGrowSize);
     }
+    tomoStrGrowUnlock(gw);   /* FLAT-NATIVE M-reads grower bracket end */
 
     /* Return original value. */
     addReply(c, bitval ? shared.cone : shared.czero);
@@ -1798,6 +1803,7 @@ void bitfieldGeneric(client *c, int flags) {
         j += 3 - (opcode == BITFIELDOP_GET);
     }
 
+    int gw = -1;   /* FLAT-NATIVE M-reads grower bracket (write form only; -1 = not held) */
     if (readonly) {
         /* Lookup for read is ok if key doesn't exit, but errors
          * if it's not a string. */
@@ -1813,10 +1819,15 @@ void bitfieldGeneric(client *c, int flags) {
             return;
         }
 
+        /* FLAT-NATIVE M-reads: the growzero inside lookupStringForBitCommand and the SET/INCRBY
+         * bit stores in the op loop below mutate the PUBLISHED sds in place — bracket vs
+         * lock-free MGET readers (inert when off). */
+        gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen((sds)c->argv[1]->ptr));
         /* Lookup by making room up to the farthest bit reached by
          * this operation. */
         if ((o = lookupStringForBitCommand(c,
             highest_write_offset,&strOldSize,&strGrowSize)) == NULL) {
+            tomoStrGrowUnlock(gw);
             zfree(ops);
             return;
         }
@@ -1941,6 +1952,7 @@ void bitfieldGeneric(client *c, int flags) {
             }
         }
     }
+    tomoStrGrowUnlock(gw);   /* FLAT-NATIVE M-reads grower bracket end (no-op for the RO form) */
 
     if (changes) {
 

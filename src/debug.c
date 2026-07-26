@@ -89,9 +89,28 @@ void xorDigest(unsigned char *digest, const void *ptr, size_t len) {
 }
 
 void xorStringObjectDigest(unsigned char *digest, robj *o) {
-    o = getDecodedObject(o);
-    xorDigest(digest,o->ptr,sdslen(o->ptr));
-    decrRefCount(o);
+    /* ee451 FIX (#38 double-decref, object.c:608): do NOT getDecodedObject() here. On an
+     * sds-encoded object that call is incrRefCount(o) + decrRefCount(o) — a NON-ATOMIC RMW pair
+     * on the LIVE kvobj's refcount bitfield (object.h: refcount:23 packed in the header word) —
+     * executed on the DIGEST thread (an INLINE reader on a main/io identity), while the key's
+     * OWNER worker concurrently RMWs the same word: SET's argv-alias incref 1->2
+     * (setGenericCommand), the post-exec argv release decref (exExecFake, "worker: sole
+     * shard-refcount mutator"), and the QSBR batch decref (flatBatchFree). The flat region
+     * (flatExternEnter epoch) already keeps the POINTER alive for the whole walk, so the
+     * refcount pair added nothing but a torn-RMW race: one lost increment ends with the kvobj
+     * freed while the flat table still points at it — either the worker's `refcount > 1`
+     * release guard reads the torn 1, skips masking, and the io thread's freePendingCommand
+     * frees the DB object; or this thread's own paired decref hits 1->0 — and the NEXT
+     * overwrite retires the freed object, whose batch decref then reads the residual
+     * refcount==0 => the exSlice Guru Meditation seen after SAVE/DIGEST under churn.
+     * Digest bytes are IDENTICAL to getDecodedObject()'s output. */
+    if (sdsEncodedObject(o)) {
+        xorDigest(digest,o->ptr,sdslen(o->ptr));
+    } else {
+        char buf[32];
+        int len = ll2string(buf,sizeof(buf),(long)o->ptr);
+        xorDigest(digest,buf,len);
+    }
 }
 
 /* This function instead of just computing the SHA1 and xoring it
@@ -118,9 +137,15 @@ void mixDigest(unsigned char *digest, const void *ptr, size_t len) {
 }
 
 void mixStringObjectDigest(unsigned char *digest, robj *o) {
-    o = getDecodedObject(o);
-    mixDigest(digest,o->ptr,sdslen(o->ptr));
-    decrRefCount(o);
+    /* ee451 FIX (#38 double-decref, object.c:608): refcount-free digest — a foreign thread must
+     * never mutate a live kvobj's non-atomic refcount word. See xorStringObjectDigest above. */
+    if (sdsEncodedObject(o)) {
+        mixDigest(digest,o->ptr,sdslen(o->ptr));
+    } else {
+        char buf[32];
+        int len = ll2string(buf,sizeof(buf),(long)o->ptr);
+        mixDigest(digest,buf,len);
+    }
 }
 
 /* This function computes the digest of a data structure stored in the

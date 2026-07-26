@@ -2678,10 +2678,13 @@ void freeClient(client *c) {
     reqresReset(c, 1);
 #endif
     /* Remove the contribution that this client gave to our
-     * incrementally computed memory usage. */
+     * incrementally computed memory usage.
+     * TASK#37: atomic — the free runs on the owning identity while other
+     * identities account their own clients into the same global counters
+     * (see updateClientMemoryUsage). */
     if (c->conn)
-        server.stat_clients_type_memory[c->last_memory_type] -=
-            c->last_memory_usage;
+        __atomic_fetch_sub(&server.stat_clients_type_memory[c->last_memory_type],
+                           c->last_memory_usage, __ATOMIC_RELAXED);
     /* Unlink the client: this will close the socket, remove the I/O
      * handlers, and remove references of the client from different
      * places where active clients may be referenced.
@@ -6576,6 +6579,13 @@ size_t getClientEvictionLimit(void) {
 
 void evictClients(void) {
     if (!server.client_mem_usage_buckets)
+        return;
+    /* TASK#37: defense in depth — buckets can only exist in exclusive mode
+     * (initServerClientMemUsageBuckets refuses otherwise), and this walk
+     * samples/frees clients owned by other identities, so bail if
+     * exclusivity is not provable. Called per command from processCommand
+     * and from cron: the NULL check above keeps the hot path unchanged. */
+    if (!clientMemBucketsExclusive())
         return;
     /* Start eviction from topmost bucket (largest clients) */
     int curr_bucket = CLIENT_MEM_USAGE_BUCKETS-1;

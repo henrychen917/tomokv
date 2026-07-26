@@ -118,6 +118,7 @@ typedef struct redisObject kvobj;
 
 kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits);
 kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits);
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int embedRawOk);
 kvobj *kvobjSetExpire(kvobj *kv, long long expire);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
