@@ -4108,6 +4108,17 @@ static void setProtocolError(const char *errstr, client *c) {
 static robj *operandPool[TOMO_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
 static int operandPoolN[TOMO_IO_THREADS_MAX + 1];
 
+/* R1 (alloc census): per-io-thread pendingCommand freelist. Same thread-locality argument as
+ * operandPool above: acquire (parse) and the terminal freePendingCommand both run on the client's
+ * owning io thread, so pcmdPool[iotid] is single-threaded by construction. argv stays ATTACHED to a
+ * pooled pcmd, so a hit also skips the per-command argv realloc (the `multibulklen > argv_len` gate
+ * sees the preserved capacity). Bounded: CAP structs x ~160B + their argv arrays (<64 ptrs each) =
+ * <=80KB per io thread, populated only under load. */
+#define PCMD_POOL_CAP 128
+#define PCMD_POOL_MAX_ARGV 64          /* don't hoard oversized argv arrays */
+static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_CAP];
+static int pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
+
 static inline robj *operandPoolGet(const char *ptr, size_t len) {
     if (iotid <= TOMO_IO_THREADS_MAX && operandPoolN[iotid] > 0) {
         robj *o = operandPool[iotid][--operandPoolN[iotid]];
@@ -6621,6 +6632,19 @@ static pendingCommand *acquirePendingCommand(void) {
     serverAssert(server.io_threads_active == 0 || server.cmd_pool.size == 0);
 
     pendingCommand *pcmd = NULL;
+    /* R1: per-io-thread freelist (see pcmdPool above). argv/argv_len survive recycling, so a hit
+     * skips both the struct alloc and the argv realloc. The memset mirrors initPendingCommand —
+     * every OTHER field must come back zero (argv_released_mask, keys_result, flags, links). */
+    if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] > 0) {
+        pcmd = pcmdPool[iotid][--pcmdPoolN[iotid]];
+        robj **argv = pcmd->argv;
+        int argv_len = pcmd->argv_len;
+        memset(pcmd, 0, sizeof(pendingCommand));
+        pcmd->argv = argv;
+        pcmd->argv_len = argv_len;
+        pcmd->slot = INVALID_CLUSTER_SLOT;
+        return pcmd;
+    }
     if (server.cmd_pool.size > 0) {
         /* Shared pool is available. */
         pcmd = server.cmd_pool.pool[--server.cmd_pool.size];
@@ -6749,13 +6773,25 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
             for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
         }
 
-        zfree(pcmd->argv);
-
         /* c may be NULL when called from reclaimPendingCommand */
         if (c) {
             serverAssert(c->all_argv_len_sum >= pcmd->argv_len_sum); /* assert this doesn't try to go negative */
             c->all_argv_len_sum -= pcmd->argv_len_sum;
         }
+
+        /* R1: recycle pcmd WITH its argv attached (both allocs skipped on the next acquire).
+         * Guarded to the owning-io-identity pool; oversized argv arrays are not hoarded. */
+        if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] < PCMD_POOL_CAP &&
+            pcmd->argv_len <= PCMD_POOL_MAX_ARGV)
+        {
+            pcmdPool[iotid][pcmdPoolN[iotid]++] = pcmd;
+            return;
+        }
+        zfree(pcmd->argv);
+    } else if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid] < PCMD_POOL_CAP) {
+        /* argv-less pcmd (parse aborted early): still worth recycling the struct. */
+        pcmdPool[iotid][pcmdPoolN[iotid]++] = pcmd;
+        return;
     }
 
     zfree(pcmd);
