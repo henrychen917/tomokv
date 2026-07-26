@@ -187,6 +187,48 @@ _Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
                "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 
+/* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
+ * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
+ * curr_run_ctx from EVERY io thread, while a script runs inline on ONE of them => any concurrent
+ * traffic during an EVAL dies on the assert (reproduced: busy EVAL + one SET client => SIGSEGV).
+ *
+ * Phase 1 scope (deliberately minimal, each piece provable):
+ *   - gate word: [63:16] epoch | [7:0] owner (iotid+1), 0 = free. Armed by the script FAMILY only.
+ *   - foreign threads: skip the raced asserts while armed; script-family commands from foreign
+ *     threads get -BUSY (one script at a time, serialized at the CAS); everything else proceeds
+ *     (non-family commands never touch the lua/script globals — they race only shard data, which
+ *     scripts read through the decoy today anyway; honesty over silent wrongness).
+ *   - scriptInterrupt's processEventsWhileBlocked becomes MAIN-OWNER-ONLY: an io-thread owner
+ *     driving server.el (main's loop + main-only coordinators) from a second thread is its own
+ *     corruption class.
+ * NOT in phase 1 (documented, spec'd): foreign park/resume, worker drain fence, membarrier
+ * identity quiesce, single-key inner-read repoint off the decoy, foreign SCRIPT KILL. Scripts
+ * remain decoy-blind for inner reads exactly as before — phase 1 makes them CRASH-FREE, not
+ * correct. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic uint64_t word;   /* [63:16] epoch | [7:0] owner = iotid+1; 0 = free */
+    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
+} tomoScriptStw;
+static tomoScriptStw tomo_script_stw;
+static __thread int tomo_stw_held;   /* this thread's current command holds the gate */
+
+/* The script FAMILY: every command whose proc reads or mutates the shared lua/function state.
+ * FUNCTION KILL/STATS excluded here would be phase-2 refinements; in phase 1 they are family too
+ * (serialized or -BUSY — never a cross-thread read of curr_run_ctx). */
+static inline int tomoScriptFamily(struct redisCommand *cmd) {
+    return cmd->proc == evalCommand || cmd->proc == evalShaCommand ||
+           cmd->proc == evalRoCommand || cmd->proc == evalShaRoCommand ||
+           cmd->proc == fcallCommand || cmd->proc == fcallroCommand ||
+           cmd->proc == scriptCommand ||
+           /* FUNCTION's container proc is NULL — each subcommand has its own proc, and every one
+            * of them reads or mutates the shared engine/registry state. */
+           cmd->proc == functionLoadCommand || cmd->proc == functionDeleteCommand ||
+           cmd->proc == functionKillCommand || cmd->proc == functionStatsCommand ||
+           cmd->proc == functionListCommand || cmd->proc == functionHelpCommand ||
+           cmd->proc == functionFlushCommand || cmd->proc == functionRestoreCommand ||
+           cmd->proc == functionDumpCommand;
+}
+
 /* §1.2 — fail-safe foreign-reader pin. Threads with NO registered io slot (module thread-safe
  * RM_Call, any pthread that never assigns iotid) can still reach call(). They must not publish into
  * slot 0 — under an epoch that would write a plausible EVEN value into MAIN's slot and license a
@@ -5301,7 +5343,16 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
 int processCommand(client *c) {
 
-    if (!scriptIsTimedout()) {
+    /* Script-fence entry gate (phase 1). One acquire load of a line that is never written while no
+     * script runs. While a script is armed on ANOTHER identity, the stock asserts below MUST NOT
+     * run: they read the process-global script state cross-thread — that read was the crash. */
+    uint64_t stw = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
+    /* ARMED == owner byte nonzero. The epoch bits [63:16] survive release by design (monotone),
+     * so testing the whole word against 0 misreads every post-first-script state as foreign-armed
+     * (first fence build did exactly that — one eval, then -BUSY forever). */
+    if (__builtin_expect((stw & 0xff) != 0 && (stw & 0xff) != (uint64_t)(iotid + 1), 0)) {
+        /* foreign & armed: no asserts; the family check below rejects script-family commands. */
+    } else if (!scriptIsTimedout()) {
         /* Both EXEC and scripts call call() directly so there should be
          * no way in_exec or scriptIsRunning() is 1.
          * That is unless lua_timedout, in which case client may run
@@ -5717,6 +5768,34 @@ int processCommand(client *c) {
         return C_OK;
     }
 
+    /* Script fence (phase 1): the FAMILY serializes on the gate word. Foreign-armed => -BUSY
+     * (never park in phase 1); free or self-armed => the stateful branch below acquires. */
+    if (server.num_workers > 0 && tomoScriptFamily(c->cmd)) {
+        uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
+        if ((w & 0xff) != 0 && (w & 0xff) != (uint64_t)(iotid + 1)) {
+            rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
+                                   "in phase 1); try again when it completes");
+            return C_OK;
+        }
+        if ((w & 0xff) == 0) {
+            /* Drain own ring first (the stateful idiom): the fence must not arm above in-flight
+             * dispatches of THIS client. */
+            if (c->dispatchid != c->flushid) {
+                c->flags |= CLIENT_PIPELINE_STALLED;
+                return C_OK;
+            }
+            uint64_t desired = ((w >> 16) + 1) << 16 | (uint64_t)(iotid + 1);
+            if (!atomic_compare_exchange_strong_explicit(&tomo_script_stw.word, &w, desired,
+                                                         memory_order_seq_cst, memory_order_seq_cst)) {
+                rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
+                                       "in phase 1); try again when it completes");
+                return C_OK;
+            }
+            tomo_stw_held = 1;
+        }
+        /* self-armed re-entry (timedout PEWB on main) falls through and executes */
+    }
+
     /* Queuing inside MULTI: writes to real->mstate and addReply(real).
      * Must run on real. Drain ring first. */
     if (c->flags & CLIENT_MULTI &&
@@ -5739,11 +5818,26 @@ int processCommand(client *c) {
     /* Stateful commands — run on real with ring drained. */
     if (isStatefulCommand(c->cmd)) {
         if (c->dispatchid != c->flushid) {
+            /* A held gate must not leak across a stall park (the retry re-enters processCommand
+             * and re-acquires; epoch arithmetic makes the double-arm harmless but the release
+             * would then unpair). Phase 1: release before parking. */
+            if (tomo_stw_held) {
+                tomo_stw_held = 0;
+                uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+                atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
+            }
             c->flags |= CLIENT_PIPELINE_STALLED;
             return C_OK;
         }
         int flags = CMD_CALL_FULL;
         call(c, flags);
+        /* Script-fence release: scriptResetRun NULLed curr_run_ctx inside call(), so any thread
+         * that sees the word freed also sees the script state cleared (release store orders it). */
+        if (tomo_stw_held) {
+            tomo_stw_held = 0;
+            uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+            atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
+        }
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
         return C_OK;
@@ -5761,6 +5855,15 @@ int processCommand(client *c) {
         c->ring_want_grow = 0;
     }
     if (c->dispatchid - c->flushid == c->ring_size) {
+        if (__builtin_expect(tomo_stw_held, 0)) {
+            /* Should be unreachable: the family acquire requires an EMPTY ring, and one push cannot
+             * fill it. If a future edit breaks that argument, releasing here turns a permanent
+             * script wedge into a spurious retry. */
+            tomo_stw_held = 0;
+            uint64_t stw_cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+            atomic_store_explicit(&tomo_script_stw.word, stw_cur & ~0xffULL, memory_order_release);
+            serverLog(LL_WARNING, "script fence: released at ring-full stall (unexpected path)");
+        }
         c->ring_want_grow = 1;   /* demand signal: this client wants a deeper ring */
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
@@ -5923,6 +6026,16 @@ int processCommand(client *c) {
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
         call(fake, flags);
+        /* Script-fence release (phase 1): EVAL executes HERE (the family is not worker-whitelisted,
+         * so it always takes this inline else-branch). scriptResetRun NULLed curr_run_ctx inside
+         * call(); the release store below orders that clear before any thread sees the word free.
+         * (First fence build leaked the gate by releasing only in the stateful branch — caught by
+         * the eval-after-eval check in validation.) */
+        if (__builtin_expect(tomo_stw_held, 0)) {
+            tomo_stw_held = 0;
+            uint64_t stw_cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+            atomic_store_explicit(&tomo_script_stw.word, stw_cur & ~0xffULL, memory_order_release);
+        }
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
         /* Signal completion: set our bit in parent's ready mask. Release

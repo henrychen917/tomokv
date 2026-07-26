@@ -142,7 +142,11 @@ int scriptInterrupt(scriptRunCtx *run_ctx) {
     if (run_ctx->flags & SCRIPT_TIMEDOUT) {
         /* script already timedout
            we just need to precess some events and return */
-        processEventsWhileBlocked();
+        /* TomoKV script fence (phase 1): only a MAIN-thread owner may re-enter the event loop —
+         * processEventsWhileBlocked drives server.el (main's loop, main-only coordinators); a
+         * second thread inside it is a corruption class of its own. An io-thread owner simply
+         * keeps running; its own clients wait (they already do — the loop is blocked in call()). */
+        if (iotid == 0) processEventsWhileBlocked();
         return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
     }
 
@@ -162,9 +166,10 @@ int scriptInterrupt(scriptRunCtx *run_ctx) {
      * we need to mask the client executing the script from the event loop.
      * If we don't do that the client may disconnect and could no longer be
      * here when the EVAL command will return. */
-    protectClient(run_ctx->original_client);
-
-    processEventsWhileBlocked();
+    if (iotid == 0) {                 /* TomoKV: main-owner-only (see the TIMEDOUT branch above) */
+        protectClient(run_ctx->original_client);
+        processEventsWhileBlocked();
+    }
 
     return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
 }
