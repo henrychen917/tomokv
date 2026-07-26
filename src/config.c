@@ -3260,11 +3260,7 @@ standardConfig static_configs[] = {
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
     createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
-    /* DEPRECATED (2026-07-26, user decision): always-lock IS the design — the knob is accepted for
-     * config compatibility but IGNORED; initServer hardwires mcmd_lock = 1. Measured basis: MGET
-     * borrow +57-69% / instr halved, MSET ~0, singles tax <=0.8% (inside the 3% budget), INTER-
-     * family node-exec +40-51%, and HFE commands require the exclusion to exist at all. */
-    createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             1, NULL, NULL),
+    createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             0, NULL, NULL),
     createBoolConfig("tomokv-mcmd-nodelocal",        NULL, IMMUTABLE_CONFIG,   server.mcmd_nodelocal,        0, NULL, NULL), /* EXPERIMENT A/B: MGET/EXISTS via node-locked stock proc instead of borrow (same-node); boot-only */ /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */
     createBoolConfig("tomokv-mcmd-flat",             NULL, IMMUTABLE_CONFIG,   server.mcmd_flat,             1, NULL, NULL), /* FLAT-NATIVE M-reads: MGET as ONE fake to a node-local worker, keys read lock-free off the shared flat table (QSBR-covered); EXISTS borrow subs drop their locks. Default ON but FOLDED at boot to require thredis-flat-store + shared node dbs (+ !mcmd-nodelocal), so it is inert elsewhere. IMMUTABLE for the same in-flight-group reason as mcmd-lock; growers' co-op locks also key off the folded value. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer

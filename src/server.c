@@ -3869,15 +3869,6 @@ void initServer(void) {
     server.rdb_child_exit_pipe = -1;
     server.main_thread_id = pthread_self();
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
-
-    /* ALWAYS-LOCK IS THE DESIGN (2026-07-26): tomokv-mcmd-lock is no longer a behavior switch.
-     * Every worker-db access takes tomo_wkr_lock (self-lock uncontended by construction: <=0.8%
-     * measured on singles), which is what makes the borrow/node-exec/HFE paths and any future
-     * non-owner reader unconditionally safe. A config that tried to disable it is overridden. */
-    if (!server.mcmd_lock) {
-        serverLog(LL_WARNING, "tomokv-mcmd-lock no is DEPRECATED and ignored — always-lock is the design");
-        server.mcmd_lock = 1;
-    }
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
