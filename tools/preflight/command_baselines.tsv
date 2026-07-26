@@ -1,0 +1,41 @@
+# =============================================================================
+# command_baselines.tsv — per-cell throughput baselines for command_sweep.sh
+#                         (preflight suite #8: per-command-type dispatch-class sweep)
+#
+# COLUMNS (TAB-separated):
+#   cell     cell name exactly as emitted in command_sweep.tsv column 2
+#   ops      median client-side ops/sec for that cell's FIXED workload shape
+#            (fa_scan is keys/sec; fa_keys is KEYS-calls/sec — see the cell
+#            table in command_sweep.sh; a baseline is only comparable to a run
+#            of the SAME cell definition)
+#   p99      median p99 latency (msec) as reported by the load generator at
+#            baseline time; NA where the method has no latency report
+#            (cli-pipe and scan cells). Recorded for context, NOT gated on.
+#   binsha   first 16 hex of sha256 of the redis-server binary that set this
+#            baseline (provenance — a baseline from a different feature era
+#            should be re-stamped, not trusted forever)
+#   date     UTC date the baseline was recorded
+#
+# VERDICT CONTRACT (enforced by command_sweep.sh):
+#   ops <  75% of baseline  =>  FAIL(regression)
+#   ops <  90% of baseline  =>  SUSPECT(regression)
+#   ops > 115% of baseline  =>  IMPROVED   (noted, not blocking — but a jump
+#                               you cannot explain is sanity-gate territory)
+#   no row for a cell       =>  PASS(no-baseline)  (cell still floor-checked)
+#
+# UPDATE POLICY: this file is NEVER updated silently. To (re)stamp baselines,
+# run on a quiet box:
+#     UPDATE_BASELINES=1 tools/preflight/command_sweep.sh <redis-server>
+# which merges this run's medians over existing rows (measured cells replace,
+# unmeasured cells are kept), then commit the diff deliberately. Guardrails
+# enforced by the script: FAIL/SUSPECT cells are never stamped (a broken
+# number must not become the new normal) and SMOKE runs refuse to stamp
+# (10s x 1 rep is not baseline-grade). Baselines are box- AND topology-
+# specific (this file's numbers are for the 8C/16T lab box, server pinned
+# 0-7, loadgen 8-15, loopback, canonical io4/ex4 boot — command_sweep's
+# IO_T/EX_T defaults) — do not carry them to another machine or topology.
+#
+# Seeded EMPTY on purpose: the first full run records PASS(no-baseline)
+# everywhere; stamp after the run is inspected and plausible.
+#
+# cell	ops	p99	binsha	date
