@@ -214,7 +214,9 @@ static __thread int tomo_stw_held;   /* this thread's current command holds the 
 
 /* The script FAMILY: every command whose proc reads or mutates the shared lua/function state.
  * FUNCTION KILL/STATS excluded here would be phase-2 refinements; in phase 1 they are family too
- * (serialized or -BUSY — never a cross-thread read of curr_run_ctx). */
+ * (serialized or -BUSY — never a cross-thread read of curr_run_ctx).
+ * COLD: called once per command at table-populate (csStampRoute stamps TOMO_R_SCRIPTFAM); the hot
+ * path tests the bit. The original per-op compare chain measured +0.77% SET / +0.61% GET instr. */
 static inline int tomoScriptFamily(struct redisCommand *cmd) {
     return cmd->proc == evalCommand || cmd->proc == evalShaCommand ||
            cmd->proc == evalRoCommand || cmd->proc == evalShaRoCommand ||
@@ -5770,7 +5772,7 @@ int processCommand(client *c) {
 
     /* Script fence (phase 1): the FAMILY serializes on the gate word. Foreign-armed => -BUSY
      * (never park in phase 1); free or self-armed => the stateful branch below acquires. */
-    if (server.num_workers > 0 && tomoScriptFamily(c->cmd)) {
+    if (__builtin_expect(server.num_workers > 0 && (c->cmd->tomo_route & TOMO_R_SCRIPTFAM), 0)) {
         uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
         if ((w & 0xff) != 0 && (w & 0xff) != (uint64_t)(iotid + 1)) {
             rejectCommandFormat(c, "-BUSY TomoKV: another script is running (one script at a time "
@@ -7344,6 +7346,7 @@ static void csStampRoute(struct redisCommand *c) {
     c->cs_spec = csSpecLookup(c->proc);
     if (isStatefulCommandSlow(c)) c->tomo_route |= TOMO_R_STATEFUL;
     if (c->proc == getCommand || c->proc == setCommand) c->tomo_route |= TOMO_R_EXPRESS;
+    if (tomoScriptFamily(c)) c->tomo_route |= TOMO_R_SCRIPTFAM;   /* fence: stamped once, bit-tested per op */
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
     /* XGUARD: row presence (UNPORTED) forces the bit even where the key-spec predicate can't
