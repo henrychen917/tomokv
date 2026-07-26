@@ -2458,6 +2458,11 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 commandProcessed(fake);
+                /* TASK#43: retire this fake's write, if it was one (see client.inflight_writes).
+                 * Keyed on the dispatch-time mark, not fake->cmd — command state does not reliably
+                 * survive to retire. */
+                if ((fake->flags & CLIENT_TOMO_WRITE) && real->inflight_writes)
+                    real->inflight_writes--;
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
@@ -3869,6 +3874,14 @@ void initServer(void) {
     server.rdb_child_exit_pipe = -1;
     server.main_thread_id = pthread_self();
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
+
+    /* ALWAYS-LOCK IS THE DESIGN: tomokv-mcmd-lock is no longer a behavior switch (a config passing
+     * 'no' is overridden with a warning). Safe to default now that TASK#43's inflight_writes gate
+     * makes the single-executor M-read routes ordering-correct. */
+    if (!server.mcmd_lock) {
+        serverLog(LL_WARNING, "tomokv-mcmd-lock no is DEPRECATED and ignored — always-lock is the design");
+        server.mcmd_lock = 1;
+    }
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
@@ -5626,6 +5639,9 @@ int processCommand(client *c) {
     }
 
     const uint64_t cmd_flags = getCommandFlags(c);
+    /* TASK#43: capture write-ness NOW — moveExecutionState hands c->cmd to the fake, so the
+     * dispatch tail sees c->cmd == NULL and cannot test it there. */
+    const int tomo_is_write = (cmd_flags & CMD_WRITE) != 0;
 
     int is_read_command = (cmd_flags & CMD_READONLY) ||
                            (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_READONLY));
@@ -6097,7 +6113,7 @@ int processCommand(client *c) {
      * the just-moved-key nil window exists, identically to the locked borrow's TOCTOU on the fresh
      * bucket-table read). Checked BEFORE the mcmd_lock borrow so both experiments compose: with both
      * on, MGET goes flat and EXISTS keeps the borrow shape (its subs drop locks via g->mcmd_flat). */
-    if (csp && csp->ctype == CS_MGET && server.mcmd_flat &&
+    if (csp && csp->ctype == CS_MGET && server.mcmd_flat && c->inflight_writes == 0 &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
         if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
             replyWorking++;
@@ -6112,7 +6128,7 @@ int processCommand(client *c) {
             tmLatMaybeStamp(fake);
             exDispatchPush(owner, fake);
         }
-    } else if (csp && server.mcmd_lock && !server.mcmd_nodelocal &&
+    } else if (csp && server.mcmd_lock && !server.mcmd_nodelocal && c->inflight_writes == 0 &&
         (csp->ctype == CS_MGET ||
          (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand && (fake->argc - 1) >= 2)) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
@@ -6205,6 +6221,11 @@ int processCommand(client *c) {
     }
     }   /* end express-lane else */
 
+    /* TASK#43: count this client's in-flight WRITES (see client.inflight_writes). One predictable
+     * test on the dispatch tail; decremented at retire in the drain. Conservative by construction:
+     * any write still in flight disables the single-executor M-read fast paths, which are the only
+     * routes that read keys they do not own. */
+    if (__builtin_expect(tomo_is_write, 0)) { c->inflight_writes++; fake->flags |= CLIENT_TOMO_WRITE; }
     c->dispatchid++;
     return C_OK;
 }

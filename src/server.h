@@ -451,6 +451,7 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
  * thread (reads paused, ring draining toward the quiesce fence). Cleared once the
  * destination io thread re-registers it. Only ever set/read by the client's owning
  * io thread and by the source thread during the drain window. */
+#define CLIENT_TOMO_WRITE (1ULL<<59)  /* TASK#43: this fake carries a WRITE (dispatch-time mark; drain decrements client.inflight_writes) */
 #define CLIENT_MIGRATING (1ULL << 57)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
@@ -1530,6 +1531,15 @@ typedef struct client {
     client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
+    unsigned int inflight_writes;  /* TASK#43: count of this client's dispatched-but-not-yet-retired
+                                    * WRITE commands. Owned by the client's io thread (dispatch
+                                    * increments, drain decrements) — no atomics needed. Gates the
+                                    * single-executor M-read fast paths: those read keys they do not
+                                    * own, so they are NOT ordered against writes sitting in other
+                                    * owners' SPSC queues (per-key FIFO is what makes scatter-gather
+                                    * correct). Zero in-flight writes => no such write can exist =>
+                                    * the fast path is safe. Reads impose no ordering on reads, so a
+                                    * read-only pipeline keeps the fast path. */
     /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to ring_size */
     /* UNIFIED per-connection ring (merges tomokv-pipeline-depth with tomokv-fake-ring-depth: they
