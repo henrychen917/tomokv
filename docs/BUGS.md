@@ -172,7 +172,7 @@ construction.
 
 | task | defect | note |
 |---|---|---|
-| #19 | reshard cutover fence has **three fail-open holes** — ref fence has no incrementer; the drain check reads EMPTY mid-batch; it gates `CMD_WRITE` only. `converged` always returns 1. **Auto-reshard is ON by default and preflight never reshards.** | highest live risk |
+| #19 | reshard cutover fence — see the corrected breakdown in §H below | auto-reshard now defaulted **OFF** (`331d305ee`), so the exposure is removed |
 | #44 | fence `qb_pos == 0` assert under slow-script + SCRIPT KILL, ~20–30%/run, reproduces on pushed production | root cause unconfirmed |
 | #48 | reshard read-straddle (part of #19) | |
 | #49 | pipelined **cross-key** non-serialisation — owner ruled *not guaranteed*, so **document, don't fix** | |
@@ -190,3 +190,118 @@ fence whose counter has no incrementer; a prefetch A/B that was off-vs-off.
 **The rule adopted as a result:** every new regression check must be run against a build that still
 contains the defect and **observed to fail there**. Every A/B must print, in both arms, a counter
 proving which path executed. A test that cannot fail is not evidence.
+
+---
+
+## H. Reshard fence — corrected breakdown
+
+An adversarial audit reported **three fail-open holes** in the cutover fence. On inspection one of
+the three was **over-called**, and I nearly shipped a fix for a non-problem. Recording both the
+corrected finding and my own error, because the error is the more instructive part.
+
+### H1. "The ref fence is vacuous" — TRUE, but NOT a hazard. Do not 'fix' it.
+
+`migration.outstanding_a_refs` has exactly three references tree-wide: the declaration, a
+store-of-0 at arm, and the wait-for-0 at cutover. **There is no incrementer**, so the wait always
+passes. The audit called this fail-open. It is not:
+
+- The field guards zero-copy reply refs pointing into A's range against A's copy being **freed at
+  CLEANUP** — and under `shared_node_dbs`, `CLEANUP IS SKIPPED ENTIRELY`. The tree says so at the
+  phase store: *"nothing to clean — the flipped range's data lives in the SAME dict[b] the new
+  owner now serves; there is no stale source copy."* Nothing is freed by a flip, so no ref can
+  dangle.
+- And the copy path this fence was written for is **unreachable**: `shared_node_dbs =
+  (workers_per_node > 1)`, while a reshard moves a range between two workers **of one node** — with
+  one worker per node there is no valid `(src,dst)` pair. So reshard only ever runs in the mode
+  where the fence is unnecessary.
+
+**My error:** I first "fixed" this by refusing to arm whenever zero-copy was enabled. Since
+`tomokv-zerocopy-min-value` defaults to **1024**, that would have disabled *every* reshard —
+including manual ones used for testing — to guard against a dangling ref that cannot occur.
+Reverted before it shipped; the wait is left in place as a documented no-op, with a note that
+reviving the copy engine would require a real incrementer *plus* a counter proving it fires.
+
+**Lesson:** an audit finding is a hypothesis about the code, not a fact about it. This one was
+mechanically correct ("no incrementer exists") and operationally wrong ("therefore the guarantee is
+missing") — the guarantee was unnecessary, not missing.
+
+### H2. The drain check reads EMPTY mid-batch — REAL, not yet fixed
+
+The coordinator acks a producer slot after ~2 ms of apparent queue emptiness (the idle-ack), but
+`exQueuePopBatch` publishes `head` **before** executing the batch. A worker actively running 16 jobs
+therefore reads as empty and gets acked while range primaries are still executing — the steady state
+of a busy worker, not a rare race.
+
+The correct fix (sentinel-complete fence) deletes the idle-ack and instead **wakes** idle producers
+so each pushes a real sentinel; the notifier machinery exists but is gated on `thread_modes`.
+Deliberately NOT attempted unattended: getting the producer-wake path wrong deadlocks a cutover,
+and with auto-reshard defaulted off the remaining exposure is manual/opt-in only.
+
+### H3. The fence gated `CMD_WRITE` only — REAL, FIXED
+
+`migHoldIfDraining` held only writes, so during DRAINING **reads kept routing to the old owner A**
+while the same client's next command routed to the new owner C after the flip — a same-client
+read/write pair on two workers with nothing ordering them. Same class as A3, triggered by ownership
+movement rather than a non-owner read. The tree's own comment admitted the behaviour ("READS keep
+flowing to worker A until the flip") but not its consequence.
+
+Fixed: hold range reads as well, using the `legacy_range_key_spec.bs.index.pos == 1` predicate
+rather than a bare `argc >= 2` (SCAN's `argv[1]` is a cursor). Held producers still push their
+sentinel every spin and the `iotid == 0` coordinator pump still runs, so widening the held
+population does not deadlock — it only widens who waits.
+
+**Coverage added:** `tools/preflight/reshard_order.py` + `reshard_suite.sh`. Before this,
+`grep -rn RESHARD tools/preflight/` returned **nothing** — which is how three holes accumulated
+unnoticed. The probe pipelines `GET k / SET k NEW / GET k` on one connection while driving real
+cutovers, and a violation is the first GET returning NEW. It **reports SKIP, not PASS, if no
+cutover completed**, so it cannot pass by never entering the window.
+
+---
+
+## I. Allocation ownership — audit result (2026-07-27)
+
+Whole-codebase sweep (18 agents, 124 sites, 81 confirmed asymmetric after independent
+re-verification). Stock Redis executes commands on one thread, so every upstream allocation site
+assumes alloc and free happen on the same thread; this fork splits ingress from execution and
+silently invalidates that.
+
+**Only three shapes fire per command on the default config, and they are three forms of ONE
+object** — the SET-family value operand, allocated by an IO thread at parse and destroyed on a
+worker inside `kvobjSetEx`:
+
+1. value sds 45B..(169−keylen)B — freed at `object.c:382` in the embed branch (worker)
+2. value robj shell — freed at `object.c:423` → `object.c:736` (worker)
+3. value sds above the embed limit, **adopted** into the keyspace — freed a write-generation later
+   via `db.c:790` → `flatstore.c:118` → `server.c:6560` (worker)
+
+Plus, in the other direction: the 16KB `clientReplyBlock` + its `listNode`, allocated on the worker
+and freed on the IO drain, **per command for every worker-executed multi-element read**
+(HGETALL/LRANGE/SMEMBERS/ZRANGE*/SCAN/XRANGE); and `mget_vals`, one sds per key.
+
+### I1. The operand pool's documented invariant is false
+
+`networking.c` states: *"The refcount==1 operands … are alloc'd at parse and freed at
+`freePendingCommand`, **both on the SAME IO thread**, so a per-thread freelist needs no cross-thread
+ring."* That holds for keys and ordinary args. It does **not** hold for the SET **value** operand,
+which `kvobjSetEx` consumes on the worker and which therefore never reaches `freePendingCommand`.
+The pool cannot recycle it, which is consistent with the recorded result that the tiered pool is
+"flat on 64B 1:9" while paying off on write-heavy large-value traffic. `tomokv-opt-operand-pool`
+defaults to 0.
+
+### I2. Two corrections to my own reasoning, recorded because they were wrong
+
+- **I mis-attributed the profile evidence.** I claimed `52200d263`'s "10.2% of EX cycles in the
+  allocator under flat vs 4.4% dict, `je_tcache_bin_flush_small` only under flat" supported the
+  asymmetry hypothesis. It does not: `flatstore.c:72-82` claims that same profile for a *different*
+  mechanism (`flatRetire`'s per-overwrite alloc/free, then freed on main), both halves since fixed.
+  Decisively — a 64B SET overwrite frees **2 IO-origin blocks on the worker under flat *and* under
+  dict**, so the flat-vs-dict *delta* cannot be this asymmetry. The asymmetry is real; it has simply
+  **never been measured**. Do not cite that figure for it.
+- **Zero-copy effectively fires at ≥16KB, not ≥1KB.** `tomokv-zerocopy-min-value` defaults to 1024,
+  but `isCopyAvoidPreferred` also requires `io_threads_num >= 7`, and upstream `io-threads` is
+  `IMMUTABLE_CONFIG` default 1 and never assigned in the fork — so the live branch requires
+  `len >= COPY_AVOID_MIN_STRING_SIZE` = 16384.
+
+**Next step is measurement, not code.** Nothing here has been measured; the fix direction
+(free-on-owner, same-arena, or eliminate the transfer) should be chosen only after instrumenting
+per-thread tcache flush behaviour, and the instrument must be able to come back negative.

@@ -8409,7 +8409,15 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     int *wof = (nkeys <= 128) ? wof_stk : zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
-        if (spec->cs_write && __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        /* FIX (task #48): the `spec->cs_write &&` conjunct used to let cross-shard multi-key READS
+         * straddle the flip -- same defect as the single-key path, just on the coalesced route.
+         * migHoldKeyIfDraining SPINS (it does not park), and carries the same iotid==0 coordinator
+         * pump, so widening it to reads cannot deadlock the cutover: a held producer still pushes
+         * its sentinel each spin and main still advances DRAINING->FLIP. Note this differs from
+         * PARKING here, which would be unsafe -- csLaunchHop2 frees its HOP1 subs before reaching
+         * the hold, so returning to the event loop mid-transaction would re-enter against freed
+         * state. Spinning in place has no such window. */
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
         int w = exIndexForKey(key->ptr, sdslen(key->ptr));
         wof[i] = w; cnt[w]++;
@@ -10388,7 +10396,22 @@ static void migPushFenceIfNeeded(void) {
  * the coordinator can make progress while we block (no deadlock). Called only when active!=0. */
 static void migHoldIfDraining(client *fake) {
     if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
-    if (!(fake->cmd && (fake->cmd->flags & CMD_WRITE) && fake->argc >= 2 && fake->argv && fake->argv[1]))
+    /* FIX (task #48, hole 3 of the fail-open fence): this used to require CMD_WRITE, so READS kept
+     * routing to the OLD owner A right up to the flip while the same client's NEXT command routed
+     * to the new owner C -- a same-client read/write pair executing on two workers with nothing
+     * ordering them. That is the same defect class as the two P0s fixed earlier today (867d79648
+     * non-owner reads, 6e9a31304 multi-hop), triggered by ownership movement instead. The tree's
+     * own comment at the read-flow site admitted the behaviour ("READS keep flowing to worker A
+     * until the flip") but not the ordering consequence.
+     *
+     * Hold range READS as well. Held producers still push their sentinel every spin
+     * (migPushFenceIfNeeded below), and the iotid==0 coordinator pump still runs, so widening the
+     * held population does not introduce a deadlock -- it only widens who waits.
+     *
+     * argv[1] is a key only when the command declares it: SCAN's argv[1] is a CURSOR, so use the
+     * predicate the tree already settled on for the S2 lock rather than a bare argc >= 2. */
+    if (!(fake->cmd && fake->cmd->legacy_range_key_spec.bs.index.pos == 1 &&
+          fake->argc >= 2 && fake->argv && fake->argv[1]))
         return;
     if (!migBucketInRange(migKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))) return;
     /* Push this producer's fence EACH spin (idempotent): if fence_gen wasn't visible on the first
@@ -10422,8 +10445,10 @@ static void migHoldKeyIfDraining(robj *key) {
 }
 
 /* ee451 (W6-E2): DRAINING-window lazy-expire suppression. The drain fence proves every range
- * WRITE dispatched before the sentinel has executed, then samples s_final — but READS keep
- * flowing to worker A until the flip (migHoldIfDraining gates CMD_WRITE only), and a read that
+ * WRITE dispatched before the sentinel has executed, then samples s_final. HISTORICALLY reads
+ * kept flowing to worker A until the flip (migHoldIfDraining gated CMD_WRITE only) -- that is
+ * FIXED as of task #48: range reads are now held too, on both the single-key and coalesced paths.
+ * This suppression is retained as defence in depth for any read that slips the hold, and a read that
  * lazy-expires an in-range key appends a tombstone whose issued_seq fetch_add can land AFTER
  * the s_final load. B keeps draining the log until phase==MIG_DONE, so that late tombstone is
  * applied post-flip and can dbSyncDelete a post-flip client write to the same key on B =
@@ -10601,6 +10626,17 @@ static void reshardCoordinatorTick(void) {
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
         /* Phase D.1: ref-fence (no-op when zerocopy gated off). */
+        /* NOTE (2026-07-27): outstanding_a_refs has no incrementer anywhere in the tree, so this
+         * wait always passes. An adversarial audit called that a fail-open hole; it is not. The
+         * field guards zero-copy reply refs pointing into A's range against A's copy being FREED at
+         * CLEANUP -- and under shared node dbs CLEANUP is skipped entirely (see the phase store
+         * below: "nothing to clean -- the flipped range's data lives in the SAME dict[b] the new
+         * owner now serves"). The value is never freed by a flip, so no ref can dangle.
+         * And reshard cannot run in the other mode: shared_node_dbs = (workers_per_node > 1), while
+         * a reshard moves a range between two workers OF ONE NODE -- with one worker per node there
+         * is no valid (src,dst) pair. So the copy path this fence was written for is unreachable.
+         * Left in place as a no-op guard. If the copy engine is ever revived, this needs a REAL
+         * incrementer plus a counter proving it fires -- do not trust the wait as written. */
         if (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) return;
 
     /* D.2: hand cleanup to worker A (single writer of its shard); it deletes the range and -> DONE.
