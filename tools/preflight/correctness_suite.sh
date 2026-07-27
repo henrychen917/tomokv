@@ -13,7 +13,7 @@ taskset -c 0-7 $CB --port $PORT --dir $J/cs --tomokv-numa-nodes 1 --tomokv-io-th
   --logfile $J/cs.log >/dev/null 2>&1 &
 sleep 3
 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY'
-import socket, sys, random
+import socket, sys, random, struct
 out, port, smoke = sys.argv[1], int(sys.argv[2]), sys.argv[3]=="1"
 R = (lambda n: max(1, n//5)) if smoke else (lambda n: n)
 res=[]
@@ -249,6 +249,98 @@ if rr:
         if [r[0],r[1],r[2],S(r[3]),r[4],S(r[5])]!=[3,1,2,[b"b",b"c"],1,[b"c"]]:
             bad.append(f"{i}:{r}")
     rec("xshard-read-pipeline-order", not bad, f"bad={len(bad)}:{','.join(str(x) for x in bad[:3]) or '-'}")
+
+# 12. SAME-SHARD RENAME of a NON-STRING value (Guru Meditation "Not implemented" #object.c:
+#     under FLATSTORE dbDelete does NOT drop the db's reference synchronously — the node is
+#     QSBR-retired — so renameGenericCommand's `incrRefCount(o); dbDelete(src); dbAddInternal(dst)`
+#     reaches kvobjSetEx() with refcount==2, and a collection had no re-homing branch there =>
+#     serverPanic, process dead. `SADD s m1; RENAME s d` killed the server. Same class as the
+#     setExpireByLink fix (check 8b); the fix passes KVOBJ_SET_MOVE_VALUE.
+#     The same-shard case is FORCED, not hoped for: the keys of each case share one 14-bit tomo
+#     BUCKET (xxh64(key) & 16383), and worker == ex_bucket_table[bucket], so an equal bucket means
+#     the same owning worker for ANY worker count and any table state (incl. after a rebalance or
+#     reshard). A random pair is same-shard only 1/W of the time, and a CROSS-shard rename takes
+#     the 2-hop coordinator path, which never reaches this code — that is exactly how a
+#     "RENAME works fine" test can certify a binary that dies on the third command.
+#     Check 9's rename case could NEVER see it: it renames a STRING (which has the INT/RAW copy
+#     branches above the panic) between indexed keys that are usually cross-shard.
+_P1=0x9E3779B185EBCA87; _P2=0xC2B2AE3D27D4EB4F; _P3=0x165667B19E3779F9
+_P4=0x85EBCA77C2B2AE63; _P5=0x27D4EB2F165667C5; _M=(1<<64)-1
+def _rl(x,r): return ((x<<r)|(x>>(64-r)))&_M
+def _rn(a,i): a=(a+i*_P2)&_M; a=_rl(a,31); return (a*_P1)&_M
+def _mg(a,v): v=_rn(0,v); a^=v; return ((a*_P1)+_P4)&_M
+def _xxh64(b):   # seed 0; byte-identical to src/server.c xxh64() (validated vs the C code)
+    n=len(b); i=0
+    if n>=32:
+        v1=(_P1+_P2)&_M; v2=_P2; v3=0; v4=(0-_P1)&_M
+        while n-i>=32:
+            for j in range(4):
+                w=struct.unpack_from("<Q",b,i)[0]; i+=8
+                if j==0: v1=_rn(v1,w)
+                elif j==1: v2=_rn(v2,w)
+                elif j==2: v3=_rn(v3,w)
+                else: v4=_rn(v4,w)
+        h=(_rl(v1,1)+_rl(v2,7)+_rl(v3,12)+_rl(v4,18))&_M
+        h=_mg(h,v1); h=_mg(h,v2); h=_mg(h,v3); h=_mg(h,v4)
+    else: h=_P5
+    h=(h+n)&_M
+    while n-i>=8:
+        h^=_rn(0,struct.unpack_from("<Q",b,i)[0]); h=((_rl(h,27)*_P1)+_P4)&_M; i+=8
+    if n-i>=4:
+        h^=(struct.unpack_from("<I",b,i)[0]*_P1)&_M; h=((_rl(h,23)*_P2)+_P3)&_M; i+=4
+    while i<n:
+        h^=(b[i]*_P5)&_M; h=(_rl(h,11)*_P1)&_M; i+=1
+    h^=h>>33; h=(h*_P2)&_M; h^=h>>29; h=(h*_P3)&_M; h^=h>>32
+    return h
+def _sameshard(prefix, want):
+    """`want` keys that share ONE bucket => one owning worker, by construction."""
+    seen={}
+    for i in range(400000):
+        k=f"{prefix}:{i}"; b=_xxh64(k.encode())&16383
+        seen.setdefault(b,[]).append(k)
+        if len(seen[b])==want: return seen[b]
+    raise RuntimeError("no same-bucket group for "+prefix)
+
+rnbad=[]; rnalive=False; rnforced=0
+try:
+    rn=RR(port)
+    #  tag,        create,                                   readback,                    expect,          mutate,                      expect2
+    T=[("set-lp",  lambda k:("SADD",k,"a","b","c"),          lambda k:("SMEMBERS",k),     [b"a",b"b",b"c"],lambda k:("SADD",k,"zz"),    [b"a",b"b",b"c",b"zz"]),
+       ("set-int", lambda k:("SADD",k,1,2,3),                lambda k:("SMEMBERS",k),     [b"1",b"2",b"3"],lambda k:("SADD",k,9),       [b"1",b"2",b"3",b"9"]),
+       ("set-ht",  lambda k:tuple(["SADD",k]+[f"m{i}" for i in range(300)]), lambda k:("SCARD",k), 300,   lambda k:("SADD",k,"tail"),  301),
+       ("list",    lambda k:("RPUSH",k,"v1","v2","v3"),      lambda k:("LRANGE",k,0,-1),  [b"v1",b"v2",b"v3"], lambda k:("RPUSH",k,"v4"), [b"v1",b"v2",b"v3",b"v4"]),
+       ("hash",    lambda k:("HSET",k,"f1","a","f2","b"),    lambda k:("HGETALL",k),      [b"a",b"b",b"f1",b"f2"], lambda k:("HSET",k,"f3","c"), [b"a",b"b",b"c",b"f1",b"f2",b"f3"]),
+       ("zset",    lambda k:("ZADD",k,1,"z1",2,"z2"),        lambda k:("ZRANGE",k,0,-1),  [b"z1",b"z2"],   lambda k:("ZADD",k,3,"z3"),  [b"z1",b"z2",b"z3"]),
+       ("stream",  lambda k:("XADD",k,"1-1","f","v"),        lambda k:("XLEN",k),         1,               lambda k:("XADD",k,"2-2","f","v"), 2)]
+    for tag,create,readb,want,mutate,want2 in T:
+        a,b,d = _sameshard("rnss"+tag, 3)
+        rnforced += 1
+        rn.pipe([("DEL",a,b,d)])
+        # (i) plain same-shard rename, then MUTATE the moved value and read it back
+        r=rn.pipe([create(a),("RENAME",a,b),("EXISTS",a),readb(b),mutate(b),readb(b)])
+        if r[1]!=b"OK" or r[2]!=0 or S(r[3])!=S(want) or S(r[5])!=S(want2):
+            rnbad.append(tag+"-rename")
+        # (ii) rename onto an EXISTING destination (overwrite), dest is a string
+        r=rn.pipe([("DEL",a),create(a),("SET",d,"old"),("RENAME",a,d),("TYPE",d),readb(d)])
+        if r[3]!=b"OK" or r[4]==b"string" or S(r[5])!=S(want): rnbad.append(tag+"-overwrite")
+        # (iii) RENAMENX: taken dest => 0 and NO move; free dest => 1
+        r=rn.pipe([("DEL",a,b),create(a),("RENAMENX",a,d),("EXISTS",a),
+                   ("DEL",d),("RENAMENX",a,b),("EXISTS",a),readb(b)])
+        if r[2]!=0 or r[3]!=1 or r[5]!=1 or r[6]!=0 or S(r[7])!=S(want): rnbad.append(tag+"-renamenx")
+        # (iv) rename a key WITH a TTL: combines this move with the setExpireByLink move
+        r=rn.pipe([("DEL",a,d),create(a),("EXPIRE",a,4242),("RENAME",a,d),("TTL",d),readb(d),
+                   ("PERSIST",d),("EXPIRE",d,4343),("TTL",d)])
+        if r[2]!=1 or not (4000 < r[4] <= 4242) or S(r[5])!=S(want) or not (4000 < r[8] <= 4343):
+            rnbad.append(tag+"-ttl")
+        # (v) chain a->b->d: the 2nd hop re-moves an already-moved value
+        r=rn.pipe([("DEL",a,b,d),create(a),("RENAME",a,b),("RENAME",b,d),("EXISTS",b),readb(d)])
+        if r[4]!=0 or S(r[5])!=S(want): rnbad.append(tag+"-chain")
+        rn.pipe([("DEL",a,b,d)])
+    rnalive = rn.pipe([("PING",)])[0]==b"PONG"
+except Exception as e:
+    rnbad.append(f"server-died({type(e).__name__})")
+rec("rename-nonstring-sameshard", rnalive and not rnbad,
+    f"forced={rnforced},alive={int(rnalive)},bad={','.join(rnbad) or '-'}")
 
 open(out,"w").write("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res))
 print("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res), end="")

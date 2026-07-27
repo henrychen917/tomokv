@@ -325,8 +325,8 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  *
  * KVOBJ_SET_MOVE_VALUE: the caller holds an EXTRA reference to `val` that it
  * disposes of itself AFTER this call, and it guarantees that nothing will read
- * `val`'s value through that reference. That is the FLATSTORE metadata-realloc
- * shape (setExpireByLink): it pins the live table object across the realloc
+ * `val`'s value through that reference. Two FLATSTORE callers have that shape.
+ * (1) the metadata-realloc shape (setExpireByLink): it pins the live table object across the realloc
  * purely so the OLD kvobj *allocation* outlives a concurrent lock-free reader's
  * pointer, then QSBR-retires it. Without this flag the pin makes refcount != 1
  * and a non-string value has no cheap re-homing left, so the branch below
@@ -335,11 +335,23 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  * (stock semantics: adopt the ptr, no O(n) duplication of a possibly huge
  * collection), and clearing val->ptr makes the caller's deferred
  * decrRefCount() free the old ALLOCATION ONLY -- which is all the pin ever
- * wanted. Deliberately NOT applied to string values: those keep the copying
+ * wanted.
+ * (2) renameGenericCommand: identical arithmetic from the other side — its
+ * `incrRefCount(o); dbDelete(src); dbAddInternal(dst)` sequence expects dbDelete to
+ * have dropped the db's reference, which a flat store defers to the QSBR grace, so the
+ * pin again leaves refcount == 2 here and `SADD s m1; RENAME s d` (both keys on ONE
+ * shard) panicked. Same disposal: the caller never reads the value through the pin
+ * again, and the retired source shell is freed allocation-only at the grace.
+ *
+ * NOT applied to string values: those keep the copying
  * branches below, because the cross-shard borrow readers do dereference
  * `o->ptr` of an OBJ_STRING they looked up (server.c csSubExec MGET) and a
  * NULL there would be a crash, whereas they type-check before touching a
- * non-string (and EXISTS never touches ptr at all). */
+ * non-string (and EXISTS never touches ptr at all). Note this is a property of the
+ * BRANCH ORDER, not of the callers: a string always matches EMBSTR/INT/RAW above and
+ * can never reach the move, so passing the flag for a string value is a no-op.
+ * The one non-string lock-free ptr dereference in the tree is objectTypeCompare()'s
+ * OBJ_MODULE arm on the flat SCAN path; it now filters a NULL ptr (db.c). */
 kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
     int embedRawOk = (flags & KVOBJ_SET_EMBED_RAW);
     kvobj *kv;

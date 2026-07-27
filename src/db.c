@@ -467,18 +467,21 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  * keymeta - Defines metadata to be attached to the key. Including optional
  *           expiration and modules metadata to be copied (REQUIRED).
  *
- * embedRawOk - see kvobjSetEx(): non-zero only when the caller guarantees the
+ * flags - KVOBJ_SET_* bitmask forwarded to kvobjSetEx(); 0 is the historical
+ *           behaviour. KVOBJ_SET_EMBED_RAW only when the caller guarantees the
  *           stored value is final (never mutated in place through *valref
- *           without dbUnshareStringValue()).
+ *           without dbUnshareStringValue()); KVOBJ_SET_MOVE_VALUE only when the
+ *           caller's extra reference on *valref is a pure lifetime pin
+ *           (renameGenericCommand under FLATSTORE — see there).
  */
 kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
-                     const KeyMetaSpec *keymeta, int embedRawOk)
+                     const KeyMetaSpec *keymeta, int flags)
 {
     int slot = getKeySlot(key->ptr);
     dictEntryLink tmp = NULL;
     if (link == NULL) link = &tmp;
     robj *val = *valref;
-    kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, embedRawOk);
+    kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -1816,6 +1819,12 @@ int objectTypeCompare(robj *o, long long target) {
         else 
             return 1;
     }
+    /* FLATSTORE: this is the ONLY dereference of a non-string ->ptr on the SCAN path, and a flat
+     * SCAN walks every node's table lock-free (see flatScanDbs), so it can observe a kvobj that a
+     * worker just QSBR-retired. A retired shell whose value was MOVED out (KVOBJ_SET_MOVE_VALUE:
+     * first-TTL EXPIRE / RENAME under a flat store) has ptr == NULL until the grace frees it — and
+     * it is not a live key anyway, so filter it out rather than dereference NULL. */
+    if (o->ptr == NULL) return 0;
     /* module type compare */
     moduleType *type = ((moduleValue *)o->ptr)->type;
     long long mt = (long long)REDISMODULE_TYPE_SIGN(type->entity.id);
@@ -2466,9 +2475,28 @@ void renameGenericCommand(client *c, int nx) {
     keyMetaSpecInit(&keymeta);
     if (o->metabits) keyMetaOnRename(c->db, o, c->argv[1], c->argv[2], &keymeta);
 
+    /* FLATSTORE (same class as the setExpireByLink fix): dbDelete does NOT drop the db's
+     * reference synchronously on a flat store — the node is QSBR-retired and its decrRefCount
+     * runs at the reader grace. So the `incrRefCount(o)` pin above leaves refcount == 2 here,
+     * kvobjSetEx() falls through to its multi-ref branch and, for any NON-STRING value, has no
+     * cheap re-homing left => serverPanic("Not implemented") (crash repro: `SADD s m1;
+     * RENAME s d` with both keys on ONE shard, under --thredis-flat-store 1).
+     *
+     * The pin is a LIFETIME pin, not a second reader of the value: nothing reads the value
+     * through `o` after this point (`o` is repointed at the new kvobj by dbAddInternal, and
+     * the retired shell is only ever freed). That is exactly the KVOBJ_SET_MOVE_VALUE
+     * contract, so pass it: the value is MOVED into the new kvobj (no O(n) duplication of a
+     * possibly huge collection — a deep copy here would be a hang-class regression on
+     * `RENAME bigzset`) and the retired old kvobj is freed ALLOCATION-ONLY at grace
+     * (decrRefCount skips the type free when ptr == NULL).
+     * Strings never reach that branch (the EMBSTR/INT/RAW branches above it copy), which is
+     * what keeps the cross-shard borrow readers that DO dereference an OBJ_STRING's ptr safe. */
+    int flat_keys = kvstoreIsFlat(c->db->keys);
+
     dbDelete(c->db,c->argv[1]);
-    
-    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta, 0);
+
+    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta,
+                  flat_keys ? KVOBJ_SET_MOVE_VALUE : 0);
 
     /* If hash with HFEs, register in DB subexpires */
     if (minHashExpireTime != EB_EXPIRE_TIME_INVALID)
