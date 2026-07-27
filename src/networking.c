@@ -594,6 +594,7 @@ client *createClient(connection *conn) {
         if (p2 > (unsigned int)server.pipeline_ring_depth) p2 = (unsigned int)server.pipeline_ring_depth;
         c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
     }
+    c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
     /* Preallocate only for STATIC N (its depth never changes); AUTO and OFF create on demand. */
     int n = server.fake_ring_depth_mode > 0 ? (int)c->ring_size : 0;
     if (n > (int)c->ring_size) n = (int)c->ring_size;

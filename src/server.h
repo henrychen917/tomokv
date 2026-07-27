@@ -1545,6 +1545,16 @@ typedef struct client {
     unsigned int ring_size;             /* power of two, <= TOMO_PIPELINE_DEPTH_MAX */
     unsigned int ring_mask;             /* ring_size - 1 */
     unsigned int ring_want_grow;        /* set on a ring-full stall; applied at the next empty ring */
+    /* ORDER-2 (multi-hop pipeline barrier). Pipelined ordering under sharding rests on ONE
+     * invariant: same key => same owner queue => FIFO, because every sub is pushed from the
+     * dispatch loop in client order. MULTI-STAGE cross-shard groups break it — their later
+     * subs (HOP2 write/src-op, merge-exec gather/probe stages) are pushed from the DRAIN
+     * thread, long after this client's SUBSEQUENT commands were already queued on the very
+     * same per-key queues. Those later commands then execute against pre-HOP2 state (verified:
+     * xshard SMOVE/RENAME/COPY/LMOVE/SINTERSTORE/MSETNX + merge-exec SINTER/SINTERCARD).
+     * Set at dispatch when such a group is armed; the next command from this client stalls
+     * until the ring drains (the stateful-drain idiom). Real clients only, IO-thread only. */
+    unsigned int cs_barrier;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
     unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;

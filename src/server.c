@@ -5990,6 +5990,27 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
+    /* ORDER-2 (multi-hop pipeline barrier). Same-client pipelined ordering is guaranteed by
+     * "same key => same owner queue => FIFO", which holds only because every sub is pushed
+     * from THIS loop in client order. A multi-stage cross-shard group (HOP2 plan/scatter, or
+     * a merge-execution stage chain) pushes its later subs from the DRAIN thread, by which
+     * time the commands that FOLLOW it in this pipeline are already queued on the same
+     * per-key queues — so they execute against pre-HOP2 state and the group's own later
+     * stages can straddle them. Verified divergences vs stock, 60/60 reps each: xshard
+     * SMOVE/RENAME/COPY/LMOVE/SINTERSTORE (next command reads the un-moved key), MSETNX
+     * (two identical MSETNX both answer :1), merge-exec SINTER/SINTERCARD (torn stages).
+     * Fix: once such a group is armed, no further command from this client is dispatched
+     * until the ring drains — the same drain idiom the stateful commands above use. Only
+     * cross-shard multi-hop commands pay it; every 1-hop path is untouched. */
+    if (__builtin_expect(c->cs_barrier != 0, 0)) {
+        if (c->dispatchid != c->flushid) {
+            /* A held gate is released by the invocation guard on this return; the drain wakes
+             * us (CLIENT_PIPELINE_STALLED) as slots retire and we re-evaluate. */
+            c->flags |= CLIENT_PIPELINE_STALLED;
+            return C_OK;
+        }
+        c->cs_barrier = 0;   /* ring empty => the multi-hop group has fully retired */
+    }
     /* Apply a pending GROW here: the ring is empty, so remapping slots is a no-op. Growth is fast
      * (every drain is a checkpoint); decay is slow (cron). One predictable compare on the hot path. */
     if (__builtin_expect(c->ring_want_grow && c->dispatchid == c->flushid, 0)) {
@@ -8607,6 +8628,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     g->pipe_scard = zcalloc(sizeof(long) * nkeys);
     g->pipe_shard_of = zmalloc(sizeof(int) * nkeys);
     g->pipe_stage = CS_PIPE_SIZES;
+    head->parent->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
     for (int i = 0; i < nkeys; i++) {
         robj *k = head->argv[first + i * s->key_stride];
         g->pipe_shard_of[i] = exIndexForKey(k->ptr, sdslen(k->ptr));
@@ -8889,10 +8911,28 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
          * funnels one worker; ZINTER 0.87x — the reference largest-driver fold beats the stock
          * accumulator). So: INTER-family + counts + TOUCH only; unions/diffs/zops keep their
          * optimized paths. */
+        /* ORDER-2 (2026-07-27): the node BORROW has ONE executor read keys it does NOT own, so
+         * it bypasses those owners' queues — the exact non-owner-read defect that was deleted
+         * from the M-read dispatch site (see the "M-READS ARE SCATTER-GATHER ONLY" note in
+         * processCommand). It lets this client's own EARLIER pipelined write to a borrowed key
+         * still be sitting unexecuted in its owner's queue while the borrow reads that key
+         * (verified vs stock, 41/100 reps: SINTERCARD after a pipelined SREM answered the
+         * pre-SREM cardinality; same class for SINTER).
+         * The borrow is only order-safe when this client has NOTHING else in flight, i.e. its
+         * fake ring is empty at dispatch (dispatchid == flushid; dispatchid is bumped at the end
+         * of processCommand, so this fake is not counted yet). That is the steady state of every
+         * request/response client, so the measured win below is kept where it was measured; a
+         * PIPELINING client falls through to scatter-gather, which is ordered by construction
+         * (same key => same owner queue => FIFO). cs_barrier then keeps the NEXT command out
+         * until the borrow retires, closing the write-after-read side.
+         * Do not drop the ring-empty test to "get the optimization back" — it is the only thing
+         * that makes a non-owner read legal. */
         if (same_node && server.shared_node_dbs && server.mcmd_lock &&
+            head->parent->dispatchid == head->parent->flushid &&
             ((s->ctype == CS_SETOP && s->setop == CS_SETOP_INTER) ||
              s->ctype == CS_SETCARD || s->ctype == CS_ZCARD || s->ctype == CS_EXISTS ||
              (s->ctype == CS_MGET && server.mcmd_nodelocal))) {   /* A/B: stock MGET vs borrow */
+            head->parent->cs_barrier = 1;                   /* no later command may overtake it */
             dispatchLocalReal(head, w0, dbid, node0 + 1);   /* node-locked stock exec */
             return;
         }
@@ -8934,6 +8974,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     }
     if (s->has_hop2) {   /* step 5+ (*STORE/BITOP/PFMERGE/MSETNX); dead at Step R (boot-asserted) */
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
+        head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
         if (s->dst_argi)   g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
         if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
@@ -9367,6 +9408,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     /* cross-shard: stamp the HOP2 PLAN from the ROW; HOP1 sub 0 carries only [CMD src]
      * (+ sub 1 = [CMD dst] probe when h1_probe_dst, step 4+ — verdict lands in g->probe). */
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
+    head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
     g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
     g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = s->dst_argi };
     if (s->h2_del_src)

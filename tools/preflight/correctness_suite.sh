@@ -154,6 +154,102 @@ except Exception as e:
     nsbad.append(f"server-died({type(e).__name__})")
 rec("expire-realloc-nonstring", alive and not nsbad, f"alive={int(alive)},bad={','.join(nsbad) or '-'}")
 
+# ---------------------------------------------------------------------------
+# ORDER-2 regression block (checks 9-11). Same-client pipelined ordering under
+# sharding rests on "same key => same owner queue => FIFO", which holds only while
+# every sub is pushed from the dispatch loop in client order. Three paths broke it:
+#   - multi-hop cross-shard groups (HOP2 plan/scatter) push their 2nd hop from the
+#     DRAIN thread, after the following commands were already queued;
+#   - the merge-execution stage chain (SINTER/SINTERCARD) does the same per stage;
+#   - the node-local BORROW runs one executor over keys it does not own, skipping
+#     those owners' queues entirely.
+# All three answered from pre-HOP2 / pre-write state. Checks 1-8 could NEVER see it:
+# they only pipeline single-key strings, which are 1-hop and owner-routed.
+# These need a STRICT RESP reader (checks above use substring predicates, which
+# cannot tell "reply 3 is wrong" from "reply 3 is late") and a fresh connection, so
+# leftover unconsumed bytes from the loose readers above cannot desync the parser.
+# Keys are indexed pairs: with W workers a random pair is cross-shard with p=(W-1)/W,
+# so a few dozen pairs guarantee cross-shard coverage without mirroring the hash here.
+class RR:
+    def __init__(self, port):
+        self.s=socket.create_connection(("127.0.0.1",port)); self.s.settimeout(30)
+        self.s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.f=self.s.makefile("rb")
+    def read(self):
+        ln=self.f.readline()
+        if not ln: raise IOError("connection closed")
+        t,b=ln[0:1],ln[1:-2]
+        if t==b"+": return b
+        if t==b"-": return ("err", b.decode("utf-8","replace"))
+        if t==b":": return int(b)
+        if t==b"$":
+            n=int(b)
+            return None if n==-1 else self.f.read(n+2)[:-2]
+        if t==b"*":
+            n=int(b)
+            return None if n==-1 else [self.read() for _ in range(n)]
+        raise IOError("bad resp %r"%ln)
+    def pipe(self, ops):
+        self.s.sendall(b"".join(cmd(*o) for o in ops))
+        return [self.read() for _ in ops]
+def S(x): return sorted(x) if isinstance(x,list) else x
+
+try: rr=RR(port)
+except Exception as e:
+    rr=None
+    for n in ("xshard-2hop-pipeline-order","msetnx-allornothing-pipelined","xshard-read-pipeline-order"):
+        rec(n, False, f"connect={e}")
+
+# 9. MULTI-HOP CROSS-SHARD command followed, in the SAME pipeline, by a read of the
+#    keys it touched. Pre-fix the follower observed the state BEFORE hop 2: SMOVE's
+#    member still in src, RENAME's dst still absent, SINTERSTORE's dst still empty.
+if rr:
+    bad=[]
+    for i in range(R(60)):
+        a,b=f"o2sm:a{i}",f"o2sm:b{i}"
+        rr.pipe([("DEL",a,b),("SADD",a,"m1","m2"),("SADD",b,"z")])
+        r=rr.pipe([("SMOVE",a,b,"m1"),("SMEMBERS",a),("SMEMBERS",b)])
+        if [r[0],S(r[1]),S(r[2])]!=[1,[b"m2"],[b"m1",b"z"]]: bad.append(f"smove{i}")
+        x,y=f"o2rn:a{i}",f"o2rn:b{i}"
+        rr.pipe([("DEL",x,y),("SET",x,"V1")])
+        r=rr.pipe([("RENAME",x,y),("GET",y),("EXISTS",x)])
+        if [r[0],r[1],r[2]]!=[b"OK",b"V1",0]: bad.append(f"rename{i}")
+        p,q,dst=f"o2ss:a{i}",f"o2ss:b{i}",f"o2ss:d{i}"
+        rr.pipe([("DEL",p,q,dst),("SADD",p,"a","b","c"),("SADD",q,"b","c","d")])
+        r=rr.pipe([("SINTERSTORE",dst,p,q),("SMEMBERS",dst)])
+        if [r[0],S(r[1])]!=[2,[b"b",b"c"]]: bad.append(f"sstore{i}")
+    rec("xshard-2hop-pipeline-order", not bad, f"bad={len(bad)}:{','.join(bad[:5]) or '-'}")
+
+# 10. MSETNX is all-or-nothing. Two IDENTICAL MSETNX in one pipeline must answer 1
+#     then 0, and the keys must exist afterwards. Pre-fix both existence-probe waves
+#     ran before either write wave, so both answered 1 — and the trailing EXISTS,
+#     dispatched ahead of the HOP2 scatter, saw none of the keys written.
+if rr:
+    bad=[]
+    for i in range(R(40)):
+        ks=[f"o2mn:{i}:{j}" for j in range(6)]
+        rr.pipe([tuple(["DEL"]+ks)])
+        mn=tuple(["MSETNX"]+[x for k in ks for x in (k,"v")])
+        r=rr.pipe([mn,mn,tuple(["EXISTS"]+ks)])
+        if r!=[1,0,6]: bad.append(f"{i}:{r}")
+    rec("msetnx-allornothing-pipelined", not bad, f"bad={len(bad)}:{','.join(bad[:3]) or '-'}")
+
+# 11. CROSS-SHARD READ vs this client's own EARLIER pipelined write. The node-local
+#     borrow (one executor, non-owner reads) and the merge-execution stage chain both
+#     let the read skip a write still queued on another owner's queue, so SINTERCARD /
+#     SINTER answered the pre-SREM value. Both keys are read, so a stale answer on
+#     either side shows up.
+if rr:
+    bad=[]
+    for i in range(R(60)):
+        a,b=f"o2si:a{i}",f"o2si:b{i}"
+        rr.pipe([("DEL",a,b),("SADD",a,"a","b","c"),("SADD",b,"a","b","c")])
+        r=rr.pipe([("SINTERCARD",2,a,b),("SREM",b,"a"),("SINTERCARD",2,a,b),
+                   ("SINTER",a,b),("SREM",a,"b"),("SINTER",a,b)])
+        if [r[0],r[1],r[2],S(r[3]),r[4],S(r[5])]!=[3,1,2,[b"b",b"c"],1,[b"c"]]:
+            bad.append(f"{i}:{r}")
+    rec("xshard-read-pipeline-order", not bad, f"bad={len(bad)}:{','.join(str(x) for x in bad[:3]) or '-'}")
+
 open(out,"w").write("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res))
 print("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res), end="")
 PY
