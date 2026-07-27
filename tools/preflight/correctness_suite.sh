@@ -9,7 +9,7 @@ PORT=7994; OUT=$J/correctness_suite.out; : > $OUT
 cp "$BIN" $J/redis-corr 2>/dev/null; CB=$J/redis-corr
 pkill -9 -x redis-corr 2>/dev/null; sleep 1; rm -rf $J/cs; mkdir -p $J/cs; : > $J/cs.log
 taskset -c 0-7 $CB --port $PORT --dir $J/cs --tomokv-numa-nodes 1 --tomokv-io-threads 4 \
-  --tomokv-ex-threads 4 --thredis-flat-store 1 --save '' --appendonly no --protected-mode no \
+  --tomokv-ex-threads 4 --thredis-flat-store 1 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
   --logfile $J/cs.log >/dev/null 2>&1 &
 sleep 3
 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY'
@@ -121,6 +121,14 @@ rec("expire-realloc-then-read", bad==0, f"bad={bad}")
 open(out,"w").write("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res))
 print("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res), end="")
 PY
+# STRESS-ORDERING: re-run the ordering check WHILE the server is under churn — the P0 stale-read
+# bug was load-dependent, so a quiescent check alone is not sufficient evidence.
+taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --test-time=25 --ratio=1:1 \
+  -d 64 --key-pattern=R:R --key-maximum=200000 -t 4 -c 10 --pipeline 16 --distinct-client-seed >/dev/null 2>&1 &
+MTPID=$!
+TOMO_BIN="$BIN" LBL="under-load" EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE=$PORT $J/ord_test.sh 2>/dev/null \
+  | grep -q 'stale=0' && echo "ordering-under-load	PASS	" >> $OUT || echo "ordering-under-load	FAIL	stale reads under churn" >> $OUT
+wait $MTPID 2>/dev/null
 grep -cE 'Guru|crashed by signal|ASSERTION' $J/cs.log | awk '{if($1>0) print "crash-markers\tFAIL\t"$1; else print "crash-markers\tPASS\t0"}' >> $OUT
 pkill -9 -x redis-corr 2>/dev/null
 echo "RESULT: $(grep -c 'PASS' $OUT) passed, $(grep -c 'FAIL' $OUT) failed" >> $OUT
