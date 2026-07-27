@@ -14,7 +14,10 @@
  *  Single-writer-per-KEY (one owner per bucket) means the CAS only ever resolves cross-KEY physical
  *  collisions; a key is never inserted/deleted by two threads at once. A deleted/overwritten value is
  *  QSBR-retired (flatRetire) and freed only after every live worker's loop_seq grace, so concurrent
- *  lock-free readers (incl. cross-shard MGET borrow) never dereference freed memory. */
+ *  lock-free readers never dereference freed memory. Those readers still exist after the node
+ *  borrow was deleted (2026-07-27): the cross-shard MGET/SETOP subs, and above all the
+ *  worker-routed top-level SCAN, whose composite-cursor slice walks EVERY node's flat table
+ *  (flatScanDbs, db.c) and so derefs kvobjs it does not own. QSBR is what makes that legal. */
 #include "server.h"          /* dictGetKV, kvobj, kvobjGetKey, sds, zcalloc, serverAssert */
 #include "flatstore.h"
 #include <string.h>

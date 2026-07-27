@@ -827,7 +827,8 @@ section_B() {
     stop_srv "$B_LAST_PID"
 
     b_cell mcmd-lock scan --tomokv-mcmd-lock yes;                     stop_srv "$B_LAST_PID"
-    b_cell mcmd-nodelocal scan --tomokv-mcmd-lock yes --tomokv-mcmd-nodelocal yes; stop_srv "$B_LAST_PID"
+    # mcmd-nodelocal cell REMOVED 2026-07-27: the knob selected the node-local borrow, which is
+    # deleted. Booting with an unknown option is a hard boot failure, so the cell cannot stay.
     b_cell thread-modes-balance scan --tomokv-thread-modes yes --tomokv-thread-balance yes; stop_srv "$B_LAST_PID"
 
     # xshard-guard OFF: stream is ported-only => identical results; plus a positive

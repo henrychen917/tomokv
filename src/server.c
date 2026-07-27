@@ -2626,9 +2626,17 @@ void handleWorkerReplies(void) {
 
         /* A slot opened up; if real stalled waiting for ring space or drain,
          * wake it. processInputBuffer will re-evaluate and dispatch whatever
-         * was sitting in pending_cmds. */
+         * was sitting in pending_cmds.
+         * The wake condition must match the condition the stalled client will actually
+         * re-test, or the wake is guaranteed wasted work. A ring-space stall clears as
+         * soon as ONE slot frees (dispatchid - flushid < ring_size), but a client held
+         * by cs_barrier is only released when the ring goes fully EMPTY
+         * (dispatchid == flushid — see processInputBuffer). Waking it on every retiring
+         * slot made it re-enter processInputBuffer, re-fail the barrier test and re-stall
+         * once per slot: O(ring depth) pointless entries per barrier. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            (real->dispatchid - real->flushid) < real->ring_size)
+            (real->cs_barrier ? (real->dispatchid == real->flushid)
+                              : ((real->dispatchid - real->flushid) < real->ring_size)))
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -6898,20 +6906,25 @@ static int tmWorkerLive(int w) {
            atomic_load_explicit(&server.tm_node_wlive[w / server.ex_per_node], memory_order_acquire);
 }
 
-/* ==== M-command lock-borrow (EXPERIMENT, 2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
+/* ==== Per-worker db lock (2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
  * The lock granularity MUST match the data-structure granularity. In non-cluster mode a worker's
- * shard db is ONE dict (kvstore slot_count_bits==0), NOT one-dict-per-bucket — so a borrower's
+ * shard db is ONE dict (kvstore slot_count_bits==0), NOT one-dict-per-bucket — so an off-worker
  * dictFind and the owner's dictAdd/rehash touch the SAME dict and a per-BUCKET lock does not exclude
- * them (SIGSEGV during rehash). Hence the lock is PER-WORKER: the owner takes its own worker lock for
- * every op; a borrower takes the OWNING worker's lock to read that worker's db. This is coarse (all
- * of a worker's keys share one lock), so borrowers to the same worker serialize with each other and
- * with the owner — the fine-grained "buckets rarely collide" win needs a per-bucket kvstore (the
- * shared-keyspace S0 change). tomoWkrTrylock is non-blocking (M-executor BACKLOGS + moves on); inert
- * while mcmd_lock==0 (the lock-free path is byte-for-byte unchanged). */
+ * them (SIGSEGV during rehash). Hence the lock is PER-WORKER: the owner takes its own worker lock
+ * for every op, and anything reaching that worker's db from ANOTHER thread takes the same lock.
+ * This is coarse (all of a worker's keys share one lock); the fine-grained "buckets rarely collide"
+ * win needs a per-bucket kvstore (the shared-keyspace S0 change). Inert while mcmd_lock==0 (the
+ * lock-free path is byte-for-byte unchanged).
+ * WHO STILL TAKES IT off-worker, now that the node-local read BORROW is deleted (2026-07-27):
+ *   - HFE commands (HEXPIRE/HGETEX/HTTL/...) — one worker, ALL of its node's locks, because they
+ *     mutate the db-level estore shared by the whole node. This is the load-bearing case.
+ *   - online resharding: migApplyOne on B, and A's cold-key scan / cleanup range-delete.
+ *   - RANDOMKEY's expireIfNeeded delete (db.c), which is not covered by the S2 single-key path.
+ * The deleted borrow was one client of this lock, never its only reason. */
 /* One PADDED cacheline per worker: the lock bytes were 65 contiguous bytes on ONE 64B line, so with
  * mcmd-lock on, every worker's per-op CAS+store ping-ponged that line across all EX cores (~2 remote
  * RFOs per op at ZERO logical contention — single-key ops lock their OWN byte). Padding makes the
- * steady-state cost a local uncontended CAS (~20cy); cross-worker traffic only on real borrows. */
+ * steady-state cost a local uncontended CAS (~20cy); cross-worker traffic only on real contention. */
 static struct { _Atomic uint8_t v; uint8_t pad[63]; }
     __attribute__((aligned(64))) tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
 static inline int tomoBktBucket(const void *keyptr, size_t len) {
@@ -7016,21 +7029,38 @@ static inline int tomoHfeProc(redisCommandProc *p) {
 #define TOMO_MWAVE 32
 #define TOMO_MSUBWAVE 8
 
-/* Per-node worker-borrow for the independent-per-key READ family (CS_MGET, CS_EXISTS). SCATTER-then-
- * COMBINE: group the command's keys BY NODE (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty
- * node carrying that node's keys, dispatched to a node-local worker (the node's first-seen key owner).
- * On the worker, csSubExec's borrow branch reads each key from its TRUE owner db under the owner's
- * per-worker lock — MGET writes the value COPY into mget_vals[original_pos], EXISTS counts present keys
- * into g->rcount. The last sub to complete signals the head slot and the IO drain reassembles
- * (csReassemble): MGET emits mget_vals in key order, EXISTS emits the summed count. The head is NOT
- * pushed — it waits on the pending barrier like any gather group. Reuses the coalesced group machinery
- * (mget_vals + mget_pos for MGET, rcount for EXISTS); the only new piece is the per-key borrow read.
- * Every borrow stays NODE-LOCAL (no cross-node db reads) — the point of the split on real NUMA. Works
- * for numa_nodes==1 too (one node => one sub, borrows all keys).
- * MAINTENANCE (review): passes 2-4 below intentionally mirror csBuildCoalescedSubs' pooled-sub
- * construction contract (argv[0]/key incrRefCount, csparent/cssub_idx/resp/conn/CLIENT_EX_PENDING,
- * mget_pos fill, csPushSpin) — grouping BY NODE instead of BY WORKER plus the borrow read is the only
- * real difference. Any change to that shared sub-construction contract must be reflected in BOTH. */
+/* (Deleted 2026-07-27: a block here described a "per-node worker-borrow" SCATTER-then-COMBINE
+ * design for CS_MGET/CS_EXISTS whose csSubExec "borrow branch" read each key from its TRUE owner
+ * db. No such branch ever existed in this file — csSubExec's cases only ever touch the sub's own
+ * owner db. The one real borrow was the node-locked CS_LOCAL exec, and that is now gone too.
+ * Multi-key reads are scatter-gather or the merge pipeline, both owner-only.) */
+
+/* ---- xshard dispatch-routing observability (INFO Stats) ----------------------------------
+ * These exist because this project once shipped a feature whose gate was wedged SHUT: its
+ * acceptance number ("0 stale reads") was vacuous, since the code under test never ran. So:
+ * count which arm of dispatchGather each multi-key read actually took, and never again accept
+ * "the suite is green" as evidence that a path is exercised.
+ *   multikey_split — read-only multi-key command whose keys span MORE THAN ONE owner worker,
+ *                   i.e. it cannot take the single-owner localfast and must go to scatter-
+ *                   gather or the merge pipeline. Deliberately a POSITIVE signal: this is
+ *                   exactly the population the deleted node borrow used to intercept, so a
+ *                   nonzero value is proof the post-deletion routing is being exercised. A
+ *                   counter that can only read zero would prove nothing.
+ *                   (Counted inside the localfast gate, so it reads 0 with localfast off.)
+ *   hop2_unbarriered — INVARIANT TRIPWIRE, must read 0 forever. A group that pushes later
+ *                   stages from the DRAIN thread is only ordered because cs_barrier holds the
+ *                   client's next command out; if a launch/advance ever runs with the barrier
+ *                   disarmed, the following command can overtake the group's own later stages
+ *                   (the exact class of divergence 6e9a31304 fixed). Nonzero = ordering bug. */
+static _Atomic unsigned long long tomo_xshard_multikey_split_n;
+static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
+
+/* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
+ * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
+static inline void csAssertBarriered(client *head) {
+    if (__builtin_expect(head->parent != NULL && head->parent->cs_barrier == 0, 0))
+        atomic_fetch_add_explicit(&tomo_xshard_hop2_unbarriered_n, 1, memory_order_relaxed);
+}
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
  * Multi-key scatter-gather. A multi-key command (MGET / MSET / DEL / UNLINK / EXISTS / TOUCH)
@@ -7218,7 +7248,9 @@ static const csCmdSpec csRegistry[] = {
 { .proc=unlinkCommand, .name="unlink", .ported=CS_PORT_OK, .ctype=CS_DEL,    .route=CS_RT_GATHER,
   .min_argc=2, .key_stride=1, .cs_write=1, .co_gate=CS_CO_ALWAYS },
 { .proc=existsCommand, .name="exists", .ported=CS_PORT_OK, .ctype=CS_EXISTS, .route=CS_RT_GATHER,
-  .min_argc=2, .key_stride=1, .co_gate=CS_CO_ALWAYS },
+  .min_argc=2, .key_stride=1, .co_gate=CS_CO_ALWAYS, .notouch=1 },
+  /* .notouch: stock existsCommand uses LOOKUP_NOTOUCH (db.c). TOUCH below shares this ctype but
+   * must NOT set it — touching is the whole point of TOUCH. */
 { .proc=touchCommand,  .name="touch",  .ported=CS_PORT_OK, .ctype=CS_EXISTS, .route=CS_RT_GATHER,
   .min_argc=2, .key_stride=1, .co_gate=CS_CO_ALWAYS },
 { .proc=keysCommand,   .name="keys",   .ported=CS_PORT_OK, .ctype=CS_KEYS,   .route=CS_RT_FANALL,
@@ -7807,10 +7839,15 @@ static void csSubExec(client *sub) {
     }
     case CS_EXISTS: {
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; count present keys (lazy expiry applied).
-         * Duplicate key args are separate argv entries, so EXISTS k k correctly counts 2 if present. */
+         * Duplicate key args are separate argv entries, so EXISTS k k correctly counts 2 if present.
+         * EXISTS and TOUCH share this ctype but NOT their lookup flags: stock existsCommand passes
+         * LOOKUP_NOTOUCH, stock touchCommand touches on purpose. Take the flag from the registry ROW
+         * (g->spec) — hardcoding LOOKUP_NONE here made every pipelining/cross-node EXISTS bump
+         * LRU/LFU where stock would not. */
+        int lkflags = (g->spec && g->spec->notouch) ? LOOKUP_NOTOUCH : LOOKUP_NONE;
         long present = 0;
         for (int a = 1; a < sub->argc; a++)
-            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
+            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) present++;
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
@@ -8607,6 +8644,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
  * breaks like the HOP2 launch); 0 = pipeline finished or erred (caller reassembles now). */
 static int csPipeAdvance(csGroup *g) {
     client *head = g->head;
+    csAssertBarriered(head);   /* stage chain pushes from the drain: barrier MUST still be armed */
     const csCmdSpec *s = g->spec;
     int dbid = g->h2_dbid, first = csFirstKeyArg(s);
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
@@ -8721,10 +8759,9 @@ static int csPipeAdvance(csGroup *g) {
  * Restricted to !cs_write && !has_hop2 rows: reads need no migration effect-capture, and their
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
-static void dispatchLocalReal(client *head, int w, int dbid, int node_lock) {
+static void dispatchLocalReal(client *head, int w, int dbid) {
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
-    g->cs_node_lock = node_lock;   /* set BEFORE the push: the sub may execute immediately */
     g->subs = zmalloc(sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
@@ -8741,58 +8778,37 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     if (s->numkeys_argi) { long long nk;                  /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
-    /* xshard-localfast: single-owner read-only fast path (see dispatchLocalReal).
-     * ee451 (shared-kv payoff): widened to single-NODE — with per-node shared kvstores, a read
-     * whose keys all live in ONE node runs the STOCK proc on the first key's owner worker under
-     * ALL of that node's worker locks (ascending; released after the proc). Byte-exact incl.
-     * every stock side-effect (lazy expiry, LRU touch, stats, notify — under the owning worker's
-     * lock via the shared dict). Requires mcmd-lock (the lock discipline) + shared node dbs.
-     * Same-WORKER stays the plain single-lock localfast regardless. */
+    /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
+     * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
+     * read, no borrowing, no extra locks. This path SURVIVES.
+     *
+     * DELETED 2026-07-27 (owner ruling: "delete the borrow; accept uniform torn cross-key
+     * reads"): the single-NODE widening, which ran the stock proc on ONE worker while it read
+     * keys owned by OTHER workers of the same shared-kv node, under every one of that node's
+     * worker locks. Why it went:
+     *   - Behaviour was already INCONSISTENT. At numa-nodes 1 a request/response client got
+     *     atomic multi-key reads via the borrow, while a PIPELINING client already got torn
+     *     reads — the borrow has been gated to an empty fake ring since 6e9a31304, because a
+     *     non-owner read can otherwise skip this client's own earlier queued write. Deleting it
+     *     makes every client see the same semantics instead of splitting them by pipelining
+     *     behaviour.
+     *   - It was the last non-owner read left in the dispatch path.
+     *   - Its node-wide lock width scaled with worker count, so it got worse as the node grew.
+     * ACCEPTED COST: SINTER / SINTERCARD / ZINTERCARD / EXISTS / TOUCH over keys on different
+     * workers may now observe a concurrent writer mid-update, diverging from stock's
+     * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
+     * are per-key atomic but not atomic ACROSS keys. */
     if (server.xshard_localfast && !s->cs_write && !s->has_hop2 && nkeys >= 1) {
-        int w0 = -1, same = 1, node0 = -1, same_node = 1;
+        int w0 = -1, same = 1;
         for (int i = 0; i < nkeys; i++) {
             robj *key = head->argv[first + i * s->key_stride];
             int w = exIndexForKey(key->ptr, sdslen(key->ptr));
-            int nd = tmNodeOfWorker(w);
-            if (w0 < 0) { w0 = w; node0 = nd; }
-            else {
-                if (w != w0) same = 0;
-                if (nd != node0) { same_node = 0; break; }
-            }
+            if (w0 < 0) w0 = w;
+            else if (w != w0) { same = 0; break; }
         }
-        if (same) { dispatchLocalReal(head, w0, dbid, 0); return; }
-        /* Measured gate (payoff bench, 200-member sets): node-local WINS intersection-shaped ops
-         * (small result, per-shard round-trips dominate: SINTER +40-51%, SINTERCARD +22%,
-         * ZINTERCARD +6%) and LOSES result-heavy ones (SUNION 0.61x — the reference computes
-         * unions on the IO threads, 4-way parallel across pipelined requests, while node-local
-         * funnels one worker; ZINTER 0.87x — the reference largest-driver fold beats the stock
-         * accumulator). So: INTER-family + counts + TOUCH only; unions/diffs/zops keep their
-         * optimized paths. */
-        /* ORDER-2 (2026-07-27): the node BORROW has ONE executor read keys it does NOT own, so
-         * it bypasses those owners' queues — the exact non-owner-read defect that was deleted
-         * from the M-read dispatch site (see the "M-READS ARE SCATTER-GATHER ONLY" note in
-         * processCommand). It lets this client's own EARLIER pipelined write to a borrowed key
-         * still be sitting unexecuted in its owner's queue while the borrow reads that key
-         * (verified vs stock, 41/100 reps: SINTERCARD after a pipelined SREM answered the
-         * pre-SREM cardinality; same class for SINTER).
-         * The borrow is only order-safe when this client has NOTHING else in flight, i.e. its
-         * fake ring is empty at dispatch (dispatchid == flushid; dispatchid is bumped at the end
-         * of processCommand, so this fake is not counted yet). That is the steady state of every
-         * request/response client, so the measured win below is kept where it was measured; a
-         * PIPELINING client falls through to scatter-gather, which is ordered by construction
-         * (same key => same owner queue => FIFO). cs_barrier then keeps the NEXT command out
-         * until the borrow retires, closing the write-after-read side.
-         * Do not drop the ring-empty test to "get the optimization back" — it is the only thing
-         * that makes a non-owner read legal. */
-        if (same_node && server.shared_node_dbs && server.mcmd_lock &&
-            head->parent->dispatchid == head->parent->flushid &&
-            ((s->ctype == CS_SETOP && s->setop == CS_SETOP_INTER) ||
-             s->ctype == CS_SETCARD || s->ctype == CS_ZCARD || s->ctype == CS_EXISTS ||
-             (s->ctype == CS_MGET && server.mcmd_nodelocal))) {   /* A/B: stock MGET vs borrow */
-            head->parent->cs_barrier = 1;                   /* no later command may overtake it */
-            dispatchLocalReal(head, w0, dbid, node0 + 1);   /* node-locked stock exec */
-            return;
-        }
+        if (same) { dispatchLocalReal(head, w0, dbid); return; }
+        /* keys span >1 owner => scatter-gather / merge pipeline (the ex-borrow population) */
+        atomic_fetch_add_explicit(&tomo_xshard_multikey_split_n, 1, memory_order_relaxed);
     }
     /* merge-execution pipeline: cross-shard INTER family (sets + zsets), read-only rows only. */
     if (server.xshard_pipeline && !s->cs_write && !s->has_hop2 && nkeys >= 2 &&
@@ -9320,6 +9336,7 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
  * head keeps its ring slot; replyWorking is untouched so the drain keeps polling. */
 static int csLaunchHop2(csGroup *g) {
     client *head = g->head;
+    csAssertBarriered(head);   /* HOP2 pushes from the drain: barrier MUST still be armed */
     int dbid = g->h2_dbid;
 
     /* --- per-ctype HOP2 PREP (deliberately a switch — S8 audit locality). Runs BEFORE HOP1
@@ -10195,9 +10212,12 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
     redisDb *bdb = &B->db[e->dbid];
     robj *keyobj = createStringObject(e->key, sdslen(e->key));
     /* review fix (mcmd-lock): this mutates B's shard db from B's drain (NOT the S2-locked op path),
-     * so a concurrent per-node borrow read of B (another node executor, under tomo_wkr_lock[B]) would
-     * race the dbSyncDelete/dbAdd rehash -> heap corruption. Take B's own worker lock per entry (short
-     * hold; a 64-entry migDrainB batch stays interruptible by borrowers). Inert when the knob is off. */
+     * so anything else reaching B's slice of the shared node kvstore would race the dbSyncDelete/
+     * dbAdd rehash -> heap corruption. Take B's own worker lock per entry (short hold, so a
+     * 64-entry migDrainB batch stays interruptible). Still required after the node borrow was
+     * deleted (2026-07-27): an HFE command on a sibling worker of B's node runs holding ALL that
+     * node's worker locks, and B's own scatter subs take this lock on the op path.
+     * Inert when the knob is off. */
     int mig_lk = __builtin_expect(server.mcmd_lock, 0);
     if (mig_lk) tomoWkrLock(B->id);
     dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
@@ -13064,6 +13084,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
+            "tomokv_xshard_multikey_split:%llu\r\n",
+                atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
+            "tomokv_xshard_hop2_unbarriered:%llu\r\n",
+                atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,
@@ -14938,9 +14962,13 @@ static inline void exExecFake(client *fake) {
         if (__builtin_expect(server.shared_node_dbs, 0) && tomoHfeProc(fake->cmd->proc)) {
             /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
              * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
-             * them. Under mcmd-lock: run the proc holding ALL the node's worker locks (ascending —
-             * the same discipline as node-locked CS_LOCAL => mutual exclusion with every locked
-             * path). Without mcmd-lock there is no safe execution: reply an honest error. */
+             * them. Under mcmd-lock: run the proc holding ALL the node's worker locks (ascending,
+             * => mutual exclusion with every locked path and no lock cycle). Without mcmd-lock
+             * there is no safe execution: reply an honest error.
+             * NOTE: this is now the PRIMARY reason the per-worker lock discipline exists at all —
+             * it is the one surviving path that touches node-level shared state from a single
+             * worker. The node-local borrow (deleted 2026-07-27) used the same all-node-locks
+             * discipline; its removal does not make any of these locks redundant. */
             if (!server.mcmd_lock) {
                 addReplyError(fake, "HFE commands require tomokv-mcmd-lock yes with shared node dbs");
             } else {
@@ -14954,8 +14982,12 @@ static inline void exExecFake(client *fake) {
                 for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
             }
         } else {
-            /* S2: single-key hot path takes this key's owner-worker lock across the proc so it never
-             * mutates/rehashes a bucket a borrower is reading. */
+            /* S2: single-key hot path takes this key's owner-worker lock across the proc so it
+             * never mutates/rehashes a bucket that another thread is reading. The readers it
+             * excludes are the HFE branch above (a sibling worker holding ALL the node's locks),
+             * the resharding apply/scan, and RANDOMKEY's expireIfNeeded delete — NOT the node
+             * borrow, which was deleted 2026-07-27. Do not delete this lock on the grounds that
+             * "the borrow is gone". */
             int mlk_wkr = -1;
             /* Review fix: argv[1] is only a KEY when the command declares firstkey==1. The
              * whitelist is mostly single-key-at-argv[1], but top-level SCAN is also worker-routed
@@ -15140,8 +15172,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         } else if (worker->id == server.migration.src) {
             /* review fix (mcmd-lock): A's cold-key scan (dictFind rehash) and CLEANUP range-delete both
              * touch A's shard db and, unlike migApplyOne, are not naturally per-entry — so hold A's own
-             * worker lock across them to exclude a concurrent per-node borrow read of A. Scan is bounded
-             * (64 keys/call); cleanup is one-shot. Inert when the knob is off. */
+             * worker lock across them. It excludes the off-worker paths into this node's shared
+             * kvstore: an HFE command on a sibling worker (which holds ALL the node's locks) and
+             * RANDOMKEY's expireIfNeeded delete. The node borrow was deleted 2026-07-27 and was
+             * never the only such path. Scan is bounded (64 keys/call); cleanup is one-shot.
+             * Inert when the knob is off. */
             int mig_lk = __builtin_expect(server.mcmd_lock, 0);
             if (mig_lk) tomoWkrLock(worker->id);
             if (ph == MIG_COPYING) migServiceScanA(worker);
@@ -15290,29 +15325,25 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
             if (fake->csparent) {
                 csGroup *g = fake->csparent;
-                /* review fix (mcmd-lock): a per-node borrow read (another node executor) reads THIS
-                 * worker's db under tomo_wkr_lock, so every scatter sub that touches this worker's db
-                 * (writes: MSET/DEL*STORE; reads: MGET/EXISTS/SETOP/KEYS gather) must take the same
-                 * lock — otherwise its dictAdd/dictFind rehash races the borrower -> heap corruption.
+                /* mcmd-lock: every scatter sub that touches this worker's slice of the SHARED node
+                 * db (writes: MSET, DEL, the *STORE family; reads: MGET/EXISTS/SETOP/KEYS gather)
+                 * takes that worker's lock.
+                 * WHY THIS LOCK STILL EXISTS (the node borrow it was originally written for was
+                 * deleted 2026-07-27 — do not read its absence as a licence to delete this):
+                 *   1. HFE commands (HEXPIRE/HGETEX/HTTL/... , exExecFake above) mutate the
+                 *      db-level estore, which is shared by every worker of the node. They run
+                 *      holding ALL of the node's worker locks, so an unlocked sub here would race
+                 *      them — dictAdd/dictFind rehash vs a concurrent estore walk is heap
+                 *      corruption, not a stale read.
+                 *   2. Online resharding (v8d) applies effect-log entries and advances the cold-key
+                 *      scan against the shared node kvstore from OUTSIDE the single-key op path
+                 *      (migApplyOne / the A-side scan both take this same lock).
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
-                 * mutates/reads. Inert
-                 * when the knob is off. */
+                 * mutates/reads. Inert when the knob is off. */
                 int cs_lk = __builtin_expect(server.mcmd_lock, 0);
-                if (cs_lk && g->cs_node_lock) {
-                    /* ee451 (shared-kv payoff): node-locked CS_LOCAL — the stock proc reads keys
-                     * owned by SEVERAL workers of this node's shared kvstore; hold every node
-                     * worker's lock across it (ascending => cycle-free vs S2/borrow/other nodes). */
-                    int node = g->cs_node_lock - 1, wpn = server.ex_per_node;
-                    int wlo = node * wpn, whi = wlo + wpn;
-                    if (whi > server.num_workers) whi = server.num_workers;
-                    for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
-                    csSubExec(fake);
-                    for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
-                } else {
-                    if (cs_lk) tomoWkrLock(worker->id);
-                    csSubExec(fake);
-                    if (cs_lk) tomoWkrUnlock(worker->id);
-                }
+                if (cs_lk) tomoWkrLock(worker->id);
+                csSubExec(fake);
+                if (cs_lk) tomoWkrUnlock(worker->id);
                 if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
                     client *hp = g->head->parent;
                     atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,

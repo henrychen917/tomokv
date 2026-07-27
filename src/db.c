@@ -955,9 +955,14 @@ robj *dbRandomKey(redisDb *db) {
                 kvobj *kv = dictGetKV(de);
                 sds key = kvobjGetKey(kv);
                 robj *keyobj = createStringObject(key, sdslen(key));
-                /* review [5]: expireIfNeeded may DELETE from the shared node kvstore — a node-locked
-                 * stock proc could be iterating this dict. Take our own worker lock (borrowers and
-                 * node-lockers take it too => mutual exclusion); argc==1 means S2 never covered us. */
+                /* review [5]: expireIfNeeded may DELETE from the shared node kvstore, which the
+                 * whole node's workers share. Take our own worker lock so that delete is excluded
+                 * against the paths that reach this node db from OFF this worker: an HFE command
+                 * (HEXPIRE/HGETEX/... ) running on a sibling worker holds ALL the node's worker
+                 * locks across its estore walk, and the resharding apply/scan takes the owner's
+                 * lock too. argc==1, so the S2 single-key path never covered us.
+                 * (The node-local BORROW was deleted 2026-07-27; it was one such off-worker
+                 * reader, not the only one — this lock is still required.) */
                 if (server.mcmd_lock) tomoWkrLockPub(wid);
                 int kvalid = expireIfNeeded(db, keyobj, kv, 0);
                 if (server.mcmd_lock) tomoWkrUnlockPub(wid);
@@ -2490,7 +2495,8 @@ void renameGenericCommand(client *c, int nx) {
      * `RENAME bigzset`) and the retired old kvobj is freed ALLOCATION-ONLY at grace
      * (decrRefCount skips the type free when ptr == NULL).
      * Strings never reach that branch (the EMBSTR/INT/RAW branches above it copy), which is
-     * what keeps the cross-shard borrow readers that DO dereference an OBJ_STRING's ptr safe. */
+     * what keeps the lock-free cross-shard readers that DO dereference an OBJ_STRING's ptr
+     * (csSubExec MGET) safe. */
     int flat_keys = kvstoreIsFlat(c->db->keys);
 
     dbDelete(c->db,c->argv[1]);
@@ -3001,7 +3007,7 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
 
         /* holistic-review fix: kvobjSetExpire reallocs a not-yet-expirable kv and decrRefCounts the
          * OLD one, which under a flat store would free it SYNCHRONOUSLY while a lock-free cross-shard
-         * borrow reader may still hold it (UAF), and would leave the slot pointing at freed memory in
+         * reader may still hold it (UAF), and would leave the slot pointing at freed memory in
          * the gap before SetAtLink. Pin the old across the realloc and QSBR-retire it (mirrors
          * dbSetValue's kvstoreFlatRetireRaw). No-op for non-flat (no lock-free readers).
          *

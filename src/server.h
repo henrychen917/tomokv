@@ -1956,10 +1956,8 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
-    int cs_node_lock;          /* ee451 (shared-kv payoff): CS_LOCAL sub must hold ALL of node (val-1)'s
-                                * worker locks across the stock proc — its keys span multiple owners
-                                * within ONE shared node kvstore. 0 = plain single-owner localfast.
-                                * Ascending acquisition order => no lock cycle with S2/borrow/other nodes. */
+    /* cs_node_lock DELETED 2026-07-27 with the node-local borrow: CS_LOCAL is now always a
+     * single-OWNER localfast (all keys on one worker), so its sub needs only that worker's lock. */
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
     int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
     int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
@@ -3464,7 +3462,7 @@ struct redisServer {
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
-    int mcmd_nodelocal;        /* EXPERIMENT A/B: MGET/EXISTS skip the borrow intercept and use the node-locked STOCK-proc localfast when same-node (cross-node falls to coalesced scatter). Boot-only; needs mcmd_lock. */
+    /* mcmd_nodelocal DELETED 2026-07-27 with the node-local borrow it selected. */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
     int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->
@@ -3781,6 +3779,11 @@ typedef struct csCmdSpec {
     int8_t  key_stride;       /* 1, or 2 for MSET/MSETNX (k v pairs) */
     int8_t  per_key_extra;    /* extra argv slots appended per key (MSET value = 1) */
     uint8_t cs_write;         /* run migHoldKeyIfDraining per key (writes only) */
+    uint8_t notouch;          /* per-key sub lookups pass LOOKUP_NOTOUCH (no LRU/LFU bump).
+                               * EXISTS and TOUCH share ctype=CS_EXISTS but differ HERE: stock
+                               * existsCommand looks up with LOOKUP_NOTOUCH, stock touchCommand
+                               * deliberately touches. The flag lives on the ROW, not the ctype,
+                               * because that is exactly where the two commands diverge. */
     uint8_t res_kind;         /* CS_RES_* result slots to allocate */
     uint8_t pos_kind;         /* CS_POS_* posmap for csBuildCoalescedSubs */
     uint8_t co_gate;          /* CS_CO_* */

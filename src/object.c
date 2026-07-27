@@ -344,7 +344,7 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  * again, and the retired source shell is freed allocation-only at the grace.
  *
  * NOT applied to string values: those keep the copying
- * branches below, because the cross-shard borrow readers do dereference
+ * branches below, because the lock-free cross-shard readers do dereference
  * `o->ptr` of an OBJ_STRING they looked up (server.c csSubExec MGET) and a
  * NULL there would be a crash, whereas they type-check before touching a
  * non-string (and EXISTS never touches ptr at all). Note this is a property of the

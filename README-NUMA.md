@@ -251,8 +251,14 @@ of the free.
 
 | knob | default | mutable | meaning |
 |---|---|---|---|
-| `tomokv-mcmd-lock` | off | no | the per-worker lock discipline + borrow and node-locked paths. Boot-only: a runtime toggle would race in-flight commands against the lock gates. Off = base lock-free engine, scatter-only multi-key. |
-| `tomokv-mcmd-nodelocal` | off | no | experiment: route `MGET`/`EXISTS` through the node-locked stock proc instead of the borrow |
+| `tomokv-mcmd-lock` | off | no | the per-worker lock discipline. Boot-only: a runtime toggle would race in-flight commands against the lock gates. Off = base lock-free engine, scatter-only multi-key. |
+
+`tomokv-mcmd-nodelocal` was REMOVED (2026-07-27) together with the node-local read borrow it
+selected. Multi-key reads are now single-owner localfast (all keys on one worker) or
+scatter-gather / merge-pipeline; there is no path that reads a key from a non-owner worker.
+Cross-key reads (`SINTER`/`SINTERCARD`/`ZINTERCARD`/`EXISTS`/`TOUCH`) are per-key atomic but
+NOT atomic across keys, so they may observe a concurrent writer mid-update — a deliberate,
+uniform divergence from stock Redis's single-threaded cross-key atomicity.
 
 ### Storage engine
 

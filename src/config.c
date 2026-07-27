@@ -3273,7 +3273,9 @@ standardConfig static_configs[] = {
      * ignored; initServer hardwires it on. Basis: MGET borrow +57-69%/instr halved, MSET ~0,
      * singles tax <=0.8%, INTER node-exec +40-51%, HFE requires the exclusion to exist. */
     createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             1, NULL, NULL),
-    createBoolConfig("tomokv-mcmd-nodelocal",        NULL, IMMUTABLE_CONFIG,   server.mcmd_nodelocal,        0, NULL, NULL), /* EXPERIMENT A/B: MGET/EXISTS via node-locked stock proc instead of borrow (same-node); boot-only */ /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */
+    /* tomokv-mcmd-nodelocal DELETED 2026-07-27: it selected the node-local BORROW for MGET, and
+     * the borrow is gone (owner ruling: uniform torn cross-key reads). With no borrow to A/B
+     * against, the knob could only ever have been inert. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
      * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live

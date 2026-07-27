@@ -114,7 +114,7 @@ For each toggle: fresh fork boot with the toggle + FLUSHALL'd persistent oracle 
 reduced stream; results must be IDENTICAL (opdiffs=0, dbsize/enum/readback/ttl equal).
 SMOKE cells: `flat0` (thredis-flat-store 0; enumeration via KEYS because top-level SCAN
 under flat=0 falls inline onto the empty decoy — asserted as KNOWN), `mcmd-lock`,
-`mcmd-nodelocal`, `thread-modes+balance`, `xshard-guard0` (+ positive control that LCS
+`thread-modes+balance`, `xshard-guard0` (+ positive control that LCS
 stops being guard-rejected, proving the knob is live), `xshard-pipeline0`,
 `express-slim 0` and forced (1), `pipeline-depth 0`, `fake-ring-depth 0`, `num-cdb 0`,
 `operand-pool on` (KNOWN default-off knob).

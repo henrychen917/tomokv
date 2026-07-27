@@ -135,6 +135,9 @@ even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA 
   independent; concurrent migrations = future).
 - **MGET/EXISTS stock-vs-borrow A/B** (tomokv-mcmd-nodelocal): stock node-locked MGET = 0.81-0.93x
   of the borrow => borrow stays (group machinery dominates at small N; EXISTS parity proves it).
+  SUPERSEDED 2026-07-27: the borrow AND this knob were deleted by owner ruling — the win did not
+  justify a non-owner read whose atomicity applied only to non-pipelining clients. See
+  README-NUMA.md; multi-key reads are now uniformly owner-only.
 - **Controller inputs FIXED**: idle ticks were folded into the EWMA variance => sigma 2x mean =>
   z-gates were noise (controller climbed on garbage). Fix: idle ticks (inst==0 && qd==0 && ing==0)
   freeze mean/var; probing requires offered pressure; priming waits for the first NONZERO rate
