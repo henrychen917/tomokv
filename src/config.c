@@ -3264,16 +3264,9 @@ standardConfig static_configs[] = {
     /* DEPRECATED KNOB (2026-07-26): always-lock IS the design — accepted for config compatibility,
      * ignored; initServer hardwires it on. Basis: MGET borrow +57-69%/instr halved, MSET ~0,
      * singles tax <=0.8%, INTER node-exec +40-51%, HFE requires the exclusion to exist. */
-    /* Retire-aware scheduling: within a worker's popped batch, run fakes whose reply can retire
-     * NOW (at their client's ring head) before ones that cannot.
-     * Default 1 (on). The inversion that made an earlier revision unsafe is fixed and understood:
-     * subs must be excluded via f->csparent, NOT via parent->isFake (csMakeSub gives subs the REAL
-     * client as parent). Validated with the knob on: ord_test 0/6000 stale, same-key chain 400/400,
-     * multi-key write-then-MGET 300/300, SET/DEL/GET 300/300. */
-    createIntConfig("tomokv-retire-sched",           NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_retire_sched, 1, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             1, NULL, NULL),
     createBoolConfig("tomokv-mcmd-nodelocal",        NULL, IMMUTABLE_CONFIG,   server.mcmd_nodelocal,        0, NULL, NULL), /* EXPERIMENT A/B: MGET/EXISTS via node-locked stock proc instead of borrow (same-node); boot-only */ /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */
-    createBoolConfig("tomokv-mcmd-flat",             NULL, IMMUTABLE_CONFIG,   server.mcmd_flat,             1, NULL, NULL), /* FLAT-NATIVE M-reads: MGET as ONE fake to a node-local worker, keys read lock-free off the shared flat table (QSBR-covered); EXISTS borrow subs drop their locks. Default ON but FOLDED at boot to require thredis-flat-store + shared node dbs (+ !mcmd-nodelocal), so it is inert elsewhere. IMMUTABLE for the same in-flight-group reason as mcmd-lock; growers' co-op locks also key off the folded value. */
+    createBoolConfig("tomokv-mcmd-flat",             NULL, IMMUTABLE_CONFIG,   server.mcmd_flat,             0, NULL, NULL), /* FLAT-NATIVE M-reads: MGET as ONE fake to a node-local worker, keys read lock-free off the shared flat table (QSBR-covered); EXISTS borrow subs drop their locks. Default ON but FOLDED at boot to require thredis-flat-store + shared node dbs (+ !mcmd-nodelocal), so it is inert elsewhere. IMMUTABLE for the same in-flight-group reason as mcmd-lock; growers' co-op locks also key off the folded value. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
      * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live
