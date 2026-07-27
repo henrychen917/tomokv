@@ -45,7 +45,9 @@ ORACLE_PORT=${ORACLE_PORT:-7792}
 SRV_CORES=${SRV_CORES:-}    # e.g. "0-7"  (taskset for servers; empty = no taskset)
 LG_CORES=${LG_CORES:-}      # e.g. "8-15" (taskset for memtier / pipe loaders)
 SEED=${SEED:-3225208}       # fixed stream seed
-TREE_REV=${TREE_REV:-52c760720}
+# report the ACTUAL revision under test, not a hardcoded one (it read 52c760720 for every run,
+# which made every log line about "which build was this?" actively misleading)
+TREE_REV=${TREE_REV:-$(git -C "$TREE" rev-parse --short HEAD 2>/dev/null || echo unknown)}
 
 if [ "$SMOKE" = "1" ]; then
     A_OPS=12000; B_OPS=1500; STRESS_T=60; FLIP_T=25; E_REPS=5
@@ -70,7 +72,14 @@ CRASH_RE='REDIS BUG REPORT|ASSERTION FAILED|Segmentation fault|SIGSEGV|SIGABRT|S
 # infra
 # ---------------------------------------------------------------------------
 exec 9>/tmp/feature_sweep.lock
-flock -n 9 || { echo "another feature_sweep is running; abort" >&2; exit 1; }
+flock -n 9 || {
+  # HARNESS FIX 2026-07-27: this used to abort BEFORE writing anything, so preflight was left
+  # grading a STALE feature_sweep.tsv from a previous run -- in one case results 6 hours old,
+  # including a crash row for a panic that had since been fixed. Make the abort self-evident in
+  # the RESULT FILE, not just on stderr, so it can never be mistaken for a real verdict.
+  echo "A	lock-held	-	FAIL	another feature_sweep holds the flock; THIS RUN PRODUCED NO RESULTS" > "$JOB/feature_sweep.tsv"
+  echo "another feature_sweep is running; abort" >&2
+  exit 1; }
 
 mkdir -p "$LOGDIR" "$WORK"
 NFAIL=0; NSUSPECT=0; BOOTSEQ=0
@@ -1381,7 +1390,7 @@ section_F() {
 # main
 # ===========================================================================
 START_TS=$(date +%s)
-log "feature_sweep start (SMOKE=$SMOKE) tree=$TREE rev=$TREE_REV"
+log "feature_sweep start (SMOKE=$SMOKE) tree=$TREE rev=$TREE_REV bin=$FORKSRV sha=$(sha256sum \"$FORKSRV\" 2>/dev/null | cut -c1-12)"
 [ -s "$HOTFILE" ] || log "WARNING: hot-key cache empty; helper will regenerate (slow)"
 
 section_A     2>>"$LOGDIR/sc_A.log"

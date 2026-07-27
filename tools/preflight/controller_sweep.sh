@@ -221,6 +221,8 @@ atgrade() { # anti-thrash grade: 0 events PASS, 1 SUSPECT, >1 FAIL
   else echo FAIL; fi
 }
 flips()   { echo $(( $(count_log "GROW-FRONT complete") + $(count_log "GROW-BACK complete") )); }
+# Current io_threads_live, for proving the controller ACTUATED rather than merely sat still.
+iolive()  { grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | tail -1 | cut -d= -f2; }
 convs()   { echo $(( $(count_log "MODESHIFT PARKED->EX complete") + $(count_log "MODESHIFT EX->PARKED complete") )); }
 racts()   { echo $(( $(count_log "reshard AUTO:") + $(count_log "reshard DIFFUSE:") )); }
 clbexec() { count_log "REBALANCE — started"; }   # 1 line per EXECUTED conn-migration batch (server.c:17000)
@@ -438,12 +440,31 @@ c1_flip() {
   msettle=$(med "$o1" "$o2" "$o3")
   tsv 1-flip anti-thrash-p1 "3 settled p1 windows, unchanged workload" "flips-during=$((f_post-f_pre))" \
       "0 PASS / 1 SUSPECT / >1 FAIL (deadzone pinned)" "$(atgrade $((f_post-f_pre)))"
+  # USER SPEC 2026-07-27: the AUTO==STATIC comparison is only meaningful if the controller was
+  # (a) STABLE and (b) ACTUALLY FLIPPING, and the data must come from AFTER it stabilised.
+  #
+  # (b) was missing, and its absence made `settledA` VACUOUS: "settled" is defined as 0 new flips
+  # in a 10s probe, which a controller that NEVER FLIPPED satisfies trivially. So a controller
+  # stuck at the boot config scored "settled=1" and was then compared against the best static
+  # config -- reporting a throughput deficit that is really just the static curve gap, and hiding
+  # the actual defect (no actuation at all) behind a number that looks like a tuning shortfall.
+  # boot split: FIRST io_threads_live the server ever logged (fall back to the configured io count)
+  local IO_BOOT; IO_BOOT=$(grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | head -1 | cut -d= -f2)
+  IO_BOOT=${IO_BOOT:-4}
+  local fa_total; fa_total=$(flips)                    # completed GROW-FRONT/BACK so far
+  local io_end; io_end=$(iolive); io_end=${io_end:-$IO_BOOT}
+  local actuated=0
+  [ "${fa_total:-0}" -gt 0 ] && actuated=1             # a GROW-FRONT/BACK completed
+  [ "${io_end:-0}" != "${IO_BOOT:-0}" ] && actuated=1  # or the split demonstrably moved
   if plaus "$msettle" && plaus "$best"; then
     local r1; r1=$( awk -v a="$msettle" -v s="$best" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
     [ "$REPS" -lt 3 ] && [ "$r1" = PASS ] && r1=SUSPECT   # smoke: 1-rep static side
     [ "$settledA" != 1 ] && [ "$r1" = PASS ] && r1=SUSPECT   # settle-first: unsettled measurement can't PASS
+    # No actuation => this is NOT a 3% tuning verdict. Report it as what it is.
+    [ "$actuated" = 0 ] && r1=SUSPECT
     tsv 1-flip AUTO==STATIC-p1 "settled auto vs best static ($bestcfg), p1 GET" \
-        "auto=$msettle best-static=$best diff=$(pct_diff "$msettle" "$best")% settled=$settledA" ">=97% of best static" "$r1"
+        "auto=$msettle best-static=$best diff=$(pct_diff "$msettle" "$best")% settled=$settledA actuated=$actuated io_boot=${IO_BOOT:-?} io_end=$io_end flips=$fa_total" \
+        ">=97% of best static, MEASURED AFTER settle, AND controller must have actuated" "$r1"
   else
     tsv 1-flip AUTO==STATIC-p1 "settled auto vs best static" "implausible ($msettle/$best)" "plausible" SUSPECT
   fi
