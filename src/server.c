@@ -113,7 +113,6 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
-static void tomoMgetLockBorrow(client *fake);              /* M-command lock-borrow experiment */
 static void tomoMPerNodeDispatch(client *head, csCmdType ctype); /* per-node worker-borrow MGET/EXISTS */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
@@ -2400,24 +2399,6 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
 }
 
-/* TASK#43 (review fix): retire this fake's write, if it was one (see client.inflight_writes).
- * Keyed on the dispatch-time mark, not fake->cmd — command state does not reliably survive to
- * retire. MUST be called at EVERY retire site: the original patch decremented only in the
- * CLOSE_ASAP teardown branch, so on a healthy connection the counter only ever grew, the
- * `inflight_writes == 0` gate was permanently false after the first write, and the M-read fast
- * path it guards was silently dead (which is also why the "0/6000 stale" acceptance run proved
- * nothing — a permanently-closed gate cannot produce a stale read).
- *
- * Clearing the mark is equally mandatory: fakes are ring slots reused for the next command, so a
- * stale mark would decrement on a later NON-write — an under-count, which opens the gate while
- * writes are genuinely in flight and re-introduces exactly the ordering hole this closes. */
-static inline void tomoRetireFakeWrite(client *fake, client *real) {
-    if (__builtin_expect((fake->flags & CLIENT_TOMO_WRITE) != 0, 0)) {
-        fake->flags &= ~CLIENT_TOMO_WRITE;
-        if (real->inflight_writes) real->inflight_writes--;
-    }
-}
-
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -2476,7 +2457,6 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 commandProcessed(fake);
-                tomoRetireFakeWrite(fake, real);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
@@ -2589,7 +2569,6 @@ void handleWorkerReplies(void) {
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
                 commandProcessed(fake);
-                tomoRetireFakeWrite(fake, real);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
@@ -2604,7 +2583,6 @@ void handleWorkerReplies(void) {
              * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
             cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
             commandProcessed(fake);
-            tomoRetireFakeWrite(fake, real);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
             real->flushid++;
@@ -3594,8 +3572,6 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
-    server.stat_mread_flat_taken = 0;
-    server.stat_mread_flat_gated = 0;
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -3894,8 +3870,8 @@ void initServer(void) {
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
 
     /* ALWAYS-LOCK IS THE DESIGN: tomokv-mcmd-lock is no longer a behavior switch (a config passing
-     * 'no' is overridden with a warning). Safe to default now that TASK#43's inflight_writes gate
-     * makes the single-executor M-read routes ordering-correct. */
+     * 'no' is overridden with a warning) — the S2 single-key owner lock is what makes a shared node
+     * db safe against sibling workers. */
     if (!server.mcmd_lock) {
         serverLog(LL_WARNING, "tomokv-mcmd-lock no is DEPRECATED and ignored — always-lock is the design");
         server.mcmd_lock = 1;
@@ -4101,13 +4077,6 @@ void initServer(void) {
         int nnodes = server.numa_nodes > 0 ? server.numa_nodes : 1;
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         server.shared_node_dbs = (wpn > 1);
-        /* FLAT-NATIVE M-reads (tomokv-mcmd-flat): FOLD the knob to its effective value ONCE, here
-         * where its gates (all IMMUTABLE) are resolved — the lock-free read protocol only exists on
-         * the shared flat table, and mcmd-nodelocal is an explicit A/B override. Every later test
-         * (dispatch, exExecFake routing, borrow subs, grower co-op locks) reads the folded value,
-         * so no two sides of the protocol can ever disagree about the discipline. */
-        server.mcmd_flat = server.mcmd_flat && server.thredis_flat_store &&
-                           server.shared_node_dbs && !server.mcmd_nodelocal;
         server.n_node_dbs = nnodes;
         int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
         if (server.thredis_flat_store && server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE */
@@ -5657,9 +5626,6 @@ int processCommand(client *c) {
     }
 
     const uint64_t cmd_flags = getCommandFlags(c);
-    /* TASK#43: capture write-ness NOW — moveExecutionState hands c->cmd to the fake, so the
-     * dispatch tail sees c->cmd == NULL and cannot test it there. */
-    const int tomo_is_write = (cmd_flags & CMD_WRITE) != 0;
 
     int is_read_command = (cmd_flags & CMD_READONLY) ||
                            (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_READONLY));
@@ -6084,18 +6050,6 @@ int processCommand(client *c) {
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
-    /* TASK#43: count this client's in-flight WRITES (see client.inflight_writes); retired by
-     * tomoRetireFakeWrite at every drain retire site. Conservative by construction: any write
-     * still in flight disables the single-executor M-read fast paths, which are the only routes
-     * that read keys they do not own.
-     *
-     * Review fix: this MUST be stamped here — before ANY of the publish sites below
-     * (exDispatchPush / csDispatch) hand `fake` to a worker. The original patch stamped it on the
-     * dispatch tail, i.e. AFTER publish, making `fake->flags |= ...` a non-atomic RMW racing the
-     * owning worker's own flag writes. No path between here and the tail returns early, so
-     * incrementing here keeps the accounting exactly as balanced as it was. */
-    if (__builtin_expect(tomo_is_write, 0)) { c->inflight_writes++; fake->flags |= CLIENT_TOMO_WRITE; }
-
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
         listAddNodeTail(server.clients_pending_ex[iotid], c);
@@ -6127,92 +6081,15 @@ int processCommand(client *c) {
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
-    /* review fixes: (a) TOUCH shares CS_EXISTS but its POINT is the access-time bump; the borrow reads
-     * with LOOKUP_NOEFFECTS (== LOOKUP_NOTOUCH) and would silently drop it, so borrow only genuine
-     * EXISTS. (b) single-key EXISTS keeps the scatter single-owner localfast (dispatchLocalReal, no
-     * group alloc) — only borrow multi-key EXISTS. Single-key MGET stays on the borrow (MGET1==GET1). */
-    /* FLAT-NATIVE MGET (tomokv-mcmd-flat, boot-folded): under the shared flat table a worker inside
-     * its exSlice is ALREADY a QSBR-covered lock-free reader (loop_seq + in_flat_section grace — the
-     * same cover top-level SCAN relies on, see canDispatchToWorker), so the whole MGET routes as ONE
-     * fake to a node-local worker which reads every key via the flat probe directly: no per-shard
-     * subs, no gather, no value copies, no locks (only a RAW value's byte copy takes the owner lock —
-     * tomoMgetFlatNative's safety ledger). numa>=2 splits per NODE exactly like the borrow (each
-     * node's sub reads only node-local tables); numa==1 sends the whole command to the first key's
-     * owner. Migration falls back to the paths below at dispatch time — the SAME gate the borrow
-     * uses (in-flight starts share the borrow's exposure: QSBR still guarantees memory safety, only
-     * the just-moved-key nil window exists, identically to the locked borrow's TOCTOU on the fresh
-     * bucket-table read). Checked BEFORE the mcmd_lock borrow so both experiments compose: with both
-     * on, MGET goes flat and EXISTS keeps the borrow shape (its subs drop locks via g->mcmd_flat). */
-    /* Observability (review fix): without these two counters, "the ordering gate is closed" and
-     * "the feature is off" are INDISTINGUISHABLE from outside — which is exactly how a permanently
-     * stuck inflight_writes counter passed a 0-stale acceptance run. Any future validation of this
-     * path MUST assert mread_flat_taken > 0, or it proves nothing. */
-    if (csp && csp->ctype == CS_MGET && server.mcmd_flat &&
-        !atomic_load_explicit(&server.migration_active, memory_order_relaxed) &&
-        c->inflight_writes != 0)
-        server.stat_mread_flat_gated++;
-    if (csp && csp->ctype == CS_MGET && server.mcmd_flat && c->inflight_writes == 0 &&
-        !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
-        server.stat_mread_flat_taken++;
-        if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
-            replyWorking++;
-            tmLatMaybeStamp(fake);
-            tomoMPerNodeDispatch(fake, CS_MGET);   /* per-node subs; g->mcmd_flat => lock-free reads */
-        } else {
-            int owner = getWorkerForCommand(fake);   /* first key's owner — whole cmd runs node-local there */
-            fake->cdb = cdbIndexFor(owner);
-            fake->db = &server.exThreads[owner].db[fake->db->id];
-            fake->flags |= CLIENT_EX_PENDING;
-            replyWorking++;
-            tmLatMaybeStamp(fake);
-            exDispatchPush(owner, fake);
-        }
-    /* WORK-STEALING M-READS ARE DISABLED (2026-07-26). Both single-executor routes — this borrow
-     * and the flat-native path — have one executor read keys it does NOT own, which bypasses the
-     * owner's queue and therefore the per-key FIFO that makes same-client pipeline ordering correct.
-     * Two distinct hazards, only one of which we could gate:
-     *   (a) EARLIER write, later read: fixed by the inflight_writes gate (TASK#43) — measured
-     *       1936-2335/6000 stale before it, 0/6000 after.
-     *   (b) LATER write, earlier read: a stolen read executes on a non-owner while a subsequent SET
-     *       goes to the owner; those workers are unordered, so the later write can overtake the
-     *       earlier read. 36000 stolen reads did not reproduce it (the race is narrow — both
-     *       workers start promptly), but it is NOT disproven, and an unprovable narrow race in the
-     *       data path is not worth the throughput.
-     * Scatter-gather is correct by construction for BOTH directions (same key => same owner queue
-     * => FIFO both ways), so M-reads route there. Revisit only with a per-key window that bounds
-     * hazard (b) as well — see tomokv-mcmd-flat / the ordering regression in tools/preflight. */
-    } else if (0 && csp && server.mcmd_lock && !server.mcmd_nodelocal && c->inflight_writes == 0 &&
-        (csp->ctype == CS_MGET ||
-         (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand && (fake->argc - 1) >= 2)) &&
-        !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
-        /* EXPERIMENT (2s-numa-mcmd-lock): WORKER-borrow for the independent-per-key READ family
-         * (MGET values, EXISTS count). Two shapes:
-         *  - MULTI-NODE (numa_nodes>=2, >=2 keys): SCATTER the keys BY NODE — one borrow-exec sub per
-         *    node dispatched to a node-local worker (the node's first-seen key owner); each sub borrows
-         *    ONLY its node's keys, and the IO drain reassembles the per-node partials in key order
-         *    (tomoMPerNodeDispatch). Keeps every borrow node-local (no cross-node db reads). EXISTS also
-         *    routes here for numa_nodes==1 (nn==1 => one sub = a single-node EXISTS borrow).
-         *  - SINGLE-NODE MGET (or <2 keys): dispatch the WHOLE MGET to the first key's owner worker
-         *    (getWorkerForCommand hashes argv[1]); that worker borrows the others on-thread and replies
-         *    via the normal worker drain (exExecFake routes the fake to tomoMgetLockBorrow). */
-        if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
-            replyWorking++;
-            tmLatMaybeStamp(fake);
-            tomoMPerNodeDispatch(fake, csp->ctype);   /* per-node group + dispatch subs; head waits */
-        } else if (csp->ctype == CS_MGET) {
-            int owner = getWorkerForCommand(fake);
-            fake->cdb = cdbIndexFor(owner);
-            fake->db = &server.exThreads[owner].db[fake->db->id];
-            fake->flags |= CLIENT_EX_PENDING;
-            replyWorking++;
-            tmLatMaybeStamp(fake);
-            exDispatchPush(owner, fake);
-        } else {   /* CS_EXISTS, numa_nodes==1: single-node borrow via the group path (nn==1 => one sub) */
-            replyWorking++;
-            tmLatMaybeStamp(fake);
-            tomoMPerNodeDispatch(fake, csp->ctype);
-        }
-    } else if (csp) {
+    /* M-READS ARE SCATTER-GATHER ONLY (2026-07-27). Both single-executor routes that used to sit
+     * here — the per-node worker-borrow and the flat-native whole-MGET — had ONE executor read keys
+     * it does NOT own, bypassing the owner's queue and therefore the per-key FIFO that makes
+     * same-client pipeline ordering correct. Measured 1547/4000 reverse-order violations (an MGET
+     * issued BEFORE a SET in the same pipeline observed the SET's value); the in-flight-write gate
+     * only ordered write->read, never read->write, so it could not fix it. Scatter-gather is correct
+     * by construction in both directions (same key => same owner queue => FIFO), so MGET/MSET/EXISTS
+     * route there unconditionally. Do not reintroduce a non-owner read path. */
+    if (csp) {
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
@@ -7038,26 +6915,6 @@ static inline void tomoWkrUnlock(int w) {
 void tomoWkrLockPub(int w) { tomoWkrLock(w); }
 void tomoWkrUnlockPub(int w) { tomoWkrUnlock(w); }
 
-/* FLAT-NATIVE M-reads grower co-op (tomokv-mcmd-flat). The lock-free MGET reader copies a RAW
- * string's bytes under the key-owner's worker lock; every IN-PLACE grower of a PUBLISHED string
- * value (APPEND/SETRANGE/SETBIT/BITFIELD/PFADD/PFCOUNT-cache — their sds realloc frees the old
- * buffer SYNCHRONOUSLY, invisible to QSBR) brackets its mutation with this pair so reader and
- * grower exclude each other. Inert (-1; two boot-folded int loads, no atomics) unless flat-native
- * is live; skipped under mcmd_lock, where exExecFake's S2 owner lock already brackets the WHOLE
- * proc (re-locking here would self-deadlock on the non-reentrant spinlock). Lock identity is the
- * key's CURRENT owner off the live bucket table — the same identity the reader locks; a flip
- * between the two fresh reads is the same TOCTOU the S2-vs-borrow pair already carries (the
- * shared-mode reshard fence drains in-flight ops around the flip). Callers hold at most this one
- * lock and acquire nothing else inside the bracket => no cycle with S2 / borrows / HFE's
- * ascending node sweep. */
-int tomoStrGrowLock(const void *keyptr, size_t len) {
-    if (!server.mcmd_flat || server.mcmd_lock) return -1;
-    int w = tomoWkrOf(keyptr, len);
-    tomoWkrLock(w);
-    return w;
-}
-void tomoStrGrowUnlock(int w) { if (w >= 0) tomoWkrUnlock(w); }
-
 /* review [3]: the hash-field-TTL family (estore writers AND readers — estore internals are
  * single-writer, so racy reads are unsafe too). */
 static inline int tomoHfeProc(redisCommandProc *p) {
@@ -7068,42 +6925,7 @@ static inline int tomoHfeProc(redisCommandProc *p) {
            p == hgetexCommand    || p == hgetdelCommand;
 }
 
-/* Lock-borrow MGET (S3 prototype): this IO thread reads every key DIRECTLY from its owning worker's
- * shard db under the key's per-bucket lock — no sub-fake scatter, no worker dispatch, no gather. A
- * contended bucket is BACKLOGGED (skipped this pass, retried next) rather than spun on. LOOKUP_NOEFFECTS
- * => a pure read that never mutates the owner's db (no lazy-expire/LRU/stats), so it's safe to read a
- * non-owned db under the lock. Values are copied under the lock (owner may free after unlock), then the
- * reply is assembled IN KEY ORDER. Builds the reply onto `fake` exactly like the inline path; the
- * caller sets the completion bit. Correct with no concurrent single-key WRITES to these buckets (an
- * MGET-heavy phase leaves the workers idle); full concurrency with writers needs the owner-side lock. */
-static void tomoMgetLockBorrow(client *fake) {
-    int nk = fake->argc - 1;
-    int dbid = fake->db->id;
-    /* opt-loop C3: SINGLE-PASS — append each value directly into the fake's reply buffer while
-     * holding the owner's lock (the value cannot be freed mid-copy), in key order. The previous
-     * shape (trylock-backlog into a robj copy array, then a second serialize pass) paid a
-     * dupStringObject alloc + serialize + free per key; blocking per-key locks are fine now that
-     * every writer honors the discipline (uncontended CAS; one lock held at a time => no cycle).
-     * Lock hold grows by the buffer append (may realloc) — small values, acceptable. */
-    addReplyArrayLen(fake, nk);
-    for (int i = 0; i < nk; i++) {
-        robj *key = fake->argv[i + 1];
-        int bkt = tomoBktBucket(key->ptr, sdslen(key->ptr));
-        int owner = (int)server.ex_bucket_table[bkt];
-        fake->tomo_bkt = bkt; fake->tomo_bkt_ptr = key->ptr;   /* hash-carry for the lookup below */
-        tomoWkrLock(owner);
-        robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[dbid], key, LOOKUP_NOEFFECTS);
-        if (o && o->type == OBJ_STRING) {
-            if (sdsEncodedObject(o)) addReplyBulkCBuffer(fake, o->ptr, sdslen(o->ptr));
-            else addReplyBulkLongLong(fake, (long)o->ptr);
-        } else {
-            addReplyNull(fake);
-        }
-        tomoWkrUnlock(owner);
-    }
-}
-
-/* ===== FLAT-NATIVE M-command WAVE ENGINE (tomokv-mcmd-flat batched core) =====
+/* ===== FLAT M-command WAVE ENGINE (flat-table batched core) =====
  * The structural edge a multi-key command holds over N pipelined singles is that all N keys are
  * known UP FRONT: besides amortizing parse/pcmd/dispatch over N, the execution can SOFTWARE-
  * PIPELINE the memory accesses. N pipelined GETs each serialize one dependent argv -> key-bytes ->
@@ -7204,103 +7026,6 @@ static inline void tomoFlatMWaveProbe(int dbid, robj **keys, int nw,
     }
 }
 
-/* FLAT-NATIVE MGET (tomokv-mcmd-flat). Runs ON A WORKER (routed by exExecFake), whole command as
- * one fake: read every key straight off the shared flat table and build the reply in key order —
- * no per-shard subs, no gather, no intermediate value copies, and no locks on the common
- * encodings. Safety ledger:
- *  - kvobj lifetime: the executing worker is inside its exSlice (in_flat_section=1, loop_seq
- *    pinned) and EVERY flat retire path defers frees through the QSBR grace, which stamps every
- *    worker at batch close (flatBatchClose) — overwrite (dbSetValue -> kvstoreFlatRetireRaw),
- *    delete (flatDelete + flatRetire), expire-field realloc (setExpire's pin+retire). Any kv the
- *    probe returns stays readable for the whole slice, cross-node included (the SCAN precedent in
- *    canDispatchToWorker).
- *  - INT encoding: the value IS the ->ptr word; INCR's in-place publish is a relaxed atomic store
- *    (t_string.c) paired with the relaxed atomic load here. Nothing freeable => no UAF, no lock.
- *  - EMBSTR: buffer embedded in the QSBR-pinned kvobj and IMMUTABLE in place — every mutation
- *    path unshares to a NEW object first (dbUnshareStringValue: encoding != RAW => copy+replace,
- *    old kvobj QSBR-retired). Read directly, no lock.
- *  - RAW: in-place GROWERS exist (APPEND/SETRANGE/SETBIT/BITFIELD/PFADD/PFCOUNT-cache) whose sds
- *    realloc frees the old buffer SYNCHRONOUSLY (not QSBR-routed), and the kvobj ITSELF can be
- *    realloc'd out from under the probe: setExpireByLink's first-TTL path (kvobjSetExpire on a
- *    not-yet-expirable value, db.c) builds a NEW kvobj, publishes it at the slot and QSBR-retires
- *    the probed one — a retired kvobj's ->ptr is never updated again, so merely re-loading it
- *    under a lock proves nothing about the buffer a CURRENT grower may free. ONLY the byte copy
- *    takes a lock, with two emit-time re-derivations (adversarial-review fixes):
- *      (a) OWNER re-derived from the LIVE bucket table immediately before tomoWkrLock — PASS B's
- *          owner is up to a full wave stale and reshard/flip can migrate the bucket in between
- *          (the same fresh-read discipline the locked borrow gets via tomoWkrOf; the residual
- *          read-vs-lock TOCTOU is the one the shared-mode reshard fence already drains);
- *      (b) SLOT RE-VALIDATED under that lock: re-probe (flatGet — atomic slot word re-read +
- *          fresh key compare) and copy ONLY from the kvobj the slot CURRENTLY holds, re-loading
- *          its ->ptr (relaxed atomic) inside the lock. Whatever kvobj the re-probe returns is
- *          copy-safe for the whole hold: its growers are excluded by this very lock
- *          (tomoStrGrowLock co-op; under mcmd_lock the S2 exec lock already brackets the whole
- *          proc), and a concurrent kvobj swap (SET overwrite / first-TTL EXPIRE / DEL) only
- *          QSBR-retires the kvobj being copied, whose buffers then outlive this slice. ONE
- *          locked re-probe suffices — no retry loop needed (nothing the copy reads can be
- *          synchronously freed while the lock is held). Re-probe outcome missing/expired/
- *          non-string => nil, a valid linearization of the racing write.
- *  - non-string / missing / expired => nil per MGET semantics; o->type/o->encoding are
- *    create-time-immutable and collection internals are NEVER dereferenced, so no owner
- *    exclusion and no fallback are needed for them.
- * Owner is re-derived per key from the LIVE bucket table (reshard-safe, like the borrow) INSIDE
- * the wave engine, which BYPASSES lookupKey entirely: ONE xxh64 per key feeds owner resolve,
- * slot prefetch and probe (the lookupKey route pays 2 — getKeySlot + kvstoreDictFind's
- * tomoKeyHash — even with the hash-carry stamp). Expiry check is keyIsExpired on the pinned kv
- * (the keysFlatCB flat-read precedent) == lookupKey's LOOKUP_NOEFFECTS outcome: with
- * EXPIRE_AVOID_DELETE_EXPIRED, expireIfNeeded returns KEY_VALID iff !keyIsExpired (db.c; the
- * trim-job clause needs cluster ASM, and the mcmd_flat fold requires shared_node_dbs == tomo
- * non-cluster mode). No touch/stats/notify on either path, so replies stay byte-identical. */
-static void tomoMgetFlatNative(client *fake) {
-    int nk = fake->argc - 1;
-    int dbid = fake->db->id;
-    addReplyArrayLen(fake, nk);
-    for (int base = 0; base < nk; base += TOMO_MSUBWAVE) {
-        int nw = nk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
-        uint64_t h[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *dbs[TOMO_MWAVE];
-        tomoFlatMWaveProbe(dbid, fake->argv + 1 + base, nw, h, mk, dbs);
-        for (int i = 0; i < nw; i++) {
-            kvobj *o = mk[i] ? dictGetKV(mk[i]) : NULL;
-            if (o && o->type == OBJ_STRING && !keyIsExpired(dbs[i], NULL, o)) {
-                if (o->encoding == OBJ_ENCODING_INT) {
-                    void *p = __atomic_load_n(&o->ptr, __ATOMIC_RELAXED);
-                    addReplyBulkLongLong(fake, (long)p);
-                } else if (o->encoding == OBJ_ENCODING_RAW) {
-                    /* RAW byte copy — grower co-op lock + the two re-derivations of the ledger's
-                     * RAW bullet: (a) fresh owner off the LIVE bucket table (PASS-B's owner may
-                     * be a wave stale — hash h[i] is reused, so this is tomoWkrOf minus the
-                     * re-hash), then (b) a locked slot re-probe; copy ONLY from the kvobj the
-                     * slot currently holds (the probed one may have been realloc'd away by a
-                     * first-TTL EXPIRE and its ->ptr is outside the grower co-op protocol). */
-                    robj *k = fake->argv[1 + base + i];
-                    int w = (int)server.ex_bucket_table[h[i] & TOMO_BUCKET_MASK];
-                    redisDb *rdb = &server.exThreads[w].db[dbid];
-                    tomoWkrLock(w);
-                    flatTable *rt = kvstoreFlatTable(rdb->keys);
-                    dictEntry *cur = rt ? flatGet(rt, h[i], k->ptr, sdslen(k->ptr)) : NULL;
-                    kvobj *co = cur ? dictGetKV(cur) : NULL;
-                    if (co && co->type == OBJ_STRING && !keyIsExpired(rdb, NULL, co)) {
-                        if (co->encoding == OBJ_ENCODING_INT) {
-                            void *p = __atomic_load_n(&co->ptr, __ATOMIC_RELAXED);
-                            addReplyBulkLongLong(fake, (long)p);
-                        } else {   /* RAW (grower-excluded) or EMBSTR (immutable): copy-safe */
-                            sds sv = __atomic_load_n((sds *)&co->ptr, __ATOMIC_RELAXED);
-                            addReplyBulkCBuffer(fake, sv, sdslen(sv));
-                        }
-                    } else {       /* re-probe: gone/expired/non-string => nil */
-                        addReplyNull(fake);
-                    }
-                    tomoWkrUnlock(w);
-                } else {                       /* EMBSTR: immutable in place, lock-free */
-                    addReplyBulkCBuffer(fake, o->ptr, sdslen(o->ptr));
-                }
-            } else {
-                addReplyNull(fake);
-            }
-        }
-    }
-}
-
 /* Per-node worker-borrow for the independent-per-key READ family (CS_MGET, CS_EXISTS). SCATTER-then-
  * COMBINE: group the command's keys BY NODE (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty
  * node carrying that node's keys, dispatched to a node-local worker (the node's first-seen key owner).
@@ -7311,8 +7036,7 @@ static void tomoMgetFlatNative(client *fake) {
  * pushed — it waits on the pending barrier like any gather group. Reuses the coalesced group machinery
  * (mget_vals + mget_pos for MGET, rcount for EXISTS); the only new piece is the per-key borrow read.
  * Every borrow stays NODE-LOCAL (no cross-node db reads) — the point of the split on real NUMA. Works
- * for numa_nodes==1 too (one node => one sub, borrows all keys); the MGET caller keeps the cheaper
- * single-worker fast path (tomoMgetLockBorrow) for that case.
+ * for numa_nodes==1 too (one node => one sub, borrows all keys).
  * MAINTENANCE (review): passes 2-4 below intentionally mirror csBuildCoalescedSubs' pooled-sub
  * construction contract (argv[0]/key incrRefCount, csparent/cssub_idx/resp/conn/CLIENT_EX_PENDING,
  * mget_pos fill, csPushSpin) — grouping BY NODE instead of BY WORKER plus the borrow read is the only
@@ -7326,8 +7050,6 @@ static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
     csGroup *g = zcalloc(sizeof(csGroup));
     g->ctype = ctype; g->nkeys = nkeys; g->head = head;
     g->mcmd_borrow = 1;
-    g->mcmd_flat = server.mcmd_flat;   /* boot-folded: subs read LOCK-FREE off the flat table (MGET
-                                        * RAW copies still take the owner lock; EXISTS fully free) */
     if (is_mget) g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
     head->csgroup = g;
     head->cdb = 0;                                  /* group-head completion routes to CDB 0 (drain clears it) */
@@ -8025,63 +7747,12 @@ static void csSubExec(client *sub) {
             if (__builtin_expect(g->mcmd_borrow, 0)) {
                 /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys belong to ONE
                  * node but SPAN multiple workers, so read each from its TRUE owner db under that owner's
-                 * per-worker lock (excludes the owner's concurrent single-key ops). Blocking lock (not the
-                 * trylock-backlog of tomoMgetLockBorrow) so a present key is NEVER reported nil under
-                 * writers; per-key lock/unlock (no hold across keys) + node-disjoint executors => no cycle.
+                 * per-worker lock (excludes the owner's concurrent single-key ops). Blocking lock so a
+                 * present key is NEVER reported nil under writers; per-key lock/unlock (no hold across
+                 * keys) + node-disjoint executors => no cycle.
                  * No cross-key dict prefetch (keys land on different dicts). Value COPY -> position slot. */
                 int borrow_dbid = sub->db->id;
-                /* FLAT-NATIVE (g->mcmd_flat, stamped at dispatch): WAVE-BATCHED lock-free reads.
-                 * This sub runs inside a worker slice, so every probe/kv deref is QSBR-covered;
-                 * only a RAW value's byte copy takes the owner lock (in-place grower co-op),
-                 * under the SAME emit protocol as tomoMgetFlatNative's RAW ledger bullet: fresh
-                 * owner off the LIVE bucket table right before the lock, then a locked slot
-                 * re-probe — the copy source is the slot's CURRENT kvobj, never the wave-stale
-                 * probe result (first-TTL EXPIRE reallocs the kvobj out from under it).
-                 * Passes + pf interaction: tomoFlatMWaveProbe header. Encoding cases mirror
-                 * tomoMgetFlatNative's safety ledger; expiry via keyIsExpired on the pinned kv ==
-                 * the LOOKUP_NOEFFECTS outcome (see tomoMgetFlatNative). One xxh64/key total —
-                 * the locked borrow below pays THREE (tomoWkrOf + getKeySlot + kvstoreDictFind). */
-                if (__builtin_expect(g->mcmd_flat, 1)) {
-                    int nkk = sub->argc - 1;
-                    for (int base = 0; base < nkk; base += TOMO_MSUBWAVE) {
-                        int nw = nkk - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
-                        uint64_t fh[TOMO_MWAVE]; dictEntry *mk[TOMO_MWAVE]; redisDb *fdbs[TOMO_MWAVE];
-                        tomoFlatMWaveProbe(borrow_dbid, sub->argv + 1 + base, nw, fh, mk, fdbs);
-                        for (int i = 0; i < nw; i++) {
-                            kvobj *o = mk[i] ? dictGetKV(mk[i]) : NULL;
-                            if (!o || o->type != OBJ_STRING || keyIsExpired(fdbs[i], NULL, o)) continue;
-                            int p = pos[base + i];   /* sub-local key -> original position slot */
-                            if (o->encoding == OBJ_ENCODING_INT) {
-                                void *ip = __atomic_load_n(&o->ptr, __ATOMIC_RELAXED);
-                                g->mget_vals[p] = sdsfromlonglong((long)ip);
-                            } else if (o->encoding == OBJ_ENCODING_RAW) {
-                                /* review fixes (a)+(b): fresh owner (hash fh[i] reused ==
-                                 * tomoWkrOf minus the re-hash) + locked slot re-probe. */
-                                robj *k = sub->argv[1 + base + i];
-                                int w = (int)server.ex_bucket_table[fh[i] & TOMO_BUCKET_MASK];
-                                redisDb *rdb = &server.exThreads[w].db[borrow_dbid];
-                                tomoWkrLock(w);
-                                flatTable *rt = kvstoreFlatTable(rdb->keys);
-                                dictEntry *cur = rt ? flatGet(rt, fh[i], k->ptr, sdslen(k->ptr)) : NULL;
-                                kvobj *co = cur ? dictGetKV(cur) : NULL;
-                                if (co && co->type == OBJ_STRING && !keyIsExpired(rdb, NULL, co)) {
-                                    if (co->encoding == OBJ_ENCODING_INT) {
-                                        void *ip = __atomic_load_n(&co->ptr, __ATOMIC_RELAXED);
-                                        g->mget_vals[p] = sdsfromlonglong((long)ip);
-                                    } else {   /* RAW (grower-excluded) or EMBSTR (immutable) */
-                                        sds sv = __atomic_load_n((sds *)&co->ptr, __ATOMIC_RELAXED);
-                                        g->mget_vals[p] = sdsdup(sv);
-                                    }
-                                }   /* else: re-probe says gone/expired/non-string — slot stays NULL => nil */
-                                tomoWkrUnlock(w);
-                            } else {                      /* EMBSTR: immutable in place */
-                                g->mget_vals[p] = sdsdup(o->ptr);
-                            }
-                        }
-                    }
-                    break;
-                }
-                /* mcmd_lock borrow WITHOUT the flat table: per-key owner lock, pre-flat shape. */
+                /* Per-key owner lock (the locked borrow shape). */
                 for (int a = 1; a < sub->argc; a++) {
                     robj *key = sub->argv[a];
                     int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
@@ -8248,19 +7919,15 @@ static void csSubExec(client *sub) {
             /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys span multiple
              * workers within ONE node — count each from its TRUE owner db under the owner's per-worker
              * lock (excludes concurrent single-key ops). LOOKUP_NOEFFECTS (pure read from a non-owned
-             * db; shares the borrow's no-lazy-expire semantic with tomoMgetLockBorrow). */
+             * db => no lazy expire). */
             int borrow_dbid = sub->db->id;
-            /* FLAT-NATIVE (g->mcmd_flat): the existence probe never dereferences value bytes —
-             * flatGet + the kv's embedded expire field are QSBR-covered inside this worker slice,
-             * so the read is UNCONDITIONALLY lock-free under the flat table (no grower hazard). */
-            int flat = g->mcmd_flat;
             for (int a = 1; a < sub->argc; a++) {
                 robj *key = sub->argv[a];
                 int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
-                if (!flat) tomoWkrLock(owner);
+                tomoWkrLock(owner);
                 if (lookupKeyReadWithFlags(&server.exThreads[owner].db[borrow_dbid], key, LOOKUP_NOEFFECTS))
                     present++;
-                if (!flat) tomoWkrUnlock(owner);
+                tomoWkrUnlock(owner);
             }
         } else {
             for (int a = 1; a < sub->argc; a++)
@@ -13548,8 +13215,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "unexpected_error_replies:%lld\r\n", server.stat_unexpected_error_replies,
             "total_error_replies:%lld\r\n", server.stat_total_error_replies,
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
-            "tomo_mread_flat_taken:%lld\r\n", server.stat_mread_flat_taken,
-            "tomo_mread_flat_gated:%lld\r\n", server.stat_mread_flat_gated,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
             "total_writes_processed:%lld\r\n", stat_total_writes_processed,
             "io_threaded_reads_processed:%lld\r\n", stat_io_reads_processed,
@@ -15389,18 +15054,6 @@ static inline void exExecFake(client *fake) {
                 fake->cmd->proc(fake);
                 for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
             }
-        } else if (__builtin_expect(server.mcmd_flat, 0) && fake->cmd->proc == mgetCommand) {
-            /* FLAT-NATIVE whole-command MGET (numa==1 dispatch route): lock-free flat reads,
-             * QSBR-covered by this slice. Checked BEFORE the mcmd_lock borrow — dispatch prefers
-             * flat the same way, and both knobs are boot-folded IMMUTABLE, so dispatch and exec
-             * can never disagree about which executor a routed whole-MGET fake gets. */
-            tomoMgetFlatNative(fake);
-        } else if (__builtin_expect(server.mcmd_lock, 0) && fake->cmd->proc == mgetCommand) {
-            /* worker-borrow MGET: this (first-key-owner) worker reads own + borrowed keys under
-             * per-worker locks and builds the reply — NOT the stock mgetCommand (which would only
-             * see this worker's shard). Its own key reads take this worker's lock too, coordinating
-             * with other workers borrowing from here. */
-            tomoMgetLockBorrow(fake);
         } else {
             /* S2: single-key hot path takes this key's owner-worker lock across the proc so it never
              * mutates/rehashes a bucket a borrower is reading. */

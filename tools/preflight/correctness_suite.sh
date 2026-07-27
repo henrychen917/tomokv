@@ -129,18 +129,6 @@ MTPID=$!
 TOMO_BIN="$BIN" LBL="under-load" EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE=$PORT "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh 2>/dev/null \
   | grep -q 'stale=0' && echo "ordering-under-load	PASS	" >> $OUT || echo "ordering-under-load	FAIL	stale reads under churn" >> $OUT
 wait $MTPID 2>/dev/null
-# GATE LIVENESS (TASK#43): prove the flat-native M-read ordering gate both CLOSES and REOPENS.
-# This exists because the original TASK#43 acceptance run reported "0/6000 stale" while the gate
-# was in fact wedged permanently SHUT (inflight_writes was decremented only in the CLOSE_ASAP
-# teardown branch, so it never returned to zero on a healthy connection). A closed gate produces
-# 0 stale trivially -- so a stale-read count alone can NEVER prove this feature is correct, or
-# even that it ran. Boots its own server on a private port.
-if "$(dirname "${BASH_SOURCE[0]}")"/gate_test.sh "$BIN" 7808 >> $J/cs.log 2>&1; then
-  echo "mread-gate-liveness	PASS	" >> $OUT
-else
-  echo "mread-gate-liveness	FAIL	gate did not both close and reopen (see cs.log)" >> $OUT
-fi
-
 grep -cE 'Guru|crashed by signal|ASSERTION' $J/cs.log | awk '{if($1>0) print "crash-markers\tFAIL\t"$1; else print "crash-markers\tPASS\t0"}' >> $OUT
 pkill -9 -x redis-corr 2>/dev/null
 echo "RESULT: $(grep -c 'PASS' $OUT) passed, $(grep -c 'FAIL' $OUT) failed" >> $OUT

@@ -54,7 +54,8 @@
 set -u
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp
 TREE=$J/stable-w2
-BIN=$TREE/src/redis-server
+# honour the binary preflight is stamping (was: always the tree build)
+BIN=${TOMO_BIN:-$TREE/src/redis-server}
 CLI=/shared/Projects/redis/src/redis-cli
 [ -x "$CLI" ] || CLI=$TREE/src/redis-cli
 MTB=$(command -v memtier_benchmark || echo /usr/local/bin/memtier_benchmark)
@@ -203,7 +204,10 @@ rss_peak() { awk 'BEGIN{m=0}{if($1>m)m=$1}END{print m}' "$RSSF"; }
 rss_last() { tail -1 "$RSSF" 2>/dev/null || echo 0; }
 
 wait_log() { # wait_log <fixed-string> <timeout_s> [file] -> 0 when seen
-  local pat=$1 t=$2 f=${3:-$SRVLOG} i n=$(( t * 2 ))
+  # `local` expands ALL its arguments BEFORE performing any of the assignments, so computing
+  # n=$((t*2)) in the same statement reads `t` while it is still unset -> fatal under `set -u`.
+  local pat=$1 t=$2 f=${3:-$SRVLOG} i n
+  n=$(( t * 2 ))
   for i in $(seq 1 "$n"); do grep -qF "$pat" "$f" 2>/dev/null && return 0; sleep 0.5; done
   return 1
 }

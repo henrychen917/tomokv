@@ -1633,11 +1633,6 @@ void pfaddCommand(client *c) {
     if (server.memory_tracking_enabled)
         oldsize = kvobjAllocSize(kv);
 
-    /* FLAT-NATIVE M-reads: hllAdd mutates the PUBLISHED sds in place (register stores; a
-     * sparse->dense promotion FREES the old buffer synchronously) and HLL_INVALIDATE_CACHE
-     * writes the header — an HLL is a plain OBJ_STRING a lock-free MGET reader may be copying,
-     * so bracket the whole mutation with the key-owner's worker lock (inert when off). */
-    int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen((sds)c->argv[1]->ptr));
     /* Perform the low level ADD operation for every element. */
     for (j = 2; j < c->argc; j++) {
         int retval = hllAdd(kv, (unsigned char*)c->argv[j]->ptr,
@@ -1647,7 +1642,6 @@ void pfaddCommand(client *c) {
             updated++;
             break;
         case -1:
-            tomoStrGrowUnlock(gw);
             addReplyError(c,invalid_hll_err);
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
@@ -1665,7 +1659,6 @@ void pfaddCommand(client *c) {
         notifyKeyspaceEvent(NOTIFY_STRING,"pfadd",c->argv[1],c->db->id);
         markDirty(updated);
     }
-    tomoStrGrowUnlock(gw);
     addReply(c, updated ? shared.cone : shared.czero);
 }
 
@@ -1746,9 +1739,6 @@ void pfcountCommand(client *c) {
                 addReplyError(c,invalid_hll_err);
                 return;
             }
-            /* FLAT-NATIVE M-reads: the cache update writes the PUBLISHED HLL string's header in
-             * place — bracket vs a lock-free MGET reader copying the string (inert when off). */
-            int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen((sds)c->argv[1]->ptr));
             hdr->card[0] = card & 0xff;
             hdr->card[1] = (card >> 8) & 0xff;
             hdr->card[2] = (card >> 16) & 0xff;
@@ -1757,7 +1747,6 @@ void pfcountCommand(client *c) {
             hdr->card[5] = (card >> 40) & 0xff;
             hdr->card[6] = (card >> 48) & 0xff;
             hdr->card[7] = (card >> 56) & 0xff;
-            tomoStrGrowUnlock(gw);
             /* This is considered a read-only command even if the cached value
              * may be modified and given that the HLL is a Redis string
              * we need to propagate the change. */

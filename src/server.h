@@ -451,7 +451,6 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
  * thread (reads paused, ring draining toward the quiesce fence). Cleared once the
  * destination io thread re-registers it. Only ever set/read by the client's owning
  * io thread and by the source thread during the drain window. */
-#define CLIENT_TOMO_WRITE (1ULL<<59)  /* TASK#43: this fake carries a WRITE (dispatch-time mark; drain decrements client.inflight_writes) */
 #define CLIENT_MIGRATING (1ULL << 57)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
@@ -1531,15 +1530,6 @@ typedef struct client {
     client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
     unsigned int dispatchid;
     unsigned int flushid;
-    unsigned int inflight_writes;  /* TASK#43: count of this client's dispatched-but-not-yet-retired
-                                    * WRITE commands. Owned by the client's io thread (dispatch
-                                    * increments, drain decrements) — no atomics needed. Gates the
-                                    * single-executor M-read fast paths: those read keys they do not
-                                    * own, so they are NOT ordered against writes sitting in other
-                                    * owners' SPSC queues (per-key FIFO is what makes scatter-gather
-                                    * correct). Zero in-flight writes => no such write can exist =>
-                                    * the fast path is safe. Reads impose no ordering on reads, so a
-                                    * read-only pipeline keeps the fast path. */
     /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to ring_size */
     /* UNIFIED per-connection ring (merges tomokv-pipeline-depth with tomokv-fake-ring-depth: they
@@ -1965,11 +1955,6 @@ typedef struct csGroup {
                                 * reads each key from its TRUE owner db under that owner's per-worker lock
                                 * (tomo_wkr_lock) rather than from sub->db. Set by tomoMgetPerNodeDispatch;
                                 * csSubExec CS_MGET takes the borrow branch. 0 = normal same-shard coalesced. */
-    int mcmd_flat;             /* FLAT-NATIVE M-reads (tomokv-mcmd-flat): borrow subs read each key LOCK-FREE
-                                * off the shared flat table (QSBR-covered worker slice) instead of under the
-                                * owner's lock; only a RAW value's byte copy takes the owner lock (in-place
-                                * growers co-op via tomoStrGrowLock). Stamped at dispatch from the boot-folded
-                                * knob so an in-flight group can never change discipline mid-flight. */
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
     int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
     int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
@@ -3475,9 +3460,6 @@ struct redisServer {
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
     int mcmd_nodelocal;        /* EXPERIMENT A/B: MGET/EXISTS skip the borrow intercept and use the node-locked STOCK-proc localfast when same-node (cross-node falls to coalesced scatter). Boot-only; needs mcmd_lock. */
-    long long stat_mread_flat_taken;   /* TASK#43: flat-native M-read routes actually taken */
-    long long stat_mread_flat_gated;   /* TASK#43: routes REFUSED by the inflight_writes ordering gate */
-    int mcmd_flat;             /* FLAT-NATIVE M-reads (tomokv-mcmd-flat, IMMUTABLE): MGET routes as ONE fake to a node-local worker and reads every key lock-free off the shared flat table (QSBR-covered); EXISTS borrow subs drop their locks. FOLDED at initServer to knob && thredis_flat_store && shared_node_dbs && !mcmd_nodelocal — every runtime test reads the folded value so dispatch/exec/grower-co-op can never disagree. */
     int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
     int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->
@@ -5641,14 +5623,6 @@ int tomoMigrateTest(int val, const char **err);       /* control plane: modeshif
 int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: modeshift-test 70+n / 80+n */
 void tomoWkrLockPub(int w);                            /* per-worker mcmd lock (db.c RANDOMKEY expire) */
 void tomoWkrUnlockPub(int w);
-/* FLAT-NATIVE M-reads (tomokv-mcmd-flat) grower co-op: every IN-PLACE grower of a PUBLISHED string
- * value (APPEND/SETRANGE/SETBIT/BITFIELD/PFADD/PFCOUNT-cache) brackets its mutation with this pair —
- * the sds realloc frees the old buffer SYNCHRONOUSLY (invisible to QSBR), so the lock-free MGET
- * reader's RAW byte copy takes the key-owner's worker lock and needs the grower on the same lock.
- * Returns the locked worker id, or -1 = no lock needed (flat-native off, or mcmd_lock already
- * brackets the whole proc via the S2 exec lock). Pass the return to tomoStrGrowUnlock. */
-int  tomoStrGrowLock(const void *keyptr, size_t len);
-void tomoStrGrowUnlock(int w);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

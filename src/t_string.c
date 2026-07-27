@@ -620,13 +620,8 @@ void setrangeCommand(client *c) {
         size_t oldsize = 0;
         if (server.memory_tracking_enabled)
             oldsize = kvobjAllocSize(kv);
-        /* FLAT-NATIVE M-reads: the in-place grow can realloc (FREE) the PUBLISHED sds out from
-         * under a lock-free MGET reader, and the memcpy would tear its copy — bracket both with
-         * the key-owner's worker lock (tomoStrGrowLock; inert -1 when flat-native is off). */
-        int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
         kv->ptr = sdsgrowzero(kv->ptr,offset+value_len);
         memcpy((char*)kv->ptr+offset,value,value_len);
-        tomoStrGrowUnlock(gw);
         if (server.memory_tracking_enabled)
             updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
         keyModified(c,c->db,c->argv[1],kv,1);
@@ -950,12 +945,7 @@ void appendCommand(client *c) {
         o = dbUnshareStringValueByLink(c->db,c->argv[1],o,link);
         if (server.memory_tracking_enabled)
             oldsize = kvobjAllocSize(o);
-        /* FLAT-NATIVE M-reads: the in-place cat reallocs (FREES) the PUBLISHED sds out from under
-         * a lock-free MGET reader — bracket it with the key-owner's worker lock (inert when off).
-         * The unshare above is already safe: it swaps in a NEW object and QSBR-retires the old. */
-        int gw = tomoStrGrowLock(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
         o->ptr = sdscatlen(o->ptr,append->ptr,append_len);
-        tomoStrGrowUnlock(gw);
         if (server.memory_tracking_enabled)
             updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), o, oldsize, kvobjAllocSize(o));
         totlen = sdslen(o->ptr);
