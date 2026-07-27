@@ -113,7 +113,6 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
-static void tomoMPerNodeDispatch(client *head, csCmdType ctype); /* per-node worker-borrow MGET/EXISTS */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
@@ -281,7 +280,7 @@ static inline int tomoScriptFamily(struct redisCommand *cmd) {
  * free while main is inside its region. They instead take this global pin, which blocks EVERY grace
  * for the duration: fail-safe, exactly the old flag behaviour, and ~always zero in this fork. */
 static _Atomic int flat_foreign_active __attribute__((aligned(CACHE_LINE_SIZE)));
-static char _pad_flat_foreign[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+static char _pad_flat_foreign[CACHE_LINE_SIZE - sizeof(_Atomic int)] __attribute__((unused));  /* deliberate: isolates flat_foreign_active on its own line */
 static inline int flatIoHi(void);            /* fwd; defined with the region machinery below */
 static int flatIoPinnedCount(void) {         /* INFO gauge: io identities currently inside a region */
     int n = 0, hi = flatIoHi();
@@ -7016,36 +7015,6 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * regression, halve it; if they show no tail cost, raise it toward TOMO_MWAVE. */
 #define TOMO_MWAVE 32
 #define TOMO_MSUBWAVE 8
-static inline void tomoFlatMWaveProbe(int dbid, robj **keys, int nw,
-                                      uint64_t *h, dictEntry **mk, redisDb **dbs) {
-    int owner[TOMO_MWAVE];             /* PASS-B hint only; the RAW emit re-derives at lock time */
-    flatTable *t[TOMO_MWAVE];
-    for (int i = 0; i < nw; i++)                                        /* A0: robj headers */
-        redis_prefetch_read(keys[i]);
-    for (int i = 0; i < nw; i++) {                                      /* A1: key byte lines */
-        robj *k = keys[i];
-        if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) redis_prefetch_read(k->ptr);
-    }
-    for (int i = 0; i < nw; i++)                                        /* A2: hash */
-        h[i] = tomoKeyHash(keys[i]->ptr, sdslen(keys[i]->ptr));
-    for (int i = 0; i < nw; i++) {                                      /* B: first-probe lines */
-        owner[i] = (int)server.ex_bucket_table[h[i] & TOMO_BUCKET_MASK];
-        dbs[i] = &server.exThreads[owner[i]].db[dbid];
-        flatTable *ti = kvstoreFlatTable(dbs[i]->keys);
-        t[i] = ti;
-        if (ti) redis_prefetch_read(&ti->slots[h[i] & ti->mask]);
-    }
-    for (int i = 0; i < nw; i++)                                        /* C: probe, hash reused */
-        mk[i] = t[i] ? flatGet(t[i], h[i], keys[i]->ptr, sdslen(keys[i]->ptr)) : NULL;
-    for (int i = 0; i < nw; i++) {                                      /* D: value sds lines */
-        if (!mk[i]) continue;
-        kvobj *o = dictGetKV(mk[i]);
-        if (o->encoding != OBJ_ENCODING_INT) {
-            char *vp = __atomic_load_n((char **)&o->ptr, __ATOMIC_RELAXED);
-            if (vp) redis_prefetch_read(vp - 1);
-        }
-    }
-}
 
 /* Per-node worker-borrow for the independent-per-key READ family (CS_MGET, CS_EXISTS). SCATTER-then-
  * COMBINE: group the command's keys BY NODE (node = tmNodeOfWorker(owner)); issue ONE sub per non-empty
@@ -7062,80 +7031,6 @@ static inline void tomoFlatMWaveProbe(int dbid, robj **keys, int nw,
  * construction contract (argv[0]/key incrRefCount, csparent/cssub_idx/resp/conn/CLIENT_EX_PENDING,
  * mget_pos fill, csPushSpin) — grouping BY NODE instead of BY WORKER plus the borrow read is the only
  * real difference. Any change to that shared sub-construction contract must be reflected in BOTH. */
-static void tomoMPerNodeDispatch(client *head, csCmdType ctype) {
-    int nkeys = head->argc - 1;
-    int dbid  = head->db->id;
-    int nn    = server.numa_nodes > 0 ? server.numa_nodes : 1;
-    int is_mget = (ctype == CS_MGET);              /* else CS_EXISTS (count, no position slots) */
-
-    csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = ctype; g->nkeys = nkeys; g->head = head;
-    g->mcmd_borrow = 1;
-    if (is_mget) g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
-    head->csgroup = g;
-    head->cdb = 0;                                  /* group-head completion routes to CDB 0 (drain clears it) */
-
-    /* pass 1: node of each key + per-node key count + a node-local executor (first key's owner in node).
-     * opt-loop C2a: scratch lives on the STACK — 6 malloc/free pairs per command were ~5-8% of the
-     * cross-node MGET/EXISTS instruction budget. Node-indexed arrays are bounded [16]; the per-key
-     * node map uses a fixed frame for the common case and falls back to heap only for huge MGETs. */
-    int node_of_stk[128];
-    int *node_of = (nkeys <= 128) ? node_of_stk : zmalloc(sizeof(int) * nkeys);
-    int ncnt[16] = {0};                            /* keys owned within node n */
-    int nexec[16];                                 /* executor worker for node n */
-    for (int n = 0; n < nn; n++) nexec[n] = -1;
-    for (int i = 0; i < nkeys; i++) {
-        robj *key = head->argv[1 + i];
-        int w = tomoWkrOf(key->ptr, sdslen(key->ptr));
-        int node = tmNodeOfWorker(w);
-        if (node < 0 || node >= nn) node = 0;      /* defensive: keep grouping in-bounds */
-        node_of[i] = node; ncnt[node]++;
-        if (nexec[node] < 0) nexec[node] = w;      /* node's first-seen key owner runs the node's sub */
-    }
-    int nsub = 0;
-    for (int n = 0; n < nn; n++) if (ncnt[n]) nsub++;
-    g->nsub = nsub;
-    g->subs = zmalloc(sizeof(client *) * nsub);
-    if (is_mget) g->mget_pos = zcalloc(sizeof(int *) * nsub);
-    atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
-    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
-
-    /* pass 2: one sub per non-empty node (argv = [CMD, node's keys...]); db carries dbid only. */
-    client *nsubp[16] = {0};                           /* node -> its sub */
-    int nsi[16];                                       /* node -> sub index */
-    int nfill[16] = {0};                               /* node -> per-sub fill cursor */
-    int si = 0;
-    for (int n = 0; n < nn; n++) {
-        if (!ncnt[n]) continue;
-        int w = nexec[n];
-        client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
-        sub->resp = head->resp;
-        sub->conn = head->conn;
-        sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj *) * (1 + ncnt[n]));
-        sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        sub->argc = 1;
-        sub->db = &server.exThreads[w].db[dbid];   /* dbid via db->id; borrow reads use each key's true owner */
-        if (is_mget) g->mget_pos[si] = zmalloc(sizeof(int) * ncnt[n]);
-        nsubp[n] = sub; nsi[n] = si; g->subs[si++] = sub;
-    }
-
-    /* pass 3: fill each sub's keys (MGET also records each key's original position). */
-    for (int i = 0; i < nkeys; i++) {
-        int n = node_of[i];
-        client *sub = nsubp[n];
-        robj *key = head->argv[1 + i];
-        sub->argv[sub->argc++] = key; incrRefCount(key);
-        if (is_mget) g->mget_pos[nsi[n]][nfill[n]++] = i;   /* sub-local key -> original position i */
-    }
-
-    /* pass 4: dispatch each node's sub to its node-local executor worker. Head stays in flight. */
-    for (int n = 0; n < nn; n++)
-        if (ncnt[n]) csPushSpin(nexec[n], nsubp[n]);
-
-    if (node_of != node_of_stk) zfree(node_of);
-}
 
 /* ============================ ee451 (v7) CROSS-SHARD ============================
  * Multi-key scatter-gather. A multi-key command (MGET / MSET / DEL / UNLINK / EXISTS / TOUCH)
@@ -7765,28 +7660,6 @@ static void csSubExec(client *sub) {
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
             int *pos = g->mget_pos[sub->cssub_idx];
-            if (__builtin_expect(g->mcmd_borrow, 0)) {
-                /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys belong to ONE
-                 * node but SPAN multiple workers, so read each from its TRUE owner db under that owner's
-                 * per-worker lock (excludes the owner's concurrent single-key ops). Blocking lock so a
-                 * present key is NEVER reported nil under writers; per-key lock/unlock (no hold across
-                 * keys) + node-disjoint executors => no cycle.
-                 * No cross-key dict prefetch (keys land on different dicts). Value COPY -> position slot. */
-                int borrow_dbid = sub->db->id;
-                /* Per-key owner lock (the locked borrow shape). */
-                for (int a = 1; a < sub->argc; a++) {
-                    robj *key = sub->argv[a];
-                    int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
-                    tomoWkrLock(owner);
-                    robj *o = lookupKeyReadWithFlags(&server.exThreads[owner].db[borrow_dbid],
-                                                     key, LOOKUP_NOEFFECTS);
-                    if (o != NULL && o->type == OBJ_STRING)
-                        g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
-                                                                       : sdsfromlonglong((long)o->ptr);
-                    tomoWkrUnlock(owner);
-                }
-                break;
-            }
             /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
              * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
              * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each
@@ -7936,24 +7809,8 @@ static void csSubExec(client *sub) {
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; count present keys (lazy expiry applied).
          * Duplicate key args are separate argv entries, so EXISTS k k correctly counts 2 if present. */
         long present = 0;
-        if (__builtin_expect(g->mcmd_borrow, 0)) {
-            /* EXPERIMENT (2s-numa-mcmd-lock) per-node worker-borrow: this sub's keys span multiple
-             * workers within ONE node — count each from its TRUE owner db under the owner's per-worker
-             * lock (excludes concurrent single-key ops). LOOKUP_NOEFFECTS (pure read from a non-owned
-             * db => no lazy expire). */
-            int borrow_dbid = sub->db->id;
-            for (int a = 1; a < sub->argc; a++) {
-                robj *key = sub->argv[a];
-                int owner = tomoWkrOf(key->ptr, sdslen(key->ptr));
-                tomoWkrLock(owner);
-                if (lookupKeyReadWithFlags(&server.exThreads[owner].db[borrow_dbid], key, LOOKUP_NOEFFECTS))
-                    present++;
-                tomoWkrUnlock(owner);
-            }
-        } else {
-            for (int a = 1; a < sub->argc; a++)
-                if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
-        }
+        for (int a = 1; a < sub->argc; a++)
+            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE)) present++;
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
@@ -15435,12 +15292,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                 csGroup *g = fake->csparent;
                 /* review fix (mcmd-lock): a per-node borrow read (another node executor) reads THIS
                  * worker's db under tomo_wkr_lock, so every scatter sub that touches this worker's db
-                 * (writes: MSET/DEL/*STORE; reads: MGET/EXISTS/SETOP/KEYS gather) must take the same
+                 * (writes: MSET/DEL*STORE; reads: MGET/EXISTS/SETOP/KEYS gather) must take the same
                  * lock — otherwise its dictAdd/dictFind rehash races the borrower -> heap corruption.
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
-                 * mutates/reads. Borrow subs (g->mcmd_borrow) self-lock per key and skip this. Inert
+                 * mutates/reads. Inert
                  * when the knob is off. */
-                int cs_lk = (__builtin_expect(server.mcmd_lock, 0) && !g->mcmd_borrow);
+                int cs_lk = __builtin_expect(server.mcmd_lock, 0);
                 if (cs_lk && g->cs_node_lock) {
                     /* ee451 (shared-kv payoff): node-locked CS_LOCAL — the stock proc reads keys
                      * owned by SEVERAL workers of this node's shared kvstore; hold every node

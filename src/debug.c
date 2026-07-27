@@ -953,7 +953,8 @@ NULL
         /* ee451 (flatstore lb): dump coarse per-group load + per-worker totals + the hottest groups,
          * so the minimal-move balancer's signal can be validated (DEBUG TOMO-LBGROUPS [topN]). */
         int topN = (c->argc >= 3) ? atoi(c->argv[2]->ptr) : 8;
-        if (topN < 1) topN = 1; if (topN > TOMO_LB_GROUPS) topN = TOMO_LB_GROUPS;
+        if (topN < 1) topN = 1;
+        if (topN > TOMO_LB_GROUPS) topN = TOMO_LB_GROUPS;
         int W = server.num_workers_alloc;
         unsigned long long grp[TOMO_LB_GROUPS]; unsigned long long wtot[TOMO_EX_THREADS_MAX+1];
         for (int g = 0; g < TOMO_LB_GROUPS; g++) grp[g] = 0;
