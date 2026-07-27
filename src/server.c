@@ -6128,7 +6128,21 @@ int processCommand(client *c) {
             tmLatMaybeStamp(fake);
             exDispatchPush(owner, fake);
         }
-    } else if (csp && server.mcmd_lock && !server.mcmd_nodelocal && c->inflight_writes == 0 &&
+    /* WORK-STEALING M-READS ARE DISABLED (2026-07-26). Both single-executor routes — this borrow
+     * and the flat-native path — have one executor read keys it does NOT own, which bypasses the
+     * owner's queue and therefore the per-key FIFO that makes same-client pipeline ordering correct.
+     * Two distinct hazards, only one of which we could gate:
+     *   (a) EARLIER write, later read: fixed by the inflight_writes gate (TASK#43) — measured
+     *       1936-2335/6000 stale before it, 0/6000 after.
+     *   (b) LATER write, earlier read: a stolen read executes on a non-owner while a subsequent SET
+     *       goes to the owner; those workers are unordered, so the later write can overtake the
+     *       earlier read. 36000 stolen reads did not reproduce it (the race is narrow — both
+     *       workers start promptly), but it is NOT disproven, and an unprovable narrow race in the
+     *       data path is not worth the throughput.
+     * Scatter-gather is correct by construction for BOTH directions (same key => same owner queue
+     * => FIFO both ways), so M-reads route there. Revisit only with a per-key window that bounds
+     * hazard (b) as well — see tomokv-mcmd-flat / the ordering regression in tools/preflight. */
+    } else if (0 && csp && server.mcmd_lock && !server.mcmd_nodelocal && c->inflight_writes == 0 &&
         (csp->ctype == CS_MGET ||
          (csp->ctype == CS_EXISTS && fake->cmd->proc == existsCommand && (fake->argc - 1) >= 2)) &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
@@ -14874,9 +14888,7 @@ static inline void freebackDrainAll(exThread *worker) {
 int exQueuePush(exQueue *q, client *c) {
     /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
      * Gated so the default (off) hot path pays nothing. */
-    /* arrival stamp feeds BOTH cross-queue strict-order and the in-batch reorder window. */
-    if (__builtin_expect(server.strict_order != 0 || server.tomo_reorder_window_us != 0, 0))
-        c->arrival_us = getMonotonicUs();
+    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
      * flushExQueues() (handleWorkerReplies top), batching up to
@@ -15582,83 +15594,6 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         }
         if (n == 0) continue;
 
-        /* RETIRE-AWARE REORDERING (user design 2026-07-26). A fake whose client-ring slot is NOT
-         * the client's next-to-retire slot cannot have its reply DELIVERED yet regardless of when
-         * we execute it: handleWorkerReplies splices in ring order and blocks at the first
-         * incomplete slot. So running it now buys that client nothing, while another client's
-         * head-of-ring command could retire immediately. Partition head-ready first.
-         *
-         * This is a Pareto move, not a latency/throughput trade: deferred work was already gated
-         * on earlier commands, and nothing is dropped — the whole batch still executes this pass.
-         *
-         * STABILITY IS LOAD-BEARING: the partition must preserve relative order WITHIN each group.
-         * Two commands of the SAME client for the SAME key sit in this one queue, and per-key FIFO
-         * is what makes same-key ordering correct (see TASK#43) — an unstable swap-partition could
-         * apply SET k v2 before SET k v1. Two passes over a scratch array give a stable partition;
-         * a same-client pair can never invert across groups either, since "head-ready" is by
-         * definition the earliest unretired slot.
-         *
-         * parent->flushid is read relaxed: it only advances, so a stale read under-reports progress
-         * => we call a head-ready fake "deferred" => conservative, never incorrect.
-         *
-         * CROSS-SHARD SUBS ARE EXCLUDED via f->csparent — and the discriminator matters: csMakeSub
-         * builds subs with createPooledFakeClient(head->parent), so a sub's parent is the REAL
-         * CLIENT (an isFake test on the parent does NOT catch them — that was a wrong first fix).
-         * A sub's fake_slot carries no client-ring meaning (pooled/stale, frequently 0), so it can
-         * coincidentally equal flushid & ring_mask, get called head-ready, and be hoisted AHEAD of
-         * the SET it must follow in the same owner queue: 5625/6000 stale reads.
-         *
-         * With subs excluded, a ring fake can only ever move EARLIER relative to subs, which is
-         * safe: for a ring fake to be head-ready every earlier command of that client must already
-         * have retired, so no sub of an earlier command can still be in this queue. */
-        if (__builtin_expect(n > 1 && server.tomo_retire_sched, 0)) {
-            client *ord[WORKER_POP_BATCH];
-            uint32_t hr = 0;          /* head-ready bitmask — computed ONCE per fake */
-            int t = 0;
-            /* The predicate reads pr->flushid, which the OWNING IO THREAD advances concurrently.
-             * Evaluating it separately in each pass is a correctness bug, not a style issue: a fake
-             * can be classified head-ready in pass 1 AND not-head-ready in pass 2 (=> emitted twice,
-             * overflowing ord[] and executing the command twice), or neither (=> DROPPED, so its
-             * reply bit is never set and the in-order drain blocks on that ring slot forever — the
-             * measured wedge: server alive, PING fine, zero ops from pipe 4 up). Snapshot the
-             * classification into a bitmask and use THAT for both passes, so the partition is a pure
-             * permutation of the batch regardless of what flushid does meanwhile. */
-            /* TEMPORAL BOUND (user requirement): reordering across clients is allowed, but only
-             * loosely — a command that arrived W later must NOT be served ahead of an earlier one.
-             * Take the batch's oldest arrival and make only fakes within [oldest, oldest+W] eligible
-             * to be hoisted; anything older-than-window keeps its place, so the maximum distance any
-             * command can jump is W. W = tomokv-reorder-window-us (-1 => 1000us, 0 => unbounded).
-             * This is the bound the earlier revision lacked entirely: it permuted purely by
-             * retire-readiness and would happily jump an arbitrarily older command — and it also
-             * discarded the temporal run tomokv-strict-order had just selected. */
-            uint64_t wus = 0, oldest = 0;
-            if (server.tomo_reorder_window_us != 0) {
-                wus = (server.tomo_reorder_window_us < 0) ? 1000u
-                                                          : (uint64_t)server.tomo_reorder_window_us;
-                oldest = UINT64_MAX;
-                for (int j = 0; j < n; j++) {
-                    client *f = ctx->batch[j];
-                    if (f && f->arrival_us && f->arrival_us < oldest) oldest = f->arrival_us;
-                }
-                if (oldest == UINT64_MAX) oldest = 0;   /* nothing stamped: no bound to apply */
-            }
-            for (int j = 0; j < n; j++) {
-                client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
-                int in_window = (wus == 0) || (oldest == 0) || !f->arrival_us ||
-                                (f->arrival_us - oldest) <= wus;
-                if (in_window && pr && !f->csparent && !f->drain_ack && !f->is_flush &&
-                    f->fake_slot == (pr->flushid & pr->ring_mask)) {
-                    hr |= (1u << j); t++;
-                }
-            }
-            if (t > 0 && t < n) {                     /* mixed batch: reordering can help */
-                int w = 0;
-                for (int j = 0; j < n; j++) if (hr & (1u << j)) ord[w++] = ctx->batch[j];
-                for (int j = 0; j < n; j++) if (!(hr & (1u << j))) ord[w++] = ctx->batch[j];
-                serverAssert(w == n);                 /* permutation, never a drop or a duplicate */
-                memcpy(ctx->batch, ord, (size_t)n * sizeof(*ord));
-            }
-        }
 
         /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS
          * START mark (busy time = pop..fold; inter-pass spins/yields implicitly idle — the
