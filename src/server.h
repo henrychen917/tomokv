@@ -3473,6 +3473,9 @@ struct redisServer {
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
     int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
+    int tomo_reorder_window_us; /* retire-sched temporal bound: 0=off, -1=auto(1000us), N=us.
+                                 * A command may only be hoisted past ones that arrived within
+                                 * this window, so a client arriving W later can never jump. */
     int tomo_retire_sched;     /* retire-aware batch reordering (see server.c pop loop) */
     int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
     int mcmd_nodelocal;        /* EXPERIMENT A/B: MGET/EXISTS skip the borrow intercept and use the node-locked STOCK-proc localfast when same-node (cross-node falls to coalesced scatter). Boot-only; needs mcmd_lock. */

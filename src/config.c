@@ -3269,6 +3269,13 @@ standardConfig static_configs[] = {
      * subs must be excluded via f->csparent, NOT via parent->isFake (csMakeSub gives subs the REAL
      * client as parent). Validated with the knob on: ord_test 0/6000 stale, same-key chain 400/400,
      * multi-key write-then-MGET 300/300, SET/DEL/GET 300/300. */
+    /* Temporal bound on retire-aware reordering. 0 = off (no time bound: reordering is then
+     * limited only by retire-readiness), -1 = auto (1000us), N = window in MICROSECONDS. A fake is
+     * hoistable only if it arrived within the window of the batch's OLDEST fake, so a command that
+     * arrived W later than another can never be served ahead of it. Composes with
+     * tomokv-strict-order (which bounds cross-QUEUE selection); this bounds the in-batch permutation
+     * that strict-order's run would otherwise have discarded. */
+    createIntConfig("tomokv-reorder-window-us", NULL, MODIFIABLE_CONFIG, -1, 1000000, server.tomo_reorder_window_us, -1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-retire-sched",           NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_retire_sched, 1, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             1, NULL, NULL),
     createBoolConfig("tomokv-mcmd-nodelocal",        NULL, IMMUTABLE_CONFIG,   server.mcmd_nodelocal,        0, NULL, NULL), /* EXPERIMENT A/B: MGET/EXISTS via node-locked stock proc instead of borrow (same-node); boot-only */ /* EXPERIMENT: multi-key cmds run lock-borrow instead of scatter-gather (default off). IMMUTABLE: a runtime toggle would race in-flight borrow groups (which snapshot the knob at dispatch) against the live-gated owner/write/migration locks -> heap corruption; set at boot only. */

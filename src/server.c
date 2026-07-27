@@ -14874,7 +14874,9 @@ static inline void freebackDrainAll(exThread *worker) {
 int exQueuePush(exQueue *q, client *c) {
     /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
      * Gated so the default (off) hot path pays nothing. */
-    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
+    /* arrival stamp feeds BOTH cross-queue strict-order and the in-batch reorder window. */
+    if (__builtin_expect(server.strict_order != 0 || server.tomo_reorder_window_us != 0, 0))
+        c->arrival_us = getMonotonicUs();
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
      * flushExQueues() (handleWorkerReplies top), batching up to
@@ -15621,9 +15623,30 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * measured wedge: server alive, PING fine, zero ops from pipe 4 up). Snapshot the
              * classification into a bitmask and use THAT for both passes, so the partition is a pure
              * permutation of the batch regardless of what flushid does meanwhile. */
+            /* TEMPORAL BOUND (user requirement): reordering across clients is allowed, but only
+             * loosely — a command that arrived W later must NOT be served ahead of an earlier one.
+             * Take the batch's oldest arrival and make only fakes within [oldest, oldest+W] eligible
+             * to be hoisted; anything older-than-window keeps its place, so the maximum distance any
+             * command can jump is W. W = tomokv-reorder-window-us (-1 => 1000us, 0 => unbounded).
+             * This is the bound the earlier revision lacked entirely: it permuted purely by
+             * retire-readiness and would happily jump an arbitrarily older command — and it also
+             * discarded the temporal run tomokv-strict-order had just selected. */
+            uint64_t wus = 0, oldest = 0;
+            if (server.tomo_reorder_window_us != 0) {
+                wus = (server.tomo_reorder_window_us < 0) ? 1000u
+                                                          : (uint64_t)server.tomo_reorder_window_us;
+                oldest = UINT64_MAX;
+                for (int j = 0; j < n; j++) {
+                    client *f = ctx->batch[j];
+                    if (f && f->arrival_us && f->arrival_us < oldest) oldest = f->arrival_us;
+                }
+                if (oldest == UINT64_MAX) oldest = 0;   /* nothing stamped: no bound to apply */
+            }
             for (int j = 0; j < n; j++) {
                 client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
-                if (pr && !f->csparent && !f->drain_ack && !f->is_flush &&
+                int in_window = (wus == 0) || (oldest == 0) || !f->arrival_us ||
+                                (f->arrival_us - oldest) <= wus;
+                if (in_window && pr && !f->csparent && !f->drain_ack && !f->is_flush &&
                     f->fake_slot == (pr->flushid & pr->ring_mask)) {
                     hr |= (1u << j); t++;
                 }
