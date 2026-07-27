@@ -2400,6 +2400,24 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
 }
 
+/* TASK#43 (review fix): retire this fake's write, if it was one (see client.inflight_writes).
+ * Keyed on the dispatch-time mark, not fake->cmd — command state does not reliably survive to
+ * retire. MUST be called at EVERY retire site: the original patch decremented only in the
+ * CLOSE_ASAP teardown branch, so on a healthy connection the counter only ever grew, the
+ * `inflight_writes == 0` gate was permanently false after the first write, and the M-read fast
+ * path it guards was silently dead (which is also why the "0/6000 stale" acceptance run proved
+ * nothing — a permanently-closed gate cannot produce a stale read).
+ *
+ * Clearing the mark is equally mandatory: fakes are ring slots reused for the next command, so a
+ * stale mark would decrement on a later NON-write — an under-count, which opens the gate while
+ * writes are genuinely in flight and re-introduces exactly the ordering hole this closes. */
+static inline void tomoRetireFakeWrite(client *fake, client *real) {
+    if (__builtin_expect((fake->flags & CLIENT_TOMO_WRITE) != 0, 0)) {
+        fake->flags &= ~CLIENT_TOMO_WRITE;
+        if (real->inflight_writes) real->inflight_writes--;
+    }
+}
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -2458,11 +2476,7 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 commandProcessed(fake);
-                /* TASK#43: retire this fake's write, if it was one (see client.inflight_writes).
-                 * Keyed on the dispatch-time mark, not fake->cmd — command state does not reliably
-                 * survive to retire. */
-                if ((fake->flags & CLIENT_TOMO_WRITE) && real->inflight_writes)
-                    real->inflight_writes--;
+                tomoRetireFakeWrite(fake, real);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
@@ -2575,6 +2589,7 @@ void handleWorkerReplies(void) {
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
                 commandProcessed(fake);
+                tomoRetireFakeWrite(fake, real);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
@@ -2589,6 +2604,7 @@ void handleWorkerReplies(void) {
              * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
             cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
             commandProcessed(fake);
+            tomoRetireFakeWrite(fake, real);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
             real->flushid++;
@@ -3578,6 +3594,8 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
+    server.stat_mread_flat_taken = 0;
+    server.stat_mread_flat_gated = 0;
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -6066,6 +6084,18 @@ int processCommand(client *c) {
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
+    /* TASK#43: count this client's in-flight WRITES (see client.inflight_writes); retired by
+     * tomoRetireFakeWrite at every drain retire site. Conservative by construction: any write
+     * still in flight disables the single-executor M-read fast paths, which are the only routes
+     * that read keys they do not own.
+     *
+     * Review fix: this MUST be stamped here — before ANY of the publish sites below
+     * (exDispatchPush / csDispatch) hand `fake` to a worker. The original patch stamped it on the
+     * dispatch tail, i.e. AFTER publish, making `fake->flags |= ...` a non-atomic RMW racing the
+     * owning worker's own flag writes. No path between here and the tail returns early, so
+     * incrementing here keeps the accounting exactly as balanced as it was. */
+    if (__builtin_expect(tomo_is_write, 0)) { c->inflight_writes++; fake->flags |= CLIENT_TOMO_WRITE; }
+
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
         listAddNodeTail(server.clients_pending_ex[iotid], c);
@@ -6113,8 +6143,17 @@ int processCommand(client *c) {
      * the just-moved-key nil window exists, identically to the locked borrow's TOCTOU on the fresh
      * bucket-table read). Checked BEFORE the mcmd_lock borrow so both experiments compose: with both
      * on, MGET goes flat and EXISTS keeps the borrow shape (its subs drop locks via g->mcmd_flat). */
+    /* Observability (review fix): without these two counters, "the ordering gate is closed" and
+     * "the feature is off" are INDISTINGUISHABLE from outside — which is exactly how a permanently
+     * stuck inflight_writes counter passed a 0-stale acceptance run. Any future validation of this
+     * path MUST assert mread_flat_taken > 0, or it proves nothing. */
+    if (csp && csp->ctype == CS_MGET && server.mcmd_flat &&
+        !atomic_load_explicit(&server.migration_active, memory_order_relaxed) &&
+        c->inflight_writes != 0)
+        server.stat_mread_flat_gated++;
     if (csp && csp->ctype == CS_MGET && server.mcmd_flat && c->inflight_writes == 0 &&
         !atomic_load_explicit(&server.migration_active, memory_order_relaxed)) {
+        server.stat_mread_flat_taken++;
         if (server.numa_nodes >= 2 && (fake->argc - 1) >= 2) {
             replyWorking++;
             tmLatMaybeStamp(fake);
@@ -6235,11 +6274,6 @@ int processCommand(client *c) {
     }
     }   /* end express-lane else */
 
-    /* TASK#43: count this client's in-flight WRITES (see client.inflight_writes). One predictable
-     * test on the dispatch tail; decremented at retire in the drain. Conservative by construction:
-     * any write still in flight disables the single-executor M-read fast paths, which are the only
-     * routes that read keys they do not own. */
-    if (__builtin_expect(tomo_is_write, 0)) { c->inflight_writes++; fake->flags |= CLIENT_TOMO_WRITE; }
     c->dispatchid++;
     return C_OK;
 }
@@ -13514,6 +13548,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "unexpected_error_replies:%lld\r\n", server.stat_unexpected_error_replies,
             "total_error_replies:%lld\r\n", server.stat_total_error_replies,
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
+            "tomo_mread_flat_taken:%lld\r\n", server.stat_mread_flat_taken,
+            "tomo_mread_flat_gated:%lld\r\n", server.stat_mread_flat_gated,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
             "total_writes_processed:%lld\r\n", stat_total_writes_processed,
             "io_threaded_reads_processed:%lld\r\n", stat_io_reads_processed,
@@ -15369,7 +15405,15 @@ static inline void exExecFake(client *fake) {
             /* S2: single-key hot path takes this key's owner-worker lock across the proc so it never
              * mutates/rehashes a bucket a borrower is reading. */
             int mlk_wkr = -1;
-            if (server.mcmd_lock && fake->argc >= 2 && fake->argv && fake->argv[1]) {
+            /* Review fix: argv[1] is only a KEY when the command declares firstkey==1. The
+             * whitelist is mostly single-key-at-argv[1], but top-level SCAN is also worker-routed
+             * (flat_store && shared_node_dbs) and its argv[1] is a CURSOR — hashing it took an
+             * essentially arbitrary worker's lock around a cross-node scan, which both fails to
+             * protect anything and risks lock-order inversion against the locks the scan itself
+             * takes. Commands with no key at argv[1] take no S2 lock. */
+            if (server.mcmd_lock && fake->cmd &&
+                fake->cmd->legacy_range_key_spec.bs.index.pos == 1 &&
+                fake->argc >= 2 && fake->argv && fake->argv[1]) {
                 /* dispatch already hashed this key and stamped the bucket on the fake (hash-carry);
                  * re-hashing here was a 3rd xxh64 of the same bytes. Pointer-match guard as in
                  * db.c getKeySlot; the ex_bucket_table load stays FRESH (reshard-safe). */

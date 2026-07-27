@@ -5,7 +5,7 @@
 # expiry, FLUSHALL, table resize, and EX<->IO flips. Watches for: RSS growth (reclaim stalling => the
 # original OOM bug), reclaim never running (leak), dbsize corruption, and crashes.
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
-BIN="${BIN:-$J/stable-w/src/redis-server}"
+BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
 PORT=7976
 CLI="$P/redis/src/redis-cli -p $PORT"
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"

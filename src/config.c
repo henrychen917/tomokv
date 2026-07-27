@@ -3162,9 +3162,18 @@ void rewriteConfigLatencyTrackingInfoPercentilesOutputOption(standardConfig *con
 }
 
 static int applyClientMaxMemoryUsage(const char **err) {
-    UNUSED(err);
     listIter li;
     listNode *ln;
+
+    /* TASK#37 (review fix): the bucket machinery is only safe under provable main exclusivity, and
+     * initServerClientMemUsageBuckets() now refuses to build the buckets otherwise — but it refuses
+     * SILENTLY, so `CONFIG SET maxmemory-clients` used to return +OK and leave client eviction
+     * accepted-and-unenforced (boot refuses FATAL; runtime did not). Refuse explicitly instead. */
+    if (server.maxmemory_clients != 0 && !clientMemBucketsExclusive()) {
+        *err = "maxmemory-clients (client eviction) is not supported when IO threads or workers "
+               "are enabled — the client memory-usage buckets require single-threaded exclusivity";
+        return 0;
+    }
 
     /* server.client_mem_usage_buckets is an indication that the previous config
      * was non-zero, in which case we can exit and no apply is needed. */

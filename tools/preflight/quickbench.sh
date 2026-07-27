@@ -16,14 +16,33 @@ for a in "$@"; do [ "$a" = "--" ] && { XTRA="__NEXT__"; continue; }
   [ "$XTRA" = "__NEXT__" ] && { XTRA="$a"; continue; }; BINS+=("$a"); done
 [ ${#BINS[@]} -ge 1 ] || { echo "usage: quickbench.sh <bin> [bin...] [-- extra-args]"; exit 2; }
 OUT=$J/quickbench.tsv; : > $OUT; printf "rep\tarm\twl\tpipe\tops\tp99\tp999\n" >> $OUT
-kill_all(){ pkill -9 -x redis-server 2>/dev/null; pkill -9 -x memtier_benchma 2>/dev/null; sleep 2; }
-name(){ basename "$(dirname "$1")"; }
+# review fix: was `pkill -9 -x redis-server`, violating the rule documented at
+# command_sweep.sh:129 (kill ONLY our own PID; never pkill by name -- it reaps other sessions'
+# servers and, with renamed binaries, silently misses our own).
+SRVPID=""
+kill_all(){ [ -n "$SRVPID" ] && { kill -9 "$SRVPID" 2>/dev/null; wait "$SRVPID" 2>/dev/null; }; SRVPID=""; sleep 2; }
+assert_one_server(){ local n; n=$(pgrep -x redis-server 2>/dev/null | wc -l)
+  [ "$n" = 1 ] || { echo "FATAL: expected exactly 1 redis-server, found $n -- refusing to measure" >&2; exit 3; }; }
+# review fix: this was basename(dirname(bin)), so two binaries at the canonical
+# <tree>/src/redis-server both tagged "src", pooled into ONE median, and the comparison
+# printed +0.0% against itself. Tags are now positional and therefore always distinct.
+declare -A ARMTAG
+name(){ echo "${ARMTAG[$1]}"; }
+_mktags(){ local i=0 t
+  for b in "${BINS[@]}"; do
+    t=$(basename "$(dirname "$b")")
+    [ "$t" = src ] && t=$(basename "$(dirname "$(dirname "$b")")")   # <tree>/src/redis-server -> <tree>
+    while [[ " ${ARMTAG[@]:-} " == *" $t "* ]]; do t="${t}#$i"; done  # still colliding -> suffix
+    ARMTAG[$b]="$t"; i=$((i+1))
+  done; }
+_mktags
 run_arm(){ local bin=$1 tag=$2 rep=$3
   kill_all; rm -rf $J/qb; mkdir -p $J/qb; : > $J/qb.log
   taskset -c 0-7 "$bin" --port $PORT --dir $J/qb --tomokv-numa-nodes $NUMA --tomokv-io-threads 4 \
     --tomokv-ex-threads 4 --thredis-flat-store 1 $XTRA --save '' --appendonly no --protected-mode no \
     --logfile $J/qb.log >/dev/null 2>&1 &
-  sleep 3; timeout 20 $CLI ping >/dev/null 2>&1
+  SRVPID=$!
+  sleep 3; assert_one_server; timeout 20 $CLI ping >/dev/null 2>&1
   timeout 300 taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:0 \
     -d 64 --key-pattern=P:P --key-maximum=1000000 -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
   local K='-d 64 --key-pattern=R:R --key-maximum=1000000 -t 8'
@@ -42,11 +61,19 @@ run_arm(){ local bin=$1 tag=$2 rep=$3
     done
   done
   kill_all; }
-# ordering gate: an arm that fails ordering is excluded from the table entirely
+# ordering gate: an arm that fails ordering is excluded from the table entirely.
+# review fix: the old loop only APPENDED a warning and then benchmarked the arm anyway, and the
+# output filter hid the warning -- a correctness-failing build could post the winning number.
+KEPT=()
 for b in "${BINS[@]}"; do
-  TOMO_BIN="$b" LBL="$(name "$b")" EXTRA="$XTRA" $J/ord_test.sh 2>/dev/null | tee -a $OUT | grep -q "stale=0" \
-    || echo "WARNING $(name "$b") FAILED ORDERING — numbers below are not trustworthy" >> $OUT
+  if TOMO_BIN="$b" LBL="$(name "$b")" EXTRA="$XTRA" "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh 2>/dev/null | tee -a $OUT | grep -q "stale=0"; then
+    KEPT+=("$b")
+  else
+    echo "EXCLUDED $(name "$b") FAILED ORDERING — arm dropped, not benchmarked" | tee -a $OUT
+  fi
 done
+BINS=("${KEPT[@]}")
+[ ${#BINS[@]} -ge 1 ] || { echo "FATAL: every arm failed the ordering gate — nothing to compare" | tee -a $OUT; exit 4; }
 for rep in $(seq 1 $REPS); do
   if [ $((rep % 2)) = 1 ]; then for b in "${BINS[@]}"; do run_arm "$b" "$(name "$b")" $rep; done
   else for ((i=${#BINS[@]}-1;i>=0;i--)); do run_arm "${BINS[$i]}" "$(name "${BINS[$i]}")" $rep; done; fi

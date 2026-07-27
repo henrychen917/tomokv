@@ -3,7 +3,9 @@
 # observable) resolves to the documented behaviour. Two conventions are in use in this tree —
 # "-1 = auto" and "0 = auto" — so each knob is exercised at auto, a static value, and its edge.
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
-BIN=/shared/Projects/.claude/jobs/fd085c8e/tmp/bins/fence_d/redis-server
+# review fix: was a HARDCODED path -- the suite tested a different binary than the one being
+# stamped, so the GO certified a build it never exercised.
+BIN="${TOMO_BIN:-/shared/Projects/.claude/jobs/fd085c8e/tmp/bins/fence_d/redis-server}"
 PORT=7979
 CLI="$P/redis/src/redis-cli -p $PORT"
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"

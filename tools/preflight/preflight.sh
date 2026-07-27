@@ -53,9 +53,21 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
     say "FAIL  $name — suite missing (full mode requires every suite)"; FAILS=$((FAILS+1)); return
   fi
   say "RUN   $name ..."
-  TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1
+  rm -f "$2"          # never grade a STALE result file from a previous run
+  local rc=0
+  TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1 || rc=$?
   local f=0 s=0
-  [ -f "$2" ] && { f=$(grep -cE "$3" "$2" 2>/dev/null || true); s=$(grep -cE "${4:-__none__}" "$2" 2>/dev/null || true); }
+  # review fix: the old code graded a MISSING result file as 0 failures => PASS, so a suite that
+  # crashed, timed out, or never wrote its output still contributed to a GO verdict.
+  if [ ! -f "$2" ]; then
+    say "FAIL  $name — produced no result file (exit $rc); see $PF/preflight_${name}.log"
+    FAILS=$((FAILS+1)); return
+  fi
+  if [ "$rc" -ne 0 ]; then
+    say "FAIL  $name — suite exited $rc; see $PF/preflight_${name}.log"
+    FAILS=$((FAILS+1)); return
+  fi
+  f=$(grep -cE "$3" "$2" 2>/dev/null || true); s=$(grep -cE "${4:-__none__}" "$2" 2>/dev/null || true)
   if [ "${f:-0}" -gt 0 ]; then
     say "FAIL  $name — $f failing checks:"; grep -E "$3" "$2" | head -5 | sed 's/^/        /' | tee -a $REPORT
     FAILS=$((FAILS+f))

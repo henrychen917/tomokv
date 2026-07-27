@@ -29,7 +29,7 @@ set -u -o pipefail
 
 JOB=/shared/Projects/.claude/jobs/fd085c8e/tmp
 TREE=${TREE:-$JOB/stable-w2}
-FORKSRV=$TREE/src/redis-server
+FORKSRV=${TOMO_BIN:-$TREE/src/redis-server}
 ORACLESRV=${ORACLESRV:-/shared/Projects/redis/src/redis-server}
 CLI=${CLI:-$TREE/src/redis-cli}
 [ -x "$CLI" ] || CLI=/shared/Projects/redis/src/redis-cli
