@@ -3711,6 +3711,7 @@ void initServer(void) {
     /* ee451 (v14): 0 = auto-detect from sysfs; explicit KB pins it (VMs often hide cache
      * topology — the auto would fall back to a blind 32MB default there). */
     server.detected_l3_bytes = server.l3_kb > 0 ? (size_t)server.l3_kb * 1024 : detectL3Bytes();
+    server.detected_l3_domains = detectL3Domains();   /* L1a: workers-per-L3 for the prefetch gate */
     int j;
 
     signal(SIGHUP, SIG_IGN);
@@ -13010,6 +13011,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     int stat_io_ops_processed_calculated = 0;
     long long stat_io_reads_processed = 0, stat_io_writes_processed = 0;
     long long stat_total_reads_processed = 0, stat_total_writes_processed = 0;
+    /* L0 prefetch observability: sum the per-worker counters. Racy reads of single-writer
+     * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
+     * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
+    unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
+    for (int _w = 0; _w < server.num_workers_alloc; _w++) {
+        tomo_pf_batches += server.exThreads[_w].pf_batches;
+        tomo_pf_gated   += server.exThreads[_w].pf_gated;
+        tomo_pf_issued  += server.exThreads[_w].pf_issued;
+    }
     if (all_sections || (dictFind(section_dict,"threads") != NULL)) {
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscatprintf(info, "# Threads\r\n");
@@ -13138,6 +13148,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "unexpected_error_replies:%lld\r\n", server.stat_unexpected_error_replies,
             "total_error_replies:%lld\r\n", server.stat_total_error_replies,
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
+            "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
+            "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
+            "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
             "total_writes_processed:%lld\r\n", stat_total_writes_processed,
             "io_threaded_reads_processed:%lld\r\n", stat_io_reads_processed,
@@ -14685,6 +14698,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
     exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
+    pfw->pf_batches++;                         /* L0: entries, denominator for gated/issued */
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
      * Full prefetch-off remains available via the stage widths (all 0). */
@@ -14698,7 +14712,20 @@ static inline void exPrefetchBatch(client **batch, int n) {
         } else {
             if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
                 unsigned long long fp = 96ULL + pfw->w_ewma_vsize;
-                pfw->pf_cached_min = (8ULL * server.detected_l3_bytes) / (fp ? fp : 1);
+                /* L1a UNITS FIX. `est` below is a PER-WORKER footprint, but this compared it against
+                 * the WHOLE shared L3 -- so with W workers sharing one L3 domain the effective
+                 * criterion was 8*W x L3, not the "dimensionless 8x" the design comment states.
+                 * On a 4-worker box that is 32x L3: auto_min came out ~2.24M keys/worker while
+                 * every benchmark on disk runs ~500k, i.e. ratio 0.22 -- the gate has never opened
+                 * and no prefetch has ever been issued in a measured cell.
+                 * Divide the L3 by the workers that actually share it. Note the value-chase budget
+                 * on the next lines ALREADY divides by num_workers, which is why this reads as an
+                 * oversight rather than a policy choice. */
+                int l3d = server.detected_l3_domains > 0 ? server.detected_l3_domains : 1;
+                int wpd = server.num_workers > 0 ? server.num_workers / l3d : 1;
+                if (wpd < 1) wpd = 1;
+                unsigned long long l3_share = (unsigned long long)server.detected_l3_bytes / (unsigned)wpd;
+                pfw->pf_cached_min = (8ULL * l3_share) / (fp ? fp : 1);
                 /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
                 unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
                 long budget = server.pf_value_budget_kb > 0
@@ -14732,6 +14759,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 }
             }
             if (est < auto_min) {
+                pfw->pf_gated++;                       /* L0: prove whether the gate is shut */
                 for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
                 return;
             }
@@ -14890,6 +14918,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 break;
             }
         }
+        pfw->pf_issued += (unsigned)issued;   /* L0: prefetch stages actually issued */
         if (st[j] == PFS_DONE) remaining--;
     }
 }

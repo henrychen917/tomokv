@@ -2151,6 +2151,13 @@ typedef struct exThread {
      * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
      * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
     _Atomic uint64_t ops_total;   /* single-writer (owning worker); tomoRelaxedBump/Read */
+    /* L0 prefetch observability. Single-writer (the owning worker); INFO reads them racily, which
+     * is fine for a stat. These exist because EVERY prefetch A/B in this project's history was
+     * unfalsifiable without them -- one recorded ablation compared prefetch-OFF against
+     * prefetch-OFF because the gate was already shut and nothing reported it. */
+    unsigned long long pf_batches;   /* exPrefetchBatch entries */
+    unsigned long long pf_gated;     /* ... that returned at the DRAM-residency gate */
+    unsigned long long pf_issued;    /* prefetch stages actually issued */
     /* ee451 (flatstore lb): coarse per-group op counts, single-writer (owning worker), non-atomic
      * (the balancer's 1Hz relaxed read tolerates a torn word — it is an approximate load signal).
      * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
@@ -3452,6 +3459,7 @@ struct redisServer {
     /* ee451 v11-E: per-stage toggles for worker prefetch pass-1 (was one merged pf_w_struct). Ablate which pay. */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
+    int detected_l3_domains;      /* L1a: distinct L3 domains (CCX/CCD); workers-per-L3 for the prefetch gate */
     int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
     int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
     int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
