@@ -15611,20 +15611,28 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
          * have retired, so no sub of an earlier command can still be in this queue. */
         if (__builtin_expect(n > 1 && server.tomo_retire_sched, 0)) {
             client *ord[WORKER_POP_BATCH];
+            uint32_t hr = 0;          /* head-ready bitmask — computed ONCE per fake */
             int t = 0;
+            /* The predicate reads pr->flushid, which the OWNING IO THREAD advances concurrently.
+             * Evaluating it separately in each pass is a correctness bug, not a style issue: a fake
+             * can be classified head-ready in pass 1 AND not-head-ready in pass 2 (=> emitted twice,
+             * overflowing ord[] and executing the command twice), or neither (=> DROPPED, so its
+             * reply bit is never set and the in-order drain blocks on that ring slot forever — the
+             * measured wedge: server alive, PING fine, zero ops from pipe 4 up). Snapshot the
+             * classification into a bitmask and use THAT for both passes, so the partition is a pure
+             * permutation of the batch regardless of what flushid does meanwhile. */
             for (int j = 0; j < n; j++) {
                 client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
                 if (pr && !f->csparent && !f->drain_ack && !f->is_flush &&
-                    f->fake_slot == (pr->flushid & pr->ring_mask))
-                    ord[t++] = f;
+                    f->fake_slot == (pr->flushid & pr->ring_mask)) {
+                    hr |= (1u << j); t++;
+                }
             }
             if (t > 0 && t < n) {                     /* mixed batch: reordering can help */
-                for (int j = 0; j < n; j++) {
-                    client *f = ctx->batch[j], *pr = f ? f->parent : NULL;
-                    if (!(pr && !f->csparent && !f->drain_ack && !f->is_flush &&
-                          f->fake_slot == (pr->flushid & pr->ring_mask)))
-                        ord[t++] = f;
-                }
+                int w = 0;
+                for (int j = 0; j < n; j++) if (hr & (1u << j)) ord[w++] = ctx->batch[j];
+                for (int j = 0; j < n; j++) if (!(hr & (1u << j))) ord[w++] = ctx->batch[j];
+                serverAssert(w == n);                 /* permutation, never a drop or a duplicate */
                 memcpy(ctx->batch, ord, (size_t)n * sizeof(*ord));
             }
         }
