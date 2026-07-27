@@ -118,6 +118,42 @@ for r in range(R(200)):
     if b"q"*80 not in d: bad+=1
 rec("expire-realloc-then-read", bad==0, f"bad={bad}")
 
+# 8b. EXPIRE first-TTL realloc on a NON-STRING value (Guru Meditation "Not implemented"
+#     #object.c: the FLATSTORE lifetime pin in setExpireByLink made refcount != 1, and
+#     kvobjSetEx() had no re-homing branch for a collection => serverPanic. `SADD s m;
+#     EXPIRE s 100` killed the server. Check 8 above could NEVER see it: it only ever
+#     stores string values, and strings have the INT/RAW copy branches. Every type gets
+#     its first TTL here, then is MUTATED and read back, so a mis-moved value shows up
+#     as lost/short content rather than only as a crash.
+seed=[("SET",  "nx:set",  ("SADD","nx:set","m1","m2","m3"),      ("SADD","nx:set","m4"),   ("SMEMBERS","nx:set"), [b"m1",b"m4"]),
+      ("LIST", "nx:list", ("RPUSH","nx:list","v1","v2","v3"),    ("RPUSH","nx:list","v4"), ("LRANGE","nx:list",0,-1), [b"v1",b"v4"]),
+      ("HASH", "nx:hash", ("HSET","nx:hash","f1","a","f2","b"),  ("HSET","nx:hash","f3","c"), ("HGETALL","nx:hash"), [b"f1",b"f3"]),
+      ("ZSET", "nx:zset", ("ZADD","nx:zset",1,"z1",2,"z2"),      ("ZADD","nx:zset",3,"z3"), ("ZRANGE","nx:zset",0,-1), [b"z1",b"z3"]),
+      ("BIG",  "nx:big",  ("SADD","nx:big",*[f"e{i}" for i in range(600)]), ("SADD","nx:big","tail"), ("SMEMBERS","nx:big"), [b"e599",b"tail"])]
+#     NB: the panic kills the server mid-check, and this file is only written at the end —
+#     so the failure is caught here explicitly, otherwise the evidence is lost and only
+#     crash-markers reports.
+nsbad=[]; alive=False
+try:
+    for tag,k,create,mutate,readback,want in seed:
+        s.sendall(cmd("DEL",k)); rd(lambda d:b":" in d)
+        s.sendall(cmd(*create)); rd(lambda d:b":" in d)
+        s.sendall(cmd("EXPIRE",k,4242)); d=rd(lambda d:b"\r\n" in d)      # <- the realloc
+        if b":1" not in d: nsbad.append(tag+"-expire")
+        s.sendall(cmd("TTL",k)); d=rd(lambda d:b"\r\n" in d)
+        if b":42" not in d: nsbad.append(tag+"-ttl")
+        s.sendall(cmd(*mutate)); rd(lambda d:b"\r\n" in d)                # mutate the MOVED value
+        s.sendall(cmd(*readback)); d=rd(lambda d: d.count(b"\r\n")>=2)
+        if not all(w in d for w in want): nsbad.append(tag+"-content")
+        s.sendall(cmd("PERSIST",k)+cmd("EXPIRE",k,4343)+cmd("TTL",k))     # 2nd TTL: no realloc
+        d=rd(lambda d: d.count(b"\r\n")>=3)
+        if b":43" not in d: nsbad.append(tag+"-retll")
+        s.sendall(cmd("DEL",k)); rd(lambda d:b":" in d)
+    s.sendall(cmd("PING")); alive=b"PONG" in rd(lambda d:b"\r\n" in d)    # survived at all?
+except Exception as e:
+    nsbad.append(f"server-died({type(e).__name__})")
+rec("expire-realloc-nonstring", alive and not nsbad, f"alive={int(alive)},bad={','.join(nsbad) or '-'}")
+
 open(out,"w").write("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res))
 print("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res), end="")
 PY

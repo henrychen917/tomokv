@@ -608,7 +608,7 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
      * mutates them in place after the add), so RAW-embedding is safe here and
      * keeps a reloaded dataset allocation-layout-identical to a written one. */
     robj *val = *valref;
-    kvobj *kv = kvobjSetEx(key, val, keyMetaSpec->metabits, 1);
+    kvobj *kv = kvobjSetEx(key, val, keyMetaSpec->metabits, KVOBJ_SET_EMBED_RAW);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1);
 
@@ -2975,10 +2975,17 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
          * OLD one, which under a flat store would free it SYNCHRONOUSLY while a lock-free cross-shard
          * borrow reader may still hold it (UAF), and would leave the slot pointing at freed memory in
          * the gap before SetAtLink. Pin the old across the realloc and QSBR-retire it (mirrors
-         * dbSetValue's kvstoreFlatRetireRaw). No-op for non-flat (no lock-free readers). */
+         * dbSetValue's kvstoreFlatRetireRaw). No-op for non-flat (no lock-free readers).
+         *
+         * The pin is a LIFETIME pin, not a second reader of the value, so it must be passed
+         * down as KVOBJ_SET_MOVE_VALUE: otherwise kvobjSetEx() sees refcount != 1 and has no
+         * cheap way to re-home a non-string value, and panics "Not implemented" (crash repro:
+         * `SADD s m; EXPIRE s 100` under --thredis-flat-store 1). With the flag the value is
+         * moved into kvnew and the retired old kvobj is freed allocation-only. */
         int flat_keys = kvstoreIsFlat(db->keys);
         if (flat_keys) incrRefCount(kv);
-        kvobj *kvnew = kvobjSetExpire(kv, when); /* release kv if reallocated */
+        /* release kv if reallocated */
+        kvobj *kvnew = kvobjSetExpireEx(kv, when, flat_keys ? KVOBJ_SET_MOVE_VALUE : 0);
         /* if kvobj was reallocated, update dict */
         if (kv != kvnew) {
             kvstoreDictSetAtLink(db->keys, slot, kvnew, &keyLink, 0);

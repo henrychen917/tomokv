@@ -262,13 +262,21 @@ long long kvobjGetExpire(const kvobj *kv) {
  * the old object's reference counter is decremented and possibly freed. Use the
  * returned object instead of 'val' after calling this function. */
 kvobj *kvobjSetExpire(kvobj *kv, long long expire) {
-    /* If kv not expirable, then we need to realloc to add expire metadata */ 
+    return kvobjSetExpireEx(kv, expire, 0);
+}
+
+/* Like kvobjSetExpire(), but 'flags' is forwarded to kvobjSetEx() for the case
+ * where adding the expire metadata forces a reallocation. The only flag that
+ * makes sense here is KVOBJ_SET_MOVE_VALUE — see kvobjSetEx() and its user in
+ * setExpireByLink(). */
+kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags) {
+    /* If kv not expirable, then we need to realloc to add expire metadata */
     if (!(kv->metabits & KEY_META_MASK_EXPIRE)) {
         /* Nothing to do if kv not expirable and expire is -1 */
         if (expire == -1)
             return kv;
-        
-        kv = kvobjSet(kvobjGetKey(kv), kv, kv->metabits | KEY_META_MASK_EXPIRE);
+
+        kv = kvobjSetEx(kvobjGetKey(kv), kv, kv->metabits | KEY_META_MASK_EXPIRE, flags);
     }
 
     /* kv is expirable. Update expire field. */
@@ -294,7 +302,9 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  * the old object's reference counter is decremented and possibly freed. Use the
  * returned object instead of 'val' after calling this function.
  *
- * embedRawOk (CANDIDATE census rank-3): when non-zero, an OBJ_ENCODING_RAW
+ * 'flags' is a bitmask of KVOBJ_SET_* (0 == the historical embedRawOk=0).
+ *
+ * KVOBJ_SET_EMBED_RAW (CANDIDATE census rank-3): when set, an OBJ_ENCODING_RAW
  * string value that passes the same 192-byte arithmetic as the EMBSTR branch
  * is COPIED into the kvobj allocation (result encoding OBJ_ENCODING_EMBSTR)
  * instead of adopting/duplicating the sds into a second allocation. Values of
@@ -309,10 +319,29 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  * sdscatlen/sdsgrowzero/sdsResize/sdsRemoveFreeSpace. Concrete offenders if
  * this were unconditional: PFADD fresh-create then hllSparseAdd's sdsResize;
  * SETRANGE/SETBIT fresh-create then sdsgrowzero; RM_StringTruncate
- * fresh-create then sdsgrowzero. Keeping 0 on the metadata-realloc callers
- * (kvobjSetExpire, keymeta) also preserves today's guarantee that a RAW
- * value's sds pointer survives a metadata realloc (RM_StringDMA pointers). */
-kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int embedRawOk) {
+ * fresh-create then sdsgrowzero. Keeping it clear on the metadata-realloc
+ * callers (kvobjSetExpire, keymeta) also preserves today's guarantee that a RAW
+ * value's sds pointer survives a metadata realloc (RM_StringDMA pointers).
+ *
+ * KVOBJ_SET_MOVE_VALUE: the caller holds an EXTRA reference to `val` that it
+ * disposes of itself AFTER this call, and it guarantees that nothing will read
+ * `val`'s value through that reference. That is the FLATSTORE metadata-realloc
+ * shape (setExpireByLink): it pins the live table object across the realloc
+ * purely so the OLD kvobj *allocation* outlives a concurrent lock-free reader's
+ * pointer, then QSBR-retires it. Without this flag the pin makes refcount != 1
+ * and a non-string value has no cheap re-homing left, so the branch below
+ * panics ("Not implemented") -- which is exactly what `SADD s m; EXPIRE s 100`
+ * used to do under --thredis-flat-store 1. With the flag the value is MOVED
+ * (stock semantics: adopt the ptr, no O(n) duplication of a possibly huge
+ * collection), and clearing val->ptr makes the caller's deferred
+ * decrRefCount() free the old ALLOCATION ONLY -- which is all the pin ever
+ * wanted. Deliberately NOT applied to string values: those keep the copying
+ * branches below, because the cross-shard borrow readers do dereference
+ * `o->ptr` of an OBJ_STRING they looked up (server.c csSubExec MGET) and a
+ * NULL there would be a crash, whereas they type-check before touching a
+ * non-string (and EXISTS never touches ptr at all). */
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
+    int embedRawOk = (flags & KVOBJ_SET_EMBED_RAW);
     kvobj *kv;
     if (val->type == OBJ_STRING && val->encoding == OBJ_ENCODING_EMBSTR) {
         size_t len = sdslen(val->ptr);
@@ -356,6 +385,14 @@ kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int embedRawOk) {
                    val->encoding == OBJ_ENCODING_RAW) {
             /* Dup the string. */
             valptr = sdsdup(val->ptr);
+        } else if (flags & KVOBJ_SET_MOVE_VALUE) {
+            /* The extra reference is a lifetime pin the caller owns and will
+             * release itself; nobody reads the value through it. Move the value
+             * instead of duplicating it (see KVOBJ_SET_MOVE_VALUE above). The
+             * NULL ptr also makes the caller's later decrRefCount() free the
+             * old kvobj allocation WITHOUT touching the moved value. */
+            valptr = val->ptr;
+            val->ptr = NULL;
         } else {
             /* There are multiple references to this non-string object. Most types
              * can be duplicated, but for a module type is not always possible. */

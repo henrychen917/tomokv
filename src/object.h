@@ -116,10 +116,15 @@ typedef struct redisObject robj;
 /* kvobj: see header comment above for definition and memory layout. */
 typedef struct redisObject kvobj;
 
+/* kvobjSetEx() 'flags' — see the function comment in object.c. */
+#define KVOBJ_SET_EMBED_RAW   (1<<0)  /* may copy a small RAW value into the kvobj allocation */
+#define KVOBJ_SET_MOVE_VALUE  (1<<1)  /* caller's extra ref is a lifetime pin only: move the value */
+
 kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits);
 kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits);
-kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int embedRawOk);
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags);
 kvobj *kvobjSetExpire(kvobj *kv, long long expire);
+kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
