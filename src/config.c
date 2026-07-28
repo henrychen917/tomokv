@@ -182,12 +182,9 @@ configEnum tomokv_pin_mode_enum[] = {
     {NULL, 0}
 };
 
-configEnum tomokv_mget_coalesce_enum[] = {
-    {"legacy", TOMO_MGET_LEGACY},           /* one cross-shard sub per key */
-    {"coalesce", TOMO_MGET_COALESCE},       /* one sub per shard, order-preserving (DEFAULT) */
-    {"coalesce-prefetch", TOMO_MGET_COALESCE_PREFETCH}, /* + in-sub dict prefetch */
-    {NULL, 0}
-};
+/* (tomokv_mget_coalesce_enum DELETED 2026-07-28 with tomokv-mget-coalesce: the table outlived
+ * its createEnumConfig() row, and its `coalesce-prefetch` level named an in-sub dict prefetch
+ * that a flat keyspace has no dictEntry for — it was gutted in 77174fa4a.) */
 
 /* Output buffer limits presets. */
 clientBufferLimitsConfig clientBufferLimitsDefaults[CLIENT_TYPE_OBUF_COUNT] = {
@@ -3207,7 +3204,8 @@ standardConfig static_configs[] = {
      * lock is what makes a shared node db safe against sibling workers), so the knob was
      * accepted-and-ignored — a silently-inert config surface. Basis for hardwiring it on: MGET
      * borrow +57-69%/instr halved, MSET ~0, singles tax <=0.8%, INTER node-exec +40-51%, HFE
-     * requires the exclusion to exist. server.mcmd_lock is now an internal constant (1).
+     * requires the exclusion to exist. 2026-07-28: the server.mcmd_lock field is gone too — every
+     * site that gated on it now locks unconditionally.
      * tomokv-mcmd-nodelocal DELETED 2026-07-27: it selected the node-local BORROW for MGET, and
      * the borrow is gone (owner ruling: uniform torn cross-key reads). With no borrow to A/B
      * against, the knob could only ever have been inert. */
@@ -3526,7 +3524,11 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
 /* Initialize configs to their default values and create and populate the 
  * runtime configuration dictionary. */
 
-/* ee451 (knob retirement, 2026-07-28): HARDWIRED DEFAULTS FOR THE 44 RETIRED KNOBS.
+/* ee451 (knob retirement, 2026-07-28): HARDWIRED DEFAULTS FOR THE RETIRED KNOBS THAT STILL
+ * HAVE A FIELD. A retired knob leaves this block for good once its value has been folded into
+ * the code (the field deleted, the conditional collapsed) — that is the finished state; a seed
+ * here is the halfway house. The history below is why the halfway house exists at all, and it
+ * names fields (thredis_flat_store, xshard_guard, ...) that have since been folded away.
  *
  * THIS BLOCK IS LOAD-BEARING. Redis applies a config's default by ITERATING THE CONFIG TABLE
  * (initConfigValues -> standard_configs), so deleting a createXConfig() entry also deletes the only
@@ -3548,24 +3550,13 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
  * knob means "the operator no longer chooses this", never "the value becomes zero".
  */
 static void tomoInitRetiredKnobDefaults(void) {
-    server.cfg_num_cdb = -1;                        /* was tomokv-num-cdb */
-    server.drain_tail_skip = -1;                    /* was tomokv-drain-tail-skip */
-    server.ex_queue_size = -1;                      /* was tomokv-ex-queue-depth */
-    server.express_slim = -1;                       /* was tomokv-express-slim */
-    server.fake_buf_mode = -1;                      /* was tomokv-fake-buf */
-    server.fake_ring_depth_mode = -1;               /* was tomokv-fake-ring-depth */
-    server.flat_load_pct = 70;                      /* was tomokv-flat-load-pct */
-    server.io_drain_spin = 32;                      /* was tomokv-io-drain-spin */
-    server.io_drain_userpoll = -1;                  /* was tomokv-io-drain-userpoll */
+    /* Knobs whose retirement is FINISHED (2026-07-28) no longer appear here at all: their former
+     * default is now a literal at the use site and the server field is gone. What remains below is
+     * the set that still has to be seeded because live code reads the FIELD. */
     server.io_uring_recv = 0;                       /* was tomokv-io-uring-recv */
     server.io_uring_reply_send = 0;                 /* was tomokv-io-uring-reply-send */
     server.io_uring_sqpoll = 0;                     /* was tomokv-io-uring-sqpoll */
     server.io_uring_zc = 0;                         /* was tomokv-io-uring-zc */
-    server.l3_kb = 0;                               /* was tomokv-l3-kb */
-    server.modeshift_test = 0;                      /* was tomokv-modeshift-test */
-    server.opt_mget_coalesce = TOMO_MGET_COALESCE;  /* was tomokv-mget-coalesce */
-    server.opt_mset_move = 0;                       /* was tomokv-mset-move */
-    server.opt_setop_coalesce = 1;                  /* was tomokv-setop-coalesce */
     server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
     server.os_opts = 0;                             /* was tomokv-os-opts */
     server.pf_value_budget_kb = -1;                 /* was tomokv-pf-value-budget-kb */
@@ -3583,12 +3574,6 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
     server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
     server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
-    server.thredis_flat_store = 1;                  /* was tomokv-flat-store */
-    server.worker_pop_batch = -1;                   /* was tomokv-worker-pop-batch */
-    server.worker_spin = -1;                        /* was tomokv-worker-spin */
-    server.xshard_guard = 1;                        /* was tomokv-xshard-guard */
-    server.xshard_localfast = 1;                    /* was tomokv-xshard-localfast */
-    server.xshard_pipeline = 1;                     /* was tomokv-xshard-pipeline */
 }
 
 void initConfigValues(void) {

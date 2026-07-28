@@ -9,7 +9,9 @@
  * the CAS only resolves cross-KEY hash collisions). See flatstore.c for the protocol + invariants.
  *
  * GET/INSERT/DELETE(tombstone) lock-free; QSBR reclaim on delete/overwrite; online cooperative
- * resize (Stage 2); 8B single-word slots. Knob-gated (--tomokv-flat-store). */
+ * resize (Stage 2); 8B single-word slots. UNCONDITIONAL: every shared node db is a flat table
+ * (tomokv-flat-store was retired at 1 and folded away 2026-07-28; the live predicate for "is this
+ * db flat" is server.shared_node_dbs, or kvstoreIsFlat() given a kvstore). */
 #ifndef FLATSTORE_H
 #define FLATSTORE_H
 
@@ -30,6 +32,12 @@
  * longer stored; the rare range scans (KEYS / RANDOMKEY / reshard) recompute it from the key. */
 #define FLAT_PTR_MASK   0x0000FFFFFFFFFFFFULL      /* [47:0] the masked pointer */
 #define FLAT_MIN_SIZE   (1ULL << 18)               /* initial + shrink floor: 256K slots (4MB @ 8B) */
+/* Target peak load % — the resize trigger. Higher = fuller table = less memory but longer
+ * linear-probe chains; (100-FLAT_LOAD_PCT)% of the table is the burst headroom before the
+ * table-full wall. 70 is measured: ~half the table memory of 50 with GET unaffected (a dense
+ * 8-slots-per-line layout absorbs the extra probe). Was tomokv-flat-load-pct, retired at 70 —
+ * it is a compile-time constant now, NOT a per-insert load from the server global. */
+#define FLAT_LOAD_PCT   70ULL
 #define FLAT_TOMB       0x0001000000000000ULL      /* [48] */
 #define FLAT_TAG_SHIFT  49
 #define flat_tag_of(h)      (((uint64_t)(h) >> FLAT_TAG_SHIFT) & 0x7FFFULL)      /* 15-bit tag from the hash */

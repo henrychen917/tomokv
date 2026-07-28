@@ -177,11 +177,8 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
                     memory_order_acq_rel, memory_order_acquire)) {   /* publishes tag|ptr atomically */
                 uint64_t u = atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed) + 1;
                 if (w != 0) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);  /* reused a tomb */
-                /* flag a rebuild at flat_load_pct% (used+tombs)/size. Higher = fuller table = less
-                 * memory but longer linear-probe chains; (1-load_pct)*size is the burst headroom
-                 * before the table-full wall. Default 70 (measured: ~half the table mem of 50, GET
-                 * unaffected — dense 8-slots/line absorbs the extra probe). */
-                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 100 >= t->size * (uint64_t)server.flat_load_pct)
+                /* flag a rebuild at FLAT_LOAD_PCT% (used+tombs)/size — see flatstore.h. */
+                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 100 >= t->size * FLAT_LOAD_PCT)
                     atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
                 return i;
             }
@@ -214,10 +211,10 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     atomic_store_explicit(&t->slots[slot].w, FLAT_TOMB, memory_order_release);
     uint64_t nu = atomic_fetch_sub_explicit(&t->used, 1, memory_order_relaxed) - 1;
     atomic_fetch_add_explicit(&t->tombs, 1, memory_order_relaxed);
-    /* flag a SHRINK when the live set falls below load_pct/4 of the table (hysteresis: grow trigger is
-     * load_pct, post-grow load is load_pct/2, so this is well clear). The coordinator rebuilds smaller
-     * via flatTableAllocFor, reusing the same quiesce+copy machine. */
-    if (t->size > FLAT_MIN_SIZE && nu * 400 <= t->size * (uint64_t)server.flat_load_pct)
+    /* flag a SHRINK when the live set falls below FLAT_LOAD_PCT/4 of the table (hysteresis: grow
+     * trigger is FLAT_LOAD_PCT, post-grow load is FLAT_LOAD_PCT/2, so this is well clear). The
+     * coordinator rebuilds smaller via flatTableAllocFor, reusing the same quiesce+copy machine. */
+    if (t->size > FLAT_MIN_SIZE && nu * 400 <= t->size * FLAT_LOAD_PCT)
         atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
     return old;
 }
@@ -230,18 +227,18 @@ flatTable *flatTableAllocFor(flatTable *old) {
     uint64_t used = atomic_load_explicit(&old->used, memory_order_relaxed);
     uint64_t target = old->size;
     /* A resize at load T intrinsically halves to T/2, so a SINGLE double is always enough (used<=size).
-     * Double only when the live set alone is over half the trigger (used >= (load_pct/2)% of size); if
+     * Double only when the live set alone is over half the trigger (used >= (FLAT_LOAD_PCT/2)% of size); if
      * the trigger fired mostly on tombstones (live set smaller), rebuild SAME size to GC them without
-     * growing. Table then oscillates ~(load_pct/2 .. load_pct); avg ~0.75*load_pct = the B/key vs
+     * growing. Table then oscillates ~(FLAT_LOAD_PCT/2 .. FLAT_LOAD_PCT); avg ~0.75*FLAT_LOAD_PCT = the B/key vs
      * probe-length knob. NB: a while-loop with a tight multiplier double-jumps to 4x when `used`
      * overshoots the trigger just past a power-of-two boundary — hence the single conditional. */
-    if (used * 200 >= old->size * (uint64_t)server.flat_load_pct) {
+    if (used * 200 >= old->size * FLAT_LOAD_PCT) {
         target = old->size * 2;                     /* grow: live set alone is over half the trigger */
     } else {
-        /* SHRINK toward the smallest size that still holds `used` at <= load_pct/2, floored at
+        /* SHRINK toward the smallest size that still holds `used` at <= FLAT_LOAD_PCT/2, floored at
          * FLAT_MIN_SIZE. Reclaims a table left peak-sized after a mass delete/expire. Same-size when
          * halving would over-fill (tomb-GC case), so it never thrashes a moderately-loaded table. */
-        while (target > FLAT_MIN_SIZE && (target >> 1) * (uint64_t)server.flat_load_pct >= used * 200)
+        while (target > FLAT_MIN_SIZE && (target >> 1) * FLAT_LOAD_PCT >= used * 200)
             target >>= 1;
     }
     flatTable *nw = flatTableNew(target);

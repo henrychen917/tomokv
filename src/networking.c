@@ -325,12 +325,9 @@ static void resetFakeClientState(client *c, client *parent) {
 client *createFakeClient(client *parent) {
     client *c = zmalloc(sizeof(client));
     /* Cached heap, reused across pooled recycles: output buffer + reply list. */
-    /* 2s-auto D1: auto (-1) starts small and demand-grows at the spill site; fixed-N uses N;
-     * 0 = legacy 16KB. */
-    size_t start = (server.fake_buf_mode > 0) ? (size_t)server.fake_buf_mode
-                 : (server.fake_buf_mode == 0) ? PROTO_REPLY_CHUNK_BYTES
-                 : FAKE_BUF_START_BYTES;   /* -1 auto */
-    c->buf = zmalloc_usable(start, &c->buf_usable_size);
+    /* 2s-auto D1: start small and demand-grow at the spill site. tomokv-fake-buf is retired at
+     * AUTO, so the fixed-N and legacy-16KB widths are gone. */
+    c->buf = zmalloc_usable(FAKE_BUF_START_BYTES, &c->buf_usable_size);
     c->reply = listCreate();
     listSetFreeMethod(c->reply, freeClientReplyValue);
     listSetDupMethod(c->reply, dupClientReplyValue);
@@ -353,11 +350,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 } ioLocalPoolCount;
 static ioLocalPoolCount xsubPoolN[TOMO_IO_THREADS_MAX + 1];
 
-/* 2s-auto D1: is this fake's buffer poolable given the fake-buf mode? In auto mode any width
- * within [START,MAX] is reusable; fixed/legacy require the exact configured size. */
+/* 2s-auto D1: is this fake's buffer poolable? Any demand-grown width within [START,MAX] is
+ * reusable. (The exact-size tests for the fixed/legacy fake-buf modes went with the knob.) */
 static inline int isFakeBufPoolable(client *c) {
-    if (server.fake_buf_mode == 0) return c->buf_usable_size == PROTO_REPLY_CHUNK_BYTES;
-    if (server.fake_buf_mode > 0)  return c->buf_usable_size == (size_t)server.fake_buf_mode;
     return c->buf_usable_size >= FAKE_BUF_START_BYTES && c->buf_usable_size <= FAKE_BUF_MAX_BYTES;
 }
 
@@ -570,39 +565,24 @@ client *createClient(connection *conn) {
     }
     c->cdb = 0;
 
-    /* Preallocate the fake ring. Each fake borrows conn/user/db at dispatch,
-     * owns its own output buffer, and lives for the lifetime of the parent.
-     * fake_slot is stamped to the ring index so workers know which bit to set
-     * in parent->reply_ready_mask at completion.
-     * Allocate exactly server.pipeline_ring_depth fakes; slots [depth, MAX) stay
-     * NULL. Depth is immutable post-startup so we never grow the ring. */
-    /* 2s-auto D3: eager (mode 0) preallocs all pipeline_ring_depth fakes; auto (-1) and
-     * fixed-N modes leave slots NULL for lazy-create at the dispatch site. fakeClients was
-     * already memset to NULL above, so unfilled slots stay NULL. */
-    /* KNOB CONVENTION: -1 = AUTO (lazy grow + decay), 0 = OFF (no preallocation at all — slots are
-     * created on demand only), N > 0 = STATIC (exactly N fakes, no decay). 0 previously meant EAGER
-     * (preallocate the FULL ring), i.e. the exact opposite of "off, no allocation". */
-    /* UNIFIED RING: one policy decides BOTH the depth (slot modulus + in-flight cap) and the
-     * preallocation. -1 = AUTO: full depth, decays toward measured demand. 0 = OFF: depth 1.
-     * N = STATIC: exactly N (rounded UP to a power of two, since the slot index is masked). */
+    /* Size the fake ring. Each fake borrows conn/user/db at dispatch, owns its own output
+     * buffer, and lives for the lifetime of the parent. fake_slot is stamped to the ring index
+     * so workers know which bit to set in parent->reply_ready_mask at completion.
+     * 2s-auto D3: tomokv-fake-ring-depth is retired at AUTO. The ring opens at the resolved
+     * pipeline depth (the slot modulus and the in-flight cap), every slot is created lazily at
+     * the dispatch site, and fakeRingClientCron decays the depth toward measured demand. The
+     * eager-preallocate (0) and fixed-N (no-decay) modes are gone with the knob, and with them
+     * the STATIC preallocation loop that used to run here — under AUTO its trip count was
+     * always 0. fakeClients was already memset to NULL above, so all slots start NULL. */
     {
-        unsigned int want = (unsigned int)server.pipeline_ring_depth;      /* auto = resolved max */
-        if (server.fake_ring_depth_mode == 0) want = 1;                    /* OFF */
-        else if (server.fake_ring_depth_mode > 0) want = (unsigned int)server.fake_ring_depth_mode;
+        unsigned int want = (unsigned int)server.pipeline_ring_depth;
         if (want < 1) want = 1;
         unsigned int p2 = 1; while (p2 < want) p2 <<= 1;                   /* mask needs a power of two */
         if (p2 > (unsigned int)server.pipeline_ring_depth) p2 = (unsigned int)server.pipeline_ring_depth;
         c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
     }
     c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
-    /* Preallocate only for STATIC N (its depth never changes); AUTO and OFF create on demand. */
-    int n = server.fake_ring_depth_mode > 0 ? (int)c->ring_size : 0;
-    if (n > (int)c->ring_size) n = (int)c->ring_size;
-    for (int i = 0; i < n; i++) {
-        c->fakeClients[i] = createFakeClient(c);
-        c->fakeClients[i]->fake_slot = (unsigned int)i;
-    }
-    c->fake_ring_cur_depth  = (unsigned int)n;
+    c->fake_ring_cur_depth  = 0;
     c->fake_ring_decay_skip = 0;
     c->fake_ring_hwm_ewma   = 0.0;
     c->fake_ring_hwm_win    = 0;
@@ -871,14 +851,14 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
         return;
     }
 
-    /* 2s-auto D1: prospective grow of the fake reply buffer (auto mode) BEFORE the payload write,
+    /* 2s-auto D1: prospective grow of the fake reply buffer BEFORE the payload write,
      * so it self-sizes to fit the reply instead of spilling to the list. Truncation-proof: we grow
      * only while still building into buf (reply list empty), and we PRESERVE the already-written
      * bytes (memcpy the current bufpos — the bulk length prefix was written by a prior call, so
      * bufpos is usually > 0 at the value write, which is exactly why the old post-write guard was
      * unreachable). If even the capped (FAKE_BUF_MAX_BYTES) buffer can't hold the value, the
      * remainder spills to the list below exactly as before — no byte is ever discarded. */
-    if (c->isFake && server.fake_buf_mode == -1 && listLength(c->reply) == 0 &&
+    if (c->isFake && listLength(c->reply) == 0 &&
         (size_t)c->bufpos + len > c->buf_usable_size && c->buf_usable_size < FAKE_BUF_MAX_BYTES) {
         size_t need = (size_t)c->bufpos + len;
         size_t ns = c->buf_usable_size ? c->buf_usable_size : (size_t)FAKE_BUF_START_BYTES;

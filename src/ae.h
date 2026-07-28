@@ -93,8 +93,9 @@ typedef struct aeEventLoop {
 } aeEventLoop;
 extern __thread int iotid;
 extern __thread int replyWorking;
-extern int aeIODrainSpin; /* AE-1: zero-timeout drain passes while replyWorking>0; see ae.c */
-extern int aeIODrainUserpoll;  /* 2s-auto T1 */
+/* (aeIODrainSpin / aeIODrainUserpoll DELETED 2026-07-28: both are compile-time constants inside
+ * ae.c now — AE_IO_DRAIN_SPIN / AE_IO_DRAIN_USERPOLL_MAX — so there is nothing for server.c to
+ * mirror in.) */
 /* Prototypes */
 aeEventLoop *aeCreateEventLoop(int setsize);
 void aeDeleteEventLoop(aeEventLoop *eventLoop);

@@ -331,7 +331,7 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  * pointer, then QSBR-retires it. Without this flag the pin makes refcount != 1
  * and a non-string value has no cheap re-homing left, so the branch below
  * panics ("Not implemented") -- which is exactly what `SADD s m; EXPIRE s 100`
- * used to do under --tomokv-flat-store 1. With the flag the value is MOVED
+ * used to do on a shared node db. With the flag the value is MOVED
  * (stock semantics: adopt the ptr, no O(n) duplication of a possibly huge
  * collection), and clearing val->ptr makes the caller's deferred
  * decrRefCount() free the old ALLOCATION ONLY -- which is all the pin ever
