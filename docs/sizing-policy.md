@@ -53,7 +53,7 @@ so a future reader can re-derive it when the workload changes.
 
 | structure | correct driver | current state |
 |---|---|---|
-| **ex queue depth** (`tomokv-ex-queue-depth`) | producers × pipeline depth — a *concurrency* quantity | **Correct as written; do not "fix" it.** The auto path computes `want = 4 × (io_threads+1) × pipeline_depth` (= 640 at io4/p32) and takes `max(want, 2048)`, growing by powers of two above the floor. An earlier audit called the widen loop "provably dead" because `want < 2048` in the common case, and I repeated that claim before reading the code. It is wrong: the floor is deliberate, documented and **measured** — the in-code comment records that the formula counts io *producers* but not the client count each one multiplexes, which is what actually dominates back-pressure, and that deriving below the old default *measurably regressed throughput*. The stated invariant is "AUTO may only ever add headroom, never remove it". It already logs the derived value and warns loudly when `TOMO_EX_QUEUE_SIZE_MAX` binds. |
+| **ex queue depth** (`tomokv-ex-queue-depth`) | producers x pipeline depth — a *concurrency* quantity | **Fixed 2048 in practice. See the correction below — my earlier "do not fix" note here was half wrong.** |
 | **pool caps** (`XSUB_POOL_CAP 96`, `OPERAND_POOL_CAP 256`, `PCMD_POOL_CAP 128`) | per-thread working set | Fixed is right. These are per-thread free lists; unbounded growth would just hoard. |
 | **prefetch widths / gate** | L3 size ÷ workers-per-L3-domain | Correct in shape (`-1` = derive from measured L3). The units bug that made the gate never open is fixed; see `docs/BUGS.md` A6. |
 | **fake ring / fake buf** (`-1` = auto) | client pipeline depth | Derived, then bounded. Reasonable as-is. |
@@ -209,3 +209,84 @@ Each step is separately measurable and separately revertible:
 **Measurement note.** These are 1–5% effects and the box's exclusive noise floor is ±2%
 (`docs/BUGS.md` E-extra2), so every step needs `withbox.sh` + interleaved reps, and `instr/op` is the
 verdict metric — not wall-clock ops/s.
+
+
+---
+
+# Part III — the SPSC ring, and a correction I owe this file (2026-07-28)
+
+## The double correction
+
+This entry has now been wrong twice, in opposite directions:
+
+1. An early audit called the widen loop **"provably dead"** because `want < 2048` in the common case.
+2. I recorded that as **wrong** — "the floor is deliberate, measured and documented; do not fix" —
+   after reading the comment and the floor, and stopped there.
+
+The truth is both, and neither. Reading the loop itself:
+
+```c
+long want = 4L * (server.io_threads + 1) * server.pipeline_ring_depth;
+long p2 = 2048;                                  /* floor */
+while (p2 < want && p2 < TOMO_EX_QUEUE_SIZE_MAX) p2 <<= 1;
+```
+
+`TOMO_EX_QUEUE_SIZE_MAX` **is 2048**, and `p2` *starts* at 2048. So `p2 < TOMO_EX_QUEUE_SIZE_MAX` is
+false on entry, always. **The loop can never execute for any input.** The derivation is decorative:
+auto resolves to exactly 2048 on every configuration. The floor genuinely is deliberate and measured
+(deriving below it regressed throughput) — that part of my correction stands — but the widen path is
+dead, for a structural reason neither previous claim identified.
+
+## Is the mechanism itself standard? Yes.
+
+A **fixed, power-of-two, boot-sized ring** is the universal choice for SPSC queues: LMAX Disruptor,
+DPDK `rte_ring`, io_uring SQ/CQ, kernel `kfifo`. Nobody resizes a lock-free ring at runtime, because
+doing so requires quiescing both ends. So "fixed at boot, sized for worst-case burst, exhaustion
+counted" is correct by prior art, and `INFO tomokv_ex_queue_full` plus the CLAMPED warning are the
+right instrumentation.
+
+**The defect is the story, not the structure** — the same failure as the "PID-style grow/decay"
+comment: a knob advertising a derivation it does not perform.
+
+## The one real usability bug
+
+The clamp warning tells the operator the ring is undersized... and the knob's own maximum is
+`TOMO_EX_QUEUE_SIZE_MAX` = 2048, so **they cannot act on the warning.** Advice with no reachable
+remedy. Reachable at io>=16 with p32 (`4 x 17 x 32 = 2176 > 2048`).
+
+Why the cap is low: `exQueue.jobs[]` is a **static inline array of `TOMO_EX_QUEUE_SIZE_MAX`
+pointers per (worker, io) pair**, so the maximum is paid by every pair whether used or not:
+
+| workers | io | MAX | jobs[] memory |
+|---|---|---|---|
+| 4 | 4 | 2048 | 0.3 MB |
+| 16 | 16 | 2048 | 4.2 MB |
+| 16 | 16 | 8192 | 17.0 MB |
+| 64 | 32 | 8192 | 132.0 MB |
+
+The array is inline deliberately — it saves a pointer chase on a hot structure.
+
+## Options, with the honest trade
+
+- **A. Allocate `jobs[]` dynamically at `ex_queue_size`.** Standard (Disruptor/DPDK allocate the ring
+  at its chosen size); memory becomes proportional to need, and the cap can rise. Costs one
+  indirection on a hot path — the pointer shares a line with head/tail and should stay L1-resident,
+  but that is a *prediction*, and this project does not ship predictions as facts. **Measure it.**
+- **B. Keep the inline array, raise `TOMO_EX_QUEUE_SIZE_MAX` to 8192.** Zero hot-path change; costs
+  17 MB at 16x16, 132 MB at the (unrealistic) 64x32 ceiling.
+- **C. Keep 2048, delete the dead loop, and say plainly that it is fixed.** Honest and standard, but
+  leaves the unreachable-remedy bug for large configs.
+
+Recommendation: **C now** (it is a comment fix and removes a false claim), then **A measured** — with
+B as the fallback if the indirection costs anything. Do not do A on the assumption it is free.
+
+## The other three sizings — all already standard
+
+| structure | mechanism | prior art | verdict |
+|---|---|---|---|
+| **fake client ring** (`-1`) | EWMA of per-window high-water x1.25, rounded to a power of two, decays only when idle, with a decay-skip hysteresis | watermark sizing with hysteresis — Linux `tcp_moderate_rcvbuf` receive-window autotuning, JVM adaptive heap sizing, HikariCP pool sizing | **correct, and correctly auto.** Per-client pipeline depth genuinely varies per connection, so this is a *data-driven* quantity — Part I policy 1 applies and auto-resize is right |
+| **CDB / reply-bus count** (`-1`) | `detectL3Domains() > 1 ? num_workers : 1`, capped at `num_workers` and 256 | stripe-per-thread contention reduction — `LongAdder`, `ConcurrentHashMap` striping, kernel per-CPU counters | **correct** — topology-derived at boot, Part I policy 3 |
+| **batch widths** (`WORKER_POP_BATCH 16`, `TOMO_MWAVE 32`, `TOMO_MSUBWAVE 8`) | fixed constants | NAPI weight 64, DPDK burst 32 | **correct** — fixed is the standard, see Part II |
+
+`TOMO_PIPELINE_DEPTH_MAX 32` is not a tuning choice at all: `reply_ready_mask` is a `uint32_t`, so 32
+is a structural bound. Correctly documented at the definition.
