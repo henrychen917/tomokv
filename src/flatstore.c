@@ -284,14 +284,6 @@ void flatIterRange(flatTable *t, int blo, int bhi, flatIterCB cb, void *priv) {
     }
 }
 
-void flatIterAll(flatTable *t, flatIterCB cb, void *priv) {
-    if (!t) return;
-    for (uint64_t i = 0; i < t->size; i++) {
-        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_acquire);
-        if (!FLAT_IS_LIVE(w)) continue;
-        cb(flat_word_ptr(w), priv);
-    }
-}
 
 dictEntry *flatIterNext(flatTable *t, unsigned long long *cursor) {
     if (!t) return NULL;

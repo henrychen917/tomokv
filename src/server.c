@@ -6951,9 +6951,6 @@ static struct { _Atomic uint8_t v; uint8_t pad[63]; }
 static inline int tomoBktBucket(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
 }
-static inline int tomoWkrOf(const void *keyptr, size_t len) {
-    return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
-}
 static inline int tomoWkrTrylock(int w) {
     uint8_t expected = 0;
     return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w].v, &expected, 1,
@@ -14614,24 +14611,6 @@ int exQueuePush(exQueue *q, client *c) {
     return 0;
 }
 
-client *exQueuePop(exQueue *q) {
-    /* Consumer owns head; relaxed load is fine. */
-    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    /* ee451: fast-path the "not empty" check against the consumer-private
-     * cached_tail. cached_tail lags the real tail (the producer only advances
-     * tail), so if h != cached_tail an item is definitely present and was
-     * published by the acquire-load that last refreshed cached_tail. Only when
-     * the cache says empty do we pay the acquire-load to refresh and re-test.
-     * ee451 (v13): SPSC caching HARDWIRED (knob retired — pure win, topology-independent). */
-    if (h == q->cached_tail) {
-        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        if (h == q->cached_tail) return NULL; /* empty */
-    }
-    client *c = q->jobs[h];
-    atomic_store_explicit(&q->head, (h + 1) & server.ex_queue_mask,
-                          memory_order_release);
-    return c;
-}
 
 /* Drain up to `max` fakes in one pass. Same SPSC semantics; the available
  * count is computed against the consumer-private cached_tail, refreshed with a
@@ -15013,17 +14992,6 @@ static inline void exPauseCpu(void) {
 /* ee451 (#4): portable cycle counter for the forward-predictor outcome signal. */
 /* ee451 (v13): boPerfRead() deleted with the value-forwarding apparatus. */
 
-static inline unsigned long long readCyclesTSC(void) {
-#if defined(__x86_64__) || defined(__i386__)
-    unsigned int lo, hi;
-    __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
-    return ((unsigned long long)hi << 32) | lo;
-#elif defined(__aarch64__)
-    unsigned long long v; __asm__ __volatile__("mrs %0, cntvct_el0" : "=r"(v)); return v;
-#else
-    return 0;
-#endif
-}
 
 static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
@@ -17347,7 +17315,7 @@ static void tmMigHandoff(client *c, int dest) {
 }
 
 /* ee451 (rank-1 inbox-wedge fix): expel every conn stranded in `id`'s INBOX to a live io
- * thread (round-robin over tmGatherLiveDests). A conn lands here through the source-side
+ * thread (LOAD-AWARE (least-inflight) pick over tmGatherLiveDests -- NOT round-robin; an uneven spread is the intended behaviour, not a bug). A conn lands here through the source-side
  * dest-validity TOCTOU: a source validated `id` as a destination just before its
  * io_exiting/mode change became visible, and pushed after. Stranded conns were never
  * adopted (conn->el is NULL from the source's unbind; not linked in clients[id]), so

@@ -119,7 +119,6 @@ void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free
 
 /* iteration helpers (whole-table walk; Stage 4 adds a resumable cursor) */
 typedef void (*flatIterCB)(dictEntry *masked_kv, void *priv);
-void       flatIterAll(flatTable *t, flatIterCB cb, void *priv);
 /* resumable whole-table walk: returns the next LIVE masked kv (decode via dictGetKV) at/after *cursor
  * and advances *cursor past it; NULL when the table is exhausted. Used by kvstoreIterator (RDB/AOF/
  * DIGEST). Per-call safe on a live table (reclaim/resize run only in beforeSleep). */

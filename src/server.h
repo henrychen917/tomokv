@@ -1461,7 +1461,9 @@ typedef struct {
  * Static arrays are sized by the compile-time MAX; loop bounds and slot
  * masks use the runtime server.my_* values so the build is stable while
  * actual resource usage scales with config. The runtime mask
- * server.pipeline_ring_mask = server.pipeline_ring_depth - 1 is recomputed
+ * c->ring_mask (NOT server.pipeline_ring_mask: that field is never read, and ring depth is
+     * per-client and dynamic, so the server-wide value indexes the wrong slot on any client
+     * whose ring has grown or decayed) = server.pipeline_ring_depth - 1 is recomputed
  * once at startup after config load.
  * ========================================================================= */
 
@@ -1542,7 +1544,9 @@ typedef struct {
 #define tomoRelaxedSet(field, v) atomic_store_explicit(&(field), (v), memory_order_relaxed)
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
-#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer server.pipeline_ring_mask */
+#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask (NOT server.pipeline_ring_mask: that field is never read, and ring depth is
+     * per-client and dynamic, so the server-wide value indexes the wrong slot on any client
+     * whose ring has grown or decayed) */
 /* ee451 (S5): multi-CDB reply signaling. Instead of one shared reply_ready_mask
  * per client (the single common-data-bus), give each client up to NUM_CDB_MAX
  * masks, each on its OWN cache line, and route each worker's completion signal to
@@ -2813,7 +2817,7 @@ struct redisServer {
     int ex_queue_size;
     unsigned int ex_queue_mask;
     /* Dispatch mask: ex_threads - 1. Requires ex_threads to
-     * be a power of two (enforced by isValidMyWorkerThreads validator in
+     * be a power of two (enforced by NOTHING (there is no such validator, and the power-of-two claim is FALSE: io7/ex1 is a shipped config) validator in
      * config.c). Replaces `hash % num_workers` in getWorkerForCommand
      * with a single AND instruction. */
     uint64_t ex_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
@@ -5645,7 +5649,6 @@ void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
-client *exQueuePop(exQueue *q);
 void queueToWorker(client *c, int ex_id);
 void *exThreadMain(void *arg);
 #ifdef HAVE_LIBURING
