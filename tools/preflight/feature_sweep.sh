@@ -31,7 +31,11 @@ JOB=/shared/Projects/.claude/jobs/fd085c8e/tmp
 TREE=${TREE:-$JOB/stable-w2}
 FORKSRV=${TOMO_BIN:-$TREE/src/redis-server}
 ORACLESRV=${ORACLESRV:-/shared/Projects/redis/src/redis-server}
-CLI=${CLI:-$TREE/src/redis-cli}
+# CLI must follow the binary under test. Defaulting it to $TREE/src/redis-cli silently paired a
+# freshly-built server with a redis-cli from whatever stale worktree TREE happened to point at
+# (observed: rev 652deda9b while testing a much newer binary).
+CLI=${CLI:-$(dirname "$FORKSRV")/redis-cli}
+[ -x "$CLI" ] || CLI=$TREE/src/redis-cli
 [ -x "$CLI" ] || CLI=/shared/Projects/redis/src/redis-cli
 
 TSV=$JOB/feature_sweep.tsv
@@ -863,7 +867,10 @@ section_B() {
     b_cell pipeline-depth0 scan --tomokv-pipeline-depth 0;            stop_srv "$B_LAST_PID"
     b_cell fake-ring0 scan --tomokv-fake-ring-depth 0;                stop_srv "$B_LAST_PID"
     b_cell num-cdb0 scan --tomokv-num-cdb 0;                          stop_srv "$B_LAST_PID"
-    b_cell operand-pool scan --tomokv-opt-operand-pool yes;           stop_srv "$B_LAST_PID"
+    # operand-pool cell REMOVED: the knob was deleted (measured net-negative,
+    # instr/op +2.18..4.13%, allocs/op +6.6..15.7%). A cell that sets a deleted
+    # knob fails the server BOOT, which the sweep correctly reports as a FAIL --
+    # so every knob retirement must retire its sweep cells in the same commit.
 
     if [ "$SMOKE" != "1" ]; then
         b_cell num-cdb1 scan --tomokv-num-cdb 1;                      stop_srv "$B_LAST_PID"

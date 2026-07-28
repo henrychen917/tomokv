@@ -898,18 +898,13 @@ c7_pools() {
       "<= +16MB (pool caps: 4096 nodes/wkr + 8 batches/wkr + 128 pcmd/io + 96 xsub/io)" \
       "$( [ $((m1-m0)) -le 16000000 ] && echo PASS || echo FAIL )"
   stopsrv
-  # ---- operand pool: functional-only; perf is a KNOWN from project memory ----
-  boot pools_operand $IO4 --tomokv-opt-operand-pool yes || return
-  "$CLI" -p "$PORT" set opk opv1 >/dev/null
-  "$CLI" -p "$PORT" set opk opv2 >/dev/null
-  local got; got=$("$CLI" -p "$PORT" get opk)
-  # shellcheck disable=SC2086
-  local ops; ops=$(mt pools_operand_traffic $W_P32MIX --test-time="$T_MEAS")
-  tsv 7-pools operand-functional "knob on: overwrite + traffic" \
-      "GET==$got ops=$ops" "opv2 + plausible ops" \
-      "$( [ "$got" = opv2 ] && plaus "$ops" && echo PASS || echo FAIL )"
-  tsv 7-pools operand-perf "throughput vs pool-off" "not re-measured here" \
-      "project memory: regression on this fork — functional-only" KNOWN
+  # ---- operand pool: RETIRED 2026-07-28 ----
+  # The tomokv-opt-operand-pool knob was deleted: measured net-negative (instr/op
+  # +2.18..4.13%, allocs/op +6.6..15.7%), structural because a poolable operand had to be
+  # RAW so every miss cost robj+sds where the normal path allocates one embstr. These cells
+  # booted the server WITH that flag, so they now fail at boot rather than testing anything.
+  # Retiring a knob must retire its cells in the same commit -- otherwise the suite reports a
+  # product FAIL for a knob that no longer exists.
   stopsrv
   # ---- xsub pool: cross-shard MGET storm, correctness + envelope ----
   boot pools_xsub $IO4 || return
