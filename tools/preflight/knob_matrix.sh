@@ -41,8 +41,17 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note
 }
 
 echo "=== convention A: -1 = auto ===" >> $OUT
+# key-LB trigger debounce. -1 auto (K = one EWMA time constant, floored at 3 ticks), 0 OFF
+# (fire on the first violating tick — the pre-2026-07-28 trigger, kept as the A/B arm), N ticks.
+try tomokv-key-lb-sustain -1 "auto: K = one EWMA time constant, >=3 ticks"
+try tomokv-key-lb-sustain 0  "debounce OFF: single-tick trigger (A/B arm)"
+try tomokv-key-lb-sustain 8  "static: 8 consecutive outlier ticks"
 
 echo "=== convention B: 0 = auto (NOT off) ===" >> $OUT
+
+echo "=== 0 = OFF (feature disabled, no machinery) ===" >> $OUT
+try tomokv-key-lb 0     "key/bucket balancer OFF: reshardAutoTune returns before any state is touched"
+try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
 
 echo "=== prefetch widths (-1 = auto, 0 = off) ===" >> $OUT
 

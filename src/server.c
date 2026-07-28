@@ -10943,6 +10943,121 @@ static uint16_t mig_hot_streak[TOMO_EX_THREADS_MAX];
 static double mig_peak_pre = 0;   /* peak metric before the last migration (0 = none pending) */
 static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migration before judging */
 
+/* ---- ee451 (v14 trigger): per-LB-GROUP load profile — the "hot BUCKET" signal.
+ * mig_load_ewma[] above answers "which SHARD is hot"; it cannot answer "which part of that shard is
+ * hot", and the balancer used to guess by assuming load was spread uniformly across the shard's
+ * bucket range. That is false for every skewed keyspace, and it is exactly the guess that makes a
+ * hot KEY look like a hot BUCKET (docs/lb-imbalance-model.md §4: a bucket flip RELOCATES load, it
+ * never DIVIDES it).
+ * The signal already exists and is already paid for: exThread.lb_grp_ops[] is a per-worker,
+ * single-writer, non-atomic array of op counts per 64-bucket group, incremented unconditionally on
+ * the worker's exec path (one L1 increment, see the exExecFake site) and dumped by
+ * DEBUG TOMO-LBGROUPS. Reading it here costs one 1 Hz main-thread pass over
+ * num_workers_alloc * 256 counters and adds NOTHING to the data path.
+ * Allocated lazily on the first tick the balancer actually runs, so tomokv-key-lb 0 costs no
+ * memory (knob rule: off means no machinery). Rows are indexed [worker][group]. */
+#define TOMO_LB_GROUP_BUCKETS (TOMO_BUCKETS / TOMO_LB_GROUPS)
+static float    *mig_grp_ewma = NULL;   /* smoothed per-group op rate, same alpha as the shard EWMA */
+static uint32_t *mig_grp_last = NULL;   /* previous raw counter, for wrap-safe unsigned deltas */
+static int       mig_grp_rows = 0;
+
+/* ---- Trigger instrumentation. A "0 spurious migrations" result from a build whose trigger never
+ * armed proves nothing (docs/BUGS.md catalogues several such vacuous checks), so every gate the
+ * detector can exit through is counted and readable at runtime via DEBUG RESHARD TRIGGER. These are
+ * main-thread-only, plain (non-atomic) counters. ---- */
+static struct {
+    unsigned long long ticks;      /* reshardAutoTune bodies executed past the priming tick */
+    unsigned long long quiet;      /* below tomokv-key-lb (mean ops floor) */
+    unsigned long long balanced;   /* hot shard under the Schmitt RELEASE bar */
+    unsigned long long band;       /* inside the Schmitt dead-band: held, streak preserved */
+    unsigned long long settle;     /* blocked by the post-migration cooldown */
+    unsigned long long noprog;     /* blocked by the no-progress guard */
+    unsigned long long fastcold;   /* blocked: fast EWMA disagrees (hotspot already died) */
+    unsigned long long sustain;    /* blocked by the sustain gate (streak < K) */
+    unsigned long long noneigh;    /* blocked: no sufficiently cool same-node neighbour */
+    unsigned long long unbal;      /* blocked: no bucket range improves the peak (hot key) */
+    unsigned long long fire;       /* migrations armed by the outlier path */
+    unsigned long long prof;       /* split point chosen from the MEASURED group profile */
+    unsigned long long uniform;    /* split point chosen from the uniform-density fallback */
+    /* last-tick snapshot so the gates above can be read against the signal that produced them */
+    double mean, hot_bar, release_bar, hotv, alpha;
+    int hot, K, streak;
+} mig_trig;
+
+/* Choose how many buckets to shift across the hot|B boundary, and decide whether ANY shift is worth
+ * making. Two standard rules, in this order:
+ *
+ *  1. SPLIT BY LOAD, NOT BY SIZE. Walk the hot shard's buckets inward from the boundary,
+ *     accumulating MEASURED load, and stop where the moved load is closest to (Lh-Lc)/2 — the
+ *     amount that equalises the pair. Range-sharded stores pick split points the same way
+ *     (Bigtable/HBase region splitting, CockroachDB/TiKV load-based split keys) precisely because
+ *     the size-proportional estimate is wrong under skew.
+ *  2. ONLY MOVE IF IT STRICTLY IMPROVES THE MAXIMUM. max(Lh-Lm, Lc+Lm) is a V in Lm, so the scan
+ *     can stop at the first Lm past the target. If even the best chunk cannot cut the peak by
+ *     `need_gain`, the hotspot is UNBALANCEABLE at bucket granularity — the hot-key case — and the
+ *     honest answer is to not migrate at all. Moving it would relocate the hotspot onto the
+ *     neighbour and the neighbour would then trigger back: ping-pong with a drain fence per hop.
+ *     This is the "only accept a move that improves the objective" precondition every serious shard
+ *     balancer uses (Google Slicer, Facebook Shard Manager) and the actionable form of
+ *     docs/lb-imbalance-model.md §4's `h > 1/W => unbalanceable`.
+ *
+ * Returns buckets to move (>=1), or 0 when nothing improves the peak enough. */
+static int migPlanChunk(int hot, int B, double Lh, double Lc, int hot_lo, int hot_hi,
+                        double need_gain, int *used_profile, double *out_pred, double *out_moved) {
+    int hrange = hot_hi - hot_lo;
+    /* Scan the whole shard bar one bucket. The old code capped the chunk at half the range as a
+     * crude anti-overshoot; the V-shaped objective already prevents overshoot (the walk stops at
+     * the split point, it does not run to the cap), so a half-range cap only served to hide load
+     * that sits in the far half — which under the strict-improvement rule below would read as
+     * "unbalanceable" and stall convergence instead of taking two steps to get there. The only
+     * hard constraint is that the source shard must keep at least one bucket. */
+    int cap = hrange - 1;
+    *used_profile = 0; *out_pred = Lh; *out_moved = 0;
+    if (cap < 1) return 0;
+    int from_high = (B == hot + 1);       /* cool neighbour on the right => move a SUFFIX */
+
+    /* Trust the measured profile only if it accounts for most of this shard's rate. lb_grp_ops is
+     * incremented for single-key ops on the exExecFake path only — a scatter/MGET-heavy workload
+     * routes through csSubExec and never touches it, leaving the profile a biased sample of the
+     * shard. In that case fall back to the uniform density, which is what the balancer assumed
+     * before this function existed (so the fallback path is behaviour-compatible). */
+    const float *row = (mig_grp_ewma && hot < mig_grp_rows)
+                     ? &mig_grp_ewma[(size_t)hot * TOMO_LB_GROUPS] : NULL;
+    if (row) {
+        double prof_sum = 0;
+        int g0 = hot_lo / TOMO_LB_GROUP_BUCKETS, g1 = (hot_hi - 1) / TOMO_LB_GROUP_BUCKETS;
+        for (int g = g0; g <= g1; g++) prof_sum += row[g];
+        if (!(Lh > 0) || prof_sum < 0.5 * Lh) row = NULL;
+    }
+    *used_profile = (row != NULL);
+
+    double target = 0.5 * (Lh - Lc);      /* moved load that equalises the pair */
+    if (!(target > 0)) return 0;
+    double uni = Lh / (double)hrange;     /* uniform-density per-bucket estimate */
+
+    double acc = 0, best_pred = Lh, best_moved = 0; int best_n = 0;
+    for (int n = 1; n <= cap; n++) {
+        int b = from_high ? (hot_hi - n) : (hot_lo + n - 1);
+        acc += row ? ((double)row[b / TOMO_LB_GROUP_BUCKETS] / (double)TOMO_LB_GROUP_BUCKETS) : uni;
+        double pred = (Lh - acc) > (Lc + acc) ? (Lh - acc) : (Lc + acc);
+        if (pred < best_pred) { best_pred = pred; best_n = n; best_moved = acc; }
+        if (acc >= target) break;         /* past the V's minimum: pred only grows from here */
+    }
+    *out_pred = best_pred; *out_moved = best_moved;
+    if (best_n < 1) return 0;
+    if (Lh - best_pred < need_gain) return 0;   /* improvement smaller than the move is worth */
+    return best_n;
+}
+
+/* Sustain length K. -1 = auto: one EWMA time constant, floored at 3 ticks so that a one-tick
+ * dispatch spike and a two-tick blip can NEVER fire regardless of how fast the EWMA is running.
+ * An explicit N is honoured exactly (including N=1), and 0 disables the debounce. */
+static int migSustainK(double alpha) {
+    int K = server.reshard_sustain_ticks;
+    if (K < 0) { K = (int)ceil(1.0 / alpha); if (K < 3) K = 3; }
+    return K;
+}
+
 /* 2s-auto: shared dual-rate EWMA helper (mirrors reshardAutoTune alpha derivation). */
 static double ewmaAlpha2s(double rate, double ops_window) {
     double a = rate / (4.0 * ops_window);
@@ -11141,8 +11256,8 @@ static void reshardDiffusionPass(double mean, double alpha) {
      * pair peak, the boundary hosts an unbalanceable hot key — stop chasing until the pattern moves. */
     double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
     if (mig_diff_peak > 0 && bhi > mig_diff_peak * prog) return;
-    int K = server.reshard_sustain_ticks;
-    if (K < 0 || K == 0) K = (int)ceil(1.0 / alpha);      /* auto: one EWMA time constant */
+    int K = migSustainK(alpha);
+    if (K < 1) K = (int)ceil(1.0 / alpha);                /* diffusion always debounces (see migSustainK) */
     if (++mig_diff_streak[bw] < K) return;                 /* not sustained yet */
     mig_diff_streak[bw] = 0;
     int hot = mig_load_ewma[bw] > mig_load_ewma[bw + 1] ? bw : bw + 1;
@@ -11172,9 +11287,31 @@ void reshardAutoTune(void) {
     /* ee451 (v13/v14): PURE CONTROLLER (user rule: controllers, not calibrators). Runs every
      * tick forever; every quantity is recomputed from the current signal — no calibration
      * phase, no learned-then-locked state, no dependence on server uptime. DEFAULT ON;
-     * off = tomokv-reshard-min-ops 0 (also the significance floor).
-     * The only remaining knobs are min-ops (floor/off) and chunk-buckets (granule) — the
-     * alphas, trigger bar, settle window and progress bar are all self-derived. */
+     * off = tomokv-key-lb 0 (also the significance floor), which returns on the next line
+     * before any state is read, folded or allocated.
+     *
+     * DETECTOR (2026-07-28 rebuild — all standard machinery, no novelty claimed):
+     *   1. SMOOTHING       dual-rate EWMA of each shard's op rate (never an instantaneous sample).
+     *                      alpha is derived from the workload's own throughput but CLAMPED so the
+     *                      filter always filters — see the clamp comment below.
+     *   2. OUTLIER BAR     fire bar = mean + max(k*sigma, 0.25*mean), the k-sigma outlier rule,
+     *                      with k = 0.8*sqrt(W-1) capped at 2 because a one-hot vector's maximum
+     *                      z-score is sqrt(W-1) (a fixed k is unreachable at small W) and a
+     *                      relative floor because sigma collapses on uniform load.
+     *   3. HYSTERESIS      Schmitt trigger: arm at the fire bar, disarm at a lower release bar
+     *                      (halfway back to the mean). Between them the detector HOLDS — it neither
+     *                      fires nor forgets — so a shard hovering at the bar cannot oscillate.
+     *   4. SUSTAIN         K consecutive violating ticks before firing (Nagios max_check_attempts /
+     *                      Prometheus `for:` / k8s HPA stabilization). Non-outliers additively
+     *                      decay their streak — the AIMD shape this fork already uses for adaptive
+     *                      spin — so an alternating skew accumulates evidence instead of firing.
+     *   5. COOLDOWN        after a migration, one EWMA time constant of settle before re-judging.
+     *   6. PROGRESS/ABORT  a migration that did not cut the peak by 15% stops the chase.
+     *   7. SPLIT BY LOAD   the chunk is chosen from the MEASURED per-bucket-group profile and only
+     *                      if it strictly improves the predicted maximum (migPlanChunk above) —
+     *                      which is also how a hot KEY is told apart from a hot BUCKET.
+     * Operator surface: tomokv-key-lb (floor / off) and tomokv-key-lb-sustain (K). Everything else
+     * self-derives from the signal. Every gate above is counted: DEBUG RESHARD TRIGGER. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) return;
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
     /* flip: never arm a load-balance migration WHILE a role-flip is in progress. A flip runs its own
@@ -11201,20 +11338,44 @@ void reshardAutoTune(void) {
 
     /* Continuous decay: the EWMA window spans 4x min-ops in OPERATIONS, from the previous
      * tick's mean rate — the workload's own throughput sets the time constant, re-derived
-     * every tick (a rate shift re-tunes it immediately). fast = 2x slow (dual-rate #89). */
+     * every tick (a rate shift re-tunes it immediately). fast = 2x slow (dual-rate #89).
+     *
+     * UPPER CLAMP 0.25, not 0.90. An EWMA with alpha > 0.25 has a 90% rise time under two samples:
+     * it is not a filter, it is a passthrough of the instantaneous sample with extra arithmetic.
+     * The ops-based derivation saturates its clamp for any workload above 4*min_ops*alpha_max
+     * ops/s — i.e. ~72k ops/s at the default floor, which is EVERY real workload on this fork — so
+     * at 0.90 the "smoothed" load was the raw one-second sample, and both the outlier bar and the
+     * sustain gate degenerated to single-tick tests. 0.25 keeps at least a 4-sample effective
+     * window at any throughput while leaving the ops-derived adaptivity intact below the clamp.
+     * The self-derived sustain length and settle window follow from the same alpha, so this also
+     * sets the debounce and cooldown to real values (K>=4, settle>=5 at production rates). */
     static double mig_prev_rate_mean = 0;
     double alpha = mig_prev_rate_mean / (4.0 * (double)server.reshard_min_ops);
     if (alpha < 0.05) alpha = 0.05;
-    if (alpha > 0.90) alpha = 0.90;
+    if (alpha > 0.25) alpha = 0.25;
     double alpha_fast = alpha * 2.0 > 0.95 ? 0.95 : alpha * 2.0;
+
+    /* ee451 (per-node flip): W is the global SUM; the live set is per-node prefixes. Scan every
+     * slot through the predicate (parked slots skipped; their EWMA was zeroed at the flip). */
+    int wmax = server.num_workers_alloc;
+    /* Lazy allocation of the per-group profile: first tick the balancer actually runs. With
+     * tomokv-key-lb 0 the function returned above, so OFF allocates nothing. */
+    if (mig_grp_rows < wmax) {
+        size_t n = (size_t)wmax * TOMO_LB_GROUPS;
+        float *e = ztrycalloc(n * sizeof(float));
+        uint32_t *l = ztrycalloc(n * sizeof(uint32_t));
+        if (e && l) {   /* commit BOTH or NEITHER — the fold below dereferences them as a pair */
+            zfree(mig_grp_ewma); zfree(mig_grp_last);
+            mig_grp_ewma = e; mig_grp_last = l; mig_grp_rows = wmax;
+        } else {        /* profile unavailable: migPlanChunk falls back to the uniform estimate */
+            zfree(e); zfree(l);
+        }
+    }
 
     /* Fold this tick's per-worker rates into the dual EWMAs — RAW ops only (the retired
      * core-capacity normalization was a one-shot calibration AND poisoned the spread). */
     double sum_ewma = 0, sum_fast = 0, sum_rate = 0, hotv = -1;
     int hot = 0;
-    /* ee451 (per-node flip): W is the global SUM; the live set is per-node prefixes. Scan every
-     * slot through the predicate (parked slots skipped; their EWMA was zeroed at the flip). */
-    int wmax = server.num_workers_alloc;
     for (int w = 0; w < wmax; w++) {
         if (!tmWorkerLive(w)) continue;
         uint64_t ops = tomoRelaxedRead(server.exThreads[w].ops_total);   /* relaxed read of a per-thread stat */
@@ -11228,9 +11389,33 @@ void reshardAutoTune(void) {
         sum_ewma += mig_load_ewma[w];
         sum_fast += mig_load_ewma_fast[w];
         if (mig_load_ewma[w] > hotv) { hotv = mig_load_ewma[w]; hot = w; }
+        /* Same-alpha fold of the per-group profile. lb_grp_ops is a plain uint32 written only by
+         * its owning worker; the unsigned difference is wrap-correct and a torn read costs at most
+         * one distorted sample of a filter with a >=4-sample window. Groups outside this worker's
+         * range produce a zero delta and decay to zero on their own after a range moves. */
+        if (mig_grp_ewma) {
+            float *grow = &mig_grp_ewma[(size_t)w * TOMO_LB_GROUPS];
+            uint32_t *lrow = &mig_grp_last[(size_t)w * TOMO_LB_GROUPS];
+            const uint32_t *src = server.exThreads[w].lb_grp_ops;
+            for (int g = 0; g < TOMO_LB_GROUPS; g++) {
+                uint32_t cur = src[g], d = cur - lrow[g];
+                lrow[g] = cur;
+                grow[g] = mig_ewma_primed ? (float)(alpha * (double)d + (1.0 - alpha) * grow[g])
+                                          : (float)d;
+            }
+        }
     }
     mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's alpha */
     if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* bootstrap seed only */
+    mig_trig.ticks++; mig_trig.alpha = alpha; mig_trig.hot = hot; mig_trig.hotv = hotv;
+    mig_trig.K = migSustainK(alpha);
+    /* SUSTAIN, additive decrease half: a streak is evidence that THIS shard has been the outlier
+     * for K consecutive ticks, so it must not survive the shard losing the argmax. Decaying by one
+     * (rather than resetting) is the AIMD shape the fork's adaptive spin already uses: an
+     * alternating two-shard skew still accumulates evidence instead of being wiped every tick,
+     * while a shard that is merely noisy never reaches K. */
+    for (int w = 0; w < wmax; w++)
+        if (w != hot && mig_hot_streak[w] > 0) mig_hot_streak[w]--;
     if (server.tm_relevel_pending) { reshardRelevelTick(); return; }  /* exact post-flip re-level first */
 
     /* Trigger: the hot shard must be a statistical OUTLIER of the workload's own spread —
@@ -11267,20 +11452,27 @@ void reshardAutoTune(void) {
      * outlier doesn't get its streak wiped by a single dip into the band. When sustain_ticks==0 the
      * dead-band collapses back to the single legacy bar (hot_bar), i.e. BIT-FOR-BIT legacy. */
     double release_bar = mean + 0.5 * (hot_bar - mean);   /* Schmitt: release halfway to mean */
-    if (mean < (double)server.reshard_min_ops ||
-        hotv <= (server.reshard_sustain_ticks != 0 ? release_bar : hot_bar)) {
+    mig_trig.mean = mean; mig_trig.hot_bar = hot_bar; mig_trig.release_bar = release_bar;
+    mig_trig.streak = mig_hot_streak[hot];
+    /* Too quiet to judge: clear convergence state (as the balanced path does) and wait. The
+     * diffusion pass is not called — its own first line is the same floor test. */
+    if (mean < (double)server.reshard_min_ops) { mig_trig.quiet++; mig_peak_pre = 0; mig_settle = 0; return; }
+    if (hotv <= (server.reshard_sustain_ticks != 0 ? release_bar : hot_bar)) {
+        mig_trig.balanced++;
         mig_peak_pre = 0; mig_settle = 0;
-        if (server.reshard_sustain_ticks != 0) mig_hot_streak[hot] = 0;
+        /* below the RELEASE bar => disarmed. Decay rather than reset, for the same AIMD reason. */
+        if (server.reshard_sustain_ticks != 0 && mig_hot_streak[hot] > 0) mig_hot_streak[hot]--;
         reshardDiffusionPass(mean, alpha);       /* bimodal skews read as "balanced" here */
         return;
     }
     if (server.reshard_sustain_ticks != 0 && hotv <= hot_bar) {
         /* in the hysteresis dead-band: hold — don't fire, don't reset the streak. */
+        mig_trig.band++;
         return;
     }
     /* Settle: let the EWMA absorb the last migration before judging — the window IS the
      * EWMA's own time constant (ceil(1/alpha)+1 ticks), so it self-scales with the decay. */
-    if (mig_settle > 0) { mig_settle--; return; }
+    if (mig_settle > 0) { mig_settle--; mig_trig.settle++; return; }
     /* NO-PROGRESS guard: if the last migration didn't cut the peak enough, the hotspot is
      * unbalanceable (a single hot key just relocates) — stop chasing. Self-resets via the balanced
      * path when the pattern changes.
@@ -11289,23 +11481,27 @@ void reshardAutoTune(void) {
      * single-key hotspots). A LOOSER ratio (e.g. 90) lets Fork A walk multiple chunks over multiple
      * ticks (§1.4). When the knob is 0 this evaluates to * 0.85 => bit-for-bit legacy. */
     double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
-    if (mig_peak_pre > 0 && hotv > mig_peak_pre * prog) return;
+    if (mig_peak_pre > 0 && hotv > mig_peak_pre * prog) { mig_trig.noprog++; return; }
 
     /* #89 dual-rate: the FAST EWMA must ALSO see this worker hot — a hotspot that just died
      * stops being chased immediately; slow-EWMA lag can't trigger a stale migration. */
-    if (mig_load_ewma_fast[hot] <= hot_bar_fast) return;
+    if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_trig.fastcold++; return; }
 
     /* ee451 (reshard-better §1.3b): SUSTAIN gate. Only fire when the hot worker has been an
      * outlier for K consecutive ticks — kills one-tick dispatch-spike false positives that inflate
      * the slow EWMA for a tick but can't survive K ticks of hash-scattered Gaussian load. K=-1 auto
-     * = one EWMA time constant ceil(1/alpha). Gate the streak on the FAST EWMA (still hot). When the
-     * knob is 0 this whole block is skipped => bit-for-bit legacy. */
+     * = one EWMA time constant ceil(1/alpha), floored at 3. Gate the streak on the FAST EWMA (still
+     * hot). Knob 0 skips the block entirely => the pre-2026-07-28 single-tick trigger, for A/B.
+     * The streak is CONSUMED here, before neighbour selection and chunk planning, which is
+     * deliberate: if either of those then refuses (no cool neighbour, or nothing worth moving) the
+     * shard must re-earn K ticks before asking again. That is the backoff that keeps an
+     * unbalanceable hotspot from re-testing every single tick. */
     if (server.reshard_sustain_ticks != 0) {
-        int K = server.reshard_sustain_ticks;
-        if (K < 0) K = (int)ceil(1.0 / alpha);          /* -1 = auto: one EWMA time constant */
-        if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; return; }
-        if (++mig_hot_streak[hot] < K) return;          /* not sustained yet */
+        int K = migSustainK(alpha);
+        if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; mig_trig.fastcold++; return; }
+        if (++mig_hot_streak[hot] < K) { mig_trig.sustain++; mig_trig.streak = mig_hot_streak[hot]; return; }
         mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
+        mig_trig.streak = 0;
     }
 
     /* Cooler adjacent neighbour with genuinely-below-mean load. WITHIN-NODE ONLY (2026-07-22 user
@@ -11327,28 +11523,51 @@ void reshardAutoTune(void) {
      * cool — prevents ping-pong of a chunk between two near-mean neighbors); N => < mean*(1-N/100). */
     double cm = (double)server.reshard_cool_margin_pct;
     double cool_bar = (cm == 0) ? mean : (cm < 0 ? mean * 0.85 : mean * (1.0 - cm / 100.0));
-    if (B < 0 || mig_load_ewma[B] >= cool_bar) { reshardDiffusionPass(mean, alpha); return; }
+    if (B < 0 || mig_load_ewma[B] >= cool_bar) { mig_trig.noneigh++; reshardDiffusionPass(mean, alpha); return; }
 
     /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never emptying
-     * the hot shard. CHUNK SIZE ∝ THE IMBALANCE (2026-07-22 user: transfer size should be based on
-     * how imbalanced the weights are). To equalize hot(load Lh, range R) with cool(load Lc), the
-     * per-bucket rate is ~Lh/R, so moving X = (Lh-Lc)/2 / (Lh/R) = (Lh-Lc)*R/(2*Lh) buckets lands both
-     * at ~the mean in ONE move: a big imbalance (a flip's whole-range dump) evens out at once; a small
-     * drift moves a small chunk. A fixed floor keeps progress; capped at half the hot range so the hot
-     * shard is never emptied. The tomokv-reshard-chunk knob still overrides with a fixed granule. */
+     * the hot shard. WHERE to cut and WHETHER to cut at all are both migPlanChunk's answer: it
+     * walks the MEASURED per-group profile inward from the boundary and stops at the split point
+     * that minimises the predicted post-move maximum, refusing when no split beats the current peak
+     * by a worthwhile margin. The old code assumed a uniform per-bucket rate Lh/R and therefore
+     * always believed a move would help — which is how a hot KEY got treated as a hot BUCKET and
+     * ping-ponged between neighbours. The uniform estimate survives as the fallback for workloads
+     * the per-group counters do not sample (see migPlanChunk). tomokv-reshard-chunk (retired,
+     * hardwired -1) still overrides with a fixed granule if it is ever re-exposed. */
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
     int hrange = hot_hi - hot_lo;
-    int chunk = server.reshard_chunk;
-    if (chunk <= 0) {          /* 0 = auto: imbalance-proportional */
-        double Lh = mig_load_ewma[hot], Lc = mig_load_ewma[B];
-        double frac = (Lh > 0.0) ? (Lh - Lc) / (2.0 * Lh) : 0.0;   /* fraction of the hot range to shed */
-        if (frac < 0.0) frac = 0.0;
-        chunk = (int)(frac * (double)hrange);
-        if (chunk < 16) chunk = 16;                      /* floor: always make progress */
+    int chunk, used_prof = 0; double pred = 0, moved = 0;
+    if (server.reshard_chunk > 0) {
+        chunk = server.reshard_chunk;                                  /* explicit operator granule */
+        int cap = hrange / 2; if (cap < 1) cap = hrange - 1;
+        if (chunk > cap) chunk = cap;
+    } else {
+        /* Worth-it margin: a quarter of the hysteresis band. Scale-free (the band is itself
+         * mean + k*sigma), and it means a migration must buy more than a quarter of the distance
+         * that made the shard an outlier in the first place. */
+        double need = 0.25 * (hot_bar - mean);
+        chunk = migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
+                             need, &used_prof, &pred, &moved);
+        if (chunk < 1) {
+            /* UNBALANCEABLE at bucket granularity: every candidate range either carries almost
+             * none of the heat (moving it does not cool the shard) or almost all of it (moving it
+             * makes the destination the new outlier). That is the hot-KEY signature, and the
+             * correct action is to do nothing — see docs/lb-imbalance-model.md §4. The consumed
+             * sustain streak above already provides the K-tick backoff before the next attempt. */
+            mig_trig.unbal++;
+            static int unbal_log_hold = 0;
+            if (unbal_log_hold == 0) {
+                serverLog(LL_NOTICE, "ee451 reshard HOLD: w%d hot (%.0f ops vs mean %.0f) but no bucket "
+                          "range improves the peak (best predicted %.0f, profile=%s) — hot KEY, not hot "
+                          "BUCKET: a move would relocate it, not divide it. Not migrating.",
+                          hot, hotv, mean, pred, used_prof ? "measured" : "uniform");
+                unbal_log_hold = 60;
+            } else unbal_log_hold--;
+            return;
+        }
+        if (used_prof) mig_trig.prof++; else mig_trig.uniform++;
     }
-    { int cap = hrange / 2; if (cap < 1) cap = hrange - 1;          /* never empty the hot shard */
-      if (chunk > cap) chunk = cap; }
     if (hrange <= chunk || chunk < 1) return;
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
@@ -11358,8 +11577,11 @@ void reshardAutoTune(void) {
         reshardBeginCutover();
         mig_peak_pre = hotv;
         mig_settle = (int)(1.0 / alpha) + 1;   /* self-derived settle = EWMA time constant */
-        serverLog(LL_NOTICE, "ee451 reshard AUTO: hot=w%d(%.0f ops) -> w%d(%.0f ops), moving [%d,%d)",
-                  hot, mig_load_ewma[hot], B, mig_load_ewma[B], lo, hi);
+        mig_trig.fire++;
+        serverLog(LL_NOTICE, "ee451 reshard AUTO: hot=w%d(%.0f ops) -> w%d(%.0f ops), moving [%d,%d) "
+                  "(%d buckets, %s split: ~%.0f ops moved, predicted peak %.0f)",
+                  hot, mig_load_ewma[hot], B, mig_load_ewma[B], lo, hi,
+                  chunk, used_prof ? "measured" : "uniform", moved, pred);
         /* NOTE: do NOT reset the EWMA — it must keep adapting so the no-progress guard can
          * judge whether this migration actually reduced the peak. */
     }
@@ -11452,6 +11674,36 @@ void reshardDebug(client *c) {
         addReplyArrayLen(c, server.num_workers_alloc);   /* alloc: spare slot visible (0 when dormant) */
         for (int w = 0; w < server.num_workers_alloc; w++)   /* MUST match the header (protocol desync hang) */
             addReplyLongLong(c, (long long)tomoRelaxedRead(server.exThreads[w].ops_total));
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "trigger")) {
+        /* Every gate reshardAutoTune can exit through, plus the live signal that produced them.
+         * This exists because "0 spurious migrations" is a VACUOUS result unless you can show the
+         * detector was armed and reached the gate that stopped it — a class of non-check this
+         * project has shipped before (docs/BUGS.md). Read it, do not infer it. */
+        addReplyStatusFormat(c,
+            "ticks=%llu quiet=%llu balanced=%llu band=%llu settle=%llu noprog=%llu fastcold=%llu "
+            "sustain=%llu noneigh=%llu unbal=%llu fire=%llu split_measured=%llu split_uniform=%llu "
+            "K=%d streak=%d hot=%d alpha=%.4f hotv=%.0f mean=%.0f release_bar=%.0f hot_bar=%.0f "
+            "sustain_knob=%d min_ops=%d",
+            mig_trig.ticks, mig_trig.quiet, mig_trig.balanced, mig_trig.band, mig_trig.settle,
+            mig_trig.noprog, mig_trig.fastcold, mig_trig.sustain, mig_trig.noneigh, mig_trig.unbal,
+            mig_trig.fire, mig_trig.prof, mig_trig.uniform,
+            mig_trig.K, mig_trig.streak, mig_trig.hot, mig_trig.alpha, mig_trig.hotv,
+            mig_trig.mean, mig_trig.release_bar, mig_trig.hot_bar,
+            server.reshard_sustain_ticks, server.reshard_min_ops);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "lbgroups")) {
+        /* Per-group SMOOTHED load for one worker (the balancer's own view, as opposed to
+         * DEBUG TOMO-LBGROUPS which dumps the raw monotonic counters). */
+        int w = (c->argc >= 4) ? atoi(c->argv[3]->ptr) : 0;
+        if (w < 0 || w >= mig_grp_rows || !mig_grp_ewma) { addReplyError(c, "no profile for that worker"); return; }
+        sds o = sdsempty();
+        const float *row = &mig_grp_ewma[(size_t)w * TOMO_LB_GROUPS];
+        int lo = (w == 0 ? 0 : server.ex_bucket_end[w - 1]), hi = server.ex_bucket_end[w];
+        o = sdscatprintf(o, "worker %d range [%d,%d) group_buckets %d\n", w, lo, hi, TOMO_LB_GROUP_BUCKETS);
+        for (int g = 0; g < TOMO_LB_GROUPS; g++)
+            if (row[g] > 0) o = sdscatprintf(o, "g%d buckets %d-%d rate %.1f\n", g,
+                                             g * TOMO_LB_GROUP_BUCKETS, (g + 1) * TOMO_LB_GROUP_BUCKETS - 1, row[g]);
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
         /* PURE-FUNCTIONAL routing info only (xxh64 + table) — no cross-thread shard reads, so this
          * is safe to call under live load. (An earlier variant scanned every worker's dict for the
@@ -11479,7 +11731,7 @@ void reshardDebug(client *c) {
             sc, (unsigned long long)sx, dc, (unsigned long long)dx,
             (active && sc == dc && sx == dx) ? 1 : 0);
     } else {
-        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS");
+        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS");
     }
 }
 /* ========================== end resharding (engine) ========================== */

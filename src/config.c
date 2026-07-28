@@ -3253,6 +3253,20 @@ standardConfig static_configs[] = {
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
+    /* SUSTAIN — the one trigger parameter with a genuine workload-dependent trade-off, and the A/B
+     * lever for the whole detector. reshardAutoTune fires only after the hot shard has been a
+     * statistical outlier for K CONSECUTIVE 1 Hz ticks (standard "N consecutive violations" debounce:
+     * Nagios max_check_attempts, Prometheus alert `for:`, k8s HPA stabilization windows).
+     *   -1 = auto: K = one EWMA time constant, ceil(1/alpha), floored at 3 ticks
+     *    0 = OFF: no debounce, fire on the first violating tick (the pre-2026-07-28 behaviour;
+     *             kept ONLY so the two detectors can be A/B'd on the same binary)
+     *    N = require N consecutive violating ticks
+     * Everything else in the detector self-derives from the signal and needs no operator input:
+     * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
+     * the chunk size. Their fields still carry full -1/0/N semantics (see tomoInitRetiredKnobDefaults)
+     * for anyone who needs to re-expose one; they are simply not decisions an operator should have to
+     * make. Disable the whole balancer with tomokv-key-lb 0. */
+    createIntConfig("tomokv-key-lb-sustain",         NULL, MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
      * thread nobody routes to has done half a job, and the only reason to want the split was to
@@ -3578,11 +3592,17 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
     server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
     server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
-    server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
-    server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
-    server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
-    server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
-    server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
+    /* RESHARD TRIGGER — these four were retired at 0, and for THIS group 0 did not mean "the
+     * former default": it meant "the bit-for-bit A/B baseline arm", i.e. the un-hardened legacy
+     * trigger the hardening commit (de69ec1dd) was written to replace. The consequence was a
+     * balancer with no hysteresis band, no debounce and a permanently-zero mig_hot_streak[] —
+     * maximally trigger-happy, firing a migration on ONE tick of apparent imbalance. -1 selects
+     * the self-deriving arm in every case, which is what the retirement should have frozen them at.
+     * (tomokv-key-lb-sustain is a live config again — see the LOAD BALANCING block above.) */
+    server.reshard_chunk = -1;                      /* auto: load-aware split point (was tomokv-reshard-chunk) */
+    server.reshard_cool_margin_pct = -1;            /* auto: destination must be < 0.85*mean (was tomokv-reshard-cool-margin-pct) */
+    server.reshard_imbalance_pct = -1;              /* auto: mean + k*sigma outlier bar (was tomokv-reshard-imbalance-pct) */
+    server.reshard_progress_ratio = -1;             /* auto: a migration must cut the peak >=15% (was tomokv-reshard-progress-ratio) */
     server.thredis_flat_store = 1;                  /* was tomokv-flat-store */
     server.worker_pop_batch = -1;                   /* was tomokv-worker-pop-batch */
     server.worker_spin = -1;                        /* was tomokv-worker-spin */

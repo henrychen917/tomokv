@@ -3560,10 +3560,12 @@ struct redisServer {
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
                                 * "node0=0-3 node1=8,9,10,11". Used only with pin-mode static. */
     char *pin_ex_spec;         /* tomokv-pin-ex: same grammar, for the EX (worker) role. */
-    int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
+    int reshard_min_ops;         /* tomokv-key-lb: 0 = balancer OFF (nothing runs, nothing is
+                                  * allocated); N = min mean shard ops/sec before a shard is a
+                                  * migration candidate. Default 20000. */
     int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
-    int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */
-    int reshard_chunk;         /* v14 dual-mode: 0=auto granule; N=explicit buckets */
+    int reshard_imbalance_pct; /* <=0 = auto mean+k*sigma outlier bar (default -1); N = fixed pct of mean */
+    int reshard_chunk;         /* <=0 = auto load-aware split point (default -1); N = explicit buckets */
     int drain_tail_skip;       /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
     int express_slim;          /* 2s-auto T3: -1=auto EWMA, 0=off, 1-100=fixed pct */
     int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
@@ -3573,10 +3575,16 @@ struct redisServer {
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
                                         * (the old double-read Schmitt gate could act on two
                                         * different values) */
-    /* ee451 (reshard-better §1.2): trigger-hardening mirrors — 0 = exact-legacy for A/B. */
-    int reshard_sustain_ticks;   /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks */
-    int reshard_progress_ratio;  /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (pct) */
-    int reshard_cool_margin_pct; /* 0=legacy (<mean); -1=auto 15%; N=neighbor < mean*(1-N/100) */
+    /* Reshard TRIGGER parameters. Only the first is an operator config (tomokv-key-lb-sustain);
+     * the other two are hardwired to their self-deriving arm in tomoInitRetiredKnobDefaults and
+     * keep full -1/0/N semantics so either can be re-exposed without touching reshardAutoTune. */
+    int reshard_sustain_ticks;   /* tomokv-key-lb-sustain: -1=auto max(3,ceil(1/alpha)) [default];
+                                  * 0=debounce OFF, fire on the first violating tick (A/B arm);
+                                  * N=require N consecutive outlier ticks */
+    int reshard_progress_ratio;  /* <=0 = auto 0.85 (a migration must cut the peak >=15%; default -1);
+                                  * N = required %-of-prior-peak ceiling */
+    int reshard_cool_margin_pct; /* -1 = auto: destination must be < 0.85*mean [default];
+                                  * 0 = legacy (< mean); N = destination < mean*(1-N/100) */
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
     int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
