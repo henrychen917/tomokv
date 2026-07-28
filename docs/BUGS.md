@@ -458,3 +458,25 @@ caller blocks until the first releases). Note a *private* per-script lock — wh
 provides no mutual exclusion whatsoever; the point is that everything contends on one path.
 Rule recorded as NIGHT_PLAN 6b. On this box, **>5% between identical arms is contention or a bug,
 never drift.**
+
+### E-extra3. `while read` silently drops a file's last line without a trailing newline (2026-07-28)
+
+Found by a subagent during the knob retirement, and it had already produced a false ALL-CLEAR — in
+my own verification, not just theirs.
+
+`while read k; do ...; done < list.txt` executes the body **once per newline**. `read` returns
+non-zero at EOF when the final line has no terminator, so the loop body never runs for it. A
+generated list written with `'\n'.join(...)` has no trailing newline, so **the last entry is never
+checked** — and the loop still exits 0, so nothing looks wrong.
+
+Concretely: `/tmp/retire_list.txt` held 44 retired knob names; every `while read`-based sweep over it
+verified only 43. `tomokv-zerocopy-min-value` was never checked. It happened to be clean, so the
+outcome was luck, not method.
+
+**Rules:**
+- Generators: end the file with a newline (`'\n'.join(x) + '\n'`).
+- Consumers: `while read k || [ -n "$k" ]; do` — the `|| [ -n "$k" ]` runs the body for a final
+  unterminated line. Or avoid the shell entirely and iterate in Python.
+- Verification loops especially: a checker that silently skips an item reports success it did not
+  establish. Same family as the vacuous-validation ledger above — the check ran, passed, and proved
+  nothing about the one item it skipped.
