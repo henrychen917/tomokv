@@ -4293,6 +4293,9 @@ int beforeNextClient(client *c);
 void clearClientConnectionState(client *c);
 void resetClient(client *c, int num_pcmds_to_free);
 void resetClientQbufState(client *c);
+/* ee451 (#44): nested-command-frame counter, defined in networking.c, reported as
+ * INFO tomokv_nested_cmd_frames. See the definition for why it exists. */
+extern _Atomic unsigned long long tomo_nested_cmd_frames;
 void freeClientOriginalArgv(client *c);
 void freeClientArgv(client *c);
 void freeClientPendingCommands(client *c, int num_pcmds_to_free);

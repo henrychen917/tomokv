@@ -13378,6 +13378,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
+            "tomokv_nested_cmd_frames:%llu\r\n",
+                atomic_load_explicit(&tomo_nested_cmd_frames, memory_order_relaxed),
             "tomokv_xshard_multikey_split:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
             "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,

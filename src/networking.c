@@ -45,6 +45,15 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd);
 static void releaseAllBufReferences(client *c);   /* ee451 (v11): used by freePooledFakeClient (defined later) */
 
 int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
+
+/* ee451 (#44): count command frames that execute NESTED inside another live command frame on the
+ * same thread — i.e. processInputBuffer() re-entered through processEventsWhileBlocked() while an
+ * outer client is still mid-command. That nesting IS the #44 window: it is the only situation in
+ * which this function's handling of server.current_client[iotid].p can affect a frame other than
+ * its own. Exposed as INFO tomokv_nested_cmd_frames so a suite can prove it entered the window
+ * rather than assuming it did — a run that never nests cannot say anything about #44, pass or
+ * fail. Incremented only on the rare nested branch; the predicate is a value we already loaded. */
+_Atomic unsigned long long tomo_nested_cmd_frames = 0;
 __thread sds thread_reusable_qb = NULL;
 __thread int thread_reusable_qb_used = 0; /* Avoid multiple clients using reusable query
                                          * buffer due to nested command execution. */
@@ -4697,13 +4706,35 @@ int processInputBuffer(client *c) {
                 break;
             }
 
-            /* We are finally ready to execute the command. */
+            /* We are finally ready to execute the command.
+             *
+             * ee451 (#44): SAVE and RESTORE this thread's current-client slot; never blank it.
+             * processCommandAndResetClient() reports "the client was freed underneath me" by
+             * testing this slot for NULL (unlinkClient() is what clears it), and that signal is
+             * only sound while every nested frame puts back what it found — see the upstream
+             * comment inside processCommandAndResetClient().
+             *
+             * This function DOES run nested: a script that outlives busy-reply-threshold calls
+             * processEventsWhileBlocked(), whose event loop re-enters processInputBuffer() for
+             * other clients on this same thread. Blanking the slot on the way out of the nested
+             * command therefore made the OUTER frame's still-live client look dead. Its caller
+             * readQueryFromClient() then does `c = NULL` and skips the whole done: epilogue — the
+             * querybuf trim and resetReusableQueryBuf() — so the client kept a non-zero qb_pos
+             * AND the thread's reusable query buffer. The next read on that client that leaves
+             * through an early `goto done` (EAGAIN, or nread==0 when it disconnects) then tripped
+             * serverAssert(c->qb_pos == 0). Same blast radius for the other processInputBuffer()
+             * callers, which read C_ERR as "client gone" and drop it. */
+            client *prev_current = server.current_client[iotid].p;
+            if (unlikely(prev_current != NULL))     /* the #44 window — see the counter's comment */
+                atomic_fetch_add_explicit(&tomo_nested_cmd_frames, 1, memory_order_relaxed);
             server.current_client[iotid].p = c;
             if (processCommandAndResetClient(c) == C_ERR) {
-                server.current_client[iotid].p = NULL;
+                /* c really is gone: don't hand a dangling pointer back to an outer frame that
+                 * was executing this very client (unlinkClient() already NULLed the slot). */
+                server.current_client[iotid].p = (prev_current == c) ? NULL : prev_current;
                 return C_ERR;
             }
-            server.current_client[iotid].p = NULL;
+            server.current_client[iotid].p = prev_current;
 
             /* ee451: the command was refused because the pipeline ring is full
              * (or a stateful/MULTI command is waiting for it to drain). The

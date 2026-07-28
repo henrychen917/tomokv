@@ -677,3 +677,44 @@ stale or mismatched carried hash does not fail loudly — it silently looks up t
 needs a discriminating test (seed distinct keys whose hashes collide in the low 14 bits, verify each
 resolves to its own value) before the change, not after. Estimated worth ~1-2% on small-value
 GET/SET, where xxh64 over a ~20-byte key is a meaningful slice of a ~500ns/worker command budget.
+
+### A10. #44 `qb_pos == 0` assert — DIAGNOSED AND FIXED (server kill, pre-existing)
+
+`processCommandAndResetClient()` signals "my client was freed underneath me" by testing
+`server.current_client[iotid].p` for NULL. Upstream documents that this is sound *only* because
+nested frames restore what they found. This fork's `processInputBuffer()` — where stock does not
+touch the slot at all — hard-wrote `= NULL` after every command.
+
+`processEventsWhileBlocked` re-enters `processInputBuffer` on the same thread, so a nested frame's
+trailing NULL is what the **outer** frame reads → false `C_ERR` → `readQueryFromClient` does
+`c = NULL` → skips the entire `done:` epilogue (the querybuf trim **and** `resetReusableQueryBuf`)
+→ a live client keeps `qb_pos != 0` *and* the thread's reusable buffer → the next read that leaves
+by an early `goto done` (EAGAIN, or `nread == 0` on close) trips the assert.
+
+**The assert was right and is untouched.** Fix: save/restore the slot instead of blanking it, and
+do not restore a pointer to a genuinely freed client. The outermost saved value is NULL, so
+non-nested behaviour is byte-identical.
+
+Same root cause also silently DROPPED clients at `iothread.c:623`
+(`processPendingCommandAndInputBuffer` → false `C_ERR` → `continue`, client unlinked from every
+list and never returned to its io thread).
+
+**Repro: 20/20 before, 0/20 after**, both arms counter-instrumented and differing only by the patch.
+The un-fixed server dies on its FIRST window entry; the fixed one enters the window ~half a million
+times per run and survives. correctness_suite 15 passed, 0 failed.
+
+### F-fenceblind. The fence suite cannot reach the #44 window — its "~25% flake" was a different path
+
+Shipped `INFO tomokv_nested_cmd_frames` (frames executing while another frame is live on the same
+thread) to settle why `fence_suite` scored 0/4 on a build that reproduces 20/20 under a targeted
+repro. Measured on the fence's own config: `busy-reply-threshold` is **5000ms** and the fence's
+"slow" EVAL takes **401ms** — it never crosses the threshold. Across the whole 20-iteration
+crash-repro block: `Slow script detected` = 0, nested frames = **0**.
+
+Its later 900M-iteration step does cross, but only nests when that script lands on the MAIN thread —
+this fork restricts `processEventsWhileBlocked` to `iotid == 0`. One long script per run at ~1-in-4
+io threads reproduces the historically reported "~20–30%/run", and P(0 hits in 4 runs) ≈ 0.32,
+which is why single green fence runs looked like luck: they were.
+
+**Rule: any future #44 regression check must assert `tomokv_nested_cmd_frames > 0` before it may
+report a pass.** Otherwise it is testing a window it never entered.
