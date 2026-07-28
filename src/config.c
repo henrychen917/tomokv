@@ -182,6 +182,12 @@ configEnum tomokv_pin_mode_enum[] = {
     {NULL, 0}
 };
 
+configEnum tomokv_flip_imbalance_enum[] = {
+    {"absolute", TOMO_FLIP_IMB_ABSOLUTE},   /* io_sat - ex_sat (DEFAULT) */
+    {"relative", TOMO_FLIP_IMB_RELATIVE},   /* (io_sat - ex_sat) / max(io_sat, ex_sat) */
+    {NULL, 0}
+};
+
 configEnum tomokv_mget_coalesce_enum[] = {
     {"legacy", TOMO_MGET_LEGACY},           /* one cross-shard sub per key */
     {"coalesce", TOMO_MGET_COALESCE},       /* one sub per shard, order-preserving (DEFAULT) */
@@ -3286,6 +3292,7 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
+    createEnumConfig("tomokv-flip-imbalance",        NULL, MODIFIABLE_CONFIG, tomokv_flip_imbalance_enum, server.flip_imbalance, TOMO_FLIP_IMB_ABSOLUTE, NULL, NULL), /* which io/ex imbalance measure the flip controller decides on. DEFAULT absolute — `relative` (scale-free, bounded to +-1) was built and A/B'd 2026-07-27 and measured WORSE: see the RELATIVE IMBALANCE comment in server.c. */
     /* tomokv-mcmd-lock DELETED 2026-07-27: always-lock IS the design (the S2 single-key owner
      * lock is what makes a shared node db safe against sibling workers), so the knob was
      * accepted-and-ignored — a silently-inert config surface. Basis for hardwiring it on: MGET

@@ -1499,6 +1499,13 @@ typedef struct {
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
+/* ---- tomokv-flip-imbalance (IMMUTABLE enum) ---------------------------------
+ * Which io-vs-ex imbalance measure the flip controller decides on.
+ *   absolute: io_sat - ex_sat                      (DEFAULT — measured better, see server.c)
+ *   relative: (io_sat - ex_sat) / max(io_sat,ex_sat), bounded to [-1,+1] */
+#define TOMO_FLIP_IMB_ABSOLUTE 0
+#define TOMO_FLIP_IMB_RELATIVE 1
+
 /* ---- tomokv-mget-coalesce (MODIFIABLE enum) ---------------------------------
  * How a cross-shard MGET is decomposed. Ordered: each level includes the previous. */
 #define TOMO_MGET_LEGACY            0   /* one sub per key */
@@ -2747,6 +2754,7 @@ struct redisServer {
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
+    int flip_imbalance;            /* tomokv-flip-imbalance: TOMO_FLIP_IMB_ABSOLUTE (default) / _RELATIVE */
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
                                     * the flip-induced bucket imbalance right away; counts down per balancer tick */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from

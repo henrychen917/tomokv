@@ -18036,10 +18036,11 @@ typedef struct {
     int      dz_init;        /* deadzones seeded to FLIP_DZ_BASE once */
     double   dz_front;       /* min io-lead (front pressure) to grow-front; raised after a bad front */
     double   dz_back;        /* min ex-lead (back pressure) to grow-back; raised after a bad back */
-    double   imb_at_flip;    /* io_sat-ex_sat at the last flip (sets the raised deadzone on revert) */
+    double   imb_at_flip;    /* RELATIVE imbalance at the last flip (observability: the settle-pin below
+                              * derives the raised deadzone from imb_ewma, not from this snapshot) */
     int      busy_smooth;    /* leaky-smoothed hottest-ex-worker utilization % (back-pressure signal) */
     int      just_settled;   /* a climb just ended => pin the deadzones from the next fresh imbalance */
-    double   imb_ewma;       /* EWMA of io_sat-ex_sat — the smoothed DECISION signal (start + pin) */
+    double   imb_ewma;       /* EWMA of the RELATIVE imbalance — the smoothed DECISION signal (start + pin) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput seen in the current climb (the look-ahead reference) */
     int      best_dist;      /* steps taken since best_rate was set (0 = at the best) */
@@ -18066,14 +18067,35 @@ static flipCtlState fctl[TM_MAXNODE];
  * imbalance + margin so the same unprofitable move is not retried until pressure clearly exceeds the
  * level that just failed. Balanced-within-deadzone => HOLD (no probe, no measurement churn) — the
  * common case on a stable workload, which is what makes steady-state overhead ~free. --- */
-#define FLIP_DZ_BASE     0.25  /* base deadzone: the busier role must LEAD by >25% of its distress
-                                * band before a flip (kills noise-driven oscillation) */
+#define FLIP_DZ_BASE     0.25  /* base deadzone: the busier role must LEAD by >25% of ITSELF before a
+                                * flip (kills noise-driven oscillation). Since 2026-07-27 the signal
+                                * it gates is the RELATIVE imbalance (io_sat-ex_sat)/max(io_sat,ex_sat),
+                                * so this is a pure fraction and means the same thing at every load. */
+#define FLIP_SAT_QUANT   (1.0/32.0) /* coarsest saturation quantum: ONE ingress event / the io distress
+                                * band (32). The ex side is finer (1/75 of the busy band), so this is
+                                * the resolution limit of the pair. */
+#define FLIP_SAT_FLOOR   (2.0*FLIP_SAT_QUANT) /* below 2 quanta of the LARGER saturation, a ±1-quantum
+                                * wobble moves the relative ratio by >=50% => the ratio carries no
+                                * information. Report balanced instead (idle/trickle-node guard). */
 #define FLIP_DZ_RAISE    1.5   /* when a climb ends, deadzone := |settle-point imbalance| * this (>1)
                                 * (settle pressure +7.5%): no re-trigger on a fluctuation, but a real
                                 * workload shift (pressure well past the settle point) still climbs.
                                 * Momentum + this settle-pin replace the old absolute saturation floor:
                                 * the climb rides the throughput gradient regardless of absolute
                                 * saturation, and only the settled operating point gets a deadzone. */
+#define FLIP_DZ_HEADROOM 0.5   /* the settle-pin may consume at most this FRACTION OF THE REMAINING
+                                * HEADROOM to the signal's bound. Needed because the imbalance is now
+                                * RELATIVE, i.e. BOUNDED to [-1,+1]: a bare |imb|*1.5 pin becomes an
+                                * unreachable >1.0 threshold as soon as the settle point exceeds 0.67,
+                                * which is a PERMANENT LOCKOUT of that direction, not a raise. Observed
+                                * live in the first relative build: p1 converges to io7/ex1 (correct,
+                                * 833k) where ex is the only remaining constraint => imb_ewma ~ -0.85
+                                * => dz_back pinned 1.07, so a later ex-bound workload shift (p32 SET,
+                                * imb -> ~-1.0) could NEVER re-trigger grow-back and the server would
+                                * stay stuck in the read-optimal config. The min() below keeps the
+                                * ordinary multiplicative raise everywhere it is reachable and only
+                                * saturates near the bound, so the raise still DOMINATES upward and
+                                * always stays a strict raise (pin > |settle imbalance|). */
 #define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
 #define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
                                 * before giving up and walking back to it. Crosses a single-config dip
@@ -18088,6 +18110,18 @@ static flipCtlState fctl[TM_MAXNODE];
 static int tmFlipDo(int node, int dir, const char **err) {
     if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
     return dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err);
+}
+
+/* Settle-pin for ONE direction: raise the deadzone above the magnitude of the settled imbalance so
+ * the same move is not retried until pressure clearly exceeds the level that just settled. `mag` is
+ * |imbalance| (bounded to [0,1] since 2026-07-27), `base` the floor. The pin is the ordinary
+ * multiplicative raise, clamped so it can never consume all the headroom to the bound (see
+ * FLIP_DZ_HEADROOM) — a deadzone >= 1.0 would be an unreachable lockout rather than a raise. */
+static inline double flipDzPin(double mag, double base, int bounded) {
+    if (mag < 0) mag = -mag;
+    double raised = mag * FLIP_DZ_RAISE;
+    if (bounded && mag < 1.0) raised = fmin(raised, mag + (1.0 - mag) * FLIP_DZ_HEADROOM);
+    return fmax(base, raised);
 }
 
 static void tomoFlipController(void) {
@@ -18196,7 +18230,54 @@ static void tomoFlipController(void) {
         double io_sat = (double)ing_mean / 32.0;
         double ex_sat = fmax((double)fc->busy_smooth / 75.0,
                              fc_qd_hi > 0 ? (double)qd_max / (double)fc_qd_hi : 0.0);
-        double imbalance = io_sat - ex_sat;
+        /* --- RELATIVE imbalance (2026-07-27) — BUILT, MEASURED, DEFAULT OFF. -------------------
+         * THE IDEA. Both saturations are already normalized to their own distress band, but their
+         * plain DIFFERENCE is still scale-dependent, so ONE fixed deadzone on it is simultaneously
+         * too strict at low load and too permissive at high load. Observed live at p1 GET-heavy:
+         * io_sat=0.28 ex_sat=0.09 => diff 0.19 < dz 0.25 => HOLD, even though io is 3.1x more
+         * saturated than ex and the measured static curve says p1 wants io7/ex1 (833k) over io4/ex4
+         * (595k). The SAME 0.19 diff at io_sat=0.95/ex_sat=0.76 is nearly balanced and must NOT
+         * flip. Dividing by the larger saturation makes the signal a pure fraction in [-1,+1] ("the
+         * busier role leads by X% of itself"), so one threshold means the same thing at every load.
+         * Sign convention is unchanged: >0 => io is the constraint => grow front; <0 => grow back.
+         *
+         * THE MEASUREMENT (2M keys, -d 32, 3 reps, interleaved, medians of SETTLED windows only —
+         * a window counts only if zero flips landed inside it):
+         *     p32 SET   absolute 7,112,442   relative 7,070,413 (-0.6%)   both 0 flips, 9/9 settled
+         *     p1  GET   absolute   814,098   relative   828,058 (+1.7%)   both converge io6/io7
+         * i.e. INDISTINGUISHABLE on this box (drift here is 15-30%; these deltas are ~1%). It is not
+         * an improvement, so it does not get to be the default — and it carries two hazards the
+         * absolute measure does not:
+         *  1. BOUNDED => the settle-pin saturates. dz := |settle imbalance|*1.5 exceeds the signal's
+         *     own ceiling of 1.0 as soon as the settle point passes 0.67, which is a PERMANENT
+         *     LOCKOUT of that direction rather than a raise. Seen live twice: p1 converged to io7/ex1
+         *     pinned dz_back=1.07 (unreachable), and a run that walked back to io4/ex4 pinned
+         *     dz_front=0.97 against a steady ewma of 0.97 and could never climb out — it sat at
+         *     605k where the same config reaches 830k. FLIP_DZ_HEADROOM below is the mitigation, but
+         *     it only narrows the trap; it cannot remove it, because the signal really is bounded.
+         *  2. It AMPLIFIES the quantization of whichever saturation is small. At the p1 optimum
+         *     io_sat is 0.06-0.34 (1-11 ingress events) against ex_sat 0.61, so ONE event moves the
+         *     ratio by ~0.4, and the measured settled noise is sigma 0.30-0.47 vs 0.14-0.20 at p32.
+         *     The auto deadzone therefore has to open WIDER at p1 than the fixed 0.25 it replaces.
+         * KEPT behind `tomokv-flip-imbalance relative` because the low-load reasoning above is still
+         * sound and may win on hardware where io_sat is not quantization-limited (more ingress per
+         * pass); re-measure on the Threadripper before considering it again.
+         *
+         * IDLE GUARD: at denom->0 the ratio is numerically unstable and meaningless (0.02 vs 0.002
+         * is a 0.9 "imbalance" on a node doing nothing). The existing `node_idle` is NOT sufficient
+         * on its own — it requires literally zero ops AND zero queue AND zero ingress, so a mere
+         * trickle (health checks, a few hundred ops/s) is not idle yet still pins the ratio at ±1.
+         * So node_idle is KEPT (it still freezes the EWMAs) and an absolute saturation FLOOR is
+         * added on top, derived from the signals' own quantization rather than picked: the coarsest
+         * quantum of either saturation is one ingress event = 1/32 of the io distress band (the busy
+         * signal is finer, 1/75). Below 2 quanta of the larger saturation a single-quantum wobble
+         * would move the ratio by >=50%, i.e. the ratio is pure quantization noise — report balanced
+         * (0.0) and let the node HOLD. --- */
+        double fc_denom = fmax(io_sat, ex_sat);
+        double imb_abs = io_sat - ex_sat;                    /* ABSOLUTE measure (DEFAULT) */
+        double imb_rel = (fc_denom >= FLIP_SAT_FLOOR) ? imb_abs / fc_denom : 0.0;  /* RELATIVE, in [-1,+1] */
+        int fc_rel = (server.flip_imbalance == TOMO_FLIP_IMB_RELATIVE);
+        double imbalance = fc_rel ? imb_rel : imb_abs;       /* both logged either way, for audit */
         /* smoothed imbalance — the DECISION signal (start direction + settle-pin) uses this, not the
          * raw per-tick imbalance, so a single-tick pressure spike can neither start a spurious climb
          * nor cause the settle-pin to be captured from a low tick (both seen as io7/ex1 oscillation:
@@ -18325,8 +18406,9 @@ static void tomoFlipController(void) {
         if (fabs(fc->mean - inst) < 2.0 * sigma) { if (fc->idle_stable < 1000) fc->idle_stable++; } else fc->idle_stable = 0;
         if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d",
-                          node, fc->mean, io_sat, ex_sat, fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d",
+                          node, fc->mean, io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
+                          fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node);
                 last_log = now;
             }
             continue;
@@ -18337,8 +18419,8 @@ static void tomoFlipController(void) {
          * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
          * re-open the search, but a genuine workload shift (pressure well past this) still will. */
         if (fc->just_settled) {
-            fc->dz_front = (fc->imb_ewma > 0) ? fmax(FLIP_DZ_BASE, fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
-            fc->dz_back  = (fc->imb_ewma < 0) ? fmax(FLIP_DZ_BASE, -fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
+            fc->dz_front = (fc->imb_ewma > 0) ? flipDzPin(fc->imb_ewma, FLIP_DZ_BASE, fc_rel) : FLIP_DZ_BASE;
+            fc->dz_back  = (fc->imb_ewma < 0) ? flipDzPin(fc->imb_ewma, FLIP_DZ_BASE, fc_rel) : FLIP_DZ_BASE;
             fc->just_settled = 0;
         }
 
@@ -18390,8 +18472,8 @@ static void tomoFlipController(void) {
                 fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
                 fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
                 fc->rs_quiet = 0;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] CLIMB %s io_sat=%.2f ex_sat=%.2f (baseline %.0f ops/s) -> settle+confirm",
-                          node, d > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, fc->before);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] CLIMB %s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) (baseline %.0f ops/s) -> settle+confirm",
+                          node, d > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->before);
                 break;                                       /* one flip per tick (single migration gate) */
             } else if (err) {
                 /* review [9]: a REFUSAL is transient (a migration slot momentarily busy), NOT a
@@ -18413,8 +18495,9 @@ static void tomoFlipController(void) {
              * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
              * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d",
-                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back, w_live, io_live_node);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d",
+                          node, fc->mean, io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
+                          fc->dz_front, fc->dz_back, w_live, io_live_node);
                 last_log = now;
             }
             continue;
@@ -18424,8 +18507,9 @@ static void tomoFlipController(void) {
          * (see the tracker above) so the first step's baseline is trustworthy. */
         if (fc->idle_stable < FESC_SETTLE_N) {
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f",
-                          node, want > 0 ? "grow-front" : "grow-back", fc->mean, fc->idle_stable, FESC_SETTLE_N, io_sat, ex_sat);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f)",
+                          node, want > 0 ? "grow-front" : "grow-back", fc->mean, fc->idle_stable, FESC_SETTLE_N,
+                          io_sat, ex_sat, imbalance, imb_abs, imb_rel);
                 last_log = now;
             }
             continue;
@@ -18442,8 +18526,8 @@ static void tomoFlipController(void) {
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
-            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f imb=%.2f > dz%.2f (baseline %.0f ops/s) -> settle+confirm",
-                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance,
+            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f > dz%.2f (baseline %.0f ops/s) -> settle+confirm",
+                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
                       want > 0 ? fc->dz_front : fc->dz_back, fc->before);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
