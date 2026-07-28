@@ -3252,6 +3252,24 @@ standardConfig static_configs[] = {
      *   flip-rebalance moves CONNECTIONS once, when a flip creates a new io thread
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
+
+    /* ================= PREFETCH (restored 2026-07-28) =====================================
+     * These were retired as "unreachable under FLATSTORE". That premise is FALSE at
+     * tomokv-thread-ex 1: shared_node_dbs = (workers_per_node > 1), so a single worker per
+     * node leaves the keyspace DICT-backed and every table-touching prefetch stage live.
+     * io7/ex1 is a standard test config, so the deletion removed working code there.
+     * Restored in full, knobs included, because prefetch is an area under active work. */
+    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_argv, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keyobj, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keybytes, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_hash, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_nextop,   0,  INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_entry, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_value, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
+    createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.pf_value_budget_kb, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3/(2W); 0=off (no value chase); N=explicit KB */
+    createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.prefetch_min_keys, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3-derived gate; 0=off (no floor: always prefetch); N=explicit key floor */
+
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
@@ -3568,16 +3586,6 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.opt_setop_coalesce = 1;                  /* was tomokv-setop-coalesce */
     server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
     server.os_opts = 0;                             /* was tomokv-os-opts */
-    server.pf_value_budget_kb = -1;                 /* was tomokv-pf-value-budget-kb */
-    server.pf_w_argv = -1;                          /* was tomokv-pf-w-argv */
-    server.pf_w_entry = -1;                         /* was tomokv-pf-w-entry */
-    server.pf_w_hash = -1;                          /* was tomokv-pf-w-hash */
-    server.pf_w_keybytes = -1;                      /* was tomokv-pf-w-keybytes */
-    server.pf_w_keyobj = -1;                        /* was tomokv-pf-w-keyobj */
-    server.pf_w_nextop = 0;                         /* was tomokv-pf-w-nextop */
-    server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
-    server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
-    server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
     server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
     server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
     server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
