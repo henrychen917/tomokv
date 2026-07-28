@@ -718,3 +718,37 @@ which is why single green fence runs looked like luck: they were.
 
 **Rule: any future #44 regression check must assert `tomokv_nested_cmd_frames > 0` before it may
 report a pass.** Otherwise it is testing a window it never entered.
+
+### F-clientlb-node. Client LB is node-scoped for no structural reason (design note, 2026-07-28)
+
+`tmClientBalanceCron` loops `for (int node ...)` and filters candidates with
+`tmNodeOfIoSlot(all[i]) == node`, so a connection can only move between io threads **on its own
+node**. On a single-node box the `nnodes == 1` shortcut makes this inert; on multi-node hardware it
+would leave an idle node's io threads unusable while another node's saturate.
+
+**Three objections to lifting it were raised and all three are wrong**, each because the mechanism
+already exists:
+
+1. *"Cross-node clients make the reply path cross-node."* It already is. `ex_bucket_table[b] =
+   b * W / TOMO_BUCKETS` with W = **total** workers and no node partitioning, so a key maps to any
+   worker on any node. A client already dispatches cross-node and gets replies back. This has been
+   true by design since the bucket table existed.
+2. *"The client struct can't change owner."* It already does — `iothread.c` assigns `c->tid`
+   (`c->tid = min_id`), which is exactly the migration this would reuse.
+3. *"The client's buffers are pinned to the original node."* They are not. `thread_reusable_qb` is
+   `__thread` and `resetReusableQueryBuf` returns the buffer to the thread pool (`c->querybuf =
+   NULL`), so between commands a client usually owns no querybuf at all — after a migration it
+   borrows the NEW thread's, allocated on the new node. Reply-list blocks are allocated per reply by
+   whoever writes them. Only the client struct (with its inline `buf[]`) is pinned, from accept().
+
+**So the node filter is a conservative default, not a constraint.** The change is to drop the filter
+and prefer local moves with a self-derived margin, so a cross-node move happens only when the
+node-level imbalance is large enough to pay for re-homing one struct.
+
+**Cannot be measured on this box** — one NUMA node, so `nnodes == 1` makes it structurally a no-op.
+Gate it on the Threadripper.
+
+**Process note, recorded because it recurred three times in one session:** each objection above was
+a physically plausible story about NUMA locality that I produced *instead of* checking the
+mechanism. Plausibility is not evidence; in every case one grep settled it. Check the mechanism
+first.
