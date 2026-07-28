@@ -3270,6 +3270,29 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.pf_value_budget_kb, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3/(2W); 0=off (no value chase); N=explicit KB */
     createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.prefetch_min_keys, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3-derived gate; 0=off (no floor: always prefetch); N=explicit key floor */
 
+
+    /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy
+     * single-tick trigger: the hysteresis dead-band and the SUSTAIN gate are unreachable and
+     * mig_hot_streak[] can never be nonzero. That makes auto-reshard MORE trigger-happy than
+     * designed, at exactly the moment its cutover fence (H2) is known fail-open. */
+    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule. A granule of 0 buckets is not a state; "off" is tomokv-reshard-min-ops 0. */
+    createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
+    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
+    createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
+    createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
+
+
+    /* ================= OS / io_uring DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults made
+     * TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off, and left the whole io_uring
+     * multishot-recv / zero-copy-send / SQPOLL subsystem unreachable with 13 live readers. That is
+     * disabling a feature to simplify a config surface, which is not the same as retiring a knob. */
+    createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
+    createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
+    createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
+
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
@@ -3575,22 +3598,11 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.flat_load_pct = 70;                      /* was tomokv-flat-load-pct */
     server.io_drain_spin = 32;                      /* was tomokv-io-drain-spin */
     server.io_drain_userpoll = -1;                  /* was tomokv-io-drain-userpoll */
-    server.io_uring_recv = 0;                       /* was tomokv-io-uring-recv */
-    server.io_uring_reply_send = 0;                 /* was tomokv-io-uring-reply-send */
-    server.io_uring_sqpoll = 0;                     /* was tomokv-io-uring-sqpoll */
-    server.io_uring_zc = 0;                         /* was tomokv-io-uring-zc */
     server.l3_kb = 0;                               /* was tomokv-l3-kb */
     server.modeshift_test = 0;                      /* was tomokv-modeshift-test */
     server.opt_mget_coalesce = TOMO_MGET_COALESCE;  /* was tomokv-mget-coalesce */
     server.opt_mset_move = 0;                       /* was tomokv-mset-move */
     server.opt_setop_coalesce = 1;                  /* was tomokv-setop-coalesce */
-    server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
-    server.os_opts = 0;                             /* was tomokv-os-opts */
-    server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
-    server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
-    server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
-    server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
-    server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
     server.thredis_flat_store = 1;                  /* was tomokv-flat-store */
     server.worker_pop_batch = -1;                   /* was tomokv-worker-pop-batch */
     server.worker_spin = -1;                        /* was tomokv-worker-spin */
