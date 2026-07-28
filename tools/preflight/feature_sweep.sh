@@ -1060,8 +1060,8 @@ section_C() {
     fi
 
     # C8: reshard DONE with low min-ops + hot keys pinned to one worker
-    local cfg4="io2ex2/reshard-min-ops2000"
-    boot_srv fork "$FORK_PORT" "$WORK/c_reshard" "${DEF_TOPO[@]}" --tomokv-reshard-min-ops 2000 \
+    local cfg4="io2ex2/key-lb2000"
+    boot_srv fork "$FORK_PORT" "$WORK/c_reshard" "${DEF_TOPO[@]}" --tomokv-key-lb 2000 \
         || { row $sec reshard-done "$cfg4" FAIL "boot failed"; BOOT_PID=""; }
     if [ -n "$BOOT_PID" ]; then
         fpid=$BOOT_PID; flog=$LAST_SRV_LOG

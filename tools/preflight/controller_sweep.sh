@@ -909,10 +909,10 @@ c10_reshard() {
   # dispatch wedge (fixed on the 3s dev branch only) — kept out of scope here.
   boot reshard_skew $IO4 || return
   # SPEC REV 2 settle-first: the pre windows must not be measured across an actuation.
-  # tomokv-reshard-min-ops 0 = controller OFF by code ("off = tomokv-reshard-min-ops 0",
+  # tomokv-key-lb 0 = controller OFF by code ("off = tomokv-reshard-min-ops 0",
   # the autotune entry gate) => pre is settled BY CONSTRUCTION; the 0-actuation assert
   # below is the belt-and-braces.
-  "$CLI" -p "$PORT" config set tomokv-reshard-min-ops 0 >/dev/null
+  "$CLI" -p "$PORT" config set tomokv-key-lb 0 >/dev/null
   # pre = median of 3 windows (ledger: no single-window throughput comparisons)
   local pre q1_ q2_ q3_ pre_act
   q1_=$(mt reshard_skew_pre1 --ratio=1:1 -d 64 --key-pattern=G:G --key-maximum=16 -t 4 -c 8 --pipeline 4 --test-time=10)
@@ -922,7 +922,7 @@ c10_reshard() {
   pre_act=$(racts)
   # open the gate and start the trigger load — long enough for fire + DONE + quiet + 3
   # anti-thrash windows (worst-case phases sum below the test-time)
-  "$CLI" -p "$PORT" config set tomokv-reshard-min-ops 1000 >/dev/null
+  "$CLI" -p "$PORT" config set tomokv-key-lb 1000 >/dev/null
   local t10 t_conv=-1
   t10=$(date +%s)
   mt_bg reshard_skew_load --ratio=1:1 -d 64 --key-pattern=G:G --key-maximum=16 -t 4 -c 8 --pipeline 4 --test-time=$((T_CHURN + 3*AT_WIN + 45))

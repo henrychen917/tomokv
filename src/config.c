@@ -3253,8 +3253,14 @@ standardConfig static_configs[] = {
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
+    /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
+     * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
+     * thread nobody routes to has done half a job, and the only reason to want the split was to
+     * debug the actuator, which DEBUG TOMO-MODESHIFT already covers. It is therefore derived from
+     * tomokv-thread-mode: auto => flip AND backfill, static => neither. Client-lb stays separate
+     * because it is genuinely a different question (continuous rebalancing on load skew, which is
+     * useful with a STATIC split too). */
     createBoolConfig("tomokv-client-lb",             NULL, MODIFIABLE_CONFIG, server.tm_client_lb, 1, NULL, NULL), /* continuous connection balancer: moves conns off a SUSTAINED busy-outlier io thread, within a node, to a tolerance band. */
-    createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG, server.tm_flip_rebalance, 1, NULL, NULL), /* on grow-front, pull existing conns onto the newly created io thread. One-shot, not continuous. */
 
     /* Client pipeline ring depth. ALSO the per-client fake-client (fc) ring cap: the fc ring is
      * allocated at min(want, pipeline-depth) (networking.c) and may only grow while

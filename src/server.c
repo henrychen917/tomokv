@@ -3765,6 +3765,10 @@ void initServer(void) {
      * of the CONTROLLER, not of two different execution models. */
     server.poly_threads = 1;
     server.thread_auto  = (server.thread_mode == TOMO_THREAD_MODE_AUTO);
+    /* Merged into thread-mode 2026-07-28 (was tomokv-flip-rebalance): a flip that creates an io
+     * thread no connection is routed to has only done half the work, so backfill is part of
+     * flipping, not a separate switch. */
+    server.tm_flip_rebalance = server.thread_auto;
 
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
