@@ -18041,6 +18041,11 @@ typedef struct {
     int      busy_smooth;    /* leaky-smoothed hottest-ex-worker utilization % (back-pressure signal) */
     int      just_settled;   /* a climb just ended => pin the deadzones from the next fresh imbalance */
     double   imb_ewma;       /* EWMA of the RELATIVE imbalance — the smoothed DECISION signal (start + pin) */
+    double   imb_var;        /* EWMA variance of the RELATIVE imbalance, accumulated during SETTLED ticks
+                              * ONLY (no climb, no flip in flight, no post-step wait) => it measures the
+                              * signal's NOISE, not its signal. sqrt() of it sizes the auto deadzone. */
+    int      imb_n;          /* settled samples folded into imb_var (the estimate is only usable once
+                              * a full measurement window's worth have landed) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput seen in the current climb (the look-ahead reference) */
     int      best_dist;      /* steps taken since best_rate was set (0 = at the best) */
@@ -18083,6 +18088,65 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * Momentum + this settle-pin replace the old absolute saturation floor:
                                 * the climb rides the throughput gradient regardless of absolute
                                 * saturation, and only the settled operating point gets a deadzone. */
+/* --- AUTO DEADZONE (2026-07-27, owner: "deadzone might be able to be lower and doesn't result in
+ * thrashing, better if it auto tunes"). The smallest dead-band that does not thrash is the one just
+ * above the SENSOR NOISE, so size it from the measured noise floor of the imbalance signal instead
+ * of a hand-picked constant. The noise is estimated from SETTLED ticks only (no climb in progress,
+ * no flip in flight, no post-step settle wait) — during a climb the signal is deliberately MOVING,
+ * and folding that in would measure the signal, not the noise, and inflate the deadzone exactly when
+ * it should be small. `tomokv-flip-deadzone` selects: -1 auto, 0 off, N static N/100.
+ *
+ * IMPORTANT (owner constraint): auto sets the FLOOR ONLY. The per-direction raise applied after a
+ * bad probe (flipDzPin) is hysteresis against oscillation and is load-bearing, so the effective
+ * threshold is fmax(pinned, auto) — the recomputed floor can never LOWER a raised deadzone, and
+ * raising one direction never touches the other. The raise still does not decay.
+ *
+ * MEASURED, AND NOT THE DEFAULT (2026-07-27). Two useful results and one blocker:
+ *  1. On the ABSOLUTE (default) signal the auto value INDEPENDENTLY REPRODUCES the hand-picked
+ *     constant where that constant was validated: p32 SET settled auto p50 = 0.276 vs the hard-coded
+ *     0.25. So 0.25 is not arbitrary, and the owner's hypothesis that the deadzone "might be able to
+ *     be lower" is NOT supported on this box — the measured noise floor says 0.25 is already at it.
+ *     At p1 GET the signal is noisier and auto opens to p50 0.444.
+ *  2. Throughput is a wash: p32 -0.0%, p1 -0.7%, workload-shift -0.8% (all inside this box's drift).
+ *  3. BLOCKER: auto CHURNS. On the p1->p32 shift it took 20 flips to re-converge where the fixed
+ *     deadzone took 6 — 3.3x the migrations for the same landing config (io4/ex4) and the same
+ *     throughput. Cause: sigma is estimated over settled ticks only, so a briefly-quiet stretch
+ *     collapses it and dz_auto falls toward FLIP_DZ_FLOOR (observed as low as 0.063 at p1 against a
+ *     p50 of 0.444); the next fluctuation then clears that tiny band and starts a probe. The fix is
+ *     a floor with memory (e.g. clamp dz_auto below by a decayed running MAX of itself, or raise
+ *     FLIP_DZ_FLOOR off the quantization limit) — not attempted here because it needs its own
+ *     campaign. Until then the default is the static 25, which is bit-identical to the pre-knob
+ *     behaviour, and `-1` stays available for that follow-up. --- */
+#define FESC_NOISE_ALPHA 0.0625 /* 1/16: the noise EWMA spans the same 16 ticks (~4s) as the measure
+                                * window FESC_MEAS_N, so the deadzone reflects the noise over exactly
+                                * the horizon a probe is judged on, not a 1-second gust. */
+/* The deadzone gates the DECISION signal, which is imb_ewma — NOT the raw per-tick imbalance whose
+ * residual imb_var measures. For an EWMA of rate a over a white residual, var(ewma) = var(x)*a/(2-a),
+ * so the decision signal's noise is sigma_raw * sqrt(a/(2-a)) = 0.378*sigma_raw at a=FESC_ALPHA=0.25.
+ * Sizing the band on sigma_raw instead would over-state the noise ~2.6x and give a deadzone LARGER
+ * than the fixed one it replaces (measured: sigma_raw p50 ~0.12-0.14 => 3*sigma_raw ~0.40). */
+#define FESC_EWMA_NOISE_GAIN 0.37796 /* sqrt(FESC_ALPHA/(2-FESC_ALPHA)), FESC_ALPHA=0.25 */
+#define FLIP_DZ_K        3.0   /* dead-band = K sigma of the SETTLED decision-signal noise. Chosen from
+                                * measurement on this box (2M keys, -d 32, settled windows only, with
+                                * the deadzone held STATIC so the estimate is not self-referential):
+                                *   relative signal, p32 SET  sigma_raw p50 0.145, p90 0.192, max 0.245
+                                *   relative signal, p1  GET  sigma_raw p50 0.116, p90 0.230, max 0.270
+                                * K=3 on the resulting decision-signal sigma lands the band at 0.14-0.20
+                                * (relative/p32) and, on the ABSOLUTE default signal, at p50 0.276 for
+                                * p32 and 0.444 for p1 — i.e. it reproduces the hand-picked 0.25 in the
+                                * regime that constant was tuned for, which is the main evidence that K
+                                * is right rather than merely fitted.
+                                * K=2 was computed from the same data (band ~0.09-0.11 on the relative
+                                * signal) and REJECTED: the settled |imb_ewma| at p32 SET is itself
+                                * 0.17-0.39 — a real, persistent asymmetry, not noise — so a 0.09 band
+                                * sits below the standing signal and leaves the controller permanently
+                                * asking to probe. K=3 keeps the band the same order as that standing
+                                * offset. A needless migration costs far more than a slightly late climb. */
+#define FLIP_DZ_FLOOR    FLIP_SAT_QUANT /* hard floor (~0.031): one ingress-event quantum of relative
+                                * resolution at full saturation. Below this the deadzone would be
+                                * finer than the sensor can resolve, so k*sigma is clamped here even
+                                * if the measured noise collapses (e.g. a perfectly steady synthetic
+                                * load). Keeps `auto` from ever becoming an accidental 0=off. */
 #define FLIP_DZ_HEADROOM 0.5   /* the settle-pin may consume at most this FRACTION OF THE REMAINING
                                 * HEADROOM to the signal's bound. Needed because the imbalance is now
                                 * RELATIVE, i.e. BOUNDED to [-1,+1]: a bare |imb|*1.5 pin becomes an
@@ -18283,8 +18347,35 @@ static void tomoFlipController(void) {
          * nor cause the settle-pin to be captured from a low tick (both seen as io7/ex1 oscillation:
          * steady -imbalance ~0.55 but a lone 0.42 tick pinned dz_back=0.45, letting later 0.55 ticks
          * re-trigger grow-back). Raw imbalance stays for logging/observability. */
-        if (!node_idle) fc->imb_ewma += FESC_ALPHA * (imbalance - fc->imb_ewma);
-        if (!fc->dz_init) { fc->dz_front = fc->dz_back = FLIP_DZ_BASE; fc->dz_init = 1; }
+        /* NOISE FLOOR of the imbalance, measured on SETTLED ticks only (see the AUTO DEADZONE block):
+         * not climbing, not walking back, not inside a post-step settle wait, not idle, and the
+         * relative measure actually defined. The residual is taken against the PRE-update EWMA, which
+         * is the standard exponentially-weighted variance. */
+        int fc_settled = (fc->phase == 0 && fc->dir == 0 && fc->revert_steps == 0 && fc->wait == 0 &&
+                          !node_idle && fc_denom >= FLIP_SAT_FLOOR);
+        if (!node_idle) {
+            double id = imbalance - fc->imb_ewma;
+            fc->imb_ewma += FESC_ALPHA * id;
+            if (fc_settled) {
+                fc->imb_var += FESC_NOISE_ALPHA * (id * id - fc->imb_var);
+                if (fc->imb_n < FESC_MEAS_N) fc->imb_n++;
+            }
+        }
+        /* dz_auto: the noise-derived dead-band. Computed EVERY tick even when a static deadzone is in
+         * force, so the value auto WOULD have chosen is always visible in the log next to the one
+         * actually used — that is what makes the knob's setting auditable and lets the auto path be
+         * re-evaluated on other hardware from a normal run's logs. */
+        double dz_auto = (fc->imb_n >= FESC_MEAS_N)
+                       ? fmax(FLIP_DZ_FLOOR, FLIP_DZ_K * FESC_EWMA_NOISE_GAIN *
+                                             sqrt(fc->imb_var > 0 ? fc->imb_var : 0))
+                       : FLIP_DZ_BASE;                      /* not yet primed: conservative start */
+        /* dz_base: the FLOOR under both deadzones. Never an assignment to dz_front/dz_back — those
+         * hold the per-direction post-bad-probe RAISE, which must dominate upward (owner). */
+        double dz_base = (server.flip_deadzone >= 0)
+                       ? (double)server.flip_deadzone / 100.0   /* 0 = off, N = static N/100 */
+                       : dz_auto;                               /* -1 = auto */
+        if (!fc->dz_init) { fc->dz_front = fc->dz_back = dz_base; fc->dz_init = 1; }
+        double dz_f = fmax(fc->dz_front, dz_base), dz_b = fmax(fc->dz_back, dz_base);
 
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
@@ -18406,9 +18497,10 @@ static void tomoFlipController(void) {
         if (fabs(fc->mean - inst) < 2.0 * sigma) { if (fc->idle_stable < 1000) fc->idle_stable++; } else fc->idle_stable = 0;
         if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d",
+                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f base%.3f auto%.3f sig%.4f n%d) wait=%d dir=%d | w_live=%d io=%d",
                           node, fc->mean, io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
-                          fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node);
+                          dz_f, dz_b, dz_base, dz_auto, sqrt(fc->imb_var > 0 ? fc->imb_var : 0), fc->imb_n,
+                          fc->wait, fc->dir, w_live, io_live_node);
                 last_log = now;
             }
             continue;
@@ -18419,8 +18511,8 @@ static void tomoFlipController(void) {
          * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
          * re-open the search, but a genuine workload shift (pressure well past this) still will. */
         if (fc->just_settled) {
-            fc->dz_front = (fc->imb_ewma > 0) ? flipDzPin(fc->imb_ewma, FLIP_DZ_BASE, fc_rel) : FLIP_DZ_BASE;
-            fc->dz_back  = (fc->imb_ewma < 0) ? flipDzPin(fc->imb_ewma, FLIP_DZ_BASE, fc_rel) : FLIP_DZ_BASE;
+            fc->dz_front = (fc->imb_ewma > 0) ? flipDzPin(fc->imb_ewma, dz_base, fc_rel) : dz_base;
+            fc->dz_back  = (fc->imb_ewma < 0) ? flipDzPin(fc->imb_ewma, dz_base, fc_rel) : dz_base;
             fc->just_settled = 0;
         }
 
@@ -18486,8 +18578,8 @@ static void tomoFlipController(void) {
 
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
-        if (fc->imb_ewma > fc->dz_front && can_front) want = +1;        /* io is the constraint => EX->IO */
-        else if (-fc->imb_ewma > fc->dz_back && can_back) want = -1;    /* ex is the constraint => IO->EX */
+        if (fc->imb_ewma > dz_f && can_front) want = +1;        /* io is the constraint => EX->IO */
+        else if (-fc->imb_ewma > dz_b && can_back) want = -1;    /* ex is the constraint => IO->EX */
 
         if (want == 0) {
             /* balanced within the deadzones: the stable, low-cost HOLD. The deadzones stay PINNED at
@@ -18495,9 +18587,10 @@ static void tomoFlipController(void) {
              * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
              * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d",
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f dz(f%.2f/b%.2f base%.3f auto%.3f sig%.4f n%d) | w_live=%d io=%d",
                           node, fc->mean, io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
-                          fc->dz_front, fc->dz_back, w_live, io_live_node);
+                          dz_f, dz_b, dz_base, dz_auto, sqrt(fc->imb_var > 0 ? fc->imb_var : 0), fc->imb_n,
+                          w_live, io_live_node);
                 last_log = now;
             }
             continue;
@@ -18528,7 +18621,7 @@ static void tomoFlipController(void) {
             fc->rs_quiet = 0;
             serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f imb=%.2f(abs %.2f rel %.2f) ewma=%.2f > dz%.2f (baseline %.0f ops/s) -> settle+confirm",
                       node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance, imb_abs, imb_rel, fc->imb_ewma,
-                      want > 0 ? fc->dz_front : fc->dz_back, fc->before);
+                      want > 0 ? dz_f : dz_b, fc->before);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
             serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);

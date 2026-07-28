@@ -3293,6 +3293,7 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
     createEnumConfig("tomokv-flip-imbalance",        NULL, MODIFIABLE_CONFIG, tomokv_flip_imbalance_enum, server.flip_imbalance, TOMO_FLIP_IMB_ABSOLUTE, NULL, NULL), /* which io/ex imbalance measure the flip controller decides on. DEFAULT absolute — `relative` (scale-free, bounded to +-1) was built and A/B'd 2026-07-27 and measured WORSE: see the RELATIVE IMBALANCE comment in server.c. */
+    createIntConfig("tomokv-flip-deadzone",          NULL, MODIFIABLE_CONFIG, -1, 100, server.flip_deadzone, 25, INTEGER_CONFIG, NULL, NULL), /* flip dead-band on the io/ex imbalance, percent. -1=auto (K*sigma of the signal's measured settled noise), 0=off, N=static N/100. DEFAULT 25 = the previously hard-coded FLIP_DZ_BASE, i.e. behaviourally identical to before this knob existed. Auto is a FLOOR only (the post-bad-probe per-direction raise still overrides upward) and is measured but NOT default — see the AUTO DEADZONE block in server.c. */
     /* tomokv-mcmd-lock DELETED 2026-07-27: always-lock IS the design (the S2 single-key owner
      * lock is what makes a shared node db safe against sibling workers), so the knob was
      * accepted-and-ignored — a silently-inert config surface. Basis for hardwiring it on: MGET

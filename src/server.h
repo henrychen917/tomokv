@@ -2755,6 +2755,10 @@ struct redisServer {
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
     int flip_imbalance;            /* tomokv-flip-imbalance: TOMO_FLIP_IMB_ABSOLUTE (default) / _RELATIVE */
+    int flip_deadzone;             /* flip controller dead-band on the io/ex imbalance, in PERCENT.
+                                    * -1 = auto (sized to the MEASURED noise floor of the signal), 0 = off,
+                                    * N = static N/100. Auto sets the FLOOR only: the per-direction raise
+                                    * applied after a bad probe still overrides it upward. */
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
                                     * the flip-induced bucket imbalance right away; counts down per balancer tick */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
