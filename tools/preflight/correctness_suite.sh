@@ -9,7 +9,7 @@ PORT=7994; OUT=$J/correctness_suite.out; : > $OUT
 cp "$BIN" $J/redis-corr 2>/dev/null; CB=$J/redis-corr
 pkill -9 -x redis-corr 2>/dev/null; sleep 1; rm -rf $J/cs; mkdir -p $J/cs; : > $J/cs.log
 taskset -c 0-7 $CB --port $PORT --dir $J/cs --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --tomokv-flat-store yes ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
+  --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
   --logfile $J/cs.log >/dev/null 2>&1 &
 sleep 3
 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY'

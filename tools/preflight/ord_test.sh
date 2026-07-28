@@ -6,7 +6,7 @@ J=/shared/Projects/.claude/jobs/fd085c8e/tmp
 BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
 pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/otd; mkdir -p $J/otd
 taskset -c 0-7 $BIN --port 7984 --dir $J/otd --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --tomokv-flat-store yes $EXTRA --save '' --appendonly no \
+  --tomokv-thread-ex 4 $EXTRA --save '' --appendonly no \
   --protected-mode no --logfile $J/ot.log >/dev/null 2>&1 &
 sleep 3
 python3 - "$LBL" <<'PY'

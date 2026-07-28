@@ -39,7 +39,7 @@ _mktags
 run_arm(){ local bin=$1 tag=$2 rep=$3
   kill_all; rm -rf $J/qb; mkdir -p $J/qb; : > $J/qb.log
   taskset -c 0-7 "$bin" --port $PORT --dir $J/qb --tomokv-nodes $NUMA --tomokv-thread-io 4 \
-    --tomokv-thread-ex 4 --tomokv-flat-store yes $XTRA --save '' --appendonly no --protected-mode no \
+    --tomokv-thread-ex 4 $XTRA --save '' --appendonly no --protected-mode no \
     --logfile $J/qb.log >/dev/null 2>&1 &
   SRVPID=$!
   sleep 3; assert_one_server; timeout 20 $CLI ping >/dev/null 2>&1

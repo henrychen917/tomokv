@@ -11,7 +11,7 @@ ok(){ echo "PASS $1" >> $OUT; }; bad(){ echo "FAIL $1" >> $OUT; }
 cp "$BIN" $J/redis-fence 2>/dev/null; FB=$J/redis-fence
 pkill -9 -x redis-fence 2>/dev/null; sleep 1; rm -rf $J/fsd; mkdir -p $J/fsd; : > $J/fs.log
 taskset -c 0-7 $FB --port $PORT --dir $J/fsd --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --tomokv-flat-store yes --save '' --appendonly no --protected-mode no \
+  --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
   --logfile $J/fs.log >/dev/null 2>&1 &
 sleep 3
 timeout 3 $C ping 2>/dev/null | grep -q PONG || { bad "boot"; exit 0; }

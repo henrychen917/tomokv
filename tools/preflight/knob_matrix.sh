@@ -18,7 +18,7 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note
   local knob=$1 val=$2 note=$3
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
   taskset -c 0-7 $BIN --port $PORT --dir $J/kdata --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-flat-store yes \
+    --tomokv-thread-io 4 --tomokv-thread-ex 4 \
     --$knob $val --save '' --appendonly no --protected-mode no \
     --logfile $J/knob.log --loglevel notice >/dev/null 2>&1 &
   sleep 2; local up=0
@@ -41,50 +41,14 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note
 }
 
 echo "=== convention A: -1 = auto ===" >> $OUT
-try tomokv-fake-ring-depth -1 "auto/decay (default)"
-try tomokv-fake-ring-depth 4  "STATIC 4 — audit says this is only a prealloc count, ring still fills to max"
-try tomokv-fake-ring-depth 0  "0 = EAGER here, NOT off (violates 0=off philosophy)"
-try tomokv-express-slim -1 "auto"
-try tomokv-express-slim 0  "off"
-try tomokv-express-slim 50 "static 50"
-try tomokv-fake-buf -1 "auto"
-try tomokv-fake-buf 4096 "static 4KB"
-try tomokv-drain-tail-skip -1 "auto"
-try tomokv-drain-tail-skip 0 "off"
-try tomokv-io-drain-userpoll -1 "auto"
-try tomokv-io-drain-userpoll 0 "off"
 
 echo "=== convention B: 0 = auto (NOT off) ===" >> $OUT
-try tomokv-pipeline-depth -1 "AUTO (explicitly set — validators used to REJECT this)"
-try tomokv-pipeline-depth 0 "0 = OFF (ring disabled, depth 1)"
-try tomokv-pipeline-depth 8 "static 8"
-try tomokv-num-cdb -1 "AUTO (topology)"
-try tomokv-num-cdb 0 "0 = OFF (single bus)"
-try tomokv-num-cdb 1 "static 1 bus"
-try tomokv-num-cdb 4 "static 4 buses"
-try tomokv-ex-queue-depth -1 "AUTO (explicitly set — validators used to REJECT this)"
-try tomokv-ex-queue-depth 0 "0 invalid -> warns + uses auto"
-try tomokv-ex-queue-depth 1024 "static 1024"
-try tomokv-worker-pop-batch -1 "AUTO"
-try tomokv-worker-pop-batch 0 "0 = OFF (batch of 1)"
-try tomokv-worker-pop-batch 8 "static 8"
-try tomokv-worker-spin 0 "0 = off/auto"
-try tomokv-worker-spin 256 "static spin"
 
 echo "=== prefetch widths (-1 = auto, 0 = off) ===" >> $OUT
-try tomokv-pf-w-hash -1 "auto"
-try tomokv-pf-w-hash 0 "off"
-try tomokv-pf-w-hash 8 "static"
-try tomokv-pf-value-budget-kb -1 "-1 = auto"
-try tomokv-pf-value-budget-kb 64 "static 64KB"
 
 echo "=== structural knobs ===" >> $OUT
-try tomokv-flat-load-pct 40 "min load factor"
-try tomokv-flat-load-pct 90 "max load factor"
 try tomokv-pin-mode float "no pinning"
 try tomokv-pin-mode ccd "default (CCD/shared-L3) pinning"
-try tomokv-flat-store no "flat OFF (dict fallback)"
-try tomokv-flat-store yes "flat ON (default)"
 
 pkill -9 -x redis-server 2>/dev/null
 echo "" >> $OUT

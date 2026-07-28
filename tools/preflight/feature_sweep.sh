@@ -820,24 +820,19 @@ b_cell_topo() { # name enum io ex  (different mandatory topology)
 
 section_B() {
     log "=== SECTION B: feature-toggle semantics ==="
-    local sec=B out sc
+    local sec=B      # ('out'/'sc' locals dropped with the flat0 and xshard-guard0 probes)
     if [ -z "$A_ORACLE_PID" ] || ! assert_server "$ORACLE_PORT" "$A_ORACLE_PID"; then
         boot_srv oracle "$ORACLE_PORT" "$WORK/b_oracle" \
             || { row $sec oracle "io2ex2" FAIL "oracle boot failed; B skipped"; return; }
         A_ORACLE_PID=$BOOT_PID
     fi
 
-    # flat-store OFF: shared dicts; top-level SCAN falls inline onto the empty
-    # decoy => enumeration must use KEYS (FANALL, works in both modes)
-    if b_cell flat0 keys --tomokv-flat-store no; then
-        out=$(tcli "$FORK_PORT" SCAN 0 COUNT 10)
-        sc=$(printf '%s' "$out" | sed -n '2,99p')
-        if printf '%s' "$out" | grep -qiE 'ERR|WRONGTYPE|Could not connect|Connection refused|timed out'; then
-            row $sec flat0-scan-decoy "io2ex2/flat0" SUSPECT "SCAN probe got an error, not an empty scan: $(printf '%s' "$out" | head -c 100)"
-        elif [ -z "$sc" ]; then row $sec flat0-scan-decoy "io2ex2/flat0" KNOWN "SCAN under flat=0 returns no keys (inline decoy scan; documented)"
-        else row $sec flat0-scan-decoy "io2ex2/flat0" FAIL "SCAN under flat=0 returned keys — behavior changed, update ledger"; fi
-    fi
-    stop_srv "$B_LAST_PID"
+    # flat0 cell REMOVED 2026-07-28: tomokv-flat-store was retired, so the "shared dicts"
+    # (flat=off) arm no longer exists in the server and the cell would hard-fail at BOOT.
+    # Deleted as a WHOLE construct -- the cell plus its dependent SCAN-decoy probe, which only
+    # meant anything under flat=0. Stripping just the flag would have left a silent duplicate of
+    # the default cell masquerading as an ablation.
+    # LOST: the flat=off enumeration/decoy-SCAN semantics arm (unrecoverable; arm is gone).
 
     # mcmd-lock cell REMOVED 2026-07-27: always-lock IS the design, so the knob (which was
     # accepted and then overridden) is gone. Booting with an unknown option is a hard boot
@@ -846,57 +841,49 @@ section_B() {
     # deleted. Same reason.
     b_cell thread-mode-auto scan --tomokv-thread-mode auto; stop_srv "$B_LAST_PID"
 
-    # xshard-guard OFF: stream is ported-only => identical results; plus a positive
-    # control that the knob actually changed behavior (LCS no longer guard-rejected)
-    if b_cell xshard-guard0 scan --tomokv-xshard-guard no; then
-        out=$(tcli "$FORK_PORT" LCS ka kb)
-        if printf '%s' "$out" | grep -qF "$GUARD_MSG"; then
-            row $sec guard0-lcs-probe "io2ex2/xshard-guard0" FAIL "guard=0 but LCS still guard-rejected (knob inert)"
-        elif printf '%s' "$out" | grep -qiE 'Could not connect|Connection refused|timed out'; then
-            # "no guard message" because the server was unreachable is NOT a pass
-            row $sec guard0-lcs-probe "io2ex2/xshard-guard0" SUSPECT "probe could not reach the server: $(printf '%s' "$out" | head -c 80)"
-        else
-            row $sec guard0-lcs-probe "io2ex2/xshard-guard0" PASS "guard off -> no guard error (decoy answer: $(printf '%s' "$out" | head -c 40))"
-        fi
-    fi
-    stop_srv "$B_LAST_PID"
+    # xshard-guard0 cell REMOVED 2026-07-28: tomokv-xshard-guard was retired, so guard=off is
+    # no longer reachable. Deleted as a WHOLE construct (cell + its LCS guard-rejection probe,
+    # which was the positive control FOR that knob and is meaningless with the guard always on).
+    # LOST: the "guard actually gates cross-shard commands" positive control. The guard-ON
+    # rejection message is still exercised elsewhere via $GUARD_MSG.
 
-    b_cell xshard-pipeline0 scan --tomokv-xshard-pipeline no;         stop_srv "$B_LAST_PID"
-    b_cell express-slim0 scan --tomokv-express-slim 0;                stop_srv "$B_LAST_PID"
-    b_cell express-slim-forced scan --tomokv-express-slim 1;          stop_srv "$B_LAST_PID"
-    b_cell pipeline-depth0 scan --tomokv-pipeline-depth 0;            stop_srv "$B_LAST_PID"
-    b_cell fake-ring0 scan --tomokv-fake-ring-depth 0;                stop_srv "$B_LAST_PID"
-    b_cell num-cdb0 scan --tomokv-num-cdb 0;                          stop_srv "$B_LAST_PID"
+    # Cells REMOVED 2026-07-28 (knob retired => the non-default arm no longer exists; a
+    # flag-stripped cell would be a silent duplicate of the default cell):
+    #   xshard-pipeline0     tomokv-xshard-pipeline no
+    #   express-slim0        tomokv-express-slim 0
+    #   express-slim-forced  tomokv-express-slim 1
+    #   pipeline-depth0      tomokv-pipeline-depth 0
+    #   fake-ring0           tomokv-fake-ring-depth 0
+    #   num-cdb0             tomokv-num-cdb 0
     # operand-pool cell REMOVED: the knob was deleted (measured net-negative,
     # instr/op +2.18..4.13%, allocs/op +6.6..15.7%). A cell that sets a deleted
     # knob fails the server BOOT, which the sweep correctly reports as a FAIL --
     # so every knob retirement must retire its sweep cells in the same commit.
 
     if [ "$SMOKE" != "1" ]; then
-        b_cell num-cdb1 scan --tomokv-num-cdb 1;                      stop_srv "$B_LAST_PID"
-        b_cell num-cdb4 scan --tomokv-num-cdb 4;                      stop_srv "$B_LAST_PID"
-        b_cell pipeline-depth8 scan --tomokv-pipeline-depth 8;        stop_srv "$B_LAST_PID"
-        b_cell fake-ring8 scan --tomokv-fake-ring-depth 8;            stop_srv "$B_LAST_PID"
-        b_cell fake-buf-legacy scan --tomokv-fake-buf 0;              stop_srv "$B_LAST_PID"
-        b_cell pfw-all-0 scan --tomokv-pf-w-struct 0 --tomokv-pf-w-argv 0 --tomokv-pf-w-keyobj 0 \
-            --tomokv-pf-w-keybytes 0 --tomokv-pf-w-hash 0 --tomokv-pf-w-nextop 0 \
-            --tomokv-pf-w-entry 0 --tomokv-pf-w-value 0;              stop_srv "$B_LAST_PID"
-        b_cell pfw-all-max scan --tomokv-pf-w-struct 256 --tomokv-pf-w-argv 256 --tomokv-pf-w-keyobj 256 \
-            --tomokv-pf-w-keybytes 256 --tomokv-pf-w-hash 256 --tomokv-pf-w-nextop 256 \
-            --tomokv-pf-w-entry 256 --tomokv-pf-w-value 256;          stop_srv "$B_LAST_PID"
-        b_cell worker-pop-batch0 scan --tomokv-worker-pop-batch 0;    stop_srv "$B_LAST_PID"
-        b_cell worker-pop-batch8 scan --tomokv-worker-pop-batch 8;    stop_srv "$B_LAST_PID"
-        b_cell drain-tail-skip0 scan --tomokv-drain-tail-skip 0;      stop_srv "$B_LAST_PID"
-        b_cell io-drain-userpoll0 scan --tomokv-io-drain-userpoll 0;  stop_srv "$B_LAST_PID"
-        b_cell io-drain-userpoll64 scan --tomokv-io-drain-userpoll 64; stop_srv "$B_LAST_PID"
-        b_cell worker-spin512 scan --tomokv-worker-spin 512;          stop_srv "$B_LAST_PID"
-        b_cell mget-legacy scan --tomokv-mget-coalesce legacy;     stop_srv "$B_LAST_PID"
-        b_cell mget-coalesce-prefetch scan --tomokv-mget-coalesce coalesce-prefetch;     stop_srv "$B_LAST_PID"
-        b_cell setop-coalesce0 scan --tomokv-setop-coalesce no;  stop_srv "$B_LAST_PID"
-        b_cell mset-move scan --tomokv-mset-move yes;            stop_srv "$B_LAST_PID"
-        b_cell localfast0 scan --tomokv-xshard-localfast no;          stop_srv "$B_LAST_PID"
+        # Cells REMOVED 2026-07-28 -- every one of these set a RETIRED knob to a non-default
+        # value, i.e. selected a code arm that no longer exists. Booting with the flag is now a
+        # hard boot failure, and stripping the flag would leave a fake ablation identical to the
+        # default cell, so the cells are deleted outright:
+        #   num-cdb1 / num-cdb4            tomokv-num-cdb
+        #   pipeline-depth8                tomokv-pipeline-depth
+        #   fake-ring8                     tomokv-fake-ring-depth
+        #   fake-buf-legacy                tomokv-fake-buf
+        #   pfw-all-0 / pfw-all-max        tomokv-pf-w-{struct,argv,keyobj,keybytes,hash,
+        #                                    nextop,entry,value} (multi-line cells, removed whole)
+        #   worker-pop-batch0 / -batch8    tomokv-worker-pop-batch
+        #   drain-tail-skip0               tomokv-drain-tail-skip
+        #   io-drain-userpoll0 / -poll64   tomokv-io-drain-userpoll
+        #   worker-spin512                 tomokv-worker-spin
+        #   mget-legacy / mget-coalesce-prefetch   tomokv-mget-coalesce
+        #   setop-coalesce0                tomokv-setop-coalesce
+        #   mset-move                      tomokv-mset-move
+        #   localfast0                     tomokv-xshard-localfast
+        #   zerocopy-off                   tomokv-zerocopy-min-value
+        # LOST: semantics-under-toggle coverage for all of the above. The surviving DEFAULT arm
+        # of each is still exercised by every other cell; the alternate arms are gone from the
+        # server, so there is nothing left to test.
         b_cell strict-order1 scan --tomokv-strict-order 1;            stop_srv "$B_LAST_PID"
-        b_cell zerocopy-off scan --tomokv-zerocopy-min-value 2000000000; stop_srv "$B_LAST_PID"
         # topology variants (different sharding shapes, same semantics).
         # ex=1 => non-shared per-worker dbs (no FLATSTORE): SCAN is decoy-inline there too => KEYS
         b_cell_topo ex1-nonshared keys 2 1;                           stop_srv "$B_LAST_PID"
@@ -1024,37 +1011,21 @@ section_C() {
         stop_srv "$fpid"
     fi
 
-    # C5: ex-queue-full. (a) stays 0 in normal load — asserted per-config in section F.
-    # (b) POSITIVE CONTROL — a deliberately tiny ex queue MUST overflow (counter works,
-    #     and the queue-full backpressure path neither wedges nor corrupts).
-    local cfg2="io2ex2/ex-queue-depth64"
-    boot_srv fork "$FORK_PORT" "$WORK/c_qfull" "${DEF_TOPO[@]}" --tomokv-ex-queue-depth 64 \
-        || { row $sec exqfull-positive-control "$cfg2" FAIL "boot failed"; BOOT_PID=""; }
-    if [ -n "$BOOT_PID" ]; then
-        fpid=$BOOT_PID; flog=$LAST_SRV_LOG
-        tcli "$FORK_PORT" SET qsent v0 >/dev/null
-        if command -v memtier_benchmark >/dev/null; then
-            lg_run timeout 90 memtier_benchmark -s 127.0.0.1 -p "$FORK_PORT" -t 2 -c 20 --pipeline=32 \
-                --ratio=1:1 --key-maximum=1 -d 32 --test-time=10 --hide-histogram \
-                > "$WORK/c_qfull_memtier.out" 2>&1
-            info=$(tcli "$FORK_PORT" INFO stats)
-            local qf sv pong
-            qf=$(info_field "$info" tomokv_ex_queue_full)
-            sv=$(tcli "$FORK_PORT" GET qsent)
-            pong=$(tcli "$FORK_PORT" PING)
-            if [ "${qf:-0}" -gt 0 ] && [ "$sv" = "v0" ] && [ "$pong" = "PONG" ]; then
-                row $sec exqfull-positive-control "$cfg2" PASS "hot-key P32 overflowed depth-64 ring: q_full=$qf; server correct after (sentinel+ping ok)"
-            elif [ "${qf:-0}" -eq 0 ] 2>/dev/null; then
-                row $sec exqfull-positive-control "$cfg2" SUSPECT "q_full stayed 0 with depth 64 under hot-key P32 (counter dead OR box too slow to saturate)"
-            else
-                row $sec exqfull-positive-control "$cfg2" FAIL "q_full=$qf but post-state bad: sentinel=[$sv] ping=[$pong]"
-            fi
-            cm=$(crash_scan "$flog"); [ -n "$cm" ] && row $sec exqfull-crash-scan "$cfg2" FAIL "$cm"
-        else
-            row $sec exqfull-positive-control "$cfg2" SUSPECT "memtier not on PATH"
-        fi
-        stop_srv "$fpid"
-    fi
+    # C5 exqfull-positive-control cell REMOVED 2026-07-28: it forced the back-pressure path by
+    # booting with tomokv-ex-queue-depth 64, and that knob was retired (the ex ring is
+    # auto-sized only). Removed as a WHOLE section -- boot + memtier saturation + the counter /
+    # sentinel / ping post-state checks were all dependent on that one server.
+    #
+    # COVERAGE NOW LOST -- READ THIS BEFORE TRUSTING A GREEN SUITE:
+    #   The ex queue-full / back-pressure path has NO POSITIVE CONTROL any more. Nothing in this
+    #   sweep can make tomokv_ex_queue_full non-zero, so we can no longer show that (a) the
+    #   counter is even live, or (b) the queue-full path neither wedges nor corrupts when it
+    #   fires. Section F still asserts tomokv_ex_queue_full == 0 under normal load, but with no
+    #   way to force a non-zero that assertion is UNCONTROLLED: a permanently-dead counter would
+    #   pass it silently.
+    #   TO RESTORE: needs a DEBUG-based forcing mechanism (e.g. a DEBUG subcommand that shrinks
+    #   the ex ring, stalls an EX worker, or injects synthetic queue-full events) since there is
+    #   no config path to a small ring. Until then this is a real hole, not a green square.
 
     # C7: flips>0 under thread-mode-auto with alternating p1/p32 phases
     local cfg3="io2ex2/thread-mode-auto"
@@ -1126,8 +1097,10 @@ section_C() {
 
     # C9: express-lane engagement has NO INFO/log observable in this tree
     # (server.express_hit_ewma is internal-only; moveExecutionStateSlim keeps no
-    # counter). Semantics are covered by the B express-slim cells.
-    row $sec express-lane-engagement "io2ex2/express-slim" KNOWN "no observable exists (express_hit_ewma not exported, no slim-path counter); semantics covered in B; listed in coverage_gaps"
+    # counter). The B express-slim0/express-slim-forced cells that used to carry the
+    # semantics went away with tomokv-express-slim on 2026-07-28, so the express lane
+    # now has NEITHER an observable NOR a toggle cell — only its default arm runs.
+    row $sec express-lane-engagement "io2ex2/express-slim" KNOWN "no observable exists (express_hit_ewma not exported, no slim-path counter) AND the B toggle cells were retired with tomokv-express-slim: default arm only; listed in coverage_gaps"
 }
 
 # ===========================================================================

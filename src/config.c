@@ -475,58 +475,6 @@ void loadServerConfigFromString(char *config) {
         {"list-max-ziplist-value", 2, 2},
         {"lua-replicate-commands", 2, 2},
         {"io-threads-do-reads", 2, 2},
-        /* --- tomokv knobs RETIRED 2026-07-28 (knob surface 55 -> 11) ---
-         * These are listed here rather than simply deleted because the boot parser FATALs on an
-         * unknown directive (config.c "Bad directive or wrong number of arguments"), and several of
-         * these were IMMUTABLE knobs whose value was RESOLVED AT BOOT and written back into the
-         * config-backed field -- so any server that ever ran CONFIG REWRITE has an explicit line for
-         * them in its redis.conf. Deleting the directive outright would stop those hosts booting.
-         * Each retired knob is now hardwired to exactly its previous DEFAULT, so accepting-and-
-         * ignoring the old line reproduces the behaviour that host already had. */
-        {"tomokv-drain-tail-skip", 2, 2},
-        {"tomokv-ex-queue-depth", 2, 2},
-        {"tomokv-express-slim", 2, 2},
-        {"tomokv-fake-buf", 2, 2},
-        {"tomokv-fake-ring-depth", 2, 2},
-        {"tomokv-flat-load-pct", 2, 2},
-        {"tomokv-flat-store", 2, 2},
-        {"tomokv-flip-rebalance", 2, 2},
-        {"tomokv-io-drain-spin", 2, 2},
-        {"tomokv-io-drain-userpoll", 2, 2},
-        {"tomokv-io-uring-recv", 2, 2},
-        {"tomokv-io-uring-reply-send", 2, 2},
-        {"tomokv-io-uring-sqpoll", 2, 2},
-        {"tomokv-io-uring-zc", 2, 2},
-        {"tomokv-l3-kb", 2, 2},
-        {"tomokv-mget-coalesce", 2, 2},
-        {"tomokv-modeshift-test", 2, 2},
-        {"tomokv-mset-move", 2, 2},
-        {"tomokv-num-cdb", 2, 2},
-        {"tomokv-os-busypoll", 2, 2},
-        {"tomokv-os-opts", 2, 2},
-        {"tomokv-pf-value-budget-kb", 2, 2},
-        {"tomokv-pf-w-argv", 2, 2},
-        {"tomokv-pf-w-entry", 2, 2},
-        {"tomokv-pf-w-hash", 2, 2},
-        {"tomokv-pf-w-keybytes", 2, 2},
-        {"tomokv-pf-w-keyobj", 2, 2},
-        {"tomokv-pf-w-nextop", 2, 2},
-        {"tomokv-pf-w-struct", 2, 2},
-        {"tomokv-pf-w-value", 2, 2},
-        {"tomokv-pipeline-depth", 2, 2},
-        {"tomokv-prefetch-min-keys", 2, 2},
-        {"tomokv-reshard-chunk", 2, 2},
-        {"tomokv-reshard-cool-margin-pct", 2, 2},
-        {"tomokv-reshard-imbalance-pct", 2, 2},
-        {"tomokv-reshard-progress-ratio", 2, 2},
-        {"tomokv-reshard-sustain-ticks", 2, 2},
-        {"tomokv-setop-coalesce", 2, 2},
-        {"tomokv-worker-pop-batch", 2, 2},
-        {"tomokv-worker-spin", 2, 2},
-        {"tomokv-xshard-guard", 2, 2},
-        {"tomokv-xshard-localfast", 2, 2},
-        {"tomokv-xshard-pipeline", 2, 2},
-        {"tomokv-zerocopy-min-value", 2, 2},
         {NULL, 0},
     };
     char buf[1024];
@@ -3553,6 +3501,75 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
 
 /* Initialize configs to their default values and create and populate the 
  * runtime configuration dictionary. */
+
+/* ee451 (knob retirement, 2026-07-28): HARDWIRED DEFAULTS FOR THE 44 RETIRED KNOBS.
+ *
+ * THIS BLOCK IS LOAD-BEARING. Redis applies a config's default by ITERATING THE CONFIG TABLE
+ * (initConfigValues -> standard_configs), so deleting a createXConfig() entry also deletes the only
+ * thing that ever initialised its field. The field then sits at 0 from the zero-initialised `server`
+ * global -- NOT at the default it used to have.
+ *
+ * That is exactly what happened, and it was silent: 29 of the 44 retired knobs had a non-zero
+ * default, so retiring them turned FLATSTORE off (thredis_flat_store 1 -> 0), turned the cross-shard
+ * SAFE-GATE off (xshard_guard 1 -> 0, i.e. unported multi-key commands would corrupt the decoy db
+ * instead of being rejected), disabled the client pipeline ring (pipeline_ring_depth -1 -> 0 => the
+ * boot log literally printed "ring disabled (depth 1)"), zeroed every prefetch width, and killed the
+ * M2/M3 connection balancer (tm_flip_rebalance 1 -> 0).
+ *
+ * None of it was caught by correctness_suite (15/15), the legacy-config boot test, or three green
+ * preflight suites -- because those check SEMANTICS, and the fork is still semantically correct with
+ * its architecture switched off. The boot log was the only witness.
+ *
+ * So: if a knob is retired, its former default MUST be restored here in the same commit. A retired
+ * knob means "the operator no longer chooses this", never "the value becomes zero".
+ */
+static void tomoInitRetiredKnobDefaults(void) {
+    server.cfg_num_cdb = -1;                        /* was tomokv-num-cdb */
+    server.drain_tail_skip = -1;                    /* was tomokv-drain-tail-skip */
+    server.ex_queue_size = -1;                      /* was tomokv-ex-queue-depth */
+    server.express_slim = -1;                       /* was tomokv-express-slim */
+    server.fake_buf_mode = -1;                      /* was tomokv-fake-buf */
+    server.fake_ring_depth_mode = -1;               /* was tomokv-fake-ring-depth */
+    server.flat_load_pct = 70;                      /* was tomokv-flat-load-pct */
+    server.io_drain_spin = 32;                      /* was tomokv-io-drain-spin */
+    server.io_drain_userpoll = -1;                  /* was tomokv-io-drain-userpoll */
+    server.io_uring_recv = 0;                       /* was tomokv-io-uring-recv */
+    server.io_uring_reply_send = 0;                 /* was tomokv-io-uring-reply-send */
+    server.io_uring_sqpoll = 0;                     /* was tomokv-io-uring-sqpoll */
+    server.io_uring_zc = 0;                         /* was tomokv-io-uring-zc */
+    server.l3_kb = 0;                               /* was tomokv-l3-kb */
+    server.modeshift_test = 0;                      /* was tomokv-modeshift-test */
+    server.opt_mget_coalesce = TOMO_MGET_COALESCE;  /* was tomokv-mget-coalesce */
+    server.opt_mset_move = 0;                       /* was tomokv-mset-move */
+    server.opt_setop_coalesce = 1;                  /* was tomokv-setop-coalesce */
+    server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
+    server.os_opts = 0;                             /* was tomokv-os-opts */
+    server.pf_value_budget_kb = -1;                 /* was tomokv-pf-value-budget-kb */
+    server.pf_w_argv = -1;                          /* was tomokv-pf-w-argv */
+    server.pf_w_entry = -1;                         /* was tomokv-pf-w-entry */
+    server.pf_w_hash = -1;                          /* was tomokv-pf-w-hash */
+    server.pf_w_keybytes = -1;                      /* was tomokv-pf-w-keybytes */
+    server.pf_w_keyobj = -1;                        /* was tomokv-pf-w-keyobj */
+    server.pf_w_nextop = 0;                         /* was tomokv-pf-w-nextop */
+    server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
+    server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
+    server.pipeline_ring_depth = -1;                /* was tomokv-pipeline-depth */
+    server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
+    server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
+    server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
+    server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
+    server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
+    server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
+    server.thredis_flat_store = 1;                  /* was tomokv-flat-store */
+    server.tm_flip_rebalance = 1;                   /* was tomokv-flip-rebalance */
+    server.worker_pop_batch = -1;                   /* was tomokv-worker-pop-batch */
+    server.worker_spin = -1;                        /* was tomokv-worker-spin */
+    server.xshard_guard = 1;                        /* was tomokv-xshard-guard */
+    server.xshard_localfast = 1;                    /* was tomokv-xshard-localfast */
+    server.xshard_pipeline = 1;                     /* was tomokv-xshard-pipeline */
+    server.zerocopy_min_value = 1024;               /* was tomokv-zerocopy-min-value */
+}
+
 void initConfigValues(void) {
     configs = dictCreate(&sdsHashDictType);
     dictExpand(configs, sizeof(static_configs) / sizeof(standardConfig));
@@ -3569,6 +3586,8 @@ void initConfigValues(void) {
             serverAssert(ret);
         }
     }
+    tomoInitRetiredKnobDefaults();   /* see the block above -- retiring a knob deletes its default */
+
 }
 
 /* Remove a config by name from the configs dict. */

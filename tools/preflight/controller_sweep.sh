@@ -13,7 +13,11 @@
 #                memory RETURNS after the stimulus (decay decays), return bounded
 #   NOREG        settled throughput >= floor derived from settled/static state
 #   AUTO==STATIC same workload, knob -1 vs resolved static, interleaved ABBA,
-#                medians of >=3 reps, within 3% (LB budget rule)
+#                medians of >=3 reps, within 3% (LB budget rule).
+#                COVERAGE NOTE 2026-07-28: every knob-parity cell of this class
+#                died with its knob (see the retirement block below). The only
+#                surviving AUTO==STATIC comparison is controller 1's
+#                thread-mode auto vs the static io/ex curve.
 #   CONVERGENCE  (spec rev 2, settle-first) time from stimulus to the controller's
 #                settle signal — flip: a full 0-flip probe window; balancer:
 #                conversion-complete log; ring/buf: used_memory stable (3
@@ -23,12 +27,33 @@
 #                unsettled). Measurement windows open ONLY after settle.
 #   ANTI-THRASH  (spec rev 2) after settle, on the UNCHANGED workload, shift
 #                events counted over >=3 consecutive windows for every shifting
-#                controller: 0 = PASS, 1 = SUSPECT, >1 = FAIL. Controllers with
-#                no shift observable (express-slim) get a KNOWN row, not a fake 0.
+#                controller: 0 = PASS, 1 = SUSPECT, >1 = FAIL. A controller with
+#                no shift observable gets a KNOWN row, not a fake 0.
+#
+# -----------------------------------------------------------------------------
+# KNOB RETIREMENT 2026-07-28 (surface 55 -> 11) — WHAT THIS SUITE NO LONGER TESTS
+# The 44 retired knobs were DELETED, not shimmed: passing one as --flag FATALs at
+# boot and CONFIG SET rejects it. Every cell that drove one is deleted here, and
+# every deleted cell's coverage is recorded as a gap at the point of deletion —
+# a green suite that quietly stopped testing something is the failure mode this
+# project keeps hitting. Sections removed whole: 3 (fake-ring), 4 (fake-buf),
+# 5 (ex-queue depth), 6 (express-slim), 11 (pop-batch/num-cdb/pipeline-depth),
+# 12 (pf-w prefetch widths), 13 (knob -1/0/N normalization). Controllers now run
+# 1 2 7 8 9 10 14 — the numbering is deliberately NOT compacted so old TSVs and
+# CONTROLLERS="..." invocations still mean the same thing.
+# MECHANISMS LEFT WITHOUT ANY POSITIVE CONTROL (details at each gravestone):
+#   * ex-queue-full back-pressure     (tomokv_ex_queue_full can no longer be forced)
+#   * fake-ring depth decay / envelope, fake-buf demand-grow + return path
+#   * express-slim Schmitt gate       (was already observable-less; now unexercised)
+#   * boot-time knob normalization    (-1/0/N house rule; incl. the documented
+#                                      "ex-queue-depth 0 warns + falls back" reject)
+#   * the DICT (non-flat) kvstore backend — booting with `tomokv-flat-store no` was
+#     the only way to reach it, so this suite is now flat-store-only
+# -----------------------------------------------------------------------------
 #
 # Modes: SMOKE=1 ./controller_sweep.sh   (~20-25 min, 1 rep, short windows)
 #        ./controller_sweep.sh           (~2h30-3h, 3 reps ABBA, full windows)
-# Filter: CONTROLLERS="1 5 9" ./controller_sweep.sh   (subset by number)
+# Filter: CONTROLLERS="1 9" ./controller_sweep.sh   (subset by number)
 #
 # Output: /shared/Projects/.claude/jobs/fd085c8e/tmp/controller_sweep.tsv
 #         (controller \t check \t stimulus \t observed \t expected \t result)
@@ -65,23 +90,25 @@ LOGD=$J/csweep/logs
 DATA=$J/csweep/data
 LOCK=$J/csweep/.lock
 SMOKE=${SMOKE:-0}
-CONTROLLERS=${CONTROLLERS:-"1 2 3 4 5 6 7 8 9 10 11 12 13 14"}
+# 3 4 5 6 11 12 13 retired with their knobs (2026-07-28) — ids left as holes on purpose
+CONTROLLERS=${CONTROLLERS:-"1 2 7 8 9 10 14"}
 
 # ---- durations / reps -------------------------------------------------------
 # AT_WIN     anti-thrash window seconds (3 consecutive windows per check)
-# T_WARM     parity warmup seconds on shifting controllers (settles global state:
-#            express EWMA, autotune crons, allocator; see README audit notes)
-# MEMSET_MAX ring/buf used_memory-stability settle bound (s) inside connhold bursts
-# FR_BURST   connhold burst len for the ring/buf settle+anti-thrash cells
+# T_WARM     parity warmup seconds (arg 8 of parity(); settles global adaptive state
+#            before the measured window). UNUSED while parity() has no callers — see
+#            the banner on parity() — kept as the value to pass when one returns.
 # CLB_BURST  connhold burst len for the client-LB family cell
+# (MEMSET_MAX / FR_BURST are gone: they sized the fake-ring/fake-buf connhold bursts,
+#  and both of those controllers retired with their knobs on 2026-07-28.)
 if [ "$SMOKE" = 1 ]; then
   REPS=1; T_MEAS=8; T_SEED=4; T_CHURN=25; T_CONV1=45; T_CONV2=60; T_IDLE=15
   SEED_N=400000
-  AT_WIN=6; T_WARM=4; MEMSET_MAX=24; FR_BURST=48; CLB_BURST=125
+  AT_WIN=6; T_WARM=4; CLB_BURST=125
 else
   REPS=3; T_MEAS=20; T_SEED=8; T_CHURN=60; T_CONV1=90; T_CONV2=120; T_IDLE=30
   SEED_N=2000000
-  AT_WIN=10; T_WARM=6; MEMSET_MAX=36; FR_BURST=72; CLB_BURST=155
+  AT_WIN=10; T_WARM=6; CLB_BURST=155
 fi
 
 # ---- core pinning (methodology: server 0-7, load-gen 8-15) ------------------
@@ -95,7 +122,6 @@ W_FILL="--test-time=$T_SEED --ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 8"
 W_P1GET="--ratio=1:9  $WKEYS -t 4 -c 8 --pipeline 1"
 W_P32SET="--ratio=1:0 $WKEYS -t 4 -c 8 --pipeline 32"
 W_P32MIX="--ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 32"
-W_P4MIX="--ratio=1:1  $WKEYS -t 4 -c 8 --pipeline 4"
 
 mkdir -p "$LOGD" "$DATA" "$(dirname "$LOCK")"
 
@@ -128,7 +154,7 @@ preflight() {
   [ -x "$BIN" ] || { echo "FATAL: $BIN not executable"; exit 1; }
   [ -x "$MTB" ] || { echo "FATAL: memtier_benchmark not found"; exit 1; }
   [ -x "$CLI" ] || { echo "FATAL: redis-cli not found"; exit 1; }
-  command -v python3 >/dev/null 2>&1 || { echo "FATAL: python3 not found (connhold driver for c3/c4/c7)"; exit 1; }
+  command -v python3 >/dev/null 2>&1 || { echo "FATAL: python3 not found (connhold driver for c7/c14)"; exit 1; }
   # BOX DISCIPLINE: refuse to run alongside anyone else's server/bench.
   if pgrep -x redis-server >/dev/null 2>&1; then
     echo "FATAL: a redis-server is already running on this box — not touching it."; exit 1; fi
@@ -241,14 +267,21 @@ delkeys() { # delkeys <lo> <hi>
 }
 
 # ---- AUTO==STATIC parity runner (fresh boot per rep, ABBA interleave) -------
+# *** CURRENTLY UNCALLED (2026-07-28 knob retirement) ***  Every caller compared a
+# knob's -1 arm against its resolved static arm, and all of those knobs were deleted;
+# none of the 11 survivors has a -1/auto arm to compare. The helper is kept — not the
+# cells — because the check CLASS is still the spec's, and re-deriving the ABBA/median/
+# plausibility discipline from scratch is exactly how a weaker comparison gets shipped.
+# Wire it up the moment a surviving knob grows an auto mode; until then the suite's only
+# AUTO==STATIC evidence is controller 1 (thread-mode auto vs the static io/ex curve).
+#
 # warm_s (arg 8, spec rev 2 settle-first): seconds of the SAME workload run before
 # the measured window, on shifting controllers only. It settles all SERVER-GLOBAL
-# adaptive state (express-slim hit EWMA — global, survives conn churn; 1Hz autotune
-# crons; allocator). Per-CONNECTION state (fake rings/bufs) dies with memtier's
-# conns and regrows in the first requests of the measured window — that transient
-# is sub-second vs a >=8s window, is part of AUTO's genuine fresh-conn cost (the
-# STATIC arm preallocates, AUTO grows), and its convergence + post-settle stability
-# is proven separately by the persistent-conn CONVERGENCE/ANTI-THRASH cells (c3/c4).
+# adaptive state (1Hz autotune crons, allocator) so the measured window is not the
+# controller's convergence transient. Per-CONNECTION state dies with memtier's conns
+# and regrows in the first requests of the measured window — that transient is
+# sub-second vs a >=8s window and is part of AUTO's genuine fresh-conn cost (the
+# STATIC arm preallocates, AUTO grows).
 parity() { # parity <ctrl> <check> <label> "<argsA(auto)>" "<argsB(static)>" "<mt workload>" [pct] [warm_s]
   local ctrl=$1 chk=$2 lab=$3 A=$4 B=$5 W=$6 pct=${7:-3} warm=${8:-0}
   local order arm args ops n=0 a_list="" b_list=""
@@ -530,7 +563,8 @@ c1_flip() {
 # =============================================================================
 c2_balancer() {
   say "=== [2] quorum pressure balancer ==="
-  # ---- positive control: the actuator itself, via the manual modeshift knob ----
+  # ---- positive control: the actuator itself, via DEBUG TOMO-MODESHIFT (the test hook
+  #      that replaced the retired tomokv-modeshift-test config knob) ----
   boot bal_posctl --tomokv-thread-io 2 --tomokv-thread-ex 1 --tomokv-thread-mode auto || return
   if ! wait_log "spare poly thread PARKED" 5; then
     tsv 2-balancer spare-provisioned "io2ex1 thread-mode auto boot" "no spare log" "spare PARKED at boot" FAIL
@@ -542,15 +576,15 @@ c2_balancer() {
   t0=$(ls "/proc/$SRV_PID/task" | wc -l)
   "$CLI" -p "$PORT" debug tomo-modeshift 2 >/dev/null
   if wait_log "MODESHIFT PARKED->EX complete" 30; then
-    tsv 2-balancer actuator-fwd "CONFIG SET modeshift-test 2" "PARKED->EX complete" "shift <=30s" PASS
+    tsv 2-balancer actuator-fwd "DEBUG TOMO-MODESHIFT 2" "PARKED->EX complete" "shift <=30s" PASS
   else
-    tsv 2-balancer actuator-fwd "CONFIG SET modeshift-test 2" "no completion" "shift <=30s" FAIL
+    tsv 2-balancer actuator-fwd "DEBUG TOMO-MODESHIFT 2" "no completion" "shift <=30s" FAIL
   fi
   "$CLI" -p "$PORT" debug tomo-modeshift 3 >/dev/null
   if wait_log "MODESHIFT EX->PARKED complete" 45; then
-    tsv 2-balancer actuator-rev "CONFIG SET modeshift-test 3" "EX->PARKED complete" "reverse <=45s" PASS
+    tsv 2-balancer actuator-rev "DEBUG TOMO-MODESHIFT 3" "EX->PARKED complete" "reverse <=45s" PASS
   else
-    tsv 2-balancer actuator-rev "CONFIG SET modeshift-test 3" "no completion" "reverse <=45s" FAIL
+    tsv 2-balancer actuator-rev "DEBUG TOMO-MODESHIFT 3" "no completion" "reverse <=45s" FAIL
   fi
   t1=$(ls "/proc/$SRV_PID/task" | wc -l)
   tsv 2-balancer conservation "thread count across both shifts" "tasks $t0 -> $t1" "exact (conversion, not creation)" \
@@ -643,237 +677,40 @@ c2_balancer() {
 }
 
 # =============================================================================
-# 3. Per-connection fake-ring controller (tomokv-fake-ring-depth -1)
+# 3. Per-connection fake-ring controller — RETIRED 2026-07-28 with tomokv-fake-ring-depth
+#    Every cell here booted with `tomokv-fake-ring-depth` set to -1/1/32, which now FATALs.
+#    LOST COVERAGE, no replacement: the ring-depth grow/decay controller has NO
+#    positive control and NO envelope check any more — the static `fake-ring-depth 32`
+#    arm was the only no-decay control that proved the AUTO arm's ~1MB give-back
+#    was decay and not idle drift, and the 40-conn burst was the only stimulus that grew
+#    the rings at all. Ring memory can now climb without this suite noticing.
 # =============================================================================
-c3_fakering() {
-  say "=== [3] fake-ring depth controller ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  # settle-first: warmed (T_WARM of the same workload) — per-conn ring state regrows on the
-  # measured window's fresh conns by design; see the parity() header + the CONVERGENCE cell below.
-  parity 3-fakering AUTO==STATIC-32 fr_p32 \
-    "$IO4 --tomokv-fake-ring-depth -1" "$IO4 --tomokv-fake-ring-depth 32" "$W_P32MIX" 3 "$T_WARM"
-  parity 3-fakering AUTO==STATIC-1 fr_p1 \
-    "$IO4 --tomokv-fake-ring-depth -1" "$IO4 --tomokv-fake-ring-depth 1" "$W_P1GET" 3 "$T_WARM"
-
-  # ---- decay: burst grows rings; held-idle conns must give the memory back ----
-  # AUTO arm (spec rev 2): the burst is long enough to (1) settle — used_memory stable, the
-  # "no growth events" signal, its own CONVERGENCE row — then (2) count growth events over 3
-  # consecutive windows on the UNCHANGED workload (grow after settle == thrash), then (3) the
-  # original held-idle decay check. No grow counter exists (coverage gap 4): a growth event is
-  # a window whose used_memory max exceeds the settled base by >512KB (proxy; 40 grown rings
-  # measure ~MBs, so this catches multi-conn oscillation — single-conn re-grow is below it).
-  write_connhold
-  awk 'BEGIN{for(i=0;i<32;i++) printf "GET hk\r\n"}' > "$LOGD/round_get32.txt"
-  local arm knob m0 m1 m2 mk drop
-  for arm in auto static32; do
-    if [ "$arm" = auto ]; then knob="-1"; else knob=32; fi
-    boot "fr_decay_$arm" $IO4 --tomokv-fake-ring-depth "$knob" || continue
-    "$CLI" -p "$PORT" set hk "$(printf 'v%.0s' $(seq 1 64))" >/dev/null
-    m0=$(usedmem)
-    local burst=10
-    [ "$arm" = auto ] && burst=$FR_BURST
-    connhold "fr_decay_$arm" 40 "$burst" $((T_IDLE + 20)) "$LOGD/round_get32.txt"; mk=$MK
-    if [ "$arm" = auto ]; then
-      # (1) settle: 3 consecutive 2s samples within a 256KB band, bounded by MEMSET_MAX
-      local tset0 stab=0 last=-1 cur setl=0 st_t=0 base=0
-      tset0=$(date +%s)
-      while [ $(( $(date +%s) - tset0 )) -lt "$MEMSET_MAX" ]; do
-        cur=$(usedmem); cur=${cur:-0}
-        if [ "$last" -ge 0 ] && [ $(( cur > last ? cur - last : last - cur )) -lt 256000 ]; then
-          stab=$((stab+1)); else stab=0; fi
-        last=$cur
-        if [ "$stab" -ge 3 ]; then setl=1; base=$cur; st_t=$(( $(date +%s) - tset0 )); break; fi
-        sleep 2
-      done
-      tsv 3-fakering CONVERGENCE "40-conn p32 burst -> used_memory stable (3x2s samples in 256KB band)" \
-          "settled=$setl convergence_time=${st_t}s" "stable within ${MEMSET_MAX}s (growth done)" \
-          "$( [ "$setl" = 1 ] && echo PASS || echo FAIL )"
-      # (2) anti-thrash: 3 windows of AT_WIN on the unchanged burst workload
-      local ev=0 w s wmax
-      if [ "$setl" = 1 ]; then
-        for w in 1 2 3; do
-          wmax=$base
-          for s in $(seq 1 $((AT_WIN / 2))); do
-            cur=$(usedmem); cur=${cur:-0}; [ "$cur" -gt "$wmax" ] && wmax=$cur; sleep 2
-          done
-          [ $((wmax - base)) -gt 512000 ] && ev=$((ev+1))
-        done
-        tsv 3-fakering anti-thrash "3x${AT_WIN}s windows, unchanged workload after settle" \
-            "growth-events=$ev (>512KB over settled base $base)" "0 PASS / 1 SUSPECT / >1 FAIL" \
-            "$(atgrade "$ev")"
-      else
-        tsv 3-fakering anti-thrash "3x${AT_WIN}s windows after settle" "unreachable (never settled)" \
-            "0 PASS / 1 SUSPECT / >1 FAIL" SUSPECT
-      fi
-    fi
-    local i ok=0; for i in $(seq 1 $((burst * 2 + 40))); do [ -f "$mk" ] && { ok=1; break; }; sleep 0.5; done
-    if [ "$ok" != 1 ]; then tsv 3-fakering ENVELOPE-decay "$arm burst" "connhold failed" "marker file" SUSPECT; kill "$PY_BG" 2>/dev/null; stopsrv; continue; fi
-    m1=$(usedmem); sleep "$T_IDLE"; m2=$(usedmem)
-    kill "$PY_BG" 2>/dev/null; wait "$PY_BG" 2>/dev/null   # don't block on the hold tail
-    drop=$((m1 - m2))
-    if [ "$arm" = auto ]; then
-      tsv 3-fakering ENVELOPE-decay "40 conns p32 burst then ${T_IDLE}s held idle (auto)" \
-          "used_memory $m1 -> $m2 (drop=${drop}B, grew $((m1-m0))B)" "drop >= 1MB (rings decayed)" \
-          "$( [ "$drop" -ge 1000000 ] && echo PASS || echo FAIL )"
-    else
-      tsv 3-fakering decay-poscontrol "same burst+idle at STATIC 32 (no decay path)" \
-          "used_memory $m1 -> $m2 (drop=${drop}B)" "drop < 1MB (static ring keeps slots)" \
-          "$( [ "$drop" -lt 1000000 ] && echo PASS || echo SUSPECT )"
-    fi
-    stopsrv
-  done
-}
 
 # =============================================================================
-# 4. Fake-buf demand-grow (tomokv-fake-buf -1)
-#    Code truth: auto grows at the spill site (networking.c ~:875); there is NO
-#    window-reset — memory returns via ring decay / client free. ENVELOPE tests
-#    that return path.
+# 4. Fake-buf demand-grow — RETIRED 2026-07-28 with tomokv-fake-buf
+#    LOST COVERAGE, no replacement: nothing exercises the spill-site demand-grow
+#    (networking.c ~:875) or, more importantly, its RETURN path — the held-idle
+#    ENVELOPE-return cell was the only check that grown reply buffers come back.
+#    That is a memory-climb class with no gate left in this suite.
 # =============================================================================
-c4_fakebuf() {
-  say "=== [4] fake-buf demand-grow ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  # SPEC REV 2: same settle-first + anti-thrash structure as the c3 auto cell — the burst
-  # runs until used_memory stabilizes (bufs grown to their 64KB caps = "no growth events"
-  # settle signal, CONVERGENCE row), then 3 unchanged-workload windows count growth events,
-  # then the original held-idle return check.
-  write_connhold
-  awk 'BEGIN{for(i=0;i<8;i++) printf "GET big\r\n"}' > "$LOGD/round_getbig.txt"
-  boot fb_grow $IO4 --tomokv-fake-buf -1 --tomokv-fake-ring-depth -1 || return
-  "$CLI" -p "$PORT" set big "$(printf 'x%.0s' $(seq 1 32768))" >/dev/null
-  local m0 m1 m2 mk; m0=$(usedmem)
-  connhold fb_grow 20 "$FR_BURST" $((T_IDLE + 20)) "$LOGD/round_getbig.txt"; mk=$MK
-  # (1) settle
-  local tset0 stab=0 last=-1 cur setl=0 st_t=0 base=0
-  tset0=$(date +%s)
-  while [ $(( $(date +%s) - tset0 )) -lt "$MEMSET_MAX" ]; do
-    cur=$(usedmem); cur=${cur:-0}
-    if [ "$last" -ge 0 ] && [ $(( cur > last ? cur - last : last - cur )) -lt 256000 ]; then
-      stab=$((stab+1)); else stab=0; fi
-    last=$cur
-    if [ "$stab" -ge 3 ]; then setl=1; base=$cur; st_t=$(( $(date +%s) - tset0 )); break; fi
-    sleep 2
-  done
-  tsv 4-fakebuf CONVERGENCE "large-GET burst -> used_memory stable (3x2s samples in 256KB band)" \
-      "settled=$setl convergence_time=${st_t}s" "stable within ${MEMSET_MAX}s (bufs at cap)" \
-      "$( [ "$setl" = 1 ] && echo PASS || echo FAIL )"
-  tsv 4-fakebuf SHIFT-grow "20 conns x p8 GET of 32KB values (settled level)" \
-      "used_memory $m0 -> ${base:-0} (delta=$((base-m0))B)" ">= 3MB grow (bufs 1KB->64KB)" \
-      "$( [ "$setl" = 1 ] && [ $((base-m0)) -ge 3000000 ] && echo PASS || echo FAIL )"
-  # (2) anti-thrash
-  local ev=0 w s wmax
-  if [ "$setl" = 1 ]; then
-    for w in 1 2 3; do
-      wmax=$base
-      for s in $(seq 1 $((AT_WIN / 2))); do
-        cur=$(usedmem); cur=${cur:-0}; [ "$cur" -gt "$wmax" ] && wmax=$cur; sleep 2
-      done
-      [ $((wmax - base)) -gt 512000 ] && ev=$((ev+1))
-    done
-    tsv 4-fakebuf anti-thrash "3x${AT_WIN}s windows, unchanged workload after settle" \
-        "growth-events=$ev (>512KB over settled base $base)" "0 PASS / 1 SUSPECT / >1 FAIL" \
-        "$(atgrade "$ev")"
-  else
-    tsv 4-fakebuf anti-thrash "3x${AT_WIN}s windows after settle" "unreachable (never settled)" \
-        "0 PASS / 1 SUSPECT / >1 FAIL" SUSPECT
-  fi
-  # (3) held-idle return (marker = burst end)
-  local i ok=0; for i in $(seq 1 $((FR_BURST * 2 + 40))); do [ -f "$mk" ] && { ok=1; break; }; sleep 0.5; done
-  if [ "$ok" = 1 ]; then
-    m1=$(usedmem)
-    sleep "$T_IDLE"; m2=$(usedmem)
-    tsv 4-fakebuf ENVELOPE-return "${T_IDLE}s held idle after the large-GET burst" \
-        "used_memory $m1 -> $m2" "returns >=50% of the grow (via ring decay)" \
-        "$( awk -v a="$m1" -v b="$m2" -v z="$m0" 'BEGIN{exit (a-b >= (a-z)*0.5)?0:1}' && echo PASS || echo FAIL )"
-  else
-    tsv 4-fakebuf ENVELOPE-return "large-GET burst" "connhold failed (no marker)" "marker" SUSPECT
-  fi
-  kill "$PY_BG" 2>/dev/null; wait "$PY_BG" 2>/dev/null
-  stopsrv
-  parity 4-fakebuf AUTO==STATIC-4096 fb_par \
-    "$IO4 --tomokv-fake-buf -1" "$IO4 --tomokv-fake-buf 4096" "$W_P32MIX" 3 "$T_WARM"
-}
 
 # =============================================================================
-# 5. ex-queue depth AUTO (boot derivation + exhaustion counter + parity)
+# 5. ex-queue depth — RETIRED 2026-07-28 with tomokv-ex-queue-depth
+#    LOST COVERAGE, no replacement: booting at `ex-queue-depth 64` was the ONLY way to
+#    force the queue-full back-pressure path, so the tomokv_ex_queue_full counter now
+#    has NO positive control anywhere. Its companion "0 under normal load" absence
+#    check went with it — which is correct: without the positive control that absence
+#    check could not fail, and a check that cannot fail is worse than no check.
+#    Also gone: the boot-derivation assert (want 4*(io+1)*pipeline -> floored at 2048).
 # =============================================================================
-c5_exqueue() {
-  say "=== [5] ex-queue depth ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  # ---- positive control FIRST (ledger: the absence-check below is only meaningful if the
-  # counter is proven able to fire). Depth 64 (min practical pow2; 256 gives 4x5x256 ring
-  # capacity that a burst never fills) + an 8-KEY skewed p64 burst (NOT single-key — that
-  # hits the known dropped-dispatch wedge on this fork; queue-full may still drop replies
-  # here by design of the known bug, which is why this cell is isolated + server discarded).
-  boot exq_posctl $IO4 --tomokv-ex-queue-depth 64 || return
-  # shellcheck disable=SC2086
-  mt exq_posctl_burst --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=8 -t 4 -c 16 --pipeline 64 --test-time=10 >/dev/null
-  local qf posctl_fired=0
-  qf=$(statfield tomokv_ex_queue_full)
-  [ "${qf:-0}" -gt 0 ] 2>/dev/null && posctl_fired=1
-  tsv 5-exqueue counter-poscontrol "depth 64 + 8-key p64x16conn write burst" "tomokv_ex_queue_full=$qf" \
-      ">0 proves the counter fires" "$( [ "$posctl_fired" = 1 ] && echo PASS || echo SUSPECT )"
-  stopsrv
-  boot exq_auto $IO4 || return
-  # formula (server.c:3722-3738): want = 4*(io+1)*pipeline_depth(auto=32) = 640 -> floored at 2048 (== MAX)
-  local line depth
-  line=$(grep -F "tomokv-ex-queue-depth auto ->" "$SRVLOG" | tail -1)
-  depth=$("$CLI" -p "$PORT" info stats | awk -F: '/^tomokv_ex_queue_depth/{gsub(/\r/,"",$2);print $2}')
-  tsv 5-exqueue SHIFT-derivation "boot io4ex4, knob -1" \
-      "log='${line:-none}' INFO depth=$depth" "auto->2048 (want 4x5x32=640, floor 2048)" \
-      "$( [ "$depth" = 2048 ] && grep -qF "auto -> 2048" "$SRVLOG" && echo PASS || echo FAIL )"
-  # shellcheck disable=SC2086
-  mt exq_load $W_P32MIX --test-time="$T_MEAS" >/dev/null
-  qf=$(statfield tomokv_ex_queue_full)
-  local nofull_res
-  if [ "${qf:-1}" = 0 ]; then
-    # 0 is only evidence if the positive control proved the counter live
-    if [ "$posctl_fired" = 1 ]; then nofull_res=PASS; else nofull_res=SUSPECT; fi
-  else nofull_res=FAIL; fi
-  tsv 5-exqueue NOREG-nofull "p32 mixed load at auto depth" "tomokv_ex_queue_full=$qf (posctl_fired=$posctl_fired)" \
-      "0 under normal load (counter proven by posctl)" "$nofull_res"
-  stopsrv
-  parity 5-exqueue AUTO==STATIC-2048 exq_par \
-    "$IO4 --tomokv-ex-queue-depth -1" "$IO4 --tomokv-ex-queue-depth 2048" "$W_P32MIX" 3
-}
 
 # =============================================================================
-# 6. Express-slim Schmitt (tomokv-express-slim -1)
-#    No exported observable for the EWMA (coverage gap) — parity + live-set only.
+# 6. Express-slim Schmitt — RETIRED 2026-07-28 with tomokv-express-slim
+#    LOST COVERAGE, no replacement: the slim gate was already observable-less (no INFO
+#    or log export of server.express_hit_ewma — it carried a KNOWN row, not a fake 0),
+#    and it is now also unexercised: nothing forces slim on/off, so neither the gate
+#    nor its live-CONFIG-SET-under-traffic safety is tested at any value.
 # =============================================================================
-c6_expslim() {
-  say "=== [6] express-slim ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  # settle-first: T_WARM warmup primes the GLOBAL hit-rate EWMA (server.express_hit_ewma,
-  # 1Hz fakeRingAutoTune) so the measured window is not the EWMA's convergence transient —
-  # for this controller the warmup IS the settle (state is global, survives conn churn).
-  parity 6-expslim AUTO==STATIC-70 es_par70 \
-    "$IO4 --tomokv-express-slim -1" "$IO4 --tomokv-express-slim 70" "$W_P4MIX" 3 "$T_WARM"
-  parity 6-expslim AUTO==STATIC-0 es_par0 \
-    "$IO4 --tomokv-express-slim -1" "$IO4 --tomokv-express-slim 0" "$W_P4MIX" 3 "$T_WARM"
-  boot es_live $IO4 || return
-  # shellcheck disable=SC2086
-  mt es_live_fill $W_FILL >/dev/null
-  local ok=1 v
-  for v in 0 50 100 -1; do
-    "$CLI" -p "$PORT" config set tomokv-express-slim "$v" >/dev/null || ok=0
-    # shellcheck disable=SC2086
-    plaus "$(mt "es_live_$v" $W_P4MIX --test-time=5)" || ok=0
-  done
-  "$CLI" -p "$PORT" ping | grep -q PONG || ok=0
-  tsv 6-expslim live-set "CONFIG SET 0/50/100/-1 under traffic" \
-      "all set+served alive=$ok" "no crash, traffic serves at every value" \
-      "$( [ "$ok" = 1 ] && echo PASS || echo FAIL )"
-  tsv 6-expslim engage-observable "pure GET/SET vs mixed traffic" \
-      "no INFO/log field for express_hit_ewma" "engage/disengage observable" KNOWN
-  # SPEC REV 2 anti-thrash: Schmitt state flips on an unchanged workload CANNOT be counted —
-  # the EWMA is written (fakeRingAutoTune) and read (processCommand slim gate) internally and
-  # exported nowhere (no INFO field, no log line). Absence documented, not faked as 0 events.
-  tsv 6-expslim anti-thrash "slim-state flips over >=3 windows, unchanged workload" \
-      "unobservable: express_hit_ewma has no INFO/log export (write+read sites internal-only)" \
-      "0 PASS / 1 SUSPECT / >1 FAIL — needs tomokv_express_hit_ewma INFO export" KNOWN
-  stopsrv
-}
 
 # =============================================================================
 # 7. Allocator pools + decays (retire-node, pcmd, flat batch spare, operand, xsub)
@@ -937,7 +774,7 @@ c7_pools() {
 c8_flatresize() {
   say "=== [8] FLATSTORE resize ==="
   local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  boot flat_resize $IO4 --tomokv-flat-store yes || return
+  boot flat_resize $IO4 || return
   rss_start
   # sustained write DURING the growth resizes: seed pipe + memtier writes together
   mt_bg flat_resize_load --ratio=1:0 $WKEYS -t 2 -c 4 --pipeline 16 --test-time=60
@@ -999,8 +836,8 @@ c8_flatresize() {
   tsv 8-flatresize ENVELOPE "RSS after shrink vs peak" "peak=${pk}KB settled=${rl}KB" \
       "settled <= 75% of peak (memory returned)" \
       "$( awk -v a="$rl" -v b="$pk" 'BEGIN{exit (b>0 && a<=b*0.75)?0:1}' && echo PASS || echo FAIL )"
-  tsv 8-flatresize load-pct-auto "tomokv-flat-load-pct" "range 40..90, no -1 in code (config.c:3287)" \
-      "AUTO mode equivalence" KNOWN
+  # (the load-pct-auto KNOWN row is gone: tomokv-flat-load-pct was retired 2026-07-28,
+  #  so the load factor is a fixed compile-time constant with nothing left to document)
   stopsrv
 }
 
@@ -1011,7 +848,7 @@ c8_flatresize() {
 c9_qsbr() {
   say "=== [9] QSBR reclaim ==="
   local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  boot qsbr $IO4 --tomokv-flat-store yes || return
+  boot qsbr $IO4 || return
   seedkeys 100000 64
   sleep 2
   rss_start
@@ -1153,121 +990,32 @@ c10_reshard() {
 }
 
 # =============================================================================
-# 11. Worker pop batch / num-cdb / pipeline-depth AUTO==STATIC
+# 11. pop-batch / num-cdb / pipeline-depth — RETIRED 2026-07-28 with all three knobs
+#     (tomokv-worker-pop-batch, tomokv-num-cdb, tomokv-pipeline-depth)
+#     LOST COVERAGE, no replacement: all three cells were knob-parity (-1 vs static),
+#     vacuous once both arms are the same build. The one non-parity check also dies —
+#     pipeline-depth auto resolving to exactly 32 was the suite's only assert that an
+#     AUTO derivation lands on its documented value in both the log and INFO.
 # =============================================================================
-c11_autostatic() {
-  say "=== [11] pop-batch / num-cdb / pipeline-depth ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  # pop batch: -1 resolves to WORKER_POP_BATCH=16 (define server.h:2057, resolve server.c:293)
-  parity 11-popbatch AUTO==STATIC-16 pb_par \
-    "$IO4 --tomokv-worker-pop-batch -1" "$IO4 --tomokv-worker-pop-batch 16" "$W_P32MIX" 3
-  # num-cdb: AUTO = (multi-L3 ? num_workers : 1) (server.c:3970); resolved value
-  # is not logged/INFO'd — recompute the topology test the way detectL3Domains does.
-  local doms resolved
-  doms=$(for c in /sys/devices/system/cpu/cpu*/cache/index3/shared_cpu_list; do
-           [ -f "$c" ] && cat "$c"; done 2>/dev/null | sort -u | wc -l)
-  if [ "${doms:-1}" -gt 1 ]; then resolved=4; else resolved=1; fi
-  tsv 11-numcdb resolve "sysfs L3 domains=$doms" "auto resolves to $resolved (recomputed)" \
-      "code: multi-L3 ? num_workers : 1 — no log/INFO of the resolved value" KNOWN
-  parity 11-numcdb AUTO==STATIC-$resolved cdb_par \
-    "$IO4 --tomokv-num-cdb -1" "$IO4 --tomokv-num-cdb $resolved" "$W_P32MIX" 3
-  # pipeline depth: auto -> 32 (max), logged + INFO-visible => exact equality check
-  boot pd_auto $IO4 --tomokv-pipeline-depth -1 || return
-  local d1; d1=$(statfield tomokv_pipeline_depth)
-  local l1=0; grep -qF "tomokv-pipeline-depth auto -> 32" "$SRVLOG" && l1=1
-  stopsrv
-  boot pd_static $IO4 --tomokv-pipeline-depth 32 || return
-  local d2; d2=$(statfield tomokv_pipeline_depth)
-  stopsrv
-  tsv 11-pipedepth AUTO==STATIC-32 "boot -1 vs boot 32" \
-      "auto: INFO=$d1 log=$l1; static: INFO=$d2" "both resolve to exactly 32" \
-      "$( [ "$d1" = 32 ] && [ "$d2" = 32 ] && [ "$l1" = 1 ] && echo PASS || echo FAIL )"
-  parity 11-pipedepth AUTO==STATIC-32-tput pd_par \
-    "$IO4 --tomokv-pipeline-depth -1" "$IO4 --tomokv-pipeline-depth 32" "$W_P32MIX" 3
-}
 
 # =============================================================================
-# 12. pf-w-* prefetch widths: inert-on-flat (hash/entry/value/nextop stages —
-#     kvstoreGetDict NULL retires PFS_HASH), live-settable, firing in dict mode
+# 12. pf-w prefetch widths — RETIRED 2026-07-28 with the eight tomokv-pf-w-* knobs
+#     LOST COVERAGE, no replacement: (a) no live-CONFIG-SET crash check on the prefetch
+#     stages, and (b) booting with `tomokv-flat-store no` was the only way to reach the DICT
+#     backend, so this suite is now flat-store-only — the dict kvstore path has NO
+#     coverage here at all (not just for prefetch: for every controller above).
 # =============================================================================
-c12_pfw() {
-  say "=== [12] pf-w prefetch widths ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  local knobs="tomokv-pf-w-struct tomokv-pf-w-argv tomokv-pf-w-keyobj tomokv-pf-w-keybytes tomokv-pf-w-hash tomokv-pf-w-nextop tomokv-pf-w-entry tomokv-pf-w-value"
-  local mode store k ok v
-  for mode in flat dict; do
-    if [ "$mode" = flat ]; then store=yes; else store=no; fi
-    boot "pfw_$mode" $IO4 --tomokv-flat-store "$store" || continue
-    # shellcheck disable=SC2086
-    mt "pfw_${mode}_fill" $W_FILL >/dev/null
-    ok=1
-    for k in $knobs; do
-      for v in 8 0 -1; do
-        "$CLI" -p "$PORT" config set "$k" "$v" >/dev/null 2>&1 || ok=0
-      done
-      # shellcheck disable=SC2086
-      plaus "$(mt "pfw_${mode}_${k}" $W_P4MIX --test-time=4)" || ok=0
-    done
-    "$CLI" -p "$PORT" ping | grep -q PONG || ok=0
-    local crash; crash=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' "$SRVLOG")
-    if [ "$mode" = flat ]; then
-      tsv 12-pfw inert-on-flat "all 8 knobs cycled 8/0/-1 under traffic (flat)" \
-          "alive=$ok crashes=$crash" "no crash/no effect; hash/entry/value/nextop retire at PFS_HASH (NULL dict)" \
-          "$( [ "$ok" = 1 ] && [ "$crash" = 0 ] && echo KNOWN || echo FAIL )"
-    else
-      tsv 12-pfw dict-mode "all 8 knobs cycled 8/0/-1 under traffic (dict)" \
-          "alive=$ok crashes=$crash" "no crash; stages reachable (no firing counter exists)" \
-          "$( [ "$ok" = 1 ] && [ "$crash" = 0 ] && echo PASS || echo FAIL )"
-    fi
-    stopsrv
-  done
-  tsv 12-pfw successor-note "pf-w on flat store" \
-      "PFS_HASH retired under KVSTORE_FLAT; struct/argv/keyobj/keybytes still issue" \
-      "wave-engine successor owns flat-store prefetch" KNOWN
-}
 
 # =============================================================================
-# 13. Knob normalization spot-checks (-1 / 0 / N per house rule), knob_matrix style
+# 13. Knob -1/0/N normalization spot-checks — RETIRED 2026-07-28
+#     Every spot() cell drove a retired knob (fake-ring-depth, fake-buf, express-slim,
+#     pipeline-depth, ex-queue-depth, worker-pop-batch, num-cdb, flat-load-pct,
+#     flat-store), so the whole section goes.
+#     LOST COVERAGE, no replacement: the "-1 = auto / 0 = off (no alloc) / N = static"
+#     house rule is now unverified for the surviving knobs, and the documented
+#     "tomokv-ex-queue-depth 0 is invalid -> warn + auto" reject path — the suite's only
+#     boot-time knob-validation positive control — is gone with it.
 # =============================================================================
-c13_knobs() {
-  say "=== [13] knob -1/0/N normalization ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
-  spot() { # spot <knob> <value> <note>
-    local knob=$1 val=$2 note=$3 ops echo_
-    boot "knob_${knob}_${val}" $IO4 --"$knob" "$val" || { tsv 13-knobs "$knob=$val" "$note" "did-not-boot" "boots+serves" FAIL; return; }
-    echo_=$(cfgget "$knob")
-    # shellcheck disable=SC2086
-    ops=$(mt "knob_${knob}_${val}" $W_P4MIX --test-time=5)
-    local crash; crash=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' "$SRVLOG")
-    tsv 13-knobs "$knob=$val" "$note" "echo=$echo_ ops=$ops crashes=$crash" "boots, echoes, serves" \
-        "$( plaus "$ops" && [ "$crash" = 0 ] && echo PASS || echo FAIL )"
-    stopsrv
-  }
-  spot tomokv-fake-ring-depth -1 "AUTO grow+decay"
-  spot tomokv-fake-ring-depth 0  "OFF: depth 1, no prealloc (0=off rule)"
-  spot tomokv-fake-ring-depth 8  "STATIC 8"
-  spot tomokv-fake-buf -1        "AUTO demand-grow"
-  spot tomokv-fake-buf 0         "legacy 16KB"
-  spot tomokv-fake-buf 4096      "STATIC 4KB"
-  spot tomokv-express-slim -1    "AUTO EWMA"
-  spot tomokv-express-slim 0     "OFF full move"
-  spot tomokv-pipeline-depth 0   "OFF ring disabled depth1"
-  spot tomokv-pipeline-depth 8   "STATIC 8"
-  spot tomokv-ex-queue-depth 0   "invalid: warns + auto 2048"
-  spot tomokv-ex-queue-depth 1024 "STATIC 1024"
-  spot tomokv-worker-pop-batch 0 "OFF batch of 1"
-  spot tomokv-num-cdb 0          "OFF single bus"
-  spot tomokv-num-cdb 4          "STATIC 4 buses"
-  spot tomokv-flat-load-pct 40   "min load"
-  spot tomokv-flat-load-pct 90   "max load"
-  spot tomokv-flat-store no     "dict fallback"
-  # ex-queue-depth 0: also assert the documented warning fired
-  if grep -qF "tomokv-ex-queue-depth 0 is invalid" "$LOGD/knob_tomokv-ex-queue-depth_0.srv.log" 2>/dev/null; then
-    tsv 13-knobs "exq-0-warning" "boot with 0" "warning logged" "documented reject+auto" PASS
-  else
-    tsv 13-knobs "exq-0-warning" "boot with 0" "warning missing" "documented reject+auto" SUSPECT
-  fi
-}
 
 # =============================================================================
 # 14. Client load-balancing family (spec rev 2 — was ABSENT from the suite)
@@ -1279,19 +1027,29 @@ c13_knobs() {
 #          hashes NEW conns across io threads 1..io_threads-1 (slot 0 = main, no
 #          listener in custom-io mode).
 #     [M2] Continuous conn balancer: tmClientBalanceCron (server.c:~17197), 1Hz
-#          from serverCron (server.c:~2120), gated thread_modes + tomokv-flip-
-#          rebalance (config.c:3262, default on). Busy-EWMA outlier > 1.25x mean,
-#          3-tick sustain, half-excess damped move to least-loaded dest. NOTICE
+#          from serverCron (server.c:~2120), gated on poly_threads AND on
+#          server.tm_flip_rebalance. Busy-EWMA outlier > 1.25x mean, 3-tick
+#          sustain, half-excess damped move to least-loaded dest. NOTICE
 #          "ee451 client-lb: io N busy-outlier ...".
 #     [M3] Flip rebalance: grow-front pulls conns onto the new io thread
 #          (tmRebalanceOntoNewIo server.c:~17137, posted on flip completion,
-#          same knob); IO-EXIT (flip grow-back) migrates every conn off the
+#          same gate); IO-EXIT (flip grow-back) migrates every conn off the
 #          exiting thread to the least-loaded live dest (tmMigServiceOut
 #          server.c:~17422, tmPlaceConnDest, tmClientMigratable ~17057) after
 #          leaving the accept group ("LEFT the reuseport accept group").
-#     [M4] Manual actuators: CONFIG SET tomokv-modeshift-test 5 = IO-EXIT of the
-#          highest live io slot, 6 = rebalance half of the most-loaded thread
-#          (tomoMigrateTest server.c:~17624; knob config.c:3272).
+#     !! M2/M3 GATE WARNING (2026-07-28): the retirement deleted the
+#        `tomokv-flip-rebalance` config entry, which was the ONLY writer of
+#        server.tm_flip_rebalance (it supplied the default 1). Nothing assigns
+#        that field now, so it sits at 0 from the zeroed `server` global and BOTH
+#        autonomous paths are dead code — tmClientBalanceCron returns at its first
+#        line and grow-front never calls tmRebalanceOntoNewIo. Until that is fixed
+#        in src/, this cell's distribution/CONVERGENCE rows measure raw [M1]
+#        REUSEPORT placement only, NOT the balancer. The [M4] rows below are
+#        unaffected (tomoMigrateTest is not gated on that field).
+#     [M4] Manual actuators (DEBUG TOMO-MODESHIFT, which replaced the retired
+#          tomokv-modeshift-test knob): 5 = IO-EXIT of the highest live io slot,
+#          6 = rebalance half of the most-loaded thread (tomoMigrateTest
+#          server.c:~17730; dispatch debug.c:~952).
 #     OBSERVABLES: INFO threads tomo_io_thread_N:clients (server.c:~13369,
 #     always-on) + DEBUG TOMO-IOLOAD (debug.c:~936, per-slot mode/conns/busy,
 #     needs --enable-debug-command yes) + the NOTICE logs. Migration handoff/
@@ -1363,7 +1121,7 @@ c14_clientlb() {
   local cons=FAIL
   [ "$exdone" = 1 ] && [ "$exleft" = 0 ] && \
     [ "$sum_post" -ge $((sum_pre - 2)) ] && [ "$sum_post" -le $((sum_pre + 2)) ] && cons=PASS
-  tsv 14-clientlb SHIFT-ioexit "modeshift-test 5: io thread ${exslot:-?} leaves accept group + migrates out" \
+  tsv 14-clientlb SHIFT-ioexit "DEBUG TOMO-MODESHIFT 5: io thread ${exslot:-?} leaves accept group + migrates out" \
       "complete=$exdone exit-slot-conns=$exleft total $sum_pre -> $sum_post" \
       "IO-EXIT completes <=35s, exiting slot 0 conns, total conserved (+/-2 for our own CLI conns)" "$cons"
   # ---- positive control for the migration grep: manual rebalance MUST fire it ----
@@ -1371,7 +1129,7 @@ c14_clientlb() {
   "$CLI" -p "$PORT" debug tomo-modeshift 6 >/dev/null 2>&1
   local pcf=0 j
   for j in $(seq 1 20); do [ "$(clbexec)" -gt "$pc0" ] && { pcf=1; break; }; sleep 0.5; done
-  tsv 14-clientlb migr-poscontrol "modeshift-test 6 (rebalance half of most-loaded thread)" \
+  tsv 14-clientlb migr-poscontrol "DEBUG TOMO-MODESHIFT 6 (rebalance half of most-loaded thread)" \
       "REBALANCE-started fired=$pcf" ">0 proves the anti-thrash counter fires" \
       "$( [ "$pcf" = 1 ] && echo PASS || echo SUSPECT )"
   # ---- zero-disconnect: every held conn survived spread + settle + IO-EXIT + rebalance ----
@@ -1405,18 +1163,15 @@ main() {
     case "$c" in
       1)  c1_flip ;;
       2)  c2_balancer ;;
-      3)  c3_fakering ;;
-      4)  c4_fakebuf ;;
-      5)  c5_exqueue ;;
-      6)  c6_expslim ;;
       7)  c7_pools ;;
       8)  c8_flatresize ;;
       9)  c9_qsbr ;;
       10) c10_reshard ;;
-      11) c11_autostatic ;;
-      12) c12_pfw ;;
-      13) c13_knobs ;;
       14) c14_clientlb ;;
+      # 3 4 5 6 11 12 13: retired 2026-07-28 with their knobs (gravestones above).
+      # Named explicitly so an old CONTROLLERS="3 5" invocation says so instead of
+      # silently running nothing.
+      3|4|5|6|11|12|13) say "controller $c retired with its knobs (2026-07-28) — see the gravestone comment" ;;
       *)  say "unknown controller id: $c" ;;
     esac
   done
