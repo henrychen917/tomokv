@@ -3293,6 +3293,20 @@ standardConfig static_configs[] = {
 
 
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
+    /* SUSTAIN — the one trigger parameter with a genuine workload-dependent trade-off, and the A/B
+     * lever for the whole detector. reshardAutoTune fires only after the hot shard has been a
+     * statistical outlier for K CONSECUTIVE 1 Hz ticks (standard "N consecutive violations" debounce:
+     * Nagios max_check_attempts, Prometheus alert `for:`, k8s HPA stabilization windows).
+     *   -1 = auto: K = one EWMA time constant, ceil(1/alpha), floored at 3 ticks
+     *    0 = OFF: no debounce, fire on the first violating tick (the pre-2026-07-28 behaviour;
+     *             kept ONLY so the two detectors can be A/B'd on the same binary)
+     *    N = require N consecutive violating ticks
+     * Everything else in the detector self-derives from the signal and needs no operator input:
+     * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
+     * the chunk size. Their fields still carry full -1/0/N semantics (see tomoInitRetiredKnobDefaults)
+     * for anyone who needs to re-expose one; they are simply not decisions an operator should have to
+     * make. Disable the whole balancer with tomokv-key-lb 0. */
+    createIntConfig("tomokv-key-lb-sustain",         NULL, MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
      * thread nobody routes to has done half a job, and the only reason to want the split was to
@@ -3611,11 +3625,6 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
     server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
     server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
-    server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
-    server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
-    server.reshard_imbalance_pct = 0;               /* was tomokv-reshard-imbalance-pct */
-    server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
-    server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
 }
 
 void initConfigValues(void) {

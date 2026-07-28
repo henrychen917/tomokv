@@ -341,12 +341,24 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-reshard-min-ops` | `0` off · N ops/s (default 20000) | Significance floor + master switch. Everything else self‑derives: EWMA rates with a continuously recomputed alpha, an outlier trigger bar (mean + k·σ with a relative floor), settle windows in controller time — no calibration, no lock‑in. Workload‑dependent (see table 4); `0` disables it. |
-| `tomokv-reshard-imbalance-pct` | `0` auto (default) · N strict | Trigger bar override: fixed percent‑of‑mean instead of the outlier bar. |
-| `tomokv-reshard-chunk` | `0` auto (default) · N strict | Migration granule. Auto: buckets/(16·workers), clamped. |
-| `tomokv-reshard-sustain-ticks` | `0` legacy (default) · `-1` auto · N ticks | Require K consecutive outlier ticks before firing (opt‑in trigger hardening). |
-| `tomokv-reshard-progress-ratio` | `0` legacy (default) · N pct | Keep migrating a hotspot only while the peak keeps shrinking by ≥ this fraction. |
-| `tomokv-reshard-cool-margin-pct` | `0` legacy (default) · `-1` auto · N pct | Schmitt cool‑margin: the neighbour must sit below mean·(1−N/100) to receive a move. |
+| `tomokv-key-lb` | `0` off · N ops/s (default 20000) | Significance floor + master switch. `0` means no machinery runs and nothing is allocated. Was `tomokv-reshard-min-ops`. |
+| `tomokv-key-lb-sustain` | `-1` auto (default) · `0` debounce off · N ticks | How many CONSECUTIVE 1 Hz ticks the hot shard must be a statistical outlier before a migration fires. Auto: one EWMA time constant, floored at 3 ticks. `0` fires on the first violating tick — the pre‑2026‑07‑28 trigger, kept as the A/B arm. |
+
+Everything else in the detector self‑derives from the signal and is not an operator
+decision: a dual‑rate EWMA of each shard's op rate (alpha from the workload's own
+throughput, clamped so the filter always filters), an outlier bar at mean + max(k·σ,
+0.25·mean), a Schmitt release bar halfway back to the mean, a cooldown of one EWMA time
+constant, a 15 %‑peak‑drop progress guard, and a split point chosen from the measured
+per‑bucket‑group load profile. A move is only made if it strictly improves the predicted
+maximum — when it cannot, the hotspot is a hot **key** rather than a hot **bucket** (a
+bucket flip relocates load, it never divides it) and the balancer holds and logs
+`reshard HOLD` instead of thrashing. `DEBUG RESHARD TRIGGER` counts every gate;
+`DEBUG RESHARD LBGROUPS <w>` dumps the balancer's own smoothed per‑group view.
+
+The former `tomokv-reshard-imbalance-pct` / `-chunk` / `-progress-ratio` /
+`-cool-margin-pct` knobs are retired. Their fields keep full `-1`/`0`/N semantics and are
+hardwired to the self‑deriving arm, so any of them can be re‑exposed without touching the
+controller.
 
 ### Reply path & memory
 
