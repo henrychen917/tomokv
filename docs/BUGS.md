@@ -186,6 +186,7 @@ after measuring **exactly zero** benefit.
 | "the borrow is an unmeasured optimization" | worse — its "SINTER +40–51%" exists **only in prose comments**, with no backing data anywhere in the tree, contradicted by the one committed cell (`sinter 1.04`) | `22713766a` |
 | "node-local pools worth 500–1200 cycles/op" | conflated cross-CCD (coherence) with cross-NUMA (locality); under NPS1 it is ≈ a no-op | recorded in the prefetch report |
 | "expect flat pre/post" (SET came out +20%) | the range also contained RAW-embed, a *performance* commit I'd forgotten | discriminator: +18.4% at 64B, −0.3% at 240B |
+| "workers read a **frozen** clock — `cmd_time_snapshot` is only refreshed by main-thread `call()`" | half right. Workers really do bypass `call()`/`enterExecutionUnit` (they invoke `cmd->proc()` directly), but `afterSleep()` rewrites `server.cmd_time_snapshot` on **every** main-thread loop iteration (`server.c:2869`), so it advances regardless of worker traffic. The defect is that it is COARSE and SHARED, not frozen — see F-clock below. Had I "fixed" the frozen-clock story I'd have solved a problem that does not exist | F-clock |
 
 ---
 
@@ -225,6 +226,33 @@ construction.
 | #48 | reshard read-straddle (part of #19) | |
 | #49 | pipelined **cross-key** non-serialisation — owner ruled *not guaranteed*, so **document, don't fix** | |
 | — | `SCAN` returns 0 keys when `!(flat_store && shared_node_dbs)` | config-derived |
+| F-clock | workers share ONE coarse `cmd_time_snapshot` — analysis below | filed correctly, fix not yet applied |
+
+### F-clock. Worker commands have no per-command clock
+
+Workers execute `cmd->proc()` directly (`server.c` CS_LOCAL + the two fake-exec sites) and so never
+call `enterExecutionUnit()`, which is where a command normally latches its time. They therefore read
+the single global `server.cmd_time_snapshot`. That global is **not frozen** — `afterSleep()` rewrites
+it every main-thread loop iteration — so the original "workers read a stale clock" filing overstated
+it (§C). Two real problems remain:
+
+1. **Cadence is the main thread's, not the command's.** Under worker-dominated load the main thread
+   has little to do and sleeps until the cron timer, so the snapshot advances in steps of up to
+   `1/hz` (100ms at default `hz=10`) instead of continuously. Lazy-expire decisions on workers
+   quantise to that step, which is what makes repeated identical runs disagree on how many
+   short-TTL keys are gone.
+2. **It can change underneath a running command.** The main thread rewrites the global while workers
+   read it, so a command that looks a key up twice can see it live and then expired — precisely the
+   invariant the upstream comment on `commandTimeSnapshot()` exists to protect ("a key can expire
+   only the first time it is accessed and not in the middle"). It is also a formal data race on a
+   non-atomic 64-bit global.
+
+**Intended fix (cheap):** latch a `__thread` snapshot from `server.mstime` at worker command entry
+and have `commandTimeSnapshot()` prefer it. `server.mstime` is refreshed by `afterSleepIO()` on every
+IO-thread loop iteration, so it is fresh whenever there is traffic — no `clock_gettime` per command.
+There is ample `__thread` precedent in this file. Measurement harness:
+`tools/preflight/expiry_clock_lag.py` reports p50/p95/max client-observed expiry lag under worker
+load (an idle server has a busy main loop and hides the defect).
 
 ---
 
