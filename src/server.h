@@ -2770,7 +2770,8 @@ struct redisServer {
                                     * new config and wedges the hill-climb in a worse one). */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
-    int tm_flip_rebalance;         /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
+    int tm_flip_rebalance;     /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
+    int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
                                     * the flip-induced bucket imbalance right away; counts down per balancer tick */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from

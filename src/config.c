@@ -3245,7 +3245,25 @@ standardConfig static_configs[] = {
     createStringConfig("tomokv-pin-io",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_io_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=0-3 node1=8,9,10,11" */
     createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
 
-    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
+    /* ================= LOAD BALANCING (three separate levers, deliberately) =================
+     * These were briefly collapsed into one another; they are not the same decision:
+     *   key-lb        moves BUCKETS between workers   (reshardAutoTune)  -- data placement
+     *   client-lb     moves CONNECTIONS between io threads, continuously (tmClientBalanceCron)
+     *   flip-rebalance moves CONNECTIONS once, when a flip creates a new io thread
+     * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
+     * lever is separately switchable and separately measurable. */
+    createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
+    createBoolConfig("tomokv-client-lb",             NULL, MODIFIABLE_CONFIG, server.tm_client_lb, 1, NULL, NULL), /* continuous connection balancer: moves conns off a SUSTAINED busy-outlier io thread, within a node, to a tolerance band. */
+    createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG, server.tm_flip_rebalance, 1, NULL, NULL), /* on grow-front, pull existing conns onto the newly created io thread. One-shot, not continuous. */
+
+    /* Client pipeline ring depth. ALSO the per-client fake-client (fc) ring cap: the fc ring is
+     * allocated at min(want, pipeline-depth) (networking.c) and may only grow while
+     * ring_size < pipeline-depth (server.c), so this one knob bounds BOTH in-flight commands per
+     * connection and the per-client ring memory. -1 = auto (max 32, decays toward measured demand),
+     * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
+    createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
+
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3553,7 +3571,6 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.pf_w_nextop = 0;                         /* was tomokv-pf-w-nextop */
     server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
     server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
-    server.pipeline_ring_depth = -1;                /* was tomokv-pipeline-depth */
     server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
     server.reshard_chunk = 0;                       /* was tomokv-reshard-chunk */
     server.reshard_cool_margin_pct = 0;             /* was tomokv-reshard-cool-margin-pct */
@@ -3561,13 +3578,11 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.reshard_progress_ratio = 0;              /* was tomokv-reshard-progress-ratio */
     server.reshard_sustain_ticks = 0;               /* was tomokv-reshard-sustain-ticks */
     server.thredis_flat_store = 1;                  /* was tomokv-flat-store */
-    server.tm_flip_rebalance = 1;                   /* was tomokv-flip-rebalance */
     server.worker_pop_batch = -1;                   /* was tomokv-worker-pop-batch */
     server.worker_spin = -1;                        /* was tomokv-worker-spin */
     server.xshard_guard = 1;                        /* was tomokv-xshard-guard */
     server.xshard_localfast = 1;                    /* was tomokv-xshard-localfast */
     server.xshard_pipeline = 1;                     /* was tomokv-xshard-pipeline */
-    server.zerocopy_min_value = 1024;               /* was tomokv-zerocopy-min-value */
 }
 
 void initConfigValues(void) {

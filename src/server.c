@@ -17301,7 +17301,10 @@ static void tmRebalanceOntoNewIo(int new_id) {
  * instead of only on flips. Gated by the same tm_flip_rebalance knob. */
 static int cli_hot_streak[TOMO_IO_THREADS_MAX + 1];
 void tmClientBalanceCron(void) {
-    if (!server.poly_threads || !server.tm_flip_rebalance) return;
+    /* Gated by its OWN knob since 2026-07-28. It used to share tm_flip_rebalance with the
+     * one-shot grow-front rebalance, which meant turning off the flip-time conn move also
+     * silently killed the continuous balancer -- two different decisions on one switch. */
+    if (!server.poly_threads || !server.tm_client_lb) return;
     int all[TOMO_IO_THREADS_MAX + 1];
     int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);
     int nnodes = tmNumNodes();
