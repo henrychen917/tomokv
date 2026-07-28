@@ -6003,7 +6003,7 @@ int processCommand(client *c) {
      * registry (UNPORTED row, or no row + multi-key-capable key specs), so future multi-key
      * commands are denied by default; csGateReject applies the per-row argc hooks. Ported cmds
      * never carry the bit. Gated by tomokv-xshard-guard (default on). */
-    if (server.num_workers > 0 && server.xshard_guard &&
+    if (server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
         (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
@@ -7745,33 +7745,15 @@ static void csSubExec(client *sub) {
              * key's hash + prefetches its dict bucket; pass 2 arms the hash (single-shot hint, same
              * exExecFake handshake) so lookup reuses it AND lands on a warm bucket. Pure hint => output
              * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
-            enum { MGET_PF_MAX = 256 };
-            uint64_t hs[MGET_PF_MAX];
-            dict *ds[MGET_PF_MAX];   /* ee451 (shared-kv S0.2a): per-key bucket-dict (was one dict) */
-            int nk = sub->argc - 1;
-            int use_pf = (server.opt_mget_coalesce >= 2) && nk >= 2 && nk <= MGET_PF_MAX;
-            if (use_pf) {
-                for (int a = 1; a < sub->argc; a++) {
-                    /* S0.2a: one shard's keys now span many bucket-dicts — resolve each key's own
-                     * dict (dict index == bucket). Hash function is shared across all bucket-dicts
-                     * (same dictType), so the armed hint stays valid for the real lookup. */
-                    dict *d = kvstoreGetDict(sub->db->keys,
-                                             tomoKeyBucket(sub->argv[a]->ptr, sdslen(sub->argv[a]->ptr)));
-                    if (d && d->ht_table[0] && dictSize(d) > 0) {
-                        uint64_t h = dictGetHash(d, sub->argv[a]->ptr);
-                        ds[a - 1] = d; hs[a - 1] = h;
-                        redis_prefetch_read(&d->ht_table[0][h & DICTHT_SIZE_MASK(d->ht_size_exp[0])]);
-                    } else ds[a - 1] = NULL;   /* empty/absent bucket-dict: no prefetch, no hint */
-                }
-            }
+            /* ee451 2026-07-28: the in-sub two-pass dict prefetch (opt_mget_coalesce >= 2) is
+             * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
+             * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
             for (int a = 1; a < sub->argc; a++) {
-                if (use_pf && ds[a - 1]) dictArmHashHint(sub->argv[a]->ptr, hs[a - 1]);
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
                 if (o != NULL && o->type == OBJ_STRING)
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
                                                                    : sdsfromlonglong((long)o->ptr);
             }
-            if (use_pf) dictDisarmHashHint();   /* defensive: clear any hint the last lookup didn't consume */
         } else {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
@@ -8531,18 +8513,14 @@ typedef struct csCoalesceSpec {
 static void csAppendMsetValue(client *head, client *sub, int origpos) {
     int vpos = 2 + 2*origpos;
     robj *val = head->argv[vpos];
-    if (server.opt_mset_move) {
-        /* MOVE the value robj to the sub (no dupStringObject). Worker setKey CONSUMES it; relinquish the
-         * head's slot via the argv_released_mask contract (freePendingCommand skips masked/NULLed) — no
-         * cross-thread refcount (S8-safe). */
-        sub->argv[sub->argc++] = val;
-        if (head->current_pending_cmd && vpos < 64)
-            head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
-        else
-            head->argv[vpos] = NULL;
-    } else {
-        sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
-    }
+    /* ee451 2026-07-28: the MOVE arm (tomokv-mset-move) is GUTTED. It handed the value robj to the
+     * worker via the argv_released_mask contract instead of copying, but: the knob was never on by
+     * default, no gain was ever measured OR EVEN CLAIMED for it, and every note about it recorded a
+     * concern rather than a win. Retiring the knob had already made the arm unreachable; this deletes
+     * it rather than leaving dead cross-thread-ownership code that a future reader might re-enable.
+     * The copy below is the arm that shipped, and it is the safe one: the sub owns a private
+     * refcount-1 value, so no operand crosses a thread boundary. */
+    sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
 }
 
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
@@ -8964,7 +8942,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * workers may now observe a concurrent writer mid-update, diverging from stock's
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
-    if (server.xshard_localfast && !s->cs_write && !s->has_hop2 && nkeys >= 1) {
+    /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
+    if (!s->cs_write && !s->has_hop2 && nkeys >= 1) {
         int w0 = -1, same = 1;
         for (int i = 0; i < nkeys; i++) {
             robj *key = head->argv[first + i * s->key_stride];
@@ -8977,7 +8956,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         atomic_fetch_add_explicit(&tomo_xshard_multikey_split_n, 1, memory_order_relaxed);
     }
     /* merge-execution pipeline: cross-shard INTER family (sets + zsets), read-only rows only. */
-    if (server.xshard_pipeline && !s->cs_write && !s->has_hop2 && nkeys >= 2 &&
+    /* xshard-pipeline: always on (measured win; knob retired 2026-07-28) */
+    if (!s->cs_write && !s->has_hop2 && nkeys >= 2 &&
         (s->ctype == CS_SETOP || s->ctype == CS_SETCARD ||
          s->ctype == CS_ZOP   || s->ctype == CS_ZCARD) && s->setop == CS_SETOP_INTER) {
         dispatchPipeline(head, s, nkeys, first, dbid);
@@ -8987,8 +8967,11 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     switch (s->co_gate) {
     /* coalesce gated to k>=3: at k=2 the <=2 subs barely differ from per-key and the
      * slot/pos allocs are pure overhead (measured OPT-1 verdict). */
-    case CS_CO_MGETKNOB:  coalesce = (server.opt_mget_coalesce >= 1 && nkeys >= 3); break;
-    case CS_CO_SETOPKNOB: coalesce = (server.opt_setop_coalesce && nkeys >= 3);     break;
+    /* mget-coalesce: always on (knob retired 2026-07-28). The `nkeys >= 3` threshold is LOAD-BEARING
+     * and stays: the legacy per-key arm is not an off-state, it is the live path for 2-key
+     * cross-shard MGET. Folding the knob must not fold the threshold. */
+    case CS_CO_MGETKNOB:  coalesce = (nkeys >= 3); break;
+    case CS_CO_SETOPKNOB: coalesce = (nkeys >= 3);   /* setop-coalesce: always on */    break;
     }
     /* Sub-count bound: coalesced = one sub per DISTINCT shard (<= min(nkeys, workers));
      * legacy = one sub per key. Computed BEFORE the group is allocated so the inline region is
@@ -14875,9 +14858,6 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * prefetch of a stale address is harmless, and a missed hash hint simply falls
  * back to recomputation at execution. */
 static inline void exPrefetchBatch(client **batch, int n) {
-    dict *dts[WORKER_POP_BATCH];
-    unsigned long idxs[WORKER_POP_BATCH];
-    dictEntry *des[WORKER_POP_BATCH];
 
     /* ee451 (v13): opt-prefetch-worker master knob RETIRED (hardwired on) — control is the
      * adaptive DB-size gate below + per-stage widths (all 0 = no prefetch issues). */
@@ -14971,24 +14951,14 @@ static inline void exPrefetchBatch(client **batch, int n) {
  * width follows the CURRENT batch occupancy n (pure current-signal, micro-arch style — no history,
  * so a workload shift re-tunes on the very next batch). `n` must be in scope at each use. */
 #define PFW(w) ((w) == -1 ? (n) : ((n) < (w) ? (n) : (w)))
-    int w3 = PFW(server.pf_w_entry);
 
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
      * clamped to [4, pf_w_value]: small values keep the full window, big values go shallow.
      * Reproduces the measured 64B→64 / 4KB→32 / 64KB→~4 sweet spots. EWMA from served reads. */
-    /* ee451 (v14): value-chase width ALWAYS adapts (bool + cache-kb knobs deleted):
-     * width = (L3/(2*workers)) / EWMA-vsize, clamped [4, pf-w-value]. Self-derived budget,
-     * self-measured size, recomputed every batch; pf-w-value stays as the cap (0 = off). */
-    int w4cap = server.pf_w_value == -1 ? 256 : server.pf_w_value;   /* -1 = AUTO: budget/EWMA controller decides (cap = max) */
-    if (w4cap > 0) {
-        long aw = pfw->pf_cached_w4;   /* ee451 (v14): cached (budget/ev computed in the 64-batch refresh) */
-        if (aw < 4) aw = 4;
-        if (aw > w4cap) aw = w4cap;
-        w4cap = (int)aw;
-    }
-    int w4 = n < w4cap ? n : w4cap;
+    /* ee451 2026-07-28: the value-chase width controller is deleted with PFS_VALUE -- it sized
+     * a chase that cannot run on a flat store (tomokv-pf-w-value / -pf-value-budget-kb). */
 
     /* ── Tomo SCOREBOARD prefetcher (v13) ────────────────────────────────────────────
      * Redis-8-style round-robin FSM (see upstream memory_prefetch.c) over Tomo's
@@ -15018,8 +14988,6 @@ static inline void exPrefetchBatch(client **batch, int n) {
     int w1d = PFW(server.pf_w_keybytes);
     for (int j = 0; j < n; j++) {
         st[j] = PFS_STRUCT;
-        dts[j] = NULL;
-        des[j] = NULL;
         batch[j]->prefetch_key_hash_valid = 0;
     }
     int remaining = n;
@@ -15086,30 +15054,20 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * throttled by the #20 feedback / #21 reuse predictors. */
                 /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
                  * the chase is gated by READONLY + stage widths only. */
-                int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
-                if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
-                else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
+                /* chase deleted with PFS_ENTRY/PFS_VALUE: unreachable on a flat store, where
+                 * PFS_HASH never yields a dict. Every op retires here. */
+                st[j] = PFS_DONE;
                 if (j < (server.pf_w_hash == -1 ? n : server.pf_w_hash)) {   /* -1 = AUTO: width = batch n */
                     redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
                     issued = 1;
                 }
                 break;
             }
-            case PFS_ENTRY: {
-                dictEntry *de = dts[j]->ht_table[0][idxs[j]];    /* bucket line warm */
-                if (!de) { st[j] = PFS_DONE; break; }
-                des[j] = de;
-                st[j] = (j < w4) ? PFS_VALUE : PFS_DONE;
-                redis_prefetch_read(de);
-                issued = 1;
-                break;
-            }
-            case PFS_VALUE: {
-                void *kv = dictGetKey(des[j]);                   /* entry line warm */
-                st[j] = PFS_DONE;
-                if (kv) { redis_prefetch_read(kv); issued = 1; }
-                break;
-            }
+            /* ee451 2026-07-28: PFS_ENTRY and PFS_VALUE are GUTTED. Both walked dict structures
+             * (dts[j]->ht_table[0][idx], dictGetKey(de)); under KVSTORE_FLAT the keyspace holds no
+             * dictEntry, and they were only entered when PFS_HASH yielded a non-NULL dict, which
+             * cannot happen on a flat store. They carried tomokv-pf-w-entry, tomokv-pf-w-value and
+             * tomokv-pf-value-budget-kb -- a budget for a value chase that never ran. */
             default:
                 st[j] = PFS_DONE;
                 break;
@@ -15478,20 +15436,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         for (int j = 0; j < n; ) {
             client *fake = ctx->batch[j];
 
-            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
-             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-             * faults). Targets the big-DB cache-miss regime; 0 = off. */
-            if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = current batch n), N = strict */
-                int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
-                if (la < n) {
-                    client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
-                }
-            }
+            /* ee451 2026-07-28: the #3 next-op dict-bucket look-ahead (tomokv-pf-w-nextop) is GUTTED.
+             * UNREACHABLE on a flat store: its feed is prefetch_key_hash_valid, set only by PFS_HASH,
+             * which reads kvstoreGetDict() -- NULL under KVSTORE_FLAT -- and retires at the !d guard.
+             * FLATSTORE is now unconditional, so this could never fire. No gain was ever measured:
+             * the one number in its history was claimed-only and its validation run was vacuous. */
 
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
