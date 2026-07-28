@@ -2993,7 +2993,7 @@ struct redisServer {
     off_t loading_process_events_interval_bytes;
     /* Fields used only for stats */
     time_t stat_starttime;          /* Server start time */
-    long long stat_numcommands;     /* Number of processed commands */
+    long long stat_numcommands;     /* legacy scalar (unused on hot path; folded from cmdstat at INFO) */
     long long stat_numconnections;  /* Number of connections received */
     long long stat_expiredkeys;     /* Number of expired keys */
     long long stat_expiredkeys_active; /* Number of expired keys by active expire */
@@ -3020,6 +3020,24 @@ struct redisServer {
         _Atomic long long misses;
         char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
+     * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
+     * scatter subs from csSubExec), so INFO total_commands_processed / instantaneous_ops_per_sec /
+     * DEBUG TOMO-JESTATS's per-op derivations reported only the main+IO-thread inline fraction —
+     * on this fork, a small minority of the traffic. Same cure as kstat/netstat/dirty_shard rather
+     * than a shared ++: one shared line RMW'd by every worker is BOTH a lost-update race on a
+     * non-atomic long long AND a cache line bounced across every CCD once per command. Each thread
+     * bumps its own cache-line-isolated slot (indexed by iotid); getNumCommands() folds on the COLD
+     * read path (INFO/DEBUG/cron) and CONFIG RESETSTAT zeroes them.
+     * COUNTING RULE: one increment per CLIENT-VISIBLE command, wherever it executes —
+     *   call()          inline/main-thread commands (and blocked.c's unblock accounting),
+     *   exExecFake()    single-key worker-routed commands,
+     *   csReassemble()  cross-shard groups, counted ONCE per group at completion, NOT once per
+     *                   scatter sub: an 8-key MGET is one command the client sent, not 4. */
+    struct {
+        _Atomic long long n;        /* single-writer per slot; tomoRelaxedBump/Read/Set */
+        char _pad[CACHE_LINE_SIZE - sizeof(long long)];
+    } cmdstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#A2): per-thread network byte counters. stat_net_input/output_bytes were single shared
      * atomics hit with a lock xadd once per read event AND once per write event from EVERY io thread —
      * a contended cross-core line (plus the two adjacent counters false-sharing one line). Same cure
@@ -4140,6 +4158,13 @@ extern dictType objectKeyPointerValueDictType;
 /* ee451 (#A2): folded per-thread network byte counters (defined in server.c) */
 long long getNetInputBytes(void);
 long long getNetOutputBytes(void);
+/* ee451 (#B1): folded per-thread executed-command counter (defined in server.c). COLD path only —
+ * it walks every slot's cache line, so never call it per command or per event-loop iteration. */
+long long getNumCommands(void);
+/* ee451 (#B1): count one client-visible command against THIS thread's slot. Valid on every thread
+ * that can execute a command (main, io, worker) — iotid indexes the same 0..96 slot space as
+ * current_client[]/kstat[]/dirty_shard[]. */
+#define numCommandsBump() tomoRelaxedBump(server.cmdstat[iotid].n, 1)
 static inline long long getDirty(void) {
     long long s = server.dirty;                 /* baseline carries bgsave subtracts + resets */
     for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;

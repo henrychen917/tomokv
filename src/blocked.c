@@ -97,7 +97,7 @@ void updateStatsOnUnblock(client *c, long blocked_us, long reply_us, int had_err
     c->lastcmd->microseconds += total_cmd_duration;
     c->lastcmd->calls++;
     c->commands_processed++;
-    server.stat_numcommands++;
+    numCommandsBump();   /* ee451 (#B1): per-thread; this runs on whichever io thread hosts c */
     if (had_errors)
         c->lastcmd->failed_calls++;
     if (server.latency_tracking_enabled)
