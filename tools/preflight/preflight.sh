@@ -36,6 +36,23 @@ flock -n 9 || { echo "another preflight is running"; exit 2; }
 SD="$(cd "$(dirname "$0")" && pwd)"
 BIN="${1:?usage: preflight.sh <redis-server binary>}"
 [ -x "$BIN" ] || { echo "NO-GO: binary not executable: $BIN"; exit 1; }
+# NORMALISE THE BINARY NAME. Every suite under here tears down with `pkill -9 -x redis-server`,
+# which matches on comm(2) -- so a caller that passes a binary named anything else (an A/B arm
+# called `fixed`/`unfixed`, a renamed bench build) silently leaks EVERY server it starts. That is
+# not hypothetical: a full run on 2026-07-28 leaked 42 servers, one per knob_matrix cell, which had
+# been competing for the box's 8 cores for two hours before anyone noticed, invalidating the run.
+# Rather than trust callers to name things correctly, copy the binary to a private directory AS
+# `redis-server` and run that. Arms are then distinguished by DIRECTORY, which is the invariant the
+# cleanup actually relies on. sha is taken from the ORIGINAL so the GO stamp still identifies it.
+BINSHA_SRC=$(sha256sum "$BIN" | cut -c1-16)
+_PFBIN_DIR="${TMPDIR:-/tmp}/tomo_pfbin_$$"
+mkdir -p "$_PFBIN_DIR"
+if [ "$(basename "$BIN")" != "redis-server" ]; then
+    cp -f "$BIN" "$_PFBIN_DIR/redis-server" || { echo "NO-GO: cannot stage binary"; exit 1; }
+    echo "preflight: staged $(basename "$BIN") -> $_PFBIN_DIR/redis-server (so pkill -x cleanup works)"
+    BIN="$_PFBIN_DIR/redis-server"
+fi
+trap 'rm -rf "$_PFBIN_DIR"' EXIT
 BINSHA=$(sha256sum "$BIN" | cut -c1-16)
 PF=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 REPORT=$PF/preflight_report.txt
