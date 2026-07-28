@@ -2970,56 +2970,81 @@ void createSharedObjects(void) {
     shared.punsubscribebulk = createStringObject("$12\r\npunsubscribe\r\n",19);
 
     /* Shared command names */
-    shared.del = createStringObject("DEL",3);
-    shared.unlink = createStringObject("UNLINK",6);
-    shared.rpop = createStringObject("RPOP",4);
-    shared.lpop = createStringObject("LPOP",4);
-    shared.lpush = createStringObject("LPUSH",5);
-    shared.rpoplpush = createStringObject("RPOPLPUSH",9);
-    shared.lmove = createStringObject("LMOVE",5);
-    shared.blmove = createStringObject("BLMOVE",6);
-    shared.zpopmin = createStringObject("ZPOPMIN",7);
-    shared.zpopmax = createStringObject("ZPOPMAX",7);
-    shared.multi = createStringObject("MULTI",5);
-    shared.exec = createStringObject("EXEC",4);
-    shared.hset = createStringObject("HSET",4);
-    shared.srem = createStringObject("SREM",4);
-    shared.xgroup = createStringObject("XGROUP",6);
-    shared.xclaim = createStringObject("XCLAIM",6);
-    shared.script = createStringObject("SCRIPT",6);
-    shared.replconf = createStringObject("REPLCONF",8);
-    shared.pexpireat = createStringObject("PEXPIREAT",9);
-    shared.pexpire = createStringObject("PEXPIRE",7);
-    shared.persist = createStringObject("PERSIST",7);
-    shared.set = createStringObject("SET",3);
-    shared.eval = createStringObject("EVAL",4);
-    shared.hpexpireat = createStringObject("HPEXPIREAT",10);
-    shared.hpersist = createStringObject("HPERSIST",8);
-    shared.hdel = createStringObject("HDEL",4);
-    shared.hsetex = createStringObject("HSETEX",6);
+    /* RACE FIX 2026-07-27 (P0, pre-existing): these propagation VERBS are process-global robjs that
+     * WORKER threads refcount concurrently with no lock. propagateDeletion (db.c) does
+     * argv[0] = shared.del/unlink; incrRefCount(argv[0]) ... decrRefCount(argv[0]) -- note the
+     * INDIRECTION through argv[0], which is why `grep incrRefCount(shared.` never found it.
+     * hexpireGenericCommand (t_hash.c) does the same DIRECTLY on hpersist/hpexpireat/fields, and the
+     * HEXPIRE family is worker-whitelisted, so a propagateDeletion-only fix would have missed it.
+     * robj.refcount is a 23-bit bitfield packed with type:4/encoding:4/iskvobj:1 into ONE 32-bit
+     * word, so ++/-- is a whole-word load-modify-store. Balanced incr/decr racing across workers is
+     * an unbiased random walk with an absorbing barrier at 0 -> zfree of the global -> the next
+     * toucher panics "illegal decrRefCount ... type 0, encoding 8, refcount 0" (OBJ_STRING,
+     * EMBSTR -- "DEL" is 3 bytes, so embstr; the fingerprint matches exactly).
+     * makeObjectShared pins refcount at OBJ_SHARED_REFCOUNT, which BOTH incrRefCount and
+     * decrRefCount treat as immutable, so the word is never written and the race cannot occur.
+     * This removes the shared mutable state rather than adding a lock to it.
+     *
+     * SCOPE: the fix pins the WHOLE class (both labelled blocks below), not just the verbs I could
+     * prove reachable. Enumerating reachability was the wrong instinct -- SPOP(->SREM), XCLAIM,
+     * GETEX(->PERSIST/PEXPIREAT), SET..EX(->PXAT), HGETEX, LPOP/RPOP and ZPOPMIN/MAX are ALL on the
+     * worker whitelist, each propagating through a DIFFERENT constant, and that whitelist grows.
+     * A per-verb fix would silently reopen the hole the next time a command is whitelisted.
+     * Pinning is uniformly safe: no verb constant is ever mutated or freed, and every `refcount==1`
+     * test in the tree (object.c:904/980, db.c:720/1141, defrag.c:1062/1134) is a CONSERVATIVE
+     * guard -- "mutate/defrag in place only if sole owner" -- so a pinned object takes the safe
+     * branch. NOT pinned: the pubsub *bulk reply* constants above, which are addReply targets
+     * (addReply copies bytes, it does not refcount) and are not reachable from a worker. */
+    shared.del = makeObjectShared(createStringObject("DEL",3));
+    shared.unlink = makeObjectShared(createStringObject("UNLINK",6));
+    shared.rpop = makeObjectShared(createStringObject("RPOP",4));
+    shared.lpop = makeObjectShared(createStringObject("LPOP",4));
+    shared.lpush = makeObjectShared(createStringObject("LPUSH",5));
+    shared.rpoplpush = makeObjectShared(createStringObject("RPOPLPUSH",9));
+    shared.lmove = makeObjectShared(createStringObject("LMOVE",5));
+    shared.blmove = makeObjectShared(createStringObject("BLMOVE",6));
+    shared.zpopmin = makeObjectShared(createStringObject("ZPOPMIN",7));
+    shared.zpopmax = makeObjectShared(createStringObject("ZPOPMAX",7));
+    shared.multi = makeObjectShared(createStringObject("MULTI",5));
+    shared.exec = makeObjectShared(createStringObject("EXEC",4));
+    shared.hset = makeObjectShared(createStringObject("HSET",4));
+    shared.srem = makeObjectShared(createStringObject("SREM",4));
+    shared.xgroup = makeObjectShared(createStringObject("XGROUP",6));
+    shared.xclaim = makeObjectShared(createStringObject("XCLAIM",6));
+    shared.script = makeObjectShared(createStringObject("SCRIPT",6));
+    shared.replconf = makeObjectShared(createStringObject("REPLCONF",8));
+    shared.pexpireat = makeObjectShared(createStringObject("PEXPIREAT",9));
+    shared.pexpire = makeObjectShared(createStringObject("PEXPIRE",7));
+    shared.persist = makeObjectShared(createStringObject("PERSIST",7));
+    shared.set = makeObjectShared(createStringObject("SET",3));
+    shared.eval = makeObjectShared(createStringObject("EVAL",4));
+    shared.hpexpireat = makeObjectShared(createStringObject("HPEXPIREAT",10));
+    shared.hpersist = makeObjectShared(createStringObject("HPERSIST",8));
+    shared.hdel = makeObjectShared(createStringObject("HDEL",4));
+    shared.hsetex = makeObjectShared(createStringObject("HSETEX",6));
 
     /* Shared command argument */
-    shared.left = createStringObject("left",4);
-    shared.right = createStringObject("right",5);
-    shared.pxat = createStringObject("PXAT", 4);
-    shared.time = createStringObject("TIME",4);
-    shared.retrycount = createStringObject("RETRYCOUNT",10);
-    shared.force = createStringObject("FORCE",5);
-    shared.justid = createStringObject("JUSTID",6);
-    shared.entriesread = createStringObject("ENTRIESREAD",11);
-    shared.lastid = createStringObject("LASTID",6);
-    shared.default_username = createStringObject("default",7);
-    shared.ping = createStringObject("ping",4);
-    shared.setid = createStringObject("SETID",5);
-    shared.keepttl = createStringObject("KEEPTTL",7);
-    shared.absttl = createStringObject("ABSTTL",6);
-    shared.load = createStringObject("LOAD",4);
-    shared.createconsumer = createStringObject("CREATECONSUMER",14);
-    shared.getack = createStringObject("GETACK",6);
-    shared.special_asterick = createStringObject("*",1);
-    shared.special_equals = createStringObject("=",1);
+    shared.left = makeObjectShared(createStringObject("left",4));
+    shared.right = makeObjectShared(createStringObject("right",5));
+    shared.pxat = makeObjectShared(createStringObject("PXAT", 4));
+    shared.time = makeObjectShared(createStringObject("TIME",4));
+    shared.retrycount = makeObjectShared(createStringObject("RETRYCOUNT",10));
+    shared.force = makeObjectShared(createStringObject("FORCE",5));
+    shared.justid = makeObjectShared(createStringObject("JUSTID",6));
+    shared.entriesread = makeObjectShared(createStringObject("ENTRIESREAD",11));
+    shared.lastid = makeObjectShared(createStringObject("LASTID",6));
+    shared.default_username = makeObjectShared(createStringObject("default",7));
+    shared.ping = makeObjectShared(createStringObject("ping",4));
+    shared.setid = makeObjectShared(createStringObject("SETID",5));
+    shared.keepttl = makeObjectShared(createStringObject("KEEPTTL",7));
+    shared.absttl = makeObjectShared(createStringObject("ABSTTL",6));
+    shared.load = makeObjectShared(createStringObject("LOAD",4));
+    shared.createconsumer = makeObjectShared(createStringObject("CREATECONSUMER",14));
+    shared.getack = makeObjectShared(createStringObject("GETACK",6));
+    shared.special_asterick = makeObjectShared(createStringObject("*",1));
+    shared.special_equals = makeObjectShared(createStringObject("=",1));
     shared.redacted = makeObjectShared(createStringObject("(redacted)",10));
-    shared.fields = createStringObject("FIELDS",6);
+    shared.fields = makeObjectShared(createStringObject("FIELDS",6));
 
     for (j = 0; j < OBJ_SHARED_INTEGERS; j++) {
         shared.integers[j] =

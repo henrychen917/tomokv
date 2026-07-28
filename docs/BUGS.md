@@ -99,6 +99,54 @@ runtime did not). Now refuses explicitly.
 is a **cursor** — taking an arbitrary worker's lock around a cross-node scan, protecting nothing and
 risking lock-order inversion. Gated on `legacy_range_key_spec.bs.index.pos == 1`.
 
+### A9. Shared propagation constants refcounted from worker threads — P0, server kill
+`shared.del`, `shared.unlink`, `shared.srem`, `shared.pexpireat`, `shared.persist`, `shared.pxat`,
+`shared.hpersist`, `shared.hpexpireat`, `shared.fields`, `shared.xclaim` … are process-global `robj`s
+holding command names, used to build propagation/rewrite argv. `robj.refcount` is a 23-bit bitfield
+packed with `type:4/encoding:4/iskvobj:1` into **one 32-bit word**, so `++`/`--` is a whole-word
+load-modify-store. Stock Redis is safe because commands run on one thread; here the propagating
+commands are **worker-whitelisted**, so N workers perform that RMW on the same word concurrently.
+Balanced incr/decr pairs then perform an unbiased random walk with an absorbing barrier at 0:
+reaching it frees the global, and the next toucher panics
+`illegal decrRefCount for object with: type 0, encoding 8, refcount 0` (OBJ_STRING/EMBSTR — `"DEL"`
+is 3 bytes, so embstr; fingerprint matches exactly).
+
+**Why grep missed it for so long.** `grep 'incrRefCount(shared\.'` finds only the three `t_hash.c`
+sites. `propagateDeletion` reaches it through an *indirection* — `argv[0] = lazy ? shared.unlink :
+shared.del;` then `incrRefCount(argv[0])` — which no search for the constant's name will surface.
+
+**Fix — pin the CLASS, not the reachable subset.** `makeObjectShared()` on all 47 command-name and
+command-argument constants. My first pass pinned only the ten verbs I could trace, which was the
+wrong instinct: `SPOP`(→SREM), `XCLAIM`, `GETEX`(→PERSIST/PEXPIREAT), `SET..EX`(→PXAT), `HGETEX`,
+`LPOP`/`RPOP`, `ZPOPMIN`/`MAX` are *all* whitelisted, each propagating through a different constant,
+and the whitelist grows — a per-verb fix silently reopens the hole on the next command added.
+Pinning is uniformly safe: no verb constant is ever mutated or freed, and every `refcount == 1` test
+in the tree (`object.c:904/980`, `db.c:720/1141`, `defrag.c:1062/1134`) is a **conservative** guard
+("mutate/defrag in place only if sole owner"), so a pinned object takes the safe branch. It removes
+the shared mutable state rather than adding a lock to it. Deliberately **not** pinned: the pubsub
+*bulk reply* constants, which are `addReply` targets (addReply copies bytes, does not refcount) and
+are unreachable from a worker.
+
+**The test-design lesson, which generalises.** My first probe was one long high-load run. It caught
+the panic once, then two later runs of the *same unfixed binary* sailed through 18.4M and 26.6M ops
+untouched. The reason is the bug's physics: refcount starts at **1**, and the absorbing barrier is
+only reachable while the count is still near 1 — the walk is equally likely to drift *upward*, and
+once it does, that boot can never free the object and is immune for life. Crash probability is
+concentrated in the first seconds after boot, so **a long soak is the worst possible shape** and
+would have been a false negative. `shared_refcount_race.sh` now runs N short trials with a fresh
+process each, making every trial an independent draw. Generally: when a defect has an absorbing
+state, soak time buys nothing and restart count is the only thing that matters.
+
+**Why this class is now closed, and why it was the ONLY exposed one.** Every other `robj` in the
+system has exactly one owner: a key maps to a bucket and `ex_bucket_table[bucket]` names a single
+owner worker (`server.c:6924/6935`), so two workers never refcount the same *value* concurrently on
+the normal path. The one place that invariant is deliberately relaxed — scatter/lock-borrow for
+multi-key reads — is guarded by `tomo_wkr_lock` (`server.c:6975`). The `shared.*` constants were the
+sole robjs with **no owner at all**: global by construction, reachable from every worker, guarded by
+nothing. Pinning them removes the last unowned mutable refcount in the tree. `shared.integers` was
+already `makeObjectShared` upstream, which is why the `XCLAIM` argv (`t_stream.c:1858`) was never
+exposed despite being built on a worker.
+
 ---
 
 ## B. Defects I INTRODUCED — found and fixed
