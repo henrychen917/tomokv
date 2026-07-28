@@ -17,7 +17,7 @@ FAIL=0; note(){ echo "  $1" >> $OUT; }
 pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/sdata; mkdir -p $J/sdata
 taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
   --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
-  --tomokv-flat-store yes --save '' --appendonly no --protected-mode no \
+  --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile $J/stress.log --loglevel notice >/dev/null 2>&1 &
 sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
 $CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }
@@ -46,9 +46,9 @@ while [ $SECONDS -lt $END ]; do
   $CLI keys 'sentinel:*' >/dev/null 2>&1
   $CLI randomkey >/dev/null 2>&1
   $CLI bgsave >/dev/null 2>&1; sleep 1
-  $CLI config set tomokv-modeshift-test 7 >/dev/null 2>&1   # EX->IO flip under churn
+  $CLI debug tomo-modeshift 7 >/dev/null 2>&1   # EX->IO flip under churn
   sleep 3
-  $CLI config set tomokv-modeshift-test 8 >/dev/null 2>&1   # IO->EX flip back
+  $CLI debug tomo-modeshift 8 >/dev/null 2>&1   # IO->EX flip back
   # expiring keys (delete path retires too)
   for k in $(seq 1 200); do echo "SET vol:$k v$k PX 400"; done | $CLI --pipe >/dev/null 2>&1
   sleep 2

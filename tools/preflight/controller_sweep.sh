@@ -540,13 +540,13 @@ c2_balancer() {
   seedkeys 20000 64
   local t0 t1
   t0=$(ls "/proc/$SRV_PID/task" | wc -l)
-  "$CLI" -p "$PORT" config set tomokv-modeshift-test 2 >/dev/null
+  "$CLI" -p "$PORT" debug tomo-modeshift 2 >/dev/null
   if wait_log "MODESHIFT PARKED->EX complete" 30; then
     tsv 2-balancer actuator-fwd "CONFIG SET modeshift-test 2" "PARKED->EX complete" "shift <=30s" PASS
   else
     tsv 2-balancer actuator-fwd "CONFIG SET modeshift-test 2" "no completion" "shift <=30s" FAIL
   fi
-  "$CLI" -p "$PORT" config set tomokv-modeshift-test 3 >/dev/null
+  "$CLI" -p "$PORT" debug tomo-modeshift 3 >/dev/null
   if wait_log "MODESHIFT EX->PARKED complete" 45; then
     tsv 2-balancer actuator-rev "CONFIG SET modeshift-test 3" "EX->PARKED complete" "reverse <=45s" PASS
   else
@@ -1347,7 +1347,7 @@ c14_clientlb() {
   ioclients > "$LOGD/clb_pre_exit.txt"
   local sum_pre; sum_pre=$(awk '{s+=$2} END{print s+0}' "$LOGD/clb_pre_exit.txt")
   local ex0; ex0=$(count_log "IO-EXIT complete")
-  "$CLI" -p "$PORT" config set tomokv-modeshift-test 5 >/dev/null 2>&1
+  "$CLI" -p "$PORT" debug tomo-modeshift 5 >/dev/null 2>&1
   local exslot=""
   if wait_log "IO-EXIT requested" 10; then
     exslot=$(grep -F "IO-EXIT requested" "$SRVLOG" | tail -1 | sed 's/.*io thread \([0-9]*\) leaves.*/\1/')
@@ -1368,7 +1368,7 @@ c14_clientlb() {
       "IO-EXIT completes <=35s, exiting slot 0 conns, total conserved (+/-2 for our own CLI conns)" "$cons"
   # ---- positive control for the migration grep: manual rebalance MUST fire it ----
   local pc0; pc0=$(clbexec)
-  "$CLI" -p "$PORT" config set tomokv-modeshift-test 6 >/dev/null 2>&1
+  "$CLI" -p "$PORT" debug tomo-modeshift 6 >/dev/null 2>&1
   local pcf=0 j
   for j in $(seq 1 20); do [ "$(clbexec)" -gt "$pc0" ] && { pcf=1; break; }; sleep 0.5; done
   tsv 14-clientlb migr-poscontrol "modeshift-test 6 (rebalance half of most-loaded thread)" \

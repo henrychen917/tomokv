@@ -949,6 +949,34 @@ NULL
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-modeshift") && c->argc == 3) {
+        /* DEBUG TOMO-MODESHIFT <mode> -- manual actuator for the thread-mode machinery, moved here
+         * from the retired `tomokv-modeshift-test` config knob (2026-07-28, knob surface 55 -> 11).
+         * It is a TEST HOOK, not a tunable: it has no default and no steady-state behaviour, it only
+         * fires an action. Redis puts such hooks in DEBUG (already gated by enable-debug-command),
+         * which is where this belongs; leaving it in the config surface implied it was something an
+         * operator should set.
+         *
+         * It is NOT retired outright because four suites use it as their POSITIVE CONTROL -- the
+         * thing that proves the flip/migrate machinery actually fires (controller_sweep's actuator
+         * check, numa2_validate's per-node grow-front/back, stress_reclaim's flip-under-churn).
+         * Deleting it would leave those assertions passing without ever exercising the mechanism,
+         * which is the vacuous-validation pattern this project has hit repeatedly.
+         *
+         * Modes: 5/6 = connection migration (IO-EXIT / rebalance), 7/8 = flip grow-front/grow-back,
+         * 70+n / 80+n = per-node grow-front/grow-back on node n, else = retarget the spare poly
+         * thread. Invalid requests (no spare, EX/WB, re-parking a live spare) report the error. */
+        long mode;
+        if (getLongFromObjectOrReply(c, c->argv[2], &mode, NULL) != C_OK) return;
+        const char *err = NULL;
+        int rc;
+        if (mode == 5 || mode == 6)            rc = tomoMigrateTest((int)mode, &err);
+        else if (mode == 7)                    rc = tomoGrowFront(&err);
+        else if (mode == 8)                    rc = tomoGrowBack(&err);
+        else if (mode >= 70 && mode < 86)      rc = tomoNodeFlipTest((int)mode, &err);
+        else                                   rc = tomoModeshiftSpare((int)mode, &err);
+        if (rc == 1) addReply(c, shared.ok);
+        else addReplyErrorFormat(c, "modeshift %ld refused: %s", mode, err ? err : "unknown");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-jestats")) {
         /* DEBUG TOMO-JESTATS -- per-thread allocator accounting, so the "cross-shard pays for
          * CROSS-THREAD block ownership" theory can be MEASURED (and disproven) rather than

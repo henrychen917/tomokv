@@ -15,7 +15,7 @@ boot(){ # $1 = numa nodes
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
   taskset -c 0-7 ${TOMO_BIN:-$J/stable-w/src/redis-server} --port 7978 --dir $J/n2data --tomokv-nodes $1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
-    --tomokv-flat-store yes --save '' --appendonly no --protected-mode no \
+    --save '' --appendonly no --protected-mode no --enable-debug-command yes \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
   sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
 rss(){ ps -o rss= -C redis-server 2>/dev/null | head -1 | awk '{print int($1/1024)}'; }
@@ -61,8 +61,8 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
   M=$(wc -l < $J/numa2.log)
   $MT --test-time=40 --ratio=1:0 -d 32 --key-pattern=R:R --key-maximum=1000000 -t 6 -c 20 --pipeline 16 --distinct-client-seed >/dev/null 2>&1 &
   W=$!; sleep 6
-  $CLI config set tomokv-modeshift-test 70 >/dev/null 2>&1   # per-node grow-front (node 0)
-  sleep 10; $CLI config set tomokv-modeshift-test 80 >/dev/null 2>&1
+  $CLI debug tomo-modeshift 70 >/dev/null 2>&1   # per-node grow-front (node 0)
+  sleep 10; $CLI debug tomo-modeshift 80 >/dev/null 2>&1
   wait $W 2>/dev/null; sleep 2
   echo "  per-node flips: front=$(tail -n +$M $J/numa2.log | grep -c 'GROW-FRONT complete') back=$(tail -n +$M $J/numa2.log | grep -c 'GROW-BACK complete')" >> $OUT
   $CLI ping 2>/dev/null | grep -q PONG && ok "alive after per-node flip attempts" || bad "died on per-node flip"
