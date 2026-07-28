@@ -10444,7 +10444,9 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
      * deleted (2026-07-27): an HFE command on a sibling worker of B's node runs holding ALL that
      * node's worker locks, and B's own scatter subs take this lock on the op path.
      * Inert when the knob is off. */
-    int mig_lk = __builtin_expect(server.mcmd_lock, 0);
+    /* mcmd_lock is an internal constant 1 (sole assignment at boot); the conditional cannot vary
+     * and its __builtin_expect pointed at the never-taken side. Always-lock IS the design. */
+    const int mig_lk = 1;
     if (mig_lk) tomoWkrLock(B->id);
     dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
     if (e->blob != NULL) {                                  /* PUT */
@@ -15232,7 +15234,9 @@ static inline void exExecFake(client *fake) {
          * multi-key subs would need per-key locking, tracked as a gap). Inert when the knob is off:
          * the lock-free path pays a single predicted-not-taken branch. No deadlock — the worker holds
          * exactly ONE bucket and borrowers TRYLOCK (never block), so there is no lock cycle. */
-        if (__builtin_expect(server.shared_node_dbs, 0) && tomoHfeProc(fake->cmd->proc)) {
+        /* hint was inverted: shared_node_dbs is TRUE in every supported multi-worker config, so
+         * this predicted the common case as unlikely. */
+        if (__builtin_expect(server.shared_node_dbs, 1) && tomoHfeProc(fake->cmd->proc)) {
             /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
              * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
              * them. Under mcmd-lock: run the proc holding ALL the node's worker locks (ascending,
@@ -15452,7 +15456,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * RANDOMKEY's expireIfNeeded delete. The node borrow was deleted 2026-07-27 and was
              * never the only such path. Scan is bounded (64 keys/call); cleanup is one-shot.
              * Inert when the knob is off. */
-            int mig_lk = __builtin_expect(server.mcmd_lock, 0);
+            const int mig_lk = 1;   /* internal constant; see the note at the other mig_lk site */
             if (mig_lk) tomoWkrLock(worker->id);
             if (ph == MIG_COPYING) migServiceScanA(worker);
             else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
@@ -15615,7 +15619,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                  *      (migApplyOne / the A-side scan both take this same lock).
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
                  * mutates/reads. Inert when the knob is off. */
-                int cs_lk = __builtin_expect(server.mcmd_lock, 0);
+                const int cs_lk = 1;   /* internal constant; see the note at the mig_lk site */
                 if (cs_lk) tomoWkrLock(worker->id);
                 csSubExec(fake);
                 if (cs_lk) tomoWkrUnlock(worker->id);
