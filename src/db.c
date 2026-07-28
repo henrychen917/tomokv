@@ -1951,15 +1951,32 @@ static int scanShouldSkipDict(dict *d, int didx) {
  *
  * In the case of a Hash object the function returns both the field and value
  * of every element on the Hash. */
-/* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. Runs on a
- * worker (dispatched via canDispatchToWorker), so it holds in_flat_section (resize can't free/relocate
- * a table mid-slice) + loop_seq (QSBR grace covers the kvobjs it derefs across nodes). One worker
- * reads all node tables lock-free with no double-counting (one physical table per node).
+/* ee451 FLATSTORE: is the REAL keyspace behind `db` a flat table?
+ *
+ * The predicate cannot be `kvstoreIsFlat(db->keys)`: under sharding the real data lives in
+ * server.node_dbs[node][dbid], and only a WORKER-routed command holds one of those as `c->db`.
+ * An INLINE caller — module RM_Scan runs on the calling io thread — holds the empty decoy
+ * `server.db[dbid]`, which is never marked KVSTORE_FLAT, so a `db->keys` test answers "not flat"
+ * and silently walks the empty decoy. Ask the node table directly so both callers agree.
+ * (The flat flag is set identically on every node db at initServer, so node 0 decides.) */
+static int flatScanEligible(redisDb *db) {
+    return server.shared_node_dbs && server.node_dbs && server.node_dbs[0] &&
+           kvstoreIsFlat(server.node_dbs[0][db->id].keys);
+}
+
+/* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
+ * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
+ * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
+ * kvobjs it derefs across nodes); dbScan()'s module arm runs it inline and opens an explicit flat
+ * extern region for the same guarantee. One caller reads all node tables lock-free with no
+ * double-counting (one physical table per node).
  * cursor: [63:52] node | [51:32] gen(low 20) | [31:0] slot. cursor 0 = start AND done.
  * Resize-stability: a resize is the ONLY thing that relocates a live key and it ALWAYS bumps gen, so
- * a gen mismatch on resume means "restart this node at slot 0" (the new table holds all live keys). */
+ * a gen mismatch on resume means "restart this node at slot 0" (the new table holds all live keys).
+ * `priv`/`sampled` are caller-supplied rather than a scanData* so the module scan callback (which
+ * has its own privdata shape) can share this one walk. */
 static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, long count,
-                                      dictScanFunction *cb, scanData *data) {
+                                      dictScanFunction *cb, void *priv, long *sampled) {
     int node = (int)((cursor >> 52) & 0xFFF);
     unsigned long gen_lo = (unsigned long)((cursor >> 32) & 0xFFFFF);
     uint64_t slot = (uint64_t)(cursor & 0xFFFFFFFFULL);
@@ -1971,12 +1988,12 @@ static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, lo
         unsigned long cur_gen = (unsigned long)(t->gen & 0xFFFFF);
         if (slot != 0 && gen_lo != cur_gen) slot = 0;   /* a resize happened between calls -> restart node */
         int hit_end = 0;
-        slot = flatScanSlice(t, slot, &budget, &hit_end, cb, data, &data->sampled, count);
+        slot = flatScanSlice(t, slot, &budget, &hit_end, cb, priv, sampled, count);
         if (!hit_end)                                   /* paused mid-node -> resume here (gen for restart detection) */
             return ((unsigned long long)node << 52) |
                    (((unsigned long long)cur_gen & 0xFFFFF) << 32) | (slot & 0xFFFFFFFFULL);
         node++; slot = 0; gen_lo = 0;                   /* finished this node */
-        if (data->sampled >= count || budget == 0)      /* budget spent at a node boundary -> resume next node@0 */
+        if (*sampled >= count || budget == 0)           /* budget spent at a node boundary -> resume next node@0 */
             return (node <= nmax) ? ((unsigned long long)node << 52) : 0;
     }
     return 0;                                           /* all nodes swept */
@@ -2103,7 +2120,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * to prevent a long hang time caused by filtering too many keys;
          * 6. data.no_values: to control whether values will be returned or
          * only keys are returned. */
-        int flat_scan = (o == NULL && server.shared_node_dbs && server.node_dbs && kvstoreIsFlat(c->db->keys));
+        int flat_scan = (o == NULL && flatScanEligible(c->db));
         scanData data = {
             .keys = keys,
             .o = o,
@@ -2123,7 +2140,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
         }
         if (flat_scan) {
             /* ee451 FLATSTORE: composite-cursor walk over all node flat tables (this runs on a worker). */
-            cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data);
+            cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data, &data.sampled);
         } else {
             do {
                 /* In cluster mode there is a separate dictionary for each slot.
@@ -3377,7 +3394,33 @@ unsigned long long dbSize(redisDb *db) {
     return total;
 }
 
+/* Per-call key budget for the FLATSTORE arm of dbScan(). The dict arm scans one dict bucket chain
+ * per call and the module loops until the cursor returns to 0, so the flat arm must be bounded the
+ * same way rather than sweeping the whole table in one go (flatScanDbs converts this into a
+ * count*10+64 slot budget, its guard against a sparse table). */
+#define DBSCAN_FLAT_COUNT 100
+
 unsigned long long dbScan(redisDb *db, unsigned long long cursor, dictScanFunction *scan_cb, void *privdata) {
+    /* ee451 FLATSTORE: kvstoreScan has NO flat branch — kvstoreGetDict() returns NULL for every
+     * didx under KVSTORE_FLAT (the dicts are unused), so every slot is "skipped" and the walk ends
+     * with 0 keys and no error. That made the MODULE scan API (RM_Scan -> here) silently answer
+     * EMPTY on the default multi-worker config, which is the worst failure shape: a wrong answer
+     * that looks like an empty keyspace. The top-level SCAN command has worked all along because
+     * scanGenericCommand branches to flatScanDbs; reuse that ONE mechanism rather than growing a
+     * second table walk with its own cursor encoding.
+     *
+     * QSBR: flatScanDbs derefs RAW kvobjs across every node's table lock-free, so the caller must
+     * be inside a flat extern region or a worker section. call() opens one for every command, which
+     * covers RM_Scan from a module command; the explicit region here additionally covers RM_Scan
+     * driven from a module background thread under the GIL (which never passes through call()).
+     * Entering is depth-nested, so on the covered path this is a decrement-and-return. */
+    if (flatScanEligible(db)) {
+        long sampled = 0;
+        flatQsbrRegionEnter();
+        cursor = flatScanDbs(db, cursor, DBSCAN_FLAT_COUNT, scan_cb, privdata, &sampled);
+        flatQsbrRegionExit();
+        return cursor;
+    }
     return kvstoreScan(db->keys, cursor, -1, scan_cb, scanShouldSkipDict, privdata);
 }
 

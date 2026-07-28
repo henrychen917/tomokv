@@ -424,6 +424,13 @@ static inline void flatExternScopeEnd(const int *unused) { (void)unused; flatExt
 #define FLAT_EXTERN_REGION() \
     const int flat_extern_guard __attribute__((cleanup(flatExternScopeEnd))) = (flatExternEnter(), 0)
 
+/* Out-of-file entry points for the same region. The enter/exit pair above is `static inline` and
+ * the epoch state is file-local by design, so a caller in another translation unit that walks the
+ * flat tables (db.c's dbScan flat arm) needs these thin wrappers. Depth-nested like the macro:
+ * inside call()'s region this is an increment and a decrement, publishing nothing. */
+void flatQsbrRegionEnter(void) { flatExternEnter(); }
+void flatQsbrRegionExit(void)  { flatExternExit(); }
+
 static void tomoThreadBalanceCron(void);   /* the 4Hz quorum balancer; defined with the poly-thread code below */
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 static int tmNumNodes(void);               /* logical node helpers, defined below */
@@ -8992,6 +8999,30 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
     if (!s->cs_write && !s->has_hop2 && nkeys >= 1) {
+        /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
+         * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
+         * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
+         * csBuildCoalescedSubs). It missed EVERY route that leaves dispatchGather before that
+         * builder runs: localfast (dispatchLocalReal), the merge-execution pipeline, and the
+         * legacy per-key arm that still serves 2-key cross-shard reads. On those a range read kept
+         * routing to the OLD owner A while the same client's next command routed to the new owner C
+         * after the flip — the exact defect #48 closed, one route over. (Second time in this tree:
+         * the A4 `.notouch` fix was likewise applied to the gather route and missed the pipeline.)
+         *
+         * So take the hold HERE, before any owner is resolved, for every read this function can
+         * dispatch. Placement matters twice over: (a) it must precede exIndexForKey, because the
+         * whole point is to resolve ownership under the POST-flip table; (b) it must cover all
+         * nkeys, not stop at the first differing owner, because the fall-through routes below
+         * inherit these keys. Keys resolved before a hold are safe by construction: a key that is
+         * out of [lo,hi) does not move at the flip, and a key that is in range is itself held.
+         *
+         * Deadlock: none, by the same argument #48 recorded for the coalesced site — the hold
+         * SPINS rather than parks, pushes this producer's fence sentinel every spin, and pumps the
+         * cutover coordinator when iotid == 0. Widening who waits does not stall the flip.
+         * Cost when no migration is running: one relaxed load of the always-0 byte. */
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+            for (int i = 0; i < nkeys; i++)
+                migHoldKeyIfDraining(head->argv[first + i * s->key_stride]);
         int w0 = -1, same = 1;
         for (int i = 0; i < nkeys; i++) {
             robj *key = head->argv[first + i * s->key_stride];

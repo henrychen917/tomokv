@@ -183,6 +183,11 @@ struct RedisModuleKey {
     kvobj *kv;      /* Key-Value object, or NULL if the key was not found. */
     void *iter;     /* Iterator. */
     int mode;       /* Opening mode. */
+    /* ee451: scratch for RM_StringDMA on a NON-RESIDENT OBJ_ENCODING_INT value — see the
+     * residency branch there. Lives exactly as long as the handle, which is exactly as long as
+     * the DMA pointer is documented to be valid, so it needs no allocation or free. 32 bytes
+     * covers LONG_STR_SIZE (a 64-bit integer is at most 20 digits plus sign). */
+    char dma_intbuf[32];
 
     union {
         struct {
@@ -4692,8 +4697,32 @@ char *RM_StringDMA(RedisModuleKey *key, size_t *len, int mode) {
 
     /* For write access, and even for read access if the object is encoded,
      * we unshare the string (that has the side effect of decoding it). */
-    if ((mode & REDISMODULE_WRITE) || key->kv->encoding != OBJ_ENCODING_RAW)
-        key->kv = dbUnshareStringValue(key->db, key->key, key->kv);
+    if ((mode & REDISMODULE_WRITE) || key->kv->encoding != OBJ_ENCODING_RAW) {
+        /* ee451: ONLY when this exact object is resident in key->db.
+         *
+         * Under sharding the real keyspace lives in the workers' node dbs while an inline module
+         * context carries the EMPTY decoy server.db, and dbScan()'s FLATSTORE arm hands the
+         * RM_Scan callback a kvobj straight out of a shard. Unsharing that would take
+         * dbSetValue's "expected to exist" serverAssertWithInfo on the decoy — the process dies
+         * — and if it ever DID find the key it would be worse: an in-place
+         * rewrite (kvobjSetEx + kvstoreDictSetAtLink + a QSBR retire) of an object owned by
+         * another thread, i.e. a single-writer violation on the shared flat table.
+         *
+         * READ access needs no rewrite at all. EMBSTR and RAW both keep a real sds in ->ptr, so
+         * the bytes are already directly viewable; only OBJ_ENCODING_INT stores its value IN the
+         * pointer, and that one is rendered into the handle's own scratch buffer. WRITE access
+         * genuinely cannot be served from here, so it reports failure instead of corrupting. */
+        if (dbFind(key->db, key->key->ptr) == key->kv) {
+            key->kv = dbUnshareStringValue(key->db, key->key, key->kv);
+        } else if (mode & REDISMODULE_WRITE) {
+            *len = 0;
+            return NULL;
+        } else if (key->kv->encoding == OBJ_ENCODING_INT) {
+            int n = ll2string(key->dma_intbuf, sizeof(key->dma_intbuf), (long)key->kv->ptr);
+            *len = (size_t)n;
+            return key->dma_intbuf;
+        }
+    }
 
     *len = sdslen(key->kv->ptr);
     return key->kv->ptr;
@@ -11731,6 +11760,21 @@ static void moduleScanCallback(void *privdata, const dictEntry *de, dictEntryLin
     UNUSED(plink);
     ScanCBData *data = privdata;
     kvobj *keyvalObj = dictGetKey(de);
+    /* ee451 FLATSTORE: same guard, same reason, as objectTypeCompare's (db.c). dbScan's flat arm
+     * walks every node's table lock-free, so it can hand us a kvobj a worker QSBR-retired between
+     * the slot load and this call. A retired shell whose value was MOVED out
+     * (KVOBJ_SET_MOVE_VALUE: first-TTL EXPIRE / same-shard RENAME) has ptr == NULL until the grace
+     * frees it, and unlike SCAN — which only ever reads the embedded key — we hand the value
+     * straight to module code that WILL dereference it (RedisModule_StringDMA and friends). It is
+     * not a live key anyway, so drop it rather than publish a NULL-valued handle.
+     *
+     * The `!= OBJ_STRING` conjunct is LOAD-BEARING, not defensive: an OBJ_ENCODING_INT string
+     * stores its integer IN the ptr field, so `SET k 0` is a perfectly live key whose ptr is NULL.
+     * A bare `ptr == NULL` test would silently hide every key whose value is 0 — the same shape of
+     * silent-omission defect this whole fix exists to remove. Only non-strings can be MOVEd
+     * (kvobjSetEx's EMBSTR/INT/RAW branches copy instead), so restricting the test to them is
+     * exact rather than merely cautious. */
+    if (keyvalObj->ptr == NULL && keyvalObj->type != OBJ_STRING) return;
     sds key = kvobjGetKey(keyvalObj);
     RedisModuleString *keyname = createObject(OBJ_STRING,sdsdup(key));
 

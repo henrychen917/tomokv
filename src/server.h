@@ -4846,6 +4846,11 @@ kvobj *dbFindByLink(redisDb *db, sds key, dictEntryLink *link);
 kvobj *dbFindExpires(redisDb *db, sds key);
 unsigned long long dbSize(redisDb *db);
 unsigned long long dbScan(redisDb *db, unsigned long long cursor, dictScanFunction *scan_cb, void *privdata);
+/* FLATSTORE QSBR: open/close a reader region from outside server.c (see flatExternEnter). Any
+ * thread that walks a flat table holding RAW kvobj pointers must be inside one, or a worker can
+ * free what it is dereferencing. Nesting-safe. */
+void flatQsbrRegionEnter(void);
+void flatQsbrRegionExit(void);
 
 /* Set data type */
 robj *setTypeCreate(sds value, size_t size_hint);
