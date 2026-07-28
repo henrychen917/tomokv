@@ -480,3 +480,40 @@ outcome was luck, not method.
 - Verification loops especially: a checker that silently skips an item reports success it did not
   establish. Same family as the vacuous-validation ledger above — the check ran, passed, and proved
   nothing about the one item it skipped.
+
+### F-pipeline. Cross-shard INTER double-counts LRU/LFU and keyspace stats (A4-class, UNFIXED)
+
+Found 2026-07-28 while gathering hardwire evidence for `tomokv-xshard-pipeline`. Not previously
+filed, and there is no test for it.
+
+**Mechanism.** All three merge-execution pipeline stages look keys up with `LOOKUP_NONE` —
+`server.c:8710` (SIZES), `:8724` (GATHER1), `:8783` (PROBE) — and **every key is looked up twice**:
+once in SIZES to read its cardinality, then again in GATHER1 or PROBE to read its contents.
+`db.c:325-338` shows `LOOKUP_NONE` bumps LRU/LFU and increments `keyspace_hits`/`misses`. Stock
+`SINTER`, and this fork's own gather arm, look each key up **once**.
+
+**Consequence.** For every cross-shard INTER, `INFO keyspace_hits` is roughly double-counted and LFU
+counters are bumped twice, which perturbs eviction decisions.
+
+**This is exactly the A4 class**, which the project already judged a real defect and fixed with a
+per-row `.notouch` registry bit — a bit the gather sub-exec honours (`server.c:7894`) and the
+pipeline stages ignore entirely. That the same defect recurred in a sibling path is the interesting
+part: the fix was applied to one route rather than to the lookup discipline.
+
+**Fix:** pass `LOOKUP_NOTOUCH|LOOKUP_NOSTATS` on the SIZES stage — it is a metadata probe, not a
+read — leaving GATHER1/PROBE as the single accounted lookup. Needs an RDB-idle-time-style
+discriminating probe as A4 used, because `OBJECT IDLETIME` is unusable on sharded keys (it answers
+against the empty decoy db).
+
+### F-pipeline-2. The pipeline gate has no size or skew threshold (unmeasured regression regime)
+
+Same review. `server.c:8980` gates the merge-execution pipeline on `nkeys >= 2` and nothing else, so
+**every** cross-shard INTER takes it — including two 32-element sets. In that regime the pipeline
+converts one parallel 1-hop gather into `2 + (nshard-1)` **sequential** drain-driven hops and arms
+`cs_barrier`, stalling that client's next pipelined command until the ring drains (plus the A5
+re-drive cost).
+
+Both benchmarks behind the "measured win" used **sequential `redis-cli`**, where a barrier is free.
+So the win is real in the regime that was measured and the cost regime was never measured at all.
+Per the three-regime rule (NIGHT_PLAN 13) this is a predicted-deficit case that needs testing before
+the gate is considered correct: small sets + pipelined client is exactly where it should lose.
