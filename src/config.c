@@ -167,6 +167,28 @@ configEnum propagation_error_behavior_enum[] = {
     {NULL, 0}
 };
 
+/* ---- tomokv named enums (see server.h for the full semantics) ---------------- */
+configEnum tomokv_thread_mode_enum[] = {
+    {"auto", TOMO_THREAD_MODE_AUTO},        /* the controller may move the io/ex split */
+    {"static", TOMO_THREAD_MODE_STATIC},    /* the boot split is held for the whole run */
+    {NULL, 0}
+};
+
+configEnum tomokv_pin_mode_enum[] = {
+    {"float", TOMO_PIN_FLOAT},              /* no pinning; scheduler decides */
+    {"ccd", TOMO_PIN_CCD},                  /* a node is a CCD / shared-L3 domain (DEFAULT) */
+    {"numa", TOMO_PIN_NUMA},                /* a node is a NUMA node */
+    {"static", TOMO_PIN_STATIC},            /* placement from tomokv-pin-io / tomokv-pin-ex */
+    {NULL, 0}
+};
+
+configEnum tomokv_mget_coalesce_enum[] = {
+    {"legacy", TOMO_MGET_LEGACY},           /* one cross-shard sub per key */
+    {"coalesce", TOMO_MGET_COALESCE},       /* one sub per shard, order-preserving (DEFAULT) */
+    {"coalesce-prefetch", TOMO_MGET_COALESCE_PREFETCH}, /* + in-sub dict prefetch */
+    {NULL, 0}
+};
+
 /* Output buffer limits presets. */
 clientBufferLimitsConfig clientBufferLimitsDefaults[CLIENT_TYPE_OBUF_COUNT] = {
     {0, 0, 0}, /* normal */
@@ -2576,15 +2598,14 @@ static int updateTomokvModeshiftTest(const char **err) {
     return tomoModeshiftSpare(server.modeshift_test, err);
 }
 
-/* ee451 (thread-modes step 4): the balancer needs the poly-thread apparatus; reject a
- * runtime enable without it (the boot-time config-file case is FATAL-warned + ignored
- * in initServer — apply fns don't run during startup load). */
-static int updateTomokvThreadBalance(const char **err) {
-    if (server.thread_balance && !server.thread_modes) {
-        *err = "tomokv-thread-balance requires tomokv-thread-modes=1 (boot-time knob)";
-        return 0;
-    }
-    return 1;
+/* tomokv-pin-io / tomokv-pin-ex validator. Runs on the config-file/CLI path AND on CONFIG SET,
+ * so a malformed spec is rejected with the offending token named — never silently ignored.
+ * The pool-coverage check (does the spec supply enough cpus for every role/node?) happens in
+ * initServer, where the resolved topology is known. */
+static int isValidTomokvPinSpec(char *val, const char **err) {
+    /* The knob name is not available here; tomoPinSpecParse phrases the message so it reads
+     * correctly for either knob ("tomokv-pin-io/-ex: ..."). */
+    return tomoPinSpecParse(val, "tomokv-pin-io/-ex", NULL, NULL, err);
 }
 
 static int updateJemallocBgThread(const char **err) {
@@ -2607,7 +2628,7 @@ static int updateMaxmemory(const char **err) {
      * global also_propagate array concurrently = heap corruption. Apply-failure rolls the value
      * back (restoreBackupConfig), so this is a clean -ERR to the client. */
     if (server.maxmemory > 0 && server.num_workers > 0) {
-        *err = "maxmemory > 0 is not supported with tomokv sharding (tomokv-ex-threads > 0): "
+        *err = "maxmemory > 0 is not supported with tomokv sharding (tomokv-thread-ex >= 1): "
                "the dataset lives in per-worker shard DBs that eviction does not see";
         return 0;
     }
@@ -2639,7 +2660,7 @@ static int updateAppendonly(const char **err) {
      * server.db = total data loss on reload, and every worker-side lazy-expire delete starts
      * calling alsoPropagate on the global redisOpArray from N threads concurrently. */
     if (server.aof_enabled && server.num_workers > 0) {
-        *err = "appendonly cannot be enabled with tomokv sharding (tomokv-ex-threads > 0): "
+        *err = "appendonly cannot be enabled with tomokv sharding (tomokv-thread-ex >= 1): "
                "the dataset lives in per-worker shard DBs that AOF does not see";
         return 0;
     }
@@ -3246,13 +3267,13 @@ standardConfig static_configs[] = {
      * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
      * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
-    createIntConfig("thredis-opt-mget-coalesce",     NULL, MODIFIABLE_CONFIG, 0, 2, server.opt_mget_coalesce, 1, INTEGER_CONFIG, NULL, NULL), /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); 2=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
-    createBoolConfig("thredis-xshard-guard",         NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
+    createEnumConfig("tomokv-mget-coalesce",         NULL, MODIFIABLE_CONFIG, tomokv_mget_coalesce_enum, server.opt_mget_coalesce, TOMO_MGET_COALESCE, NULL, NULL), /* xshard MGET decomposition. legacy=one sub/key; coalesce=one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); coalesce-prefetch=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
+    createBoolConfig("tomokv-xshard-guard",          NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
     createBoolConfig("tomokv-xshard-localfast",      NULL, MODIFIABLE_CONFIG, server.xshard_localfast, 1, NULL, NULL), /* read-only multi-key op with all keys on ONE worker runs the real proc there (no gather/coordinator compute). default on; 0 = always gather (A/B). */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
     createBoolConfig("tomokv-xshard-pipeline",       NULL, MODIFIABLE_CONFIG, server.xshard_pipeline, 1, NULL, NULL), /* merge-execution cross-shard INTER family: sizes -> gather-smallest -> shrinking probe chain (traffic ~ k x |smallest|). default ON (gate battery + differential + ~100-300x A/B green 2026-07-21); 0 = legacy gather. */
-    createBoolConfig("thredis-opt-mset-move",        NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL), /* xshard OPT-5: MSET moves values to the worker (argv_released_mask) instead of dupStringObject copy. DEFAULT OFF — a wash on 1-CCD at 256B AND 4KB (MSET is dispatch/insert-bound, not value-copy-bound); validated-correct + ASAN-clean, kept as a large-value/NUMA lever (re-measure on Threadripper). */
-    createBoolConfig("thredis-opt-setop-coalesce",   NULL, MODIFIABLE_CONFIG, server.opt_setop_coalesce, 1, NULL, NULL), /* xshard: SINTER/SUNION/SDIFF one sub/shard (was one/key). default on. */
+    createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL), /* xshard OPT-5: MSET moves values to the worker (argv_released_mask) instead of dupStringObject copy. DEFAULT OFF — a wash on 1-CCD at 256B AND 4KB (MSET is dispatch/insert-bound, not value-copy-bound); validated-correct + ASAN-clean, kept as a large-value/NUMA lever (re-measure on Threadripper). */
+    createBoolConfig("tomokv-setop-coalesce",        NULL, MODIFIABLE_CONFIG, server.opt_setop_coalesce, 1, NULL, NULL), /* xshard: SINTER/SUNION/SDIFF one sub/shard (was one/key). default on. */
     createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
     createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
@@ -3264,16 +3285,13 @@ standardConfig static_configs[] = {
     createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
-    /* ee451 (thread-modes v1, step 2): 0 = static thread mains (exact legacy behavior);
-     * 1 = all tomokv threads run polyThreadMain with preset modes + one PARKED spare
-     * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
-    createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          1, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
-    /* DEPRECATED KNOB (2026-07-26): always-lock IS the design — accepted for config compatibility,
-     * ignored; initServer hardwires it on. Basis: MGET borrow +57-69%/instr halved, MSET ~0,
-     * singles tax <=0.8%, INTER node-exec +40-51%, HFE requires the exclusion to exist. */
-    createBoolConfig("tomokv-mcmd-lock",             NULL, IMMUTABLE_CONFIG,   server.mcmd_lock,             1, NULL, NULL),
-    /* tomokv-mcmd-nodelocal DELETED 2026-07-27: it selected the node-local BORROW for MGET, and
+    /* tomokv-mcmd-lock DELETED 2026-07-27: always-lock IS the design (the S2 single-key owner
+     * lock is what makes a shared node db safe against sibling workers), so the knob was
+     * accepted-and-ignored — a silently-inert config surface. Basis for hardwiring it on: MGET
+     * borrow +57-69%/instr halved, MSET ~0, singles tax <=0.8%, INTER node-exec +40-51%, HFE
+     * requires the exclusion to exist. server.mcmd_lock is now an internal constant (1).
+     * tomokv-mcmd-nodelocal DELETED 2026-07-27: it selected the node-local BORROW for MGET, and
      * the borrow is gone (owner ruling: uniform torn cross-key reads). With no borrow to A/B
      * against, the knob could only ever have been inert. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
@@ -3283,31 +3301,39 @@ standardConfig static_configs[] = {
      * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
      * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
     createIntConfig("tomokv-modeshift-test",         NULL, MODIFIABLE_CONFIG, 0, 95, server.modeshift_test,  0, INTEGER_CONFIG, NULL, updateTomokvModeshiftTest),
-    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. Requires thread-modes at
-     * boot (else FATAL-warn + ignore). ON = serverCron samples the per-thread pressure
-     * signals ~4-5Hz and autonomously shifts the SPARE: PARKED->EX on a sustained
-     * expensive-shift quorum (3 ex-pressure signals + 2 io-slack donor signals, full ~3s
-     * settle), EX->PARKED on collapsed ex-pressure (2 signals + settle). Never auto ->IO.
-     * The modeshift-test knob above remains the manual override (same actuator). */
-    createBoolConfig("tomokv-thread-balance",        NULL, MODIFIABLE_CONFIG,  server.thread_balance,       1, NULL, updateTomokvThreadBalance),
-    /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min 1 / max = populated
-     * allocation). V1 has exactly one movable thread — the spare — so these only bound its
-     * participation: ex-max blocks PARKED->EX, ex-min blocks EX->PARKED. The io bounds are
-     * accepted + validated but INERT in v1 (the balancer never shifts IO; documented). */
-    /* ee451 node-topology config (min/max knobs removed — bounds come from the node budget).
-     * pool = numa-nodes * cores-per-node threads, always fully active. Static split via
-     * io-per-node/ex-per-node; dynamic (leave those 0) lets the balancer flip within the budget. */
-    createIntConfig("thredis-flat-store",            NULL, IMMUTABLE_CONFIG, 0, 1, server.thredis_flat_store, 1, INTEGER_CONFIG, NULL, NULL), /* FLATSTORE: DEFAULT-ON (lock-free 8B table replaces the per-bucket dicts on shared node dbs; set 0 to fall back to dict) */
+    createBoolConfig("tomokv-flat-store",            NULL, IMMUTABLE_CONFIG, server.thredis_flat_store, 1, NULL, NULL), /* FLATSTORE: DEFAULT-ON (lock-free 8B table replaces the per-bucket dicts on shared node dbs; `no` falls back to dict) */
     createIntConfig("tomokv-flat-load-pct",          NULL, IMMUTABLE_CONFIG, 40, 90, server.flat_load_pct, 70, INTEGER_CONFIG, NULL, NULL), /* FLATSTORE peak load %% (measured 7700X: 70 halves table mem vs 50, no GET cost) */
-    createIntConfig("tomokv-numa-nodes",             NULL, IMMUTABLE_CONFIG, 1, 16, server.numa_nodes,     1, INTEGER_CONFIG, NULL, NULL), /* review [11]: per-node liveness arrays are [16] */
-    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive from io+ex per node (or legacy io/ex-threads) */
-    createIntConfig("tomokv-io-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static IO/node; 0 = derive from legacy io-threads */
-    createIntConfig("tomokv-ex-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static EX/node; 0 = derive from legacy ex-threads */
+
+    /* ================= TOPOLOGY (total real cores = nodes * cores-per-node) =================
+     * ONE way to describe the thread pool. tomokv-nodes 1 makes tomokv-thread-io/-ex the plain
+     * TOTAL thread counts (this is what the old flat tomokv-thread-io/-ex-threads meant).
+     * WHAT A "NODE" IS depends on tomokv-pin-mode: `ccd` => a CCD / shared-L3 domain, `numa` =>
+     * a NUMA node. Which partitioning is better for the target hardware is NOT yet known — it
+     * is a measurement to run on the EPYC/Threadripper box, which is why it is one knob and not
+     * a compile-time assumption. */
+    createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
+    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
+
+    /* ================= FRONT/BACK SPLIT ====================================================
+     * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes. Under `auto` the
+     * flip controller may move away from it; under `static` it is held for the whole run. The
+     * starting point matters for measurement reproducibility: a benchmark that starts at a
+     * different split spends its window converging instead of measuring. */
+    createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
+    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
+    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
+
+    /* ================= PINNING =============================================================
+     * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting
+     * them with any other pin-mode is a boot FATAL (they would otherwise be silently ignored),
+     * and pin-mode static with an empty/short spec is a boot FATAL too. */
+    createEnumConfig("tomokv-pin-mode",              NULL, IMMUTABLE_CONFIG, tomokv_pin_mode_enum, server.pin_mode, TOMO_PIN_CCD, NULL, NULL),
+    createStringConfig("tomokv-pin-io",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_io_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=0-3 node1=8,9,10,11" */
+    createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
+
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
-    createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
-    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto (PID-style grow/decay); 0=off (pop 1 per loop); N=fixed */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3410,19 +3436,21 @@ standardConfig static_configs[] = {
     createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, NULL, updatePort), /* TCP port. */
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
     /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
-     * (stock Redis upstream IO threads have been removed); use these instead. */
-    createIntConfig("tomokv-io-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal at boot */
-    createIntConfig("tomokv-ex-threads", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_threads, -1, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: -1 = unset -> fatal; must be >= 1 (0 = sharding off is rejected at boot); ANY count (no pow2) */
-    createIntConfig("tomokv-l3-kb", NULL, IMMUTABLE_CONFIG, 0, 1048576, server.l3_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto-detect (sysfs); N pins L3 KB for the auto formulas (VMs) */
-    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean */
-    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule */
+     * (stock Redis upstream IO threads have been removed); the thread pool is described by
+     * tomokv-nodes / tomokv-cores-per-node / tomokv-thread-io / tomokv-thread-ex above.
+     * The old flat tomokv-thread-io / tomokv-thread-ex were REMOVED 2026-07-27: they were a
+     * second way to say the same thing. With tomokv-nodes 1 (the default) the new per-node
+     * knobs ARE the old flat counts. */
+    createIntConfig("tomokv-l3-kb", NULL, IMMUTABLE_CONFIG, 0, 1048576, server.l3_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto-detect (sysfs); N pins L3 KB for the auto formulas (VMs). NOTE: this OVERRIDES a measured hardware fact — "off" is not a state it can have, so 0 is auto here rather than the usual -1. */
+    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
+    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule. A granule of 0 buckets is not a state; "off" is tomokv-reshard-min-ops 0. */
     /* ee451 (reshard-better §1.1): trigger-hardening knobs — every default 0 reproduces legacy behavior bit-for-bit (clean A/B baseline). */
     createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
     createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
     createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
-    createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.prefetch_min_keys, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3-derived gate; N=explicit key floor */
-    createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.pf_value_budget_kb, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto L3/(2W); N=explicit KB */
-    createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, 0, 4096, server.worker_spin, 0, INTEGER_CONFIG, NULL, NULL), /* 0=adaptive; N=pinned spin rounds */
+    createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.prefetch_min_keys, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3-derived gate; 0=off (no floor: always prefetch); N=explicit key floor */
+    createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.pf_value_budget_kb, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3/(2W); 0=off (no value chase); N=explicit KB */
+    createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, -1, 4096, server.worker_spin, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto (adaptive); 0=off (no spin, block immediately); N=pinned spin rounds */
     createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, -1, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
     createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
     createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
@@ -3430,7 +3458,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
     createIntConfig("tomokv-io-drain-spin", NULL, MODIFIABLE_CONFIG, 0, 1048576, server.io_drain_spin, 32, INTEGER_CONFIG, NULL, updateIODrainSpin), /* AE-1: zero-timeout IO-poll drain passes while worker replies are in flight, before the 100us fallback window; 0 = off (always 100us) */
     createIntConfig("tomokv-pipeline-depth", NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, isValidMyPipelineDepth, NULL), /* -1 = auto, 0 = off (depth 1), N = static power of two */
-    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, -1, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* 0 = auto */
+    createIntConfig("tomokv-ex-queue-depth", NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_QUEUE_SIZE_MAX, server.ex_queue_size, -1, INTEGER_CONFIG, isValidMyWorkerQueueDepth, NULL), /* -1 = auto; N = static power of two. 0 is REJECTED (a zero-depth dispatch queue cannot exist) — see isValidMyWorkerQueueDepth. */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

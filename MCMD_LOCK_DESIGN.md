@@ -1,3 +1,9 @@
+> **STATUS 2026-07-27 — the `tomokv-mcmd-lock` KNOB IS GONE.** Always-lock is the design:
+> the per-worker owner lock is what makes a shared node db safe against sibling workers, so
+> the knob was accepted at boot and then unconditionally overridden — a config surface that
+> lied about what it did. The mechanism below is unchanged and always on; only the knob was
+> removed. References to `tomokv-mcmd-lock` in this document are HISTORICAL.
+
 # M-command lock-borrow execution (2s-numa-mcmd-lock-dev)
 
 User directive (2026-07-22): for multi-key ("M") commands (MGET, MSET, DEL, EXISTS, SINTER, …),

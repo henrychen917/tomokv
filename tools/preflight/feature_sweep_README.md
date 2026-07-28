@@ -12,7 +12,7 @@ SMOKE=1 /shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep.sh    # ~12-16 
 
 Env overrides: `TREE`, `ORACLESRV`, `CLI`, `FORK_PORT` (7791), `ORACLE_PORT` (7792),
 `SRV_CORES` / `LG_CORES` (optional tasksets for server / load-gen, e.g. `0-7` / `8-15`;
-default = no pinning at all — the fork is booted with `--tomokv-pin-mode 0` so it never
+default = no pinning at all — the fork is booted with `--tomokv-pin-mode float` so it never
 sched_setaffinity's onto cores a concurrent bench owns), `SEED` (stream seed).
 
 Exit code 0 iff no FAIL rows (KNOWN/SUSPECT do not fail the run).
@@ -100,7 +100,7 @@ hash-field-TTL (HEXPIRE...), streams — see coverage gaps.
 ## Sections
 
 ### A — oracle equivalence (centerpiece)
-Default config (`--tomokv-io-threads 2 --tomokv-ex-threads 2`, everything else stock
+Default config (`--tomokv-thread-io 2 --tomokv-thread-ex 2`, everything else stock
 defaults => FLATSTORE ON, shared node dbs) vs stock oracle; 50k ops (12k SMOKE).
 Plus the KNOWN-reject list asserted with the expected message
 (`is not supported with tomokv sharding` for MULTI/WATCH; `not yet supported with
@@ -112,9 +112,9 @@ fork has no active expiry cron on the shards; long TTLs only inside the stream).
 ### B — feature-toggle semantics
 For each toggle: fresh fork boot with the toggle + FLUSHALL'd persistent oracle + the
 reduced stream; results must be IDENTICAL (opdiffs=0, dbsize/enum/readback/ttl equal).
-SMOKE cells: `flat0` (thredis-flat-store 0; enumeration via KEYS because top-level SCAN
+SMOKE cells: `flat0` (tomokv-flat-store no; enumeration via KEYS because top-level SCAN
 under flat=0 falls inline onto the empty decoy — asserted as KNOWN), `mcmd-lock`,
-`thread-modes+balance`, `xshard-guard0` (+ positive control that LCS
+`thread-mode-auto`, `xshard-guard0` (+ positive control that LCS
 stops being guard-rejected, proving the knob is live), `xshard-pipeline0`,
 `express-slim 0` and forced (1), `pipeline-depth 0`, `fake-ring-depth 0`, `num-cdb 0`,
 `operand-pool on` (KNOWN default-off knob).
@@ -142,7 +142,7 @@ enumeration) and ex=3 (odd worker count).
   must drive `tomokv_ex_queue_full > 0` while the server stays correct (sentinel + PING)
   — proves the counter CAN move (its staying 0 under normal load is asserted per-config
   in F) and regression-covers the dropped-dispatch/queue-full path.
-- `flips-under-phases`: thread-modes+balance boot; p1 phase then p32 phase; counts
+- `flips-under-phases`: thread-mode-auto boot; p1 phase then p32 phase; counts
   `flip: GROW-FRONT/BACK complete` log lines (>0 PASS; controller-alive-but-0-flips =>
   SUSPECT; no flip-ctl lines at all => FAIL).
 - `reshard-done`: `--tomokv-reshard-min-ops 2000`; 4 crafted worker-1 hot keys hammered
@@ -168,7 +168,7 @@ owner's reply shows the kill (NOTBUSY timing => SUSPECT, not FAIL); next EVAL cl
 Full mode repeats 20 short busy+SET rounds. Boot sets `--busy-reply-threshold 1000`.
 
 ### F — stress spot-checks
-Per config class {default io2ex2, numa2 (2 nodes x (1 io + 2 ex)), thread-modes+balance,
+Per config class {default io2ex2, numa2 (2 nodes x (1 io + 2 ex)), thread-mode-auto,
 mcmd-lock}: 32 sentinels -> memtier 60s/300s (t2 c25 P4, 1:1, R:R over 500k keys, 64B)
 -> assert our pid still serves; 32/32 sentinel readback; DEBUG DIGEST completes nonzero;
 `tomokv_ex_queue_full == 0`; VmRSS < 3GB; crash-marker scan of the preserved server log

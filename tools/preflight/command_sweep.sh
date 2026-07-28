@@ -43,7 +43,7 @@
 #                  same CS_SETOP/CS_SSTORE/CS_ZOP/CS_ZSTORE rows as the INTER cells.
 #   fanall         CS_RT_FANALL: KEYS pattern; full SCAN cursor loop (SCAN
 #                  routes to workers only under flat+shared — server.c:6123.
-#                  Under the canonical boot both hold: thredis-flat-store
+#                  Under the canonical boot both hold: tomokv-flat-store
 #                  defaults 1 and shared_node_dbs derives from ex-threads>1
 #                  per node — server.c:3988 — so the cell measures the
 #                  worker-routed flat scan)
@@ -102,7 +102,7 @@
 #   cli-scan      redis-cli --scan full cursor loop, keys/sec + completeness
 #
 # FIXED CONFIG: canonical boot — the MANDATORY topology knobs only
-# (tomokv-numa-nodes 1, tomokv-io-threads 4, tomokv-ex-threads 4: the 8-core
+# (tomokv-nodes 1, tomokv-thread-io 4, tomokv-thread-ex 4: the 8-core
 # box split, same as fence_suite.sh). There is NO thread default in this fork:
 # initServer exit(1)s FATAL when io/ex-threads are unset (server.c:3683), so
 # "no knob overrides at all" boots NOTHING. Every other knob stays at its
@@ -255,7 +255,7 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   if pgrep -x redis-server >/dev/null 2>&1; then
     row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(foreign-server)"; return 1; fi
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
-    --tomokv-numa-nodes 1 --tomokv-io-threads "$IO_T" --tomokv-ex-threads "$EX_T" \
+    --tomokv-nodes 1 --tomokv-thread-io "$IO_T" --tomokv-thread-ex "$EX_T" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
     >/dev/null 2>&1 &
   SRV_PID=$!

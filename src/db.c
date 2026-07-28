@@ -2485,7 +2485,7 @@ void renameGenericCommand(client *c, int nx) {
      * runs at the reader grace. So the `incrRefCount(o)` pin above leaves refcount == 2 here,
      * kvobjSetEx() falls through to its multi-ref branch and, for any NON-STRING value, has no
      * cheap re-homing left => serverPanic("Not implemented") (crash repro: `SADD s m1;
-     * RENAME s d` with both keys on ONE shard, under --thredis-flat-store 1).
+     * RENAME s d` with both keys on ONE shard, under --tomokv-flat-store 1).
      *
      * The pin is a LIFETIME pin, not a second reader of the value: nothing reads the value
      * through `o` after this point (`o` is repointed at the new kvobj by dbAddInternal, and
@@ -3014,7 +3014,7 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
          * The pin is a LIFETIME pin, not a second reader of the value, so it must be passed
          * down as KVOBJ_SET_MOVE_VALUE: otherwise kvobjSetEx() sees refcount != 1 and has no
          * cheap way to re-home a non-string value, and panics "Not implemented" (crash repro:
-         * `SADD s m; EXPIRE s 100` under --thredis-flat-store 1). With the flag the value is
+         * `SADD s m; EXPIRE s 100` under --tomokv-flat-store 1). With the flag the value is
          * moved into kvnew and the retired old kvobj is freed allocation-only. */
         int flat_keys = kvstoreIsFlat(db->keys);
         if (flat_keys) incrRefCount(kv);

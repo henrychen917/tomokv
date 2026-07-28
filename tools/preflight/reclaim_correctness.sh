@@ -14,15 +14,15 @@ bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 
 boot(){ # $1 extra args
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
-  taskset -c 0-7 $BIN --port 7974 --dir $J/cdata --tomokv-numa-nodes 1 \
-    --tomokv-io-threads 4 --tomokv-ex-threads 4 --thredis-flat-store 1 $1 \
+  taskset -c 0-7 $BIN --port 7974 --dir $J/cdata --tomokv-nodes 1 \
+    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-flat-store yes $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
   sleep 2; for i in $(seq 1 25); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 0.5; done; return 1
 }
 alive(){ [ "$($CLI ping 2>/dev/null | tr -d '\r')" = PONG ]; }
 
 echo "=== T1: overwrite churn keeps dbsize exact + server alive (the leak path) ===" >> $OUT
-boot "--tomokv-thread-modes yes --tomokv-thread-balance yes" || { bad "T1 boot"; }
+boot "--tomokv-thread-mode auto" || { bad "T1 boot"; }
 if alive; then
   $MT --ratio=1:0 -d 32 --key-pattern=P:P --key-maximum=200000 -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
   before=$($CLI dbsize)

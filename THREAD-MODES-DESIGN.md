@@ -17,10 +17,12 @@ transitions with asymmetric latencies.
 ## Balancer (micro-arch controller, current-signal only)
 Signals: io busy% EWMA, ex queue-depth EWMAs (exist in reshard controller), wb backlog EWMA.
 Decision: hysteresis band + settle window (reshard patterns); shift ONE thread per settle.
-Knobs: tomokv-io-threads-min/max, tomokv-ex-threads-min/max (0=auto: min 1, max=cores);
-static mode (current mandatory counts) remains the default until dynamic proves itself.
-Pin modes: 0 pure-float, 1 manual, 2 pure arch-aware, 3 dynamic-float, 4 dynamic-arch-aware
-(re-derive placement on shift events).
+Knobs (AS SHIPPED 2026-07-27): the min/max bounds are no longer user knobs — they are derived
+from the node budget (min 1 of each role, max cores-per-node - 1). The one policy knob is
+`tomokv-thread-mode auto|static`; `tomokv-thread-io`/`-ex` give the starting split in both modes.
+Pin modes (AS SHIPPED): `float`, `ccd` (default), `numa`, `static`. The design's "dynamic-float /
+dynamic-arch-aware" (re-derive placement on shift events) is NOT implemented — a converted thread
+keeps the core it was pinned to.
 
 ## Danger zones (from this codebase's history)
 - iotid TLS aliasing when a thread changes role (the historic worker-slot crash class):

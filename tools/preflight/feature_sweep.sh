@@ -56,10 +56,10 @@ else
 fi
 
 # fork default topology (mandatory knobs) + politeness (float, no core pinning)
-DEF_TOPO=(--tomokv-io-threads 2 --tomokv-ex-threads 2)
+DEF_TOPO=(--tomokv-thread-io 2 --tomokv-thread-ex 2)
 FORK_COMMON=(--bind 127.0.0.1 --save '' --appendonly no --protected-mode no
              --enable-debug-command yes --busy-reply-threshold 1000
-             --tomokv-pin-mode 0)
+             --tomokv-pin-mode float)
 ORACLE_COMMON=(--bind 127.0.0.1 --save '' --appendonly no --protected-mode no
                --enable-debug-command yes)
 
@@ -807,7 +807,7 @@ b_cell() { # name enum extra-args...   (leaves the fork RUNNING in B_LAST_PID)
 b_cell_topo() { # name enum io ex  (different mandatory topology)
     local name=$1 enum=$2 io=$3 ex=$4
     local -a save=("${DEF_TOPO[@]}")
-    DEF_TOPO=(--tomokv-io-threads "$io" --tomokv-ex-threads "$ex")
+    DEF_TOPO=(--tomokv-thread-io "$io" --tomokv-thread-ex "$ex")
     b_cell "$name" "$enum"
     local rc=$?
     DEF_TOPO=("${save[@]}")
@@ -825,7 +825,7 @@ section_B() {
 
     # flat-store OFF: shared dicts; top-level SCAN falls inline onto the empty
     # decoy => enumeration must use KEYS (FANALL, works in both modes)
-    if b_cell flat0 keys --thredis-flat-store 0; then
+    if b_cell flat0 keys --tomokv-flat-store no; then
         out=$(tcli "$FORK_PORT" SCAN 0 COUNT 10)
         sc=$(printf '%s' "$out" | sed -n '2,99p')
         if printf '%s' "$out" | grep -qiE 'ERR|WRONGTYPE|Could not connect|Connection refused|timed out'; then
@@ -835,14 +835,16 @@ section_B() {
     fi
     stop_srv "$B_LAST_PID"
 
-    b_cell mcmd-lock scan --tomokv-mcmd-lock yes;                     stop_srv "$B_LAST_PID"
+    # mcmd-lock cell REMOVED 2026-07-27: always-lock IS the design, so the knob (which was
+    # accepted and then overridden) is gone. Booting with an unknown option is a hard boot
+    # failure, so the cell cannot stay.
     # mcmd-nodelocal cell REMOVED 2026-07-27: the knob selected the node-local borrow, which is
-    # deleted. Booting with an unknown option is a hard boot failure, so the cell cannot stay.
-    b_cell thread-modes-balance scan --tomokv-thread-modes yes --tomokv-thread-balance yes; stop_srv "$B_LAST_PID"
+    # deleted. Same reason.
+    b_cell thread-mode-auto scan --tomokv-thread-mode auto; stop_srv "$B_LAST_PID"
 
     # xshard-guard OFF: stream is ported-only => identical results; plus a positive
     # control that the knob actually changed behavior (LCS no longer guard-rejected)
-    if b_cell xshard-guard0 scan --thredis-xshard-guard no; then
+    if b_cell xshard-guard0 scan --tomokv-xshard-guard no; then
         out=$(tcli "$FORK_PORT" LCS ka kb)
         if printf '%s' "$out" | grep -qF "$GUARD_MSG"; then
             row $sec guard0-lcs-probe "io2ex2/xshard-guard0" FAIL "guard=0 but LCS still guard-rejected (knob inert)"
@@ -881,10 +883,10 @@ section_B() {
         b_cell io-drain-userpoll0 scan --tomokv-io-drain-userpoll 0;  stop_srv "$B_LAST_PID"
         b_cell io-drain-userpoll64 scan --tomokv-io-drain-userpoll 64; stop_srv "$B_LAST_PID"
         b_cell worker-spin512 scan --tomokv-worker-spin 512;          stop_srv "$B_LAST_PID"
-        b_cell mget-coalesce0 scan --thredis-opt-mget-coalesce 0;     stop_srv "$B_LAST_PID"
-        b_cell mget-coalesce2 scan --thredis-opt-mget-coalesce 2;     stop_srv "$B_LAST_PID"
-        b_cell setop-coalesce0 scan --thredis-opt-setop-coalesce no;  stop_srv "$B_LAST_PID"
-        b_cell mset-move scan --thredis-opt-mset-move yes;            stop_srv "$B_LAST_PID"
+        b_cell mget-legacy scan --tomokv-mget-coalesce legacy;     stop_srv "$B_LAST_PID"
+        b_cell mget-coalesce-prefetch scan --tomokv-mget-coalesce coalesce-prefetch;     stop_srv "$B_LAST_PID"
+        b_cell setop-coalesce0 scan --tomokv-setop-coalesce no;  stop_srv "$B_LAST_PID"
+        b_cell mset-move scan --tomokv-mset-move yes;            stop_srv "$B_LAST_PID"
         b_cell localfast0 scan --tomokv-xshard-localfast no;          stop_srv "$B_LAST_PID"
         b_cell strict-order1 scan --tomokv-strict-order 1;            stop_srv "$B_LAST_PID"
         b_cell zerocopy-off scan --tomokv-zerocopy-min-value 2000000000; stop_srv "$B_LAST_PID"
@@ -1047,10 +1049,10 @@ section_C() {
         stop_srv "$fpid"
     fi
 
-    # C7: flips>0 under thread-modes+balance with alternating p1/p32 phases
-    local cfg3="io2ex2/thread-modes+balance"
+    # C7: flips>0 under thread-mode-auto with alternating p1/p32 phases
+    local cfg3="io2ex2/thread-mode-auto"
     boot_srv fork "$FORK_PORT" "$WORK/c_flip" "${DEF_TOPO[@]}" \
-           --tomokv-thread-modes yes --tomokv-thread-balance yes \
+           --tomokv-thread-mode auto \
         || { row $sec flips-under-phases "$cfg3" FAIL "boot failed"; BOOT_PID=""; }
     if [ -n "$BOOT_PID" ]; then
         fpid=$BOOT_PID; flog=$LAST_SRV_LOG
@@ -1070,7 +1072,7 @@ section_C() {
             elif [ "${nclimb:-0}" -gt 0 ]; then
                 row $sec flips-under-phases "$cfg3" SUSPECT "controller alive (flip-ctl lines=$nclimb) but 0 completed flips in ${FLIP_T}s phases (converged or box-noisy)"
             else
-                row $sec flips-under-phases "$cfg3" FAIL "no flip-ctl activity at all under thread-modes+balance"
+                row $sec flips-under-phases "$cfg3" FAIL "no flip-ctl activity at all under thread-mode-auto"
             fi
             cm=$(crash_scan "$flog"); [ -n "$cm" ] && row $sec flips-crash-scan "$cfg3" FAIL "$cm"
         else
@@ -1381,9 +1383,9 @@ f_cell() { # name extra-args...
 section_F() {
     log "=== SECTION F: stress spot-checks (${STRESS_T}s per config) ==="
     f_cell "io2ex2/default"     "${DEF_TOPO[@]}"
-    f_cell "numa2-io1ex2pn"     --tomokv-numa-nodes 2 --tomokv-io-per-node 1 --tomokv-ex-per-node 2
-    f_cell "io2ex2/tm+balance"  "${DEF_TOPO[@]}" --tomokv-thread-modes yes --tomokv-thread-balance yes
-    f_cell "io2ex2/mcmd-lock"   "${DEF_TOPO[@]}" --tomokv-mcmd-lock yes
+    f_cell "numa2-io1ex2pn"     --tomokv-nodes 2 --tomokv-thread-io 1 --tomokv-thread-ex 2
+    f_cell "io2ex2/thread-mode-auto"   "${DEF_TOPO[@]}" --tomokv-thread-mode auto
+    f_cell "io2ex2/thread-mode-static" "${DEF_TOPO[@]}" --tomokv-thread-mode static
 }
 
 # ===========================================================================

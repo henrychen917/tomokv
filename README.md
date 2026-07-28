@@ -278,7 +278,7 @@ into a few families:
   multi‑key `PFCOUNT`, `PFMERGE`), list moves (`LMOVE`/`RPOPLPUSH`, `MSETNX`) and ordered pops
   (`LMPOP`/`ZMPOP`); blocking variants (`BLMOVE`/`BLMPOP`/…) reply the immediate result when data is
   available and the timed‑out form when they would block (no cross‑shard client parking). A **SAFE‑GATE**
-  (`thredis-xshard-guard`, default on) rejects any remaining unported multi‑key command with a clear error
+  (`tomokv-xshard-guard`, default on) rejects any remaining unported multi‑key command with a clear error
   instead of letting it run against the empty decoy DB. `FLUSHALL`/`FLUSHDB` are handled by queue‑ordered
   flush sentinels.
 - **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
@@ -309,10 +309,13 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
-| `tomokv-io-threads` | **mandatory** ≥ 1 | Ingress threads (parse/dispatch/reply). No default — the io/ex split is the most consequential decision you make (see the performance section). |
-| `tomokv-ex-threads` | **mandatory** ≥ 1, **any count** | Execution workers (one shard each). Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
-| `tomokv-pin-mode` | `0` float · `1` manual · `2` auto (default) | `0`: no pinning, the scheduler decides. `1`: pin to the exact cores in `tomokv-pin-cores`. `2`: arch‑aware auto — topology‑smart placement (shared‑L3/CCD grouping, NUMA‑local shard memory), respecting taskset/cgroup affinity. |
-| `tomokv-pin-cores` | e.g. `"0,2,4,6"` | Manual core list for pin‑mode 1, applied in thread‑pin order (io threads first, then workers), round‑robin if short. |
+| `tomokv-nodes` | `1` (default) · ≤ 16 | Node count. A “node” is a **CCD** under `tomokv-pin-mode ccd` and a **NUMA node** under `numa` — which partitioning is better on a given box is a measurement, not an assumption. Total real cores = nodes × cores‑per‑node. |
+| `tomokv-cores-per-node` | `0` derive (= io+ex) · N | Cores per node. Set it above `thread-io + thread-ex` to reserve cores. |
+| `tomokv-thread-io` | **mandatory** ≥ 1, **per node** | Ingress threads (parse/dispatch/reply) per node, and the STARTING split. No default — the io/ex split is the most consequential decision you make (see the performance section). With `tomokv-nodes 1` this is the total count. |
+| `tomokv-thread-ex` | **mandatory** ≥ 1, **any count**, **per node** | Execution workers (one shard each) per node, and the STARTING split. Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
+| `tomokv-thread-mode` | `auto` (default) · `static` | Whether the flip controller may move the io/ex split away from the boot values. `static` holds it for the whole run — use it for reproducible measurement, since a run that starts at a different split spends its window converging. |
+| `tomokv-pin-mode` | `float` · `ccd` (default) · `numa` · `static` | `float`: no pinning, the scheduler decides. `ccd`: pack threads onto shared‑L3 (CCD) groups. `numa`: pack them per NUMA node. `static`: exact placement from `tomokv-pin-io` / `tomokv-pin-ex`. Every pinning mode also binds a worker's shard memory to its core's NUMA node; all of them respect taskset/cgroup affinity. |
+| `tomokv-pin-io` / `tomokv-pin-ex` | e.g. `"node0=0-3 node1=8,9,10,11"` | Per‑role‑per‑node cpu specs, used **only** with `tomokv-pin-mode static`. Grammar: whitespace‑separated `node<N>=<cpu-list>` tokens; a cpu list is comma‑separated ids and/or `lo-hi` ranges. A malformed token is rejected at boot with the offending token named; setting these with any other pin‑mode, or `static` without them, is also fatal — they are never silently ignored. |
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
@@ -321,12 +324,12 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | Knob | Values | Meaning |
 | :--- | :--- | :--- |
 | `tomokv-worker-pop-batch` | `-1` auto (default, 16) · `0` off (one pop per pass) · N static | Fakes a worker pops per queue visit. Auto: saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve) — 2‑bit‑predictor flavor. |
-| `tomokv-worker-spin` | `0` auto (default) · N strict rounds | Worker idle spin before yielding. Auto: multiplicative budget (spin that paid grows ×1.5, wasted window halves). |
+| `tomokv-worker-spin` | `-1` auto (default) · `0` off · N strict rounds | Worker idle spin before yielding. Auto: multiplicative budget (spin that paid grows ×1.5, wasted window halves). |
 | `tomokv-pf-w-struct/-argv/-keyobj/-keybytes/-hash/-entry` | `-1` auto (default) · `0` off · N strict | Per‑stage scoreboard‑prefetcher widths. Auto: width = the *current* batch occupancy — zero history, re‑tunes on the next batch. |
 | `tomokv-pf-w-value` | `-1` auto (default) · `0` off · N strict cap | Value‑chase width. Auto: cache‑budget controller — width = (L3 / 2·workers) / EWMA(value size), leaky integrator, refreshed continuously. |
 | `tomokv-pf-w-nextop` | `-1` auto · `0` off (default) · N strict | Next‑op lookahead prefetch distance. Auto: lookahead = current batch. |
-| `tomokv-prefetch-min-keys` | `0` auto (default) · N strict | Prefetch enable gate. Auto: opens when the shard's self‑measured footprint (dbSize × (96 B + EWMA value size)) exceeds 8× the machine's detected L3 — prefetching a cache‑resident shard measurably hurts. |
-| `tomokv-pf-value-budget-kb` | `0` auto (default) · N strict | The value‑chase cache budget. Auto: L3 / (2 × workers). |
+| `tomokv-prefetch-min-keys` | `-1` auto (default) · `0` off (no floor) · N strict | Prefetch enable gate. Auto: opens when the shard's self‑measured footprint (dbSize × (96 B + EWMA value size)) exceeds 8× the machine's detected L3 — prefetching a cache‑resident shard measurably hurts. |
+| `tomokv-pf-value-budget-kb` | `-1` auto (default) · `0` off · N strict | The value‑chase cache budget. Auto: L3 / (2 × workers). |
 | `tomokv-l3-kb` | `0` auto‑detect (default) · N strict | L3 size feeding the controllers. Pin it on VMs that hide cache topology from sysfs. |
 | `tomokv-io-drain-userpoll` | `-1` auto (default) · `0` syscall‑only · N userpoll passes | Reply‑wait drain mode. Auto: EWMA of in‑flight replies with a Schmitt band picks userspace re‑checks vs an epoll syscall. |
 | `tomokv-drain-tail-skip` | `-1`/`1` auto (default) · `0` legacy | Skip the tail drain pass when work is already pending. |
@@ -371,7 +374,7 @@ make -j
 make -j USE_URING=yes
 
 # Run a 2-stage instance: 6 ingress threads, 4 workers
-./src/redis-server --tomokv-io-threads 6 --tomokv-ex-threads 4 \
+./src/redis-server --tomokv-thread-io 6 --tomokv-thread-ex 4 \
                    --tomokv-pipeline-depth 32 --tomokv-ex-queue-depth 2048
 
 # Talk to it with any Redis client
@@ -393,7 +396,7 @@ Blocking commands are served non‑blocking (immediate result, or the timed‑ou
 client across shards). Features that assume a single global keyspace or a serial main thread — cluster mode,
 replication/AOF propagation, pub/sub, keyed scripting, and multi‑key `SCAN` — remain outside scope. Every
 multi‑key command that has **no** correct cross‑shard implementation is rejected loudly by the SAFE‑GATE
-(`thredis-xshard-guard`) rather than served incorrectly against the decoy keyspace. This is a research engine
+(`tomokv-xshard-guard`) rather than served incorrectly against the decoy keyspace. This is a research engine
 focused on the parallel‑execution thesis, not a drop‑in replacement for every Redis deployment.
 
 ---

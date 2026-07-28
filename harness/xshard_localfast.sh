@@ -6,7 +6,7 @@ set -u
 R=/shared/Projects/THredis-v13-2s; C="$R/src/redis-cli -p 6512"
 D=$(mktemp -d); trap 'kill -9 ${SPID:-0} 2>/dev/null; rm -rf "$D"' EXIT
 pkill -9 -f 'redis-server.*6512' 2>/dev/null; sleep 0.5
-taskset -c 0-7 "$R/src/redis-server" --tomokv-io-threads 4 --tomokv-ex-threads 4 --enable-debug-command yes \
+taskset -c 0-7 "$R/src/redis-server" --tomokv-thread-io 4 --tomokv-thread-ex 4 --enable-debug-command yes \
   --save '' --appendonly no --protected-mode no --dir "$D" --port 6512 >"$D/s.log" 2>&1 &
 SPID=$!
 for i in $(seq 1 60); do [ "$(timeout 2 $C ping 2>/dev/null|tr -d '\r')" = PONG ] && break; sleep 0.3; done

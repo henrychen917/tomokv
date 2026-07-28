@@ -1,5 +1,5 @@
 #!/bin/bash
-# Validate the reclaim under 2 SIMULATED NUMA nodes (--tomokv-numa-nodes 2). This is the only
+# Validate the reclaim under 2 SIMULATED NUMA nodes (--tomokv-nodes 2). This is the only
 # multi-node coverage available on a single-CCD box: it exercises the per-node flat TABLES, the
 # per-node reclaim walk (flatReclaimAll iterates n_node_dbs), node-scoped worker ranges in the grace,
 # and the numa>=2 flip/balancer paths — even though the physical coherence topology is still one CCD.
@@ -13,9 +13,9 @@ bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 
 boot(){ # $1 = numa nodes
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
-  taskset -c 0-7 ${TOMO_BIN:-$J/stable-w/src/redis-server} --port 7978 --dir $J/n2data --tomokv-numa-nodes $1 \
-    --tomokv-io-threads 4 --tomokv-ex-threads 4 --tomokv-thread-modes yes --tomokv-thread-balance yes \
-    --thredis-flat-store 1 --save '' --appendonly no --protected-mode no \
+  taskset -c 0-7 ${TOMO_BIN:-$J/stable-w/src/redis-server} --port 7978 --dir $J/n2data --tomokv-nodes $1 \
+    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
+    --tomokv-flat-store yes --save '' --appendonly no --protected-mode no \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
   sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
 rss(){ ps -o rss= -C redis-server 2>/dev/null | head -1 | awk '{print int($1/1024)}'; }

@@ -140,7 +140,9 @@ static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
-void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (pin_mode==2 (auto)); defined late */
+void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning pin-mode); defined late */
+static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
+static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static int tmAllowedCores(void);   /* ee451 (thread-modes step 3): initServer needs the spare decision early */
 static polyThreadCtx *tmSpare;     /* ee451 (thread-modes step 3): reshardCoordinator's park-request tail needs it; defined below */
 static void csReassemble(client *dst, client *head);
@@ -443,7 +445,7 @@ static int tomoGrowBackNode(int node, const char **err);
  * runs on this same thread). The unconditional stamp-or-zero store keeps recycled ring
  * slots from carrying a stale stamp while balance is on. */
 static inline void tmLatMaybeStamp(client *fake) {
-    if (!server.thread_balance) return;
+    if (!server.thread_auto) return;
     static __thread unsigned tm_lat_ctr = 0;
     fake->tm_lat_stamp = ((++tm_lat_ctr & 1023u) == 0) ? getMonotonicUs() : 0;
 }
@@ -1408,12 +1410,12 @@ static inline clientMemUsageBucket *getMemUsageBucket(size_t mem) {
  * every caller degrades to the stock eviction-disabled behavior: plain
  * per-OWNER-thread memory accounting via clientsCron (the fakeRingClientCron
  * precedent — per-client work runs only on the thread that owns the client).
- * All four inputs are boot-time (tomokv-io-threads / tomokv-ex-threads /
- * tomokv-thread-modes are IMMUTABLE_CONFIG), so the verdict cannot flip
+ * All four inputs are boot-time (tomokv-thread-io / tomokv-thread-ex /
+ * tomokv-thread-mode are IMMUTABLE_CONFIG), so the verdict cannot flip
  * mid-run. */
 int clientMemBucketsExclusive(void) {
     return server.io_threads <= 1 && server.num_workers <= 0 &&
-           server.num_workers_alloc <= 0 && !server.thread_modes;
+           server.num_workers_alloc <= 0 && !server.poly_threads;
 }
 
 /*
@@ -2120,7 +2122,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
     /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER — ~4-5Hz sampling of the
      * per-thread pressure signals; shifts the SPARE PARKED<->EX on sustained quorum
-     * (no-op unless tomokv-thread-balance). Same main-thread control plane as above. */
+     * (no-op unless tomokv-thread-mode auto). Same main-thread control plane as above. */
     run_with_period(250) tomoThreadBalanceCron();
     /* ee451 (flip): the always-full-pool auto flip controller — moves the io/ex boundary by
      * grow-front/grow-back on sustained front/back EWMA pressure (no-op unless thread-balance
@@ -2515,7 +2517,7 @@ void handleWorkerReplies(void) {
              * dispatch stamp into this IO thread's 64-entry latency ring. Same-thread
              * read of a field this thread wrote at dispatch; the 10s cap discards any
              * stamp that went stale across a balance-off window. GUARDRAIL ONLY. */
-            if (server.thread_balance && fake->tm_lat_stamp) {
+            if (server.thread_auto && fake->tm_lat_stamp) {
                 uint64_t tm_d = getMonotonicUs() - fake->tm_lat_stamp;
                 fake->tm_lat_stamp = 0;
                 if (tm_d < 10ULL * 1000 * 1000) {
@@ -2651,17 +2653,17 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
         migPushFenceIfNeeded();
     /* ee451 (thread-modes step 4, signal c): publish this thread's reply-ROB occupancy
      * (in-flight worker-dispatched ops) for the balancer — own padded line, one store. */
-    if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
+    if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
     /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
      * are re-registered before the rest of the pass processes their sockets. */
-    if (server.thread_modes) tmMigDrainInbox();
+    if (server.poly_threads) tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
      * mid-drain is dropped from migrating_out before it is freed). */
-    if (server.thread_modes) tmMigServiceOut();
+    if (server.poly_threads) tmMigServiceOut();
     freeClientsInAsyncFreeQueue();
 
     /* ee451 (v13, hot-path audit #17): the old once-per-second "stall dump" block here cost a
@@ -2700,7 +2702,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
-    if (server.thread_balance) tm_io_sig[iotid].rob = replyWorking;
+    if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
 
     updatePeakMemory();
 
@@ -3058,7 +3060,7 @@ void initServerClientMemUsageBuckets(void) {
             "guarantee the main-thread exclusivity stock Redis requires; "
             "per-owner-thread client memory accounting stays active.",
             server.io_threads, server.num_workers, server.num_workers_alloc,
-            server.thread_modes);
+            server.poly_threads);
         return;
     }
     server.client_mem_usage_buckets = zmalloc(sizeof(clientMemUsageBucket)*CLIENT_MEM_USAGE_BUCKETS);
@@ -3614,7 +3616,7 @@ void resetServerStats(void) {
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
     /* ee451 (thread-modes step 2): <= — slot io_threads is the spare's iotid when
-     * tomokv-thread-modes is on (arrays are IO_THREADS_MAX_NUM-sized; always safe). */
+     * the poly-thread apparatus is on (arrays are IO_THREADS_MAX_NUM-sized; always safe). */
     for (j = 0; j <= server.io_threads; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
@@ -3730,37 +3732,52 @@ void initServer(void) {
     server.fsynced_reploff = server.aof_enabled ? 0 : -1;
     server.hz = server.config_hz;
 
-    /* ee451 node-topology (2026-07-22): the pool is numa_nodes * cores_per_node threads, always
-     * fully active. Resolve io_threads/ex_threads from the node model when given; else fall back to
-     * the legacy io-threads/ex-threads (single node). io_threads/ex_threads are the GLOBAL totals
-     * (nodes * per-node) that the rest of the server consumes. */
-    if (server.io_per_node > 0 || server.ex_per_node > 0 || server.cores_per_node > 0) {
-        int nodes = server.numa_nodes > 0 ? server.numa_nodes : 1;
+    /* ---- tomokv-thread-mode -> the two internal booleans it replaces ------------------------
+     * ONE knob, so the "set both or the feature silently does nothing" trap cannot exist:
+     *   auto   = poly threads + the controller may actuate (the old thread-modes yes + balance yes)
+     *   static = poly threads, controller inert (the boot split is held for the whole run)
+     * The poly-thread apparatus runs in BOTH modes on purpose: auto-vs-static must be a clean A/B
+     * of the CONTROLLER, not of two different execution models. */
+    server.poly_threads = 1;
+    server.thread_auto  = (server.thread_mode == TOMO_THREAD_MODE_AUTO);
+
+    /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
+     * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
+     * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. */
+    {
+        int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
         int ipn = server.io_per_node, epn = server.ex_per_node, cpn = server.cores_per_node;
         if (cpn > 0 && ipn > 0 && epn == 0) epn = cpn - ipn;      /* derive the complement */
         if (cpn > 0 && epn > 0 && ipn == 0) ipn = cpn - epn;
         if (cpn == 0) cpn = ipn + epn;                            /* cores = the split total */
-        if (ipn <= 0 || epn <= 0 || ipn + epn > cpn) {
-            serverLog(LL_WARNING, "FATAL: node topology invalid (io-per-node=%d ex-per-node=%d "
-                      "cores-per-node=%d): need io>=1, ex>=1, io+ex<=cores.", ipn, epn, cpn);
+        /* Thread counts are MANDATORY — there is no sensible default for a machine we cannot see. */
+        if (ipn <= 0 || epn <= 0) {
+            serverLog(LL_WARNING,
+                "FATAL: set the thread pool explicitly — --tomokv-thread-io I --tomokv-thread-ex E "
+                "(PER NODE; with tomokv-nodes 1, the default, these are the total counts). "
+                "Got tomokv-thread-io=%d tomokv-thread-ex=%d tomokv-cores-per-node=%d.",
+                server.io_per_node, server.ex_per_node, server.cores_per_node);
             exit(1);
         }
-        server.numa_nodes = nodes; server.cores_per_node = cpn;
+        if (ipn + epn > cpn) {
+            serverLog(LL_WARNING, "FATAL: node topology invalid (tomokv-thread-io=%d "
+                      "tomokv-thread-ex=%d tomokv-cores-per-node=%d): need thread-io + thread-ex "
+                      "<= cores-per-node.", ipn, epn, cpn);
+            exit(1);
+        }
+        server.topo_nodes = nodes; server.cores_per_node = cpn;
         server.io_per_node = ipn; server.ex_per_node = epn;
         server.io_threads = nodes * ipn;                         /* GLOBAL totals */
         server.ex_threads = nodes * epn;
-        serverLog(LL_NOTICE, "ee451 node topology: %d node(s) x %d cores (io %d + ex %d per node) "
-                  "=> io_threads=%d ex_threads=%d (pool always fully active)",
-                  nodes, cpn, ipn, epn, server.io_threads, server.ex_threads);
-    } else if (server.io_threads >= 0 && server.ex_threads >= 0) {
-        /* Legacy io-threads/ex-threads => single-node topology. */
-        server.numa_nodes = 1; server.io_per_node = server.io_threads;
-        server.ex_per_node = server.ex_threads; server.cores_per_node = server.io_threads + server.ex_threads;
+        serverLog(LL_NOTICE, "tomokv topology: %d node(s) x %d cores (io %d + ex %d per node) "
+                  "=> io_threads=%d ex_threads=%d, thread-mode=%s, pin-mode=%s",
+                  nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
+                  server.thread_auto ? "auto" : "static", tomoPinModeName(server.pin_mode));
     }
     /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
      * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
     server.tm_ngrow_io = 0;
-    if (server.thread_modes && server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
+    if (server.poly_threads && server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
         server.tm_ngrow_io = server.ex_threads - 1;
         if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
@@ -3769,25 +3786,35 @@ void initServer(void) {
     server.io_threads_min = 1; server.ex_threads_min = 1;
     server.io_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
     server.ex_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
-    /* ee451 (v14): thread counts are MANDATORY — no auto default (either the node model above or
-     * the legacy io/ex-threads must resolve them). */
-    if (server.io_threads < 0 || server.ex_threads < 0) {
-        serverLog(LL_WARNING,
-            "FATAL: set the thread pool explicitly — either the node model "
-            "(--tomokv-numa-nodes N --tomokv-io-per-node I --tomokv-ex-per-node E) or the legacy "
-            "--tomokv-io-threads / --tomokv-ex-threads.");
-        exit(1);
-    }
     /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this
      * server. It would run every command inline on the IO threads against the shared decoy
      * server.db — a different execution model with its own concurrency machinery (a global
      * execution mutex serializing call() + every main-thread db walker) that duplicates what
-     * upstream Redis io-threads already does, minus the maturity. Reject it at boot. */
+     * upstream Redis io-threads already does, minus the maturity. The thread-io/-ex validation
+     * above already guarantees >= 1 per node; this stays as a cheap invariant assert. */
     if (server.ex_threads == 0) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-ex-threads must be >= 1 (sharding-off mode is not supported; "
+            "FATAL: tomokv-thread-ex must be >= 1 (sharding-off mode is not supported; "
             "use upstream Redis for a single-executor deployment).");
         exit(1);
+    }
+    /* ---- pinning: reject configurations that would be SILENTLY IGNORED --------------------
+     * tomokv-pin-io / tomokv-pin-ex only mean anything with pin-mode static, and pin-mode static
+     * means nothing without them. Either mismatch is fatal rather than quietly inert. */
+    tomoResolvePinConfig();
+    /* ---- io_uring: sub-knobs are inert without the master switch ------------------------- */
+    if (!server.io_uring_net) {
+        const char *orphan = NULL;
+        if (server.io_uring_sqpoll)          orphan = "tomokv-io-uring-sqpoll";
+        else if (server.io_uring_recv)       orphan = "tomokv-io-uring-recv";
+        else if (server.io_uring_zc)         orphan = "tomokv-io-uring-zc";
+        else if (server.io_uring_reply_send) orphan = "tomokv-io-uring-reply-send";
+        if (orphan) {
+            serverLog(LL_WARNING,
+                "FATAL: %s requires tomokv-io-uring yes — on its own it does nothing (or worse, "
+                "half of something). Enable the master switch or drop the sub-knob.", orphan);
+            exit(1);
+        }
     }
     /* KNOB CONVENTION (house rule): -1 = AUTO (self-derive), 0 = OFF (no allocation), N > 0 = STATIC.
      * These two used to treat 0 as AUTO, which made 0 mean the opposite of the rule (it allocated the
@@ -3877,13 +3904,11 @@ void initServer(void) {
     server.main_thread_id = pthread_self();
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
 
-    /* ALWAYS-LOCK IS THE DESIGN: tomokv-mcmd-lock is no longer a behavior switch (a config passing
-     * 'no' is overridden with a warning) — the S2 single-key owner lock is what makes a shared node
-     * db safe against sibling workers. */
-    if (!server.mcmd_lock) {
-        serverLog(LL_WARNING, "tomokv-mcmd-lock no is DEPRECATED and ignored — always-lock is the design");
-        server.mcmd_lock = 1;
-    }
+    /* ALWAYS-LOCK IS THE DESIGN: the S2 single-key owner lock is what makes a shared node db safe
+     * against sibling workers, so this is an internal constant, not a knob. The tomokv-mcmd-lock
+     * config was deleted 2026-07-27 — it was accepted and then overridden, i.e. a config surface
+     * that lied about what it did. */
+    server.mcmd_lock = 1;
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
@@ -4002,7 +4027,7 @@ void initServer(void) {
     atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
     /* ee451 (per-node flip): per-node live prefixes — full at boot. */
     {
-        int nn = server.numa_nodes > 0 ? server.numa_nodes : 1;
+        int nn = server.topo_nodes > 0 ? server.topo_nodes : 1;
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         int ipn = server.io_per_node > 0 ? server.io_per_node : server.io_threads;
         for (int n = 0; n < 16 && n < nn; n++) {
@@ -4011,15 +4036,10 @@ void initServer(void) {
         }
     }
     server.tm_mig_spare_action = 0;
-    /* ee451 (thread-modes step 4): the balancer runs on the poly-thread apparatus —
-     * without thread-modes there is nothing to shift. FATAL-warn + ignore at boot
-     * (the runtime CONFIG SET path rejects the same combination in its apply fn). */
-    if (server.thread_balance && !server.thread_modes) {
-        serverLog(LL_WARNING, "FATAL-config: tomokv-thread-balance requires tomokv-thread-modes=1 "
-                              "at boot — IGNORED, the balancer stays OFF");
-        server.thread_balance = 0;
-    }
-    if (server.thread_modes && server.num_workers >= 1 &&
+    /* (The old "tomokv-thread-balance requires tomokv-thread-modes" boot check is GONE by
+     * construction: tomokv-thread-mode is a single enum, so the half-configured state that used
+     * to silently disable the balancer is now unrepresentable.) */
+    if (server.poly_threads && server.num_workers >= 1 &&
         server.num_workers + 1 <= TOMO_EX_THREADS_MAX &&
         server.io_threads + server.num_workers < tmAllowedCores()) {
         server.num_workers_alloc = server.num_workers + 1;
@@ -4048,7 +4068,7 @@ void initServer(void) {
         else if (server.active_defrag_enabled)  bad = "activedefrag";
         if (bad) {
             serverLog(LL_WARNING,
-                "FATAL: '%s' is not supported with tomokv sharding (tomokv-ex-threads=%d): the real "
+                "FATAL: '%s' is not supported with tomokv sharding (tomokv-thread-ex=%d): the real "
                 "dataset lives in per-worker shard DBs that this subsystem does not see, so it would "
                 "silently lose or fail to manage that data. Disable it (use upstream Redis if you need it).",
                 bad, server.num_workers);
@@ -4082,7 +4102,7 @@ void initServer(void) {
      * KNOWN GAP: estore (hash-field TTLs) keeps single-writer aggregates — HFE commands on a
      * SHARED node db can race estore internals; tracked, not exercised by the gates. */
     {
-        int nnodes = server.numa_nodes > 0 ? server.numa_nodes : 1;
+        int nnodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
@@ -5939,7 +5959,7 @@ int processCommand(client *c) {
         (c->cmd->proc == multiCommand || c->cmd->proc == watchCommand))
     {
         rejectCommandFormat(c, "%s is not supported with tomokv sharding "
-            "(tomokv-ex-threads=%d): transactions would execute against the empty "
+            "(tomokv-thread-ex=%d): transactions would execute against the empty "
             "decoy DB and their writes be silently lost; use upstream Redis if you "
             "need MULTI/EXEC/WATCH", c->cmd->fullname, server.num_workers);
         return C_OK;
@@ -5953,10 +5973,10 @@ int processCommand(client *c) {
      * ee451 (xshard registry): INVERTED to an allowlist — TOMO_R_XGUARD is stamped from the
      * registry (UNPORTED row, or no row + multi-key-capable key specs), so future multi-key
      * commands are denied by default; csGateReject applies the per-row argc hooks. Ported cmds
-     * never carry the bit. Gated by thredis-xshard-guard (default on). */
+     * never carry the bit. Gated by tomokv-xshard-guard (default on). */
     if (server.num_workers > 0 && server.xshard_guard &&
         (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
-        rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-ex-threads=%d): "
+        rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
             "Use single-key equivalents or upstream Redis", c->cmd->fullname, server.num_workers);
         return C_OK;
@@ -6900,7 +6920,7 @@ int tomoKeyBucket(const void *keyptr, size_t len) {
  * global prefix [0, num_workers_live) — including a live spare at slot num_workers. numa>=2 uses
  * the per-NODE prefixes (grow-front parks the node's highest worker => per-node contiguity). */
 static int tmWorkerLive(int w) {
-    if (server.numa_nodes <= 1 || server.ex_per_node <= 0)
+    if (server.topo_nodes <= 1 || server.ex_per_node <= 0)
         return w < atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     if (w >= server.num_workers) return 0;             /* spare: unsupported with numa>=2 */
     return (w % server.ex_per_node) <
@@ -9978,7 +9998,7 @@ void flushAllShards(client *c, int dbid, int async) {
      * NOTE the µs-scale FLUSHALL-vs-effect-log ordering window (dst may replay a pre-flush
      * post-image after popping its own sentinel) is a pre-existing engine-wide caveat for
      * ANY in-flight migration, not specific to the spare — tracked with the v8d engine. */
-    if (server.thread_modes && tmSpare && tmSpare->ex && nflush <= server.num_workers &&
+    if (server.poly_threads && tmSpare && tmSpare->ex && nflush <= server.num_workers &&
         atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX)
         nflush = server.num_workers + 1;
     /* ee451 (shared-kv S0.2b): with per-node SHARED kvstores, per-worker emptyDbStructure would
@@ -10521,13 +10541,13 @@ static void reshardCoordinatorTick(void) {
     int src = server.migration.src, dst = server.migration.dst;
     /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..io_threads-1) =
      * io_threads total. (Worker queue slot io_threads has no producer in static mode.)
-     * ee451 (thread-modes step 2): with tomokv-thread-modes on, slot io_threads is the
+     * ee451 (thread-modes step 2): with the poly-thread apparatus on, slot io_threads is the
      * SPARE's producer slot — fence it too. While the spare is parked/dormant its queue
      * just stays empty and the ~2ms idle-ack below clears it; once it has shifted to IO
      * its in-flight dispatches are drained exactly like any other producer's. */
     /* flip: cover all POSSIBLE producer slots (base io + growth io slots a converted worker may
      * run). Slots that never went live have empty queues => idle-acked in C.2, harmless. */
-    int nprod = server.io_threads + (server.thread_modes ? (server.tm_ngrow_io > 0 ? server.tm_ngrow_io : 1) : 0);
+    int nprod = server.io_threads + (server.poly_threads ? (server.tm_ngrow_io > 0 ? server.tm_ngrow_io : 1) : 0);
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: cold scan wrapped + B caught up => converge; else wait (hold state). */
@@ -11094,7 +11114,7 @@ void reshardAutoTune(void) {
     /* Cooler adjacent neighbour with genuinely-below-mean load. WITHIN-NODE ONLY (2026-07-22 user
      * directive: no EWMA balancing across nodes — cross-node is the expensive copy tier, not this
      * O(1) ownership flip). A neighbor in a different logical node is excluded; if the hot worker
-     * sits at a node boundary with no same-node cooler neighbor, no migration fires. numa_nodes==1
+     * sits at a node boundary with no same-node cooler neighbor, no migration fires. topo_nodes==1
      * => tmNodeOfWorker is always 0 => bit-for-bit the previous adjacent selection. */
     int left = hot - 1, right = hot + 1, B = -1;
     int hnode = tmNodeOfWorker(hot);
@@ -14743,7 +14763,8 @@ static inline void exPrefetchBatch(client **batch, int n) {
          * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
          * the gate-closed (dispatch-bound, cache-resident) path, the hottest regime. */
         unsigned long long auto_min;
-        if (server.prefetch_min_keys > 0) {
+        if (server.prefetch_min_keys >= 0) {
+            /* >= 0, not > 0: 0 means OFF (no key floor at all — always prefetch), -1 means AUTO. */
             auto_min = (unsigned long long)server.prefetch_min_keys;   /* explicit override */
         } else {
             if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
@@ -14764,7 +14785,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 pfw->pf_cached_min = (8ULL * l3_share) / (fp ? fp : 1);
                 /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
                 unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
-                long budget = server.pf_value_budget_kb > 0
+                long budget = server.pf_value_budget_kb >= 0   /* 0 = OFF (no value chase), -1 = AUTO */
                     ? (long)server.pf_value_budget_kb * 1024
                     : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
                 pfw->pf_cached_w4 = (int)(budget / (long)ev);
@@ -14784,13 +14805,13 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 if (span < 0) span = 0;
                 /* review [#4]: dbSize is the NODE's kvstore key count, and a node's kvstore spans only
                  * its OWN contiguous bucket sub-range (cross-node reshard is refused, so the per-node
-                 * span is the boot-invariant 16384/numa_nodes). The worker's share is span/NODE-span,
-                 * NOT span/16384 — dividing by 16384 in multi-node under-estimates by ~numa_nodes and
+                 * span is the boot-invariant 16384/topo_nodes). The worker's share is span/NODE-span,
+                 * NOT span/16384 — dividing by 16384 in multi-node under-estimates by ~topo_nodes and
                  * wrongly closes the gate in the memory-bound regime prefetch is meant for. */
-                if (server.numa_nodes <= 1) {
+                if (server.topo_nodes <= 1) {
                     est = (est * (unsigned long long)span) / TOMO_BUCKETS;  /* single node; compiles to a shift */
                 } else {
-                    int node_span = TOMO_BUCKETS / server.numa_nodes;
+                    int node_span = TOMO_BUCKETS / server.topo_nodes;
                     est = (est * (unsigned long long)span) / (node_span > 0 ? node_span : 1);
                 }
             }
@@ -15035,7 +15056,7 @@ static inline void exExecFake(client *fake) {
              * worker. The node-local borrow (deleted 2026-07-27) used the same all-node-locks
              * discipline; its removal does not make any of these locks redundant. */
             if (!server.mcmd_lock) {
-                addReplyError(fake, "HFE commands require tomokv-mcmd-lock yes with shared node dbs");
+                addReplyError(fake, "HFE commands need the per-worker lock discipline with shared node dbs");
             } else {
                 int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
                 int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
@@ -15165,10 +15186,13 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + 1 + (server.thread_modes ? server.tm_ngrow_io : 0);
+    ctx->nq = server.io_threads + 1 + (server.poly_threads ? server.tm_ngrow_io : 0);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
-    ctx->spin_pinned = server.worker_spin > 0;
+    /* tomokv-worker-spin: -1 = auto (adaptive, seed 32), 0 = OFF (never spin), N = pinned rounds.
+     * (0 used to mean "adaptive" — the opposite of the house 0=off rule, so disabling the spin
+     * silently enabled it instead.) */
+    ctx->spin_pinned = server.worker_spin >= 0;
     ctx->spin_budget = ctx->spin_pinned ? server.worker_spin : 32;
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
 }
@@ -15298,7 +15322,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
          * backlog = what still waits AFTER we took a full batch, via the REAL tail (one
          * acquire per work pass — cached_tail structurally under-reads standing depth ~2x,
          * it only refreshes when the consumer drains to cache-empty). */
-        if (server.thread_balance) {
+        if (server.thread_auto) {
             if (!any) ctx->tm_mark = getMonotonicUs();
             unsigned int tm_h = atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed);
             unsigned int tm_t = atomic_load_explicit(&worker->queues[i].tail, memory_order_acquire);
@@ -15476,7 +15500,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * the 4Hz balancer. */
 
     if (any) {
-        if (server.thread_balance) {
+        if (server.thread_auto) {
             int tm_e = (int)worker->tm_qdepth_ewma_q4;
             tm_e += ((tm_pass_depth << 4) - tm_e) >> 3;
             worker->tm_qdepth_ewma_q4 = tm_e < 0 ? 0 : (unsigned int)tm_e;
@@ -15516,7 +15540,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         /* ee451 (thread-modes step 4, signals a+e): a genuine IDLE EPISODE — 0-fold the
          * backlog EWMA (decays within µs of true idleness). (Busy time needs no reset
          * here: it is clocked first-pop..fold within work passes.) */
-        if (server.thread_balance)
+        if (server.thread_auto)
             worker->tm_qdepth_ewma_q4 -= worker->tm_qdepth_ewma_q4 >> 3;
         sched_yield();
         ctx->empty_rounds = 0;
@@ -15566,66 +15590,257 @@ void *exThreadMain(void *arg) {
  * wrapped with modulo if the machine has fewer cores than threads.
  * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
  * intentionally NOT done here. */
-/* ee451 (v8d): SMART (topology-aware) core ordering for pin_mode==1. Groups cores that share an L3
- * cache (a CCD on AMD Zen / a cache tile) to be CONSECUTIVE, so the deterministic logical->physical
- * map (worker i, IO j) PACKS threads onto one shared-L3 domain before spilling to the next — keeping
- * a shard's worker, the IO threads feeding it, and (with NUMA-local alloc below) its memory within
- * one last-level cache + NUMA node. Reads /sys; falls back to identity order if topology is unknown.
- * EPYC/Threadripper-targeted; on a single-L3 box this is identical to manual. */
+/* ee451 (v8d): TOPOLOGY-AWARE core ordering. Groups cores that share a domain to be CONSECUTIVE,
+ * so the deterministic logical->physical map (worker i, IO j) PACKS threads onto one domain before
+ * spilling to the next — keeping a shard's worker, the IO threads feeding it, and (with NUMA-local
+ * alloc below) its memory together. The DOMAIN is chosen by tomokv-pin-mode:
+ *   ccd  -> the shared-L3 id  (/sys/devices/system/cpu/cpuN/cache/indexK/level + id)
+ *   numa -> the NUMA node id  (/sys/devices/system/node/nodeM/cpuN)
+ * Reads /sys; falls back to identity order if the topology is unknown.
+ * EPYC/Threadripper-targeted; on a box with a single domain this is identity. */
 #define SMART_MAX_CORES 1024
-static int smart_core_order[SMART_MAX_CORES];
-static int smart_core_n = 0;
+static int smart_core_order[2][SMART_MAX_CORES];   /* [0]=by L3/CCD, [1]=by NUMA node */
+static int smart_core_n[2] = {0, 0};
 static int read_int_file(const char *path, int *out) {
     FILE *f = fopen(path, "r"); if (!f) return 0;
     int ok = (fscanf(f, "%d", out) == 1); fclose(f); return ok;
 }
-static void buildSmartCoreOrder(void) {
-    long n = sysconf(_SC_NPROCESSORS_ONLN);
-    if (n <= 0 || n > SMART_MAX_CORES) { smart_core_n = 0; return; }
-    int l3id[SMART_MAX_CORES]; int have_all = 1;
-    for (int c = 0; c < n; c++) {
-        l3id[c] = -1;
-        for (int idx = 0; idx < 12; idx++) {       /* find the cache index whose level==3 */
-            char p[160]; int lvl = -1;
-            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/level", c, idx);
-            if (!read_int_file(p, &lvl)) break;     /* no more cache indices for this cpu */
-            if (lvl != 3) continue;
-            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/id", c, idx);
-            read_int_file(p, &l3id[c]);
-            break;
+/* domain id of cpu `c`: by_numa ? its NUMA node : its L3 cache id. -1 = unknown. */
+static int coreDomainId(int c, int by_numa) {
+    char p[160];
+    if (by_numa) {
+        for (int nd = 0; nd < 256; nd++) {          /* node%d/cpu%d symlink exists iff member */
+            snprintf(p, sizeof p, "/sys/devices/system/node/node%d/cpu%d", nd, c);
+            if (access(p, F_OK) == 0) return nd;
         }
-        if (l3id[c] < 0) have_all = 0;
+        return -1;
+    }
+    for (int idx = 0; idx < 12; idx++) {            /* find the cache index whose level==3 */
+        int lvl = -1, id = -1;
+        snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/level", c, idx);
+        if (!read_int_file(p, &lvl)) break;         /* no more cache indices for this cpu */
+        if (lvl != 3) continue;
+        snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cache/index%d/id", c, idx);
+        return read_int_file(p, &id) ? id : -1;
+    }
+    return -1;
+}
+static void buildSmartCoreOrder(int by_numa) {
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    if (n <= 0 || n > SMART_MAX_CORES) { smart_core_n[by_numa] = 0; return; }
+    int dom[SMART_MAX_CORES]; int have_all = 1;
+    for (int c = 0; c < n; c++) {
+        dom[c] = coreDomainId(c, by_numa);
+        if (dom[c] < 0) have_all = 0;
     }
     int k = 0;
     if (!have_all) {                                /* topology unknown -> identity order */
-        for (int c = 0; c < n; c++) smart_core_order[c] = c;
-        smart_core_n = (int)n; return;
+        for (int c = 0; c < n; c++) smart_core_order[by_numa][c] = c;
+        smart_core_n[by_numa] = (int)n; return;
     }
-    for (int lastid = -1;;) {                        /* emit cores grouped by ascending L3 id */
+    for (int lastid = -1;;) {                        /* emit cores grouped by ascending domain id */
         int nextid = INT_MAX;
-        for (int c = 0; c < n; c++) if (l3id[c] > lastid && l3id[c] < nextid) nextid = l3id[c];
+        for (int c = 0; c < n; c++) if (dom[c] > lastid && dom[c] < nextid) nextid = dom[c];
         if (nextid == INT_MAX) break;
-        for (int c = 0; c < n; c++) if (l3id[c] == nextid) smart_core_order[k++] = c;
+        for (int c = 0; c < n; c++) if (dom[c] == nextid) smart_core_order[by_numa][k++] = c;
         lastid = nextid;
     }
-    smart_core_n = k;
-    serverLog(LL_NOTICE, "ee451 smart pinning: %d cores ordered by shared-L3 (CCD) groups", k);
+    smart_core_n[by_numa] = k;
+    serverLog(LL_NOTICE, "tomokv pin-mode %s: %d cores ordered by %s groups",
+              by_numa ? "numa" : "ccd", k, by_numa ? "NUMA-node" : "shared-L3 (CCD)");
 }
 static int smartCoreFor(int logical) {
-    if (smart_core_n == 0) buildSmartCoreOrder();
+    int by_numa = (server.pin_mode == TOMO_PIN_NUMA) ? 1 : 0;
+    if (smart_core_n[by_numa] == 0) buildSmartCoreOrder(by_numa);
     long n = sysconf(_SC_NPROCESSORS_ONLN);
-    if (smart_core_n == 0) return (n > 0) ? (logical % (int)n) : 0;
-    return smart_core_order[logical % smart_core_n];
+    if (smart_core_n[by_numa] == 0) return (n > 0) ? (logical % (int)n) : 0;
+    return smart_core_order[by_numa][logical % smart_core_n[by_numa]];
 }
 
-static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
+/* ---- tomokv-pin-mode / tomokv-pin-io / tomokv-pin-ex ------------------------------------- */
+
+static const char *tomoPinModeName(int mode) {
+    switch (mode) {
+    case TOMO_PIN_FLOAT:  return "float";
+    case TOMO_PIN_CCD:    return "ccd";
+    case TOMO_PIN_NUMA:   return "numa";
+    case TOMO_PIN_STATIC: return "static";
+    default:              return "?";
+    }
+}
+
+/* Parsed tomokv-pin-io / tomokv-pin-ex, indexed [role][node][slot]. */
+static int  tomo_pin_cpu[2][TOMO_NODES_MAX][TOMO_EX_THREADS_MAX];
+static int  tomo_pin_n[2][TOMO_NODES_MAX];
+static int  tomo_pin_loaded = 0;
+
+/* Grammar:  node<N>=<cpu>[,<cpu>|<lo>-<hi>]...   tokens separated by whitespace (or ';').
+ * Every rejection names the offending token — a spec that is 90% right must not half-apply. */
+int tomoPinSpecParse(const char *spec, const char *knob, int *out, int *out_n, const char **err) {
+    static char errbuf[256];
+    int seen[TOMO_NODES_MAX];
+    memset(seen, 0, sizeof(seen));
+    if (out_n) memset(out_n, 0, sizeof(int) * TOMO_NODES_MAX);
+    if (!spec) return 1;
+    const char *p = spec;
+    while (*p) {
+        while (*p == ' ' || *p == '\t' || *p == ';') p++;
+        if (!*p) break;
+        const char *tok = p;
+        while (*p && *p != ' ' && *p != '\t' && *p != ';') p++;
+        size_t toklen = (size_t)(p - tok);
+        char t[128];
+        if (toklen >= sizeof(t)) toklen = sizeof(t) - 1;
+        memcpy(t, tok, toklen); t[toklen] = '\0';
+
+        if (strncmp(t, "node", 4) != 0) {
+            snprintf(errbuf, sizeof errbuf, "%s: malformed token '%s' — expected node<N>=<cpu-list>, "
+                     "e.g. \"node0=0,1,2,3 node1=8-11\"", knob, t);
+            *err = errbuf; return 0;
+        }
+        char *eq = strchr(t, '=');
+        if (!eq || eq == t + 4) {
+            snprintf(errbuf, sizeof errbuf, "%s: malformed token '%s' — expected node<N>=<cpu-list>, "
+                     "e.g. \"node0=0,1,2,3 node1=8-11\"", knob, t);
+            *err = errbuf; return 0;
+        }
+        *eq = '\0';
+        char *endp = NULL;
+        long node = strtol(t + 4, &endp, 10);
+        if (!endp || *endp != '\0') {
+            snprintf(errbuf, sizeof errbuf, "%s: malformed token '%s=%s' — '%s' is not node<N>",
+                     knob, t, eq + 1, t);
+            *err = errbuf; return 0;
+        }
+        if (node < 0 || node >= TOMO_NODES_MAX) {
+            snprintf(errbuf, sizeof errbuf, "%s: node index %ld out of range in token '%s=%s' "
+                     "(valid 0..%d, see tomokv-nodes)", knob, node, t, eq + 1, TOMO_NODES_MAX - 1);
+            *err = errbuf; return 0;
+        }
+        if (seen[node]) {
+            snprintf(errbuf, sizeof errbuf, "%s: node%ld appears twice (token '%s=%s') — one entry per node",
+                     knob, node, t, eq + 1);
+            *err = errbuf; return 0;
+        }
+        seen[node] = 1;
+
+        int cnt = 0;
+        const char *q = eq + 1;
+        if (!*q) {
+            snprintf(errbuf, sizeof errbuf, "%s: token '%s=' has an empty cpu list", knob, t);
+            *err = errbuf; return 0;
+        }
+        while (*q) {
+            char *e2 = NULL;
+            long lo = strtol(q, &e2, 10);
+            if (e2 == q) {
+                snprintf(errbuf, sizeof errbuf, "%s: bad cpu list '%s' in token '%s=%s' — expected "
+                         "comma-separated cpu ids and/or lo-hi ranges", knob, q, t, eq + 1);
+                *err = errbuf; return 0;
+            }
+            long hi = lo;
+            if (*e2 == '-') {
+                const char *r = e2 + 1; char *e3 = NULL;
+                hi = strtol(r, &e3, 10);
+                if (e3 == r) {
+                    snprintf(errbuf, sizeof errbuf, "%s: bad range near '%s' in token '%s=%s'",
+                             knob, e2, t, eq + 1);
+                    *err = errbuf; return 0;
+                }
+                e2 = e3;
+            }
+            if (lo < 0 || hi < lo || hi >= CPU_SETSIZE) {
+                snprintf(errbuf, sizeof errbuf, "%s: cpu range %ld-%ld out of range in token '%s=%s' "
+                         "(valid 0..%d)", knob, lo, hi, t, eq + 1, CPU_SETSIZE - 1);
+                *err = errbuf; return 0;
+            }
+            for (long c = lo; c <= hi; c++) {
+                if (cnt >= TOMO_EX_THREADS_MAX) {
+                    snprintf(errbuf, sizeof errbuf, "%s: token '%s=%s' lists more than %d cpus for one node",
+                             knob, t, eq + 1, TOMO_EX_THREADS_MAX);
+                    *err = errbuf; return 0;
+                }
+                if (out) out[node * TOMO_EX_THREADS_MAX + cnt] = (int)c;
+                cnt++;
+            }
+            if (*e2 == ',') { q = e2 + 1; if (!*q) {
+                    snprintf(errbuf, sizeof errbuf, "%s: trailing ',' in token '%s=%s'", knob, t, eq + 1);
+                    *err = errbuf; return 0; } }
+            else if (*e2 == '\0') break;
+            else {
+                snprintf(errbuf, sizeof errbuf, "%s: unexpected '%c' in token '%s=%s'",
+                         knob, *e2, t, eq + 1);
+                *err = errbuf; return 0;
+            }
+        }
+        if (out_n) out_n[node] = cnt;
+    }
+    return 1;
+}
+
+/* Boot-time cross-check of the pinning knobs. Runs AFTER the topology resolves, so it can also
+ * verify the spec actually COVERS the pool. Every failure here is fatal: the alternative is a
+ * server that boots with threads floating where the operator asked for placement. */
+static void tomoResolvePinConfig(void) {
+    const char *spec_io = server.pin_io_spec ? server.pin_io_spec : "";
+    const char *spec_ex = server.pin_ex_spec ? server.pin_ex_spec : "";
+    int have_spec = (*spec_io || *spec_ex);
+
+    if (server.pin_mode != TOMO_PIN_STATIC) {
+        if (have_spec) {
+            serverLog(LL_WARNING,
+                "FATAL: tomokv-pin-io / tomokv-pin-ex are only used with tomokv-pin-mode static, "
+                "but tomokv-pin-mode is '%s'. Refusing to ignore them silently — either set "
+                "tomokv-pin-mode static or drop the specs.", tomoPinModeName(server.pin_mode));
+            exit(1);
+        }
+        return;
+    }
+    if (!*spec_io || !*spec_ex) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-pin-mode static requires BOTH tomokv-pin-io and tomokv-pin-ex "
+            "(per role per node), e.g. --tomokv-pin-io \"node0=0-3\" --tomokv-pin-ex \"node0=4-7\". "
+            "Got tomokv-pin-io=\"%s\" tomokv-pin-ex=\"%s\".", spec_io, spec_ex);
+        exit(1);
+    }
+    const char *err = NULL;
+    if (!tomoPinSpecParse(spec_io, "tomokv-pin-io", &tomo_pin_cpu[TOMO_PIN_ROLE_IO][0][0],
+                          &tomo_pin_n[TOMO_PIN_ROLE_IO][0], &err) ||
+        !tomoPinSpecParse(spec_ex, "tomokv-pin-ex", &tomo_pin_cpu[TOMO_PIN_ROLE_EX][0][0],
+                          &tomo_pin_n[TOMO_PIN_ROLE_EX][0], &err)) {
+        serverLog(LL_WARNING, "FATAL: %s", err ? err : "invalid pin spec");
+        exit(1);
+    }
+    /* Coverage: every node needs at least as many cpus as it has threads of that role. */
+    for (int n = 0; n < server.topo_nodes; n++) {
+        if (tomo_pin_n[TOMO_PIN_ROLE_IO][n] < server.io_per_node) {
+            serverLog(LL_WARNING, "FATAL: tomokv-pin-io gives node%d %d cpu(s) but tomokv-thread-io "
+                      "is %d — every IO thread must have a cpu.", n,
+                      tomo_pin_n[TOMO_PIN_ROLE_IO][n], server.io_per_node);
+            exit(1);
+        }
+        if (tomo_pin_n[TOMO_PIN_ROLE_EX][n] < server.ex_per_node) {
+            serverLog(LL_WARNING, "FATAL: tomokv-pin-ex gives node%d %d cpu(s) but tomokv-thread-ex "
+                      "is %d — every worker must have a cpu.", n,
+                      tomo_pin_n[TOMO_PIN_ROLE_EX][n], server.ex_per_node);
+            exit(1);
+        }
+    }
+    tomo_pin_loaded = 1;
+    serverLog(LL_NOTICE, "tomokv pin-mode static: io=\"%s\" ex=\"%s\"", spec_io, spec_ex);
+}
+
+/* `role` is TOMO_PIN_ROLE_IO / _EX with `node` + `idx_in_node` identifying the thread within its
+ * node; role < 0 means "no role identity" (the spare), which cannot use a static spec. */
+static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx,
+                             int role, int node, int idx_in_node) {
 #ifdef __linux__
-    if (server.pin_mode == 0) return;   /* 0 = FLOAT: no pinning, scheduler decides */
+    if (server.pin_mode == TOMO_PIN_FLOAT) return;   /* no pinning, scheduler decides */
     /* dragonfly/helio-style affinity-set-aware pinning: pin within the process's ALLOWED cpu set
      * (sched_getaffinity -> respects taskset/cgroup/cpuset), compacted to a dense list, round-robin.
      * Fixes the old `core_idx % NPROC_ONLN`, which used ABSOLUTE core numbers and silently failed
      * (the thread then floated) whenever core_idx fell outside a taskset range — e.g. an oversubscribed
-     * config under `taskset -c 0-7`. pin_mode==1 keeps the smart (shared-L3/CCD) core IF it's allowed. */
+     * config under `taskset -c 0-7`. ccd/numa keep the topology-grouped core IF it's allowed. */
     /* Capture the allowed set ONCE (cached) on the first pin — BEFORE any thread (incl. main) narrows
      * its own affinity. Otherwise sched_getaffinity(0) of an already-pinned caller returns a single cpu
      * and every later pin clusters onto it. (All pins are issued from the main thread pre-cache, so the
@@ -15644,64 +15859,58 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx) {
     }
     if (g_na <= 0) return;
     int core;
-    if (server.pin_mode == 1) {
-        /* 1 = MANUAL: user-specified core list (tomokv-pin-cores, comma-separated), applied in
-         * thread-pin order (io threads first, then workers), round-robin if the list is short. */
-        static int g_man[CPU_SETSIZE]; static int g_nman = -1;
-        if (g_nman < 0) {
-            g_nman = 0;
-            const char *p = server.pin_cores;
-            while (p && *p && g_nman < CPU_SETSIZE) {
-                char *end; long v = strtol(p, &end, 10);
-                if (end == p) break;
-                if (v >= 0 && v < CPU_SETSIZE) g_man[g_nman++] = (int)v;
-                p = (*end == ',') ? end + 1 : end;
-            }
-            if (g_nman == 0)
-                serverLog(LL_WARNING, "pin-mode 1 (manual) but tomokv-pin-cores is empty/unparsable — threads will FLOAT");
+    if (server.pin_mode == TOMO_PIN_STATIC) {
+        /* STATIC: placement comes verbatim from tomokv-pin-io / tomokv-pin-ex, per role per node.
+         * Coverage was proven at boot (tomoResolvePinConfig), so a miss here can only be a thread
+         * with no role identity — today just the spare, which floats. */
+        if (!tomo_pin_loaded || role < 0 || node < 0 || node >= TOMO_NODES_MAX ||
+            idx_in_node < 0 || idx_in_node >= tomo_pin_n[role][node]) {
+            serverLog(LL_WARNING, "pin-mode static: no cpu in tomokv-pin-%s for %s (node %d slot %d) "
+                      "— it floats", role == TOMO_PIN_ROLE_EX ? "ex" : "io", what, node, idx_in_node);
+            return;
         }
-        if (g_nman == 0) return;                   /* nothing to pin to */
-        core = g_man[core_idx % g_nman];
+        core = tomo_pin_cpu[role][node][idx_in_node];
         int ok = 0; for (int k = 0; k < g_na; k++) if (g_abs[k] == core) { ok = 1; break; }
-        if (!ok) { serverLog(LL_WARNING, "pin-cores core %d not in allowed set; %s floats", core, what); return; }
+        if (!ok) { serverLog(LL_WARNING, "tomokv-pin-%s core %d is not in the process's allowed cpu set "
+                             "(taskset/cgroup); %s floats",
+                             role == TOMO_PIN_ROLE_EX ? "ex" : "io", core, what); return; }
     } else {
-        /* 2 = AUTO (arch-aware): the topology decides the policy. Multiple L3 domains (CCDs) ->
-         * smart shared-L3 grouping (keep a worker near its io feeders' cache). A single L3 domain
-         * has no structure to exploit -> plain allowed-set round-robin IS the arch-aware answer
-         * (the smart ordering can pack SMT siblings there and measurably hurts). Machine identity,
-         * decided once. Respects taskset/cgroup affinity either way. */
+        /* ccd / numa: the topology decides the policy. Multiple domains -> group threads by
+         * shared-L3 (ccd) or NUMA node (numa), so a worker sits near its io feeders. A single
+         * domain has no structure to exploit -> plain allowed-set round-robin IS the arch-aware
+         * answer (the grouped ordering can pack SMT siblings there and measurably hurts).
+         * Machine identity, decided once. Respects taskset/cgroup affinity either way. */
         core = g_abs[core_idx % g_na];
-        static int g_multi_l3 = -1;
-        if (g_multi_l3 < 0) g_multi_l3 = detectL3Domains() > 1 ? 1 : 0;
-        if (g_multi_l3) {
+        static int g_multi_dom = -1;
+        if (g_multi_dom < 0) g_multi_dom = detectL3Domains() > 1 ? 1 : 0;
+        if (g_multi_dom) {
             int sc = smartCoreFor(core_idx);
             if (sc >= 0) for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
         }
     }
     cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
     if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
-        serverLog(LL_NOTICE, "%s pinned to core %d%s", what, core, server.pin_mode==1?" (smart)":"");
+        serverLog(LL_NOTICE, "%s pinned to core %d (pin-mode %s)", what, core,
+                  tomoPinModeName(server.pin_mode));
     else
         serverLog(LL_WARNING, "Failed to pin %s to core %d", what, core);
 #else
-    UNUSED(thread); UNUSED(what); UNUSED(core_idx);
+    UNUSED(thread); UNUSED(what); UNUSED(core_idx); UNUSED(role); UNUSED(node); UNUSED(idx_in_node);
 #endif
 }
 
-/* ee451 (v8d): bind this worker's allocations to its core's NUMA node (pin_mode==2 auto only), so
- * the shard's dicts/values stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses
- * raw syscalls (no libnuma dependency); a no-op / best-effort if unsupported. Called from the worker
- * thread after it is already pinned, so getcpu() reports its real node.
- * ee451 (W5-B1 BUGFIX): the gate was inverted (`!= 1` return, i.e. MANUAL-mode-only) against every
- * other reference — the forward declaration, the call-site comment and README all promise NUMA bind
- * as part of AUTO mode 2 — so on the machine class this exists for (multi-node, default pin mode)
- * it never ran; and when it did run (manual mode) the node came from smartCoreFor(ex_id), the AUTO
- * core map, which manual placement does not use — potentially preferring a REMOTE node. Fixed:
- * gate on mode 2 and derive the node from sched_getcpu() on the already-pinned thread (exactly what
- * the header comment always claimed), with the smart map only as a fallback if getcpu fails. */
+/* ee451 (v8d): bind this worker's allocations to its core's NUMA node, so the shard's dicts/values
+ * stay node-local — the dominant win on multi-NUMA EPYC/Threadripper. Uses raw syscalls (no libnuma
+ * dependency); a no-op / best-effort if unsupported. Called from the worker thread after it is
+ * already pinned, so getcpu() reports its real node.
+ * ee451 (W5-B1 BUGFIX): the gate used to be inverted (MANUAL-mode-only) against every other
+ * reference, so on the machine class this exists for it never ran. Now: it applies to EVERY pinning
+ * mode (ccd / numa / static) and only `float` opts out — if a thread has a fixed core, preferring
+ * that core's node for its shard memory is always the right default (MPOL_PREFERRED falls back
+ * rather than OOM). The node comes from sched_getcpu() on the already-pinned thread. */
 void exBindNumaLocal(int ex_id) {
 #ifdef __linux__
-    if (server.pin_mode != 2) return;
+    if (server.pin_mode == TOMO_PIN_FLOAT) return;
     int core = sched_getcpu();
     if (core < 0) core = smartCoreFor(ex_id);
     int node = -1;                              /* core's NUMA node: node%d/cpu%d symlink exists iff member */
@@ -15719,15 +15928,34 @@ void exBindNumaLocal(int ex_id) {
 #endif
 }
 
+/* Logical core index for a (role, node, slot) triple. Each node owns a CONTIGUOUS block of
+ * cores_per_node logical indices: [node*cpn, node*cpn + cpn), workers first then IO threads.
+ * With tomokv-nodes 1 this is exactly the historical map (worker i -> i, IO j -> num_workers+j),
+ * so single-node placement is unchanged; multi-node used to interleave the roles across nodes
+ * (workers 0..W-1 then IO 0..io-1 globally), which scattered a node's threads across CCDs. */
+static int tomoLogicalCore(int role, int node, int idx_in_node) {
+    int cpn = server.cores_per_node > 0 ? server.cores_per_node
+                                        : server.ex_per_node + server.io_per_node;
+    int base = node * cpn;
+    return base + (role == TOMO_PIN_ROLE_EX ? idx_in_node : server.ex_per_node + idx_in_node);
+}
+
 static void pinExToCore(pthread_t thread, int ex_id) {
     char what[40]; snprintf(what, sizeof what, "Worker %d", ex_id);
-    pinThreadToCoreN(thread, what, ex_id);
+    int epn = server.ex_per_node > 0 ? server.ex_per_node : 1;
+    int node = ex_id / epn, idx = ex_id % epn;
+    pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_EX, node, idx),
+                     TOMO_PIN_ROLE_EX, node, idx);
 }
 
 /* IO thread id 0 == main thread. */
 void pinIOThreadToCore(pthread_t thread, int io_id) {
     char what[40]; snprintf(what, sizeof what, "IO thread %d", io_id);
-    pinThreadToCoreN(thread, what, server.num_workers + io_id);
+    int ipn = server.io_per_node > 0 ? server.io_per_node : 1;
+    int node = io_id / ipn, idx = io_id % ipn;
+    if (node >= server.topo_nodes) { node = server.topo_nodes - 1; idx = ipn - 1; }  /* grown io slots */
+    pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_IO, node, idx),
+                     TOMO_PIN_ROLE_IO, node, idx);
 }
 
 /* ---- ee451 (thread-modes v1, step 2): poly-thread context registry ----
@@ -15749,7 +15977,7 @@ static int tmMigExpelInbox(int id);
 
 /* Map an io-mode iotid to its poly context (NULL for main / non-poly / unknown). */
 static polyThreadCtx *tmCtxForIotid(int id) {
-    if (!server.thread_modes || !tmPolyCtxs) return NULL;
+    if (!server.poly_threads || !tmPolyCtxs) return NULL;
     if (id >= 1 && id < server.io_threads) return &tmPolyCtxs[id - 1];   /* io-born 1..io_threads-1 */
     if (tmSpare && id == tmSpare->io_slot) return tmSpare;               /* the spare (io_slot == io_threads) */
     /* flip growth slots (io_threads..io_threads+tm_ngrow_io): a converted EX worker now running
@@ -15828,7 +16056,7 @@ void initExThreads(void) {
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
-        if (server.thread_modes) {
+        if (server.poly_threads) {
             /* ee451 (thread-modes v1, step 2): EX-born poly thread. Fixed identity
              * pair: ex_slot = its worker index (the EX identity it was born to);
              * io_slot = io_threads+1+i, a reserved NAME only (no io binding — EX
@@ -15874,7 +16102,7 @@ void initExThreads(void) {
      * this) BINDS it here and runs exSlice on it only while in EX mode. The plain tmSpare->ex
      * store is safe: the spare reads ctx->ex only at a checkpoint ordered after a target_mode
      * release/acquire pair, and every target store happens after this init (main thread). */
-    if (server.thread_modes && server.num_workers_alloc > server.num_workers) {
+    if (server.poly_threads && server.num_workers_alloc > server.num_workers) {
         exThread *sp = &server.exThreads[server.num_workers];
         memset(sp, 0, sizeof(*sp));
         sp->id = server.num_workers;
@@ -15963,7 +16191,9 @@ static void tmSpawnSpare(void) {
      * spare gets the NEXT slot — no live thread's pin index moves. */
     {
         char what[40]; snprintf(what, sizeof what, "Spare poly thread");
-        pinThreadToCoreN(ctx->thread, what, server.num_workers + server.io_threads);
+        /* The spare has no role/node identity (it is neither an IO nor an EX slot of any node),
+         * so it uses the flat logical index and floats under pin-mode static. */
+        pinThreadToCoreN(ctx->thread, what, server.num_workers + server.io_threads, -1, -1, -1);
     }
     tmSpare = ctx;
     serverLog(LL_NOTICE, "ee451 thread-modes: spare poly thread PARKED (io_slot %d, ex_slot %d), "
@@ -15973,7 +16203,7 @@ static void tmSpawnSpare(void) {
 void initIOThreads(void) {
     server.ioThreadsNum = server.io_threads;
     int spare = 0;
-    if (server.thread_modes) {
+    if (server.poly_threads) {
         /* ee451 (thread-modes v1, step 2): capture the allowed-core count BEFORE any
          * pin narrows an affinity mask, decide the spare, and size the poly registry. */
         int allowed = tmAllowedCores();
@@ -16033,7 +16263,7 @@ void initIOThreads(void) {
         tmMigInitSlot(i, t->el);
 
         /* Spin up the thread */
-        if (server.thread_modes) {
+        if (server.poly_threads) {
             /* ee451 (thread-modes v1, step 2): IO-born poly thread. Fixed identity
              * pair: io_slot = its io thread id (listener + event loop pre-built
              * above, exactly as the static path); ex_slot = num_workers+i, a
@@ -16082,7 +16312,7 @@ static int ioSlice(ioThreadArgs *t) {
      * written; the balancer samples it racily. NOTE: the main thread runs aeMain (not this
      * slice), so ingress covers io threads 1..N-1 (+ the spare while in IO mode) only —
      * main's load is still visible to the balancer via its ROB/write-backlog signals. */
-    if (server.thread_modes) {   /* was thread_balance: busy is consumed by BOTH the flip controller
+    if (server.poly_threads) {   /* was thread_auto: busy is consumed by BOTH the flip controller
                                   * and the continuous client-lb, so maintain it whenever the flip
                                   * machinery is on (one cheap EWMA/pass). */
         tmIoSignal *s = &tm_io_sig[t->id];
@@ -16110,7 +16340,7 @@ void *ioThreadMain(void *arg) {
 }
 
 /* ee451 (thread-modes v1, step 2): unified polymorphic thread main — WIRED when
- * tomokv-thread-modes=1 (all tomokv threads run this; static mains untouched
+ * the poly-thread apparatus (all tomokv threads run this; static mains untouched
  * when 0). arg = this thread's polyThreadCtx (fixed identity pair + bindings).
  *
  * The MODE-SCOPED IDENTITY protocol (the historic worker-slot crash class was
@@ -16402,11 +16632,11 @@ static int tmClientMigratable(client *c);                       /* defined below
 
 /* ee451 (per-node flip): node liveness bookkeeping — no-ops on numa==1 (globals carry it). */
 static void tmNodeWliveAdd(int w, int delta) {
-    if (server.numa_nodes <= 1 || server.ex_per_node <= 0) return;
+    if (server.topo_nodes <= 1 || server.ex_per_node <= 0) return;
     atomic_fetch_add_explicit(&server.tm_node_wlive[w / server.ex_per_node], delta, memory_order_release);
 }
 static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inherits its EX worker's node */
-    if (server.numa_nodes <= 1 || server.ex_per_node <= 0) return;
+    if (server.topo_nodes <= 1 || server.ex_per_node <= 0) return;
     atomic_fetch_add_explicit(&server.tm_node_iolive[w_of_ctx / server.ex_per_node], delta, memory_order_release);
 }
 
@@ -16458,7 +16688,7 @@ static int tomoGrowFrontWorker(int w, const char **err) {
 }
 
 int tomoGrowFront(const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     /* review [10]: the global sum is NOT the highest live worker once nodes flip independently —
      * converting sum-1 would corrupt the per-node prefix. Multi-node must use the per-node hooks. */
@@ -16520,7 +16750,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
 }
 
 int tomoGrowBack(const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 80+n)"; return 0; }  /* review [10] */
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
@@ -16641,7 +16871,7 @@ void tmFlipTick(void) {
 
 int tomoSpareShift(int mode, const char **err) {
     if (mode == TOMO_MODE_PARKED && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
     if (mode == TOMO_MODE_WB) mode = TOMO_MODE_PARKED;    /* value 3 = the explicit park verb (2s fork) */
     int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
@@ -16689,7 +16919,7 @@ int tomoSpareShift(int mode, const char **err) {
         if (cur == TOMO_MODE_EX) return 1;            /* already there */
         if (cur == TOMO_MODE_IO) { *err = "IO->EX direct is illegal — IO-exit is not implemented in v1"; return 0; }
         if (!tmSpare->ex)
-            { *err = "spare has no EX binding (tomokv-ex-threads is 0, or the extra slot would exceed TOMO_EX_THREADS_MAX)"; return 0; }
+            { *err = "spare has no EX binding (tomokv-thread-ex is 0, or the extra slot would exceed TOMO_EX_THREADS_MAX)"; return 0; }
         if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
             { *err = "a migration is in flight — retry when it completes"; return 0; }
         /* Seed range: the TOP HALF of worker W-1's contiguous range (a SUFFIX move to
@@ -16880,7 +17110,7 @@ static void tmRebalanceOntoNewIo(int new_id) {
     int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);  /* every live io thread, incl. new_id */
     /* WITHIN-NODE ONLY (2026-07-22 user directive): pull existing conns only from io threads in the
      * SAME logical node as the newly-online io thread — client load balancing never crosses nodes.
-     * numa_nodes==1 => all threads are node 0 => unfiltered (identical to before). */
+     * topo_nodes==1 => all threads are node 0 => unfiltered (identical to before). */
     int node = tmNodeOfIoSlot(new_id), n = 0;
     for (int i = 0; i < n0; i++)
         if (tmNumNodes() == 1 || tmNodeOfIoSlot(all[i]) == node) all[n++] = all[i];
@@ -16936,7 +17166,7 @@ static void tmRebalanceOntoNewIo(int new_id) {
  * instead of only on flips. Gated by the same tm_flip_rebalance knob. */
 static int cli_hot_streak[TOMO_IO_THREADS_MAX + 1];
 void tmClientBalanceCron(void) {
-    if (!server.thread_modes || !server.tm_flip_rebalance) return;
+    if (!server.poly_threads || !server.tm_flip_rebalance) return;
     int all[TOMO_IO_THREADS_MAX + 1];
     int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);
     int nnodes = tmNumNodes();
@@ -17161,7 +17391,7 @@ static int tmMigExpelInbox(int id) {
  * marking migratable clients while exiting, complete quiesced handoffs, and park when an
  * IO-EXIT has drained the last client. */
 void tmMigServiceOut(void) {
-    if (!server.thread_modes) return;
+    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->migrating_out) return;   /* not an io-capable migration slot */
@@ -17290,7 +17520,7 @@ void tmMigServiceOut(void) {
 /* DEST side, called each pass from beforeSleepIO: adopt clients handed to this thread's inbox.
  * Re-registers each fd on THIS loop, re-links into the per-iotid structures, resumes reads. */
 void tmMigDrainInbox(void) {
-    if (!server.thread_modes) return;
+    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->inbox) return;
@@ -17344,7 +17574,7 @@ static void tmMigNotifierHandler(aeEventLoop *el, int fd, void *clientData, int 
  * each io thread's event loop is created (initIOThreads / tmSpawnSpare), before the thread
  * starts polling — so registering on el from the main thread is race-free. */
 void tmMigInitSlot(int io_slot, aeEventLoop *el) {
-    if (!server.thread_modes) return;
+    if (!server.poly_threads) return;
     tmMigMailbox *mb = &tm_mig_mbox[io_slot];
     mb->inbox = listCreate();
     mb->migrating_out = listCreate();
@@ -17363,7 +17593,7 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
  * source/dest, publishes a request to the source's mailbox, and wakes it. The source runs
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (server.io_uring_recv) {
         *err = "connection migration is not supported with tomokv-io-uring-recv in v1 "
                "(multishot-recv buffers cannot follow the fd across threads)";
@@ -17460,12 +17690,12 @@ int tomoMigrateTest(int val, const char **err) {
  * next actuation). It does not undo the shift (undo-on-blip = flap; the reverse quorum handles a
  * genuinely inverted regime).
  *
- * BOUNDS: tomokv-ex-threads-min/max (0=auto: min 1, max = the populated allocation). V1 has one
+ * BOUNDS: tomokv-thread-ex-min/max (0=auto: min 1, max = the populated allocation). V1 has one
  * movable thread, so they only bound the spare's participation; the io bounds are inert in v1. */
 #define TM_BAL_SETTLE     12     /* ticks @ ~4-5Hz ≈ 3s settle window */
 #define TM_BAL_P99_FLOOR  500    /* us; veto ignores degradations under this (idle-noise guard) */
 static void tomoThreadBalanceCron(void) {
-    if (!server.thread_balance || !server.thread_modes || !server.exThreads) return;
+    if (!server.thread_auto || !server.poly_threads || !server.exThreads) return;
     static int inert_logged = 0;
     if (!tmSpare || !tmSpare->ex) {
         if (!inert_logged) {
@@ -17676,7 +17906,7 @@ static void tomoThreadBalanceCron(void) {
             sustain_grow = 0;
             if (W + 1 > ex_max_eff) {
                 if (now - last_log >= 5000) {
-                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-ex-threads-max %d blocks "
+                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-thread-ex-max %d blocks "
                                          "PARKED->EX (would make %d live workers)", ex_max_eff, W + 1);
                     last_log = now;
                 }
@@ -17703,7 +17933,7 @@ static void tomoThreadBalanceCron(void) {
             sustain_shrink = 0;
             if (W < ex_min_eff) {
                 if (now - last_log >= 5000) {
-                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-ex-threads-min %d blocks "
+                    serverLog(LL_NOTICE, "[balance] quorum met but tomokv-thread-ex-min %d blocks "
                                          "EX->PARKED (would leave %d live workers)", ex_min_eff, W);
                     last_log = now;
                 }
@@ -17729,18 +17959,18 @@ static void tomoThreadBalanceCron(void) {
  * saturated while the workers have slack) -> grow-front; BACK pressure (workers saturated while io
  * has slack) -> grow-back. Same signal philosophy as the spare balancer (worker busy% utilization
  * + ingress events/pass EWMA), Schmitt sustain + a post-flip settle cooldown; the flip actuators
- * enforce the per-role bounds. No-op unless tomokv-thread-balance (which also feeds busy_ewma_q4,
+ * enforce the per-role bounds. No-op unless tomokv-thread-mode auto (which also feeds busy_ewma_q4,
  * so the grow-front client rebalance runs EWMA-weighted rather than conn-count when this is on). */
-/* Per-node flip actuators (numa_nodes>=2). Defined below; see the node-scoped implementations. */
+/* Per-node flip actuators (topo_nodes>=2). Defined below; see the node-scoped implementations. */
 
 /* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
  * load balancing and flip decisions are ALL within-node; cross-node balancing is disabled). Nodes
  * partition the pool: node n owns worker indices [n*ex_per_node, (n+1)*ex_per_node) — a contiguous
  * bucket slice by construction (ex_bucket_end is monotone) — and base io slots [n*io_per_node,
  * (n+1)*io_per_node). A converted worker keeps its node membership while serving as an IO thread.
- * numa_nodes==1 => the whole server is node 0 (identical to the pre-node behavior). ---- */
+ * topo_nodes==1 => the whole server is node 0 (identical to the pre-node behavior). ---- */
 #define TM_MAXNODE 16
-static int tmNumNodes(void) { return server.numa_nodes > 0 ? server.numa_nodes : 1; }
+static int tmNumNodes(void) { return server.topo_nodes > 0 ? server.topo_nodes : 1; }
 static int tmNodeOfWorker(int w) {
     return (server.ex_per_node > 0) ? (w / server.ex_per_node) : 0;
 }
@@ -17853,7 +18083,7 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * recovers). Bounds exploration to COAST+1 steps => no ratchet. */
 #define FLIP_WAIT_REVERT 12    /* longer pause after a REVERT (~3s) so the reverted config settles */
 
-/* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. numa_nodes==1 uses
+/* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
 static int tmFlipDo(int node, int dir, const char **err) {
     if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
@@ -17861,7 +18091,7 @@ static int tmFlipDo(int node, int dir, const char **err) {
 }
 
 static void tomoFlipController(void) {
-    if (!server.thread_balance || !server.thread_modes || !server.exThreads) return;
+    if (!server.thread_auto || !server.poly_threads || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
     if (server.tm_flip_ctx) return;                         /* a flip is mid-flight */
@@ -18223,14 +18453,14 @@ static void tomoFlipController(void) {
     }
 }
 
-/* Per-node flip actuators — STAGED (numa_nodes>=2). The single-node global actuators
+/* Per-node flip actuators — STAGED (topo_nodes>=2). The single-node global actuators
  * (tomoGrowFront/Back) rely on a CONTIGUOUS num_workers_live (grow-front always converts the highest
  * global worker), which stays correct because a single node converts top-down. With multiple nodes
  * each converting its OWN highest worker, liveness becomes non-contiguous and every num_workers_live
  * fan-out (KEYS/FLUSH/RANDOMKEY/balancer) would skip live workers. Correct multi-node flip therefore
  * needs a per-worker live_as_ex flag + fan-out updates + concurrent-migration slots — tracked as the
- * next stage. Until then these refuse cleanly so numa_nodes==1 (the default + the 1-simnode bench)
- * is fully live and numa_nodes>=2 boots + does within-node EWMA scoping without an incorrect flip. */
+ * next stage. Until then these refuse cleanly so topo_nodes==1 (the default + the 1-simnode bench)
+ * is fully live and topo_nodes>=2 boots + does within-node EWMA scoping without an incorrect flip. */
 /* ee451 (per-node flip, LIVE): the per-worker-liveness groundwork landed (tm_node_wlive prefixes +
  * tmWorkerLive predicate + fan-out/balancer conversions), so each node flips INDEPENDENTLY with the
  * same algorithm as a single big node: convert the node's HIGHEST live worker (LIFO within the
@@ -18246,7 +18476,7 @@ int tomoNodeFlipTest(int val, const char **err) {
 }
 
 static int tomoGrowFrontNode(int node, const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     int wpn = server.ex_per_node;
@@ -18256,7 +18486,7 @@ static int tomoGrowFrontNode(int node, const char **err) {
     return tomoGrowFrontWorker(node * wpn + live_n - 1, err);   /* node's highest live worker */
 }
 static int tomoGrowBackNode(int node, const char **err) {
-    if (!server.thread_modes) { *err = "tomokv-thread-modes is off"; return 0; }
+    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     /* The node's highest grown io slot currently serving IO (LIFO within the node). */

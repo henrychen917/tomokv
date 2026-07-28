@@ -74,7 +74,7 @@ stock kvstore was never built for. The `KVSTORE_SHARED_MT` mode adapts the bookk
 
 Single-writer kvstores (the flag off) are bit-for-bit unchanged.
 
-### FLATSTORE — the lock-free flat table (opt-in: `thredis-flat-store 1`)
+### FLATSTORE — the lock-free flat table (`tomokv-flat-store yes`, default on)
 
 A node's keyspace is 16384 per-bucket dicts so a reshard is an O(1) ownership flip (no key copy).
 But 16384 dict *headers* (≈1.6 MB of `struct dict` + scattered hash tables) don't fit L2, so a
@@ -114,7 +114,7 @@ per-bucket dict is.
 ### The lock discipline
 
 Multi-key commands may legitimately touch buckets owned by several workers of a node. With
-`tomokv-mcmd-lock` enabled, every access to a worker's territory takes that worker's 1-byte CAS
+With the per-worker lock discipline, every access to a worker's territory takes that worker's 1-byte CAS
 lock — the owner on its own operations, borrowers per key, migration and flush machinery around
 their critical sections. Because ownership means collisions are rare, the locks are almost always
 uncontended: *lock every time, wait almost never*. With the knob off the entire discipline
@@ -232,26 +232,28 @@ of the free.
 
 | knob | default | meaning |
 |---|---|---|
-| `tomokv-numa-nodes` | 1 | logical node count (1 = the whole server is one node); max 16 |
-| `tomokv-cores-per-node` | derive | cores per node; pool = nodes × cores |
-| `tomokv-io-per-node` | derive | boot ingress threads per node |
-| `tomokv-ex-per-node` | derive | boot workers per node — `1 io + (C−1) ex` maximizes flip range |
-| `tomokv-io-threads` / `tomokv-ex-threads` | — | legacy global totals; must equal nodes × per-node values when both given |
+| `tomokv-nodes` | 1 | node count; max 16. A "node" is a **CCD** when `tomokv-pin-mode ccd`, a **NUMA node** when `tomokv-pin-mode numa`. Which partitioning wins on the target hardware is an open measurement (EPYC/Threadripper), which is why it is one knob. |
+| `tomokv-cores-per-node` | derive (io+ex) | cores per node; total real cores = nodes × cores-per-node |
+| `tomokv-thread-io` | **mandatory** | starting ingress threads **per node** |
+| `tomokv-thread-ex` | **mandatory** | starting workers **per node** — `1 io + (C−1) ex` maximizes flip range |
+
+With `tomokv-nodes 1` (the default) `tomokv-thread-io` / `tomokv-thread-ex` are simply the total
+thread counts. The old flat `tomokv-io-threads` / `tomokv-ex-threads` were removed — they were a
+second way to say the same thing.
 
 ### Role-flipping
 
 | knob | default | mutable | meaning |
 |---|---|---|---|
-| `tomokv-thread-modes` | off | no | poly-bound threads (prerequisite for any flipping) |
-| `tomokv-thread-balance` | off | yes | the per-node flip controller + EWMA-weighted client balancing |
+| `tomokv-thread-mode` | `auto` | no | `auto` = the per-node flip controller + EWMA-weighted client balancing may move the io/ex split away from the boot values; `static` = the boot split is held for the whole run (reproducible measurement). One knob: the old `tomokv-thread-modes` + `tomokv-thread-balance` pair had to be set TOGETHER, and setting one silently disabled the feature. |
 | `tomokv-flip-rebalance` | on | yes | client re-spread and load-weight transfer at each conversion; also gates the **continuous client-lb** (below) |
 | `tomokv-modeshift-test` | 0 | yes | manual actuator hooks: `7`/`8` = grow front/back (single-node only), `70+n`/`80+n` = per-node (n < 10). Setting an unchanged value is a no-op — toggle through 0 between repeats. |
 
 ### Multi-key / locking
 
-| knob | default | mutable | meaning |
-|---|---|---|---|
-| `tomokv-mcmd-lock` | off | no | the per-worker lock discipline. Boot-only: a runtime toggle would race in-flight commands against the lock gates. Off = base lock-free engine, scatter-only multi-key. |
+`tomokv-mcmd-lock` was REMOVED (2026-07-27): always-lock IS the design (the per-worker lock
+discipline is what makes a shared node db safe against sibling workers), so the knob was accepted
+and then overridden — a config surface that lied. It is now an internal constant.
 
 `tomokv-mcmd-nodelocal` was REMOVED (2026-07-27) together with the node-local read borrow it
 selected. Multi-key reads are now single-owner localfast (all keys on one worker) or
@@ -264,7 +266,7 @@ uniform divergence from stock Redis's single-threaded cross-key atomicity.
 
 | knob | default | mutable | meaning |
 |---|---|---|---|
-| `thredis-flat-store` | off | no | replace the node's 16384-dict kvstore with the lock-free **FLATSTORE** open-addressing table (see *Shared-kvstore mechanics*). Requires a shared node (workers-per-node > 1). Stage 0 / opt-in — pre-sized, leaks on delete; not yet the default execution path. |
+| `tomokv-flat-store` | on (`yes`) | no | replace the node's 16384-dict kvstore with the lock-free **FLATSTORE** open-addressing table (see *Shared-kvstore mechanics*). Requires a shared node (workers-per-node > 1). Stage 0 / opt-in — pre-sized, leaks on delete; not yet the default execution path. |
 
 ### Balancer
 
@@ -275,7 +277,7 @@ within-node EWMA **bucket** balancer exactly as in the base engine; `0` means se
 (beside the reshard autotune) that, within a node, moves the minimal set of connections off an io
 thread that is a *sustained* busy-outlier (busy-EWMA mean + 25% bar + a short sustain streak) onto
 the least-loaded thread — a damped, half-the-excess move that converges instead of chasing a single
-hot connection. It runs whenever `tomokv-thread-modes` is on (busy is maintained there), so client
+hot connection. It runs on the poly-thread apparatus (always on, in both thread-modes), so client
 load is balanced continuously, not only at a flip. `DEBUG TOMO-IOLOAD` dumps per-thread mode, conn
 count, and busy for inspection.
 
@@ -288,15 +290,21 @@ make -C src USE_URING=yes -j
 
 # 2 nodes × 4 cores; every non-base core can flip; self-tuning; lock discipline on:
 ./src/redis-server --port 6379 \
-    --tomokv-numa-nodes 2 --tomokv-io-per-node 1 --tomokv-ex-per-node 3 \
-    --tomokv-io-threads 2 --tomokv-ex-threads 6 \
-    --tomokv-thread-modes yes --tomokv-thread-balance yes \
-    --tomokv-mcmd-lock yes --save ''
+    --tomokv-nodes 2 --tomokv-cores-per-node 4 \
+    --tomokv-thread-io 1 --tomokv-thread-ex 3 \
+    --tomokv-thread-mode auto --tomokv-pin-mode numa --save ''
 
-# One big node, static split, shared keyspace only:
+# One big node, split FIXED at the boot values (reproducible benchmarking):
 ./src/redis-server --port 6379 \
-    --tomokv-numa-nodes 1 --tomokv-io-threads 4 --tomokv-ex-threads 4 \
-    --tomokv-mcmd-lock yes --save ''
+    --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+    --tomokv-thread-mode static --save ''
+
+# Explicit placement, per role per node:
+./src/redis-server --port 6379 \
+    --tomokv-nodes 2 --tomokv-thread-io 2 --tomokv-thread-ex 2 \
+    --tomokv-pin-mode static \
+    --tomokv-pin-io "node0=0,1 node1=8,9" \
+    --tomokv-pin-ex "node0=2,3 node1=10,11" --save ''
 ```
 
 Boolean knobs take `yes`/`no`. Pin the server and the load generator to disjoint cores.

@@ -23,7 +23,7 @@ cleanup(){ pkill -9 -f "redis-cli.*-p $PORT.*--pipe" 2>/dev/null; pkill -9 -f "m
 trap cleanup EXIT
 
 pkill -9 -f "redis-server .*-p $PORT|redis-server \*:$PORT" 2>/dev/null; sleep 1
-"$SRV" --tomokv-io-threads $IO_THREADS --tomokv-ex-threads $EX_THREADS --databases 4 \
+"$SRV" --tomokv-thread-io $IO_THREADS --tomokv-thread-ex $EX_THREADS --databases 4 \
   --enable-debug-command yes --save '' --appendonly no --protected-mode no --dir "$D" --port $PORT >"$D/s.log" 2>&1 &
 SPID=$!
 for i in $(seq 1 60); do [ "$(timeout 2 $CLI ping 2>/dev/null|tr -d '\r')" = PONG ] && break; sleep 0.4; done

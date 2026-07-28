@@ -17,8 +17,8 @@ bad(){ echo "  FAIL $1" >> $OUT; FAIL=$((FAIL+1)); }
 try(){ # $1 = knob, $2 = value, $3 = expectation note
   local knob=$1 val=$2 note=$3
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
-  taskset -c 0-7 $BIN --port $PORT --dir $J/kdata --tomokv-numa-nodes 1 \
-    --tomokv-io-threads 4 --tomokv-ex-threads 4 --thredis-flat-store 1 \
+  taskset -c 0-7 $BIN --port $PORT --dir $J/kdata --tomokv-nodes 1 \
+    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-flat-store yes \
     --$knob $val --save '' --appendonly no --protected-mode no \
     --logfile $J/knob.log --loglevel notice >/dev/null 2>&1 &
   sleep 2; local up=0
@@ -75,16 +75,16 @@ echo "=== prefetch widths (-1 = auto, 0 = off) ===" >> $OUT
 try tomokv-pf-w-hash -1 "auto"
 try tomokv-pf-w-hash 0 "off"
 try tomokv-pf-w-hash 8 "static"
-try tomokv-pf-value-budget-kb 0 "0 = auto/off"
+try tomokv-pf-value-budget-kb -1 "-1 = auto"
 try tomokv-pf-value-budget-kb 64 "static 64KB"
 
 echo "=== structural knobs ===" >> $OUT
 try tomokv-flat-load-pct 40 "min load factor"
 try tomokv-flat-load-pct 90 "max load factor"
-try tomokv-pin-mode 0 "no pinning"
-try tomokv-pin-mode 2 "default pinning"
-try thredis-flat-store 0 "flat OFF (dict fallback)"
-try thredis-flat-store 1 "flat ON (default)"
+try tomokv-pin-mode float "no pinning"
+try tomokv-pin-mode ccd "default (CCD/shared-L3) pinning"
+try tomokv-flat-store no "flat OFF (dict fallback)"
+try tomokv-flat-store yes "flat ON (default)"
 
 pkill -9 -x redis-server 2>/dev/null
 echo "" >> $OUT

@@ -13,7 +13,7 @@ D=$(mktemp -d)
 cleanup(){ [ -n "${SPID:-}" ] && kill -9 "$SPID" 2>/dev/null; rm -rf "$D"; }
 trap cleanup EXIT
 pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; sleep 0.5
-"$REPO/src/redis-server" --tomokv-io-threads 2 --tomokv-ex-threads 4 --enable-debug-command yes \
+"$REPO/src/redis-server" --tomokv-thread-io 2 --tomokv-thread-ex 4 --enable-debug-command yes \
   --save '' --appendonly no --protected-mode no --dir "$D" --port $PORT >"$D/s.log" 2>&1 &
 SPID=$!
 for i in $(seq 1 60); do [ "$(timeout 2 $CLI ping 2>/dev/null|tr -d '\r')" = PONG ] && break; sleep 0.3; done

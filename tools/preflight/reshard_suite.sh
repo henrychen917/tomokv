@@ -10,8 +10,8 @@ OUT=$J/reshard_suite.out; : > $OUT
 PORT=7899
 pkill -x redis-server 2>/dev/null; sleep 2
 rm -rf $J/rsdata; mkdir -p $J/rsdata
-taskset -c 0-7 "$BIN" --port $PORT --dir $J/rsdata --tomokv-numa-nodes 1 \
-  --tomokv-io-per-node 4 --tomokv-ex-per-node 4 --save '' --appendonly no \
+taskset -c 0-7 "$BIN" --port $PORT --dir $J/rsdata --tomokv-nodes 1 \
+  --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
   --protected-mode no --enable-debug-command yes --logfile $J/rs.log >/dev/null 2>&1 &
 SRV=$!; sleep 3
 [ "$(pgrep -x redis-server | wc -l)" = 1 ] || { echo "FAIL	one-server-assert	not exactly 1 server" >> $OUT; exit 1; }

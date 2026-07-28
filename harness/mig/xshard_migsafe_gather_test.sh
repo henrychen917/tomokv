@@ -10,7 +10,7 @@ trap 'pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; rm -rf "$D"' EXIT
 say(){ echo "$*"; }
 fail=0
 boot(){ pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; sleep 1; rm -rf "$D"; mkdir -p "$D"
-  $R/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 --tomokv-reshard-min-ops 0 \
+  $R/src/redis-server --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-reshard-min-ops 0 \
     --enable-debug-command yes --save '' --appendonly no --protected-mode no --dir "$D" --port $PORT >"$D/s.log" 2>&1 &
   for i in $(seq 1 60); do timeout 2 $C ping >/dev/null 2>&1 && break; sleep 0.4; done; }
 sh(){ $C debug reshard find "$1" 2>/dev/null|tr -d '\r'|grep -o 'routed_ex=[0-9]*'|cut -d= -f2; }

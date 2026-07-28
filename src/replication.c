@@ -1152,7 +1152,7 @@ void syncCommand(client *c) {
      * shouldPropagate() true so worker-side lazy-expire deletes race the single global
      * also_propagate array from N threads (heap corruption; expire.c numops==0 assert). */
     if (server.num_workers > 0) {
-        addReplyError(c, "SYNC/PSYNC is not supported with tomokv sharding (tomokv-ex-threads > 0): "
+        addReplyError(c, "SYNC/PSYNC is not supported with tomokv sharding (tomokv-thread-ex >= 1): "
                          "the dataset lives in per-worker shard DBs that replication does not see");
         return;
     }

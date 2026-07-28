@@ -63,7 +63,7 @@ Outputs:
 
 ## Controller inventory and how each is checked
 
-### 1. tomoFlipController (momentum hill-climb; `tomokv-thread-modes` + `tomokv-thread-balance`)
+### 1. tomoFlipController (momentum hill-climb; `tomokv-thread-mode auto`)
 * **Code truth (flip floor):** grow-back can only reclaim **grown** io slots — `tomoGrowBack`
   rejects at base config (`server.c:16341-16343`, "no grown io thread to convert back") and the
   controller's `can_back` (`server.c:17752`) has the same floor. From boot ioN/exM the reachable
@@ -172,7 +172,7 @@ Caps read from code: retire-node pool `FLAT_NODE_POOL_CAP` 4096/worker (64 KB), 
   storm, against a **unique sentinel value** on k:0 — seedkeys writes identical values everywhere,
   which would let a wrong-key return pass) + bounded memory.
 
-### 8. FLATSTORE resize coordinator (`thredis-flat-store 1`, shared node dbs ⇒ needs ex ≥ 2)
+### 8. FLATSTORE resize coordinator (`tomokv-flat-store yes`, shared node dbs ⇒ needs ex ≥ 2)
 * SHIFT-grow: seed 2 M keys (400 k smoke) **with a concurrent memtier write load** ⇒ ≥ 2
   `FLATSTORE resize: … rebuilt A -> B` lines, every grow line B == 2A (doubling); then traffic
   must still serve (no wedge, 0 crash markers).
@@ -217,14 +217,14 @@ Caps read from code: retire-node pool `FLAT_NODE_POOL_CAP` 4096/worker (64 KB), 
   inert. NOTE the blanket "pf inert on flat" is overbroad — struct/argv/keyobj/keybytes still
   issue prefetches (`server.c:14690-14740`). Check: all 8 knobs cycled 8/0/−1 live under traffic,
   no crash ⇒ KNOWN (wave-engine successor owns flat prefetch).
-* Dict mode (`thredis-flat-store 0`): same cycle must survive; **firing has no counter** in either
+* Dict mode (`tomokv-flat-store no`): same cycle must survive; **firing has no counter** in either
   mode, so "does fire" is asserted only as reachable-and-harmless (coverage gap).
 
 ### 13. Knob −1/0/N normalization spot-checks (knob_matrix.sh pattern)
 Boot + `CONFIG GET` echo + 5 s traffic + crash-scan for: fake-ring-depth −1/0/8 (0 = OFF depth 1
 in this tree — `networking.c:590` — the old knob_matrix "0=eager" note is stale), fake-buf −1/0/4096,
 express-slim −1/0, pipeline-depth 0/8, ex-queue-depth 0 (must warn + auto)/1024, worker-pop-batch 0,
-num-cdb 0/4, flat-load-pct 40/90, flat-store 0. The ex-queue-0 documented warning is asserted.
+num-cdb 0/4, flat-load-pct 40/90, flat-store no. The ex-queue-0 documented warning is asserted.
 
 ## Harness-trap immunity (each burned a real run once)
 

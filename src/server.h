@@ -1448,10 +1448,10 @@ typedef struct {
  * The live system is:
  *   - Custom IO threads: N threads sharing a SO_REUSEPORT listening socket;
  *     each owns a set of clients and its own event loop. Count configured
- *     via `tomokv-io-threads` -> server.io_threads (default 8, max
+ *     via `tomokv-thread-io` -> server.io_threads (default 8, max
  *     TOMO_IO_THREADS_MAX).
  *   - Worker threads: M threads executing GET/SET/DEL on per-worker DB
- *     replicas. Count configured via `tomokv-ex-threads` ->
+ *     replicas. Count configured via `tomokv-thread-ex` ->
  *     server.ex_threads (default 3, max TOMO_EX_THREADS_MAX).
  *   - Per-client fake-client ring for pipelining. Depth configured via
  *     `tomokv-pipeline-depth` -> server.pipeline_ring_depth (default 16,
@@ -1468,6 +1468,42 @@ typedef struct {
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
 #define TOMO_IO_THREADS_MAX 32
 #define TOMO_EX_THREADS_MAX 64
+/* Max value of tomokv-nodes. The per-node liveness arrays (tm_node_wlive/tm_node_iolive) are
+ * [16], so this is a hard array bound, not a policy. */
+#define TOMO_NODES_MAX 16
+
+/* ---- tomokv-thread-mode (IMMUTABLE enum) ------------------------------------
+ * ONE knob for the io/ex split policy. tomokv-thread-io / tomokv-thread-ex give the STARTING
+ * split in BOTH modes; the mode only decides whether the controller may move away from it.
+ *   auto   — the flip controller / quorum balancer may shift the io<->ex boundary at runtime.
+ *   static — the boot split is held for the life of the process (reproducible measurement). */
+#define TOMO_THREAD_MODE_AUTO   0
+#define TOMO_THREAD_MODE_STATIC 1
+
+/* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
+ * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
+ *   float  — no pinning at all; the scheduler places threads. A node is a pure logical shard
+ *            group (no placement meaning).
+ *   ccd    — a node is a CCD / shared-L3 domain. Threads are packed onto shared-L3 groups so a
+ *            shard's worker and the IO threads feeding it share a last-level cache. DEFAULT.
+ *   numa   — a node is a NUMA node. Threads are packed per NUMA node.
+ *   static — placement comes verbatim from tomokv-pin-io / tomokv-pin-ex (per role per node).
+ * WHICH PARTITIONING IS BETTER (ccd vs numa) IS AN OPEN QUESTION on the target hardware; it is
+ * answered by measurement on the EPYC/Threadripper box, which is exactly why it is one knob. */
+#define TOMO_PIN_FLOAT  0
+#define TOMO_PIN_CCD    1
+#define TOMO_PIN_NUMA   2
+#define TOMO_PIN_STATIC 3
+
+/* Roles for the static per-role-per-node pin specs. */
+#define TOMO_PIN_ROLE_IO 0
+#define TOMO_PIN_ROLE_EX 1
+
+/* ---- tomokv-mget-coalesce (MODIFIABLE enum) ---------------------------------
+ * How a cross-shard MGET is decomposed. Ordered: each level includes the previous. */
+#define TOMO_MGET_LEGACY            0   /* one sub per key */
+#define TOMO_MGET_COALESCE          1   /* one sub per shard, order-preserving slots (DEFAULT) */
+#define TOMO_MGET_COALESCE_PREFETCH 2   /* + in-sub two-pass dict prefetch */
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
@@ -1614,7 +1650,7 @@ typedef struct client {
      * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
      * dispatch (BEFORE the queue push) and read+cleared by the SAME IO thread at drain
      * retire — the worker never touches it, so there is no cross-thread access. Gated on
-     * tomokv-thread-balance (a stale stamp surviving a balance-off window is discarded by
+     * tomokv-thread-mode auto (a stale stamp surviving a balance-off window is discarded by
      * the drain's 10s sanity cap). */
     uint64_t tm_lat_stamp;
     uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
@@ -2174,7 +2210,7 @@ typedef struct exThread {
     /* ee451 (v13): forward-predictor / bakeoff state removed with the VF apparatus. */
     /* ee451 (thread-modes step 4, balancer signals): owner-written plain fields, sampled
      * racily by the 4Hz balancer on the main thread (control plane tolerates torn/stale
-     * reads — EWMAs/monotonic counters only). All gated on tomokv-thread-balance so the
+     * reads — EWMAs/monotonic counters only). All gated on tomokv-thread-mode auto so the
      * balance-off hot path pays one predicted branch. */
     unsigned int tm_qdepth_ewma_q4;  /* leaky EWMA (Q4, alpha 1/8) of STANDING queue backlog:
                                       * items still waiting after a full pop pass (summed over
@@ -2542,7 +2578,7 @@ typedef struct {
     int fd;
 } ioThreadArgs;
 
-/* ee451 (thread-modes v1, step 2): per-poly-thread context (tomokv-thread-modes=1).
+/* ee451 (thread-modes v1, step 2): per-poly-thread context (the poly-thread apparatus).
  * A poly thread owns a FIXED PAIR of identity slots for its whole life, assigned at
  * creation and NEVER shared with another live thread — the historic worker-slot
  * crash class was two live threads aliasing one __thread iotid slot, so slots are
@@ -2677,7 +2713,7 @@ struct redisServer {
      * live worker (LIFO within the node), so per-node contiguity holds even though the GLOBAL live
      * set is no longer one prefix. num_workers_live stays the SUM (legacy consumers see totals);
      * membership tests go through tmWorkerLive(). tm_node_iolive counts the node's live io threads
-     * (base + grown). numa_nodes==1: node 0 mirrors the globals (identical behavior). */
+     * (base + grown). topo_nodes==1: node 0 mirrors the globals (identical behavior). */
     _Atomic int tm_node_wlive[16];       /* TM_MAXNODE — keep in sync with server.c */
     _Atomic int tm_node_iolive[16];
     _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
@@ -2695,7 +2731,7 @@ struct redisServer {
                                     * every node each tick; without this tag a peer node (in a routine
                                     * post-revert backoff) would consume the flag and re-issue its own
                                     * already-landed revert = uncommanded cross-node flip. Consumers
-                                    * gate on node==this. numa_nodes==1 => always 0 => no behaviour change. */
+                                    * gate on node==this. topo_nodes==1 => always 0 => no behaviour change. */
     int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
                                     * CANCEL the in-flight probe (config never left baseline: nothing to
                                     * measure, nothing to revert). */
@@ -2714,7 +2750,7 @@ struct redisServer {
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
                                     * the flip-induced bucket imbalance right away; counts down per balancer tick */
     /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
-     * redis.conf (`tomokv-io-threads`, `tomokv-ex-threads`, `tomokv-pipeline-depth`,
+     * redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`, `tomokv-pipeline-depth`,
      * `tomokv-ex-queue-depth`). pipeline_ring_mask and
      * ex_queue_mask are derived from their *_depth / *_size counterparts
      * at startup. */
@@ -2723,10 +2759,11 @@ struct redisServer {
     int thredis_flat_store;     /* ee451 FLATSTORE knob (0/1) */
     int flat_load_pct;          /* ee451 FLATSTORE: target peak load %% (resize trigger); higher = less memory, longer probes */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
-    /* ee451 (thread-modes v1, step 2): 0 (default) = static mains, exact legacy
-     * behavior; 1 = every tomokv thread runs polyThreadMain with a preset mode,
-     * plus one PARKED spare if configured threads < allowed cores. IMMUTABLE. */
-    int thread_modes;
+    /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
+     * polyThreadMain with a preset mode, plus one PARKED spare if configured threads < allowed
+     * cores. DERIVED from tomokv-thread-mode (both `auto` and `static` run the poly threads;
+     * they differ only in whether the controller is allowed to actuate). Not a user knob. */
+    int poly_threads;
     /* ee451 (thread-modes v1, step 2+3): test-only shift driver — CONFIG SET
      * tomokv-modeshift-test <n> retargets the spare. 1 = PARKED->IO (instant listener
      * join); 2 = PARKED->EX (migration-backed activation); 3 or 0 = EX->PARKED
@@ -2734,25 +2771,30 @@ struct redisServer {
      * IO<->EX swap are rejected, and WB is unreachable (no WB mode in the 2s fork —
      * value 3 is repurposed as the explicit park verb). Apply-fn validated. */
     int modeshift_test;
-    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER. 0 (default) = off — no
-     * signal folding anywhere (every hook is behind this bool, so the hot path pays one
-     * predicted branch); 1 = serverCron's 4Hz balancer reads the pressure signals and
-     * autonomously shifts the SPARE PARKED<->EX (never ->IO: one-way in v1). Requires
-     * tomokv-thread-modes at boot, else FATAL-warned and forced back to 0. */
-    int thread_balance;
+    /* tomokv-thread-mode: TOMO_THREAD_MODE_AUTO | TOMO_THREAD_MODE_STATIC. IMMUTABLE.
+     * The ONE knob that decides whether the io/ex split may move at runtime. */
+    int thread_mode;
+    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER + the flip controller may
+     * ACTUATE. DERIVED: 1 iff thread_mode == AUTO. 0 = no signal folding anywhere (every hook
+     * is behind this bool, so the hot path pays one predicted branch) and the boot split from
+     * tomokv-thread-io/-ex is held for the life of the process. Not a user knob. */
+    int thread_auto;
     /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min: 1; max: the populated
      * allowed-core allocation). V1 has one movable thread (the spare), so these only bound
      * the SPARE's participation: ex-max blocks PARKED->EX when live workers would exceed
      * it; ex-min blocks EX->PARKED when live workers would drop below it. The io bounds
      * are validated + documented but INERT in v1 (the balancer performs no IO shifts). */
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS
-     * fully active (no spare/reserve). io_per_node + ex_per_node = cores_per_node. io_threads /
-     * ex_threads are DERIVED (nodes * per-node). Static mode fixes the split; dynamic lets the
-     * balancer flip the io/ex boundary WITHIN each node's core budget. */
-    int numa_nodes;            /* node count (1 = single node / sim off) */
-    int cores_per_node;        /* cores (threads) per node; pool = numa_nodes * cores_per_node */
-    int io_per_node;           /* IO threads per node (static split) */
-    int ex_per_node;           /* EX workers per node (static split); io_per_node+ex_per_node<=cores_per_node */
+     * fully active (no spare/reserve). io_per_node + ex_per_node <= cores_per_node. io_threads /
+     * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
+     * controller flip the io/ex boundary WITHIN each node's core budget. */
+    int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
+                                * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
+                                * node when it is `numa`. Hence topo_ (topology), not numa_. */
+    int cores_per_node;        /* tomokv-cores-per-node; pool = topo_nodes * cores_per_node */
+    int io_per_node;           /* tomokv-thread-io: IO threads per node (the STARTING split) */
+    int ex_per_node;           /* tomokv-thread-ex: EX workers per node (the STARTING split);
+                                * io_per_node + ex_per_node <= cores_per_node */
     /* Internal flip bounds — DERIVED from the node budget (min 1 each, max cores_per_node-1);
      * no longer user knobs. The balancer reads these; the node budget is the real bound. */
     int ex_threads_min;
@@ -3485,7 +3527,9 @@ struct redisServer {
     int opt_setop_coalesce;    /* xshard: SINTER/SUNION/SDIFF coalesce to one sub/shard (setop_pos position map) instead of one sub/key. 1=coalesce (DEFAULT, k>=3); 0=legacy per-key subs. */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
-    char *pin_cores;           /* v14: pin-mode 1 manual core list ("0,2,4,6"), thread-pin order */
+    char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
+                                * "node0=0-3 node1=8,9,10,11". Used only with pin-mode static. */
+    char *pin_ex_spec;         /* tomokv-pin-ex: same grammar, for the EX (worker) role. */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
     int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
     int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */
@@ -3506,10 +3550,8 @@ struct redisServer {
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
     int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
-    int pin_mode;                /* CPU pinning: 0=manual (worker i->core i, reproducible; default),
-                                  * 1=smart topology-aware (pack workers onto shared-L3/CCD groups +
-                                  * NUMA-local shard memory). Smart is EPYC/Threadripper-targeted and
-                                  * untested on single-NUMA boxes — left OFF for now. */
+    int pin_mode;                /* tomokv-pin-mode: TOMO_PIN_FLOAT / _CCD / _NUMA / _STATIC.
+                                  * Also decides what a "node" IS (see topo_nodes). */
     /* Local environment */
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
@@ -5639,6 +5681,12 @@ int tomoMigrateTest(int val, const char **err);       /* control plane: modeshif
 int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: modeshift-test 70+n / 80+n */
 void tomoWkrLockPub(int w);                            /* per-worker mcmd lock (db.c RANDOMKEY expire) */
 void tomoWkrUnlockPub(int w);
+/* tomokv-pin-io / tomokv-pin-ex spec parser. Grammar (whitespace-separated tokens):
+ *     node<N>=<cpu>[,<cpu>|<lo>-<hi>]...        e.g. "node0=0-3 node1=8,9,10,11"
+ * Returns 1 on success. On failure returns 0 and points *err at a static buffer naming the
+ * offending token. `out` (may be NULL when only validating) is filled with the cpu ids:
+ * out[node*TOMO_EX_THREADS_MAX + i], and out_n[node] gets that node's cpu count. */
+int tomoPinSpecParse(const char *spec, const char *knob, int *out, int *out_n, const char **err);
 /* Log redaction helpers: return "*redacted*" when hide-user-data-from-log is on. */
 static inline const char *redactLogCstr(const char *s) {
     return server.hide_user_data_from_log ? "*redacted*" : (s ? s : "(null)");

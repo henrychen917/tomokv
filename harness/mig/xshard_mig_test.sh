@@ -17,7 +17,7 @@ if [ "$ASAN" = 1 ]; then
   nm $REPO/src/redis-server 2>/dev/null|grep -qi asan || { say "ASAN BUILD FAIL"; exit 1; }
   export ASAN_OPTIONS="detect_leaks=1:halt_on_error=0:log_path=$D/asan:abort_on_error=0"
 fi
-$REPO/src/redis-server --tomokv-io-threads 4 --tomokv-ex-threads 4 \
+$REPO/src/redis-server --tomokv-thread-io 4 --tomokv-thread-ex 4 \
   --tomokv-reshard-min-ops 0 --enable-debug-command yes \
   --save '' --appendonly no --protected-mode no --dir $D/srv --port $PORT >$D/s.log 2>&1 &
 PID=$!

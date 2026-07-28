@@ -144,7 +144,7 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
     tsv preflight boot "$name" "foreign redis-server appeared" "box free" FAIL; return 1; fi
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
-    --tomokv-numa-nodes 1 "$@" >/dev/null 2>&1 &
+    --tomokv-nodes 1 "$@" >/dev/null 2>&1 &
   SRV_PID=$!
   local up=0 i
   for i in $(seq 1 60); do
@@ -342,7 +342,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # =============================================================================
-# 1. tomoFlipController (momentum hill-climb; thread-modes + thread-balance)
+# 1. tomoFlipController (momentum hill-climb; thread-mode auto)
 #    CODE TRUTH (server.c:16341-16343 + can_back at :17752): grow-back can ONLY
 #    reclaim GROWN io slots — io_threads_live can never go BELOW the boot
 #    io_threads ("no grown io thread to convert back (at base config)"). So the
@@ -361,7 +361,7 @@ c1_flip() {
   for pass in $(seq 1 "$REPS"); do
     for cfg in "4 4" "6 2" "7 1"; do
       set -- $cfg
-      boot "flip_static_io$1ex$2_p$pass" --tomokv-io-threads "$1" --tomokv-ex-threads "$2" || continue
+      boot "flip_static_io$1ex$2_p$pass" --tomokv-thread-mode static --tomokv-thread-io "$1" --tomokv-thread-ex "$2" || continue
       # shellcheck disable=SC2086
       mt "flip_static_io$1ex$2_p${pass}_fill" $W_FILL >/dev/null
       # shellcheck disable=SC2086
@@ -386,8 +386,8 @@ c1_flip() {
       "$( plaus "$best" && echo PASS || echo SUSPECT )"
 
   # ---- AUTO arm: boot io4ex4 (flip range io4..io7 — see header) with the controller on ----
-  boot flip_auto --tomokv-io-threads 4 --tomokv-ex-threads 4 \
-       --tomokv-thread-modes yes --tomokv-thread-balance yes || return
+  boot flip_auto --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+       --tomokv-thread-mode auto || return
   rss_start
   local rss0; rss0=$(rss_kb)
   # shellcheck disable=SC2086
@@ -395,10 +395,10 @@ c1_flip() {
   # conformance: on the flip fork the spare/quorum-balancer is inert BY DESIGN
   # (tm_ngrow_io = ex_threads-1 = 3 > 0 => no spare provisioned, server.c:15795-15800)
   if wait_log "no EX-capable spare poly thread" 5; then
-    tsv 1-flip design-assert "thread-balance on, ex=4 (flip pool)" \
+    tsv 1-flip design-assert "thread-mode auto, ex=4 (flip pool)" \
         "balancer-inert warning logged" "spare/flip mutual exclusion (server.c:15795)" PASS
   else
-    tsv 1-flip design-assert "thread-balance on, ex=4 (flip pool)" \
+    tsv 1-flip design-assert "thread-mode auto, ex=4 (flip pool)" \
         "no inert warning" "expected [balance] inert log" SUSPECT
   fi
 
@@ -531,12 +531,12 @@ c1_flip() {
 c2_balancer() {
   say "=== [2] quorum pressure balancer ==="
   # ---- positive control: the actuator itself, via the manual modeshift knob ----
-  boot bal_posctl --tomokv-io-threads 2 --tomokv-ex-threads 1 --tomokv-thread-modes yes || return
+  boot bal_posctl --tomokv-thread-io 2 --tomokv-thread-ex 1 --tomokv-thread-mode auto || return
   if ! wait_log "spare poly thread PARKED" 5; then
-    tsv 2-balancer spare-provisioned "io2ex1 thread-modes boot" "no spare log" "spare PARKED at boot" FAIL
+    tsv 2-balancer spare-provisioned "io2ex1 thread-mode auto boot" "no spare log" "spare PARKED at boot" FAIL
     stopsrv; return
   fi
-  tsv 2-balancer spare-provisioned "io2ex1 thread-modes boot" "spare PARKED logged" "spare exists" PASS
+  tsv 2-balancer spare-provisioned "io2ex1 thread-mode auto boot" "spare PARKED logged" "spare exists" PASS
   seedkeys 20000 64
   local t0 t1
   t0=$(ls "/proc/$SRV_PID/task" | wc -l)
@@ -558,8 +558,8 @@ c2_balancer() {
   stopsrv
 
   # ---- autonomous: sustained ex-pressure -> PARKED->EX; idle -> EX->PARKED ----
-  boot bal_auto --tomokv-io-threads 2 --tomokv-ex-threads 1 \
-       --tomokv-thread-modes yes --tomokv-thread-balance yes || return
+  boot bal_auto --tomokv-thread-io 2 --tomokv-thread-ex 1 \
+       --tomokv-thread-mode auto || return
   seedkeys 20000 64
   # SPEC REV 2 settle-first: the pre windows are the balancer's BOOT-SETTLED state (spare
   # PARKED, 0 conversions). Conversions during pre/post are counted — a dirty window can
@@ -647,7 +647,7 @@ c2_balancer() {
 # =============================================================================
 c3_fakering() {
   say "=== [3] fake-ring depth controller ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # settle-first: warmed (T_WARM of the same workload) — per-conn ring state regrows on the
   # measured window's fresh conns by design; see the parity() header + the CONVERGENCE cell below.
   parity 3-fakering AUTO==STATIC-32 fr_p32 \
@@ -732,7 +732,7 @@ c3_fakering() {
 # =============================================================================
 c4_fakebuf() {
   say "=== [4] fake-buf demand-grow ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # SPEC REV 2: same settle-first + anti-thrash structure as the c3 auto cell — the burst
   # runs until used_memory stabilizes (bufs grown to their 64KB caps = "no growth events"
   # settle signal, CONVERGENCE row), then 3 unchanged-workload windows count growth events,
@@ -799,7 +799,7 @@ c4_fakebuf() {
 # =============================================================================
 c5_exqueue() {
   say "=== [5] ex-queue depth ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # ---- positive control FIRST (ledger: the absence-check below is only meaningful if the
   # counter is proven able to fire). Depth 64 (min practical pow2; 256 gives 4x5x256 ring
   # capacity that a burst never fills) + an 8-KEY skewed p64 burst (NOT single-key — that
@@ -843,7 +843,7 @@ c5_exqueue() {
 # =============================================================================
 c6_expslim() {
   say "=== [6] express-slim ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # settle-first: T_WARM warmup primes the GLOBAL hit-rate EWMA (server.express_hit_ewma,
   # 1Hz fakeRingAutoTune) so the measured window is not the EWMA's convergence transient —
   # for this controller the warmup IS the settle (state is global, survives conn churn).
@@ -881,7 +881,7 @@ c6_expslim() {
 # =============================================================================
 c7_pools() {
   say "=== [7] allocator pools ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # ---- retire-node + batch-spare + pcmd envelope (overwrite churn then idle) ----
   boot pools_env $IO4 || return
   # Baseline must contain the SAME keyspace the churn writes (memtier keys, not k:*) —
@@ -941,8 +941,8 @@ c7_pools() {
 # =============================================================================
 c8_flatresize() {
   say "=== [8] FLATSTORE resize ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
-  boot flat_resize $IO4 --thredis-flat-store 1 || return
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  boot flat_resize $IO4 --tomokv-flat-store yes || return
   rss_start
   # sustained write DURING the growth resizes: seed pipe + memtier writes together
   mt_bg flat_resize_load --ratio=1:0 $WKEYS -t 2 -c 4 --pipeline 16 --test-time=60
@@ -1015,8 +1015,8 @@ c8_flatresize() {
 # =============================================================================
 c9_qsbr() {
   say "=== [9] QSBR reclaim ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
-  boot qsbr $IO4 --thredis-flat-store 1 || return
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  boot qsbr $IO4 --tomokv-flat-store yes || return
   seedkeys 100000 64
   sleep 2
   rss_start
@@ -1059,7 +1059,7 @@ c9_qsbr() {
 # =============================================================================
 c10_reshard() {
   say "=== [10] reshard auto-tune ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # ---- anti-flap arm FIRST (uniform, default min-ops 20000) ----
   boot reshard_uniform $IO4 || return
   # shellcheck disable=SC2086
@@ -1162,7 +1162,7 @@ c10_reshard() {
 # =============================================================================
 c11_autostatic() {
   say "=== [11] pop-batch / num-cdb / pipeline-depth ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   # pop batch: -1 resolves to WORKER_POP_BATCH=16 (define server.h:2057, resolve server.c:293)
   parity 11-popbatch AUTO==STATIC-16 pb_par \
     "$IO4 --tomokv-worker-pop-batch -1" "$IO4 --tomokv-worker-pop-batch 16" "$W_P32MIX" 3
@@ -1197,12 +1197,12 @@ c11_autostatic() {
 # =============================================================================
 c12_pfw() {
   say "=== [12] pf-w prefetch widths ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   local knobs="tomokv-pf-w-struct tomokv-pf-w-argv tomokv-pf-w-keyobj tomokv-pf-w-keybytes tomokv-pf-w-hash tomokv-pf-w-nextop tomokv-pf-w-entry tomokv-pf-w-value"
   local mode store k ok v
   for mode in flat dict; do
-    if [ "$mode" = flat ]; then store=1; else store=0; fi
-    boot "pfw_$mode" $IO4 --thredis-flat-store "$store" || continue
+    if [ "$mode" = flat ]; then store=yes; else store=no; fi
+    boot "pfw_$mode" $IO4 --tomokv-flat-store "$store" || continue
     # shellcheck disable=SC2086
     mt "pfw_${mode}_fill" $W_FILL >/dev/null
     ok=1
@@ -1236,7 +1236,7 @@ c12_pfw() {
 # =============================================================================
 c13_knobs() {
   say "=== [13] knob -1/0/N normalization ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
   spot() { # spot <knob> <value> <note>
     local knob=$1 val=$2 note=$3 ops echo_
     boot "knob_${knob}_${val}" $IO4 --"$knob" "$val" || { tsv 13-knobs "$knob=$val" "$note" "did-not-boot" "boots+serves" FAIL; return; }
@@ -1265,7 +1265,7 @@ c13_knobs() {
   spot tomokv-num-cdb 4          "STATIC 4 buses"
   spot tomokv-flat-load-pct 40   "min load"
   spot tomokv-flat-load-pct 90   "max load"
-  spot thredis-flat-store 0      "dict fallback"
+  spot tomokv-flat-store no     "dict fallback"
   # ex-queue-depth 0: also assert the documented warning fired
   if grep -qF "tomokv-ex-queue-depth 0 is invalid" "$LOGD/knob_tomokv-ex-queue-depth_0.srv.log" 2>/dev/null; then
     tsv 13-knobs "exq-0-warning" "boot with 0" "warning logged" "documented reject+auto" PASS
@@ -1305,8 +1305,8 @@ c13_knobs() {
 # =============================================================================
 c14_clientlb() {
   say "=== [14] client load-balancing family ==="
-  local IO4="--tomokv-io-threads 4 --tomokv-ex-threads 4"
-  boot clb $IO4 --tomokv-thread-modes yes --enable-debug-command yes || return
+  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  boot clb $IO4 --tomokv-thread-mode auto --enable-debug-command yes || return
   "$CLI" -p "$PORT" set hk "$(printf 'v%.0s' $(seq 1 64))" >/dev/null
   write_connhold
   awk 'BEGIN{for(i=0;i<4;i++) printf "GET hk\r\n"}' > "$LOGD/round_clb.txt"

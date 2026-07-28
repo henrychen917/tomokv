@@ -15,9 +15,9 @@ OUT=$J/stress_reclaim.out; : > $OUT
 FAIL=0; note(){ echo "  $1" >> $OUT; }
 
 pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/sdata; mkdir -p $J/sdata
-taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-numa-nodes 1 \
-  --tomokv-io-threads 4 --tomokv-ex-threads 4 --tomokv-thread-modes yes --tomokv-thread-balance yes \
-  --thredis-flat-store 1 --save '' --appendonly no --protected-mode no \
+taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
+  --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
+  --tomokv-flat-store yes --save '' --appendonly no --protected-mode no \
   --logfile $J/stress.log --loglevel notice >/dev/null 2>&1 &
 sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
 $CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }

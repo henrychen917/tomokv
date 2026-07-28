@@ -9,7 +9,7 @@
  * the CAS only resolves cross-KEY hash collisions). See flatstore.c for the protocol + invariants.
  *
  * GET/INSERT/DELETE(tombstone) lock-free; QSBR reclaim on delete/overwrite; online cooperative
- * resize (Stage 2); 8B single-word slots. Knob-gated (--thredis-flat-store). */
+ * resize (Stage 2); 8B single-word slots. Knob-gated (--tomokv-flat-store). */
 #ifndef FLATSTORE_H
 #define FLATSTORE_H
 
