@@ -3141,7 +3141,7 @@ void propagateDeletion(redisDb *db, robj *key, int lazy) {
  */
 int keyIsExpired(redisDb *db, sds key, kvobj *kv) {
     /* Don't expire anything while loading. It will be done later. */
-    if (server.loading || server.allow_access_expired) return 0;
+    if (server.loading || accessExpiredAllowed()) return 0;
     mstime_t when = getExpire(db, key, kv);
     if (when < 0) return 0; /* No expire for this key */
     const mstime_t now = commandTimeSnapshot();
@@ -3205,7 +3205,7 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * keys, and return KEY_TRIMMED otherwise. */
     sds key_name = key ? key->ptr : kvobjGetKey(kv);
     if (asmIsKeyInTrimJob(key_name)) {
-        if (server.allow_access_trimmed || (flags & EXPIRE_ALLOW_ACCESS_TRIMMED))
+        if (accessTrimmedAllowed() || (flags & EXPIRE_ALLOW_ACCESS_TRIMMED))
             return KEY_VALID;
 
         return KEY_TRIMMED;

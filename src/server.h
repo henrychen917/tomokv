@@ -3114,6 +3114,11 @@ struct redisServer {
     int tcpkeepalive;               /* Set SO_KEEPALIVE if non-zero. */
     int active_expire_enabled;      /* Can be disabled for testing purposes. */
     int active_expire_effort;       /* From 1 (default) to 10, active effort. */
+    /* ee451 (F-clock family, 2026-07-28): these two are now ONLY the process-wide operator
+     * override set by `DEBUG SET-ALLOW-ACCESS-EXPIRED` (the tcl suites use it to read expired
+     * hash fields). The per-execution-context guard that module.c raises around unlink /
+     * keyspace-notification callbacks moved to the thread-locals below — see the comment on
+     * tomo_access_expired for why keeping it here was a correctness bug, not a style wart. */
     int allow_access_expired;       /* If > 0, allow access to logically expired keys */
     int allow_access_trimmed;       /* If > 0, allow access to logically trimmed keys */
     int active_defrag_enabled;
@@ -4243,6 +4248,23 @@ void addPendingCommand(pendingCommandList *queue, pendingCommand *cmd);
 pendingCommand *popPendingCommandFromHead(pendingCommandList *queue);
 pendingCommand *popPendingCommandFromTail(pendingCommandList *queue);
 void shrinkPendingCommandPool(void);
+
+/* ee451 (F-clock family, 2026-07-28): "I am inside a module unlink / keyspace-notification
+ * callback" is per-EXECUTION-CONTEXT state, not server state. It used to live in the plain ints
+ * server.allow_access_expired / .allow_access_trimmed, which moduleNotifyKeyUnlink() bumps and
+ * restores around EVERY key overwrite and EVERY delete (db.c setKey / dbGenericDelete) — i.e. on
+ * the hot path of every worker thread. N workers doing non-atomic ++/-- on one shared int lose
+ * updates, so the counter random-walks off zero and STAYS there, and every reader of
+ * keyIsExpired() then answers "not expired" for the rest of the process's life: lazy expiry dies
+ * server-wide under load. Measured on the unfixed build: 4 workers, 8 loader connections, the
+ * counter reached +7227 in ~4s and a `SET k v PX 60` key was still readable 25s later.
+ * Thread-local is both race-free and semantically exact — the guard only ever meant "on THIS
+ * thread, right now". The globals above stay for the DEBUG operator override, which is set once
+ * from one thread and is meant to be process-wide. */
+extern __thread int tomo_access_expired;
+extern __thread int tomo_access_trimmed;
+static inline int accessExpiredAllowed(void) { return server.allow_access_expired || tomo_access_expired; }
+static inline int accessTrimmedAllowed(void) { return server.allow_access_trimmed || tomo_access_trimmed; }
 
 /* Utils */
 long long ustime(void);

@@ -92,6 +92,10 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 struct redisServer server; /* Server global state */
 /* thread vars */
 __thread int iotid = 0;
+/* ee451 (F-clock family): per-execution-context "read expired/trimmed keys" guards. See the
+ * comment on their declaration in server.h — these were globals that every worker raced. */
+__thread int tomo_access_expired = 0;
+__thread int tomo_access_trimmed = 0;
 /* replyWorking now lives in ae.c so both redis-server and redis-cli
  * (which link ae.o but not server.o) can resolve the symbol. Declared
  * extern in ae.h. */
@@ -601,6 +605,61 @@ mstime_t mstime(void) {
     return ustime()/1000;
 }
 
+/* ee451 (F-clock, 2026-07-28): PER-WORKER COMMAND CLOCK.
+ *
+ * THE DEFECT. A worker thread executes cmd->proc() directly (exExecFake, and csSubExec for the
+ * scatter subs), so it never passes through call()/enterExecutionUnit() — the one place a command
+ * normally latches the time it runs at. Workers therefore read the single global
+ * server.cmd_time_snapshot, which is
+ *   (a) COARSE: it is rewritten only from the MAIN thread's event loop (afterSleep, and call()'s
+ *       enterExecutionUnit). When the main loop is not hot it advances in steps of up to 1/hz —
+ *       100ms at the default hz=10. Measured on the unfixed build with one client issuing a
+ *       command every 50ms: the clock a worker reads lagged real time by p50 77ms / max 84ms, so
+ *       a lazily-expiring key outlived its TTL by up to that much, nondeterministically; and
+ *   (b) SHARED: the main thread rewrites it WHILE workers read it, so it can change underneath a
+ *       running command. That breaks the exact invariant the upstream comment below exists to
+ *       protect ("a key can expire only the first time it is accessed and not in the middle"),
+ *       and it is a formal data race on a non-atomic 64-bit global.
+ *
+ * WHAT DOES NOT WORK. The original filing proposed latching server.mstime instead, on the premise
+ * that afterSleepIO() refreshes it on every IO-thread loop iteration. It does not:
+ * aeProcessEventsIO() (ae.c) never invokes eventLoop->aftersleep — only the generic
+ * aeProcessEvents(), which only the main loop runs, does (ae.c:426). afterSleepIO is registered
+ * but dead, so server.mstime is refreshed by the main thread and nothing else, and is EXACTLY as
+ * coarse as cmd_time_snapshot. Measured side by side in the same regime as above:
+ * real-server.mstime was also p50 77ms / max 84ms — bit-identical staleness. Latching it would
+ * have been a no-op that looked like a fix.
+ *
+ * THE FIX. Latch a thread-local at worker command entry from a clock that is actually current.
+ * Cost is one getMonotonicUs() per command — the same RDTSC-class read call() already does for
+ * its duration timer — and a real gettimeofday only when the monotonic clock says the latch could
+ * be as much as half a millisecond old. So the latch is accurate to well under the 1ms unit it is
+ * expressed in, at a few thousand wall-clock reads per second per worker rather than one per
+ * command. The depth counter is what tells commandTimeSnapshot() that a worker command owns the
+ * clock; it also makes the latch nest correctly, so a command that re-enters keeps the OUTER
+ * time, which is the upstream invariant. Non-worker threads never raise the depth and so keep
+ * reading the global exactly as before. */
+static __thread mstime_t tomo_cmd_time;        /* the latched per-command clock */
+static __thread int      tomo_cmd_time_depth;  /* 0 => this thread is not in a worker command */
+static __thread monotime tomo_cmd_time_mono;   /* monotonic us when tomo_cmd_time was sampled */
+
+/* Half a millisecond: the largest re-sample interval that cannot cost us a whole millisecond of
+ * accuracy in a value whose unit IS the millisecond. */
+#define TOMO_CMD_CLOCK_RESAMPLE_US 500
+
+static inline void tomoCmdClockEnter(void) {
+    if (tomo_cmd_time_depth++ != 0) return;   /* nested: the outermost latch owns the time */
+    monotime now = getMonotonicUs();
+    if (now - tomo_cmd_time_mono >= TOMO_CMD_CLOCK_RESAMPLE_US) {
+        tomo_cmd_time_mono = now;
+        tomo_cmd_time = ustime() / 1000;
+    }
+}
+
+static inline void tomoCmdClockExit(void) {
+    --tomo_cmd_time_depth;
+}
+
 /* Return the command time snapshot in milliseconds.
  * The time the command started is the logical time it runs,
  * and all the time readings during the execution time should
@@ -620,6 +679,8 @@ mstime_t commandTimeSnapshot(void) {
      * propagation to slaves / AOF consistent. See issue #1525 for more info.
      * Note that we cannot use the cached server.mstime because it can change
      * in processEventsWhileBlocked etc. */
+    /* ee451 (F-clock): a worker command latched its own; see tomoCmdClockEnter above. */
+    if (tomo_cmd_time_depth) return tomo_cmd_time;
     return server.cmd_time_snapshot;
 }
 
@@ -7725,9 +7786,15 @@ static void csSubExec(client *sub) {
     if (!sub->argv || !sub->argv[1]) return;
     client *saved = server.current_client[iotid].p;
     server.current_client[iotid].p = sub;
+    /* ee451 (F-clock): the scatter subs are the OTHER worker execution entry point — they run
+     * cmd->proc (CS_LOCAL) or open-code the per-key semantics, and either way they reach
+     * lookupKey / expireIfNeeded without ever entering an execution unit. Latch here so every key
+     * this sub touches sees ONE instant. Paired with a release at both exits below. */
+    tomoCmdClockEnter();
     if (g->pipe_stage) {                    /* merge-exec pipeline stage op (reads only) */
         csPipeSubExec(sub, g);
         server.current_client[iotid].p = saved;
+        tomoCmdClockExit();
         return;
     }
     switch (g->ctype) {
@@ -8348,6 +8415,7 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid].p = saved;
+    tomoCmdClockExit();   /* ee451 (F-clock): pairs with the latch at entry */
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
      * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
      * no single argv[1] to capture here. Reads (MGET/EXISTS/TOUCH/SETOP) mutate nothing -> no capture. */
@@ -15118,6 +15186,10 @@ static inline void exExecFake(client *fake) {
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
         server.executing_client[iotid].p = fake;
+        /* ee451 (F-clock): this is a worker's call()-equivalent, so it is where the command
+         * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
+         * and the ordinary single-key one) and every lookup they make. */
+        tomoCmdClockEnter();
         /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
          * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
          * even when nothing was armed; now only armed ops pay it. */
@@ -15199,6 +15271,9 @@ static inline void exExecFake(client *fake) {
         if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
             (fake->cmd->flags & CMD_WRITE) && fake->argc >= 2 && fake->argv && fake->argv[1])
             migCaptureEffect(fake->db, fake->argv[1]);
+        /* ee451 (F-clock): released only here, AFTER the effect capture — the capture re-reads the
+         * key it just wrote, and it must see the same logical instant the proc did. */
+        tomoCmdClockExit();
     }
     pendingCommand *wpcmd = fake->current_pending_cmd;
     if (wpcmd && wpcmd->argv) {

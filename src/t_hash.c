@@ -550,7 +550,7 @@ SetExRes hashTypeSetExpiryListpack(HashTypeSetEx *ex, sds field,
 
 /* Returns 1 if expired */
 int hashTypeIsExpired(const robj *o, uint64_t expireAt) {
-    if (server.allow_access_expired) return 0;
+    if (accessExpiredAllowed()) return 0;
 
     if (o->encoding == OBJ_ENCODING_LISTPACK_EX) {
         if (expireAt == HASH_LP_NO_TTL)
@@ -736,7 +736,7 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
         serverPanic("Unknown hash encoding");
     }
 
-    if ((server.allow_access_expired) ||
+    if ((accessExpiredAllowed()) ||
         (*expiredAt >= (uint64_t) commandTimeSnapshot()) ||
         (hfeFlags & HFE_LAZY_ACCESS_EXPIRED))
         return GETF_OK;
@@ -1314,7 +1314,7 @@ int hashTypeDelete(robj *o, void *field) {
 unsigned long hashTypeLength(const robj *o, int subtractExpiredFields) {
     unsigned long length = ULONG_MAX;
     /* If expired field access is allowed, don't subtract expired fields from the count. */
-    if (server.allow_access_expired)
+    if (accessExpiredAllowed())
         subtractExpiredFields = 0;
 
     if (o->encoding == OBJ_ENCODING_LISTPACK) {
@@ -1387,7 +1387,7 @@ void hashTypeResetIterator(hashTypeIterator *hi) {
  * could be found and C_ERR when the iterator reaches the end. */
 int hashTypeNext(hashTypeIterator *hi, int skipExpiredFields) {
     /* If expired field access is allowed, don't skip expired fields during iteration */
-    if (server.allow_access_expired)
+    if (accessExpiredAllowed())
         skipExpiredFields = 0;
 
     hi->expire_time = EB_EXPIRE_TIME_INVALID;
@@ -1970,7 +1970,7 @@ static int hashTypeExpireIfNeeded(redisDb *db, kvobj *o) {
 
     /* Follow expireIfNeeded() conditions of when not lazy-expire */
     if ( (server.loading) ||
-         (server.allow_access_expired) ||
+         (accessExpiredAllowed()) ||
          (server.masterhost) ||  /* master-client or user-client, don't delete */
          (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)) ||
          (migSuppressLazyExpire(db, kvobjGetKey(o))))  /* ee451 (W6-E2): DRAINING fence */

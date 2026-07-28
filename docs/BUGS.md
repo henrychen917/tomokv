@@ -187,6 +187,9 @@ after measuring **exactly zero** benefit.
 | "node-local pools worth 500–1200 cycles/op" | conflated cross-CCD (coherence) with cross-NUMA (locality); under NPS1 it is ≈ a no-op | recorded in the prefetch report |
 | "expect flat pre/post" (SET came out +20%) | the range also contained RAW-embed, a *performance* commit I'd forgotten | discriminator: +18.4% at 64B, −0.3% at 240B |
 | "workers read a **frozen** clock — `cmd_time_snapshot` is only refreshed by main-thread `call()`" | half right. Workers really do bypass `call()`/`enterExecutionUnit` (they invoke `cmd->proc()` directly), but `afterSleep()` rewrites `server.cmd_time_snapshot` on **every** main-thread loop iteration (`server.c:2869`), so it advances regardless of worker traffic. The defect is that it is COARSE and SHARED, not frozen — see F-clock below. Had I "fixed" the frozen-clock story I'd have solved a problem that does not exist | F-clock |
+| "`server.mstime` is fresh whenever there is traffic, because `afterSleepIO()` refreshes it per IO-thread loop iteration" (the F-clock filing's proposed fix) | `afterSleepIO` is registered but never called — `aeProcessEventsIO()` has no `aftersleep` invocation; only the main loop's `aeProcessEvents()` does (`ae.c:426`). `server.mstime` measured p50 77ms / max 84ms stale, identical to `cmd_time_snapshot`. Latching it would have been a no-op wearing a fix's clothes | A-F.0 |
+| "run the expiry probe under worker load; an idle server hides the defect" | inverted. The clock is rewritten by the MAIN loop, so load makes it FRESHER (~2ms under 8 loaders vs 70–90ms idle). The stated regime hides the very defect being measured | A-F.0 |
+| "the flaky `short-ttl-lazy-expire` cell is the coarse clock" | it is not: the cell allows a 1s margin on a 100ms-coarse clock. It was `moduleNotifyKeyUnlink` racing `server.allow_access_expired`, which kills lazy expiry outright | A-F.1 |
 
 ---
 
@@ -258,7 +261,7 @@ candidate fix must be judged over many runs — a single green fence run is luck
 | #48 | reshard read-straddle (part of #19) | |
 | #49 | pipelined **cross-key** non-serialisation — owner ruled *not guaranteed*, so **document, don't fix** | |
 | — | `SCAN` returns 0 keys when `!(flat_store && shared_node_dbs)` | config-derived |
-| F-clock | workers share ONE coarse `cmd_time_snapshot` — analysis below | filed correctly, fix not yet applied |
+| F-clock | workers share ONE coarse `cmd_time_snapshot` | **FIXED** 2026-07-28 — see §A-F below |
 
 ### F-clock. Worker commands have no per-command clock
 
@@ -285,6 +288,137 @@ IO-thread loop iteration, so it is fresh whenever there is traffic — no `clock
 There is ample `__thread` precedent in this file. Measurement harness:
 `tools/preflight/expiry_clock_lag.py` reports p50/p95/max client-observed expiry lag under worker
 load (an idle server has a busy main loop and hides the defect).
+
+> **Two things in the paragraph above are wrong.** `server.mstime` is *not* fresher than
+> `cmd_time_snapshot`, and the regime advice is inverted. Both are corrected in §A-F.
+
+---
+
+## A-F. F-clock — fixed 2026-07-28, and the defect hiding behind it
+
+### A-F.0 Two corrections to the filing above
+
+**`server.mstime` is exactly as stale as `cmd_time_snapshot`.** The filing's premise was that
+`afterSleepIO()` refreshes it on every IO-thread loop iteration. `afterSleepIO` is registered
+(`aeSetAfterSleepProc`, three sites in `server.c`) but **never invoked**: `aeProcessEventsIO()` —
+the only loop IO threads run — has no `aftersleep` call. Only the generic `aeProcessEvents()`
+(`ae.c:426`), which only the main loop runs, calls it. Measured side by side on the unfixed build,
+one client issuing a command every 50ms: `real − cmd_time_snapshot` = p50 77ms / max 84ms, and
+`real − server.mstime` = p50 77ms / max 84ms. Bit-identical. **Latching `server.mstime` would have
+been a no-op that looked like a fix** — the same shape of error as §C's retracted "frozen clock".
+
+**The regime advice is backwards.** The filing (and `expiry_clock_lag.py`'s original docstring)
+said to run the probe *under worker load* because "an idle server has a busy main loop and hides
+the defect". The opposite is true: the clock is rewritten by the main loop, so the **busier** the
+server the more often that loop turns and the **fresher** the clock. Under 8 loader connections
+the worker-visible clock lags real time by ~2ms; with the server nearly idle it lags 70–90ms. The
+defect lives in the low-rate regime.
+
+### A-F.1 The defect that was actually causing the flaky `short-ttl-lazy-expire` cell
+
+The F-clock filing cited the nondeterministic `feature_sweep` cell as its evidence. That cell's
+failure is **not** explained by a 100ms-coarse clock — the cell waits 3s for a 2s TTL, a 1s margin.
+The real cause is a second, worse defect in the same family:
+
+`moduleNotifyKeyUnlink()` (`module.c`) raises `server.allow_access_expired` /
+`.allow_access_trimmed` around its callbacks and lowers them after. It is called from
+`setKey()` on every **overwrite** and from `dbGenericDelete()` on every **delete** (`db.c:684`,
+`db.c:1010`) — i.e. on every worker thread's hot path — and those two are plain non-atomic `int`s
+in `struct redisServer`. N workers doing `++`/`--` on one shared word lose updates, so the counter
+walks off zero and **stays** there. `keyIsExpired()` opens with
+`if (server.loading || server.allow_access_expired) return 0;`, so from that moment **lazy expiry
+is dead process-wide** — for every key, on every thread, until restart.
+
+**Evidence** (instrumented build, `io4/ex4`, 8 loader connections): `moduleNotifyKeyUnlink` fires
+on iotids 33–36 — exactly the four workers (`TOMO_IO_THREADS_MAX+1+wid`). The counter reached
+**+7227 after ~2.4M unlinks in about 4 seconds** and never came back. A `SET k v PX 60` key was
+still returned by `GET` **25 seconds** later. The give-away signature in a black-box probe is
+`GET k` → value while `PTTL k` → `0`: a contradiction unless `keyIsExpired()` short-circuits
+before it ever looks at the clock.
+
+Note this defect *masks* F-clock: with lazy expiry dead, no expiry-timing measurement means
+anything. Any "F-clock fix" validated on the unfixed build would have been vacuous (§G).
+
+**Fix:** both guards became `__thread` (`tomo_access_expired` / `tomo_access_trimmed`, defined in
+`server.c`, declared with the reasoning in `server.h`). The guard only ever meant "on THIS thread,
+inside a module callback", so thread-local is both race-free and semantically exact. The
+`server.*` fields stay, now solely as the `DEBUG SET-ALLOW-ACCESS-EXPIRED` operator override that
+`tests/unit/type/hash*.tcl` uses; readers go through `accessExpiredAllowed()` /
+`accessTrimmedAllowed()`, which OR the two.
+*Rejected:* making the counters atomic. It removes the lost updates but not the defect — the
+guard would still be observably raised on one thread while a sibling worker reads it, which is the
+same "expired key reads as live" bug at lower probability.
+
+### A-F.2 The F-clock fix
+
+A `__thread` latch (`tomo_cmd_time`) taken at the two worker command entry points —
+`exExecFake()` (covering both `cmd->proc` sites: the HFE all-node-locks branch and the ordinary
+one) and `csSubExec()` (the scatter subs, incl. `CS_LOCAL`) — with `commandTimeSnapshot()`
+preferring it whenever the thread's depth counter is nonzero. Non-worker threads never raise the
+depth, so the main-thread path is byte-for-byte unchanged. The depth counter also gives the
+nesting semantics upstream requires: a re-entering command keeps the OUTER instant.
+
+The latch is sampled with `getMonotonicUs()` (RDTSC-class, the same read `call()` already does per
+command) and only re-reads the wall clock when the monotonic delta says the latch could be 500µs
+old — so accuracy is well inside the millisecond the value is measured in, at a few thousand
+`gettimeofday`s per second per worker instead of one per command.
+
+`exExecFake`'s release is placed **after** `migCaptureEffect`, so the resharding effect capture
+re-reads the key it just wrote at the same logical instant the proc saw.
+
+### A-F.3 The discriminating evidence
+
+Three binaries, distinguished by directory (never by name — `pkill -x redis-server` cannot see a
+binary called `unfixed`), ABBA-interleaved inside **one** hold of the shared box lock:
+`unfixed` = HEAD, `cfix` = the §A-F.1 guard fix only, `fixed` = both. `cfix` exists so the F-clock
+fix cannot take credit for the guard fix's improvement.
+
+`tools/preflight/expiry_clock_ab.sh` runs `expiry_clock_lag.py` in the two regimes the two defects
+need — they are opposite regimes, so **no single cell can discriminate both**:
+
+| cell | arm | p50 | p95 | never |
+|---|---|---|---|---|
+| **D1** guard: 8 loaders, poll flat out | unfixed | 5000ms | 5000ms | **20/20** |
+| | cfix | 0.8ms | 1.3ms | 0 |
+| | fixed | 0.8ms | 1.5ms | 0 |
+| **D2** clock: idle, 5ms poll, active-expire OFF | unfixed | 42.0ms | 42.7ms | 0 |
+| | cfix | **41.9ms** | 42.2ms | 0 |
+| | fixed | **1.2ms** | 1.7ms | 0 |
+
+D1: on `unfixed` the key is *never* expired, in every one of 20 samples. D2: `cfix` still sits at
+~42ms — the guard fix moves it not at all — and only the clock latch takes it to ~1.2ms, a **35×**
+reduction. Reproduced across independent rounds; the ~42ms is tight rather than spread over
+[0,100] because the probe's next sample is phase-locked to the cron tick that ended the last one.
+
+**Two ways this cell could have been vacuous, both closed:**
+- *The active expire cycle is a second way a key can vanish, and it does not read
+  `commandTimeSnapshot()`* — it takes its own fresh `ustime()`. Its fast pass runs from
+  `beforeSleep`, so on an idle server with a near-empty keyspace it deletes the probe's key within
+  ~1ms **however broken the lazy clock is**. That is how an early run scored `unfixed` D2 at
+  p50=1.0ms — a perfect number from a build whose lazy expiry was entirely dead. D2 now disables it
+  (`DEBUG SET-ACTIVE-EXPIRE 0`) and *prints whether the DEBUG was accepted*, so a silently refused
+  one cannot restore the confound unnoticed.
+- *"How long past its deadline did the key stay readable" is trivially ~0 if the key was never
+  readable* — a rejected `SET`, a desynced reply stream, or a shard-routing miss would all score
+  perfectly while measuring nothing. Every sample now proves the key is live before its deadline
+  and reports `early=`; nonzero marks the cell **invalid**, not good.
+
+`correctness_suite.sh` against `fixed`: **15 passed, 0 failed.**
+
+### A-F.4 Found, not fixed — `server.execution_nesting` is raced the same way
+
+Same instrumented run: `enterExecutionUnit`/`exitExecutionUnit` fire from iotids 0–3 (main **and**
+the IO threads, which run `call()` for every inline command), all mutating the one global
+`server.execution_nesting`. Observed values include **−1** and **2** at moments when nothing was
+nested. Two consequences, neither yet demonstrated in the wild:
+- `enterExecutionUnit` only refreshes `server.cmd_time_snapshot` when the counter reads 0, so drift
+  makes `call()` stop refreshing the global clock (`afterSleep` still does, at 1/hz).
+- `confAllowsExpireDel()` (`db.c`) dereferences `server.executing_client[iotid].p->cmd` **only**
+  when `execution_nesting > 1` — reachable by drift alone, with no null guard.
+
+The correct fix is to make execution nesting thread-local, which is a wider change than this one
+(module.c has `serverAssert`s on its exact value) and is left filed rather than attempted.
+The F-clock fix does insulate workers from it: they no longer read the global clock at all.
 
 ---
 

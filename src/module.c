@@ -9400,11 +9400,12 @@ void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid)
              * it will not be notified about it. */
             int prev_active = sub->active;
             sub->active = 1;
-            server.allow_access_expired++;
-            server.allow_access_trimmed++;
+            /* ee451 (F-clock family): thread-local guard — see tomo_access_expired in server.h. */
+            tomo_access_expired++;
+            tomo_access_trimmed++;
             sub->notify_callback(&ctx, type, event, key);
-            server.allow_access_expired--;
-            server.allow_access_trimmed--;
+            tomo_access_expired--;
+            tomo_access_trimmed--;
             sub->active = prev_active;
             moduleFreeContext(&ctx);
         }
@@ -12724,8 +12725,11 @@ void processModuleLoadingProgressEvent(int is_aof) {
 /* When a key is deleted (in dbAsyncDelete/dbSyncDelete/setKey), it
 *  will be called to tell the module which key is about to be released. */
 void moduleNotifyKeyUnlink(robj *key, kvobj *kv, int dbid, int flags) {
-    server.allow_access_expired++;
-    server.allow_access_trimmed++;
+    /* ee451 (F-clock family): thread-local guard. This function runs on EVERY worker thread on
+     * EVERY key overwrite/delete; the two ints it used to bump were shared globals, and the lost
+     * ++/-- updates permanently disabled lazy expiry. See tomo_access_expired in server.h. */
+    tomo_access_expired++;
+    tomo_access_trimmed++;
     int subevent = REDISMODULE_SUBEVENT_KEY_DELETED;
     if (flags & DB_FLAG_KEY_EXPIRED) {
         subevent = REDISMODULE_SUBEVENT_KEY_EXPIRED;
@@ -12748,8 +12752,8 @@ void moduleNotifyKeyUnlink(robj *key, kvobj *kv, int dbid, int flags) {
             mt->unlink(key,mv->value);
         }
     }
-    server.allow_access_expired--;
-    server.allow_access_trimmed--;
+    tomo_access_expired--;
+    tomo_access_trimmed--;
 }
 
 /* Return the free_effort of the module, it will automatically choose to call 

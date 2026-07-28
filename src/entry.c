@@ -97,7 +97,7 @@ uint64_t entryGetExpiry(const Entry *entry) {
 }
 
 int entryIsExpired(const Entry *entry) {
-    if (server.allow_access_expired)
+    if (accessExpiredAllowed())
         return 0;
 
     /* Condition remains valid even if entryGetExpiry() returns EB_EXPIRE_TIME_INVALID,
