@@ -340,52 +340,14 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
     return val;
 }
 
-/* ee451: read-run value forwarding (Tomasulo CDB analog; see exThreadMain).
- * Thread-local and per-worker. Within one worker batch, a run of consecutive
- * CMD_READONLY commands on the SAME key is executed as a dependency chain: the
- * first read does the real lookup and RECORDs the resolved value; the rest
- * REPLAY it, skipping dictFind entirely.
- *
- * Why this is safe w.r.t. the paper's correctness properties (Sec 4.8):
- *  - Single-writer-per-key: untouched. This runs strictly inside the one owning
- *    worker, over ops already serialized in that worker's queue in issue order.
- *  - Reads do not mutate the keyspace, so nothing between op_0 and op_k frees,
- *    overwrites, or moves the value object. Incremental rehashing only relinks
- *    dict entries; it never frees/moves the value object, so a recorded
- *    kvobj* stays valid for the whole run.
- *  - The worker DISARMs forwarding if the recorded value carries a TTL
- *    (readFwdRecordedHasTTL), so we never bypass lazy expiry. A recorded miss
- *    (NULL) has no expiry concern and replays as a miss.
- *  - Matching is by the exact key-sds pointer of the op currently executing
- *    (re-armed per op by the worker), and the worker only forms a run after
- *    byte-comparing the keys, so a replay can only ever return the value the
- *    intended key resolves to. */
-static __thread int      readFwdMode = 0;       /* 0=off, 1=record, 2=replay */
-static __thread const void *readFwdKey = NULL;  /* key sds ptr armed for now */
-static __thread kvobj    *readFwdVal = NULL;    /* recorded value (may be NULL) */
-
-void readFwdArmRecord(const void *keyptr) { readFwdMode = 1; readFwdKey = keyptr; readFwdVal = NULL; }
-void readFwdSetReplayKey(const void *keyptr) { readFwdKey = keyptr; } /* mode stays replay */
-void readFwdDisarm(void) { readFwdMode = 0; readFwdKey = NULL; readFwdVal = NULL; }
-/* True iff op_0 actually recorded a value (mode advanced to replay) AND that
- * value is safe to forward: either a miss (NULL — an absent key has no expiry
- * to bypass) or a NON-VOLATILE live value (no TTL). A volatile value is NOT
- * replayable: we must let each subsequent read re-run lazy expiry. */
-int readFwdCanReplay(void) {
-    if (readFwdMode != 2) return 0;            /* op_0 didn't record */
-    if (readFwdVal == NULL) return 1;          /* recorded miss — safe */
-    return kvobjGetExpire(readFwdVal) == -1;   /* live & non-volatile only */
-}
-
-/* ee451: recorded value's per-replay "forward cost" — the re-serialization work a forward avoids
- * for EACH replayed same-key read. String: its byte length. Complex type (list/hash/set/zset/stream):
- * a large constant (re-serializing iterates the structure, always expensive). 0 if no recorded value
- * (miss — only the cheap nil reply). Used by the cost-benefit forward gate: forward iff cost*(run-1) high. */
-long readFwdValCost(void) {
-    if (readFwdMode != 2 || readFwdVal == NULL) return 0;
-    if (readFwdVal->type == OBJ_STRING) return (long)stringObjectLen(readFwdVal);
-    return 1L << 20;   /* complex type: always worth forwarding */
-}
+/* ee451: read-run value forwarding (Tomasulo CDB analog) was REMOVED 2026-07-28.
+ * Permanently abandoned as a paper NEGATIVE RESULT, not a regression: measured a wash in every
+ * tested regime (small/large GET, complex LRANGE, even a maximal single-hot-key + zerocopy
+ * setup). It removes a non-bottleneck -- per-op cost is dominated by net/syscall/socket-write,
+ * not the hot-key lookup it elided -- and real workloads lack the same-key runs it needs
+ * (measured mean run length 1.008). The predictor/record/replay/cost-gate machinery and its
+ * knobs were already inert (F4 took the 2 TLS loads + 2 compares off lookupKeyReadWithFlags);
+ * this removes the last dead helpers. Rationale preserved in docs/BUGS.md and the paper. */
 
 /* Lookup a key for read operations, or return NULL if the key is not found
  * in the specified DB.
@@ -398,10 +360,9 @@ long readFwdValCost(void) {
  * the key. */
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     serverAssert(!(flags & LOOKUP_WRITE));
-    /* ee451 (flip-actuator, F4): value-forwarding is a permanently-disabled paper negative result
-     * (see [[thredis-forwarding-abandoned]]); readFwdMode has ZERO live setters, so the record/replay
-     * branches that ran per read op (2 TLS loads + 2 compares + 2 branches on the hottest read fn)
-     * were dead weight. Removed; the arm/disarm/replay helpers stay defined for the artifact. */
+    /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
+     * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
+     * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
     return lookupKey(db, key, flags, NULL);
 }
 

@@ -15015,7 +15015,8 @@ static inline void exPauseCpu(void) {
  * Factored out of the batch loop so it can drive both lone commands and
  * same-key read-run value-forwarding chains identically. */
 /* ee451 (#4): portable cycle counter for the forward-predictor outcome signal. */
-/* ee451 (v13): boPerfRead() deleted with the value-forwarding apparatus. */
+/* ee451 (v13): boPerfRead/boPredictOne/exPredictForward/exExecFakeLearn/exSameKeyReadonly were all
+ * deleted with the value-forwarding apparatus (see the note in db.c). */
 
 
 static inline void exExecFake(client *fake) {
@@ -15122,13 +15123,9 @@ static inline void exExecFake(client *fake) {
 }
 
 
-/* ee451 (v13): boPredictOne() deleted with the value-forwarding apparatus. */
 
-/* ee451 (v13): exPredictForward() deleted with the value-forwarding apparatus. */
 
-/* ee451 (v13): exExecFakeLearn() deleted with the value-forwarding apparatus. */
 
-/* ee451 (v13): exSameKeyReadonly() deleted with the value-forwarding apparatus. */
 
 /* ee451 (thread-modes v1, step 1): EX slice context — ALL persistent loop-local
  * state of exThreadMain's old while(1) body, hoisted so one pass (a "slice")

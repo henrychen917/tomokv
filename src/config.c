@@ -3231,12 +3231,6 @@ standardConfig static_configs[] = {
     createBoolConfig("always-show-logo", NULL, IMMUTABLE_CONFIG, server.always_show_logo, 0, NULL, NULL),
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
     /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
-    /* ee451: VALUE-FORWARDING DISABLED by default (2026-06-21). Proven a wash in every tested regime
-     * (small/large GET, complex LRANGE, even maximal single-hot-key + zerocopy): it removes a non-
-     * bottleneck (hot-key dictFind + one serialize copy) while per-op cost is dominated by net/syscall/
-     * socket-write, and real workloads lack the same-key runs it needs (mean run 1.008). With this off,
-     * m stays 1 in the worker loop — all forwarding machinery (run-scan, record/replay, cost gate,
-     * early-signal, predictor) is bypassed. Kept in-tree as a paper negative result; flip to 1 to re-enable. */
     createIntConfig("tomokv-zerocopy-min-value", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
      * worker's captured CDB index from the drain's combined-read bound — see the

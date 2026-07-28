@@ -5065,11 +5065,6 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags);
 kvobj *lookupKeyWriteWithFlags(redisDb *db, robj *key, int flags);
 kvobj *kvobjCommandLookup(client *c, robj *key);
 /* ee451: read-run value forwarding (same-key read chains on a worker). */
-void readFwdArmRecord(const void *keyptr);
-void readFwdSetReplayKey(const void *keyptr);
-void readFwdDisarm(void);
-int  readFwdCanReplay(void);
-long readFwdValCost(void);   /* ee451: recorded value's per-replay forward cost (string len / big for complex) */
 kvobj *kvobjCommandLookupOrReply(client *c, robj *key, robj *reply);
 
 #define LOOKUP_NONE 0
