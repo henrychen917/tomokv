@@ -949,6 +949,36 @@ NULL
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-jestats")) {
+        /* DEBUG TOMO-JESTATS -- per-thread allocator accounting, so the "cross-shard pays for
+         * CROSS-THREAD block ownership" theory can be MEASURED (and disproven) rather than
+         * assumed. Each line is one registered thread's jemalloc byte counters; `net` < 0 means
+         * the thread frees more than it allocates, i.e. it is a net CONSUMER of blocks other
+         * threads allocated. The trailing tcache line reports whether that traffic actually
+         * drives tcache turnover (fills/flushes) -- if it does not, the asymmetry is free.
+         * Read-only, main-thread-only, and costs nothing when not called. */
+        sds o = sdsempty();
+        int n = zmalloc_thread_stats_count();
+        for (int i = 0; i < n; i++) {
+            const char *nm = NULL; uint64_t a = 0, d = 0;
+            if (!zmalloc_thread_stats_get(i, &nm, &a, &d)) continue;
+            o = sdscatprintf(o, "thread %-12s allocated=%llu deallocated=%llu net=%lld\n",
+                             nm, (unsigned long long)a, (unsigned long long)d,
+                             (long long)a - (long long)d);
+        }
+        uint64_t tf = 0, tfl = 0, bf = 0, bfl = 0;
+        if (zmalloc_tcache_turnover(&tf, &tfl, 32, &bf, &bfl) == 0)
+            o = sdscatprintf(o, "tcache nfills=%llu nflushes=%llu bin32_fills=%llu bin32_flushes=%llu\n",
+                             (unsigned long long)tf, (unsigned long long)tfl,
+                             (unsigned long long)bf, (unsigned long long)bfl);
+        else
+            o = sdscat(o, "tcache stats unavailable (non-jemalloc build)\n");
+        uint64_t nreq = 0;
+        if (zmalloc_small_requests(&nreq) == 0)
+            o = sdscatprintf(o, "smallreq %llu\n", (unsigned long long)nreq);
+        o = sdscatprintf(o, "commands %lld\n", server.stat_numcommands);
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-lbgroups")) {
         /* ee451 (flatstore lb): dump coarse per-group load + per-worker totals + the hottest groups,
          * so the minimal-move balancer's signal can be validated (DEBUG TOMO-LBGROUPS [topN]). */

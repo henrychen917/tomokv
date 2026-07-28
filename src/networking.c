@@ -4105,21 +4105,34 @@ static void setProtocolError(const char *errstr, client *c) {
  * This function is called if processInputBuffer() detects that the next
  * command is in RESP format, so the first byte in the command is found
  * to be '*'. Otherwise for inline commands processInlineBuffer() is called. */
-/* ee451 v11-A: operand pooling — recycle transient argv element robjs IO-thread-locally (Tomasulo
- * physical-register reuse). The refcount==1 operands (keys/cmd args) are alloc'd at parse and freed at
- * freePendingCommand, both on the SAME IO thread, so a per-thread freelist needs no cross-thread ring.
- * Each thread touches only operandPool[iotid]. Pooled robjs are RAW strings (reusable sds); miss path
- * allocs RAW (not embstr) so it's poolable on return. Oversized sds aren't pooled (avoid hoarding).
- * Gated by server.opt_operand_pool. */
-#define OPERAND_POOL_CAP 256
-#define OPERAND_POOL_MAX_SDS 512
-static robj *operandPool[TOMO_IO_THREADS_MAX + 1][OPERAND_POOL_CAP];
-static ioLocalPoolCount operandPoolN[TOMO_IO_THREADS_MAX + 1];
+/* ee451 v11-A operand pooling (tomokv-opt-operand-pool) DELETED 2026-07-27, with the A/B that
+ * rule-1 deletion requires. It was a PER-TYPE OBJECT POOL for parse-time argv robjs, and it was
+ * net-NEGATIVE on every workload measured (2 reps ABBA, one binary, knob yes vs no):
+ *
+ *     instr/op   mget4_p8 +3.29%  mget4_p32 +4.13%  mset4_p8 +2.18%
+ *                mset4_p32 +3.24%  get_p32 +2.86%   set_p32 +2.93%
+ *     allocs/op  +6.6% .. +15.7%  (MORE small allocations per op, not fewer)
+ *
+ * The sign is structural, not noise: to be returnable to the pool an operand had to be a RAW
+ * string, so every pool MISS allocated robj + sds separately (2 allocations) where the normal
+ * path allocates one embstr. The hit rate never paid that back. This is the result Berger, Zorn
+ * & McKinley predict in "Reconsidering Custom Memory Allocation" (OOPSLA 2002) and the same
+ * result 52200d263 recorded for the kvobj recycle pool -- jemalloc's tcache is already the
+ * per-thread free pool, and a second one above it only adds work.
+ *
+ * Its header also documented an invariant that was FALSE: it claimed every operand is allocated
+ * at parse and freed at freePendingCommand on the SAME IO thread. The SET value operand is
+ * consumed on a WORKER inside kvobjSetEx. The code was not actually unsafe -- pcmd->
+ * argv_released_mask makes freePendingCommand skip any slot a worker released, so the pool never
+ * saw a cross-thread operand -- but the stated design basis was wrong, which is its own reason
+ * not to leave the knob sitting there inviting someone to switch it on. */
 
-/* R1 (alloc census): per-io-thread pendingCommand freelist. Same thread-locality argument as
- * operandPool above: acquire (parse) and the terminal freePendingCommand both run on the client's
- * owning io thread, so pcmdPool[iotid] is single-threaded by construction. argv stays ATTACHED to a
- * pooled pcmd, so a hit also skips the per-command argv realloc (the `multibulklen > argv_len` gate
+/* R1 (alloc census): per-io-thread pendingCommand freelist. Thread-locality argument: acquire
+ * (parse) and the terminal freePendingCommand both run on the client's owning io thread, so
+ * pcmdPool[iotid] is single-threaded by construction. NOTE this recycles the pcmd STRUCT and its
+ * argv ARRAY -- not the argv element objects, which is what the deleted operand pool got wrong;
+ * skipping an array realloc is not the same trade as re-encoding every string as RAW.
+ * argv stays ATTACHED to a pooled pcmd, so a hit also skips the per-command argv realloc (the `multibulklen > argv_len` gate
  * sees the preserved capacity). Bounded: CAP structs x ~160B + their argv arrays (<64 ptrs each) =
  * <=80KB per io thread, populated only under load. */
 #define PCMD_POOL_CAP 128
@@ -4127,38 +4140,16 @@ static ioLocalPoolCount operandPoolN[TOMO_IO_THREADS_MAX + 1];
 static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_CAP];
 static ioLocalPoolCount pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
 
-static inline robj *operandPoolGet(const char *ptr, size_t len) {
-    if (iotid <= TOMO_IO_THREADS_MAX && operandPoolN[iotid].n > 0) {
-        robj *o = operandPool[iotid][--operandPoolN[iotid].n];
-        o->ptr = sdscpylen(o->ptr, ptr, len);   /* reuse the sds (grows if needed) */
-        o->refcount = 1;
-        return o;
-    }
-    return createRawStringObject(ptr, len);      /* RAW so it's poolable when returned */
-}
-
-static inline void operandPoolPut(robj *o) {
-    if (iotid <= TOMO_IO_THREADS_MAX && o->refcount == 1 && o->type == OBJ_STRING &&
-        o->encoding == OBJ_ENCODING_RAW && operandPoolN[iotid].n < OPERAND_POOL_CAP &&
-        sdsalloc(o->ptr) <= OPERAND_POOL_MAX_SDS) {
-        sdsclear(o->ptr);                        /* reset length, keep capacity */
-        operandPool[iotid][operandPoolN[iotid].n++] = o;
-        return;
-    }
-    decrRefCount(o);
-}
-
 static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     char *newline = NULL;
     int ok;
     long long ll;
     size_t querybuf_len = sdslen(c->querybuf); /* Cache sdslen */
-    /* ee451 (shave): per-command invariants, hoisted out of the per-arg loop.
-     * No callee below mutates c->flags or the pool knob, but the intervening
-     * opaque calls (memchr/string2ll/operandPoolGet) stop the compiler from
-     * CSE'ing these loads, so they were re-read once per ARGUMENT. */
+    /* ee451 (shave): per-command invariant, hoisted out of the per-arg loop.
+     * No callee below mutates c->flags, but the intervening opaque calls
+     * (memchr/string2ll/createStringObject) stop the compiler from CSE'ing
+     * this load, so it was re-read once per ARGUMENT. */
     const int is_master = (c->flags & CLIENT_MASTER) != 0;
-    const int use_operand_pool = server.opt_operand_pool;
 
     if (c->multibulklen == 0) {
         /* The pending command should have been reset */
@@ -4347,9 +4338,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 if (pcmd->argc == 0)
                     arg = commandNameIntern(c->querybuf+c->qb_pos, c->bulklen);
                 if (arg == NULL)
-                    arg = use_operand_pool   /* ee451 v11-A: pooled pull (knob hoisted) */
-                        ? operandPoolGet(c->querybuf+c->qb_pos, c->bulklen)
-                        : createStringObject(c->querybuf+c->qb_pos,c->bulklen);
+                    arg = createStringObject(c->querybuf+c->qb_pos,c->bulklen);
                 (pcmd->argv)[(pcmd->argc)++] = arg;
                 pcmd->argv_len_sum += c->bulklen;
                 c->all_argv_len_sum += c->bulklen;
@@ -6782,11 +6771,7 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
         /* ee451 (v14 deepint): skip slots the worker already released (argv_released_mask) — the worker
          * decref'd them WITHOUT NULLing the io array, so freeing here would double-free. */
         uint64_t rel = pcmd->argv_released_mask;
-        if (server.opt_operand_pool) {
-            for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) operandPoolPut(o); }
-        } else {
-            for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
-        }
+        for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
 
         /* c may be NULL when called from reclaimPendingCommand */
         if (c) {

@@ -869,6 +869,7 @@ void *IOThreadMain(void *ptr) {
     char thdname[16];
     snprintf(thdname, sizeof(thdname), "io_thd_%d", t->id);
     redis_set_thread_title(thdname);
+    zmalloc_thread_stats_register(thdname);   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     redisSetCpuAffinity(server.server_cpulist);
     makeThreadKillable();
     aeSetBeforeSleepProc(t->el, IOThreadBeforeSleep);

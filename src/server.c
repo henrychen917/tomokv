@@ -8325,6 +8325,113 @@ static void csSubExec(client *sub) {
      * no single argv[1] to capture here. Reads (MGET/EXISTS/TOUCH/SETOP) mutate nothing -> no capture. */
 }
 
+/* ==== xshard INLINE (small-size) storage for a group's coordinator-owned arrays ====
+ *
+ * The problem this solves: a cross-shard MGET(4) fanning to 4 shards made and destroyed EIGHT
+ * separate heap blocks -- the csGroup itself, subs[], mget_vals[], mget_pos[], and one int[]
+ * position list per sub -- for a command whose entire per-command working set is ~128 bytes.
+ * None of them outlive the command. That is the textbook case for INLINE storage with heap
+ * spill: LLVM SmallVector, folly::small_vector, absl::InlinedVector, std::string's SSO.
+ *
+ * NOT a per-type object pool. That was already tried and DISPROVEN in this tree (52200d263,
+ * "kvobj recycle pool: NEGATIVE RESULT" -- p32 SET 5.263M vs 5.307M baseline, allocator profile
+ * unchanged), which is exactly what Berger, Zorn & McKinley predict in "Reconsidering Custom
+ * Memory Allocation" (OOPSLA 2002): custom freelists rarely beat a good general allocator, and
+ * REGIONS are the exception. We run jemalloc, whose tcache already IS a per-thread free pool.
+ * This is the region: a bump allocator with a per-command lifetime, in the spirit of nginx
+ * ngx_pool_t / Apache APR / PostgreSQL MemoryContext / LLVM BumpPtrAllocator -- only it is
+ * inlined into the object that owns the lifetime, so it costs no allocation of its own.
+ *
+ * Invariants that make it safe:
+ *  1. BUMP ONLY, never rewound. A region handed out once is never handed out again, so the
+ *     single memset in csGroupNew is the only zeroing needed -- csgCalloc is free on the inline
+ *     path -- and a stale pointer can never alias a live one.
+ *  2. SINGLE-THREADED. Every csgAlloc/csgFree runs on the group head's own IO thread: dispatch,
+ *     the drain-thread HOP2 launch, the drain-thread pipeline stages and the drain-thread
+ *     reassemble/teardown are all that thread. The cursor therefore needs no synchronisation.
+ *     Worker-allocated payloads (setmem[i] member arrays, zscore[i]) stay on the heap and keep
+ *     using zfree -- only coordinator-owned arrays live here.
+ *  3. SPILL IS ALWAYS LEGAL. csgAlloc falls back to zmalloc when the region is exhausted (or
+ *     built out entirely with CS_INLINE_MAX_BYTES 0); csgFree tells the two apart by address
+ *     range. So >16 keys, >8 shards, and multi-stage pipelines that bump the region several
+ *     times are all correct -- just not free. */
+static struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    unsigned long long inline_hits;     /* arrays served from the inline region */
+    unsigned long long heap_fallbacks;  /* arrays that spilled to zmalloc */
+} csg_alloc_ctr[TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX + 2];
+
+/* The region is sized PER COMMAND from the command's own shape, not from a knob and not from a
+ * one-size-fits-all constant. The dispatcher already knows nkeys, the shard fan-out bound and
+ * which result slots the registry row asks for, so the right size is a few adds away and needs
+ * no tuning by anyone. This is the whole reason there is no tomokv-xshard-inline-* knob: a knob
+ * would only let someone get this wrong.
+ *
+ * WHY IT MATTERS (measured, not assumed): a FIXED 320-byte region -- sized for MGET's
+ * subs+values+posmap -- made MSET(4) slower. MSET uses exactly ONE inline array (subs[], 32B),
+ * so the other 288 bytes were pure per-command memset and cache footprint: mset4 at p32 came out
+ * +1.27% instr/op while mget4 at p8 came out -5.96%. docs/sizing-policy.md states the rule this
+ * violated -- "every unused inline slot is dead weight in EVERY instance". Sizing per command
+ * makes MSET ask for 32 bytes and MGET(4) ask for ~128.
+ *
+ * Under-estimating is SAFE by construction: anything that does not fit spills to zmalloc, i.e.
+ * an arithmetic slip degrades to the pre-inline behaviour, never to a bug. */
+static csGroup *csGroupNew(size_t want) {
+    if (want > CS_INLINE_MAX_BYTES) want = CS_INLINE_MAX_BYTES;   /* tail spills; see csgAlloc */
+    want = (want + 7) & ~(size_t)7;          /* keep the region 8-aligned end to end */
+    size_t n = sizeof(csGroup) + want;       /* want==0 => exactly the pre-inline allocation */
+    csGroup *g = zmalloc(n);
+    memset(g, 0, n);                         /* header AND region: invariant 1 depends on this */
+    g->inl_cap = (uint16_t)want;
+    return g;
+}
+
+/* Inline demand of a GATHER/PIPELINE group, from the row + the key count + the fan-out bound.
+ * Mirrors, in the same order, exactly what dispatchGather/csBuildCoalescedSubs will allocate.
+ * Each per-sub int[] is padded to 8 bytes, hence the +4*nsub slack on the posmap term. */
+static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) {
+    size_t w = 8 * (size_t)nsub;                                   /* subs[] */
+    if (posmap) w += 8 * (size_t)nsub                              /* posmap pointer array */
+                   + 4 * (size_t)nkeys + 4 * (size_t)nsub;         /* per-sub int[], 8-padded */
+    switch (s->res_kind) {
+    case CS_RES_MGETVALS:  w += 8 * (size_t)nkeys; break;
+    case CS_RES_ZSETMEM:   w += 8 * (size_t)nkeys; /* zscore */    /* fall through */
+    case CS_RES_SETMEM:    w += 16 * (size_t)nkeys; break;         /* setmem + setcnt */
+    case CS_RES_KEYREPORT: w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* klen + ktype */
+    default: break;
+    }
+    if (s->has_hop2) w += 8 * CS_H2_MAX;   /* csLaunchHop2 re-allocates subs[] after HOP1 */
+    return w;
+}
+
+static inline void *csgAlloc(csGroup *g, size_t n) {
+    n = (n + 7) & ~(size_t)7;
+    if ((size_t)g->inl_used + n <= (size_t)g->inl_cap) {
+        void *p = (char *)g->inl + g->inl_used;
+        g->inl_used = (uint16_t)(g->inl_used + n);
+        csg_alloc_ctr[iotid].inline_hits++;
+        return p;
+    }
+    csg_alloc_ctr[iotid].heap_fallbacks++;
+    return zmalloc(n ? n : 1);
+}
+
+/* Zeroed variant. The inline region is pre-zeroed by csGroupNew and never reused (invariant 1),
+ * so an inline hit needs no memset; only the spill does. */
+static inline void *csgCalloc(csGroup *g, size_t n) {
+    size_t a = (n + 7) & ~(size_t)7;
+    if ((size_t)g->inl_used + a <= (size_t)g->inl_cap) return csgAlloc(g, n);
+    void *p = csgAlloc(g, n);
+    memset(p, 0, a);
+    return p;
+}
+
+static inline void csgFree(csGroup *g, void *p) {
+    if (!p) return;
+    char *b = (char *)g->inl;
+    if ((char *)p >= b && (char *)p < b + g->inl_cap) return;   /* inline: dies with the group */
+    zfree(p);
+}
+
 static void csFreeSub(client *sub) {
     if (sub->argv) {
         for (int a = 0; a < sub->argc; a++) if (sub->argv[a]) decrRefCount(sub->argv[a]);
@@ -8425,8 +8532,8 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     int nsub = 0;
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
-    g->subs = zmalloc(sizeof(client*) * nsub);
-    if (spec->posmap) *spec->posmap = zcalloc(sizeof(int*) * nsub);
+    g->subs = csgAlloc(g, sizeof(client*) * nsub);
+    if (spec->posmap) *spec->posmap = csgCalloc(g, sizeof(int*) * nsub);
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     client *wsub[TOMO_EX_THREADS_MAX + 1];         /* worker -> its sub (NULL if none) */
@@ -8446,7 +8553,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
         sub->db = &server.exThreads[w].db[dbid];
-        if (spec->posmap) (*spec->posmap)[si] = zmalloc(sizeof(int) * cnt[w]);
+        if (spec->posmap) (*spec->posmap)[si] = csgAlloc(g, sizeof(int) * cnt[w]);
         wsub[w] = sub; wsi[w] = si; g->subs[si++] = sub;
     }
     for (int i = 0; i < nkeys; i++) {
@@ -8519,17 +8626,21 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
 
 static void csPipeFreeStageSubs(csGroup *g) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
-    zfree(g->subs); g->subs = NULL; g->nsub = 0;
+    csgFree(g, g->subs); g->subs = NULL; g->nsub = 0;
 }
 
 static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
-    csGroup *g = zcalloc(sizeof(csGroup));
+    int nw = server.num_workers_alloc;
+    int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one SIZES sub per distinct shard */
+    /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], allocated below. Later stages re-bump and
+     * simply spill once the region is used up — correct, just not free. */
+    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) + 12 * (size_t)nkeys);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
     head->cdb = 0;
-    g->pipe_scard = zcalloc(sizeof(long) * nkeys);
-    g->pipe_shard_of = zmalloc(sizeof(int) * nkeys);
+    g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
+    g->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
     g->pipe_stage = CS_PIPE_SIZES;
     head->parent->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
     for (int i = 0; i < nkeys; i++) {
@@ -8694,7 +8805,7 @@ static int csPipeAdvance(csGroup *g) {
         csPipeFreeStageSubs(g);
         atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
         g->pipe_stage = CS_PIPE_GATHER1;
-        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        g->nsub = 1; g->subs = csgAlloc(g, sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
         robj *smk = head->argv[first + sm * s->key_stride];
         int w = exIndexForKey(smk->ptr, sdslen(smk->ptr));
@@ -8736,7 +8847,7 @@ static int csPipeAdvance(csGroup *g) {
         csPipeFreeStageSubs(g);
         atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
         g->pipe_stage = CS_PIPE_PROBE;
-        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        g->nsub = 1; g->subs = csgAlloc(g, sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
         /* re-route at launch (migration-safe); keys of one shard share routing so key 0 decides */
         robj *k0 = head->argv[first + kidx[0] * s->key_stride];
@@ -8769,9 +8880,9 @@ static int csPipeAdvance(csGroup *g) {
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
 static void dispatchLocalReal(client *head, int w, int dbid) {
-    csGroup *g = zcalloc(sizeof(csGroup));
+    csGroup *g = csGroupNew(sizeof(client *));   /* one sub, nothing else */
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
-    g->subs = zmalloc(sizeof(client*));
+    g->subs = csgAlloc(g, sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     head->csgroup = g;
@@ -8826,13 +8937,6 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         dispatchPipeline(head, s, nkeys, first, dbid);
         return;
     }
-    csGroup *g = zcalloc(sizeof(csGroup));
-    g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
-    g->spec = s; g->h2_dbid = dbid;
-    g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
-    head->csgroup = g;
-    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
-
     int coalesce = 1;
     switch (s->co_gate) {
     /* coalesce gated to k>=3: at k=2 the <=2 subs barely differ from per-key and the
@@ -8840,19 +8944,32 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     case CS_CO_MGETKNOB:  coalesce = (server.opt_mget_coalesce >= 1 && nkeys >= 3); break;
     case CS_CO_SETOPKNOB: coalesce = (server.opt_setop_coalesce && nkeys >= 3);     break;
     }
+    /* Sub-count bound: coalesced = one sub per DISTINCT shard (<= min(nkeys, workers));
+     * legacy = one sub per key. Computed BEFORE the group is allocated so the inline region is
+     * sized for THIS command rather than for the worst command. */
+    int nw = server.num_workers_alloc;
+    int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
+    int posmap  = coalesce && s->pos_kind != CS_POS_NONE;
+    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, posmap));
+    g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
+    g->spec = s; g->h2_dbid = dbid;
+    g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
+    head->csgroup = g;
+    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
+
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
     if (s->res_kind == CS_RES_SETMEM || s->res_kind == CS_RES_ZSETMEM) {
-        g->setmem = zcalloc(sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
-        g->setcnt = zcalloc(sizeof(long) * nkeys);
+        g->setmem = csgCalloc(g, sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
+        g->setcnt = csgCalloc(g, sizeof(long) * nkeys);
         if (s->res_kind == CS_RES_ZSETMEM)
-            g->zscore = zcalloc(sizeof(double*) * nkeys);  /* parallel score arrays */
+            g->zscore = csgCalloc(g, sizeof(double*) * nkeys);  /* parallel score arrays */
     }
     if (s->res_kind == CS_RES_MGETVALS && coalesce)
-        g->mget_vals = zcalloc(sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
+        g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
     if (s->res_kind == CS_RES_KEYREPORT) {           /* step 9; dead at Step R */
-        g->klen  = zcalloc(sizeof(long) * nkeys);
-        g->ktype = zcalloc(sizeof(uint8_t) * nkeys);
+        g->klen  = csgCalloc(g, sizeof(long) * nkeys);
+        g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
     }
     if (s->has_hop2) {   /* step 5+ (*STORE/BITOP/PFMERGE/MSETNX); dead at Step R (boot-asserted) */
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
@@ -8866,7 +8983,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         /* THE one copy of the legacy per-key loop (was duplicated verbatim in
          * dispatchCrossShard and dispatchSetOp). */
         g->nsub = nkeys;
-        g->subs = zmalloc(sizeof(client*) * nkeys);
+        g->subs = csgAlloc(g, sizeof(client*) * nkeys);
         atomic_store_explicit(&g->pending, nkeys, memory_order_relaxed);
         atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
         for (int i = 0; i < nkeys; i++) {
@@ -8916,9 +9033,9 @@ static void dispatchFanAll(client *head) {
     int nw = 0;
     for (int w = 0; w < server.num_workers_alloc; w++)
         if (tmWorkerLive(w)) lw[nw++] = w;
-    csGroup *g = zcalloc(sizeof(csGroup));
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw);   /* one sub per live worker */
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
-    g->subs = zmalloc(sizeof(client*) * nw);
+    g->subs = csgAlloc(g, sizeof(client*) * nw);
     g->results = NULL; g->result_ex = NULL;
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
@@ -9217,7 +9334,9 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int src_shard = server.ex_bucket_table[src_bkt];
     int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
-    csGroup *g = zcalloc(sizeof(csGroup));
+    /* 2-hop: at most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 re-allocates
+     * subs[] for up to CS_H2_MAX HOP2 subs out of the same region. */
+    csGroup *g = csGroupNew(sizeof(client *) * (2 + CS_H2_MAX));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -9275,7 +9394,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
             migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
             src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (bucket stable) */
         }
-        g->nsub = 1; g->subs = zmalloc(sizeof(client*));
+        g->nsub = 1; g->subs = csgAlloc(g, sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
         client *sub = csMakeSub(g, 0, src_shard, dbid);
         csSubCopyFullArgv(sub, head);
@@ -9303,7 +9422,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         dst_shard = server.ex_bucket_table[dst_bkt];
     }
     int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
-    g->nsub = nh1; g->subs = zmalloc(sizeof(client*) * nh1);
+    g->nsub = nh1; g->subs = csgAlloc(g, sizeof(client*) * nh1);
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
         client *sub = csMakeSub(g, i, i == 0 ? src_shard : dst_shard, dbid);
@@ -9538,11 +9657,11 @@ static int csLaunchHop2(csGroup *g) {
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
 
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
-    zfree(g->subs); g->subs = NULL;
+    csgFree(g, g->subs); g->subs = NULL;
     /* posmaps are sized by the HOP1 sub count — free them NOW, before nsub is repurposed for
      * the HOP2 plan (the generic teardown would walk them with the wrong bound => leak). */
-    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); g->setop_pos = NULL; }
-    if (g->mget_pos)  { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]);  zfree(g->mget_pos);  g->mget_pos  = NULL; }
+    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); g->setop_pos = NULL; }
+    if (g->mget_pos)  { for (int i = 0; i < g->nsub; i++) csgFree(g, g->mget_pos[i]);  csgFree(g, g->mget_pos);  g->mget_pos  = NULL; }
 
     if (g->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
@@ -9561,7 +9680,7 @@ static int csLaunchHop2(csGroup *g) {
     serverAssert(n > 0 && n <= CS_H2_MAX);
     int mig = __builtin_expect(
         atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
-    g->nsub = n; g->subs = zmalloc(sizeof(client*) * n);
+    g->nsub = n; g->subs = csgAlloc(g, sizeof(client*) * n);
     for (int i = 0; i < n; i++) {
         robj *key = head->argv[g->h2sub[i].key_argi];
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
@@ -9673,7 +9792,7 @@ static void csReassemble(client *dst, client *head) {
         for (long c = 0; c < g->pipe_ncand; c++) sdsfree(g->pipe_cand[c]);
         zfree(g->pipe_cand); zfree(g->pipe_verdict); zfree(g->pipe_cscore);
         zfree(g->pipe_probe_pos);
-        zfree(g->pipe_scard); zfree(g->pipe_order); zfree(g->pipe_shard_of);
+        csgFree(g, g->pipe_scard); zfree(g->pipe_order); csgFree(g, g->pipe_shard_of);
         g->pipe_cand = NULL; g->pipe_ncand = 0;
         /* fall through to the generic teardown (subs/posmaps/group) with dst handled */
         dst = NULL;
@@ -9903,27 +10022,28 @@ static void csReassemble(client *dst, client *head) {
         for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
             if (g->setmem[i]) {
                 for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
-                zfree(g->setmem[i]);
+                zfree(g->setmem[i]);           /* WORKER-allocated payload — never inline */
             }
-            if (g->zscore && g->zscore[i]) zfree(g->zscore[i]);
+            if (g->zscore && g->zscore[i]) zfree(g->zscore[i]);   /* likewise worker-allocated */
         }
-        zfree(g->setmem); zfree(g->setcnt); zfree(g->zscore);
+        csgFree(g, g->setmem); csgFree(g, g->setcnt); csgFree(g, g->zscore);
     }
-    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->setop_pos[i]); zfree(g->setop_pos); }
+    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
      * (MGET + the step-7 string-image gathers BITOP/PFCOUNT/PFMERGE all use these slots.) */
     if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
-        zfree(g->mget_vals);
-        if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) zfree(g->mget_pos[i]); zfree(g->mget_pos); }
+        csgFree(g, g->mget_vals);
+        if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
     }
     /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
-    zfree(g->klen); zfree(g->ktype);
+    csgFree(g, g->klen); csgFree(g, g->ktype);
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
-    zfree(g->subs); zfree(g);
+    csgFree(g, g->subs);
+    zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
 }
 
@@ -13121,6 +13241,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * without this counter an undersized ring is invisible except as unexplained latency. */
         unsigned long long tomo_qfull = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
+        /* xshard INLINE storage counters. These EXIST so an A/B cannot be vacuous: a build with
+         * CS_INLINE_MAX_BYTES 0 must report every array as a heap fallback, and a normal build
+         * must report the common case as inline hits. An A/B whose counters read the same on both
+         * arms is measuring nothing. They also make the spill rate observable in production:
+         * heap_fallbacks climbing means real traffic is exceeding the derived sizing. */
+        unsigned long long csg_inl = 0, csg_heap = 0;
+        for (size_t _t = 0; _t < sizeof(csg_alloc_ctr)/sizeof(csg_alloc_ctr[0]); _t++) {
+            csg_inl += csg_alloc_ctr[_t].inline_hits;
+            csg_heap += csg_alloc_ctr[_t].heap_fallbacks;
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -13132,6 +13262,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_xshard_multikey_split:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
+            "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,
+            "tomokv_xshard_heap_fallbacks:%llu\r\n", csg_heap,
             "tomokv_xshard_hop2_unbarriered:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
@@ -15546,6 +15678,10 @@ void *exThreadMain(void *arg) {
     exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
 
     fprintf(stderr, "[worker %d] started (iotid=%d)\n", worker->id, iotid);
+    {   /* DEBUG TOMO-JESTATS: register this worker's jemalloc per-thread counters (once). */
+        char wn[24]; snprintf(wn, sizeof(wn), "worker_%d", worker->id);
+        zmalloc_thread_stats_register(wn);
+    }
 
     exSliceCtx ctx;
     exSliceInit(worker, &ctx);
@@ -16101,6 +16237,10 @@ void *ioThreadMain(void *arg) {
     flatRegisterIoSlot(t->id);   /* FLATSTORE QSBR: claim this io slot's epoch word */
 
     fprintf(stderr, "IO thread %d started\n", t->id);
+    {   /* DEBUG TOMO-JESTATS: register this IO thread's jemalloc per-thread counters (once). */
+        char n[24]; snprintf(n, sizeof(n), "io_%d", t->id);
+        zmalloc_thread_stats_register(n);
+    }
 
     while (1) {
         ioSlice(t);
@@ -16146,6 +16286,11 @@ void *polyThreadMain(void *arg) {
     exSliceCtx exctx;
     int ex_inited = 0;         /* one-time EX setup done (send ring / NUMA bind / slice ctx) */
     int refused = -1;          /* last refused target, to log once */
+    {   /* DEBUG TOMO-JESTATS: one registration per OS thread (identity may change mode later;
+         * the jemalloc counters are per-thread, so the name is the birth identity pair). */
+        char n[24]; snprintf(n, sizeof(n), "poly_io%d_ex%d", ctx->io_slot, ctx->ex_slot);
+        zmalloc_thread_stats_register(n);
+    }
 
     for (;;) {
         /* CHECKPOINT — between slices, never mid-slice. Adopt target_mode and
@@ -18547,6 +18692,7 @@ int main(int argc, char **argv) {
         serverLog(LL_NOTICE, "Configuration loaded");
     }
 
+    zmalloc_thread_stats_register("main");   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     initServer();
     initIOThreads();
     if (background || server.pidfile) createPidFile();

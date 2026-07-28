@@ -3248,6 +3248,10 @@ standardConfig static_configs[] = {
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createIntConfig("thredis-opt-mget-coalesce",     NULL, MODIFIABLE_CONFIG, 0, 2, server.opt_mget_coalesce, 1, INTEGER_CONFIG, NULL, NULL), /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); 2=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
     createBoolConfig("thredis-xshard-guard",         NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
+    /* NO tomokv-xshard-inline-* knob, deliberately: the inline region is sized per command from
+     * the command's own shape (csInlineWant), so there is nothing left for a human to tune. A
+     * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
+     * — that turns every csgAlloc into a plain zmalloc. */
     createBoolConfig("tomokv-xshard-localfast",      NULL, MODIFIABLE_CONFIG, server.xshard_localfast, 1, NULL, NULL), /* read-only multi-key op with all keys on ONE worker runs the real proc there (no gather/coordinator compute). default on; 0 = always gather (A/B). */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
     createBoolConfig("tomokv-xshard-pipeline",       NULL, MODIFIABLE_CONFIG, server.xshard_pipeline, 1, NULL, NULL), /* merge-execution cross-shard INTER family: sizes -> gather-smallest -> shrinking probe chain (traffic ~ k x |smallest|). default ON (gate battery + differential + ~100-300x A/B green 2026-07-21); 0 = legacy gather. */
@@ -3303,7 +3307,6 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive from io+ex per node (or legacy io/ex-threads) */
     createIntConfig("tomokv-io-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static IO/node; 0 = derive from legacy io-threads */
     createIntConfig("tomokv-ex-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static EX/node; 0 = derive from legacy ex-threads */
-    createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
     createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
