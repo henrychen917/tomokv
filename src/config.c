@@ -3329,7 +3329,7 @@ standardConfig static_configs[] = {
     createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
 
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto (PID-style grow/decay); 0=off (pop 1 per loop); N=fixed */
+    createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* -1 = the tuned default (WORKER_POP_BATCH 16); 0 = off (pop 1 per loop); N = fixed. NOT a controller: a pop batch is a pipelining WIDTH (prefetch-to-use distance vs cache pressure), which is microarchitectural, not load-driven -- so it is a fixed constant, the same choice as Linux NAPI weight (64) and DPDK burst (32). An earlier comment here claimed "PID-style grow/decay"; no such code ever existed. */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3448,7 +3448,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.pf_value_budget_kb, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3/(2W); 0=off (no value chase); N=explicit KB */
     createIntConfig("tomokv-worker-spin", NULL, MODIFIABLE_CONFIG, -1, 4096, server.worker_spin, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto (adaptive); 0=off (no spin, block immediately); N=pinned spin rounds */
     createIntConfig("tomokv-io-drain-userpoll", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.io_drain_userpoll, -1, INTEGER_CONFIG, NULL, updateIODrainUserpoll), /* 2s-auto T1: -1=auto EWMA spin-vs-syscall, 0=syscall-only legacy, N=fixed userpoll passes */
-    createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
+    createIntConfig("tomokv-drain-tail-skip",   NULL, MODIFIABLE_CONFIG, -1, 1,       server.drain_tail_skip,   -1, INTEGER_CONFIG, NULL, NULL), /* enqueue-if-pending on the drain tail. 0 = legacy (never enqueue); any non-zero = on. NOTE -1 and 1 are IDENTICAL -- the test is `!= 0`, so this is a boolean wearing a tri-state costume; there is no "auto" arm. Left as an int for config compatibility. */
     createIntConfig("tomokv-express-slim",      NULL, MODIFIABLE_CONFIG, -1, 100,     server.express_slim,      -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto T3: -1=auto EWMA hit-rate, 0=full move, 1-100=fixed pct */
     createIntConfig("tomokv-fake-ring-depth",   NULL, MODIFIABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.fake_ring_depth_mode, -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D3: -1=AUTO (lazy grow + decay), 0=OFF (no prealloc, purely on demand), N=STATIC cap */
     createIntConfig("tomokv-fake-buf",          NULL, MODIFIABLE_CONFIG, -1, 65536,   server.fake_buf_mode,     -1, INTEGER_CONFIG, NULL, NULL), /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */

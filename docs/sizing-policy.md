@@ -181,8 +181,19 @@ Part I's three-way rule stands. Two entries need correcting against it:
 | ex queue depth | derive at boot, `max(want, 2048)` | **correct, do not "fix"** (Part I §4) |
 | fake ring / fake buf | `-1` derive from pipeline depth | correct |
 | reply buffer → list | spill on size | correct (upstream) |
-| **`tomokv-worker-pop-batch`** | `-1` = auto, **PID-style grow/decay** | **CONTRADICTS OUR OWN POLICY.** Part I §3 lists `WORKER_POP_BATCH` as a *pipelining width* that must **not** auto-resize — widths trade prefetch-to-use distance against cache pressure and are microarchitectural, not load-driven. A PID loop on a width hunts against noise. **Resolve: measure `-1` vs the best fixed value; if auto does not win, delete the controller and keep the constant.** |
-| `tomokv-worker-spin`, `io-drain-userpoll`, `express-slim` | `-1` = adaptive EWMA | **legitimate** — adaptive spin-then-block is standard practice (Linux adaptive mutexes, JVM adaptive spinning). These adapt a *latency/CPU tradeoff*, which is genuinely load-dependent, unlike a width |
+| **`tomokv-worker-pop-batch`** | `-1` → the constant 16 | **ALREADY CORRECT — the comment was the defect.** I filed this as "a PID auto-resize that contradicts our own width policy" on the strength of its config comment. Reading `tomoPopBatch()` shows three lines and **no controller of any kind**: `-1` returns `WORKER_POP_BATCH`. The claimed "PID-style grow/decay" never existed. A fixed width is exactly what Linux NAPI (weight 64) and DPDK (burst 32) do. Comment corrected; no code change |
+| **`tomokv-drain-tail-skip`** | `-1` ≡ `1` | **no "auto" arm exists** — the test is `!= 0`, so it is a boolean in a tri-state costume. Comment corrected |
+| `tomokv-worker-spin` | ×1.5 grow (cap 256) / ÷2 shrink (floor 4) | **REAL, and standard.** Multiplicative-increase/multiplicative-decrease is *the* canonical adaptive-spin form — Linux adaptive mutexes, HotSpot adaptive spinning, exponential backoff (CSMA/CD, TCP RTO). Keep |
+| `tomokv-io-drain-userpoll` | `-1` picks poll-vs-syscall from `replyWorking` | **REAL, and standard** — this is NAPI's interrupt↔poll switch. Keep |
+| `tomokv-express-slim` | `-1` = EWMA + Schmitt band [0.60, 0.80] | **REAL, and standard** — hysteresis on a smoothed signal is textbook (and the double-read race in it was already fixed). Keep |
+
+### Are PID controllers standard here? No — and they would be the wrong tool
+
+The question was asked directly, so it is worth recording the answer. **There is no PID controller anywhere in this fork.** The only knob that claimed one had no controller at all; the three real adaptive arms are MIMD backoff, NAPI-style poll switching, and EWMA+hysteresis — all standard families.
+
+That is also the *right* design, not a lucky one. **A PID regulates a measured value toward a setpoint.** Batch width, thread split and spin budget have no setpoint — the goal is to *maximise* throughput, which is an optimisation problem, not a regulation problem. Applying PID where no setpoint exists is a category error: the integral term has nothing to integrate toward and the loop hunts. The correct families are the ones already in use: a **fixed constant** where the quantity is microarchitectural (pop batch), **multiplicative backoff** where the cost is wasted spinning, **hysteresis** where the risk is flapping, and **extremum seeking / hill-climbing** where you genuinely must find a maximum — which is what `tomoFlipController` does, and the one place a bespoke mechanism is warranted.
+
+PID does appear in systems software, but for continuous quantities with real inertia — CPU frequency governors (`intel_pstate`), thermal/fan control, GC heap sizing. None of those describe a 1–16 integer width.
 
 ## Sequencing
 
