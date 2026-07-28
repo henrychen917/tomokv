@@ -52,7 +52,6 @@
 #include <sys/resource.h>
 #include <sys/uio.h>
 #include <sys/syscall.h>   /* ee451 (v8d): SYS_set_mempolicy for NUMA-local shard binding (pin_mode==1) */
-#include <linux/perf_event.h>   /* ee451: real LLC-miss ground-truth for the predictor bake-off (vf-perfsignal) */
 #include <sys/un.h>
 #include <limits.h>
 #include <float.h>
@@ -294,13 +293,6 @@ static int flatIoPinnedCount(void) {         /* INFO gauge: io identities curren
         if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_relaxed) & 1) n++;
     return n;
 }
-/* KNOB: -1 = AUTO (tuned default), 0 = OFF (no batching — pop one item per pass), N = STATIC. */
-static inline int tomoPopBatch(void) {
-    if (server.worker_pop_batch < 0) return WORKER_POP_BATCH;
-    if (server.worker_pop_batch == 0) return 1;
-    return server.worker_pop_batch;
-}
-
 /* build-time layout guard (FLATSTORE reclaim): the worker-private retire fields must NOT share a
  * cache line with loop_seq / in_flat_section, which every OTHER worker polls in flatBatchReady —
  * a per-retire write next to them would ping-pong the line. */
@@ -2447,7 +2439,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
     /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
      * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
-     * undersized tomokv-ex-queue-depth showed up only as unexplained latency. Count it (INFO:
+     * undersized worker dispatch ring showed up only as unexplained latency. Count it (INFO:
      * tomokv_ex_queue_full) so the sizing is observable, per the "expose the state" rule. Plain
      * increment on a per-io-identity line: this thread is its only writer, and it is off the fast
      * path by construction (we are already about to spin). */
@@ -2664,18 +2656,16 @@ void handleWorkerReplies(void) {
              * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
             if (server.io_uring_reply_send) {
                 putClientInPendingWriteQueue(real);
-            } else if (server.drain_tail_skip != 0) {   /* 2s-auto T2: -1/1 = auto */
-                /* writeToClient returning C_ERR means the conn errored; it calls
+            } else {
+                /* 2s-auto T2: tomokv-drain-tail-skip retired at AUTO; the "direct write only"
+                 * legacy arm (which DROPPED a short-written tail) went with it.
+                 * writeToClient returning C_ERR means the conn errored; it calls
                  * freeClientAsync(real) internally. We just stop touching real. If it
                  * couldn't flush everything (short write / EAGAIN), enqueue for the
                  * pending-write pass so the tail isn't dropped. */
                 (void)writeToClient(real, 0);
                 if (clientHasPendingReplies(real))
                     putClientInPendingWriteQueue(real);
-            } else {                                     /* 0 = legacy: direct write only */
-                /* writeToClient returning C_ERR means the conn errored; it calls
-                 * freeClientAsync(real) internally. We just stop touching real. */
-                (void)writeToClient(real, 0);
             }
         }
 
@@ -2760,7 +2750,10 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
      * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
      * region flags (see flatBatchReady), not by a counter here. */
-    if (__builtin_expect(server.shared_node_dbs && server.thredis_flat_store, 0)) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
+    /* CORRECTNESS NOTE (2026-07-28): this used to be hinted UNLIKELY. FLATSTORE is the DEFAULT
+     * shape (any node with >1 worker), so the hint was backwards — it laid the taken path out cold
+     * on the busiest loop in the server. Hint dropped, predicate unchanged. */
+    if (server.shared_node_dbs) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
     if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
@@ -3796,9 +3789,10 @@ static int detectL3Domains(void) {
 }
 
 void initServer(void) {
-    /* ee451 (v14): 0 = auto-detect from sysfs; explicit KB pins it (VMs often hide cache
-     * topology — the auto would fall back to a blind 32MB default there). */
-    server.detected_l3_bytes = server.l3_kb > 0 ? (size_t)server.l3_kb * 1024 : detectL3Bytes();
+    /* ee451 (v14): auto-detect from sysfs. tomokv-l3-kb (the explicit KB pin, for VMs that hide
+     * cache topology) was retired at 0 = auto, so detection is the only path; detectL3Bytes has
+     * its own 32MB fallback when sysfs says nothing. */
+    server.detected_l3_bytes = detectL3Bytes();
     server.detected_l3_domains = detectL3Domains();   /* L1a: workers-per-L3 for the prefetch gate */
     int j;
 
@@ -3873,8 +3867,7 @@ void initServer(void) {
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
     }
     /* Internal flip bounds from the node budget (min 1 of each role, max cores_per_node-1). */
-    server.io_threads_min = 1; server.ex_threads_min = 1;
-    server.io_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
+    server.ex_threads_min = 1;
     server.ex_threads_max = server.cores_per_node > 1 ? server.cores_per_node - 1 : 1;
     /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this
      * server. It would run every command inline on the IO threads against the shared decoy
@@ -3917,8 +3910,11 @@ void initServer(void) {
         server.pipeline_ring_depth = 1;   /* OFF: no pipeline ring, one in-flight command per client */
         serverLog(LL_NOTICE, "tomokv-pipeline-depth 0 = OFF -> ring disabled (depth 1)");
     }
-    if (server.ex_queue_size < 0) {
-        /* AUTO derives from the configured shape instead of a magic constant: every io identity can
+    {
+        /* tomokv-ex-queue-depth is retired: the derivation below is the ONLY sizing (the explicit-N
+         * and the rejected-0 arms went with the knob). The field stays because it CARRIES the
+         * derived value — ex_queue_mask and INFO tomokv_ex_queue_depth both read it.
+         * AUTO derives from the configured shape instead of a magic constant: every io identity can
          * have up to pipeline_ring_depth commands in flight per connection, and they all funnel into
          * one SPSC ring per (worker, io) pair. Size it to hold a full round from every io producer,
          * with 4x headroom for burst, rounded to a power of two and clamped to the ring maximum.
@@ -3944,23 +3940,12 @@ void initServer(void) {
                       "tomokv-ex-queue-depth auto -> %d (4 x (io_threads+1) x pipeline_depth = %ld, floored at 2048)",
                       server.ex_queue_size, want);
     }
-    else if (server.ex_queue_size == 0) {
-        /* A worker dispatch queue cannot be "off" — the queue IS the dispatch path. Reject rather
-         * than silently substituting a size, so 0 never means something surprising here. */
-        serverLog(LL_WARNING, "tomokv-ex-queue-depth 0 is invalid (the queue is the dispatch path; use -1 for auto) — using auto 2048");
-        server.ex_queue_size = 2048;
-    }
-    /* ee451 (AE-1): boot-sync the adaptive-drain budget into ae.c's plain global — config
-     * apply fns do not run during loadServerConfig, only on CONFIG SET. */
-    aeIODrainSpin = server.io_drain_spin;
-    aeIODrainUserpoll = server.io_drain_userpoll;   /* 2s-auto T1 */
 
     /* Derive runtime constants. pipeline_ring_depth and ex_queue_size are validated as powers
      * of two (masks below); ex_threads may be ANY count — worker routing goes through the
-     * bucket indirection table, NOT a mask (ex_dispatch_mask is legacy/unused). */
+     * bucket indirection table, NOT a mask (the legacy ex_dispatch_mask was deleted 2026-07-28). */
     server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
     server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
-    server.ex_dispatch_mask = server.ex_threads > 0 ? (uint64_t)(server.ex_threads - 1) : 0;  /* legacy/unused */
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
      * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W.
      * The adjacent-shift rebalancer later mutates this. */
@@ -3994,11 +3979,6 @@ void initServer(void) {
     server.main_thread_id = pthread_self();
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
 
-    /* ALWAYS-LOCK IS THE DESIGN: the S2 single-key owner lock is what makes a shared node db safe
-     * against sibling workers, so this is an internal constant, not a knob. The tomokv-mcmd-lock
-     * config was deleted 2026-07-27 — it was accepted and then overridden, i.e. a config surface
-     * that lied about what it did. */
-    server.mcmd_lock = 1;
     server.errors = raxNew();
     server.errors_enabled = 1;
     server.execution_nesting = 0;
@@ -4165,20 +4145,16 @@ void initServer(void) {
             exit(1);
         }
     }
-    /* ee451 (S5): resolve the number of common-data-buses once (IMMUTABLE toggle).
-     * OFF => 1 (single shared mask, byte-equivalent to the original protocol). */
-    /* ee451 (#75): resolve the bus count once (IMMUTABLE). tomokv-num-cdb (cfg_num_cdb>0) requests an
-     * explicit count, else legacy opt_multi_cdb auto-requests one bus per worker, else 1. Capped at
-     * num_workers (cdbIndexFor = ex_id % num_cdb with ex_id < num_workers, so buses beyond #workers are
-     * never written -> would only widen the per-reply drain scan) and at NUM_CDB_MAX. So the knob accepts
-     * up to 256 but the effective count scales with the worker count. */
+    /* ee451 (S5/#75): resolve the number of common-data-buses once (IMMUTABLE). tomokv-num-cdb is
+     * retired at AUTO, so the count is purely topological: one bus per worker on a multi-L3-domain
+     * box, a single shared bus otherwise. Capped at num_workers (cdbIndexFor = ex_id % num_cdb with
+     * ex_id < num_workers, so buses beyond #workers are never written -> would only widen the
+     * per-reply drain scan) and at NUM_CDB_MAX. */
     {
-        /* -1 = AUTO (topology: bus-per-worker only with multiple L3 domains/CCDs to de-contend;
-         * single-CCD keeps the single-bus shape), 0 = OFF (exactly one bus, feature disabled),
-         * N > 0 = STATIC. 0 previously meant AUTO, contradicting the house rule. */
-        int req = server.cfg_num_cdb > 0  ? server.cfg_num_cdb
-                : server.cfg_num_cdb == 0 ? 1
-                                          : (detectL3Domains() > 1 ? server.num_workers : 1);
+        /* tomokv-num-cdb is retired at AUTO: bus-per-worker only when the box has multiple L3
+         * domains/CCDs to de-contend; a single-CCD box keeps the single-bus shape. The OFF (one
+         * bus) and STATIC-N arms went with the knob. */
+        int req = detectL3Domains() > 1 ? server.num_workers : 1;
         if (req > server.num_workers) req = server.num_workers;
         if (req > NUM_CDB_MAX) req = NUM_CDB_MAX;
         server.num_cdb = req < 1 ? 1 : req;
@@ -4197,7 +4173,7 @@ void initServer(void) {
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
         int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
-        if (server.thredis_flat_store && server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE */
+        if (server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE: a shared node db IS a flat table */
         server.node_dbs = zmalloc(sizeof(redisDb *) * (nnodes + 1));
         for (int n = 0; n < nnodes + 1; n++) {              /* [nnodes] = spare-private array */
             server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
@@ -6063,7 +6039,8 @@ int processCommand(client *c) {
      * ee451 (xshard registry): INVERTED to an allowlist — TOMO_R_XGUARD is stamped from the
      * registry (UNPORTED row, or no row + multi-key-capable key specs), so future multi-key
      * commands are denied by default; csGateReject applies the per-row argc hooks. Ported cmds
-     * never carry the bit. Gated by tomokv-xshard-guard (default on). */
+     * never carry the bit. The SAFE-GATE is unconditional (tomokv-xshard-guard was hardwired ON
+     * in 77174fa4a: its OFF arm was a reproduced data-loss path, not an optimisation). */
     if (server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
         (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
@@ -6132,9 +6109,9 @@ int processCommand(client *c) {
     /* Apply a pending GROW here: the ring is empty, so remapping slots is a no-op. Growth is fast
      * (every drain is a checkpoint); decay is slow (cron). One predictable compare on the hot path. */
     if (__builtin_expect(c->ring_want_grow && c->dispatchid == c->flushid, 0)) {
-        /* AUTO only. OFF (0) must stay at depth 1 and STATIC (N) must stay at N — growing them would
-         * re-create the very bug this unification fixes (a configured depth that does not cap). */
-        if (server.fake_ring_depth_mode == -1 && c->ring_size < (unsigned int)server.pipeline_ring_depth) {
+        /* tomokv-fake-ring-depth retired at AUTO, so growth is unconditional up to the configured
+         * pipeline depth (which is still the cap — that is the bug this unification fixed). */
+        if (c->ring_size < (unsigned int)server.pipeline_ring_depth) {
             c->ring_size <<= 1; c->ring_mask = c->ring_size - 1;
         }
         c->ring_want_grow = 0;
@@ -6162,8 +6139,8 @@ int processCommand(client *c) {
     if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
 
     unsigned int fslot = c->dispatchid & c->ring_mask;
-    /* 2s-auto D3: lazy-create the ring slot on first use (auto or fixed-N mode leaves
-     * unused slots NULL at createClient). fake_slot is stamped once and never changes. */
+    /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
+     * fake_slot is stamped once and never changes. */
     if (c->fakeClients[fslot] == NULL) {
         c->fakeClients[fslot] = createFakeClient(c);
         c->fakeClients[fslot]->fake_slot = fslot;
@@ -6174,18 +6151,16 @@ int processCommand(client *c) {
      * lookedcmd/realcmd/slot/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
      * fake->cmd POST-move — both resolve to the same command. */
+    /* tomokv-express-slim retired at AUTO: the OFF arm and the fixed-percentage arm are both
+     * gone, so the EWMA Schmitt decision below is the only one. */
     int use_slim = 0;
-    if (server.express_slim != 0 && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+    if (c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
         /* ee451 review: load the cross-thread EWMA ONCE — the old double read could observe two
          * different values inside one Schmitt comparison (and was a plain-load data race). */
         double ehw = tomoRelaxedRead(server.express_hit_ewma);
-        if (server.express_slim == -1) {
-            static __thread int last_slim = 0;   /* Schmitt band [0.60,0.80] */
-            double thr = last_slim ? 0.60 : 0.80;
-            use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
-        } else {
-            use_slim = (ehw * 100.0) > (double)server.express_slim;
-        }
+        static __thread int last_slim = 0;   /* Schmitt band [0.60,0.80] */
+        double thr = last_slim ? 0.60 : 0.80;
+        use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
@@ -6326,7 +6301,7 @@ int canDispatchToWorker(client *c) {
     /* ee451 FLATSTORE: top-level SCAN must run on a WORKER (exSlice) so its cross-node lock-free
      * reads are covered by in_flat_section (no resize/free mid-slice) + loop_seq (QSBR grace). Only
      * under a flat shared kvstore; otherwise SCAN keeps its existing (inline) handling. */
-    if (p == scanCommand) return server.thredis_flat_store && server.shared_node_dbs;
+    if (p == scanCommand) return server.shared_node_dbs;
 
     /* DEL is variadic-key; only the single-key form (argc == 2) is safe
      * to dispatch. Multi-key DEL would cross shards and silently lose
@@ -6817,7 +6792,7 @@ static int        flat_rz_n = 0, flat_rz_j = 0;
  * starving it. Safe to call from any thread: reads atomics + a main-thread-owned state int (benign race). */
 int flatResizePending(void) {
     if (flat_rz_state != FLAT_RZ_IDLE) return 1;
-    if (!server.shared_node_dbs || !server.thredis_flat_store || !server.node_dbs) return 0;
+    if (!server.shared_node_dbs || !server.node_dbs) return 0;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
@@ -6827,7 +6802,7 @@ int flatResizePending(void) {
 }
 
 void flatResizeCoordinate(void) {
-    if (!server.shared_node_dbs || !server.thredis_flat_store || !server.node_dbs) return;
+    if (!server.shared_node_dbs || !server.node_dbs) return;
 
     if (flat_rz_state == FLAT_RZ_IDLE) {
         flatTable *t = NULL; kvstore *kvs = NULL; int fn = 0, fj = 0;
@@ -6978,9 +6953,8 @@ int getWorkerForCommand(client *c) {
      * are gated on argc == 2 so only the single-key form dispatches.
      *
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
-     * short keys) + the bucket indirection table (any worker count; resharding-aware at
-     * config load, so server.ex_dispatch_mask = num_workers - 1
-     * gives uniform dispatch in a single AND instruction). */
+     * short keys) + the bucket indirection table: any worker count, resharding-aware, and
+     * dispatch is one table load (the power-of-two dispatch MASK it replaced is long gone). */
     /* ee451 (hash-carry): compute the bucket ONCE here and carry it on the fake — the worker-side
      * getKeySlot (lookupKey + dbAdd + expires all recompute it) consumes via pointer match. */
     {
@@ -7018,15 +6992,19 @@ static int tmWorkerLive(int w) {
 }
 
 /* ==== Per-worker db lock (2s-numa-mcmd-lock; MCMD_LOCK_DESIGN.md) ====
- * The lock granularity MUST match the data-structure granularity. In non-cluster mode a worker's
- * shard db is ONE dict (kvstore slot_count_bits==0), NOT one-dict-per-bucket — so an off-worker
- * dictFind and the owner's dictAdd/rehash touch the SAME dict and a per-BUCKET lock does not exclude
- * them (SIGSEGV during rehash). Hence the lock is PER-WORKER: the owner takes its own worker lock
- * for every op, and anything reaching that worker's db from ANOTHER thread takes the same lock.
- * This is coarse (all of a worker's keys share one lock); the fine-grained "buckets rarely collide"
- * win needs a per-bucket kvstore (the shared-keyspace S0 change). Inert while mcmd_lock==0 (the
- * lock-free path is byte-for-byte unchanged).
- * WHO STILL TAKES IT off-worker, now that the node-local read BORROW is deleted (2026-07-27):
+ * The lock granularity MUST match the data-structure granularity, and a node's keyspace is ONE
+ * structure: under FLATSTORE (unconditional) a shared node db is a single open-addressing table
+ * shared by every worker of the node — so a per-BUCKET lock would not exclude an off-worker read
+ * from the owner's insert/resize, exactly as it did not exclude it from a dict rehash before
+ * FLATSTORE. (That was this comment's original wording — "a worker's shard db is ONE dict
+ * (slot_count_bits==0)" — a dict-era premise that is FALSE today. The CONCLUSION it justified is
+ * unchanged and the lock is still load-bearing; only the structure it names has changed.)
+ * Hence the lock is PER-WORKER: the owner takes its own worker lock for every op, and anything
+ * reaching that worker's slice of the node db from ANOTHER thread takes the same lock. This is
+ * coarse (all of a worker's keys share one lock); finer granularity would need per-range locks
+ * inside the flat table. ALWAYS ON — tomokv-mcmd-lock was deleted 2026-07-27; there is no
+ * lock-free configuration.
+ * WHO TAKES IT off-worker, now that the node-local read BORROW is deleted (2026-07-27):
  *   - HFE commands (HEXPIRE/HGETEX/HTTL/...) — one worker, ALL of its node's locks, because they
  *     mutate the db-level estore shared by the whole node. This is the load-bearing case.
  *   - online resharding: migApplyOne on B, and A's cold-key scan / cleanup range-delete.
@@ -7083,12 +7061,12 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * line has fallen out of L1 by then it is still L2-resident (~14cy), keeping the bulk of the
  * ~100ns saving.
  *
- * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / opt_mget_coalesce>=2): on a FLAT store every
+ * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / the old mget-coalesce level 2): on a FLAT store every
  * table-touching stage of the existing prefetch machinery self-disables — exPrefetchBatch's
  * PFS_HASH reads kvstoreGetDict(), which is NULL under KVSTORE_FLAT (dicts are on-demand,
  * initServer/kvstoreCreate; no flat path ever creates one), so it retires at the !d guard,
  * prefetch_key_hash_valid stays 0, and the #3 next-op look-ahead (pf_w_nextop, exec loop) never
- * fires; the in-sub two-pass dict prefetch (opt_mget_coalesce >= 2, csSubExec CS_MGET) nulls its
+ * fires; the in-sub two-pass dict prefetch (mget-coalesce level 2, csSubExec CS_MGET) nulls its
  * ds[] the same way. These waves are therefore the ONLY issuer of flat-table prefetches: no
  * double-prefetch, no LFB competition. The batch prefetcher still warms fake METADATA
  * (struct/argv vector/argv[1]) — complementary, not conflicting; the single overlap (key 0's
@@ -7346,7 +7324,7 @@ static const csCmdSpec csRegistry[] = {
 /* ================= PORTED (byte-exact vs the pre-registry dispatchers — the hard gate) ===== */
 { .proc=mgetCommand,   .name="mget",   .ported=CS_PORT_OK, .ctype=CS_MGET,   .route=CS_RT_GATHER,
   .min_argc=2, .key_stride=1, .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET,
-  .co_gate=CS_CO_MGETKNOB },
+  .co_gate=CS_CO_MGET_K3 },
 { .proc=msetCommand,   .name="mset",   .ported=CS_PORT_OK, .ctype=CS_MSET,   .route=CS_RT_GATHER,
   .min_argc=3, .argc_odd=1, .key_stride=2, .per_key_extra=1, .cs_write=1,
   .co_gate=CS_CO_ALWAYS, .append_extra=csAppendMsetValue },
@@ -7365,13 +7343,13 @@ static const csCmdSpec csRegistry[] = {
   .min_argc=2, .max_argc=2 },
 { .proc=sinterCommand, .name="sinter", .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
   .setop=CS_SETOP_INTER, .min_argc=2, .key_stride=1,
-  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3 },
 { .proc=sunionCommand, .name="sunion", .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
   .setop=CS_SETOP_UNION, .min_argc=2, .key_stride=1,
-  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3 },
 { .proc=sdiffCommand,  .name="sdiff",  .ported=CS_PORT_OK, .ctype=CS_SETOP,  .route=CS_RT_GATHER,
   .setop=CS_SETOP_DIFF,  .min_argc=2, .key_stride=1,
-  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB },
+  .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3 },
 { .proc=renameCommand, .name="rename", .ported=CS_PORT_OK, .ctype=CS_RENAME, .route=CS_RT_TWOHOP,
   .min_argc=3, .max_argc=3, .src_argi=1, .dst_argi=2,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
@@ -7395,19 +7373,19 @@ static const csCmdSpec csRegistry[] = {
  * short-circuits in HOP1 => no write at all. SINTERCARD is the pure-1-hop count variant. */
 { .proc=sinterstoreCommand, .name="sinterstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
-  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
 { .proc=sunionstoreCommand, .name="sunionstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_UNION, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
-  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
 { .proc=sdiffstoreCommand, .name="sdiffstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_DIFF, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
-  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
 { .proc=sinterCardCommand, .name="sintercard", .ported=CS_PORT_OK, .ctype=CS_SETCARD,
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
-  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .cs2_kind=CS2_INT, .shape_ok=csSintercardShapeOk },
 /* step 6 — zset family. HOP1 gathers (member,score) pairs per key (a plain-set source scores
  * 1.0, stock); the coordinator applies WEIGHTS/AGGREGATE and computes into a temp zset whose
@@ -7416,34 +7394,34 @@ static const csCmdSpec csRegistry[] = {
  * reassemble-time. Tail-malformed forms fall inline for stock parse errors. */
 { .proc=zunionCommand, .name="zunion", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
   .setop=CS_SETOP_UNION, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
-  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .shape_ok=csZopShapeOk },
 { .proc=zinterCommand, .name="zinter", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
   .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
-  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .shape_ok=csZopShapeOk },
 { .proc=zdiffCommand, .name="zdiff", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
   .setop=CS_SETOP_DIFF, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
-  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .shape_ok=csZdiffShapeOk },
 { .proc=zunionstoreCommand, .name="zunionstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_UNION, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
   .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
-  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .co_gate=CS_CO_SETOP_K3, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
   .shape_ok=csZstoreShapeOk },
 { .proc=zinterstoreCommand, .name="zinterstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
   .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
-  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .co_gate=CS_CO_SETOP_K3, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
   .shape_ok=csZstoreShapeOk },
 { .proc=zdiffstoreCommand, .name="zdiffstore", .ported=CS_PORT_OK, .ctype=CS_ZSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_DIFF, .min_argc=4, .dst_argi=1, .numkeys_argi=2,
   .firstkey_argi=3, .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP,
-  .co_gate=CS_CO_SETOPKNOB, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
+  .co_gate=CS_CO_SETOP_K3, .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT,
   .shape_ok=csZdstoreShapeOk },
 { .proc=zinterCardCommand, .name="zintercard", .ported=CS_PORT_OK, .ctype=CS_ZCARD,
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
-  .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOPKNOB,
+  .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .cs2_kind=CS2_INT, .shape_ok=csZcardShapeOk },
 /* step 7 — byte/HLL ops over raw string images (mget_vals gather, always coalesced so the
  * value slots exist on every path). PFCOUNT-multi is a pure 1-hop count; BITOP folds bytes
@@ -7677,12 +7655,12 @@ static const csCmdSpec *csClassify(client *c) {
     if (c->argc < s->min_argc) return NULL;
     if (s->max_argc && c->argc > s->max_argc) return NULL;
     if (s->argc_odd && !(c->argc & 1)) return NULL;
-    if (s->numkeys_argi) {                        /* no Step-R row sets this (boot-asserted) */
+    if (s->numkeys_argi) {                        /* LIVE: SINTERCARD, the Z-op rows, LMPOP, ZMPOP */
         long long nk;
         if (getLongLongFromObject(c->argv[s->numkeys_argi], &nk) != C_OK || nk <= 0 ||
             csFirstKeyArg(s) + (nk - 1) * s->key_stride >= c->argc) return NULL;
     }
-    if (s->shape_ok && !s->shape_ok(c)) return NULL;   /* dead at Step R (boot-asserted) */
+    if (s->shape_ok && !s->shape_ok(c)) return NULL;   /* LIVE: COPY, BITOP, the Z-op and MPOP rows */
     return s;
 }
 
@@ -7812,7 +7790,7 @@ static void csSubExec(client *sub) {
              * key's hash + prefetches its dict bucket; pass 2 arms the hash (single-shot hint, same
              * exExecFake handshake) so lookup reuses it AND lands on a warm bucket. Pure hint => output
              * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
-            /* ee451 2026-07-28: the in-sub two-pass dict prefetch (opt_mget_coalesce >= 2) is
+            /* ee451 2026-07-28: the in-sub two-pass dict prefetch (mget-coalesce level 2) is
              * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
              * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
             for (int a = 1; a < sub->argc; a++) {
@@ -8563,8 +8541,8 @@ static void csPushSpin(int w, client *sub) {
  * (MGET/MSET/DEL/UNLINK/EXISTS/TOUCH/SINTER/SUNION/SDIFF, and future ones). Buckets `nkeys` keys by
  * owning shard and issues ONE sub per DISTINCT shard carrying that shard's keys ([CMD k ...] or, for
  * MSET, [CMD k v ...]). Sets g->subs + g->pending (relaxed, BEFORE any push). Commands differ on only
- * three axes, captured by csCoalesceSpec: key_stride (MSET=2 else 1), per_key_extra argv slots per key
- * (MSET value=1 else 0), cs_write (run migHoldKeyIfDraining per key). If spec->posmap != NULL the helper
+ * two axes, captured by csCoalesceSpec: key_stride (MSET=2 else 1) and per_key_extra argv slots per
+ * key (MSET value=1 else 0). If spec->posmap != NULL the helper
  * zcallocs *spec->posmap[nsub] and fills each sub's original-key-position list (so the reply can be
  * reassembled in key order). append_extra (MSET value handling) runs once per key after the key append.
  * The caller pre-zcallocs g + any result slots (mget_vals/setmem). Returns nsub. */
@@ -8572,7 +8550,9 @@ typedef struct csCoalesceSpec {
     int first_argi;      /* argv index of the first key; 0 => 1 (S*STORE/BITOP put keys later) */
     int key_stride;      /* argv stride between keys: 1 (single-key cmds) or 2 (MSET k v) */
     int per_key_extra;   /* extra argv slots appended per key (MSET value=1, else 0) */
-    int cs_write;        /* run migHoldKeyIfDraining on each key (writes only) */
+    /* (cs_write DELETED 2026-07-28: task #48 widened migHoldKeyIfDraining to reads — see the FIX
+     * comment in csBuildCoalescedSubs — which left this copy of the flag with no reader. The
+     * csCmdSpec.cs_write it was copied from is still live: dispatchGather reads it.) */
     int ***posmap;       /* if non-NULL (&g->mget_pos / &g->setop_pos): helper zcallocs *posmap[nsub] and fills per-sub position lists */
 } csCoalesceSpec;
 
@@ -8690,8 +8670,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
 /* xshard registry: the ONE gather dispatcher — replaces dispatchMgetCoalesced /
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
  * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
- * key_stride/per_key_extra), write holds (cs_write), MSET value ownership (append_extra). */
-/* ==== ee451 MERGE-EXECUTION pipeline (v1: SINTER/SINTERCARD, knob tomokv-xshard-pipeline) ====
+ * key_stride/per_key_extra), MSET value ownership (append_extra). */
+/* ==== ee451 MERGE-EXECUTION pipeline (v1: SINTER/SINTERCARD; unconditional since 77174fa4a) ====
  * Naming per design: TIERED-TRANSLATION routing (bucket -> node -> worker, page-table-like) +
  * MERGE-EXECUTION multi-key (merge-sort-like: local work where the data lives, then a merge of
  * result-sized partials — for intersections the merge SHRINKS monotonically, so ordering it
@@ -9035,11 +9015,12 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     switch (s->co_gate) {
     /* coalesce gated to k>=3: at k=2 the <=2 subs barely differ from per-key and the
      * slot/pos allocs are pure overhead (measured OPT-1 verdict). */
-    /* mget-coalesce: always on (knob retired 2026-07-28). The `nkeys >= 3` threshold is LOAD-BEARING
-     * and stays: the legacy per-key arm is not an off-state, it is the live path for 2-key
-     * cross-shard MGET. Folding the knob must not fold the threshold. */
-    case CS_CO_MGETKNOB:  coalesce = (nkeys >= 3); break;
-    case CS_CO_SETOPKNOB: coalesce = (nkeys >= 3);   /* setop-coalesce: always on */    break;
+    /* mget-coalesce / setop-coalesce: always on (knobs retired 2026-07-28). The `nkeys >= 3`
+     * THRESHOLD is LOAD-BEARING and stays: the legacy per-key arm is not the knob's off-state, it
+     * is the live path for every 2-key cross-shard MGET/SETOP (at k<=2 the <=2 subs do not
+     * amortize the slot/pos allocations). Folding the knob must not fold the threshold. */
+    case CS_CO_MGET_K3:  coalesce = (nkeys >= 3); break;
+    case CS_CO_SETOP_K3: coalesce = (nkeys >= 3); break;
     }
     /* Sub-count bound: coalesced = one sub per DISTINCT shard (<= min(nkeys, workers));
      * legacy = one sub per key. Computed BEFORE the group is allocated so the inline region is
@@ -9064,11 +9045,14 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     }
     if (s->res_kind == CS_RES_MGETVALS && coalesce)
         g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
-    if (s->res_kind == CS_RES_KEYREPORT) {           /* step 9; dead at Step R */
+    if (s->res_kind == CS_RES_KEYREPORT) {           /* LIVE: the [BLZ]MPOP rows set it */
         g->klen  = csgCalloc(g, sizeof(long) * nkeys);
         g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
     }
-    if (s->has_hop2) {   /* step 5+ (*STORE/BITOP/PFMERGE/MSETNX); dead at Step R (boot-asserted) */
+    /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
+     * comment that used to sit here: the STORE / BITOP / PFMERGE / MSETNX / COPY / MPOP rows
+     * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
+    if (s->has_hop2) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
         head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
@@ -9095,7 +9079,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     /* Coalesced path: one sub per DISTINCT shard via the shared builder. */
     csCoalesceSpec cs = {
         .first_argi = first, .key_stride = s->key_stride,
-        .per_key_extra = s->per_key_extra, .cs_write = s->cs_write,
+        .per_key_extra = s->per_key_extra,
         .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos : NULL };
     csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
@@ -9133,7 +9117,6 @@ static void dispatchFanAll(client *head) {
     csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw);   /* one sub per live worker */
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*) * nw);
-    g->results = NULL; g->result_ex = NULL;
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     head->csgroup = g;
@@ -9763,11 +9746,11 @@ static int csLaunchHop2(csGroup *g) {
     if (g->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
          * re-runs the MSET write wave — values still live in head->argv (head is in flight;
-         * opt_mset_move + argv_released_mask discipline applies verbatim). csBuildCoalescedSubs
+         * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
          * arms pending before its own pushes. */
         g->phase = CS_PH_HOP2;
         atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
-        csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1, .cs_write = 1 };
+        csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
         csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
         return 1;
     }
@@ -10443,11 +10426,9 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
      * 64-entry migDrainB batch stays interruptible). Still required after the node borrow was
      * deleted (2026-07-27): an HFE command on a sibling worker of B's node runs holding ALL that
      * node's worker locks, and B's own scatter subs take this lock on the op path.
-     * Inert when the knob is off. */
-    /* mcmd_lock is an internal constant 1 (sole assignment at boot); the conditional cannot vary
-     * and its __builtin_expect pointed at the never-taken side. Always-lock IS the design. */
-    const int mig_lk = 1;
-    if (mig_lk) tomoWkrLock(B->id);
+     * (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the design, so this is
+     * unconditional.) */
+    tomoWkrLock(B->id);
     dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
     if (e->blob != NULL) {                                  /* PUT */
         rio r; rioInitWithBuffer(&r, e->blob);
@@ -10459,7 +10440,7 @@ static void migApplyOne(exThread *B, migLogEntry *e) {
             if (e->pexpireat >= 0) setExpire(NULL, bdb, keyobj, e->pexpireat);
         }
     }
-    if (mig_lk) tomoWkrUnlock(B->id);
+    tomoWkrUnlock(B->id);
     decrRefCount(keyobj);
 }
 /* B drains a BOUNDED batch of the log per loop iteration, publishing applied_seq.
@@ -10961,10 +10942,9 @@ static double ewmaAlpha2s(double rate, double ops_window) {
  * so a single main-thread walk here would both mistype and race the IO threads.) */
 void fakeRingAutoTune(void) {
     /* express-slim hit-rate: fold GET+SET calls vs total worker ops (like reshardAutoTune).
-     * Review #5: fold in BOTH auto (-1) AND fixed (1..100) modes — the fixed-pct gate at :5304
-     * thresholds against this EWMA, so gating the fold on == -1 left fixed mode reading a
-     * permanent 0 (inert). Only mode 0 (off) skips. */
-    if (server.express_slim != 0 && server.exThreads && server.num_workers >= 1) {
+     * This EWMA is what the dispatch-path Schmitt gate thresholds against, so it must be folded
+     * unconditionally — the mode selector (tomokv-express-slim) is retired at AUTO. */
+    if (server.exThreads && server.num_workers >= 1) {
         static uint64_t es_last_hot = 0, es_last_tot = 0;
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
         if (g && s) {
@@ -10997,18 +10977,18 @@ void fakeRingAutoTune(void) {
  * the main thread; IO-thread-hosted clients after CLIENT_IO_PENDING_CRON hands them back to the
  * main thread). Single-writer w.r.t. the ring: depth shrink only frees slots >= the current
  * dispatch gap and only when the ring is fully idle (inflight==0), so it never touches an
- * in-flight fake. fake_slot / flushid / dispatchid are untouched. Value 0 (fixed/eager/legacy)
- * skips both branches => exact v13-2s behavior. */
+ * in-flight fake. fake_slot / flushid / dispatchid are untouched.
+ * tomokv-fake-ring-depth and tomokv-fake-buf are both retired at AUTO, so the early-out that
+ * skipped this cron for the fixed/eager/legacy modes is gone with them. */
 void fakeRingClientCron(client *c) {
     if (c->isFake || !c->conn) return;
-    if (server.fake_ring_depth_mode != -1 && server.fake_buf_mode != -1) return;
     /* D3 depth decay: shrink toward the EWMA of the TRUE per-window high-water (dispatch-
      * updated fake_ring_hwm_win, consumed+reset here) when the ring has been idle. Folding
      * the instantaneous gap alone read 0 for sub-second bursts => decay-to-1 => recurring
      * teardown/rebuild churn (ee451 review). A busy P16 client now folds 16 every window
      * (=> target stays 16+, zero churn); a genuinely idle client folds 0s and still decays
      * to 1 within a few windows, preserving D3's memory-reclaim purpose. */
-    if (server.fake_ring_depth_mode == -1) {
+    {
         unsigned int inflight = c->dispatchid - c->flushid;
         unsigned int hwm = c->fake_ring_hwm_win > inflight ? c->fake_ring_hwm_win : inflight;
         c->fake_ring_hwm_win = 0;
@@ -13336,7 +13316,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
 
         if (sections++) info = sdscat(info,"\r\n");
         /* Adaptive-sizing observability ("expose the state"): worker-queue exhaustion is the signal
-         * that tomokv-ex-queue-depth is undersized. The ring back-pressures rather than growing, so
+         * that the derived worker dispatch ring is undersized. It back-pressures rather than growing, so
          * without this counter an undersized ring is invisible except as unexplained latency. */
         unsigned long long tomo_qfull = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
@@ -15227,37 +15207,32 @@ static inline void exExecFake(client *fake) {
             dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
             hh_armed = 1;
         }
-        /* S2 (mcmd-lock EXPERIMENT): the owner worker must hold this key's bucket lock across its op
-         * so it never mutates/rehashes the bucket while an M-command borrower (an IO thread) is
-         * reading it. Single-key hot path only: argv[1] is the sole key of GET/SET/single-key subs
-         * (when the knob is on, MGET goes lock-borrow so workers run only single-key ops — coalesced
-         * multi-key subs would need per-key locking, tracked as a gap). Inert when the knob is off:
-         * the lock-free path pays a single predicted-not-taken branch. No deadlock — the worker holds
-         * exactly ONE bucket and borrowers TRYLOCK (never block), so there is no lock cycle. */
-        /* hint was inverted: shared_node_dbs is TRUE in every supported multi-worker config, so
-         * this predicted the common case as unlikely. */
-        if (__builtin_expect(server.shared_node_dbs, 1) && tomoHfeProc(fake->cmd->proc)) {
+        /* S2: the owner worker must hold this key's bucket lock across its op so it never
+         * mutates/rehashes the bucket while another thread is reading it. Single-key hot path only:
+         * argv[1] is the sole key of GET/SET/single-key subs; coalesced multi-key subs take the
+         * whole worker's lock in the cross-shard branch below. No deadlock — the worker holds
+         * exactly ONE bucket and every off-worker path locks in a fixed order.
+         * ALWAYS ON (tomokv-mcmd-lock deleted 2026-07-27): the lock IS what makes a shared node db
+         * safe against sibling workers, so there is no lock-free arm to fall back to. */
+        if (__builtin_expect(server.shared_node_dbs, 1)  /* TRUE in every supported multi-worker config */ && tomoHfeProc(fake->cmd->proc)) {
             /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
              * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
-             * them. Under mcmd-lock: run the proc holding ALL the node's worker locks (ascending,
-             * => mutual exclusion with every locked path and no lock cycle). Without mcmd-lock
-             * there is no safe execution: reply an honest error.
+             * them. So: run the proc holding ALL the node's worker locks (ascending, => mutual
+             * exclusion with every locked path and no lock cycle). The alternative arm — reply an
+             * honest error because the locks were switched off — died with tomokv-mcmd-lock
+             * (2026-07-27): there is no configuration in which the locks are absent.
              * NOTE: this is now the PRIMARY reason the per-worker lock discipline exists at all —
              * it is the one surviving path that touches node-level shared state from a single
              * worker. The node-local borrow (deleted 2026-07-27) used the same all-node-locks
              * discipline; its removal does not make any of these locks redundant. */
-            if (!server.mcmd_lock) {
-                addReplyError(fake, "HFE commands need the per-worker lock discipline with shared node dbs");
-            } else {
-                int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
-                int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
-                int node = (wid >= 0 && wpn > 0) ? wid / wpn : 0;
-                int wlo = node * wpn, whi = wlo + wpn;
-                if (whi > server.num_workers) whi = server.num_workers;
-                for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
-                fake->cmd->proc(fake);
-                for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
-            }
+            int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+            int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+            int node = (wid >= 0 && wpn > 0) ? wid / wpn : 0;
+            int wlo = node * wpn, whi = wlo + wpn;
+            if (whi > server.num_workers) whi = server.num_workers;
+            for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
+            fake->cmd->proc(fake);
+            for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
         } else {
             /* S2: single-key hot path takes this key's owner-worker lock across the proc so it
              * never mutates/rehashes a bucket that another thread is reading. The readers it
@@ -15268,11 +15243,11 @@ static inline void exExecFake(client *fake) {
             int mlk_wkr = -1;
             /* Review fix: argv[1] is only a KEY when the command declares firstkey==1. The
              * whitelist is mostly single-key-at-argv[1], but top-level SCAN is also worker-routed
-             * (flat_store && shared_node_dbs) and its argv[1] is a CURSOR — hashing it took an
+             * (shared_node_dbs) and its argv[1] is a CURSOR — hashing it took an
              * essentially arbitrary worker's lock around a cross-node scan, which both fails to
              * protect anything and risks lock-order inversion against the locks the scan itself
              * takes. Commands with no key at argv[1] take no S2 lock. */
-            if (server.mcmd_lock && fake->cmd &&
+            if (fake->cmd &&
                 fake->cmd->legacy_range_key_spec.bs.index.pos == 1 &&
                 fake->argc >= 2 && fake->argv && fake->argv[1]) {
                 /* dispatch already hashed this key and stamped the bucket on the fake (hash-carry);
@@ -15350,12 +15325,13 @@ typedef struct exSliceCtx {
      * worker CPU in the flamegraph. Instead: PAUSE-spin for a short
      * window first, fall back to yield only if still idle after that.
      *
-     * Tuning knobs (v13: runtime — tomokv-worker-spin-pauses / -spin-yield-rounds;
-     * defaults 16x32 ≈ 512 PAUSEs ≈ 500ns-1µs spin window, matched to sub-µs
-     * inter-dispatch gaps; 0 = no pause burst / yield immediately). */
+     * Shape: 16 PAUSEs per round x a 32-round seed ≈ 512 PAUSEs ≈ a 500ns-1µs
+     * spin window, matched to sub-µs inter-dispatch gaps. No knobs — the round
+     * budget is the adaptive spin_budget below. */
     int empty_rounds;
-    /* ee451 (v14): 0 = adaptive (self-tunes per idle episode); N = pinned budget. */
-    int spin_pinned;
+    /* ee451 (v14): the idle spin budget self-tunes per idle episode. tomokv-worker-spin was
+     * retired at -1 (adaptive), so the PINNED-budget mode and its `spin_pinned` selector are
+     * gone — every grow/shrink below is unconditional. */
     int spin_budget;
     /* ee451 (thread-modes step 4): time-accounting mark for the busy-time signal — the
      * monotonic timestamp of the last accounting event (work-pass end or yield). */
@@ -15367,8 +15343,8 @@ typedef struct exSliceCtx {
 
 /* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state exactly
  * as the old exThreadMain preamble did — same values, same thread-start timing
- * (num_cdb, io_threads and worker_spin are all immutable after startup, so
- * capturing them here == capturing them at the top of the old thread main). */
+ * (num_cdb and io_threads are both immutable after startup, so capturing them
+ * here == capturing them at the top of the old thread main). */
 static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->wcdb = cdbIndexFor(worker->id);
     /* flip: scan the flip growth producer slots too (a converted worker running as an IO thread
@@ -15379,11 +15355,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->nq = server.io_threads + 1 + (server.poly_threads ? server.tm_ngrow_io : 0);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
-    /* tomokv-worker-spin: -1 = auto (adaptive, seed 32), 0 = OFF (never spin), N = pinned rounds.
-     * (0 used to mean "adaptive" — the opposite of the house 0=off rule, so disabling the spin
-     * silently enabled it instead.) */
-    ctx->spin_pinned = server.worker_spin >= 0;
-    ctx->spin_budget = ctx->spin_pinned ? server.worker_spin : 32;
+    ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
 }
 
@@ -15410,8 +15382,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
 
     /* ee451 FLATSTORE reclaim-capacity fix: retire to THIS worker's own list (no CAS) and free our
      * own graced batches here — same-arena frees on a thread that has the cycles. Must be set before
-     * any command executes in this pass; harmless when flat is off (nothing ever retires). */
-    if (server.thredis_flat_store) {          /* review [gating]: default-ON — do NOT hint it unlikely */
+     * any command executes in this pass. */
+    /* CORRECTNESS FIX (2026-07-28): the guard was `server.thredis_flat_store` — the knob, not the
+     * condition. A flat table only exists on a SHARED node db (initServer sets KVSTORE_FLAT iff
+     * shared_node_dbs), so with a non-shared shape this armed the retire sink and ran the reclaim
+     * for a worker that owns no flat table. shared_node_dbs is the predicate everywhere else and
+     * it is the predicate here. NOT hinted unlikely: this is the default shape. */
+    if (server.shared_node_dbs) {
         flat_local_sink = &worker->flat_retire_local;
         /* Peak-with-reset trim of the recycled retire nodes: a burst is released one window later,
          * a steady write load keeps its whole working set and never calls the allocator. */
@@ -15455,12 +15432,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * kvstore: an HFE command on a sibling worker (which holds ALL the node's locks) and
              * RANDOMKEY's expireIfNeeded delete. The node borrow was deleted 2026-07-27 and was
              * never the only such path. Scan is bounded (64 keys/call); cleanup is one-shot.
-             * Inert when the knob is off. */
-            const int mig_lk = 1;   /* internal constant; see the note at the other mig_lk site */
-            if (mig_lk) tomoWkrLock(worker->id);
+             * (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the design.) */
+            tomoWkrLock(worker->id);
             if (ph == MIG_COPYING) migServiceScanA(worker);
             else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
-            if (mig_lk) tomoWkrUnlock(worker->id);
+            tomoWkrUnlock(worker->id);
         }
         }
     }
@@ -15468,11 +15444,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
     int any = 0;
     /* ee451: runtime worker pop/execute batch size, capped by the compile-time
      * array max. Decoupled from the per-stage prefetch widths. */
-    /* ee451 (v14): pop batch dual-mode — STRICT (tomokv-worker-pop-batch = N) or AUTO (0):
-     * a saturating up/down controller in the micro-arch style (2-bit-predictor flavor):
-     * a full batch (saturated pop) doubles the cap; a sparse pass (< cap/4, nonzero)
-     * halves it. Current-signal only — a workload shift re-tunes within a few passes. */
-    int popmax = tomoPopBatch();
+    int popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
     /* ee451 (fairness): rotate the producer-scan start each pass. The bounded
      * per-queue pop batch already prevents starvation across the per-IO SPSC
      * queues, but a fixed 0..N scan gives queue 0's clients systematically lower
@@ -15618,11 +15590,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                  *      scan against the shared node kvstore from OUTSIDE the single-key op path
                  *      (migApplyOne / the A-side scan both take this same lock).
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
-                 * mutates/reads. Inert when the knob is off. */
-                const int cs_lk = 1;   /* internal constant; see the note at the mig_lk site */
-                if (cs_lk) tomoWkrLock(worker->id);
+                 * mutates/reads. (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the
+                 * design, so this is unconditional.) */
+                tomoWkrLock(worker->id);
                 csSubExec(fake);
-                if (cs_lk) tomoWkrUnlock(worker->id);
+                tomoWkrUnlock(worker->id);
                 if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
                     client *hp = g->head->parent;
                     atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
@@ -15698,13 +15670,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * clock reads per WORK pass (>=µs-scale), never per spin poll. */
             worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
         }
-        /* AUTO pop-batch update (once per non-empty pass): saturate-up / sparse-down. */
-        /* ee451 (v14): AUTO pop-batch = MAX, honestly. Demand-adaptive caps were implemented
-         * two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both flap at
-         * quantization boundaries with zero throughput delta — the cap only BINDS when a queue
-         * holds more than cap items, which is exactly when the big batch is right. STRICT mode
-         * (N=1..16) remains for inter-queue latency-fairness capping if ever needed. */
-        if (!ctx->spin_pinned && ctx->empty_rounds > 0) {   /* spinning paid -> grow (adaptive mode) */
+        /* ee451 (v14): the pop batch is the compile-time MAX, honestly. Demand-adaptive caps were
+         * implemented two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both
+         * flap at quantization boundaries with zero throughput delta — the cap only BINDS when a
+         * queue holds more than cap items, which is exactly when the big batch is right. The
+         * fixed-N strict mode went with tomokv-worker-pop-batch (2026-07-28). */
+        if (ctx->empty_rounds > 0) {                        /* spinning paid -> grow */
             ctx->spin_budget += ctx->spin_budget >> 1;
             if (ctx->spin_budget > 256) ctx->spin_budget = 256;
         }
@@ -15722,11 +15693,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         ctx->empty_rounds++;
     } else {
         /* Sustained idleness — give up the CPU; shrink the spin window. */
-        if (!ctx->spin_pinned) {
-            ctx->spin_budget >>= 1;              /* ee451 (v14): shift-then-clamp — the old ternary let
+        ctx->spin_budget >>= 1;                  /* ee451 (v14): shift-then-clamp — the old ternary let
                                                   * 6>>1=3 land BELOW the floor (cycle-test catch) */
-            if (ctx->spin_budget < 4) ctx->spin_budget = 4;
-        }
+        if (ctx->spin_budget < 4) ctx->spin_budget = 4;
         /* ee451 (thread-modes step 4, signals a+e): a genuine IDLE EPISODE — 0-fold the
          * backlog EWMA (decays within µs of true idleness). (Busy time needs no reset
          * here: it is clocked first-pop..fold within work passes.) */
@@ -16553,7 +16522,7 @@ void *ioThreadMain(void *arg) {
  *     (parked if it never had one) — EX-entry/exit and IO-exit are step 3.
  *
  * Step-2 transitions: birth PARKED->preset (IO or EX) at the first checkpoint,
- * and the spare's PARKED->IO via tomokv-modeshift-test. IO-entry completes the
+ * and the spare's PARKED->IO via DEBUG TOMO-MODESHIFT. IO-entry completes the
  * dormant listener: listen() joins the SO_REUSEPORT group (new connections
  * kernel-hash here from that instant) and the accept handler is registered on
  * the thread's OWN event loop before its first slice.
@@ -17795,7 +17764,7 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
                           tmMigNotifierHandler, mb->notifier);
 }
 
-/* Control-plane entry (main thread) for CONFIG SET tomokv-modeshift-test 5|6. Picks the
+/* Control-plane entry (main thread) for DEBUG TOMO-MODESHIFT 5|6. Picks the
  * source/dest, publishes a request to the source's mailbox, and wakes it. The source runs
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
@@ -17860,7 +17829,7 @@ int tomoMigrateTest(int val, const char **err) {
     if (val == 8) return tomoGrowBack(err);    /* flip: convert highest grown io thread back -> EX */
     if (val >= 70 && val < 80) return tomoGrowFrontNode(val - 70, err);  /* per-node grow-front (n<10) */
     if (val >= 80 && val < 90) return tomoGrowBackNode(val - 80, err);   /* per-node grow-back  (n<10) */
-    *err = "invalid tomokv-modeshift-test value (5 = io-exit, 6 = conn rebalance, 7/8 = grow front/back, 70+n / 80+n = per-node)";
+    *err = "invalid DEBUG TOMO-MODESHIFT value (5 = io-exit, 6 = conn rebalance, 7/8 = grow front/back, 70+n / 80+n = per-node)";
     return 0;
 }
 
@@ -17985,7 +17954,7 @@ static void tomoThreadBalanceCron(void) {
     const int busy_hi = 75;                            /* % time in work passes (utilization) */
     const int ing_distress = 32;                       /* events/pass: io thread drowning */
     long wb_slack_bound  = 4L * server.io_threads;
-    int popmax = tomoPopBatch();
+    int popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
     long qd_abs_hi = 8L * popmax;                      /* "a worker stands >=8 full pop batches behind" */
 
     /* ---- 3. VOTES (each ex-pressure vote = relative-to-in-flight OR absolute backlog:
@@ -18215,19 +18184,11 @@ typedef struct {
     int      dir;            /* current gradient search direction (+1 front / -1 back); 0 = unset */
     int      phase;          /* 0 idle, 1 warmup (await rebalance settle), 2 measure */
     int      wait;           /* idle ticks before the next probe (exponential backoff when stable) */
-    int      backoff;        /* current backoff exponent (grows when a probe finds no gain) */
-    int      probed_mask;    /* directions probed with no gain since the last move (bit0 front, bit1 back) */
-    int      converged;      /* both neighbours measured no better => sitting at the optimum: stop probing */
-    double   conv_mean;      /* SLOW baseline of the converged throughput (tracks genuine drift; the fast
-                              * mean diverging from it = a workload shift, not noise) */
-    int      shift_run;      /* consecutive ticks the fast mean is >3σ off conv_mean (shift persistence) */
-    double   null_abs;       /* EWMA of |baseline(N+1)-baseline(N)| over CONSECUTIVE probes launched from
-                              * the SAME config = honest between-window drift (the null distribution).
-                              * NOT fed from reverted-probe deltas: those include real losses and real-but-
-                              * rejected gains, and feeding them back is circular (a rejected +19% gain
-                              * would teach a null that keeps rejecting it — observed live). */
-    double   null_ref;       /* baseline of the last reverted probe (the config we are still at) */
-    int      null_ref_valid; /* null_ref refers to the CURRENT config (cleared when a GAIN moves us) */
+    /* (backoff / probed_mask / converged / conv_mean / shift_run / null_abs / null_ref /
+     * null_ref_valid DELETED 2026-07-28: eight fields left behind by earlier revisions of this
+     * controller — the momentum hill-climb that replaced them never read OR wrote one of them.
+     * The behaviours they named — exponential probe backoff, a converged/optimum latch, a
+     * between-window null distribution — are not implemented; do not assume they are.) */
     int      warm_ticks, meas_ticks;  /* elapsed ticks in the current phase (adaptive caps) */
     int      settle_run;     /* consecutive warmup ticks with the rate change inside the noise */
     uint64_t rs_prev;        /* reshard_done_seq at the previous warmup tick (quiescence detector) */
@@ -18261,8 +18222,7 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FESC_SETTLE_N   5      /* warmup ends after this many settled ticks (rate plateau AND reshard-quiet; cache warmup needs the extra room) */
 #define FESC_WARM_CAP   48     /* safety cap on warmup (~12s) if it never plateaus — NOT a control knob */
 #define FESC_MEAS_N     16     /* measure-window ticks (~4s settled — longer window averages between-window drift) */
-#define FESC_WAIT_BASE  8      /* base idle ticks between probes (~2s); backoff multiplies this */
-#define FESC_BACKOFF_MAX 5     /* cap: max idle between probes ~ 2^5 * base (~64s) when firmly at optimum */
+#define FESC_WAIT_BASE  8      /* idle ticks between probes (~2s) */
 
 /* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
  * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
@@ -18397,7 +18357,7 @@ static void tomoFlipController(void) {
          * free, no absolute operating point): io_sat = ingress / ing_distress(32 events/pass);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
          * constraint (grow front); <0 => ex is the constraint (grow back). --- */
-        int fc_popmax = tomoPopBatch();
+        int fc_popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
         long fc_qd_hi = 8L * fc_popmax;
         double io_sat = (double)ing_mean / 32.0;
         double ex_sat = fmax((double)fc->busy_smooth / 75.0,

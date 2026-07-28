@@ -1501,11 +1501,6 @@ typedef struct {
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
-/* ---- tomokv-mget-coalesce (MODIFIABLE enum) ---------------------------------
- * How a cross-shard MGET is decomposed. Ordered: each level includes the previous. */
-#define TOMO_MGET_LEGACY            0   /* one sub per key */
-#define TOMO_MGET_COALESCE          1   /* one sub per shard, order-preserving slots (DEFAULT) */
-#define TOMO_MGET_COALESCE_PREFETCH 2   /* + in-sub two-pass dict prefetch */
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
@@ -1572,14 +1567,14 @@ typedef struct client {
     unsigned int flushid;
     /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
     unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to ring_size */
-    /* UNIFIED per-connection ring (merges tomokv-pipeline-depth with tomokv-fake-ring-depth: they
-     * described the same physical ring and disagreed — the in-flight gate used the GLOBAL depth while
-     * the depth controller only set an initial prealloc COUNT, so a static N never actually capped
-     * anything and slot indices cycled over all MAX slots, lazily creating every one of them).
-     * ring_size is the effective depth AND the slot modulus, so N now genuinely means N.
-     *   -1 = AUTO   : starts at MAX (no throughput change) and DECAYS toward measured demand
-     *    0 = OFF    : size 1, no pipelining, one fake
-     *    N = STATIC : exactly N (rounded to a power of two), no grow, no decay
+    /* UNIFIED per-connection ring (it merged tomokv-pipeline-depth with tomokv-fake-ring-depth:
+     * they described the same physical ring and disagreed — the in-flight gate used the GLOBAL depth
+     * while the depth controller only set an initial prealloc COUNT, so a static N never actually
+     * capped anything and slot indices cycled over all MAX slots, lazily creating every one).
+     * ring_size is the effective depth AND the slot modulus.
+     * tomokv-fake-ring-depth was then retired at AUTO and folded away (2026-07-28), so there is one
+     * behaviour: open at the tomokv-pipeline-depth maximum, create slots on demand, and DECAY toward
+     * measured demand in cron. The OFF (size 1) and STATIC-N (no grow, no decay) modes are gone.
      * Resizing only ever happens at an EMPTY-ring checkpoint (dispatchid == flushid), because the
      * mask remaps slots; growth is applied there (fast), decay in cron (slow). */
     unsigned int ring_size;             /* power of two, <= TOMO_PIPELINE_DEPTH_MAX */
@@ -1647,8 +1642,12 @@ typedef struct client {
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
     /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command;
-     * worker A pops it in queue order and decrements *drain_ack, proving every range primary
-     * dispatched before it has executed (no in-flight range write straddles the table flip). */
+     * worker A pops it in queue order, which proves every range primary dispatched before it has
+     * executed (no in-flight range write straddles the table flip).
+     * CONTRACT (corrected 2026-07-28 — this said "decrements *drain_ack", which is not what the
+     * code does): the pointer is a NON-NULL MARKER only, never dereferenced. Every sentinel is
+     * stamped with &migration.fence_acked[0]; the ACK is A storing 1 into fence_acked[QUEUE SLOT
+     * the sentinel was popped from], i.e. per producer slot, not a counter decrement. */
     _Atomic int *drain_ack;
     /* ee451 (thread-modes step 4, p99 guardrail): dispatch timestamp (getMonotonicUs) on
      * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
@@ -1947,10 +1946,14 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define CS_POS_NONE        0
 #define CS_POS_MGET        1   /* &g->mget_pos  */
 #define CS_POS_SETOP       2   /* &g->setop_pos */
-/* ---- coalesce gate ---- */
+/* ---- coalesce gate ----
+ * The tomokv-mget-coalesce / -setop-coalesce knobs were retired (coalescing is unconditional),
+ * but the k>=3 THRESHOLD is NOT the knob's off-state: it is the live gate for every 2-key
+ * cross-shard MGET/SETOP, where the <=2 subs do not amortize the slot/pos allocations. Two tags
+ * (not one) because the two families are gated independently if that ever has to change. */
 #define CS_CO_ALWAYS       0   /* MSET/DEL/EXISTS: always one sub per distinct shard */
-#define CS_CO_MGETKNOB     1   /* opt_mget_coalesce >= 1 && nkeys >= 3, else legacy per-key */
-#define CS_CO_SETOPKNOB    2   /* opt_setop_coalesce   && nkeys >= 3, else legacy per-key */
+#define CS_CO_MGET_K3      1   /* MGET family: coalesce iff nkeys >= 3, else legacy per-key */
+#define CS_CO_SETOP_K3     2   /* SETOP family: coalesce iff nkeys >= 3, else legacy per-key */
 /* argv-index accessor: 0 in a zero-initialized row means "keys start at argv[1]" */
 #define csFirstKeyArg(s) ((s)->firstkey_argi ? (int)(s)->firstkey_argi : 1)
 
@@ -1969,11 +1972,9 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
-    /* per-position results (sub i writes index i; positions are disjoint => no conflict).
-     * MGET: result robj* (+1 ref, freed-back to its worker at drain). MSET: unused.
-     * DEL/EXISTS: rcount accumulates the per-sub integer. */
-    robj **results;            /* [nkeys] MGET values (or NULL) */
-    int  *result_ex;       /* [nkeys] owning worker of results[i] (for free-back) */
+    /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
+     * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
+     * NULL-initialised-and-never-read ever since.) */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
@@ -2012,7 +2013,7 @@ typedef struct csGroup {
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
     int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
-    /* ee451 merge-execution pipeline (v1: SINTER/SINTERCARD; knob tomokv-xshard-pipeline).
+    /* ee451 merge-execution pipeline (v1: SINTER/SINTERCARD; unconditional since 77174fa4a).
      * Stage machine driven from the drain like the 2-hop launcher: SIZES (per-shard sub
      * reports per-key set sizes) -> GATHER1 (smallest key's members only) -> PROBE chain
      * (per remaining shard ascending-size, candidates probed in place, survivors shrink).
@@ -2100,18 +2101,20 @@ typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head)
 } migLog;
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
- * jobs into for a given worker. Must be a power of two. Runtime value lives
+ * jobs into for a given worker. Always a power of two. Runtime value lives
  * in server.ex_queue_size; TOMO_EX_QUEUE_SIZE_MAX caps the static
  * array. Memory footprint at max:
  *   num_workers * (io_threads + 1) * TOMO_EX_QUEUE_SIZE_MAX * sizeof(ptr)
  * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
  * (2048) keeps worst case manageable. */
 #define TOMO_EX_QUEUE_SIZE_MAX 2048
-#define EX_QUEUE_SIZE 1024  /* default; runtime value lives in server.ex_queue_size */
-#define EX_QUEUE_MASK (EX_QUEUE_SIZE - 1) /* kept for back-compat; prefer server.ex_queue_mask */
-#define EX_THREADS_NUM 4    /* default; runtime value lives in server.ex_threads.
-                                 * Must be a power of two — getWorkerForCommand uses a
-                                 * bitmask (ex_dispatch_mask = N-1) instead of modulo. */
+/* (EX_QUEUE_SIZE / EX_QUEUE_MASK DELETED 2026-07-28: they were tomokv-ex-queue-depth's default
+ * and its derived mask, kept "for back-compat" with nothing left to be compatible with — no
+ * translation unit referenced either. The live values are server.ex_queue_size/ex_queue_mask,
+ * derived in initServer.) */
+#define EX_THREADS_NUM 4    /* default; runtime value lives in server.ex_threads. ANY count is
+                                 * legal — getWorkerForCommand routes through ex_bucket_table, not
+                                 * a power-of-two mask (that mask was deleted 2026-07-28). */
 #define IO_THREADS_NUM 8        /* default; runtime value lives in server.io_threads */
 /* How many fakes a worker drains per lock acquire on one IO-thread queue.
  * Larger = fewer mutex traffic pings, better cache locality in exec loop,
@@ -2774,28 +2777,23 @@ struct redisServer {
     int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
                                     * the flip-induced bucket imbalance right away; counts down per balancer tick */
-    /* Tomo KV-dev custom threading/pipelining runtime knobs. Loaded from
-     * redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`, `tomokv-pipeline-depth`,
-     * `tomokv-ex-queue-depth`). pipeline_ring_mask and
-     * ex_queue_mask are derived from their *_depth / *_size counterparts
-     * at startup. */
+    /* Tomo KV-dev custom threading/pipelining runtime state. io_threads/ex_threads come from
+     * redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`); pipeline_ring_mask is derived from
+     * `tomokv-pipeline-depth`, and ex_queue_size/ex_queue_mask are derived from the thread shape
+     * (tomokv-ex-queue-depth is retired — see the derivation in initServer). */
     int io_threads;
     int ex_threads;
-    int thredis_flat_store;     /* ee451 FLATSTORE knob (0/1) */
-    int flat_load_pct;          /* ee451 FLATSTORE: target peak load %% (resize trigger); higher = less memory, longer probes */
+    /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
+     * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
+     * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
     /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
      * polyThreadMain with a preset mode, plus one PARKED spare if configured threads < allowed
      * cores. DERIVED from tomokv-thread-mode (both `auto` and `static` run the poly threads;
      * they differ only in whether the controller is allowed to actuate). Not a user knob. */
     int poly_threads;
-    /* ee451 (thread-modes v1, step 2+3): test-only shift driver — CONFIG SET
-     * tomokv-modeshift-test <n> retargets the spare. 1 = PARKED->IO (instant listener
-     * join); 2 = PARKED->EX (migration-backed activation); 3 or 0 = EX->PARKED
-     * (migrate-back + park). V1 legal set is spare-only; IO-exit and any direct
-     * IO<->EX swap are rejected, and WB is unreachable (no WB mode in the 2s fork —
-     * value 3 is repurposed as the explicit park verb). Apply-fn validated. */
-    int modeshift_test;
+    /* (modeshift_test DELETED 2026-07-28 with the tomokv-modeshift-test knob: it was the
+     * hand-driven spare-retarget used before the balancer existed; nothing read it.) */
     /* tomokv-thread-mode: TOMO_THREAD_MODE_AUTO | TOMO_THREAD_MODE_STATIC. IMMUTABLE.
      * The ONE knob that decides whether the io/ex split may move at runtime. */
     int thread_mode;
@@ -2821,11 +2819,11 @@ struct redisServer {
     int ex_per_node;           /* tomokv-thread-ex: EX workers per node (the STARTING split);
                                 * io_per_node + ex_per_node <= cores_per_node */
     /* Internal flip bounds — DERIVED from the node budget (min 1 each, max cores_per_node-1);
-     * no longer user knobs. The balancer reads these; the node budget is the real bound. */
+     * no longer user knobs. The balancer reads these; the node budget is the real bound.
+     * (The IO-side pair was deleted 2026-07-28: it was derived and then never read — the flip
+     * headroom on the IO side is bounded by tm_ngrow_io, not by a min/max.) */
     int ex_threads_min;
     int ex_threads_max;
-    int io_threads_min;
-    int io_threads_max;
     /* ee451 (thread-modes v1, step 3): coordinator side-channel for spare transitions.
      * 0 = ordinary migration; 1 = spare ACTIVATION (coordinator publishes
      * num_workers_live at FLIP); 2 = spare DEACTIVATION (coordinator requests PARKED
@@ -2837,11 +2835,8 @@ struct redisServer {
     unsigned int pipeline_ring_mask;
     int ex_queue_size;
     unsigned int ex_queue_mask;
-    /* Dispatch mask: ex_threads - 1. Requires ex_threads to
-     * be a power of two (enforced by NOTHING (there is no such validator, and the power-of-two claim is FALSE: io7/ex1 is a shipped config) validator in
-     * config.c). Replaces `hash % num_workers` in getWorkerForCommand
-     * with a single AND instruction. */
-    uint64_t ex_dispatch_mask;   /* v8: legacy, no longer used for dispatch */
+    /* (ex_dispatch_mask DELETED 2026-07-28: a v8 leftover — worker routing goes through the
+     * ex_bucket_table indirection, never a mask, so nothing had read it since v8.) */
     /* ee451 (v8): bucket->worker map (hot path) and the per-worker contiguous range ends
      * (worker i owns buckets [i? ex_bucket_end[i-1]:0, ex_bucket_end[i]) — used by
      * the adjacent-boundary-shift rebalancer). */
@@ -3509,11 +3504,7 @@ struct redisServer {
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
-    int num_cdb;               /* S5: resolved at init = opt_multi_cdb ? min(num_workers,NUM_CDB_MAX) : 1 */
-    int cfg_num_cdb;           /* #75: explicit bus count (tomokv-num-cdb); 0=auto. IMMUTABLE. */
-    int io_drain_spin;         /* AE-1: tomokv-io-drain-spin; mirrored into ae.c's aeIODrainSpin
-                                * (boot sync in initServer + updateIODrainSpin on CONFIG SET). */
-    int io_drain_userpoll;     /* 2s-auto T1: -1=auto, 0=syscall-only, N=fixed userpoll passes */
+    int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
     /* ee451 (gem5): per-STAGE prefetch window widths. Each prefetch stage has a
      * different memory-access shape (independent vs dependent loads), so a single
      * width is suboptimal. These cap how many of the popped batch / ready prefix a
@@ -3539,35 +3530,21 @@ struct redisServer {
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
-    int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
-    int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
-    /* mcmd_nodelocal DELETED 2026-07-27 with the node-local borrow it selected. */
-    int xshard_guard;          /* xshard SAFE-GATE: reject multi-key commands not yet ported to scatter-gather (else they silently corrupt on the decoy db, multibug_report.md finding A). 1=reject loud (DEFAULT); 0=legacy (allow inline decoy behavior — UNSAFE). */
+    /* xshard knob fields DELETED 2026-07-28 (mget-coalesce / setop-coalesce / mset-move /
+     * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
+     * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
-    int xshard_pipeline;       /* merge-execution pipeline for cross-shard INTER family: sizes ->
-                                * gather-smallest -> shrinking probe chain; traffic bounded by
-                                * k_shards x |smallest| instead of total input volume. 0=off
-                                * (gather path, DEFAULT for A/B), 1=on. */
-    int xshard_localfast;      /* xshard-localfast: READ-ONLY multi-key command whose keys ALL
-                                * route to one worker runs the REAL PROC there (no gather, no
-                                * coordinator compute). Co-location bench: gather path cost a
-                                * co-located 10k-pair SINTER ~10x over local. 1=on (DEFAULT). */
-    int opt_mset_move;         /* xshard OPT-5: cross-shard MSET moves value robjs to the worker (argv_released_mask handoff) instead of dupStringObject copy. 1=move; 0=legacy per-value copy (DEFAULT — move is a wash on 1-CCD at 256B/4KB; kept as large-value/NUMA lever). */
-    int opt_setop_coalesce;    /* xshard: SINTER/SUNION/SDIFF coalesce to one sub/shard (setop_pos position map) instead of one sub/key. 1=coalesce (DEFAULT, k>=3); 0=legacy per-key subs. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
-    int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
                                 * "node0=0-3 node1=8,9,10,11". Used only with pin-mode static. */
     char *pin_ex_spec;         /* tomokv-pin-ex: same grammar, for the EX (worker) role. */
     int reshard_min_ops;         /* skip if mean shard ops/sec below this (avoid noise; default 20000) */
-    int l3_kb;                 /* v14 dual-mode: 0=auto-detect L3; N=pin (KB) */
     int reshard_imbalance_pct; /* v14 dual-mode: 0=auto outlier bar; N=fixed pct */
     int reshard_chunk;         /* v14 dual-mode: 0=auto granule; N=explicit buckets */
-    int drain_tail_skip;       /* 2s-auto T2: -1/1=auto enqueue-if-pending, 0=legacy */
-    int express_slim;          /* 2s-auto T3: -1=auto EWMA, 0=off, 1-100=fixed pct */
-    int fake_ring_depth_mode;  /* 2s-auto D3: -1=auto lazy/grow/decay, 0=eager, N=fixed */
-    int fake_buf_mode;         /* 2s-auto D1: -1=auto width, 0=16K legacy, N=fixed bytes */
+    /* 2s-auto T2/T3/D1/D3 mode fields DELETED 2026-07-28 (drain-tail-skip / express-slim /
+     * fake-buf / fake-ring-depth): all four are now unconditionally in their AUTO mode. The
+     * controllers themselves are untouched — only the mode selectors are gone. */
     _Atomic double express_hit_ewma;   /* T3 controller EWMA of GET+SET hit ratio [0,1];
                                         * single-writer (main cron), read by IO threads in the
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
@@ -3579,7 +3556,6 @@ struct redisServer {
     int reshard_cool_margin_pct; /* 0=legacy (<mean); -1=auto 15%; N=neighbor < mean*(1-N/100) */
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
-    int worker_spin;           /* v14 dual-mode: 0=adaptive; N=pinned rounds */
     int pin_mode;                /* tomokv-pin-mode: TOMO_PIN_FLOAT / _CCD / _NUMA / _STATIC.
                                   * Also decides what a "node" IS (see topo_nodes). */
     /* Local environment */

@@ -37,15 +37,14 @@ __thread int replyWorking = 0;
  * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
  * which picks up finished worker replies — workers typically complete in ~1-5us) before
  * falling back to the fixed 100us wait window; that fixed window was the low-pipeline
- * latency floor. Plain int (not a server-struct read) because ae.o links into redis-cli
- * without server.o; synced from server.io_drain_spin (tomokv-io-drain-spin) at boot and
- * on CONFIG SET. 0 = off (always the 100us window, the old behavior). */
-int aeIODrainSpin = 0;
-/* 2s-auto T1: mirrored from server.io_drain_userpoll (tomokv-io-drain-userpoll). -1 = auto
- * (a thread-local EWMA picks userpoll-spin vs syscall drain); 0 = syscall-only (legacy AE-1
- * behavior); N>0 = fixed userpoll passes. Plain int for the same reason as aeIODrainSpin
- * (ae.o links into redis-cli without server.o); synced at boot + on CONFIG SET. */
-int aeIODrainUserpoll = -1;
+ * latency floor.
+ * 2026-07-28: tomokv-io-drain-spin was retired at 32 and tomokv-io-drain-userpoll at -1
+ * (auto), so both are now compile-time constants here and the server-struct mirrors are gone.
+ * The two operator arms they used to select — "syscall-only legacy" (userpoll 0) and "fixed
+ * userpoll passes" (userpoll N>0) — are deleted with them; the EWMA mode picker below is the
+ * only drain policy. */
+#define AE_IO_DRAIN_SPIN         32   /* zero-timeout drain passes before the 100us fallback window */
+#define AE_IO_DRAIN_USERPOLL_MAX 16   /* userpoll prefix: max pause+beforesleep rounds per poll */
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
@@ -493,7 +492,7 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
     /* ee451 (AE-1): sleep policy. replyWorking==0 -> block until an fd event (tvp NULL).
-     * replyWorking>0 -> replies are in flight on workers: burn up to aeIODrainSpin
+     * replyWorking>0 -> replies are in flight on workers: burn up to AE_IO_DRAIN_SPIN
      * ZERO-timeout passes (each still services fd events, and beforesleep above drains
      * completed replies) so a 1-5us worker completion is picked up in ~that time instead
      * of eating the 100us window; after the budget (wedged/slow worker) fall back to the
@@ -520,9 +519,9 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     if (replyWorking < prevReplyWorking) drainPasses = 0; /* reply progress: refresh */
     prevReplyWorking = replyWorking;
 
-    /* 2s-auto T1: fold replyWorking into the EWMA and (auto mode) pick a drain mode with a
+    /* 2s-auto T1: fold replyWorking into the EWMA and pick a drain mode with a
      * Schmitt band (fast<2 -> userpoll, fast>16 -> syscall) requiring 2 consecutive votes. */
-    if (aeIODrainUserpoll == -1 && replyWorking > 0) {
+    if (replyWorking > 0) {
         double af = 0.4;
         drain_ewma_fast = drain_primed ? (af*(double)replyWorking + (1.0-af)*drain_ewma_fast) : (double)replyWorking;
         drain_primed = 1;
@@ -533,11 +532,9 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     /* 2s-auto T1: userpoll prefix — a bounded pause+beforesleep loop that breaks on reply
      * progress, then falls through to the existing aeApiPoll below. Never a pure busy-loop: a
      * wedged worker (replyWorking stuck) makes no progress => the loop exits => syscall poll. */
-    if (replyWorking > 0 && eventLoop->beforesleep != NULL &&
-        ((aeIODrainUserpoll == -1 && drain_mode == 1) || aeIODrainUserpoll > 0)) {
-        int limit = aeIODrainUserpoll > 0 ? aeIODrainUserpoll : 16;
+    if (replyWorking > 0 && eventLoop->beforesleep != NULL && drain_mode == 1) {
         int rw0 = replyWorking;
-        for (int u = 0; u < limit; u++) {
+        for (int u = 0; u < AE_IO_DRAIN_USERPOLL_MAX; u++) {
             for (int p = 0; p < 16; p++) {
 #if defined(__i386__) || defined(__x86_64__)
                 __builtin_ia32_pause();
@@ -554,7 +551,7 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
         drainPasses = 0;
     } else {
         tv.tv_sec = 0;
-        if (drainPasses < aeIODrainSpin) {
+        if (drainPasses < AE_IO_DRAIN_SPIN) {
             drainPasses++;
             tv.tv_usec = 0;     /* zero-timeout drain pass */
         } else {

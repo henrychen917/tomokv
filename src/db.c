@@ -886,9 +886,9 @@ robj *dbRandomKey(redisDb *db) {
                     if (!kv) return NULL;
                     sds key = kvobjGetKey(kv);
                     robj *keyobj = createStringObject(key, sdslen(key));
-                    if (server.mcmd_lock) tomoWkrLockPub(wid);
+                    tomoWkrLockPub(wid);
                     int kvalid = expireIfNeeded(db, keyobj, kv, 0);
-                    if (server.mcmd_lock) tomoWkrUnlockPub(wid);
+                    tomoWkrUnlockPub(wid);
                     if (kvalid != KEY_VALID) { decrRefCount(keyobj); continue; }
                     return keyobj;
                 }
@@ -924,9 +924,9 @@ robj *dbRandomKey(redisDb *db) {
                  * lock too. argc==1, so the S2 single-key path never covered us.
                  * (The node-local BORROW was deleted 2026-07-27; it was one such off-worker
                  * reader, not the only one — this lock is still required.) */
-                if (server.mcmd_lock) tomoWkrLockPub(wid);
+                tomoWkrLockPub(wid);
                 int kvalid = expireIfNeeded(db, keyobj, kv, 0);
-                if (server.mcmd_lock) tomoWkrUnlockPub(wid);
+                tomoWkrUnlockPub(wid);
                 if (kvalid != KEY_VALID) {
                     decrRefCount(keyobj);
                     continue;                                /* expired: search for another key */
@@ -2446,7 +2446,7 @@ void renameGenericCommand(client *c, int nx) {
      * runs at the reader grace. So the `incrRefCount(o)` pin above leaves refcount == 2 here,
      * kvobjSetEx() falls through to its multi-ref branch and, for any NON-STRING value, has no
      * cheap re-homing left => serverPanic("Not implemented") (crash repro: `SADD s m1;
-     * RENAME s d` with both keys on ONE shard, under --tomokv-flat-store 1).
+     * RENAME s d` with both keys on ONE shard, on a shared node db).
      *
      * The pin is a LIFETIME pin, not a second reader of the value: nothing reads the value
      * through `o` after this point (`o` is repointed at the new kvobj by dbAddInternal, and
@@ -2975,7 +2975,7 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
          * The pin is a LIFETIME pin, not a second reader of the value, so it must be passed
          * down as KVOBJ_SET_MOVE_VALUE: otherwise kvobjSetEx() sees refcount != 1 and has no
          * cheap way to re-home a non-string value, and panics "Not implemented" (crash repro:
-         * `SADD s m; EXPIRE s 100` under --tomokv-flat-store 1). With the flag the value is
+         * `SADD s m; EXPIRE s 100` on a shared node db). With the flag the value is
          * moved into kvnew and the retired old kvobj is freed allocation-only. */
         int flat_keys = kvstoreIsFlat(db->keys);
         if (flat_keys) incrRefCount(kv);
