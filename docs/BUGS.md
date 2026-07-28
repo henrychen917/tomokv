@@ -223,6 +223,38 @@ construction.
 |---|---|---|
 | #19 | reshard cutover fence — see the corrected breakdown in §H below | auto-reshard now defaulted **OFF** (`331d305ee`), so the exposure is removed |
 | #44 | fence `qb_pos == 0` assert under slow-script + SCRIPT KILL, ~20–30%/run, reproduces on pushed production | root cause unconfirmed |
+
+### #44 investigation notes (2026-07-28) — NARROWED, NOT DIAGNOSED
+
+Recorded so the next attempt does not repeat the eliminations. **No fix is proposed yet; this is a
+lead, not a diagnosis.**
+
+Ruled OUT:
+- *Not a missing trim.* `processInputBuffer` has exactly two exits: one `return C_ERR` (the client is
+  freed and the caller nulls `c`, so the assert is skipped) and the final `return C_OK`, which is
+  preceded by the unconditional `else if (c->qb_pos) { sdsrange(...); c->qb_pos = 0; }`. Every
+  `break` in the parse loop — including the fork-added `CLIENT_PIPELINE_STALLED` and
+  `CLIENT_IO_PENDING_COMMAND` ones — falls through to that trim.
+- *Not a diverged reusable-buffer guard.* The adoption block and `resetReusableQueryBuf` are
+  byte-identical to stock, and the assert itself is stock (`redis/src/networking.c:3982`).
+- *Not the caller/callee inconsistency it looks like.* `resetReusableQueryBuf` explicitly tolerates
+  `sdslen(querybuf) > qb_pos` while its caller asserts `qb_pos == 0` first — but that asymmetry
+  exists in stock too (the tolerance serves the other, `freeClient`-side call site).
+
+The surviving lead: the assert is reached via one of the three early `goto done` paths in
+`readQueryFromClient` (all read-failure: `EAGAIN` while still connected, or disconnect), which skip
+`processInputBuffer` entirely and therefore assert on whatever `qb_pos` a *previous* frame left
+behind. Stock's own comment on the reusable buffer says the contended case "only occurs when
+commands are executed nested via `processEventsWhileBlocked()`" — which is exactly the crashing
+regime (a slow script yields there to serve `-BUSY` and `SCRIPT KILL`). So the shape to test is
+**re-entrant `readQueryFromClient` on a client whose outer `processInputBuffer` frame is mid-buffer**.
+What makes this fork-specific is unproven: candidates are the extra parse-loop breaks and the fact
+that `c->running_tid` migrates between an IO thread and main (`iothread.c:152/236`) while
+`thread_reusable_qb`/`thread_reusable_qb_used` are `__thread` — so a buffer adopted on one thread can
+be reset on another, clearing the wrong thread's flag.
+
+**Next step is a reliable repro, not a patch.** `fence_suite.sh` reproduces at ~20–30%/run, so any
+candidate fix must be judged over many runs — a single green fence run is luck, not evidence.
 | #48 | reshard read-straddle (part of #19) | |
 | #49 | pipelined **cross-key** non-serialisation — owner ruled *not guaranteed*, so **document, don't fix** | |
 | — | `SCAN` returns 0 keys when `!(flat_store && shared_node_dbs)` | config-derived |
@@ -381,3 +413,48 @@ defaults to 0.
 **Next step is measurement, not code.** Nothing here has been measured; the fix direction
 (free-on-owner, same-arena, or eliminate the transfer) should be chosen only after instrumenting
 per-thread tcache flush behaviour, and the instrument must be able to come back negative.
+
+### E-extra. Renamed A/B binaries defeat every suite's own cleanup (2026-07-28)
+
+`NIGHT_PLAN.md` rule 2b records that an agent's *renamed* binary defeats a foreign `pkill -x`. The
+same trap fired from the opposite direction here, against my own harness. I built the two arms of
+the refcount A/B as `$J/bins/rc/fixed` and `.../unfixed`, then handed them to the suites via
+`TOMO_BIN`. Every suite tears down with `pkill -9 -x redis-server`, which matches on `comm` — so
+neither arm was ever reaped. A server from the correctness run stayed alive for **25 minutes**,
+holding its port and its RSS, and was discovered only because `cp` onto the running binary failed
+with `Text file busy`. Anything measured in that window was measured against a polluted box.
+
+**Rule:** A/B arms are distinguished by **directory**, never by filename — `bins/<arm>/redis-server`.
+Applied in `shared_refcount_race.sh`. The generalisation: any script that both *names* a binary and
+*relies on `pkill -x`* to clean it up contains a silent contradiction. `Text file busy` on a `cp`
+over a binary is a useful tell that a process you thought was dead is still running.
+
+### E-extra2. I contaminated another agent's A/B, then accepted its wrong explanation (2026-07-28)
+
+**The box's real noise floor is ±2%, not 15–30%.** It is a Ryzen 7700X desktop (8C/16T, single CCD,
+32 MiB L3, 1 NUMA node). The "drifts 15–30%" figure repeated throughout this project's notes belongs
+to the **laptop**. Owner's correction.
+
+Two failures follow from the wrong figure, and the second is worse than the first:
+
+1. **I ran benchmarks on top of a concurrent agent's A/B.** Timestamps: my `rc_gate` ran 21:36–21:47,
+   inside that agent's `ad`/`ae` cells (21:19–21:57). I had been checking `boxfree.sh` before each
+   run and believed that was sufficient. It is not — it answers "is the box busy *right now*", so
+   two agents polling it both see FREE in the gaps between the other's cells and both start.
+2. **The agent explained its own contaminated result as thermal drift** — HEAD's median moving −9%
+   between runs *on identical code* — and I accepted it, because a 15–30% noise band makes −9%
+   sound ordinary. At ±2% it is impossible, and it should have been an immediate stop-and-look.
+   Consequences: that agent's verdict ("−0.6%/−0.7%/+1.7%, all noise, revert both") is not
+   supportable — at ±2% the **+1.7% may be real signal** — and its cells were contaminated anyway.
+   Both changes must be re-measured on an exclusively-locked box before any keep/drop decision.
+
+**The general hazard:** an overstated noise floor is an all-purpose excuse. It does not make
+conclusions conservative — it makes every inconvenient result dismissible, which is strictly worse
+than having no number at all. Widening error bars is not the safe direction.
+
+**Fix:** `$J/withbox.sh` takes a **shared** `flock` on `/tmp/tomo_box.lock` for the whole duration of
+a measuring command; waiting becomes automatic rather than polite. Verified by construction (a second
+caller blocks until the first releases). Note a *private* per-script lock — which `rc_gate` had —
+provides no mutual exclusion whatsoever; the point is that everything contends on one path.
+Rule recorded as NIGHT_PLAN 6b. On this box, **>5% between identical arms is contention or a bug,
+never drift.**

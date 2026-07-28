@@ -10,8 +10,14 @@
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 HERE=$(cd "$(dirname "$0")" && pwd)
-FIXED=${FIXED_BIN:-$J/bins/rc/fixed}
-UNFIXED=${UNFIXED_BIN:-$J/bins/rc/unfixed}
+# HARNESS RULE (cost us a 25-minute leaked server): the arm binaries MUST be named exactly
+# `redis-server`, distinguished by DIRECTORY, not by filename. Every suite in this tree cleans up
+# with `pkill -9 -x redis-server`, which matches on comm -- so an arm named `fixed` or `unfixed` is
+# invisible to that cleanup and leaks a live server that then pollutes whatever runs next. This is
+# the same trap as rule 2b in NIGHT_PLAN.md, hit from the other direction: there, a renamed binary
+# defeated a foreign pkill; here it defeated our OWN.
+FIXED=${FIXED_BIN:-$J/bins/rc/fixed_d/redis-server}
+UNFIXED=${UNFIXED_BIN:-$J/bins/rc/unfixed_d/redis-server}
 SECS=${SECS:-8}        # per TRIAL, not per arm -- see WHY SHORT TRIALS below
 TRIALS=${TRIALS:-12}
 OUT=${OUT:-$J/shared_refcount_race.out}
