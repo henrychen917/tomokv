@@ -88,6 +88,7 @@
 #endif
 
 #include <time.h>
+#include <stdint.h>
 
 /* 'noinline' attribute is intended to prevent the `-Wstringop-overread` warning
  * when using gcc-12 later with LTO enabled. It may be removed once the
@@ -125,6 +126,16 @@ size_t zmalloc_get_smap_bytes_by_field(char *field, long pid);
 size_t zmalloc_get_memory_size(void);
 void zlibc_free(void *ptr);
 void zmadvise_dontneed(void *ptr);
+
+/* TomoKV: per-thread allocator accounting, used by DEBUG TOMO-JESTATS to test the
+ * "cross-thread ownership is expensive" theory. Register once per thread at start-up
+ * (costs one mallctl); reading is main-thread-only and off every hot path. */
+void zmalloc_thread_stats_register(const char *name);
+int zmalloc_thread_stats_count(void);
+int zmalloc_thread_stats_get(int i, const char **name, uint64_t *alloc, uint64_t *dealloc);
+int zmalloc_tcache_turnover(uint64_t *nfills, uint64_t *nflushes, size_t probe_size,
+                            uint64_t *bin_fills, uint64_t *bin_flushes);
+int zmalloc_small_requests(uint64_t *nrequests);   /* small-bin allocation REQUESTS => allocs/op */
 
 #if defined(USE_JEMALLOC)
 void *zmalloc_with_flags(size_t size, int flags);

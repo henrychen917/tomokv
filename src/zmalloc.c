@@ -999,7 +999,138 @@ int jemalloc_purge(void) {
     return -1;
 }
 
+/* ===== TomoKV: per-thread allocator accounting (DEBUG TOMO-JESTATS) =====
+ *
+ * WHY: the cross-shard path is accused of paying for CROSS-THREAD ownership -- blocks
+ * allocated on an IO thread and freed on a worker (and vice versa). That is a THEORY, and
+ * this instrument exists so it can be DISPROVEN. jemalloc's `thread.allocated` /
+ * `thread.deallocated` are per-thread byte counters; a thread whose deallocated far exceeds
+ * its allocated is a net CONSUMER of other threads' blocks. `thread.allocatedp` returns a
+ * pointer that stays valid for the life of the thread, so each thread registers once at
+ * start-up and the main thread can read every thread's counters from a DEBUG command with
+ * zero steady-state cost (no hook, no branch, nothing on the alloc path).
+ *
+ * Cross-thread free is only EXPENSIVE if it actually drives tcache turnover, so the same
+ * command reports jemalloc's own tcache fill/flush counters (stats.arenas.<merged>.bins.<j>.
+ * nfills / nflushes). If bytes cross threads but flushes/op is ~0, the asymmetry is cheap and
+ * the theory is dead. */
+#define ZMALLOC_TSTAT_MAX 96
+typedef struct {
+    uint64_t *allocp;
+    uint64_t *deallocp;
+    char name[24];
+} zmallocThreadStat;
+static zmallocThreadStat zmalloc_tstat[ZMALLOC_TSTAT_MAX];
+static int zmalloc_tstat_n = 0;   /* touched with __atomic builtins (registration is rare) */
+
+void zmalloc_thread_stats_register(const char *name) {
+    uint64_t *ap = NULL, *dp = NULL;
+    size_t sz = sizeof(ap);
+    if (je_mallctl("thread.allocatedp", (void *)&ap, &sz, NULL, 0)) return;
+    sz = sizeof(dp);
+    if (je_mallctl("thread.deallocatedp", (void *)&dp, &sz, NULL, 0)) return;
+    int i = __atomic_fetch_add(&zmalloc_tstat_n, 1, __ATOMIC_RELAXED);
+    if (i >= ZMALLOC_TSTAT_MAX) return;   /* n overshoots; _get clamps */
+    zmalloc_tstat[i].allocp = ap;
+    zmalloc_tstat[i].deallocp = dp;
+    snprintf(zmalloc_tstat[i].name, sizeof(zmalloc_tstat[i].name), "%s", name ? name : "?");
+}
+
+int zmalloc_thread_stats_count(void) {
+    int n = __atomic_load_n(&zmalloc_tstat_n, __ATOMIC_RELAXED);
+    return n > ZMALLOC_TSTAT_MAX ? ZMALLOC_TSTAT_MAX : n;
+}
+
+int zmalloc_thread_stats_get(int i, const char **name, uint64_t *alloc, uint64_t *dealloc) {
+    if (i < 0 || i >= zmalloc_thread_stats_count() || !zmalloc_tstat[i].allocp) return 0;
+    *name = zmalloc_tstat[i].name;
+    /* Plain loads of another thread's counters: benign racy sampling (jemalloc updates them
+     * non-atomically too); we only need them accurate to well within one command's worth. */
+    *alloc = *zmalloc_tstat[i].allocp;
+    *dealloc = *zmalloc_tstat[i].deallocp;
+    return 1;
+}
+
+/* Merged-arena small-bin turnover: total allocation REQUESTS (nrequests -- request-level, so
+ * this is the allocations/op counter, tcache hits included), plus tcache fills + flushes, and
+ * the fills/flushes split out for the bin covering `probe_size` bytes (0 = skip). Returns 0 on
+ * success. Requires a stats-enabled jemalloc (the bundled one is). */
+int zmalloc_small_requests(uint64_t *nrequests) {
+    unsigned nbins = 0, narenas = 0;
+    size_t sz = sizeof(unsigned);
+    uint64_t epoch = 1;
+    size_t esz = sizeof(epoch);
+    je_mallctl("epoch", &epoch, &esz, &epoch, esz);
+    if (je_mallctl("arenas.nbins", &nbins, &sz, NULL, 0)) return -1;
+    sz = sizeof(unsigned);
+    if (je_mallctl("arenas.narenas", &narenas, &sz, NULL, 0)) return -1;
+    size_t mib[8]; size_t miblen = 8;
+    if (je_mallctlnametomib("stats.arenas.0.bins.0.nrequests", mib, &miblen)) return -1;
+    mib[2] = narenas;
+    uint64_t t = 0;
+    for (unsigned j = 0; j < nbins; j++) {
+        uint64_t v; size_t vs = sizeof(v);
+        mib[4] = j;
+        if (!je_mallctlbymib(mib, miblen, &v, &vs, NULL, 0)) t += v;
+    }
+    if (nrequests) *nrequests = t;
+    return 0;
+}
+
+int zmalloc_tcache_turnover(uint64_t *nfills, uint64_t *nflushes,
+                            size_t probe_size, uint64_t *bin_fills, uint64_t *bin_flushes) {
+    unsigned nbins = 0, narenas = 0;
+    size_t sz = sizeof(unsigned);
+    uint64_t epoch = 1;
+    size_t esz = sizeof(epoch);
+    je_mallctl("epoch", &epoch, &esz, &epoch, esz);   /* refresh cached stats */
+    if (je_mallctl("arenas.nbins", &nbins, &sz, NULL, 0)) return -1;
+    sz = sizeof(unsigned);
+    if (je_mallctl("arenas.narenas", &narenas, &sz, NULL, 0)) return -1;
+
+    size_t fill_mib[8], flush_mib[8], bsize_mib[8];
+    size_t fill_len = 8, flush_len = 8, bsize_len = 8;
+    if (je_mallctlnametomib("stats.arenas.0.bins.0.nfills", fill_mib, &fill_len)) return -1;
+    if (je_mallctlnametomib("stats.arenas.0.bins.0.nflushes", flush_mib, &flush_len)) return -1;
+    if (je_mallctlnametomib("arenas.bin.0.size", bsize_mib, &bsize_len)) return -1;
+    fill_mib[2] = flush_mib[2] = narenas;              /* MALLCTL_ARENAS_ALL == narenas */
+
+    uint64_t tf = 0, tfl = 0, bf = 0, bfl = 0;
+    for (unsigned j = 0; j < nbins; j++) {
+        uint64_t v; size_t vs = sizeof(v);
+        size_t rsz; size_t rss = sizeof(rsz);
+        bsize_mib[2] = j;
+        if (je_mallctlbymib(bsize_mib, bsize_len, &rsz, &rss, NULL, 0)) rsz = 0;
+        fill_mib[4] = j;
+        if (!je_mallctlbymib(fill_mib, fill_len, &v, &vs, NULL, 0)) tf += v;
+        else v = 0;
+        uint64_t fv = v;
+        vs = sizeof(v);
+        flush_mib[4] = j;
+        if (!je_mallctlbymib(flush_mib, flush_len, &v, &vs, NULL, 0)) tfl += v;
+        else v = 0;
+        if (probe_size && rsz && rsz >= probe_size && !bf && !bfl) { bf = fv; bfl = v; }
+    }
+    if (nfills) *nfills = tf;
+    if (nflushes) *nflushes = tfl;
+    if (bin_fills) *bin_fills = bf;
+    if (bin_flushes) *bin_flushes = bfl;
+    return 0;
+}
+
 #else
+
+void zmalloc_thread_stats_register(const char *name) { UNUSED(name); }
+int zmalloc_thread_stats_count(void) { return 0; }
+int zmalloc_thread_stats_get(int i, const char **name, uint64_t *alloc, uint64_t *dealloc) {
+    UNUSED(i); UNUSED(name); UNUSED(alloc); UNUSED(dealloc); return 0;
+}
+int zmalloc_tcache_turnover(uint64_t *nfills, uint64_t *nflushes, size_t probe_size,
+                            uint64_t *bin_fills, uint64_t *bin_flushes) {
+    UNUSED(nfills); UNUSED(nflushes); UNUSED(probe_size); UNUSED(bin_fills); UNUSED(bin_flushes);
+    return -1;
+}
+int zmalloc_small_requests(uint64_t *nrequests) { UNUSED(nrequests); return -1; }
 
 int zmalloc_get_allocator_info(int refresh_stats, size_t *allocated, size_t *active, size_t *resident,
                                size_t *retained, size_t *muzzy, size_t *frag_smallbins_bytes)

@@ -3263,6 +3263,9 @@ standardConfig static_configs[] = {
      * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
     createEnumConfig("tomokv-mget-coalesce",         NULL, MODIFIABLE_CONFIG, tomokv_mget_coalesce_enum, server.opt_mget_coalesce, TOMO_MGET_COALESCE, NULL, NULL), /* xshard MGET decomposition. legacy=one sub/key; coalesce=one sub/shard, order-preserving slots (DEFAULT — the win: +20%/+56%/2.3x at k=8/16/32); coalesce-prefetch=+in-sub dict-prefetch (wash on 1-CCD -c32 where concurrency hides the miss; kept for DRAM-cold/NUMA) */
     createBoolConfig("tomokv-xshard-guard",          NULL, MODIFIABLE_CONFIG, server.xshard_guard, 1, NULL, NULL), /* xshard SAFE-GATE: reject not-yet-ported multi-key cmds (RENAME/MSETNX*STORE/BITOP/PFMERGE/COPY/SMOVE/... ) instead of silently corrupting on the decoy db. default on. */
+    /* NO tomokv-xshard-inline-* knob, deliberately: the inline region is sized per command from
+     * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
+     * — that turns every csgAlloc into a plain zmalloc. */
     createBoolConfig("tomokv-xshard-localfast",      NULL, MODIFIABLE_CONFIG, server.xshard_localfast, 1, NULL, NULL), /* read-only multi-key op with all keys on ONE worker runs the real proc there (no gather/coordinator compute). default on; 0 = always gather (A/B). */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
     createBoolConfig("tomokv-xshard-pipeline",       NULL, MODIFIABLE_CONFIG, server.xshard_pipeline, 1, NULL, NULL), /* merge-execution cross-shard INTER family: sizes -> gather-smallest -> shrinking probe chain (traffic ~ k x |smallest|). default ON (gate battery + differential + ~100-300x A/B green 2026-07-21); 0 = legacy gather. */
@@ -3325,7 +3328,6 @@ standardConfig static_configs[] = {
     createStringConfig("tomokv-pin-io",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_io_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=0-3 node1=8,9,10,11" */
     createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
 
-    createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
     createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto (PID-style grow/decay); 0=off (pop 1 per loop); N=fixed */
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),

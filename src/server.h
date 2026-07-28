@@ -2040,7 +2040,27 @@ typedef struct csGroup {
      * provably implementable without a shape change): ---- */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
     long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
+     * Standard inline-then-spill container storage: LLVM SmallVector, folly::small_vector,
+     * absl::InlinedVector, std::string SSO. A cross-shard command is SMALL and SHORT-LIVED --
+     * MGET(4) over 4 shards used to make and destroy EIGHT separate heap blocks (this struct,
+     * subs[], mget_vals[], mget_pos[], and one int[] per sub) for a working set of ~128 bytes.
+     * Those arrays are now carved out of a bump region that lives INSIDE this allocation, so the
+     * common case costs ONE allocation and the arrays share cache lines with the header.
+     * Overflow spills to zmalloc (csgAlloc/csgFree), so nkeys/nsub gain no new limit.
+     * inl is a FLEXIBLE array: each group is sized at creation from ITS OWN command shape
+     * (csInlineWant), so a command that needs one 32-byte array pays for 32 bytes and not for
+     * the largest shape any command might have. There is no knob — see csGroupNew. */
+    uint16_t inl_cap;            /* bytes of inl[] actually allocated (0 => every array on the heap) */
+    uint16_t inl_used;           /* bump cursor; monotone, NEVER rewound (see csgAlloc) */
+    long long inl[];             /* 8-aligned bump region, zeroed at creation */
 } csGroup;
+/* Ceiling on the per-group inline region: above this the arrays spill to the heap, which is
+ * always correct (csgAlloc/csgFree). It bounds the memset and the cache footprint a single
+ * pathological command (a 1M-key MGET) can impose on the group allocation. 512 bytes covers the
+ * whole documented common case — nkeys<=16 with nsub<=8 needs 320 — and the derived sizing means
+ * ordinary commands ask for far less. Set to 0 to build the mechanism out entirely (A/B). */
+#define CS_INLINE_MAX_BYTES 512
 
 /* ee451 (v7): FLUSHALL/FLUSHDB. The IO thread bumps each worker's flush_req (a side-channel
  * generation counter, NOT the command queue — so no fake-client lifecycle to race on, and the
@@ -3513,7 +3533,6 @@ struct redisServer {
     int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
     int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
     int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
-    int opt_operand_pool;      /* v11-A: pool/recycle argv element robjs (IO freelist + worker->IO return ring); default off until validated. */
     int opt_mget_coalesce;     /* xshard MGET: 0=legacy per-key subs; 1=coalesce to one sub/shard, order-preserving position slots (DEFAULT); 2=+in-sub two-pass dict-prefetch/hash-carry (wash on 1-CCD -c32, kept for DRAM-cold/NUMA). Coalescing gated to k>=3 (at k=2 the <=2 subs don't amortize the slot/pos allocs). */
     int mcmd_lock;             /* EXPERIMENT (2s-numa-mcmd-lock): multi-key commands run lock-borrow (one thread walks the keys under per-bucket locks, backlogs contended ones) instead of scatter-gather. 0=off (default; the lock-free path is untouched). */
     /* mcmd_nodelocal DELETED 2026-07-27 with the node-local borrow it selected. */
@@ -3529,6 +3548,7 @@ struct redisServer {
                                 * co-located 10k-pair SINTER ~10x over local. 1=on (DEFAULT). */
     int opt_mset_move;         /* xshard OPT-5: cross-shard MSET moves value robjs to the worker (argv_released_mask handoff) instead of dupStringObject copy. 1=move; 0=legacy per-value copy (DEFAULT — move is a wash on 1-CCD at 256B/4KB; kept as large-value/NUMA lever). */
     int opt_setop_coalesce;    /* xshard: SINTER/SUNION/SDIFF coalesce to one sub/shard (setop_pos position map) instead of one sub/key. 1=coalesce (DEFAULT, k>=3); 0=legacy per-key subs. */
+    /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     int worker_pop_batch;      /* v14 dual-mode: 0=auto (PID grow/decay) ; N=fixed pops/loop */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
