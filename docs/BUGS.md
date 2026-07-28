@@ -651,3 +651,29 @@ Both benchmarks behind the "measured win" used **sequential `redis-cli`**, where
 So the win is real in the regime that was measured and the cost regime was never measured at all.
 Per the three-regime rule (NIGHT_PLAN 13) this is a predicted-deficit case that needs testing before
 the gate is considered correct: small sets + pipelined client is exactly where it should lose.
+
+### F-doublehash. Every single-key command hashes its key TWICE (OPEN, real per-command saving)
+
+Found 2026-07-28 by the deprecated-gate audit, while establishing that the dict hash-carry was dead.
+
+`tomoKeyBucket()` (`server.c:7026`) computes `xxh64(key,len) & TOMO_BUCKET_MASK` at dispatch and
+keeps **14 bits** for the ownership bucket. The flat lookup then calls `tomoKeyHash(key,len)`
+(`kvstore.c:1015` `flatGet`, `:1052` `flatFindForWrite`) — and `tomoKeyHash` **is** `xxh64`
+(`server.c:6579`). So the identical hash over the identical bytes is computed twice per single-key
+command, and 50 bits of the first one are discarded.
+
+**Why it was invisible:** the mechanism that was *supposed* to avoid this — `prefetch_key_hash` →
+`dictArmHashHint` → the one-shot hint in `dictGetHash` — only ever served the DICT path, and its
+sole setter was `PFS_HASH`, which cannot fire on a flat keyspace. So the codebase carried a
+hash-carry mechanism that was dead, while the live path recomputed the hash. The dead half is now
+removed; this is the live half.
+
+**Fix (not done):** carry the full 64-bit hash from dispatch to the flat probe. The vehicle already
+exists in shape — the fake already carries `tomo_bkt`/`tomo_bkt_ptr` with a pointer-match guard, so
+the same idiom extends to the hash.
+
+**Why not tonight:** it threads a value through the `db.c`/`kvstore.c` lookup signatures, and a
+stale or mismatched carried hash does not fail loudly — it silently looks up the WRONG key. That
+needs a discriminating test (seed distinct keys whose hashes collide in the low 14 bits, verify each
+resolves to its own value) before the change, not after. Estimated worth ~1-2% on small-value
+GET/SET, where xxh64 over a ~20-byte key is a meaningful slice of a ~500ns/worker command budget.

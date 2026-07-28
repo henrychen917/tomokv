@@ -647,13 +647,34 @@ static __thread monotime tomo_cmd_time_mono;   /* monotonic us when tomo_cmd_tim
  * accuracy in a value whose unit IS the millisecond. */
 #define TOMO_CMD_CLOCK_RESAMPLE_US 500
 
-static inline void tomoCmdClockEnter(void) {
-    if (tomo_cmd_time_depth++ != 0) return;   /* nested: the outermost latch owns the time */
+/* Refresh this worker's latched command time. Called ONCE PER POPPED BATCH, not per command.
+ *
+ * WHY BATCH AND NOT COMMAND: getMonotonicUs() is NOT an RDTSC read on this build. USE_PROCESSOR_CLOCK
+ * sits inside a comment block in monotonic.c, so it resolves to getMonotonicUs_posix = a vDSO
+ * clock_gettime through a global function pointer -- ~20-30ns, and the vDSO's rdtsc is
+ * LFENCE-serialised on AMD, so the cycle cost is far larger than its ~40 instructions suggest.
+ * (That also means instr/op cannot price it, which is why this was measured in ops/s.)
+ * Paying that per command was unamortised on the single-key path: exExecFake runs once per fake
+ * inside a loop over a batch of up to WORKER_POP_BATCH=16.
+ *
+ * Hoisting is semantically free. The latched value's UNIT IS THE MILLISECOND, and a 16-command
+ * batch spans single-digit microseconds, so every command in a batch would read the same
+ * millisecond anyway. The 500us resample gate is unchanged -- it is now evaluated per batch, which
+ * at any real command rate is far more often than every 500us. The per-command depth counter still
+ * provides the upstream nesting semantics (a nested command keeps the OUTER instant). */
+static inline void tomoCmdClockBatch(void) {
     monotime now = getMonotonicUs();
     if (now - tomo_cmd_time_mono >= TOMO_CMD_CLOCK_RESAMPLE_US) {
         tomo_cmd_time_mono = now;
         tomo_cmd_time = ustime() / 1000;
     }
+}
+
+static inline void tomoCmdClockEnter(void) {
+    /* Depth only: the clock itself is sampled per batch by tomoCmdClockBatch(). A worker command
+     * that somehow runs outside a batch still gets a latched time -- just the previous batch's,
+     * which is at most one resample interval stale and never stale by a whole millisecond. */
+    tomo_cmd_time_depth++;
 }
 
 static inline void tomoCmdClockExit(void) {
@@ -14971,12 +14992,6 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 if (wpd < 1) wpd = 1;
                 unsigned long long l3_share = (unsigned long long)server.detected_l3_bytes / (unsigned)wpd;
                 pfw->pf_cached_min = (8ULL * l3_share) / (fp ? fp : 1);
-                /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
-                unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
-                long budget = server.pf_value_budget_kb >= 0   /* 0 = OFF (no value chase), -1 = AUTO */
-                    ? (long)server.pf_value_budget_kb * 1024
-                    : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
-                pfw->pf_cached_w4 = (int)(budget / (long)ev);
             }
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
         }
@@ -15099,38 +15114,20 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 }
                 break;
             }
-            case PFS_HASH: {
-                /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
-                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
-                 * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
-                 * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
-                dict *d = kvstoreGetDict(fake->db->keys,
-                    server.ex_threads > 0
-                        ? ((fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
-                               ? fake->tomo_bkt
-                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
-                        : (fake->slot > 0 ? fake->slot : 0));
-                if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
-                uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
-                fake->prefetch_key_hash = h;
-                fake->prefetch_key_hash_valid = 1;
-                unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
-                fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3 feed */
-                /* Chase bucket->entry->value only for READ commands (a write installs a
-                 * NEW value and never reads the old payload — the chase measurably hurt
-                 * write-heavy: pure-SET populate regressed ~35% with it on), optionally
-                 * throttled by the #20 feedback / #21 reuse predictors. */
-                /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
-                 * the chase is gated by READONLY + stage widths only. */
-                /* chase deleted with PFS_ENTRY/PFS_VALUE: unreachable on a flat store, where
-                 * PFS_HASH never yields a dict. Every op retires here. */
-                st[j] = PFS_DONE;
-                if (j < (server.pf_w_hash == -1 ? n : server.pf_w_hash)) {   /* -1 = AUTO: width = batch n */
-                    redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
-                    issued = 1;
-                }
-                break;
-            }
+            /* ee451 2026-07-28: PFS_HASH is GUTTED, on the same argument that killed PFS_ENTRY/
+             * PFS_VALUE and the #3 nextop look-ahead. It called kvstoreGetDict() on the KEYSPACE,
+             * and on a KVSTORE_FLAT store that dicts[] array is never populated: kvstoreCreate
+             * allocates it with ALLOCATE_DICTS_ON_DEMAND and every keyspace write takes the flat
+             * branch, so no path ever creates one (kvstoreDictAddRaw, the only unported creator,
+             * runs on db->expires only). The stage therefore always retired at the !d guard --
+             * after paying a hash-random load of kvs->dicts[bucket] out of a 128KB pointer array,
+             * i.e. a likely L2/DRAM miss per command, to obtain NULL. FLATSTORE is unconditional
+             * now (tomokv-flat-store retired, hardwired 1), so this can never fire again.
+             * NOTE the live successor if a flat-table prefetch is ever wanted here: the M-wave
+             * PASS B already prefetches &t->slots[h & t->mask] directly (server.c ~7913), and its
+             * comment claims the waves are currently the ONLY flat prefetch issuer -- so adding a
+             * second one needs measuring, not assuming. */
+            case PFS_HASH: st[j] = PFS_DONE; break;
             /* ee451 2026-07-28: PFS_ENTRY and PFS_VALUE are GUTTED. Both walked dict structures
              * (dts[j]->ht_table[0][idx], dictGetKey(de)); under KVSTORE_FLAT the keyspace holds no
              * dictEntry, and they were only entered when PFS_HASH yielded a non-NULL dict, which
@@ -15190,14 +15187,22 @@ static inline void exExecFake(client *fake) {
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
         tomoCmdClockEnter();
-        /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
-         * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
-         * even when nothing was armed; now only armed ops pay it. */
+        /* ee451 2026-07-28: the dict hash-carry is DEAD and is removed. Its only setter was
+         * PFS_HASH, which cannot fire on a flat keyspace, so prefetch_key_hash_valid was
+         * permanently 0 and dictArmHashHint was never called -- meaning the one-shot check in
+         * dictGetHash was a never-taken branch on every dict lookup in the process. Its recorded
+         * "won in every measurement" therefore cannot be reproduced in the shipped default.
+         *
+         * THE LIVE SUCCESSOR, which is a real per-command saving and is NOT done here: dispatch
+         * already computes the FULL xxh64 of argv[1] (tomoKeyBucket, server.c ~7026) and keeps
+         * only 14 bits for the bucket, then the flat lookup recomputes the identical hash
+         * (kvstore.c flatGet/flatFindForWrite call tomoKeyHash, which IS xxh64). Every single-key
+         * command hashes its key TWICE. Carrying the 64-bit hash from dispatch to the flat probe
+         * removes one xxh64 per command. Filed rather than done tonight because it threads a value
+         * through db.c/kvstore.c lookup signatures, and a stale or mismatched carried hash would
+         * silently look up the WRONG key -- that needs its own discriminating test, not a
+         * late-night edit. See docs/BUGS.md. */
         int hh_armed = 0;
-        if (fake->prefetch_key_hash_valid && fake->argv && fake->argv[1]) {
-            dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
-            hh_armed = 1;
-        }
         /* S2 (mcmd-lock EXPERIMENT): the owner worker must hold this key's bucket lock across its op
          * so it never mutates/rehashes the bucket while an M-command borrower (an IO thread) is
          * reading it. Single-key hot path only: argv[1] is the sole key of GET/SET/single-key subs
@@ -15508,6 +15513,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
          * (paper negative result: neutral in every regime, real workloads lack same-key
          * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
          * The record/replay helpers in db.c remain dormant for the paper's artifact. */
+        tomoCmdClockBatch();   /* ee451: one clock read per batch, not per command */
         for (int j = 0; j < n; ) {
             client *fake = ctx->batch[j];
 
