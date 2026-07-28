@@ -3267,7 +3267,7 @@ standardConfig static_configs[] = {
     /* ee451 (thread-modes v1, step 2): 0 = static thread mains (exact legacy behavior);
      * 1 = all tomokv threads run polyThreadMain with preset modes + one PARKED spare
      * when configured threads < allowed cores (THREAD-MODES-DESIGN.md). */
-    createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          0, NULL, NULL),
+    createBoolConfig("tomokv-thread-modes",          NULL, IMMUTABLE_CONFIG,  server.thread_modes,          1, NULL, NULL),
     createBoolConfig("tomokv-flip-rebalance",        NULL, MODIFIABLE_CONFIG,  server.tm_flip_rebalance,     1, NULL, NULL),
     /* DEPRECATED KNOB (2026-07-26): always-lock IS the design — accepted for config compatibility,
      * ignored; initServer hardwires it on. Basis: MGET borrow +57-69%/instr halved, MSET ~0,
@@ -3289,7 +3289,7 @@ standardConfig static_configs[] = {
      * expensive-shift quorum (3 ex-pressure signals + 2 io-slack donor signals, full ~3s
      * settle), EX->PARKED on collapsed ex-pressure (2 signals + settle). Never auto ->IO.
      * The modeshift-test knob above remains the manual override (same actuator). */
-    createBoolConfig("tomokv-thread-balance",        NULL, MODIFIABLE_CONFIG,  server.thread_balance,       0, NULL, updateTomokvThreadBalance),
+    createBoolConfig("tomokv-thread-balance",        NULL, MODIFIABLE_CONFIG,  server.thread_balance,       1, NULL, updateTomokvThreadBalance),
     /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min 1 / max = populated
      * allocation). V1 has exactly one movable thread — the spare — so these only bound its
      * participation: ex-max blocks PARKED->EX, ex-min blocks EX->PARKED. The io bounds are
@@ -3304,19 +3304,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-io-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static IO/node; 0 = derive from legacy io-threads */
     createIntConfig("tomokv-ex-per-node",            NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node,    0, INTEGER_CONFIG, NULL, NULL), /* static EX/node; 0 = derive from legacy ex-threads */
     createBoolConfig("tomokv-opt-operand-pool",      NULL, MODIFIABLE_CONFIG, server.opt_operand_pool,      0, NULL, NULL),
-    /* SAFETY 2026-07-27: default 0 = auto-reshard OFF. The bucket-ownership FLIP itself is
-     * sound, but its CUTOVER FENCE has three FAIL-OPEN holes (adversarial audit,
-     * wf_af170302-fff): (1) the ref fence outstanding_a_refs has NO INCREMENTER anywhere in
-     * the tree, so the wait returns instantly; (2) the drain check tests queue emptiness,
-     * but exQueuePopBatch publishes the head BEFORE executing the batch, so a busy worker
-     * reads as EMPTY -- the steady state, not a rare race; (3) migHoldIfDraining gates
-     * CMD_WRITE only, so reads keep routing to the OLD owner across the flip.
-     * DEBUG RESHARD STATUS cannot detect any of this: under shared node dbs src and dst are
-     * the SAME kvstore, so migRangeChecksum always reports converged=1. And preflight has
-     * never resharded at all (grep -rn RESHARD tools/preflight/ finds nothing).
-     * Re-enable by default only once the sentinel-complete fence (task #19) lands WITH a
-     * counter proving the fence actually drained. Manual DEBUG RESHARD is unaffected. */
-    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,            0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-reshard-min-ops",        NULL, MODIFIABLE_CONFIG, 0,   INT_MAX, server.reshard_min_ops,        20000, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-pin-mode",               NULL, IMMUTABLE_CONFIG, 0, 2, server.pin_mode, 2, INTEGER_CONFIG, NULL, NULL), /* 0=float 1=manual(pin-cores) 2=auto arch-aware */
     createStringConfig("tomokv-pin-cores", NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_cores, "", NULL, NULL), /* pin-mode 1: comma-separated core ids, applied in thread-pin order */
     createIntConfig("tomokv-worker-pop-batch", NULL, MODIFIABLE_CONFIG, -1, 16, server.worker_pop_batch, -1, INTEGER_CONFIG, NULL, NULL), /* 0=auto (PID-style grow/decay) ; N=fixed */
