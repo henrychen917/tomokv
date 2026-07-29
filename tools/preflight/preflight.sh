@@ -109,7 +109,7 @@ if pgrep -x memtier_benchma >/dev/null 2>&1; then     # comm(2) truncates at 15
   exit 1
 fi
 # Every private comm this tree launches a server under. All are ours; none is `redis-server`.
-_OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup"
+_OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup redis-exnest"
 reap_ours(){ # $1 = suite that just finished
   local c leaked=""
   for c in $_OURS; do pgrep -x "$c" >/dev/null 2>&1 && { leaked="$leaked $c"; pkill -9 -x "$c" 2>/dev/null; }; done
@@ -172,6 +172,14 @@ run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
 # controls (single-key SCARD, same-shard localfast SINTER) that calibrate the counter itself, and a
 # routing oracle so a green run over a route that never executed cannot pass.
 run_suite $SD/xshard_lookup_accounting.sh $PF/xshard_lookup_accounting.out $'\tFAIL'
+# Execution-nesting cross-thread test (arrived with the exec-nesting merge, A-F.4). ~15s,
+# traffic-free. Asserts that one io thread sitting inside a top-level command does not suppress
+# another io thread's own end-of-unit bookkeeping — the class of defect where a process-global
+# counter is read as if it were per-thread. Wired in at merge time for the same reason as the line
+# above: an unreferenced suite is one preflight can never run. It carries its own anti-vacuity
+# guards (measured io-thread partition, asserted overlap, unarmed control on the same build), so a
+# build where the arm cannot be established FAILS rather than passing silently.
+run_suite $SD/exec_nesting.sh        $PF/exec_nesting.out       $'\tFAIL'
 # Hot-KEY veto. Here because the veto is the one balancer gate whose failure mode is SILENCE: it
 # refuses to migrate, so a build in which it can never engage looks identical to a build in which
 # nothing needed vetoing, and that is precisely the state this fork shipped in. The suite asserts
