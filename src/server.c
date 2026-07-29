@@ -7162,6 +7162,12 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  *                   (the exact class of divergence 6e9a31304 fixed). Nonzero = ordering bug. */
 static _Atomic unsigned long long tomo_xshard_multikey_split_n;
 static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
+/*   mset_moved — GATE-OPENED PROOF for tomokv-mset-move. The knob's ON arm hands a value robj
+ *                across a thread boundary, so a test of it that never actually took the arm (every
+ *                MSET landing on one shard, say, or the knob not applying) reports "0 corruptions"
+ *                and means nothing. This counter must be NONZERO for such a run to count as
+ *                evidence, and reads 0 with the knob off. */
+static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
@@ -8603,6 +8609,7 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
      * The bit index is bounded by 64 because argv_released_mask is a uint64_t; beyond that (an MSET
      * with >31 pairs) fall back to NULLing the head slot, which is equally complete. */
     if (server.opt_mset_move) {
+        atomic_fetch_add_explicit(&tomo_xshard_mset_moved_n, 1, memory_order_relaxed);
         sub->argv[sub->argc++] = val;
         if (head->current_pending_cmd && vpos < 64)
             head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
@@ -13930,6 +13937,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_xshard_heap_fallbacks:%llu\r\n", csg_heap,
             "tomokv_xshard_hop2_unbarriered:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
+            "tomokv_xshard_mset_moved:%llu\r\n",
+                atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,
