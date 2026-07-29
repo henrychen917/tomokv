@@ -1189,6 +1189,27 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
     /* Empty redis database structure. */
     removed = emptyDbStructure(server.db, dbnum, async, callback);
 
+    /* ee451: under sharding the keyspace lives in the per-node SHARD dbs, not in server.db
+     * (which is all but empty here) — every worker's db array ALIASES one of server.node_dbs.
+     * Emptying only server.db therefore left every key alive, which made DEBUG RELOAD's flush a
+     * silent no-op: rdbLoad then re-added, key by key, rows that were still present in the very
+     * shard it routes to, and dbAddRDBLoad's NULL tripped "Duplicated key found in RDB file"
+     * (rdb.c) — deterministically, in BOTH the dict (ex=1) and FLATSTORE (ex>=2) regimes. The
+     * same hole silently kept stale keys across a replica full resync.
+     *
+     * Fold over the PHYSICAL node arrays (index n_node_dbs is the spare-private one), not over
+     * workers: with a shared node db (wpn > 1) a per-worker loop would empty the same kvstore
+     * once per worker. This mirrors rdbSaveRio's save-side fold, which needs the same care.
+     *
+     * SYNC empty only, whatever `async` says: emptyDbAsync installs a REPLACEMENT kvstore built
+     * without KVSTORE_FLAT/KVSTORE_SHARED_MT, so on a shared node db it would silently demote a
+     * shared flat table to a private dict. That is why the worker-side flush sentinel likewise
+     * forces flush_async = 0. */
+    if (server.node_dbs) {
+        for (int n = 0; n <= server.n_node_dbs; n++)
+            removed += emptyDbStructure(server.node_dbs[n], dbnum, 0, callback);
+    }
+
     if (dbnum == -1) flushSlaveKeysWithExpireList();
 
     if (with_functions) {
