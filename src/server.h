@@ -2170,11 +2170,15 @@ typedef struct freebackRing {
  * register). MSB set => predict "forward". Per worker (no sharing). */
 
 /* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
- * A thread is not born io/ex/wb — it HOLDS a mode and the balancer shifts the
+ * A thread is not born io/ex — it HOLDS a mode and the balancer shifts the
  * mode mix. PARKED=0 so a zeroed struct is a parked thread. Step 2: the
  * per-thread mode/target_mode atomics live on polyThreadCtx (mode is THREAD
- * state, not exThread state — the spare has no exThread). */
-typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
+ * state, not exThread state — the spare has no exThread).
+ * TOMO_MODE_WB (the 3-stage fork's write-back mode) was deleted 2026-07-28: this
+ * is the 2-stage line, it had no slice, no knob and no way to be adopted. It was
+ * the LAST member, so removing it renumbers nothing. Integer 3 still reaches
+ * DEBUG TOMO-MODESHIFT as the explicit-park verb — see tomoSpareShift. */
+typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX } tomoThreadMode;
 
 typedef struct exThread {
     int id;

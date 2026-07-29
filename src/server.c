@@ -16597,9 +16597,6 @@ void *polyThreadMain(void *arg) {
                               ctx->ex->id, iotid, sz);
                 }
                 break;
-            case TOMO_MODE_WB:
-                ok = 0;                                 /* 2s fork has no WB slice */
-                break;
             case TOMO_MODE_PARKED:
             default:
                 /* ee451 (step 3): parking is legal from birth (cur == -1) and from EX
@@ -16731,8 +16728,8 @@ void *polyThreadMain(void *arg) {
  *       and KEYS/FLUSH fan-outs stop considering the spare while it keeps consuming),
  *       then migrate ALL of the spare's buckets back to W-1; after teardown the
  *       coordinator requests PARKED and the spare's park checkpoint drains, asserts
- *       its shard EMPTY, and parks. Value 3 is the explicit park verb (no WB mode in
- *       the 2s fork); IO-exit (IO->PARKED) and direct IO<->EX swaps stay rejected.
+ *       its shard EMPTY, and parks. Value 3 is the explicit park verb (the WB mode it
+ *       used to name is deleted); IO-exit (IO->PARKED) and direct IO<->EX swaps stay rejected.
  * Runs on the main thread (CONFIG SET) — the SAME thread as reshardAutoTune, so the
  * live-set write, the EWMA-slot resets and the arm are atomic wrt the autotuner.
  * Returns 1 on success, 0 with *err set (config.c rolls the value back). */
@@ -16996,7 +16993,11 @@ int tomoSpareShift(int mode, const char **err) {
     if (mode == TOMO_MODE_PARKED && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
-    if (mode == TOMO_MODE_WB) mode = TOMO_MODE_PARKED;    /* value 3 = the explicit park verb (2s fork) */
+    /* DEBUG TOMO-MODESHIFT 3 is the EXPLICIT park verb: unlike 0 (== TOMO_MODE_PARKED) it is not
+     * silently inert when there is no spare, it reports the error. Kept as a bare integer because
+     * the enum member it used to name (TOMO_MODE_WB, the 3-stage write-back mode) was deleted —
+     * this is the 2-stage line and no thread could ever adopt it. */
+    if (mode == 3) mode = TOMO_MODE_PARKED;
     int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
     /* ee451 (thread-modes step 4, hardening 3.1c): a transition may be PENDING — adopted
      * target not yet reached (the coordinator's park request after a deactivation teardown
@@ -17094,8 +17095,7 @@ int tomoSpareShift(int mode, const char **err) {
         reshardBeginCutover();
         return 1;
     }
-    case TOMO_MODE_WB:          /* value 3 = the explicit park verb (no WB mode in the 2s fork) */
-    case TOMO_MODE_PARKED: {
+    case TOMO_MODE_PARKED: {    /* the park verb 3 was normalised to PARKED at entry */
         if (cur == TOMO_MODE_PARKED) return 1;        /* no-op */
         if (cur == TOMO_MODE_IO)
             { *err = "IO-exit (gradual drain) is not implemented in v1 — cannot re-park a live IO spare"; return 0; }

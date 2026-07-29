@@ -965,7 +965,8 @@ NULL
          *
          * Modes: 5/6 = connection migration (IO-EXIT / rebalance), 7/8 = flip grow-front/grow-back,
          * 70+n / 80+n = per-node grow-front/grow-back on node n, else = retarget the spare poly
-         * thread. Invalid requests (no spare, EX/WB, re-parking a live spare) report the error. */
+         * thread (0/2 = park/EX, 3 = the explicit park verb). Invalid requests (no spare, an
+         * unknown mode, re-parking a live spare) report the error. */
         long mode;
         if (getLongFromObjectOrReply(c, c->argv[2], &mode, NULL) != C_OK) return;
         const char *err = NULL;
