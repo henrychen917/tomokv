@@ -151,4 +151,13 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except (EOFError, ConnectionError, OSError) as e:
+        # Say WHICH failure this is. A server that vanished mid-test is not the wedge under test
+        # (that one stays alive and merely refuses to arm), and grading it as the same thing is how
+        # a result gets attributed to the wrong defect.
+        print("reshard_arm_race: connection lost: %r" % (e,))
+        print("FAIL: server went away during the test (process death, not the arm/coordinator "
+              "wedge — check the server log and the wait status)")
+        sys.exit(1)
