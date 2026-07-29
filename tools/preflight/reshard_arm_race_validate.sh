@@ -10,18 +10,22 @@ DIR=$ROOT/tools/preflight
 N=${N:-3}
 SECS=${SECS:-60}
 echo "=== arm-race: PRE-FIX binary (must FAIL) ==="
-prefail=0
+prefail=0; predied=0; preskip=0
 for i in $(seq 1 $N); do
   "$DIR/reshard_arm_race.sh" "$ROOT/bins/pre" "pre$i" "$SECS"; rc=$?
-  [ $rc = 1 ] && prefail=$((prefail+1))
+  case $rc in 1) prefail=$((prefail+1)) ;; 4) predied=$((predied+1)) ;; 2) preskip=$((preskip+1)) ;; esac
 done
 echo "=== arm-race: FIXED binary (must PASS) ==="
-postpass=0
+postpass=0; postdied=0; postskip=0
 for i in $(seq 1 $N); do
   "$DIR/reshard_arm_race.sh" "$ROOT/bins/post" "post$i" "$SECS"; rc=$?
-  [ $rc = 0 ] && postpass=$((postpass+1))
+  case $rc in 0) postpass=$((postpass+1)) ;; 4) postdied=$((postdied+1)) ;; 2) postskip=$((postskip+1)) ;; esac
 done
-echo "=== DISCRIMINATION: pre FAIL $prefail/$N   post PASS $postpass/$N ==="
+# DIED and SKIP runs are reported separately and counted as NEITHER pass nor fail: a run whose
+# server was killed out from under it, or that completed too few cutovers to have raced anything,
+# is a run that produced no evidence. Rolling them into either bucket is how a fix gets accepted
+# on a number that never measured it.
+echo "=== DISCRIMINATION: pre FAIL $prefail/$N (died $predied, skip $preskip)   post PASS $postpass/$N (died $postdied, skip $postskip) ==="
 
 echo "=== correctness_suite on the fixed binary ==="
 TOMO_BIN=$ROOT/bins/post bash "$DIR/correctness_suite.sh" 2>&1 | tail -25
