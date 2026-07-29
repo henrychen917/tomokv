@@ -54,7 +54,26 @@ C=$(phase "p32 #2" 32 1:0 | tail -1)
 D=$(phase "p1  #2"  1 0:1 | tail -1)
 pkill -9 -x redis-server 2>/dev/null
 
-FLIPS=$(grep -c 'MODESHIFT\|grow-front\|grow-back' "$LOG" 2>/dev/null || echo 0)
+# `grep -c` PRINTS "0" *and* exits 1 when there is no match, so the old `|| echo 0` appended a
+# SECOND "0" and left FLIPS as the two-line string "0\n0" -- against which `[ "$FLIPS" = 0 ]` is
+# false. The zero-actuation NOTE could therefore never print on the one run that most needs it.
+FLIPS=$(grep -c 'MODESHIFT\|grow-front\|grow-back' "$LOG" 2>/dev/null) || true
+FLIPS=${FLIPS:-0}
+
+# THE VERDICT IS COMPUTED IN *THIS* SHELL, NEVER INSIDE A PIPELINE.
+# This block used to be the left element of `{ ... } | tee -a "$OUT"`, which bash forks into a
+# SUBSHELL. Its `exit 0` then left only the subshell; control resumed after the pipeline and the
+# trailing `exit 1` ran on BOTH paths, so the exit status was a CONSTANT carrying no information.
+# preflight.sh's run_suite grades on exit code, so it recorded `FAIL flip_updown.sh -- suite exited
+# 1` even while flip_updown.out simultaneously read PASS -- FAILS could never reach 0 and the
+# mandatory preflight.GO stamp could never be written, for any build.
+#
+# `exit "${PIPESTATUS[0]}"` is NOT the fix and must never be used here: on the FAIL path the last
+# command of the block is `[ "$FLIPS" = 0 ] && echo ...`, which returns 0 when FLIPS==0 -- turning
+# "the controller never actuated at all" into a GREEN exit, the worst possible inversion. Redirect
+# the block to a file (a redirection keeps it in this shell) instead of piping it.
+VERDICT=1
+VTMP=$(mktemp "${TMPDIR:-/tmp}/flip_updown.verdict.XXXXXX")
 {
   echo
   echo "io_threads_live by phase:  p32=$A -> p1=$B -> p32=$C -> p1=$D   (flip log lines: $FLIPS)"
@@ -63,13 +82,17 @@ FLIPS=$(grep -c 'MODESHIFT\|grow-front\|grow-back' "$LOG" 2>/dev/null || echo 0)
   [ "${D:-0}" -gt "${C:-0}" ] && fwd=1
   [ "${C:-0}" -lt "${B:-0}" ] && back=1
   if [ "$fwd" = 1 ] && [ "$back" = 1 ]; then
+    VERDICT=0
     echo "flip_updown: PASS — front-flip-back AND back-flip-front both observed"
-    exit 0
   fi
-  echo "flip_updown: FAIL"
-  [ "$fwd"  = 0 ] && echo "  no FRONT growth: p1 never raised io above its p32 level (expected io7-ish at p1)"
-  [ "$back" = 0 ] && echo "  no BACK growth: p32 never lowered io after p1 (expected io4-ish at p32)"
-  [ "$FLIPS" = 0 ] && echo "  NOTE: zero flip lines in the log — the controller never actuated at all,"
-  [ "$FLIPS" = 0 ] && echo "        so this is 'never moved', not 'moved the wrong way'."
-} | tee -a "$OUT"
-exit 1
+  if [ "$VERDICT" != 0 ]; then
+    echo "flip_updown: FAIL"
+    [ "$fwd"  = 0 ] && echo "  no FRONT growth: p1 never raised io above its p32 level (expected io7-ish at p1)"
+    [ "$back" = 0 ] && echo "  no BACK growth: p32 never lowered io after p1 (expected io4-ish at p32)"
+    [ "$FLIPS" = 0 ] && echo "  NOTE: zero flip lines in the log — the controller never actuated at all,"
+    [ "$FLIPS" = 0 ] && echo "        so this is 'never moved', not 'moved the wrong way'."
+  fi
+} > "$VTMP"
+tee -a "$OUT" < "$VTMP"
+rm -f "$VTMP"
+exit "$VERDICT"
