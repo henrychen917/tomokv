@@ -113,7 +113,7 @@ if [ -n "$BEFORE" ] && [ -x "$BEFORE" ]; then
   echo "=== arm 1/2: defect-reintroduced (rows must read WRONG) ===" >> "$OUT"
   arm before "$BEFORE" WRONG
 else
-  echo "numcmd-discrimination	NOTE	no NUMCMD_BEFORE_BIN arm this run; the probe's ability to fail is evidenced by the recorded pre-fix run (TOTAL ratio 0.2976, worker+xshard rows 0.0000/0.0001)" >> "$OUT"
+  echo "numcmd-discrimination	SUSPECT	no NUMCMD_BEFORE_BIN arm this run — this run did not itself demonstrate that the probe can fail. Recorded pre-fix evidence: TOTAL ratio 0.2976, worker+xshard rows 0.0000/0.0001." >> "$OUT"
 fi
 
 echo "=== arm: binary under test (every row must read OK) ===" >> "$OUT"

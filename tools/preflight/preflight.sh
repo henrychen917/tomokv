@@ -191,8 +191,12 @@ run_suite $SD/side_regression.sh      $PF/side_regression.out      'FAIL' 'SUSPE
 
 # --- discriminating suites added 2026-07-28; each is proven to FAIL on a build with its defect ---
 run_suite $SD/shared_refcount_race.sh $PF/shared_refcount_race.out  'FAIL' 'INCONCLUSIVE'
-run_suite $SD/numcmd_check.sh         $PF/numcmd_check.out          'FAIL'
-run_suite $SD/reshard_suite.sh        $PF/reshard_suite.out         'FAIL'
+# SUSPECT on the run where the defect-reintroduced arm is absent: a green run from a probe whose
+# ability to fail was not demonstrated is the vacuous-validation shape, so it gets said out loud.
+run_suite $SD/numcmd_check.sh         $PF/numcmd_check.out          'FAIL' 'SUSPECT'
+# reshard_suite grades SUSPECT itself when the ordering probe never entered the fence window --
+# 0 violations out of a window you never reached proves nothing.
+run_suite $SD/reshard_suite.sh        $PF/reshard_suite.out         'FAIL' 'SUSPECT'
 run_suite $SD/stress_reclaim.sh      $PF/stress_reclaim.out       'FAIL:'
 
 say "──────────────────────────────────────────────────────────────────────"
