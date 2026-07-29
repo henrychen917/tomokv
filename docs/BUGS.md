@@ -736,6 +736,16 @@ handler output, no stderr and no core is therefore a signal the process cannot h
 from **outside**. That also matches the original sighting directly: its own harness recorded bash's
 job-control message **`Killed`** (i.e. signal 9) for the server, mid-phase.
 
+### It is arm-independent and reshard-independent
+
+Independently of the reshard regime above, a *throughput* harness on this box caught servers dying
+mid-cell on **both** arms — including the completely unmodified baseline — during plain `p32 SET`
+(`-d 32`, 2 M keys seeded, `-t 8 -c 25 --pipeline 32`, io4/ex4), with **no reshard in the picture at
+all**: 3 consecutive dead retries on arm A, 1 on arm B, every one of them "no crash markers,
+abruptly truncated log". A defect that reproduces on an unmodified baseline, on both arms of an A/B,
+and with the migration machinery entirely absent is not a defect in the code under test — it is
+something happening to the process from outside.
+
 ### Where the SIGKILL comes from
 
 Caught live, with a 150 ms `ps` auditor, while another session held the box lock:
