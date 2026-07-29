@@ -8991,6 +8991,25 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, NULL);
 }
 
+/* ee451 (F-pipeline): ONE logical read == ONE accounted lookup.
+ * The stage machine visits each key TWICE — SIZES reads its cardinality, then GATHER1 (the
+ * smallest key) or PROBE (every other key) re-reads it for its contents. With LOOKUP_NONE on all
+ * three, a single cross-shard INTER bumped each key's LRU/LFU and keyspace_hits twice, while
+ * stock SINTER and this fork's own gather arm account each key once (measured pre-fix: LFU +40
+ * and keyspace_hits 160 over 20 SINTERs on 4 keys, against 20/80 on the localfast control).
+ * That is the A4 defect one route over — A4's per-row `.notouch` bit is honoured by csSubExec
+ * and ignored here — so the discipline, not the route, is fixed: SIZES is the accounting
+ * lookup and the re-reads are silent.
+ *
+ * SIZES is the accountant, not GATHER1/PROBE, because SIZES is the ONLY stage that visits every
+ * key of the command EXACTLY once, unconditionally. The later stages are conditional: GATHER1
+ * sees only the smallest key, PROBE stops the moment the candidate set empties
+ * (csPipeAdvance's `if (w == 0) return 0`), so keys on shards never reached would be accounted
+ * ZERO times — an idle-looking hot key is a worse eviction input than a doubly-touched one.
+ * Accounting on SIZES yields exactly one touch, one hit/miss and (at most) one keymiss per key
+ * per command on every outcome, including the empty-input early exit. */
+#define CS_PIPE_REREAD (LOOKUP_NOTOUCH|LOOKUP_NOSTATS|LOOKUP_NONOTIFY)
+
 static void csPipeSubExec(client *sub, csGroup *g) {
     int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
     int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZCARD);   /* Z family: zsets + sets (score 1) */
@@ -8998,6 +9017,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
     case CS_PIPE_SIZES:
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            /* the ONE accounted lookup of this key for this command (see CS_PIPE_REREAD) */
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             long sz = 0;
             if (o) {
@@ -9011,7 +9031,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
     case CS_PIPE_GATHER1: {
         /* argv = [CMD smallest-key]; ship its members (and, for CS_ZOP, raw scores into the
          * smallest key's matrix column) as private copies (candidates). */
-        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], CS_PIPE_REREAD);
         if (o == NULL) break;                          /* raced away => empty result */
         long n; sds *arr; long w = 0; double *gsc = NULL;
         if (o->type == OBJ_SET) {
@@ -9072,7 +9092,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
          * CS_ZOP also records each key's raw score into its matrix column (pipe_probe_pos maps
          * argv slot -> original key position; coordinator-written pre-push). */
         for (int a = 1; a < sub->argc; a++) {
-            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], CS_PIPE_REREAD);
             if (o == NULL) { memset(g->pipe_verdict, 0, g->pipe_ncand); return; }
             int kpos = (a - 1 < g->pipe_probe_nk) ? g->pipe_probe_pos[a - 1] : 0;
             if (o->type == OBJ_SET) {
