@@ -292,7 +292,7 @@ starved each other. That was an orchestration error, not a box problem.
 | 1 | cmdstats `8a24ab1b8`+2 | ~~`cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `eac51d50a` (+ probe `fb1986434`). Acceptance met and shown to discriminate. Perf is no longer unmeasured: **−3.2 to −3.4% on p32 SET io4ex4, which EXCEEDS the 3% budget**; every other cell ≤1%. See §3a |
 | 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **MERGED 2026-07-29 AND REVERTED — the acceptance FAILED.** POST reaches 12/0 in only **2 of 10 runs**; the other 8 crash the server. The residual this row called "FLATSTORE panics ~1 in 3" is understated on every axis: **8 in 10**, and mostly a **double free after silent data loss**, not a panic. Re-merge only together with a *validated* `cfea82654` (or an equivalent quiesce). See §3b |
 | 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
-| 4 | exec-nesting `c53223863` | builds + 15/0; probe if cheap | Default config: bookkeeping only, not data loss. If the probe cannot discriminate, merge on the static argument and SAY SO |
+| 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | 15/0 + `reshard_suite` + `flip_updown` | Large. Key-LB actuators verified unaffected (both paths already required same-node) |
 | 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers` |
 | 7 | h2-fence `e7628efc4` | rebase first (base `95872c371`, collides with the private-binary commit) | Evidence: 4/4 violations base → 0/4 fixed, 232 `fence_midbatch_ticks`. **Missing: the throughput cells (`h2_thr.py`) showing A and B still serve their NON-migrating buckets through a cutover — that is the owner's actual design claim and it currently rests on code reasoning alone.** Adds `tomokv-reshard-fence-timeout`, a new "migration did not happen" path that bumps `reshard_done_seq`, which the flip controller reads |
@@ -508,6 +508,94 @@ is unique.
 Raw: `$J/step3_fpipe/` (`run.log`, `acc_pre.out`, `acc_post.out`, `correctness_post.out`,
 `postmerge.out`, `build_post.log`, `run_step.sh`, and the two staged binaries).
 
+### 3d. Item 4, exec-nesting — MERGED 2026-07-29 (`5b078b10b`, suite `a6e66f6d4`)
+
+Merged exactly the commit the row names. **The row omits a hazard that the branch itself carries:**
+`exnest-fix`'s tip is `7943601ab`, which is LB-1 — already on this branch as `d74df8895`. Merging
+the *branch* rather than the *commit* would have re-applied it. `git log c2b73ac35..exnest-fix`
+lists both; only the older one belongs here. The base `c2b73ac35` is already an ancestor, so there
+is no drift, and the merged tree is byte-identical to what `git merge-tree` predicted **before** the
+merge ran (`04905f37`) — checked again immediately before committing, since §7 records a case where
+an unrelated agent's staged files entered a commit between those two moments.
+
+`make clean && make -j16`, exit 0, 120 objects, **exactly one warning** — `kvstore.c:73`
+`dictEncodeStoredKey` incompatible-pointer-type, the same single warning the pre-merge build of this
+tree emits (`$J/step3_fpipe/build_post.log`, whose source tree is identical to the merge base: the
+two commits since it touch only `tools/` and `docs/`). **Zero new warnings.** Arm provenance taken
+from the binaries: POST carries `execution_nesting` as a 4-byte **TLS GLOBAL** symbol in the same
+TLS block as `iotid`; PRE has no such symbol at all, because it was a field inside `struct
+redisServer`.
+
+**Both probes discriminate, and the more interesting one needs no non-default knob.**
+
+1. **DEFAULT CONFIG — the bookkeeping consequence** (new, now shipped as
+   `tools/preflight/exec_nesting.{sh,py}`). `call()`'s EL duration sampler runs *after*
+   `exitExecutionUnit()`, so `execution_nesting == 0` there means "my unit is over". One connection
+   holds its own io thread inside `DEBUG SLEEP`; a connection proven **by oracle** to be on a
+   different io thread runs 50 × `DEBUG SLEEP 2ms` and reads `INFO stats
+   eventloop_duration_cmd_sum` either side. 2 interleaved rounds:
+
+   | arm | armed delta | unarmed control | verdict |
+   |---|---|---|---|
+   | PRE `14fc957c8` | **42 / 46 µs** | 102 799 / 103 331 µs | **FAIL** — ~100 ms of duration unsampled |
+   | POST `5b078b10b` | 102 749 / 103 269 µs | 102 736 / 103 444 µs | PASS |
+
+   The unarmed control is the whole point: it moves on **both** builds, so "the sum did not move"
+   on PRE is attributable to the arm rather than to a dead probe — the failure mode §2 records for
+   `lb1_uaf_probe`, which passed for years without ever reaching the function it tests.
+
+2. **NON-DEFAULT CONFIG — the data-visible consequence** (the author's
+   `$J/exn/exnest_probe.py`; needs `--lazyexpire-nested-arbitrary-keys no`, because
+   `confAllowsExpireDel()` short-circuits to 1 under the default). Two io threads at depth 1 each,
+   workers running `RANDOMKEY` over a fully-expired keyspace with active expiry off. 3 interleaved
+   rounds: **PRE FAIL, FAIL, INVALID** (`dbsize` 400 → 400; the INVALID is its own overlap guard
+   firing, not a pass) — **POST PASS, PASS, PASS** (`dbsize` 400 → 0).
+   *Sanity gate on a number that looked wrong:* PRE served only 800–816 `RANDOMKEY` replies in the
+   window where POST served 56 742–64 530, a 70× gap that at first read like two different
+   workloads. It is the defect: when the lazy delete is refused, `RANDOMKEY` re-rolls up to
+   `maxtries` times per call over a keyspace where **every** key is expired, so each call costs ~100
+   lookups and returns nil. The gap corroborates the mechanism instead of contradicting it.
+
+**So the row's own fallback — "if the probe cannot discriminate, merge on the static argument and
+SAY SO" — was not needed.** The row's other claim is confirmed and can now be stated with a number:
+under the default configuration this is bookkeeping only, but it is **total, not partial** — 100% of
+the EL command-duration samples were lost for as long as any other io thread sat inside a top-level
+command.
+
+`correctness_suite` on the merged binary: **15 passed, 0 failed.**
+
+**PERF: a wash, and it is a BOUND, not a result.** `postmerge.sh`, 4 cells, vs the recorded
+baseline: `p32GET_io4ex4` **+0.0%**, `p32SET_io4ex4` **+0.1%**, `p1GET_io7ex1` **−0.3%**,
+`p1SET_io7ex1` **+0.5%** — inside this box's ±2% exclusive noise, one rep per cell. Do not read
+those cells as evidence about this change: **GET/SET at both configs are worker-routed, and workers
+call `cmd->proc` directly without entering `call()`**, so the edited lines are barely executed
+there. What was checked instead is static and decisive about cost: `enterExecutionUnit` compiles to
+a single `mov %fs:…,%eax` / `mov %eax,%fs:…` pair (**local-exec** TLS) and the binary contains
+**zero** `__tls_get_addr` calls, so the hot path traded a shared-memory RMW for a segment-relative
+one and cannot have got slower.
+
+**A second commit, and it is a harness change, not a product change (`a6e66f6d4`).** The defect that
+was just fixed had **no** test in this tree — `correctness_suite` is 15/0 on the vulnerable build
+*and* on the fixed one. Probe 1 is therefore shipped as `tools/preflight/exec_nesting.{sh,py}` and
+wired into `preflight.sh` (port 7318, unused elsewhere; `redis-exnest` added to `_OURS`). It is
+shown to discriminate **in its shipped form**, not only as the scratch script: PRE **3 passed / 1
+failed, exit 1**; POST **4 passed / 0 failed, exit 0**. A preflight run must now also produce
+`exec_nesting.out`. **Honest limit, the same one `6d8211379` carries: the wiring has not been
+executed under `preflight.sh` itself** — no full preflight run was made in this step; what ran, on
+both arms, is the same script under the same `TOMO_BIN` / `TOMO_PREFLIGHT_DIR` contract `run_suite`
+uses.
+
+**Found, not fixed — a stale comment this merge invalidates.** `expire.c:176` justifies the worker
+expiry cycle's refusal to use `activeExpireCycleTryExpire()` by saying it mutates "main-thread-global
+execution-unit state (`server.execution_nesting`, the pending-push/tracking queues)". The first item
+is no longer true. The refusal is still correct on the second, but the comment now names a fixed
+defect as a live reason and should be trimmed in a batch that already rebuilds `expire.c`; it was
+left alone here rather than widen a validated merge by an uncompiled edit.
+
+Raw: `$J/step3_exnest/` (`run.log`, `probeA.tsv`, `probeB.tsv`, `correctness_post.out`,
+`postmerge_post.out`, `build_post.log`, `suite_ab.log`, `exec_nesting.{pre,post}.out`,
+`elsample_probe.py`, `step.sh`, and both staged binaries).
+
 ---
 
 ## 4. Unowned defects
@@ -556,6 +644,21 @@ Nothing is working on these.
   `expired_keys_active` is correct because it folds per-worker single-writer counters
   (`expiredKeysActiveTotal`, `server.c:13679`). Fix is the same shape: fold a per-worker counter
   rather than share one. Not fixed here — it is a counter, and this pass was validation only.
+- **The post-execution-unit singletons are now reached by every io thread, at full rate** (raised
+  2026-07-29 by the exec-nesting merge, §3d — recorded because it is a consequence of a merge that
+  was kept, not a reason to revert it). While `execution_nesting` was a process-global sum, an io
+  thread's end-of-unit work was **skipped** whenever any other thread happened to be mid-command:
+  that was the bug, and running it is the fix. But the state it runs against is still process-global
+  — `server.duration_stats[EL_DURATION_TYPE_CMD]` (plain `cnt`/`sum`/`max`, non-atomic RMW,
+  `latency.c:719`), `server.also_propagate` (`server.h:3468`) and `server.pending_push_messages`
+  (`server.h:3592`), via `postExecutionUnitOperations()` / `afterCommand()`. So the write rate on
+  singletons that were already shared has gone from "rare" to "every inline command on every io
+  thread". This is the exact shape §4 already records for `expired_keys`: #42 did not create that
+  race, it raised its rate until the loss was measurable. **Nothing was measured here** — no attempt
+  was made to provoke a loss or a torn read, and the correctness impact is stat-only for
+  `duration_stats`; `also_propagate` and `pending_push_messages` are NOT stat-only and deserve the
+  look. Worker-routed commands (GET/SET and the rest of the whitelist) never enter `call()`, so the
+  rate is bounded by inline traffic.
 - **`fakeRingAutoTune`'s gate has never opened** — it reads `cmd->calls` for GET/SET, which never
   enter `call()`. `use_slim` has therefore never been exercised. Documented, deliberately not fixed:
   fixing it OPENS a hot-path gate for the first time and needs its own A/B.
