@@ -318,7 +318,7 @@ construction.
 
 | task | defect | note |
 |---|---|---|
-| #19 | reshard cutover fence — see the corrected breakdown in §H below | H1 = not a hazard, H2 **FIXED 2026-07-28**, H3 fixed. The "auto-reshard is defaulted OFF so the exposure is removed" note in this row was **stale and load-bearing**: the knob had been renamed `tomokv-key-lb` with default `20000`, i.e. ON. A mitigation recorded as a reason not to fix something must be re-checked against the config, not remembered. |
+| #19 | reshard cutover fence — see the corrected breakdown in §H below | auto-reshard now defaulted **OFF** (`331d305ee`), so the exposure is removed |
 | #44 | fence `qb_pos == 0` assert under slow-script + SCRIPT KILL, ~20–30%/run, reproduces on pushed production | root cause unconfirmed |
 
 ### #44 investigation notes (2026-07-28) — NARROWED, NOT DIAGNOSED
@@ -561,132 +561,17 @@ reviving the copy engine would require a real incrementer *plus* a counter provi
 mechanically correct ("no incrementer exists") and operationally wrong ("therefore the guarantee is
 missing") — the guarantee was unnecessary, not missing.
 
-### H2. The drain check reads EMPTY mid-batch — REAL, **FIXED 2026-07-28**
+### H2. The drain check reads EMPTY mid-batch — REAL, not yet fixed
 
-The coordinator acked a producer slot after ~2 ms of apparent queue emptiness (the idle-ack), but
+The coordinator acks a producer slot after ~2 ms of apparent queue emptiness (the idle-ack), but
 `exQueuePopBatch` publishes `head` **before** executing the batch. A worker actively running 16 jobs
 therefore reads as empty and gets acked while range primaries are still executing — the steady state
 of a busy worker, not a rare race.
 
-The filing said the exposure was mitigated because auto-reshard defaulted off. **That mitigation was
-already gone**: the knob was renamed `tomokv-key-lb` and defaults to `20000`, so the balancer arms
-cutovers on any shard doing >20k ops/s. The fix is the fence, not the default.
-
-**The repro.** `reshard_order.py` cannot catch this and never could: its GET/SET pairs finish in
-microseconds, so the worker is never busy for the 2 ms the idle-ack required. The window is not rare,
-it is just *narrow in wall-clock*, and a probe made of fast commands cannot sit inside it. The new
-`tools/preflight/reshard_midbatch.py` holds it open on purpose — it pipelines `LINSERT k BEFORE
-<tail marker>` against a 2M-element list, so worker A pops one batch and then executes for hundreds
-of milliseconds with an empty queue, and cuts the range over while A is in there. `LINSERT` returns
-the post-insert length, so `LLEN` issued later **on the same connection** must not be smaller. It is:
-
-**The first repro attempt was wrong, and the reason is the interesting part.** The obvious shape is
-"make the worker busy for hundreds of ms and cut over while it is inside the batch". It reproduces
-nothing — 0 violations over 5 runs x 12 cutovers — and the server log says why:
-
-```
-17:29:56.679  reshard DRAINING: fence raised, nprod=7
-17:29:56.800  reshard fence drained          <- 121 ms later, against a 135 ms batch
-17:29:56.810  reshard FLIP
-```
-
-The fence is *also* gated on the main thread's sentinel; main pushes one every `beforeSleep`, and
-worker A cannot reach that sentinel until it has finished the batch it is already running. So a
-BUSY producer is not the hole: it publishes a sentinel within one event-loop iteration, and the
-fence then waits the batch out by accident. The idle-ack only fires for a producer whose loop has
-been stalled for >2 ms — and the danger is that such a producer has range work for A that the
-coordinator cannot see, because `exQueuePush` only STAGES (the release-store of `tail` happens at
-the end of `processInputBuffer`).
-
-`reshard_midbatch.py` manufactures exactly that, from one connection and one pipeline: N range
-writes, then `DEBUG SLEEP` — which is not worker-dispatchable, so it runs INLINE on the io thread,
-*inside* `processInputBuffer`, before the `flushExQueues` that would publish those pushes — then the
-read. The io thread publishes nothing and pushes no sentinel for the whole sleep, the old owner's
-queue reads empty and is idle-acked, and ownership moves while N range writes are still un-executed.
-
-**The fix** (`server.c`, `server.h`):
-
-1. **`exQueue.retired`** — a consumer-published execution frontier, stored once per batch *after* the
-   batch has executed. `head == tail` answers "nothing left to pop"; `retired == tail` answers the
-   question the fence was actually asking. One relaxed load + one release store per batch, on a line
-   the worker already owns.
-2. **The idle-ack is deleted.** A slot is acked only when worker A *executes* that slot's sentinel —
-   which is sound in both directions, because the sentinel is pushed by the producer only after it
-   has acquire-observed `phase == DRAINING` (so everything it pushes afterwards is held) and sits
-   behind everything it pushed before (so reaching it proves those retired).
-3. **Idle producers are woken** (`tm_mig_mbox[slot].notifier`, the notifier the connection-migration
-   control plane already uses) so a producer asleep in `epoll_wait` still pushes its sentinel.
-4. **Slots with no thread behind them** — a parked spare, an unconverted growth io slot, an io thread
-   that parked — can never push a sentinel, so they take the quiescence ack (`retired == tail`)
-   instead. Both transition races are safe: a thread entering IO mode after we acked it must
-   acquire-load `phase` before its first dispatch and therefore holds; a thread leaving IO mode is
-   simply re-evaluated on the next tick.
-5. **A watchdog abort** (`tomokv-reshard-fence-timeout`, default 10 s) — the filing's warning that a
-   wrong wake path *deadlocks* a cutover is correct, and a deadlock is worse than the bug. On
-   timeout the cutover is abandoned **without flipping**: under `shared_node_dbs` nothing has been
-   copied, so an abort is a no-op on the keyspace and the range simply stays where it is. INFO
-   exports `tomokv_reshard_fence_aborts`; the suite fails on any nonzero value, because an abort
-   means a producer stopped answering, not that the timeout is tight.
-
-**A second-order fix the rewrite forced.** The fence now genuinely waits for worker A to make
-progress, so anything that can stall A now stalls the whole cutover — including a pending flat-table
-resize, which parks A in `exSlice` until the *main thread* clears `flat_resize_active`. The
-main-thread hold spins (`migHoldIfDraining` / `migHoldKeyIfDraining`) only pumped
-`reshardCoordinatorTick`, so main could spin forever waiting for a fence it was itself blocking.
-They now pump `tmFlipTick` and `flatResizeCoordinate` too, matching the flush-gate spin that already
-had this right. Under the old idle-ack this could not deadlock — because the old fence completed
-whether or not A was making progress, which is exactly what made it unsound.
-
-**Also corrected: the documented contract was fiction.** `server.h` said worker A "decrements
-`*drain_ack`". There is no counter and nothing is decremented — the field is a non-null marker
-(deliberately pointed at `fence_acked[0]` so it is never dangling) and the ack is a store of 1 into
-`fence_acked[queue index]`. Comment rewritten to describe the code.
-
-### H2b. The HOLD was range-scoped in what it tested and thread-scoped in what it stopped
-
-Owner's protocol for a cutover: the old owner finishes the commands it already has for the migrating
-range; commands arriving for that range wait until it has; then they run under the new owner. **The
-only thing that may wait is the contended range** — both workers keep executing their other buckets
-at full rate, and neither may stop popping its queue.
-
-The tree's hold (`migHoldIfDraining`, from the H3 fix) tested the right thing — per command, bucket
-in `[lo,hi)` — but stopped the wrong thing: it **spun the io thread**. Every other client on that
-thread stopped being served, including clients touching buckets nowhere near the migration, so both
-workers lost the traffic those clients would have generated. That is a throughput cliff on a worker
-that is 1/N of capacity, and the H2 fence fix made it worse by making the DRAINING window a real
-drain instead of a 2 ms guess.
-
-Replaced with a **client park**: `migHoldClientIfDraining` marks the one client `CLIENT_PIPELINE_STALLED`
-and returns — the same idiom the stateful-command and `cs_barrier` gates already use, evaluated at
-the same place, *before* a pipeline ring slot is taken. Because the command was never dispatched
-there is nothing to lose and nothing to re-order; the client's own FIFO is untouched. The io thread
-goes straight back to its event loop; worker A drains its range as a side effect of executing its
-queue and never waits for anything; worker B keeps popping its own buckets throughout.
-
-Details that matter:
-- **Every key, not just `argv[1]`.** `migAnyKeyInRange` keeps the single-key fast path but falls
-  back to the real key spec, so a coalesced `MSET`/`DEL` whose *third* key is in range parks too.
-  This is what makes the old per-key cross-shard spin (`migHoldKeyIfDraining`) unreachable in
-  practice rather than merely rarer.
-- **Waking a parked client.** A parked client has an EMPTY ring by construction, so the reply-drain
-  re-drive — which only walks clients that have in-flight fakes — can never reach it. The release
-  sweep runs from `beforeSleep`/`beforeSleepIO`, and the coordinator wakes every io thread while the
-  fence is open **and once more at the flip**, unconditionally and not rate-limited, because that is
-  the one wake that must not be missed. The abort path wakes them too, or an abort would trade a
-  stalled range for a stalled client.
-- **Dying while parked.** A parked client is referenced by nothing else in the system, so
-  `unlinkClient` drops it from the park list; otherwise the list holds a freed pointer until the next
-  cutover.
-- **Deleting the spin is not a hole.** The park gate and `migPushFenceIfNeeded` read the same
-  acquire-loaded, monotone `phase`. If the gate did not park, this producer has not observed
-  DRAINING, so it has not pushed its sentinel either — anything it dispatches to the old owner now
-  lands *ahead* of that sentinel in the same FIFO queue, which is exactly what the fence proves has
-  retired. Reaching the old owner *behind* its own sentinel requires having already seen DRAINING,
-  and such a producer parks.
-
-**Deliberately NOT done:** no change to `migration.outstanding_a_refs` (see H1 — it is a documented
-no-op guarding an unreachable path, and "fixing" it once already nearly disabled every reshard), and
-no change to the auto-reshard default, which stays ON.
+The correct fix (sentinel-complete fence) deletes the idle-ack and instead **wakes** idle producers
+so each pushes a real sentinel; the notifier machinery exists but is gated on `thread_modes`.
+Deliberately NOT attempted unattended: getting the producer-wake path wrong deadlocks a cutover,
+and with auto-reshard defaulted off the remaining exposure is manual/opt-in only.
 
 ### H3. The fence gated `CMD_WRITE` only — REAL, FIXED
 

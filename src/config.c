@@ -3329,17 +3329,6 @@ standardConfig static_configs[] = {
      * A full 16384-counter-per-worker table was rejected on the budget: same one instruction, but a
      * 64x always-on working-set growth for a question that is local to one group. */
     createIntConfig("tomokv-key-lb-fine",            NULL, MODIFIABLE_CONFIG, -1, 100, server.reshard_fine_pct, -1, INTEGER_CONFIG, NULL, NULL),
-    /* ee451 (H2): cutover drain-fence watchdog. The fence now waits for PROOF that every producer
-     * has retired its in-flight range commands (worker A executing that producer's sentinel), which
-     * is the only sound drain test — but a proof that never arrives is a hang, and a hung cutover
-     * spins every held producer forever. N = abort the cutover (leaving the range exactly where it
-     * is; nothing is copied under shared node dbs, so an abort is a keyspace no-op) if the fence has
-     * not completed in N ms. 0 = wait forever. The default is deliberately far above any legitimate
-     * fence: the fence waits out the longest command batch already in flight on the old owner, so a
-     * short timeout would abort cutovers that were about to succeed. INFO reports
-     * tomokv_reshard_fence_aborts — a nonzero value means a producer stopped answering, not that the
-     * timeout is too tight. */
-    createIntConfig("tomokv-reshard-fence-timeout",  NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_fence_timeout_ms, 10000, INTEGER_CONFIG, NULL, NULL),
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
      * thread nobody routes to has done half a job, and the only reason to want the split was to

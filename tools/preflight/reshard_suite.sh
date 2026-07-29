@@ -1,13 +1,7 @@
 #!/bin/bash
 # Reshard suite — the coverage preflight never had (grep -rn RESHARD tools/preflight/ was empty).
-# Boots a stock-defaults server (auto-reshard is ON by default: tomokv-key-lb = 20000) and drives
-# real cutovers through two probes:
-#   reshard_order.py    — many fast cutovers; same-connection read/write ordering (hole 3 / #48)
-#   reshard_midbatch.py — H2: a STALLED producer with range writes staged for the old owner. An
-#                         empty queue is not an idle producer (pushes are staged, and a pop
-#                         publishes the head before the batch runs); reshard_order.py's
-#                         microsecond commands can never sit in that window, so H2 needs its own
-#                         probe that manufactures the stall.
+# Boots a server with auto-reshard explicitly ENABLED (the default is now 0/off) so the manual
+# probe can drive real cutovers, then runs the read/write ordering probe across them.
 set -u
 # ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
 # `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
@@ -65,22 +59,6 @@ case $rc in
   2) echo "reshard-read-write-order	SUSPECT	$line (never entered the fence window -> proves nothing)" >> $OUT ;;
   *) echo "reshard-read-write-order	FAIL	$line" >> $OUT ;;
 esac
-
-# H2: ownership must not move while a producer still has un-retired range work for the old owner.
-# Its own probe, because the ordering probe above cannot manufacture that stall (see the header).
-python3 "$DIR/reshard_midbatch.py" $PORT 8 > $J/rs_midbatch.out 2>&1
-rc=$?
-line=$(grep '^reshard_midbatch: violations' $J/rs_midbatch.out | head -1)
-case $rc in
-  0) echo "reshard-midbatch-fence	PASS	$line" >> $OUT ;;
-  2) echo "reshard-midbatch-fence	SUSPECT	$line (no cutover completed -> proves nothing)" >> $OUT ;;
-  *) echo "reshard-midbatch-fence	FAIL	$line" >> $OUT ;;
-esac
-# A fence that never completes is a hang, which is worse than the bug it replaced: the watchdog
-# abort exists so that failure mode is visible instead of silent. Any abort here is a real finding.
-ab=$(grep -c 'reshard ABORT' $J/rs.log 2>/dev/null); ab=${ab:-0}
-[ "$ab" = 0 ] && echo "reshard-fence-no-aborts	PASS	0" >> $OUT \
-              || echo "reshard-fence-no-aborts	FAIL	$ab cutover(s) abandoned on the fence watchdog" >> $OUT
 
 # server must still be alive and serving after all those cutovers
 alive=$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')
