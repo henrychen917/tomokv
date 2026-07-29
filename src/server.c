@@ -2500,9 +2500,24 @@ void getCommandStats(struct redisCommand *cmd, long long *calls, long long *usec
  * Returns NULL when the command has no samples anywhere (so callers keep stock's "skip commands
  * with no histogram" behaviour); otherwise the caller owns the result and must hdr_close() it. */
 struct hdr_histogram *tomoCmdLatMerge(struct redisCommand *cmd) {
-    struct hdr_histogram *dst = NULL;
     unsigned int id = (unsigned int)cmd->id;
+    int any = (cmd->latency_histogram != NULL);
 
+    /* Pre-scan before allocating: an hdr_init at this configuration is a ~13KB zeroed allocation,
+     * and INFO latencystats walks EVERY command in the table. Most of them have never run, so
+     * allocate-then-discard would put megabytes of memset on an admin command. 97 pointer loads. */
+    if (id < TOMO_CMDSTAT_IDS) {
+        for (int i = 0; !any && i < TOMO_STAT_SLOTS; i++) {
+            struct hdr_histogram **blk =
+                atomic_load_explicit(&server.cmdlat_percmd[i], memory_order_acquire);
+            if (blk && atomic_load_explicit((_Atomic(struct hdr_histogram *) *)&blk[id],
+                                            memory_order_acquire))
+                any = 1;
+        }
+    }
+    if (!any) return NULL;
+
+    struct hdr_histogram *dst = NULL;
     if (hdr_init(LATENCY_HISTOGRAM_MIN_VALUE, LATENCY_HISTOGRAM_MAX_VALUE,
                  LATENCY_HISTOGRAM_PRECISION, &dst) != 0)
         return NULL;

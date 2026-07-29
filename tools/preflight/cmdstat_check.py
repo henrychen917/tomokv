@@ -63,6 +63,51 @@ def read_bulk(s):
             return buf[hdr + 2:hdr + 2 + n]
 
 
+class Reader:
+    """Minimal RESP2 reader — needed for LATENCY HISTOGRAM, whose reply is a nested array."""
+
+    def __init__(self, sock):
+        self.s = sock
+        self.buf = b""
+
+    def _line(self):
+        while b"\r\n" not in self.buf:
+            c = self.s.recv(1 << 20)
+            if not c:
+                raise RuntimeError("closed mid-reply")
+            self.buf += c
+        line, _, self.buf = self.buf.partition(b"\r\n")
+        return line
+
+    def _take(self, n):
+        while len(self.buf) < n + 2:
+            c = self.s.recv(1 << 20)
+            if not c:
+                raise RuntimeError("closed mid-bulk")
+            self.buf += c
+        out, self.buf = self.buf[:n], self.buf[n + 2:]
+        return out
+
+    def reply(self):
+        h = self._line()
+        t, rest = h[0:1], h[1:]
+        if t in (b"+", b"-"):
+            return rest.decode(errors="replace")
+        if t == b":":
+            return int(rest)
+        if t == b"$":
+            n = int(rest)
+            return None if n < 0 else self._take(n)
+        if t in (b"*", b"%", b"~"):
+            n = int(rest)
+            if n < 0:
+                return None
+            if t == b"%":
+                n *= 2
+            return [self.reply() for _ in range(n)]
+        raise RuntimeError("unhandled RESP type %r" % h[:16])
+
+
 def info(s, section):
     s.sendall(cmd("INFO", section))
     return read_bulk(s).decode(errors="replace")
@@ -210,6 +255,40 @@ for c in ("set", "get", "ping", "mget", "lpush"):
 print("%s: CLIENT INFO tot-cmds — per-client counter" % label)
 # base_tot was read by a CLIENT INFO that reports before counting itself, hence the -1.
 check("tot-cmds delta over the run", after_tot - base_tot - 1, n_sent)
+
+print("%s: INFO stats total_error_replies" % label)
+tot_err = None
+for line in info(s, "stats").splitlines():
+    if line.startswith("total_error_replies:"):
+        tot_err = int(line.split(":")[1])
+check("total_error_replies", tot_err, NF)
+
+# LATENCY HISTOGRAM is where a WRONG merge hides. Summing shards' totals or reporting only one
+# thread's histogram both still produce a well-formed reply; only the CALL COUNT inside the merged
+# histogram proves every worker's samples were actually folded in. With 4 workers, reporting one
+# shard would read ~N/4 here while everything above still passed.
+print("%s: LATENCY HISTOGRAM — merged sample count must equal the call count" % label)
+r = Reader(s)
+for c, want in (("get", N), ("set", N), ("lpush", NF), ("mget", NM), ("ping", NP)):
+    s.sendall(cmd("LATENCY", "HISTOGRAM", c))
+    rep = r.reply()
+    got = 0
+    if rep:
+        body = rep[1]
+        for i in range(0, len(body) - 1, 2):
+            if body[i] == b"calls":
+                got = body[i + 1]
+    check("latency histogram calls for %s" % c, got, want)
+
+print("%s: CONFIG RESETSTAT must clear the shards, not just the baseline" % label)
+s.sendall(cmd("CONFIG", "RESETSTAT"))
+r.reply()
+cs2 = cmdstats(info(s, "commandstats"))
+for c in ("get", "set", "lpush", "mget"):
+    check("cmdstat_%s:calls after RESETSTAT" % c, cs2.get(c, {}).get("calls", 0), 0)
+s.sendall(cmd("LATENCY", "HISTOGRAM", "get"))
+rep = r.reply()
+check("latency histogram for get after RESETSTAT", 0 if not rep else rep[1][1], 0)
 
 print()
 if fails:
