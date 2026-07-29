@@ -1206,6 +1206,11 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
      * shared flat table to a private dict. That is why the worker-side flush sentinel likewise
      * forces flush_async = 0. */
     if (server.node_dbs) {
+        /* A shared node db is a flat table that the resize coordinator may be rebuilding right
+         * now; emptying the old table under a live COPYING loses the empty at the swap. See
+         * tomoFlatResizeQuiesce — and note this also covers the rdbLoad that follows us, because
+         * call() keeps this thread's flat region open for the rest of the command. */
+        tomoFlatResizeQuiesce();
         for (int n = 0; n <= server.n_node_dbs; n++)
             removed += emptyDbStructure(server.node_dbs[n], dbnum, 0, callback);
     }

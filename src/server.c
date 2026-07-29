@@ -10354,6 +10354,40 @@ void flushAllShards(client *c, int dbid, int async) {
     /* Empty the IO-side DBs too (single-key data lives in shards, but stay thorough). */
     emptyDbStructure(server.db, dbid, async, NULL);
 }
+
+/* ee451 FLATSTORE: give a NON-WORKER mutation of a shared node db the entry condition every other
+ * shard-empty in this file already has — no flat resize in flight.
+ *
+ * FLAT_RZ_COPYING requires the old table to be IMMUTABLE for the whole rebuild. The coordinator
+ * enforces that against WORKERS by parking them, and against a non-worker region that is already
+ * open by refusing to LEAVE QUIESCING while any io flat_epoch is odd. What it does not cover is a
+ * non-worker region that OPENS while a resize is already COPYING: nothing re-checks the epoch once
+ * past QUIESCING. emptyData's shard fold and rdbLoad's dbAddRDBLoad are exactly such mutators, so a
+ * DEBUG RELOAD that started mid-COPYING had its empty applied to the OLD table while the
+ * coordinator was rebuilding the NEW one from a pre-empty snapshot; the swap then resurrected every
+ * key the empty had just tombstoned, and the reload's re-insert hit them ("Duplicated key found in
+ * RDB file"). Observed directly: the resize's "rebuilt ... (live=55039)" line and the panic share a
+ * millisecond.
+ *
+ * Waiting here is sufficient for the WHOLE command, not just the empty: call() holds the io flat
+ * region open (FLAT_EXTERN_REGION -> epoch odd), so once an in-flight resize drains, QUIESCING can
+ * no longer complete and no NEW resize can reach COPYING until this command ends.
+ *
+ * Wait on ACTIVE only, never on flatResizePending(): resize_needed can only be cleared by a resize
+ * running to completion, and our own odd epoch is what stops one — waiting on pending would
+ * deadlock against ourselves. ACTIVE always drains: COPYING finishes in bounded chunks, and a
+ * QUIESCING that our pin blocks clears itself at FLAT_RZ_QUIESCE_DEADLINE_US. The old table is
+ * still safe to have been read: flatTableRetire defers its free until every reader leaves its
+ * region, and ours is open. */
+void tomoFlatResizeQuiesce(void) {
+    if (!server.shared_node_dbs) return;
+    while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) {
+        /* Only the main thread runs the coordinator (beforeSleep); if WE are it, a plain sleep
+         * would wait on a machine nobody is advancing. Same pump flushAllShards uses. */
+        if (iotid == 0) flatResizeCoordinate();
+        usleep(100);
+    }
+}
 /* ========================== end cross-shard ========================== */
 
 /* ===================== ee451 (v8d) ONLINE RESHARDING =====================

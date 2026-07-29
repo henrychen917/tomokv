@@ -2072,6 +2072,8 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
+void tomoFlatResizeQuiesce(void);  /* server.c; wait out an in-flight FLATSTORE resize before a
+                                    * NON-WORKER mutation of a shared node db (emptyData's fold) */
 void migCaptureEffect(redisDb *db, robj *keyobj); /* v8d: A-side post-commit effect-log capture */
 void migCaptureImplicitDelete(redisDb *db, robj *keyobj); /* implicit (expiry/evict) delete -> tombstone, gated to src worker's shard */
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
