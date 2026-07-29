@@ -10282,13 +10282,25 @@ void flushAllShards(client *c, int dbid, int async) {
          *      participant releases — reshardArm refuses while it is set, so bucket boundaries
          *      cannot move between the census and the pushes. */
         while (atomic_exchange_explicit(&tomo_flush_gate, 1, memory_order_acq_rel)) {
-            if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); }
+            /* ee451 2026-07-28 (review of the teardown reorder): gate the pump on
+             * migration_active. These pumps exist so a main-thread FLUSHALL does not wait on a
+             * coordinator only it can advance -- and when active == 0 the loop below is waiting on
+             * a RESIZE or a pending FLIP, never on a migration, so gating costs nothing. Ungated,
+             * they are the only two sites that can advance a PHANTOM coordinator past
+             * CO_WAIT_CONVERGE while active == 0; a phantom driven to CO_DRAINING fences a dead
+             * migration, and the next arm then drains with NO fence raised (stale fence_acked[]
+             * honoured, stale co_empty_since[] satisfying the 2ms test) and FLIPs without holding
+             * its writers -- single-writer violation on the shared dict, or a lost write. Advanced
+             * further it reaches an unsatisfiable phase check (armed forever) or frees a live
+             * migLog (UAF). Gating makes "the tick only runs with a live migration" true by
+             * construction, which the state machine already assumes. */
+            if (iotid == 0) { if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) reshardCoordinatorTick(); tmFlipTick(); }
             usleep(100);
         }
         while (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
                atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||   /* wait out a resize (#7) */
                server.tm_flip_ctx != NULL) {
-            if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }  /* pump: else a main-thread flush deadlocks */
+            if (iotid == 0) { if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }  /* pump: else a main-thread flush deadlocks. tick gated -- see the note above */
             usleep(100);
         }
         int wpn = server.ex_per_node;
