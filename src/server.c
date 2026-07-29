@@ -132,7 +132,6 @@ void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs t
 #define CO_QUIESCE       6
 static void reshardCoordinatorTick(void);   /* zero-thread-churn cutover state machine (main) */
 static _Atomic int co_state;                /* CO_* above; main-owned, IO threads CAS-arm only */
-static _Atomic uint64_t tomo_reshard_phantom_coord = 0;  /* co_state set with no live migration (must stay 0) */
 static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
                                              * next stage dispatched (head stays in flight) */
 static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
@@ -2754,21 +2753,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
          * per-migration detached thread; ticks every main-loop pass, >=cron cadence idle). */
         if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_IDLE)
             reshardCoordinatorTick();
-    } else if (__builtin_expect(atomic_load_explicit(&co_state, memory_order_acquire) != CO_IDLE, 0)) {
-        /* PHANTOM COORDINATOR SELF-HEAL. co_state non-IDLE with no migration in flight is not a
-         * reachable steady state: teardown publishes CO_IDLE before dropping migration_active, and
-         * reshardBeginCutover rolls back if it wins its CAS against a migration that finished under
-         * it. If we ever observe it anyway, it is unrecoverable by any other path — this tick is
-         * gated on migration_active, and the arm-side co_state guard then refuses every future arm,
-         * so the load balancer and every thread-mode flip would be dead for the life of the
-         * process. Reset it here rather than run the tick: the tick assumes a live migration and
-         * would happily raise a DRAINING fence for one that does not exist, holding every producer.
-         * Counted and logged, so this is never a silent check that "cannot fire" — if
-         * tomokv_reshard_phantom_coord is ever non-zero, a real ordering hole exists upstream. */
-        atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
-        atomic_fetch_add_explicit(&tomo_reshard_phantom_coord, 1, memory_order_relaxed);
-        serverLog(LL_WARNING, "ee451 reshard: phantom coordinator (co_state set with no active "
-                              "migration) reset to IDLE — this should be unreachable; please file it");
     }
     /* flip: drive a grow-front conversion to completion (park -> IO -> publish). Cheap when idle. */
     if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
@@ -10566,15 +10550,9 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
  * RESHARD START on an IO thread, reshardAutoTune on the main thread — mig_arm_lock serializes
  * the check-then-publish so two racing armers can't both pass the active gate and leak a log). ---- */
 static _Atomic int mig_arm_lock = 0;
-/* Counters, not comments — so the guards below cannot be checks that quietly never fire.
- *   arm_refused_coord : an arm arrived with migration_active == 0 while a coordinator was still
- *                       non-IDLE. With the teardown ordering half in place this is NOT expected in
- *                       normal operation; treat a non-zero value as a phantom-coordinator detector,
- *                       not as proof that the old race window was entered.
- *   cutover_no_coord  : a migration was ARMED and then could not get a coordinator. That is the
- *                       defect itself firing; it must be 0 on a fixed build and is what the
- *                       discriminating test asserts against a defect-reintroduced build. */
-static _Atomic uint64_t tomo_reshard_arm_refused_coord = 0;
+/* A counter, not a comment: a migration was ARMED and then could not get a coordinator — the
+ * defect itself firing. It must be 0 on a fixed build, and it is what the discriminating test
+ * asserts against a defect-reintroduced build. */
 static _Atomic uint64_t tomo_reshard_cutover_no_coord = 0;
 /* Which ARM the coordinator is currently servicing. Bumped once per successful arm; latched by
  * reshardBeginCutover when it wins the CAS. It exists to keep cutover_no_coord unambiguous: a
@@ -10589,28 +10567,6 @@ static int reshardArm(int lo, int hi, int src, int dst) {
         atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
         flatResizePending() ||                                                 /* FIX C + #7: excl. flat resize (pending OR active) */
         !reshardRangeValid(lo, hi, src, dst)) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        return 0;
-    }
-    /* migration_active is 0 — but that is NOT sufficient to arm. The armer must also see the
-     * previous cutover's coordinator back at CO_IDLE.
-     *
-     * THE HOLE THIS CLOSES (permanent whole-server wedge). Teardown used to publish
-     * migration_active = 0 and only THEN co_state = CO_IDLE, with a serverLog() (open/write/close)
-     * in between. reshardArm gated on migration_active alone, while reshardBeginCutover gates on a
-     * CAS of co_state IDLE -> WAIT_CONVERGE. A cross-thread armer — DEBUG RESHARD START runs on an
-     * IO thread, and tools/preflight/reshard_order.py drives exactly that in a tight loop — could
-     * arm inside the window; the CUTOVER that followed failed its CAS, and the migration was left
-     * ARMED WITH NO COORDINATOR. Nothing ever advances it, so migration_active is stuck at 1 for
-     * the life of the process, and that one stuck flag:
-     *   - refuses every later reshardArm  => the balancer is dead;
-     *   - returns flatResizeCoordinate() at its own migration_active check => THE FLATSTORE TABLE
-     *     CAN NEVER RESIZE AGAIN, so under a write workload it fills to capacity and flatInsert
-     *     ends in serverPanic("flatstore INSERT: table full") — the server dies.
-     * The teardown store order is fixed too (co_state first, see reshardCoordinatorTick); this
-     * guard is the structural half, so the invariant does not rest on two stores' relative order. */
-    if (atomic_load_explicit(&co_state, memory_order_acquire) != CO_IDLE) {
-        atomic_fetch_add_explicit(&tomo_reshard_arm_refused_coord, 1, memory_order_relaxed);
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
     }
@@ -10982,67 +10938,33 @@ static void reshardCoordinatorTick(void) {
 /* Spawn the detached cutover coordinator. It internally waits for the cold copy to converge before
  * raising the drain fence, so it is safe to call right after ARM (auto) or mid-COPYING (manual). */
 static int reshardBeginCutover(void) {
-    /* Two attempts: the second exists only for the "the winner finished while we were looking"
-     * case below, which is a legitimate retry rather than the defect. */
-    for (int attempt = 0; attempt < 2; attempt++) {
-        if (!atomic_load_explicit(&server.migration_active, memory_order_acquire)) return 0;
-        if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_COPYING) return 0;
-        int expect = CO_IDLE;   /* zero-thread-churn: arm the main-thread tick machine (CAS: DEBUG
-                                 * CUTOVER runs on an IO thread; the tick itself is main-only) */
-        if (atomic_compare_exchange_strong_explicit(&co_state, &expect, CO_WAIT_CONVERGE,
-                                                    memory_order_acq_rel, memory_order_relaxed)) {
-            /* RE-VALIDATE AFTER WINNING (review finding). The active/phase checks above and this
-             * CAS are not atomic together: this call can be preempted between them, the migration
-             * it checked can complete meanwhile (teardown publishes co_state = CO_IDLE, then
-             * migration_active = 0), and then this CAS SUCCEEDS with no migration in flight. That
-             * installs a PHANTOM coordinator, and beforeSleep only drives reshardCoordinatorTick
-             * under `migration_active`, so co_state would sit at CO_WAIT_CONVERGE forever — after
-             * which the arm-side co_state guard refuses every future arm and the load balancer,
-             * every thread-mode flip and DEBUG RESHARD START are dead for the life of the process.
-             * (Before the arm-side guard this was self-correcting: arms were still allowed, the
-             * next one set active = 1, and the stale coordinator just serviced it. The guard is
-             * what turns it into a wedge, so the guard has to come with this rollback.)
-             * Rolling back is safe precisely BECAUSE of the guard: while we hold co_state non-IDLE
-             * nobody can arm, so no one can be depending on the coordinator we just installed. */
-            if (!atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-                atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_COPYING) {
-                int back = CO_WAIT_CONVERGE;   /* CAS, not a bare store: never clobber a state
-                                                * someone else legitimately advanced. */
-                atomic_compare_exchange_strong_explicit(&co_state, &back, CO_IDLE,
-                                                        memory_order_acq_rel, memory_order_relaxed);
-                return 0;
-            }
-            atomic_store_explicit(&co_serving_arm,
-                                  atomic_load_explicit(&mig_arm_seq, memory_order_acquire),
-                                  memory_order_release);
-            return 1;
-        }
+    if (!atomic_load_explicit(&server.migration_active, memory_order_acquire)) return 0;
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_COPYING) return 0;
+    int expect = CO_IDLE;   /* zero-thread-churn: arm the main-thread tick machine (CAS: DEBUG
+                             * CUTOVER runs on an IO thread; the tick itself is main-only) */
+    if (!atomic_compare_exchange_strong_explicit(&co_state, &expect, CO_WAIT_CONVERGE,
+                                                 memory_order_acq_rel, memory_order_relaxed)) {
         /* A coordinator is already running. If it is servicing THIS arm, this is just a repeated
          * CUTOVER for a cutover already under way — idempotent, report success. The winner
          * publishes co_serving_arm just AFTER its CAS, so a simultaneous second caller can read it
-         * before that store lands; re-read briefly rather than mis-count. A miscount here would put
-         * a non-zero value in the very counter the acceptance test asserts on, i.e. would make the
-         * test lie on a healthy build. */
+         * before that store lands; re-read briefly rather than mis-count, because a false positive
+         * would put a non-zero value in the very counter the acceptance test asserts on. */
         uint64_t arm = atomic_load_explicit(&mig_arm_seq, memory_order_acquire);
-        int winner_finished = 0;
         for (int spin = 0; spin < 1024; spin++) {
             if (atomic_load_explicit(&co_serving_arm, memory_order_acquire) == arm) return 1;
-            /* The winner completed (or rolled back) and co_state is idle again — this is a normal
-             * race, not the defect. Retry the CAS instead of counting a false positive. */
-            if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_IDLE) {
-                winner_finished = 1;
-                break;
-            }
             exPauseCpu();
         }
-        if (!winner_finished) break;
+        /* Otherwise this migration is ARMED WITH NO COORDINATOR and never will have one, leaving
+         * migration_active stuck for the life of the process (see reshardCoordinatorTick's teardown
+         * for what that costs). Deliberately NOT "retried" when co_state returns to CO_IDLE: that
+         * retry would ALSO heal a build that still has the defect, and an acceptance test that
+         * passes on the broken build is worse than no test. */
+        atomic_fetch_add_explicit(&tomo_reshard_cutover_no_coord, 1, memory_order_relaxed);
+        return 0;
     }
-    /* migration_active == 1, phase == MIG_COPYING, and the running coordinator belongs to some
-     * OTHER arm — so this migration is ARMED WITH NO COORDINATOR and never will have one, leaving
-     * migration_active stuck for the life of the process (see the block comment in reshardArm for
-     * what that costs). This is the defect; a build whose arm-side guard works cannot reach here. */
-    atomic_fetch_add_explicit(&tomo_reshard_cutover_no_coord, 1, memory_order_relaxed);
-    return 0;
+    atomic_store_explicit(&co_serving_arm, atomic_load_explicit(&mig_arm_seq, memory_order_acquire),
+                          memory_order_release);
+    return 1;
 }
 
 /* ---- EWMA adaptive load-balancer (CONTROL PLANE: called once/sec from serverCron on the main
@@ -13485,11 +13407,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_xshard_heap_fallbacks:%llu\r\n", csg_heap,
             "tomokv_xshard_hop2_unbarriered:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
-            /* reshard teardown-window instrumentation. arm_refused_coord > 0 proves a test
-             * actually entered the window; cutover_no_coord > 0 is the defect firing (a migration
-             * armed with no coordinator => migration_active stuck for the life of the process). */
-            "tomokv_reshard_arm_refused_coord:%llu\r\n",
-                (unsigned long long)atomic_load_explicit(&tomo_reshard_arm_refused_coord, memory_order_relaxed),
+            /* reshard teardown-window instrumentation: > 0 means a migration was armed with no
+             * coordinator, i.e. migration_active is now stuck for the life of the process. */
             "tomokv_reshard_cutover_no_coord:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
@@ -13560,10 +13479,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "eventloop_duration_cmd_sum:%llu\r\n", server.duration_stats[EL_DURATION_TYPE_CMD].sum,
             "instantaneous_eventloop_cycles_per_sec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_CYCLE),
             "instantaneous_eventloop_duration_usec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_DURATION)));
-        /* Separate catprintf: the FMTARGS() list above is at its argument limit. */
-        info = sdscatprintf(info, "tomokv_reshard_phantom_coord:%llu\r\n",
-                            (unsigned long long)atomic_load_explicit(&tomo_reshard_phantom_coord,
-                                                                     memory_order_relaxed));
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);

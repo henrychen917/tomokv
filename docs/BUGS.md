@@ -165,11 +165,16 @@ That one stuck flag is not a stalled reshard, it is a delayed server kill:
   never resize again**. Under a write workload it fills to capacity and `flatInsert` ends in
   `serverPanic("flatstore INSERT: table full")`.
 
-Fixed in two halves so the invariant does not rest on store order alone: teardown publishes
-`co_state = CO_IDLE` **before** `migration_active = 0` (and the trailing `co_state` store at the end
-of the function is deleted — once `active` is 0 a new migration may already have CASed it to
-`CO_WAIT_CONVERGE`, and a trailing store would strand *that* one the same way), and `reshardArm`
-additionally requires `co_state == CO_IDLE`.
+**Fixed by the store reorder alone**: teardown publishes `co_state = CO_IDLE` **before**
+`migration_active = 0`, and the trailing `co_state` store at the end of the function is deleted —
+once `active` is 0 a new migration may already have CASed it to `CO_WAIT_CONVERGE`, and a trailing
+store would strand *that* one the same way. Because `active = 0` is a release store, any armer that
+acquire-observes `active == 0` necessarily also observes `co_state == CO_IDLE`, so its cutover's CAS
+cannot fail.
+
+I first shipped a second half — `reshardArm` additionally requiring `co_state == CO_IDLE` — as
+"defence in depth". It was removed: see §B4. Two successive reviews found that each guard added to
+protect this invariant opened a wider hole than the one it closed. The reorder needs no guard.
 
 **Not vacuous, in both directions.** `INFO stats` gained `tomokv_reshard_arm_refused_coord` (the
 window was entered) and `tomokv_reshard_cutover_no_coord` (the defect firing).
@@ -224,11 +229,30 @@ counted, logged self-heal (`tomokv_reshard_phantom_coord`) that **resets** `co_s
 running the tick — the tick assumes a live migration and would raise a `DRAINING` fence for one that
 does not exist, holding every producer.
 
+Then the **fix for that** was itself wrong. Re-review found that the rollback (a CAS on `co_state`
+with `expected == CO_WAIT_CONVERGE`) and the `beforeSleep` self-heal net form an **ABA**: the net is
+a second writer that can drive `co_state` non-IDLE → `CO_IDLE` while a rollback is in flight, a new
+migration M2 then arms and installs a legitimate coordinator, and the stale rollback's CAS still
+matches and knocks `co_state` back to `CO_IDLE` — leaving M2 armed with no coordinator. That is the
+original P0, re-created *silently and uncounted* (`cutover_no_coord` is not bumped, because M2's own
+cutover returned success). The window is a few instructions, but it needs only microseconds of delay
+— less than the millisecond-scale stall the original TOCTOU required.
+
+**Resolution: all of it was deleted and the fix reduced to the store reorder alone.** No arm guard,
+no rollback, no retry, no self-heal net — therefore no second writer of `co_state`, no ABA, and no
+phantom wedge (without the arm guard a phantom coordinator is benign again: the next arm sets
+`active = 1` and the stale coordinator simply services it, exactly as before). What ships is the
+2-line ordering change plus the counter and the idempotency latch the test needs.
+
 **Lesson:** the guard and the invariant it assumes have to be reviewed together. I checked that the
 guard closed the window; I did not check what the guard did to every *other* path that could leave
-`co_state` non-IDLE. Also: `bins/pre` had to be rebuilt after this — the retry logic is part of the
-*fix*, and leaving it in the defect-reintroduced build let that build self-heal the very defect the
-acceptance test exists to catch.
+`co_state` non-IDLE — and then did the same thing again one level down. Three iterations, two new
+defects, both caught by review rather than by any test. When a fix keeps needing another guard to
+make the previous guard safe, the fix is wrong: go back to the smallest change that closes the
+original window. Also: `bins/pre` must keep `mig_arm_seq`/`co_serving_arm` and the 1024-spin (not
+just the counter) or a duplicate CUTOVER makes it fail for the wrong reason, and it must NOT carry
+the retry branch — on the broken build `co_state` returns to `CO_IDLE` within the spin, so the retry
+would heal the defect and the acceptance test would PASS on the broken build.
 
 ### B2. Sub-wave arity bug — `20cdae804`
 Capped `nw` at 8 but advanced `base += 32`, so `MGET(10)` emitted an 8-element body under a

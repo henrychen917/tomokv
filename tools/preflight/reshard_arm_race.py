@@ -20,7 +20,9 @@ from a broken one:
 
   1. PROGRESS: cutovers keep completing for the whole run. On a broken build the first arm that
      lands in the window wedges migration_active at 1 and every subsequent START is refused
-     forever, so cutovers stop dead and stay stopped.
+     forever, so cutovers stop dead and stay stopped. NOTE the check ORDER in main() is
+     load-bearing: `wedged` and `no_coord != 0` are both evaluated BEFORE the MIN_CUTOVERS check,
+     because a build that wedges early never reaches MIN_CUTOVERS and must report FAIL, not SKIP.
   2. tomokv_reshard_cutover_no_coord == 0. That counter is incremented at exactly the point where
      an armed migration fails to get a coordinator. It is non-zero on a broken build and
      unreachable on a fixed one.
@@ -193,11 +195,9 @@ def main():
 
     STOP.set()
     no_coord = info_counter(r, "tomokv_reshard_cutover_no_coord")
-    entered = info_counter(r, "tomokv_reshard_arm_refused_coord")
 
-    print("reshard_arm_race: cutovers=%d arm_refusals=%d wedged=%d "
-          "cutover_no_coord=%s arm_refused_coord=%s"
-          % (cutovers, refused, int(wedged), no_coord, entered))
+    print("reshard_arm_race: cutovers=%d arm_refusals=%d wedged=%d cutover_no_coord=%s"
+          % (cutovers, refused, int(wedged), no_coord))
 
     if wedged:
         print("FAIL: DEBUG RESHARD START refused for >10s straight after a successful arm — a "
