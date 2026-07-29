@@ -1837,6 +1837,10 @@ typedef struct client {
     size_t bufpos;
     size_t buf_usable_size; /* Usable size of buffer. */
     char *buf;
+#ifdef HAVE_LIBURING
+    int zc_bufslot;      /* ee451 (U3): registered send-buffer pool slot backing c->buf, or -1
+                          * (plain heap). Set by the ZC detach-swap; owner-thread-only field. */
+#endif
     uint8_t buf_encoded; /* True if c->buf content is encoded (e.g. for copy avoidance) */
     payloadHeader *last_header; /* Pointer to the last header in a buffer when using copy avoidance */
 #ifdef LOG_REQ_RES
@@ -5711,6 +5715,9 @@ void *exThreadMain(void *arg);
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
 void iouRecvArm(client *c);                       /* arm multishot recv for a freshly-bound IO-thread client */
 void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (teardown, under IO-thread pause) */
+/* ee451 (U3): zero-copy send registered-pool buffer lifecycle (detach-on-submit design). */
+void iouZcFreeClientBuf(client *c);               /* freeClient's buf teardown: pool slot vs heap */
+void iouZcOnClientUnbind(client *c);              /* migration off an IO thread (under pause): de-slot c->buf */
 #endif
 void initExThreads(void);
 void handleWorkerReplies(void);

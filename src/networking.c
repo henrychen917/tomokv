@@ -337,6 +337,9 @@ client *createFakeClient(client *parent) {
     /* 2s-auto D1: start small and demand-grow at the spill site. tomokv-fake-buf is retired at
      * AUTO, so the fixed-N and legacy-16KB widths are gone. */
     c->buf = zmalloc_usable(FAKE_BUF_START_BYTES, &c->buf_usable_size);
+#ifdef HAVE_LIBURING
+    c->zc_bufslot = -1;   /* ee451 (U3): fakes never hit the send ring; always plain heap */
+#endif
     c->reply = listCreate();
     listSetFreeMethod(c->reply, freeClientReplyValue);
     listSetDupMethod(c->reply, dupClientReplyValue);
@@ -428,6 +431,9 @@ client *createClient(connection *conn) {
         connSetPrivateData(conn, c);
     }
     c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+#ifdef HAVE_LIBURING
+    c->zc_bufslot = -1;   /* ee451 (U3): plain heap buffer until a ZC detach-swap installs a pool slot */
+#endif
     selectDb(c,0);
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
@@ -2656,7 +2662,11 @@ void freeClient(client *c) {
     /* Free data structures. */
     releaseAllBufReferences(c); /* Release all references to string objects in encoded buffers before freeing */
     listRelease(c->reply);
+#ifdef HAVE_LIBURING
+    iouZcFreeClientBuf(c);      /* ee451 (U3): registered-pool buffers return to the pool, heap ones are zfree'd */
+#else
     zfree(c->buf);
+#endif
     freeReplicaReferencedReplBuffer(c);
     freeClientOriginalArgv(c);
     freeClientDeferredObjects(c, 1);
@@ -3319,54 +3329,323 @@ void sendReplyToClient(connection *conn) {
  * list / encoded buffer / slave / no conn / SQ full) falls back to the normal writeToClient().
  * Runtime-gated by server.io_uring_net (default off => epoll); epoll path fully intact. */
 #define IOU_RING_DEPTH 1024
-/* v12-H: zero-copy send only kicks in at/above this reply size — below it the per-send buffer pin
- * + the extra notification CQE cost more than the copy SEND_ZC avoids. The send ring's fast path is
- * limited to replies that fit the static buf (PROTO_REPLY_CHUNK_BYTES = 16K; larger replies use the
- * reply-list/writeToClient fallback), so ZC here targets mid-size (4–16K) static-buf replies. */
-#define IOU_ZC_MIN_BYTES 4096
 static struct io_uring iouRings[TOMO_IO_THREADS_MAX + 1];
 static int iouRingState[TOMO_IO_THREADS_MAX + 1];   /* 0=uninit, 1=ready, -1=failed */
+
+/* ===== ee451 (U3, deep-uring): ZERO-COPY SEND, detach-on-submit design =====
+ * SEND_ZC hands the kernel a REFERENCE to the reply bytes: they must stay valid and unmodified
+ * until the kernel posts the IORING_CQE_F_NOTIF completion, which (on a real NIC) can be many
+ * event-loop passes after the send-result CQE. The old v12-H code solved that by synchronously
+ * waiting for every notif inside the flush pass — correct, but it serialized the pass on NIC
+ * progress (the "sync-notif-wait design flaw"). The fix: at ZC submit time the client's c->buf is
+ * DETACHED into a per-thread inflight-entry table (the entry owns the buffer + its registered-slot
+ * index) and the client is handed a fresh buffer immediately, so:
+ *   - the client never sees a "pinned" buffer: bufpos/sentlen reset at submit, every downstream
+ *     path (writeToClient, addReply, resize cron, freeClient) works on the fresh buffer untouched;
+ *   - F_NOTIF CQEs are reaped ASYNCHRONOUSLY on later passes and only release entry-owned memory
+ *     — they never dereference a client, so a client freed between passes cannot UAF;
+ *   - the send-result CQE (reaped synchronously in the SAME pass, when the client is guaranteed
+ *     alive: freeClientsInAsyncFreeQueue runs only after the pass) handles partial/EAGAIN by
+ *     copying the unsent tail from the entry buffer back into the client's fresh buffer.
+ * Registered buffers (VLDB deep-uring recipe): each thread lazily builds a pool of
+ * PROTO_REPLY_CHUNK_BYTES buffers registered in a sparse fixed-buffer table; the detach-swap
+ * installs a pool buffer as the client's new c->buf (c->zc_bufslot), so every SUBSEQUENT ZC send
+ * of that client goes out as IORING_OP_SEND_ZC with IORING_RECVSEND_FIXED_BUF (buf_index) —
+ * no per-send page-pin. Pool exhausted -> plain heap swap + unregistered SEND_ZC (still zero-copy).
+ * Fake/encoded replies never reach this path (the fast-path gate requires !c->buf_encoded and an
+ * empty reply list; fake clients' replies are copied into their real parent by AddReplyFromClient
+ * / the cdb splice, so the bytes the ring sees are always owned by the real client) — there is
+ * nothing separate to pin on the fake-reply path. */
+/* ee451 (knob collapse 2026-07-28): minimum reply size for zero-copy send, HARDWIRED. Below this
+ * the extra notif CQE + ZC bookkeeping cost more than the copy SEND_ZC avoids. The deep-uring
+ * branch shipped this as `tomokv-uring-zc-min` (default 1024); the collapse leaves exactly one
+ * io_uring knob, and the house rule is that a threshold self-derives rather than being
+ * operator-set. 1024 (not the old v12-H 4096) is the value the deep design is built for: ZC pays
+ * above ~1KiB WHEN the buffers are registered, and this path registers them (IOU_ZC_POOL_SLOTS).
+ * A compile-time constant, so it cannot fall to 0 by omission the way a dropped field would. */
+#define IOU_ZC_MIN_BYTES  1024
+#define IOU_ZC_ENTRIES    IOU_RING_DEPTH   /* max inflight ZC sends/thread; also bounds notif CQEs */
+#define IOU_ZC_POOL_SLOTS 128              /* registered 16K buffers/thread (lazily allocated) */
+#define IOU_ZC_UD_TAG     (1ULL << 63)     /* user_data tag: ZC entry index (heap ptrs never set it) */
+
+typedef struct iouZcEntry {
+    char *buf;              /* detached reply buffer (entry-owned) */
+    size_t usable;
+    int regslot;            /* pool slot whose memory == buf, or -1 (plain heap) */
+    client *c;              /* valid ONLY while this pass's result is being reaped */
+    size_t off, pend;       /* c->sentlen and pending bytes at submit time */
+    uint8_t seen_result, expect_notif, seen_notif;
+    int next_free;
+} iouZcEntry;
+
+typedef struct iouZcState {
+    iouZcEntry *ents;
+    int efree;                            /* entry freelist head (-1 none) */
+    int outstanding;                      /* entries awaiting result and/or notif */
+    char *slotmem[IOU_ZC_POOL_SLOTS];     /* lazily allocated + registered pool buffers */
+    size_t slotusable[IOU_ZC_POOL_SLOTS];
+    int sfree[IOU_ZC_POOL_SLOTS];         /* pool slot freelist (stack) */
+    int sfree_top;
+    int next_unalloc;                     /* next never-allocated slot */
+    int pend_ret[IOU_ZC_POOL_SLOTS];      /* slots returned by main under pauseIOThread; */
+    int pend_ret_n;                       /*   drained by the owner at pass start */
+    int sparse_ok;                        /* sparse fixed-buffer table registered on the ring */
+    int inited;
+} iouZcState;
+static iouZcState iouZc[TOMO_IO_THREADS_MAX + 1];
+
+static void iouZcInit(int t) {
+    iouZcState *z = &iouZc[t];
+    if (z->inited) return;
+    z->ents = zcalloc(sizeof(iouZcEntry) * IOU_ZC_ENTRIES);
+    for (int i = 0; i < IOU_ZC_ENTRIES; i++) z->ents[i].next_free = i + 1;
+    z->ents[IOU_ZC_ENTRIES - 1].next_free = -1;
+    z->efree = 0;
+    z->sfree_top = -1;
+    z->next_unalloc = 0;
+    /* Sparse fixed-buffer table for the pool (registered lazily per slot). Failure is soft:
+     * ZC still works, just unregistered (per-send page-pin). */
+    z->sparse_ok = (io_uring_register_buffers_sparse(&iouRings[t], IOU_ZC_POOL_SLOTS) == 0);
+    serverLog(LL_NOTICE, "deep-uring: ZC inflight table ready on thread %d (%d entries, "
+              "registered buffer pool %s)", t, IOU_ZC_ENTRIES,
+              z->sparse_ok ? "ACTIVE (sparse)" : "unavailable (plain SEND_ZC only)");
+    z->inited = 1;
+}
+
+/* Pop a registered pool buffer (allocating+registering it on first use). Owner thread only. */
+static int iouZcPopSlot(int t) {
+    iouZcState *z = &iouZc[t];
+    if (!z->sparse_ok) return -1;
+    if (z->sfree_top >= 0) return z->sfree[z->sfree_top--];
+    if (z->next_unalloc >= IOU_ZC_POOL_SLOTS) return -1;
+    int s = z->next_unalloc;
+    char *mem = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &z->slotusable[s]);
+    struct iovec iov = { .iov_base = mem, .iov_len = z->slotusable[s] };
+    __u64 tag = 0;
+    if (io_uring_register_buffers_update_tag(&iouRings[t], s, &iov, &tag, 1) < 0) {
+        zfree(mem);
+        z->sparse_ok = 0;   /* stop trying; existing registered slots stay valid */
+        return -1;
+    }
+    z->slotmem[s] = mem;
+    z->next_unalloc = s + 1;
+    return s;
+}
+
+static inline void iouZcPushSlot(int t, int s) {
+    iouZcState *z = &iouZc[t];
+    z->sfree[++z->sfree_top] = s;
+}
+
+/* Release an entry's detached buffer (kernel is done with it). Owner thread only. */
+static void iouZcReleaseEntryBuf(int t, iouZcEntry *e) {
+    if (e->regslot >= 0) iouZcPushSlot(t, e->regslot);
+    else zfree(e->buf);
+    e->buf = NULL;
+}
+
+static inline void iouZcEntryFree(int t, iouZcEntry *e) {
+    iouZcState *z = &iouZc[t];
+    e->c = NULL;
+    e->next_free = z->efree;
+    z->efree = (int)(e - z->ents);
+    z->outstanding--;
+}
+
+/* Entry lifecycle: freed once the kernel posted everything it will post for it —
+ * the result AND, iff the result carried F_MORE, the notif. */
+static void iouZcEntrySettle(int t, iouZcEntry *e) {
+    if (!e->seen_result) return;
+    if (e->expect_notif && !e->seen_notif) return;
+    iouZcReleaseEntryBuf(t, e);
+    iouZcEntryFree(t, e);
+}
+
+/* Give the client a fresh buffer after its current one was detached into a ZC entry.
+ * Prefers a registered pool buffer (=> the client's NEXT ZC send is a fixed-buffer send). */
+static void iouZcSwapClientBuf(int t, client *c) {
+    int s = iouZcPopSlot(t);
+    if (s >= 0) {
+        c->buf = iouZc[t].slotmem[s];
+        c->buf_usable_size = iouZc[t].slotusable[s];
+        c->zc_bufslot = s;
+    } else {
+        c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+        c->zc_bufslot = -1;
+    }
+    c->bufpos = 0;
+    c->sentlen = 0;
+}
+
+/* Called at freeClient's zfree(c->buf) site: pool buffers go back to the pool instead of the
+ * heap. By the time freeClient reaches buffer teardown the calling thread owns c->tid's lists
+ * (io clients free on their IO thread; main clients — incl. fetched ones — free on main), so
+ * the direct freelist push is single-threaded. The defensive branch covers the documented
+ * hybrid-handoff residual paths (see W6 notes): leak the slot rather than race the owner. */
+void iouZcFreeClientBuf(client *c) {
+    if (c->zc_bufslot >= 0) {
+        if (iotid == c->tid) iouZcPushSlot(c->tid, c->zc_bufslot);
+        else serverLog(LL_WARNING, "deep-uring: leaking ZC pool slot %d (cross-thread free, "
+                       "tid=%d iotid=%d)", c->zc_bufslot, c->tid, iotid);
+        c->zc_bufslot = -1;
+        c->buf = NULL;
+        return;
+    }
+    zfree(c->buf);
+    c->buf = NULL;
+}
+
+/* Called (under pauseIOThread, from the main thread) when a client migrates off its IO thread:
+ * the registered pool buffer belongs to the IO thread's ring, so swap the client onto a plain
+ * heap buffer and queue the slot for the OWNER to reclaim at its next flush pass (the ring and
+ * its freelist are single-issuer; main must not touch them outside the pause window). Any
+ * in-flight ZC entries are already client-decoupled by design (detach-on-submit), so migration
+ * needs no entry surgery. */
+void iouZcOnClientUnbind(client *c) {
+    if (c->zc_bufslot < 0) return;
+    int t = c->tid, s = c->zc_bufslot;
+    iouZcState *z = &iouZc[t];
+    size_t usable;
+    char *fresh = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &usable);
+    memcpy(fresh, c->buf, c->bufpos);
+    c->buf = fresh;
+    c->buf_usable_size = usable;
+    c->zc_bufslot = -1;
+    serverAssert(z->pend_ret_n < IOU_ZC_POOL_SLOTS);
+    z->pend_ret[z->pend_ret_n++] = s;
+}
 
 static int iouEnsureRing(int t) {
     if (iouRingState[t] == 1) return 1;
     if (iouRingState[t] == -1) return 0;
     int rc;
+    const char *mode;
     if (server.io_uring_sqpoll) {
         /* v12: SQPOLL — a kernel thread polls the SQ, so io_uring_submit() needs NO enter syscall
          * on the hot path (zero submit syscalls). Falls back to a normal ring if SQPOLL init fails
-         * (needs privileges / kernel support). sq_thread_idle keeps the poller warm 200ms. */
+         * (needs privileges / kernel support). sq_thread_idle keeps the poller warm 200ms.
+         * SQPOLL is mutually exclusive with the SINGLE_ISSUER|DEFER_TASKRUN hygiene below (deferred
+         * task work needs the submitter to enter the kernel; SQPOLL's whole point is not entering). */
         struct io_uring_params params;
         memset(&params, 0, sizeof(params));
         params.flags = IORING_SETUP_SQPOLL;
         params.sq_thread_idle = 200;
         rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
-        if (rc < 0) rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0);
+        mode = "SQPOLL";
+        if (rc < 0) { rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0); mode = "plain (SQPOLL setup failed)"; }
     } else {
-        rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0);
+        /* ee451 (U1, deep-uring ring hygiene): SINGLE_ISSUER — every op on this ring (submit,
+         * reap, register) happens on this thread, so let the kernel drop the cross-task locking.
+         * DEFER_TASKRUN — completion task work runs only when THIS thread enters the kernel
+         * (our wait/get_events calls), not via inter-processor task-work interrupts: completions
+         * batch up and are processed on our schedule, on our CPU. This is the VLDB'26 "fully
+         * exploited" ring shape. Probed with a fallback: older kernels without the flags still
+         * get a plain ring, and the boot log says which one this box got. */
+        struct io_uring_params params;
+        memset(&params, 0, sizeof(params));
+        params.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN;
+        rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
+        mode = "SINGLE_ISSUER|DEFER_TASKRUN";
+        if (rc < 0) { rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0); mode = "plain (SINGLE_ISSUER|DEFER_TASKRUN unsupported on this kernel)"; }
     }
     if (rc < 0) { iouRingState[t] = -1; return 0; }
+    /* U1: register the ring fd in this task — io_uring_enter then skips the per-syscall fdget/
+     * fdput + fd-table lookup. Safe here precisely because the ring is single-threaded by
+     * design (a registered ring fd is only valid in the registering task). */
+    int reg = io_uring_register_ring_fd(&iouRings[t]);
+    serverLog(LL_NOTICE, "deep-uring: SEND ring on thread %d: %s%s", t, mode,
+              reg == 1 ? ", ring fd registered" : "");
     iouRingState[t] = 1;
+    if (server.io_uring_zc) iouZcInit(t);
     return 1;
+}
+
+/* Reap one ZC-tagged CQE (result or notif). Client-side actions are only taken when same_pass
+ * is true (the result belongs to the pass currently executing, so the client pointer is alive:
+ * frees are deferred to freeClientsInAsyncFreeQueue which runs after the pass). Notifs never
+ * touch the client at all — that is what makes cross-pass (async) notif reaping safe. */
+static void iouZcReapTaggedCqe(int t, uint64_t ud, int res, unsigned cflags, int same_pass) {
+    iouZcState *z = &iouZc[t];
+    int idx = (int)(ud & ~IOU_ZC_UD_TAG);
+    if (idx < 0 || idx >= IOU_ZC_ENTRIES) return;   /* corrupt cookie: drop */
+    iouZcEntry *e = &z->ents[idx];
+
+    if (cflags & IORING_CQE_F_NOTIF) {
+        /* Kernel is done referencing the detached buffer. Entry-owned state only. */
+        e->seen_notif = 1;
+        iouZcEntrySettle(t, e);
+        return;
+    }
+
+    /* Send-result CQE. F_MORE promises exactly one later notif; a ZC send that failed early
+     * may post a single result WITHOUT F_MORE (no notif will come). */
+    e->seen_result = 1;
+    e->expect_notif = (cflags & IORING_CQE_F_MORE) ? 1 : 0;
+
+    if (same_pass && e->c) {
+        client *c = e->c;
+        if (res > 0 && (size_t)res >= e->pend) {
+            /* Fully sent. The client's fresh buffer is already clean (detach-swap reset it);
+             * nothing to do but honor close-after-reply like writeToClient would. */
+            if ((c->flags & CLIENT_CLOSE_AFTER_REPLY) && !clientHasPendingReplies(c))
+                freeClientAsync(c);
+        } else if (res > 0 || res == -EAGAIN || res == -EWOULDBLOCK || res == -ENOBUFS ||
+                   res == -EINTR) {
+            /* Partial send (socket backpressure) or retryable failure: copy the unsent tail
+             * from the detached buffer into the client's fresh (empty at this point: nothing
+             * appends mid-pass) buffer and let epoll finish the job. The tail bytes were never
+             * handed to the kernel's ZC machinery as completed, and the inflight DMA range
+             * [off, off+res) lives in the ENTRY buffer, so the copy cannot race it. */
+            size_t sent = res > 0 ? (size_t)res : 0;
+            size_t rem = e->pend - sent;
+            serverAssert(c->bufpos == 0 && rem <= c->buf_usable_size);
+            memcpy(c->buf, e->buf + e->off + sent, rem);
+            c->bufpos = rem;
+            c->sentlen = 0;
+            installClientWriteHandler(c);
+        } else {
+            c->conn->last_errno = -res;
+            freeClientAsync(c);                      /* hard send error -> close */
+        }
+    }
+    /* !same_pass results (a previous pass aborted on a wait_cqe hard error): never touch the
+     * client — the W6-U3 rationale — but DO settle the entry so its buffer is not leaked. */
+    iouZcEntrySettle(t, e);
 }
 
 static int handleClientsWithPendingWritesUring(void) {
     int t = iotid;
     struct io_uring *ring = &iouRings[t];
+    iouZcState *z = &iouZc[t];
     int processed = listLength(server.clients_pending_write[t]);
     listIter li; listNode *ln;
     int n_submitted = 0;
 
-    /* ee451 (W6-U3): discard CQEs abandoned by a previous ABORTED pass (wait_cqe hard error
-     * mid-reap; see the EINTR retry below for the common cause it removes). Stale CQEs must
-     * never be interpreted: their user_data client pointers may dangle (freeClientsInAsyncFree-
-     * Queue runs in beforeSleepIO between passes — c->sentlen += res on a freed client = UAF)
-     * and they would miscount against THIS pass's n_submitted, leaving fresh sends unreaped.
-     * On a clean pass the reap loop below leaves the CQ empty (it synchronously waits for all
-     * results AND all ZC notifs), so anything found here is stale by construction. */
+    /* ee451 (U3): reclaim pool slots returned by the main thread under pauseIOThread
+     * (client migrations); single-threaded here by the pause protocol. */
+    while (z->inited && z->pend_ret_n > 0) iouZcPushSlot(t, z->pend_ret[--z->pend_ret_n]);
+
+    /* ee451 (U1+U3) pass-start reap. Two kinds of CQEs can legitimately be waiting:
+     *   - F_NOTIF completions for ZC sends of PREVIOUS passes (async notif reaping — the
+     *     whole point: the pass no longer waits for the NIC to release buffers), and
+     *   - ZC results abandoned by a previous ABORTED pass (wait_cqe hard error mid-reap);
+     *     these settle their entry but never touch their (possibly freed) client.
+     * Anything untagged here is a stale PLAIN-send CQE from an aborted pass: its user_data
+     * client pointer may dangle (freeClientsInAsyncFreeQueue runs between passes), so it is
+     * discarded uninterpreted (W6-U3 backstop; the EINTR retry below removes the common cause).
+     * With DEFER_TASKRUN, completions only materialize when we enter the kernel — flush them
+     * first (one syscall, and only when ZC completions are actually outstanding). */
+    if (z->outstanding > 0 && (ring->flags & IORING_SETUP_DEFER_TASKRUN))
+        io_uring_get_events(ring);
     {
-        struct io_uring_cqe *stale; unsigned shead; unsigned nstale = 0;
-        io_uring_for_each_cqe(ring, shead, stale) { (void)stale; nstale++; }
-        if (nstale) io_uring_cq_advance(ring, nstale);
+        struct io_uring_cqe *cqe; unsigned shead; unsigned nseen = 0;
+        io_uring_for_each_cqe(ring, shead, cqe) {
+            uint64_t ud = io_uring_cqe_get_data64(cqe);
+            if (ud & IOU_ZC_UD_TAG)
+                iouZcReapTaggedCqe(t, ud, cqe->res, cqe->flags, 0);
+            nseen++;
+        }
+        if (nseen) io_uring_cq_advance(ring, nseen);
     }
 
     listRewind(server.clients_pending_write[t], &li);
@@ -3388,20 +3667,47 @@ static int handleClientsWithPendingWritesUring(void) {
             (sqe = io_uring_get_sqe(ring)) != NULL)
         {
             size_t pend = c->bufpos - c->sentlen;
-            /* v12-H: zero-copy send (gated) for mid-size replies. SEND_ZC hands the kernel a
-             * reference to c->buf instead of copying it, so the buffer must stay valid+unmodified
-             * until the F_NOTIF completion — we defer the c->bufpos reset to that notif (reap loop
-             * below). Only worth it above a threshold (small replies: the copy is cheaper than the
-             * pin + the extra notif CQE), and only for replies that fit the static buf (bigger ones
-             * take the reply-list/writeToClient fallback). zc_flags=0; MSG_DONTWAIT non-blocking. */
-            if (server.io_uring_zc && pend >= IOU_ZC_MIN_BYTES && c->buf_usable_size >= IOU_ZC_MIN_BYTES) {
-                io_uring_prep_send_zc(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT, 0);
+            /* ee451 (U3): zero-copy send (gated) above the hardwired IOU_ZC_MIN_BYTES threshold — below
+             * it the extra notif CQE + ZC bookkeeping cost more than the copy SEND_ZC avoids.
+             * Detach-on-submit: the SQE references THIS c->buf; the entry takes ownership of it
+             * and the client gets a fresh (preferably registered-pool) buffer before the loop
+             * moves on. See the design block above iouZcInit(). */
+            iouZcEntry *e = NULL;
+            if (server.io_uring_zc && z->inited && (int)pend >= IOU_ZC_MIN_BYTES &&
+                z->efree >= 0) {
+                e = &z->ents[z->efree];
+                z->efree = e->next_free;
+                z->outstanding++;
+                if (c->zc_bufslot >= 0) {
+                    /* Buffer is in the registered pool: fixed-buffer ZC send (no per-send pin). */
+                    io_uring_prep_send_zc_fixed(sqe, c->conn->fd, c->buf + c->sentlen, pend,
+                                                MSG_DONTWAIT, 0, (unsigned)c->zc_bufslot);
+                    static __thread int zcf_logged = 0;
+                    if (!zcf_logged) { zcf_logged = 1;
+                        serverLog(LL_NOTICE, "deep-uring: FIXED (registered-buffer) zero-copy "
+                                  "send active on thread %d (slot %d, %zu bytes)",
+                                  t, c->zc_bufslot, pend); }
+                } else {
+                    io_uring_prep_send_zc(sqe, c->conn->fd, c->buf + c->sentlen, pend,
+                                          MSG_DONTWAIT, 0);
+                }
+                e->buf = c->buf;
+                e->usable = c->buf_usable_size;
+                e->regslot = c->zc_bufslot;
+                e->c = c;
+                e->off = c->sentlen;
+                e->pend = pend;
+                e->seen_result = e->expect_notif = e->seen_notif = 0;
+                io_uring_sqe_set_data64(sqe, IOU_ZC_UD_TAG | (uint64_t)(e - z->ents));
+                iouZcSwapClientBuf(t, c);   /* client walks away with a clean fresh buffer */
                 static __thread int zc_logged = 0;
                 if (!zc_logged) { zc_logged = 1;
-                    serverLog(LL_NOTICE, "v12-H: zero-copy send active on IO thread %d (first send=%zu bytes)", t, pend); }
+                    serverLog(LL_NOTICE, "deep-uring: zero-copy send active on thread %d "
+                              "(first send=%zu bytes, %s)", t, pend,
+                              e->regslot >= 0 ? "fixed/registered" : "unregistered"); }
             } else
                 io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT);
-            io_uring_sqe_set_data(sqe, c);
+            if (!e) io_uring_sqe_set_data(sqe, c);
             n_submitted++;
             { static __thread int snd_logged = 0;
               if (!snd_logged) { snd_logged = 1;
@@ -3414,14 +3720,40 @@ static int handleClientsWithPendingWritesUring(void) {
     }
 
     if (n_submitted > 0) {
-        io_uring_submit(ring);
-        /* Plain SEND posts ONE CQE per request. ZERO-COPY SEND (SEND_ZC) posts TWO: a send-result
-         * CQE with IORING_CQE_F_MORE set, then later an IORING_CQE_F_NOTIF CQE once the kernel is
-         * done with c->buf. So we can't reap a fixed count — we track results + expected notifs
-         * dynamically: every result with F_MORE promises exactly one notif. (If a ZC send fails
-         * early the kernel may post a single result WITHOUT F_MORE, i.e. no notif — handled.) */
-        int results_seen = 0, notifs_expected = 0, notifs_seen = 0;
-        while (results_seen < n_submitted || notifs_seen < notifs_expected) {
+        /* ee451 (U1): ONE enter for the whole pass: submit every collected SQE and wait for the
+         * first completion in the same syscall (a wait is genuinely needed here — the pass
+         * synchronously consumes all RESULTS so plain-send buffers can be reused; only ZC notifs
+         * are deferred to later passes). -EINTR falls through to the wait loop: the SQEs were
+         * already consumed by the submit half. A HARD submit error means nothing (reliable) is
+         * inflight — skip the wait loop entirely rather than block on an empty CQ; affected
+         * clients take the W6-U3 abort posture (next pass's start-reap discards strays). */
+        int src = io_uring_submit_and_wait(ring, 1);
+        if (src < 0 && src != -EINTR) {
+            static __thread int suberr_logged = 0;
+            if (!suberr_logged) { suberr_logged = 1;
+                serverLog(LL_WARNING, "deep-uring: submit_and_wait failed on thread %d: %s "
+                          "(pass aborted; clients recover via epoll/close)", t, strerror(-src)); }
+            n_submitted = 0;   /* suppress the wait loop */
+        } else if (src >= 0 && src < n_submitted) {
+            /* Partial submit (pathological). Retry once; anything still unsubmitted is DROPPED
+             * from the SQ — carrying it into a later pass would submit user_data client pointers
+             * that may dangle by then. Dropped clients take the abort posture (wedge-avoidance,
+             * eventual timeout/close), which beats a cross-pass UAF. */
+            int more = io_uring_submit(ring);
+            if (more > 0) src += more;
+            if (src < n_submitted) {
+                ring->sq.sqe_tail = ring->sq.sqe_head;   /* discard unsubmitted SQEs */
+                serverLog(LL_WARNING, "deep-uring: partial submit on thread %d (%d/%d) — "
+                          "dropped the remainder", t, src, n_submitted);
+                n_submitted = src;
+            }
+        }
+        /* Plain SEND posts ONE CQE per request. ZERO-COPY SEND posts a tagged result CQE
+         * (+F_MORE) and, later, a tagged F_NOTIF CQE — the notif does NOT count toward this
+         * pass's results and is usually reaped by a LATER pass's start-reap (async notif
+         * reaping); any that land while we're still here are handled opportunistically. */
+        int results_seen = 0;
+        while (results_seen < n_submitted) {
             struct io_uring_cqe *cqe = NULL;
             /* ee451 (W6-U3): retry on -EINTR — a signal (e.g. the watchdog SIGALRM) interrupting
              * wait_cqe would otherwise abandon up to n_submitted outstanding CQEs: those clients
@@ -3431,37 +3763,29 @@ static int handleClientsWithPendingWritesUring(void) {
             int wrc;
             do { wrc = io_uring_wait_cqe(ring, &cqe); } while (wrc == -EINTR);
             if (wrc < 0 || cqe == NULL) break;
-            client *c = io_uring_cqe_get_data(cqe);
+            uint64_t ud = io_uring_cqe_get_data64(cqe);
             int res = cqe->res;
             unsigned cflags = cqe->flags;
             io_uring_cqe_seen(ring, cqe);
 
-            if (cflags & IORING_CQE_F_NOTIF) {
-                /* ZC completion: c->buf is now free. Apply the deferred reset using the byte count
-                 * the matching send-result already accumulated into c->sentlen. */
-                notifs_seen++;
-                if (c == NULL || c->bufpos == 0) continue;
-                if (c->sentlen >= c->bufpos) { c->bufpos = 0; c->sentlen = 0; }
-                else installClientWriteHandler(c);  /* partial / error / EAGAIN -> finish via epoll */
+            if (ud & IOU_ZC_UD_TAG) {
+                /* ZC result (same-pass: client alive) or an early notif. */
+                iouZcReapTaggedCqe(t, ud, res, cflags, 1);
+                if (!(cflags & IORING_CQE_F_NOTIF)) results_seen++;
                 continue;
             }
 
-            /* A send-result CQE (plain or the first half of a ZC send). */
+            /* PLAIN send result — kernel already copied the buffer, reset immediately. */
+            client *c = (client *)(uintptr_t)ud;
             results_seen++;
-            if (cflags & IORING_CQE_F_MORE) {
-                /* ZERO-COPY result: record bytes but DEFER the buffer reset to the F_NOTIF above. */
-                notifs_expected++;
-                if (c && res > 0) c->sentlen += (size_t)res;
-                /* res<=0 (error/EAGAIN): leave sentlen; the notif path routes to epoll, which
-                 * retries the send or surfaces the hard error and frees the client. */
-                continue;
-            }
-
-            /* PLAIN send result — kernel already copied the buffer, reset immediately (as before). */
             if (c == NULL) continue;
             if (res > 0) {
                 c->sentlen += (size_t)res;
-                if (c->sentlen >= c->bufpos) { c->bufpos = 0; c->sentlen = 0; }
+                if (c->sentlen >= c->bufpos) {
+                    c->bufpos = 0; c->sentlen = 0;
+                    if ((c->flags & CLIENT_CLOSE_AFTER_REPLY) && !clientHasPendingReplies(c))
+                        freeClientAsync(c);
+                }
                 else installClientWriteHandler(c);          /* partial send -> finish via epoll */
             } else if (res == -EAGAIN || res == -EWOULDBLOCK || res == -ENOBUFS || res == -EINTR) {
                 installClientWriteHandler(c);                /* socket buffer full -> retry via epoll */
@@ -3493,7 +3817,7 @@ static int handleClientsWithPendingWritesUring(void) {
  * socket first, so a spurious epoll wakeup just gets EAGAIN) — this keeps every Tomo KV read
  * invariant intact. Perf is network-bound (≈neutral on loopback); this lands the infrastructure
  * for a real-NIC / EPYC evaluation. */
-#define IOU_RECV_NBUFS   512               /* provided buffers per IO thread (power of two) */
+#define IOU_RECV_NBUFS   512               /* provided-buffer count, HARDWIRED (see iouRecvEnsure) */
 #define IOU_RECV_BUFSZ   PROTO_IOBUF_LEN   /* 16K each — matches the epoll read size */
 #define IOU_RECV_BGID    7                 /* buffer group id (distinct from the send ring) */
 #define IOU_RECV_DEPTH   2048
@@ -3507,9 +3831,10 @@ typedef struct iouRecvSlot { client *c; uint32_t gen; sds stash; } iouRecvSlot;
 typedef struct iouRecvState {
     struct io_uring ring;
     struct io_uring_buf_ring *br;
-    unsigned char *bufmem;     /* IOU_RECV_NBUFS * IOU_RECV_BUFSZ */
+    unsigned char *bufmem;     /* nbufs * IOU_RECV_BUFSZ */
     int efd;                   /* eventfd registered with the ring; read side lives in the el */
     int brmask;
+    int nbufs;                 /* provided-buffer count (tomokv-uring-bufring; 0=auto 512) */
     int state;                 /* 0 uninit, 1 ready, -1 failed */
     uint32_t gen;              /* monotonically increasing arm generation */
     iouRecvSlot *fdmap;        /* indexed by fd */
@@ -3531,6 +3856,12 @@ static void iouRecvPrepArm(iouRecvState *st, int fd) {
     io_uring_prep_recv_multishot(sqe, fd, NULL, 0, 0);
     sqe->flags |= IOSQE_BUFFER_SELECT;
     sqe->buf_group = IOU_RECV_BGID;
+    /* ee451 (U2): IORING_RECVSEND_POLL_FIRST — arm the poll wait directly instead of first
+     * attempting a (almost always empty: request/response pattern, the client is thinking)
+     * speculative receive. Saves the wasted recv attempt per arm/re-arm on RPC-shaped traffic
+     * (the VLDB'26 io_uring guidance for request/response workloads). Data already queued in
+     * the socket just completes the poll immediately — no semantic change. */
+    sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
     io_uring_sqe_set_data64(sqe, ((uint64_t)st->fdmap[fd].gen << 32) | (uint32_t)fd);
 }
 
@@ -3637,8 +3968,18 @@ static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rma
         } else { /* res < 0 */
             if (have_buf) iouRecvProvide(st, bid);
             if (res == -ENOBUFS) {
-                /* provided ring momentarily empty; multishot ended (no F_MORE). We just recycled
-                 * buffers above, so a re-arm below will find space. */
+                /* ee451 (U2, verified re-arm-after-exhaustion): provided ring momentarily empty;
+                 * the kernel ends the multishot (no F_MORE) so the generic !more re-arm below
+                 * re-issues it. Safe by construction: buffers are only held between CQE post and
+                 * this reap pass, and every buffered CQE processed above already recycled its
+                 * buffer via iouRecvProvide(), so by the time the re-arm SUBMITS (end of pass)
+                 * the ring has space again. Log once: recurring ENOBUFS means tomokv-uring-bufring
+                 * is undersized for the connection count / burst shape. */
+                static __thread int enobufs_logged = 0;
+                if (!enobufs_logged) { enobufs_logged = 1;
+                    serverLog(LL_NOTICE, "v12-G: provided buffer ring exhausted on IO thread %d "
+                              "(%d bufs) — recycled and re-armed; consider raising "
+                              "tomokv-uring-bufring", iotid, st->nbufs); }
             } else if (res == -ECANCELED || res == -EINTR) {
                 /* benign termination — re-arm if the client is still mapped */
             } else if (c) {
@@ -3668,31 +4009,56 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
     /* The recv ring is EVENTFD-driven (the kernel signals an eventfd on each CQE, which wakes the
      * IO thread's epoll loop) — it is NOT submission-heavy, so SQPOLL buys nothing here and in fact
      * regressed throughput AND corrupted multi-chunk (>16K) reads in testing. So the recv ring is
-     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring. */
-    int rc = io_uring_queue_init(IOU_RECV_DEPTH, &st->ring, 0);
+     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring.
+     *
+     * ee451 (U1 note): the SEND ring's SINGLE_ISSUER|DEFER_TASKRUN hygiene is deliberately NOT
+     * applied here. iouRecvDisarm() must submit the multishot ASYNC_CANCEL from the MAIN thread
+     * during the pauseIOThread window on client migration (unbind/fetch) — the W6-U2 input-loss
+     * fix. SINGLE_ISSUER rings reject any ring op from a non-submitter task (probed on 6.17:
+     * cross-task submit AND IORING_REGISTER_SYNC_CANCEL both fail -EINVAL on a SI|DTR ring), and
+     * a cancel deferred to the owner would reopen the exact byte-loss window W6-U2 closed. The
+     * pause protocol already serializes those cross-thread ops, so the plain ring is correct. */
+    struct io_uring_params rparams;
+    memset(&rparams, 0, sizeof(rparams));
+    /* ee451 (knob collapse 2026-07-28): the provided-buffer ring size is HARDWIRED to
+     * IOU_RECV_NBUFS. The deep-uring branch shipped it as `tomokv-uring-bufring`; that knob is
+     * not registered here, because the collapse leaves exactly one io_uring knob and the house
+     * rule says a sizing threshold self-derives rather than being operator-set. It is a
+     * compile-time constant (not a server field) so it cannot fall to 0 by omission.
+     * buf_ring requires a power of two — asserted at compile time. */
+    _Static_assert(IOU_RECV_NBUFS >= 64 && IOU_RECV_NBUFS <= 65536 &&
+                   (IOU_RECV_NBUFS & (IOU_RECV_NBUFS - 1)) == 0,
+                   "IOU_RECV_NBUFS must be a power of two in [64, 65536]");
+    int nbufs = IOU_RECV_NBUFS;
+    st->nbufs = nbufs;
+    /* CQ must absorb a burst of one CQE per provided buffer without overflow. */
+    rparams.flags = IORING_SETUP_CQSIZE;
+    rparams.cq_entries = (unsigned)(2 * nbufs > IOU_RECV_DEPTH ? 2 * nbufs : IOU_RECV_DEPTH);
+    int rc = io_uring_queue_init_params(IOU_RECV_DEPTH, &st->ring, &rparams);
+    if (rc < 0) rc = io_uring_queue_init(IOU_RECV_DEPTH, &st->ring, 0);
     if (rc < 0) { serverLog(LL_WARNING,"v12-G: recv ring queue_init failed on IO thread %d: %s", t, strerror(-rc)); st->state = -1; return -1; }
 
     int ret = 0;
-    st->br = io_uring_setup_buf_ring(&st->ring, IOU_RECV_NBUFS, IOU_RECV_BGID, 0, &ret);
+    st->br = io_uring_setup_buf_ring(&st->ring, st->nbufs, IOU_RECV_BGID, 0, &ret);
     if (!st->br) { serverLog(LL_WARNING,"v12-G: setup_buf_ring failed on IO thread %d: %s", t, strerror(ret<0?-ret:ret)); io_uring_queue_exit(&st->ring); st->state = -1; return -1; }
-    st->brmask = io_uring_buf_ring_mask(IOU_RECV_NBUFS);
-    st->bufmem = zmalloc((size_t)IOU_RECV_NBUFS * IOU_RECV_BUFSZ);
-    for (int i = 0; i < IOU_RECV_NBUFS; i++)
+    st->brmask = io_uring_buf_ring_mask(st->nbufs);
+    st->bufmem = zmalloc((size_t)st->nbufs * IOU_RECV_BUFSZ);
+    for (int i = 0; i < st->nbufs; i++)
         io_uring_buf_ring_add(st->br, st->bufmem + (size_t)i * IOU_RECV_BUFSZ, IOU_RECV_BUFSZ,
                               (unsigned short)i, st->brmask, i);
-    io_uring_buf_ring_advance(st->br, IOU_RECV_NBUFS);
+    io_uring_buf_ring_advance(st->br, st->nbufs);
 
     st->efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if (st->efd < 0 || io_uring_register_eventfd(&st->ring, st->efd) < 0) {
         serverLog(LL_WARNING,"v12-G: eventfd register failed on IO thread %d (efd=%d)", t, st->efd);
         if (st->efd >= 0) close(st->efd);
-        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        io_uring_free_buf_ring(&st->ring, st->br, st->nbufs, IOU_RECV_BGID);
         zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
     }
     if (aeCreateFileEvent(el, st->efd, AE_READABLE, iouRecvReap, NULL) != AE_OK) {
         serverLog(LL_WARNING,"v12-G: aeCreateFileEvent(efd) failed on IO thread %d", t);
         close(st->efd);
-        io_uring_free_buf_ring(&st->ring, st->br, IOU_RECV_NBUFS, IOU_RECV_BGID);
+        io_uring_free_buf_ring(&st->ring, st->br, st->nbufs, IOU_RECV_BGID);
         zfree(st->bufmem); io_uring_queue_exit(&st->ring); st->state = -1; return -1;
     }
 
@@ -3700,8 +4066,9 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
     st->fdmap = zcalloc((size_t)st->fdcap * sizeof(iouRecvSlot));
     st->gen = 0;
     st->state = 1;
-    serverLog(LL_NOTICE, "v12-G: io_uring multishot-recv ring ready on IO thread %d (efd=%d, %d bufs)",
-              t, st->efd, IOU_RECV_NBUFS);
+    serverLog(LL_NOTICE, "v12-G: io_uring multishot-recv ring ready on IO thread %d (efd=%d, "
+              "%d provided bufs, POLL_FIRST, plain setup by design — see U1 note)",
+              t, st->efd, st->nbufs);
     return st->efd;
 }
 
