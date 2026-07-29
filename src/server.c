@@ -11394,6 +11394,27 @@ void fakeRingAutoTune(void) {
     /* express-slim hit-rate: fold GET+SET calls vs total worker ops (like reshardAutoTune).
      * This EWMA is what the dispatch-path Schmitt gate thresholds against, so it must be folded
      * unconditionally — the mode selector (tomokv-express-slim) is retired at AUTO. */
+    /* !!! ee451 (#B2) OPEN DEFECT — READ BEFORE TRUSTING express_hit_ewma !!!
+     *
+     * THE NUMERATOR BELOW DOES NOT COUNT. `g->calls` / `s->calls` are the raw redisCommand
+     * scalars, which are bumped ONLY inside call(). GET and SET carry TOMO_R_EXPRESS, so they are
+     * unconditionally worker-dispatched and NEVER enter call() — this is the same root cause #B1
+     * and #B2 fix for INFO. So `hot` only ever moves for a GET/SET executed inline (a script or a
+     * MULTI body), while `tot` counts EVERY worker op. dh/dt is therefore ~0 on exactly the
+     * workload the ratio is meant to detect, express_hit_ewma sits pinned near 0, and the
+     * dispatch-path Schmitt gate that reads it (processCommand, `use_slim`) has, as far as this
+     * arithmetic allows, never opened. tomokv-express-slim is retired at AUTO, so there is no arm
+     * that forces it on either: the optimisation is unreachable, not merely unused.
+     *
+     * #B2 did NOT change this, deliberately. The fix is one line — swap the two scalar reads for
+     * getCommandStats(g,...) / getCommandStats(s,...), which fold the per-thread shards and make
+     * `hot` real — but that would OPEN a hot-path gate that has never been open, i.e. a behaviour
+     * and performance change on the dispatch path, not an observability fix. It needs its own A/B
+     * (the 8-cell quick check) and its own decision. Filed, not silently flipped.
+     *
+     * NOTE for anyone auditing the controller in the meantime: after #B2 nothing writes cmd->calls
+     * at all, so `hot` is now a frozen 0 rather than a near-0. The gate's verdict is unchanged
+     * (it was already shut in every measured regime); its input is now provably constant. */
     if (server.exThreads && server.num_workers >= 1) {
         static uint64_t es_last_hot = 0, es_last_tot = 0;
         struct redisCommand *g = lookupCommandByCString("get"), *s = lookupCommandByCString("set");
