@@ -96,6 +96,23 @@ pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
 FLIPS=$(grep -cE 'MODESHIFT|GROW-FRONT|GROW-BACK' "$LOG" 2>/dev/null) || true
 FLIPS=${FLIPS:-0}
 
+# ee451 2026-07-29: THREAD ACCOUNTING. Added because the flip's role counts were read off the
+# `io=` field of these very lines and mis-diagnosed as a lost thread: `io=` is io_live_node, which
+# counts poly io SLOTS 1..io_hi and EXCLUDES iotid 0, so `w_live + io` is pool-1 on a correct
+# server. The controller now publishes the CONSERVED quantity directly as `pool=<live>/<configured>`
+# and this suite grades it, so neither a real unpaired increment nor another off-by-one reading of
+# the wrong field can pass unnoticed again.
+#   POOL_BAD  : ticks where the two live counts did not sum to the configured pool.
+#   POOL_WARN : the server's own LL_WARNING for the same condition (belt and braces — the warning
+#               is rate-limited and the per-tick lines are not, so either can be the one that fires).
+# A build with no `pool=` field at all is INVALID here, not PASS: absence of the field is absence of
+# the check, and grading "no violations found" off a server that never emitted one is exactly the
+# vacuous pass this suite exists to refuse.
+POOL_SEEN=$(grep -coE 'pool=[0-9]+/[0-9]+' "$LOG" 2>/dev/null) || true; POOL_SEEN=${POOL_SEEN:-0}
+POOL_BAD=$(grep -oE 'pool=[0-9]+/[0-9]+' "$LOG" 2>/dev/null | awk -F'[=/]' '$2!=$3' | wc -l)
+POOL_WARN=$(grep -c 'POOL BROKEN' "$LOG" 2>/dev/null) || true; POOL_WARN=${POOL_WARN:-0}
+POOL_VALS=$(grep -oE 'pool=[0-9]+/[0-9]+' "$LOG" 2>/dev/null | sort -u | tr '\n' ' ')
+
 # THE VERDICT IS COMPUTED IN *THIS* SHELL, NEVER INSIDE A PIPELINE.
 # This block used to be the left element of `{ ... } | tee -a "$OUT"`, which bash forks into a
 # SUBSHELL. Its `exit 0` then left only the subshell; control resumed after the pipeline and the
@@ -112,7 +129,12 @@ VERDICT=1
 VTMP=$(mktemp "${TMPDIR:-/tmp}/flip_updown.verdict.XXXXXX")
 {
   echo
-  echo "io_threads_live by phase:  p32=$A -> p1=$B -> p32=$C -> p1=$D   (flip log lines: $FLIPS)"
+  # ee451 2026-07-29: the header used to read "io_threads_live by phase", which this field is NOT
+  # (§3f). It is io_live_node = poly io slots 1..io_hi in IO mode, i.e. io_threads_live-1 on numa==1.
+  # The verdict below compares the field against ITSELF so it was never wrong, but the label was, and
+  # a wrong label on a number is how the accounting was mis-read in the first place.
+  echo "io_live_node (= io_threads_live-1) by phase:  p32=$A -> p1=$B -> p32=$C -> p1=$D   (flip log lines: $FLIPS)"
+  echo "thread accounting: pool readings [ ${POOL_VALS:-none} ]  ticks=$POOL_SEEN violations=$POOL_BAD server-warnings=$POOL_WARN"
   # A phase with no reading cannot be compared. Say so instead of inventing a number: a suite that
   # could not observe the thing it grades must report INVALID, never FAIL — "the controller is
   # broken" and "I could not see the controller" are different claims about different systems.
@@ -124,11 +146,30 @@ VTMP=$(mktemp "${TMPDIR:-/tmp}/flip_updown.verdict.XXXXXX")
     echo "  the build. Log: $LOG"
     VERDICT=2
   fi
+  # THREAD ACCOUNTING is graded FIRST and is fatal on its own: a controller steering a pool that is
+  # one thread short converges to the optimum of a budget that does not exist, and every downstream
+  # reading — including the io= trajectory this suite grades — is then a measurement of the wrong
+  # machine. Do not let a "PASS" on direction paper over it.
+  if [ "$VERDICT" != 2 ] && [ "$POOL_SEEN" = 0 ]; then
+    echo "flip_updown: INVALID — this build emits no 'pool=<live>/<configured>' field, so the thread"
+    echo "  accounting was NOT checked. Absence of the field is absence of the check, not a pass."
+    VERDICT=2
+  fi
+  if [ "$VERDICT" != 2 ] && { [ "$POOL_BAD" != 0 ] || [ "$POOL_WARN" != 0 ]; }; then
+    echo "flip_updown: FAIL — THREAD ACCOUNTING. $POOL_BAD controller tick(s) reported a pool that does"
+    echo "  not sum to the configured thread count (server POOL BROKEN warnings: $POOL_WARN)."
+    echo "  A flip moves a thread between roles; it never destroys one. An unpaired increment means"
+    echo "  the controller is optimising the wrong thread count. Log: $LOG"
+    VERDICT=3
+  fi
+  # Only grade DIRECTION when the run is still gradeable: VERDICT 2 = could not observe, 3 = the
+  # accounting is broken so the trajectory describes a machine with the wrong thread count. Both
+  # would feed non-numeric or meaningless values into the integer comparisons below.
   fwd=0; back=0
-  [ "$VERDICT" != 2 ] && { [ "${B:-0}" -gt "${A:-0}" ] && fwd=1; }
-  [ "$VERDICT" != 2 ] && { [ "${D:-0}" -gt "${C:-0}" ] && fwd=1; }
-  [ "$VERDICT" != 2 ] && { [ "${C:-0}" -lt "${B:-0}" ] && back=1; }
-  if [ "$VERDICT" != 2 ] && [ "$fwd" = 1 ] && [ "$back" = 1 ]; then
+  [ "$VERDICT" = 1 ] && { [ "${B:-0}" -gt "${A:-0}" ] && fwd=1; }
+  [ "$VERDICT" = 1 ] && { [ "${D:-0}" -gt "${C:-0}" ] && fwd=1; }
+  [ "$VERDICT" = 1 ] && { [ "${C:-0}" -lt "${B:-0}" ] && back=1; }
+  if [ "$VERDICT" = 1 ] && [ "$fwd" = 1 ] && [ "$back" = 1 ]; then
     VERDICT=0
     echo "flip_updown: PASS — front-flip-back AND back-flip-front both observed"
   fi

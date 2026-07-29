@@ -19068,6 +19068,48 @@ static void tomoFlipController(void) {
     prev_wall = now;
     if (wall_ms <= 0) return;
 
+    /* ===== POOL CONSERVATION INVARIANT (2026-07-29). The flip moves a thread between the two roles;
+     * it never creates or destroys one. So at every QUIESCENT tick — and this point is quiescent by
+     * the two guards above, no migration and no flip in flight — the two live counts must sum to the
+     * configured pool:
+     *
+     *     io_threads_live + num_workers_live == server.io_threads + server.num_workers
+     *
+     * Every actuation is a paired -1/+1 across that boundary (grow-front: num_workers_live-- at ARM,
+     * io_threads_live++ at completion; grow-back: io_threads_live-- at park, num_workers_live++ at the
+     * seed FLIP), so a missing half shows up here on the FIRST tick after it, not as a slow drift in
+     * the throughput numbers. WHY IT IS HERE: an unpaired decrement would leave the controller doing
+     * gradient ascent over a pool one thread short — it would converge CORRECTLY, to the optimum of a
+     * budget that does not exist, and every symptom would look like a tuning problem. This check names
+     * that failure directly instead.
+     *
+     * WARNING, not assert: a bookkeeping slip must not take down a running server, and the controller
+     * is the only consumer — it just steers a pool that is one thread off until the flip that fixes it.
+     * Rate-limited (the tick is 4Hz), and it prints the components so the reading is unambiguous.
+     *
+     * NOTE ON THE `io=` FIELD BELOW, which is NOT this number: the per-tick lines print `io_live_node`,
+     * which counts poly io SLOTS t=1..io_hi and therefore EXCLUDES iotid 0 (the main thread). It is
+     * io_threads_live-1 on numa==1. `w_live + io` summing to pool-1 is the CORRECT reading, not a lost
+     * thread — that off-by-one was read as a missing increment on 2026-07-29 and cost a day. The lines
+     * now carry `pool=<sum>/<configured>` so the conserved quantity is on the page next to it. */
+    int pool_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire) +
+                    atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    int pool_want = server.io_threads + server.num_workers;
+    if (pool_live != pool_want) {
+        static mstime_t last_pool_warn = 0;
+        static unsigned long pool_warn_n = 0;
+        pool_warn_n++;
+        if (now - last_pool_warn >= 2000) {
+            last_pool_warn = now;
+            serverLog(LL_WARNING, "[flip-ctl] POOL BROKEN: io_threads_live=%d + num_workers_live=%d = %d, "
+                                  "configured %d (io_threads=%d num_workers=%d) — a thread is unaccounted "
+                                  "(%lu ticks). The controller is optimising the wrong thread count.",
+                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
+                      atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
+                      pool_live, pool_want, server.io_threads, server.num_workers, pool_warn_n);
+        }
+    }
+
     int nnodes = tmNumNodes();
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
@@ -19293,8 +19335,9 @@ static void tomoFlipController(void) {
         if (fabs(fc->mean - inst) < 2.0 * sigma) { if (fc->idle_stable < 1000) fc->idle_stable++; } else fc->idle_stable = 0;
         if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d",
-                          node, fc->mean, io_sat, ex_sat, fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node,
+                          pool_live, pool_want);
                 last_log = now;
             }
             continue;
@@ -19381,8 +19424,9 @@ static void tomoFlipController(void) {
              * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
              * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d",
-                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back, w_live, io_live_node);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back, w_live, io_live_node,
+                          pool_live, pool_want);
                 last_log = now;
             }
             continue;
