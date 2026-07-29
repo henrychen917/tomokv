@@ -1470,6 +1470,10 @@ typedef struct {
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
 #define TOMO_IO_THREADS_MAX 32
 #define TOMO_EX_THREADS_MAX 64
+/* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
+ * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
+ * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
+#define TOMO_STAT_SLOTS (TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX)
 /* Max value of tomokv-nodes. The per-node liveness arrays (tm_node_wlive/tm_node_iolive) are
  * [16], so this is a hard array bound, not a policy. */
 #define TOMO_NODES_MAX 16
@@ -2039,6 +2043,15 @@ typedef struct csGroup {
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
     /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
      * provably implementable without a shape change): ---- */
+    /* ee451 (#B2): commandstats accounting for the GROUP. A cross-shard command is one command the
+     * client sent, fanned into one sub per owning shard, so it must contribute exactly one `calls`
+     * — counted at csReassemble, the group's single completion point, exactly like #B1's
+     * numCommandsBump. `usec` is the SUM of the subs' proc times (the work the command cost the
+     * server), not the group's wall clock, which would fold in queueing and scatter latency that
+     * stock's per-command `usec` never contains. Both are written by concurrent subs, so both are
+     * atomic — this is the cross-shard path, which already takes an atomic per sub for `pending`. */
+    redisAtomic long long usec;  /* summed sub proc time, microseconds */
+    redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
     long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
     /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
@@ -2696,7 +2709,32 @@ typedef struct tmMigMailbox {
     unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
 } tmMigMailbox;
 
+/* ee451 (#B2): PER-THREAD, PER-COMMAND stats shard.
+ *
+ * THE DEFECT it cures is #B1's: workers never enter call(), so every counter call() maintains was
+ * only ever bumped for the main/IO-thread inline minority. #B1 fixed the ONE global command
+ * counter; these are the PER-COMMAND ones behind INFO commandstats and INFO latencystats.
+ *
+ * Sharding shape: [thread][command id], NOT [command][thread]. A whole thread's per-command block
+ * is one contiguous allocation that only that thread writes, so no padding is needed BETWEEN
+ * commands (same writer) and there is no false sharing BETWEEN threads (different blocks). The
+ * transposed layout would need 64B of padding per (command, thread) pair — ~2.6MB of mostly-cold
+ * lines — and would scatter one thread's working set across every command.
+ *
+ * Indexed by redisCommand.id, the same dense id ACL already assigns (ACLGetCommandID), so
+ * subcommands get their own slots and module commands need no special case. */
+typedef struct tomoCmdStat {
+    _Atomic long long calls;          /* single-writer per (slot,id); tomoRelaxedBump/Read/Set */
+    _Atomic long long microseconds;
+    _Atomic long long rejected_calls;
+    _Atomic long long failed_calls;
+} tomoCmdStat;
 
+/* Command-id capacity of one per-thread block. USER_COMMAND_BITS_COUNT is not an arbitrary cap:
+ * it is the id space ACL itself can address (ACLSetSelectorCommandBit rejects id >= it), so a
+ * command that does not fit here is already un-ACL-able in this server. 1024 ids * 32B = 32KB per
+ * block, allocated lazily by the first thread that executes anything. */
+#define TOMO_CMDSTAT_IDS USER_COMMAND_BITS_COUNT
 
 struct redisServer {
     /* new front end io */
@@ -3032,7 +3070,37 @@ struct redisServer {
     struct {
         _Atomic long long n;        /* single-writer per slot; tomoRelaxedBump/Read/Set */
         char _pad[CACHE_LINE_SIZE - sizeof(long long)];
-    } cmdstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    } cmdstat[TOMO_STAT_SLOTS] __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* ee451 (#B2): per-thread PER-COMMAND stats — the commandstats/latencystats half of #B1.
+     * cmd->calls / ->microseconds / ->rejected_calls / ->failed_calls / ->latency_histogram were
+     * only ever touched inside call(), so INFO commandstats and INFO latencystats reported the
+     * inline minority of this fork's traffic and nothing a worker executed. They were ALSO written
+     * concurrently by every IO thread that does enter call() — a non-atomic RMW on one shared line
+     * per command, i.e. lost updates as well as an undercount.
+     *
+     * Each entry below is a pointer to that thread's own block (see tomoCmdStat), allocated on the
+     * thread's first executed command and published with a RELEASE store; readers acquire-load.
+     * The pointer array itself is written once per thread and then read-only, so it does not bounce.
+     * getCommandStats() folds legacy scalar + every slot on the COLD read path only. */
+    tomoCmdStat * _Atomic cmdstat_percmd[TOMO_STAT_SLOTS];
+    /* ee451 (#B2): per-thread PER-COMMAND latency histograms, same indexing. A histogram cannot be
+     * "summed" like a counter, so these are MERGED (hdr_add, which adds the source's counts into
+     * the destination's matching buckets) into one throwaway histogram at read time — see
+     * tomoCmdLatMerge(). All shards share the identical hdr configuration, so the merge is exact:
+     * every bucket maps 1:1 and hdr_add drops nothing. Each histogram has exactly ONE writer, so
+     * this also removes the pre-existing multi-IO-thread lost-update race on the single shared
+     * cmd->latency_histogram. */
+    struct hdr_histogram ** _Atomic cmdlat_percmd[TOMO_STAT_SLOTS];
+    /* ee451 (#B2): per-thread error-reply counters. server.stat_total_error_replies was a plain
+     * ++ from afterErrorReply, which runs on whatever thread emitted the reply — every worker
+     * included. Sharding it fixes that race AND gives the "did THIS command fail?" delta that
+     * commandstats' failed_calls needs on threads that never enter call(): the thread's own slot
+     * is a single-writer counter, so (after - before) around a proc is exact with no atomic RMW
+     * and no shared line. getTotalErrorReplies() folds. */
+    struct {
+        _Atomic long long n;        /* single-writer per slot; tomoRelaxedBump/Read/Set */
+        char _pad[CACHE_LINE_SIZE - sizeof(long long)];
+    } errstat[TOMO_STAT_SLOTS] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#A2): per-thread network byte counters. stat_net_input/output_bytes were single shared
      * atomics hit with a lock xadd once per read event AND once per write event from EVERY io thread —
      * a contended cross-core line (plus the two adjacent counters false-sharing one line). Same cure
@@ -4149,6 +4217,83 @@ long long getNumCommands(void);
  * that can execute a command (main, io, worker) — iotid indexes the same 0..96 slot space as
  * current_client[]/kstat[]/dirty_shard[]. */
 #define numCommandsBump() tomoRelaxedBump(server.cmdstat[iotid].n, 1)
+
+/* ---- ee451 (#B2): per-thread per-command stats (INFO commandstats / latencystats) ------------
+ *
+ * Hot-path cost of the whole apparatus, per worker-executed command: ONE extra getMonotonicUs()
+ * (the enter-side read is the one tomoCmdClockEnter already does), two relaxed loads of this
+ * thread's own errstat line, one acquire load of a read-only pointer, one bounds compare, and
+ * 2-3 relaxed stores into a cache line no other thread touches. No atomic RMW, no shared line,
+ * no allocation after the first command a thread runs. That is exactly the pair of clock reads
+ * and the handful of adds stock Redis pays inside call() for every command. */
+
+/* Declared early (its stock prototype is much further down) — tomoCmdLatRecord needs it here. */
+void updateCommandLatencyHistogram(struct hdr_histogram** latency_histogram, int64_t duration_hist);
+
+/* Lazily allocate + publish THIS thread's blocks. Cold: taken once per thread. */
+tomoCmdStat *tomoCmdStatBlockAlloc(void);
+struct hdr_histogram **tomoCmdLatBlockAlloc(void);
+
+/* Fold legacy scalars + every thread slot for one command. COLD read path only. */
+void getCommandStats(struct redisCommand *cmd, long long *calls, long long *usec,
+                     long long *rejected, long long *failed);
+/* Merge every per-thread histogram (plus the legacy one) for a command into a NEW histogram.
+ * Returns NULL when the command has no samples at all; otherwise the caller owns the result and
+ * must hdr_close() it. COLD read path only (INFO latencystats / LATENCY HISTOGRAM). */
+struct hdr_histogram *tomoCmdLatMerge(struct redisCommand *cmd);
+/* Zero one command's shards (CONFIG RESETSTAT, module command unregister). */
+void tomoCmdStatResetOne(struct redisCommand *cmd);
+/* ee451 (#B2): folded per-thread error-reply counter (INFO total_error_replies). COLD path. */
+long long getTotalErrorReplies(void);
+/* THIS thread's error-reply count. Single-writer, so a delta across a proc is exact. HOT-safe. */
+#define tomoErrRepliesLocal() tomoRelaxedRead(server.errstat[iotid].n)
+#define tomoErrRepliesBump()  tomoRelaxedBump(server.errstat[iotid].n, 1)
+
+/* Record one completed execution of `cmd` against this thread's shard.
+ * usec = the proc's own duration, matching call()'s c->duration accounting. */
+static inline void tomoCmdStatAddCall(struct redisCommand *cmd, long long usec, int failed) {
+    unsigned int id = (unsigned int)cmd->id;
+    if (__builtin_expect(id >= TOMO_CMDSTAT_IDS, 0)) return;   /* un-ACL-able id; see TOMO_CMDSTAT_IDS */
+    tomoCmdStat *blk = atomic_load_explicit(&server.cmdstat_percmd[iotid], memory_order_acquire);
+    if (__builtin_expect(blk == NULL, 0) && (blk = tomoCmdStatBlockAlloc()) == NULL) return;
+    tomoRelaxedBump(blk[id].calls, 1);
+    tomoRelaxedBump(blk[id].microseconds, usec);
+    if (__builtin_expect(failed != 0, 0)) tomoRelaxedBump(blk[id].failed_calls, 1);
+}
+
+/* rejected_calls / failed_calls without a call (the incrCommandStatsOnError shapes). */
+static inline void tomoCmdStatAddErr(struct redisCommand *cmd, int rejected, int failed) {
+    unsigned int id = (unsigned int)cmd->id;
+    if (__builtin_expect(id >= TOMO_CMDSTAT_IDS, 0)) return;
+    tomoCmdStat *blk = atomic_load_explicit(&server.cmdstat_percmd[iotid], memory_order_acquire);
+    if (__builtin_expect(blk == NULL, 0) && (blk = tomoCmdStatBlockAlloc()) == NULL) return;
+    if (rejected) tomoRelaxedBump(blk[id].rejected_calls, 1);
+    if (failed)   tomoRelaxedBump(blk[id].failed_calls, 1);
+}
+
+/* Add usec to a command without counting a call (module background-duration accounting). */
+static inline void tomoCmdStatAddUsec(struct redisCommand *cmd, long long usec) {
+    unsigned int id = (unsigned int)cmd->id;
+    if (__builtin_expect(id >= TOMO_CMDSTAT_IDS, 0)) return;
+    tomoCmdStat *blk = atomic_load_explicit(&server.cmdstat_percmd[iotid], memory_order_acquire);
+    if (__builtin_expect(blk == NULL, 0) && (blk = tomoCmdStatBlockAlloc()) == NULL) return;
+    tomoRelaxedBump(blk[id].microseconds, usec);
+}
+
+/* Record one latency sample (microseconds) into THIS thread's histogram for `cmd`. The histogram
+ * is created on first use by its one and only writer; the pointer is published with release so
+ * the cold merge path can acquire-load it. */
+static inline void tomoCmdLatRecord(struct redisCommand *cmd, long long usec) {
+    unsigned int id = (unsigned int)cmd->id;
+    if (__builtin_expect(id >= TOMO_CMDSTAT_IDS, 0)) return;
+    struct hdr_histogram **blk =
+        atomic_load_explicit(&server.cmdlat_percmd[iotid], memory_order_acquire);
+    if (__builtin_expect(blk == NULL, 0) && (blk = tomoCmdLatBlockAlloc()) == NULL) return;
+    struct hdr_histogram *h = blk[id];
+    updateCommandLatencyHistogram(&h, usec * 1000);
+    if (__builtin_expect(h != blk[id], 0))
+        atomic_store_explicit((_Atomic(struct hdr_histogram *) *)&blk[id], h, memory_order_release);
+}
 static inline long long getDirty(void) {
     long long s = server.dirty;                 /* baseline carries bgsave subtracts + resets */
     for (int i = 0; i < DIRTY_NSHARD; i++) s += server.dirty_shard[i].v;

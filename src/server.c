@@ -646,13 +646,19 @@ static __thread monotime tomo_cmd_time_mono;   /* monotonic us when tomo_cmd_tim
  * accuracy in a value whose unit IS the millisecond. */
 #define TOMO_CMD_CLOCK_RESAMPLE_US 500
 
-static inline void tomoCmdClockEnter(void) {
-    if (tomo_cmd_time_depth++ != 0) return;   /* nested: the outermost latch owns the time */
+/* Returns the monotonic microsecond stamp it latched, or 0 when nested (the outer latch owns the
+ * time, and the outer frame is also the one that will time the command).
+ * ee451 (#B2): the return value is what makes commandstats' `usec` free on the enter side — this
+ * read already existed, so timing a worker command costs ONE extra clock read, at the exit, which
+ * is exactly the pair call() takes for every command it runs. */
+static inline monotime tomoCmdClockEnter(void) {
+    if (tomo_cmd_time_depth++ != 0) return 0;   /* nested: the outermost latch owns the time */
     monotime now = getMonotonicUs();
     if (now - tomo_cmd_time_mono >= TOMO_CMD_CLOCK_RESAMPLE_US) {
         tomo_cmd_time_mono = now;
         tomo_cmd_time = ustime() / 1000;
     }
+    return now;
 }
 
 static inline void tomoCmdClockExit(void) {
@@ -2428,8 +2434,119 @@ long long getNetOutputBytes(void) {
  * into the total INFO/DEBUG report. COLD path — one pass over ~97 cache lines. */
 long long getNumCommands(void) {
     long long s = server.stat_numcommands;
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.cmdstat[i].n);
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) s += tomoRelaxedRead(server.cmdstat[i].n);
     return s;
+}
+
+/* ---- ee451 (#B2): per-thread PER-COMMAND stats (INFO commandstats / latencystats) ------------ */
+
+/* ee451 (#B2): fold the per-thread error-reply counters into the INFO total. COLD path. */
+long long getTotalErrorReplies(void) {
+    long long s = server.stat_total_error_replies;   /* legacy scalar: the fold BASELINE (resets) */
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) s += tomoRelaxedRead(server.errstat[i].n);
+    return s;
+}
+
+/* Allocate THIS thread's per-command counter block and publish it. Runs once per thread, on its
+ * first executed command; every later command takes the acquire-load fast path in server.h. */
+tomoCmdStat *tomoCmdStatBlockAlloc(void) {
+    tomoCmdStat *blk = zcalloc(sizeof(tomoCmdStat) * TOMO_CMDSTAT_IDS);
+    if (!blk) return NULL;
+    /* RELEASE: the zeroing above must be visible to any thread that acquire-loads this pointer
+     * (the cold folders). Only the owning thread ever stores here, so no CAS is needed. */
+    atomic_store_explicit(&server.cmdstat_percmd[iotid], blk, memory_order_release);
+    return blk;
+}
+
+/* Same, for this thread's per-command latency histogram POINTER table. The histograms themselves
+ * are created on first sample by tomoCmdLatRecord (their one writer). */
+struct hdr_histogram **tomoCmdLatBlockAlloc(void) {
+    struct hdr_histogram **blk = zcalloc(sizeof(struct hdr_histogram *) * TOMO_CMDSTAT_IDS);
+    if (!blk) return NULL;
+    atomic_store_explicit(&server.cmdlat_percmd[iotid], blk, memory_order_release);
+    return blk;
+}
+
+/* Fold legacy scalars + every thread's shard for one command. COLD path (INFO commandstats,
+ * CLUSTER-free COMMAND* readers). The legacy fields stay as the fold BASELINE so any path this
+ * change did not convert (and CONFIG RESETSTAT's zeroing) keeps working unchanged. */
+void getCommandStats(struct redisCommand *cmd, long long *calls, long long *usec,
+                     long long *rejected, long long *failed)
+{
+    long long c = cmd->calls, u = cmd->microseconds, r = cmd->rejected_calls, f = cmd->failed_calls;
+    unsigned int id = (unsigned int)cmd->id;
+    if (id < TOMO_CMDSTAT_IDS) {
+        for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+            tomoCmdStat *blk = atomic_load_explicit(&server.cmdstat_percmd[i], memory_order_acquire);
+            if (!blk) continue;
+            c += tomoRelaxedRead(blk[id].calls);
+            u += tomoRelaxedRead(blk[id].microseconds);
+            r += tomoRelaxedRead(blk[id].rejected_calls);
+            f += tomoRelaxedRead(blk[id].failed_calls);
+        }
+    }
+    *calls = c; *usec = u; *rejected = r; *failed = f;
+}
+
+/* MERGE (not sum) the per-thread latency histograms for one command.
+ *
+ * Every shard is created by updateCommandLatencyHistogram with the SAME
+ * (LATENCY_HISTOGRAM_MIN_VALUE, LATENCY_HISTOGRAM_MAX_VALUE, LATENCY_HISTOGRAM_PRECISION)
+ * configuration, so all of them have bit-identical bucket geometry and hdr_add maps each source
+ * bucket onto the identical destination bucket and drops nothing. Summing total_count alone would
+ * give the right call count and a meaningless distribution; adding the COUNTS is what makes the
+ * merged percentiles the true percentiles over the union of the samples.
+ *
+ * Returns NULL when the command has no samples anywhere (so callers keep stock's "skip commands
+ * with no histogram" behaviour); otherwise the caller owns the result and must hdr_close() it. */
+struct hdr_histogram *tomoCmdLatMerge(struct redisCommand *cmd) {
+    struct hdr_histogram *dst = NULL;
+    unsigned int id = (unsigned int)cmd->id;
+
+    if (hdr_init(LATENCY_HISTOGRAM_MIN_VALUE, LATENCY_HISTOGRAM_MAX_VALUE,
+                 LATENCY_HISTOGRAM_PRECISION, &dst) != 0)
+        return NULL;
+
+    if (cmd->latency_histogram) hdr_add(dst, cmd->latency_histogram);
+    if (id < TOMO_CMDSTAT_IDS) {
+        for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+            struct hdr_histogram **blk =
+                atomic_load_explicit(&server.cmdlat_percmd[i], memory_order_acquire);
+            if (!blk) continue;
+            struct hdr_histogram *h =
+                atomic_load_explicit((_Atomic(struct hdr_histogram *) *)&blk[id], memory_order_acquire);
+            if (h) hdr_add(dst, h);
+        }
+    }
+    if (dst->total_count == 0) { hdr_close(dst); return NULL; }
+    return dst;
+}
+
+/* Zero one command's shards. Used by CONFIG RESETSTAT and by module command teardown.
+ *
+ * The histograms are hdr_reset() in place, never hdr_close()d: their writers are live worker
+ * threads that hold no lock and re-read blk[id] on every sample, so freeing one here would be a
+ * use-after-free on the next command. Resetting in place costs a concurrent writer at most a few
+ * mis-bucketed samples, which is what a stats reset under load means anyway. */
+void tomoCmdStatResetOne(struct redisCommand *cmd) {
+    unsigned int id = (unsigned int)cmd->id;
+    if (id >= TOMO_CMDSTAT_IDS) return;
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+        tomoCmdStat *blk = atomic_load_explicit(&server.cmdstat_percmd[i], memory_order_acquire);
+        if (blk) {
+            tomoRelaxedSet(blk[id].calls, 0);
+            tomoRelaxedSet(blk[id].microseconds, 0);
+            tomoRelaxedSet(blk[id].rejected_calls, 0);
+            tomoRelaxedSet(blk[id].failed_calls, 0);
+        }
+        struct hdr_histogram **lblk =
+            atomic_load_explicit(&server.cmdlat_percmd[i], memory_order_acquire);
+        if (lblk) {
+            struct hdr_histogram *h =
+                atomic_load_explicit((_Atomic(struct hdr_histogram *) *)&lblk[id], memory_order_acquire);
+            if (h) hdr_reset(h);
+        }
+    }
 }
 
 /* ee451 (2s-dispatch-fix): back-pressured worker dispatch — the 2-stage port of the 3-stage
@@ -2465,6 +2582,27 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         if ((++spins & 4095) == 0) sched_yield();
     } while (exQueuePush(q, fake) != 0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+}
+
+/* ee451 (#B2): fold a retiring fake's per-client command count into its real client.
+ *
+ * c->commands_processed is what CLIENT INFO / CLIENT LIST expose as tot-cmds. call() bumps it via
+ * server.current_client (the REAL client) for inline commands, but worker-routed and cross-shard
+ * commands never reach call(), so a client that only ever issues GET/SET — i.e. the common case on
+ * this fork — reported tot-cmds=0 forever.
+ *
+ * The count is accumulated on the FAKE by its executor and folded here rather than bumped on the
+ * real client from the worker: `real` is owned by this IO thread, which also writes that same
+ * field from call() on its inline commands, so a worker-side bump would be a cross-thread
+ * non-atomic RMW. This runs on the drain thread after it has acquire-loaded the fake's completion
+ * bit, so the worker's store is already visible and the fake is quiescent.
+ *
+ * Idempotent: it clears the fake's counter, and fakes are recycled without re-init. */
+static inline void foldClientCommandsProcessed(client *real, client *fake) {
+    if (fake->commands_processed) {
+        real->commands_processed += fake->commands_processed;
+        fake->commands_processed = 0;
+    }
 }
 
 void handleWorkerReplies(void) {
@@ -2524,6 +2662,7 @@ void handleWorkerReplies(void) {
                     }
                     csReassemble(NULL, fake);
                 }
+                foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
@@ -2629,6 +2768,7 @@ void handleWorkerReplies(void) {
             } else {
                 AddReplyFromClient(real, fake);
             }
+            foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) — covers BOTH retire paths below */
             spliced = 1;
 
             if (real->flags & CLIENT_CLOSE_ASAP) {
@@ -3684,7 +3824,7 @@ void resetServerStats(void) {
     server.stat_numcommands = 0;
     /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
      * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++)
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
         tomoRelaxedSet(server.cmdstat[i].n, 0);
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
@@ -3749,6 +3889,9 @@ void resetServerStats(void) {
     atomicSet(server.stat_net_repl_output_bytes, 0);
     server.stat_unexpected_error_replies = 0;
     server.stat_total_error_replies = 0;
+    /* ee451 (#B2): zero the per-thread error-reply shards too — same reason as cmdstat above. */
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+        tomoRelaxedSet(server.errstat[i].n, 0);
     server.stat_dump_payload_sanitizations = 0;
     server.aof_delayed_fsync = 0;
     server.stat_reply_buffer_shrinks = 0;
@@ -4623,6 +4766,10 @@ int populateCommandStructure(struct redisCommand *c) {
 
     /* Assign the ID used for ACL. */
     c->id = ACLGetCommandID(c->fullname);
+    /* ee451 (#B2): the per-command stats shards are keyed by that id and ACL reuses an id for a
+     * command of the same name, so a (re-)populated command must start from zeroed shards. A
+     * no-op at boot (no thread has allocated a block yet); it matters for module subcommands. */
+    tomoCmdStatResetOne(c);
 
     /* Handle subcommands */
     if (c->subcommands) {
@@ -4732,6 +4879,10 @@ void resetCommandTableStats(dict* commands) {
             hdr_close(c->latency_histogram);
             c->latency_histogram = NULL;
         }
+        /* ee451 (#B2): the legacy fields above are only the fold BASELINE — the live counts and
+         * histograms live in the per-thread shards, so RESETSTAT must clear those too or INFO
+         * commandstats/latencystats would report the pre-reset totals unchanged. */
+        tomoCmdStatResetOne(c);
         if (c->subcommands_dict)
             resetCommandTableStats(c->subcommands_dict);
     }
@@ -5091,21 +5242,26 @@ void postExecutionUnitOperations(void) {
  *
  * The function returns true if stats was updated and false if not. */
 int incrCommandStatsOnError(struct redisCommand *cmd, int flags) {
-    /* hold the prev error count captured on the last command execution */
-    static long long prev_err_count = 0;
+    /* hold the prev error count captured on the last command execution.
+     * ee451 (#B2): PER THREAD, and read from this thread's own error-reply shard. As a plain
+     * `static` against the global counter it was shared by every IO thread that runs call(), so
+     * two threads interleaving a command each could attribute one's error to the other (or lose
+     * it). The shard is single-writer, so this delta is now exact per thread. */
+    static __thread long long prev_err_count = 0;
+    long long err_now = tomoErrRepliesLocal();
     int res = 0;
     if (cmd) {
-        if ((server.stat_total_error_replies - prev_err_count) > 0) {
+        if ((err_now - prev_err_count) > 0) {
             if (flags & ERROR_COMMAND_REJECTED) {
-                cmd->rejected_calls++;
+                tomoCmdStatAddErr(cmd, 1, 0);
                 res = 1;
             } else if (flags & ERROR_COMMAND_FAILED) {
-                cmd->failed_calls++;
+                tomoCmdStatAddErr(cmd, 0, 1);
                 res = 1;
             }
         }
     }
-    prev_err_count = server.stat_total_error_replies;
+    prev_err_count = err_now;
     return res;
 }
 
@@ -5243,7 +5399,7 @@ void call(client *c, int flags) {
          * isn't updated since these errors, if handled by the module, are internal,
          * and not reflected to users. however, the commandstats does show these calls
          * (made by RM_Call), so it should log if they failed or succeeded. */
-        real_cmd->failed_calls++;
+        tomoCmdStatAddErr(real_cmd, 0, 1);   /* ee451 (#B2): per-thread shard */
     }
 
     /* After executing command, we will close the client after writing entire
@@ -5288,10 +5444,12 @@ void call(client *c, int flags) {
     /* Populate the per-command and per-slot statistics that we show in INFO commandstats and CLUSTER SLOT-STATS,
      * respectively. If the client is blocked we will handle latency stats and duration when it is unblocked. */
     if (update_command_stats && !(c->flags & CLIENT_BLOCKED)) {
-        real_cmd->calls++;
-        real_cmd->microseconds += c->duration;
+        /* ee451 (#B2): per-thread shards. call() runs on the main thread AND on every IO thread,
+         * so the three lines this replaces were concurrent non-atomic RMWs on one shared
+         * redisCommand — lost updates on top of the worker-path undercount. */
+        tomoCmdStatAddCall(real_cmd, c->duration, 0);
         if (server.latency_tracking_enabled && !(c->flags & CLIENT_BLOCKED))
-            updateCommandLatencyHistogram(&(real_cmd->latency_histogram), c->duration*1000);
+            tomoCmdLatRecord(real_cmd, c->duration);
         clusterSlotStatsAddCpuDuration(c, c->duration);
     }
 
@@ -7811,6 +7969,17 @@ static void keysFlatCB(dictEntry *masked, void *priv) {
     }
 }
 
+/* ee451 (#B2): accumulate one scatter sub's proc time and error verdict into its group. Subs of
+ * one group run CONCURRENTLY on different workers, so both fields are atomic — relaxed is enough:
+ * the group's `pending` barrier (acq_rel) is what publishes them to the reassembling drain thread,
+ * and nothing branches on these values. Called on every csSubExec exit path. */
+static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
+    if (__builtin_expect(t0 == 0, 0)) return;   /* nested latch: an outer frame owns the timing */
+    atomic_fetch_add_explicit(&g->usec, (long long)(getMonotonicUs() - t0), memory_order_relaxed);
+    if (__builtin_expect(tomoErrRepliesLocal() != e0, 0))
+        atomic_store_explicit(&g->had_err, 1, memory_order_relaxed);
+}
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -7820,10 +7989,16 @@ static void csSubExec(client *sub) {
      * cmd->proc (CS_LOCAL) or open-code the per-key semantics, and either way they reach
      * lookupKey / expireIfNeeded without ever entering an execution unit. Latch here so every key
      * this sub touches sees ONE instant. Paired with a release at both exits below. */
-    tomoCmdClockEnter();
+    monotime cs_t0 = tomoCmdClockEnter();
+    /* ee451 (#B2): a scatter sub is a FRACTION of one client command, so it contributes work to
+     * the group's accounting and is never counted as a call of its own — csReassemble does that
+     * once, for the whole group (same rule #B1 established for the command counter). Capture the
+     * error baseline here for the group's failed_calls verdict. */
+    long long cs_e0 = tomoErrRepliesLocal();
     if (g->pipe_stage) {                    /* merge-exec pipeline stage op (reads only) */
         csPipeSubExec(sub, g);
         server.current_client[iotid].p = saved;
+        csSubStatAccum(g, cs_t0, cs_e0);
         tomoCmdClockExit();
         return;
     }
@@ -8445,6 +8620,7 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid].p = saved;
+    csSubStatAccum(g, cs_t0, cs_e0);   /* ee451 (#B2): this sub's work joins the group's totals */
     tomoCmdClockExit();   /* ee451 (F-clock): pairs with the latch at entry */
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
      * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
@@ -9880,6 +10056,14 @@ static void csReassemble(client *dst, client *head) {
      * the head immediately after it, and the HOP2 / pipeline-stage paths return BEFORE reaching
      * it, so it runs exactly once per client command. */
     numCommandsBump();
+    /* ee451 (#B2): ...and, for the same reason and at the same single point, the group's ONE
+     * commandstats entry. Baseline this thread's error counter here so an error emitted by the
+     * reassembly itself (CS_ERR_* -> addReplyError below) counts as a failed call just like a
+     * sub's did; the sub verdict arrives in g->had_err. Recorded at the bottom of the function —
+     * it has no early returns. Per-client tot-cmds rides the same fold as every other fake. */
+    struct redisCommand *cs_cmd = head->cmd;
+    long long cs_e0 = tomoErrRepliesLocal();
+    head->commands_processed++;
     if (g->pipe_stage) {
         /* merge-exec pipeline: final survivors live in pipe_cand (or an error/empty result).
          * Emits stock reply shapes; teardown below frees the pipe arrays. */
@@ -10205,6 +10389,15 @@ static void csReassemble(client *dst, client *head) {
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
     csgFree(g, g->klen); csgFree(g, g->ktype);
+    /* ee451 (#B2): ONE commandstats call for the whole group, with the SUMMED sub proc time (see
+     * csGroup.usec). Must be read before zfree(g) below. */
+    if (cs_cmd) {
+        long long cs_usec = atomic_load_explicit(&g->usec, memory_order_relaxed);
+        int cs_failed = atomic_load_explicit(&g->had_err, memory_order_relaxed) ||
+                        (tomoErrRepliesLocal() != cs_e0);
+        tomoCmdStatAddCall(cs_cmd, cs_usec, cs_failed);
+        if (server.latency_tracking_enabled) tomoCmdLatRecord(cs_cmd, cs_usec);
+    }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs);
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
@@ -13142,13 +13335,18 @@ sds genRedisInfoStringCommandStats(sds info, dict *commands) {
     while((de = dictNext(&di)) != NULL) {
         char *tmpsafe;
         c = (struct redisCommand *) dictGetVal(de);
-        if (c->calls || c->failed_calls || c->rejected_calls) {
+        /* ee451 (#B2): fold the per-thread shards. Reading c->calls directly here reported only
+         * the commands that happened to run inside call() — i.e. everything a worker executed was
+         * missing from INFO commandstats entirely. */
+        long long calls, usec, rejected, failed;
+        getCommandStats(c, &calls, &usec, &rejected, &failed);
+        if (calls || failed || rejected) {
             info = sdscatprintf(info,
                 "cmdstat_%s:calls=%lld,usec=%lld,usec_per_call=%.2f"
                 ",rejected_calls=%lld,failed_calls=%lld\r\n",
-                getSafeInfoString(c->fullname, sdslen(c->fullname), &tmpsafe), c->calls, c->microseconds,
-                (c->calls == 0) ? 0 : ((float)c->microseconds/c->calls),
-                c->rejected_calls, c->failed_calls);
+                getSafeInfoString(c->fullname, sdslen(c->fullname), &tmpsafe), calls, usec,
+                (calls == 0) ? 0 : ((float)usec/calls),
+                rejected, failed);
             if (tmpsafe != NULL) zfree(tmpsafe);
         }
         if (c->subcommands_dict) {
@@ -13184,11 +13382,15 @@ sds genRedisInfoStringLatencyStats(sds info, dict *commands) {
     while((de = dictNext(&di)) != NULL) {
         char *tmpsafe;
         c = (struct redisCommand *) dictGetVal(de);
-        if (c->latency_histogram) {
+        /* ee451 (#B2): merge the per-thread histograms (see tomoCmdLatMerge). NULL => no samples
+         * anywhere, which is stock's "skip this command" case. */
+        struct hdr_histogram *merged = tomoCmdLatMerge(c);
+        if (merged) {
             info = fillPercentileDistributionLatencies(info,
                 getSafeInfoString(c->fullname, sdslen(c->fullname), &tmpsafe),
-                c->latency_histogram);
+                merged);
             if (tmpsafe != NULL) zfree(tmpsafe);
+            hdr_close(merged);
         }
         if (c->subcommands_dict) {
             info = genRedisInfoStringLatencyStats(info, c->subcommands_dict);
@@ -13778,7 +13980,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tracking_total_items:%lld\r\n", (unsigned long long) trackingGetTotalItems(),
             "tracking_total_prefixes:%lld\r\n", (unsigned long long) trackingGetTotalPrefixes(),
             "unexpected_error_replies:%lld\r\n", server.stat_unexpected_error_replies,
-            "total_error_replies:%lld\r\n", server.stat_total_error_replies,
+            "total_error_replies:%lld\r\n", getTotalErrorReplies(),   /* ee451 (#B2): folded per-thread */
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
             "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
             "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
@@ -15581,11 +15783,24 @@ static inline void exExecFake(client *fake) {
         /* ee451 (F-clock): this is a worker's call()-equivalent, so it is where the command
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
-        tomoCmdClockEnter();
+        monotime cs_t0 = tomoCmdClockEnter();
         /* ee451 (#B1): ...and for the same reason it is where the command is COUNTED. call() is
          * never entered on a worker, so without this the whole worker-routed majority of the
          * traffic was invisible to total_commands_processed. Own cache line, no atomic RMW. */
         numCommandsBump();
+        /* ee451 (#B2): ...and where its PER-COMMAND stats are taken, for the same reason. Two
+         * things are captured up front:
+         *   cs_t0    the clock the latch above already read (0 only if nested) — so `usec` costs
+         *            one extra read at the exit, not two;
+         *   cs_cmd   the command to attribute to. NOT fake->realcmd: the express path
+         *            (moveExecutionStateSlim) deliberately does not move realcmd, so it holds a
+         *            STALE pointer from whatever previously used this ring slot. c->cmd is the
+         *            one field every dispatch path moves, and nothing on the worker whitelist
+         *            rewrites it.
+         *   cs_e0    this thread's error-reply count, for the failed_calls delta below. Single
+         *            writer, so the delta is exact — this is call()'s mechanism, de-shared. */
+        struct redisCommand *cs_cmd = fake->cmd;
+        long long cs_e0 = tomoErrRepliesLocal();
         /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
          * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
          * even when nothing was armed; now only armed ops pay it. */
@@ -15649,6 +15864,22 @@ static inline void exExecFake(client *fake) {
             fake->cmd->proc(fake);
             if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
         }
+        /* ee451 (#B2): the command is DONE — take the exit clock here, immediately after the proc,
+         * so `usec` measures the same thing call() measures (the proc, not the ring bookkeeping or
+         * the migration effect capture below). One getMonotonicUs; everything else is a store into
+         * this thread's private shard line.
+         *
+         * The per-client counter is bumped on the FAKE, not on fake->parent: the parent is owned
+         * by an IO thread that concurrently writes the same field from call() on its own inline
+         * commands. The drain folds fake->commands_processed into the real client when it retires
+         * the ring slot, under the release/acquire the completion bit already provides. */
+        if (__builtin_expect(cs_t0 != 0, 1)) {
+            long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
+            int cs_failed = (tomoErrRepliesLocal() != cs_e0);
+            tomoCmdStatAddCall(cs_cmd, cs_usec, cs_failed);
+            if (server.latency_tracking_enabled) tomoCmdLatRecord(cs_cmd, cs_usec);
+        }
+        fake->commands_processed++;
         if (hh_armed) dictDisarmHashHint();
         /* ee451 (hash-carry): the hint MUST NOT outlive this execution — ring fakes recycle without
          * re-init, and a stale ptr could collide with a recycled sds address on a later command that
