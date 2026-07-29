@@ -128,6 +128,13 @@ flip *completes* (`server.c:17776`), and the token appears in **0 of 347** captu
 logs. So no flip has ever completed under that stimulus. `flip_updown.sh` is the suite built to
 answer this and has never once executed; its first real run is the evidence to judge on.
 
+> **ANSWERED 2026-07-29 (§3e).** `flip_updown` has now run, on two builds. Flips **do** complete —
+> four of them, `GROW-FRONT complete` / `GROW-BACK complete` both present, 0 arm rejections — so
+> "no flip has ever completed" was a property of `controller_sweep`'s stimulus, not of the product.
+> What the run found instead is that the controller stops after its initial climb and will not
+> follow a later workload inversion: **FAIL on both arms, identically.** Filed in §4; it is now
+> item 6's closed gate.
+
 ---
 
 ## 2. Validate what is already merged
@@ -293,8 +300,8 @@ starved each other. That was an orchestration error, not a box problem.
 | 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **MERGED 2026-07-29 AND REVERTED — the acceptance FAILED.** POST reaches 12/0 in only **2 of 10 runs**; the other 8 crash the server. The residual this row called "FLATSTORE panics ~1 in 3" is understated on every axis: **8 in 10**, and mostly a **double free after silent data loss**, not a panic. Re-merge only together with a *validated* `cfea82654` (or an equivalent quiesce). See §3b |
 | 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
-| 5 | deletions (5 commits) | 15/0 + `reshard_suite` + `flip_updown` | Large. Key-LB actuators verified unaffected (both paths already required same-node) |
-| 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers` |
+| 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
+| 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is now CLOSED, see §3e** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers`. **`num_workers_alloc` is still present after item 5 (40 uses in `server.c`, 3 in `server.h`), so that hazard is unchanged** |
 | 7 | h2-fence `e7628efc4` | rebase first (base `95872c371`, collides with the private-binary commit) | Evidence: 4/4 violations base → 0/4 fixed, 232 `fence_midbatch_ticks`. **Missing: the throughput cells (`h2_thr.py`) showing A and B still serve their NON-migrating buckets through a cutover — that is the owner's actual design claim and it currently rests on code reasoning alone.** Adds `tomokv-reshard-fence-timeout`, a new "migration did not happen" path that bumps `reshard_done_seq`, which the flip controller reads |
 
 ### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
@@ -596,6 +603,115 @@ Raw: `$J/step3_exnest/` (`run.log`, `probeA.tsv`, `probeB.tsv`, `correctness_pos
 `postmerge_post.out`, `build_post.log`, `suite_ab.log`, `exec_nesting.{pre,post}.out`,
 `elsample_probe.py`, `step.sh`, and both staged binaries).
 
+### 3e. Item 5, deletions — MERGED 2026-07-29 (`5562e377b`, probe/README repair `6b6f088f0`)
+
+Merged exactly the five commits the branch carries (`7e3ca8b18` copy engine, `af2efcf60`
+`TOMO_MODE_WB`, `ef6d0730b` cluster tooling, `68886125d` module API, `d3ba0ac7f` a comment), off
+base `1029d0e74` — already an ancestor, so no drift. Clean auto-merge; the merged tree is
+byte-identical to what `git merge-tree` predicted **before** the merge ran (`8e2a2a58`), rechecked
+immediately before committing per §7. 165 files, +204/−34 724.
+
+`make clean && make -j16`, exit 0, 120 objects, **exactly one warning** — `kvstore.c:73`
+`dictEncodeStoredKey` incompatible-pointer-type, **proven pre-existing by a full clean build of THIS
+tree at the merge base** (`$J/step3_deletions/build_pre.log`, byte-identical warning line). **Zero
+new warnings.**
+
+**The row said "Large" and left the interesting question unasked: how much of that engine was
+LIVE?** None of it, in every configuration this project gates or benchmarks. `migCaptureEffect`'s
+first line on the pre-merge build is `if (server.shared_node_dbs) return;`, and `shared_node_dbs`
+is `(ex_per_node > 1)` — so at any `tomokv-thread-ex ≥ 2` the capture, the log, the scan and the
+replay were already unreachable. The PRE arm's own reshard log proves it rather than asserting it:
+every cutover under load printed `fence drained: S_final=0` — **zero effect-log entries ever
+recorded**. What the deletion removes from the running system is a `migration_active` relaxed load
+plus a call on four write paths (`exExecFake`, `csSubExec`'s MSET and DEL, the 2-hop dump/restore).
+
+**The one behaviour change, stated rather than buried.** `reshardArm`'s
+`ex_dbs[src] != ex_dbs[dst]` refusal is now UNCONDITIONAL instead of `shared_node_dbs &&`-gated.
+Checked, not assumed, that nothing automatic can hit it: `reshardDiffusionPass` skips any boundary
+where `tmNodeOfWorker(w) != tmNodeOfWorker(w+1)`, the outlier path picks `B` only from same-node
+neighbours (`hnode` check), the RELEVEL walk iterates a per-node `live[]`, and GROW-BACK arms
+`src = w-1 → w` inside one node. What it *does* newly refuse is spare activation
+(`DEBUG TOMO-MODESHIFT 2`) at `ex_per_node == 1`, because the spare slot keeps a **private** db
+array (`node_dbs[nnodes]`) — that is the deprecated PARKED↔EX actuator item 6 deletes outright.
+`DEBUG RESHARD START` cannot reach the refusal at all: `!tmWorkerLive(dst)` rejects a parked spare
+first (`ERR bad range/workers`, observed on both arms), so the probe intended to discriminate it
+could not, and that is recorded as **not obtained** rather than glossed.
+
+**Arm provenance from the binaries and from live behaviour, never from git:**
+
+| signal | PRE `redis-del-pre` `0859600e` | POST `redis-del-post` `9031cefe` |
+|---|---|---|
+| `nm`: `migCaptureEffect` / `migRangeChecksum` | 1 / 1 | **0 / 0** |
+| `DEBUG RESHARD STATUS` | `… issued= applied= scan_done= src_keys= … converged=` | `active/phase/lo/hi/src/dst` only |
+| cutover log line | `fence drained: S_final=0` | `fence drained` |
+
+**Acceptance, both arms, one box acquisition:**
+
+| check | PRE | POST |
+|---|---|---|
+| `correctness_suite` | — | **15 passed, 0 failed** |
+| `reshard_suite` | **3/0** — 0 violations / 57 323, 6 cutovers, 0 arm rejects | **3/0** — 0 / 238 688, 6 cutovers, 0 arm rejects |
+| `flip_updown` | **FAIL** io 3→3→3→3, 24 ctl lines, 2 GROW-FRONT + 2 GROW-BACK complete, 0 arm rejections | **FAIL — identical on every field** |
+
+**`flip_updown` fails on both arms, and this is its FIRST EVER EXECUTION** (§1a: it had never once
+run). It is not blind — it observed four real flips and 24 controller lines — and PRE and POST agree
+field for field, so nothing here is attributable to this merge. The failure is the flip
+**controller**: from a boot of io4/ex4 it grows the front twice and back twice within ~12 s, then
+pins its forward deadzone (`dz(f1.61/b0.25)` POST, `dz(f1.75/b0.25)` PRE — pinned, no decay) and
+HOLDs at `io=3` through every later p32↔p1 phase change, including ticks reading `io_sat=1.31`.
+The suite is right to call that a failure: p32→p1→p32→p1 must move the mix both ways and it moves
+neither. **Recorded as an open product item (§4), and it CLOSES item 6's gate** — item 6 says
+"GATED on `flip_updown` passing", and not-run was never a pass, but now it is a measured FAIL.
+
+*A caution for whoever picks that up:* the controller's `io=` field is `io_live_node`, and it read
+**3** in the same run where `GROW-BACK complete — io_threads_live=4` was logged. Establish what that
+field counts before reading any verdict built on it; `flip_updown` compares it across four phases.
+
+**PERF: no regression, and the sign is the one the change predicts.** `postmerge.sh` vs the recorded
+baseline: `p32SET_io4ex4` **+1.1%**, `p1GET_io7ex1` **+1.0%**, `p1SET_io7ex1` **+0.8%**,
+`p32GET_io4ex4` **+0.3%**. All four inside this box's ±2% exclusive noise, one rep per cell, so these
+**bound** the cost rather than prove a gain — but the write-heavy cell moves most and the pure-read
+cell least, which is what deleting a per-write branch does.
+
+**One harness defect the merge created, and it is the §2 shape again (`6b6f088f0`).**
+`reshard_order.py` — `reshard_suite`'s entire driver — polled `DEBUG RESHARD STATUS` for
+`scan_done=1` before every cutover. That field went with the cold scan, so on the merged build the
+condition could never hold and every cutover paid the loop's full 200 × 5 ms timeout. Measured in
+the arms' own logs: FLIP-to-FLIP cadence **0.704 s PRE vs 1.710 s POST**, a 1.006 s gap against a
+1.000 s timeout. **The suite stayed green throughout** — a CUTOVER issued after the timeout is a
+valid CUTOVER — so this was not a red suite but a green one doing a fraction of the work it claimed.
+Repaired to wait on `phase=1` (`MIG_COPYING`), `reshardBeginCutover`'s actual precondition.
+
+That repair alone made the probe *weaker*: with the stall gone it hit its 6-cutover / 3000-round
+floors in ~2 s and exited having sampled **3 000** rounds where the same suite had just sampled
+**238 688**. A race probe's evidence is its sample count, so a 79× cut is a real loss of
+discrimination bought with a latency win. Added a 10 s wall-clock floor — the one budget unit that
+does not move when the server gets faster:
+
+| arm | rounds | cutovers | wall | verdict |
+|---|---|---|---|---|
+| pre-merge, probe as it was | 57 323 | 6 | ~15 s | 3/0 |
+| merged, probe as it was | 238 688 | 6 | ~15 s | 3/0 |
+| merged, `phase=1` only | 3 000 | 14 | ~7 s | 3/0 |
+| **merged, `phase=1` + floor (shipped)** | **191 105** | **324** | ~16 s | **3/0** |
+
+3.3× the rounds and 54× the cutovers of the arm this suite was last certified on, at unchanged cost.
+0 violations, 0 arm rejects, 0 crash markers in every row. Also corrected a stale justification in
+`reshard_arm_race.py` (it avoided `DEBUG RESHARD STATUS` because "STATUS runs `migRangeChecksum`
+over the whole shard" — true until 2026-07-28, false now; its behaviour is unchanged, only the
+reason was wrong), and the README's "effect-log copy" description of a deleted engine.
+
+**Checked and clean, so the next step does not have to re-ask:** no io_uring symbol or knob returned
+through the 3-way merge (0 references in `src/`); the config surface is bit-for-bit the same size
+(213 `create*Config` entries both sides), so §5's retired-knob trap is not re-armed; no file under
+`tools/` referenced any deleted test tree; all nine edited `.tcl` files are brace-complete under
+tcl's own `info complete` and no `start_cluster` reference survives anywhere in `tests/`.
+
+Raw: `$J/step3_deletions/` (`run.log`, `run_step.sh`, `run_probefix.sh`, `probefix.log`,
+`build_{pre,post}.log`, `correctness_post_RESULT.out`, `reshard_{pre,post}.out`,
+`reshard_post_fixedprobe.out`, `rs_{pre,post}.log`, `flip_{pre,post}.out`,
+`flip_{pre,post}.srv.log`, `postmerge_post.out`, and both staged binaries).
+
 ---
 
 ## 4. Unowned defects
@@ -612,6 +728,23 @@ Nothing is working on these.
   silently, wedges the server, and ends in a double free, 8 runs in 10. `cfea82654` is a candidate
   fix (`tomoFlatResizeQuiesce`) and is **still never compiled and never run**. Owning this is the
   precondition for merging the `emptyData` fold.
+- **THE FLIP CONTROLLER DOES NOT FOLLOW THE WORKLOAD, and it blocks merge-queue item 6** (found
+  2026-07-29 by `flip_updown`'s first ever execution, §3e — **pre-existing: the pre-merge arm
+  behaves identically, field for field**). Booted io4/ex4 with `--tomokv-thread-mode auto` and
+  driven p32 → p1 → p32 → p1 at 45 s a phase, the controller actuates **four times in the first
+  ~12 s** (GROW-FRONT ×2 to io6, then GROW-BACK ×2 back to io4), then pins its forward deadzone —
+  `dz(f1.61/b0.25)` on the merged build, `dz(f1.75/b0.25)` on the pre-merge one, **pinned with no
+  decay by design** — and HOLDs for the remaining ~3 minutes, through both later workload
+  inversions, on ticks reading `io_sat` up to 1.31. The suite reads `io=3` in all four phases:
+  `fwd=0`, `back=0`, FAIL. The mechanism is not "the actuator is broken" — 0 arm rejections, all
+  four flips completed — it is the deadzone pin: after the initial climb the controller decides it
+  has settled and never re-probes. Not fixed here (this was a merge validation pass, and the
+  behaviour is not this merge's), but it is the gate item 6 named for itself, so **item 6 cannot
+  merge until this passes.** Two traps for whoever takes it: (a) the field the suite grades on is
+  `io_live_node`, which read **3** in the same run that logged `GROW-BACK complete —
+  io_threads_live=4`, so establish what it counts before trusting any verdict computed from it;
+  (b) a controller that never moves and a controller that moves once and stops both score
+  "0 flips" on a single-phase test — which is how this survived unexamined.
 - **LB-2** `server.hotkeys` — one process-global struct used as per-command scratch by every io
   thread. OOB read, double free, and `current_client` clobbering that indexes `argv[pos]` into a
   *different* client's argv. Dormant until `HOTKEYS START`, but the subsystem is unusable as written.
