@@ -103,7 +103,17 @@ run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
-run_suite $SD/command_sweep.sh       $PF/command_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
+# command_sweep RETIRED 2026-07-28. Its per-dispatch-class floors were calibrated against a
+# -t 4 -c 8 (32-connection) config, which we have since established is CLIENT-BOUND on this box:
+# tomo-now / tomo-prev / dragonfly all measured within 0.3% of each other, which is the signature
+# of the load generator being the bottleneck rather than any server. Floors calibrated against
+# memtier cannot gate the server. Recalibrate against the -t 8 -c 25 / 2M-keys-SEEDED apparatus
+# (the one the project target numbers come from) before re-enabling.
+
+# --- discriminating suites added 2026-07-28; each is proven to FAIL on a build with its defect ---
+run_suite $SD/shared_refcount_race.sh $PF/shared_refcount_race.out  'FAIL' 'INCONCLUSIVE'
+run_suite $SD/numcmd_check.sh         $PF/numcmd_check.out          'FAIL'
+run_suite $SD/reshard_suite.sh        $PF/reshard_suite.out         'FAIL'
 run_suite $SD/stress_reclaim.sh      $PF/stress_reclaim.out       'FAIL:'
 
 say "──────────────────────────────────────────────────────────────────────"

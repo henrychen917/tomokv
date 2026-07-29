@@ -14,6 +14,18 @@ PASS=0; FAIL=0
 ok(){ echo "  PASS $1" >> $OUT; PASS=$((PASS+1)); }
 bad(){ echo "  FAIL $1" >> $OUT; FAIL=$((FAIL+1)); }
 
+
+reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to boot
+  local knob=$1 val=$2
+  pkill -9 -x redis-server 2>/dev/null; sleep 1
+  taskset -c 0-7 $BIN --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+    --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
+  sleep 2
+  local up=0; $CLI ping 2>/dev/null | grep -q PONG && up=1
+  pkill -9 -x redis-server 2>/dev/null
+  if [ "$up" = 1 ]; then echo "  FAIL retired knob $knob still accepted"; else echo "  ok   retired $knob rejected"; fi
+}
+
 try(){ # $1 = knob, $2 = value, $3 = expectation note
   local knob=$1 val=$2 note=$3
   pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
@@ -43,21 +55,130 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note
 echo "=== convention A: -1 = auto ===" >> $OUT
 # key-LB trigger debounce. -1 auto (K = one EWMA time constant, floored at 3 ticks), 0 OFF
 # (fire on the first violating tick — the pre-2026-07-28 trigger, kept as the A/B arm), N ticks.
-try tomokv-key-lb-sustain -1 "auto: K = one EWMA time constant, >=3 ticks"
-try tomokv-key-lb-sustain 0  "debounce OFF: single-tick trigger (A/B arm)"
-try tomokv-key-lb-sustain 8  "static: 8 consecutive outlier ticks"
+# ee451 2026-07-28: cells are DERIVED FROM THE LIVE CONFIG SURFACE, not hand-listed. The knob
+# retirement cut 55 knobs to ~36 and left this suite "testing" 44 names that no longer exist --
+# with the deprecation shim in place every one of those passed trivially, which is coverage
+# theatre. Regenerate this block from config.c whenever the surface changes.
+  try tomokv-client-lb yes
 
-echo "=== convention B: 0 = auto (NOT off) ===" >> $OUT
+  try tomokv-client-lb no
 
-echo "=== 0 = OFF (feature disabled, no machinery) ===" >> $OUT
-try tomokv-key-lb 0     "key/bucket balancer OFF: reshardAutoTune returns before any state is touched"
-try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
+  try tomokv-io-uring yes
 
-echo "=== prefetch widths (-1 = auto, 0 = off) ===" >> $OUT
+  try tomokv-io-uring no
 
-echo "=== structural knobs ===" >> $OUT
-try tomokv-pin-mode float "no pinning"
-try tomokv-pin-mode ccd "default (CCD/shared-L3) pinning"
+  try tomokv-io-uring-recv yes
+
+  try tomokv-io-uring-recv no
+
+  try tomokv-io-uring-reply-send yes
+
+  try tomokv-io-uring-reply-send no
+
+  try tomokv-io-uring-sqpoll yes
+
+  try tomokv-io-uring-sqpoll no
+
+  try tomokv-io-uring-zc yes
+
+  try tomokv-io-uring-zc no
+
+  try tomokv-os-busypoll yes
+
+  try tomokv-os-busypoll no
+
+  try tomokv-os-opts yes
+
+  try tomokv-os-opts no
+
+  try tomokv-key-lb -1
+
+  try tomokv-key-lb 0
+
+  try tomokv-key-lb-sustain -1
+
+  try tomokv-key-lb-sustain 0
+
+  try tomokv-pf-value-budget-kb -1
+
+  try tomokv-pf-value-budget-kb 0
+
+  try tomokv-pf-w-argv -1
+
+  try tomokv-pf-w-argv 0
+
+  try tomokv-pf-w-entry -1
+
+  try tomokv-pf-w-entry 0
+
+  try tomokv-pf-w-hash -1
+
+  try tomokv-pf-w-hash 0
+
+  try tomokv-pf-w-keybytes -1
+
+  try tomokv-pf-w-keybytes 0
+
+  try tomokv-pf-w-keyobj -1
+
+  try tomokv-pf-w-keyobj 0
+
+  try tomokv-pf-w-nextop -1
+
+  try tomokv-pf-w-nextop 0
+
+  try tomokv-pf-w-struct -1
+
+  try tomokv-pf-w-struct 0
+
+  try tomokv-pf-w-value -1
+
+  try tomokv-pf-w-value 0
+
+  try tomokv-pipeline-depth -1
+
+  try tomokv-pipeline-depth 0
+
+  try tomokv-prefetch-min-keys -1
+
+  try tomokv-prefetch-min-keys 0
+
+  try tomokv-reshard-chunk -1
+
+  try tomokv-reshard-chunk 0
+
+  try tomokv-reshard-cool-margin-pct -1
+
+  try tomokv-reshard-cool-margin-pct 0
+
+  try tomokv-reshard-imbalance-pct -1
+
+  try tomokv-reshard-imbalance-pct 0
+
+  try tomokv-reshard-progress-ratio -1
+
+  try tomokv-reshard-progress-ratio 0
+
+  try tomokv-reshard-sustain-ticks -1
+
+  try tomokv-reshard-sustain-ticks 0
+
+  try tomokv-strict-order -1
+
+  try tomokv-strict-order 0
+
+  try tomokv-zerocopy-min-value -1
+
+  try tomokv-zerocopy-min-value 0
+
+
+# RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
+# either the knob was not really retired or a shim is swallowing it -- both hide a config error
+# from an operator. These assert the negative.
+  reject tomokv-flat-store yes
+  reject tomokv-xshard-guard yes
+  reject tomokv-worker-pop-batch 8
+  reject tomokv-mget-coalesce legacy
 
 pkill -9 -x redis-server 2>/dev/null
 echo "" >> $OUT
