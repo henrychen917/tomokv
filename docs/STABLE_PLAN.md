@@ -152,19 +152,42 @@ built to solve, then either keep or revert. Do not re-derive; the acceptance cri
   **Caught by the sanity gate while doing this:** at `ex=4` the run reported `expired_keys=89886`
   alongside `expired_keys_active=100000` — the subset exceeding its own total. That is a real
   torn-counter defect; it is PRE-EXISTING and not a reason to revert. Filed in section 4.
-- **hot-key veto** — three arms. A: `unbal_fine=7 unbal_grp=0 fire=0`. **B: `fire=1` — must STILL
-  MIGRATE on genuine multi-bucket skew**; if B stops migrating the fix is "never move" and must be
-  reverted. C (`key-lb-fine 0`): the original defect reproduces. Plus `<=3%` cost, measured against
-  the PARENT build — at `fine 0` the bounds test is still compiled in, so the knob cannot price its
-  own instruction.
+- **hot-key veto** (`348f6dc23`) — **KEEP. Validated post-merge 2026-07-29: 10 passed, 0 failed,
+  `keylb_veto rc=0`.** ✅ All three arms behaved, and the author's original numbers reproduced
+  exactly:
+
+  | arm | workload | key counters | verdict |
+  |---|---|---|---|
+  | **A** window on | 97 % one key | `unbal_fine=7 unbal=7 unbal_grp=0 **fire=0**` | refused — and refused *at per-bucket resolution* (`fine_used=7 fine_arm=1`) |
+  | **B** window on | 90 % spread over one shard | `**fire=1** unbal=0 unbal_fine=0 band=21` | **STILL MIGRATES** — the "never move" failure mode is excluded |
+  | **C** window off (`key-lb-fine 0`) | 97 % one key | `unbal_fine=0 fine_used=0 **fire=1** noprog=20` | the ORIGINAL DEFECT reproduces |
+
+  Arm B is the one that mattered and it passed: the veto is *selective*, not a blanket refusal, so
+  there is nothing to revert. Arm C is what makes arm A attributable — with the window off the
+  balancer fires on a single hot key and is stopped only by the no-progress guard, 20 times, which
+  is precisely the "one wasted migration later" behaviour the window was built to prevent.
+  The mechanism is visible in the run's own bucket dump: in group 77, bucket `b4942` carried
+  **1 258 320 ops/s** while every sibling carried **1–6 ops/s**. A bucket flip relocates that load,
+  it cannot divide it — so refusing is the correct answer, and the per-bucket window is what lets
+  the planner see it. Raw: `$J/mrg/keylb_veto.out`.
 - **mset-move** — `correctness_suite` 15/0 with the knob OFF *and* ON; ASAN churn clean; the
   `tomokv_xshard_mset_moved` gate-open counter asserted as a **delta**, never an absolute (absolute
   lets a knob-OFF run pass on the previous ON run's total).
 
-  **STATUS 2026-07-29: RUNNER BUILT AND QUEUED, RESULT NOT YET IN.** `$J/mrg/run_item2.sh` chains
-  the three stages under ONE box acquisition: `run_s2.sh` (correctness OFF/ON, veto A/B/C, churn
-  delta) → `run_s2_asan.sh` → `run_s5cost.sh`. Two corrections were needed before it could be
-  trusted:
+  **KEEP. Validated post-merge 2026-07-29.** ✅ `correctness_suite` **15/0 with the knob OFF and
+  15/0 with it ON**. Churn, gate asserted as a delta in both directions:
+
+  | build | knob | `moved_delta` | gate | value mismatches |
+  |---|---|---|---|---|
+  | `redis-s2` (-O2) | OFF | **0** | correctly closed | 0 |
+  | `redis-s2` (-O2) | ON | **2 836 003** | open | 0 |
+  | `asanpost` (**ASAN**) | ON | **3 210 898** | open | 0, **0 ASAN report files**, server alive |
+  | `asanpost` (**ASAN**) | OFF | **0** | correctly closed | 0, 0 ASAN report files |
+
+  So the zero-copy hand-off ran millions of times with every value verified byte-for-byte, and the
+  knob-OFF arm proves the delta is attributable rather than inherited from a previous run.
+
+  **Two corrections were needed before this could be trusted:**
   * **`run_s2.sh` never ran the churn under ASAN**, though `mset_move_churn.py`'s own docstring
     says the failure mode is "a USE-AFTER-FREE or a double free, not a wrong answer" and that the
     test must "run under ASAN to see the memory error at all". It drove the plain `-O2`
