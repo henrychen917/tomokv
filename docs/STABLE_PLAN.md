@@ -29,7 +29,7 @@ incapable of returning a verdict — which is why "it was validated pre-merge" w
 | merge | verdict | what the re-run added |
 |---|---|---|
 | `5b3b4581a` active expiry | **KEEP** ✅ | full 2×2 discrimination (PRE fails / POST passes, at `ex=1` and `ex=4`), 15/0, and the always-on tax priced at −1.42% worst cell |
-| `d74df8895` LB-1 | **KEEP** (correctness), ASAN arm see §2 | 15/0 — and the discovery that its ASAN probe had **never once executed** past its own precondition |
+| `d74df8895` LB-1 | **KEEP**, but its UAF evidence is **not** obtained — see §2 | 15/0; found that its ASAN probe had **never once executed** past its own precondition; fixed the probe (0 → 25 grow-back cycles) and it *still* does not discriminate — the pre-fix build comes back clean too |
 | `348f6dc23` veto + mset-move | see §2 | — |
 
 Two findings that outlast this pass: a **torn `expired_keys` counter** (§4) and the fact that the
@@ -201,6 +201,35 @@ built to solve, then either keep or revert. Do not re-derive; the acceptance cri
   io_threads_live=N` (`server.c:17779`), which is written only when the conversion *completes* (a
   DEBUG `OK` means only that the request was accepted), plus a second guard that at least one
   `GROW-BACK` actually completed rather than merely being accepted.
+
+  **Re-run with the fixed probe — and the honest answer is that it still does not discriminate.**
+  The repair itself is proven: `grow-front completed=1 io_threads_live=5`, and the run drove
+  **25 grow-front/grow-back cycles** where every previous run drove **0**. Arm provenance verified
+  at source, not assumed: `mrg/asanpre/src/server.c` contains the vulnerable
+  `listRewind(server.clients[io_slot]…)` walk and zero `pinned_nonmig`; `mrg/asanpost/src/server.c`
+  has the reverse. Both arms nevertheless came back clean:
+
+  | arm | grow-backs | ASAN heap-use-after-free | verdict |
+  |---|---|---|---|
+  | PRE-fix `redis-lb1pre` (walk present) | 25 accepted | **0** | PASS — *should have failed* |
+  | POST-fix `redis-lb1post` | 25 accepted | 0 | PASS |
+
+  **Why it did not fire, from the run's own log** — the grown slot was nearly empty every time:
+  `io thread 4 (0 conns)` ×5, `(1 conns)` ×10, `(2 conns)` ×7, `(3 conns)` ×1, `(4 conns)` ×2. So
+  main's illegal walk of `server.clients[4]` traversed **at most four nodes**, and the UAF needs a
+  client on *that* slot to be freed by its owner inside that traversal. 25 samples of a
+  four-node walk is nowhere near the race. The probe's churn (`redis-cli ping` ×40 in a loop)
+  makes short-lived connections spread over *all* io slots; only a handful ever land on the grown
+  one. **To make it discriminate, the churn must pin many connections to the GROWN slot and churn
+  them there** — that is the missing piece, and it is a probe change, not a product change.
+
+  **Verdict: KEEP `d74df8895`.** Not because the probe went green — a green probe that cannot go
+  red is worth nothing, which is the whole point of this section. Keep it because `correctness_suite`
+  is 15/0 on it and because the defect is unambiguous on inspection: main walked
+  `server.clients[io_slot]`, a list whose single owning thread frees nodes eagerly
+  (`unlinkClient → listDelNode → zfree`, `adlist.c:173`), so `listNext()` could read freed memory.
+  The fix replaces that with an owner-published `_Atomic` snapshot. **What is missing is the
+  empirical proof, and it should not be recorded as obtained.**
 
 **Done means:** each is green on its own acceptance, or reverted with the regression recorded.
 
