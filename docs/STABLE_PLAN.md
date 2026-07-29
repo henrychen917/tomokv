@@ -316,6 +316,46 @@ Resolving it requires exercising autonomous migration on a `USE_URING` build —
 **Recommendation:** the epoll build is the shipping server. Treat the io_uring build as unshipped
 until the deep flags exist and the migration contradiction is resolved.
 
+### 5a. A LIVE wedge immediately after a client-LB migration (observed 2026-07-29, handed over)
+
+Handing this to whoever owns the uring work. I found it while waiting for the box, did **not**
+touch the process, and it is **not** a finding against committed branch code.
+
+**Attribution, checked before writing it down** (the whole point — my first reading was wrong):
+the wedged server was `$J/redis-corr`, md5 `3b466bd852151f2d80af8d377328fc30`, byte-identical to
+`clean-w/src/redis-server` **rebuilt at 04:43:49** — i.e. *after* the uncommitted io_uring edits
+landed in that tree at 04:37–04:41. So it is a build of the **WIP**, not of `6f943be0a`. (It did
+not touch my validation runs; those use pinned binaries whose md5s I re-verified afterwards.)
+
+Signature, measured over a 20 s window while it was stuck:
+
+* 4 worker threads `state=R`, `wchan=0` — spinning in userspace, ~400 % CPU total.
+* main + 3 io threads `state=S`, `wchan=ep_poll` — asleep.
+* **memtier accumulated 0 CPU ticks** — the load generator is blocked in `recv`, not merely slow.
+* 71 ESTABLISHED connections, unchanging. TCP connect succeeds; `PING` is never answered.
+* Not one byte written to `cs.log` / `ot.log` for over 10 minutes.
+
+The last three lines the server ever logged:
+
+```
+04:46:48.614 ee451 client-lb: io 1 busy-outlier (9 vs mean 7) -> 1 conn(s) to io 3
+04:46:48.614 ee451 thread-modes v1.6: io thread 1 REBALANCE — started 1/1 conn migrations to io 3
+04:46:52.820 [flip-ctl n0] HOLD 3500307 ops/s ... w_live=4 io=3
+```
+
+It wedged seconds after an **autonomous client-LB connection migration** — the exact path this
+section says "has no guard at all". Note the WIP also drops the `server.io_uring_recv &&` guard on
+`iouRecvDisarm` (`iothread.c:168/:228`), making the disarm unconditional. **Hypothesis, not a
+diagnosis: I attached no debugger** (`ptrace_scope=1`; raising it needs sudo). What is certain is
+that it is a livelock, not a deadlock, and that the io threads are idle while the workers spin.
+
+The shape recurs, which is why it is worth a dedicated test rather than a one-off fix: a second
+server wedged identically earlier the same day — 4 workers spinning, io threads idle,
+accepts-but-never-replies — in a *reshard* hot-skew regime, on a **different fork's** binary
+(artefacts preserved at `$J/hangw/abstd_1/SALVAGE/`, incl. per-thread state and the `utime` deltas
+that prove livelock). Different code, different regime, same signature, and both within seconds of
+an **ownership transfer** — bucket migration there, connection migration here.
+
 ---
 
 ## 6. Rejected / decided
