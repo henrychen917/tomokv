@@ -558,125 +558,13 @@ c1_flip() {
 }
 
 # =============================================================================
-# 2. Quorum pressure balancer (spare PARKED<->EX) — needs ex_threads==1
-#    (spare and flip growth slots are mutually exclusive: server.c:15795-15800)
-# =============================================================================
-c2_balancer() {
-  say "=== [2] quorum pressure balancer ==="
-  # ---- positive control: the actuator itself, via DEBUG TOMO-MODESHIFT (the test hook
-  #      that replaced the retired tomokv-modeshift-test config knob) ----
-  boot bal_posctl --tomokv-thread-io 2 --tomokv-thread-ex 1 --tomokv-thread-mode auto || return
-  if ! wait_log "spare poly thread PARKED" 5; then
-    tsv 2-balancer spare-provisioned "io2ex1 thread-mode auto boot" "no spare log" "spare PARKED at boot" FAIL
-    stopsrv; return
-  fi
-  tsv 2-balancer spare-provisioned "io2ex1 thread-mode auto boot" "spare PARKED logged" "spare exists" PASS
-  seedkeys 20000 64
-  local t0 t1
-  t0=$(ls "/proc/$SRV_PID/task" | wc -l)
-  "$CLI" -p "$PORT" debug tomo-modeshift 2 >/dev/null
-  if wait_log "MODESHIFT PARKED->EX complete" 30; then
-    tsv 2-balancer actuator-fwd "DEBUG TOMO-MODESHIFT 2" "PARKED->EX complete" "shift <=30s" PASS
-  else
-    tsv 2-balancer actuator-fwd "DEBUG TOMO-MODESHIFT 2" "no completion" "shift <=30s" FAIL
-  fi
-  "$CLI" -p "$PORT" debug tomo-modeshift 3 >/dev/null
-  if wait_log "MODESHIFT EX->PARKED complete" 45; then
-    tsv 2-balancer actuator-rev "DEBUG TOMO-MODESHIFT 3" "EX->PARKED complete" "reverse <=45s" PASS
-  else
-    tsv 2-balancer actuator-rev "DEBUG TOMO-MODESHIFT 3" "no completion" "reverse <=45s" FAIL
-  fi
-  t1=$(ls "/proc/$SRV_PID/task" | wc -l)
-  tsv 2-balancer conservation "thread count across both shifts" "tasks $t0 -> $t1" "exact (conversion, not creation)" \
-      "$( [ "$t0" = "$t1" ] && echo PASS || echo FAIL )"
-  stopsrv
+# 2. SPARE PARKED<->EX BALANCER — SECTION DELETED 2026-07-28.
+#    Owner ruling: the spare/PARKED machinery is deprecated. The controller has exactly two moves,
+#    front-flip-back and back-flip-front; there is no third mode to provision or retarget. Every
+#    cell here tested spare provisioning, PARKED->EX / EX->PARKED conversion, or the
+#    DEBUG TOMO-MODESHIFT 2/3 spare actuator -- all failing against a feature no longer in use.
+#    Replaced by tools/preflight/flip_updown.sh: p32 -> p1 -> p32 -> p1, flips required BOTH ways.
 
-  # ---- autonomous: sustained ex-pressure -> PARKED->EX; idle -> EX->PARKED ----
-  boot bal_auto --tomokv-thread-io 2 --tomokv-thread-ex 1 \
-       --tomokv-thread-mode auto || return
-  seedkeys 20000 64
-  # SPEC REV 2 settle-first: the pre windows are the balancer's BOOT-SETTLED state (spare
-  # PARKED, 0 conversions). Conversions during pre/post are counted — a dirty window can
-  # never let NOREG PASS (measured across a shift).
-  local cv_pre0 cv_pre1 pre_dirty=0
-  cv_pre0=$(convs)
-  # LEDGER: medians of >=3 windows for any throughput comparison (single 10s windows drift ~15%)
-  local pre p1_ p2_ p3_
-  p1_=$(mt bal_auto_pre1 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  p2_=$(mt bal_auto_pre2 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  p3_=$(mt bal_auto_pre3 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  pre=$(med "$p1_" "$p2_" "$p3_")
-  cv_pre1=$(convs); [ "$cv_pre0" != "$cv_pre1" ] && pre_dirty=1
-  # pressure long enough for: conversion (<=T_CONV1-5) + 3 anti-thrash windows + margin
-  local t_press0 t_conv_fwd=-1
-  t_press0=$(date +%s)
-  mt_bg bal_auto_pressure --ratio=1:0 $WKEYS -t 4 -c 16 --pipeline 32 --test-time=$((T_CONV1 + 3*AT_WIN + 15))
-  if wait_log "MODESHIFT PARKED->EX complete" $((T_CONV1 - 5)); then
-    t_conv_fwd=$(( $(date +%s) - t_press0 ))
-    local q; q=$(count_log "pressure ex-side sustained")
-    tsv 2-balancer SHIFT "sustained p32 write pressure" \
-        "PARKED->EX complete (quorum logs=$q)" "conversion within the pressure window (~3s settle)" PASS
-    tsv 2-balancer convergence-fwd "pressure start -> PARKED->EX complete" \
-        "convergence_time=${t_conv_fwd}s" "<= $((T_CONV1 - 5))s" PASS
-    # SPEC REV 2 anti-thrash: after the conversion settles, the UNCHANGED pressure keeps
-    # running — count conversions (either direction) over 3 consecutive windows.
-    local at0 at1
-    at0=$(convs)
-    sleep $((3 * AT_WIN))
-    at1=$(convs)
-    tsv 2-balancer anti-thrash "3x${AT_WIN}s windows, unchanged sustained pressure after conversion" \
-        "conversions-during=$((at1-at0))" "0 PASS / 1 SUSPECT / >1 FAIL (Schmitt sustain)" \
-        "$(atgrade $((at1-at0)))"
-  else
-    tsv 2-balancer SHIFT "sustained p32 write pressure" "no conversion in $((T_CONV1-5))s" "PARKED->EX" FAIL
-    tsv 2-balancer convergence-fwd "pressure start -> PARKED->EX complete" "timeout" "<= $((T_CONV1 - 5))s" FAIL
-    tsv 2-balancer anti-thrash "3x${AT_WIN}s windows after conversion" "unreachable (no conversion)" \
-        "0 PASS / 1 SUSPECT / >1 FAIL" SUSPECT
-  fi
-  wait "$MT_BG" 2>/dev/null
-  # idle -> reverse (the settle signal for the post windows is this completion log)
-  local t_idle0 t_conv_rev=-1
-  t_idle0=$(date +%s)
-  if wait_log "MODESHIFT EX->PARKED complete" 90; then
-    t_conv_rev=$(( $(date +%s) - t_idle0 ))
-    tsv 2-balancer SHIFT-reverse "load stopped (ex-pressure collapse)" "EX->PARKED complete" "reverse on idle <=90s" PASS
-    tsv 2-balancer convergence-rev "load stop -> EX->PARKED complete" \
-        "convergence_time=${t_conv_rev}s" "<= 90s" PASS
-  else
-    tsv 2-balancer SHIFT-reverse "load stopped" "no reverse in 90s" "EX->PARKED" FAIL
-    tsv 2-balancer convergence-rev "load stop -> EX->PARKED complete" "timeout" "<= 90s" FAIL
-  fi
-  # no-flap: exactly one conversion each way across the pressure+idle phase (Schmitt sustain).
-  # Counted BEFORE the NOREG post-windows — those may legitimately re-trigger a conversion.
-  local nfwd nrev
-  nfwd=$(count_log "MODESHIFT PARKED->EX complete"); nrev=$(count_log "MODESHIFT EX->PARKED complete")
-  tsv 2-balancer no-flap "pressure window + idle reverse" "fwd=$nfwd rev=$nrev" \
-      "exactly 1 each (sustain quorum, no flap)" \
-      "$( [ "${nfwd:-0}" = 1 ] && [ "${nrev:-0}" = 1 ] && echo PASS || echo SUSPECT )"
-  # NOREG: same shape after the round trip (medians of 3 windows each side); post windows
-  # open only after the reverse-conversion settle signal above, and conversions during
-  # either side demote a PASS to SUSPECT (settle-first audit).
-  local post cv_post0 cv_post1 post_dirty=0
-  cv_post0=$(convs)
-  p1_=$(mt bal_auto_post1 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  p2_=$(mt bal_auto_post2 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  p3_=$(mt bal_auto_post3 --ratio=1:0 $WKEYS -t 2 -c 8 --pipeline 32 --test-time=10)
-  post=$(med "$p1_" "$p2_" "$p3_")
-  cv_post1=$(convs); [ "$cv_post0" != "$cv_post1" ] && post_dirty=1
-  if plaus "$pre" && plaus "$post"; then
-    local rnr
-    rnr=$( awk -v a="$post" -v b="$pre" 'BEGIN{exit (a>=b*0.95)?0:1}' && echo PASS || echo SUSPECT )
-    { [ "$pre_dirty" = 1 ] || [ "$post_dirty" = 1 ]; } && [ "$rnr" = PASS ] && rnr=SUSPECT
-    tsv 2-balancer NOREG "3x10s p32 write pre vs post round-trip (medians)" \
-        "pre=$pre post=$post diff=$(pct_diff "$pre" "$post")% pre_dirty=$pre_dirty post_dirty=$post_dirty" \
-        "post >= 95% pre, both sides conversion-free" "$rnr"
-  else
-    tsv 2-balancer NOREG "pre vs post" "implausible ($pre/$post)" "plausible" SUSPECT
-  fi
-  stopsrv
-}
-
-# =============================================================================
 # 3. Per-connection fake-ring controller — RETIRED 2026-07-28 with tomokv-fake-ring-depth
 #    Every cell here booted with `tomokv-fake-ring-depth` set to -1/1/32, which now FATALs.
 #    LOST COVERAGE, no replacement: the ring-depth grow/decay controller has NO
@@ -1162,7 +1050,7 @@ main() {
   for c in $CONTROLLERS; do
     case "$c" in
       1)  c1_flip ;;
-      2)  c2_balancer ;;
+      2)  echo "  (2: spare PARKED balancer retired 2026-07-28 - see flip_updown.sh)" ;;
       7)  c7_pools ;;
       8)  c8_flatresize ;;
       9)  c9_qsbr ;;
