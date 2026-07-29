@@ -147,6 +147,41 @@ nothing. Pinning them removes the last unowned mutable refcount in the tree. `sh
 already `makeObjectShared` upstream, which is why the `XCLAIM` argv (`t_stream.c:1858`) was never
 exposed despite being built on a worker.
 
+### A10. A migration armed in the cutover teardown window is armed FOREVER — P0, server kill — `af9d6b590`
+
+`reshardCoordinatorTick`'s teardown published `migration_active = 0` and only **then**
+`co_state = CO_IDLE`, with a `serverLog()` (open/write/fflush/close) between the two stores.
+`reshardArm` gated on `migration_active` alone; `reshardBeginCutover` gates on a CAS of
+`co_state IDLE -> WAIT_CONVERGE`. `DEBUG RESHARD START` runs on an **IO thread** — and
+`tools/preflight/reshard_order.py` drives START/CUTOVER in a tight loop for 180 s in the shipped
+preflight — so an arm can land inside that window: START succeeds, the following CUTOVER's CAS
+fails, and the migration is left **armed with no coordinator**. Nothing ever starts one, so
+`migration_active` is stuck at 1 for the life of the process.
+
+That one stuck flag is not a stalled reshard, it is a delayed server kill:
+
+- every later `reshardArm` is refused ⇒ the load balancer is dead;
+- `flatResizeCoordinate()` returns at its own `migration_active` check ⇒ **the FLATSTORE table can
+  never resize again**. Under a write workload it fills to capacity and `flatInsert` ends in
+  `serverPanic("flatstore INSERT: table full")`.
+
+Fixed in two halves so the invariant does not rest on store order alone: teardown publishes
+`co_state = CO_IDLE` **before** `migration_active = 0` (and the trailing `co_state` store at the end
+of the function is deleted — once `active` is 0 a new migration may already have CASed it to
+`CO_WAIT_CONVERGE`, and a trailing store would strand *that* one the same way), and `reshardArm`
+additionally requires `co_state == CO_IDLE`.
+
+**Not vacuous, in both directions.** `INFO stats` gained `tomokv_reshard_arm_refused_coord` (the
+window was entered) and `tomokv_reshard_cutover_no_coord` (the defect firing).
+`tools/preflight/reshard_arm_race.py` requires *both* continued cutover progress *and*
+`cutover_no_coord == 0`, and reports **SKIP, not PASS**, below 200 completed cutovers so a run that
+never raced cannot pass. Acceptance ran it against a **defect-reintroduced** build (`bins/pre`,
+built with the two guards reverted but the counters left in place, so it cannot fail for the wrong
+reason) as well as the fixed one.
+
+**Found while classifying something else, which turned out not to be a server defect at all** — see
+§J.
+
 ---
 
 ## B. Defects I INTRODUCED — found and fixed
@@ -651,3 +686,80 @@ Both benchmarks behind the "measured win" used **sequential `redis-cli`**, where
 So the win is real in the regime that was measured and the cost regime was never measured at all.
 Per the three-regime rule (NIGHT_PLAN 13) this is a predicted-deficit case that needs testing before
 the gate is considered correct: small sets + pipelined client is exactly where it should lose.
+
+---
+
+## J. "The server stops answering" was not a hang — it was an out-of-process `SIGKILL` (2026-07-28)
+
+A sighting was escalated as an unclassified hang: under a **sustained 16-key hot skew** with
+auto-reshard firing repeatedly, the server stopped answering after ~8 migrations; the log was
+truncated by the next boot, so nobody knew whether it was a livelock, a deadlock, a wedged dispatch
+queue, unbounded memory, or a crash whose log was lost. A second, apparently identical failure was
+then seen by a *throughput* harness — servers dying mid-cell on **both** arms including the
+unmodified baseline, during plain `p32 SET`, with **no crash markers and an abruptly truncated
+log** — with no reshard in the picture at all.
+
+### It never presented as a hang
+
+Reproduction harness: `tools/preflight/reshard_hang_{probe.py,run.sh,batch.sh}` — the original
+regime (2 M-key preload, uniform background, 16-key gaussian skew, 200 conns, pipeline 32,
+`tomokv-key-lb 1000` so migrations fire every few seconds), with liveness probed on **two**
+independent channels every 200 ms: a held connection and a **fresh connect + PING**.
+
+Over 10 runs × 90 s (~36 completed cutovers):
+
+| observation | result |
+|---|---|
+| runs where the process was alive but unresponsive | **0/10** |
+| PING samples over 1 s (held or fresh connect) | **0** |
+| runs where the process was **gone** | **1/10** |
+
+So there was no livelock, no deadlock and no wedged queue to find: the cutover path never delayed
+liveness by even one second, across every migration observed.
+
+### What the one failure actually was
+
+Captured before anything was killed (per-run directory the next boot cannot truncate):
+
+- `connect()` → **ECONNREFUSED**; `/proc/<pid>` gone; `gdb -p` → `ptrace: No such process`.
+- **`crash_markers=0`.** `sigsegvHandler` calls `bugReportStart()` — which writes
+  `=== REDIS BUG REPORT START` — *before* anything that can itself fault, so any handled fatal
+  signal (SEGV/BUS/FPE/ILL/ABRT) leaves a marker. None did.
+- **stderr empty** (jemalloc aborts, `zmalloc` OOM and `__stack_chk_fail` all print there).
+- **VmRSS flat at 235–252 MB** for the entire run *including the second it died*; `MemAvailable`
+  ~20 GB. Not OOM, not unbounded memory.
+- Threads 15 throughout, CPU time advancing normally — not a spinner.
+- The log ends **at a clean line boundary** right after a successful `reshard DONE`.
+
+`grep -rn SIGKILL src/*.c` finds no path by which this process can kill itself. A death with no
+handler output, no stderr and no core is therefore a signal the process cannot handle — `SIGKILL` —
+from **outside**. That also matches the original sighting directly: its own harness recorded bash's
+job-control message **`Killed`** (i.e. signal 9) for the server, mid-phase.
+
+### Where the SIGKILL comes from
+
+Caught live, with a 150 ms `ps` auditor, while another session held the box lock:
+
+```
+17:35:35  pkill -9 -x redis-server   <- tools/preflight/preflight.sh
+17:36:59  pkill -9 -x redis-server   <- tools/preflight/knob_matrix.sh
+```
+
+`pkill -x` matches on `comm`, so **every** `redis-server` on the box dies, not just the caller's.
+On a shared box that is only safe while the box lock is exclusive — and it is not: `withbox.sh`'s
+own patch notes record that SIGKILLing a *waiter* leaves its command running **unlocked**, after
+which two harnesses run concurrently. This directory already knows the hazard and mitigates it in
+two places (`correctness_suite.sh` → `redis-corr`, `fence_suite.sh` → `redis-fence`); the rest —
+`reshard_suite.sh`, `numa2_validate.sh`, `reclaim_correctness.sh`, `stress_reclaim.sh`,
+`ord_test.sh` — still boot and reap the shared name. `reshard_suite.sh` is fixed here
+(→ `redis-rs`); the others remain open.
+
+### Lesson
+
+"No crash marker + truncated log + server gone" is a **complete** signature, and it points *away*
+from the process, not into it. Reading it as an unclassified hang cost two sessions. The cheap
+discriminator is the wait status (`137` = SIGKILL ⇒ nothing in-process can produce it); the harness
+now records it for every run, and `RSS`/`MemAvailable` alongside it so OOM is separable at a glance.
+
+**A real defect was found while chasing this** — see §A10 — but it is *not* this sighting, and the
+report says so.

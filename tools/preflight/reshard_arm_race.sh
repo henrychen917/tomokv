@@ -16,7 +16,13 @@ CLI=$(dirname "$BIN")/redis-cli
 PORT=${PORT:-7897}
 rm -rf "$OUT"; mkdir -p "$OUT/data"
 
-pkill -x redis-server 2>/dev/null; sleep 1
+# Stage under a UNIQUE process name, like correctness_suite (redis-corr) and fence_suite
+# (redis-fence) already do. Half the suites in this directory clean up with
+# `pkill -9 -x redis-server`, and on this shared box that SIGKILLs any other session's server —
+# silently, with no crash marker and no core. An acceptance test must not be at the mercy of that.
+# Lifecycle here is by our own PID, so the rename cannot leak a server either.
+cp "$BIN" "$OUT/redis-armrace"; BIN="$OUT/redis-armrace"
+pkill -9 -x redis-armrace 2>/dev/null; sleep 1
 taskset -c 0-7 "$BIN" --port $PORT --dir "$OUT/data" \
   --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \

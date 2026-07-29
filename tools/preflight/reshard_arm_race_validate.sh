@@ -25,3 +25,25 @@ echo "=== DISCRIMINATION: pre FAIL $prefail/$N   post PASS $postpass/$N ==="
 
 echo "=== correctness_suite on the fixed binary ==="
 TOMO_BIN=$ROOT/bins/post bash "$DIR/correctness_suite.sh" 2>&1 | tail -25
+
+# ---------------------------------------------------------------------------------------------
+# Classification arm for the ORIGINAL sighting ("server stops answering under sustained hot-key
+# skew"). In 10 runs it never once presented as a hang; the single failure was the process being
+# GONE with no crash marker, no stderr and a flat RSS. Nothing in this tree SIGKILLs itself, and
+# the fatal-signal handler writes "=== REDIS BUG REPORT" before anything risky, so an unhandleable
+# signal is the only remaining explanation. This arm separates the two candidates:
+#   std  = binary named `redis-server` -- matched by every other suite's `pkill -x redis-server`
+#   uniq = same binary staged under a unique name -- immune to all of them
+# Identical binary and identical load in both, interleaved so box conditions hit them equally.
+echo "=== name A/B: is the death an out-of-process kill? ==="
+M=${M:-3}
+dstd=0; duniq=0
+for i in $(seq 1 $M); do
+  l=$(MODE=auto KEYLB=1000 SECS=${ABSECS:-90} TOMO_BIN=$ROOT/bins/post \
+      "$DIR/reshard_hang_run.sh" "abstd_$i" 2>&1 | grep -E "^abstd_$i	" | tail -1)
+  echo "  std  $l"; case "$l" in *rc=3*) dstd=$((dstd+1)) ;; esac
+  l=$(MODE=auto KEYLB=1000 SECS=${ABSECS:-90} TOMO_BIN=$ROOT/bins/post TOMO_STAGE_NAME=tomohangsrv \
+      "$DIR/reshard_hang_run.sh" "abuniq_$i" 2>&1 | grep -E "^abuniq_$i	" | tail -1)
+  echo "  uniq $l"; case "$l" in *rc=3*) duniq=$((duniq+1)) ;; esac
+done
+echo "=== NAME A/B: deaths std=$dstd/$M  uniq=$duniq/$M ==="

@@ -60,16 +60,32 @@ def line(s):
 
 
 def info_counter(s, name):
+    """Read INFO stats as a proper RESP bulk string.
+
+    Reading "until the buffer ends with CRLF" does NOT work here: the payload is full of CRLFs, so
+    the first recv() satisfies it and the field is usually still in flight — the counter then reads
+    as absent and the test fails for the wrong reason on every build. Parse the $<len> header and
+    read exactly that many bytes.
+    """
     s.sendall(cmd("INFO", "stats"))
     buf = b""
-    while b"\r\n\r\n" not in buf and not buf.endswith(b"\r\n"):
+    while b"\r\n" not in buf:
         d = s.recv(1 << 16)
         if not d:
             raise EOFError("server closed")
         buf += d
-        if b"%s:" % name.encode() in buf and buf.endswith(b"\r\n"):
-            break
-    for ln in buf.split(b"\r\n"):
+    head, rest = buf.split(b"\r\n", 1)
+    if not head.startswith(b"$"):
+        return None
+    n = int(head[1:])
+    if n < 0:
+        return None
+    while len(rest) < n + 2:
+        d = s.recv(1 << 16)
+        if not d:
+            raise EOFError("server closed")
+        rest += d
+    for ln in rest[:n].split(b"\r\n"):
         if ln.startswith(name.encode() + b":"):
             return int(ln.split(b":")[1])
     return None
