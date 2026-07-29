@@ -29,7 +29,6 @@ set ::all_tests []
 set test_dirs {
     unit
     unit/type
-    unit/moduleapi
     integration
 }
 

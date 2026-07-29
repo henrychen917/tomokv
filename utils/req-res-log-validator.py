@@ -288,7 +288,6 @@ if __name__ == '__main__':
     parser.add_argument('--server', type=str, default='%s/redis-server' % srcdir)
     parser.add_argument('--port', type=int, default=6534)
     parser.add_argument('--cli', type=str, default='%s/redis-cli' % srcdir)
-    parser.add_argument('--module', type=str, action='append', default=[])
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--fail-commands-not-all-hit', action='store_true')
     parser.add_argument('--fail-missing-reply-schemas', action='store_true')
@@ -298,9 +297,9 @@ if __name__ == '__main__':
 
     # Fetch schemas from a Redis instance
     print('Starting Redis server')
+    # --module / --loadmodule dropped: this fork refuses 'loadmodule' at boot and the
+    # tests/modules build tree is deleted.
     redis_args = [args.server, '--port', str(args.port)]
-    for module in args.module:
-        redis_args += ['--loadmodule', 'tests/modules/%s.so' % module]
 
     fetch_schemas(args.cli, args.port, redis_args, docs)
 

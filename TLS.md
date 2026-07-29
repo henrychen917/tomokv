@@ -17,6 +17,13 @@ Run `make BUILD_TLS=module`.
 
 Note that sentinel mode does not support TLS module.
 
+**BUILD_TLS=module DOES NOT WORK ON THIS FORK.** `loadmodule` is refused at boot
+with a FATAL (the module API is not supported: TomoKV shards the keyspace across
+worker threads, so a module command would run inline on an IO thread against the
+empty decoy DB). redis-tls.so only registers a connection type and never touches
+the keyspace, so exempting it would be defensible — but no exemption exists today.
+Use `BUILD_TLS=yes` (built-in TLS), which is unaffected.
+
 ### Tests
 
 To run Redis test suite with TLS, you'll need TLS support for TCL (i.e.
@@ -40,7 +47,8 @@ For TLS built-in mode:
         --tls-key-file ./tests/tls/redis.key \
         --tls-ca-cert-file ./tests/tls/ca.crt
 
-For TLS module mode:
+For TLS module mode (REFUSED on this fork — `--loadmodule` is a boot FATAL;
+see the Building section above):
     ./src/redis-server --tls-port 6379 --port 0 \
         --tls-cert-file ./tests/tls/redis.crt \
         --tls-key-file ./tests/tls/redis.key \

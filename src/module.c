@@ -14548,17 +14548,37 @@ int RM_ConfigSetNumeric(RedisModuleCtx *ctx, const char *name, long long value, 
  * MODULE LOADEX <path> [[CONFIG NAME VALUE] [CONFIG NAME VALUE]] [ARGS ...]
  * MODULE UNLOAD <name>
  */
+/* ee451: the module API is not supported by this fork — 'loadmodule' is a boot FATAL (initServer).
+ * LOAD/LOADEX are the runtime equivalents and must be refused for the same reason rather than
+ * half-working: a module command's proc is not on canDispatchToWorker's whitelist, so it executes
+ * inline on an IO thread against the EMPTY decoy server.db and sees none of the sharded keyspace;
+ * and the module APIs that do reach shard data (RM_Scan via dbScan's FLATSTORE arm) are handed
+ * kvobjs owned by another worker thread — see the residency guard in RM_StringDMA above.
+ * LIST and UNLOAD stay: nothing can be loaded, so LIST is empty and UNLOAD is a no-op, but they
+ * remain honest answers rather than errors. */
+static void moduleRefuseLoad(client *c) {
+    addReplyError(c,
+        "MODULE LOAD is not supported by this fork: TomoKV shards the keyspace across worker "
+        "threads, so a module command would run inline on an IO thread against the empty decoy "
+        "DB and see no keys. Use upstream Redis if you need modules.");
+}
+
 void moduleCommand(client *c) {
     char *subcmd = c->argv[1]->ptr;
+
+    if ((!strcasecmp(subcmd,"load") || !strcasecmp(subcmd,"loadex")) && c->argc >= 3) {
+        moduleRefuseLoad(c);
+        return;
+    }
 
     if (c->argc == 2 && !strcasecmp(subcmd,"help")) {
         const char *help[] = {
 "LIST",
 "    Return a list of loaded modules.",
 "LOAD <path> [<arg> ...]",
-"    Load a module library from <path>, passing to it any optional arguments.",
+"    NOT SUPPORTED by this fork (the keyspace is sharded across worker threads).",
 "LOADEX <path> [[CONFIG NAME VALUE] [CONFIG NAME VALUE]] [ARGS ...]",
-"    Load a module library from <path>, while passing it module configurations and optional arguments.",
+"    NOT SUPPORTED by this fork (the keyspace is sharded across worker threads).",
 "UNLOAD <name>",
 "    Unload a module.",
 NULL

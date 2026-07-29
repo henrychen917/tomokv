@@ -3874,6 +3874,33 @@ void initServer(void) {
         exit(1);
     }
 
+    /* ---- modules: REFUSED, because the module API cannot see the sharded keyspace ------------
+     * Owner ruling 2026-07-28: this fork does not support the module API. Two independent reasons,
+     * both visible in the tree:
+     *
+     *  1. The real keyspace lives in the workers' per-node shard dbs. A module command's proc is
+     *     RedisModuleCommandDispatcher, which is not on canDispatchToWorker's whitelist, so it
+     *     runs INLINE on the calling IO thread — against server.db, the empty decoy. RM_OpenKey /
+     *     RM_Call from a module therefore find no keys, the same silent-wrong-answer shape that
+     *     MULTI/EXEC and multi-shard scripts are already refused for a few lines below.
+     *  2. Where a module API DOES reach real data, it reaches data owned by another thread.
+     *     dbScan()'s FLATSTORE arm (added so RM_Scan would stop answering "empty") hands the
+     *     module callback a kvobj straight out of a worker's shard; RM_StringDMA needs an explicit
+     *     residency guard to avoid rewriting it, because an in-place rewrite of that object would
+     *     be a single-writer violation on the shared flat table. See the comments at
+     *     RM_StringDMA and moduleScanCallback in module.c.
+     *
+     * Refuse at boot rather than let a module half-work against an empty database. */
+    if (listLength(server.loadmodule_queue) > 0) {
+        serverLog(LL_WARNING,
+            "FATAL: 'loadmodule' is not supported by this fork. TomoKV shards the keyspace across "
+            "worker threads, and a module command runs inline on an IO thread against the empty "
+            "decoy DB — so it would see no keys — while the module APIs that do reach shard data "
+            "are handed objects owned by another thread. Remove the 'loadmodule' directive; use "
+            "upstream Redis if you need modules.");
+        exit(1);
+    }
+
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
      * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. */
