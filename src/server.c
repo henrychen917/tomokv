@@ -2013,7 +2013,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         atomicGet(server.stat_net_repl_output_bytes, stat_net_repl_output_bytes);
         monotime current_time = getMonotonicUs();
         long long factor = 1000000;  // us
-        trackInstantaneousMetric(STATS_METRIC_COMMAND, server.stat_numcommands, current_time, factor);
+        trackInstantaneousMetric(STATS_METRIC_COMMAND, getNumCommands(), current_time, factor);   /* ee451 (#B1): fold per-thread */
         trackInstantaneousMetric(STATS_METRIC_NET_INPUT, stat_net_input_bytes + stat_net_repl_input_bytes,
                                  current_time, factor);
         trackInstantaneousMetric(STATS_METRIC_NET_OUTPUT, stat_net_output_bytes + stat_net_repl_output_bytes,
@@ -2422,6 +2422,13 @@ long long getNetInputBytes(void) {
 long long getNetOutputBytes(void) {
     long long s; atomicGet(server.stat_net_output_bytes, s);
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.netstat[i].out);
+    return s;
+}
+/* ee451 (#B1): fold the per-thread executed-command counters (plus the legacy scalar, normally 0)
+ * into the total INFO/DEBUG report. COLD path — one pass over ~97 cache lines. */
+long long getNumCommands(void) {
+    long long s = server.stat_numcommands;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.cmdstat[i].n);
     return s;
 }
 
@@ -2878,8 +2885,14 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     server.el_cron_duration += duration_before_aof + duration_after_write;
     durationAddSample(EL_DURATION_TYPE_CRON, server.el_cron_duration);
     server.el_cron_duration = 0;
-    if (server.stat_numcommands > server.el_cmd_cnt_start) {
-        long long el_command_cnt = server.stat_numcommands - server.el_cmd_cnt_start;
+    /* ee451 (#B1): eventloop_cmd_per_cycle_max measures THIS event loop's cycle, and this runs on
+     * every main-thread cycle, so it reads the main thread's OWN counter slot (one line) rather
+     * than folding all ~97 — a fold here would put a cross-CCD sweep on the event-loop path. It is
+     * also the truer reading of the metric's name: the pre-fix global mixed in other io threads'
+     * inline commands (racily) while missing every worker-executed one. */
+    long long el_now = tomoRelaxedRead(server.cmdstat[iotid].n);
+    if (el_now > server.el_cmd_cnt_start) {
+        long long el_command_cnt = el_now - server.el_cmd_cnt_start;
         if (el_command_cnt > server.el_cmd_cnt_max) {
             server.el_cmd_cnt_max = el_command_cnt;
         }
@@ -2915,8 +2928,10 @@ void afterSleep(struct aeEventLoop *eventLoop) {
         }
         /* Set the eventloop start time. */
         server.el_start = getMonotonicUs();
-        /* Set the eventloop command count at start. */
-        server.el_cmd_cnt_start = server.stat_numcommands;
+        /* Set the eventloop command count at start. ee451 (#B1): this thread's slot only — see the
+         * matching read in beforeSleep. Both ends read the same single slot, so the delta stays
+         * exact and costs one cache line per cycle instead of a 97-slot fold. */
+        server.el_cmd_cnt_start = tomoRelaxedRead(server.cmdstat[iotid].n);
     }
 
     /* Set running after waking up */
@@ -3667,6 +3682,10 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
+    /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
+     * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++)
+        tomoRelaxedSet(server.cmdstat[i].n, 0);
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -3831,6 +3850,29 @@ void initServer(void) {
      * thread no connection is routed to has only done half the work, so backfill is part of
      * flipping, not a separate switch. */
     server.tm_flip_rebalance = server.thread_auto;
+
+    /* ---- clusters: REFUSED, because tomokv sharding owns the kvstore geometry ---------------
+     * cluster-enabled and tomokv sharding both want to define what a kvstore "slot" IS.  Cluster
+     * indexes the 16384 dicts by CRC16 hash slot (getKeySlot -> the cluster slot); tomokv indexes
+     * the SAME 16384 dicts by ownership BUCKET (TOMO_BUCKET_BITS; dict index == the bucket one
+     * worker owns).  The kvstore-flag block later in this function picks exactly one of the two
+     * (an if / else-if on cluster_enabled), but everything downstream is built unconditionally on
+     * the tomokv meaning: the per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and the
+     * online reshard all key off buckets regardless of which branch set slot_count_bits.
+     *
+     * Sharding is NOT optional in this fork — tomokv-thread-io / tomokv-thread-ex are mandatory
+     * and ex_threads >= 1 is enforced a few lines below ("sharding-off mode is not supported").
+     * So "cluster-enabled yes" cannot mean "cluster instead of tomokv"; it can only mean cluster
+     * slot geometry underneath tomokv bucket routing, which is undefined behaviour rather than a
+     * degraded mode.  Refuse it loudly at boot instead of silently mis-shaping the keyspace. */
+    if (server.cluster_enabled) {
+        serverLog(LL_WARNING,
+            "FATAL: 'cluster-enabled yes' is not supported by this fork. TomoKV sharding is always "
+            "on (tomokv-thread-ex >= 1 is mandatory) and it owns the kvstore slot geometry, so "
+            "cluster mode cannot be layered on top of it. Remove the 'cluster-enabled' directive "
+            "(or set it to no); use upstream Redis for a cluster deployment.");
+        exit(1);
+    }
 
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
@@ -4060,6 +4102,9 @@ void initServer(void) {
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
+        /* UNREACHABLE: cluster-enabled is refused at boot above (the two slot geometries are not
+         * composable and the node dbs / FLATSTORE below are built for the tomokv one regardless).
+         * Kept verbatim so the upstream shape of this block stays visible in the diff. */
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
     } else if (server.ex_threads > 0) {
@@ -5341,7 +5386,7 @@ void call(client *c, int flags) {
         if (server.current_client[iotid].p) {
             server.current_client[iotid].p->commands_processed++;
         }
-        server.stat_numcommands++;
+        numCommandsBump();   /* ee451 (#B1): per-thread; call() runs on main AND every io thread */
     }
 
     /* Do some maintenance job and cleanup */
@@ -9827,6 +9872,14 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    /* ee451 (#B1): count the cross-shard command HERE — once, on the drain thread that retires the
+     * group head — and NOT in csSubExec. A cross-shard command is fanned into one sub per owning
+     * shard (and a 2-hop re-fans for HOP2), so counting subs would report an 8-key MGET as 4 or 5
+     * commands and make total_commands_processed wrong in a new direction. This is the group's
+     * single completion point: both drain call sites (live splice and CLOSE_ASAP teardown) retire
+     * the head immediately after it, and the HOP2 / pipeline-stage paths return BEFORE reaching
+     * it, so it runs exactly once per client command. */
+    numCommandsBump();
     if (g->pipe_stage) {
         /* merge-exec pipeline: final survivors live in pipe_cand (or an error/empty result).
          * Emits stock reply shapes; teardown below frees the pipe arrays. */
@@ -13633,7 +13686,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,
-            "total_commands_processed:%lld\r\n", server.stat_numcommands,
+            "total_commands_processed:%lld\r\n", getNumCommands(),   /* ee451 (#B1): folded per-thread */
             "instantaneous_ops_per_sec:%lld\r\n", getInstantaneousMetric(STATS_METRIC_COMMAND),
             "total_net_input_bytes:%lld\r\n", stat_net_input_bytes + stat_net_repl_input_bytes,
             "total_net_output_bytes:%lld\r\n", stat_net_output_bytes + stat_net_repl_output_bytes,
@@ -15482,6 +15535,10 @@ static inline void exExecFake(client *fake) {
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
         tomoCmdClockEnter();
+        /* ee451 (#B1): ...and for the same reason it is where the command is COUNTED. call() is
+         * never entered on a worker, so without this the whole worker-routed majority of the
+         * traffic was invisible to total_commands_processed. Own cache line, no atomic RMW. */
+        numCommandsBump();
         /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
          * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
          * even when nothing was armed; now only armed ops pay it. */
@@ -18558,8 +18615,10 @@ static void tomoFlipController(void) {
 
         /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
          * (a converted-to-IO worker's counter freezes => contributes 0 delta; the workers that
-         * absorbed its buckets show the load). stat_numcommands is NOT usable — worker-thread
-         * execution never bumps it in this sharded fork. --- */
+         * absorbed its buckets show the load). Do NOT switch this to the global command counter:
+         * getNumCommands() (ee451 #B1) does now include worker execution, but it is a server-wide
+         * FOLD over every thread slot and this is a per-NODE signal read at 4Hz — ops_total is the
+         * per-worker breakdown the balancer needs. --- */
         int s0 = (nnodes == 1) ? 0 : node * server.ex_per_node;
         int s1 = (nnodes == 1) ? server.num_workers : (node + 1) * server.ex_per_node;
         uint64_t node_ops = 0;

@@ -1004,7 +1004,10 @@ NULL
         uint64_t nreq = 0;
         if (zmalloc_small_requests(&nreq) == 0)
             o = sdscatprintf(o, "smallreq %llu\n", (unsigned long long)nreq);
-        o = sdscatprintf(o, "commands %lld\n", server.stat_numcommands);
+        o = sdscatprintf(o, "commands %lld\n", getNumCommands());   /* ee451 (#B1): folded per-thread —
+                                                                     * the per-op derivations below are
+                                                                     * only meaningful against the REAL
+                                                                     * command count, workers included. */
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-lbgroups")) {
