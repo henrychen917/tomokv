@@ -3260,22 +3260,27 @@ standardConfig static_configs[] = {
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
 
-    /* ================= PREFETCH (restored 2026-07-28) =====================================
-     * These were retired as "unreachable under FLATSTORE". That premise is FALSE at
-     * tomokv-thread-ex 1: shared_node_dbs = (workers_per_node > 1), so a single worker per
-     * node leaves the keyspace DICT-backed and every table-touching prefetch stage live.
-     * io7/ex1 is a standard test config, so the deletion removed working code there.
-     * Restored in full, knobs included, because prefetch is an area under active work. */
-    createIntConfig("tomokv-pf-w-struct",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_struct, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-argv",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_argv, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-keyobj",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keyobj, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-keybytes",  NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_keybytes, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-hash",      NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_hash, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-nextop",    NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_nextop,   0,  INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-entry",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_entry, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-w-value",     NULL, MODIFIABLE_CONFIG, -1, 256, server.pf_w_value, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto(batch) 0=off N=fixed */
-    createIntConfig("tomokv-pf-value-budget-kb", NULL, MODIFIABLE_CONFIG, -1, 1048576, server.pf_value_budget_kb, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3/(2W); 0=off (no value chase); N=explicit KB */
-    createIntConfig("tomokv-prefetch-min-keys", NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.prefetch_min_keys, -1, INTEGER_CONFIG, NULL, NULL), /* -1=auto L3-derived gate; 0=off (no floor: always prefetch); N=explicit key floor */
+    /* ================= PREFETCH — no knobs, by design (2026-07-28) =========================
+     * There is deliberately no tomokv-pf-* / tomokv-prefetch-* knob. The ten that used to live
+     * here (pf-w-struct/-argv/-keyobj/-keybytes/-hash/-nextop/-entry/-value, pf-value-budget-kb,
+     * prefetch-min-keys) were retired as a CONFIG SURFACE only: every prefetch stage, the batch
+     * scoreboard, the #3 next-op look-ahead and the value chase are all still there in
+     * exPrefetchBatch, unchanged and under active work (io-side prefetch is planned next).
+     *
+     * They came out because none of them was a decision an operator had information for. Nine
+     * shipped in their AUTO arm, and the AUTO arms are self-deriving: the stage widths follow the
+     * CURRENT batch occupancy (group prefetching with prefetch distance = group size — the
+     * standard software-pipelining form), the residency gate follows the detected L3 divided by
+     * the workers that share it, and the value-chase budget follows a measured value-size EWMA.
+     * A number typed into a config file could only restate what the server already measures, and
+     * would then be wrong on the next machine. See the constants beside WORKER_POP_BATCH in
+     * server.h for what is left, and the note there for why AMAC's per-slot state machine is not
+     * the right shape for a CONSTANT-depth probe chain.
+     *
+     * NOT a re-run of the earlier deletion: that one removed the STAGES on a false "unreachable
+     * under FLATSTORE" premise (false at tomokv-thread-ex 1, where shared_node_dbs is 0 and the
+     * keyspace stays DICT-backed, and io7/ex1 is a standard test config). Nothing is deleted here
+     * except operator-facing names. */
 
 
     /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy
@@ -3628,26 +3633,39 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
  * So: if a knob is retired, its former default MUST be restored here in the same commit. A retired
  * knob means "the operator no longer chooses this", never "the value becomes zero".
  */
+/* THE OTHER HALF OF THE SAME BUG, found 2026-07-28 while retiring the prefetch knobs.
+ *
+ * This function is called at the END of initConfigValues(), i.e. AFTER the config table has
+ * applied every default. So a seed here does not "fill a gap left by a retired knob" — it
+ * OVERRIDES whatever the table just wrote. That is fine for a name with no table entry, and it is
+ * a silent shadow for a name that has one.
+ *
+ * Six names had one. os-opts, os-busypoll, io-uring-recv, -reply-send, -sqpoll and -zc were
+ * retired, seeded here, then RESTORED as live knobs (commit 56a62a30f) — but the seeds were not
+ * removed with them. Every one of those six is a live createBoolConfig today whose field this
+ * function then re-assigned. It happened to be invisible because the table default and the seed
+ * both say 0; flipping either table default to 1 would have been silently undone at boot, and the
+ * boot log would not have mentioned it. Same failure mode as the 0-by-omission bug above, one
+ * level up: there, retiring a knob zeroed its field; here, un-retiring one leaves a zeroing behind.
+ *
+ * The seeds are therefore gone (the config table initialises those six fields, with the same
+ * value, which is why this is a no-op today). The block stays for its documentation and for the
+ * invariant check, which is what makes the trap non-reintroducible. */
 static void tomoInitRetiredKnobDefaults(void) {
-    /* Knobs whose retirement is FINISHED (2026-07-28) no longer appear here at all: their former
-     * default is now a literal at the use site and the server field is gone. What remains below is
-     * the set that still has to be seeded because live code reads the FIELD. */
-    server.io_uring_recv = 0;                       /* was tomokv-io-uring-recv */
-    server.io_uring_reply_send = 0;                 /* was tomokv-io-uring-reply-send */
-    server.io_uring_sqpoll = 0;                     /* was tomokv-io-uring-sqpoll */
-    server.io_uring_zc = 0;                         /* was tomokv-io-uring-zc */
-    server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
-    server.os_opts = 0;                             /* was tomokv-os-opts */
-    server.pf_value_budget_kb = -1;                 /* was tomokv-pf-value-budget-kb */
-    server.pf_w_argv = -1;                          /* was tomokv-pf-w-argv */
-    server.pf_w_entry = -1;                         /* was tomokv-pf-w-entry */
-    server.pf_w_hash = -1;                          /* was tomokv-pf-w-hash */
-    server.pf_w_keybytes = -1;                      /* was tomokv-pf-w-keybytes */
-    server.pf_w_keyobj = -1;                        /* was tomokv-pf-w-keyobj */
-    server.pf_w_nextop = 0;                         /* was tomokv-pf-w-nextop */
-    server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
-    server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
-    server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
+    /* Knobs whose retirement is FINISHED no longer appear here at all: their former default is a
+     * literal at the use site and the server field is deleted, so there is no field left to zero.
+     * That is the preferred shape — the ten prefetch knobs (2026-07-28) were retired that way.
+     *
+     * Anything added back to this list MUST NOT also be a live config name. The loop enforces it:
+     * seeded-and-live means this function is shadowing the table's default. */
+    static const char *const seeded[] = { NULL };   /* {"tomokv-x", ...} — see invariant above */
+    for (int i = 0; seeded[i] != NULL; i++) {
+        sds n = sdsnew(seeded[i]);
+        int live = (lookupConfig(n) != NULL);
+        sdsfree(n);
+        /* Seeding a field whose knob is live overrides the default the table just applied. */
+        serverAssert(!live);
+    }
 }
 
 void initConfigValues(void) {
