@@ -1310,6 +1310,11 @@ int RM_CreateCommand(RedisModuleCtx *ctx, const char *name, RedisModuleCmdFunc c
     resumeAllIOThreads();
 
     cp->rediscmd->id = ACLGetCommandID(declared_name); /* ID used for ACL. */
+    /* ee451 (#B2): the live per-command counts live in the per-thread shards, keyed by that id.
+     * ACL reuses an id for a re-registered command of the same name, so clear the shards here —
+     * AFTER the id exists — or the new registration inherits the old incarnation's stats.
+     * (Doing it in moduleCreateCommandProxy would clobber id 0: the id is assigned only here.) */
+    tomoCmdStatResetOne(cp->rediscmd);
     return REDISMODULE_OK;
 }
 
@@ -8520,7 +8525,7 @@ int attemptBlockedAuthReplyCallback(client *c, robj *username, robj *password, r
     }
     moduleInvokeFreePrivDataCallback(c, bc);
     c->module_blocked_client = NULL;
-    c->lastcmd->microseconds += bc->background_duration;
+    tomoCmdStatAddUsec(c->lastcmd, bc->background_duration);   /* ee451 (#B2): per-thread shard */
     bc->module->blocked_clients--;
     zfree(bc);
     return result;
@@ -8863,7 +8868,7 @@ void moduleHandleBlockedClients(void) {
          * was blocked on keys (RM_BlockClientOnKeys()), because we already
          * called such callback in moduleTryServeClientBlockedOnKey() when
          * the key was signaled as ready. */
-        long long prev_error_replies = server.stat_total_error_replies;
+        long long prev_error_replies = tomoErrRepliesLocal();   /* ee451 (#B2): per-thread shard */
         uint64_t reply_us = 0;
         if (c && !bc->blocked_on_keys && bc->reply_callback) {
             RedisModuleCtx ctx;
@@ -8907,7 +8912,7 @@ void moduleHandleBlockedClients(void) {
          * called from moduleUnblockClientOnKey
          */
         if (c && !clientHasModuleAuthInProgress(c) && !bc->blocked_on_keys) {
-            updateStatsOnUnblock(c, bc->background_duration, reply_us, server.stat_total_error_replies != prev_error_replies);
+            updateStatsOnUnblock(c, bc->background_duration, reply_us, tomoErrRepliesLocal() != prev_error_replies);
         }
 
         if (c != NULL) {
@@ -8974,7 +8979,7 @@ void moduleBlockedClientTimedOut(client *c) {
     ctx.blocked_client = bc;
     ctx.blocked_privdata = bc->privdata;
 
-    long long prev_error_replies = server.stat_total_error_replies;
+    long long prev_error_replies = tomoErrRepliesLocal();   /* ee451 (#B2): per-thread shard */
 
     if (bc->timeout_callback) {
         /* In theory, the user should always pass the timeout handler as an
@@ -8984,7 +8989,7 @@ void moduleBlockedClientTimedOut(client *c) {
 
     moduleFreeContext(&ctx);
 
-    updateStatsOnUnblock(c, bc->background_duration, 0, server.stat_total_error_replies != prev_error_replies);
+    updateStatsOnUnblock(c, bc->background_duration, 0, tomoErrRepliesLocal() != prev_error_replies);
 
     /* For timeout events, we do not want to call the disconnect callback,
      * because the blocked client will be automatically disconnected in
@@ -13104,6 +13109,7 @@ int moduleFreeCommand(struct RedisModule *module, struct redisCommand *cmd) {
         hdr_close(cmd->latency_histogram);
         cmd->latency_histogram = NULL;
     }
+    tomoCmdStatResetOne(cmd);   /* ee451 (#B2): drop this id's per-thread shards too */
     moduleFreeArgs(cmd->args, cmd->num_args);
     zfree(cp);
 

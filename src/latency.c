@@ -478,9 +478,13 @@ void latencyAllCommandsFillCDF(client *c, dict *commands, int *command_with_data
     dictInitSafeIterator(&di, commands);
     while((de = dictNext(&di)) != NULL) {
         cmd = (struct redisCommand *) dictGetVal(de);
-        if (cmd->latency_histogram) {
+        /* ee451 (#B2): merge the per-thread histograms — worker-executed commands never touched
+         * cmd->latency_histogram, so LATENCY HISTOGRAM saw the inline minority only. */
+        struct hdr_histogram *merged = tomoCmdLatMerge(cmd);
+        if (merged) {
             addReplyBulkCBuffer(c, cmd->fullname, sdslen(cmd->fullname));
-            fillCommandCDF(c, cmd->latency_histogram);
+            fillCommandCDF(c, merged);
+            hdr_close(merged);
             (*command_with_data)++;
         }
 
@@ -503,9 +507,11 @@ void latencySpecificCommandsFillCDF(client *c) {
             continue;
         }
 
-        if (cmd->latency_histogram) {
+        struct hdr_histogram *merged = tomoCmdLatMerge(cmd);   /* ee451 (#B2): fold the shards */
+        if (merged) {
             addReplyBulkCBuffer(c, cmd->fullname, sdslen(cmd->fullname));
-            fillCommandCDF(c, cmd->latency_histogram);
+            fillCommandCDF(c, merged);
+            hdr_close(merged);
             command_with_data++;
         }
 
@@ -516,9 +522,11 @@ void latencySpecificCommandsFillCDF(client *c) {
             dictInitSafeIterator(&di, cmd->subcommands_dict);
             while ((de = dictNext(&di)) != NULL) {
                 struct redisCommand *sub = dictGetVal(de);
-                if (sub->latency_histogram) {
+                struct hdr_histogram *smerged = tomoCmdLatMerge(sub);   /* ee451 (#B2) */
+                if (smerged) {
                     addReplyBulkCBuffer(c, sub->fullname, sdslen(sub->fullname));
-                    fillCommandCDF(c, sub->latency_histogram);
+                    fillCommandCDF(c, smerged);
+                    hdr_close(smerged);
                     command_with_data++;
                 }
             }

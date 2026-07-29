@@ -1039,8 +1039,11 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
     }
 
     if (!(flags & ERR_REPLY_FLAG_NO_STATS_UPDATE)) {
-        /* Increment the global error counter */
-        server.stat_total_error_replies++;
+        /* Increment the global error counter.
+         * ee451 (#B2): per-thread shard. This runs on whatever thread emitted the reply — every
+         * worker included — so the plain ++ was a non-atomic RMW on one shared line. The shard is
+         * also what commandstats' failed_calls deltas off on threads that never enter call(). */
+        tomoErrRepliesBump();
         /* Increment the error stats
          * If the string already starts with "-..." then the error prefix
          * is provided by the caller ( we limit the search to 32 chars). Otherwise we use "-ERR". */
@@ -1061,7 +1064,7 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
          * the cmd stats will not be updated as well, we still want this command
          * to be counted as failed so we update it here. We update c->realcmd in
          * case c->cmd was changed (like in GEOADD). */
-        c->realcmd->failed_calls++;
+        tomoCmdStatAddErr(c->realcmd, 0, 1);   /* ee451 (#B2): per-thread shard */
     }
 
     /* Sometimes it could be normal that a slave replies to a master with

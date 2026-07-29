@@ -94,14 +94,13 @@ void blockClient(client *c, int btype) {
 void updateStatsOnUnblock(client *c, long blocked_us, long reply_us, int had_errors){
     const ustime_t total_cmd_duration = c->duration + blocked_us + reply_us;
     clusterSlotStatsAddCpuDuration(c, total_cmd_duration);
-    c->lastcmd->microseconds += total_cmd_duration;
-    c->lastcmd->calls++;
+    /* ee451 (#B2): per-thread shards — this runs on whichever io thread hosts c, so the plain
+     * RMWs on the shared redisCommand raced every other io thread's call(). */
+    tomoCmdStatAddCall(c->lastcmd, total_cmd_duration, had_errors);
     c->commands_processed++;
     numCommandsBump();   /* ee451 (#B1): per-thread; this runs on whichever io thread hosts c */
-    if (had_errors)
-        c->lastcmd->failed_calls++;
     if (server.latency_tracking_enabled)
-        updateCommandLatencyHistogram(&(c->lastcmd->latency_histogram), total_cmd_duration*1000);
+        tomoCmdLatRecord(c->lastcmd, total_cmd_duration);
     /* Log the command into the Slow log if needed. */
     slowlogPushCurrentCommand(c, c->lastcmd, total_cmd_duration);
     c->duration = 0;
@@ -712,14 +711,14 @@ static void unblockClientOnKey(client *c, robj *key) {
  * it will add the client to the list of module unblocked clients which will
  * be processed in moduleHandleBlockedClients. */
 static void moduleUnblockClientOnKey(client *c, robj *key) {
-    long long prev_error_replies = server.stat_total_error_replies;
+    long long prev_error_replies = tomoErrRepliesLocal();   /* ee451 (#B2): per-thread shard */
     client *old_client = server.current_client[iotid].p;
     server.current_client[iotid].p = c;
     monotime replyTimer;
     elapsedStart(&replyTimer);
 
     if (moduleTryServeClientBlockedOnKey(c, key)) {
-        updateStatsOnUnblock(c, 0, elapsedUs(replyTimer), server.stat_total_error_replies != prev_error_replies);
+        updateStatsOnUnblock(c, 0, elapsedUs(replyTimer), tomoErrRepliesLocal() != prev_error_replies);
         moduleUnblockClient(c);
     }
     /* We need to call afterCommand even if the client was not unblocked
