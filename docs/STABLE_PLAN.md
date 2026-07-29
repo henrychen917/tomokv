@@ -53,6 +53,62 @@ is left.
 **Done means:** a preflight run in which every suite either PASSes or FAILs *on its own merits*, with
 no "produced no result file" and no leaked server afterwards (`ss -lptn | grep 79` empty).
 
+### 1a. Findings against the six items above (2026-07-29, `b3f6839e4`…`f9d37dc00`)
+
+Every item above was diagnosed from the code and the 2026-07-28 artefacts. **Six of the failures
+listed in that NO-GO report were faults in the test rig, not in the build.** Corrections to the list
+as written:
+
+- **Item 1 could not have been satisfied as stated.** `side_regression.sh` was never wired into
+  `preflight.sh` — `grep -c side_regression tools/preflight/preflight.sh` returned **0**. `62f03ebcc`
+  repaired its `${1:?}` line, but no preflight run could produce `side_regression.out` before or
+  after that fix, because nothing called it. Now wired in. Its verdict was *also* swallowed by
+  `python3 … | tee` (exit status = `tee`'s = always 0) — the same constant-exit-status defect
+  `0a2ef6c6f` fixed in `flip_updown`. Taken from `PIPESTATUS`.
+- **`62f03ebcc`'s fix 2 was INERT under preflight**, which is the root cause item 6 half-sees.
+  Eleven suites were changed to reap `pkill -9 -x "$(basename "$BIN")"`, but `preflight.sh` staged
+  the binary **as `redis-server`** — so under preflight that basename expanded straight back to
+  `redis-server` and preflight still SIGKILLed every other session's server. Staged as `redis-pf`
+  now, so "is a FOREIGN server up" and "is MINE up" are finally different questions.
+- **Item 6 is one-third stale.** `expiry_clock_ab.sh` does **not** reap the shared name; it already
+  killed by its own recorded pid under a trap. Only `numa2_validate.sh` and
+  `shared_refcount_race.sh` did, and both are fixed. `numa2_validate` also read its RSS series from
+  `ps -C redis-server | head -1` — whichever server sorted first, possibly another session's.
+- **Item 3 was a missing file, not a dead server and not a reaper.** `reshard_suite` probed liveness
+  with `"$(dirname "$BIN")"/redis-cli`, and the staged binary's directory contains the server alone
+  (`bins/stable/` holds exactly one file). The command did not exist, `alive` came back empty, FAIL.
+  In the same run the ordering probe passed 0/3000 across 11 cutovers with 0 crash markers. Fixed by
+  a fallback chain, and preflight now stages `redis-cli` beside the binary — which also repairs
+  `keylb_veto.sh`, whose client had the identical unguarded spelling.
+- **Item 2: `numcmd_check.sh` was never a suite.** A private A/B driver hardcoded to another agent's
+  worktree and to `/tmp/numcmd_bins/…`, printing to stdout, ending on `pkill; sleep 1` so its status
+  was 0 regardless. Rewritten as a suite; a probe that scores zero rows is now a FAIL, because
+  silence was precisely how it passed before.
+- **Item 5 is right about the uring cells and misses a fifth.** `tomokv-key-lb -1` is also a *test*
+  defect: `config.c:3309` declares `[0, INT_MAX]` with `0 = OFF, N = min ops/s`; there is no `-1`
+  auto. Both refusals are now asserted with `must_refuse`, which is stronger than dropping the cells.
+- **Item 4, `controller_sweep`:** it aborted *before* `: > "$OUT"` on `FATAL: a memtier_benchmark is
+  already running` — a load generator leaked by the suite that ran immediately before it. Graded as
+  a controller failure. Every abort now writes a row naming itself; preflight refuses to start on a
+  contended box and reaps its own leaked processes between suites, naming the leaker.
+- **Item 4, `feature_sweep`:** two of its four FAILs are a stale-log artefact. Server logs were named
+  `srv_<BOOTSEQ>_…` with `BOOTSEQ` restarting at 0 each run and opened with `>>`, so runs shared
+  files — one held **14 boot banners**. `crash_scan` grepped that history, and a single assertion at
+  03:57:35 on 28 Jul was re-reported as a fresh FAIL by the 04:22, 08:57 and 12:49 runs. Fixed with a
+  per-run id (logs still preserved, never re-scanned). The other two, `post-alive … dead/hijacked`
+  alongside `churn SUSPECT ops/sec=0`, are the signature of a contended/killed box, not a defect.
+- **Bonus, and it explains a lot:** `preflight_history.tsv` recorded `GITDESC=unknown` on **every row
+  ever written**, because it ran `git describe` in `$(dirname "$BIN")/..` = `/tmp`. The per-version
+  ledger — the thing that is supposed to show regressions across versions at a glance — could not
+  name a single version. Fixed.
+
+**Still open after this pass (candidate PRODUCT items, not gate blockers):** `controller_sweep`'s
+`1-flip SHIFT-ioward` / `SHIFT-exward` report `grow-front flips=0` / `grow-back flips=0`, and
+`io_threads_live=?`. That `?` is not a parse failure — the server only logs `io_threads_live=` when a
+flip *completes* (`server.c:17776`), and the token appears in **0 of 347** captured `csweep` server
+logs. So no flip has ever completed under that stimulus. `flip_updown.sh` is the suite built to
+answer this and has never once executed; its first real run is the evidence to judge on.
+
 ---
 
 ## 2. Validate what is already merged
