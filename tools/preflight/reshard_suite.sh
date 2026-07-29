@@ -84,12 +84,11 @@ else
       *"migration active"*) add reshard-verify-refused-while-active PASS "$refused" ;;
       *) add reshard-verify-refused-while-active FAIL "VERIFY ran during an active migration: '$refused'" ;;
     esac
+    waitidle(){ local a=1 i; for i in $(seq 1 300); do
+                  a=$(rr debug reshard status | grep -o 'active=[0-9]*' | cut -d= -f2)
+                  [ "$a" = 0 ] && break; sleep 0.1; done; echo "${a:-1}"; }
     rr debug reshard cutover >/dev/null
-    ac=1
-    for i in $(seq 1 300); do
-      ac=$(rr debug reshard status | grep -o 'active=[0-9]*' | cut -d= -f2)
-      [ "$ac" = 0 ] && break; sleep 0.1
-    done
+    ac=$(waitidle)
     if [ "$ac" != 0 ]; then
       add reshard-byte-exact FAIL "migration never completed (active=$ac after 30s)"
     else
@@ -97,6 +96,20 @@ else
       [ -n "$V1" ] && [ "$V1" = "$V0" ] \
         && add reshard-byte-exact PASS "range [$LO,$HI) identical across the cutover ($V1)" \
         || add reshard-byte-exact FAIL "range content changed across the cutover: '$V0' -> '$V1'"
+      # RESTORE OWNERSHIP. reshard_order.py below arms [2048,4096) 0->1 and only alternates
+      # direction after a SUCCESSFUL arm, so leaving the range owned by w1 would make every one of
+      # its arms fail, and it would report 0 cutovers = SKIP. Migrating back is also a second,
+      # opposite-direction byte-exactness sample for free.
+      if [ "$(rr debug reshard start $LO $HI 1 0)" = "OK" ]; then
+        rr debug reshard cutover >/dev/null
+        ac2=$(waitidle)
+        V2=$(vtot)
+        [ "$ac2" = 0 ] && [ "$V2" = "$V0" ] \
+          && add reshard-byte-exact-return PASS "range identical after migrating back ($V2)" \
+          || add reshard-byte-exact-return FAIL "return migration: active=$ac2 '$V0' -> '$V2'"
+      else
+        add reshard-byte-exact-return FAIL "could not migrate [$LO,$HI) back to w0 — ownership left moved, reshard_order.py below will not be able to arm"
+      fi
     fi
   fi
 fi
