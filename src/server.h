@@ -2104,33 +2104,18 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
-void migCaptureEffect(redisDb *db, robj *keyobj); /* v8d: A-side post-commit effect-log capture */
-void migCaptureImplicitDelete(redisDb *db, robj *keyobj); /* implicit (expiry/evict) delete -> tombstone, gated to src worker's shard */
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
 void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
 
-/* ee451 (v8d): online-resharding effect log. A (sole writer of the migrating range) appends one
- * ORDERED entry per committed mutation carrying the POST-IMAGE (value + absolute TTL) or a
- * TOMBSTONE (delete/expiry); worker B replays the log strictly in order as overwrite/delete
- * (last-writer-wins). Capturing the RESULT (not the command) makes SPOP/INCRBYFLOAT/relative-TTL
- * deterministic by construction. See RESHARD_DOUBLEWRITE_PROTOCOL.md. */
+/* ee451 (v8d): reshard phases. The COPY ENGINE that once backed them (the A->B effect log, the
+ * cold scan, the B-side replay and A's post-flip range delete) was DELETED 2026-07-28: a reshard
+ * only ever moves a bucket range between two workers of ONE node, and those workers share ONE
+ * physical flat kvstore (shared_node_dbs), so the cutover is a drain-fence plus an ownership flip
+ * in ex_bucket_table — no key ever moves. reshardArm now REFUSES any (src,dst) pair on different
+ * physical dbs, which is what made the copy path reachable at all. MIG_CLEANUP is retained (and
+ * unused) so the phase integers a live DEBUG RESHARD STATUS reports keep their historical values. */
 typedef enum { MIG_IDLE=0, MIG_COPYING, MIG_DRAINING, MIG_FLIPPED, MIG_CLEANUP, MIG_DONE } migPhase;
-typedef struct migLogEntry {
-    uint64_t seq;              /* A's commit-order sequence number */
-    int      dbid;
-    sds      key;             /* owned by the entry (freed by B after apply) */
-    sds      blob;            /* PUT: RDB-serialized [type+object] post-image (cross-thread safe,
-                               * B rdbLoads its own private robj); NULL => TOMBSTONE (delete) */
-    long long pexpireat;      /* PUT: absolute expire ms, or -1 (no TTL) */
-} migLogEntry;
-typedef struct migLog {       /* SPSC ring, A=producer (tail), B=consumer (head) */
-    migLogEntry **slots;      /* [cap] entry pointers */
-    unsigned int cap_mask;    /* cap-1 (power of two) */
-    _Atomic unsigned int head;/* B advances (acquire/release) */
-    _Atomic unsigned int tail;/* A advances (release) */
-    unsigned int cached_head; /* producer-private */
-} migLog;
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Always a power of two. Runtime value lives
@@ -2305,11 +2290,15 @@ typedef struct freebackRing {
  * register). MSB set => predict "forward". Per worker (no sharing). */
 
 /* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
- * A thread is not born io/ex/wb — it HOLDS a mode and the balancer shifts the
+ * A thread is not born io/ex — it HOLDS a mode and the balancer shifts the
  * mode mix. PARKED=0 so a zeroed struct is a parked thread. Step 2: the
  * per-thread mode/target_mode atomics live on polyThreadCtx (mode is THREAD
- * state, not exThread state — the spare has no exThread). */
-typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
+ * state, not exThread state — the spare has no exThread).
+ * TOMO_MODE_WB (the 3-stage fork's write-back mode) was deleted 2026-07-28: this
+ * is the 2-stage line, it had no slice, no knob and no way to be adopted. It was
+ * the LAST member, so removing it renumbers nothing. Integer 3 still reaches
+ * DEBUG TOMO-MODESHIFT as the explicit-park verb — see tomoSpareShift. */
+typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX } tomoThreadMode;
 
 typedef struct exThread {
     int id;
@@ -2346,9 +2335,10 @@ typedef struct exThread {
      * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
      * groups of its own virtual shard; the balancer sums across workers for per-group load. */
     uint32_t lb_grp_ops[TOMO_LB_GROUPS];
-    /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
-     * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
-     * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
+    /* ee451 (v8d): worker loop heartbeat, bumped on EVERY exSlice pass (FLATSTORE FIX D made it
+     * unconditional — it is the QSBR quiescence signal; the "migration only" it says here has been
+     * false since). The cutover coordinator uses worker B's heartbeat to confirm B has looped past
+     * phase==DONE before it publishes migration_active=0 — an RCU-style quiesce, not a timing guess. */
     _Atomic int in_flat_section;  /* FLATSTORE Stage-2 (review fix): 1 while this worker is INSIDE an exSlice batch that may touch a flat table. Coordinator drains this to 0 to quiesce — IDENTITY-COMPLETE (covers flipped/parking workers the old tmWorkerLive predicate missed). */
     _Atomic uint64_t loop_seq;
     unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
@@ -3020,21 +3010,17 @@ struct redisServer {
      * the adjacent-boundary-shift rebalancer). */
     uint8_t  ex_bucket_table[TOMO_BUCKETS];
     int      ex_bucket_end[TOMO_EX_THREADS_MAX];
-    /* ee451 (v8d): online resharding via a single totally-ordered A->B effect-log
-     * (RESHARD_DOUBLEWRITE_PROTOCOL.md). migration_active is read once (relaxed) per command on
-     * the hot path -> isolated on its own read-mostly cache line (written only at migration
-     * start/end) to avoid false-sharing every IO core. The rest lives on a separate line. */
+    /* ee451 (v8d): online resharding = drain fence + ownership flip. migration_active is read once
+     * (relaxed) per command on the hot path -> isolated on its own read-mostly cache line (written
+     * only at migration start/end) to avoid false-sharing every IO core. The rest lives on a
+     * separate line. (The effect-log/scan/replay counters that used to live here — issued_seq,
+     * applied_seq, log, outstanding_a_refs, scan_done — went with the copy engine.) */
     _Alignas(64) _Atomic unsigned char migration_active;
     struct {
         _Atomic uint64_t gen;          /* phase-transition epoch (release on write, acquire on read) */
         int lo, hi;                    /* migrating bucket range [lo,hi) (published before active=1) */
         int src, dst;                  /* adjacent workers: A (src) -> B (dst) */
-        _Atomic int phase;             /* migPhase: IDLE/COPYING/DRAINING/FLIPPED/CLEANUP/DONE */
-        _Atomic uint64_t issued_seq;   /* A's per-range monotonic op counter (log producer) */
-        _Atomic uint64_t applied_seq;  /* how far B has replayed the log (release on advance) */
-        struct migLog *log;            /* ordered A->B SPSC effect channel (A produces, B consumes) */
-        _Atomic uint64_t outstanding_a_refs; /* D4: zero-copy reply refs still pointing into A's range */
-        _Atomic int scan_done;         /* A's cold-key scan has wrapped (cold copy complete) */
+        _Atomic int phase;             /* migPhase: IDLE/COPYING/DRAINING/FLIPPED/DONE */
         _Atomic int fence_acked[TOMO_IO_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack
                                         * (set when A pops that slot's sentinel; coordinator also marks
                                         * a slot done when A's queue from it stays empty = idle producer) */

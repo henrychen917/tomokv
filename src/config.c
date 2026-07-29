@@ -3219,10 +3219,10 @@ standardConfig static_configs[] = {
      * against, the knob could only ever have been inert. */
     /* ee451 (thread-modes v1, step 2+3): TEST driver for mode shifts until the balancer
      * exists — CONFIG SET retargets the SPARE: 1 = PARKED->IO (instant listener join);
-     * 2 = PARKED->EX (migration-backed: the v8d effect-log engine seeds buckets in, go-live
-     * at the table FLIP); 3 or 0 = EX->PARKED (migrate everything back, drain, assert-empty,
-     * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; WB is
-     * unreachable (value 3 repurposed as the park verb — no WB mode in the 2s fork). */
+     * 2 = PARKED->EX (migration-backed: a reshard flips buckets in, go-live
+     * at the table FLIP); 3 or 0 = EX->PARKED (flip everything back, drain, assert-empty,
+     * park). V1 legal set is spare-only; IO-exit and direct IO<->EX swaps are rejected; value 3
+     * is the explicit park verb (the WB mode it used to name is deleted — 2-stage line). */
 
     /* ================= TOPOLOGY (total real cores = nodes * cores-per-node) =================
      * ONE way to describe the thread pool. tomokv-nodes 1 makes tomokv-thread-io/-ex the plain

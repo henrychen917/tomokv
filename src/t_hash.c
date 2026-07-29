@@ -786,12 +786,6 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
         if (!(hfeFlags & HFE_LAZY_NO_NOTIFICATION))
             notifyKeyspaceEvent(NOTIFY_GENERIC, "del", keyObj, db->id);
         dbDelete(db,keyObj);
-        /* ee451 (W6-E1): HFE whole-key delete is an IMPLICIT delete reached from whitelisted
-         * READ commands (HGET/HMGET/... lazy field expiry), so neither the exExecFake capture
-         * hook (CMD_WRITE only) nor deleteExpiredKeyAndPropagate covers it. Without a tombstone
-         * a cold-scan PUT emitted earlier would resurrect this key on B post-cutover. Gated
-         * inside to the src worker's own shard db (zero cost outside a live migration). */
-        migCaptureImplicitDelete(db, keyObj);
         o = NULL;
         res = GETF_EXPIRED_HASH;
     }
@@ -1931,10 +1925,6 @@ uint64_t hashTypeExpire(redisDb *db, kvobj *o, uint32_t *quota, int updateSubexp
         if (hashTypeLength(o, 0) == 0) {
             notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, db->id);
             dbDelete(db, key);
-            /* ee451 (W6-E1): same implicit-delete tombstone as hashTypeGetValue — this path is
-             * reached lazily via hashTypeExpireIfNeeded (HRANDFIELD/HSCAN) and would otherwise
-             * let a cold-scan PUT resurrect the key on B post-cutover. Src-shard-gated inside. */
-            migCaptureImplicitDelete(db, key);
             noExpireLeftRes = 0;
             deleted = 1;
         } else {

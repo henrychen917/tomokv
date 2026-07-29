@@ -4080,6 +4080,33 @@ void initServer(void) {
         exit(1);
     }
 
+    /* ---- modules: REFUSED, because the module API cannot see the sharded keyspace ------------
+     * Owner ruling 2026-07-28: this fork does not support the module API. Two independent reasons,
+     * both visible in the tree:
+     *
+     *  1. The real keyspace lives in the workers' per-node shard dbs. A module command's proc is
+     *     RedisModuleCommandDispatcher, which is not on canDispatchToWorker's whitelist, so it
+     *     runs INLINE on the calling IO thread — against server.db, the empty decoy. RM_OpenKey /
+     *     RM_Call from a module therefore find no keys, the same silent-wrong-answer shape that
+     *     MULTI/EXEC and multi-shard scripts are already refused for a few lines below.
+     *  2. Where a module API DOES reach real data, it reaches data owned by another thread.
+     *     dbScan()'s FLATSTORE arm (added so RM_Scan would stop answering "empty") hands the
+     *     module callback a kvobj straight out of a worker's shard; RM_StringDMA needs an explicit
+     *     residency guard to avoid rewriting it, because an in-place rewrite of that object would
+     *     be a single-writer violation on the shared flat table. See the comments at
+     *     RM_StringDMA and moduleScanCallback in module.c.
+     *
+     * Refuse at boot rather than let a module half-work against an empty database. */
+    if (listLength(server.loadmodule_queue) > 0) {
+        serverLog(LL_WARNING,
+            "FATAL: 'loadmodule' is not supported by this fork. TomoKV shards the keyspace across "
+            "worker threads, and a module command runs inline on an IO thread against the empty "
+            "decoy DB — so it would see no keys — while the module APIs that do reach shard data "
+            "are handed objects owned by another thread. Remove the 'loadmodule' directive; use "
+            "upstream Redis if you need modules.");
+        exit(1);
+    }
+
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
      * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. */
@@ -7267,7 +7294,6 @@ static int tmWorkerLive(int w) {
  * WHO TAKES IT off-worker, now that the node-local read BORROW is deleted (2026-07-27):
  *   - HFE commands (HEXPIRE/HGETEX/HTTL/...) — one worker, ALL of its node's locks, because they
  *     mutate the db-level estore shared by the whole node. This is the load-bearing case.
- *   - online resharding: migApplyOne on B, and A's cold-key scan / cleanup range-delete.
  *   - RANDOMKEY's expireIfNeeded delete (db.c), which is not covered by the S2 single-key path.
  * The deleted borrow was one client of this lock, never its only reason. */
 /* One PADDED cacheline per worker: the lock bytes were 65 contiguous bytes on ONE 64B line, so with
@@ -7930,29 +7956,13 @@ static const csCmdSpec *csClassify(client *c) {
     return s;
 }
 
-/* ee451 (migration-safety, review v2): the same-shard 2-hop fast path runs the real proc on the
- * worker, which — unlike exExecFake (:12197) — does no migration effect capture. Capture BOTH
- * move keys (src=argv[1], dst=argv[2]) after the proc so an in-range write during COPYING reaches
- * B via the effect log. migCaptureEffect gates on migration_active + phase + in-range (NOT a
- * shard check): a no-op outside a migration and for out-of-range keys. The "only the src worker
- * reaches this with an in-range key" property rests on the ROUTING INVARIANT (in-range keys map
- * to migration.src until cutover), NOT on any self-gate here — so this must stay on the key's
- * owning worker; do not relax the routing gate above without re-checking the single-producer
- * A->B log contract. Capturing an unmodified key (COPY's src) re-logs its current image, which
- * replay applies idempotently. */
-static void csCaptureMoveKeys(client *sub) {
-    if (!__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) return;
-    if (sub->argc > 1 && sub->argv[1]) migCaptureEffect(sub->db, sub->argv[1]);
-    if (sub->argc > 2 && sub->argv[2]) migCaptureEffect(sub->db, sub->argv[2]);
-}
-
 /* universal xshard HOP1 source-side dump (worker, single-writer): serialize the key's RDB
  * post-image + abs TTL into g->h2_payload / g->h2_pexpireat (private refcount-free sds =>
  * S8-safe to cross threads). del: 1 = delete src after dump (RENAME — always overwrites, so
  * the transient state is MISSING never DUPLICATE); 0 = dump only (conditional moves: a failing
  * NX verdict must leave src intact, the H4 guard); -1 = read-only lookup, no delete (COPY —
  * stock uses lookupKeyRead). Missing key => CS_ERR_NOKEY, nothing written. */
-static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
+static void csH1DumpKey(client *sub, csGroup *g, int del) {
     robj *o = (del < 0) ? lookupKeyRead(sub->db, sub->argv[1])
                         : lookupKeyWrite(sub->db, sub->argv[1]);
     if (o == NULL) {
@@ -7971,7 +7981,6 @@ static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
         dbSyncDelete(sub->db, sub->argv[1]);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
         markDirty(1);
-        if (mig) migCaptureEffect(sub->db, sub->argv[1]);
     }
 }
 
@@ -7980,7 +7989,7 @@ static void csH1DumpKey(client *sub, csGroup *g, int del, int mig) {
  * DB-global HFE-subexpires and stream-IDMP indices (dbAdd does not — stock rename/copy
  * register them explicitly). `nclass`+`event` = keyspace notification (NOTIFY_GENERIC
  * "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
-static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event, int mig) {
+static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event) {
     robj *dstkey = sub->argv[1];
     rio r; rioInitWithBuffer(&r, g->h2_payload);
     int type = rdbLoadObjectType(&r);
@@ -8001,7 +8010,6 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
             incrRefCount(dstkey);
         notifyKeyspaceEvent(nclass, event, dstkey, sub->db->id);
         markDirty(1);
-        if (mig) migCaptureEffect(sub->db, dstkey);
     } else {
         /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
          * rather than a false success; dst is left untouched. */
@@ -8108,7 +8116,6 @@ static void csSubExec(client *sub) {
          * worker; leaving an argv ref for csFreeSub to decref on the IO thread RACED (non-atomic rc)
          * with a later same-key overwrite on this worker -> double free (object.c:608). Relinquish
          * on the worker. Migration effect is captured per key. */
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         /* FLAT M-WRITE WAVES (tomokv batched core): all pairs are known up front, so stage the
          * apply loop's memory in TOMO_MWAVE waves before running it. A0/A1 warm the k/v robj
          * headers + byte lines (argv was built on the IO thread — cross-core cold; the batch
@@ -8159,7 +8166,6 @@ static void csSubExec(client *sub) {
                     sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
                     notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
                     markDirty(1);
-                    if (mig) migCaptureEffect(sub->db, keyo);
                 }
             }
             /* stale-hint trap (mirror exExecFake's clear): pooled subs recycle — a stale ptr
@@ -8174,21 +8180,18 @@ static void csSubExec(client *sub) {
             sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
             notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
             markDirty(1);
-            if (mig) migCaptureEffect(sub->db, keyo);
         }
         break;
     }
     case CS_DEL: {
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
          * lookupKeyWrite handles lazy expiry. Per-key migration capture. */
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         long deleted = 0;
         for (int a = 1; a < sub->argc; a++) {
             robj *o = lookupKeyWrite(sub->db, sub->argv[a]);
             if (o != NULL && dbSyncDelete(sub->db, sub->argv[a])) {
                 deleted++; markDirty(1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[a], sub->db->id);
-                if (mig) migCaptureEffect(sub->db, sub->argv[a]);
             }
         }
         atomic_fetch_add_explicit(&g->rcount, deleted, memory_order_relaxed);
@@ -8279,17 +8282,15 @@ static void csSubExec(client *sub) {
             /* step 5 WRITE sub (dst shard, single-writer): h2_payload == NULL means the computed
              * result was EMPTY => stock deletes dst and replies 0; else restore the serialized
              * result set over dst. Sources were read-only — this is the only write. */
-            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
             if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             } else {
                 const char *ev = (g->setop == CS_SETOP_UNION) ? "sunionstore" :
                                  (g->setop == CS_SETOP_DIFF)  ? "sdiffstore"  : "sinterstore";
-                csH2RestoreKey(sub, g, NOTIFY_SET, ev, mig);
+                csH2RestoreKey(sub, g, NOTIFY_SET, ev);
             }
             break;
         }
@@ -8328,17 +8329,15 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 6 WRITE sub: empty result => delete dst + 0 (stock); else restore the
              * serialized (listpack-converted-if-small) result zset over dst. */
-            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
             if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             } else {
                 const char *ev = (g->setop == CS_SETOP_UNION) ? "zunionstore" :
                                  (g->setop == CS_SETOP_DIFF)  ? "zdiffstore"  : "zinterstore";
-                csH2RestoreKey(sub, g, NOTIFY_ZSET, ev, mig);
+                csH2RestoreKey(sub, g, NOTIFY_ZSET, ev);
             }
             break;
         }
@@ -8407,15 +8406,13 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: payload NULL => all sources empty/missing => delete dst + :0
              * (stock); else the coordinator-folded string overwrites dst. */
-            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
             if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             } else {
-                csH2RestoreKey(sub, g, NOTIFY_STRING, "set", mig);
+                csH2RestoreKey(sub, g, NOTIFY_STRING, "set");
             }
             break;
         }
@@ -8425,8 +8422,7 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: PFMERGE always writes (an all-empty merge stores an empty HLL,
              * stock creates the dest even with no data). Stock notifies "pfadd". */
-            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
-            csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd", mig);
+            csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd");
             break;
         }
         /* fall through */
@@ -8450,27 +8446,23 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_RENAME: {
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
             renameGenericCommand(sub, 0);
-            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
-            csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */, mig);
+            csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */);
         } else {
-            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to", mig);
+            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
         }
         break;
     }
     case CS_RENAMENX: {
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
-            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
-                csH1DumpKey(sub, g, 0, mig);
+                csH1DumpKey(sub, g, 0);
             } else {
                 /* dst probe: NX verdict for the coordinator. */
                 if (lookupKeyRead(sub->db, sub->argv[1]) != NULL)
@@ -8479,31 +8471,28 @@ static void csSubExec(client *sub) {
         } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
-            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to", mig);
+            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
         } else {
             /* SRCOP: delete src (the NX verdict passed; both halves commit under ONE barrier). */
             if (dbSyncDelete(sub->db, sub->argv[1])) {
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
                 markDirty(1);
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         }
         break;
     }
     case CS_COPY: {
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             copyCommand(sub);               /* same-shard, no DB option: real proc */
-            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
-            csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */, mig);
+            csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */);
         } else {
             /* dst shard/db: NX decided HERE atomically (single-writer) — no probe, no TOCTOU. */
             if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
                 atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
             } else {
-                csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to", mig);
+                csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to");
             }
         }
         break;
@@ -8530,15 +8519,12 @@ static void csSubExec(client *sub) {
             /* step 9 HOP2 (winner shard): run the REAL single-key NON-blocking proc on the
              * rewritten argv [CMD 1 winner DIR [COUNT n]] — the reply (incl. a raced-empty
              * null array) is stock-byte-exact and spliced at reassemble. */
-            int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
             if (g->ctype == CS_LMPOP) lmpopCommand(sub);
             else zmpopCommand(sub);
-            if (mig) migCaptureEffect(sub->db, sub->argv[2]);   /* winner key at argv[2] */
         }
         break;
     }
     case CS_LMOVE: {
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             /* same-shard fast path (NON-blocking rows only — the dispatcher forces two-hop for
              * block_reject rows so a worker never runs parking machinery). */
@@ -8547,7 +8533,6 @@ static void csSubExec(client *sub) {
             } else {
                 lmoveCommand(sub);
             }
-            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: PEEK the FROM-end element WITHOUT popping (H3: a failing dst
@@ -8595,7 +8580,6 @@ static void csSubExec(client *sub) {
                 markDirty(1);
             }
             decrRefCount(val);
-            if (mig) migCaptureEffect(sub->db, sub->argv[1]);
         } else {
             /* SRCOP: pop the FROM end; delete the key when emptied (stock). */
             int fromleft = (g->h2_flags & CS_H2F_FROM_LEFT) != 0;
@@ -8611,16 +8595,13 @@ static void csSubExec(client *sub) {
                     }
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         }
         break;
     }
     case CS_SMOVE: {
-        int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
         if (!g->has_hop2) {
             smoveCommand(sub);              /* same-shard: real proc (samekey/no-op handled) */
-            csCaptureMoveKeys(sub);
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard, argv = [SMOVE src member]: existence/type/membership verdict. */
@@ -8648,13 +8629,11 @@ static void csSubExec(client *sub) {
                 dbAdd(sub->db, sub->argv[1], &ns);
                 notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
                 markDirty(1);
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             } else if (o->type == OBJ_SET) {   /* type-conflict race => skip (bounded) */
                 if (setTypeAdd(o, g->h2_payload)) {
                     notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         } else {
             /* SRCOP: SREM member from src; delete src when emptied (stock behavior). */
@@ -8668,7 +8647,6 @@ static void csSubExec(client *sub) {
                     }
                     markDirty(1);
                 }
-                if (mig) migCaptureEffect(sub->db, sub->argv[1]);
             }
         }
         break;
@@ -9816,11 +9794,10 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
      * samekey no-op (#0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
     if (src_shard == dst_shard && !s->block_reject && !copy_has_db && !(src_in ^ dst_in)) {
         /* ee451 (migration-safety, review 2026-07-17 v2): the real proc via csSubExec bypasses
-         * exExecFake's general migCaptureEffect (:12197) and the DRAINING fence. Make THIS path
-         * migration-safe like every other write path: when the co-located pair is IN the range,
-         * hold both keys during DRAINING (no-op during COPYING) and re-read the shard after the
-         * hold so a mid-op flip routes to the new owner; then capture both keys' effects after
-         * the proc runs (csSubExec same-shard branches). Free outside a migration. */
+         * the DRAINING fence. Make THIS path migration-safe like every other write path: when the
+         * co-located pair is IN the range, hold both keys during DRAINING and re-read the shard
+         * after the hold so a mid-op flip routes to the new owner. Free outside a migration.
+         * (The matching post-proc effect capture went with the copy engine.) */
         if (src_in || dst_in) {
             migHoldKeyIfDraining(src); migHoldKeyIfDraining(dst);
             src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (bucket stable) */
@@ -10551,9 +10528,9 @@ void flushAllShards(client *c, int dbid, int async) {
      * in EX mode: it keeps slicing (and thus pops the sentinel) until the park checkpoint,
      * whose 50ms-quiet drain re-slices on every pop. A spare observed EX here but parking in
      * the same instant is covered by the EX-entry stale-sentinel sweep (polyThreadMain).
-     * NOTE the µs-scale FLUSHALL-vs-effect-log ordering window (dst may replay a pre-flush
-     * post-image after popping its own sentinel) is a pre-existing engine-wide caveat for
-     * ANY in-flight migration, not specific to the spare — tracked with the v8d engine. */
+     * (The µs-scale FLUSHALL-vs-effect-log ordering window noted here — dst replaying a
+     * pre-flush post-image after popping its own sentinel — died with the copy engine: there
+     * is no log to replay, so a flush sentinel is the only thing in the queue.) */
     if (server.poly_threads && tmSpare && tmSpare->ex && nflush <= server.num_workers &&
         atomic_load_explicit(&tmSpare->mode, memory_order_acquire) == TOMO_MODE_EX)
         nflush = server.num_workers + 1;
@@ -10650,10 +10627,17 @@ void flushAllShards(client *c, int dbid, int async) {
 
 /* ===================== ee451 (v8d) ONLINE RESHARDING =====================
  * Move a contiguous bucket range [lo,hi) from worker A (src, sole writer) to adjacent worker B
- * (dst) with ZERO global pause, via a single totally-ordered A->B effect log. A appends the
- * POST-IMAGE (RDB-serialized value + absolute TTL) or a TOMBSTONE after each committed mutation;
- * B replays strictly in order (last-writer-wins). Cutover is a microsecond per-range drain fence
- * + an epoch-gated table flip. See RESHARD_DOUBLEWRITE_PROTOCOL.md. */
+ * (dst) with ZERO global pause. A and B are two workers OF ONE NODE and therefore share ONE
+ * physical flat kvstore (shared_node_dbs): the range's keys are already sitting in the dict[b]
+ * slots B is about to serve, so NO KEY EVER MOVES. The whole cutover is a microsecond per-range
+ * drain fence + an epoch-gated ex_bucket_table flip.
+ *
+ * DELETED 2026-07-28 (owner ruling: cross-node key migration is not happening): the copy engine
+ * that used to back a src!=dst PHYSICAL db — the totally-ordered A->B effect log, the post-image/
+ * tombstone capture on every write path, A's background cold-key scan, B's ordered replay, and A's
+ * post-flip range delete (MIG_CLEANUP). It was only reachable when ex_dbs[src] != ex_dbs[dst],
+ * which reshardArm now refuses outright. (The RESHARD_DOUBLEWRITE_PROTOCOL.md the old comments
+ * pointed at is not in the tree; git history is the record of the retired protocol.) */
 
 static inline int migBucketInRange(int b) {            /* caller already checked migration_active */
     return b >= server.migration.lo && b < server.migration.hi;
@@ -10661,242 +10645,14 @@ static inline int migBucketInRange(int b) {            /* caller already checked
 /* key (sds) -> bucket, same hash as exIndexForKey but without the table indirection. */
 static inline int migKeyBucket(const void *p, size_t len) { return (int)(xxh64(p, len) & TOMO_BUCKET_MASK); }
 
-/* ---- effect-log SPSC ring (A produces tail, B consumes head) ---- */
-static migLog *migLogCreate(unsigned int cap) {
-    migLog *L = zcalloc(sizeof(*L));
-    L->slots = zcalloc(sizeof(migLogEntry*) * cap);
-    L->cap_mask = cap - 1;
-    atomic_store_explicit(&L->head, 0, memory_order_relaxed);
-    atomic_store_explicit(&L->tail, 0, memory_order_relaxed);
-    L->cached_head = 0;
-    return L;
-}
-static void migEntryFree(migLogEntry *e) {
-    if (!e) return;
-    sdsfree(e->key); if (e->blob) sdsfree(e->blob); zfree(e);
-}
-static void migLogFree(migLog *L) {
-    if (!L) return;
-    /* drain any unconsumed entries */
-    unsigned int h = atomic_load_explicit(&L->head, memory_order_relaxed);
-    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
-    while (h != t) { migEntryFree(L->slots[h & L->cap_mask]); h++; }
-    zfree(L->slots); zfree(L);
-}
-/* (The blocking A-side push is GONE — wedge fix: A must never block mid-command, because a
- * blocked A stops popping its SPSC queues, which starves the drain fence and cascades into a
- * whole-server livelock. All pushes now go through migLogTryPush + the deferred-capture
- * overflow below. The full test stays the wrap-safe monotonic compare: in-flight = t - head,
- * full at cap; unsigned subtraction is correct across the 2^32 wrap because cap divides it.) */
-/* B-side pop; NULL if empty. */
-static migLogEntry *migLogPop(migLog *L) {
-    unsigned int h = atomic_load_explicit(&L->head, memory_order_relaxed);
-    if (h == atomic_load_explicit(&L->tail, memory_order_acquire)) return NULL;
-    migLogEntry *e = L->slots[h & L->cap_mask];
-    atomic_store_explicit(&L->head, h + 1, memory_order_release);
-    return e;
-}
-
-/* ee451 (wedge fix): non-blocking A-side push. Stamps the entry's seq AT PUSH TIME (single
- * producer => relaxed fetch_add) so ring order == seq order stays monotone even when entries
- * are deferred; coalesced-away entries simply never consume a seq (no gaps). Returns 0 full. */
-static int migLogTryPush(migLog *L, migLogEntry *e) {
-    unsigned int t = atomic_load_explicit(&L->tail, memory_order_relaxed);
-    if (t - L->cached_head > L->cap_mask) {
-        L->cached_head = atomic_load_explicit(&L->head, memory_order_acquire);
-        if (t - L->cached_head > L->cap_mask) return 0;    /* full — caller defers */
-    }
-    e->seq = atomic_fetch_add_explicit(&server.migration.issued_seq, 1, memory_order_relaxed);
-    L->slots[t & L->cap_mask] = e;
-    atomic_store_explicit(&L->tail, t + 1, memory_order_release);
-    return 1;
-}
-
-/* ee451 (wedge fix): A-side deferred-capture overflow. ROOT CAUSE of the whole-server wedge
- * (hunt v1/v2, 2026-07-20): a hot in-range collection key (200k SADDs to one set mid-COPYING)
- * makes every write capture the FULL post-image — a growing multi-MB blob — while B pays an
- * rdbLoad per blob, ~1000x slower than A captures. The 64K ring fills; A used to BLOCK inside
- * migLogPush mid-command, so it stopped popping its SPSC queues (fence sentinels included —
- * C.2 could never complete), and every IO thread eventually wedged in exDispatchPush routing
- * anything to A: alive-but-unresponsive server, all threads at 100%, crash=0.
- * Fix: A NEVER blocks on capture. Ring-full captures park in this A-private list keyed by
- * keyname with LAST-WRITE-WINS replacement — which also collapses the N-writes-to-one-key
- * amplification into a single freshest post-image (the O(n^2) blob volume dies with it).
- * Flushed opportunistically from A's loop, and BLOCKING (A-waits-on-B only; B never waits on
- * A => the wait graph stays acyclic) at the three points whose semantics need an empty defer
- * set: fence-sentinel ack, scan_done, and CLEANUP->DONE. Per-key order holds because once the
- * set is non-empty ALL captures route through it (<=1 pending entry per key; seqs are stamped
- * only at real push). Linear key scan is fine: the pathological case is few distinct hot keys,
- * and steady flush keeps the set small. All access is worker-A-thread-only. */
-typedef struct migOfEnt { migLogEntry *e; struct migOfEnt *next; } migOfEnt;
-static migOfEnt *mig_overflow_head = NULL;
-static int mig_scan_wrapped = 0;               /* wedge fix: sticky scan-complete (pre-overflow) */
-static void migOverflowPut(migLogEntry *e) {
-    for (migOfEnt *p = mig_overflow_head; p; p = p->next) {
-        if (sdslen(p->e->key) == sdslen(e->key) &&
-            memcmp(p->e->key, e->key, sdslen(e->key)) == 0) {
-            migEntryFree(p->e); p->e = e; return;          /* LWW replace, no seq consumed */
-        }
-    }
-    migOfEnt *n = zmalloc(sizeof(*n)); n->e = e; n->next = mig_overflow_head;
-    mig_overflow_head = n;
-}
-static void migOverflowFlush(int block) {
-    migLog *L = server.migration.log;
-    while (mig_overflow_head) {
-        /* Non-blocking mode honors the same ~1K occupancy ceiling as the capture fast path —
-         * otherwise every capture would defer only to have its snapshot promoted right here,
-         * and the amplification cap would be a no-op. Blocking mode (fence ack / scan_done /
-         * CLEANUP) pushes regardless: those points REQUIRE an empty defer set, and by then
-         * the entries are maximally coalesced (one per key). */
-        if (!block) {
-            unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
-                                    atomic_load_explicit(&L->head, memory_order_relaxed);
-            if (inflight >= 64) return;
-        }
-        if (!migLogTryPush(L, mig_overflow_head->e)) {
-            if (!block) return;
-            exPauseCpu(); continue;                        /* A waits only on B's drain */
-        }
-        migOfEnt *done = mig_overflow_head;
-        mig_overflow_head = done->next; zfree(done);
-    }
-}
-
-/* ---- A side: capture the post-image/tombstone of a range key AFTER its mutation commits.
- * Runs on worker A (single writer of [lo,hi)), in commit order. Captures the RESULT (not the
- * command) so SPOP/INCRBYFLOAT/relative-TTL are deterministic by construction. ---- */
-void migCaptureEffect(redisDb *db, robj *keyobj) {
-    /* ee451 (shared-kv S0.2b/S1): with per-node shared kvstores nothing ever moves — a reshard is
-     * a drain-fence + ownership-table flip over the SAME dict[b]. No post-images, no log. */
-    if (server.shared_node_dbs) return;
-    if (!atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return;
-    int ph = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
-    if (ph != MIG_COPYING && ph != MIG_DRAINING) return;   /* both phases are pre-flip: A still logs */
-    if (!migBucketInRange(migKeyBucket(keyobj->ptr, sdslen(keyobj->ptr)))) return;
-    migLogEntry *e = zcalloc(sizeof(*e));
-    /* wedge fix: seq is stamped at PUSH time (migLogTryPush), not here — a deferred entry must
-     * not hold a seq older than entries that reach the ring before it. */
-    e->dbid = db->id;
-    e->key = sdsdup(keyobj->ptr);
-    robj *val = lookupKeyReadWithFlags(db, keyobj, LOOKUP_NOEFFECTS);   /* A reads its own shard */
-    if (val == NULL) { e->blob = NULL; e->pexpireat = -1; }             /* TOMBSTONE */
-    else {
-        rio r; rioInitWithBuffer(&r, sdsempty());
-        rdbSaveObjectType(&r, val);
-        rdbSaveObject(&r, val, keyobj, db->id);
-        e->blob = r.io.buffer.ptr;
-        long long ex = getExpire(db, keyobj->ptr, NULL);
-        e->pexpireat = (ex == -1) ? -1 : ex;
-    }
-    /* wedge fix: NEVER block here (see migOverflowPut block comment). Route through the
-     * overflow whenever it is non-empty so per-key order is preserved. Part 2: start
-     * COALESCING well before the ring is full — a hot collection key otherwise lands
-     * thousands of full-post-image snapshots in the ring (O(n^2) member-loads for B, the
-     * minutes-deep backlog behind the B-side stall). Past ~64 in-flight entries (was 1K: at ~20ms per hot-key blob apply, 1K deep = the observed ~20s DRAINING hold on an in-range write; 64 bounds it to ~1.3s), new
-     * captures defer + LWW-coalesce instead, capping snapshot amplification at the
-     * threshold while leaving plain-workload captures (shallow ring) on the fast path. */
-    migLog *L = server.migration.log;
-    unsigned int inflight = atomic_load_explicit(&L->tail, memory_order_relaxed) -
-                            atomic_load_explicit(&L->head, memory_order_relaxed);
-    migOverflowFlush(0);
-    if (mig_overflow_head || inflight >= 64 || !migLogTryPush(L, e))
-        migOverflowPut(e);
-}
-
-/* ---- B side: apply one log entry to B's shard, in order (overwrite / delete, LWW). ---- */
-static void migApplyOne(exThread *B, migLogEntry *e) {
-    redisDb *bdb = &B->db[e->dbid];
-    robj *keyobj = createStringObject(e->key, sdslen(e->key));
-    /* review fix (mcmd-lock): this mutates B's shard db from B's drain (NOT the S2-locked op path),
-     * so anything else reaching B's slice of the shared node kvstore would race the dbSyncDelete/
-     * dbAdd rehash -> heap corruption. Take B's own worker lock per entry (short hold, so a
-     * 64-entry migDrainB batch stays interruptible). Still required after the node borrow was
-     * deleted (2026-07-27): an HFE command on a sibling worker of B's node runs holding ALL that
-     * node's worker locks, and B's own scatter subs take this lock on the op path.
-     * (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the design, so this is
-     * unconditional.) */
-    tomoWkrLock(B->id);
-    dbSyncDelete(bdb, keyobj);                              /* LWW: drop any prior value */
-    if (e->blob != NULL) {                                  /* PUT */
-        rio r; rioInitWithBuffer(&r, e->blob);
-        int type = rdbLoadObjectType(&r);
-        int err = 0;
-        robj *val = rdbLoadObject(type, &r, e->key, e->dbid, &err);
-        if (val != NULL) {
-            dbAdd(bdb, keyobj, &val);                       /* B is sole writer of its shard */
-            if (e->pexpireat >= 0) setExpire(NULL, bdb, keyobj, e->pexpireat);
-        }
-    }
-    tomoWkrUnlock(B->id);
-    decrRefCount(keyobj);
-}
-/* B drains a BOUNDED batch of the log per loop iteration, publishing applied_seq.
- * ee451 (wedge fix, part 2): the unbounded while-drain was the OTHER half of the livelock —
- * with a deep backlog of big blobs (each rdbLoad can be ~100ms for a hot collection key's
- * snapshot), one call ran for minutes, B stopped popping its OWN SPSC queues, every dispatch
- * touching a B-owned key spun its IO thread in exDispatchPush, and the server progressively
- * died while A (post part-1) stayed innocent. Bounding the batch keeps B serving clients;
- * convergence just takes as long as B's real throughput allows. */
-static void migDrainB(exThread *B) {
-    migLogEntry *e;
-    int budget = 64;
-    while (budget-- > 0 && (e = migLogPop(server.migration.log)) != NULL) {
-        uint64_t seq = e->seq;
-        migApplyOne(B, e);
-        migEntryFree(e);
-        atomic_store_explicit(&server.migration.applied_seq, seq + 1, memory_order_release);
-    }
-}
-
-/* ---- A side: background cold-key scan. Advances a cursor over A's shard, emitting a LOG_PUT for
- * each range key. dictScan may dup/miss keys; harmless — live writes are later authoritative log
- * entries. Returns 1 when the scan has wrapped (cold copy complete). ---- */
-static unsigned long long mig_scan_cursor = 0;
-static int mig_scan_dbid = 0;
-struct migScanCtx { exThread *A; };
-static void migScanCallback(void *priv, const dictEntry *de, dictEntry **plink) {
-    (void)priv; (void)plink;
-    kvobj *kv = dictGetKV((dictEntry*)de);
-    sds keysds = kvobjGetKey(kv);
-    if (!migBucketInRange(migKeyBucket(keysds, sdslen(keysds)))) return;
-    robj *keyobj = createStringObject(keysds, sdslen(keysds));
-    migCaptureEffect(&server.exThreads[server.migration.src].db[mig_scan_dbid], keyobj);
-    decrRefCount(keyobj);
-}
-static int migScanA(exThread *A, int batch) {
-    redisDb *adb = &A->db[mig_scan_dbid];
-    for (int i = 0; i < batch; i++) {
-        mig_scan_cursor = kvstoreScan(adb->keys, mig_scan_cursor, -1, migScanCallback, NULL, NULL);
-        if (mig_scan_cursor == 0) {                         /* wrapped: advance to next db or done */
-            if (mig_scan_dbid + 1 < server.dbnum) { mig_scan_dbid++; }
-            else return 1;                                  /* cold copy complete */
-        }
-    }
-    return 0;
-}
-
-/* Worker A drives the cold scan from its own loop, a small batch per iteration so serving is
- * never starved. Publishes scan_done (release) when the whole keyspace has been emitted once. */
-static void migServiceScanA(exThread *A) {
-    migOverflowFlush(0);       /* wedge fix: A's loop opportunistically drains deferred captures */
-    if (atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed)) return;
-    if (!mig_scan_wrapped && migScanA(A, 64)) mig_scan_wrapped = 1;
-    /* scan_done promises every cold-copy capture is IN the ring (the coordinator's convergence
-     * gate counts issued vs applied) — so it must also wait for the defer set to drain. */
-    if (mig_scan_wrapped && !mig_overflow_head)
-        atomic_store_explicit(&server.migration.scan_done, 1, memory_order_release);
-}
 
 /* Arm-time invariant check (ee451 review). The whole engine ASSUMES [lo,hi) is a boundary-
- * aligned suffix/prefix of src's contiguous range but never checked it: migScanA scans ONLY
- * src's dicts and cleanup deletes ONLY from src, while FLIP rewrites the WHOLE range — so an
- * arm over buckets owned by a third worker made those keys unreachable post-flip (data loss),
- * a concurrent in-range writer on that third worker became a SECOND producer on the SPSC
- * effect log (lost-update/heap corruption), and a misaligned arm desynchronized ex_bucket_end,
- * after which the AUTO tuner itself armed ownership-violating migrations. Reject all of it
- * here. Caller must hold mig_arm_lock and have (acquire-)seen migration_active == 0, which
- * orders these table/end reads after the previous migration's FLIP writes. */
+ * aligned suffix/prefix of src's contiguous range but never checked it: an arm over buckets
+ * owned by a THIRD worker makes those keys unreachable post-flip (the FLIP rewrites the WHOLE
+ * range, handing a third party's buckets to dst = data loss), and a misaligned arm desynchronizes
+ * ex_bucket_end, after which the AUTO tuner itself arms ownership-violating migrations. Reject
+ * all of it here. Caller must hold mig_arm_lock and have (acquire-)seen migration_active == 0,
+ * which orders these table/end reads after the previous migration's FLIP writes. */
 static int reshardRangeValid(int lo, int hi, int src, int dst) {
     if (dst != src + 1 && dst != src - 1) return 0;               /* adjacent workers only */
     int s_lo = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
@@ -10919,7 +10675,7 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
 
 /* ---- ARM (Phase A): publish the range and open COPYING. Called on the worker/IO side (DEBUG
  * RESHARD START on an IO thread, reshardAutoTune on the main thread — mig_arm_lock serializes
- * the check-then-publish so two racing armers can't both pass the active gate and leak a log). ---- */
+ * the check-then-publish so two racing armers can't both pass the active gate). ---- */
 static _Atomic int mig_arm_lock = 0;
 /* A counter, not a comment: a migration was ARMED and then could not get a coordinator — the
  * defect itself firing. It must be 0 on a fixed build, and it is what the discriminating test
@@ -10941,26 +10697,22 @@ static int reshardArm(int lo, int hi, int src, int dst) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
     }
-    /* ee451 (shared-kv S0.2b/S1): a reshard between workers of DIFFERENT physical dbs (cross-node,
-     * or the spare's private array) is impossible in shared mode — the data lives in the source
-     * node's dict[b] and a table flip would strand it. Same-node moves are the only kind the
-     * balancer/flip machinery issues (both node-scoped); reject anything else here so a manual
-     * DEBUG RESHARD can't corrupt. */
-    if (server.shared_node_dbs && server.ex_dbs[src] != server.ex_dbs[dst]) {
+    /* ee451 (shared-kv S0.2b/S1, copy engine DELETED 2026-07-28): a reshard between workers of
+     * DIFFERENT physical dbs (cross-node, or the spare's private array) would have to COPY the
+     * keys — the data lives in the source array's dict[b] and a bare table flip would strand it.
+     * The copy engine that did that is gone (owner ruling: cross-node key migration is not
+     * happening), so this is now an UNCONDITIONAL refusal rather than a shared-mode-only one:
+     * every migration this fork will run moves ownership within one physical kvstore. Same-node
+     * moves are the only kind the balancer/flip machinery issues (both node-scoped), so this only
+     * ever fires for a manual DEBUG RESHARD or a spare activation into a shared node. */
+    if (server.ex_dbs[src] != server.ex_dbs[dst]) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         serverLog(LL_WARNING, "ee451 reshard ARM rejected: workers %d and %d are on different "
-                  "physical node dbs (shared-kv mode moves ownership, never data)", src, dst);
+                  "physical node dbs (a reshard moves ownership, never data)", src, dst);
         return 0;
     }
-    server.migration.log = migLogCreate(1u << 16);          /* 64k entries; A backpressures if B lags */
-    atomic_store_explicit(&server.migration.issued_seq, 0, memory_order_relaxed);
-    atomic_store_explicit(&server.migration.applied_seq, 0, memory_order_relaxed);
-    atomic_store_explicit(&server.migration.outstanding_a_refs, 0, memory_order_relaxed);
-    /* ee451 (shared-kv S1): no cold scan — data never moves; the fence+flip is the whole cutover. */
-    atomic_store_explicit(&server.migration.scan_done, server.shared_node_dbs ? 1 : 0, memory_order_relaxed);
     /* fence_gen is MONOTONIC across migrations (never reset) so producers' thread-local
      * mig_local_fence_gen always differs from a fresh cutover's gen and they push their sentinel. */
-    mig_scan_cursor = 0; mig_scan_dbid = 0; mig_scan_wrapped = 0;   /* wedge fix: reset sticky */
     server.migration.lo = lo; server.migration.hi = hi;
     server.migration.src = src; server.migration.dst = dst;
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
@@ -11072,39 +10824,9 @@ int migSuppressLazyExpire(redisDb *db, sds keyname) {
     return migBucketInRange(migKeyBucket(keyname, sdslen(keyname)));
 }
 
-/* Worker A, on CLEANUP: delete its now-migrated [lo,hi) keys (single-writer). Collect-then-delete
- * (cannot mutate the dict mid-iteration). Then advance phase to DONE so the coordinator tears down. */
-static void migCleanupDeleteRangeA(exThread *A) {
-    int lo = server.migration.lo, hi = server.migration.hi;
-    for (int dbid = 0; dbid < server.dbnum; dbid++) {
-        redisDb *db = &A->db[dbid];
-        sds *batch = NULL; int n = 0, cap = 0;
-        kvstoreIterator it; kvstoreIteratorInit(&it, db->keys);
-        dictEntry *de;
-        while ((de = kvstoreIteratorNext(&it)) != NULL) {
-            sds k = kvobjGetKey(dictGetKV(de));
-            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
-            if (b < lo || b >= hi) continue;
-            if (n == cap) { cap = cap ? cap * 2 : 256; batch = zrealloc(batch, sizeof(sds) * cap); }
-            batch[n++] = sdsdup(k);
-        }
-        kvstoreIteratorReset(&it);
-        for (int i = 0; i < n; i++) {
-            robj *ko = createStringObject(batch[i], sdslen(batch[i]));
-            dbSyncDelete(db, ko);
-            decrRefCount(ko); sdsfree(batch[i]);
-        }
-        zfree(batch);
-    }
-    migOverflowFlush(1);   /* wedge fix: belt-and-braces — B drains until phase==DONE, so any
-                            * straggler deferred capture must be pushed BEFORE we advance. */
-    atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
-    serverLog(LL_NOTICE, "ee451 reshard CLEANUP: worker %d deleted migrated range [%d,%d)",
-              server.migration.src, lo, hi);
-}
-
-/* ---- Cutover coordinator (detached thread): DRAINING -> fence -> B-caught-up -> FLIP -> ref-fence
- * -> CLEANUP -> DONE. Short-lived; usleep-spins on the monotone counters. ---- */
+/* ---- Cutover coordinator: DRAINING -> fence -> FLIP -> DONE. (The B-caught-up, ref-fence and
+ * CLEANUP waits went with the copy engine — with one physical kvstore there is nothing to copy,
+ * nothing pointing into a doomed source value, and no stale source copy to delete.) ---- */
 /* ee451 (zero-thread-churn): the cutover coordinator is a MAIN-THREAD TICK STATE MACHINE, not
  * a per-migration detached thread (user rule: thread count fixed boot->shutdown; the old
  * pthread_create-per-migration was the last violation). Called from beforeSleep every main-loop
@@ -11114,7 +10836,7 @@ static void migCleanupDeleteRangeA(exThread *A) {
  * from server.migration under the active flag. Ordering and log lines are IDENTICAL to the
  * retired thread version. */
 static monotime co_empty_since[TOMO_IO_THREADS_MAX + 1];
-static uint64_t co_s_final, co_hb0;
+static uint64_t co_hb0;
 static void reshardCoordinatorTick(void) {
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
@@ -11129,10 +10851,9 @@ static void reshardCoordinatorTick(void) {
     int nprod = server.io_threads + (server.poly_threads ? (server.tm_ngrow_io > 0 ? server.tm_ngrow_io : 1) : 0);
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
-        /* Phase B-fence: cold scan wrapped + B caught up => converge; else wait (hold state). */
-        if (!atomic_load_explicit(&server.migration.scan_done, memory_order_acquire)) return;
-        if (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) <
-            atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire)) return;
+        /* Phase B-fence: the cold-copy convergence wait (scan_done, applied_seq >= issued_seq) was
+         * the copy engine's; src and dst share one physical kvstore, so the range is "already
+         * copied" the instant it is armed and this state falls straight through to the fence. */
 
     /* Phase C.1: raise the drain fence, THEN open DRAINING. Order matters: fence_acked/fence_gen are
      * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
@@ -11177,17 +10898,15 @@ static void reshardCoordinatorTick(void) {
             pending = 1;
         }
         if (pending) return;
-        co_s_final = atomic_load_explicit(&server.migration.issued_seq, memory_order_acquire);
-        serverLog(LL_NOTICE, "ee451 reshard fence drained: S_final=%llu", (unsigned long long)co_s_final);
+        serverLog(LL_NOTICE, "ee451 reshard fence drained");
         atomic_store_explicit(&co_state, CO_WAIT_APPLIED, memory_order_release);
         return;
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_APPLIED) {
-        /* C.3: B must replay the entire log up to the freeze point. */
-        if (atomic_load_explicit(&server.migration.applied_seq, memory_order_acquire) < co_s_final)
-            return;
-        uint64_t s_final = co_s_final;
+        /* C.3: the "B must replay the log up to the freeze point" wait was the copy engine's.
+         * Nothing is replayed now — the fence above already proved every in-flight range command
+         * dispatched to A has executed, which is the whole precondition for the flip. */
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
@@ -11195,16 +10914,14 @@ static void reshardCoordinatorTick(void) {
     else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
-    serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d (S_final=%llu)",
-              lo, hi, dst, (unsigned long long)s_final);
+    serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d", lo, hi, dst);
 
     /* ee451 (thread-modes v1, step 3): spare ACTIVATION — the table remap above IS the
      * go-live (dispatch now routes [lo,hi) to the spare's slot), so publish it to the
      * live-worker set here: the autotuner starts balancing it, KEYS/FLUSH fan-outs and
      * RANDOMKEY cover it. Producer-side coverage (flushExQueues, cross-shard scratch)
      * is alloc-sized and needed no liveness signal. The spare has been running exSlice
-     * since before ARM (it drained this very effect log as dst), so everything routed
-     * from this instant is consumed. */
+     * since before ARM, so everything routed from this instant is consumed. */
     if (server.tm_mig_spare_action == 1) {
         atomic_store_explicit(&server.num_workers_live, server.num_workers_alloc, memory_order_release);
         serverLog(LL_NOTICE, "ee451 thread-modes: spare worker %d LIVE (num_workers_live=%d)",
@@ -11224,27 +10941,12 @@ static void reshardCoordinatorTick(void) {
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
-        /* Phase D.1: ref-fence (no-op when zerocopy gated off). */
-        /* NOTE (2026-07-27): outstanding_a_refs has no incrementer anywhere in the tree, so this
-         * wait always passes. An adversarial audit called that a fail-open hole; it is not. The
-         * field guards zero-copy reply refs pointing into A's range against A's copy being FREED at
-         * CLEANUP -- and under shared node dbs CLEANUP is skipped entirely (see the phase store
-         * below: "nothing to clean -- the flipped range's data lives in the SAME dict[b] the new
-         * owner now serves"). The value is never freed by a flip, so no ref can dangle.
-         * And reshard cannot run in the other mode: shared_node_dbs = (workers_per_node > 1), while
-         * a reshard moves a range between two workers OF ONE NODE -- with one worker per node there
-         * is no valid (src,dst) pair. So the copy path this fence was written for is unreachable.
-         * Left in place as a no-op guard. If the copy engine is ever revived, this needs a REAL
-         * incrementer plus a counter proving it fires -- do not trust the wait as written. */
-        if (atomic_load_explicit(&server.migration.outstanding_a_refs, memory_order_acquire) > 0) return;
-
-    /* D.2: hand cleanup to worker A (single writer of its shard); it deletes the range and -> DONE.
-     * Once phase==DONE, worker B's drain gate (phase!=MIG_DONE) stops it calling migDrainB, so B
-     * will not touch the log again. */
-        /* ee451 (shared-kv S1): nothing to clean — the flipped range's data lives in the SAME
-         * dict[b] the new owner now serves; there is no stale source copy. Straight to DONE. */
-        atomic_store_explicit(&server.migration.phase,
-                              server.shared_node_dbs ? MIG_DONE : MIG_CLEANUP, memory_order_release);
+        /* Phase D.1/D.2: the ref-fence (outstanding_a_refs) and the CLEANUP hand-off to worker A
+         * both existed only for the copy engine — the fence held the flip until no zero-copy reply
+         * still pointed into a value A's CLEANUP was about to free. There is no second copy and no
+         * CLEANUP now (the flipped range's data is in the SAME dict[b] the new owner already
+         * serves), so nothing can dangle and the phase goes straight to DONE. */
+        atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
         atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
         return;
     }
@@ -11257,14 +10959,13 @@ static void reshardCoordinatorTick(void) {
     }
 
     /* D.3: RCU-style teardown — NO timing guess. (1) Wait for worker B's heartbeat to advance several
-     * iterations so it has provably looped past the phase==DONE gate and is out of migDrainB. (2) Free
-     * the log and NULL it. (3) Publish migration_active=0 LAST — the sole "one migration at a time"
-     * gate (reshardArm/reshardAutoTune) so a new migration cannot start (and overwrite migration.log)
-     * until the old log is fully freed. Closes the teardown UAF and the re-arm double-free. */
+     * iterations so it has provably looped past the phase==DONE gate and is out of its migration
+     * duties. (2) Publish migration_active=0 LAST — the sole "one migration at a time" gate
+     * (reshardArm/reshardAutoTune), so a new migration cannot start while a worker is still reading
+     * the outgoing one's range/phase. (The effect-log free this used to guard went with the copy
+     * engine; the heartbeat wait stays — it is what makes active=0 safe to publish.) */
     if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_QUIESCE) return;
     if (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < co_hb0 + 3) return;
-    migLogFree(server.migration.log);
-    server.migration.log = NULL;
     /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the spare-action flag
      * strictly BEFORE the active=0 release-store. The instant active drops, the main thread
      * may arm a NEW migration and write a NEW action; a late clear here could overwrite it
@@ -12297,39 +11998,9 @@ void reshardKickAfterFlip(int from_w, int to_w) {
     for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) mig_hot_streak[w] = 0;
 }
 
-/* Content checksum over all keys of worker `wid`'s shard whose bucket ∈ [lo,hi). Order-independent
- * (XOR fold of key-hash mixed with the RDB-serialized value bytes), so src and dst can be compared
- * directly: equal (count,xsum) ⇒ identical range contents. Racy under concurrent writes — call only
- * when the write load is quiesced (it is a validation aid, not a hot path). */
-static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCount, uint64_t *outXsum) {
-    unsigned long long count = 0; uint64_t xsum = 0;
-    exThread *w = &server.exThreads[wid];
-    for (int dbid = 0; dbid < server.dbnum; dbid++) {
-        kvstoreIterator it;
-        kvstoreIteratorInit(&it, w->db[dbid].keys);
-        dictEntry *de;
-        while ((de = kvstoreIteratorNext(&it)) != NULL) {
-            kvobj *kv = dictGetKV(de);
-            sds k = kvobjGetKey(kv);
-            int b = (int)(xxh64(k, sdslen(k)) & TOMO_BUCKET_MASK);
-            if (b < lo || b >= hi) continue;
-            rio r; rioInitWithBuffer(&r, sdsempty());
-            rdbSaveObjectType(&r, (robj*)kv);
-            rdbSaveObject(&r, (robj*)kv, NULL, dbid);
-            uint64_t vh = xxh64(r.io.buffer.ptr, sdslen(r.io.buffer.ptr));
-            sdsfree(r.io.buffer.ptr);
-            uint64_t kh = xxh64(k, sdslen(k));
-            xsum ^= (kh * 0x9e3779b97f4a7c15ULL) + vh + (uint64_t)dbid;
-            count++;
-        }
-        kvstoreIteratorReset(&it);
-    }
-    *outCount = count; *outXsum = xsum;
-}
-
 /* DEBUG RESHARD START <lo> <hi> <src> <dst>  — arm a migration (manual trigger for validation).
- * DEBUG RESHARD STATUS                       — phase/counters + per-shard range checksum (src vs dst).
- * Runs on the IO thread; ARM only flips atomics + allocates the log (safe). */
+ * DEBUG RESHARD STATUS                       — active flag, phase and the armed range/workers.
+ * Runs on the IO thread; ARM only flips atomics (safe). */
 void reshardDebug(client *c) {
     if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "start")) {
         if (c->argc != 7) { addReplyError(c, "DEBUG RESHARD START <lo> <hi> <src> <dst>"); return; }
@@ -12352,7 +12023,7 @@ void reshardDebug(client *c) {
         addReply(c, shared.ok);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "cutover")) {
         if (!reshardBeginCutover())
-            { addReplyError(c, "not in COPYING, or cold scan not finished (check scan_done=1)"); return; }
+            { addReplyError(c, "no migration armed, not in COPYING, or a cutover is already running"); return; }
         addReply(c, shared.ok);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "ops")) {
         /* sum of per-worker monotonic op counters — a throughput readout that COUNTS worker-dispatched
@@ -12428,23 +12099,16 @@ void reshardDebug(client *c) {
         int bucket = (int)(xxh64(key, sdslen(key)) & TOMO_BUCKET_MASK);
         addReplyStatusFormat(c, "key=%s bucket=%d routed_ex=%d", key, bucket, routed);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
+        /* The copy-engine readouts are gone with the engine: issued/applied were the effect log's
+         * sequence counters, scan_done was the cold scan's completion flag, and src_keys/dst_keys/
+         * converged compared the source and destination range checksums. That comparison is
+         * VACUOUS now — src and dst are two workers of one node reading ONE physical kvstore, so
+         * the two checksums are equal by construction and "converged=1" would prove nothing. */
         int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
-        unsigned long long sc = 0, dc = 0; uint64_t sx = 0, dx = 0;
         int phase = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
-        unsigned long long issued = atomic_load_explicit(&server.migration.issued_seq, memory_order_relaxed);
-        unsigned long long applied = atomic_load_explicit(&server.migration.applied_seq, memory_order_relaxed);
-        int scan_done = atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed);
-        if (active) {
-            migRangeChecksum(server.migration.src, server.migration.lo, server.migration.hi, &sc, &sx);
-            migRangeChecksum(server.migration.dst, server.migration.lo, server.migration.hi, &dc, &dx);
-        }
-        addReplyStatusFormat(c,
-            "active=%d phase=%d lo=%d hi=%d src=%d dst=%d issued=%llu applied=%llu scan_done=%d "
-            "src_keys=%llu src_xsum=%llu dst_keys=%llu dst_xsum=%llu converged=%d",
-            active, phase, server.migration.lo, server.migration.hi, server.migration.src,
-            server.migration.dst, issued, applied, scan_done,
-            sc, (unsigned long long)sx, dc, (unsigned long long)dx,
-            (active && sc == dc && sx == dx) ? 1 : 0);
+        addReplyStatusFormat(c, "active=%d phase=%d lo=%d hi=%d src=%d dst=%d",
+            active, phase, server.migration.lo, server.migration.hi,
+            server.migration.src, server.migration.dst);
     } else {
         addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS|LBFINE");
     }
@@ -16341,16 +16005,10 @@ static inline void exExecFake(client *fake) {
         fake->tomo_bkt_ptr = NULL;
         server.current_client[iotid].p = NULL;
         server.executing_client[iotid].p = NULL;
-        /* ee451 (v8d): online-resharding effect capture. If a migration is live and this was a
-         * WRITE to a key in the migrating bucket range, append the post-image/tombstone to the
-         * A->B effect log in commit order. Range keys only execute on worker A (the table maps
-         * them to A until cutover), so reaching this with an in-range key implies we ARE A.
-         * Gated by a relaxed load of the always-0 hot byte: ~free outside a migration. */
-        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
-            (fake->cmd->flags & CMD_WRITE) && fake->argc >= 2 && fake->argv && fake->argv[1])
-            migCaptureEffect(fake->db, fake->argv[1]);
-        /* ee451 (F-clock): released only here, AFTER the effect capture — the capture re-reads the
-         * key it just wrote, and it must see the same logical instant the proc did. */
+        /* ee451 (v8d): the online-resharding effect capture that used to run here (append the
+         * post-image/tombstone of an in-range write to the A->B effect log, in commit order) was
+         * the copy engine's producer hook and is deleted with it — a reshard moves ownership
+         * inside one shared kvstore, so a range write needs no post-image. */
         tomoCmdClockExit();
     }
     pendingCommand *wpcmd = fake->current_pending_cmd;
@@ -16486,32 +16144,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
     }
 
-    /* ee451 (v8d): online-resharding worker duties (gated by the always-0 hot byte).
-     * B replays the ordered effect log into its shard; A advances the cold-key scan during
-     * COPYING. Both are this-worker-only writes (single-writer preserved). */
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0)) {
-        int ph = atomic_load_explicit(&server.migration.phase, memory_order_acquire);
-        /* ee451 (shared-kv S1): in shared mode the copy engine never runs — no scan, no replay,
-         * no cleanup (the fence+flip in the coordinator is the whole reshard). The loop_seq
-         * heartbeat above MUST keep beating either way: the coordinator's RCU teardown waits on it. */
-        if (!server.shared_node_dbs) {
-        if (worker->id == server.migration.dst) {
-            if (ph != MIG_DONE) migDrainB(worker);   /* migApplyOne self-locks per entry when mcmd-lock on */
-        } else if (worker->id == server.migration.src) {
-            /* review fix (mcmd-lock): A's cold-key scan (dictFind rehash) and CLEANUP range-delete both
-             * touch A's shard db and, unlike migApplyOne, are not naturally per-entry — so hold A's own
-             * worker lock across them. It excludes the off-worker paths into this node's shared
-             * kvstore: an HFE command on a sibling worker (which holds ALL the node's locks) and
-             * RANDOMKEY's expireIfNeeded delete. The node borrow was deleted 2026-07-27 and was
-             * never the only such path. Scan is bounded (64 keys/call); cleanup is one-shot.
-             * (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the design.) */
-            tomoWkrLock(worker->id);
-            if (ph == MIG_COPYING) migServiceScanA(worker);
-            else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
-            tomoWkrUnlock(worker->id);
-        }
-        }
-    }
+    /* ee451 (v8d): the per-worker online-resharding duties (B replaying the ordered effect log,
+     * A advancing the cold-key scan during COPYING and deleting its range at CLEANUP) were the
+     * COPY ENGINE and are deleted — a reshard now only flips ownership inside one shared physical
+     * kvstore, so no worker has anything to do for it. The loop_seq heartbeat above keeps beating
+     * regardless: the coordinator's RCU teardown still waits on it. */
 
     /* ee451 (bug #42): ACTIVE EXPIRY of this worker's OWN bucket range. Edge-triggered off the
      * cadence counter main bumps once per serverCron tick, so the steady-state cost of the check is
@@ -16698,9 +16335,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                  *      holding ALL of the node's worker locks, so an unlocked sub here would race
                  *      them — dictAdd/dictFind rehash vs a concurrent estore walk is heap
                  *      corruption, not a stale read.
-                 *   2. Online resharding (v8d) applies effect-log entries and advances the cold-key
-                 *      scan against the shared node kvstore from OUTSIDE the single-key op path
-                 *      (migApplyOne / the A-side scan both take this same lock).
+                 *   2. (Online resharding used to be the second case — the effect-log replay and
+                 *      the cold-key scan both hit the shared node kvstore from outside the
+                 *      single-key op path. That copy engine was deleted 2026-07-28; case 1 alone
+                 *      is load-bearing and still requires this lock.)
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
                  * mutates/reads. (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the
                  * design, so this is unconditional.) */
@@ -17772,9 +17410,6 @@ void *polyThreadMain(void *arg) {
                               ctx->ex->id, iotid, sz);
                 }
                 break;
-            case TOMO_MODE_WB:
-                ok = 0;                                 /* 2s fork has no WB slice */
-                break;
             case TOMO_MODE_PARKED:
             default:
                 /* ee451 (step 3): parking is legal from birth (cur == -1) and from EX
@@ -17906,8 +17541,8 @@ void *polyThreadMain(void *arg) {
  *       and KEYS/FLUSH fan-outs stop considering the spare while it keeps consuming),
  *       then migrate ALL of the spare's buckets back to W-1; after teardown the
  *       coordinator requests PARKED and the spare's park checkpoint drains, asserts
- *       its shard EMPTY, and parks. Value 3 is the explicit park verb (no WB mode in
- *       the 2s fork); IO-exit (IO->PARKED) and direct IO<->EX swaps stay rejected.
+ *       its shard EMPTY, and parks. Value 3 is the explicit park verb (the WB mode it
+ *       used to name is deleted); IO-exit (IO->PARKED) and direct IO<->EX swaps stay rejected.
  * Runs on the main thread (CONFIG SET) — the SAME thread as reshardAutoTune, so the
  * live-set write, the EWMA-slot resets and the arm are atomic wrt the autotuner.
  * Returns 1 on success, 0 with *err set (config.c rolls the value back). */
@@ -18171,7 +17806,11 @@ int tomoSpareShift(int mode, const char **err) {
     if (mode == TOMO_MODE_PARKED && !tmSpare) return 1;   /* boot default / knob off / no spare — inert */
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (!tmSpare) { *err = "no spare poly thread (configured threads >= allowed cores)"; return 0; }
-    if (mode == TOMO_MODE_WB) mode = TOMO_MODE_PARKED;    /* value 3 = the explicit park verb (2s fork) */
+    /* DEBUG TOMO-MODESHIFT 3 is the EXPLICIT park verb: unlike 0 (== TOMO_MODE_PARKED) it is not
+     * silently inert when there is no spare, it reports the error. Kept as a bare integer because
+     * the enum member it used to name (TOMO_MODE_WB, the 3-stage write-back mode) was deleted —
+     * this is the 2-stage line and no thread could ever adopt it. */
+    if (mode == 3) mode = TOMO_MODE_PARKED;
     int cur = atomic_load_explicit(&tmSpare->mode, memory_order_acquire);
     /* ee451 (thread-modes step 4, hardening 3.1c): a transition may be PENDING — adopted
      * target not yet reached (the coordinator's park request after a deactivation teardown
@@ -18237,8 +17876,8 @@ int tomoSpareShift(int mode, const char **err) {
          * target_mode orders this store before the spare's first EX slice. */
         server.exThreads[W].tm_qdepth_ewma_q4 = 0;   /* stale pre-park backlog EWMA must not vote */
         /* 1. Wake the spare into EX. It adopts at its parked checkpoint (<= 50ms poll)
-         * and MUST be slicing before the migration arms: the dst-side effect-log drain
-         * (migDrainB) runs inside exSlice, and a full log would stall the src worker. */
+         * and MUST be slicing before the migration arms: it has to be popping its queues
+         * by the time the FLIP routes the seeded buckets to it. */
         atomic_store_explicit(&tmSpare->target_mode, TOMO_MODE_EX, memory_order_release);
         serverLog(LL_NOTICE, "ee451 thread-modes: MODESHIFT requested — spare PARKED->EX (worker slot %d); "
                              "will seed buckets [%d,%d) from worker %d after EX adoption", W, lo, hi, src);
@@ -18269,8 +17908,7 @@ int tomoSpareShift(int mode, const char **err) {
         reshardBeginCutover();
         return 1;
     }
-    case TOMO_MODE_WB:          /* value 3 = the explicit park verb (no WB mode in the 2s fork) */
-    case TOMO_MODE_PARKED: {
+    case TOMO_MODE_PARKED: {    /* the park verb 3 was normalised to PARKED at entry */
         if (cur == TOMO_MODE_PARKED) return 1;        /* no-op */
         if (cur == TOMO_MODE_IO)
             { *err = "IO-exit (gradual drain) is not implemented in v1 — cannot re-park a live IO spare"; return 0; }
