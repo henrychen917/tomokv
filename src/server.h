@@ -2242,13 +2242,6 @@ typedef struct exThread {
      * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
      * groups of its own virtual shard; the balancer sums across workers for per-group load. */
     uint32_t lb_grp_ops[TOMO_LB_GROUPS];
-    /* ee451 (2026-07-28): the ARMED per-bucket window (see TOMO_LB_FINE_WIN). lb_fine_win is written
-     * ONLY by the main thread (the 1 Hz balancer) and read relaxed by the owning worker; the counters
-     * are written ONLY by the owning worker and read (never written) by the balancer, which diffs
-     * them against its own snapshot — the same single-writer discipline lb_grp_ops uses, so no
-     * atomic RMW appears on the data path. len == 0 => disarmed => the counters are never touched. */
-    _Atomic uint64_t lb_fine_win;
-    uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
@@ -2308,6 +2301,17 @@ typedef struct exThread {
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */
+    /* ee451 (2026-07-28): the ARMED per-BUCKET load window (see TOMO_LB_FINE_WIN). lb_fine_win is
+     * written ONLY by the main thread (the 1 Hz balancer) and read relaxed by the owning worker;
+     * the counters are written ONLY by the owning worker and read (never written) by the balancer,
+     * which diffs them against its own snapshot — the same single-writer discipline lb_grp_ops
+     * uses, so no atomic RMW appears on the data path. len == 0 => disarmed => never touched.
+     * PLACEMENT: at the very END, for the reason the reclaim block above documents — inserting
+     * fields mid-struct shifts the tuned hot block and has measured -16% on p32 SET here. Appending
+     * leaves every pre-existing field's offset unchanged, which also means an A/B of this feature
+     * against the previous build cannot be contaminated by layout. */
+    _Atomic uint64_t lb_fine_win;
+    uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
