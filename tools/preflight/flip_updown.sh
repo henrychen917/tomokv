@@ -51,13 +51,29 @@ sleep 3
 "$J/clean-w/src/redis-cli" -p $PORT ping >/dev/null 2>&1 || { echo "FAIL: server did not boot" | tee -a "$OUT"; exit 1; }
 $MT --ratio=1:0 $KM --key-pattern=P:P -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
 
-iolive(){ grep -o 'io=[0-9]*' "$LOG" | tail -1 | cut -d= -f2; }
+# ee451 2026-07-29: ANCHOR ON THE FLIP CONTROLLER'S OWN TOKEN.
+# This was `grep -o 'io=[0-9]*' "$LOG" | tail -1`, and `io=` is NOT unique in a notice-level log.
+# The balancer emits `[balance] pressure ex=%ld io=%ld` (server.c:18924, LL_NOTICE) — a PRESSURE
+# figure, not a thread count. Measured in this box's captured logs: `io=100`, `io=97`, `io=53`,
+# `io=47`, `io=22` all appear, none of which can be a live io-thread count on a server booted with
+# --tomokv-thread-io 4; and in bal_posctl.srv.log / bal_auto.srv.log the naive grep returns io=0
+# straight off `[balance] pressure ex=0 io=0` while no flip-controller line exists at all.
+# The whole verdict below is A/B/C/D comparisons of this number, so on its FIRST EVER execution
+# this suite could have compared balancer pressure readings and emitted an arbitrary PASS or FAIL —
+# and a run of all-zeros yields fwd=0/back=0, i.e. FAIL for every build regardless of the product.
+# The flip controller prints `... | w_live=%d io=%d` (server.c:19368/19456), which is unambiguous.
+iolive(){ grep -oE 'w_live=[0-9]+ io=[0-9]+' "$LOG" | tail -1 | grep -oE 'io=[0-9]+' | cut -d= -f2; }
 phase(){ # label pipeline ratio
   $MT --test-time=$PHASE --ratio="$3" $KM --key-pattern=R:R -t 8 -c 25 --pipeline "$2" \
       --distinct-client-seed >/dev/null 2>&1
   local io; io=$(iolive)
-  printf '%s\tio=%s\n' "$1" "${io:-?}" | tee -a "$OUT"
-  echo "${io:-0}"
+  printf '%s\tio=%s\n' "$1" "${io:-NONE}" | tee -a "$OUT"
+  # ee451 2026-07-29: emit NONE, not 0, when the controller printed no reading. `${io:-0}` fed a
+  # FABRICATED zero into the comparisons below, where it is indistinguishable from a genuine
+  # measurement of zero live io threads — so "the harness could not read the value" and "the
+  # controller collapsed the front to nothing" produced the identical FAIL. They need different
+  # verdicts: one is INVALID, the other is a product bug.
+  echo "${io:-NONE}"
 }
 
 echo "=== flip conformance: p32 -> p1 -> p32 -> p1 (io4/ex4 boot, thread-mode auto) ===" | tee -a "$OUT"
@@ -70,7 +86,14 @@ pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
 # `grep -c` PRINTS "0" *and* exits 1 when there is no match, so the old `|| echo 0` appended a
 # SECOND "0" and left FLIPS as the two-line string "0\n0" -- against which `[ "$FLIPS" = 0 ]` is
 # false. The zero-actuation NOTE could therefore never print on the one run that most needs it.
-FLIPS=$(grep -c 'MODESHIFT\|grow-front\|grow-back' "$LOG" 2>/dev/null) || true
+# ee451 2026-07-29: the patterns did not match what the server actually writes. The emitted strings
+# are `ee451 flip: GROW-FRONT …` / `ee451 flip: GROW-BACK …` (server.c:17664/17744/17776/17806) and
+# `ee451 thread-modes: MODESHIFT …` — UPPERCASE. `grep -c 'grow-front\|grow-back'` is case-sensitive,
+# so it could only ever have matched MODESHIFT, which is the SPARE PARKED->IO mechanism and not the
+# grow-front/grow-back flips this suite exists to check. FLIPS=0 was therefore near-guaranteed, and
+# FLIPS=0 is what prints "the controller never actuated at all" — a confident claim about the
+# product, derived from a typo.
+FLIPS=$(grep -cE 'MODESHIFT|GROW-FRONT|GROW-BACK' "$LOG" 2>/dev/null) || true
 FLIPS=${FLIPS:-0}
 
 # THE VERDICT IS COMPUTED IN *THIS* SHELL, NEVER INSIDE A PIPELINE.
@@ -90,15 +113,26 @@ VTMP=$(mktemp "${TMPDIR:-/tmp}/flip_updown.verdict.XXXXXX")
 {
   echo
   echo "io_threads_live by phase:  p32=$A -> p1=$B -> p32=$C -> p1=$D   (flip log lines: $FLIPS)"
+  # A phase with no reading cannot be compared. Say so instead of inventing a number: a suite that
+  # could not observe the thing it grades must report INVALID, never FAIL — "the controller is
+  # broken" and "I could not see the controller" are different claims about different systems.
+  if [ "$A" = NONE ] || [ "$B" = NONE ] || [ "$C" = NONE ] || [ "$D" = NONE ]; then
+    echo "flip_updown: INVALID — the flip controller logged no 'w_live=N io=N' reading in $(
+      for p in A B C D; do eval "v=\$$p"; [ "$v" = NONE ] && printf '%s ' "$p"; done) phase(s)."
+    echo "  At --loglevel notice the controller prints that line every tick it evaluates, so a"
+    echo "  missing reading means it never ran, not that it moved the wrong way. Not a verdict on"
+    echo "  the build. Log: $LOG"
+    VERDICT=2
+  fi
   fwd=0; back=0
-  [ "${B:-0}" -gt "${A:-0}" ] && fwd=1
-  [ "${D:-0}" -gt "${C:-0}" ] && fwd=1
-  [ "${C:-0}" -lt "${B:-0}" ] && back=1
-  if [ "$fwd" = 1 ] && [ "$back" = 1 ]; then
+  [ "$VERDICT" != 2 ] && { [ "${B:-0}" -gt "${A:-0}" ] && fwd=1; }
+  [ "$VERDICT" != 2 ] && { [ "${D:-0}" -gt "${C:-0}" ] && fwd=1; }
+  [ "$VERDICT" != 2 ] && { [ "${C:-0}" -lt "${B:-0}" ] && back=1; }
+  if [ "$VERDICT" != 2 ] && [ "$fwd" = 1 ] && [ "$back" = 1 ]; then
     VERDICT=0
     echo "flip_updown: PASS — front-flip-back AND back-flip-front both observed"
   fi
-  if [ "$VERDICT" != 0 ]; then
+  if [ "$VERDICT" = 1 ]; then
     echo "flip_updown: FAIL"
     [ "$fwd"  = 0 ] && echo "  no FRONT growth: p1 never raised io above its p32 level (expected io7-ish at p1)"
     [ "$back" = 0 ] && echo "  no BACK growth: p32 never lowered io after p1 (expected io4-ish at p32)"

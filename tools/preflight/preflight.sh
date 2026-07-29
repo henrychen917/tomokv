@@ -173,7 +173,7 @@ run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
 run_suite $SD/keylb_veto.sh          $PF/keylb_veto.out         $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
-run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL'
+run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL' 'INVALID'
 run_suite $SD/lb_skew.sh              $PF/lb_skew.out              $'\tFAIL' $'\tSKIP'
 # ee451 2026-07-29: side_regression was NEVER WIRED IN. 62f03ebcc repaired its `BIN=${1:?}` line so
 # it could run under `TOMO_BIN`, and the plan lists side_regression.out among the files a preflight
