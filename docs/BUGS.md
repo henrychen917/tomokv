@@ -763,3 +763,22 @@ now records it for every run, and `RSS`/`MemAvailable` alongside it so OOM is se
 
 **A real defect was found while chasing this** — see §A10 — but it is *not* this sighting, and the
 report says so.
+
+### J-extra. `DEBUG RESHARD STATUS` iterates both whole shards on an IO thread (found, not fixed)
+
+`reshardDebug`'s STATUS branch calls `migRangeChecksum` for **both** `src` and `dst`, and that walks
+the entire kvstore with an `rdbSaveObject` per key — on whichever **IO thread** received the
+command, while workers are mutating the same (shared-node) kvstore. Two problems:
+
+1. It is the same single-writer violation the neighbouring `FIND` branch was explicitly rewritten to
+   avoid (*"an earlier variant scanned every worker's dict for the key; that is a §4.8 single-writer
+   violation that races worker writes and can crash"*).
+2. It is unbounded work on a producer thread. With a 2 M-key dataset it parks that IO thread for
+   **seconds** — and a parked producer neither pushes its cutover drain sentinel nor lets its queue
+   to worker A go empty, so the C.2 fence cannot complete and every range op holds. A tool used to
+   *observe* a cutover can therefore stall the cutover it is observing.
+
+`tools/preflight/reshard_order.py` polls STATUS in a loop while driving cutovers. It is safe only
+because it seeds 64 keys. Any use of that probe against a realistic dataset will manufacture a stall
+and invite exactly the misdiagnosis §J is about. `tools/preflight/reshard_arm_race.py` deliberately
+uses no STATUS at all for this reason.
