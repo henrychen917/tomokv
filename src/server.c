@@ -12053,7 +12053,7 @@ void reshardDebug(client *c) {
             sc, (unsigned long long)sx, dc, (unsigned long long)dx,
             (active && sc == dc && sx == dx) ? 1 : 0);
     } else {
-        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS");
+        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS|LBFINE");
     }
 }
 /* ========================== end resharding (engine) ========================== */
