@@ -10617,6 +10617,17 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
  * RESHARD START on an IO thread, reshardAutoTune on the main thread — mig_arm_lock serializes
  * the check-then-publish so two racing armers can't both pass the active gate and leak a log). ---- */
 static _Atomic int mig_arm_lock = 0;
+/* A counter, not a comment: a migration was ARMED and then could not get a coordinator — the
+ * defect itself firing. It must be 0 on a fixed build, and it is what the discriminating test
+ * asserts against a defect-reintroduced build. */
+static _Atomic uint64_t tomo_reshard_cutover_no_coord = 0;
+/* Which ARM the coordinator is currently servicing. Bumped once per successful arm; latched by
+ * reshardBeginCutover when it wins the CAS. It exists to keep cutover_no_coord unambiguous: a
+ * SECOND `DEBUG RESHARD CUTOVER` for the migration already being coordinated also fails the CAS,
+ * and counting that as "armed with no coordinator" would make the counter fire on a healthy
+ * build — i.e. would make the acceptance test lie. */
+static _Atomic uint64_t mig_arm_seq = 0;
+static _Atomic uint64_t co_serving_arm = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||        /* review [2]: flush froze boundaries */
@@ -10986,7 +10997,27 @@ static int reshardBeginCutover(void) {
     int expect = CO_IDLE;   /* zero-thread-churn: arm the main-thread tick machine (CAS: DEBUG
                              * CUTOVER runs on an IO thread; the tick itself is main-only) */
     if (!atomic_compare_exchange_strong_explicit(&co_state, &expect, CO_WAIT_CONVERGE,
-                                                 memory_order_acq_rel, memory_order_relaxed)) return 0;
+                                                 memory_order_acq_rel, memory_order_relaxed)) {
+        /* A coordinator is already running. If it is servicing THIS arm, this is just a repeated
+         * CUTOVER for a cutover already under way — idempotent, report success. The winner
+         * publishes co_serving_arm just AFTER its CAS, so a simultaneous second caller can read it
+         * before that store lands; re-read briefly rather than mis-count, because a false positive
+         * would put a non-zero value in the very counter the acceptance test asserts on. */
+        uint64_t arm = atomic_load_explicit(&mig_arm_seq, memory_order_acquire);
+        for (int spin = 0; spin < 1024; spin++) {
+            if (atomic_load_explicit(&co_serving_arm, memory_order_acquire) == arm) return 1;
+            exPauseCpu();
+        }
+        /* Otherwise this migration is ARMED WITH NO COORDINATOR and never will have one, leaving
+         * migration_active stuck for the life of the process (see reshardCoordinatorTick's teardown
+         * for what that costs). Deliberately NOT "retried" when co_state returns to CO_IDLE: that
+         * retry would ALSO heal a build that still has the defect, and an acceptance test that
+         * passes on the broken build is worse than no test. */
+        atomic_fetch_add_explicit(&tomo_reshard_cutover_no_coord, 1, memory_order_relaxed);
+        return 0;
+    }
+    atomic_store_explicit(&co_serving_arm, atomic_load_explicit(&mig_arm_seq, memory_order_acquire),
+                          memory_order_release);
     return 1;
 }
 
@@ -13683,6 +13714,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_xshard_heap_fallbacks:%llu\r\n", csg_heap,
             "tomokv_xshard_hop2_unbarriered:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
+            /* reshard teardown-window instrumentation: > 0 means a migration was armed with no
+             * coordinator, i.e. migration_active is now stuck for the life of the process. */
+            "tomokv_reshard_cutover_no_coord:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,

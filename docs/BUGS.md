@@ -147,6 +147,49 @@ nothing. Pinning them removes the last unowned mutable refcount in the tree. `sh
 already `makeObjectShared` upstream, which is why the `XCLAIM` argv (`t_stream.c:1858`) was never
 exposed despite being built on a worker.
 
+<<<<<<< HEAD
+=======
+### A10. A migration armed in the cutover teardown window is armed FOREVER — P0, server kill — `af9d6b590`
+
+`reshardCoordinatorTick`'s teardown published `migration_active = 0` and only **then**
+`co_state = CO_IDLE`, with a `serverLog()` (open/write/fflush/close) between the two stores.
+`reshardArm` gated on `migration_active` alone; `reshardBeginCutover` gates on a CAS of
+`co_state IDLE -> WAIT_CONVERGE`. `DEBUG RESHARD START` runs on an **IO thread** — and
+`tools/preflight/reshard_order.py` drives START/CUTOVER in a tight loop for 180 s in the shipped
+preflight — so an arm can land inside that window: START succeeds, the following CUTOVER's CAS
+fails, and the migration is left **armed with no coordinator**. Nothing ever starts one, so
+`migration_active` is stuck at 1 for the life of the process.
+
+That one stuck flag is not a stalled reshard, it is a delayed server kill:
+
+- every later `reshardArm` is refused ⇒ the load balancer is dead;
+- `flatResizeCoordinate()` returns at its own `migration_active` check ⇒ **the FLATSTORE table can
+  never resize again**. Under a write workload it fills to capacity and `flatInsert` ends in
+  `serverPanic("flatstore INSERT: table full")`.
+
+**Fixed by the store reorder alone**: teardown publishes `co_state = CO_IDLE` **before**
+`migration_active = 0`, and the trailing `co_state` store at the end of the function is deleted —
+once `active` is 0 a new migration may already have CASed it to `CO_WAIT_CONVERGE`, and a trailing
+store would strand *that* one the same way. Because `active = 0` is a release store, any armer that
+acquire-observes `active == 0` necessarily also observes `co_state == CO_IDLE`, so its cutover's CAS
+cannot fail.
+
+I first shipped a second half — `reshardArm` additionally requiring `co_state == CO_IDLE` — as
+"defence in depth". It was removed: see §B4. Two successive reviews found that each guard added to
+protect this invariant opened a wider hole than the one it closed. The reorder needs no guard.
+
+**Not vacuous, in both directions.** `INFO stats` gained `tomokv_reshard_arm_refused_coord` (the
+window was entered) and `tomokv_reshard_cutover_no_coord` (the defect firing).
+`tools/preflight/reshard_arm_race.py` requires *both* continued cutover progress *and*
+`cutover_no_coord == 0`, and reports **SKIP, not PASS**, below 200 completed cutovers so a run that
+never raced cannot pass. Acceptance ran it against a **defect-reintroduced** build (`bins/pre`,
+built with the two guards reverted but the counters left in place, so it cannot fail for the wrong
+reason) as well as the fixed one.
+
+**Found while classifying something else, which turned out not to be a server defect at all** — see
+§J.
+
+>>>>>>> 67b5844ba
 ---
 
 ## B. Defects I INTRODUCED — found and fixed
@@ -162,6 +205,57 @@ racing the owner).
 gate produces. Fixed with `tomoRetireFakeWrite()` at every retire site (which also *clears* the mark
 — a reused ring slot would otherwise decrement on a later non-write), init at both creation sites,
 and the stamp moved before every publish.
+
+### B4. My reshard arm guard turned a benign TOCTOU into a permanent balancer death — `af9d6b590`, fixed `088f8da9b`
+
+Caught by an independent review of A10 **before** it was validated, and it is the more instructive
+half of that fix.
+
+`reshardBeginCutover` checks `migration_active` and `phase == MIG_COPYING`, *then* CASes
+`co_state IDLE -> WAIT_CONVERGE`. Those are not atomic together: a `DEBUG RESHARD CUTOVER` on an IO
+thread can be preempted between them, the migration it checked can complete meanwhile (teardown
+publishes `co_state = CO_IDLE`, then `migration_active = 0`), and the CAS then **succeeds with no
+migration in flight** — a phantom coordinator. `beforeSleep` drives `reshardCoordinatorTick` only
+under `migration_active`, so `co_state` sits at `CO_WAIT_CONVERGE` forever.
+
+On its own that was harmless: arms were still allowed, the next one set `active = 1`, and the stale
+coordinator simply serviced it. **A10's arm-side `co_state` guard is what makes it fatal** — every
+future arm is refused, `active` can never become 1 again, and the load balancer, every thread-mode
+flip and `DEBUG RESHARD START` are dead for the life of the process. A guard that closes one wedge
+by opening a wider one.
+
+Fixed by making the guard ship with its rollback: `reshardBeginCutover` re-validates after winning
+the CAS and rolls `co_state` back (by CAS, never a bare store); a *losing* CAS that sees `co_state`
+return to `CO_IDLE` retries instead of counting `cutover_no_coord` (that race is normal, and a false
+positive there would make the acceptance test lie on a healthy build); and `beforeSleep` gains a
+counted, logged self-heal (`tomokv_reshard_phantom_coord`) that **resets** `co_state` rather than
+running the tick — the tick assumes a live migration and would raise a `DRAINING` fence for one that
+does not exist, holding every producer.
+
+Then the **fix for that** was itself wrong. Re-review found that the rollback (a CAS on `co_state`
+with `expected == CO_WAIT_CONVERGE`) and the `beforeSleep` self-heal net form an **ABA**: the net is
+a second writer that can drive `co_state` non-IDLE → `CO_IDLE` while a rollback is in flight, a new
+migration M2 then arms and installs a legitimate coordinator, and the stale rollback's CAS still
+matches and knocks `co_state` back to `CO_IDLE` — leaving M2 armed with no coordinator. That is the
+original P0, re-created *silently and uncounted* (`cutover_no_coord` is not bumped, because M2's own
+cutover returned success). The window is a few instructions, but it needs only microseconds of delay
+— less than the millisecond-scale stall the original TOCTOU required.
+
+**Resolution: all of it was deleted and the fix reduced to the store reorder alone.** No arm guard,
+no rollback, no retry, no self-heal net — therefore no second writer of `co_state`, no ABA, and no
+phantom wedge (without the arm guard a phantom coordinator is benign again: the next arm sets
+`active = 1` and the stale coordinator simply services it, exactly as before). What ships is the
+2-line ordering change plus the counter and the idempotency latch the test needs.
+
+**Lesson:** the guard and the invariant it assumes have to be reviewed together. I checked that the
+guard closed the window; I did not check what the guard did to every *other* path that could leave
+`co_state` non-IDLE — and then did the same thing again one level down. Three iterations, two new
+defects, both caught by review rather than by any test. When a fix keeps needing another guard to
+make the previous guard safe, the fix is wrong: go back to the smallest change that closes the
+original window. Also: `bins/pre` must keep `mig_arm_seq`/`co_serving_arm` and the 1024-spin (not
+just the counter) or a duplicate CUTOVER makes it fail for the wrong reason, and it must NOT carry
+the retry branch — on the broken build `co_state` returns to `CO_IDLE` within the spin, so the retry
+would heal the defect and the acceptance test would PASS on the broken build.
 
 ### B2. Sub-wave arity bug — `20cdae804`
 Capped `nw` at 8 but advanced `base += 32`, so `MGET(10)` emitted an 8-element body under a
