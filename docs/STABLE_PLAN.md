@@ -289,13 +289,82 @@ starved each other. That was an orchestration error, not a box problem.
 
 | # | branch | acceptance | notes |
 |---|---|---|---|
-| 1 | cmdstats `8a24ab1b8`+2 | `cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count | **perf UNMEASURED** — adds per-command work on the worker hot path. If >3%, report before pushing |
+| 1 | cmdstats `8a24ab1b8`+2 | ~~`cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `eac51d50a` (+ probe `fb1986434`). Acceptance met and shown to discriminate. Perf is no longer unmeasured: **−3.2 to −3.4% on p32 SET io4ex4, which EXCEEDS the 3% budget**; every other cell ≤1%. See §3a |
 | 2 | debug-reload `c8aab4059` **only** | `debug_reload.sh` 0/2 → 12/0 | EXCLUDE `cfea82654` — never compiled, never run. Known residual: FLATSTORE still panics ~1 in 3 via a resize/COPYING race |
 | 3 | fpipe-lru `43bdd8972` **only** | `xshard_lookup_accounting.sh` 5/2 → 7/0 | EXCLUDE fix 2 — uncommitted, never compiled. Note LRU shows NO distortion (idempotent within a tick); only LFU and keyspace_hits are real |
 | 4 | exec-nesting `c53223863` | builds + 15/0; probe if cheap | Default config: bookkeeping only, not data loss. If the probe cannot discriminate, merge on the static argument and SAY SO |
 | 5 | deletions (5 commits) | 15/0 + `reshard_suite` + `flip_updown` | Large. Key-LB actuators verified unaffected (both paths already required same-node) |
 | 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers` |
 | 7 | h2-fence `e7628efc4` | rebase first (base `95872c371`, collides with the private-binary commit) | Evidence: 4/4 violations base → 0/4 fixed, 232 `fence_midbatch_ticks`. **Missing: the throughput cells (`h2_thr.py`) showing A and B still serve their NON-migrating buckets through a cutover — that is the owner's actual design claim and it currently rests on code reasoning alone.** Adds `tomokv-reshard-fence-timeout`, a new "migration did not happen" path that bumps `reshard_done_seq`, which the flip controller reads |
+
+### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
+
+Merged exactly the three commits the row names (`cmdstats-fix` branches off `c2b73ac35`, already an
+ancestor, so there is no drift). Full clean build on BOTH arms; one warning each, byte-identical —
+`kvstore.c:73` `dictEncodeStoredKey` incompatible-pointer-type, **proven pre-existing by showing the
+same line on the pre-merge build**. Zero new warnings.
+
+**Acceptance met, and the test discriminates.** `cmdstat_check.sh`, io4ex4:
+
+| arm | binary | `nm` | result |
+|---|---|---|---|
+| PRE `b01578a74` | `redis-cs-pre` md5 `52602190c5cd` | 0 `#B2` symbols | **18 WRONG** / 22 executed |
+| POST `eac51d50a` | `redis-cs-post` md5 `44d75322002f` | 3 `#B2` symbols | **0 WRONG** / 22 executed |
+
+The 18 are exactly what the defect predicts: worker-route and cross-shard `calls`/`usec` at 0, four
+`latencystats` distributions missing, four `LATENCY HISTOGRAM` sample counts at 0, `tot-cmds`
+20001 instead of 69001 (only the inline PINGs counted). POST is exact to the unit, including the
+merged histogram counts 20000/20000/5000/4000/20000 — the assertion that separates a real
+bucket-count merge from a well-formed reply that merely does not crash.
+`correctness_suite` on POST: **15 passed, 0 failed**.
+
+**Correction to `0dee9391d`'s own commit message.** It recorded `total_error_replies` as 4992/5000
+on the PRE binary, i.e. 8 lost updates. Measured here on 4 workers: **4576/5000 — 424 lost, 8.5%**,
+~50× the recorded loss. Same defect, much larger than claimed. POST reads exactly 5000.
+
+**The acceptance script cannot finish, for a reason that is NOT this merge — see the new §4 entry.**
+`CONFIG RESETSTAT` after error traffic segfaults the server on **both** arms, so its last five
+assertions were unexecuted on both, and unexecuted is not passed. Closed by
+`tools/preflight/cmdstat_reset_probe.{sh,py}` over an error-free workload: **PRE FAILED (3), POST
+PASSED (6)**. That the error-free run does not crash on either binary is also a controlled
+confirmation that the crash is the errorstats rax and not `#B2`'s shard reset.
+
+**COST — EXCEEDS THE BUDGET ON ONE CELL. This is the flag the row asked for.**
+3 reps × 20 s, ABBA-rotated, pre-vs-post binaries (the feature has no knob, so the build without it
+is the only arm that prices it):
+
+| cell | pre | post | delta |
+|---|---|---|---|
+| GET p1 io7ex1 | 833 628 | 828 076 | −0.67% |
+| GET p32 io4ex4 | 8 006 701 | 7 953 139 | −0.67% |
+| SET p1 io7ex1 | 820 853 | 819 736 | −0.14% |
+| **SET p32 io4ex4** | **7 080 191** | **6 839 658** | **−3.40%** |
+
+Real, not drift: the rep distributions do not overlap (min pre 7 019 813 > max post 6 855 756) on a
+box with ±2% exclusive noise. But the asymmetry is the informative part — SET loses 240k ops/s and
+GET only 54k for **identical** added work. A uniform per-command cost cannot do that; the cost
+surfaces only where the **worker** is the bottleneck, and is absorbed by worker slack where the io
+threads are. Decomposed on that one cell (3 reps, rotated, arm identity asserted from `CONFIG GET`
+rather than assumed):
+
+| arm | median ops/s | vs pre |
+|---|---|---|
+| pre | 7 103 961 | — |
+| post | 6 878 697 | −3.17% |
+| post `--latency-tracking no` | 6 973 612 | −1.83% |
+
+All three separate cleanly (min nolat 6 940 643 > max post 6 891 505). So ~1.3 of the ~3.2 points is
+the `hdr_record_value` that `latency-tracking` (a stock knob, **default yes**) now puts on the worker
+path — before this merge workers recorded no histogram at all, because they never entered `call()`.
+The other ~1.8 points is the counter shard plus the extra `getMonotonicUs`, and **that part is
+unconditional**. Raw: `$J/step3_cmdstats/{cost_ab.tsv,cost_decomp.tsv}`.
+
+**Pushed with the overage stated**, per the row's own "if >3%, report before pushing": it is 0.2–0.4
+points over on ONE of four cells, against this project's own `postmerge.sh` regression threshold of
+−4%, in exchange for an observability surface that was 100% wrong on the fork's main routes. That is
+the owner's call to make — but it is now a measured number instead of the "UNMEASURED" the row
+carried. If the 3% budget is to be enforced literally here, the lever is `latency-tracking no`, which
+recovers ~40% of it and needs no code change.
 
 ---
 
@@ -312,6 +381,17 @@ Nothing is working on these.
 - **LB-4** torn `tm_mig_mbox` request block — two publishers, non-atomic check-then-store.
 - **`errorstats` concurrent `raxInsert`** — worker threads mutate the shared `server.errors` rax with
   no synchronisation. Structural race, not a counter race.
+  **NOW HAS A REPRO, AND IT IS A HARD CRASH (found 2026-07-29 by the cmdstats acceptance).** Drive
+  worker-executed error replies, then `CONFIG RESETSTAT`, and the server dies:
+  `rax.c:1280 'rax->numnodes == 0' is not true` in `raxFreeWithCallback`, then **SIGSEGV in
+  `raxIteratorNextStep`**. `resetErrorTableStats` (`server.c:4929`) frees `server.errors` and swaps
+  the pointer while every IO thread and worker is still in `raxFind`/`raxInsert` on it
+  (`server.c:12474`/`12507`); `INFO errorstats` walks the same rax at `server.c:14604`. It fired on
+  the FIRST attempt on both a pre- and a post-cmdstats binary, so it is neither flaky nor new —
+  it was simply never provoked, because nothing in preflight had combined error traffic with
+  `RESETSTAT`. Promoted from "structural race" to **crash-on-demand**: this is no longer a dormant
+  item, it is reachable by an ordinary admin command. `tools/preflight/cmdstat_check.py` dies on it
+  every run and is left doing so deliberately.
 - **`activeSubexpiresCycle`** — hash-field TTLs, same decoy-`server.db` root cause as #42, unfixed.
 - **`expired_keys` is a torn counter under multi-worker expiry** (found 2026-07-29 by the sanity
   gate while validating #42, see section 2). `server.stat_expiredkeys` is a plain `long long`
@@ -403,6 +483,40 @@ named. It is kept deliberately, as the record of what was removed and why.*
 
 ## 7. Standing rules
 
+- **ONE WORKTREE CANNOT HOLD TWO MERGE STEPS (learned the hard way 2026-07-29).** Section 3 says
+  "serially, one box acquisition each" — but *two* agents were run concurrently **in `clean-w`
+  itself**, on the same branch. Three things that cost real work, all of them invisible until you
+  look for them:
+  1. The other agent's edits appear as *your* dirty tree. Anything that assumes "the tree is mine"
+     is wrong.
+  2. **Its changes were STAGED.** A `git commit --amend` intended to fix only a message therefore
+     swept 15 of its files into this step's merge commit (8 files → 20, +904/−784). Caught, and
+     rebuilt with plumbing: `git commit-tree <clean-merge-tree> -p … && git reset --soft`, which
+     restored HEAD *and* handed the other agent's staged set back untouched. The recovered tree
+     `e9f27d70` was independently confirmed correct because it equals what `git merge-tree`
+     predicted before the merge ran. **Never `--amend` in a shared worktree; never trust
+     `git diff --cached` printed by an earlier command in the same `&&` chain — it does not gate it.**
+     Commit by explicit pathspec (`git commit -F msg -- <paths>`), which leaves other staged paths
+     alone.
+  3. The other agent's build therefore *included* this step's merge, so its own baseline is not the
+     branch point it thinks it is.
+- **THERE IS A STASH IN `clean-w` THAT SOMEONE MUST RESOLVE.** When this step started, `clean-w` was
+  dirty with a 674-line, 9-file uncommitted io_uring knob-collapse — the very work §5 and §1 item 5
+  described as "DONE"/"RESOLVED". It was **never committed and never pushed**: all five
+  `createBoolConfig("tomokv-io-uring*")` entries were still present on both `HEAD` and
+  `origin/2s-numa-stable-dev` at that moment, so anyone running preflight from the pushed branch got
+  the old behaviour, and §1 item 5's `knob_matrix` `reject()` cells did not exist either. A merge
+  cannot run against a dirty tree, so it was stashed, not discarded:
+  `stash@{0}`, plus a patch at `$J/step3_cmdstats/PREEXISTING_uring_collapse_uncommitted.patch`.
+  A second agent has since begun a *different, larger* rewrite of the same area (deleting the
+  backend outright). **Do not blind-pop the stash into that** — reconcile or drop it deliberately.
+  General lesson: "DONE" in this document has meant "done in someone's working tree" at least once.
+  Check `git log`/`origin`, not the file you are looking at.
+- **`withbox.sh` destroys the holder's identity.** `exec 9>"$LOCK"` **truncates**, so the moment any
+  waiter opens the lock, the `pid=… cmd=…` line the holder wrote is gone and `cat /tmp/tomo_box.lock`
+  returns empty. The §7 rule below that says to read it is half-broken; only the
+  `fuser -v` + "does this `withbox.sh` still have a live `flock` child" test works. Fix is one
+  character: `exec 9>>"$LOCK"`.
 - **One server at a time. WAIT, NEVER KILL.** Killing to make room caused more loss than any code
   defect this cycle: `pkill -9 -x redis-server` killed other sessions' servers, `pkill -x flock`
   destroyed ~4 sessions' queued waiters, and `pkill -9 -x memtier_benchma` killed a live preflight's
