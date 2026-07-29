@@ -104,6 +104,7 @@ run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL'
+run_suite $SD/lb_skew.sh              $PF/lb_skew.out              $'\tFAIL' $'\tSKIP'
 # command_sweep RETIRED 2026-07-28. Its per-dispatch-class floors were calibrated against a
 # -t 4 -c 8 (32-connection) config, which we have since established is CLIENT-BOUND on this box:
 # tomo-now / tomo-prev / dragonfly all measured within 0.3% of each other, which is the signature
