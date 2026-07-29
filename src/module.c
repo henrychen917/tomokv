@@ -811,7 +811,7 @@ int RM_GetApi(const char *funcname, void **targetPtrPtr) {
 }
 
 void modulePostExecutionUnitOperations(void) {
-    if (server.execution_nesting)
+    if (execution_nesting)
         return;
 
     if (server.busy_module_yield_flags) {
@@ -9110,7 +9110,7 @@ void RM_FreeThreadSafeContext(RedisModuleCtx *ctx) {
 void moduleGILAfterLock(void) {
     /* We should never get here if we already inside a module
      * code block which already opened a context. */
-    serverAssert(server.execution_nesting == 0);
+    serverAssert(execution_nesting == 0);
     /* Bump up the nesting level to prevent immediate propagation
      * of possible RM_Call from th thread */
     enterExecutionUnit(1, 0);
@@ -9147,7 +9147,7 @@ void moduleGILBeforeUnlock(void) {
     /* We should never get here if we already inside a module
      * code block which already opened a context, except
      * the bump-up from moduleGILAcquired. */
-    serverAssert(server.execution_nesting == 1);
+    serverAssert(execution_nesting == 1);
     /* Restore nesting level and propagate pending commands
      * (because it's unclear when thread safe contexts are
      * released we have to propagate here). */

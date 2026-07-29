@@ -244,7 +244,7 @@ void clusterSlotStatResetAll(void) {
 static int canAddCpuDuration(client *c) {
     return clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_CPU) && /* CPU tracking should be enabled. */
            c->slot != INVALID_CLUSTER_SLOT &&    /* Command should be slot specific. */
-           (!server.execution_nesting ||         /* Either command should not be nested, */
+           (!execution_nesting ||                /* Either command should not be nested, */
             (c->realcmd->flags & CMD_BLOCKING)); /* or it must be due to unblocking. */
 }
 
