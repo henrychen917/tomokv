@@ -2215,9 +2215,10 @@ typedef struct exThread {
      * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
      * groups of its own virtual shard; the balancer sums across workers for per-group load. */
     uint32_t lb_grp_ops[TOMO_LB_GROUPS];
-    /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
-     * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE before it
-     * publishes migration_active=0 — an RCU-style quiesce, not a timing guess. */
+    /* ee451 (v8d): worker loop heartbeat, bumped on EVERY exSlice pass (FLATSTORE FIX D made it
+     * unconditional — it is the QSBR quiescence signal; the "migration only" it says here has been
+     * false since). The cutover coordinator uses worker B's heartbeat to confirm B has looped past
+     * phase==DONE before it publishes migration_active=0 — an RCU-style quiesce, not a timing guess. */
     _Atomic int in_flat_section;  /* FLATSTORE Stage-2 (review fix): 1 while this worker is INSIDE an exSlice batch that may touch a flat table. Coordinator drains this to 0 to quiesce — IDENTITY-COMPLETE (covers flipped/parking workers the old tmWorkerLive predicate missed). */
     _Atomic uint64_t loop_seq;
     unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
