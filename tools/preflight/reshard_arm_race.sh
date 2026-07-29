@@ -32,9 +32,9 @@ for i in $(seq 1 40); do [ "$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = 
 
 python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
 rc=$?
-res=$( [ $rc = 0 ] && echo PASS || { [ $rc = 2 ] && echo SKIP || echo FAIL; } )
+case $rc in 0) res=PASS ;; 2) res=SKIP ;; 4) res=DIED ;; *) res=FAIL ;; esac
 echo "reshard-arm-race[$TAG]	$res	$(grep '^reshard_arm_race:' "$OUT/probe.out" | tail -1)"
-grep -E '^(FAIL|SKIP|PASS)' "$OUT/probe.out" | tail -1 | sed 's/^/  /'
+grep -E '^(FAIL|SKIP|PASS|DIED)' "$OUT/probe.out" | tail -1 | sed 's/^/  /'
 cm=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' "$OUT/server.log" 2>/dev/null); cm=${cm:-0}
 [ "$cm" = 0 ] || echo "  crash_markers=$cm"
 

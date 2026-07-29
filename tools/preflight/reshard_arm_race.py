@@ -29,7 +29,8 @@ ANTI-VACUITY. A run that never armed anything would pass (1) trivially, so the t
 SKIP status if it did not complete at least MIN_CUTOVERS real cutovers. And the acceptance rule
 for the fix is not this test passing on its own: it must FAIL on a defect-reintroduced build.
 
-exit 0 = PASS, 1 = FAIL (wedged or counter non-zero), 2 = SKIP (vacuous: too few cutovers)
+exit 0 = PASS, 1 = FAIL (wedged or counter non-zero), 2 = SKIP (vacuous: too few
+cutovers), 4 = DIED (the server went away mid-run: a different failure, never graded as the wedge)
 """
 import socket
 import sys
@@ -225,6 +226,9 @@ if __name__ == "__main__":
         # (that one stays alive and merely refuses to arm), and grading it as the same thing is how
         # a result gets attributed to the wrong defect.
         print("reshard_arm_race: connection lost: %r" % (e,))
-        print("FAIL: server went away during the test (process death, not the arm/coordinator "
+        print("DIED: server went away during the test (process death, not the arm/coordinator "
               "wedge — check the server log and the wait status)")
-        sys.exit(1)
+        # Exit 4, NOT 1. The validate script counts a 1 from the pre-fix arm as "the discriminating
+        # test caught the defect"; a server that was killed out from under the run must not be
+        # allowed to masquerade as that, or the fix would be accepted on evidence it never produced.
+        sys.exit(4)
