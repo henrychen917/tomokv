@@ -109,7 +109,7 @@ if pgrep -x memtier_benchma >/dev/null 2>&1; then     # comm(2) truncates at 15
   exit 1
 fi
 # Every private comm this tree launches a server under. All are ours; none is `redis-server`.
-_OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace"
+_OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup"
 reap_ours(){ # $1 = suite that just finished
   local c leaked=""
   for c in $_OURS; do pgrep -x "$c" >/dev/null 2>&1 && { leaked="$leaked $c"; pkill -9 -x "$c" 2>/dev/null; }; done
@@ -164,6 +164,14 @@ run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
+# Lookup accounting on the cross-shard merge pipeline (arrived with the fpipe-lru merge). Wired in
+# HERE, at merge time, because this tree has now twice shipped a suite that no preflight run could
+# execute: side_regression.sh sat in tools/preflight/ unreferenced (`grep -c` = 0) while the plan
+# listed side_regression.out among the files a run must produce. ~10s, traffic-free. It asserts one
+# LFU bump and one keyspace_hit per key per command on the pipeline route, with two positive
+# controls (single-key SCARD, same-shard localfast SINTER) that calibrate the counter itself, and a
+# routing oracle so a green run over a route that never executed cannot pass.
+run_suite $SD/xshard_lookup_accounting.sh $PF/xshard_lookup_accounting.out $'\tFAIL'
 # Hot-KEY veto. Here because the veto is the one balancer gate whose failure mode is SILENCE: it
 # refuses to migrate, so a build in which it can never engage looks identical to a build in which
 # nothing needed vetoing, and that is precisely the state this fork shipped in. The suite asserts
