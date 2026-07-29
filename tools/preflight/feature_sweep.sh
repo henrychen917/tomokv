@@ -40,6 +40,18 @@ CLI=${CLI:-$(dirname "$FORKSRV")/redis-cli}
 
 TSV=$JOB/feature_sweep.tsv
 LOGDIR=$JOB/feature_sweep_logs
+# ee451 2026-07-29: PER-RUN log identity. Server logs were named srv_<BOOTSEQ>_<kind>_p<port>.log
+# and BOOTSEQ restarts at 0 every run, so run N and run N+1 both wrote srv_14_fork_p7791.log -- and
+# boot_srv opens it with `>>` while redis is also told `--logfile` the same path. Nothing ever
+# truncated it. Measured: ONE such file held FOURTEEN boot banners and two assertion records.
+# crash_scan then greps that accumulated history, so a crash that happened once at 03:57 on 28 Jul
+# was re-reported as a fresh FAIL by the 04:22, 08:57 and 12:49 runs -- three false product failures
+# from one real event, and it would have gone on failing forever. This is the same stale-artifact
+# trap preflight.sh already guards with `rm -f "$2"` ("never grade a STALE result file") and
+# stress_reclaim guards with `: > $J/stress.log`.
+# A per-run id keeps BOTH properties the header asks for: logs are still never truncated (so a
+# post-mortem is intact), and no run can ever scan another run's log.
+RUNID=${RUNID:-$(date -u +%Y%m%d_%H%M%S)_$$}
 WORK=$JOB/feature_sweep_work
 PY=$WORK/oracle_helper.py
 
@@ -128,7 +140,8 @@ assert_server() { # port pid -> 0 ok
 boot_srv() { # kind(fork|oracle) port dir extra-args... ; rc!=0 on failure
     local kind=$1 port=$2 dir=$3; shift 3
     BOOT_PID=""; BOOTSEQ=$((BOOTSEQ+1))
-    local slog=$LOGDIR/srv_${BOOTSEQ}_${kind}_p${port}.log     # unique => preserved
+    # unique PER RUN as well as per boot => preserved, and never re-scanned by a later run
+    local slog=$LOGDIR/srv_${RUNID}_${BOOTSEQ}_${kind}_p${port}.log
     mkdir -p "$dir"
     if ! port_free "$port"; then
         log "BOOT-ABORT: port $port already serving (foreign server; will not touch)"
