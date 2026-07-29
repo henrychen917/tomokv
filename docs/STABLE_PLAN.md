@@ -290,7 +290,7 @@ starved each other. That was an orchestration error, not a box problem.
 | # | branch | acceptance | notes |
 |---|---|---|---|
 | 1 | cmdstats `8a24ab1b8`+2 | ~~`cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `eac51d50a` (+ probe `fb1986434`). Acceptance met and shown to discriminate. Perf is no longer unmeasured: **−3.2 to −3.4% on p32 SET io4ex4, which EXCEEDS the 3% budget**; every other cell ≤1%. See §3a |
-| 2 | debug-reload `c8aab4059` **only** | `debug_reload.sh` 0/2 → 12/0 | EXCLUDE `cfea82654` — never compiled, never run. Known residual: FLATSTORE still panics ~1 in 3 via a resize/COPYING race |
+| 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **MERGED 2026-07-29 AND REVERTED — the acceptance FAILED.** POST reaches 12/0 in only **2 of 10 runs**; the other 8 crash the server. The residual this row called "FLATSTORE panics ~1 in 3" is understated on every axis: **8 in 10**, and mostly a **double free after silent data loss**, not a panic. Re-merge only together with a *validated* `cfea82654` (or an equivalent quiesce). See §3b |
 | 3 | fpipe-lru `43bdd8972` **only** | `xshard_lookup_accounting.sh` 5/2 → 7/0 | EXCLUDE fix 2 — uncommitted, never compiled. Note LRU shows NO distortion (idempotent within a tick); only LFU and keyspace_hits are real |
 | 4 | exec-nesting `c53223863` | builds + 15/0; probe if cheap | Default config: bookkeeping only, not data loss. If the probe cannot discriminate, merge on the static argument and SAY SO |
 | 5 | deletions (5 commits) | 15/0 + `reshard_suite` + `flip_updown` | Large. Key-LB actuators verified unaffected (both paths already required same-node) |
@@ -366,12 +366,101 @@ the owner's call to make — but it is now a measured number instead of the "UNM
 carried. If the 3% budget is to be enforced literally here, the lever is `latency-tracking no`, which
 recovers ~40% of it and needs no code change.
 
+### 3b. Item 2, debug-reload — MERGED 2026-07-29, THEN REVERTED
+
+**The branch is untouched at `58adb8a11`.** The merge was validated before it was committed, so the
+revert is a `git merge --abort`: there is no merge commit and no revert commit. `src/redis-server`
+was rebuilt afterwards and is byte-identical to the pre-merge build (md5 `94ee07ef964ad399`), so the
+worktree does not carry a stale binary for the next step.
+
+Merged exactly what the row names: `c8aab4059` only, `cfea82654` excluded. Clean auto-merge, 2 files,
++150 lines, nothing else swept in. Full `make clean && make -j16` on **both** arms; **exactly one
+warning each, identical** — `kvstore.c:73` `dictEncodeStoredKey` incompatible-pointer-type, proven
+pre-existing by showing it on the PRE build log. **Zero new warnings.** Arm provenance checked in the
+binaries, not assumed: `emptyData` disassembles to **2** `emptyDbStructure` calls in PRE and **3** in
+POST.
+
+**The test discriminates, exactly as the commit claimed.** `debug_reload.sh` on PRE
+(`redis-dr-pre`, md5 `94ee07ef`): **0 passed / 2 failed**, both regimes, reload #1,
+`Guru Meditation: Duplicated key found in RDB file #rdb.c:4017`.
+
+**And then POST fails too — in a worse way.** Ten full runs of the same script on the merged binary
+(`redis-dr-post`, md5 `7d828926`):
+
+| regime | runs 12/0 | runs that crashed the server |
+|---|---|---|
+| dict (`ex=1`) | 9 / 10 | 1 (see below — unrelated stack) |
+| **FLATSTORE (`ex=4`)** | **2 / 10** | **8 / 10** |
+
+Crash signatures on the merged binary, all in the flat regime: `illegal decrRefCount for object
+with: type 4, encoding 11, refcount 0` (OBJ_HASH / listpack) ×4, the same for `type 3` (OBJ_ZSET) ×2,
+`type 0, encoding 0` (OBJ_STRING / raw) ×1, and `Duplicated key found in RDB file` ×1. Seven of the
+eight are **double frees**, not panics.
+
+**Mechanism, from the servers' own logs — and it corroborates `cfea82654`'s diagnosis.** In every
+failing run the FLATSTORE resize coordinator ran *while the reload was between* `Loading RDB produced
+by version` and `Done loading RDB`, and its snapshot captured a partially-mutated table:
+`live=91719`, `73365`, `73365`, `18328` out of 100000. In `rep6` the resize line and
+`Duplicated key found in RDB file` share a **millisecond** — the same correlation `cfea82654` reported
+at `live=55039`. So the fold mutates the old table while the coordinator rebuilds the new one from a
+pre-empty snapshot, and the swap resurrects rows the empty had already freed.
+
+**The failure mode `dbsize` conservation cannot see, and this is the reason to revert rather than
+ship with a note.** In the common case the reload *reports success*: all three `DEBUG RELOAD`s return
+OK and `dbsize` reads exactly **100000** each time, so the suite's conservation check PASSES — while
+`hget h:2 f1` and `zscore z:3 b` return **nil**. Keys are gone with the count intact. The 2000-key
+readback then gets **no reply at all** for its full 30 s socket timeout (the server is *wedged*, not
+dead), and the process dies ~30.2 s after the reload, when the timed-out client disconnects and its
+teardown decrefs an already-freed object: 06:04:08.05→06:04:38.38, 06:06:29.56→06:06:59.86,
+06:07:55.72→06:08:25.89. Silent data loss, then a hang, then memory corruption.
+
+**`correctness_suite` on the merged binary: 15 passed, 0 failed.** It does not go red on any of this
+— it has no reload/`emptyData` check at all. 15/0 was necessary and nowhere near sufficient here.
+
+**Blast radius, so the next attempt is scoped correctly.** In the sharded build `FLUSHALL`/`FLUSHDB`
+never reach `emptyData` — `db.c:1533/1557` route to `flushAllShards`, which *already* waits out
+`flat_resize_active`. The fold's new exposure is therefore admin/replication only: `DEBUG RELOAD`,
+`DEBUG FLUSHALL`, **replica full resync** (`replication.c:2119/2450/2501`), `CLUSTER RESET`
+(`cluster_legacy.c:1086`), `module.c:14201`. A replica full resync is squarely a stable-release path,
+which is why "it is only DEBUG" is not an argument for shipping it.
+
+**Three corrections to the row as it was written:**
+1. **"~1 in 3" is wrong** — 8 of 10, and 7 of the last 7 consecutively.
+2. **"panics" is wrong** — 1 of 8 was the panic; 7 were double frees, and the *visible* symptom in
+   most runs is lost keys under a correct `dbsize` plus a 30 s wedge.
+3. **"FLATSTORE" is right for the attributable failures but the dict regime is not proven safe.**
+   One dict run (`rep5`) died in `DEBUG RELOAD` #2 with **SIGSEGV in `getClientMemoryUsage` →
+   `listEmpty`** (address 0x28). That stack has nothing to do with `emptyData`, so it is **not
+   attributed to this merge** — but it cannot be cleared against the PRE arm either, because the PRE
+   arm never survives reload #1. Recorded as an unattributed crash, 1 in 10, dict regime, under
+   `DEBUG RELOAD`.
+
+**What the next attempt needs.** `c8aab4059` + `cfea82654` (or an equivalent quiesce), compiled, zero
+new warnings, `correctness_suite` 15/0, **and ≥10 runs of `debug_reload.sh` with 0 crashes** — one
+green run proves nothing at an 80% failure rate, and two green runs in a row happened here on a build
+that fails 8 times in 10. Rig, arms and every server log are kept at `$J/step3_dbgreload/`
+(`run_acc.sh`, `run_reps.sh`, `debug_reload.sh.kept`, `srv_post_r*_{dict,flat}.log`,
+`dr_pre.out`, `dr_post_r1..10.out`, `build_{pre,post}.log`).
+
+**Not measured, deliberately:** the two `postmerge.sh` throughput cells. `emptyData` is not on any
+command path a benchmark touches, and the merge was reverted on correctness before perf could matter.
+
 ---
 
 ## 4. Unowned defects
 
 Nothing is working on these.
 
+- **The FLATSTORE resize guard is ONE-SIDED, and it is what blocks §3 item 2** (evidence added
+  2026-07-29, §3b). `FLAT_RZ_COPYING` needs the old table immutable for the whole rebuild. The
+  coordinator enforces that against WORKERS (it parks them) and against a non-worker region that is
+  **already** open (QUIESCING will not complete while any io `flat_epoch` is odd). Nothing re-checks
+  the epoch once past QUIESCING, so a non-worker region that **opens during COPYING** is unguarded —
+  and `emptyData`'s shard fold and `rdbLoad`'s `dbAddRDBLoad` are exactly such mutators. Measured:
+  the coordinator snapshotting a table mid-reload (`live=91719/73365/18328` of 100000) loses keys
+  silently, wedges the server, and ends in a double free, 8 runs in 10. `cfea82654` is a candidate
+  fix (`tomoFlatResizeQuiesce`) and is **still never compiled and never run**. Owning this is the
+  precondition for merging the `emptyData` fold.
 - **LB-2** `server.hotkeys` — one process-global struct used as per-command scratch by every io
   thread. OOB read, double free, and `current_client` clobbering that indexes `argv[pos]` into a
   *different* client's argv. Dormant until `HOTKEYS START`, but the subsystem is unusable as written.
