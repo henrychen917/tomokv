@@ -142,8 +142,24 @@ def main():
     deadline = time.time() + SECONDS
 
     while time.time() < deadline:
-        s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst)))
-        if b"+OK" not in line(s):
+        # START and CUTOVER go out as ONE pipelined write, deliberately.
+        #
+        # The window under test is the gap between the teardown's `migration_active = 0` and its
+        # `co_state = CO_IDLE` — tens of microseconds (a serverLog open/write/close, plus whatever
+        # the scheduler adds). The defect needs BOTH commands inside it: the arm must see
+        # active == 0, and the cutover must still find co_state != IDLE. Issued as two round trips
+        # they are ~50-100 us apart — reliably WIDER than the window, so a request/response probe
+        # would report a clean PASS on a build that still has the defect. Pipelined, they are
+        # executed back-to-back on the same IO thread, microseconds apart.
+        #
+        # (Deliberately no DEBUG RESHARD STATUS anywhere: STATUS runs migRangeChecksum over the
+        # whole shard on this IO thread and would stall the very fence under test. shared-kv mode
+        # publishes scan_done at arm, so CUTOVER needs no scan wait.)
+        s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst))
+                  + cmd("DEBUG", "RESHARD", "CUTOVER"))
+        armed_ok = b"+OK" in line(s)
+        cut_ok = b"+OK" in line(s)
+        if not armed_ok:
             refused += 1
             # A refusal is normal while the previous migration is still running. A refusal that
             # NEVER clears is the wedge.
@@ -154,11 +170,7 @@ def main():
                 break
             continue
         wedge_since = None
-        # shared-kv mode publishes scan_done at arm, so CUTOVER needs no scan wait. (Deliberately
-        # no DEBUG RESHARD STATUS polling: STATUS runs migRangeChecksum over the whole shard on
-        # this IO thread and would itself stall the very fence under test.)
-        s.sendall(cmd("DEBUG", "RESHARD", "CUTOVER"))
-        if b"+OK" in line(s):
+        if cut_ok:
             cutovers += 1
             src, dst = dst, src
 
