@@ -10971,9 +10971,17 @@ static int reshardBeginCutover(void) {
     if (!atomic_compare_exchange_strong_explicit(&co_state, &expect, CO_WAIT_CONVERGE,
                                                  memory_order_acq_rel, memory_order_relaxed)) {
         /* A coordinator is already running. If it is servicing THIS arm, this is just a repeated
-         * CUTOVER for a cutover already under way — idempotent, report success. */
-        if (atomic_load_explicit(&co_serving_arm, memory_order_acquire) ==
-            atomic_load_explicit(&mig_arm_seq, memory_order_acquire)) return 1;
+         * CUTOVER for a cutover already under way — idempotent, report success.
+         * The winner publishes co_serving_arm just AFTER its CAS, so a simultaneous second caller
+         * can read it before that store lands. Re-read briefly rather than mis-count: the true
+         * defect state is PERMANENT, so a bounded wait can only remove false positives, never hide
+         * a real one. A miscount here would put a non-zero value in the very counter the acceptance
+         * test asserts on — i.e. it would make the test lie on a healthy build. */
+        uint64_t arm = atomic_load_explicit(&mig_arm_seq, memory_order_acquire);
+        for (int spin = 0; spin < 1024; spin++) {
+            if (atomic_load_explicit(&co_serving_arm, memory_order_acquire) == arm) return 1;
+            exPauseCpu();
+        }
         /* Otherwise: migration_active == 1, phase == MIG_COPYING, and the running coordinator
          * belongs to the PREVIOUS migration — so this one is ARMED WITH NO COORDINATOR and never
          * will have one. migration_active is now stuck for the life of the process (see the block
