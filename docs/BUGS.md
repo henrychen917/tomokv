@@ -198,6 +198,38 @@ gate produces. Fixed with `tomoRetireFakeWrite()` at every retire site (which al
 — a reused ring slot would otherwise decrement on a later non-write), init at both creation sites,
 and the stamp moved before every publish.
 
+### B4. My reshard arm guard turned a benign TOCTOU into a permanent balancer death — `af9d6b590`, fixed `088f8da9b`
+
+Caught by an independent review of A10 **before** it was validated, and it is the more instructive
+half of that fix.
+
+`reshardBeginCutover` checks `migration_active` and `phase == MIG_COPYING`, *then* CASes
+`co_state IDLE -> WAIT_CONVERGE`. Those are not atomic together: a `DEBUG RESHARD CUTOVER` on an IO
+thread can be preempted between them, the migration it checked can complete meanwhile (teardown
+publishes `co_state = CO_IDLE`, then `migration_active = 0`), and the CAS then **succeeds with no
+migration in flight** — a phantom coordinator. `beforeSleep` drives `reshardCoordinatorTick` only
+under `migration_active`, so `co_state` sits at `CO_WAIT_CONVERGE` forever.
+
+On its own that was harmless: arms were still allowed, the next one set `active = 1`, and the stale
+coordinator simply serviced it. **A10's arm-side `co_state` guard is what makes it fatal** — every
+future arm is refused, `active` can never become 1 again, and the load balancer, every thread-mode
+flip and `DEBUG RESHARD START` are dead for the life of the process. A guard that closes one wedge
+by opening a wider one.
+
+Fixed by making the guard ship with its rollback: `reshardBeginCutover` re-validates after winning
+the CAS and rolls `co_state` back (by CAS, never a bare store); a *losing* CAS that sees `co_state`
+return to `CO_IDLE` retries instead of counting `cutover_no_coord` (that race is normal, and a false
+positive there would make the acceptance test lie on a healthy build); and `beforeSleep` gains a
+counted, logged self-heal (`tomokv_reshard_phantom_coord`) that **resets** `co_state` rather than
+running the tick — the tick assumes a live migration and would raise a `DRAINING` fence for one that
+does not exist, holding every producer.
+
+**Lesson:** the guard and the invariant it assumes have to be reviewed together. I checked that the
+guard closed the window; I did not check what the guard did to every *other* path that could leave
+`co_state` non-IDLE. Also: `bins/pre` had to be rebuilt after this — the retry logic is part of the
+*fix*, and leaving it in the defect-reintroduced build let that build self-heal the very defect the
+acceptance test exists to catch.
+
 ### B2. Sub-wave arity bug — `20cdae804`
 Capped `nw` at 8 but advanced `base += 32`, so `MGET(10)` emitted an 8-element body under a
 10-element header.
