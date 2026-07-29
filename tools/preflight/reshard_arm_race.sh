@@ -8,6 +8,13 @@
 #
 # usage: reshard_arm_race.sh <server-binary> <tag> [seconds]
 set -u
+# ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
+# `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
+# other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
+# our own server, because callers stage TOMO_BIN under a private name. The leaked server then
+# inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
+# box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
+# and cannot touch anyone else's.
 BIN=${1:?server binary}; TAG=${2:?tag}; SECS=${3:-60}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUT=${TOMO_HANG_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp/hangw}/armrace_$TAG
@@ -18,7 +25,7 @@ rm -rf "$OUT"; mkdir -p "$OUT/data"
 
 # Stage under a UNIQUE process name, like correctness_suite (redis-corr) and fence_suite
 # (redis-fence) already do. Half the suites in this directory clean up with
-# `pkill -9 -x redis-server`, and on this shared box that SIGKILLs any other session's server —
+# `pkill -9 -x "$(basename "${BIN}")"`, and on this shared box that SIGKILLs any other session's server —
 # silently, with no crash marker and no core. An acceptance test must not be at the mercy of that.
 # Lifecycle here is by our own PID, so the rename cannot leak a server either.
 cp "$BIN" "$OUT/redis-armrace"; BIN="$OUT/redis-armrace"

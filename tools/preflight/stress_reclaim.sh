@@ -14,7 +14,7 @@ OUT=$J/stress_reclaim.out; : > $OUT
 : > $J/stress.log   # truncate the SERVER log too: it appends, so a previous run's crash markers read as this run's failure
 FAIL=0; note(){ echo "  $1" >> $OUT; }
 
-pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/sdata; mkdir -p $J/sdata
+pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; rm -rf $J/sdata; mkdir -p $J/sdata
 taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
   --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
@@ -75,6 +75,6 @@ if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/str
   note "FAIL: crash/assert in log"; grep -iE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG' $J/stress.log | head -3 >> $OUT; FAIL=1
 else note "PASS: no crash/assert markers"; fi
 note "flips: front=$(grep -c 'GROW-FRONT complete' $J/stress.log 2>/dev/null) back=$(grep -c 'GROW-BACK complete' $J/stress.log 2>/dev/null)"
-pkill -9 -x redis-server 2>/dev/null
+pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
 echo "RESULT: $([ $FAIL -eq 0 ] && echo ALL-PASS || echo FAILURES)" >> $OUT
 echo "=== DONE ===" >> $OUT

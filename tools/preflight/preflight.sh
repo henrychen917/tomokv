@@ -33,13 +33,20 @@
 # exactly where). KNOWN => expected-broken ledger, changes flip it to FAIL
 # inside the owning suite.
 set -u
+# ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
+# `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
+# other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
+# our own server, because callers stage TOMO_BIN under a private name. The leaked server then
+# inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
+# box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
+# and cannot touch anyone else's.
 exec 9>/tmp/tomo_preflight.lock
 flock -n 9 || { echo "another preflight is running"; exit 2; }
 
 SD="$(cd "$(dirname "$0")" && pwd)"
 BIN="${1:?usage: preflight.sh <redis-server binary>}"
 [ -x "$BIN" ] || { echo "NO-GO: binary not executable: $BIN"; exit 1; }
-# NORMALISE THE BINARY NAME. Every suite under here tears down with `pkill -9 -x redis-server`,
+# NORMALISE THE BINARY NAME. Every suite under here tears down with `pkill -9 -x "$(basename "${BIN}")"`,
 # which matches on comm(2) -- so a caller that passes a binary named anything else (an A/B arm
 # called `fixed`/`unfixed`, a renamed bench build) silently leaks EVERY server it starts. That is
 # not hypothetical: a full run on 2026-07-28 leaked 42 servers, one per knob_matrix cell, which had

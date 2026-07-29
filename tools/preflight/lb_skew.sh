@@ -27,7 +27,20 @@
 #   - B measures per-io-thread connection counts and load before judging rebalances; if no io thread
 #     was ever a sustained outlier, the cell reports SKIP, not PASS.
 set -u
-BIN=${1:?usage: lb_skew.sh <redis-server binary>}
+# ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
+# `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
+# other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
+# our own server, because callers stage TOMO_BIN under a private name. The leaked server then
+# inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
+# box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
+# and cannot touch anyone else's.
+# ee451 2026-07-29: accept the binary from EITHER a positional arg OR $TOMO_BIN.
+# preflight.sh run_suite (preflight.sh:85) invokes suites as `TOMO_BIN="$BIN" ... "$1"` with NO
+# positional argument, but this line was `BIN=${1:?...}` -- so the script died on line 1 with a
+# usage error, never wrote its .out file, and preflight graded it "produced no result file".
+# This suite has therefore NEVER EXECUTED under preflight. Fixing the flip_updown exit code was
+# necessary but not sufficient: the verdict logic was never even reached.
+BIN=${1:-${TOMO_BIN:?usage: lb_skew.sh <redis-server binary>  (or TOMO_BIN=...)}}
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI=$J/clean-w/src/redis-cli
 OUT=$J/lb_skew.out
@@ -39,7 +52,7 @@ MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 fail=0
 
 boot(){ # io ex extra...
-  pkill -9 -x redis-server 2>/dev/null; sleep 1; : > "$LOG"
+  pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; : > "$LOG"
   taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io "$1" \
     --tomokv-thread-ex "$2" --tomokv-thread-mode static --save '' --appendonly no \
     --protected-mode no --enable-debug-command local --logfile "$LOG" --loglevel notice \
@@ -108,6 +121,6 @@ else
   fi
 fi
 
-pkill -9 -x redis-server 2>/dev/null
+pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
 echo "lb_skew: $fail failing check(s)" | tee -a "$OUT"
 [ "$fail" = 0 ]

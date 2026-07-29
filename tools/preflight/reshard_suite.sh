@@ -3,6 +3,13 @@
 # Boots a server with auto-reshard explicitly ENABLED (the default is now 0/off) so the manual
 # probe can drive real cutovers, then runs the read/write ordering probe across them.
 set -u
+# ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
+# `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
+# other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
+# our own server, because callers stage TOMO_BIN under a private name. The leaked server then
+# inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
+# box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
+# and cannot touch anyone else's.
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -10,7 +17,7 @@ OUT=$J/reshard_suite.out; : > $OUT
 PORT=7899
 # Stage under a UNIQUE process name (as correctness_suite -> redis-corr and fence_suite ->
 # redis-fence already do). Half the scripts in this directory clean up with
-# `pkill -9 -x redis-server`; on this shared box that SIGKILLs any other session's server, and a
+# `pkill -9 -x "$(basename "${RSBIN}")"`; on this shared box that SIGKILLs any other session's server, and a
 # SIGKILL leaves NO crash marker, no stderr and a flat RSS -- indistinguishable from a server
 # defect. That is exactly how a "server stops answering" sighting was mis-filed (docs/BUGS.md J).
 # Lifecycle below is by our own PID plus this unique name, so nothing leaks either.

@@ -32,7 +32,20 @@
 # Usage: side_regression.sh <binary> [baseline.tsv]
 #   Writes a baseline if none exists (first run establishes it, reports NO VERDICT).
 set -u
-BIN=${1:?usage: side_regression.sh <redis-server binary> [baseline.tsv]}
+# ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
+# `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
+# other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
+# our own server, because callers stage TOMO_BIN under a private name. The leaked server then
+# inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
+# box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
+# and cannot touch anyone else's.
+# ee451 2026-07-29: accept the binary from EITHER a positional arg OR $TOMO_BIN.
+# preflight.sh run_suite (preflight.sh:85) invokes suites as `TOMO_BIN="$BIN" ... "$1"` with NO
+# positional argument, but this line was `BIN=${1:?...}` -- so the script died on line 1 with a
+# usage error, never wrote its .out file, and preflight graded it "produced no result file".
+# This suite has therefore NEVER EXECUTED under preflight. Fixing the flip_updown exit code was
+# necessary but not sufficient: the verdict logic was never even reached.
+BIN=${1:-${TOMO_BIN:?usage: side_regression.sh <redis-server binary> [baseline.tsv]  (or TOMO_BIN=...)}}
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BASE=${2:-$J/side_regression_baseline.tsv}
 OUT=$J/side_regression.out
@@ -45,7 +58,7 @@ KM="--key-maximum=2000000 -d 32"
 
 cell(){ # io ex pipeline ratio label
   local io=$1 ex=$2 pl=$3 ratio=$4 lab=$5
-  pkill -9 -x redis-server 2>/dev/null; sleep 1
+  pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1
   taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io "$io" \
     --tomokv-thread-ex "$ex" --tomokv-thread-mode static --save '' --appendonly no \
     --protected-mode no --logfile '' >/dev/null 2>&1 &
@@ -54,7 +67,7 @@ cell(){ # io ex pipeline ratio label
   local o
   o=$($MT --test-time="$TT" --ratio="$ratio" $KM --key-pattern=R:R -t 8 -c 25 \
       --pipeline "$pl" --distinct-client-seed 2>/dev/null | awk '/^Totals/{print $2}')
-  pkill -9 -x redis-server 2>/dev/null
+  pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
   # A dead or wedged server must not silently score 0 and read as a huge regression -- or worse,
   # be averaged in. Report it as DEAD so the verdict says "invalid cell", not "-100%".
   [ -z "$o" ] && o=DEAD

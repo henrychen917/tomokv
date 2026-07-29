@@ -13,7 +13,7 @@ ok(){ echo "  PASS: $1" >> $OUT; PASS=$((PASS+1)); }
 bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 
 boot(){ # $1 extra args
-  pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
+  pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
   taskset -c 0-7 $BIN --port 7974 --dir $J/cdata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
@@ -142,7 +142,7 @@ echo "=== crash/assert check ===" >> $OUT
 if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/cc.log 2>/dev/null; then
   bad "crash/assert markers in log"; grep -iE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/cc.log | head -5 >> $OUT
 else ok "no crash/assert markers"; fi
-pkill -9 -x redis-server 2>/dev/null
+pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
 echo "" >> $OUT
 echo "RESULT: $PASS passed, $FAIL failed" >> $OUT
 echo "=== DONE ===" >> $OUT
