@@ -319,23 +319,35 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
-### Batching, spin & prefetch (AUTO controllers with strict overrides)
+### Batching, spin & prefetch — no knobs, by design
 
-| Knob | Values | Meaning |
-| :--- | :--- | :--- |
-| `tomokv-worker-pop-batch` | `-1` auto (default, 16) · `0` off (one pop per pass) · N static | Fakes a worker pops per queue visit. Auto: saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve) — 2‑bit‑predictor flavor. |
-| `tomokv-worker-spin` | `-1` auto (default) · `0` off · N strict rounds | Worker idle spin before yielding. Auto: multiplicative budget (spin that paid grows ×1.5, wasted window halves). |
-| `tomokv-pf-w-struct/-argv/-keyobj/-keybytes/-hash/-entry` | `-1` auto (default) · `0` off · N strict | Per‑stage scoreboard‑prefetcher widths. Auto: width = the *current* batch occupancy — zero history, re‑tunes on the next batch. |
-| `tomokv-pf-w-value` | `-1` auto (default) · `0` off · N strict cap | Value‑chase width. Auto: cache‑budget controller — width = (L3 / 2·workers) / EWMA(value size), leaky integrator, refreshed continuously. |
-| `tomokv-pf-w-nextop` | `-1` auto · `0` off (default) · N strict | Next‑op lookahead prefetch distance. Auto: lookahead = current batch. |
-| `tomokv-prefetch-min-keys` | `-1` auto (default) · `0` off (no floor) · N strict | Prefetch enable gate. Auto: opens when the shard's self‑measured footprint (dbSize × (96 B + EWMA value size)) exceeds 8× the machine's detected L3 — prefetching a cache‑resident shard measurably hurts. |
-| `tomokv-pf-value-budget-kb` | `-1` auto (default) · `0` off · N strict | The value‑chase cache budget. Auto: L3 / (2 × workers). |
-| `tomokv-l3-kb` | `0` auto‑detect (default) · N strict | L3 size feeding the controllers. Pin it on VMs that hide cache topology from sysfs. |
-| `tomokv-io-drain-userpoll` | `-1` auto (default) · `0` syscall‑only · N userpoll passes | Reply‑wait drain mode. Auto: EWMA of in‑flight replies with a Schmitt band picks userspace re‑checks vs an epoll syscall. |
-| `tomokv-drain-tail-skip` | `-1`/`1` auto (default) · `0` legacy | Skip the tail drain pass when work is already pending. |
-| `tomokv-express-slim` | `-1` auto (default) · `0` off · 1–100 fixed pct | Slim state‑move for GET/SET, engaged when the live GET+SET hit‑rate clears the threshold (auto: EWMA + Schmitt). |
-| `tomokv-fake-ring-depth` | `-1` auto (default) · `0` off · N fixed | Per‑connection live fake‑ring depth. Auto: lazy‑create, demand‑grow on stall, decay at empty‑ring checkpoints. |
-| `tomokv-fake-buf` | `-1` auto (default) · `0` 16 KB legacy · N bytes | Per‑connection fake output‑buffer width. Auto: demand‑grow at the spill site (capped). |
+**This section has no configuration table because it has no knobs left.** Every controller here
+resolved its own value from something the server measures, and the "strict override" arms were an
+operator restating a number the box already reports — which is then wrong on the next machine.
+The last five (the prefetch widths) were retired 2026-07-28. The MACHINERY is untouched and under
+active development; only the operator-facing names are gone.
+
+What runs, and what it derives itself:
+
+| Mechanism | Self-derived behaviour |
+| :--- | :--- |
+| Worker pop batch | Saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve), capped at `WORKER_POP_BATCH`. |
+| Worker idle spin | Multiplicative budget — spin that paid grows ×1.5, a wasted window halves. |
+| Prefetch residency gate | Opens once a worker's estimated footprint (its share of `dbSize` × (96 B + EWMA value size)) exceeds 8× its share of the machine's detected L3 — L3 read from sysfs, divided by the workers that actually share that L3 domain. Prefetching a cache-resident shard measurably hurts (−4–5%), so the gate exists to stay SHUT in that regime. `INFO tomo_prefetch_batches / _gated / _issued` shows whether it is opening. |
+| Per-stage prefetch widths | Width = the *current* batch occupancy — i.e. group prefetching with prefetch distance = group size. Zero history, so a workload shift re-tunes on the very next batch. |
+| Value-chase width | Cache-budget controller: (L3 / 2·workers) / EWMA(value size), clamped to a structural [4, 256]. Big values go shallow (they flood the line-fill buffers), small values keep the full window. |
+| Next-op look-ahead | Present but **off**. It is the one prefetch stage that never shipped enabled; see `TOMO_PF_W_NEXTOP` in `server.h`. |
+
+On AMAC: the stage set is a round-robin scoreboard, not AMAC's per-slot state machine with refill.
+AMAC pays when chains have *variable* depth, because a plain group prefetcher stalls on the
+longest one. The flat table's probe chain is *constant* depth — a 15-bit tag in the slot gates the
+kvobj dereference, so a hit is ~2 dependent steps — so AMAC's refill would never fire and only its
+bookkeeping would remain. See the note beside `WORKER_POP_BATCH` in `server.h`.
+
+> **Doc debt (pre-existing, not introduced here):** other sections of this table still list knobs
+> retired in earlier passes — `tomokv-ex-queue-depth`, `-num-cdb`, `-reshard-min-ops`,
+> `-rob-threads`, `-worker-direct-send`, `-opt-operand-pool`, `-xshard-guard`. They do not exist in
+> `config.c` and will not boot. Verify against `CONFIG GET 'tomokv-*'` on a running server.
 
 ### Load balancing (self‑driving reshard controller)
 

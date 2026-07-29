@@ -7117,7 +7117,7 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * table-touching stage of the existing prefetch machinery self-disables — exPrefetchBatch's
  * PFS_HASH reads kvstoreGetDict(), which is NULL under KVSTORE_FLAT (dicts are on-demand,
  * initServer/kvstoreCreate; no flat path ever creates one), so it retires at the !d guard,
- * prefetch_key_hash_valid stays 0, and the #3 next-op look-ahead (pf_w_nextop, exec loop) never
+ * prefetch_key_hash_valid stays 0, and the #3 next-op look-ahead (TOMO_PF_W_NEXTOP, exec loop) never
  * fires; the in-sub two-pass dict prefetch (mget-coalesce level 2, csSubExec CS_MGET) nulls its
  * ds[] the same way. These waves are therefore the ONLY issuer of flat-table prefetches: no
  * double-prefetch, no LFB competition. The batch prefetcher still warms fake METADATA
@@ -15320,11 +15320,14 @@ static inline void exPrefetchBatch(client **batch, int n) {
         /* ee451 (v14): the L3-derived gate needs a 64-bit divide (8*L3/fp); fp tracks the slow-moving
          * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
          * the gate-closed (dispatch-bound, cache-resident) path, the hottest regime. */
+        /* ee451 (2026-07-28): tomokv-prefetch-min-keys RETIRED. It shipped in its AUTO arm (-1)
+         * and the explicit-override / gate-off arms were operator guesses at a number the server
+         * already measures. The AUTO derivation below is now the ONLY gate: it is self-deriving
+         * (detected L3 / workers-per-L3 domain, divided by a self-measured footprint EWMA), so it
+         * needs no hardware knowledge and re-tunes itself on a workload shift. Nothing about the
+         * gate's behaviour changes — this is the same arm that was already the default. */
         unsigned long long auto_min;
-        if (server.prefetch_min_keys >= 0) {
-            /* >= 0, not > 0: 0 means OFF (no key floor at all — always prefetch), -1 means AUTO. */
-            auto_min = (unsigned long long)server.prefetch_min_keys;   /* explicit override */
-        } else {
+        {
             if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
                 unsigned long long fp = 96ULL + pfw->w_ewma_vsize;
                 /* L1a UNITS FIX. `est` below is a PER-WORKER footprint, but this compared it against
@@ -15343,9 +15346,12 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 pfw->pf_cached_min = (8ULL * l3_share) / (fp ? fp : 1);
                 /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
                 unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
-                long budget = server.pf_value_budget_kb >= 0   /* 0 = OFF (no value chase), -1 = AUTO */
-                    ? (long)server.pf_value_budget_kb * 1024
-                    : (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
+                /* ee451 (2026-07-28): tomokv-pf-value-budget-kb RETIRED. Its AUTO arm (-1, the
+                 * shipped default) is folded in here: the value-chase may occupy half of this
+                 * worker's fair share of L3. Self-deriving from the detected cache and the live
+                 * worker count; an explicit KB figure was an operator restating what the box
+                 * already reports. */
+                long budget = (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
                 pfw->pf_cached_w4 = (int)(budget / (long)ev);
             }
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
@@ -15385,24 +15391,34 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * configured window of the popped batch. The hash COMPUTE in pass 2 still runs
      * for all n (it is functional, not prefetch). */
     /* (v13) w1 replaced by per-stage widths w1a..w1d below */
-/* ee451 (v14): stage-width dual-mode resolver — STRICT (N = fixed cap), 0 = stage off, AUTO (-1):
- * width follows the CURRENT batch occupancy n (pure current-signal, micro-arch style — no history,
- * so a workload shift re-tunes on the very next batch). `n` must be in scope at each use. */
-#define PFW(w) ((w) == -1 ? (n) : ((n) < (w) ? (n) : (w)))
-    int w3 = PFW(server.pf_w_entry);
+/* ee451 (2026-07-28): the per-stage width KNOBS (tomokv-pf-w-struct/-argv/-keyobj/-keybytes/
+ * -hash/-entry) are RETIRED. Every one of them shipped in its AUTO arm (-1), whose semantics is
+ * "prefetch distance = current batch occupancy n" — the textbook group-prefetch / software-
+ * pipelining form, pure current-signal with no history, so a workload shift re-tunes on the very
+ * next batch. That arm is hardwired below as TOMO_PF_GROUP_WIDTH. The STAGES ARE UNCHANGED and every
+ * one still issues; only the operator-facing cap is gone. Because the width now always equals n
+ * and j ranges over [0,n), each `j < wXX` test is a tautology the compiler folds away — that is
+ * the retirement paying for itself, not a stage being removed. */
+#define TOMO_PF_GROUP_WIDTH (n)   /* width follows CURRENT batch occupancy; `n` must be in scope */
+    int w3 = TOMO_PF_GROUP_WIDTH;
 
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
-     * clamped to [4, pf_w_value]: small values keep the full window, big values go shallow.
+     * clamped to [TOMO_PF_W_VALUE_MIN, TOMO_PF_W_VALUE_MAX]: small values keep the full window,
+     * big values go shallow.
      * Reproduces the measured 64B→64 / 4KB→32 / 64KB→~4 sweet spots. EWMA from served reads. */
-    /* ee451 (v14): value-chase width ALWAYS adapts (bool + cache-kb knobs deleted):
-     * width = (L3/(2*workers)) / EWMA-vsize, clamped [4, pf-w-value]. Self-derived budget,
-     * self-measured size, recomputed every batch; pf-w-value stays as the cap (0 = off). */
-    int w4cap = server.pf_w_value == -1 ? 256 : server.pf_w_value;   /* -1 = AUTO: budget/EWMA controller decides (cap = max) */
-    if (w4cap > 0) {
+    /* ee451 (2026-07-28): tomokv-pf-w-value RETIRED. It shipped at -1 = AUTO, i.e. "let the
+     * budget/EWMA controller decide, capped only by the knob's own ceiling". The ceiling is now
+     * the named constant below and the controller is unconditional: the chase width is
+     * (L3/(2*workers)) / EWMA-vsize, clamped to [TOMO_PF_W_VALUE_MIN, TOMO_PF_W_VALUE_MAX].
+     * Both bounds are structural, not tuning: below 4 the chase cannot cover a rotation, and the
+     * upper bound only has to exceed any reachable batch (WORKER_POP_BATCH), so the clamp is
+     * really "whatever the measured budget says". */
+    int w4cap = TOMO_PF_W_VALUE_MAX;
+    {
         long aw = pfw->pf_cached_w4;   /* ee451 (v14): cached (budget/ev computed in the 64-batch refresh) */
-        if (aw < 4) aw = 4;
+        if (aw < TOMO_PF_W_VALUE_MIN) aw = TOMO_PF_W_VALUE_MIN;
         if (aw > w4cap) aw = w4cap;
         w4cap = (int)aw;
     }
@@ -15427,13 +15443,13 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * pf-cmd stays deleted (command table is permanently L1-hot). */
     enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
     uint8_t st[WORKER_POP_BATCH];
-    /* ee451 (v14): stage widths dual-mode — STRICT (N = fixed cap), 0 = stage off, or AUTO (-1):
-     * width follows the CURRENT batch occupancy n (pure current-signal, no history — the batch
-     * size already tracks load; a shift re-tunes instantly). */
-    int w1a = PFW(server.pf_w_struct);
-    int w1b = PFW(server.pf_w_argv);
-    int w1c = PFW(server.pf_w_keyobj);
-    int w1d = PFW(server.pf_w_keybytes);
+    /* ee451 (2026-07-28): pass-1 stage widths, all hardwired to the AUTO arm they shipped in
+     * (width = current batch occupancy n). Kept as named locals rather than folded away so the
+     * four stages stay individually visible in the FSM below. */
+    int w1a = TOMO_PF_GROUP_WIDTH;
+    int w1b = TOMO_PF_GROUP_WIDTH;
+    int w1c = TOMO_PF_GROUP_WIDTH;
+    int w1d = TOMO_PF_GROUP_WIDTH;
     for (int j = 0; j < n; j++) {
         st[j] = PFS_STRUCT;
         dts[j] = NULL;
@@ -15507,7 +15523,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
                 if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
-                if (j < (server.pf_w_hash == -1 ? n : server.pf_w_hash)) {   /* -1 = AUTO: width = batch n */
+                if (j < TOMO_PF_GROUP_WIDTH) {   /* tomokv-pf-w-hash RETIRED: hardwired AUTO (width = batch n) */
                     redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
                     issued = 1;
                 }
@@ -15537,6 +15553,10 @@ static inline void exPrefetchBatch(client **batch, int n) {
         if (st[j] == PFS_DONE) remaining--;
     }
 }
+/* Scoped to this function on purpose: it expands to the bare identifier `n`, so leaving it
+ * defined would let a later function's own `n` silently capture it. The io-side prefetch work
+ * will add functions to this file; the predecessor macro (PFW) leaked, this one does not. */
+#undef TOMO_PF_GROUP_WIDTH
 
 /* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
  * hyperthreading to yield pipeline slots to the sibling logical core,
@@ -15902,13 +15922,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             client *fake = ctx->batch[j];
 
             /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake pf_w_nextop ahead so its lookup doesn't
+             * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
              * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
              * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
              * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
              * faults). Targets the big-DB cache-miss regime; 0 = off. */
-            if (server.pf_w_nextop) {   /* -1 = AUTO (lookahead = current batch n), N = strict */
-                int la = j + (server.pf_w_nextop == -1 ? n : server.pf_w_nextop);
+            /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
+             * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
+             * owner's explicit ruling. It only actually fires at ONE worker per node, though —
+             * with >= 2 the node db is KVSTORE_FLAT, PFS_HASH's kvstoreGetDict() is NULL, and the
+             * prefetch_key_hash_valid this reads is never set. See TOMO_PF_W_NEXTOP in server.h. */
+            if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
+                int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
                 if (la < n) {
                     client *nf = ctx->batch[la];
                     if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
