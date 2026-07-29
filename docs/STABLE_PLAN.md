@@ -19,6 +19,7 @@ being clean.
 | `348f6dc23` | key-LB hot-key veto at per-bucket resolution + `tomokv-mset-move` restored (default off) | **KEEP** — veto 10/0 (arm B still migrates), mset-move 15/0 OFF+ON, ASAN churn clean, cost ≤3% |
 | `5b3b4581a` | active expiry never ran on the sharded keyspace (#42) | **KEEP** — re-validated post-merge, both regimes, both arms; 15/0; tax −1.42% worst |
 | `0a2ef6c6f` | `flip_updown` exit status was a constant | both exit codes observed |
+| `21013fded` → `3c12160c6` | h2-fence merged, then **REVERTED the same hour** | a new SIGSEGV on every real client teardown; 4/4 crashed vs 0/4 on the pre-merge arm. See §3g. The pair is deliberately left in history: `git show 21013fded` is the fully-resolved-against-post-deletions merge, and redoing those 12 conflict hunks is exactly the waste §3f complains about |
 
 ### The "pushed without a post-merge green" deviation — status 2026-07-29
 
@@ -302,7 +303,7 @@ starved each other. That was an orchestration error, not a box problem.
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
 | 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is CLOSED and was RE-CHECKED on this tip 2026-07-29. NOT MERGED.** | Modifies flip actuation. Author validated only the MANUAL actuator. The gate blocker is a **flip-controller** defect, not this branch's: §4, now with the mechanism measured. Three merge hazards, all re-checked against this tip and two of them corrections to what this row used to say — see §3f |
-| 7 | h2-fence `e7628efc4` | rebase first (base `95872c371`, collides with the private-binary commit) | Evidence: 4/4 violations base → 0/4 fixed, 232 `fence_midbatch_ticks`. **Missing: the throughput cells (`h2_thr.py`) showing A and B still serve their NON-migrating buckets through a cutover — that is the owner's actual design claim and it currently rests on code reasoning alone.** Adds `tomokv-reshard-fence-timeout`, a new "migration did not happen" path that bumps `reshard_done_seq`, which the flip controller reads |
+| 7 | h2-fence `e7628efc4` | ~~rebase first (base `95872c371`, collides with the private-binary commit)~~ | **MERGED 2026-07-29 (`21013fded`) AND REVERTED (`3c12160c6`) — a NEW CRASH.** SIGSEGV `listDelNode` ← `unlinkClient` on ordinary connection churn, **4/4 merged cells vs 0/4 pre-merge, interleaved**. Cause is one missing initializer, not the fence: `createClient` never sets `mig_parked_node`. Everything else PASSED on the same binary — acceptance discriminates 8/8 → 0/8 with `fence_midbatch_ticks=1089`, `reshard_suite` 5/0, `correctness_suite` 15/0. See §3g |
 
 ### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
 
@@ -811,10 +812,163 @@ Raw: `$J/step3_parked/` (`gate.sh`, `run.log`, `gate.out`, `flip_head.out`, `fli
 
 ---
 
+### 3g. Item 7, h2-fence — MERGED 2026-07-29 (`21013fded`) and REVERTED (`3c12160c6`)
+
+The fence itself is good and its acceptance is the strongest in this campaign. It was reverted for
+something entirely separate that came in the same commit: **a one-line missing initializer that
+SEGVs the server on ordinary connection churn.**
+
+**1. The crash.** `SIGSEGV, si_code 128, Accessing address: (nil)`, stack identical in every
+occurrence:
+
+```
+listDelNode+0x29  <-  unlinkClient+0x35b  <-  freeClient  <-  aeProcessEventsIO  <-  polyThreadMain
+```
+
+Reproduced with both arms **interleaved inside one box acquisition**, same config throughout
+(io4/ex4, `--tomokv-thread-mode static`, `memtier -t 8 -c 25 --pipeline 32 -d 32`, 2M keys, 20 s):
+
+| arm | ratio | rep | ops/s | server alive at end | crash markers |
+|---|---|---|---|---|---|
+| **merged** | 1:0 | 1 | 862 331 | **0** | **1** |
+| pre-merge | 1:0 | 1 | 6 795 962 | 1 | 0 |
+| **merged** | 0:1 | 1 | 4 926 174 | **0** | **1** |
+| pre-merge | 0:1 | 1 | 7 955 420 | 1 | 0 |
+| **merged** | 1:0 | 2 | 836 536 | **0** | **1** |
+| pre-merge | 1:0 | 2 | 6 834 749 | 1 | 0 |
+| **merged** | 0:1 | 2 | 3 504 653 | **0** | **1** |
+| pre-merge | 0:1 | 2 | 7 945 675 | 1 | 0 |
+
+**4/4 vs 0/4.** The ops/s column on the merged rows is a LATE-KILLED cell, not throughput.
+(The revert commit message quotes this table as 3/3 vs 0/2 — it was written while the last two
+cells were still running. This table is the complete one.)
+
+**2. The cause, and it is not the fence.** `unlinkClient` gained
+
+```c
+if (__builtin_expect(c->mig_parked_node != NULL, 0)) migUnparkClient(c);
+```
+
+`mig_parked_node` is initialized only in `resetFakeClientState`, which covers **fake** clients.
+Real clients come from `createClient`, which `zmalloc`s the struct (not `zcalloc`) and initializes
+fields one at a time — it never touches `mig_parked_node` or `mig_parked_tid`. So every real client
+carries whatever was in that heap word; when it is non-zero, `migUnparkClient` runs
+`listDelNode(server.clients_mig_parked[garbage_tid], garbage_node)`. `clients_mig_parked` is
+`listCreate()`d only for `t` in `[0, io_threads + tm_ngrow_io]` (0..7 at io4/ex4), so a garbage
+index lands on a NULL list and `listDelNode` dereferences nil — exactly the reported fault address.
+Fresh `mmap` pages read as zero, which is why the suites that pass do so honestly (few, long-lived
+connections) and a 200-connection memtier cell fails every time.
+
+**Fix, for whoever re-merges — NOT applied here**, because this step's rule is that a merge which
+introduces a crash is reverted, not patched forward: add `c->mig_parked_node = NULL;` and
+`c->mig_parked_tid = 0;` to `createClient`, alongside the `c->cs_barrier = 0;` that is already
+there for exactly this reason. Then re-run the table above — this crash is not flaky, so a single
+clean pair of cells discriminates.
+
+**3. How the crash was found, which matters more than the crash.** It surfaced as a *performance*
+result: `postmerge.sh` reported **−13.9% p32GET and −50.6% p32SET** at io4/ex4, with p1/io7ex1 a
+wash. −50% from a change that adds one relaxed load on the command path is not physically
+plausible, so under the §7 sanity-gate rule it was not accepted as a regression — and re-reading
+the run log showed `Segmentation fault (core dumped)` where the pre-merge arm had `Killed`.
+**`postmerge.sh` boots with `--logfile ''`.** The crash report therefore went to `/dev/null` and
+only the depressed number survived into the table. Two things follow, both worth fixing:
+`postmerge.sh` should give each cell a logfile and grep it for crash markers, and its `cell()`
+should assert the server is still alive before recording the number — a dead server currently
+scores whatever the load generator managed before it died, and `INVALID` only catches the case
+where it dies early enough to score exactly 0.
+
+**4. What PASSED on the merged binary, so the next attempt does not re-derive it.**
+
+* **The acceptance discriminates, and the gate provably opened.** `reshard_midbatch.py`, 8 rounds,
+  same 2M-element list on both arms:
+
+  | arm | result |
+  |---|---|
+  | pre-merge `redis-h2pre` (no `migUnparkClient` symbol, no `tomokv-reshard-fence-timeout` string) | **violations=8 early_flips=8 / 8 rounds, cutovers=8, worst_gap=8** |
+  | merged `redis-h2post` | **violations=0 early_flips=0 / 8 rounds, cutovers=8, worst_gap=0** |
+
+  Every pre-merge round moved ownership ~340-420 ms into a 1200 ms producer stall with 8 range
+  writes still queued for the old owner, and the client-visible consequence followed each time
+  (`LLEN` smaller than a `LINSERT` reply issued earlier on the same connection). The merged arm
+  reported `tomokv_reshard_fence_midbatch=1089` and `fence_aborts=0` — i.e. the coordinator really
+  did observe "queue empty while that queue's batch was still in flight" 1089 times, so the window
+  the fix is about was entered, and the result is not vacuous.
+* `reshard_suite` **5/0** on the merged binary, including `reshard_order` 0 violations / 179 640
+  ops across 15 cutovers, and `reshard-fence-no-aborts` 0.
+* `correctness_suite` **15/0**.
+* **Zero new build warnings.** One warning on each arm, `kvstore.c:73` `dictEncodeStoredKey`
+  incompatible-pointer-type, byte-identical — proven pre-existing by building the pre-merge arm.
+* The two cells that never crashed are the only trustworthy perf numbers from the merged arm, and
+  they are a wash: **p1GET_io7ex1 +0.1%, p1SET_io7ex1 −0.3%.** The io4/ex4 cells are unmeasured.
+
+**5. The conflict resolution, which the row's "collides with the private-binary commit" understated.**
+`e7628efc4` branches from `95872c371`, which predates the item-5 deletions merge, so the real
+collision is **12 hunks across 4 files**, and two of them are traps rather than text:
+
+* `src/server.h`'s `struct migration`: the branch side still carries the copy engine's `issued_seq`,
+  `applied_seq`, `log`, `outstanding_a_refs`, `scan_done`. Resolving by taking the branch side
+  resurrects five fields nothing writes. HEAD's field set was kept, with only the `fence_acked`
+  comment updated.
+* `src/server.c`: `co_s_final = ...migration.issued_seq` and the `S_final=%llu` halves of the
+  fence-drained and FLIP log lines go with the same deletion — they must be dropped, not merged.
+* `src/config.c`: the branch hunk deletes `tomokv-key-lb-sustain` / `-fine` (which are `348f6dc23`'s).
+  Additive resolution.
+* `tools/preflight/reshard_suite.sh`: HEAD's private-binary staging, `redis-cli` resolution and EXIT
+  trap are strictly newer than the branch's first cut of the same idea. Keep HEAD, add only the
+  branch's two new checks.
+
+`git show 21013fded` is that resolution, already done. Re-doing it by hand is avoidable work.
+
+**6. The `h2_thr.py` cells — RUN, and the honest answer is that the script CANNOT measure the claim.**
+It was run on both arms and both tables are flat through the cutover (~210-230 k ops/s per worker,
+no dip). That result is worth nothing, for two reasons visible in the run's own output:
+
+* **The window is ~1000x shorter than one sample.** With every producer busy, the fence completes
+  immediately — the server log puts `reshard DRAINING`, `fence drained`, `FLIP` and `DONE` inside
+  the *same millisecond* (`07:38:44.126` for three of the four lines). `h2_thr.py` samples every
+  **100 ms**. There is no cell that is "during" the cutover.
+* **It puts no traffic on the migrating range**, so the thread-scoped hold it is meant to
+  discriminate against (`migHoldIfDraining`, which spins the io thread only when a client asks for
+  an in-range key) is never entered on the old build either. A flat table from the OLD binary is
+  the proof that the script does not discriminate.
+
+So **the owner's design claim is still not measured**, and it will not be by this script. A probe
+that can measure it is written and staged at `$J/step3_h2/h2_thr2.py` (not committed — it was
+written after the merge was already condemned, and was never run): it holds the fence open long
+enough to sample (either by keeping worker A busy with a long `LINSERT` batch, which gives BOTH
+builds a long window and makes worker **B** — uninvolved in the migration — the discriminating
+cell, or by stalling a producer in `DEBUG SLEEP`, which only the fixed build can survive), and it
+runs `NRANGE=6` connections on in-range keys so the old build's per-thread spin actually engages.
+Run it against the re-merge.
+
+Raw: `$J/step3_h2/` — `run.sh`, `run.log`, `crash.sh`, `crash.log`,
+`crash_redis-cpost_*.log` (the backtraces), `pre_mb.out` / `post_mb.out`, `pm_pre.out` /
+`pm_post.out`, `pre_build.log` / `post_build.log` / `revert_build.log`, and the staged binaries
+`redis-h2pre` / `redis-h2post`.
+
+---
+
 ## 4. Unowned defects
 
 Nothing is working on these.
 
+- **`postmerge.sh` REPORTS A CRASH AS A PERCENTAGE — fix this first** (found 2026-07-29, §3g).
+  `cell()` boots each server with `--logfile ''` and records whatever `memtier` printed, with no
+  liveness check. When the h2-fence binary SEGV'd mid-cell, the crash report went to `/dev/null`
+  and the table read "−13.9% / −50.6%" — a *performance regression*, in a tool whose entire job is
+  to catch regressions. It was only unmasked by the §7 sanity-gate rule (−50% is not physically
+  possible from one relaxed load) plus reading the raw run log for the shell's
+  `Segmentation fault (core dumped)`. Two-part fix, neither applied: give every cell a logfile and
+  fail the cell on `Guru|crashed by signal|ASSERTION`; and `kill -0` the server after the cell and
+  mark the number INVALID if it is gone. The existing `''|0|0.0|0.00` INVALID test only catches a
+  server that dies early enough to score exactly zero — a LATE kill produces a plausible-looking
+  number, which is the dangerous case. This same blind spot applies to any harness that boots with
+  `--logfile ''`.
+- **`docs/BUGS.md` has UNRESOLVED CONFLICT MARKERS committed at lines 150-192** (`<<<<<<< HEAD` /
+  `=======` / `>>>>>>> 67b5844ba`). Pre-existing — they are present on `21b97b850` and on
+  `origin/2s-numa-stable-dev`, so they came in with an earlier merge and nobody noticed. Harmless
+  to the build, but it means ~40 lines of that file are two versions stacked on top of each other
+  and whatever they document has never been read as one text. Someone has to pick a side.
 - **The FLATSTORE resize guard is ONE-SIDED, and it is what blocks §3 item 2** (evidence added
   2026-07-29, §3b). `FLAT_RZ_COPYING` needs the old table immutable for the whole rebuild. The
   coordinator enforces that against WORKERS (it parks them) and against a non-worker region that is
@@ -1052,6 +1206,12 @@ named. It is kept deliberately, as the record of what was removed and why.*
   artefacts first.
 - **A killed server scores 0.00, not empty.** Reject `''|0|0.0|0.00` as INVALID. A LATE kill yields a
   merely DEPRESSED number, so distrust any single anomalous cell.
+- **A PERF CELL MUST ASSERT THE SERVER SURVIVED IT** (learned 2026-07-29, §3g). The corollary of the
+  rule above, and it cost a full re-investigation to learn: a server that dies *during* a cell still
+  produces a Totals line, and it enters the table as a believable −13.9% / −50.6%. A crash is not a
+  slow arm. Every measurement harness needs a logfile per cell, a crash-marker grep, and a
+  `kill -0` after the run — otherwise "REGRESSION" is the only word it can say for a defect class it
+  cannot distinguish. Booting with `--logfile ''` throws away the one artefact that tells them apart.
 - **Right-sized tests**, two tiers: short and discriminating per change; the long suite after a batch,
   because per-change tests cannot see interaction. Shrink duration and breadth, never discrimination.
 - **Sanity-gate every number.** Implausible ⇒ stop, re-read code and harness, fix, re-measure. This
