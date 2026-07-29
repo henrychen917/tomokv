@@ -46,6 +46,12 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 try tomokv-key-lb-sustain -1 "auto: K = one EWMA time constant, >=3 ticks"
 try tomokv-key-lb-sustain 0  "debounce OFF: single-tick trigger (A/B arm)"
 try tomokv-key-lb-sustain 8  "static: 8 consecutive outlier ticks"
+# Level-2 per-bucket window for the hot-KEY veto. -1 auto (arm at max(4x uniform per-group share,
+# 5% of shard rate)), 0 OFF (nothing allocated, windows disarmed, planner back to group resolution
+# — also the A/B arm for the <=3% budget), N = arm at N% of the shard's rate.
+try tomokv-key-lb-fine -1 "auto: arm on a genuinely concentrated group"
+try tomokv-key-lb-fine 0  "OFF: no allocation, exec path back to a never-taken branch"
+try tomokv-key-lb-fine 1  "static 1%: window armed continuously (worst-case data-path arm)"
 
 echo "=== convention B: 0 = auto (NOT off) ===" >> $OUT
 
@@ -54,6 +60,13 @@ try tomokv-key-lb 0     "key/bucket balancer OFF: reshardAutoTune returns before
 try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
 
 echo "=== prefetch widths (-1 = auto, 0 = off) ===" >> $OUT
+
+echo "=== boolean levers (default off, restored for experimentation) ===" >> $OUT
+# mset-move ships OFF and has no measured gain; both arms are exercised because ON is an ownership
+# change (the value robj is handed to the worker rather than copied), so a mistake there is a
+# use-after-free rather than a wrong answer, and a knob nothing ever boots is a knob nothing tests.
+try tomokv-mset-move no  "default: cross-shard MSET gives each sub a private value copy"
+try tomokv-mset-move yes "MOVE arm: value robj handed to the worker via argv_released_mask"
 
 echo "=== structural knobs ===" >> $OUT
 try tomokv-pin-mode float "no pinning"

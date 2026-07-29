@@ -3198,6 +3198,15 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
+    /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
+     * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
+     * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
+     * historical note about it recorded a concern. It is restored (2026-07-28) as an experiment
+     * lever, the same call already made for prefetch — the regime where a copy could matter is
+     * large values and/or cross-NUMA, which this box cannot answer. Turning it on is a real
+     * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
+     * that keeps exactly one owner of the value at every instant. */
+    createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
     createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
      * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
@@ -3267,6 +3276,20 @@ standardConfig static_configs[] = {
      * for anyone who needs to re-expose one; they are simply not decisions an operator should have to
      * make. Disable the whole balancer with tomokv-key-lb 0. */
     createIntConfig("tomokv-key-lb-sustain",         NULL, MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
+    /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
+     * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
+     * path). That is too coarse for the veto: a hot key is one BUCKET, and averaged over its 64
+     * group-mates it looks like 64 mildly-warm buckets, i.e. like something a bucket flip could
+     * divide. Level 2 is a 64-counter window the balancer points at each worker's hottest group,
+     * armed only when that group is genuinely concentrated.
+     *   -1 = auto (default): arm at max(4x the uniform per-group share, 5% of the shard's rate)
+     *    0 = OFF: nothing allocated, every window disarmed, the exec path pays one never-taken
+     *             branch and the planner is back to group resolution. This is the A/B arm both for
+     *             the <=3%-throughput budget and for proving the veto's refusals came from level 2.
+     *    N = arm when the top group holds >= N% of the shard's rate
+     * A full 16384-counter-per-worker table was rejected on the budget: same one instruction, but a
+     * 64x always-on working-set growth for a question that is local to one group. */
+    createIntConfig("tomokv-key-lb-fine",            NULL, MODIFIABLE_CONFIG, -1, 100, server.reshard_fine_pct, -1, INTEGER_CONFIG, NULL, NULL),
     /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
      * thread nobody routes to has done half a job, and the only reason to want the split was to
@@ -3578,7 +3601,6 @@ static void tomoInitRetiredKnobDefaults(void) {
     server.l3_kb = 0;                               /* was tomokv-l3-kb */
     server.modeshift_test = 0;                      /* was tomokv-modeshift-test */
     server.opt_mget_coalesce = TOMO_MGET_COALESCE;  /* was tomokv-mget-coalesce */
-    server.opt_mset_move = 0;                       /* was tomokv-mset-move */
     server.opt_setop_coalesce = 1;                  /* was tomokv-setop-coalesce */
     server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
     server.os_opts = 0;                             /* was tomokv-os-opts */
