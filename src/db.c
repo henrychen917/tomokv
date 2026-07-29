@@ -3175,7 +3175,7 @@ int confAllowsExpireDel(void) {
     /* This configuration specifically targets nested commands, to align with RE's feature of replication between dbs.
      * transactions (from scripts or multi-exec) containing commands like SCAN and RANDOMKEY will execute locally, but their
      * lazy-expiration DELs may induce CROSS-SLOT on remote proxy in mode replica-of (RED-161574) */
-    return !(server.execution_nesting > 1 && server.executing_client[iotid].p->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
+    return !(execution_nesting > 1 && server.executing_client[iotid].p->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
 }
 
 /* This function is called when we are going to perform some operation

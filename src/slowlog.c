@@ -28,8 +28,11 @@
  * because upstream executes every command on one thread. This fork does not: clients are accepted on
  * per-IO-thread SO_REUSEPORT listeners and live their whole life on that thread, so `call()` — and
  * therefore `slowlogPushCurrentCommand` — runs CONCURRENTLY on main and on every io thread (the same
- * observation that filed A-F.4 for `server.execution_nesting`). Workers are not involved: they run
- * `cmd->proc` directly and never reach `call()`, so only the INLINE command population races. That
+ * observation that filed A-F.4 for `execution_nesting`, since fixed by making it thread-local).
+ * Workers are not involved *in this list*: they run `cmd->proc` directly and never reach `call()`,
+ * so only the INLINE command population races. (They are not entirely innocent of A-F.4 — hash
+ * field lazy expiry does enter an execution unit on a worker — but it never reaches the slowlog.)
+ * That
  * population is exactly the slow one — EVAL and friends — which is why the crash shows up under
  * slow-script load.
  *

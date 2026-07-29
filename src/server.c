@@ -1848,6 +1848,47 @@ void updateCachedTime(int update_daylight_info) {
     updateCachedTimeWithUs(update_daylight_info, us);
 }
 
+/* ee451 (A-F.4, 2026-07-28): EXECUTION NESTING IS PER-THREAD.
+ *
+ * THE DEFECT. Upstream keeps this counter in `server` because upstream has exactly one thread
+ * that executes commands, so "the nesting depth" is unambiguous. This fork has three kinds of
+ * executor and all of them maintain it:
+ *   - the main thread (cron: active expire, eviction, cluster/asm, blocked-client re-execution);
+ *   - EVERY io thread — a client lives its whole life on its own SO_REUSEPORT io thread, and every
+ *     command that is not worker-routed runs inline there through call();
+ *   - EX workers — they call cmd->proc directly and so skip call(), but hash-field lazy expiry
+ *     does enter and exit a unit on the worker thread, via propagateHashFieldDeletion, from two
+ *     reachable directions: hashTypeGetValue (HGET, HMGET, HSTRLEN, HEXISTS, HINCRBY,
+ *     HSETEX, HGETEX, HGETDEL, HSCAN) and hashTypeExpireIfNeeded (HRANDFIELD). All are on
+ *     canDispatchToWorker()'s whitelist.
+ * One process-global int therefore held the SUM of every thread's depth.
+ *
+ * THE PRIMARY BUG IS SEMANTIC, not the torn `++`. Every reader of this counter asks a question
+ * about ITSELF — "am I at the top of my own execution unit?" — and a sum cannot answer it. Two io
+ * threads each merely running a top-level command read 2, with nothing nested anywhere. Making the
+ * counter atomic would keep every one of the following wrong:
+ *   - confAllowsExpireDel() (db.c) refuses a worker's lazy expire of an expired key whenever any
+ *     OTHER thread is one level deep (only when lazyexpire-nested-arbitrary-keys is off);
+ *   - postExecutionUnitOperations() / modulePostExecutionUnitOperations() /
+ *     trackingHandlePendingKeyInvalidations() return early — deferring propagation, post-unit jobs
+ *     and invalidations — because a DIFFERENT thread happens to be mid-command;
+ *   - enterExecutionUnit() below stops refreshing the global command clock, since the "am I
+ *     outermost" test never sees 0 while any other thread is inside call();
+ *   - call()'s duration sampling and the hotkey stats silently drop samples;
+ *   - moduleGILAfterLock()'s serverAssert(execution_nesting == 0) can fire on a correct program.
+ * The non-atomic ++/-- is real too (a lost update leaves the counter permanently skewed, and it was
+ * observed at -1 and at 2 with nothing nested), but it is the second-order failure: it corrupts a
+ * quantity that was already meaningless.
+ *
+ * THE FIX. `__thread`, matching what this fork already does for the same shape of state: the
+ * F-clock's tomo_cmd_time_depth, and the per-thread dirty/current_client/executing_client slots.
+ * Nothing folds this counter — no reader wants any other thread's depth — so there is no array and
+ * no accessor, just storage that answers the question its readers actually ask. Every
+ * enterExecutionUnit/exitExecutionUnit pair in the tree is same-thread (worker dispatch happens in
+ * processCommand BEFORE call(), so no unit ever spans a thread hand-off), which is what makes the
+ * conversion safe. */
+__thread int execution_nesting = 0;
+
 /* Performing required operations in order to enter an execution unit.
  * In general, if we are already inside an execution unit then there is nothing to do,
  * otherwise we need to update cache times so the same cached time will be used all over
@@ -1855,7 +1896,7 @@ void updateCachedTime(int update_daylight_info) {
  * update_cached_time - if 0, will not update the cached time even if required.
  * us - if not zero, use this time for cached time, otherwise get current time. */
 void enterExecutionUnit(int update_cached_time, long long us) {
-    if (server.execution_nesting++ == 0 && update_cached_time) {
+    if (execution_nesting++ == 0 && update_cached_time) {
         if (us == 0) {
             us = ustime();
         }
@@ -1865,7 +1906,7 @@ void enterExecutionUnit(int update_cached_time, long long us) {
 }
 
 void exitExecutionUnit(void) {
-    --server.execution_nesting;
+    --execution_nesting;
 }
 
 void checkChildrenDone(void) {
@@ -4181,7 +4222,8 @@ void initServer(void) {
 
     server.errors = raxNew();
     server.errors_enabled = 1;
-    server.execution_nesting = 0;
+    execution_nesting = 0;   /* ee451 (A-F.4): main thread's own slot; every other thread's is
+                              * zero-initialised by the TLS runtime when it starts. */
     //server.clients_index = raxNew();
 
 
@@ -5227,7 +5269,7 @@ static void propagatePendingCommands(void) {
  * be other considerations. So we basically want the `postUnitOperations` to trigger
  * after the entire chain finished. */
 void postExecutionUnitOperations(void) {
-    if (server.execution_nesting)
+    if (execution_nesting)
         return;
 
     firePostExecutionUnitJobs();
@@ -5352,7 +5394,7 @@ void call(client *c, int flags) {
     monotime monotonic_start = 0;
     if (use_hw_clock) {
         monotonic_start = getMonotonicUs();
-        if (server.execution_nesting == 0) {
+        if (execution_nesting == 0) {
             server.accum_call_count_since_ustime++;
             /* Sync cached time when monotonic clock moves more than 10us
              * or after 25 commands */
@@ -5428,7 +5470,7 @@ void call(client *c, int flags) {
         char *latency_event = (real_cmd->flags & CMD_FAST) ?
                                "fast-command" : "command";
         latencyAddSampleIfNeeded(latency_event,duration/1000);
-        if (server.execution_nesting == 0)
+        if (execution_nesting == 0)
             durationAddSample(EL_DURATION_TYPE_CMD, duration);
     }
 
@@ -5469,7 +5511,7 @@ void call(client *c, int flags) {
      * only update the duration, since the outer-most call records the whole
      * duration. */
     if (update_command_stats && !(c->flags & CLIENT_BLOCKED) &&
-        (!server.execution_nesting || server.in_exec))
+        (!execution_nesting || server.in_exec))
     {
         /* First we need to prepare the hotkeyStats for updates */
         hotkeyStatsPreCurrentCmd(server.hotkeys, c);
@@ -5570,7 +5612,7 @@ void call(client *c, int flags) {
         /* Just like curr cmd setup we only do the cleanup in case we are not in
          * a nested command. For MULTI/EXEC, we do cleanup for each individual
          * command. */
-        if (!server.execution_nesting || server.in_exec)
+        if (!execution_nesting || server.in_exec)
             hotkeyStatsPostCurrentCmd(server.hotkeys);
     }
 
@@ -5650,7 +5692,7 @@ void afterCommand(client *c) {
 
     /* Flush other pending push messages. only when we are not in nested call.
      * So the messages are not interleaved with transaction response. */
-    if (!server.execution_nesting)
+    if (!execution_nesting)
         listJoin(c->reply, server.pending_push_messages);
 
     /* Assert keysizes histogram if enabled */

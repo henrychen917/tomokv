@@ -3133,9 +3133,8 @@ struct redisServer {
     clientMemUsageBucket* client_mem_usage_buckets;
 
     rax *clients_timeout_table; /* Radix tree for blocked clients timeouts. */
-    int execution_nesting;      /* Execution nesting level.
-                                 * e.g. call(), async module stuff (timers, events, etc.),
-                                 * cron stuff (active expire, eviction) */
+    /* ee451 (A-F.4): `int execution_nesting` USED TO LIVE HERE. It is now the thread-local
+     * `execution_nesting` declared below — see the block comment at its definition in server.c. */
     rax *clients_index[TOMO_IO_THREADS_MAX + 1];         /* Active clients dictionary by client ID. */
     uint32_t paused_actions;   /* Bitmask of actions that are currently paused */
     list *postponed_clients;       /* List of postponed clients */
@@ -5121,6 +5120,9 @@ void adjustOpenFilesLimit(void);
 void incrementErrorCount(const char *fullerr, size_t namelen);
 void closeListeningSockets(int unlink_unix_socket);
 void updateCachedTime(int update_daylight_info);
+/* ee451 (A-F.4): execution nesting depth is PER THREAD, not per process. Every reader means
+ * "how deep is the unit *I* am running in"; see the definition in server.c. */
+extern __thread int execution_nesting;
 void enterExecutionUnit(int update_cached_time, long long us);
 void exitExecutionUnit(void);
 void resetServerStats(void);
