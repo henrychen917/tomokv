@@ -7,17 +7,22 @@
 # relaxed 64-bit load and a bounds test to that same site, so it is NOT free and has to be measured
 # rather than argued.
 #
-# THREE ARMS ON ONE BINARY, so no build, layout or allocator difference can be mistaken for the
-# knob (a renamed binary defeating pkill -x once faked a 15% regression on this box):
-#   off    tomokv-key-lb-fine 0  -- no allocation, window never armed. The baseline.
+# FOUR ARMS. Three are the same binary with the knob moved, so no build, layout or allocator
+# difference can be mistaken for the knob (a renamed binary defeating pkill -x once faked a 15%
+# regression on this box). The fourth is the parent build, because the knob CANNOT measure its own
+# full cost: at tomokv-key-lb-fine 0 the branch is still compiled into the exec path, merely never
+# taken, so an off-vs-auto comparison prices the arming and hides the instruction.
+#   base   FINE_BASE_BIN, the build before this feature  -- the feature is absent entirely.
+#   off    tomokv-key-lb-fine 0  -- branch present, never taken, nothing allocated.
 #   auto   tomokv-key-lb-fine -1 -- the shipping default. Under memtier's uniform key pattern no
 #                                   group clears the arming bar, so the window stays DISARMED and
-#                                   this arm measures exactly the always-on cost: one never-taken,
-#                                   perfectly-predicted branch per single-key op.
+#                                   this is what a normal workload actually pays.
 #   armed  tomokv-key-lb-fine 1  -- arm at 1% of shard rate, which uniform load always clears, so
-#                                   the window is armed for the whole run. This is the WORST CASE:
-#                                   ~1/64 of ops also take the extra L1 increment. Not the default's
-#                                   behaviour on this workload, but it bounds it.
+#                                   the window is armed for the whole run. WORST CASE: ~1/64 of ops
+#                                   also take the extra L1 increment. Bounds the default rather
+#                                   than describing it.
+# base-vs-auto is the number the 3% budget is about; the other two decompose it. The new fields sit
+# at the END of exThread precisely so base-vs-auto is not also a struct-layout comparison.
 # ops/s is the verdict metric here, NOT instructions/op: the workers busy-spin on this fork, so
 # instr/op is polluted by spin instructions that have nothing to do with the change.
 # ABBA rotation per rep; medians reported.
@@ -37,12 +42,16 @@ printf "rep\tarm\twl\tops\tmigs\n" >> $OUT
 # `comm` truncates at 15 chars, so `pkill -x memtier_benchmark` matches NOTHING.
 killsrv(){ pkill -9 -x redis-server 2>/dev/null; pkill -9 -x memtier_benchma 2>/dev/null; sleep 2; }
 
-cell(){ # $1 arm-name  $2 knob-value  $3 rep
+BASE_BIN=${FINE_BASE_BIN:-}
+
+cell(){ # $1 arm-name  $2 knob-value ("" = base build, knob does not exist)  $3 rep
   killsrv
   rm -rf $J/finecost; mkdir -p $J/finecost; : > $J/fine_$1.log
-  taskset -c 0-7 "$BIN" --port $PORT --dir $J/finecost --tomokv-nodes 1 \
+  local b="$BIN" knob=(--tomokv-key-lb-fine "$2")
+  if [ "$1" = base ]; then b="$BASE_BIN"; knob=(); fi
+  taskset -c 0-7 "$b" --port $PORT --dir $J/finecost --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
-    --tomokv-key-lb-fine "$2" --enable-debug-command yes \
+    "${knob[@]}" --enable-debug-command yes \
     --save '' --appendonly no --protected-mode no --logfile $J/fine_$1.log >/dev/null 2>&1 &
   sleep 2; for i in $(seq 1 25); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 0.5; done
   $CLI ping 2>/dev/null | grep -q PONG || { printf "%s\t%s\tBOOTFAIL\t0\t0\n" "$3" "$1" >> $OUT; return; }
@@ -64,9 +73,16 @@ cell(){ # $1 arm-name  $2 knob-value  $3 rep
   killsrv
 }
 
+ARMS="off auto armed"
+[ -x "$BASE_BIN" ] && ARMS="base $ARMS" || echo "# NO BASE BINARY (FINE_BASE_BIN unset/missing) — base arm skipped" >> $OUT
 for r in $(seq 1 $REPS); do
-  if [ $((r % 2)) = 1 ]; then cell off 0 $r; cell auto -1 $r; cell armed 1 $r
-  else                        cell armed 1 $r; cell auto -1 $r; cell off 0 $r; fi
+  # ABBA rotation: reverse the arm order on even reps so no arm always runs on a cold or a
+  # heat-soaked box. A fixed order makes position a confound with the arm.
+  if [ $((r % 2)) = 1 ]; then order="$ARMS"; else order=$(echo $ARMS | tr ' ' '\n' | tac | tr '\n' ' '); fi
+  for a in $order; do
+    case $a in base) v="";; off) v=0;; auto) v=-1;; armed) v=1;; esac
+    cell $a "$v" $r
+  done
 done
 killsrv
 
@@ -75,14 +91,17 @@ med(){ awk -v a=$1 -v w=$2 '$2==a && $3==w && $4 ~ /^[0-9]/ {print $4}' $OUT | s
 {
   echo "--- medians ($REPS reps x ${DUR}s, ABBA-rotated; ops/s is the verdict metric) ---"
   for w in p32set p32get; do
-    b=$(med off $w)
-    for a in auto armed; do
-      v=$(med $a $w)
-      [ -n "$b" ] && [ -n "$v" ] && printf " %-7s off=%-12s %-6s=%-12s delta=%+.2f%%\n" \
-        "$w" "$b" "$a" "$v" "$(awk -v x=$b -v y=$v 'BEGIN{print (x>0)?(y-x)*100.0/x:0}')"
+    for ref in base off; do
+      b=$(med $ref $w); [ -n "$b" ] || continue
+      for a in $ARMS; do
+        [ "$a" = "$ref" ] && continue
+        v=$(med $a $w)
+        [ -n "$v" ] && printf " %-7s %-5s=%-12s %-6s=%-12s delta=%+.2f%%\n" \
+          "$w" "$ref" "$b" "$a" "$v" "$(awk -v x=$b -v y=$v 'BEGIN{print (x>0)?(y-x)*100.0/x:0}')"
+      done
     done
   done
-  echo " (budget: >= -3.00% passes; more negative than that does NOT ship)"
+  echo " (the budget verdict is base-vs-auto: >= -3.00% passes; more negative does NOT ship)"
   echo " migrations fired per cell (must be 0 -- a cutover mid-cell invalidates that cell):"
   awk 'NR>1 && $5!="0" && $5!="" {printf "   rep%s %s %s migs=%s\n",$1,$2,$3,$5}' $OUT
 } >> $OUT
