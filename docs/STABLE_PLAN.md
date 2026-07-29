@@ -291,7 +291,7 @@ starved each other. That was an orchestration error, not a box problem.
 |---|---|---|---|
 | 1 | cmdstats `8a24ab1b8`+2 | ~~`cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `eac51d50a` (+ probe `fb1986434`). Acceptance met and shown to discriminate. Perf is no longer unmeasured: **−3.2 to −3.4% on p32 SET io4ex4, which EXCEEDS the 3% budget**; every other cell ≤1%. See §3a |
 | 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **MERGED 2026-07-29 AND REVERTED — the acceptance FAILED.** POST reaches 12/0 in only **2 of 10 runs**; the other 8 crash the server. The residual this row called "FLATSTORE panics ~1 in 3" is understated on every axis: **8 in 10**, and mostly a **double free after silent data loss**, not a panic. Re-merge only together with a *validated* `cfea82654` (or an equivalent quiesce). See §3b |
-| 3 | fpipe-lru `43bdd8972` **only** | `xshard_lookup_accounting.sh` 5/2 → 7/0 | EXCLUDE fix 2 — uncommitted, never compiled. Note LRU shows NO distortion (idempotent within a tick); only LFU and keyspace_hits are real |
+| 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
 | 4 | exec-nesting `c53223863` | builds + 15/0; probe if cheap | Default config: bookkeeping only, not data loss. If the probe cannot discriminate, merge on the static argument and SAY SO |
 | 5 | deletions (5 commits) | 15/0 + `reshard_suite` + `flip_updown` | Large. Key-LB actuators verified unaffected (both paths already required same-node) |
 | 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers` |
@@ -444,6 +444,69 @@ that fails 8 times in 10. Rig, arms and every server log are kept at `$J/step3_d
 
 **Not measured, deliberately:** the two `postmerge.sh` throughput cells. `emptyData` is not on any
 command path a benchmark touches, and the merge was reverted on correctness before perf could matter.
+
+### 3c. Item 3, fpipe-lru — MERGED 2026-07-29 (`bdec8d5ba`, wiring `6d8211379`)
+
+Merged exactly the commit the row names. `git log HEAD..origin/fpipe-lru-fix` listed **one**
+commit and the staged set was **three files** — `src/server.c` (24 lines, all inside
+`csPipeSubExec`) plus the two new preflight files. **Fix 2 is excluded**: it is an uncommitted
+`M src/server.c` in the author's worktree, is not on the branch, and was never compiled. Clean
+auto-merge, nothing swept in.
+
+`make clean && make -j16`, exit 0, **120 objects recompiled**, **exactly one warning** —
+`kvstore.c:73` `dictEncodeStoredKey` incompatible-pointer-type, the same single warning the full
+clean PRE build of this tree emits (`$J/step3_dbgreload/build_pre.log`). **Zero new warnings.**
+*Sanity gate on the build itself:* an 8-second full build looked implausible until the `.o`
+mtimes were read — all 120 land in a 3-second window and the link takes the next 4 — which is
+what `-O3 -flto=auto` does: the per-TU pass only emits GIMPLE and the optimisation happens in a
+parallel LTO link. The build is real, not a stale-object illusion.
+
+**Acceptance met, and the test discriminates — the author's pre-fix numbers reproduced exactly.**
+Both arms driven by the SAME script copy, io4/ex4:
+
+| arm | binary | LFU delta/key (expect 20) | keyspace_hits delta (expect 80) | result |
+|---|---|---|---|---|
+| PRE `436e71c2e` | md5 `94ee07ef964ad399` | **40** | **160** | **5 passed / 2 failed** |
+| POST `bdec8d5ba` | md5 `02540cc43f9bc24a` | 20 | 80 | **7 passed / 0 failed** |
+
+The two controls — single-key `SCARD` and a same-shard localfast `SINTER` — read 20 / 80 on
+**both** arms, so the two failures are attributable to the pipeline route and not to the counter
+apparatus; and the routing oracle (`tomokv_xshard_multikey_split` delta 20 = one split per
+`SINTER`) passed on both, so the pipeline arm really executed. The probe reads the LFU counter out
+of the RDB (`RDB_OPCODE_FREQ`) with `--lfu-log-factor 0 --lfu-decay-time 0`, which turns the
+counter into an exact access count, so the assertion is an integer and not a ratio.
+
+`correctness_suite` on the merged binary: **15 passed, 0 failed.**
+
+**Perf: no regression, and the change is off the benchmarked path.** `postmerge.sh`, 4 cells,
+20 s each, against the recorded baseline: `p1GET_io7ex1` **+0.6%**, `p1SET_io7ex1` **+0.3%**,
+`p32GET_io4ex4` **−0.7%**, `p32SET_io4ex4` **−1.2%** — all inside this box's ±2% exclusive noise,
+and the only edited lines are in `csPipeSubExec`'s `GATHER1`/`PROBE` cases, which `GET`/`SET`
+never enter. One rep per cell, so these **bound** the cost rather than resolve it; nothing here
+needs a decomposition because there is no per-command work to price (the fix strictly *removes*
+lookup side effects on one route).
+
+Two notes on the change itself, checked rather than taken from the commit message:
+- `CS_PIPE_REREAD` is `LOOKUP_NOTOUCH|LOOKUP_NOSTATS|LOOKUP_NONOTIFY` and deliberately **omits**
+  `LOOKUP_NOEXPIRE`, so a re-read still sees a lazily-expired key as gone. Silencing the
+  accounting did not silence expiry.
+- The row's own caveat holds: **LRU shows no distortion** (`val->lru = LRU_CLOCK()` is idempotent
+  within a 1 s tick), so only LFU and `keyspace_hits` were ever wrong. The commit says this too;
+  the branch name overstates the defect.
+
+**One thing was added beyond the merge (`6d8211379`), and it is a harness change, not a product
+change.** The branch adds two files to `tools/preflight/` and nothing calls them — the same shape
+§1a records for `side_regression.sh`, which sat unreferenced while this document listed its output
+among the files a preflight run must produce. Wired in after `correctness_suite` (~10 s,
+traffic-free), with `redis-xslookup` added to preflight's `_OURS` so a leak of it is reaped and
+named. **Honest limit: the wiring itself has not been executed under `preflight.sh` — no full
+preflight run was made in this step.** What ran twice is the same script under the same
+`TOMO_BIN` / `TOMO_PREFLIGHT_DIR` contract `run_suite` uses; the only untested difference is the
+private server name. Its port (7312) was checked against every other suite in the directory and
+is unique.
+
+Raw: `$J/step3_fpipe/` (`run.log`, `acc_pre.out`, `acc_post.out`, `correctness_post.out`,
+`postmerge.out`, `build_post.log`, `run_step.sh`, and the two staged binaries).
 
 ---
 
