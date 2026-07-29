@@ -301,7 +301,7 @@ starved each other. That was an orchestration error, not a box problem.
 | 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
-| 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is now CLOSED, see §3e** | Modifies flip actuation. Author validated only the MANUAL actuator. Resolved patch at `$J/mrg/step4_parked_removal_RESOLVED.patch`; it deletes `num_workers_alloc`, which active-expiry added folds over — auto-merge accepts both sides and the build then fails. Fix: `num_workers_alloc` → `num_workers`. **`num_workers_alloc` is still present after item 5 (40 uses in `server.c`, 3 in `server.h`), so that hazard is unchanged** |
+| 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is CLOSED and was RE-CHECKED on this tip 2026-07-29. NOT MERGED.** | Modifies flip actuation. Author validated only the MANUAL actuator. The gate blocker is a **flip-controller** defect, not this branch's: §4, now with the mechanism measured. Three merge hazards, all re-checked against this tip and two of them corrections to what this row used to say — see §3f |
 | 7 | h2-fence `e7628efc4` | rebase first (base `95872c371`, collides with the private-binary commit) | Evidence: 4/4 violations base → 0/4 fixed, 232 `fence_midbatch_ticks`. **Missing: the throughput cells (`h2_thr.py`) showing A and B still serve their NON-migrating buckets through a cutover — that is the owner's actual design claim and it currently rests on code reasoning alone.** Adds `tomokv-reshard-fence-timeout`, a new "migration did not happen" path that bumps `reshard_done_seq`, which the flip controller reads |
 
 ### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
@@ -712,6 +712,103 @@ Raw: `$J/step3_deletions/` (`run.log`, `run_step.sh`, `run_probefix.sh`, `probef
 `reshard_post_fixedprobe.out`, `rs_{pre,post}.log`, `flip_{pre,post}.out`,
 `flip_{pre,post}.srv.log`, `postmerge_post.out`, and both staged binaries).
 
+### 3f. Item 6, parked-removal — NOT MERGED 2026-07-29: the gate is shut, and now it is shut for a *measured* reason
+
+Nothing was merged, nothing was committed to `src/`, the branch tip is unchanged. The gate said
+"`flip_updown` must PASS"; it FAILs. What this step adds is that the FAIL is no longer just an
+observation — the cause is isolated, priced, and shown **not** to be a defect of the test.
+
+**1. The gate, re-checked on THIS tip** (`99a14b0f4`, binary md5 `a4480e9e5789bd00e03fd7f5b4def431`,
+staged privately as `redis-flip6`). `flip_updown.sh` → **FAIL, rc=1**, `io=3 → 3 → 3 → 3` across
+p32/p1/p32/p1, 24 flip log lines, deadzone pinned at `dz(f1.62/b0.25)`. Field for field the §3e
+result on a third build. Not flaky, not arm-dependent: three runs, three identical FAILs.
+
+**2. The suite is NOT mis-reading the server — §3e's caution (a) is resolved.** `io=` is
+`io_live_node` (`server.c:19101-19110`), which counts poly io slots `t = 1..io_hi` and so **excludes
+iotid 0**: it is exactly `io_threads_live − 1`. That is why `io=3` and
+`GROW-BACK complete — io_threads_live=4` appear in the same run. The label is off by one; the
+**verdict is not**, because every comparison the suite makes (`B>A`, `C<B`) is this field against
+itself. Cosmetic fix worth making: the suite prints the number under the header
+`io_threads_live by phase` and its FAIL hint says "expected io7-ish", both of which are one higher
+than the field can ever read.
+
+**3. The controller is not broken in general — it follows the workload correctly when the workload
+holds one regime.** Diagnostic B: same binary, same io4/ex4 auto boot, but the **preload runs at
+pipeline 1 too**, so the offered load never changes regime; then p1 for 120 s.
+
+| | result |
+|---|---|
+| controller path | `io=3 → 4 → 5 → 6 → 5`, then **21 consecutive readings holding at `io=5`** (`w_live=2`, i.e. io6/ex2) |
+| actuations | GROW-FRONT complete **3**, GROW-BACK complete **1**, refusals **0** |
+| throughput | **821 967 ops/s** |
+
+It climbed three steps, overshot by one, walked back one, and settled — which is precisely the
+designed momentum hill-climb, landing within **0.5 %** of the best static config below.
+
+**4. What the walk-back in `flip_updown` actually costs, measured.** Diagnostic C, static p1 cells,
+20 s each, same box acquisition:
+
+| config | p1 GET ops/s | vs io4/ex4 |
+|---|---|---|
+| io4/ex4 | 608 214 | — |
+| io6/ex2 | **825 711** | **+35.8 %** |
+| io7/ex1 | **836 760** | **+37.6 %** |
+| io4/ex4 (repeat) | 608 642 | +0.07 % on the repeat — the box was exclusive |
+
+So the suite's premise is correct rather than assumed: at p1 a front-heavy split is worth ~36-38 %,
+and the controller in `flip_updown` **reached io6, measured 820 913 ops/s there, and walked back to
+io4 anyway**. Its own in-run climb (604 595 → 726 653 → 820 913 at io4/io5/io6) reproduces the static
+curve to within 1 %, so the two measurements corroborate each other and neither is drift.
+
+**5. Mechanism, from the code and the run's own log.** `fc->before`/`best_rate` are captured at
+START (`server.c:19404`) from the throughput EWMA. In `flip_updown` the START fires **1.6 s after the
+p32→p1 switch**, while the mean still carries the p32 tail: the log records
+`baseline 2 561 088 ops/s` for a phase whose true rate is ~600 k. Every subsequent step is then
+judged against that phantom best — 726 k reads as a loss, 820 k reads as a loss — so PHASE 2 COASTs
+once and then declares OVERSHOOT and walks back 2 steps. PHASE 0 then pins
+`dz_front = imb_ewma × FLIP_DZ_RAISE(1.5) = 1.62`, and the p1 regime's steady imbalance is
+**1.02-1.31** — below the pin — with the pin explicitly **not decaying by design**. One badly-timed
+workload change therefore disables the forward direction for the life of the process.
+The guard that exists for exactly this (`server.c:19277`, "a climb may only START once the EWMA mean
+has caught up") did not fire because its test is `|mean − inst| < 2σ` where σ is the EWMA sigma of
+the *same* series: the transition that corrupts the mean also inflates σ, so the gate passes
+through the very event it was written to exclude. A relative test (`|mean − inst| < k·mean`) is the
+obvious missing half. **Not fixed here — this step is a merge step, and that is a controller design
+change needing its own A/B.** Filed in §4 with these numbers.
+
+**6. Merge hazards, re-checked against this tip — two of them corrections to the row as written.**
+All three are static facts from `git merge-tree --write-tree HEAD 6b9d3a0b9` (tree `87794bba`); no
+build was run, because nothing was merged.
+
+* **"Auto-merge accepts both sides" is no longer true.** The merge now CONFLICTS: **12 hunks across
+  4 files** — `src/server.c` 8, `src/server.h` 2, `src/config.c` 1, `src/debug.c` 1. Most are
+  HEAD-side comment blocks and whole deleted functions (`tomoSpareShift`, `tomoModeshiftSpare`).
+* **`$J/mrg/step4_parked_removal_RESOLVED.patch` is STALE and must not be trusted.**
+  `git apply --check` fails on **all four** source files (`config.c:3218`, `debug.c:958`,
+  `server.c:10298`, `server.h:2204`). It was resolved against a pre-deletions base.
+* **The `num_workers_alloc` hazard is real but smaller and better hidden than recorded.** HEAD has
+  43 uses (40 `server.c` / 3 `server.h`); the 3-way merge itself resolves most of them by taking the
+  branch's rewrite. **Exactly 4 survive in the merged `server.c`, and 2 of those are OUTSIDE every
+  conflict marker** — the active-expiry folds `for (w < server.num_workers_alloc) … aexp_active`
+  (merged lines 3902 and 13634, both from `6ebeef141`, the #42 fix). Those two are the build break,
+  and no conflict marker points at them. Fix remains `num_workers_alloc` → `num_workers`.
+* **NEW hazard the row did not carry: the merge resurrects `TOMO_MODE_WB`.** The branch rewrites the
+  mode enum and its version reads `TOMO_MODE_WB = 3`; item 5's deletions merge removed that
+  enumerator, and HEAD keeps only tombstone comments. Resolving `server.h` by taking the branch side
+  wholesale silently re-adds a mode this line has no thread able to adopt.
+
+**Recommendation for the owner, not acted on.** The gate as written blocks this branch behind an
+unrelated controller defect: `flip_updown` grades the **controller's policy**, while what
+parked-removal changes is the **actuator** (EX→PARKED→IO becomes EX→IO). Both `flip_updown` runs
+show the actuator working — 4 flips, and 4 more in diagnostic B, with **0 refusals on either build**.
+If the intent is "prove the actuator still actuates", the gate should be an actuator conformance
+check built on `DEBUG TOMO-MODESHIFT 70+n/80+n` — which the branch deliberately keeps alive for
+exactly this reason. That is a re-scoping decision, so it was left to the owner rather than taken
+unilaterally to unblock a merge.
+
+Raw: `$J/step3_parked/` (`gate.sh`, `run.log`, `gate.out`, `flip_head.out`, `flip_head.srv.log`,
+`diagB.srv.log`, `static_p1.tsv`, and the staged binary `redis-flip6`).
+
 ---
 
 ## 4. Unowned defects
@@ -745,6 +842,32 @@ Nothing is working on these.
   io_threads_live=4`, so establish what it counts before trusting any verdict computed from it;
   (b) a controller that never moves and a controller that moves once and stops both score
   "0 flips" on a single-phase test — which is how this survived unexamined.
+
+  **DIAGNOSED 2026-07-29 (§3f), and trap (a) is resolved: the suite is right.** `io_live_node`
+  counts io slots `t = 1..io_hi`, excluding iotid 0, so it is `io_threads_live − 1` — an off-by-one
+  *label*, and the verdict compares the field to itself, so it stands. The rest, measured:
+  1. **The controller works when the workload holds one regime.** Booted io4/ex4 auto with the
+     preload ALSO at pipeline 1 (so no regime change ever occurs) and driven p1 for 120 s, it
+     climbed `io=3→4→5→6`, walked back one, and **held io6/ex2 for 21 consecutive readings** at
+     **821 967 ops/s** — within 0.5 % of the best static config. 3 GROW-FRONT + 1 GROW-BACK, 0
+     refusals. So this is not "cannot sense" and not "cannot actuate".
+  2. **It is a cross-regime baseline defect.** `fc->before`/`best_rate` are captured at START from
+     the throughput EWMA. In `flip_updown` the START fires 1.6 s into the new phase and the log
+     records `baseline 2 561 088 ops/s` for a p1 phase whose true rate is ~600 k. Every step is then
+     judged against that phantom: 726 k and 820 k both read as losses → COAST → OVERSHOOT → walk
+     back 2 steps to io4. The stability gate meant to prevent this (`server.c:19277`) tests
+     `|mean − inst| < 2σ` against the EWMA sigma of the *same* series, and the transition inflates σ,
+     so the gate passes through the event it exists to exclude. A **relative** catch-up test is the
+     missing half.
+  3. **Then the pin makes it permanent.** PHASE 0 sets `dz_front = imb_ewma × 1.5 = 1.62` while the
+     p1 regime's steady imbalance is 1.02-1.31, and the pin does not decay by design. One
+     badly-timed workload change disables the forward direction for the life of the process.
+  4. **Priced.** Static p1, 20 s cells, same acquisition: io4/ex4 **608 214**, io6/ex2 **825 711**
+     (+35.8 %), io7/ex1 **836 760** (+37.6 %); io4/ex4 repeat 608 642 (+0.07 %). The controller
+     reached io6, measured 820 913 there, and gave the ~36 % back.
+  Any fix must be A/B'd against BOTH regimes — the pin exists to make the steady state cost zero
+  flips, and loosening it is exactly the thrash the momentum rework was built to stop
+  (see `thredis-flip-controller-momentum`).
 - **LB-2** `server.hotkeys` — one process-global struct used as per-command scratch by every io
   thread. OOB read, double free, and `current_client` clobbering that indexes `argv[pos]` into a
   *different* client's argv. Dormant until `HOTKEYS START`, but the subsystem is unusable as written.
