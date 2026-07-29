@@ -12,9 +12,25 @@ set -u
 # and cannot touch anyone else's.
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
-DIR=$(dirname "${BASH_SOURCE[0]}")
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUT=$J/reshard_suite.out; : > $OUT
 PORT=7899
+# ee451 2026-07-29: RESOLVE redis-cli, do not assume it sits next to the server.
+# This suite's only two uses of a client were spelled `"$(dirname "$BIN")"/redis-cli`. Callers pass
+# a STAGED binary (bins/stable/redis-server, or preflight's private dir) and those directories hold
+# the server ALONE. So the liveness probe ran a nonexistent command, `alive` came back empty, and
+# the suite reported
+#     reshard-survives  FAIL  server dead after cutovers
+# against a server that was alive -- the ordering probe in the SAME run had just passed 0/3000
+# violations across 11 cutovers and the crash-marker scan found 0. One harness typo, graded for days
+# as a product defect. lb_skew.sh already had this fallback chain; this suite never did.
+for _c in "$(dirname "$BIN")/redis-cli" "$DIR/../../src/redis-cli" /shared/Projects/redis/src/redis-cli; do
+  [ -x "$_c" ] && { CLI=$_c; break; }
+done
+if [ -z "${CLI:-}" ]; then
+  echo "harness-cli	FAIL	no redis-cli found — cannot judge liveness (this is a HARNESS failure, not the server)" >> $OUT
+  echo "RESULT: 0 passed, 1 failed" >> $OUT; cat $OUT; exit 1
+fi
 # Stage under a UNIQUE process name (as correctness_suite -> redis-corr and fence_suite ->
 # redis-fence already do). Half the scripts in this directory clean up with
 # `pkill -9 -x "$(basename "${RSBIN}")"`; on this shared box that SIGKILLs any other session's server, and a
@@ -27,7 +43,12 @@ rm -rf $J/rsdata; mkdir -p $J/rsdata
 taskset -c 0-7 "$RSBIN" --port $PORT --dir $J/rsdata --tomokv-nodes 1 \
   --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
   --protected-mode no --enable-debug-command yes --logfile $J/rs.log >/dev/null 2>&1 &
-SRV=$!; sleep 3
+SRV=$!
+# ee451 2026-07-29: tear our server down on EVERY exit path. Without this the one-server-assert
+# below (and any python traceback) exits while OUR server is still running -- and a leaked server
+# inherits withbox.sh's box-lock fd, so it holds the shared box lock forever.
+trap 'kill -9 "$SRV" 2>/dev/null' EXIT TERM INT HUP
+sleep 3
 [ "$(pgrep -x redis-rs | wc -l)" = 1 ] || { echo "FAIL	one-server-assert	not exactly 1 server" >> $OUT; exit 1; }
 
 python3 "$DIR/reshard_order.py" $PORT 3000 > $J/rs_probe.out 2>&1
@@ -40,13 +61,13 @@ case $rc in
 esac
 
 # server must still be alive and serving after all those cutovers
-alive=$("$(dirname "$BIN")"/redis-cli -p $PORT ping 2>/dev/null)
+alive=$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')
 [ "$alive" = "PONG" ] && echo "reshard-survives	PASS	" >> $OUT \
                       || echo "reshard-survives	FAIL	server dead after cutovers" >> $OUT
 cm=$(grep -cE 'Guru|crashed by signal|ASSERTION' $J/rs.log 2>/dev/null); cm=${cm:-0}
 [ "$cm" = 0 ] && echo "reshard-crash-markers	PASS	0" >> $OUT \
               || { echo "reshard-crash-markers	FAIL	$cm" >> $OUT; mkdir -p $J/crashlogs; cp $J/rs.log $J/crashlogs/reshard_$(date +%s).log; }
 
-"$(dirname "$BIN")"/redis-cli -p $PORT shutdown nosave >/dev/null 2>&1; kill -9 $SRV 2>/dev/null; pkill -9 -x redis-rs 2>/dev/null; sleep 1
+"$CLI" -p $PORT shutdown nosave >/dev/null 2>&1; kill -9 $SRV 2>/dev/null; pkill -9 -x redis-rs 2>/dev/null; sleep 1
 echo "RESULT: $(grep -c 'PASS' $OUT) passed, $(grep -c 'FAIL' $OUT) failed" >> $OUT
 cat $OUT

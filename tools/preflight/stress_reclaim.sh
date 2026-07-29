@@ -19,9 +19,13 @@ taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
   --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile $J/stress.log --loglevel notice >/dev/null 2>&1 &
+SRV=$!    # our OWN pid; `taskset` execs into the binary, so this IS the server
 sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
 $CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }
-SRV=$(pgrep -x redis-server | head -1)
+# ee451 2026-07-29: was `SRV=$(pgrep -x redis-server | head -1)`. On this shared box that resolves
+# to WHOEVER'S server sorts first -- so the RSS series below could be sampled from another session's
+# process entirely, and preflight now stages the binary under a unique name (`redis-pf`) so the
+# lookup would simply have come back EMPTY and every rss() sample would have been blank.
 rss(){ awk '/VmRSS/{print int($2/1024)}' /proc/$SRV/status 2>/dev/null; }
 
 echo "=== STRESS ${DUR}s (pid $SRV) ===" >> $OUT

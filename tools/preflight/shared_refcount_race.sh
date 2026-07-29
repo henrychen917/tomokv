@@ -10,14 +10,21 @@
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 HERE=$(cd "$(dirname "$0")" && pwd)
-# HARNESS RULE (cost us a 25-minute leaked server): the arm binaries MUST be named exactly
-# `redis-server`, distinguished by DIRECTORY, not by filename. Every suite in this tree cleans up
-# with `pkill -9 -x redis-server`, which matches on comm -- so an arm named `fixed` or `unfixed` is
-# invisible to that cleanup and leaks a live server that then pollutes whatever runs next. This is
-# the same trap as rule 2b in NIGHT_PLAN.md, hit from the other direction: there, a renamed binary
-# defeated a foreign pkill; here it defeated our OWN.
-FIXED=${FIXED_BIN:-$J/bins/rc/fixed_d/redis-server}
+# ee451 2026-07-29: HAND-WRITTEN FIX -- this suite had no BIN-style variable, so the mechanical
+# `pkill -x "$(basename "$BIN")"` substitution applied to the rest of the tree could not be applied
+# here. The old rule below was: "arm binaries MUST be named exactly redis-server, distinguished by
+# DIRECTORY, because every suite cleans up with `pkill -9 -x redis-server`". That rule is now
+# INVERTED. Reaping a shared name on a shared box SIGKILLs other sessions' servers -- silently, with
+# no crash marker and no core, so the victim looks like a server defect. Lifecycle here is now by
+# OUR OWN RECORDED PID, with a trap on every exit path, and each arm runs under a unique comm.
+#
+# FIXED defaults to the binary UNDER TEST. It used to be a hardcoded path to a stale build, so this
+# suite reported PASS for a binary preflight had never handed it -- the same "certifies a build it
+# never exercised" defect that was already fixed in knob_matrix.sh.
+FIXED=${FIXED_BIN:-${TOMO_BIN:-$J/bins/rc/fixed_d/redis-server}}
 UNFIXED=${UNFIXED_BIN:-$J/bins/rc/unfixed_d/redis-server}
+RCPID=""
+trap 'kill -9 "$RCPID" 2>/dev/null' EXIT TERM INT HUP
 SECS=${SECS:-8}        # per TRIAL, not per arm -- see WHY SHORT TRIALS below
 TRIALS=${TRIALS:-12}
 OUT=${OUT:-$J/shared_refcount_race.out}
@@ -34,13 +41,18 @@ PORT=7898
 # MANY SHORT TRIALS, each with a fresh process, so each trial is an independent draw.
 run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
   local label=$1 bin=$2 log=$J/rc_$1.log
-  pkill -9 -x redis-server 2>/dev/null; sleep 1
+  kill -9 "$RCPID" 2>/dev/null; sleep 1
   : > "$log"
+  # Unique comm per arm, so `pkill -x` anywhere in this tree can never reach it and ours can never
+  # reach anyone else's. The arms stay distinguished by which binary we copy in.
+  local run=$J/rc_arm_$label; mkdir -p "$run"
+  cp -f "$bin" "$run/redis-rcrace" 2>/dev/null; chmod +x "$run/redis-rcrace" 2>/dev/null
   # >1 worker per node is what makes the dbs shared and the verbs concurrently refcounted
-  taskset -c 0-7 "$bin" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+  taskset -c 0-7 "$run/redis-rcrace" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
       --save '' --appendonly no --protected-mode no --enable-debug-command yes \
       --logfile "$log" >/dev/null 2>&1 &
   local pid=$!
+  RCPID=$pid
   sleep 3
   if ! "$HERE/../../src/redis-cli" -p $PORT ping 2>/dev/null | grep -q PONG; then
       echo "$label: SKIP (server did not boot)" | tee -a "$OUT"; kill -9 $pid 2>/dev/null; return 2
@@ -52,7 +64,7 @@ run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
   # capture the fingerprint so the report is self-evidencing, not just a boolean
   grep -oE 'illegal decrRefCount[^\r]*' "$log" | head -1 >>"$OUT"
   grep -E '^=== REDIS BUG REPORT|Guru Meditation|crashed by signal' "$log" | head -2 >>"$OUT"
-  kill -9 $pid 2>/dev/null; pkill -9 -x redis-server 2>/dev/null
+  kill -9 $pid 2>/dev/null; RCPID=""   # our pid only -- never a shared name
   if [ "$panic" -gt 0 ]; then
     echo "  $label trial $3: PANIC" | tee -a "$OUT"; return 1
   fi

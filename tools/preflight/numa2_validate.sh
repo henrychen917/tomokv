@@ -11,14 +11,29 @@ PASS=0; FAIL=0
 ok(){ echo "  PASS: $1" >> $OUT; PASS=$((PASS+1)); }
 bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 
+# ee451 2026-07-29: PRIVATE BINARY NAME + OUR-OWN-PID lifecycle.
+# This suite was one of the three still reaping the shared name. `pkill -9 -x redis-server` was two
+# defects at once: on this shared box it SIGKILLed whatever another session was running (a SIGKILL
+# leaves no crash marker, so the victim reads as a mysterious server defect), and once preflight
+# started staging the binary under a private name it stopped matching OUR server too -- so every
+# boot leaked one, and a leaked server inherits withbox.sh's box-lock fd and holds the shared box
+# lock forever. Copy once to a unique comm, kill our recorded pid, trap every exit path.
+SRCBIN=${TOMO_BIN:-$J/stable-w/src/redis-server}
+N2BIN=$J/redis-n2; cp -f "$SRCBIN" "$N2BIN" 2>/dev/null; chmod +x "$N2BIN" 2>/dev/null
+N2PID=""
+trap 'kill -9 "$N2PID" 2>/dev/null' EXIT TERM INT HUP
+
 boot(){ # $1 = numa nodes
-  pkill -9 -x redis-server 2>/dev/null; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
-  taskset -c 0-7 ${TOMO_BIN:-$J/stable-w/src/redis-server} --port 7978 --dir $J/n2data --tomokv-nodes $1 \
+  kill -9 "$N2PID" 2>/dev/null; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
+  taskset -c 0-7 "$N2BIN" --port 7978 --dir $J/n2data --tomokv-nodes $1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
     --save '' --appendonly no --protected-mode no --enable-debug-command yes \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
+  N2PID=$!
   sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
-rss(){ ps -o rss= -C redis-server 2>/dev/null | head -1 | awk '{print int($1/1024)}'; }
+# rss() read `ps -C redis-server | head -1` -- on a shared box that is whichever server sorts first,
+# i.e. potentially ANOTHER SESSION'S process. Read our own /proc entry instead.
+rss(){ awk '/VmRSS/{print int($2/1024)}' /proc/$N2PID/status 2>/dev/null; }
 
 echo "=== NUMA=2 (simulated nodes) ===" >> $OUT
 if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
@@ -75,7 +90,7 @@ fi
 if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Guru Meditation' $J/numa2.log 2>/dev/null; then
   bad "crash/assert in numa=2 log"; grep -iE 'Guru Meditation|crashed by signal|ASSERTION FAILED' $J/numa2.log | head -3 >> $OUT
 else ok "no crash/assert markers"; fi
-pkill -9 -x redis-server 2>/dev/null
+kill -9 "$N2PID" 2>/dev/null   # our pid only -- never a shared name
 echo "" >> $OUT
 echo "RESULT: $PASS passed, $FAIL failed" >> $OUT
 echo "=== DONE ===" >> $OUT

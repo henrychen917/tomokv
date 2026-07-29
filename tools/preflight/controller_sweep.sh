@@ -150,16 +150,32 @@ within() { # a b pct  -> exit 0 iff |a-b|/max <= pct
   awk -v a="$1" -v b="$2" -v p="$3" 'BEGIN{m=(a>b?a:b); if(m<=0)exit 1; d=(a>b?a-b:b-a); exit (d*100.0/m<=p)?0:1}'
 }
 
+# ee451 2026-07-29: every abort below must leave a RESULT FILE behind.
+# preflight.sh grades a suite that wrote no result file as "produced no result file (exit N)" --
+# indistinguishable from a crash, and the report then carried it as a product failure. On the
+# 2026-07-28 run this suite aborted on `FATAL: a memtier_benchmark is already running` (a leftover
+# load generator from the suite that ran immediately before it) and was recorded as a controller
+# failure. It was a harness/sequencing failure and the report could not say so, because `: > "$OUT"`
+# came AFTER these checks. Now every exit path writes a row that names itself.
+die_pf() { # die_pf <check> <detail>
+  : > "$OUT"
+  printf 'preflight\t%s\tharness\t%s\t%s\tFAIL\n' "$1" "$2" "cannot run" >> "$OUT"
+  echo "FATAL: $2"
+  exit 1
+}
+
 preflight() {
-  [ -x "$BIN" ] || { echo "FATAL: $BIN not executable"; exit 1; }
-  [ -x "$MTB" ] || { echo "FATAL: memtier_benchmark not found"; exit 1; }
-  [ -x "$CLI" ] || { echo "FATAL: redis-cli not found"; exit 1; }
-  command -v python3 >/dev/null 2>&1 || { echo "FATAL: python3 not found (connhold driver for c7/c14)"; exit 1; }
-  # BOX DISCIPLINE: refuse to run alongside anyone else's server/bench.
+  [ -x "$BIN" ] || die_pf binary "$BIN not executable"
+  [ -x "$MTB" ] || die_pf memtier "memtier_benchmark not found"
+  [ -x "$CLI" ] || die_pf redis-cli "redis-cli not found"
+  command -v python3 >/dev/null 2>&1 || die_pf python3 "python3 not found (connhold driver for c7/c14)"
+  # BOX DISCIPLINE: refuse to run alongside anyone else's server/bench. Note this asks about the
+  # SHARED name on purpose -- preflight stages the binary under test as `redis-pf`, so a process
+  # called `redis-server` really is somebody else's and we must not touch it.
   if pgrep -x redis-server >/dev/null 2>&1; then
-    echo "FATAL: a redis-server is already running on this box — not touching it."; exit 1; fi
+    die_pf box-busy "a redis-server is already running on this box — not touching it"; fi
   if pgrep -x memtier_benchma >/dev/null 2>&1; then     # comm truncates at 15
-    echo "FATAL: a memtier_benchmark is already running — box busy."; exit 1; fi
+    die_pf box-busy "a memtier_benchmark is already running — box busy"; fi
 }
 
 boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
@@ -184,7 +200,10 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
     wait "$SRV_PID" 2>/dev/null; SRV_PID=; return 1
   fi
   # assert exactly ONE server before measuring
-  local n; n=$(pgrep -x redis-server 2>/dev/null | wc -l)
+  # ee451 2026-07-29: count OUR OWN comm, not the shared name. preflight stages the binary under
+  # test as `redis-pf`, so `pgrep -x redis-server` here counted 0 of our servers (and any number of
+  # other sessions') and the single-instance assert would have failed every cell.
+  local n; n=$(pgrep -x "$(basename "$BIN")" 2>/dev/null | wc -l)
   if [ "$n" != 1 ]; then tsv boot "$name" "single-instance" "count=$n" "1" FAIL; stopsrv; return 1; fi
   return 0
 }
@@ -1041,7 +1060,7 @@ c14_clientlb() {
 # =============================================================================
 main() {
   exec 9>"$LOCK"
-  if ! flock -n 9; then echo "FATAL: another controller_sweep holds $LOCK"; exit 1; fi
+  if ! flock -n 9; then die_pf single-instance "another controller_sweep holds $LOCK"; fi
   preflight
   : > "$OUT"
   tsv controller check stimulus observed expected result   # header row

@@ -22,6 +22,10 @@ bad(){ echo "  FAIL $1" >> $OUT; FAIL=$((FAIL+1)); }
 KB=$J/redis-knob
 cp "$BIN" $KB 2>/dev/null; chmod +x $KB 2>/dev/null
 kb_kill(){ pkill -9 -x redis-knob 2>/dev/null; }
+# ee451 2026-07-29: reap on EVERY exit path. A cell that exits early (or the suite being killed)
+# otherwise leaves a redis-knob running, and a leaked server inherits withbox.sh's box-lock fd and
+# holds the shared box lock forever.
+trap 'kb_kill' EXIT TERM INT HUP
 
 reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to boot
   local knob=$1 val=$2
@@ -37,11 +41,31 @@ reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to bo
   if [ "$up" = 1 ]; then bad "retired knob $knob=$val STILL ACCEPTED (boots)"; else ok "retired $knob rejected"; fi
 }
 
-try(){ # $1 = knob, $2 = value, $3 = expectation note
-  local knob=$1 val=$2 note=$3
+# ee451 2026-07-29: a knob may need COMPANION flags to be a legal configuration.
+# `try` set exactly ONE knob, so every io_uring SUB-knob cell booted the sub-knob WITHOUT the master
+# switch -- which server.c:3959 deliberately refuses:
+#     FATAL: tomokv-io-uring-recv requires tomokv-io-uring yes — on its own it does nothing
+#            (or worse, half of something).
+# The suite then scored that deliberate, correct refusal as "DID NOT BOOT" and it accounted for 4 of
+# the 10 knob_matrix failures in the 2026-07-28 report. The FATAL is the product working as designed;
+# the TEST was wrong. $4 carries the companion flags so the cell exercises a legal configuration.
+must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
+  local knob=$1 val=$2 why=$3
+  kb_kill; sleep 1
+  taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+    --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
+  sleep 2
+  local up=0; $CLI ping 2>/dev/null | grep -q PONG && up=1
+  kb_kill
+  if [ "$up" = 1 ]; then bad "$knob=$val WAS ACCEPTED but must be refused ($why)"
+  else ok "$knob=$val refused as designed ($why)"; fi
+}
+
+try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (optional)
+  local knob=$1 val=$2 note=$3 companion=${4:-}
   kb_kill; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
   taskset -c 0-7 $KB --port $PORT --dir $J/kdata --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+    --tomokv-thread-io 4 --tomokv-thread-ex 4 $companion \
     --$knob $val --save '' --appendonly no --protected-mode no \
     --logfile $J/knob.log --loglevel notice >/dev/null 2>&1 &
   sleep 2; local up=0
@@ -84,21 +108,28 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-io-uring no
 
-  try tomokv-io-uring-recv yes
+  # The four sub-knobs are INERT without the master switch and the server refuses to boot on the
+  # orphan (server.c:3959). Exercise each in the only legal configuration: with the master on. The
+  # `no` cells need no companion -- an off sub-knob is not an orphan.
+  try tomokv-io-uring-recv yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
 
   try tomokv-io-uring-recv no
 
-  try tomokv-io-uring-reply-send yes
+  try tomokv-io-uring-reply-send yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
 
   try tomokv-io-uring-reply-send no
 
-  try tomokv-io-uring-sqpoll yes
+  try tomokv-io-uring-sqpoll yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
 
   try tomokv-io-uring-sqpoll no
 
-  try tomokv-io-uring-zc yes
+  try tomokv-io-uring-zc yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
 
   try tomokv-io-uring-zc no
+
+  # ...and assert the orphan refusal itself, so the FATAL stays a tested behaviour rather than an
+  # untested one that merely used to show up as four false failures.
+  must_refuse tomokv-io-uring-recv yes "sub-knob without tomokv-io-uring yes — server.c:3959 orphan FATAL"
 
   try tomokv-os-busypoll yes
 
@@ -108,9 +139,16 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-os-opts no
 
-  try tomokv-key-lb -1
+  # ee451 2026-07-29: `try tomokv-key-lb -1` was a TEST defect, not a product one, and it accounted
+  # for the 5th of the 10 knob_matrix failures. config.c:3309 declares this knob
+  # createIntConfig(..., 0, INT_MAX, ...): its convention is "0 = OFF, N = min ops/s before a shard
+  # is a migration candidate". There is no -1 auto value, so -1 is out of range and the server
+  # correctly refuses to start. Asserting the refusal is strictly stronger than deleting the cell.
+  must_refuse tomokv-key-lb -1 "range is [0,INT_MAX]; this knob's convention is 0=OFF, N=min ops/s — there is no -1 auto"
 
-  try tomokv-key-lb 0
+  try tomokv-key-lb 0 "OFF: reshardAutoTune returns before any state is touched"
+
+  try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
 
   try tomokv-key-lb-sustain -1
 

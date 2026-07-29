@@ -89,11 +89,19 @@ echo "$NOW" | tee -a "$OUT" >/dev/null
 
 if [ ! -f "$BASE" ]; then
   echo "$NOW" > "$BASE"
+  # ee451 2026-07-29: say SUSPECT, not nothing. A first run gates NOTHING, and a suite that writes a
+  # result file containing no failing lines is graded PASS -- which would let a build earn a GO from
+  # a regression check that had not yet compared anything. That is the vacuous-validation shape this
+  # project has been bitten by repeatedly, so the run is now labelled loudly instead.
   { echo "side_regression: BASELINE WRITTEN to $BASE ($(echo "$NOW" | wc -l) cells)"
-    echo "side_regression: NO VERDICT on a first run -- re-run against this baseline to gate."; } | tee -a "$OUT"
+    echo "side_regression: SUSPECT — NO VERDICT on a first run; this run gates nothing. Re-run against this baseline."; } | tee -a "$OUT"
   exit 0
 fi
 
+# ee451 2026-07-29: `python3 ... | tee` made the exit status TEE's, i.e. always 0 -- the same
+# "exit status is a constant" defect that 0a2ef6c6f fixed in flip_updown. Grading here happens to
+# survive it because preflight also greps the result file, but a suite whose status cannot express
+# failure is a trap for every other caller. Take the producer's status out of PIPESTATUS.
 python3 - "$BASE" "$OUT" "$TOL" <<'PY' | tee -a "$OUT"
 import sys
 base, out, tol = sys.argv[1], sys.argv[2], float(sys.argv[3])
@@ -140,3 +148,4 @@ else:
     print("  cross-thread cache line, or work done on every path regardless of side.")
 sys.exit(1)
 PY
+exit "${PIPESTATUS[0]}"
