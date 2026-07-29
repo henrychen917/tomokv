@@ -247,7 +247,7 @@ second way to say the same thing.
 |---|---|---|---|
 | `tomokv-thread-mode` | `auto` | no | `auto` = the per-node flip controller + EWMA-weighted client balancing may move the io/ex split away from the boot values; `static` = the boot split is held for the whole run (reproducible measurement). One knob: the old `tomokv-thread-modes` + `tomokv-thread-balance` pair had to be set TOGETHER, and setting one silently disabled the feature. |
 | `tomokv-flip-rebalance` | on | yes | client re-spread and load-weight transfer at each conversion; also gates the **continuous client-lb** (below) |
-| `tomokv-modeshift-test` | 0 | yes | manual actuator hooks: `7`/`8` = grow front/back (single-node only), `70+n`/`80+n` = per-node (n < 10). Setting an unchanged value is a no-op — toggle through 0 between repeats. |
+| `DEBUG TOMO-MODESHIFT <n>` | — | test hook | Not a config knob (moved out of the config surface 2026-07-28). Manual actuator: `5`/`6` = IO-EXIT / conn rebalance, `7`/`8` = grow front/back (single-node only), `70+n`/`80+n` = per-node (n < 10). Anything else is rejected — there are only two flips. |
 
 ### Multi-key / locking
 
@@ -315,7 +315,7 @@ Boolean knobs take `yes`/`no`. Pin the server and the load generator to disjoint
 
 - **Replication/AOF/cluster**: same restrictions as the base sharded engine (boot-gated).
 - **SCAN** over shard data: unchanged from the base engine.
-- **Spare-thread mode**: superseded by role-flipping; spare activation into a shared node is
+- **Reserve/spare thread**: DELETED 2026-07-28 — superseded by role-flipping. Activation into a shared node was
   rejected.
 - **Concurrent per-node migrations**: node decisions are independent but conversions serialize
   through one gate; true concurrency requires per-node migration state.

@@ -334,16 +334,16 @@ void computeDatasetDigest(unsigned char *final) {
          * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard. */
         if (server.shared_node_dbs && server.node_dbs) {
             unsigned long long sz = 0;
-            for (int n = 0; n <= server.n_node_dbs; n++) sz += kvstoreSize(server.node_dbs[n][j].keys);
+            for (int n = 0; n < server.n_node_dbs; n++) sz += kvstoreSize(server.node_dbs[n][j].keys);
             if (sz == 0) continue;
             aux = htonl(j); mixDigest(final,&aux,sizeof(aux));   /* mix DB id ONCE per db */
-            for (int n = 0; n <= server.n_node_dbs; n++) digestOneDb(&server.node_dbs[n][j], final);
+            for (int n = 0; n < server.n_node_dbs; n++) digestOneDb(&server.node_dbs[n][j], final);
         } else if (server.exThreads) {
             unsigned long long sz = 0;
-            for (int w = 0; w < server.num_workers_alloc; w++) sz += kvstoreSize(server.exThreads[w].db[j].keys);
+            for (int w = 0; w < server.num_workers; w++) sz += kvstoreSize(server.exThreads[w].db[j].keys);
             if (sz == 0) continue;
             aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
-            for (int w = 0; w < server.num_workers_alloc; w++) digestOneDb(&server.exThreads[w].db[j], final);
+            for (int w = 0; w < server.num_workers; w++) digestOneDb(&server.exThreads[w].db[j], final);
         } else {
             if (kvstoreSize(server.db[j].keys) == 0) continue;
             aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
@@ -942,9 +942,10 @@ NULL
         sds o = sdsempty();
         for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
             int md = tmIoModePub(t);
-            if (md < 0) continue;                 /* slot not allocated */
+            if (md < 0) continue;                 /* slot not allocated, or not adopted yet (UNSET) */
+            /* TOMO_MODE_IO / TOMO_MODE_EX; there is no third mode (no zero mode either). */
             o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld busy=%.0f\n", t,
-                             md == 1 ? "IO" : (md == 2 ? "EX" : (md == 0 ? "PARKED" : "?")),
+                             md == 1 ? "IO" : (md == 2 ? "EX" : "?"),
                              tmIoThreadLoadPub(t), tmIoBusyPub(t));
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
@@ -958,14 +959,16 @@ NULL
          * operator should set.
          *
          * It is NOT retired outright because four suites use it as their POSITIVE CONTROL -- the
-         * thing that proves the flip/migrate machinery actually fires (controller_sweep's actuator
-         * check, numa2_validate's per-node grow-front/back, stress_reclaim's flip-under-churn).
+         * thing that proves the flip/migrate machinery actually fires (numa2_validate's per-node
+         * grow-front/back, stress_reclaim's flip-under-churn, flip_updown's manual arm).
          * Deleting it would leave those assertions passing without ever exercising the mechanism,
          * which is the vacuous-validation pattern this project has hit repeatedly.
          *
          * Modes: 5/6 = connection migration (IO-EXIT / rebalance), 7/8 = flip grow-front/grow-back,
-         * 70+n / 80+n = per-node grow-front/grow-back on node n, else = retarget the spare poly
-         * thread. Invalid requests (no spare, EX/WB, re-parking a live spare) report the error. */
+         * 70+n / 80+n = per-node grow-front/grow-back on node n. NOTHING ELSE IS VALID: the old
+         * 0/1/2/3 arm retargeted a reserve poly thread that no longer exists (2026-07-28) -- there
+         * is no third role to provision or retarget, only front-flip-back and back-flip-front. An
+         * out-of-set value is an error, not a fallthrough. */
         long mode;
         if (getLongFromObjectOrReply(c, c->argv[2], &mode, NULL) != C_OK) return;
         const char *err = NULL;
@@ -974,7 +977,7 @@ NULL
         else if (mode == 7)                    rc = tomoGrowFront(&err);
         else if (mode == 8)                    rc = tomoGrowBack(&err);
         else if (mode >= 70 && mode < 86)      rc = tomoNodeFlipTest((int)mode, &err);
-        else                                   rc = tomoModeshiftSpare((int)mode, &err);
+        else { rc = 0; err = "unknown modeshift verb (valid: 5, 6, 7, 8, 70+n, 80+n)"; }
         if (rc == 1) addReply(c, shared.ok);
         else addReplyErrorFormat(c, "modeshift %ld refused: %s", mode, err ? err : "unknown");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-jestats")) {
@@ -1016,7 +1019,7 @@ NULL
         int topN = (c->argc >= 3) ? atoi(c->argv[2]->ptr) : 8;
         if (topN < 1) topN = 1;
         if (topN > TOMO_LB_GROUPS) topN = TOMO_LB_GROUPS;
-        int W = server.num_workers_alloc;
+        int W = server.num_workers;
         unsigned long long grp[TOMO_LB_GROUPS]; unsigned long long wtot[TOMO_EX_THREADS_MAX+1];
         for (int g = 0; g < TOMO_LB_GROUPS; g++) grp[g] = 0;
         for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++) {

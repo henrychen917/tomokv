@@ -39,12 +39,28 @@ keeps the core it was pinned to.
 2. EX<->WB shifting (3s) + IO-entry / gradual IO-exit (both forks).
 3. Balancer v1: ex-queue-depth vs io-busy EWMA ratio, one shift per settle window.
 
-## V1 status (steps 1-3 landed, 2s fork)
-Legal transitions are SPARE-ONLY: PARKED->IO (step 2, instant listener join),
-PARKED->EX and EX->PARKED (step 3, migration-backed on the v8d effect-log engine;
-go-live/delist keyed to the bucket-table FLIP via num_workers_live, spare slot
-pre-allocated via num_workers_alloc, parked shard asserted EMPTY). Rejected until
-built: IO-exit (gradual conn drain) — so IO->PARKED and any direct IO<->EX swap
-refuse at both the config layer and the poly checkpoint; WB is unreachable in the
-2s fork (modeshift value 3 is repurposed as the explicit park verb). Non-spare
-threads never shift. Driver: CONFIG SET tomokv-modeshift-test (balancer pending).
+## Status (2s fork, AS SHIPPED 2026-07-28)
+THERE ARE EXACTLY TWO TRANSITIONS, and they are each other's inverse:
+
+- **GROW-FRONT, EX->IO** ("front flip back"): migrate the converting worker's whole bucket
+  range to its node-internal neighbour on the v8d effect-log engine, delist it
+  (`num_workers_live--`) before the arm, and after the migration's teardown hand the thread the
+  IO role. Its checkpoint drains straggler queues to quiet, asserts it owns ZERO buckets, then
+  takes the io identity and `listen()`s its pre-bound dormant socket into the REUSEPORT group.
+  `io_threads_live++` when the new mode is published.
+- **GROW-BACK, IO->EX** ("back flip front"): the io thread runs IO-EXIT — leaves the accept
+  group, migrates every conn out load-aware — and when its last conn is gone it requests the EX
+  role from its own service-out tail (only that thread can observe that edge). Its checkpoint
+  re-validates the exit, takes the worker identity, and the controller then seeds it half of its
+  neighbour's range; `num_workers_live++` at that seed FLIP.
+
+Both changes complete in ONE checkpoint. There is no resting mode between the roles and no
+reserve thread: the pool is always exactly `io_threads + num_workers`, and a flip only moves the
+boundary. WB is unreachable in the 2s fork (no WB slice).
+
+The PARKED mode and its spare thread were DELETED 2026-07-28 (owner ruling). PARKED had been the
+enum's zero value, so `tomoThreadMode` now starts at 1 and 0 is an invalid mode that trips an
+assert at the checkpoint — see the enum comment in server.h.
+
+Drivers: the auto flip controller (`tomokv-thread-mode auto`), or `DEBUG TOMO-MODESHIFT`
+7/8 (single-node grow front/back) and 70+n/80+n (per-node) by hand.

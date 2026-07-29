@@ -1864,7 +1864,7 @@ typedef struct client {
                                 * workers rendezvous at their sentinels; the LAST arrival empties the
                                 * shared node kvstore while the others spin (µs), preserving the
                                 * per-connection FIFO flush semantics without concurrent kvstoreEmpty
-                                * races. NULL = private db (spare slot / sharing off): empty directly. */
+                                * races. NULL = sharing off (private per-worker db): empty directly. */
 } client;
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
@@ -2185,11 +2185,29 @@ typedef struct freebackRing {
  * register). MSB set => predict "forward". Per worker (no sharing). */
 
 /* ee451 (thread-modes v1): polymorphic thread modes (THREAD-MODES-DESIGN.md).
- * A thread is not born io/ex/wb — it HOLDS a mode and the balancer shifts the
- * mode mix. PARKED=0 so a zeroed struct is a parked thread. Step 2: the
- * per-thread mode/target_mode atomics live on polyThreadCtx (mode is THREAD
- * state, not exThread state — the spare has no exThread). */
-typedef enum { TOMO_MODE_PARKED = 0, TOMO_MODE_IO, TOMO_MODE_EX, TOMO_MODE_WB } tomoThreadMode;
+ * A thread is not born io/ex/wb — it HOLDS a mode and the controller flips the
+ * mode mix. The per-thread mode/target_mode atomics live on polyThreadCtx (mode
+ * is THREAD state, not exThread state).
+ *
+ * THERE IS DELIBERATELY NO ZERO MODE (2026-07-28, spare removal). TOMO_MODE_PARKED
+ * used to be 0, which meant "a zeroed polyThreadCtx is a parked thread" — a valid,
+ * silent default. The spare it existed for is gone: the controller has exactly two
+ * moves, grow-front (EX->IO) and grow-back (IO->EX), and a poly thread ALWAYS holds
+ * a real role. Numbering from 1 makes a zero-initialised mode an UNINITIALISED-
+ * CONTEXT BUG that trips the checkpoint assert, instead of silently meaning IO.
+ * Do not add a zero enumerator back.
+ *
+ * UNSET (-1) is the ONLY non-role value and it is not a mode a thread can be shifted
+ * to: it is what a ctx publishes between pthread_create and its first checkpoint,
+ * so a control-plane reader can tell "not adopted yet" from "running as IO". Both
+ * fields are _Atomic int (not the enum type), so the negative is representable.
+ * The numeric values of IO/EX/WB are UNCHANGED — DEBUG TOMO-IOLOAD prints them. */
+typedef enum {
+    TOMO_MODE_UNSET = -1,
+    TOMO_MODE_IO    = 1,
+    TOMO_MODE_EX    = 2,
+    TOMO_MODE_WB    = 3,
+} tomoThreadMode;
 
 typedef struct exThread {
     int id;
@@ -2197,7 +2215,7 @@ typedef struct exThread {
     /* ee451 (flip-actuator, F1): db is IO-thread READ-HOT — processCommand loads
      * server.exThreads[ex_id].db per dispatched op (express/MGET/worker dispatch paths) — but is
      * assigned ONCE in initExThreads and never mutated (the per-node shared kvstore pointer is
-     * immutable across reshard/flip/spare-activation). Keep it on this boot-immutable, writer-free
+     * immutable across reshard and flip). Keep it on this boot-immutable, writer-free
      * head line (id/thread) instead of the tail line the owning worker dirties every op
      * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
     redisDb *db;
@@ -2229,7 +2247,7 @@ typedef struct exThread {
     /* ee451 (v8d): worker loop heartbeat, bumped each iteration ONLY during a migration. The cutover
      * coordinator uses worker B's heartbeat to confirm B has looped past phase==DONE (and is thus out
      * of migDrainB) before freeing the effect log — an RCU-style quiesce, not a timing guess. */
-    _Atomic int in_flat_section;  /* FLATSTORE Stage-2 (review fix): 1 while this worker is INSIDE an exSlice batch that may touch a flat table. Coordinator drains this to 0 to quiesce — IDENTITY-COMPLETE (covers flipped/parking workers the old tmWorkerLive predicate missed). */
+    _Atomic int in_flat_section;  /* FLATSTORE Stage-2 (review fix): 1 while this worker is INSIDE an exSlice batch that may touch a flat table. Coordinator drains this to 0 to quiesce — IDENTITY-COMPLETE (covers mid-flip workers the old tmWorkerLive predicate missed). */
     _Atomic uint64_t loop_seq;
     unsigned long long pf_cached_min;   /* ee451 (v14): cached prefetch gate threshold (avoids a 64-bit divide per batch) */
     unsigned pf_gate_tick;
@@ -2259,7 +2277,7 @@ typedef struct exThread {
                                       * ratio: calibration showed the episode ratio saturates
                                       * at 100% for any op rate whose gaps fit the spin window
                                       * (a 10%-duty worker under a 64B storm never yields), so
-                                      * it cannot drive EX->PARKED. Wraps at ~71min; balancer
+                                      * it cannot drive a grow-front. Wraps at ~71min; controller
                                       * deltas are wrap-safe. */
     /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
      * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
@@ -2612,37 +2630,36 @@ typedef struct {
  * statically partitioned, never handed between threads:
  *
  *   io_slot: identity among IO producer slots — iotid while in IO mode. Slots
- *     [1..io_threads] are IO-CAPABLE: per-slot client lists (initServer inits
- *     t <= io_threads), worker queues[slot]/freeback[slot] (initExThreads inits +
- *     exSlice/freebackDrainAll scan t <= io_threads) and fence_acked[slot] all
- *     exist for them. Slot io_threads is the historically unfed "+1" producer
- *     slot — the SPARE's. EX-born threads' io_slots (io_threads+1+w) are reserved
- *     NAMES only (unique, but no listener/event loop and per-slot state above
- *     io_threads is neither initialized nor scanned) — polyThreadMain refuses IO
- *     mode without an io binding; step 3 provisions them with EX-exit migration.
+ *     [1..io_threads) are the BASE io threads (per-slot client lists, worker
+ *     queues[slot]/freeback[slot] and fence_acked[slot] all exist for them).
+ *     Slots [io_threads .. io_threads+tm_ngrow_io) are the GROWTH slots a worker
+ *     adopts when it grow-fronts; initExThreads/initServer size the per-slot state
+ *     for them too. Any remaining EX-born io_slot (io_threads+1+w) is a reserved
+ *     NAME only (unique, but no listener/event loop) — polyThreadMain refuses IO
+ *     mode without an io binding.
  *
  *   ex_slot: identity among workers — iotid = TOMO_IO_THREADS_MAX+1+ex_slot while
  *     in EX mode. Slots [0..num_workers-1] are EX-capable (own an exThread +
- *     shard). The SPARE's ex_slot (num_workers) is a REAL worker slot when
- *     num_workers_alloc > num_workers (step 3): initExThreads pre-allocates its
- *     full exThread + shard dbs (dormant — the bucket table routes nothing to it)
- *     and binds ctx->ex; PARKED->EX then seeds it via a v8d bucket migration and
- *     EX->PARKED migrates everything back (shard asserted empty at park).
+ *     shard); a grown io thread keeps its ex_slot and revives into it on grow-back.
  *     IO-born threads' ex_slots (num_workers+1+i) remain reserved names only:
  *     polyThreadMain refuses EX mode without an ex binding.
  *
  * mode is written ONLY by the owning thread, at a checkpoint (between slices,
- * never mid-slice); target_mode ONLY by the control plane (the modeshift-test
- * knob today, the balancer later). The iotid TLS store happens exclusively at
- * that checkpoint, BEFORE the first slice of the new mode runs. */
+ * never mid-slice); target_mode ONLY by the control plane (the flip controller,
+ * or DEBUG TOMO-MODESHIFT driving it by hand) — with ONE deliberate exception: an
+ * io thread completing its own IO-EXIT stores its grow-back target from
+ * tmMigServiceOut, because only that thread knows when the last conn left. The
+ * iotid TLS store happens exclusively at the checkpoint, BEFORE the first slice
+ * of the new mode runs. */
 typedef struct polyThreadCtx {
     exThread *ex;          /* EX binding (shard + queues); NULL = not EX-capable (step 2) */
     ioThreadArgs *io;      /* IO binding (event loop + listener); NULL = not IO-capable */
     int io_slot;           /* fixed IO identity (iotid in IO mode) */
     int ex_slot;           /* fixed EX identity (iotid = TOMO_IO_THREADS_MAX+1+ex_slot in EX mode) */
-    int io_listening;      /* thread-private after boot: listener live (spare starts 0 = bound, dormant) */
-    _Atomic int mode;         /* tomoThreadMode; written by the thread at checkpoints */
-    _Atomic int target_mode;  /* tomoThreadMode; written by the control plane */
+    int io_listening;      /* thread-private after boot: listener live (a growth slot starts 0 = bound, dormant) */
+    _Atomic int mode;         /* tomoThreadMode; written by the thread at checkpoints. NEVER 0 —
+                               * TOMO_MODE_UNSET (-1) until the first checkpoint, then IO or EX. */
+    _Atomic int target_mode;  /* tomoThreadMode; written by the control plane. NEVER 0. */
     pthread_t thread;
 } polyThreadCtx;
 
@@ -2663,7 +2680,8 @@ typedef struct polyThreadCtx {
 typedef enum {
     TM_MIGREQ_NONE = 0,
     TM_MIGREQ_REBALANCE,     /* move req_count conns to req_dest (no mode change) */
-    TM_MIGREQ_IOEXIT,        /* leave accept group, move ALL migratable conns out, then park */
+    TM_MIGREQ_IOEXIT,        /* leave accept group, move ALL migratable conns out; then take the
+                              * EX role iff req_then_ex (grow-back), else stay IO and idle */
     TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
 } tmMigReqKind;
 
@@ -2680,18 +2698,25 @@ typedef struct tmMigMailbox {
     int req_kind;                 /* tmMigReqKind */
     int req_dest;                 /* destination iotid for REBALANCE (-1 = spread least-loaded) */
     int req_count;                /* how many conns to move (REBALANCE) */
+    int req_then_ex;              /* IO-EXIT only: 1 = this exit is the first leg of a GROW-BACK, so
+                                   * the thread requests the EX role once its last conn is gone;
+                                   * 0 = a bare conn-drain test hook (DEBUG TOMO-MODESHIFT 5) with
+                                   * NO controller bookkeeping behind it — the thread must stay IO,
+                                   * or io_threads_live would over-count a thread that silently
+                                   * became a worker. Published with req_kind, before req_pending. */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
-    _Atomic int io_exiting;       /* IO-EXIT in progress: park once client count hits 0.
-                                   * Written by the owner only, but read CROSS-THREAD by
+    _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count
+                                   * hits 0. Written by the owner only, but read CROSS-THREAD by
                                    * tmGatherLiveDests / the rebalance dest fallback /
                                    * tomoMigrateTest — atomic (relaxed) so those reads are
                                    * not C11 data races. Stays 1 from the exit request all
-                                   * the way THROUGH park adoption (cleared at the park
-                                   * checkpoint, next to accept_left — NOT at service-out
-                                   * step 4), so the parking thread is never selected as a
-                                   * migration destination in the request-park window. */
+                                   * the way THROUGH the IO->EX checkpoint (cleared there, next
+                                   * to accept_left — NOT at service-out step 4), so the exiting
+                                   * thread is never selected as a migration destination in the
+                                   * window between the request and the role change. */
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
+    int exit_then_ex;             /* owner's latched copy of req_then_ex for the current exit */
     int batch_dest;               /* REBALANCE: fixed destination for the current batch */
     unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
 } tmMigMailbox;
@@ -2720,20 +2745,22 @@ struct redisServer {
     exThread *exThreads;
     list *clients_pending_ex[TOMO_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
     int num_workers;
-    /* ee451 (thread-modes v1, step 3): worker-slot accounting for the EX-capable spare.
-     * num_workers stays the CONFIGURED count W (pin-map bases, num_cdb resolution and the
-     * poly-registry layout key off it and never change).
-     * num_workers_alloc = W, +1 when an EX-capable spare exists: sizes ex_dbs/exThreads and
-     * bounds every control-plane fold over ALL slots (RDB save, DBSIZE, stats, producer-side
-     * flushExQueues/cross-shard scratch) — a dormant slot's shard is empty and its queues are
-     * unfed, so covering it is always harmless, and producer-side coverage MUST be
-     * unconditional (the bucket-table FLIP can route to slot W before any liveness signal).
-     * num_workers_live = the CONSUMING worker set [0..live): read by the reshard autotuner,
-     * KEYS fan-all, FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand
-     * work to a thread that must be running exSlice to ever pop it. Writers: the modeshift
-     * apply fn (main thread; decrement BEFORE arming the deactivation migration) and the
-     * reshard coordinator (increment at FLIP — the bucket remap IS the go-live). */
-    int num_workers_alloc;
+    /* ee451 (thread-modes): worker-slot accounting.
+     * num_workers is the CONFIGURED count W — the number of worker SLOTS that exist. It sizes
+     * ex_dbs/exThreads and bounds every control-plane fold over ALL slots (RDB save, DBSIZE,
+     * stats, producer-side flushExQueues/cross-shard scratch). Pin-map bases, num_cdb
+     * resolution and the poly-registry layout key off it and it never changes at runtime.
+     * (The old num_workers_alloc = W+1 sizing existed only for a reserve worker slot that no
+     * longer exists, 2026-07-28; alloc was then identically W, so the field was deleted rather
+     * than left as a synonym that could drift.)
+     * num_workers_live = the CONSUMING worker set: read by the reshard autotuner, KEYS fan-all,
+     * FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand work to a thread
+     * that must be running exSlice to ever pop it. A grown-front slot is still allocated but
+     * not live. Writers: the flip actuators (main thread; decrement BEFORE arming the
+     * grow-front migration) and the reshard coordinator (increment at the grow-back seed FLIP
+     * — the bucket remap IS the go-live). Producer-side coverage must stay keyed off
+     * num_workers, never num_workers_live: the FLIP can route to a slot before its liveness
+     * signal is published. */
     _Atomic int num_workers_live;
     /* ee451 (per-node flip): per-NODE live prefixes. Node n's live workers are the prefix
      * [n*ex_per_node, n*ex_per_node + tm_node_wlive[n]) — grow-front converts the node's HIGHEST
@@ -2747,12 +2774,16 @@ struct redisServer {
                                     * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
     struct polyThreadCtx *tm_flip_ctx;   /* the poly ctx currently converting (NULL = none); the
                                           * reshard coordinator tail retargets THIS thread's mode
-                                          * (generalizes the old single-tmSpare tail to any thread) */
-    int tm_flip_target;            /* final TOMO_MODE_* the flipping thread should reach */
-    int tm_flip_phase;             /* grow-back phase machine: 0=await park, 1=await EX, 2=await seed FLIP */
-    mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the park; abort past
-                                    * it. TIME, not ticks: tmFlipTick runs per event-loop iteration, so a tick
-                                    * count is load-dependent (40 iterations ~ 1ms under P32 load). */
+                                          * once the grow-front migration's teardown is complete */
+    int tm_flip_target;            /* the TOMO_MODE_* the flipping thread should reach.
+                                    * TOMO_MODE_UNSET when no flip is in progress — NOT 0, which
+                                    * is not a mode (see tomoThreadMode). */
+    int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
+                                    * seed migration, 2=await seed FLIP */
+    mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the conn drain;
+                                    * abort past it. TIME, not ticks: tmFlipTick runs per event-loop
+                                    * iteration, so a tick count is load-dependent (40 iterations ~ 1ms
+                                    * under P32 load). */
     int tm_flip_aborted_node;      /* review [races]: the NODE whose probe aborted. tm_flip_aborted is a
                                     * server-global but the controller keeps per-node state and scans
                                     * every node each tick; without this tag a peer node (in a routine
@@ -2788,27 +2819,24 @@ struct redisServer {
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
     /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
-     * polyThreadMain with a preset mode, plus one PARKED spare if configured threads < allowed
-     * cores. DERIVED from tomokv-thread-mode (both `auto` and `static` run the poly threads;
-     * they differ only in whether the controller is allowed to actuate). Not a user knob. */
+     * polyThreadMain with a preset mode. The pool is ALWAYS fully active: there is no reserve
+     * thread, so the pool size is exactly io_threads + num_workers and a flip only ever moves
+     * the boundary between the two roles. DERIVED from tomokv-thread-mode (both `auto` and
+     * `static` run the poly threads; they differ only in whether the controller is allowed to
+     * actuate). Not a user knob. */
     int poly_threads;
     /* (modeshift_test DELETED 2026-07-28 with the tomokv-modeshift-test knob: it was the
-     * hand-driven spare-retarget used before the balancer existed; nothing read it.) */
+     * hand-driven mode-retarget used before the controller existed; nothing read it.) */
     /* tomokv-thread-mode: TOMO_THREAD_MODE_AUTO | TOMO_THREAD_MODE_STATIC. IMMUTABLE.
      * The ONE knob that decides whether the io/ex split may move at runtime. */
     int thread_mode;
-    /* ee451 (thread-modes step 4): the QUORUM PRESSURE BALANCER + the flip controller may
-     * ACTUATE. DERIVED: 1 iff thread_mode == AUTO. 0 = no signal folding anywhere (every hook
-     * is behind this bool, so the hot path pays one predicted branch) and the boot split from
-     * tomokv-thread-io/-ex is held for the life of the process. Not a user knob. */
+    /* ee451 (thread-modes step 4): the flip controller may ACTUATE. DERIVED: 1 iff
+     * thread_mode == AUTO. 0 = no signal folding anywhere (every hook is behind this bool, so
+     * the hot path pays one predicted branch) and the boot split from tomokv-thread-io/-ex is
+     * held for the life of the process. Not a user knob. */
     int thread_auto;
-    /* ee451 (thread-modes step 4): mode-mix bounds. 0 = auto (min: 1; max: the populated
-     * allowed-core allocation). V1 has one movable thread (the spare), so these only bound
-     * the SPARE's participation: ex-max blocks PARKED->EX when live workers would exceed
-     * it; ex-min blocks EX->PARKED when live workers would drop below it. The io bounds
-     * are validated + documented but INERT in v1 (the balancer performs no IO shifts). */
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS
-     * fully active (no spare/reserve). io_per_node + ex_per_node <= cores_per_node. io_threads /
+     * fully active (no reserve thread). io_per_node + ex_per_node <= cores_per_node. io_threads /
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
      * controller flip the io/ex boundary WITHIN each node's core budget. */
     int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
@@ -2818,19 +2846,21 @@ struct redisServer {
     int io_per_node;           /* tomokv-thread-io: IO threads per node (the STARTING split) */
     int ex_per_node;           /* tomokv-thread-ex: EX workers per node (the STARTING split);
                                 * io_per_node + ex_per_node <= cores_per_node */
-    /* Internal flip bounds — DERIVED from the node budget (min 1 each, max cores_per_node-1);
-     * no longer user knobs. The balancer reads these; the node budget is the real bound.
-     * (The IO-side pair was deleted 2026-07-28: it was derived and then never read — the flip
-     * headroom on the IO side is bounded by tm_ngrow_io, not by a min/max.) */
-    int ex_threads_min;
-    int ex_threads_max;
-    /* ee451 (thread-modes v1, step 3): coordinator side-channel for spare transitions.
-     * 0 = ordinary migration; 1 = spare ACTIVATION (coordinator publishes
-     * num_workers_live at FLIP); 2 = spare DEACTIVATION (coordinator requests PARKED
-     * after teardown). Written by the modeshift apply fn (main thread) strictly before
-     * reshardArm, read + cleared by the single coordinator of that migration —
-     * one-migration-at-a-time makes this race-free. */
-    int tm_mig_spare_action;
+    /* (The ex_threads_min/max pair is GONE 2026-07-28, following the IO-side pair before it.
+     * Their only reader was the reserve-thread quorum balancer, deleted with the reserve. The
+     * bounds are structural, not numeric: grow-front refuses below 2 live workers in a node,
+     * grow-back refuses when the node has no grown io slot to reclaim, and the IO-side headroom
+     * is tm_ngrow_io. A derived-then-never-read field is worse than no field.) */
+    /* ee451 (thread-modes): coordinator side-channel for FLIP-driven migrations.
+     * 0 = ordinary migration (no flip tail);
+     * 2 = GROW-FRONT: the converting worker's whole range has been moved out and torn down,
+     *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO);
+     * 3 = GROW-BACK seed: the coordinator publishes num_workers_live++ at the FLIP.
+     * (Value 1 was the reserve-thread activation tail, deleted 2026-07-28 with the reserve.)
+     * Written by the flip actuator (main thread) strictly before reshardArm, read + cleared by
+     * the single coordinator of that migration — one-migration-at-a-time makes this
+     * race-free. */
+    int tm_mig_flip_action;
     int pipeline_ring_depth;
     unsigned int pipeline_ring_mask;
     int ex_queue_size;
@@ -2863,13 +2893,13 @@ struct redisServer {
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
     } migration;
     redisDb **ex_dbs;
-    /* ee451 (shared-kv S0.2b): the PHYSICAL db arrays — one per NODE (+1 private for the spare
-     * slot). ex_dbs[w] ALIASES node_dbs[tmNodeOfWorker(w)], so every existing exThreads[w].db
+    /* ee451 (shared-kv S0.2b): the PHYSICAL db arrays — exactly one per NODE.
+     * ex_dbs[w] ALIASES node_dbs[tmNodeOfWorker(w)], so every existing exThreads[w].db
      * access lands on the node's shared kvstore; a worker owns the bucket-dicts of its bucket
      * range within it (dict index == bucket). shared_node_dbs gates every behavior fork
      * (SHARED_MT kvstores, flush barrier, reshard=flip, capture off). */
     redisDb **node_dbs;
-    int n_node_dbs;            /* node count (excludes the +1 spare-private array) */
+    int n_node_dbs;            /* number of physical node db arrays == node count */
     int shared_node_dbs;       /* 1 = workers share per-node kvstores (workers-per-node > 1) */
     redisDb *db;
     dict *commands;             /* Command table */
@@ -5724,8 +5754,6 @@ void freePooledFakeClient(client *c);                   /* ee451 (v11): return s
 void freeFakeClient(client *c);
 void *ioThreadMain(void *arg);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
-int tomoModeshiftSpare(int mode, const char **err);  /* ee451 (thread-modes step 2): retarget the spare; 0 + *err on invalid */
-int tomoSpareShift(int mode, const char **err);      /* ee451 (thread-modes step 4): the actuator itself — callable by the balancer AND the config knob (both main thread) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */
 void tmMigInitSlot(int io_slot, struct aeEventLoop *el);  /* build this slot's mailbox + register its wakeup fd on el */
@@ -5735,8 +5763,8 @@ void tmMigForgetOnFree(client *c);                    /* freeClient hook: drop a
 int tomoGrowFront(const char **err);
 int tomoGrowBack(const char **err);
 void tmFlipTick(void);
-int tomoMigrateTest(int val, const char **err);       /* control plane: modeshift-test 5 (io-exit) / 6 (rebalance) */
-int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: modeshift-test 70+n / 80+n */
+int tomoMigrateTest(int val, const char **err);       /* control plane: DEBUG TOMO-MODESHIFT 5 (io-exit) / 6 (rebalance) */
+int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: DEBUG TOMO-MODESHIFT 70+n / 80+n */
 void tomoWkrLockPub(int w);                            /* per-worker mcmd lock (db.c RANDOMKEY expire) */
 void tomoWkrUnlockPub(int w);
 /* tomokv-pin-io / tomokv-pin-ex spec parser. Grammar (whitespace-separated tokens):

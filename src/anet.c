@@ -589,8 +589,9 @@ int anetTcpServer(char *err, int port, char *bindaddr, int backlog)
  * SO_REUSEADDR + SO_REUSEPORT + bind only. A TCP socket joins the kernel's
  * SO_REUSEPORT dispatch group at listen() time, NOT at bind() time, so a
  * bound-but-not-listening socket steals no connections from the live listeners:
- * this is the DORMANT pre-allocated listener for a parked spare thread. The
- * spare completes IO-entry later with a single listen(fd, backlog) — instant. */
+ * this is the DORMANT pre-allocated listener for a flip GROWTH io slot. The EX
+ * worker that grows into it completes IO-entry later with a single
+ * listen(fd, backlog) — instant. */
 int anetTcpServerBindOnly(char *err, int port, char *bindaddr)
 {
     int s = -1, rv;

@@ -249,7 +249,6 @@ atgrade() { # anti-thrash grade: 0 events PASS, 1 SUSPECT, >1 FAIL
 flips()   { echo $(( $(count_log "GROW-FRONT complete") + $(count_log "GROW-BACK complete") )); }
 # Current io_threads_live, for proving the controller ACTUATED rather than merely sat still.
 iolive()  { grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | tail -1 | cut -d= -f2; }
-convs()   { echo $(( $(count_log "MODESHIFT PARKED->EX complete") + $(count_log "MODESHIFT EX->PARKED complete") )); }
 racts()   { echo $(( $(count_log "reshard AUTO:") + $(count_log "reshard DIFFUSE:") )); }
 clbexec() { count_log "REBALANCE — started"; }   # 1 line per EXECUTED conn-migration batch (server.c:17000)
 ioclients() { # per-io-slot live client counts, ONE INFO threads call (server.c:12928-12932)
@@ -425,14 +424,16 @@ c1_flip() {
   local rss0; rss0=$(rss_kb)
   # shellcheck disable=SC2086
   mt flip_auto_fill $W_FILL >/dev/null
-  # conformance: on the flip fork the spare/quorum-balancer is inert BY DESIGN
-  # (tm_ngrow_io = ex_threads-1 = 3 > 0 => no spare provisioned, server.c:15795-15800)
-  if wait_log "no EX-capable spare poly thread" 5; then
-    tsv 1-flip design-assert "thread-mode auto, ex=4 (flip pool)" \
-        "balancer-inert warning logged" "spare/flip mutual exclusion (server.c:15795)" PASS
+  # conformance: the poly pool is FULLY ACTIVE -- io-born + ex-born and nothing else. The
+  # reserve-thread count is gone with the reserve thread (2026-07-28), so assert the boot
+  # log states the exact pool composition instead. A boot that provisions anything beyond
+  # io-born+ex-born is the regression this catches.
+  if wait_log "poly threads (3 io-born, 4 ex-born)" 5; then
+    tsv 1-flip design-assert "thread-mode auto, io=4 ex=4 (flip pool)" \
+        "pool = 3 io-born + 4 ex-born, no reserve" "fully-active pool, two roles only" PASS
   else
-    tsv 1-flip design-assert "thread-mode auto, ex=4 (flip pool)" \
-        "no inert warning" "expected [balance] inert log" SUSPECT
+    tsv 1-flip design-assert "thread-mode auto, io=4 ex=4 (flip pool)" \
+        "boot pool line absent or unexpected" "expected '7 poly threads (3 io-born, 4 ex-born)'" SUSPECT
   fi
 
   # Phase A: p1 GET-heavy => io-ward (GROW-FRONT) from the io4 base
@@ -558,11 +559,11 @@ c1_flip() {
 }
 
 # =============================================================================
-# 2. SPARE PARKED<->EX BALANCER — SECTION DELETED 2026-07-28.
-#    Owner ruling: the spare/PARKED machinery is deprecated. The controller has exactly two moves,
-#    front-flip-back and back-flip-front; there is no third mode to provision or retarget. Every
-#    cell here tested spare provisioning, PARKED->EX / EX->PARKED conversion, or the
-#    DEBUG TOMO-MODESHIFT 2/3 spare actuator -- all failing against a feature no longer in use.
+# 2. RESERVE-THREAD QUORUM BALANCER — SECTION DELETED 2026-07-28, and the feature itself is now
+#    deleted from the server too. Owner ruling: the controller has exactly two moves, front-flip-back
+#    and back-flip-front; there is no third role to provision or retarget. Every cell here tested
+#    reserve-thread provisioning, its conversions, or the DEBUG TOMO-MODESHIFT 0/1/2/3 actuator --
+#    all of a feature no longer in use, and those verbs are now rejected outright.
 #    Replaced by tools/preflight/flip_updown.sh: p32 -> p1 -> p32 -> p1, flips required BOTH ways.
 
 # 3. Per-connection fake-ring controller — RETIRED 2026-07-28 with tomokv-fake-ring-depth
@@ -1050,7 +1051,7 @@ main() {
   for c in $CONTROLLERS; do
     case "$c" in
       1)  c1_flip ;;
-      2)  echo "  (2: spare PARKED balancer retired 2026-07-28 - see flip_updown.sh)" ;;
+      2)  echo "  (2: reserve-thread balancer deleted 2026-07-28 - see flip_updown.sh)" ;;
       7)  c7_pools ;;
       8)  c8_flatresize ;;
       9)  c9_qsbr ;;

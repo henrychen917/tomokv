@@ -82,10 +82,10 @@ lands.
 - **S0.2a DONE + gated** (commit 1ecf550f7): dict index == bucket, 16384-dict kvstores, per-worker
   isolation kept. Corruption+intercard PASS, 6 live copy-reshards clean, perf 0.98x (wash).
 - **S0.2b + S1 DONE + gated** (this commit): per-NODE physical dbs (ex_dbs[w] aliases
-  node_dbs[w/wpn]; spare slot private), KVSTORE_SHARED_MT (atomic aggregates, Fenwick skipped +
+  node_dbs[w/wpn]), KVSTORE_SHARED_MT (atomic aggregates, Fenwick skipped +
   linear-scan fallbacks, rehash-list spinlock, release-published dict creation), per-node FLUSH
   rendezvous barrier, worker-range RANDOMKEY, node-summed DBSIZE, per-worker-range KEYS subs, and
-  **reshard = drain-fence + O(1) ownership flip** (no scan, no log, no cleanup; cross-node/spare
+  **reshard = drain-fence + O(1) ownership flip** (no scan, no log, no cleanup; cross-node
   arms rejected — same-physical-db required). Gate: smoke all-green (DBSIZE/KEYS exact, RANDOMKEY,
   TTL, FLUSHALL-under-load), 10 flips under 951k concurrent borrow+write ops => 0 integrity errors
   (issued=applied=0 — nothing copied), corruption harness PASS at MAX sharing (numa=1: 4 workers on
@@ -96,9 +96,9 @@ lands.
   Deterministic recipe: 10 DEBUG-RESHARD flips under load, then kill 16 bench conns, then FLUSHALL.
   The flush barrier itself traced clean (4 arrivals / 2 empties per flush). TODO: root-cause the
   legacy livelock separately.
-- KNOWN GAPS: estore (HFE) aggregates not MT-safe on shared dbs; thread-modes SPARE activation
-  into a shared node is rejected (private array) pending integration; S2 keyspace-wide ops
-  (SCAN on shards) unchanged.
+- KNOWN GAPS: estore (HFE) aggregates not MT-safe on shared dbs; S2 keyspace-wide ops
+  (SCAN on shards) unchanged. (The old "SPARE activation into a shared node is rejected" gap went
+  away with the reserve thread, deleted 2026-07-28.)
 - NEXT: S1.5 first-touch NUMA placement (needs real hardware); then the cross-shard payoff — run
   within-node multi-key commands as stock procs on the node kvstore (widened xshard_localfast) and
   simplify the per-node borrow to a shared-kvstore access.
@@ -162,8 +162,8 @@ even without NUMA); GET/SET show a mild ~4-8% n2 tax. All single-CCD; real-NUMA 
   W | 16384, so reshardRangeValid's ownership walk rejected EVERY arm (no flips, no balancer moves)
   on 3/6/12-worker configs. All prior validation used powers of 2 and never saw it. Fix: end[i] =
   ceil((i+1)B/W) (exact table boundary; identical for pow2).
-- **DEBUG RESHARD PERWORKER protocol desync fixed** (arraylen=alloc vs loop=num_workers -> CLI hang
-  when the spare slot is allocated).
+- **DEBUG RESHARD PERWORKER protocol desync fixed** (arraylen and loop bound must be the same
+  expression -> CLI hang when they diverged).
 - **Flip direction chooser (user design)**: first-probe direction = io-vs-ex throughput comparison.
   At steady state the two rates are equal, so their difference IS the queue-depth trend: standing
   worker queues => ex lags => grow back; dry queues => io-bound => grow front. Unit-free, no
