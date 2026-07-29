@@ -60,6 +60,12 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 # with the deprecation shim in place every one of those passed trivially, which is coverage
 # theatre. Regenerate this block from config.c whenever the surface changes.
   try tomokv-client-lb yes
+# Level-2 per-bucket window for the hot-KEY veto. -1 auto (arm at max(4x uniform per-group share,
+# 5% of shard rate)), 0 OFF (nothing allocated, windows disarmed, planner back to group resolution
+# — also the A/B arm for the <=3% budget), N = arm at N% of the shard's rate.
+  try tomokv-key-lb-fine -1 "auto: arm on a genuinely concentrated group"
+  try tomokv-key-lb-fine 0  "OFF: no allocation, exec path back to a never-taken branch"
+  try tomokv-key-lb-fine 1  "static 1%: window armed continuously (worst-case data-path arm)"
 
   try tomokv-client-lb no
 
@@ -179,6 +185,13 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   reject tomokv-xshard-guard yes
   reject tomokv-worker-pop-batch 8
   reject tomokv-mget-coalesce legacy
+
+echo "=== boolean levers (default off, restored for experimentation) ===" >> $OUT
+# mset-move ships OFF and has no measured gain; both arms are exercised because ON is an ownership
+# change (the value robj is handed to the worker rather than copied), so a mistake there is a
+# use-after-free rather than a wrong answer, and a knob nothing ever boots is a knob nothing tests.
+  try tomokv-mset-move no  "default: cross-shard MSET gives each sub a private value copy"
+  try tomokv-mset-move yes "MOVE arm: value robj handed to the worker via argv_released_mask"
 
 pkill -9 -x redis-server 2>/dev/null
 echo "" >> $OUT

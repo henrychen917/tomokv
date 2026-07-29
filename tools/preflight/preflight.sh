@@ -16,6 +16,9 @@
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
 #   5. correctness_suite.sh   ordering/boundary invariants (each check exists
 #                              because a real bug got past a weaker one)
+#   5b. keylb_veto.sh          the balancer's hot-KEY veto ENGAGES on per-bucket
+#                              evidence, a multi-bucket skew still migrates, and
+#                              the window-off arm does not reach it
 #   6. feature_sweep.sh        oracle equivalence vs stock Redis + toggles +
 #                              persistence + known-issues ledger
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
@@ -101,6 +104,13 @@ run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
+# Hot-KEY veto. Here because the veto is the one balancer gate whose failure mode is SILENCE: it
+# refuses to migrate, so a build in which it can never engage looks identical to a build in which
+# nothing needed vetoing, and that is precisely the state this fork shipped in. The suite asserts
+# the veto ENGAGED on per-bucket evidence (arm A), that a genuine multi-bucket skew still migrates
+# (arm B, so the fix is not "never move"), and that the same workload with the window off does NOT
+# reach it (arm C, so A is attributable).
+run_suite $SD/keylb_veto.sh          $PF/keylb_veto.out         $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL'

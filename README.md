@@ -343,17 +343,40 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | :--- | :--- | :--- |
 | `tomokv-key-lb` | `0` off · N ops/s (default 20000) | Significance floor + master switch. `0` means no machinery runs and nothing is allocated. Was `tomokv-reshard-min-ops`. |
 | `tomokv-key-lb-sustain` | `-1` auto (default) · `0` debounce off · N ticks | How many CONSECUTIVE 1 Hz ticks the hot shard must be a statistical outlier before a migration fires. Auto: one EWMA time constant, floored at 3 ticks. `0` fires on the first violating tick — the pre‑2026‑07‑28 trigger, kept as the A/B arm. |
+| `tomokv-key-lb-fine` | `-1` auto (default) · `0` off · N pct | Resolution of the load profile the hot‑**key** veto decides on. See below. |
 
 Everything else in the detector self‑derives from the signal and is not an operator
 decision: a dual‑rate EWMA of each shard's op rate (alpha from the workload's own
 throughput, clamped so the filter always filters), an outlier bar at mean + max(k·σ,
 0.25·mean), a Schmitt release bar halfway back to the mean, a cooldown of one EWMA time
 constant, a 15 %‑peak‑drop progress guard, and a split point chosen from the measured
-per‑bucket‑group load profile. A move is only made if it strictly improves the predicted
-maximum — when it cannot, the hotspot is a hot **key** rather than a hot **bucket** (a
-bucket flip relocates load, it never divides it) and the balancer holds and logs
-`reshard HOLD` instead of thrashing. `DEBUG RESHARD TRIGGER` counts every gate;
-`DEBUG RESHARD LBGROUPS <w>` dumps the balancer's own smoothed per‑group view.
+load profile. A move is only made if it strictly improves the predicted maximum — when it
+cannot, the hotspot is a hot **key** rather than a hot **bucket** (a bucket flip relocates
+load, it never divides it) and the balancer holds and logs `reshard HOLD` instead of
+thrashing. `DEBUG RESHARD TRIGGER` counts every gate; `DEBUG RESHARD LBGROUPS <w>` dumps
+the balancer's own smoothed per‑group view.
+
+**Two levels of load profile, because the veto needs resolution the cheap signal cannot
+give.** Level 1 counts ops per 64‑bucket **group** (256 counters = 1 KB per worker,
+L1‑resident, on an increment the exec path already performed — free). It is the right
+granularity for "which part of this shard is warm" and the wrong one for the veto: a hot
+key is one **bucket**, and averaged across its 64 group‑mates it looks exactly like 64
+mildly‑warm buckets, i.e. like something a bucket flip could divide. With group counters
+alone the veto is unreachable and measurably never fired — the wasted migration was
+stopped one step later by the no‑progress guard instead.
+
+Level 2 (`tomokv-key-lb-fine`) is a **64‑counter window** the 1 Hz balancer points at each
+worker's hottest group, armed only when that group is genuinely concentrated (auto:
+≥ 4× the uniform per‑group share **and** ≥ 5 % of the shard's rate). Full per‑bucket
+counters would be 64 KB per worker — the same single instruction, but a 64× growth of the
+always‑on working set, and always‑on load‑balancing machinery here has a **≤ 3 % throughput
+budget**. The question the veto asks is local to one group, and level 1 already names which
+group that is, so only one needs resolution. `0` turns level 2 off entirely: nothing is
+allocated, every window is disarmed, the exec path is back to one never‑taken branch, and
+the planner is back to group resolution — which is also the A/B arm for both the budget and
+for proving a refusal came from the finer level. `DEBUG RESHARD LBFINE <w>` dumps the
+window; `DEBUG RESHARD TRIGGER` reports `unbal_fine`, which counts only refusals that
+group resolution would **not** have reached.
 
 The former `tomokv-reshard-imbalance-pct` / `-chunk` / `-progress-ratio` /
 `-cool-margin-pct` knobs are retired. Their fields keep full `-1`/`0`/N semantics and are
@@ -367,6 +390,7 @@ controller.
 | `tomokv-num-cdb` | `0` auto (default) · N strict | Reply‑bus count. Auto: one bus per worker on multi‑CCD machines (de‑contention), a single bus on one CCD (nothing to de‑contend). Topology is machine identity, read once. |
 | `tomokv-zerocopy-min-value` | `0` off · N bytes (default 1024) | Zero‑copy reply threshold — strict by design: the copy‑vs‑bookkeeping crossover is a machine property, not a workload signal (measured ~1 KB here). |
 | `tomokv-opt-operand-pool` | bool (default off) | Argv‑operand recycling pool (tiered, demand‑grow, op‑clocked decay — the same controller style). Hardwired ON in the 3‑Stage edition; gated here pending 2‑Stage validation. |
+| `tomokv-mset-move` | bool (**default off**) | Cross‑shard MSET hands each value object to the owning worker (the `argv_released_mask` ownership handoff) instead of giving the sub a private copy. Off is not a placeholder: no gain has ever been measured **or claimed** for it, and the regime where a copy could matter (large values, cross‑NUMA) is not one this box can answer. Kept as an experiment lever. Turning it on is an ownership change, not a tuning parameter — `csAppendMsetValue` documents the three‑step contract that keeps exactly one owner of the value at every instant. `INFO tomokv_xshard_mset_moved` counts entries into the arm, so a clean run with it on is only evidence if that counter moved. |
 
 ### Kernel / io_uring (experimental, default off)
 

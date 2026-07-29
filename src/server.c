@@ -7207,6 +7207,12 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  *                   (the exact class of divergence 6e9a31304 fixed). Nonzero = ordering bug. */
 static _Atomic unsigned long long tomo_xshard_multikey_split_n;
 static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
+/*   mset_moved — GATE-OPENED PROOF for tomokv-mset-move. The knob's ON arm hands a value robj
+ *                across a thread boundary, so a test of it that never actually took the arm (every
+ *                MSET landing on one shard, say, or the knob not applying) reports "0 corruptions"
+ *                and means nothing. This counter must be NONZERO for such a run to count as
+ *                evidence, and reads 0 with the knob off. */
+static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
@@ -8628,14 +8634,37 @@ typedef struct csCoalesceSpec {
 static void csAppendMsetValue(client *head, client *sub, int origpos) {
     int vpos = 2 + 2*origpos;
     robj *val = head->argv[vpos];
-    /* ee451 2026-07-28: the MOVE arm (tomokv-mset-move) is GUTTED. It handed the value robj to the
-     * worker via the argv_released_mask contract instead of copying, but: the knob was never on by
-     * default, no gain was ever measured OR EVEN CLAIMED for it, and every note about it recorded a
-     * concern rather than a win. Retiring the knob had already made the arm unreachable; this deletes
-     * it rather than leaving dead cross-thread-ownership code that a future reader might re-enable.
-     * The copy below is the arm that shipped, and it is the safe one: the sub owns a private
-     * refcount-1 value, so no operand crosses a thread boundary. */
-    sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
+    /* ee451 2026-07-28 (restored): the MOVE arm (tomokv-mset-move) is back as a live knob, DEFAULT
+     * OFF. It was gutted in 77174fa4a because it was unreachable and has no measured gain; the owner
+     * wants it available for experimentation (large values / NUMA, where the copy is the cost), the
+     * same call already made for prefetch. It ships off precisely because no gain was ever claimed.
+     *
+     * OWNERSHIP CONTRACT (why this is safe when enabled). The value robj is handed to the sub WITHOUT
+     * a refcount bump, so exactly one owner exists at every instant:
+     *   1. head->argv[vpos] is relinquished HERE, before the sub is pushed: either via
+     *      current_pending_cmd->argv_released_mask (freePendingCommand skips masked slots — see
+     *      networking.c:6707/6737/6773) or, with no pending cmd behind this client, by NULLing the
+     *      slot (both freeClientArgv and the pool teardown skip NULLs).
+     *   2. The worker's CS_MSET apply loop CONSUMES the ref in setKey/kvobjSet and then NULLs
+     *      sub->argv[] on the worker, so csFreeSub's IO-thread decref never touches it. That NULL is
+     *      the S8 rule (non-atomic refcounts must not be mutated from two threads) and it is what
+     *      makes the move legal at all.
+     *   3. csAppendMsetValue runs exactly ONCE per value: MSET builds its subs once, and MSETNX's
+     *      HOP1 wave carries keys only (per_key_extra=0 in its spec) — only the HOP2 SCATTER wave
+     *      re-runs the k/v build. A second call on a released slot would be a use-after-free, so that
+     *      invariant is load-bearing; see the csCoalesceSpec comment on the msetnx registry row.
+     * The bit index is bounded by 64 because argv_released_mask is a uint64_t; beyond that (an MSET
+     * with >31 pairs) fall back to NULLing the head slot, which is equally complete. */
+    if (server.opt_mset_move) {
+        atomic_fetch_add_explicit(&tomo_xshard_mset_moved_n, 1, memory_order_relaxed);
+        sub->argv[sub->argc++] = val;
+        if (head->current_pending_cmd && vpos < 64)
+            head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
+        else
+            head->argv[vpos] = NULL;
+    } else {
+        sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
+    }
 }
 
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
@@ -11081,10 +11110,41 @@ static int    mig_settle   = 0;   /* ticks to let the EWMA absorb the last migra
  * num_workers_alloc * 256 counters and adds NOTHING to the data path.
  * Allocated lazily on the first tick the balancer actually runs, so tomokv-key-lb 0 costs no
  * memory (knob rule: off means no machinery). Rows are indexed [worker][group]. */
-#define TOMO_LB_GROUP_BUCKETS (TOMO_BUCKETS / TOMO_LB_GROUPS)
 static float    *mig_grp_ewma = NULL;   /* smoothed per-group op rate, same alpha as the shard EWMA */
 static uint32_t *mig_grp_last = NULL;   /* previous raw counter, for wrap-safe unsigned deltas */
 static int       mig_grp_rows = 0;
+
+/* ---- ee451 (2026-07-28): LEVEL 2 — the armed per-BUCKET window, and why the veto needed it.
+ *
+ * THE DEFECT THIS FIXES. migPlanChunk's strict-improvement rule is the hot-KEY veto: refuse to move
+ * when no bucket range improves the predicted maximum. Fed only by level-1 group counters it can
+ * never fire on a hot key, because the planner spreads each group's rate evenly over the group's 64
+ * buckets. A single hot key IS one bucket; smeared over 64 it reads as 64 mildly-warm buckets, the
+ * accumulator becomes a straight line, and a split point that lands on the target always exists. In
+ * the measured hot-key phase the veto read unbal=0 and what actually stopped the chase was the
+ * no-progress guard — one migration later, and only because the migration had already failed.
+ *
+ * WHY A WINDOW AND NOT 16384 COUNTERS PER WORKER. See TOMO_LB_FINE_WIN in server.h: full resolution
+ * is a 64x always-on working-set growth for a question that is local to ONE group. A hot key adds
+ * its entire rate to exactly one group, so under any workload where the veto can matter that group
+ * is the shard's argmax — which level 1 already identifies for free. Resolution is therefore needed
+ * only there, and only when that group is genuinely concentrated.
+ *
+ * WHY NOT A HEAVY-HITTER SKETCH (Space-Saving / Misra-Gries). A sketch's selling point is bounded
+ * memory over an UNBOUNDED key domain. This domain is not unbounded: it is 16384 buckets, and the
+ * group counters have already narrowed it to 64. What is left is a question a sketch answers less
+ * well and more expensively — a per-op probe over m counters (or a hash plus a min-replacement,
+ * which under a uniform 2M-key background is nothing but eviction churn) versus one compare, and an
+ * approximate answer instead of an exact within-window one.
+ *
+ * ROWS are indexed [worker][bucket-within-window]. mig_fine_grp[w] is the group the window covers
+ * (-1 = disarmed). mig_fine_warm[w] counts folds still owed before the row may be trusted: a
+ * re-point invalidates the old mapping, so the first delta after one is discarded. */
+static float    *mig_fine_ewma = NULL;  /* smoothed per-bucket rate inside the window, same alpha */
+static uint32_t *mig_fine_last = NULL;  /* previous raw counter, wrap-safe unsigned deltas */
+static int32_t  *mig_fine_grp  = NULL;  /* group each row's window covers; -1 = disarmed */
+static uint8_t  *mig_fine_warm = NULL;  /* folds still owed before this row is trustworthy */
+static int       mig_fine_rows = 0;
 
 /* ---- Trigger instrumentation. A "0 spurious migrations" result from a build whose trigger never
  * armed proves nothing (docs/BUGS.md catalogues several such vacuous checks), so every gate the
@@ -11104,10 +11164,176 @@ static struct {
     unsigned long long fire;       /* migrations armed by the outlier path */
     unsigned long long prof;       /* split point chosen from the MEASURED group profile */
     unsigned long long uniform;    /* split point chosen from the uniform-density fallback */
+    /* ---- level-2 (per-bucket window) evidence. unbal_fine is the DISCRIMINATING counter: it is
+     * bumped only when the veto refused on per-bucket data AND the same planner fed only group
+     * data would have fired. "unbal>0" alone would not prove the extra resolution did anything —
+     * that is the vacuous form docs/BUGS.md catalogues — so the shadow plan is computed and
+     * compared. unbal_grp is the converse (both resolutions agree on refusing). ---- */
+    unsigned long long unbal_fine; /* veto DECIDED by per-bucket data (group data would have moved) */
+    unsigned long long unbal_grp;  /* veto that group resolution would also have reached */
+    unsigned long long fine_used;  /* plans whose split scan consumed the per-bucket window */
+    unsigned long long fine_arm;   /* windows (re)pointed at a group */
+    unsigned long long fine_ticks; /* ticks ending with at least one window armed */
     /* last-tick snapshot so the gates above can be read against the signal that produced them */
     double mean, hot_bar, release_bar, hotv, alpha;
     int hot, K, streak;
+    int fine_grp;                  /* group the hot worker's window covers this tick (-1 = none) */
+    double fine_top;               /* that group's smoothed rate */
+    double fine_peak;              /* hottest SINGLE bucket in it (0 when disarmed/warming) */
 } mig_trig;
+
+/* Resolved load profile for ONE shard: the always-on group row plus, optionally, the armed
+ * per-bucket window. Built once per plan by migProfileInit; migBucketRate is then O(1) per bucket. */
+typedef struct migProfile {
+    const float *row;      /* per-group smoothed rates, or NULL => caller's uniform estimate */
+    const float *fine;     /* per-bucket window, or NULL => group resolution only */
+    double       fine_sum; /* sum of *fine (the rescale denominator) */
+    int          fine_g;   /* group the window covers */
+    double       uni;      /* uniform per-bucket fallback */
+} migProfile;
+
+/* `allow_fine` = 0 builds the group-only profile, which is what the planner had before the window
+ * existed. That arm is not dead code: it is the shadow plan the veto's discriminating counter is
+ * measured against (see mig_trig.unbal_fine). */
+static void migProfileInit(migProfile *p, int w, const float *row, double uni, int allow_fine) {
+    p->row = row; p->uni = uni; p->fine = NULL; p->fine_sum = 0; p->fine_g = -1;
+    if (!allow_fine || !mig_fine_ewma || w >= mig_fine_rows) return;
+    if (mig_fine_grp[w] < 0 || mig_fine_warm[w] != 0) return;
+    const float *f = &mig_fine_ewma[(size_t)w * TOMO_LB_GROUP_BUCKETS];
+    double s = 0;
+    for (int i = 0; i < TOMO_LB_GROUP_BUCKETS; i++) s += f[i];
+    if (!(s > 0)) return;
+    p->fine = f; p->fine_sum = s; p->fine_g = mig_fine_grp[w];
+}
+
+/* Rate of a single bucket, at the best resolution available for it. Inside the armed window the
+ * MEASURED per-bucket shape is used, RESCALED so the window's buckets still sum to exactly the
+ * group's own smoothed rate. The two levels are folded from different counters over slightly
+ * different windows, and preserving the group total means the finer level can only redistribute
+ * load WITHIN a group — it can never move the shard's totals, so no gate upstream of the split can
+ * be perturbed by arming a window. Outside the window this is the group rate spread evenly, i.e.
+ * exactly the pre-level-2 behaviour. */
+static inline double migBucketRate(const migProfile *p, int b) {
+    int g = b / TOMO_LB_GROUP_BUCKETS;
+    double grate = p->row ? (double)p->row[g] : p->uni * TOMO_LB_GROUP_BUCKETS;
+    if (p->fine && g == p->fine_g)
+        return grate * (double)p->fine[b - g * TOMO_LB_GROUP_BUCKETS] / p->fine_sum;
+    return grate / TOMO_LB_GROUP_BUCKETS;
+}
+
+/* Level 2, once per 1 Hz tick, main thread: FOLD each armed window's counters into its per-bucket
+ * EWMA, then RE-POINT each worker's window at its currently hottest group.
+ *
+ * ARMING RULE (tomokv-key-lb-fine). A window is armed only when the shard's top group is genuinely
+ * CONCENTRATED, because that is the only situation in which per-bucket resolution can change an
+ * answer — if the groups are flat there is no hot key to veto and the group profile is already the
+ * truth. auto (-1) requires BOTH:
+ *   - top >= 4x the shard's uniform per-group share. Under a hash-scattered background the argmax
+ *     of nG Poisson groups sits ~1.1-1.4x the mean at these counts, so 4x is comfortably outside
+ *     the noise and the window stays disarmed (and the data path's branch never-taken) on uniform
+ *     load, which is the case the <=3% budget is measured on.
+ *   - top >= 5% of the shard's rate. This one is derived, not picked: the veto's worth-it margin is
+ *     need_gain = 0.25*(hot_bar - mean) and hot_bar - mean >= 0.25*mean, so a bucket can only swing
+ *     the decision if it carries at least ~0.0625*mean, and a hot shard has Lh >= 1.25*mean. Below
+ *     that share, treating the group as uniform cannot change what the planner decides, so there is
+ *     nothing to buy by arming.
+ * An explicit N means exactly "arm at N% of the shard's rate" and drops the noise guard — explicit
+ * is explicit. 0 disarms everything and frees nothing to disarm (level 2 is never allocated).
+ *
+ * RE-POINTING invalidates the counters' meaning (slot i is a different bucket), so the window is
+ * published FIRST, the raw snapshot is taken after it, and the next fold is a seed rather than a
+ * blend (mig_fine_warm). Ops in flight across the publish are misattributed for well under a
+ * millisecond of a 1 Hz statistic. */
+static void migFineTick(int wmax, int hot, double alpha) {
+    mig_trig.fine_grp = -1; mig_trig.fine_top = 0; mig_trig.fine_peak = 0;
+    if (server.reshard_fine_pct == 0) {
+        /* OFF means OFF: disarm every window (back to a never-taken branch on the exec path) and
+         * give the memory back, so a runtime flip to 0 lands in the same state as booting at 0. */
+        for (int w = 0; w < wmax; w++)
+            atomic_store_explicit(&server.exThreads[w].lb_fine_win, 0, memory_order_relaxed);
+        if (mig_fine_ewma) {
+            zfree(mig_fine_ewma); zfree(mig_fine_last); zfree(mig_fine_grp); zfree(mig_fine_warm);
+            mig_fine_ewma = NULL; mig_fine_last = NULL; mig_fine_grp = NULL; mig_fine_warm = NULL;
+            mig_fine_rows = 0;
+        }
+        return;
+    }
+    if (!mig_fine_ewma || mig_fine_rows < wmax) return;   /* allocation failed: level 1 only */
+    int any_armed = 0;
+    for (int w = 0; w < wmax; w++) {
+        exThread *ex = &server.exThreads[w];
+        float *frow = &mig_fine_ewma[(size_t)w * TOMO_LB_GROUP_BUCKETS];
+        uint32_t *flast = &mig_fine_last[(size_t)w * TOMO_LB_GROUP_BUCKETS];
+
+        /* ---- fold the window that was armed for the tick just ended ---- */
+        if (mig_fine_grp[w] >= 0) {
+            int seed = mig_fine_warm[w] > 0;
+            for (int i = 0; i < TOMO_LB_GROUP_BUCKETS; i++) {
+                uint32_t cur = ex->lb_fine_ops[i], d = cur - flast[i];
+                flast[i] = cur;
+                frow[i] = seed ? (float)d : (float)(alpha * (double)d + (1.0 - alpha) * frow[i]);
+            }
+            if (seed) mig_fine_warm[w]--;
+        }
+
+        /* ---- decide where the window belongs now ---- */
+        int want = -1;
+        double top = 0;
+        if (mig_grp_ewma && w < mig_grp_rows && tmWorkerLive(w)) {
+            int lo = (w == 0 ? 0 : server.ex_bucket_end[w - 1]), hi = server.ex_bucket_end[w];
+            if (hi > lo) {
+                const float *grow = &mig_grp_ewma[(size_t)w * TOMO_LB_GROUPS];
+                int g0 = lo / TOMO_LB_GROUP_BUCKETS, g1 = (hi - 1) / TOMO_LB_GROUP_BUCKETS;
+                int gtop = g0; double gsum = 0;
+                for (int g = g0; g <= g1; g++) {
+                    gsum += grow[g];
+                    if (grow[g] > grow[gtop]) gtop = g;
+                }
+                top = grow[gtop];
+                double nG = (double)(g1 - g0 + 1);
+                double bar;
+                if (server.reshard_fine_pct > 0) {
+                    bar = (server.reshard_fine_pct / 100.0) * gsum;
+                } else {
+                    double noise = 4.0 * gsum / nG, floor_share = 0.05 * gsum;
+                    bar = noise > floor_share ? noise : floor_share;
+                }
+                if (gsum > 0 && top >= bar) want = gtop;
+                /* STICKINESS. Re-pointing throws away a tick of resolution (the counters' meaning
+                 * changes), so it must not happen because two near-equal groups traded the argmax.
+                 * Keep the current window unless the challenger is decisively hotter, or the
+                 * incumbent has itself dropped below the arming bar. Without this the window
+                 * flaps every tick under any near-uniform group profile and is permanently in
+                 * warm-up, i.e. permanently unusable — a self-inflicted version of the very
+                 * "signal that never engages" defect this whole level exists to fix. */
+                int cur = mig_fine_grp[w];
+                if (want >= 0 && cur >= 0 && cur != want &&
+                    grow[cur] >= bar && (double)grow[want] < 1.25 * (double)grow[cur])
+                    want = cur;
+            }
+        }
+
+        /* ---- re-point (or disarm) ---- */
+        if (want != mig_fine_grp[w]) {
+            uint32_t base = want < 0 ? 0 : (uint32_t)(want * TOMO_LB_GROUP_BUCKETS);
+            atomic_store_explicit(&ex->lb_fine_win,
+                                  want < 0 ? 0 : TOMO_LB_FINE_WIN(base, TOMO_LB_GROUP_BUCKETS),
+                                  memory_order_relaxed);
+            for (int i = 0; i < TOMO_LB_GROUP_BUCKETS; i++) { flast[i] = ex->lb_fine_ops[i]; frow[i] = 0; }
+            mig_fine_grp[w] = want;
+            mig_fine_warm[w] = 1;          /* next fold seeds; the row is trustworthy the tick after */
+            if (want >= 0) mig_trig.fine_arm++;
+        }
+        if (mig_fine_grp[w] >= 0) any_armed = 1;
+        if (w == hot) {
+            mig_trig.fine_grp = mig_fine_grp[w]; mig_trig.fine_top = top;
+            if (mig_fine_grp[w] >= 0 && mig_fine_warm[w] == 0)
+                for (int i = 0; i < TOMO_LB_GROUP_BUCKETS; i++)
+                    if (frow[i] > mig_trig.fine_peak) mig_trig.fine_peak = frow[i];
+        }
+    }
+    if (any_armed) mig_trig.fine_ticks++;
+}
 
 /* Choose how many buckets to shift across the hot|B boundary, and decide whether ANY shift is worth
  * making. Two standard rules, in this order:
@@ -11126,10 +11352,23 @@ static struct {
  *     balancer uses (Google Slicer, Facebook Shard Manager) and the actionable form of
  *     docs/lb-imbalance-model.md §4's `h > 1/W => unbalanceable`.
  *
+ * RESOLUTION IS THE WHOLE GAME FOR RULE 2. Fed only per-GROUP counts, this function spreads each
+ * group's rate over its 64 buckets, the accumulator becomes piecewise-LINEAR, and a split point
+ * arbitrarily close to the target therefore always exists — so rule 2 can never refuse, and
+ * measured runs confirmed it never did. With the armed per-bucket window the accumulator is a STEP
+ * function: a lone hot bucket contributes nothing until the scan reaches it and everything after,
+ * so the V's minimum sits either just short of it (no gain) or just past it (the neighbour becomes
+ * the new peak). That is precisely the hot-KEY signature, and it is what makes the veto engage.
+ *
+ * `allow_fine` = 0 forces group resolution, so the caller can compute the shadow plan that proves
+ * the finer level changed the decision rather than merely accompanying it.
+ *
  * Returns buckets to move (>=1), or 0 when nothing improves the peak enough. */
 static int migPlanChunk(int hot, int B, double Lh, double Lc, int hot_lo, int hot_hi,
-                        double need_gain, int *used_profile, double *out_pred, double *out_moved) {
+                        double need_gain, int allow_fine, int *used_profile,
+                        double *out_pred, double *out_moved, int *out_used_fine) {
     int hrange = hot_hi - hot_lo;
+    if (out_used_fine) *out_used_fine = 0;
     /* Scan the whole shard bar one bucket. The old code capped the chunk at half the range as a
      * crude anti-overshoot; the V-shaped objective already prevents overshoot (the walk stops at
      * the split point, it does not run to the cap), so a half-range cap only served to hide load
@@ -11160,10 +11399,25 @@ static int migPlanChunk(int hot, int B, double Lh, double Lc, int hot_lo, int ho
     if (!(target > 0)) return 0;
     double uni = Lh / (double)hrange;     /* uniform-density per-bucket estimate */
 
+    migProfile prof;
+    migProfileInit(&prof, hot, row, uni, allow_fine);
+    /* The window is only usable if it OVERLAPS this shard's range — after a boundary move it may
+     * not, and the next tick's arming pass re-points it. Shard boundaries are not group-aligned
+     * (chunks are load-derived, not multiples of 64), so a group can straddle two workers; the
+     * overlap test is what handles that. The counters themselves are already correct in that case:
+     * a worker only ever increments buckets it owns, so a straddling group's row holds this
+     * worker's half and zeroes for the neighbour's — which is exactly what row[g] holds too, so
+     * the rescale stays consistent. */
+    if (prof.fine) {
+        int g_lo = prof.fine_g * TOMO_LB_GROUP_BUCKETS, g_hi = g_lo + TOMO_LB_GROUP_BUCKETS;
+        if (g_lo >= hot_hi || g_hi <= hot_lo) prof.fine = NULL;
+    }
+    if (out_used_fine) *out_used_fine = (prof.fine != NULL);
+
     double acc = 0, best_pred = Lh, best_moved = 0; int best_n = 0;
     for (int n = 1; n <= cap; n++) {
         int b = from_high ? (hot_hi - n) : (hot_lo + n - 1);
-        acc += row ? ((double)row[b / TOMO_LB_GROUP_BUCKETS] / (double)TOMO_LB_GROUP_BUCKETS) : uni;
+        acc += migBucketRate(&prof, b);
         double pred = (Lh - acc) > (Lc + acc) ? (Lh - acc) : (Lc + acc);
         if (pred < best_pred) { best_pred = pred; best_n = n; best_moved = acc; }
         if (acc >= target) break;         /* past the V's minimum: pred only grows from here */
@@ -11436,7 +11690,19 @@ void reshardAutoTune(void) {
      *                      which is also how a hot KEY is told apart from a hot BUCKET.
      * Operator surface: tomokv-key-lb (floor / off) and tomokv-key-lb-sustain (K). Everything else
      * self-derives from the signal. Every gate above is counted: DEBUG RESHARD TRIGGER. */
-    if (server.reshard_min_ops <= 0 || !server.exThreads) return;
+    if (server.reshard_min_ops <= 0 || !server.exThreads) {
+        /* Master switch off. The level-2 windows are armed from HERE, so if the balancer is
+         * switched off at runtime while a window is armed, nothing would ever disarm it and the
+         * exec path would keep paying a taken branch for a signal nobody reads. Tear it down once. */
+        if (mig_fine_rows > 0 && server.exThreads) {
+            for (int w = 0; w < mig_fine_rows; w++)
+                atomic_store_explicit(&server.exThreads[w].lb_fine_win, 0, memory_order_relaxed);
+            zfree(mig_fine_ewma); zfree(mig_fine_last); zfree(mig_fine_grp); zfree(mig_fine_warm);
+            mig_fine_ewma = NULL; mig_fine_last = NULL; mig_fine_grp = NULL; mig_fine_warm = NULL;
+            mig_fine_rows = 0;
+        }
+        return;
+    }
     if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return; /* one at a time */
     /* flip: never arm a load-balance migration WHILE a role-flip is in progress. A flip runs its own
      * migrations (range move, then the grow-back seed) across several beforeSleep ticks with brief
@@ -11495,6 +11761,22 @@ void reshardAutoTune(void) {
             zfree(e); zfree(l);
         }
     }
+    /* Level 2 is allocated separately and only while tomokv-key-lb-fine is non-zero, so 0 really
+     * does mean "no machinery": nothing allocated, every window disarmed, and the data path back to
+     * a single never-taken branch. Turning the knob off at runtime disarms below. */
+    if (server.reshard_fine_pct != 0 && mig_fine_rows < wmax) {
+        size_t n = (size_t)wmax * TOMO_LB_GROUP_BUCKETS;
+        float *fe = ztrycalloc(n * sizeof(float));
+        uint32_t *fl = ztrycalloc(n * sizeof(uint32_t));
+        int32_t *fg = ztrymalloc((size_t)wmax * sizeof(int32_t));
+        uint8_t *fw = ztrycalloc((size_t)wmax * sizeof(uint8_t));
+        if (fe && fl && fg && fw) {     /* commit all four or none — the fold dereferences them together */
+            for (int w = 0; w < wmax; w++) fg[w] = -1;
+            zfree(mig_fine_ewma); zfree(mig_fine_last); zfree(mig_fine_grp); zfree(mig_fine_warm);
+            mig_fine_ewma = fe; mig_fine_last = fl; mig_fine_grp = fg; mig_fine_warm = fw;
+            mig_fine_rows = wmax;
+        } else { zfree(fe); zfree(fl); zfree(fg); zfree(fw); }
+    }
 
     /* Fold this tick's per-worker rates into the dual EWMAs — RAW ops only (the retired
      * core-capacity normalization was a one-shot calibration AND poisoned the spread). */
@@ -11530,6 +11812,7 @@ void reshardAutoTune(void) {
         }
     }
     mig_prev_rate_mean = sum_rate / W;   /* feeds next tick's alpha */
+    migFineTick(wmax, hot, alpha);       /* level 2: fold the armed windows, then re-point them */
     if (!mig_ewma_primed) { mig_ewma_primed = 1; return; }   /* bootstrap seed only */
     mig_trig.ticks++; mig_trig.alpha = alpha; mig_trig.hot = hot; mig_trig.hotv = hotv;
     mig_trig.K = migSustainK(alpha);
@@ -11671,8 +11954,10 @@ void reshardAutoTune(void) {
          * mean + k*sigma), and it means a migration must buy more than a quarter of the distance
          * that made the shard an outlier in the first place. */
         double need = 0.25 * (hot_bar - mean);
+        int used_fine = 0;
         chunk = migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
-                             need, &used_prof, &pred, &moved);
+                             need, 1, &used_prof, &pred, &moved, &used_fine);
+        if (used_fine) mig_trig.fine_used++;
         if (chunk < 1) {
             /* UNBALANCEABLE at bucket granularity: every candidate range either carries almost
              * none of the heat (moving it does not cool the shard) or almost all of it (moving it
@@ -11680,12 +11965,26 @@ void reshardAutoTune(void) {
              * correct action is to do nothing — see docs/lb-imbalance-model.md §4. The consumed
              * sustain streak above already provides the K-tick backoff before the next attempt. */
             mig_trig.unbal++;
+            /* SHADOW PLAN — the anti-vacuous check. Re-plan at GROUP resolution only. If that arm
+             * would have moved buckets, the per-bucket window is what produced this refusal, and
+             * unbal_fine records it; if it also refuses, the refusal was reachable without level 2
+             * and unbal_grp records that instead. This runs once per refusal at 1 Hz on the main
+             * thread. Without it, "unbal>0" is compatible with the window doing nothing at all,
+             * which is exactly the shape of the non-checks docs/BUGS.md catalogues. */
+            int sh_prof = 0, sh_fine = 0; double sh_pred = 0, sh_moved = 0;
+            int shadow = used_fine
+                       ? migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
+                                      need, 0, &sh_prof, &sh_pred, &sh_moved, &sh_fine)
+                       : 0;
+            if (shadow >= 1) mig_trig.unbal_fine++; else mig_trig.unbal_grp++;
             static int unbal_log_hold = 0;
             if (unbal_log_hold == 0) {
                 serverLog(LL_NOTICE, "ee451 reshard HOLD: w%d hot (%.0f ops vs mean %.0f) but no bucket "
-                          "range improves the peak (best predicted %.0f, profile=%s) — hot KEY, not hot "
-                          "BUCKET: a move would relocate it, not divide it. Not migrating.",
-                          hot, hotv, mean, pred, used_prof ? "measured" : "uniform");
+                          "range improves the peak (best predicted %.0f, profile=%s, resolution=%s%s) — "
+                          "hot KEY, not hot BUCKET: a move would relocate it, not divide it. Not migrating.",
+                          hot, hotv, mean, pred, used_prof ? "measured" : "uniform",
+                          used_fine ? "per-bucket" : "per-group",
+                          shadow >= 1 ? ", per-group would have moved" : "");
                 unbal_log_hold = 60;
             } else unbal_log_hold--;
             return;
@@ -11806,14 +12105,18 @@ void reshardDebug(client *c) {
         addReplyStatusFormat(c,
             "ticks=%llu quiet=%llu balanced=%llu band=%llu settle=%llu noprog=%llu fastcold=%llu "
             "sustain=%llu noneigh=%llu unbal=%llu fire=%llu split_measured=%llu split_uniform=%llu "
+            "unbal_fine=%llu unbal_grp=%llu fine_used=%llu fine_arm=%llu fine_ticks=%llu "
+            "fine_grp=%d fine_top=%.0f fine_peak=%.0f "
             "K=%d streak=%d hot=%d alpha=%.4f hotv=%.0f mean=%.0f release_bar=%.0f hot_bar=%.0f "
-            "sustain_knob=%d min_ops=%d",
+            "sustain_knob=%d min_ops=%d fine_knob=%d",
             mig_trig.ticks, mig_trig.quiet, mig_trig.balanced, mig_trig.band, mig_trig.settle,
             mig_trig.noprog, mig_trig.fastcold, mig_trig.sustain, mig_trig.noneigh, mig_trig.unbal,
             mig_trig.fire, mig_trig.prof, mig_trig.uniform,
+            mig_trig.unbal_fine, mig_trig.unbal_grp, mig_trig.fine_used, mig_trig.fine_arm,
+            mig_trig.fine_ticks, mig_trig.fine_grp, mig_trig.fine_top, mig_trig.fine_peak,
             mig_trig.K, mig_trig.streak, mig_trig.hot, mig_trig.alpha, mig_trig.hotv,
             mig_trig.mean, mig_trig.release_bar, mig_trig.hot_bar,
-            server.reshard_sustain_ticks, server.reshard_min_ops);
+            server.reshard_sustain_ticks, server.reshard_min_ops, server.reshard_fine_pct);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "lbgroups")) {
         /* Per-group SMOOTHED load for one worker (the balancer's own view, as opposed to
          * DEBUG TOMO-LBGROUPS which dumps the raw monotonic counters). */
@@ -11826,6 +12129,25 @@ void reshardDebug(client *c) {
         for (int g = 0; g < TOMO_LB_GROUPS; g++)
             if (row[g] > 0) o = sdscatprintf(o, "g%d buckets %d-%d rate %.1f\n", g,
                                              g * TOMO_LB_GROUP_BUCKETS, (g + 1) * TOMO_LB_GROUP_BUCKETS - 1, row[g]);
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "lbfine")) {
+        /* The level-2 window for one worker: which group it covers and the smoothed rate of each of
+         * that group's 64 buckets. This is the resolution the hot-KEY veto actually decides on — a
+         * single dominant line here is the signature that makes it refuse. */
+        int w = (c->argc >= 4) ? atoi(c->argv[3]->ptr) : 0;
+        if (w < 0 || w >= mig_fine_rows || !mig_fine_ewma)
+            { addReplyError(c, "no per-bucket window for that worker (tomokv-key-lb-fine 0?)"); return; }
+        sds o = sdsempty();
+        int g = mig_fine_grp[w];
+        o = sdscatprintf(o, "worker %d group %d warm %d win %llu\n", w, g, (int)mig_fine_warm[w],
+                         (unsigned long long)atomic_load_explicit(&server.exThreads[w].lb_fine_win,
+                                                                  memory_order_relaxed));
+        if (g >= 0) {
+            const float *f = &mig_fine_ewma[(size_t)w * TOMO_LB_GROUP_BUCKETS];
+            for (int i = 0; i < TOMO_LB_GROUP_BUCKETS; i++)
+                if (f[i] > 0) o = sdscatprintf(o, "b%d rate %.1f\n", g * TOMO_LB_GROUP_BUCKETS + i, f[i]);
+        }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
     } else if (c->argc == 4 && !strcasecmp(c->argv[2]->ptr, "find")) {
@@ -11855,7 +12177,7 @@ void reshardDebug(client *c) {
             sc, (unsigned long long)sx, dc, (unsigned long long)dx,
             (active && sc == dc && sx == dx) ? 1 : 0);
     } else {
-        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS");
+        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS|LBFINE");
     }
 }
 /* ========================== end resharding (engine) ========================== */
@@ -13756,8 +14078,18 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * coordinator, i.e. migration_active is now stuck for the life of the process. */
             "tomokv_reshard_cutover_no_coord:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
+            "tomokv_xshard_mset_moved:%llu\r\n",
+                atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
-            "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
+            "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* MERGE 2026-07-28: the fork-local tomokv_* counters and upstream's Stats block are now
+         * TWO sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
+         * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
+         * and the mset-move merge each appended one pair and together overflowed it, which fails
+         * as an unreadable token-pasting error on COMPACT_FMT_, not as "too many arguments".
+         * Splitting is byte-identical in output — sdscatprintf appends — and leaves headroom on
+         * both halves. Do NOT re-merge them. */
+        info = sdscatprintf(info, FMTARGS(
             "total_connections_received:%lld\r\n", server.stat_numconnections,
             "total_commands_processed:%lld\r\n", getNumCommands(),   /* ee451 (#B1): folded per-thread */
             "instantaneous_ops_per_sec:%lld\r\n", getInstantaneousMetric(STATS_METRIC_COMMAND),
@@ -16056,8 +16388,22 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
 
             /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
              * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1
-             * increment to the owner's private array — the minimal-move balancer's load signal. */
-            if (fake->argc >= 2) worker->lb_grp_ops[TOMO_LB_GROUP(fake->tomo_bkt)]++;
+             * increment to the owner's private array — the minimal-move balancer's load signal.
+             *
+             * SECOND LEVEL (2026-07-28): if the balancer has armed a per-bucket window on this
+             * worker, also count the exact bucket. Disarmed (len==0, the default and the state
+             * whenever tomokv-key-lb-fine is 0) this is one relaxed 64-bit load off an already-hot
+             * line plus a never-taken branch; armed it is one extra L1 increment for the ~1/64 of
+             * this shard's ops that land in the window. The whole point of the window is that the
+             * always-on working set stays at the 1KB group array instead of the 64KB a full
+             * per-bucket table would cost — see TOMO_LB_FINE_WIN. */
+            if (fake->argc >= 2) {
+                unsigned bkt = (unsigned)fake->tomo_bkt;
+                worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
+                uint64_t win = atomic_load_explicit(&worker->lb_fine_win, memory_order_relaxed);
+                unsigned fo = bkt - (uint32_t)win;
+                if (fo < (uint32_t)(win >> 32)) worker->lb_fine_ops[fo]++;
+            }
 
             /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
              * read), sampled before the batch-end CDB signal so the IO drain hasn't reset

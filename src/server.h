@@ -1521,7 +1521,26 @@ typedef struct {
  * balancer moves the minimal set of groups to reach a tolerance band instead of chasing the hottest.
  * 64 buckets/group at 16384 => granular enough to place load on any worker without per-bucket cost. */
 #define TOMO_LB_GROUPS 256
-#define TOMO_LB_GROUP(bkt) ((unsigned)(bkt) / (TOMO_BUCKETS / TOMO_LB_GROUPS))
+#define TOMO_LB_GROUP_BUCKETS (TOMO_BUCKETS / TOMO_LB_GROUPS)
+#define TOMO_LB_GROUP(bkt) ((unsigned)(bkt) / TOMO_LB_GROUP_BUCKETS)
+/* ee451 (2026-07-28): SECOND LEVEL — a small ARMED per-BUCKET window inside one group.
+ * WHY A SECOND LEVEL EXISTS. 64 buckets per group is the right granularity for "which part of this
+ * shard is warm", and it is deliberately coarse so the counter array stays L1-resident. It is the
+ * WRONG granularity for the balancer's hot-KEY veto: a single hot key is a single BUCKET, and
+ * averaged over its 64 group-mates it looks exactly like 64 mildly-warm buckets — i.e. like
+ * something a bucket flip could divide. Group counters therefore cannot make that veto engage, and
+ * measured runs confirmed it never did.
+ * WHY NOT JUST 16384 COUNTERS. Per-bucket counters for the whole table are 64KB/worker. The
+ * increment is the same one instruction, but the hash-random working set grows 64x (1KB L1 -> 64KB,
+ * past this core's L1d), and always-on load-balancing machinery on this fork has a <=3% throughput
+ * budget. The veto's question is LOCAL — "is THIS candidate group's load one bucket or many?" — so
+ * only one group needs resolution, and which group that is (the shard's hottest) is already known
+ * from level 1. So the fine window is 64 counters, pointed by the 1 Hz balancer at the worker's own
+ * hottest group and armed only when that group is genuinely concentrated.
+ * The window is published as ONE 64-bit word (len<<32 | lo) so the worker reads a consistent pair
+ * in a single relaxed load; len == 0 (the zcalloc state) means DISARMED and the data path pays one
+ * never-taken, perfectly-predicted branch. */
+#define TOMO_LB_FINE_WIN(lo, len) (((uint64_t)(uint32_t)(len) << 32) | (uint32_t)(lo))
 /* ee451 (shared-kv S0.2a): kvstore dict-count bits for tomo sharding. dict index == ownership
  * bucket == xxh64(key) & TOMO_BUCKET_MASK — the SAME value ex_bucket_table keys on — so each
  * bucket-dict has exactly one owning worker (single-writer preserved at bucket granularity).
@@ -2300,6 +2319,17 @@ typedef struct exThread {
     int aexp_bucket;
     unsigned long long aexp_cursor;
     unsigned long long aexp_active;         /* keys this worker actively expired (folded into INFO) */
+    /* ee451 (2026-07-28): the ARMED per-BUCKET load window (see TOMO_LB_FINE_WIN). lb_fine_win is
+     * written ONLY by the main thread (the 1 Hz balancer) and read relaxed by the owning worker;
+     * the counters are written ONLY by the owning worker and read (never written) by the balancer,
+     * which diffs them against its own snapshot — the same single-writer discipline lb_grp_ops
+     * uses, so no atomic RMW appears on the data path. len == 0 => disarmed => never touched.
+     * PLACEMENT: at the very END, for the reason the reclaim block above documents — inserting
+     * fields mid-struct shifts the tuned hot block and has measured -16% on p32 SET here. Appending
+     * leaves every pre-existing field's offset unchanged, which also means an A/B of this feature
+     * against the previous build cannot be contaminated by layout. */
+    _Atomic uint64_t lb_fine_win;
+    uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -3574,6 +3604,7 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -3602,6 +3633,11 @@ struct redisServer {
                                   * N = required %-of-prior-peak ceiling */
     int reshard_cool_margin_pct; /* -1 = auto: destination must be < 0.85*mean [default];
                                   * 0 = legacy (< mean); N = destination < mean*(1-N/100) */
+    int reshard_fine_pct;        /* tomokv-key-lb-fine: level-2 per-BUCKET window that gives the
+                                  * hot-KEY veto its resolution. -1=auto arming bar [default];
+                                  * 0=OFF (no allocation, every window disarmed, the data path back
+                                  * to one never-taken branch, planner back to group resolution);
+                                  * N=arm when the shard's top group holds >= N% of its rate. */
     int prefetch_min_keys;     /* v14 dual-mode: 0=auto L3 gate; N=explicit */
     int pf_value_budget_kb;    /* v14 dual-mode: 0=auto L3/(2W); N=explicit KB */
     int pin_mode;                /* tomokv-pin-mode: TOMO_PIN_FLOAT / _CCD / _NUMA / _STATIC.
