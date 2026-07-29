@@ -54,10 +54,20 @@ def enc(*a):
 def drain(s):
     d = b""
     while not d.endswith(b"+PONG\r\n"): d += s.recv(1 << 20)
-def one(s, *a):
+def one(s, *a):        # single-line reply (+status / :int / -err)
     s.sendall(enc(*a)); d = b""
     while not d.endswith(b"\r\n"): d += s.recv(1 << 20)
     return d
+def bulk(s, *a):       # length-prefixed reply ($N / =N) -- DEBUG RESHARD LBFINE is multi-line, so
+    s.sendall(enc(*a)) # reading "until CRLF" stops at the LENGTH HEADER and desyncs the socket
+    d = b""
+    while b"\r\n" not in d: d += s.recv(1 << 20)
+    hdr, _, rest = d.partition(b"\r\n")
+    if hdr[:1] not in (b"$", b"="): return hdr
+    n = int(hdr[1:])
+    if n < 0: return b""
+    while len(rest) < n + 2: rest += s.recv(1 << 20)
+    return rest[:n]
 
 c = conn()
 NBG = 20000                       # uniform background keyspace
@@ -123,7 +133,7 @@ time.sleep(secs)
 stop = True
 for t in ths: t.join(timeout=10)
 t1 = trig()
-lbf = one(c, "DEBUG", "RESHARD", "LBFINE", hot_w).decode()
+lbf = bulk(c, "DEBUG", "RESHARD", "LBFINE", hot_w).decode(errors="replace")
 
 d = {k: t1.get(k, 0) - t0.get(k, 0) for k in ("ticks","quiet","balanced","band","settle","noprog",
      "fastcold","sustain","noneigh","unbal","fire","unbal_fine","unbal_grp","fine_used","fine_arm",
