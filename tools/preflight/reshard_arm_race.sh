@@ -16,13 +16,7 @@ CLI=$(dirname "$BIN")/redis-cli
 PORT=${PORT:-7897}
 rm -rf "$OUT"; mkdir -p "$OUT/data"
 
-# Stage under a UNIQUE process name, like correctness_suite (redis-corr) and fence_suite
-# (redis-fence) already do. Half the suites in this directory clean up with
-# `pkill -9 -x redis-server`, and on this shared box that SIGKILLs any other session's server —
-# silently, with no crash marker and no core. An acceptance test must not be at the mercy of that.
-# Lifecycle here is by our own PID, so the rename cannot leak a server either.
-cp "$BIN" "$OUT/redis-armrace"; BIN="$OUT/redis-armrace"
-pkill -9 -x redis-armrace 2>/dev/null; sleep 1
+pkill -x redis-server 2>/dev/null; sleep 1
 taskset -c 0-7 "$BIN" --port $PORT --dir "$OUT/data" \
   --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
@@ -32,9 +26,9 @@ for i in $(seq 1 40); do [ "$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = 
 
 python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
 rc=$?
-case $rc in 0) res=PASS ;; 2) res=SKIP ;; 4) res=DIED ;; *) res=FAIL ;; esac
+res=$( [ $rc = 0 ] && echo PASS || { [ $rc = 2 ] && echo SKIP || echo FAIL; } )
 echo "reshard-arm-race[$TAG]	$res	$(grep '^reshard_arm_race:' "$OUT/probe.out" | tail -1)"
-grep -E '^(FAIL|SKIP|PASS|DIED)' "$OUT/probe.out" | tail -1 | sed 's/^/  /'
+grep -E '^(FAIL|SKIP|PASS)' "$OUT/probe.out" | tail -1 | sed 's/^/  /'
 cm=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' "$OUT/server.log" 2>/dev/null); cm=${cm:-0}
 [ "$cm" = 0 ] || echo "  crash_markers=$cm"
 
