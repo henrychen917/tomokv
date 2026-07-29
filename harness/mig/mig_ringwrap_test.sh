@@ -32,6 +32,14 @@ db0=$(timeout 5 $CLI dbsize|tr -d '\r'); echo "seeded dbsize=$db0"
 [ "$db0" -ge $NKEYS ] || { bad "seed incomplete ($db0)"; }
 
 t0=$SECONDS
+# Byte-exact baseline, taken BEFORE the arm. `DEBUG RESHARD VERIFY` walks the keyspace, so it is
+# refused while a migration is active — deliberately: it used to be folded into STATUS, which every
+# reshard harness polls in a loop, and an O(keyspace) walk on an IO thread stalls the cutover
+# coordinator it is supposed to be observing. The `total` line is invariant across a correct
+# migration in both shard shapes (ownership-only under shared_node_dbs; count-additive +
+# XOR-folded under the copy shape), so before/after equality IS the byte-exactness check.
+VPRE=$(timeout 120 $CLI debug reshard verify $LO $HI 2>/dev/null | tr -d '\r' | grep '^total')
+[ -n "$VPRE" ] && ok "pre-migration checksum ($VPRE)" || bad "VERIFY returned nothing pre-arm"
 [ "$(timeout 5 $CLI debug reshard start $LO $HI 0 1 2>&1|tr -d '\r')" = OK ] && ok "armed" || bad "arm rejected"
 # wait for the cold scan (~NKEYS/8 log entries > 64K => crosses the wrap threshold)
 sd=""
@@ -44,17 +52,18 @@ st=$(timeout 5 $CLI debug reshard status 2>/dev/null|tr -d '\r')
 issued=$(echo "$st"|grep -o 'issued=[0-9]*'|cut -d= -f2)
 echo "  pre-cutover: $st"
 [ -n "$issued" ] && [ "$issued" -gt 65536 ] && ok "log crossed 64K ring boundary (issued=$issued)" || bad "issued=$issued did not cross 64K — test not exercising wrap"
-conv=0
-for i in $(seq 1 100); do
-  case "$(timeout 3 $CLI debug reshard status 2>/dev/null|tr -d '\r')" in *converged=1*) conv=1; break;; esac; sleep 0.2
-done
-[ "$conv" = 1 ] && ok "checksums converged pre-cutover" || bad "not converged"
 timeout 5 $CLI debug reshard cutover >/dev/null 2>&1
 for i in $(seq 1 200); do
   ac=$(timeout 3 $CLI debug reshard status 2>/dev/null|tr -d '\r'|grep -o 'active=[0-9]*'|cut -d= -f2)
   [ "$ac" = 0 ] && break; sleep 0.3
 done
 [ "$ac" = 0 ] && ok "migration completed in $((SECONDS-t0))s" || bad "migration never completed"
+# Byte-exactness across the flip. This REPLACES a `converged=1` poll that could not fail: with more
+# than one worker per node every worker ALIASES one physical db, so the old src-vs-dst comparison
+# was the same table compared with itself and reported converged=1 for any data, on any build.
+VPOST=$(timeout 120 $CLI debug reshard verify $LO $HI 2>/dev/null | tr -d '\r' | grep '^total')
+[ -n "$VPOST" ] && [ "$VPOST" = "$VPRE" ] && ok "range byte-exact across the flip ($VPOST)" \
+    || bad "range checksum changed across the flip: '$VPRE' -> '$VPOST'"
 db1=$(timeout 5 $CLI dbsize|tr -d '\r')
 [ "$db1" = "$db0" ] && ok "dbsize parity ($db1)" || bad "dbsize $db0 -> $db1 (lost/duplicated keys)"
 # sample byte-exactness across the keyspace (hits migrated + unmigrated keys)

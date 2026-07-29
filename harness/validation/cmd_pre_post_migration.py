@@ -125,7 +125,10 @@ for _ in range(8):
     send("DEBUG","RESHARD","STATUS"); st=rd()
     if "scan_done=1" in st: break
     time.sleep(1)
-print("  cold converged:", "converged=1" in (rd() if (send("DEBUG","RESHARD","STATUS") or True) else ""))
+# (There used to be a `converged=1` readout here. STATUS computed it by walking BOTH shards on the
+# calling IO thread -- O(keyspace) on the thread that advances the cutover coordinator -- and with
+# >1 worker per node both shards are the SAME physical db, so it printed True unconditionally. The
+# content check is now `DEBUG RESHARD VERIFY`, refused while a migration is active.)
 print("  CUTOVER:",cmd("DEBUG","RESHARD","CUTOVER"))
 for _ in range(8):
     send("DEBUG","RESHARD","STATUS"); st=rd()

@@ -171,9 +171,11 @@ def main():
         # would report a clean PASS on a build that still has the defect. Pipelined, they are
         # executed back-to-back on the same IO thread, microseconds apart.
         #
-        # (Deliberately no DEBUG RESHARD STATUS anywhere: STATUS runs migRangeChecksum over the
-        # whole shard on this IO thread and would stall the very fence under test. shared-kv mode
-        # publishes scan_done at arm, so CUTOVER needs no scan wait.)
+        # (No DEBUG RESHARD STATUS here, but no longer because it is dangerous: as of 2026-07-28
+        # STATUS is O(1) -- the migRangeChecksum walk that used to make polling it stall the very
+        # fence under test now lives behind DEBUG RESHARD VERIFY. It is simply not needed: shared-kv
+        # mode publishes scan_done at arm, so CUTOVER needs no scan wait, and this probe wants the
+        # two commands back-to-back in ONE pipeline.)
         s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst))
                   + cmd("DEBUG", "RESHARD", "CUTOVER"))
         armed_ok = r.line().startswith(b"+OK")

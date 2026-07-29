@@ -11715,9 +11715,34 @@ void reshardKickAfterFlip(int from_w, int to_w) {
 }
 
 /* Content checksum over all keys of worker `wid`'s shard whose bucket ∈ [lo,hi). Order-independent
- * (XOR fold of key-hash mixed with the RDB-serialized value bytes), so src and dst can be compared
- * directly: equal (count,xsum) ⇒ identical range contents. Racy under concurrent writes — call only
- * when the write load is quiesced (it is a validation aid, not a hot path). */
+ * (XOR fold of key-hash mixed with the RDB-serialized value bytes), so two shards — or the same
+ * shard before and after a migration — can be compared directly: equal (count,xsum) ⇒ identical
+ * range contents. Racy under concurrent writes — call only when the write load is quiesced (it is
+ * a validation aid, not a hot path).
+ *
+ * COST AND PLACEMENT (2026-07-28). This is O(whole shard): every key is hashed and every IN-RANGE
+ * value is RDB-serialized into a freshly allocated sds. It ran from `DEBUG RESHARD STATUS`, TWICE
+ * per call, and STATUS is what every reshard harness POLLS in a loop. Two consequences, both real:
+ *
+ *   1. It parked the cutover. The cutover coordinator (reshardCoordinatorTick) advances ONLY from
+ *      beforeSleep on the MAIN thread, and clients live on per-io-thread SO_REUSEPORT listeners, so
+ *      ~1/io_threads of connections execute their commands inline ON MAIN. A poller that lands
+ *      there freezes the coordinator for the length of the walk — and because every in-range read
+ *      and write spins in migHoldIfDraining for the whole DRAINING window, the stall is global for
+ *      that bucket range. A tool used to WATCH a cutover therefore PREVENTED it, in proportion to
+ *      the dataset size. It was invisible only because the one harness that polls it (
+ *      tools/preflight/reshard_order.py) seeds 64 keys, which makes the walk free.
+ *
+ *   2. It answered nothing. `shared_node_dbs` (any node with >1 worker — the default, and the only
+ *      shape the balancer and the suites run) gives every worker of a node the SAME physical db,
+ *      and reshardArm REFUSES a migration whose src and dst are on different physical dbs. So
+ *      STATUS's src-vs-dst comparison was a table compared with itself: converged=1 by
+ *      construction, for any data, on any build, broken or not.
+ *
+ * So the walk now lives behind `DEBUG RESHARD VERIFY` — an explicit verb, never on a polling path,
+ * refused while a migration is active (see reshardDebug) so it can never park a fence producer or
+ * consumer. That refusal is also what makes the "quiesced only" contract above ENFORCEABLE by the
+ * caller: verify, migrate, verify. */
 static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCount, uint64_t *outXsum) {
     unsigned long long count = 0; uint64_t xsum = 0;
     exThread *w = &server.exThreads[wid];
@@ -11745,7 +11770,9 @@ static void migRangeChecksum(int wid, int lo, int hi, unsigned long long *outCou
 }
 
 /* DEBUG RESHARD START <lo> <hi> <src> <dst>  — arm a migration (manual trigger for validation).
- * DEBUG RESHARD STATUS                       — phase/counters + per-shard range checksum (src vs dst).
+ * DEBUG RESHARD STATUS                       — phase/counters. O(1): a handful of atomic loads.
+ * DEBUG RESHARD VERIFY [<lo> <hi>]           — byte-exact range content checksum. O(keyspace),
+ *                                              refused while a migration is active.
  * Runs on the IO thread; ARM only flips atomics + allocates the log (safe). */
 void reshardDebug(client *c) {
     if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "start")) {
@@ -11822,25 +11849,69 @@ void reshardDebug(client *c) {
         int bucket = (int)(xxh64(key, sdslen(key)) & TOMO_BUCKET_MASK);
         addReplyStatusFormat(c, "key=%s bucket=%d routed_ex=%d", key, bucket, routed);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "status")) {
+        /* CHEAP STATE ONLY — a handful of atomic loads, no keyspace access whatsoever. This is the
+         * verb every reshard harness polls in a loop while a cutover runs, so its cost must be
+         * independent of the dataset. It used to run migRangeChecksum over BOTH whole shards from
+         * here (see the note on migRangeChecksum): O(keyspace) on a thread the cutover coordinator
+         * needs, which turned "watch the cutover" into "stall the cutover" on any realistic
+         * dataset. The content check is `DEBUG RESHARD VERIFY`. */
         int active = atomic_load_explicit(&server.migration_active, memory_order_acquire);
-        unsigned long long sc = 0, dc = 0; uint64_t sx = 0, dx = 0;
         int phase = atomic_load_explicit(&server.migration.phase, memory_order_relaxed);
         unsigned long long issued = atomic_load_explicit(&server.migration.issued_seq, memory_order_relaxed);
         unsigned long long applied = atomic_load_explicit(&server.migration.applied_seq, memory_order_relaxed);
         int scan_done = atomic_load_explicit(&server.migration.scan_done, memory_order_relaxed);
-        if (active) {
-            migRangeChecksum(server.migration.src, server.migration.lo, server.migration.hi, &sc, &sx);
-            migRangeChecksum(server.migration.dst, server.migration.lo, server.migration.hi, &dc, &dx);
-        }
         addReplyStatusFormat(c,
             "active=%d phase=%d lo=%d hi=%d src=%d dst=%d issued=%llu applied=%llu scan_done=%d "
-            "src_keys=%llu src_xsum=%llu dst_keys=%llu dst_xsum=%llu converged=%d",
+            "shared=%d",
             active, phase, server.migration.lo, server.migration.hi, server.migration.src,
-            server.migration.dst, issued, applied, scan_done,
-            sc, (unsigned long long)sx, dc, (unsigned long long)dx,
-            (active && sc == dc && sx == dx) ? 1 : 0);
+            server.migration.dst, issued, applied, scan_done, server.shared_node_dbs ? 1 : 0);
+    } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "verify")) {
+        /* DEBUG RESHARD VERIFY [<lo> <hi>] — byte-exact content checksum of bucket range [lo,hi),
+         * one row per DISTINCT physical shard db plus a total.
+         *
+         * THE INVARIANT IT EXISTS TO CHECK: `total` is unchanged by a correct migration, in BOTH
+         * shard shapes. Under shared_node_dbs a reshard moves OWNERSHIP and never data, so the one
+         * physical table is untouched. Under the copy shape the range moves from one physical db to
+         * another, and because count is additive and xsum is an order-independent XOR fold, the
+         * total is preserved exactly. So the reshard suite's byte-exact check is: VERIFY, migrate,
+         * VERIFY, compare — which is a real check, unlike the src-vs-dst comparison this replaces
+         * (that one compared the shared table with itself and reported converged=1 unconditionally).
+         *
+         * REFUSED WHILE A MIGRATION IS ACTIVE. This walk is O(keyspace) and runs inline on whichever
+         * io identity owns the calling connection — including MAIN, which is the only thread that
+         * advances the cutover coordinator, and which is also an IO fence producer. Letting it run
+         * during a cutover is precisely the defect being fixed, so the window is closed by
+         * construction rather than by asking callers not to. It is also what makes migRangeChecksum's
+         * own "quiesced only" precondition something a caller can actually honour. */
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) {
+            addReplyError(c, "migration active: VERIFY walks the whole keyspace and would stall the "
+                             "cutover it is meant to check. Verify before arming and after "
+                             "active=0; the total is invariant across a correct migration.");
+            return;
+        }
+        int lo = 0, hi = TOMO_BUCKETS;
+        if (c->argc == 5) { lo = atoi(c->argv[3]->ptr); hi = atoi(c->argv[4]->ptr); }
+        else if (c->argc != 3) { addReplyError(c, "DEBUG RESHARD VERIFY [<lo> <hi>]"); return; }
+        if (lo < 0 || hi > TOMO_BUCKETS || lo >= hi) { addReplyError(c, "bad range"); return; }
+        sds o = sdscatprintf(sdsempty(), "range [%d,%d)\n", lo, hi);
+        unsigned long long tc = 0; uint64_t tx = 0;
+        /* One row per DISTINCT physical db. Workers of a shared node ALIAS one array, so walking
+         * per-worker would count the same table once per worker and report an N-times-too-large
+         * total — the aliasing must be visible, not folded away. */
+        for (int w = 0; w < server.num_workers_alloc; w++) {
+            int dup = 0;
+            for (int p = 0; p < w; p++) if (server.exThreads[p].db == server.exThreads[w].db) { dup = 1; break; }
+            if (dup) continue;
+            unsigned long long ct = 0; uint64_t xs = 0;
+            migRangeChecksum(w, lo, hi, &ct, &xs);
+            o = sdscatprintf(o, "db_of_w%d keys=%llu xsum=%llu\n", w, ct, (unsigned long long)xs);
+            tc += ct; tx ^= xs;
+        }
+        o = sdscatprintf(o, "total keys=%llu xsum=%llu\n", tc, (unsigned long long)tx);
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else {
-        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|TRIGGER|LBGROUPS");
+        addReplyError(c, "DEBUG RESHARD START|CUTOVER|OPS|PERWORKER|FIND|STATUS|VERIFY|TRIGGER|LBGROUPS");
     }
 }
 /* ========================== end resharding (engine) ========================== */

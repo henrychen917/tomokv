@@ -96,17 +96,18 @@ for i in $(seq 1 100); do
   [ "$sd" = 1 ] && break; sleep 0.2
 done
 ck "scan_done" "$sd" '1'
-# Convergence (src range-checksum == dst range-checksum under double-write) is only meaningful WHILE
-# ACTIVE, and STATUS only computes it then — a post-cutover STATUS always reports converged=0
-# (active gates the ternary). Poll for it HERE, before cutover.
-conv=0; cst=""
-for i in $(seq 1 50); do
-  cst=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
-  case "$cst" in *converged=1*) conv=1; break;; esac
-  sleep 0.2
-done
-say "  pre-cutover STATUS: $cst"
-ck "checksums converged" "$conv" '1'
+say "  pre-cutover STATUS: $(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')"
+# NOTE (2026-07-28): the `converged=1` gate that used to sit here has been REMOVED, not relocated.
+# It polled STATUS for "src range-checksum == dst range-checksum", and STATUS computed both by
+# walking a shard each. Two problems: (a) with >1 worker per node every worker ALIASES one physical
+# db, so the two checksums were the same table compared with itself — converged=1 for any data, on
+# any build, i.e. a check that could not fail; (b) the walk is O(keyspace) and ran on the calling IO
+# thread, which for ~1/io_threads of connections is MAIN — the only thread that advances the cutover
+# coordinator — so polling it stalled the very cutover it was watching. The content check now lives
+# in `DEBUG RESHARD VERIFY`, which is refused while a migration is active. This test cannot use a
+# before/after equality check because it deliberately WRITES to the range mid-flight, so it asserts
+# the weaker post-flip property instead; the real content verification here is the per-command
+# POST-FLIP effect block below.
 ck "cutover" "$(timeout 5 $CLI debug reshard cutover 2>&1|tr -d '\r')" 'OK'
 for i in $(seq 1 100); do
   ph=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | grep -o 'active=[0-9]*' | cut -d= -f2)
@@ -115,6 +116,10 @@ done
 st=$(timeout 5 $CLI debug reshard status 2>/dev/null | tr -d '\r' | tr '\n' ' ')
 say "  final STATUS: $st"
 ck "migration done" "$ph" '0'
+# The migrated range must still hold data on exactly one physical db once the flip is done.
+vpost=$(timeout 120 $CLI debug reshard verify $MLO $MHI 2>/dev/null | tr -d '\r' | grep '^total')
+say "  post-migration VERIFY: $vpost"
+ck "post-flip range non-empty" "$(echo "$vpost" | grep -o 'keys=[0-9]*')" 'keys=[1-9]*'
 
 say "=== POST-FLIP effect verification (replay carried every write) ==="
 ck "post RENAME moved"      "$($CLI get migren:out|tr -d '\r')" 'ren_src_val'

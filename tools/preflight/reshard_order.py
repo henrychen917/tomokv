@@ -23,6 +23,15 @@ reshard running this probe is vacuous by construction, so the harness ASSERTS th
 cutover completed; if none did, it reports SKIP rather than PASS. (This project has shipped six
 mechanisms whose acceptance check could not fail; a green run that never entered the window would
 be the seventh.)
+
+NOTE ON THE POLL LOOPS BELOW (2026-07-28).  `DEBUG RESHARD STATUS` is now O(1) -- a handful of
+atomic loads.  It used to run migRangeChecksum over BOTH whole shards, on the calling IO thread,
+which for ~1/io_threads of connections is MAIN -- the only thread that advances the cutover
+coordinator.  Polling it during a cutover therefore stalled the cutover, in proportion to the
+dataset.  This probe was safe purely by accident: it seeds 64 keys, so the walk was free.  The
+content checksum now lives behind `DEBUG RESHARD VERIFY`, which is refused while a migration is
+active; reshard_suite.sh asserts both the byte-exactness property and that STATUS's cost does not
+scale with the keyspace.
 """
 import socket, sys, time, threading
 
