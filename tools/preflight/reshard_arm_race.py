@@ -171,9 +171,11 @@ def main():
         # would report a clean PASS on a build that still has the defect. Pipelined, they are
         # executed back-to-back on the same IO thread, microseconds apart.
         #
-        # (Deliberately no DEBUG RESHARD STATUS anywhere: STATUS runs migRangeChecksum over the
-        # whole shard on this IO thread and would stall the very fence under test. shared-kv mode
-        # publishes scan_done at arm, so CUTOVER needs no scan wait.)
+        # (Deliberately no DEBUG RESHARD STATUS anywhere: it is an extra round trip inside the
+        # window under test. The stronger reason this comment used to give -- "STATUS runs
+        # migRangeChecksum over the whole shard on this IO thread" -- died with the copy engine on
+        # 2026-07-28: STATUS now only formats six scalars. The scan_done wait it also mentions is
+        # gone for the same reason; ARM goes straight to COPYING, so CUTOVER needs no wait.)
         s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst))
                   + cmd("DEBUG", "RESHARD", "CUTOVER"))
         armed_ok = r.line().startswith(b"+OK")

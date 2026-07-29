@@ -87,11 +87,23 @@ def resharder():
         s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst)))
         r = readn(s, 1)
         if b"+OK" in r:
-            # wait for the cold scan, then cut over
+            # Wait until the arm is actually in COPYING (MIG_COPYING == 1), then cut over --
+            # reshardBeginCutover's only precondition.
+            #
+            # This loop used to poll for `scan_done=1`. That field was the COLD SCAN's completion
+            # flag and it no longer exists: the copy engine (effect log, cold scan, B-side replay,
+            # CLEANUP) was deleted 2026-07-28, and DEBUG RESHARD STATUS now replies
+            # `active/phase/lo/hi/src/dst` only. The condition could therefore never become true,
+            # so every cutover paid the FULL 200 x 5ms timeout before proceeding -- measured
+            # exactly: FLIP-to-FLIP cadence 1.710s on the merged build vs 0.704s on the pre-merge
+            # one, a 1.006s difference that is this loop and nothing else. The probe still passed
+            # (the CUTOVER after the timeout is a valid cutover), it just did a third of the work
+            # per unit time, which for a probe whose evidence is "how many interleavings did I
+            # sample" is a real loss of discrimination.
             for _ in range(200):
                 s.sendall(cmd("DEBUG", "RESHARD", "STATUS"))
                 st = readn(s, 1)
-                if b"scan_done=1" in st:
+                if b"phase=1" in st:
                     break
                 time.sleep(0.005)
             s.sendall(cmd("DEBUG", "RESHARD", "CUTOVER"))
@@ -124,9 +136,18 @@ def main():
     # count is the wrong budget: 3000 GET/SET rounds complete faster than one migration cycle, so
     # the probe was finishing after a single cutover -- far too thin to catch a rare interleaving.
     MIN_CUTOVERS = 6
+    # ...and a cutover count alone is not a budget either, for the mirror-image reason. Repairing
+    # the dead `scan_done` poll above took the cutover cycle from 1.71s to ~33ms, and the probe
+    # promptly stopped EARLY: it hit 6 cutovers and its 3000-round floor in ~2s and exited having
+    # sampled 3 000 rounds where the same suite had just sampled 238 688. Faster cutovers are worth
+    # nothing if they buy fewer samples of the interleaving. Hold the EVIDENCE budget in wall clock,
+    # which is the one unit that does not move when the server gets faster or slower.
+    MIN_SECONDS = 10
     DEADLINE = time.time() + 180
+    FLOOR = time.time() + MIN_SECONDS
     r = -1
-    while (cutovers[0] < MIN_CUTOVERS or checked < ROUNDS) and time.time() < DEADLINE:
+    while (cutovers[0] < MIN_CUTOVERS or checked < ROUNDS or time.time() < FLOOR) \
+            and time.time() < DEADLINE:
         r += 1
         k = "rs:%d" % (r % NKEYS)
         s.sendall(cmd("SET", k, "OLD"))

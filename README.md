@@ -279,11 +279,14 @@ into a few families:
   flush sentinels.
 - **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
   with shared‑L3/CCD awareness, and NUMA‑local worker binding.
-- **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with a dual‑rate‑EWMA
-  hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without downtime (see table 4 for its
-  workload‑dependence). Opt‑in trigger hardening (sustain window, Schmitt hysteresis, cool‑margin) suppresses
-  spurious ping‑pong on marginal imbalance. The cross‑shard writes above stay correct across a live cutover:
-  in‑range writes are captured to the migration effect log and held at the drain fence exactly like every
+- **Online resharding.** Live bucket‑**ownership** migration — a drain‑fence cutover with **no key copy** —
+  driven by a dual‑rate‑EWMA hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without
+  downtime (see table 4 for its workload‑dependence). Source and destination are two workers of one node
+  and therefore share one physical flat kvstore, so the range's keys already sit in the slots the new owner
+  is about to serve: a cutover is a per‑range drain fence plus an epoch‑gated flip of `ex_bucket_table`, and
+  a pair on different physical dbs is refused at arm time. Opt‑in trigger hardening (sustain window, Schmitt
+  hysteresis, cool‑margin) suppresses spurious ping‑pong on marginal imbalance. The cross‑shard writes above
+  stay correct across a live cutover: in‑range writes are held at the drain fence exactly like every
   single‑key write.
 
 ---
