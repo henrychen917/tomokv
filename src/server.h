@@ -3105,6 +3105,7 @@ struct redisServer {
     long long stat_iou_recv_cqes[IO_THREADS_MAX_NUM];  /* multishot-recv CQEs delivered to a client */
     long long stat_iou_send_sqes[IO_THREADS_MAX_NUM];  /* replies submitted through the SEND ring */
     long long stat_iou_zc_sends[IO_THREADS_MAX_NUM];   /* of those, zero-copy (SEND_ZC) submissions */
+    long long stat_iou_zc_unreg[IO_THREADS_MAX_NUM];   /* of those, NOT from the registered pool (pool exhausted / unavailable) */
     redisAtomic long long stat_io_writes_processed[IO_THREADS_MAX_NUM]; /* Number of write events processed by IO / Main threads */
     redisAtomic long long stat_client_qbuf_limit_disconnections;  /* Total number of clients reached query buf length limit */
     long long stat_client_outbuf_limit_disconnections;  /* Total number of clients reached output buf length limit */

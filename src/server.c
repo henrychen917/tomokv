@@ -13663,11 +13663,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
      * opened" -- the recv path bumps the same stat_io_reads_processed as epoll, so that counter
      * cannot discriminate. All three read 0 with io_uring off, and any A/B of the deep path that
      * shows iou_recv_cqes/iou_send_sqes at 0 is measuring nothing and must be reported SKIP. */
-    long long stat_iou_recv_cqes = 0, stat_iou_send_sqes = 0, stat_iou_zc_sends = 0;
+    long long stat_iou_recv_cqes = 0, stat_iou_send_sqes = 0, stat_iou_zc_sends = 0, stat_iou_zc_unreg = 0;
     for (int j = 0; j < IO_THREADS_MAX_NUM; j++) {
         stat_iou_recv_cqes += server.stat_iou_recv_cqes[j];
         stat_iou_send_sqes += server.stat_iou_send_sqes[j];
         stat_iou_zc_sends  += server.stat_iou_zc_sends[j];
+        stat_iou_zc_unreg  += server.stat_iou_zc_unreg[j];
     }
     long long stat_total_reads_processed = 0, stat_total_writes_processed = 0;
     /* L0 prefetch observability: sum the per-worker counters. Racy reads of single-writer
@@ -13848,8 +13849,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "iou_recv_cqes:%lld\r\n"
             "iou_send_sqes:%lld\r\n"
-            "iou_zc_sends:%lld\r\n",
-            stat_iou_recv_cqes, stat_iou_send_sqes, stat_iou_zc_sends);
+            "iou_zc_sends:%lld\r\n"
+            "iou_zc_unregistered:%lld\r\n",
+            stat_iou_recv_cqes, stat_iou_send_sqes, stat_iou_zc_sends, stat_iou_zc_unreg);
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);

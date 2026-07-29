@@ -3726,7 +3726,21 @@ static int handleClientsWithPendingWritesUring(void) {
             if (!e) io_uring_sqe_set_data(sqe, c);
             n_submitted++;
             server.stat_iou_send_sqes[t]++;             /* anti-vacuity: the SEND ring carried this reply */
-            if (e) server.stat_iou_zc_sends[t]++;       /* ...and this one went zero-copy */
+            if (e) {
+                server.stat_iou_zc_sends[t]++;          /* ...and this one went zero-copy */
+                /* POOL-HEALTH witness. A ZC send with regslot < 0 did NOT come from the registered
+                 * buffer pool: either the pool is exhausted (all IOU_ZC_POOL_SLOTS in flight) or
+                 * sparse registration was unavailable. Both degrade to an UNREGISTERED SEND_ZC,
+                 * which re-pins pages per send, and the detach-swap then hands the client a fresh
+                 * zmalloc'd buffer -- i.e. an allocation per reply, which can be strictly worse
+                 * than the copy plain SEND would have done. That matters more now than it used to:
+                 * the collapse hardwired the threshold at 1 KiB (the deep design's value) rather
+                 * than the old 4 KiB, so roughly 4x as many replies qualify and pool pressure is
+                 * correspondingly higher. If a real-NIC run disappoints, compare this against
+                 * iou_zc_sends FIRST -- a large gap means the pool is the bottleneck (raise
+                 * IOU_ZC_POOL_SLOTS or the threshold), not the ring design. */
+                if (e->regslot < 0) server.stat_iou_zc_unreg[t]++;
+            }
             { static __thread int snd_logged = 0;
               if (!snd_logged) { snd_logged = 1;
                   serverLog(LL_NOTICE, "v12: io_uring SEND ring active on IO thread %d (first submit=%zu bytes)", t, pend); } }
