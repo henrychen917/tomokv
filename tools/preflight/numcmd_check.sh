@@ -99,7 +99,7 @@ EOF
     echo "numcmd-$label	FAIL	probe produced no scored rows (silence is not a pass)" >> "$OUT"
     FAIL=$((FAIL+1)); return 1
   fi
-  printf '%s\n' "$raw" | grep '	TOTAL\|TOTAL' | tail -1 | sed "s/^/numcmd-$label-total	NOTE	/" >> "$OUT"
+  printf '%s\n' "$raw" | grep 'TOTAL' | tail -1 | sed "s/^/numcmd-$label-total	NOTE	/" >> "$OUT"
   return 0
 }
 

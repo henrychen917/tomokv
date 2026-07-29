@@ -200,7 +200,12 @@ say "─────────────────────────
 # this is the stress bench run for EVERY version; the history is how regressions across versions
 # are seen at a glance.
 mkdir -p $PF/preflight_reports
-GITDESC=$(cd "$(dirname "$BIN")/.." 2>/dev/null && git describe --always --dirty 2>/dev/null || echo unknown)
+# ee451 2026-07-29: this read `cd "$(dirname "$BIN")/.."`, and $BIN is the STAGED copy — so it
+# resolved to the parent of a scratch directory (/tmp) and every row in preflight_history.tsv was
+# recorded with GITDESC=unknown. The per-version ledger is supposed to be how regressions across
+# versions are seen at a glance; it could not name a single version. Ask the source tree instead.
+GITDESC=$(git -C "$_SRC_DIR/.." describe --always --dirty 2>/dev/null \
+       || git -C "$SD" describe --always --dirty 2>/dev/null || echo unknown)
 cp $REPORT $PF/preflight_reports/${BINSHA}_$(date -u +%Y%m%d_%H%M%S).txt
 if [ "$FAILS" = 0 ]; then
   echo "$BINSHA $(date -u +%s)" > $PF/preflight.GO
