@@ -51,43 +51,58 @@ def cmd(*a):
     return out
 
 
-def line(s):
-    buf = b""
-    while not buf.endswith(b"\r\n"):
-        d = s.recv(65536)
-        if not d:
-            raise EOFError("server closed")
-        buf += d
-    return buf
+class Reader:
+    """Buffered line reader.
 
-
-def info_counter(s, name):
-    """Read INFO stats as a proper RESP bulk string.
-
-    Reading "until the buffer ends with CRLF" does NOT work here: the payload is full of CRLFs, so
-    the first recv() satisfies it and the field is usually still in flight — the counter then reads
-    as absent and the test fails for the wrong reason on every build. Parse the $<len> header and
-    read exactly that many bytes.
+    Required because this probe PIPELINES. A "read until the buffer ends with CRLF" helper returns
+    BOTH replies when they arrive in one segment, and the next call then blocks forever waiting for
+    a reply that was already consumed — the loop stalls on the socket timeout and the run reports
+    nothing useful. Keep the residue.
     """
-    s.sendall(cmd("INFO", "stats"))
-    buf = b""
-    while b"\r\n" not in buf:
-        d = s.recv(1 << 16)
-        if not d:
-            raise EOFError("server closed")
-        buf += d
-    head, rest = buf.split(b"\r\n", 1)
-    if not head.startswith(b"$"):
+
+    def __init__(self, sock):
+        self.s = sock
+        self.buf = b""
+
+    def line(self):
+        while b"\r\n" not in self.buf:
+            d = self.s.recv(1 << 16)
+            if not d:
+                raise EOFError("server closed")
+            self.buf += d
+        ln, self.buf = self.buf.split(b"\r\n", 1)
+        return ln
+
+    def bulk(self):
+        """Read one RESP bulk string ($<len>\\r\\n<payload>\\r\\n) and return the payload."""
+        head = self.line()
+        if not head.startswith(b"$"):
+            return None
+        n = int(head[1:])
+        if n < 0:
+            return None
+        while len(self.buf) < n + 2:
+            d = self.s.recv(1 << 16)
+            if not d:
+                raise EOFError("server closed")
+            self.buf += d
+        payload, self.buf = self.buf[:n], self.buf[n + 2:]
+        return payload
+
+
+def info_counter(r, name):
+    """Read one counter out of INFO stats.
+
+    Note this goes through Reader.bulk(): the payload is full of CRLFs, so any "read until the
+    buffer ends with CRLF" shortcut is satisfied by the first recv() and the field is usually still
+    in flight — the counter then reads as absent and the test fails for the wrong reason on EVERY
+    build, fixed and broken alike.
+    """
+    r.s.sendall(cmd("INFO", "stats"))
+    payload = r.bulk()
+    if payload is None:
         return None
-    n = int(head[1:])
-    if n < 0:
-        return None
-    while len(rest) < n + 2:
-        d = s.recv(1 << 16)
-        if not d:
-            raise EOFError("server closed")
-        rest += d
-    for ln in rest[:n].split(b"\r\n"):
+    for ln in payload.split(b"\r\n"):
         if ln.startswith(name.encode() + b":"):
             return int(ln.split(b":")[1])
     return None
@@ -132,6 +147,7 @@ def main():
     time.sleep(0.2)
     s = socket.create_connection(("127.0.0.1", PORT), timeout=15)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    r = Reader(s)
 
     # A boundary-aligned, non-total sub-range of worker 0's range, ping-ponged 0 <-> 1.
     lo, hi, src, dst = 2048, 4096, 0, 1
@@ -157,8 +173,8 @@ def main():
         # publishes scan_done at arm, so CUTOVER needs no scan wait.)
         s.sendall(cmd("DEBUG", "RESHARD", "START", str(lo), str(hi), str(src), str(dst))
                   + cmd("DEBUG", "RESHARD", "CUTOVER"))
-        armed_ok = b"+OK" in line(s)
-        cut_ok = b"+OK" in line(s)
+        armed_ok = r.line().startswith(b"+OK")
+        cut_ok = r.line().startswith(b"+OK")
         if not armed_ok:
             refused += 1
             # A refusal is normal while the previous migration is still running. A refusal that
@@ -175,8 +191,8 @@ def main():
             src, dst = dst, src
 
     STOP.set()
-    no_coord = info_counter(s, "tomokv_reshard_cutover_no_coord")
-    entered = info_counter(s, "tomokv_reshard_arm_refused_coord")
+    no_coord = info_counter(r, "tomokv_reshard_cutover_no_coord")
+    entered = info_counter(r, "tomokv_reshard_arm_refused_coord")
 
     print("reshard_arm_race: cutovers=%d arm_refusals=%d wedged=%d "
           "cutover_no_coord=%s arm_refused_coord=%s"
