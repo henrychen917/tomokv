@@ -52,3 +52,4 @@ src/redis-correctness-test
 src/redis-server.base
 src/redis-server.base
 src/redis-server.mask
+bins/
