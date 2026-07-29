@@ -135,9 +135,17 @@ static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HO
                                              * pushed (head stays in flight), 0 = fall to reassemble */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
-static void migHoldIfDraining(client *fake);
 static void migHoldKeyIfDraining(robj *key);
 static void migPushFenceIfNeeded(void);
+/* ee451 (H2 handover): the range hold parks the CLIENT that asked for the migrating range and the
+ * sweep re-drives it once the range has changed hands. Both are used well above their definitions. */
+static int migHoldClientIfDraining(client *c);
+static void migReleaseParkedClients(void);
+/* ee451 (H2): the cutover fence needs to know whether a producer SLOT currently has a thread
+ * pumping it (a parked/never-live slot can never push a sentinel, so waiting on one is a hang),
+ * and needs to be able to WAKE one that is asleep in epoll. Both live in the poly-thread module
+ * far below; declared here because the coordinator is defined first. */
+static struct polyThreadCtx *tmCtxForIotid(int id);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning pin-mode); defined late */
@@ -2914,6 +2922,10 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migPushFenceIfNeeded();
+    /* ee451 (H2 handover): re-drive parked clients. NOT gated on migration_active: the teardown to
+     * active=0 races the flip, and a client still parked when the gate closed would never be woken
+     * again. The cost of checking is one list-length load. */
+    migReleaseParkedClients();
     /* ee451 (thread-modes step 4, signal c): publish this thread's reply-ROB occupancy
      * (in-flight worker-dispatched ops) for the balancer — own padded line, one store. */
     if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
@@ -2956,6 +2968,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_IDLE)
             reshardCoordinatorTick();
     }
+    migReleaseParkedClients();   /* ee451 (H2 handover): main is io slot 0 and parks clients too */
     /* flip: drive a grow-front conversion to completion (park -> IO -> publish). Cheap when idle. */
     if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
 
@@ -4295,6 +4308,7 @@ void initServer(void) {
         server.clients_pending_read[t]           = listCreate();
         server.clients_with_pending_ref_reply[t] = listCreate();
         server.clients_pending_ex[t]         = listCreate();
+        server.clients_mig_parked[t]         = listCreate();   /* ee451 (H2 handover range-hold) */
         server.current_client[t].p                 = NULL;
         server.executing_client[t].p               = NULL;
     }
@@ -6417,6 +6431,16 @@ int processCommand(client *c) {
         return C_OK;
     }
 
+    /* ee451 (H2 handover): CUTOVER RANGE HOLD, placed with the other pre-ring gates (stateful,
+     * cs_barrier) and for the same reason: parking BEFORE a ring slot is taken means the command
+     * was never dispatched, so there is nothing to lose, nothing to re-order, and this client's own
+     * FIFO is untouched. Only a command for the migrating range parks, and only that one client
+     * waits — the io thread returns to its loop and both workers keep running their other buckets.
+     * One relaxed load of the always-0 migration byte on the hot path. */
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0) &&
+        migHoldClientIfDraining(c))
+        return C_OK;
+
     /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
      * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
      * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
@@ -6461,10 +6485,16 @@ int processCommand(client *c) {
      * head and is NOT itself worker-dispatched (no CLIENT_EX_PENDING, so the drain's
      * was_ex_dispatched stays 0 and replyWorking is untouched). Its completion bit is
      * set by the last sub; the drain reassembles via csReassemble. */
-    /* ee451 (v8d): cutover hold. During the µs DRAINING window a range WRITE must not be dispatched
-     * to A; spin until the flip, then route under the new table (to B). Gated by the always-0 byte. */
-    if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
-        migHoldIfDraining(fake);
+    /* ee451 (H2 handover): the cutover hold that used to SPIN THIS IO THREAD here is gone. It is now
+     * migHoldClientIfDraining, evaluated before the ring slot above: it parks the one client that
+     * asked for the migrating range and returns, so this thread keeps serving everyone else and
+     * both workers keep full rate on their other buckets.
+     * Nothing is left unguarded by moving it earlier. The park gate and migPushFenceIfNeeded read
+     * the SAME acquire-loaded, monotone `phase`: if the gate did not park, this producer has not
+     * observed DRAINING, so it has not pushed its drain sentinel either — and anything it dispatches
+     * to the old owner now therefore lands AHEAD of that sentinel in the same FIFO queue, which is
+     * exactly what the fence proves has retired. The only way to reach the old owner behind its own
+     * sentinel is to be a producer that has already seen DRAINING, and such a producer parks. */
 
     /* ee451 (v14, v4-leanness): EXPRESS LANE — GET and SET are the overwhelmingly hottest
      * commands and by construction are neither cross-shard, stateful, nor inline; v4 matched
@@ -10745,60 +10775,128 @@ static void migPushFenceIfNeeded(void) {
  * settles and a post-flip write to the same key could be clobbered by a late log replay). Spin
  * until the flip; reads and non-range writes flow normally. Pushes this producer's fence first so
  * the coordinator can make progress while we block (no deadlock). Called only when active!=0. */
-static void migHoldIfDraining(client *fake) {
-    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
-    /* FIX (task #48, hole 3 of the fail-open fence): this used to require CMD_WRITE, so READS kept
-     * routing to the OLD owner A right up to the flip while the same client's NEXT command routed
-     * to the new owner C -- a same-client read/write pair executing on two workers with nothing
-     * ordering them. That is the same defect class as the two P0s fixed earlier today (867d79648
-     * non-owner reads, 6e9a31304 multi-hop), triggered by ownership movement instead. The tree's
-     * own comment at the read-flow site admitted the behaviour ("READS keep flowing to worker A
-     * until the flip") but not the ordering consequence.
-     *
-     * Hold range READS as well. Held producers still push their sentinel every spin
-     * (migPushFenceIfNeeded below), and the iotid==0 coordinator pump still runs, so widening the
-     * held population does not introduce a deadlock -- it only widens who waits.
-     *
-     * argv[1] is a key only when the command declares it: SCAN's argv[1] is a CURSOR, so use the
-     * predicate the tree already settled on for the S2 lock rather than a bare argc >= 2. */
-    if (!(fake->cmd && fake->cmd->legacy_range_key_spec.bs.index.pos == 1 &&
-          fake->argc >= 2 && fake->argv && fake->argv[1]))
-        return;
-    if (!migBucketInRange(migKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))) return;
-    /* Push this producer's fence EACH spin (idempotent): if fence_gen wasn't visible on the first
-     * try, a later iteration catches it — so a held producer always contributes its sentinel. */
-    while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
-        migPushFenceIfNeeded();
-        /* cron-fold deadlock guard: the cutover coordinator runs ONLY on the main thread (iotid 0,
-         * from beforeSleep). If the main thread is itself a range-write producer and lands in this
-         * spin it can never reach beforeSleep to advance DRAINING->FLIP, so it would hang forever
-         * (io threads spin fine — they only push their sentinel). Pump the coordinator here so the
-         * very fence we're blocked on can drain. IO threads (iotid != 0) must NOT touch the
-         * main-owned coordinator state. */
-        if (iotid == 0) reshardCoordinatorTick();
-        exPauseCpu();
+/* ee451 (H2 handover): CUTOVER RANGE HOLD — park the CLIENT, never the thread, never a worker.
+ *
+ * THE REQUIREMENT (owner, 2026-07-28): during a cutover the old owner finishes the commands it
+ * already has for the migrating range, commands that arrive for that range wait until it has, and
+ * then they run under the new owner. The only thing that may wait is the CONTENDED RANGE: both
+ * workers must keep executing their other buckets at full rate, and neither may stop popping.
+ *
+ * The predicate here is exactly that — per command, keyed on the migrating bucket range. What
+ * changes is the granularity of the WAIT. The tree's original hold spun the io thread
+ * (migHoldIfDraining), which is range-scoped in what it *tests* but thread-scoped in what it
+ * *stops*: every other client on that io thread stops being served, so both workers lose the
+ * traffic those clients would have generated for their non-migrating buckets. That converts a
+ * correctness fence into a throughput cliff on a worker that is 1/N of capacity, and it got worse
+ * once the fence started waiting for a real drain proof instead of a 2ms guess.
+ *
+ * Instead: mark the CLIENT stalled and return. This is the idiom the tree already uses for the
+ * stateful-command and cs_barrier gates (CLIENT_PIPELINE_STALLED, re-driven when the ring makes
+ * progress) — it parks one client, in front of the ring, before a slot is taken, so:
+ *   - the command is neither executed nor rejected, and cannot be lost or reordered: it has not
+ *     been dispatched at all, so this client's own FIFO is untouched and every other client keeps
+ *     flowing;
+ *   - the io thread returns to its event loop immediately;
+ *   - worker A keeps executing (its range work drains naturally, its other buckets never pause) and
+ *     worker B keeps popping its own buckets. Nothing waits on anything except the range.
+ * When the flip lands the parked clients are re-driven (migReleaseParkedClients) and the command
+ * routes under the new table, i.e. to the new owner. Returns 1 if the client was parked. */
+/* Does this command touch the migrating range? argv[1] is a key only when the command declares it
+ * (SCAN's argv[1] is a CURSOR), so the single-key fast path uses the same predicate the tree already
+ * settled on for the S2 lock. Multi-key commands go through the real key spec: a coalesced
+ * MSET/DEL/MGET whose FIRST key is out of range but whose third is in it must park too, or that
+ * sub would be scattered to the old owner behind its own drain sentinel. Only reached while a
+ * migration is armed. */
+static int migAnyKeyInRange(client *c) {
+    if (!c->cmd || !c->argv) return 0;
+    if (c->cmd->legacy_range_key_spec.bs.index.pos == 1 && c->argc >= 2 && c->argv[1])
+        return migBucketInRange(migKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr)));
+    getKeysResult res = GETKEYS_RESULT_INIT;
+    int n = getKeysFromCommand(c->cmd, c->argv, c->argc, &res);
+    int hit = 0;
+    for (int i = 0; i < n && !hit; i++) {
+        robj *k = c->argv[res.keys[i].pos];
+        if (k && sdsEncodedObject(k))
+            hit = migBucketInRange(migKeyBucket(k->ptr, sdslen(k->ptr)));
+    }
+    getKeysFreeResult(&res);
+    return hit;
+}
+
+static int migHoldClientIfDraining(client *c) {
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return 0;
+    if (!migAnyKeyInRange(c)) return 0;
+    /* Contribute this producer's sentinel before parking. A parked client's io thread may have
+     * nothing else to do and go straight back to epoll, so this may be the only chance this loop
+     * iteration has to prove the producer's earlier range work has retired — and the fence we are
+     * waiting on is exactly that proof. Idempotent per cutover. */
+    migPushFenceIfNeeded();
+    if (!c->mig_parked_node) {
+        c->mig_parked_tid = iotid;
+        listAddNodeTail(server.clients_mig_parked[iotid], c);
+        c->mig_parked_node = listLast(server.clients_mig_parked[iotid]);
+    }
+    c->flags |= CLIENT_PIPELINE_STALLED;
+    return 1;
+}
+
+/* ee451 (H2 handover): re-drive this io thread's parked clients once the range has changed hands.
+ * Called from beforeSleep/beforeSleepIO; one list-length load when nothing is parked.
+ *
+ * LIVENESS. A parked client is parked with an EMPTY ring by construction (the park happens before a
+ * ring slot is taken), so the reply-drain re-drive at handleWorkerReplies — which only walks clients
+ * that HAVE in-flight fakes — can never reach it. This sweep is what wakes it, and the coordinator
+ * wakes every io thread while the fence is open (and once more at the flip) so a thread with no
+ * other work still gets here. The release condition is simply "phase is no longer DRAINING", which
+ * is also true after the watchdog abort — an abandoned cutover releases its parked clients to the
+ * unchanged owner rather than stranding them. */
+static void migReleaseParkedClients(void) {
+    list *l = server.clients_mig_parked[iotid];
+    if (!l || listLength(l) == 0) return;
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) return;
+    listNode *ln;
+    while ((ln = listFirst(l)) != NULL) {
+        client *c = listNodeValue(ln);
+        listDelNode(l, ln);
+        c->mig_parked_node = NULL;
+        c->flags &= ~CLIENT_PIPELINE_STALLED;
+        /* processInputBuffer may free c (its C_ERR path); we already dropped our reference. */
+        processInputBuffer(c);
     }
 }
 
-/* Per-KEY hold for cross-shard writes. migHoldIfDraining only inspects the head's argv[1]; a
- * cross-shard MSET/DEL/UNLINK whose first key is OUT of [lo,hi) but a later key is IN range would
- * otherwise dispatch that in-range sub to A during DRAINING (after A's fence sentinel), producing a
- * post-s_final log entry that clobbers a post-flip B write. Hold each in-range sub key until the
- * flip, then it routes to B. Called per sub key in dispatchCrossShard for write groups only. */
+/* ee451 (H2 handover): drop a dying client from its park list. A parked client has an empty ring
+ * and no in-flight fake, so nothing else in the system holds a reference that would notice it —
+ * without this the list would keep a freed pointer. Called from unlinkClient. */
+void migUnparkClient(client *c) {
+    if (!c->mig_parked_node) return;
+    listDelNode(server.clients_mig_parked[c->mig_parked_tid], c->mig_parked_node);
+    c->mig_parked_node = NULL;
+}
+
+/* Per-KEY hold for cross-shard writes — now a RESIDUAL SAFETY NET, not the working path.
+ * migAnyKeyInRange already parks the whole client before a ring slot is taken, inspecting EVERY key
+ * of a coalesced MSET/DEL/UNLINK rather than just the head's argv[1], so during a cutover no
+ * cross-shard group containing a range key is built in the first place. What is left here can only
+ * fire in the sub-microsecond window where `phase` became DRAINING between the park gate and this
+ * call — and in that window this producer has provably not pushed its sentinel yet (both read the
+ * same monotone phase), so the sub lands ahead of it and is covered by the fence anyway. Kept as
+ * defence in depth; it is a thread spin, so it must stay unreachable in practice. */
 static void migHoldKeyIfDraining(robj *key) {
     if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
     if (!migBucketInRange(migKeyBucket(key->ptr, sdslen(key->ptr)))) return;
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
-        if (iotid == 0) reshardCoordinatorTick();   /* cron-fold deadlock guard — see migHoldIfDraining */
+        /* pump every main-only coordinator — see the H2 note on the range hold above */
+        if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }
         exPauseCpu();
     }
 }
 
 /* ee451 (W6-E2): DRAINING-window lazy-expire suppression. The drain fence proves every range
  * WRITE dispatched before the sentinel has executed, then samples s_final. HISTORICALLY reads
- * kept flowing to worker A until the flip (migHoldIfDraining gated CMD_WRITE only) -- that is
- * FIXED as of task #48: range reads are now held too, on both the single-key and coalesced paths.
+ * kept flowing to worker A until the flip (the hold gated CMD_WRITE only) -- that is
+ * FIXED as of task #48: range reads are held too, on both the single-key and coalesced paths.
  * This suppression is retained as defence in depth for any read that slips the hold, and a read that
  * lazy-expires an in-range key appends a tombstone whose issued_seq fetch_add can land AFTER
  * the s_final load. B keeps draining the log until phase==MIG_DONE, so that late tombstone is
@@ -10835,19 +10933,58 @@ int migSuppressLazyExpire(redisDb *db, sds keyname) {
  * (DEBUG RESHARD CUTOVER on an IO thread) CASes co_state IDLE->1 and everything else is read
  * from server.migration under the active flag. Ordering and log lines are IDENTICAL to the
  * retired thread version. */
-static monotime co_empty_since[TOMO_IO_THREADS_MAX + 1];
-static uint64_t co_hb0;
+static monotime co_fence_t0;      /* ee451 (H2): monotonic us at which THIS cutover's fence opened */
+static monotime co_last_wake;     /* ee451 (H2): last producer-wake broadcast (rate limit) */
+static int co_aborted;            /* ee451 (H2): this cutover ended without flipping */
+static uint64_t co_hb0;           /* (co_s_final went with the copy engine's issued_seq) */
+
+/* ee451 (H2): is io producer slot `t` currently being PUMPED by a thread?
+ *
+ * This is the liveness half of the drain fence. The fence's only sound ack is "worker A executed
+ * this slot's sentinel", but a slot with no thread behind it can never push one — a parked spare, a
+ * growth io slot no worker has converted into, an io thread that has parked. Waiting on those is a
+ * hang, so they take the quiescence ack instead (see C.2).
+ *
+ * The two transition races are both safe, and in opposite directions:
+ *   PARKED -> IO after we call it dead: the thread sets its mode and iotid at a checkpoint and only
+ *     then dispatches; its first range dispatch acquire-loads `phase`, which was released as
+ *     DRAINING strictly before any ack, so it HOLDS (or, past the flip, routes to the new owner).
+ *     It cannot push work at A behind our back.
+ *   IO -> PARKED after we call it live: we simply keep waking it until it parks; the next tick sees
+ *     mode != IO and takes the quiescence ack. Parking already requires its clients to be quiesced,
+ *     so its queue is drained and retired by then.
+ */
+static int migProducerLive(int t) {
+    if (t == 0) return 1;                        /* main thread: always turning its own loop */
+    struct polyThreadCtx *ctx = tmCtxForIotid(t);
+    if (!ctx) return t < server.io_threads;      /* no poly apparatus: the base io threads are live */
+    return atomic_load_explicit(&ctx->mode, memory_order_acquire) == TOMO_MODE_IO;
+}
+
+/* ee451 (H2): wake io producer slot `t` so it reaches beforeSleepIO and pushes its drain sentinel.
+ * A producer asleep in epoll_wait has no reason to run — this is exactly why the fence used to
+ * guess at idleness instead of proving it. We reuse the connection-migration mailbox notifier,
+ * which is registered on that slot's OWN event loop, is what the control plane already uses to
+ * wake io threads, and is harmless to trigger spuriously (its handler only drains the fd).
+ * Slot 0 is the main thread: it pushes its sentinel from beforeSleep and from the hold spin, and
+ * it is the thread running this code, so there is nothing to wake. */
+static void migWakeProducer(int t) {
+    if (t <= 0 || t > TOMO_IO_THREADS_MAX) return;
+    eventNotifier *n = tm_mig_mbox[t].notifier;
+    if (n) triggerEventNotifier(n);
+}
+
 static void reshardCoordinatorTick(void) {
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
     /* Producers = main thread (iotid 0) + separate IO threads (iotid 1..io_threads-1) =
      * io_threads total. (Worker queue slot io_threads has no producer in static mode.)
      * ee451 (thread-modes step 2): with the poly-thread apparatus on, slot io_threads is the
-     * SPARE's producer slot — fence it too. While the spare is parked/dormant its queue
-     * just stays empty and the ~2ms idle-ack below clears it; once it has shifted to IO
-     * its in-flight dispatches are drained exactly like any other producer's. */
+     * SPARE's producer slot — fence it too. While the spare is parked/dormant nothing is pumping
+     * it, so C.2 takes its quiescence ack; once it has shifted to IO its in-flight dispatches are
+     * drained exactly like any other producer's. */
     /* flip: cover all POSSIBLE producer slots (base io + growth io slots a converted worker may
-     * run). Slots that never went live have empty queues => idle-acked in C.2, harmless. */
+     * run). Slots that never went live have no thread and an empty queue => acked in C.2. */
     int nprod = server.io_threads + (server.poly_threads ? (server.tm_ngrow_io > 0 ? server.tm_ngrow_io : 1) : 0);
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
@@ -10861,9 +10998,11 @@ static void reshardCoordinatorTick(void) {
      * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
     /* flip (review [1] data-loss fix): reset EVERY producer slot the C.2 drain check spans (nprod =
      * io_threads + tm_ngrow_io), not just [0, io_threads]. A grown io slot (converted worker acting as
-     * an IO producer) that idle-acked (fence_acked==1) in an EARLIER migration would otherwise keep
+     * an IO producer) that acked (fence_acked==1) in an EARLIER migration would otherwise keep
      * that stale 1 into THIS cutover; C.2 then treats it as already-drained and the FLIP proceeds while
-     * an in-flight range write is still queued from that live producer => silent lost write. */
+     * an in-flight range write is still queued from that live producer => silent lost write.
+     * (This reset is still exactly right after the H2 rewrite — more so, since an ack is now a real
+     * proof about ONE cutover's traffic and carrying one forward would forge that proof.) */
     for (int t = 0; t < nprod; t++)
         atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
     atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
@@ -10871,33 +11010,108 @@ static void reshardCoordinatorTick(void) {
     atomic_store_explicit(&server.migration.phase, MIG_DRAINING, memory_order_release);
 
         serverLog(LL_NOTICE, "ee451 reshard DRAINING: fence raised, nprod=%d", nprod);
-        for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) co_empty_since[t] = 0;
+        co_fence_t0 = 0; co_last_wake = 0; co_aborted = 0;   /* ee451 (H2): fresh fence clocks */
         atomic_store_explicit(&co_state, CO_DRAINING, memory_order_release);
         return;
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_DRAINING) {
-    /* C.2: each producer slot is "drained" when EITHER A popped its drain sentinel (busy producer
-     * pushed one — proving every range primary it dispatched before is executed) OR A's queue from
-     * that slot has stayed empty for a stretch (idle producer blocked in epoll — nothing in flight,
-     * so no sentinel will ever come). This needs no cross-thread wake of idle IO threads. */
+    /* C.2: SENTINEL-COMPLETE DRAIN FENCE (ee451, H2 — rewritten 2026-07-28).
+     *
+     * WHAT WAS WRONG. This used to ack a producer slot after ~2ms of apparent queue emptiness,
+     * on the theory that an empty queue means an idle producer with nothing in flight. It does
+     * not: exQueuePopBatch publishes `head` BEFORE the popped batch executes, so a worker that
+     * has taken 16 commands and is running them reads as EMPTY. That is the steady state of a
+     * BUSY worker, not a rare race. The fence therefore flipped bucket ownership while range
+     * primaries were still executing on the old owner A — the new owner C then served the same
+     * buckets concurrently, breaking both the single-writer invariant on the shared node table
+     * and same-connection ordering (a client's later command completing on C before its earlier
+     * one finished on A). Data-loss class, and it fired under ordinary load.
+     *
+     * WHAT IS SOUND. Exactly one thing: worker A EXECUTING that slot's drain sentinel. A sentinel
+     * is pushed by the producer itself, from beforeSleep/beforeSleepIO or from inside the hold
+     * spin, and only after that producer has acquire-observed phase == DRAINING — so every range
+     * command it will ever push from then on is HELD (the client parks), and everything it pushed
+     * before sits ahead of the sentinel in the same FIFO queue. Reaching the sentinel in the
+     * execute loop therefore proves both halves: nothing older is still running, and nothing newer
+     * is coming. Popping it would not — hence the sentinel is checked where commands execute.
+     *
+     * LIVENESS. A sentinel only arrives if something is pumping the slot, so:
+     *   - live slots (migProducerLive) are WOKEN, rate-limited, until they ack. A producer asleep
+     *     in epoll_wait has no other reason to run; the old idle-ack existed precisely to avoid
+     *     needing this wake, and that avoidance is what made it unsound.
+     *   - dead slots (parked spare, unconverted growth slot, an io thread that parked) can never
+     *     ack, so they take the QUIESCENCE ack instead: everything published on that queue has
+     *     RETIRED (q->retired, published by the worker after each batch — NOT q->head, which is
+     *     the very read that caused this bug).
+     * If neither lands within tomokv-reshard-fence-timeout, the cutover is ABORTED rather than
+     * forced: a fence that never completes is a hang, which is worse than the bug it fixes, and
+     * an abort simply leaves the range where it already is. */
         int pending = 0;
         monotime now = getMonotonicUs();
+        if (co_fence_t0 == 0) co_fence_t0 = now;
+        int wake = (co_last_wake == 0 || now - co_last_wake >= 500);   /* <=2kHz per slot */
+        if (wake) co_last_wake = now;
         for (int t = 0; t < nprod; t++) {
             if (atomic_load_explicit(&server.migration.fence_acked[t], memory_order_acquire)) continue;
             exQueue *q = &server.exThreads[src].queues[t];
-            unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+            unsigned int h  = atomic_load_explicit(&q->head, memory_order_relaxed);
             unsigned int tl = atomic_load_explicit(&q->tail, memory_order_acquire);
-            if (h == tl) {                       /* queue empty right now */
-                if (co_empty_since[t] == 0) co_empty_since[t] = now;
-                if (now - co_empty_since[t] >= 2000) {   /* 2ms continuously empty => idle producer */
+            unsigned int rt = atomic_load_explicit(&q->retired, memory_order_acquire);
+            /* Observability, and the reason this rewrite is not vacuous: count every tick on which
+             * the OLD predicate (queue empty) disagreed with the true one (batch retired). A run
+             * that never trips this never entered the window the fix is about. */
+            if (h == tl && rt != tl)
+                atomic_fetch_add_explicit(&server.reshard_fence_midbatch, 1, memory_order_relaxed);
+            if (!migProducerLive(t)) {
+                if (rt == tl) {   /* nothing pumping it AND nothing of its still in flight */
                     atomic_store_explicit(&server.migration.fence_acked[t], 1, memory_order_release);
                     continue;
                 }
-            } else co_empty_since[t] = 0;
+            } else if (wake) {
+                migWakeProducer(t);
+            }
             pending = 1;
         }
-        if (pending) return;
+        if (pending) {
+            int tmo = server.reshard_fence_timeout_ms;
+            if (tmo > 0 && (now - co_fence_t0) >= (monotime)tmo * 1000) {
+                if (server.shared_node_dbs) {
+                    /* ABORT — never flip. Under shared node dbs a reshard moves OWNERSHIP only
+                     * (the range's data already lives in the one table the new owner would serve,
+                     * which is why CLEANUP is skipped), so abandoning a cutover is a pure no-op on
+                     * the keyspace: leaving phase and jumping straight to DONE releases every held
+                     * producer, and the untouched bucket table keeps routing [lo,hi) to A. The
+                     * balancer will re-arm later. */
+                    atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
+                    serverLog(LL_WARNING,
+                              "ee451 reshard ABORT: drain fence did not complete within %d ms; "
+                              "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
+                    /* The spare/flip tail must NOT run: action 2 would request a PARK on a thread
+                     * that still owns its range (its park checkpoint asserts an empty shard), and
+                     * actions 1/3 publish a liveness the un-taken FLIP never granted. The flip
+                     * controller has its own watchdog for a conversion that does not land. */
+                    co_aborted = 1;
+                    server.tm_mig_spare_action = 0;
+                    atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+                    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                    /* Same wake as the FLIP path: an abandoned cutover must release its parked
+                     * clients too, or the abort trades a stalled range for a stalled client. */
+                    for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
+                    atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
+                } else {
+                    /* Copy mode: B holds a partial copy of the range, so abandoning here would
+                     * leave ghost keys in B's shard that the fan-out paths would still enumerate.
+                     * Reshard is unreachable in this mode anyway (shared_node_dbs is exactly
+                     * workers-per-node > 1, and a move is always within one node), so keep waiting
+                     * and say so once per timeout rather than ship an untested teardown. */
+                    serverLog(LL_WARNING, "ee451 reshard: drain fence still pending after %d ms "
+                                          "(copy mode: not aborting)", tmo);
+                    co_fence_t0 = now;
+                }
+            }
+            return;
+        }
         serverLog(LL_NOTICE, "ee451 reshard fence drained");
         atomic_store_explicit(&co_state, CO_WAIT_APPLIED, memory_order_release);
         return;
@@ -10914,6 +11128,13 @@ static void reshardCoordinatorTick(void) {
     else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
+    /* ee451 (H2 handover): the range has changed hands — wake every io thread so it runs
+     * migReleaseParkedClients. A client parked by the range-hold has an EMPTY ring, so nothing
+     * retires on its thread and no reply event will bring that thread back to beforeSleepIO; if it
+     * has no other traffic it is asleep in epoll and the parked client would wait for the next
+     * unrelated packet. This is the one wake that must not be missed, so it is unconditional and
+     * not rate-limited. */
+    for (int t = 1; t < nprod; t++) migWakeProducer(t);
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d", lo, hi, dst);
 
     /* ee451 (thread-modes v1, step 3): spare ACTIVATION — the table remap above IS the
@@ -10974,7 +11195,13 @@ static void reshardCoordinatorTick(void) {
     int spare_act = server.tm_mig_spare_action;
     server.tm_mig_spare_action = 0;
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
-    serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+    if (co_aborted) {   /* ee451 (H2): teardown ran, but no ownership changed hands */
+        serverLog(LL_WARNING, "ee451 reshard ABORTED: [%d,%d) still owned by worker %d "
+                              "(fence timeout); state torn down, a new cutover may be armed",
+                  lo, hi, src);
+    } else {
+        serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
+    }
     atomic_fetch_add_explicit(&server.reshard_done_seq, 1, memory_order_relaxed);
 
     /* ee451 (thread-modes v1, step 3): spare transition tail. DEACTIVATION (action 2):
@@ -14010,6 +14237,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_nested_cmd_frames:%llu\r\n",
                 atomic_load_explicit(&tomo_nested_cmd_frames, memory_order_relaxed),
+            /* ee451 (H2): drain-fence evidence. midbatch counts coordinator ticks that saw a
+             * producer's queue EMPTY while the old owner still had that queue's popped batch in
+             * flight — the exact state the retired idle-ack treated as "producer idle". A reshard
+             * run that never trips this never entered the window, so a clean result from it proves
+             * nothing about the fence. aborts counts cutovers abandoned on the fence watchdog. */
+            "tomokv_reshard_fence_midbatch:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
+            "tomokv_reshard_fence_aborts:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
             "tomokv_xshard_multikey_split:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
             "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,
@@ -15385,6 +15621,7 @@ static void moveExecutionState(client *real, client *fake) {
 void exQueueInit(exQueue *q) {
     atomic_store_explicit(&q->head, 0, memory_order_relaxed);
     atomic_store_explicit(&q->tail, 0, memory_order_relaxed);
+    atomic_store_explicit(&q->retired, 0, memory_order_relaxed);   /* ee451 (H2): execution frontier */
     q->cached_tail = 0;   /* ee451: empty (head == cached_tail) */
     q->cached_head = 0;   /* ee451: empty (next_t != cached_head until full) */
     q->staged_tail = 0;   /* ee451 (S4): == tail; nothing staged yet */
@@ -16416,6 +16653,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         for (int s = 0; s < sig_n; s++)
             atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[ctx->wcdb].v,  /* ee451 (S5): this worker's CDB */
                                      sig_masks[s]);
+
+        /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
+         * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
+         * "producer idle" from "worker busy executing what it just popped" — the cutover fence read
+         * the second as the first and flipped bucket ownership mid-batch. `head` here is post-pop
+         * and every job of this batch has now retired, so storing it makes `retired == tail` a true
+         * quiescence predicate. ONE relaxed load + one release store per batch (not per command),
+         * on head's line, which this thread already owns. */
+        atomic_store_explicit(&worker->queues[i].retired,
+                              atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed),
+                              memory_order_release);
     }
 
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
@@ -17963,6 +18211,13 @@ int tomoSpareShift(int mode, const char **err) {
  * master/monitor links, tracking, ASM, closing/protected, and non-TCP conns. */
 static int tmClientMigratable(client *c) {
     if (!c->conn) return 0;
+    /* ee451 (H2 handover): a client PARKED by the cutover range-hold must not change io threads.
+     * Its park list entry is per-io-thread and is released by that thread's beforeSleep sweep; move
+     * it and the entry is stranded on the old thread (which would then re-drive a client it no
+     * longer owns, while the new thread never releases it). A park lasts one cutover window, and
+     * the quiesce fence below would otherwise consider it migratable precisely BECAUSE its ring is
+     * empty — which is exactly what parking guarantees. */
+    if (c->mig_parked_node) return 0;
     if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
     if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
                     CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
