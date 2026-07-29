@@ -33,11 +33,13 @@ exit 0 = PASS, 1 = FAIL (wedged or counter non-zero), 2 = SKIP (vacuous: too few
 """
 import socket
 import sys
+import threading
 import time
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 7899
 SECONDS = float(sys.argv[2]) if len(sys.argv) > 2 else 60.0
 MIN_CUTOVERS = 200
+STOP = threading.Event()
 
 
 def cmd(*a):
@@ -91,7 +93,43 @@ def info_counter(s, name):
     return None
 
 
+def warmer(n=8):
+    """Keep every event loop — main included — iterating.
+
+    The cutover coordinator advances ONE state per beforeSleep pass on the MAIN thread. On an idle
+    server the main loop blocks in epoll until the ~100 ms cron tick, so a migration takes ~6 x
+    100 ms and a 60 s run completes far too few cutovers to have raced anything (the test would
+    report SKIP for a reason that has nothing to do with the defect). A trickle of PINGs across a
+    few connections keeps the loops hot without putting the box under load.
+    """
+    socks = []
+    for _ in range(n):
+        try:
+            c = socket.create_connection(("127.0.0.1", PORT), timeout=10)
+            c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            socks.append(c)
+        except Exception:
+            pass
+    try:
+        while not STOP.is_set():
+            for c in socks:
+                try:
+                    c.sendall(b"PING\r\n")
+                    c.recv(64)
+                except Exception:
+                    return
+            time.sleep(0.001)
+    finally:
+        for c in socks:
+            try:
+                c.close()
+            except Exception:
+                pass
+
+
 def main():
+    threading.Thread(target=warmer, daemon=True).start()
+    time.sleep(0.2)
     s = socket.create_connection(("127.0.0.1", PORT), timeout=15)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
@@ -124,6 +162,7 @@ def main():
             cutovers += 1
             src, dst = dst, src
 
+    STOP.set()
     no_coord = info_counter(s, "tomokv_reshard_cutover_no_coord")
     entered = info_counter(s, "tomokv_reshard_arm_refused_coord")
 
