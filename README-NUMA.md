@@ -281,12 +281,12 @@ hot connection. It runs on the poly-thread apparatus (always on, in both thread-
 load is balanced continuously, not only at a flip. `DEBUG TOMO-IOLOAD` dumps per-thread mode, conn
 count, and busy for inspection.
 
-All other base knobs — batching, spin, prefetch stages, reply path, io_uring — apply unchanged.
+All other base knobs — batching, spin, prefetch stages, reply path — apply unchanged.
 
 ### Example
 
 ```sh
-make -C src USE_URING=yes -j
+make -C src -j
 
 # 2 nodes × 4 cores; every non-base core can flip; self-tuning; lock discipline on:
 ./src/redis-server --port 6379 \

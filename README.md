@@ -6,7 +6,7 @@
 
 *Parse and dispatch on ingress threads · execute out‑of‑order on sharded workers · commit replies in issue order.*
 
-`2‑stage io↔ex pipeline` · `RESP‑compatible` · `epoll or deep io_uring`
+`2‑stage io↔ex pipeline` · `RESP‑compatible` · `epoll event loop`
 
 </div>
 
@@ -74,8 +74,7 @@ cross‑worker synchronization on the data path.
 **Reply commit.** Completed commands retire through a per‑connection ring. The ingress thread advances a
 `flushid` cursor over the ready‑prefix and splices replies onto the socket **strictly in issue order**, so a
 command that finished early on an idle shard never overtakes an earlier command still running on a busy one.
-Replies leave over one of two interchangeable backends — classic **epoll** `write()`, or a
-**deeply‑integrated io_uring** send path (ring‑per‑thread, batched submits, registered ring fd).
+Replies leave over the ingress thread's **epoll** `write()` path.
 
 **Correctness.** Because each key is owned by exactly one worker, there are no locks on the data path and no
 cross‑worker hazards. Commands to *different* keys execute fully in parallel and out of order; commands to
@@ -125,10 +124,7 @@ No‑pipe throughput is **io‑thread‑bound** — every command pays its own `
 is idle. So it is *monotone in ingress share* (0.33 → 0.82, a 2.5× swing) and the dial is the whole story:
 at ingress‑heavy `io6ex2`, Tomo **leads the field** (0.82, past Valkey/Dragonfly ~0.80 and Garnet 0.67).
 The balanced `io4ex4` under‑provisions ingress here and trails — that is a config choice, not an
-architectural limit. Enabling the io_uring backend lifts Tomo `io6ex2` to **0.84** (its batched submit
-reclaims the per‑command syscalls that pipelining otherwise amortizes — the one loopback regime where
-io_uring beats epoll); Dragonfly's io_uring is flat vs its own epoll (0.80). *(Only Tomo and Dragonfly have
-an io_uring data path; Redis/Valkey/Garnet are epoll‑only.)*
+architectural limit.
 
 ### 2 · Pipelined (P32)
 
@@ -231,7 +227,7 @@ reply, so dispatch‑bound). Garnet tops `BITCOUNT` but **does not implement has
 ### Honest scope
 
 All numbers are single‑node **loopback on one CCD**. The de‑contention machinery, the worker‑heavy end of
-the dial, and the io_uring / EWMA‑reshard knobs are designed to pay on **multi‑CCD / real‑NIC** hardware
+the dial, and the EWMA‑reshard knobs are designed to pay on **multi‑CCD / real‑NIC** hardware
 (cross‑CCD transfers cost ~100–200 cycles vs cheap shared‑L3 here); that evaluation is pending on a
 Threadripper‑class box. Validation before every number: correctness round‑trips + a reconnect‑storm churn
 stress + (for structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with
@@ -282,8 +278,7 @@ into a few families:
   instead of letting it run against the empty decoy DB. `FLUSHALL`/`FLUSHDB` are handled by queue‑ordered
   flush sentinels.
 - **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
-  with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** reply path
-  (multishot recv, `SEND_ZC`, `SQPOLL`, registered ring fd).
+  with shared‑L3/CCD awareness, and NUMA‑local worker binding.
 - **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with a dual‑rate‑EWMA
   hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without downtime (see table 4 for its
   workload‑dependence). Opt‑in trigger hardening (sustain window, Schmitt hysteresis, cool‑margin) suppresses
@@ -404,22 +399,19 @@ controller.
 | `tomokv-opt-operand-pool` | bool (default off) | Argv‑operand recycling pool (tiered, demand‑grow, op‑clocked decay — the same controller style). Hardwired ON in the 3‑Stage edition; gated here pending 2‑Stage validation. |
 | `tomokv-mset-move` | bool (**default off**) | Cross‑shard MSET hands each value object to the owning worker (the `argv_released_mask` ownership handoff) instead of giving the sub a private copy. Off is not a placeholder: no gain has ever been measured **or claimed** for it, and the regime where a copy could matter (large values, cross‑NUMA) is not one this box can answer. Kept as an experiment lever. Turning it on is an ownership change, not a tuning parameter — `csAppendMsetValue` documents the three‑step contract that keeps exactly one owner of the value at every instant. `INFO tomokv_xshard_mset_moved` counts entries into the arm, so a clean run with it on is only evidence if that counter moved. |
 
-### Kernel / io_uring (experimental, default off)
+### Kernel / OS tuning (experimental, default off)
 
-`tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`, `tomokv-worker-direct-send`,
-`tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all immutable
-booleans, all default off. Loopback‑neutral except at P1 (see table 1); they exist for real‑NIC evaluation.
+`tomokv-os-opts` (`TCP_QUICKACK` on client sockets + `MADV_HUGEPAGE` on hot allocations) and
+`tomokv-os-busypoll` (`SO_BUSY_POLL`) — immutable booleans, both default off. Loopback‑neutral; they
+exist for real‑NIC evaluation.
 
 ---
 
 ## Building & running
 
 ```sh
-# Standard build (epoll backend)
+# Standard build
 make -j
-
-# With the io_uring backend enabled
-make -j USE_URING=yes
 
 # Run a 2-stage instance: 6 ingress threads, 4 workers
 ./src/redis-server --tomokv-thread-io 6 --tomokv-thread-ex 4 \

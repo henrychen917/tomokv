@@ -13,7 +13,7 @@ say(){ echo "$*"; }
 ASAN=${ASAN:-0}
 pkill -9 -f "redis-server.*:$PORT" 2>/dev/null; sleep 1
 if [ "$ASAN" = 1 ]; then
-  ( cd $REPO && make distclean >/dev/null 2>&1 && make -j SANITIZER=address MALLOC=libc USE_URING=yes ) >$D/b.log 2>&1
+  ( cd $REPO && make distclean >/dev/null 2>&1 && make -j SANITIZER=address MALLOC=libc ) >$D/b.log 2>&1
   nm $REPO/src/redis-server 2>/dev/null|grep -qi asan || { say "ASAN BUILD FAIL"; exit 1; }
   export ASAN_OPTIONS="detect_leaks=1:halt_on_error=0:log_path=$D/asan:abort_on_error=0"
 fi
@@ -146,7 +146,7 @@ if [ "$ASAN" = 1 ]; then
 fi
 timeout 8 $CLI shutdown nosave >/dev/null 2>&1; kill $PID 2>/dev/null; sleep 1; pkill -9 -f "redis-server.*:$PORT" 2>/dev/null
 if [ "$ASAN" = 1 ]; then
-  ( cd $REPO && make distclean >/dev/null 2>&1 && make -j USE_URING=yes ) >$D/rb.log 2>&1 && say "rebuilt non-ASAN"
+  ( cd $REPO && make distclean >/dev/null 2>&1 && make -j ) >$D/rb.log 2>&1 && say "rebuilt non-ASAN"
 fi
 say "=== MIG TEST DONE: fails=$fail ==="
 [ "$fail" = 0 ] && say "VERDICT: PASS" || say "VERDICT: FAIL"

@@ -240,7 +240,7 @@ dead, for a structural reason neither previous claim identified.
 ## Is the mechanism itself standard? Yes.
 
 A **fixed, power-of-two, boot-sized ring** is the universal choice for SPSC queues: LMAX Disruptor,
-DPDK `rte_ring`, io_uring SQ/CQ, kernel `kfifo`. Nobody resizes a lock-free ring at runtime, because
+DPDK `rte_ring`, kernel `kfifo`. Nobody resizes a lock-free ring at runtime, because
 doing so requires quiescing both ends. So "fixed at boot, sized for worst-case burst, exhaustion
 counted" is correct by prior art, and `INFO tomokv_ex_queue_full` plus the CLAMPED warning are the
 right instrumentation.

@@ -205,7 +205,7 @@ topology** — untested here, targeted for the Threadripper/EPYC platform.
 - **Honest weak spots:** write‑heavy mixes, large values (1 KB/4 KB), counters, and cross‑shard MGET/MSET
   on this 1‑CCD box — Redis/Valkey edge ahead there; this is the in‑flight DRAM / large‑value work.
 - **Caveats:** all results are on a **1‑CCD 7700X over loopback**. Multi‑CCD/NUMA placement, real‑NIC
-  (io_uring zero‑copy), and the reshard payoff are explicitly *not* exercised here and are expected to
+  behaviour, and the reshard payoff are explicitly *not* exercised here and are expected to
   favor Tomo further. Single‑box numbers; reproduce on the target server class.
 
 *Raw data: `benchmarks/data/` (DRAM matrix, YCSB) + the 25‑workload suite pivots. Deep‑pipeline (§2) and

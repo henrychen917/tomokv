@@ -3204,7 +3204,6 @@ standardConfig static_configs[] = {
      * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
      * that keeps exactly one owner of the value at every instant. */
     createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring",              NULL, IMMUTABLE_CONFIG,  server.io_uring_net,          0, NULL, NULL),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
      * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
      * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed
@@ -3294,16 +3293,11 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
 
 
-    /* ================= OS / io_uring DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults made
-     * TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off, and left the whole io_uring
-     * multishot-recv / zero-copy-send / SQPOLL subsystem unreachable with 13 live readers. That is
-     * disabling a feature to simplify a config surface, which is not the same as retiring a knob. */
+    /* ================= OS DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults
+     * made TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off. That is disabling a
+     * feature to simplify a config surface, which is not the same as retiring a knob. */
     createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
     createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
 
 
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
@@ -3640,15 +3634,15 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
  * OVERRIDES whatever the table just wrote. That is fine for a name with no table entry, and it is
  * a silent shadow for a name that has one.
  *
- * Six names had one. os-opts, os-busypoll, io-uring-recv, -reply-send, -sqpoll and -zc were
- * retired, seeded here, then RESTORED as live knobs (commit 56a62a30f) — but the seeds were not
- * removed with them. Every one of those six is a live createBoolConfig today whose field this
+ * Six names had one: os-opts, os-busypoll, and four network-backend knobs (since deleted
+ * outright). They were retired, seeded here, then RESTORED as live knobs (commit 56a62a30f) — but
+ * the seeds were not removed with them, so each was a live createBoolConfig whose field this
  * function then re-assigned. It happened to be invisible because the table default and the seed
  * both say 0; flipping either table default to 1 would have been silently undone at boot, and the
  * boot log would not have mentioned it. Same failure mode as the 0-by-omission bug above, one
  * level up: there, retiring a knob zeroed its field; here, un-retiring one leaves a zeroing behind.
  *
- * The seeds are therefore gone (the config table initialises those six fields, with the same
+ * The seeds are therefore gone (the config table initialises the surviving fields, with the same
  * value, which is why this is a no-op today). The block stays for its documentation and for the
  * invariant check, which is what makes the trap non-reintroducible. */
 static void tomoInitRetiredKnobDefaults(void) {

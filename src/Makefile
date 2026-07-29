@@ -302,14 +302,6 @@ ifeq ($(MALLOC),jemalloc)
 	FINAL_LIBS := ../deps/jemalloc/lib/libjemalloc.a $(FINAL_LIBS)
 endif
 
-# ee451 (v11-B): fresh io_uring network path. Build with `make USE_URING=yes` (needs liburing).
-# Defines HAVE_LIBURING (compiles the io_uring send/recv code) + links -luring. The path is still
-# gated at RUNTIME by `tomokv-io-uring` (default off) so a USE_URING build defaults to epoll.
-ifeq ($(USE_URING),yes)
-	FINAL_CFLAGS+= -DHAVE_LIBURING
-	FINAL_LIBS+= -luring
-endif
-
 # LIBSSL & LIBCRYPTO
 LIBSSL_LIBS=
 LIBSSL_PKGCONFIG := $(shell $(PKG_CONFIG) --exists libssl && echo $$?)

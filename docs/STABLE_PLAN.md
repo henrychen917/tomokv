@@ -40,7 +40,7 @@ Findings that outlast this pass, none of which a suite could have gone red on:
 2. the LB-1 probe's precondition was **unreadable on every build ever tested**, and once repaired
    the probe *still* cannot tell the vulnerable build from the fixed one (§2);
 3. the "ASAN churn clean" arm that STABLE_PLAN required for mset-move **did not exist** (§2);
-4. a live post-migration **wedge** on the io_uring WIP build (§5a).
+4. a live post-migration **wedge** on the experimental network backend, since deleted (§5).
 
 ---
 
@@ -62,12 +62,9 @@ is left.
    another reaper. Given the leak class just fixed, re-test before investigating the server.
 4. **`feature_sweep` exits 1; `controller_sweep` produces no result file.** Same triage: harness or
    product?
-5. **`knob_matrix`: io-uring knobs "DID NOT BOOT"** — RESOLVED 2026-07-29, and not the way this
-   item proposed. The knobs no longer exist (section 5): the backend is a compile-time choice. The
-   cells are now `reject()` assertions that the retired names are refused, which is stronger than
-   deleting them — deleting would leave nothing proving the knobs actually went away, and this tree
-   has been bitten by a "retired" knob whose field merely fell to 0 by omission while every suite
-   stayed green.
+5. **`knob_matrix`: alternate-backend knobs "DID NOT BOOT"** — RESOLVED 2026-07-29 by deletion.
+   Those knobs no longer exist and neither does the backend they gated (section 5), so the cells
+   were removed with them.
 6. **Three suites still reap the shared name** — `numa2_validate.sh`, `shared_refcount_race.sh`,
    `expiry_clock_ab.sh`. They can still kill other sessions' servers. `shared_refcount_race.sh` has
    no `BIN`-style variable, so it needs a hand-written fix rather than the mechanical one.
@@ -338,102 +335,57 @@ Nothing is working on these.
 
 ---
 
-## 5. io_uring — now a compile-time choice (knobs retired 2026-07-29)
+## 5. io_uring — DELETED 2026-07-29
 
-**DONE: the collapse landed.** The backend is selected by the BUILD, not by config. A default
-`make` is the epoll server; `make USE_URING=yes` is the io_uring server. Neither needs a flag.
+**The entire io_uring backend is gone from this tree**: the send ring, the multishot-recv ring,
+the provided-buffer ring, `HAVE_LIBURING`, the `USE_URING` make flag, the five `tomokv-io-uring*`
+knobs and their `server.*` fields, the orphan-FATAL that policed them, and every read site in
+`networking.c` / `server.c` / `iothread.c` / `server.h`. There is one network backend: epoll.
+`make USE_URING=yes` is now an unrecognised variable that `make` ignores — it builds the same
+binary as `make`.
 
-What was deleted: `tomokv-io-uring`, `-recv`, `-reply-send`, `-sqpoll`, `-zc` — config entries,
-`server.*` fields, and every read site. There were two gates in series on one decision (does the
-code exist / is it switched on), and since all five were `IMMUTABLE_CONFIG` the second gate was
-resolved at the same moment as the first — it could not enable anything the build lacked, only
-disable something the operator had deliberately compiled in. The orphan FATAL that policed
-sub-knob-without-master went with them: that state is now unrepresentable.
+**Why — it was measured, not assumed.** At `io7/ex1`, p1, `-d 32`, 200 connections:
 
-Two sub-features were retired at their shipped default of OFF rather than switched on by omission,
-and their branches deleted (recoverable from git history):
-- **SQPOLL.** `iouRecvEnsure`'s own comment records that it *regressed throughput and corrupted
-  multi-chunk (>16K) reads*. It also spawns a spinning kernel poller per IO thread, which would
-  have confounded the epoll-vs-uring comparison this split exists to enable — extra busy kernel
-  threads are not io_uring's cost. Both rings are now plain `io_uring_queue_init(..., 0)`.
-- **SEND_ZC.** Never validated, and its deferred-buffer-reset protocol (result CQE, then a later
-  `F_NOTIF` CQE before `c->buf` may be reused) is the delicate part of the send path. No op on the
-  ring can now produce `F_MORE`, so the reap loop is back to a fixed `n_submitted` count.
+* epoll: **821,824 ops/s**, 0.5% spread across reps, matching the recorded baseline to 0.1%.
+* io_uring: **wedged in 3 of 3 reps** — each wedge immediately following a client-LB connection
+  migration (4 workers spinning in userspace, io threads idle in `ep_poll`, accepts-but-never-
+  replies; a livelock, not a deadlock).
+* The single io_uring rep that happened to see zero migrations completed at **812,777 ops/s** —
+  i.e. **~1.1% SLOWER than epoll**, inside the noise band.
 
-**Telling the binaries apart** — previously impossible, and the reason "did the gate open?" could
-not be answered. `iouRecvDeliver` still bumps the same stat as the epoll read path, so instead of a
-counter the build now names itself: a `NETWORK BACKEND: epoll|io_uring` line at startup and
-`tomokv_net_backend` in `INFO server`. Any A/B that does not check one of those is a guess.
+So the path cost a livelock and returned no win. It was also never the deep design: `DEFER_TASKRUN`,
+`SINGLE_ISSUER`, `register_ring_fd` and `RECVSEND_POLL_FIRST` appeared nowhere in `src/`, so what
+was being carried was a naive port — precisely the shape the literature says is net-neutral on the
+network path. Keeping it meant maintaining a second, unshipped, wedging data path across every
+change to the reply and client-lifetime code.
 
-**Still true, still not done — the deep design.** `DEFER_TASKRUN`, `SINGLE_ISSUER`,
-`register_ring_fd`, `RECVSEND_POLL_FIRST` appear NOWHERE in `src/`. The README's "registered ring
-fd" claim was an overclaim and has been corrected. The collapse makes this work *easier*: the deep
-flags are ring-construction parameters, and there is now exactly one construction site per ring
-reachable in exactly one build configuration, instead of a matrix of runtime combinations each
-needing its own validation.
+**It is to be reimplemented from scratch later**, deliberately not resurrected from this history.
+No scaffolding was left behind for that rewrite: a clean tree is the deliverable, and the old code
+is recoverable from git history if it is ever wanted as a reference.
 
-**One piece still actively blocks the deep shape.** `iothread.c:168/:228` submit into another
-thread's ring from MAIN. `SINGLE_ISSUER` forbids that, and if the cancel silently fails a
-documented bug returns: a migrated client's still-armed multishot keeps eating socket bytes and
-**the client silently desyncs forever**.
+Two things the deleted code had established, worth carrying into any future attempt:
 
-**UNRESOLVED — the migration contradiction (deliberately not fixed here).** `tomoMigrateTest` (now
-`server.c:~18645`) declares connection migration unsupported under multishot-recv, while
-`tmMigHandoff` disarms on the source and the adopt path re-arms on the destination — i.e. the exact
-dance the refusal calls impossible is implemented — and the AUTONOMOUS path
-(`tmMigScan → tmMigStartClient → tmMigHandoff`) has no guard at all. Both landed in the same commit,
-so one is wrong from birth. This is a live client-LB question, not a theoretical one. Two things
-changed on 2026-07-29 without resolving it:
-- The refusal is now inside `#ifdef HAVE_LIBURING`. It was **not** guarded before, so a default
-  epoll build with the old `-recv` knob set disabled migration while doing nothing whatsoever for
-  I/O — a knob with only its side effect left. An epoll build can no longer reach it.
-- Consequence: on a `USE_URING` build `DEBUG TOMO-MODESHIFT 5/6` always refuses, so
-  `controller_sweep.sh`'s two migration cells cannot pass there. Unaffected on the default build.
+- **The migration contradiction was real and unresolved.** `tomoMigrateTest` refused connection
+  migration under multishot-recv, while `tmMigHandoff` disarmed on the source and the adopt path
+  re-armed on the destination — the exact dance the refusal called impossible — and the AUTONOMOUS
+  client-LB path (`tmMigScan → tmMigStartClient → tmMigHandoff`) had no guard at all. The observed
+  wedges all landed seconds after an autonomous migration. **A reimplementation must settle
+  fd-ownership-across-threads before it writes a single ring op.** With the backend deleted, the
+  refusal is gone too, so client migration is unconditionally allowed again (its pre-io_uring
+  behaviour) and `controller_sweep`'s two migration cells are unblocked.
+- **`SINGLE_ISSUER` was already blocked** by main-thread submits into another thread's ring
+  (`iothread.c:168/:228` as it then stood). Any deep design must make the owning thread the sole
+  issuer from the start.
 
-Resolving it requires exercising autonomous migration on a `USE_URING` build — its own piece of work.
+**Note on the retired-knob trap.** The five knobs were deleted outright — entries *and* fields —
+not left as fields seeded to 0. See the `tomoInitRetiredKnobDefaults` comment in `config.c`: a
+field that outlives its knob falls to 0 by omission, which is how FLATSTORE was once silently
+turned off while `correctness_suite` stayed 15/15. `knob_matrix.sh`'s io_uring cells were removed
+rather than converted to `reject()` assertions, because keeping them would have kept the retired
+names alive in the tree; the boot log remains the witness that nothing else was zeroed.
 
-**Recommendation:** the epoll build is the shipping server. Treat the io_uring build as unshipped
-until the deep flags exist and the migration contradiction is resolved.
-
-### 5a. A LIVE wedge immediately after a client-LB migration (observed 2026-07-29, handed over)
-
-Handing this to whoever owns the uring work. I found it while waiting for the box, did **not**
-touch the process, and it is **not** a finding against committed branch code.
-
-**Attribution, checked before writing it down** (the whole point — my first reading was wrong):
-the wedged server was `$J/redis-corr`, md5 `3b466bd852151f2d80af8d377328fc30`, byte-identical to
-`clean-w/src/redis-server` **rebuilt at 04:43:49** — i.e. *after* the uncommitted io_uring edits
-landed in that tree at 04:37–04:41. So it is a build of the **WIP**, not of `6f943be0a`. (It did
-not touch my validation runs; those use pinned binaries whose md5s I re-verified afterwards.)
-
-Signature, measured over a 20 s window while it was stuck:
-
-* 4 worker threads `state=R`, `wchan=0` — spinning in userspace, ~400 % CPU total.
-* main + 3 io threads `state=S`, `wchan=ep_poll` — asleep.
-* **memtier accumulated 0 CPU ticks** — the load generator is blocked in `recv`, not merely slow.
-* 71 ESTABLISHED connections, unchanging. TCP connect succeeds; `PING` is never answered.
-* Not one byte written to `cs.log` / `ot.log` for over 10 minutes.
-
-The last three lines the server ever logged:
-
-```
-04:46:48.614 ee451 client-lb: io 1 busy-outlier (9 vs mean 7) -> 1 conn(s) to io 3
-04:46:48.614 ee451 thread-modes v1.6: io thread 1 REBALANCE — started 1/1 conn migrations to io 3
-04:46:52.820 [flip-ctl n0] HOLD 3500307 ops/s ... w_live=4 io=3
-```
-
-It wedged seconds after an **autonomous client-LB connection migration** — the exact path this
-section says "has no guard at all". Note the WIP also drops the `server.io_uring_recv &&` guard on
-`iouRecvDisarm` (`iothread.c:168/:228`), making the disarm unconditional. **Hypothesis, not a
-diagnosis: I attached no debugger** (`ptrace_scope=1`; raising it needs sudo). What is certain is
-that it is a livelock, not a deadlock, and that the io threads are idle while the workers spin.
-
-The shape recurs, which is why it is worth a dedicated test rather than a one-off fix: a second
-server wedged identically earlier the same day — 4 workers spinning, io threads idle,
-accepts-but-never-replies — in a *reshard* hot-skew regime, on a **different fork's** binary
-(artefacts preserved at `$J/hangw/abstd_1/SALVAGE/`, incl. per-thread state and the `utime` deltas
-that prove livelock). Different code, different regime, same signature, and both within seconds of
-an **ownership transfer** — bucket migration there, connection migration here.
+*This section is the only place in the tree, outside git history, where the deleted backend is
+named. It is kept deliberately, as the record of what was removed and why.*
 
 ---
 

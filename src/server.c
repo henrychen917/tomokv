@@ -14,9 +14,6 @@
 
 #include "server.h"
 #include "flatstore.h"
-#ifdef HAVE_LIBURING
-#include <liburing.h>   /* v12-K: worker-direct send-back uses io_uring sends from the worker loop */
-#endif
 #include "monotonic.h"
 #include "cluster.h"
 #include "cluster_slot_stats.h"
@@ -2832,26 +2829,15 @@ void handleWorkerReplies(void) {
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
-            /* v12-J: route the worker-reply flush through the io_uring batched SEND ring instead
-             * of a direct per-client writeToClient. The IO thread STAYS the sole fd-writer (no new
-             * lifetime surface — unlike v12-K); we just defer the spliced reply onto this IO
-             * thread's clients_pending_write list, which handleClientsWithPendingWrites() (called
-             * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
-             * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
-             * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
-            if (server.io_uring_reply_send) {
+            /* 2s-auto T2: tomokv-drain-tail-skip retired at AUTO; the "direct write only"
+             * legacy arm (which DROPPED a short-written tail) went with it.
+             * writeToClient returning C_ERR means the conn errored; it calls
+             * freeClientAsync(real) internally. We just stop touching real. If it
+             * couldn't flush everything (short write / EAGAIN), enqueue for the
+             * pending-write pass so the tail isn't dropped. */
+            (void)writeToClient(real, 0);
+            if (clientHasPendingReplies(real))
                 putClientInPendingWriteQueue(real);
-            } else {
-                /* 2s-auto T2: tomokv-drain-tail-skip retired at AUTO; the "direct write only"
-                 * legacy arm (which DROPPED a short-written tail) went with it.
-                 * writeToClient returning C_ERR means the conn errored; it calls
-                 * freeClientAsync(real) internally. We just stop touching real. If it
-                 * couldn't flush everything (short write / EAGAIN), enqueue for the
-                 * pending-write pass so the tail isn't dropped. */
-                (void)writeToClient(real, 0);
-                if (clientHasPendingReplies(real))
-                    putClientInPendingWriteQueue(real);
-            }
         }
 
         /* Ring fully drained and all ready bits consumed — drop off the
@@ -4113,20 +4099,6 @@ void initServer(void) {
      * tomokv-pin-io / tomokv-pin-ex only mean anything with pin-mode static, and pin-mode static
      * means nothing without them. Either mismatch is fatal rather than quietly inert. */
     tomoResolvePinConfig();
-    /* ---- io_uring: sub-knobs are inert without the master switch ------------------------- */
-    if (!server.io_uring_net) {
-        const char *orphan = NULL;
-        if (server.io_uring_sqpoll)          orphan = "tomokv-io-uring-sqpoll";
-        else if (server.io_uring_recv)       orphan = "tomokv-io-uring-recv";
-        else if (server.io_uring_zc)         orphan = "tomokv-io-uring-zc";
-        else if (server.io_uring_reply_send) orphan = "tomokv-io-uring-reply-send";
-        if (orphan) {
-            serverLog(LL_WARNING,
-                "FATAL: %s requires tomokv-io-uring yes — on its own it does nothing (or worse, "
-                "half of something). Enable the master switch or drop the sub-knob.", orphan);
-            exit(1);
-        }
-    }
     /* KNOB CONVENTION (house rule): -1 = AUTO (self-derive), 0 = OFF (no allocation), N > 0 = STATIC.
      * These two used to treat 0 as AUTO, which made 0 mean the opposite of the rule (it allocated the
      * MAXIMUM). Defaults moved to -1 so the out-of-the-box behaviour is unchanged; an explicit 0 now
@@ -18586,9 +18558,6 @@ static int tmMigRejoinAcceptGroup(int id) {
 static void tmMigHandoff(client *c, int dest) {
     /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
      * handler + TLS state and nulls conn->el so dest's rebind assert holds). */
-#ifdef HAVE_LIBURING
-    if (server.io_uring_recv && c->conn && c->conn->fd >= 0) iouRecvDisarm(iotid, c->conn->fd);
-#endif
     connUnbindEventLoop(c->conn);
 
     /* 2. Unlink from the source's per-iotid client structures (NOT a full unlinkClient —
@@ -18855,9 +18824,6 @@ void tmMigDrainInbox(void) {
         /* c->conn->el is NULL (source unbound it); rebind to this loop, re-link, resume. */
         connRebindEventLoop(c->conn, my_el);
         linkClient(c);                                   /* into clients[id] + clients_index[id] (uses iotid); grows the live count */
-#ifdef HAVE_LIBURING
-        if (server.io_uring_recv) iouRecvArm(c);         /* re-arm multishot recv on this thread's ring */
-#endif
         connSetReadHandler(c->conn, readQueryFromClient);/* AE_READABLE on this loop; pending socket data fires immediately (level-triggered) */
         c->flags &= ~CLIENT_MIGRATING;
         if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);   /* defensive: nothing should be pending at quiesce */
@@ -18908,11 +18874,6 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.io_uring_recv) {
-        *err = "connection migration is not supported with tomokv-io-uring-recv in v1 "
-               "(multishot-recv buffers cannot follow the fd across threads)";
-        return 0;
-    }
     int all[TOMO_IO_THREADS_MAX + 1];
     int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* all live io threads */
 

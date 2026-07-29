@@ -41,14 +41,11 @@ reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to bo
   if [ "$up" = 1 ]; then bad "retired knob $knob=$val STILL ACCEPTED (boots)"; else ok "retired $knob rejected"; fi
 }
 
-# ee451 2026-07-29: a knob may need COMPANION flags to be a legal configuration.
-# `try` set exactly ONE knob, so every io_uring SUB-knob cell booted the sub-knob WITHOUT the master
-# switch -- which server.c:3959 deliberately refuses:
-#     FATAL: tomokv-io-uring-recv requires tomokv-io-uring yes — on its own it does nothing
-#            (or worse, half of something).
-# The suite then scored that deliberate, correct refusal as "DID NOT BOOT" and it accounted for 4 of
-# the 10 knob_matrix failures in the 2026-07-28 report. The FATAL is the product working as designed;
-# the TEST was wrong. $4 carries the companion flags so the cell exercises a legal configuration.
+# ee451 2026-07-29: a knob may need COMPANION flags to be a legal configuration. `try` sets exactly
+# ONE knob, so a sub-knob whose master switch is off boots into a configuration the server
+# deliberately refuses -- and the suite then scores that correct refusal as "DID NOT BOOT". The
+# product is working as designed; the TEST is wrong. $4 carries the companion flags so such a cell
+# exercises a legal configuration instead.
 must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
   local knob=$1 val=$2 why=$3
   kb_kill; sleep 1
@@ -103,33 +100,6 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-key-lb-fine 1  "static 1%: window armed continuously (worst-case data-path arm)"
 
   try tomokv-client-lb no
-
-  try tomokv-io-uring yes
-
-  try tomokv-io-uring no
-
-  # The four sub-knobs are INERT without the master switch and the server refuses to boot on the
-  # orphan (server.c:3959). Exercise each in the only legal configuration: with the master on. The
-  # `no` cells need no companion -- an off sub-knob is not an orphan.
-  try tomokv-io-uring-recv yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
-
-  try tomokv-io-uring-recv no
-
-  try tomokv-io-uring-reply-send yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
-
-  try tomokv-io-uring-reply-send no
-
-  try tomokv-io-uring-sqpoll yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
-
-  try tomokv-io-uring-sqpoll no
-
-  try tomokv-io-uring-zc yes "with the master switch, the only legal configuration" "--tomokv-io-uring yes"
-
-  try tomokv-io-uring-zc no
-
-  # ...and assert the orphan refusal itself, so the FATAL stays a tested behaviour rather than an
-  # untested one that merely used to show up as four false failures.
-  must_refuse tomokv-io-uring-recv yes "sub-knob without tomokv-io-uring yes — server.c:3959 orphan FATAL"
 
   try tomokv-os-busypoll yes
 

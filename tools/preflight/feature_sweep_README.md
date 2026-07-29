@@ -184,7 +184,7 @@ from D. Changes in either direction get flagged.
 
 ## Known coverage gaps (also reported in the run's structured output)
 
-See the `coverage_gaps` list in the task output; headline items: io_uring / os-opts
+See the `coverage_gaps` list in the task output; headline items: the os-opts
 knob family (build/root-dependent), pin-mode/pin-cores (deliberately floated for box
 politeness), reshard tuning knob family beyond min-ops, flat-load-pct / l3-kb values,
 modeshift-test manual actuator, express-lane engagement observable, PF/BITOP/streams/
