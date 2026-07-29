@@ -67,30 +67,13 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-io-uring no
 
-  try tomokv-io-uring-recv yes
-
-  try tomokv-io-uring-recv no
-
-  try tomokv-io-uring-reply-send yes
-
-  try tomokv-io-uring-reply-send no
-
-  try tomokv-io-uring-sqpoll yes
-
-  try tomokv-io-uring-sqpoll no
-
-  try tomokv-io-uring-zc yes
-
-  try tomokv-io-uring-zc no
-
-  try tomokv-os-busypoll yes
-
-  try tomokv-os-busypoll no
-
-  try tomokv-os-opts yes
-
-  try tomokv-os-opts no
-
+# 2026-07-28 io_uring knob collapse: the six sub-knob rows that used to sit here
+# (tomokv-io-uring-recv / -reply-send / -sqpoll / -zc, tomokv-os-busypoll, tomokv-os-opts)
+# are GONE -- the knobs no longer exist, so `try` on any of them would now fail with an
+# unknown-parameter error. Worth recording why they were never real coverage anyway: `try`
+# sets ONE knob, so every one of those cells set a sub-knob WITHOUT tomokv-io-uring and hit
+# the orphan-detection FATAL, i.e. they were asserting "does not boot" while looking like
+# they were testing the feature. The two surviving rows are the whole io_uring surface now.
   try tomokv-key-lb -1
 
   try tomokv-key-lb 0

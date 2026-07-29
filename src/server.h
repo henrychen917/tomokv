@@ -3095,6 +3095,16 @@ struct redisServer {
     long long stat_total_error_replies; /* Total number of issued error replies ( command + rejected errors ) */
     long long stat_dump_payload_sanitizations; /* Number deep dump payloads integrity validations. */
     redisAtomic long long stat_io_reads_processed[IO_THREADS_MAX_NUM]; /* Number of read events processed by IO / Main threads */
+    /* ANTI-VACUITY counters for the io_uring deep path (2026-07-28 knob collapse). The recv path
+     * bumps the SAME stat_io_reads_processed as the epoll path, so INFO could not previously
+     * distinguish "multishot recv carried this traffic" from "the gate never opened" -- and the
+     * gate provably never opened, because no test ever booted the old sub-knob together with its
+     * master. These make it checkable. Written ONLY by the owning IO thread (plain ++, no atomics
+     * on the hot path); read by INFO with a torn-read tolerance that does not matter for a
+     * diagnostic. Zero when io_uring is off, which is the whole point. */
+    long long stat_iou_recv_cqes[IO_THREADS_MAX_NUM];  /* multishot-recv CQEs delivered to a client */
+    long long stat_iou_send_sqes[IO_THREADS_MAX_NUM];  /* replies submitted through the SEND ring */
+    long long stat_iou_zc_sends[IO_THREADS_MAX_NUM];   /* of those, zero-copy (SEND_ZC) submissions */
     redisAtomic long long stat_io_writes_processed[IO_THREADS_MAX_NUM]; /* Number of write events processed by IO / Main threads */
     redisAtomic long long stat_client_qbuf_limit_disconnections;  /* Total number of clients reached query buf length limit */
     long long stat_client_outbuf_limit_disconnections;  /* Total number of clients reached output buf length limit */
@@ -3545,13 +3555,15 @@ struct redisServer {
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int detected_l3_domains;      /* L1a: distinct L3 domains (CCX/CCD); workers-per-L3 for the prefetch gate */
-    int io_uring_net;          /* v11-B: use the fresh io_uring batched-send path on IO threads (HAVE_LIBURING build). default off (epoll). */
-    int io_uring_sqpoll;       /* v12: io_uring SQPOLL — kernel polls the SQ (zero submit syscalls). requires io_uring_net. default off. */
-    int io_uring_recv;         /* v12-G: io_uring MULTISHOT-RECV + provided buffer ring on IO threads (HAVE_LIBURING). requires io_uring_net. default off (epoll read). */
-    int io_uring_zc;           /* v12-H: io_uring ZERO-COPY SEND (IORING_OP_SEND_ZC) for mid-size static-buf replies. requires io_uring_net. default off. */
-    int io_uring_reply_send;   /* v12-J: route worker-reply flush through the io_uring SEND ring (IO thread stays sole fd-writer) instead of direct writeToClient. requires io_uring_net. default off. */
-    int os_opts;               /* v12: OS/Linux opts — TCP_QUICKACK on client sockets + MADV_HUGEPAGE on hot allocs. default off. */
-    int os_busypoll;           /* v12: SO_BUSY_POLL on client sockets (kernel busy-polls; burns CPU). SEPARATE knob — suspected v12 throughput regression. default off. */
+    int io_uring_net;          /* tomokv-io-uring: THE io_uring switch (HAVE_LIBURING build). Default off (epoll).
+                                * 2026-07-28 knob collapse: this is now the entire io_uring config surface. It gates the
+                                * whole deep path -- SINGLE_ISSUER|DEFER_TASKRUN send ring + registered ring fd + one
+                                * batched submit_and_wait per flush pass, multishot recv with a provided-buffer ring and
+                                * POLL_FIRST, worker replies routed into the batched pass, and detach-on-submit zero-copy
+                                * send over a registered buffer pool. The six former sub-knobs (recv / reply-send / zc /
+                                * sqpoll / os-opts / os-busypoll) are gone: hardwired at their use sites or deleted
+                                * outright, with NO surviving field, so none can fall to 0 by omission. See the
+                                * OS / io_uring block in config.c for the per-knob disposition and reasoning. */
     /* xshard knob fields DELETED 2026-07-28 (mget-coalesce / setop-coalesce / mset-move /
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
@@ -5711,7 +5723,7 @@ void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-
 void queueToWorker(client *c, int ex_id);
 void *exThreadMain(void *arg);
 #ifdef HAVE_LIBURING
-/* v12-G: io_uring multishot-recv (gated by server.io_uring_recv). Called from the IO thread. */
+/* io_uring multishot-recv (gated by server.io_uring_net). Called from the IO thread. */
 int iouRecvEnsure(int t, struct aeEventLoop *el); /* lazily build per-thread recv ring; returns eventfd or -1 */
 void iouRecvArm(client *c);                       /* arm multishot recv for a freshly-bound IO-thread client */
 void iouRecvDisarm(int t, int fd);               /* drop fd from the recv map (teardown, under IO-thread pause) */

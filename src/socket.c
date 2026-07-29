@@ -185,21 +185,26 @@ static int connSocketAccept(connection *conn, ConnectionCallbackFunc accept_hand
     if (conn->state != CONN_STATE_ACCEPTING) return C_ERR;
     conn->state = CONN_STATE_CONNECTED;
 
-    /* v12 OS opts: on the accepted socket, disable delayed ACKs (TCP_QUICKACK) and enable
-     * kernel busy-polling (SO_BUSY_POLL) to cut per-request latency on the read path. Best-effort
-     * (ignore failures); gated by tomokv-os-opts. */
-    if (server.os_opts && conn->fd >= 0) {
-#ifdef TCP_QUICKACK
-        int qa = 1; setsockopt(conn->fd, IPPROTO_TCP, TCP_QUICKACK, &qa, sizeof(qa));
-#endif
-    }
-#ifdef SO_BUSY_POLL
-    /* SEPARATE knob: SO_BUSY_POLL burns CPU busy-polling the socket; on a fully-packed core layout it
-     * steals cycles from the worker/IO threads and regressed v12 throughput. Off by default. */
-    if (server.os_busypoll && conn->fd >= 0) {
-        int bp = 50; setsockopt(conn->fd, SOL_SOCKET, SO_BUSY_POLL, &bp, sizeof(bp));
-    }
-#endif
+    /* 2026-07-28 knob collapse: two per-accept sockopts used to live here, both DELETED.
+     *
+     * TCP_QUICKACK (was tomokv-os-opts): set once here and never re-armed. tcp(7) is explicit that
+     * it "is not permanent, it only enables a switch to or from quickack mode; subsequent operation
+     * of the TCP protocol will once again enter/leave quickack mode", so on a long-lived connection
+     * it decayed within an RTT or two. For the strict request/response traffic this server is built
+     * for, the reply piggybacks the ACK anyway, so there is no standalone delayed ACK left to
+     * remove. Hardwiring a one-shot no-op ON would have enshrined a misleading call in the accept
+     * path; a real quickack would have to be re-armed per read, which is a different change and a
+     * separately measurable one.
+     *
+     * SO_BUSY_POLL (was tomokv-os-busypoll): sets a per-SOCKET sk_ll_usec consumed by epoll's
+     * ep_busy_loop() and blocking recvmsg. io_uring's recv completes via its own internal poll and
+     * task work and never calls sk_busy_loop(), so under the deep path it was a plain no-op on the
+     * fd -- io_uring's busy-poll is a separate per-RING API (io_uring_register_napi), which this
+     * tree does not use. It also duplicated ae.c's adaptive userspace drain, which can retire work
+     * while it spins where a kernel NAPI poll cannot, and it burned SMT slots that exPauseCpu is
+     * explicitly trying to yield to the sibling worker. Note the comment it carried claimed it
+     * "regressed v12 throughput"; the setsockopt return was discarded and there is no counter, so
+     * the honest record is UNTESTED, not measured-negative -- do not cite it as a result. */
 
     connIncrRefs(conn);
     if (!callHandler(conn, accept_handler)) ret = C_ERR;

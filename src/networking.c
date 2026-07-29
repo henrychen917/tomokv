@@ -454,8 +454,21 @@ client *createClient(connection *conn) {
      * iotid identifies it — the client lives its whole life (accept/read/free) on this thread,
      * which keeps every recv-ring op single-threaded. The epoll read handler set just above
      * stays as a harmless fallback (multishot drains the socket first → spurious wakeups EAGAIN). */
-    if (conn && server.io_uring_recv && server.io_uring_net &&
-        iotid >= 1 && iotid < server.io_threads &&
+    /* COVERAGE (2026-07-28 collapse): the bound used to be `iotid < server.io_threads`, which
+     * silently excluded the flip SPARE and every growth slot in [io_threads, io_threads+ngrow_io).
+     * With tomokv-thread-mode defaulting to auto those slots become live, accepting IO threads, so
+     * the old bound meant some accepting threads read via multishot and others via epoll with
+     * nothing in the log saying so -- a measurement hazard for exactly the real-NIC evaluation this
+     * code exists to enable. The bound now matches the io constituency (same expression as
+     * flatIoHi(): io_threads + tm_ngrow_io, clamped), and server.ioThreads[] is allocated for
+     * io_threads+spare+ngrow_io with a real event loop per slot (tmMakeDormantIoBinding), so the
+     * el lookup is valid for them. iotid 0 (main) stays excluded: it is not a poly IO thread and
+     * arming it would mean driving a recv ring from the main event loop, which is a separate
+     * change -- the boot log below states the coverage rather than leaving it implicit. */
+    int iou_hi = server.io_threads + server.tm_ngrow_io;
+    if (iou_hi > TOMO_IO_THREADS_MAX) iou_hi = TOMO_IO_THREADS_MAX;
+    if (conn && server.io_uring_net &&
+        iotid >= 1 && iotid <= iou_hi &&
         iouRecvEnsure(iotid, server.ioThreads[iotid].el) >= 0)
         iouRecvArm(c);
 #endif
@@ -2546,7 +2559,7 @@ void freeClient(client *c) {
     /* v12-G: drop this real client from its IO thread's multishot-recv map before teardown.
      * For Tomo KV the free runs on the owning IO thread (the same thread that reaps), so this is
      * race-free; the per-arm generation also rejects any stale CQE after the fd is reused. */
-    if (server.io_uring_recv && c->conn && c->conn->fd >= 0)
+    if (server.io_uring_net && c->conn && c->conn->fd >= 0)
         iouRecvDisarm(c->tid, c->conn->fd);
 #endif
 
@@ -3520,34 +3533,32 @@ static int iouEnsureRing(int t) {
     if (iouRingState[t] == -1) return 0;
     int rc;
     const char *mode;
-    if (server.io_uring_sqpoll) {
-        /* v12: SQPOLL — a kernel thread polls the SQ, so io_uring_submit() needs NO enter syscall
-         * on the hot path (zero submit syscalls). Falls back to a normal ring if SQPOLL init fails
-         * (needs privileges / kernel support). sq_thread_idle keeps the poller warm 200ms.
-         * SQPOLL is mutually exclusive with the SINGLE_ISSUER|DEFER_TASKRUN hygiene below (deferred
-         * task work needs the submitter to enter the kernel; SQPOLL's whole point is not entering). */
-        struct io_uring_params params;
-        memset(&params, 0, sizeof(params));
-        params.flags = IORING_SETUP_SQPOLL;
-        params.sq_thread_idle = 200;
-        rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
-        mode = "SQPOLL";
-        if (rc < 0) { rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0); mode = "plain (SQPOLL setup failed)"; }
-    } else {
-        /* ee451 (U1, deep-uring ring hygiene): SINGLE_ISSUER — every op on this ring (submit,
-         * reap, register) happens on this thread, so let the kernel drop the cross-task locking.
-         * DEFER_TASKRUN — completion task work runs only when THIS thread enters the kernel
-         * (our wait/get_events calls), not via inter-processor task-work interrupts: completions
-         * batch up and are processed on our schedule, on our CPU. This is the VLDB'26 "fully
-         * exploited" ring shape. Probed with a fallback: older kernels without the flags still
-         * get a plain ring, and the boot log says which one this box got. */
-        struct io_uring_params params;
-        memset(&params, 0, sizeof(params));
-        params.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN;
-        rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
-        mode = "SINGLE_ISSUER|DEFER_TASKRUN";
-        if (rc < 0) { rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0); mode = "plain (SINGLE_ISSUER|DEFER_TASKRUN unsupported on this kernel)"; }
-    }
+    /* ee451 (U1, deep-uring ring hygiene): SINGLE_ISSUER — every op on this ring (submit, reap,
+     * register) happens on this thread, so let the kernel drop the cross-task locking.
+     * DEFER_TASKRUN — completion task work runs only when THIS thread enters the kernel (our
+     * wait/get_events calls), not via inter-processor task-work interrupts: completions batch up
+     * and are processed on our schedule, on our CPU. This is the VLDB'26 "fully exploited" ring
+     * shape. Probed with a fallback: older kernels without the flags still get a plain ring, and
+     * the boot log says which one this box got.
+     *
+     * 2026-07-28 knob collapse: the SQPOLL alternative that used to sit in front of this is GONE
+     * (was tomokv-io-uring-sqpoll), and it is not coming back in this form. SQPOLL and
+     * SINGLE_ISSUER|DEFER_TASKRUN are mutually exclusive by construction -- deferred task work
+     * requires the submitter to ENTER the kernel, and SQPOLL exists precisely so that it does not
+     * -- so keeping SQPOLL meant keeping a switch that turns the requested design OFF. It was
+     * already excluded from the recv ring for regressing throughput and corrupting multi-chunk
+     * (>16K) reads, and every recorded SQPOLL number on this project is a wash or worse. If a
+     * dedicated polling core is ever worth re-testing (the 24-core Threadripper is the only
+     * plausible occasion), the thing to build is NOT this deleted branch: it would need
+     * IORING_SETUP_SQ_AFF + sq_thread_cpu so the poller does not fight the pinned io/ex set, and
+     * ATTACH_WQ so there is ONE poller rather than one per ring. Neither existed here, so
+     * resurrecting this code would have been a bug. */
+    struct io_uring_params params;
+    memset(&params, 0, sizeof(params));
+    params.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN;
+    rc = io_uring_queue_init_params(IOU_RING_DEPTH, &iouRings[t], &params);
+    mode = "SINGLE_ISSUER|DEFER_TASKRUN";
+    if (rc < 0) { rc = io_uring_queue_init(IOU_RING_DEPTH, &iouRings[t], 0); mode = "plain (SINGLE_ISSUER|DEFER_TASKRUN unsupported on this kernel)"; }
     if (rc < 0) { iouRingState[t] = -1; return 0; }
     /* U1: register the ring fd in this task — io_uring_enter then skips the per-syscall fdget/
      * fdput + fd-table lookup. Safe here precisely because the ring is single-threaded by
@@ -3556,7 +3567,12 @@ static int iouEnsureRing(int t) {
     serverLog(LL_NOTICE, "deep-uring: SEND ring on thread %d: %s%s", t, mode,
               reg == 1 ? ", ring fd registered" : "");
     iouRingState[t] = 1;
-    if (server.io_uring_zc) iouZcInit(t);
+    /* Collapse: zero-copy send is part of the deep path, not a separate experiment, so the pool is
+     * built unconditionally here. The "0 = OFF means no allocation" house rule still holds, because
+     * this whole constructor is reached only via `if (server.io_uring_net && iouEnsureRing(iotid))`
+     * -- the master knob remains the allocation gate. iouZcInit sets z->inited only on success, and
+     * every ZC site tests it, so a failed pool registration degrades to plain send. */
+    iouZcInit(t);
     return 1;
 }
 
@@ -3673,7 +3689,7 @@ static int handleClientsWithPendingWritesUring(void) {
              * and the client gets a fresh (preferably registered-pool) buffer before the loop
              * moves on. See the design block above iouZcInit(). */
             iouZcEntry *e = NULL;
-            if (server.io_uring_zc && z->inited && (int)pend >= IOU_ZC_MIN_BYTES &&
+            if (z->inited && (int)pend >= IOU_ZC_MIN_BYTES &&
                 z->efree >= 0) {
                 e = &z->ents[z->efree];
                 z->efree = e->next_free;
@@ -3709,6 +3725,8 @@ static int handleClientsWithPendingWritesUring(void) {
                 io_uring_prep_send(sqe, c->conn->fd, c->buf + c->sentlen, pend, MSG_DONTWAIT);
             if (!e) io_uring_sqe_set_data(sqe, c);
             n_submitted++;
+            server.stat_iou_send_sqes[t]++;             /* anti-vacuity: the SEND ring carried this reply */
+            if (e) server.stat_iou_zc_sends[t]++;       /* ...and this one went zero-copy */
             { static __thread int snd_logged = 0;
               if (!snd_logged) { snd_logged = 1;
                   serverLog(LL_NOTICE, "v12: io_uring SEND ring active on IO thread %d (first submit=%zu bytes)", t, pend); } }
@@ -3800,7 +3818,7 @@ static int handleClientsWithPendingWritesUring(void) {
 
 /* ===== v12-G: io_uring MULTISHOT-RECV + provided buffer ring (gated, default off) =====
  * The "deep network" READ half of the io_uring path (the send ring above is the write half).
- * When server.io_uring_recv is on (requires io_uring_net; build USE_URING=yes), every IO-thread
+ * When server.io_uring_net is on (build USE_URING=yes), every IO-thread
  * client arms ONE multishot recv (io_uring_prep_recv_multishot) against a per-thread provided
  * buffer ring. The kernel reads readable data into ring buffers AS IT ARRIVES and posts one CQE
  * per chunk — no per-read recv() syscall, no epoll round-trip per readable. A registered eventfd
@@ -3947,6 +3965,11 @@ static void iouRecvReap(struct aeEventLoop *el, int efd, void *privdata, int rma
                     alive = iouRecvDeliver(c, pend, (int)sdslen(pend));
                     sdsfree(pend);
                 }
+                /* Anti-vacuity: count every CQE whose bytes reached a real client, whether they
+                 * were delivered straight into the querybuf or stashed for the handoff window.
+                 * This is the witness that the multishot read half actually carried the traffic --
+                 * stat_io_reads_processed cannot tell you, because the epoll path bumps it too. */
+                server.stat_iou_recv_cqes[iotid]++;
                 if (alive) {
                     if (!(c->io_flags & CLIENT_IO_READ_ENABLED)) {
                         if (!slot->stash) slot->stash = sdsempty();
@@ -4009,7 +4032,8 @@ int iouRecvEnsure(int t, struct aeEventLoop *el) {
     /* The recv ring is EVENTFD-driven (the kernel signals an eventfd on each CQE, which wakes the
      * IO thread's epoll loop) — it is NOT submission-heavy, so SQPOLL buys nothing here and in fact
      * regressed throughput AND corrupted multi-chunk (>16K) reads in testing. So the recv ring is
-     * always built plain; SQPOLL (io_uring_sqpoll) still applies to the submission-heavy SEND ring.
+     * always built plain. (SQPOLL itself was deleted in the 2026-07-28 knob collapse: it is
+     * mutually exclusive with the SEND ring's SINGLE_ISSUER|DEFER_TASKRUN shape.)
      *
      * ee451 (U1 note): the SEND ring's SINGLE_ISSUER|DEFER_TASKRUN hygiene is deliberately NOT
      * applied here. iouRecvDisarm() must submit the multishot ASYNC_CANCEL from the MAIN thread

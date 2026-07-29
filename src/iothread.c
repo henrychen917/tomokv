@@ -165,7 +165,7 @@ void unbindClientFromIOThreadEventLoop(client *c) {
     /* v12-G: drop this fd from the IO thread's multishot-recv map while it's paused (so the
      * reaper can't be mid-flight). The kernel terminates the multishot when the fd is later
      * closed; any straggler CQE then finds a NULL/stale slot and is ignored. */
-    if (server.io_uring_recv && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
+    if (server.io_uring_net && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
     /* ee451 (U3): the client is leaving this IO thread — if c->buf is a registered send-pool
      * buffer of that thread's ring, swap it onto plain heap and queue the slot back to the
      * owner (safe here: owner is parked by the pause). In-flight ZC entries need no surgery:
@@ -230,7 +230,7 @@ void fetchClientFromIOThread(client *c) {
     }
 #ifdef HAVE_LIBURING
     /* v12-G: drop this fd from the IO thread's multishot-recv map (under pause; see unbind). */
-    if (server.io_uring_recv && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
+    if (server.io_uring_net && c->conn) iouRecvDisarm(c->tid, c->conn->fd);
     /* ee451 (U3): de-slot a registered send-pool c->buf under the same pause (see unbind). */
     iouZcOnClientUnbind(c);
 #endif

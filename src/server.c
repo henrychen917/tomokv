@@ -2678,7 +2678,22 @@ void handleWorkerReplies(void) {
              * right after handleWorkerReplies in beforeSleepIO) flushes as ONE io_uring submit for
              * all drained clients. Ineligible replies (reply list / encoded / etc.) fall back to
              * writeToClient inside the ring path. Gated; default off => byte-identical direct write. */
-            if (server.io_uring_reply_send) {
+            /* 2026-07-28 knob collapse: was tomokv-io-uring-reply-send, now HARDWIRED to the
+             * master switch. Note the deliberate choice of `server.io_uring_net` over a literal 1:
+             * on the epoll default the deferred arm has no batching payoff at all
+             * (handleClientsWithPendingWrites still issues one writeToClient per client), but it
+             * WOULD change the shipping default path -- extra list churn, and it newly exposes
+             * main-thread-drained clients to the assignClientToIOThread branch in that pass.
+             * Gating on the master keeps epoll byte-identical to before the collapse while making
+             * the deep path automatically fed.
+             *
+             * Why this is not optional under io_uring: real IO-thread clients never self-enqueue
+             * onto clients_pending_write (_prepareClientToWrite gates that on
+             * running_tid == IOTHREAD_MAIN_THREAD_ID, and an IO thread sets running_tid = c->tid),
+             * and this drain is the ONLY delivery path for worker replies. So with the master on
+             * and this off, the SEND ring saw almost no traffic and any "io_uring on" measurement
+             * taken that way was vacuous. */
+            if (server.io_uring_net) {
                 putClientInPendingWriteQueue(real);
             } else {
                 /* 2s-auto T2: tomokv-drain-tail-skip retired at AUTO; the "direct write only"
@@ -3944,20 +3959,29 @@ void initServer(void) {
      * tomokv-pin-io / tomokv-pin-ex only mean anything with pin-mode static, and pin-mode static
      * means nothing without them. Either mismatch is fatal rather than quietly inert. */
     tomoResolvePinConfig();
-    /* ---- io_uring: sub-knobs are inert without the master switch ------------------------- */
-    if (!server.io_uring_net) {
-        const char *orphan = NULL;
-        if (server.io_uring_sqpoll)          orphan = "tomokv-io-uring-sqpoll";
-        else if (server.io_uring_recv)       orphan = "tomokv-io-uring-recv";
-        else if (server.io_uring_zc)         orphan = "tomokv-io-uring-zc";
-        else if (server.io_uring_reply_send) orphan = "tomokv-io-uring-reply-send";
-        if (orphan) {
-            serverLog(LL_WARNING,
-                "FATAL: %s requires tomokv-io-uring yes — on its own it does nothing (or worse, "
-                "half of something). Enable the master switch or drop the sub-knob.", orphan);
-            exit(1);
-        }
+    /* ---- io_uring: the master switch must not be silently inert -------------------------
+     * The orphan-detection block that used to live here (FATAL if a sub-knob was set without
+     * tomokv-io-uring) is GONE with the 2026-07-28 collapse: all four of its candidates --
+     * sqpoll, recv, zc, reply-send -- have been retired, so it had nothing left to check. An
+     * unknown-parameter error from the config parser now covers the case it was guarding.
+     *
+     * Replaced with the check that was actually MISSING. `tomokv-io-uring yes` on a build without
+     * liburing was accepted and did nothing: handleClientsWithPendingWrites just falls through to
+     * epoll via #ifdef, and the reply-send site is not inside any #ifdef either. Now that this is
+     * THE single io_uring knob, silent inertness is exactly the failure this whole validation
+     * section exists to prevent -- and it is the one this project has already paid for once, when
+     * the 3-stage fork's "37% reply race" turned out to be a missing `make USE_URING=yes` rather
+     * than a bug (commit f3e90ed4c). FATAL beats a hang, and beats a benchmark of nothing. */
+#ifndef HAVE_LIBURING
+    if (server.io_uring_net) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-io-uring yes requires a `make USE_URING=yes` build (liburing). This "
+            "binary was built without it, so the knob would be silently inert: replies would fall "
+            "back to epoll and no ring would ever be created. Rebuild with USE_URING=yes, or drop "
+            "the knob.");
+        exit(1);
     }
+#endif
     /* KNOB CONVENTION (house rule): -1 = AUTO (self-derive), 0 = OFF (no allocation), N > 0 = STATIC.
      * These two used to treat 0 as AUTO, which made 0 mean the opposite of the rule (it allocated the
      * MAXIMUM). Defaults moved to -1 so the out-of-the-box behaviour is unchanged; an explicit 0 now
@@ -13634,6 +13658,17 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     /* Threads */
     int stat_io_ops_processed_calculated = 0;
     long long stat_io_reads_processed = 0, stat_io_writes_processed = 0;
+    /* ANTI-VACUITY (2026-07-28 io_uring knob collapse): sum the deep-path witnesses. These are the
+     * only way to tell "io_uring carried the traffic" from "the knob was on and the gate never
+     * opened" -- the recv path bumps the same stat_io_reads_processed as epoll, so that counter
+     * cannot discriminate. All three read 0 with io_uring off, and any A/B of the deep path that
+     * shows iou_recv_cqes/iou_send_sqes at 0 is measuring nothing and must be reported SKIP. */
+    long long stat_iou_recv_cqes = 0, stat_iou_send_sqes = 0, stat_iou_zc_sends = 0;
+    for (int j = 0; j < IO_THREADS_MAX_NUM; j++) {
+        stat_iou_recv_cqes += server.stat_iou_recv_cqes[j];
+        stat_iou_send_sqes += server.stat_iou_send_sqes[j];
+        stat_iou_zc_sends  += server.stat_iou_zc_sends[j];
+    }
     long long stat_total_reads_processed = 0, stat_total_writes_processed = 0;
     /* L0 prefetch observability: sum the per-worker counters. Racy reads of single-writer
      * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
@@ -13808,6 +13843,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "eventloop_duration_cmd_sum:%llu\r\n", server.duration_stats[EL_DURATION_TYPE_CMD].sum,
             "instantaneous_eventloop_cycles_per_sec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_CYCLE),
             "instantaneous_eventloop_duration_usec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_DURATION)));
+        /* Emitted separately: the compact-format list above is at the fmtargs.h argument
+         * ceiling, and these are diagnostics rather than part of the standard stats set. */
+        info = sdscatprintf(info,
+            "iou_recv_cqes:%lld\r\n"
+            "iou_send_sqes:%lld\r\n"
+            "iou_zc_sends:%lld\r\n",
+            stat_iou_recv_cqes, stat_iou_send_sqes, stat_iou_zc_sends);
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);
@@ -16594,12 +16636,25 @@ void initExThreads(void) {
      * num_workers) is fully built here so activation needs no allocation or resizing.
      * zcalloc (numa): the stat/EWMA scalars must not be uninitialized reads. */
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers_alloc);
-    /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
-     * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
-     * gated by tomokv-os-opts. */
+    /* The exThread array is large + hot (per-worker queues, freeback rings, predictor tables) --
+     * roughly 820KB per worker, so several MB at a normal thread count. Back it with transparent
+     * huge pages to cut TLB pressure on the dispatch path. Best-effort: the return is deliberately
+     * ignored.
+     *
+     * 2026-07-28 knob collapse: HARDWIRED ON (was the surviving half of tomokv-os-opts). It is one
+     * boot-time syscall on one allocation with zero hot-path cost, so it cannot breach the <=3%
+     * always-on budget -- it is not on any hot path at all.
+     *
+     * HONEST STATUS: this has never been A/B'd, and hardwiring it on is an unmeasured change. It is
+     * also CONDITIONALLY VACUOUS, which any future measurement must account for: disable-thp
+     * defaults to yes, and linuxMemoryWarnings() -> THPDisable() runs BEFORE initExThreads() and
+     * calls prctl(PR_SET_THP_DISABLE) whenever /sys/kernel/mm/transparent_hugepage/enabled reads
+     * "[always]". PR_SET_THP_DISABLE is process-wide and overrides per-VMA MADV_HUGEPAGE, so on an
+     * "always" box this madvise is a GUARANTEED no-op. It does something only in "[madvise]" mode --
+     * which is the mode Redis's own startup warning tells operators to switch to. So an A/B here
+     * must assert THP mode first and report SKIP, not PASS, when it is not "madvise". */
 #ifdef MADV_HUGEPAGE
-    if (server.os_opts)
-        madvise(server.exThreads, sizeof(exThread) * server.num_workers_alloc, MADV_HUGEPAGE);
+    madvise(server.exThreads, sizeof(exThread) * server.num_workers_alloc, MADV_HUGEPAGE);
 #endif
     for (int i = 0; i < server.num_workers; i++) {
         server.exThreads[i].id = i;
@@ -17597,6 +17652,52 @@ int tomoSpareShift(int mode, const char **err) {
 static int tmClientMigratable(client *c) {
     if (!c->conn) return 0;
     if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
+    /* ---- io_uring multishot recv vs connection migration (resolved 2026-07-28) --------------
+     * Before the knob collapse this exclusion existed ONLY in tomoMigrateTest (the DEBUG
+     * TOMO-MODESHIFT 5|6 entry point), which refused to migrate under tomokv-io-uring-recv while
+     * the AUTONOMOUS paths -- client-LB, IO-EXIT drain, flip rebalance -- migrated regardless,
+     * using the very disarm/re-arm hooks the DEBUG guard declared unsafe. Both landed in the same
+     * commit, so one of them was wrong from birth. The guard was substantially right and the
+     * autonomous paths were the live bug; it was dormant only because the knob was default-off and
+     * nothing ever booted it together with its master.
+     *
+     * WHY IT IS UNSAFE. iouRecvDisarm clears the fd's slot and submits an ASYNC_CANCEL, but does
+     * not wait for it. Multishot recv is a KERNEL-side operation: pausing our read handler does
+     * not stop it, so between the slot being cleared and the cancel actually landing, the kernel
+     * can keep consuming socket bytes into this ring's provided buffers. iouRecvReap attributes a
+     * CQE by (fd, gen) -> slot->c; with the slot cleared it matches nothing, so the reaper just
+     * recycles the buffer via iouRecvProvide and DISCARDS the payload. Those bytes are already
+     * out of the socket, so the loss is permanent and silent: the client desyncs mid-command and
+     * hangs forever. That is the W6-U2 failure this ring's stash machinery was built to close, and
+     * it is a stall rather than a wrong answer, so correctness_suite would very likely not see it.
+     *
+     * WHY THE EXCLUSION RATHER THAN A FIX. Closing it properly means making the disarm synchronous
+     * -- submit the cancel, then drain this ring until the multishot for that cookie terminates.
+     * The obstacle is the OTHER clients' CQEs encountered while draining: delivering them means
+     * re-entering processInputBuffer from inside freeClient and from inside a pauseIOThread
+     * window, and merely stashing them is not live, because slot->stash is only flushed by a
+     * LATER CQE for that same fd (clients_pending_read is allocated but never drained) -- so a
+     * client that went quiet would sit on unparsed input indefinitely. That is a real protocol
+     * change to a delicate path, and it needs a race harness to validate rather than a smoke test.
+     * Shipping it unvalidated inside a knob-collapse commit is precisely the trade this project's
+     * rules forbid, so the correct move is to make the two features mutually exclusive HERE, at
+     * the one predicate every migration path already consults, and leave the drain as named
+     * follow-up work.
+     *
+     * COST. With tomokv-io-uring on, connection migration stops: client-LB and flip rebalance
+     * simply find nothing migratable, and an IO-EXIT drain finds nothing to move and is cancelled
+     * by the controller's existing TM_MIGREQ_IOEXIT_CANCEL path (built for exactly this case -- a
+     * non-migratable conn that never lets the thread park), which resumes the thread as a normal
+     * IO thread rather than wedging the flip. So the degradation is graceful and already-handled,
+     * not a new stall.
+     *
+     * NOT COVERED BY THIS GATE, and honestly noted rather than hidden: freeClient's disarm has the
+     * same window but the client is being destroyed, so discarded input is irrelevant. The
+     * main-thread handoff disarms (unbindClientFromIOThreadEventLoop / fetchClientFromIOThread,
+     * under pauseIOThread) share the window for real; that path is pre-existing and unchanged by
+     * this collapse, but it does become reachable by default whenever io_uring is on, and the
+     * synchronous drain above is its fix too. */
+    if (server.io_uring_net) return 0;
     if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
                     CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
                     CLIENT_MONITOR | CLIENT_MASTER | CLIENT_SLAVE | CLIENT_TRACKING |
@@ -17892,7 +17993,7 @@ static void tmMigHandoff(client *c, int dest) {
     /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
      * handler + TLS state and nulls conn->el so dest's rebind assert holds). */
 #ifdef HAVE_LIBURING
-    if (server.io_uring_recv && c->conn && c->conn->fd >= 0) iouRecvDisarm(iotid, c->conn->fd);
+    if (server.io_uring_net && c->conn && c->conn->fd >= 0) iouRecvDisarm(iotid, c->conn->fd);
 #endif
     connUnbindEventLoop(c->conn);
 
@@ -18114,7 +18215,7 @@ void tmMigDrainInbox(void) {
         connRebindEventLoop(c->conn, my_el);
         linkClient(c);                                   /* into clients[id] + clients_index[id] (uses iotid); grows the live count */
 #ifdef HAVE_LIBURING
-        if (server.io_uring_recv) iouRecvArm(c);         /* re-arm multishot recv on this thread's ring */
+        if (server.io_uring_net) iouRecvArm(c);          /* re-arm multishot recv on this thread's ring */
 #endif
         connSetReadHandler(c->conn, readQueryFromClient);/* AE_READABLE on this loop; pending socket data fires immediately (level-triggered) */
         c->flags &= ~CLIENT_MIGRATING;
@@ -18166,9 +18267,15 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.io_uring_recv) {
-        *err = "connection migration is not supported with tomokv-io-uring-recv in v1 "
-               "(multishot-recv buffers cannot follow the fd across threads)";
+    /* Kept (retargeted to the master knob) so the DEBUG entry point fails with an EXPLANATION
+     * rather than silently reporting a migration it will never perform: tmClientMigratable now
+     * refuses every client under io_uring, so without this the command would succeed and move
+     * nothing. See the long note in tmClientMigratable for why the two are mutually exclusive. */
+    if (server.io_uring_net) {
+        *err = "connection migration is not supported with tomokv-io-uring (an in-flight "
+               "multishot recv cannot follow the fd across threads: the async cancel races the "
+               "kernel, and bytes already consumed into the source ring's provided buffers would "
+               "be silently discarded)";
         return 0;
     }
     int all[TOMO_IO_THREADS_MAX + 1];

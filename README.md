@@ -282,8 +282,9 @@ into a few families:
   instead of letting it run against the empty decoy DB. `FLUSHALL`/`FLUSHDB` are handled by queue‑ordered
   flush sentinels.
 - **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
-  with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** reply path
-  (multishot recv, `SEND_ZC`, `SQPOLL`, registered ring fd).
+  with shared‑L3/CCD awareness, NUMA‑local worker binding, and an optional **deep io_uring** path
+  (`SINGLE_ISSUER|DEFER_TASKRUN`, registered ring fd, batched submits, multishot recv, `SEND_ZC` over
+  registered buffers).
 - **Online resharding.** Live key‑shard migration (effect‑log copy + drain‑fence cutover) with a dual‑rate‑EWMA
   hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without downtime (see table 4 for its
   workload‑dependence). Opt‑in trigger hardening (sustain window, Schmitt hysteresis, cool‑margin) suppresses
@@ -370,9 +371,25 @@ controller.
 
 ### Kernel / io_uring (experimental, default off)
 
-`tomokv-io-uring`, `-sqpoll`, `-recv`, `-zc`, `tomokv-io-uring-reply-send`, `tomokv-worker-direct-send`,
-`tomokv-os-opts`, `tomokv-os-busypoll` — io_uring network backend and OS tuning experiments; all immutable
-booleans, all default off. Loopback‑neutral except at P1 (see table 1); they exist for real‑NIC evaluation.
+`tomokv-io-uring` — immutable boolean, default off. **This is the entire io_uring surface.** It turns the
+deep path on or off: per‑thread send ring built `SINGLE_ISSUER|DEFER_TASKRUN` (with a runtime fallback probe
+for older kernels) and a registered ring fd, one batched `submit_and_wait` per flush pass, worker replies
+routed into that batched pass, multishot recv over a provided‑buffer ring with `RECVSEND_POLL_FIRST`, and
+detach‑on‑submit `SEND_ZC` over a registered buffer pool above a hardwired 1 KiB threshold.
+
+Requires `make USE_URING=yes`; on a build without liburing the server now **exits at boot** rather than
+accepting the knob and silently running epoll.
+
+The six former sub‑knobs (`-sqpoll`, `-recv`, `-zc`, `-reply-send`, `tomokv-os-opts`, `tomokv-os-busypoll`)
+were retired on 2026‑07‑28 — hardwired at their use sites or deleted outright, with no surviving fields.
+SQPOLL is gone for good: it is mutually exclusive with `DEFER_TASKRUN` by construction. `tomokv-worker-direct-send`
+was deleted earlier and should not have still been listed here.
+
+Loopback‑neutral except at P1 (see table 1); this path exists for real‑NIC evaluation. **The deep shape
+itself is unbenchmarked** — the recorded neutral result was measured against the older, naive ring.
+
+Caveat: connection migration (client‑LB, flip rebalance, IO‑exit drain) is disabled while io_uring is on —
+an in‑flight multishot recv cannot follow an fd across threads without losing bytes.
 
 ---
 

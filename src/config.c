@@ -3280,16 +3280,55 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
 
 
-    /* ================= OS / io_uring DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults made
-     * TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off, and left the whole io_uring
-     * multishot-recv / zero-copy-send / SQPOLL subsystem unreachable with 13 live readers. That is
-     * disabling a feature to simplify a config surface, which is not the same as retiring a knob. */
-    createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
-    createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-recv",         NULL, IMMUTABLE_CONFIG,  server.io_uring_recv,         0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-reply-send",   NULL, IMMUTABLE_CONFIG,  server.io_uring_reply_send,   0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-sqpoll",       NULL, IMMUTABLE_CONFIG,  server.io_uring_sqpoll,       0, NULL, NULL),
-    createBoolConfig("tomokv-io-uring-zc",           NULL, IMMUTABLE_CONFIG,  server.io_uring_zc,           0, NULL, NULL),
+    /* ================= OS / io_uring DEPLOYMENT FEATURES =================================
+     * COLLAPSED 2026-07-28 (owner ruling: "realistically the deep uring implementation is the
+     * only one I care about so have 1 nob for that. stuff like sqpoll and the likes you can gut,
+     * if needed for deep uring then hard code."). Six knobs are gone; `tomokv-io-uring` (above,
+     * server.io_uring_net) is now the ENTIRE io_uring config surface and turns the whole deep
+     * path on or off:
+     *
+     *   tomokv-io-uring-recv        -> HARDWIRED ON. Multishot recv + provided-buffer ring IS the
+     *                                  read half of deep uring, and it is the small-message
+     *                                  technique that matters at low pipeline depth. It now
+     *                                  follows the master exactly, so arm and disarm can never
+     *                                  disagree.
+     *   tomokv-io-uring-reply-send  -> HARDWIRED ON. It routes worker replies into the batched
+     *                                  pending-write pass, which is where the SEND ring lives.
+     *                                  Without it the ring carries almost no traffic and any
+     *                                  measurement of "io_uring on" is vacuous.
+     *   tomokv-io-uring-zc          -> HARDWIRED ON, against the ported deep implementation
+     *                                  (detach-on-submit + registered buffers + async notif
+     *                                  reaping). Hardwiring the OLD v12-H zero-copy on would have
+     *                                  made its synchronous notif-wait unconditional, which is a
+     *                                  regression, not deep uring. Size policy is the hardwired
+     *                                  IOU_ZC_MIN_BYTES threshold, per the house rule that
+     *                                  thresholds self-derive rather than being operator-set.
+     *   tomokv-io-uring-sqpoll      -> GUTTED (code deleted). SQPOLL is mutually exclusive with
+     *                                  SINGLE_ISSUER|DEFER_TASKRUN by construction: deferred task
+     *                                  work needs the submitter to ENTER the kernel and SQPOLL's
+     *                                  entire point is not entering. It cannot coexist with the
+     *                                  shape the owner asked for. It was also already excluded
+     *                                  from the recv ring for regressing throughput and corrupting
+     *                                  multi-chunk reads. A future SQPOLL experiment would need
+     *                                  SETUP_SQ_AFF + sq_thread_cpu + ATTACH_WQ, none of which
+     *                                  this branch had, so keeping it preserved the wrong artifact.
+     *   tomokv-os-opts              -> SPLIT. The MADV_HUGEPAGE hint on the exThread array is
+     *                                  hardwired on (one best-effort boot-time syscall, no hot
+     *                                  path). The TCP_QUICKACK half is DELETED: it was a one-shot,
+     *                                  never re-armed sockopt that tcp(7) documents as decaying
+     *                                  within an RTT or two, and for request/response traffic the
+     *                                  reply piggybacks the ACK anyway. Hardwiring a misleading
+     *                                  no-op ON is worse than removing it.
+     *   tomokv-os-busypoll          -> GUTTED (code deleted). SO_BUSY_POLL sets a per-SOCKET field
+     *                                  consumed by epoll/blocking recv; io_uring never calls
+     *                                  sk_busy_loop(), it has a separate per-RING API
+     *                                  (io_uring_register_napi). Under deep uring it is a plain
+     *                                  no-op on the fd, and it duplicates ae.c's own adaptive
+     *                                  userspace drain while stealing SMT slots from workers that
+     *                                  are explicitly yielding them.
+     *
+     * NOTE none of these six left a server field behind: every one was deleted from
+     * struct redisServer, so none can silently fall to 0 by omission. */
 
 
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
@@ -3605,26 +3644,30 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
  * So: if a knob is retired, its former default MUST be restored here in the same commit. A retired
  * knob means "the operator no longer chooses this", never "the value becomes zero".
  */
+/* EMPTIED 2026-07-28 (io_uring knob collapse). Every one of the sixteen entries this block used to
+ * carry was seeding a knob that is STILL LIVE in static_configs[] -- the six OS/io_uring ones and
+ * all ten tomokv-pf-* / tomokv-prefetch-min-keys ones. That is the failure mode this block's own
+ * header warns about, pointing the other way: the block runs AFTER the table loop in
+ * initConfigValues(), so each line was silently SHADOWING the live knob's table default rather than
+ * restoring a retired knob's. It was benign only by coincidence -- every seed happened to equal its
+ * table default -- so it never misbehaved, it just sat there waiting for someone to change a default
+ * in the table and watch it get stomped with no warning. (Which is precisely what this collapse
+ * would have done: hardwiring recv/reply-send/zc ON means flipping their behaviour to the OPPOSITE
+ * of the seeded 0.)
+ *
+ * The six OS/io_uring knobs are now retired properly -- FIELD DELETED, behaviour hardwired at the
+ * use site -- so there is nothing left to seed. The ten prefetch knobs are live and get their
+ * defaults from static_configs[] like every other knob, which is where a live knob's default
+ * belongs.
+ *
+ * The rule in the header above still stands for the NEXT retirement, and it is worth restating
+ * precisely, because this block got it backwards: seed a field here ONLY IF the knob is gone from
+ * static_configs[] AND live code still reads the field. If the knob is still in the table, a seed
+ * here is a shadow, not a restore. If the field is deleted, no seed is needed at all -- which is
+ * why deleting the field is the safer of the two retirement styles. */
 static void tomoInitRetiredKnobDefaults(void) {
-    /* Knobs whose retirement is FINISHED (2026-07-28) no longer appear here at all: their former
-     * default is now a literal at the use site and the server field is gone. What remains below is
-     * the set that still has to be seeded because live code reads the FIELD. */
-    server.io_uring_recv = 0;                       /* was tomokv-io-uring-recv */
-    server.io_uring_reply_send = 0;                 /* was tomokv-io-uring-reply-send */
-    server.io_uring_sqpoll = 0;                     /* was tomokv-io-uring-sqpoll */
-    server.io_uring_zc = 0;                         /* was tomokv-io-uring-zc */
-    server.os_busypoll = 0;                         /* was tomokv-os-busypoll */
-    server.os_opts = 0;                             /* was tomokv-os-opts */
-    server.pf_value_budget_kb = -1;                 /* was tomokv-pf-value-budget-kb */
-    server.pf_w_argv = -1;                          /* was tomokv-pf-w-argv */
-    server.pf_w_entry = -1;                         /* was tomokv-pf-w-entry */
-    server.pf_w_hash = -1;                          /* was tomokv-pf-w-hash */
-    server.pf_w_keybytes = -1;                      /* was tomokv-pf-w-keybytes */
-    server.pf_w_keyobj = -1;                        /* was tomokv-pf-w-keyobj */
-    server.pf_w_nextop = 0;                         /* was tomokv-pf-w-nextop */
-    server.pf_w_struct = -1;                        /* was tomokv-pf-w-struct */
-    server.pf_w_value = -1;                         /* was tomokv-pf-w-value */
-    server.prefetch_min_keys = -1;                  /* was tomokv-prefetch-min-keys */
+    /* Intentionally empty -- see the block comment above. Kept as the documented home for the next
+     * retirement rather than deleted outright, so the lesson stays attached to the mechanism. */
 }
 
 void initConfigValues(void) {
