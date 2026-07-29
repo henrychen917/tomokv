@@ -19,7 +19,6 @@ set tcl_precision 17
 source tests/support/redis.tcl
 source tests/support/aofmanifest.tcl
 source tests/support/server.tcl
-source tests/support/cluster_util.tcl
 source tests/support/tmpfile.tcl
 source tests/support/test.tcl
 source tests/support/util.tcl
@@ -31,7 +30,6 @@ set test_dirs {
     unit
     unit/type
     unit/moduleapi
-    unit/cluster
     integration
 }
 
