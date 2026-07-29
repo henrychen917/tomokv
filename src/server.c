@@ -175,6 +175,12 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
     int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
+    /* ee451 (LB-1): does this io thread pin a conn that IO-EXIT could never drain (pubsub/blocked/
+     * MULTI/...)? PUBLISHED BY THE OWNER, because server.clients[] is single-writer-per-slot and
+     * main must not walk it — see step 5 of tmMigServiceOut(). _Atomic (relaxed) for
+     * the same reason tmMigMailbox.io_exiting is: it is read cross-thread, and a plain int would be
+     * a C11 data race even though the load is non-torn in practice. */
+    _Atomic int pinned_nonmig;
     unsigned lat_idx;   /* p99 guardrail ring cursor */
     unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
     uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds */
@@ -17325,15 +17331,15 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
         { *err = "no other live io thread to receive the exiting thread's conns"; return 0; }
     /* review [3]: refuse if a persistently non-migratable conn (pubsub/blocked/MULTI) is pinned here
      * — IO-EXIT could never drain it and phase 0 would wait forever. (A conn that becomes
-     * non-migratable DURING the exit is caught by the phase-0 timeout-abort in tmFlipTick.) The read
-     * is racy but on the same main thread cadence as the actuator; a false negative is handled by the
-     * timeout. */
-    if (server.clients[io_slot]) {
-        listIter li; listNode *ln; listRewind(server.clients[io_slot], &li);
-        while ((ln = listNext(&li)))
-            if (!tmClientMigratable((client *)listNodeValue(ln)))
-                { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; return 0; }
-    }
+     * non-migratable DURING the exit is caught by the phase-0 timeout-abort in tmFlipTick.)
+     * ee451 (LB-1): this used to walk server.clients[io_slot] from HERE. We are not that list's
+     * owner — it is single-writer-per-slot and its writers zfree() nodes and clients eagerly — so
+     * the walk was a use-after-free, not merely a stale read. The owning thread now publishes the
+     * answer in its own beforeSleepIO (tmMigServiceOut step 5); read the snapshot instead. Same
+     * staleness contract as before (<=~100ms, and the phase-0 watchdog still backstops it), minus
+     * the cross-thread pointer chase. */
+    if (atomic_load_explicit(&tm_io_sig[io_slot].pinned_nonmig, memory_order_relaxed))
+        { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; return 0; }
     server.tm_flip_ctx = ctx;
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT park */
@@ -18118,6 +18124,53 @@ void tmMigServiceOut(void) {
              * PARKED. */
             triggerEventNotifier(mb->notifier);
         }
+    }
+
+    /* 5. ee451 (LB-1): publish "do I pin a conn IO-EXIT could never drain?" for the flip
+     * controller.
+     *
+     * THE DEFECT THIS REPLACES. tomoGrowBackSlot() used to answer this by walking
+     * server.clients[io_slot] FROM THE MAIN THREAD. That list is single-writer-per-slot — every
+     * other access in the tree is server.clients[iotid], i.e. the owning io thread — and its writers
+     * free eagerly: unlinkClient() -> listDelNode() -> zfree(node) (adlist.c), and freeClient()
+     * zfree()s the client itself. So main's listNext() could read a freed node and
+     * tmClientMigratable() could dereference a freed client (c->conn->type, c->flags,
+     * listLength(c->watched_keys), three dictSize()s). The old comment there defended the read as
+     * "racy but a false negative is handled by the timeout" — true of a STALE VALUE, and not of
+     * freed memory.
+     *
+     * WHY PUBLISH RATHER THAN SYNCHRONISE. The answer is a heuristic pre-check: its only job is to
+     * stop the controller arming an IO-EXIT that can never drain and then burning the 10s phase-0
+     * watchdog (which holds tm_flip_ctx, and reshardAutoTune defers on that). A conn that becomes
+     * non-migratable AFTER the check is already handled by that same watchdog, so the design has
+     * always tolerated a stale answer — it just cannot tolerate a torn pointer. Publishing keeps the
+     * exact staleness contract the caller already had and removes the ownership violation outright,
+     * with no lock on the per-connection request path.
+     *
+     * COST. Rate-limited to ~10Hz, which is 2.5x the 4Hz controller cadence, so the value main reads
+     * is at most ~100ms old — well inside a controller whose settle/sustain phases run for seconds.
+     * beforeSleepIO runs per event-loop pass (order 1e5/s), so the gate, not the walk, is what runs
+     * hot: one monotonic read per pass. The walk itself early-exits on the first pinned conn.
+     *
+     * UNKNOWN IS PERMISSIVE ON PURPOSE. A slot that has not published yet reads 0 (BSS) = "nothing
+     * pinned", so a freshly converted io thread can still be grown back; if it turns out to pin
+     * something, phase-0's watchdog aborts exactly as it does today. That keeps this ONE guard: no
+     * second "is the snapshot valid" gate is needed to make the first one safe. */
+    static __thread monotime tm_pinned_last;
+    monotime pnow = getMonotonicUs();
+    if (pnow - tm_pinned_last >= 100000) {         /* 100ms */
+        tm_pinned_last = pnow;
+        int pinned = 0;
+        if (server.clients[id]) {                  /* id == iotid: our OWN list */
+            listIter pli; listNode *pln; listRewind(server.clients[id], &pli);
+            while ((pln = listNext(&pli))) {
+                client *pc = listNodeValue(pln);
+                /* A client already marked CLIENT_MIGRATING is draining out by construction, so it
+                 * does not pin the thread even while it transiently reads as non-migratable. */
+                if (!(pc->flags & CLIENT_MIGRATING) && !tmClientMigratable(pc)) { pinned = 1; break; }
+            }
+        }
+        atomic_store_explicit(&tm_io_sig[id].pinned_nonmig, pinned, memory_order_relaxed);
     }
 }
 
