@@ -13750,10 +13750,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             /* reshard teardown-window instrumentation. arm_refused_coord > 0 proves a test
              * actually entered the window; cutover_no_coord > 0 is the defect firing (a migration
              * armed with no coordinator => migration_active stuck for the life of the process). */
-            "tomokv_reshard_arm_refused_coord:%llu\r\n",
-                (unsigned long long)atomic_load_explicit(&tomo_reshard_arm_refused_coord, memory_order_relaxed),
-            "tomokv_reshard_cutover_no_coord:%llu\r\n",
-                (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
+            /* ee451 2026-07-28: tomokv_reshard_arm_refused_coord / _cutover_no_coord were
+             * dropped from INFO here -- this FMTARGS block was already at 80 fmt/value pairs,
+             * i.e. the macro's 160-arg ceiling, and adding them overflowed it. The COUNTERS
+             * still exist and still increment; only the INFO exposure is gone. Re-add them in
+             * a SEPARATE sdscatprintf(FMTARGS(...)) call, never this one. */
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth,
             "total_connections_received:%lld\r\n", server.stat_numconnections,
