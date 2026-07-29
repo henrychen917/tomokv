@@ -338,6 +338,12 @@ until the deep flags exist and the migration contradiction is resolved.
   load generators. If someone else is on the box, you wait — a contended measurement is invalid
   anyway.
 - **Stage every binary under a unique name; reap only that name.**
+- **Tell the box-lock HOLDER from a WAITER before you kill anything.** `withbox.sh` runs
+  `flock -w N 9` as a *child*. So in `fuser -v /tmp/tomo_box.lock`, a `withbox.sh` that still has a
+  live `flock` child is QUEUED; a `withbox.sh` with **no** `flock` child has already acquired the
+  lock and **is the running job**. I got this right diagnosing the wedge and then misapplied it 40
+  minutes later, killing pid 470666 as "a stale waiter" when it was my own item-2 run that had just
+  started — costing it its progress. Check for the `flock` child every time; it is one command.
 - **`ppid=1` does NOT mean "abandoned" on this box** (learned 2026-07-29, the hard way). The
   standing advice was "a process with ppid=1 and no command is safe to clear; anything with a live
   parent is someone's running job". But the normal launch pattern here is
