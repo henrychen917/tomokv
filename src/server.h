@@ -2285,6 +2285,21 @@ typedef struct exThread {
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */
+    /* ee451 (bug #42): per-worker ACTIVE-EXPIRE cycle state. All four are worker-private (written
+     * only by the owning worker from exSlice), so they need no atomics; aexp_active is read racily
+     * by INFO on another thread, which is fine for a stat. Appended at the very END for the same
+     * reason the reclaim fields above were: inserting mid-struct shifts the tuned hot block.
+     *   aexp_gen    last server.tomo_expire_gen this worker acted on (edge-triggers the cycle)
+     *   aexp_dbid   sweep cursor: which db (0..dbnum-1) — carried across ticks so every db is swept
+     *   aexp_bucket sweep cursor: which bucket-dict WITHIN this worker's own [lo,hi) range
+     *   aexp_cursor kvstoreScan cursor inside that one bucket-dict (0 = bucket finished)
+     * A reshard moves the range under us; the cursor is then simply out of range and restarts at
+     * the range start. That costs one re-sweep, never a wrong-owner touch (see exActiveExpireCycle). */
+    uint32_t aexp_gen;
+    int aexp_dbid;
+    int aexp_bucket;
+    unsigned long long aexp_cursor;
+    unsigned long long aexp_active;         /* keys this worker actively expired (folded into INFO) */
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -2787,6 +2802,13 @@ struct redisServer {
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
+    /* ee451 (bug #42, worker active expiry): the CADENCE signal for the per-worker active-expire
+     * cycle. serverCron (main) bumps it once per tick; every worker relaxed-loads it in exSlice and
+     * runs ONE bounded pass over its OWN bucket range when it differs from the value it last saw.
+     * Main publishes the schedule, the owning worker does the deleting — main must never delete
+     * from a shard it does not own. Same main->worker signalling shape (and same read-mostly line)
+     * as flat_resize_active above, so the per-pass poll is a load off an already-resident line. */
+    _Atomic uint32_t tomo_expire_gen;
     /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
      * polyThreadMain with a preset mode, plus one PARKED spare if configured threads < allowed
      * cores. DERIVED from tomokv-thread-mode (both `auto` and `static` run the poly threads;
@@ -5326,6 +5348,11 @@ void handleExpiredIdmpEntries(void);
 
 /* expire.c -- Handling of expired keys */
 void activeExpireCycle(int type);
+/* ee451 (bug #42): the SHARDED half of active expiry. activeExpireCycle() above walks server.db,
+ * which is the empty decoy under sharding; this one is run BY a worker, on its OWN bucket range of
+ * the real node db, at the cadence server.tomo_expire_gen publishes. See expire.c for the full
+ * rationale (why not on main, why not via activeExpireCycleTryExpire). */
+void exActiveExpireCycle(exThread *worker);
 void expireSlaveKeys(void);
 void rememberSlaveKeyWithExpire(redisDb *db, sds key);
 void flushSlaveKeysWithExpireList(void);

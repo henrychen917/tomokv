@@ -1744,6 +1744,16 @@ void databasesCron(void) {
             flatExternEnter();   /* FLATSTORE QSBR: samples/deletes hold raw flat pointers */
             activeExpireCycle(ACTIVE_EXPIRE_CYCLE_SLOW);
             flatExternExit();
+            /* ee451 (bug #42): the call above walks server.db, which under sharding is the empty
+             * DECOY — it can never expire a real key. The real keyspace is the per-node db owned
+             * bucket-range-by-bucket-range by the EX workers, and only the OWNING worker may delete
+             * from it (main reaching in would break the single-writer invariant the whole sharding
+             * design rests on). So publish the CADENCE here and let each worker run its own bounded
+             * pass from exSlice: one release store per cron tick, edge-detected by each worker.
+             * Without this, a key given a TTL and never touched again was NEVER reclaimed —
+             * invisible to functional tests because lazy expiry keeps every read correct. */
+            if (server.num_workers > 0)
+                atomic_fetch_add_explicit(&server.tomo_expire_gen, 1, memory_order_release);
         } else {
             expireSlaveKeys();
         }
@@ -3689,6 +3699,11 @@ void resetServerStats(void) {
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
+    /* ee451 (bug #42): and the per-worker active-expire counters expiredKeysActiveTotal() folds in,
+     * for the same reason as the per-thread command counters above — clearing only the fold
+     * baseline would leave INFO reporting the pre-reset total. */
+    if (server.exThreads)
+        for (int w = 0; w < server.num_workers_alloc; w++) server.exThreads[w].aexp_active = 0;
     server.stat_expired_subkeys = 0;
     server.stat_expired_subkeys_active = 0;
     server.stat_expired_stale_perc = 0;
@@ -13329,6 +13344,17 @@ static long long keyspaceMissesTotal(void) {
     return s;
 }
 
+/* ee451 (bug #42): same shape — expired_keys_active must count the WORKER cycles too, otherwise
+ * the one instrument that distinguishes active from lazy expiry reads 0 on a sharded server and
+ * the defect is unfalsifiable from the outside. Each worker's counter is single-writer (its own
+ * exSlice); this read is racy, which is fine for a stat. */
+static long long expiredKeysActiveTotal(void) {
+    long long s = server.stat_expiredkeys_active;
+    if (server.exThreads)
+        for (int w = 0; w < server.num_workers_alloc; w++) s += server.exThreads[w].aexp_active;
+    return s;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -13750,7 +13776,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "expired_subkeys:%lld\r\n", server.stat_expired_subkeys,
             "expired_subkeys_active:%lld\r\n", server.stat_expired_subkeys_active,
             "expired_keys:%lld\r\n", server.stat_expiredkeys,
-            "expired_keys_active:%lld\r\n", server.stat_expiredkeys_active,
+            "expired_keys_active:%lld\r\n", expiredKeysActiveTotal(),
             "expired_stale_perc:%.2f\r\n", server.stat_expired_stale_perc*100,
             "expired_time_cap_reached_count:%lld\r\n", server.stat_expired_time_cap_reached_count,
             "expire_cycle_cpu_milliseconds:%lld\r\n", server.stat_expire_cycle_time_used/1000,
@@ -15825,6 +15851,41 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             else if (ph == MIG_CLEANUP) migCleanupDeleteRangeA(worker);  /* delete range, -> DONE */
             tomoWkrUnlock(worker->id);
         }
+        }
+    }
+
+    /* ee451 (bug #42): ACTIVE EXPIRY of this worker's OWN bucket range. Edge-triggered off the
+     * cadence counter main bumps once per serverCron tick, so the steady-state cost of the check is
+     * one relaxed load of a read-mostly line (it shares one with flat_resize_active, which this pass
+     * has already touched) plus a compare — the pass runs at most server.hz times a second and is
+     * itself time-bounded (ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC).
+     * PLACEMENT is load-bearing, not cosmetic: it must sit AFTER flat_local_sink is armed and the
+     * in_flat_section announcement above (so the kvobjs it retires land on this worker's own QSBR
+     * list and a FLATSTORE resize cannot free the table under it), and after the migration duties
+     * (so a reshard's own writes go first). Everything upstream is done; nothing downstream is
+     * started.
+     *
+     * WHAT THE LOAD BALANCERS SEE (stated explicitly — this is background work on a thread whose
+     * occupancy three controllers measure):
+     *  - tm_busy_us: NOT counted. The busy mark is re-stamped at the FIRST POP of a work pass
+     *    (below), so this cycle's time falls outside every busy interval. That is deliberate — the
+     *    quorum pressure balancer's BUSY vote must measure REQUEST load, and shifting a thread
+     *    EX->PARKED or EX->IO because of background reclaim would be a wrong actuation. The cost is
+     *    that the balancer under-reads a worker's true CPU by at most
+     *    ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC% (2% at the default effort), and only while there are
+     *    expired keys to reclaim.
+     *  - ops_total / lb_grp_ops: NOT bumped. The key-LB / auto-reshard bucket balancer therefore
+     *    does not read expiry as bucket heat. Correct: this sweep is uniform across the worker's
+     *    whole range by construction, so attributing it to buckets would inject a flat DC offset
+     *    into the outlier detector, not signal.
+     *  - tm_qdepth_ewma_q4: untouched (it is folded from popped batches only).
+     * If any of those is ever changed to include this cycle, it must be changed knowingly: a
+     * background reclaimer that reads as request pressure will make the flip controller chase it. */
+    {
+        uint32_t egen = atomic_load_explicit(&server.tomo_expire_gen, memory_order_acquire);
+        if (__builtin_expect(egen != worker->aexp_gen, 0)) {
+            worker->aexp_gen = egen;
+            exActiveExpireCycle(worker);
         }
     }
 
