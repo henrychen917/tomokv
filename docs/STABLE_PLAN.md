@@ -16,7 +16,7 @@ being clean.
 |---|---|---|
 | `62f03ebcc` | 3 preflight harness defects (leak / shared-name reap / suites that never ran) | verified by inspection + both arg forms exercised |
 | `d74df8895` | LB-1: flip controller UAF — main walked another io thread's client list | **KEEP** — `correctness_suite` 15/0 post-merge. ASAN discrimination: see §2 |
-| `348f6dc23` | key-LB hot-key veto at per-bucket resolution + `tomokv-mset-move` restored (default off) | see §2 |
+| `348f6dc23` | key-LB hot-key veto at per-bucket resolution + `tomokv-mset-move` restored (default off) | **KEEP** — veto 10/0 (arm B still migrates), mset-move 15/0 OFF+ON, ASAN churn clean, cost ≤3% |
 | `5b3b4581a` | active expiry never ran on the sharded keyspace (#42) | **KEEP** — re-validated post-merge, both regimes, both arms; 15/0; tax −1.42% worst |
 | `0a2ef6c6f` | `flip_updown` exit status was a constant | both exit codes observed |
 
@@ -29,12 +29,18 @@ incapable of returning a verdict — which is why "it was validated pre-merge" w
 | merge | verdict | what the re-run added |
 |---|---|---|
 | `5b3b4581a` active expiry | **KEEP** ✅ | full 2×2 discrimination (PRE fails / POST passes, at `ex=1` and `ex=4`), 15/0, and the always-on tax priced at −1.42% worst cell |
+| `348f6dc23` veto + mset-move | **KEEP** ✅ | veto 10/0 across all three arms — critically **arm B still migrates** (`fire=1`), so the fix is not "never move"; arm C reproduces the original defect. mset-move 15/0 knob-OFF *and* knob-ON, gate delta 0 → 2.8M, and an **ASAN churn arm that did not previously exist** (3.2M moves, 0 mismatches, 0 reports). Cost ≤3% confirmed against the pre-all-three parent |
 | `d74df8895` LB-1 | **KEEP**, but its UAF evidence is **not** obtained — see §2 | 15/0; found that its ASAN probe had **never once executed** past its own precondition; fixed the probe (0 → 25 grow-back cycles) and it *still* does not discriminate — the pre-fix build comes back clean too |
-| `348f6dc23` veto + mset-move | see §2 | — |
 
-Two findings that outlast this pass: a **torn `expired_keys` counter** (§4) and the fact that the
-LB-1 probe's precondition was unreadable on every build ever tested (§2). Both were found by the
-sanity gate, not by a suite going red — a suite going red is exactly what neither could do.
+**Nothing was reverted. All three merges stay.** Two of the three were fully validated; LB-1 is kept
+on inspection plus 15/0 correctness, with its missing empirical proof recorded as missing.
+
+Findings that outlast this pass, none of which a suite could have gone red on:
+1. a **torn `expired_keys` counter** under multi-worker expiry (§4);
+2. the LB-1 probe's precondition was **unreadable on every build ever tested**, and once repaired
+   the probe *still* cannot tell the vulnerable build from the fixed one (§2);
+3. the "ASAN churn clean" arm that STABLE_PLAN required for mset-move **did not exist** (§2);
+4. a live post-migration **wedge** on the io_uring WIP build (§5a).
 
 ---
 
@@ -170,6 +176,27 @@ built to solve, then either keep or revert. Do not re-derive; the acceptance cri
   **1 258 320 ops/s** while every sibling carried **1–6 ops/s**. A bucket flip relocates that load,
   it cannot divide it — so refusing is the correct answer, and the per-bucket window is what lets
   the planner see it. Raw: `$J/mrg/keylb_veto.out`.
+
+  **Cost gate: PASSES, and the honest reading is "no measurable cost".** 4 arms × 3 reps × 20 s,
+  ABBA-rotated, `base` = `redis-base-pre2` (verified byte-identical to `redis-aexp-pre`, i.e. it
+  predates *all three* merges, so this prices the whole stack — a pass is conservative):
+
+  | arm | p32set | vs base | p32get | vs base |
+  |---|---|---|---|---|
+  | `base` (feature absent) | 7 088 734 | — | 8 003 923 | — |
+  | `off` (`fine 0`) | 7 031 011 | −0.81 % | 7 937 090 | −0.83 % |
+  | `auto` (`fine -1`) | 7 060 448 | −0.40 % | 7 985 467 | −0.23 % |
+  | `armed` (`fine 1`, window armed all run) | 7 088 524 | −0.00 % | 7 955 328 | −0.61 % |
+
+  Worst arm −0.83 %, against a −3 % budget. But note **`armed` is not the worst arm and `off` is** —
+  if the window had a real data-path cost, the always-armed arm would be the slowest and it is the
+  fastest on `p32set`. Every arm sits inside this box's own ±2 % exclusive run-to-run noise, so the
+  correct statement is *the cost is not measurable here*, not "the cost is 0.4 %".
+  `migs=0` in all 24 cells, so no cell was invalidated by a cutover landing mid-measurement.
+  Raw: `$J/mrg/keylb_fine_cost.tsv`.
+  *Minor harness defect noticed, not fixed:* `keylb_fine_cost.sh`'s trailing "migrations fired per
+  cell" summary re-prints the ops medians under a `migs=` label instead of the migration counts —
+  garbled and capable of misleading. The TSV's `migs` column is the authoritative one.
 - **mset-move** — `correctness_suite` 15/0 with the knob OFF *and* ON; ASAN churn clean; the
   `tomokv_xshard_mset_moved` gate-open counter asserted as a **delta**, never an absolute (absolute
   lets a knob-OFF run pass on the previous ON run's total).
