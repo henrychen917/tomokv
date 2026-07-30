@@ -2258,14 +2258,6 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         run_with_period(1000) replicationCron();
     }
 
-    /* Run the Redis Cluster cron. */
-    run_with_period(100) {
-        if (server.cluster_enabled) {
-            clusterCron();
-            asmCron();
-        }
-    }
-
     /* Run the Sentinel timer if we are in sentinel mode. */
     if (server.sentinel_mode) sentinelTimer();
 
@@ -3406,14 +3398,14 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
     /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
      * are re-registered before the rest of the pass processes their sockets. */
-    if (server.poly_threads) tmMigDrainInbox();
+    tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
      * mid-drain is dropped from migrating_out before it is freed). */
-    if (server.poly_threads) tmMigServiceOut();
+    tmMigServiceOut();
     freeClientsInAsyncFreeQueue();
 
     /* ee451 (v13, hot-path audit #17): the old once-per-second "stall dump" block here cost a
@@ -3481,11 +3473,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     connTypeProcessPendingData(server.el);
 
     int dont_sleep = connTypeHasPendingData(server.el);
-
-    if (server.cluster_enabled) {
-        clusterBeforeSleep();
-        asmBeforeSleep();
-    }
 
     blockedBeforeSleep();
 
@@ -4533,10 +4520,9 @@ void initServer(void) {
      * cluster-enabled and tomokv sharding both want to define what a kvstore "slot" IS.  Cluster
      * indexes the 16384 dicts by CRC16 hash slot (getKeySlot -> the cluster slot); tomokv indexes
      * the SAME 16384 dicts by ownership BUCKET (TOMO_BUCKET_BITS; dict index == the bucket one
-     * worker owns).  The kvstore-flag block later in this function picks exactly one of the two
-     * (an if / else-if on cluster_enabled), but everything downstream is built unconditionally on
-     * the tomokv meaning: the per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and the
-     * online reshard all key off buckets regardless of which branch set slot_count_bits.
+     * worker owns). Everything downstream is built unconditionally on the tomokv meaning: the
+     * per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and online reshard all key off
+     * buckets, and the kvstore setup below therefore always uses TOMO_BUCKET_BITS.
      *
      * Sharding is NOT optional in this fork — tomokv-thread-io / tomokv-thread-ex are mandatory
      * and ex_threads >= 1 is enforced a few lines below ("sharding-off mode is not supported").
@@ -4874,25 +4860,16 @@ void initServer(void) {
     /* Create per-worker Redis databases. Each worker owns its own
      * independent set of databases (0..dbnum-1). Keys are partitioned
      * across workers by hash, so worker N only ever touches ex_dbs[N]. */
-    int slot_count_bits = 0;
+    int slot_count_bits = TOMO_BUCKET_BITS;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
-    if (server.cluster_enabled) {
-        /* UNREACHABLE: cluster-enabled is refused at boot above (the two slot geometries are not
-         * composable and the node dbs / FLATSTORE below are built for the tomokv one regardless).
-         * Kept verbatim so the upstream shape of this block stays visible in the diff. */
-        slot_count_bits = CLUSTER_SLOT_MASK_BITS;
-        flags |= KVSTORE_FREE_EMPTY_DICTS;
-    } else if (server.ex_threads > 0) {
-        /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
-         * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
-         * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
-         * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
-         * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
-         * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
-         * that benign stale-read race into a use-after-free. Dicts persist once created;
-         * dbCreateKeyspaceKvstore enforces this at every keyspace creation. */
-        slot_count_bits = TOMO_BUCKET_BITS;
-    }
+    /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
+     * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
+     * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
+     * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
+     * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
+     * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
+     * that benign stale-read race into a use-after-free. Dicts persist once created;
+     * dbCreateKeyspaceKvstore enforces this at every keyspace creation. */
 
     /* Keep server.db allocated so legacy code paths don't crash.
      * These dbs are empty - real data lives in ex_dbs. */
@@ -11914,7 +11891,7 @@ static void reshardCoordinatorTick(void) {
      * be running as an IO producer — fence those too. A growth slot that never went live just has
      * empty queues and the ~2ms idle-ack below clears it; once a worker has grown into it, its
      * in-flight dispatches drain exactly like any other producer's. */
-    int nprod = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
+    int nprod = server.io_threads + server.tm_ngrow_io;
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: the cold-copy convergence wait (scan_done, applied_seq >= issued_seq) was
@@ -17872,7 +17849,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
+    ctx->nq = server.io_threads + server.tm_ngrow_io;
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -17885,7 +17862,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
  * migration DRAINING sentinels before the ownership flip, hence equality for
  * every real producer is stable at the EX->IO checkpoint. */
 static int exQueuesRetired(exThread *worker) {
-    int nprod = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
+    int nprod = server.io_threads + server.tm_ngrow_io;
     for (int t = 0; t < nprod; t++) {
         exQueue *q = &worker->queues[t];
         unsigned int tail = atomic_load_explicit(&q->tail, memory_order_acquire);
@@ -19136,21 +19113,19 @@ static inline void tmIoBusyBegin(void) {
  * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
 static int ioSlice(ioThreadArgs *t) {
     int ne = aeProcessEventsIO(t->el);
-    if (server.poly_threads) {
-        tmIoSignal *s = &tm_io_sig[t->id];
-        if (server.thread_auto) {
-            /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
-             * the preceding IO-pass publication (including between-pass IO-role housekeeping);
-             * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
-             * per event. */
-            uint64_t cpu_now_us = tmIoThreadCpuUs();
-            s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
-            tm_io_cpu_mark_us = cpu_now_us;
-        }
-        /* Events/pass remains useful as a relative per-thread weight for client placement,
-         * but zero-event reply-drain passes make it invalid as role saturation. */
-        s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
+    tmIoSignal *s = &tm_io_sig[t->id];
+    if (server.thread_auto) {
+        /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
+         * the preceding IO-pass publication (including between-pass IO-role housekeeping);
+         * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
+         * per event. */
+        uint64_t cpu_now_us = tmIoThreadCpuUs();
+        s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
+        tm_io_cpu_mark_us = cpu_now_us;
     }
+    /* Events/pass remains useful as a relative per-thread weight for client placement,
+     * but zero-event reply-drain passes make it invalid as role saturation. */
+    s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     return ne;
 }
 
@@ -20108,7 +20083,6 @@ static int tmMigExpelInbox(int id) {
  * marking migratable clients while exiting, complete quiesced handoffs, and request the EX role
  * when an IO-EXIT has drained the last client. */
 void tmMigServiceOut(void) {
-    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->migrating_out) return;   /* not an io-capable migration slot */
@@ -20298,7 +20272,6 @@ void tmMigServiceOut(void) {
 /* DEST side, called each pass from beforeSleepIO: adopt clients handed to this thread's inbox.
  * Re-registers each fd on THIS loop, re-links into the per-iotid structures, resumes reads. */
 void tmMigDrainInbox(void) {
-    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->inbox) return;
@@ -21364,10 +21337,6 @@ int main(int argc, char **argv) {
     if (server.set_proc_title) redisSetProcTitle(NULL);
     redisAsciiArt();
     checkTcpBacklogSettings();
-    if (server.cluster_enabled) {
-        clusterCommonInit();
-        clusterInit();
-    }
     if (!server.sentinel_mode) {
         moduleInitModulesSystemLast();
         moduleLoadInternalModules();
@@ -21375,9 +21344,6 @@ int main(int argc, char **argv) {
     }
     ACLLoadUsersAtStartup();
     initListeners();
-    if (server.cluster_enabled) {
-        clusterInitLast();
-    }
     InitServerLast();
     if (!server.sentinel_mode) {
         initExThreads();
@@ -21394,10 +21360,6 @@ int main(int argc, char **argv) {
          * Activate them after ACL + dataset readiness, immediately before the
          * server advertises that it can accept commands. */
         startTomoThreads();
-
-        if (server.cluster_enabled) {
-            serverAssert(verifyClusterConfigWithData() == C_OK);
-        }
 
         for (j = 0; j < CONN_TYPE_MAX; j++) {
             connListener *listener = &server.listeners[j];
