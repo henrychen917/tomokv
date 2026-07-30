@@ -1981,7 +1981,7 @@ static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, lo
     unsigned long gen_lo = (unsigned long)((cursor >> 32) & 0xFFFFF);
     uint64_t slot = (uint64_t)(cursor & 0xFFFFFFFFULL);
     uint64_t budget = (uint64_t)count * 10 + 64;    /* bound total slots scanned this call (sparse-table guard) */
-    int nmax = server.n_node_dbs;                   /* nodes 0..nmax (index nmax = spare-private, empty) */
+    int nmax = server.n_node_dbs - 1;               /* highest physical node-db index */
     while (node <= nmax) {
         flatTable *t = kvstoreFlatTable(server.node_dbs[node][db->id].keys);
         if (!t) { node++; slot = 0; gen_lo = 0; continue; }
@@ -2325,14 +2325,13 @@ void dbsizeCommand(client *c) {
         int dbid = c->db->id;
         if (server.shared_node_dbs) {
             /* ee451 (shared-kv S0.2b): workers of a node ALIAS one physical kvstore — summing
-             * per worker would count each node wpn times. Sum the distinct node dbs (+ the
-             * spare's private array, empty unless a live spare holds keys). */
-            for (int n = 0; n <= server.n_node_dbs; n++)
+             * per worker would count each node wpn times. Sum the distinct node dbs. */
+            for (int n = 0; n < server.n_node_dbs; n++)
                 total += dbSize(&server.node_dbs[n][dbid]);
         } else {
-            /* ee451 (thread-modes step 3): fold over ALL alloc'd slots — covers a live spare's
-             * shard with no liveness ordering to get wrong (a dormant spare's shard adds 0). */
-            for (int w = 0; w < server.num_workers_alloc; w++)
+            /* Fold over ALL worker SLOTS, not the live set: a slot that is mid-flip still owns
+             * its keys until the migration's FLIP, and liveness is published after it. */
+            for (int w = 0; w < server.num_workers; w++)
                 total += dbSize(&server.exThreads[w].db[dbid]);
         }
         addReplyLongLong(c, total);

@@ -86,29 +86,22 @@ Outputs:
   * ENVELOPE: RSS peak ≤ boot + 1.5 GB across both phases (derivation: workload footprint
     ~30–60 MB; the gated leak class grew ~210 MB/s ⇒ multi-GB over the run — bound sits an order
     above footprint, an order below leak).
-* Design assert: on this fork the spare/quorum balancer is **mutually exclusive** with the flip
-  pool (`server.c:15795-15800`, spare only when `tm_ngrow_io == 0`) — the `[balance] no
-  EX-capable spare` warning must appear.
+* Design assert: the poly pool is FULLY ACTIVE — the boot line must read
+  `N poly threads (io-1 io-born, ex ex-born)` and nothing more. There is no reserve thread
+  to provision (deleted 2026-07-28); a boot that adds one is the regression this catches.
 * NOTE (comparability): a static io7ex1 boot runs 1 worker ⇒ non-shared db (dict store), while the
   AUTO arm converged to io7ex1 keeps the 4-worker shared FLATSTORE. There is no bootable static
   twin of the converged state — the ≥97%-of-best-bootable-static gate deliberately covers that
   whole delta (that IS the user-facing question).
 
-### 2. Quorum pressure balancer (spare PARKED↔EX)
-Only reachable with `ex_threads == 1` (else `tm_ngrow_io > 0` suppresses the spare). Boots io2ex1.
-* Positive control (balance off): `CONFIG SET tomokv-modeshift-test 2` ⇒ `MODESHIFT PARKED->EX
-  complete`; `... 3` ⇒ `EX->PARKED complete`; `/proc/PID/task` count unchanged (conversion, not
-  creation — conservation exact).
-* Autonomous: sustained p32×16-conn write pressure ⇒ conversion within the pressure window
-  (quorum log + completion). CONVERGENCE rows both ways: pressure start → `PARKED->EX complete`
-  (bound `T_CONV1−5`) and load stop → `EX->PARKED complete` (bound 90 s), each with
-  `convergence_time`. ANTI-THRASH: after the forward conversion the SAME pressure keeps running
-  and conversions are counted over 3×`AT_WIN` windows (0/1/>1). No-flap: exactly one conversion
-  each way across pressure+idle (Schmitt sustain — counted before the NOREG windows, which may
-  legitimately re-trigger); NOREG pre-vs-post round trip ≥ 95% (**medians of 3×10 s windows each
-  side** — ledger rule; miss ⇒ SUSPECT, not FAIL). Settle-first: pre windows are the boot-settled
-  state and post windows open only after the reverse-completion settle signal; conversions
-  observed DURING either side (`pre_dirty`/`post_dirty`) demote a NOREG PASS to SUSPECT.
+### 2. Reserve-thread quorum balancer — DELETED 2026-07-28
+The feature is gone from the server, not just from this suite. Owner ruling: the controller has
+exactly two moves, front-flip-back and back-flip-front; there is no third role to provision or
+retarget, so there was nothing left for these cells to exercise. The `DEBUG TOMO-MODESHIFT`
+verbs they drove (0/1/2/3) are now rejected outright.
+
+Replaced by **`tools/preflight/flip_updown.sh`**, which tests what actually exists: boot io4/ex4
+in `thread-mode auto`, drive `p32 -> p1 -> p32 -> p1`, and require flips in BOTH directions.
 
 ### 3. Per-connection fake-ring controller (`tomokv-fake-ring-depth -1`)
 * AUTO==STATIC 32 on p32 mixed; AUTO==STATIC 1 on p1 (no over-provisioning cost). No
