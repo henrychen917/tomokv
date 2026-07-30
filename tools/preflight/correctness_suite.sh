@@ -5,14 +5,62 @@
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}; P=/shared/Projects
-PORT=7994; OUT=$J/correctness_suite.out; : > $OUT
-cp "$BIN" $J/redis-corr 2>/dev/null; CB=$J/redis-corr
-pkill -9 -x redis-corr 2>/dev/null; sleep 1; rm -rf $J/cs; mkdir -p $J/cs; : > $J/cs.log
-taskset -c 0-7 $CB --port $PORT --dir $J/cs --tomokv-nodes 1 --tomokv-thread-io 4 \
+PORT=7994
+if [ -n "${TOMO_RESULT_FILE:-}" ]; then
+  OUT=$TOMO_RESULT_FILE
+  if ! (set -o noclobber; : > "$OUT") 2>/dev/null; then
+    echo "correctness-harness	FAIL	refusing to overwrite result file $OUT"
+    exit 2
+  fi
+else
+  OUT=$(mktemp "$J/correctness_suite.XXXXXX.out") || exit 2
+fi
+WORK=$(mktemp -d "$J/correctness_suite.XXXXXX.work") || {
+  echo "correctness-harness	FAIL	could not create per-run work directory" | tee -a "$OUT"
+  exit 2
+}
+CB=$WORK/redis-corr
+DATA=$WORK/data
+LOG=$WORK/cs.log
+mkdir -p "$DATA"
+: > "$LOG"
+
+CORR_PID=""
+MTPID=""
+cleanup_correctness(){
+  if [ -n "${MTPID:-}" ]; then
+    kill -9 "$MTPID" 2>/dev/null
+    wait "$MTPID" 2>/dev/null
+    MTPID=""
+  fi
+  if [ -n "${CORR_PID:-}" ]; then
+    kill -9 "$CORR_PID" 2>/dev/null
+    wait "$CORR_PID" 2>/dev/null
+    CORR_PID=""
+  fi
+  # The per-run work dir is the price of not sharing a name with another session's run; the staged
+  # binary is the only large thing in it, so drop it once the server is down. The (small) log and
+  # memtier output stay for postmortem, and the path is echoed at the end of the run.
+  rm -f "$CB" 2>/dev/null
+}
+trap cleanup_correctness EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
+emit(){ printf '%s\n' "$1" | tee -a "$OUT"; }
+
+if ! cp "$BIN" "$CB" 2>/dev/null || ! chmod +x "$CB" 2>/dev/null; then
+  emit "correctness-harness	FAIL	could not stage binary under test"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+taskset -c 0-7 "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 1 --tomokv-thread-io 4 \
   --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
-  --logfile $J/cs.log >/dev/null 2>&1 &
+  --logfile "$LOG" >/dev/null 2>&1 &
+CORR_PID=$!
 sleep 3
-python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY'
+PY_RC=0
+python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' || PY_RC=$?
 import socket, sys, random, struct
 out, port, smoke = sys.argv[1], int(sys.argv[2]), sys.argv[3]=="1"
 R = (lambda n: max(1, n//5)) if smoke else (lambda n: n)
@@ -20,7 +68,10 @@ res=[]
 def rec(name, ok, detail=""): res.append((name, "PASS" if ok else "FAIL", detail))
 try: s=socket.create_connection(("127.0.0.1",port)); s.settimeout(30)
 except Exception as e:
-    open(out,"w").write(f"boot\tFAIL\t{e}\n"); raise SystemExit
+    row=f"boot\tFAIL\t{e}\n"
+    open(out,"a").write(row)
+    print(row, end="")
+    raise SystemExit(2)
 def cmd(*a):
     o=f"*{len(a)}\r\n".encode()
     for x in a:
@@ -342,17 +393,67 @@ except Exception as e:
 rec("rename-nonstring-sameshard", rnalive and not rnbad,
     f"forced={rnforced},alive={int(rnalive)},bad={','.join(rnbad) or '-'}")
 
-open(out,"w").write("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res))
-print("".join(f"{n}\t{v}\t{d}\n" for n,v,d in res), end="")
+rows="".join(f"{n}\t{v}\t{d}\n" for n,v,d in res)
+open(out,"a").write(rows)
+print(rows, end="")
 PY
 # STRESS-ORDERING: re-run the ordering check WHILE the server is under churn — the P0 stale-read
 # bug was load-dependent, so a quiescent check alone is not sufficient evidence.
-taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --test-time=25 --ratio=1:1 \
-  -d 64 --key-pattern=R:R --key-maximum=200000 -t 4 -c 10 --pipeline 16 --distinct-client-seed >/dev/null 2>&1 &
-MTPID=$!
-TOMO_BIN="$BIN" LBL="under-load" EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE=$PORT "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh 2>/dev/null \
-  | grep -q 'stale=0' && echo "ordering-under-load	PASS	" >> $OUT || echo "ordering-under-load	FAIL	stale reads under churn" >> $OUT
-wait $MTPID 2>/dev/null
-grep -cE 'Guru|crashed by signal|ASSERTION' $J/cs.log | awk '{if($1>0) print "crash-markers\tFAIL\t"$1; else print "crash-markers\tPASS\t0"}' >> $OUT
-pkill -9 -x redis-corr 2>/dev/null
-echo "RESULT: $(grep -c 'PASS' $OUT) passed, $(grep -c 'FAIL' $OUT) failed" >> $OUT
+if [ "$PY_RC" -ne 0 ]; then
+  emit "correctness-driver	FAIL	exited $PY_RC before all checks completed"
+  emit "ordering-under-load	SKIP	main correctness run did not complete"
+else
+  MTLOG=$WORK/ordering-load.memtier
+  taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --test-time=25 --ratio=1:1 \
+    -d 64 --key-pattern=R:R --key-maximum=200000 -t 4 -c 10 --pipeline 16 --distinct-client-seed >"$MTLOG" 2>&1 &
+  MTPID=$!
+  ORD_OUT=$(TOMO_BIN="$BIN" LBL="under-load" EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE=$PORT \
+    "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh 2>&1)
+  ORD_RC=$?
+  wait "$MTPID" 2>/dev/null
+  MT_RC=$?
+  MTPID=""
+  MT_OPS=$(awk '/^Totals/{print $2; exit}' "$MTLOG" 2>/dev/null)
+  case "${MT_OPS:-}" in
+    ''|0|0.0|0.00)
+      emit "ordering-under-load	SKIP	load did not materialize (memtier exit=$MT_RC, Totals=${MT_OPS:-empty})"
+      ;;
+    *)
+      if [ "$ORD_RC" -eq 0 ] && printf '%s\n' "$ORD_OUT" | grep -qE 'checked=[1-9][0-9]* stale=0'; then
+        emit "ordering-under-load	PASS	$ORD_OUT load_ops=$MT_OPS"
+      elif [ "$ORD_RC" -ne 0 ]; then
+        emit "ordering-under-load	FAIL	probe exited $ORD_RC: $ORD_OUT"
+      else
+        emit "ordering-under-load	FAIL	stale or zero checked replies: $ORD_OUT"
+      fi
+      ;;
+  esac
+fi
+
+CRASHES=$(grep -cE 'Guru|crashed by signal|ASSERTION' "$LOG" 2>/dev/null) || true
+CRASHES=${CRASHES:-0}
+if [ "$CRASHES" -gt 0 ]; then
+  emit "crash-markers	FAIL	$CRASHES"
+elif [ "$PY_RC" -eq 0 ]; then
+  emit "crash-markers	PASS	0"
+else
+  emit "crash-markers	SKIP	main correctness run did not complete"
+fi
+
+cleanup_correctness
+PASS_COUNT=$(grep -c $'\tPASS\t' "$OUT" 2>/dev/null) || true
+FAIL_COUNT=$(grep -c $'\tFAIL\t' "$OUT" 2>/dev/null) || true
+SKIP_COUNT=$(grep -c $'\tSKIP\t' "$OUT" 2>/dev/null) || true
+PASS_COUNT=${PASS_COUNT:-0}
+FAIL_COUNT=${FAIL_COUNT:-0}
+SKIP_COUNT=${SKIP_COUNT:-0}
+emit "RESULT: $PASS_COUNT passed, $FAIL_COUNT failed"
+# stdout only (never $OUT): a per-run work dir nobody can name is a postmortem dead end.
+echo "correctness-workdir: $WORK  (server log: $LOG, result file: $OUT)"
+if [ "$FAIL_COUNT" -gt 0 ] || [ "$PY_RC" -ne 0 ]; then
+  exit 1
+elif [ "$SKIP_COUNT" -gt 0 ]; then
+  exit 2
+else
+  exit 0
+fi

@@ -82,6 +82,12 @@ ifeq ($(uname_S),Linux)
 	MALLOC=jemalloc
 endif
 
+# Persisted settings are a baseline, not a late override.  In particular they
+# must be loaded before SANITIZER appends its compiler/linker flags and selects
+# its allocator; otherwise a stale CFLAGS= / LDFLAGS= / MALLOC= here silently
+# turns `make SANITIZER=address` into a non-sanitized jemalloc build.
+-include .make-settings
+
 # To get ARM stack traces if Redis crashes we need a special C flag.
 ifneq (,$(filter aarch64 armv%,$(uname_M)))
         CFLAGS+=-funwind-tables
@@ -143,9 +149,6 @@ ifeq ($(DEBUG_DEFRAG), force)
 else ifeq ($(DEBUG_DEFRAG), fully)
 	CFLAGS +=-DDEBUG_DEFRAG_FORCE -DDEBUG_DEFRAG_FULLY
 endif
-
-# Override default settings if possible
--include .make-settings
 
 FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
 FINAL_LDFLAGS=$(LDFLAGS) $(OPT) $(REDIS_LDFLAGS) $(DEBUG)

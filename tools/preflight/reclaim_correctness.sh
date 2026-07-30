@@ -12,14 +12,35 @@ PASS=0; FAIL=0
 ok(){ echo "  PASS: $1" >> $OUT; PASS=$((PASS+1)); }
 bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 
+RECLAIM_PID=""
+MTPID=""
+cleanup_reclaim(){
+  if [ -n "${MTPID:-}" ]; then
+    kill -9 "$MTPID" 2>/dev/null
+    wait "$MTPID" 2>/dev/null
+    MTPID=""
+  fi
+  if [ -n "${RECLAIM_PID:-}" ]; then
+    kill -9 "$RECLAIM_PID" 2>/dev/null
+    wait "$RECLAIM_PID" 2>/dev/null
+    RECLAIM_PID=""
+  fi
+}
+trap cleanup_reclaim EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
+
 boot(){ # $1 extra args
-  pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
+  cleanup_reclaim; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
   taskset -c 0-7 $BIN --port 7974 --dir $J/cdata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
+  RECLAIM_PID=$!
   sleep 2; for i in $(seq 1 25); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 0.5; done; return 1
 }
 alive(){ [ "$($CLI ping 2>/dev/null | tr -d '\r')" = PONG ]; }
+rss_kb(){ awk '/VmRSS/{print $2; exit}' "/proc/$RECLAIM_PID/status" 2>/dev/null; }
 
 echo "=== T1: overwrite churn keeps dbsize exact + server alive (the leak path) ===" >> $OUT
 boot "--tomokv-thread-mode auto" || { bad "T1 boot"; }
@@ -91,6 +112,7 @@ if alive; then
   $MT --test-time=12 --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=100000 -t 8 -c 25 --pipeline 32 --distinct-client-seed >/dev/null 2>&1 &
   MTPID=$!
   sleep 6; $CLI flushall >/dev/null 2>&1; wait $MTPID 2>/dev/null
+  MTPID=""
   sleep 2
   alive && ok "survived FLUSHALL mid-write-churn" || bad "died on FLUSHALL mid-churn"
   $CLI set post:flush ok >/dev/null 2>&1
@@ -113,7 +135,7 @@ fi
 
 echo "=== T7: EX<->IO FLIP under write churn (worker stops/starts holding pending retires) ===" >> $OUT
 if alive; then
-  before_rss=$(ps -o rss= -C redis-server 2>/dev/null | head -1)
+  before_rss=$(rss_kb)
   $MT --test-time=60 --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=200000 -t 8 -c 25 --pipeline 32 --distinct-client-seed >/dev/null 2>&1 &
   MTPID=$!
   sleep 5
@@ -121,8 +143,13 @@ if alive; then
   sleep 10
   $CLI config set tomokv-flip-test 2 >/dev/null 2>&1   # grow-back (IO->EX)
   wait $MTPID 2>/dev/null; sleep 2
-  after_rss=$(ps -o rss= -C redis-server 2>/dev/null | head -1)
-  alive && ok "survived flip under write churn (rss ${before_rss}KB -> ${after_rss}KB)" || bad "died on flip under churn"
+  MTPID=""
+  after_rss=$(rss_kb)
+  if [[ "$before_rss" =~ ^[0-9]+$ && "$after_rss" =~ ^[0-9]+$ ]]; then
+    alive && ok "survived flip under write churn (rss ${before_rss}KB -> ${after_rss}KB)" || bad "died on flip under churn"
+  else
+    bad "INVALID: could not read own-server RSS across flip (${before_rss:-empty} -> ${after_rss:-empty})"
+  fi
   n=$($CLI dbsize); [ -n "$n" ] && ok "dbsize readable after flip ($n)" || bad "dbsize unreadable after flip"
   echo "    flips: front=$(grep -c 'GROW-FRONT complete' $J/cc.log 2>/dev/null) back=$(grep -c 'GROW-BACK complete' $J/cc.log 2>/dev/null)" >> $OUT
 fi
@@ -131,18 +158,23 @@ echo "=== T8: sustained RSS stability (the actual bug) ===" >> $OUT
 if alive; then
   $CLI flushall >/dev/null 2>&1
   $MT --ratio=1:0 -d 32 --key-pattern=P:P --key-maximum=500000 -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
-  r0=$(ps -o rss= -C redis-server 2>/dev/null | head -1)
+  r0=$(rss_kb)
   $MT --test-time=90 --ratio=1:0 -d 32 --key-pattern=R:R --key-maximum=500000 -t 8 -c 25 --pipeline 32 --distinct-client-seed >/dev/null 2>&1
-  r1=$(ps -o rss= -C redis-server 2>/dev/null | head -1)
-  growth=$(( (r1 - r0) / 1024 ))
-  [ "$growth" -lt 500 ] && ok "RSS stable under 90s overwrite storm (+${growth}MB)" || bad "RSS grew +${growth}MB in 90s (leak)"
+  r1=$(rss_kb)
+  if [[ "$r0" =~ ^[0-9]+$ && "$r1" =~ ^[0-9]+$ ]]; then
+    growth=$(( (r1 - r0) / 1024 ))
+    [ "$growth" -lt 500 ] && ok "RSS stable under 90s overwrite storm (+${growth}MB)" || bad "RSS grew +${growth}MB in 90s (leak)"
+  else
+    bad "INVALID: could not read own-server RSS for stability check (${r0:-empty} -> ${r1:-empty})"
+  fi
 fi
 
 echo "=== crash/assert check ===" >> $OUT
 if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/cc.log 2>/dev/null; then
   bad "crash/assert markers in log"; grep -iE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/cc.log | head -5 >> $OUT
 else ok "no crash/assert markers"; fi
-pkill -9 -x "$(basename "${BIN}")" 2>/dev/null
+cleanup_reclaim
 echo "" >> $OUT
 echo "RESULT: $PASS passed, $FAIL failed" >> $OUT
 echo "=== DONE ===" >> $OUT
+[ "$FAIL" = 0 ]

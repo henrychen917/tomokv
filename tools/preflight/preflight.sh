@@ -128,7 +128,7 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
   say "RUN   $name ..."
   rm -f "$2"          # never grade a STALE result file from a previous run
   local rc=0
-  TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1 || rc=$?
+  TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1 || rc=$?
   reap_ours "$name"   # a leak here is what aborted the NEXT suite and got mis-filed as its failure
   local f=0 s=0
   # review fix: the old code graded a MISSING result file as 0 failures => PASS, so a suite that
@@ -163,7 +163,11 @@ run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
 run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
-run_suite $SD/correctness_suite.sh   $PF/correctness_suite.out  $'\tFAIL'
+# correctness output is per invocation. Passing the exact unique path through TOMO_RESULT_FILE
+# lets run_suite grade the file produced by this run without a shared correctness_suite.out that a
+# second invocation can truncate or replace underneath it.
+CORRECTNESS_RESULT=$PF/correctness_suite.${BINSHA}.$$.out
+run_suite $SD/correctness_suite.sh   "$CORRECTNESS_RESULT"       $'\tFAIL'
 # Lookup accounting on the cross-shard merge pipeline (arrived with the fpipe-lru merge). Wired in
 # HERE, at merge time, because this tree has now twice shipped a suite that no preflight run could
 # execute: side_regression.sh sat in tools/preflight/ unreferenced (`grep -c` = 0) while the plan

@@ -22,8 +22,7 @@
 # and cross-shard commands were not counted at all -- against 1.0000 on every row post-fix.
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
-BIN=${TOMO_BIN:?TOMO_BIN required (or pass the binary as $1)}
-BIN=${1:-$BIN}
+BIN=${1:-${TOMO_BIN:?TOMO_BIN required (or pass the binary as a positional argument)}}
 SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT=$J/numcmd_check.out; : > "$OUT"
 PORT=7997
@@ -40,10 +39,21 @@ fi
 # SIGKILLs other sessions' servers with no crash marker, and it does not even match our own server
 # once the caller stages the binary under a private name.
 NCPID=""
-trap 'kill -9 "$NCPID" 2>/dev/null' EXIT TERM INT HUP
+cleanup_numcmd(){
+  if [ -n "${NCPID:-}" ]; then
+    kill -9 "$NCPID" 2>/dev/null
+    wait "$NCPID" 2>/dev/null
+    NCPID=""
+  fi
+}
+# TERM/INT/HUP must `exit` rather than reap directly, so the EXIT trap is the single teardown path.
+trap cleanup_numcmd EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 boot() {  # boot <binary> -> 0 if serving
-  kill -9 "$NCPID" 2>/dev/null; sleep 1
+  cleanup_numcmd; sleep 1
   rm -rf "$D"; mkdir -p "$D"
   cp -f "$1" "$D/redis-numcmd" || return 1
   chmod +x "$D/redis-numcmd"
@@ -71,7 +81,7 @@ arm() {  # arm <label> <binary> <expect: OK|WRONG>
     FAIL=$((FAIL+1)); return 1
   fi
   raw=$(timeout 600 python3 "$SD/numcmd_check.py" $PORT "$label" 2>&1); rc=$?
-  kill -9 "$NCPID" 2>/dev/null; NCPID=""
+  cleanup_numcmd
   printf '%s\n' "$raw" >> "$J/numcmd_check.raw"
   if [ "$rc" -ne 0 ]; then
     echo "numcmd-$label	FAIL	probe exited $rc: $(printf '%s' "$raw" | tail -1)" >> "$OUT"

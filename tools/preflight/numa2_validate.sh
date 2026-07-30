@@ -21,10 +21,26 @@ bad(){ echo "  FAIL: $1" >> $OUT; FAIL=$((FAIL+1)); }
 SRCBIN=${TOMO_BIN:-$J/stable-w/src/redis-server}
 N2BIN=$J/redis-n2; cp -f "$SRCBIN" "$N2BIN" 2>/dev/null; chmod +x "$N2BIN" 2>/dev/null
 N2PID=""
-trap 'kill -9 "$N2PID" 2>/dev/null' EXIT TERM INT HUP
+N2_MTPID=""
+cleanup_n2(){
+  if [ -n "${N2_MTPID:-}" ]; then
+    kill -9 "$N2_MTPID" 2>/dev/null
+    wait "$N2_MTPID" 2>/dev/null
+    N2_MTPID=""
+  fi
+  if [ -n "${N2PID:-}" ]; then
+    kill -9 "$N2PID" 2>/dev/null
+    wait "$N2PID" 2>/dev/null
+    N2PID=""
+  fi
+}
+trap cleanup_n2 EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 boot(){ # $1 = numa nodes
-  kill -9 "$N2PID" 2>/dev/null; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
+  cleanup_n2; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
   taskset -c 0-7 "$N2BIN" --port 7978 --dir $J/n2data --tomokv-nodes $1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
     --save '' --appendonly no --protected-mode no --enable-debug-command yes \
@@ -51,19 +67,29 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
 
   # B. sustained overwrite churn — the leak path, now with 2 node tables + 2 reclaim walks
   R0=$(rss)
-  $MT --test-time=120 --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=1000000 -t 8 -c 25 --pipeline 32 --distinct-client-seed 2>&1 | awk '/^Totals/{print "  churn ops/s:",$2}' >> $OUT
-  R1=$(rss); G=$((R1-R0))
-  echo "  rss ${R0}MB -> ${R1}MB (+${G}MB)" >> $OUT
-  [ "$G" -lt 800 ] && ok "no runaway RSS under numa=2 churn" || bad "RSS grew +${G}MB (reclaim stalled on a node?)"
+  CHURN_OPS=$($MT --test-time=120 --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=1000000 -t 8 -c 25 --pipeline 32 --distinct-client-seed 2>&1 \
+    | awk '/^Totals/{print $2; exit}')
+  case "${CHURN_OPS:-}" in
+    ''|0|0.0|0.00) bad "INVALID: numa=2 churn produced no nonzero Totals ops/s (${CHURN_OPS:-empty})" ;;
+    *) echo "  churn ops/s: $CHURN_OPS" >> $OUT ;;
+  esac
+  R1=$(rss)
+  if [[ "$R0" =~ ^[0-9]+$ && "$R1" =~ ^[0-9]+$ ]]; then
+    G=$((R1-R0))
+    echo "  rss ${R0}MB -> ${R1}MB (+${G}MB)" >> $OUT
+    [ "$G" -lt 800 ] && ok "no runaway RSS under numa=2 churn" || bad "RSS grew +${G}MB (reclaim stalled on a node?)"
+  else
+    bad "INVALID: could not read own-server RSS (${R0:-empty} -> ${R1:-empty})"
+  fi
   n2=$($CLI dbsize); [ "$n2" = "$n" ] && ok "dbsize stable through churn ($n2)" || bad "dbsize $n -> $n2"
   okc=0; for i in 1 2 3 4 5; do [ "$($CLI get n2:$i)" = "val-$i-payload" ] && okc=$((okc+1)); done
   [ "$okc" = 5 ] && ok "sentinel values intact across nodes" || bad "only $okc/5 sentinels intact"
 
   # C. the UAF paths: whole-table walks on io threads while workers free (both node tables)
   $MT --test-time=45 --ratio=1:0 -d 64 --key-pattern=R:R --key-maximum=1000000 -t 6 -c 20 --pipeline 24 --distinct-client-seed >/dev/null 2>&1 &
-  W=$!
+  N2_MTPID=$!; W=$N2_MTPID
   for r in 1 2 3 4 5 6; do $CLI debug digest >/dev/null 2>&1; $CLI bgsave >/dev/null 2>&1; $CLI randomkey >/dev/null 2>&1; sleep 2; done
-  wait $W 2>/dev/null
+  wait $W 2>/dev/null; N2_MTPID=""
   $CLI ping 2>/dev/null | grep -q PONG && ok "survived DIGEST/BGSAVE walks under churn (numa=2)" || bad "died during walks"
 
   # D. cross-node MGET (lock-free readers spanning both node tables) + expire/delete churn
@@ -75,10 +101,10 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
   # E. flips under numa=2 (per-node flip is a staged path)
   M=$(wc -l < $J/numa2.log)
   $MT --test-time=40 --ratio=1:0 -d 32 --key-pattern=R:R --key-maximum=1000000 -t 6 -c 20 --pipeline 16 --distinct-client-seed >/dev/null 2>&1 &
-  W=$!; sleep 6
+  N2_MTPID=$!; W=$N2_MTPID; sleep 6
   $CLI debug tomo-modeshift 70 >/dev/null 2>&1   # per-node grow-front (node 0)
   sleep 10; $CLI debug tomo-modeshift 80 >/dev/null 2>&1
-  wait $W 2>/dev/null; sleep 2
+  wait $W 2>/dev/null; N2_MTPID=""; sleep 2
   echo "  per-node flips: front=$(tail -n +$M $J/numa2.log | grep -c 'GROW-FRONT complete') back=$(tail -n +$M $J/numa2.log | grep -c 'GROW-BACK complete')" >> $OUT
   $CLI ping 2>/dev/null | grep -q PONG && ok "alive after per-node flip attempts" || bad "died on per-node flip"
 
@@ -90,7 +116,8 @@ fi
 if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Guru Meditation' $J/numa2.log 2>/dev/null; then
   bad "crash/assert in numa=2 log"; grep -iE 'Guru Meditation|crashed by signal|ASSERTION FAILED' $J/numa2.log | head -3 >> $OUT
 else ok "no crash/assert markers"; fi
-kill -9 "$N2PID" 2>/dev/null   # our pid only -- never a shared name
+cleanup_n2   # our pid only -- never a shared name
 echo "" >> $OUT
 echo "RESULT: $PASS passed, $FAIL failed" >> $OUT
 echo "=== DONE ===" >> $OUT
+[ "$FAIL" = 0 ]

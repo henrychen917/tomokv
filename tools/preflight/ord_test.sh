@@ -11,6 +11,7 @@ set -u
 # and cannot touch anyone else's.
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp
 BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
+PORT=${PORT_OVERRIDE:-7984}
 # ee451 2026-07-29: DO NOT `pkill -9 -x "$(basename "${BIN}")"` here. Two separate defects, both measured:
 #  (1) it kills EVERY server on the box, including other sessions' -- that is how a live preflight
 #      and several queued jobs died on 2026-07-28; and
@@ -20,19 +21,38 @@ BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
 # inherited that fd, and it therefore held the SHARED BOX LOCK FOREVER. One such leak idled the box
 # for ~4 hours with 10 jobs queued behind it, and it was invisible to `fuser`-style inspection
 # because the holder was a redis-server named "post", not a flock. Kill our OWN pid, nothing else.
-rm -rf $J/otd; mkdir -p $J/otd
-taskset -c 0-7 $BIN --port 7984 --dir $J/otd --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 $EXTRA --save '' --appendonly no \
-  --protected-mode no --logfile $J/ot.log >/dev/null 2>&1 &
-ORD_SRV_PID=$!
+ORD_SRV_PID=""
+cleanup_ord(){
+  if [ -n "${ORD_SRV_PID:-}" ]; then
+    kill -9 "$ORD_SRV_PID" 2>/dev/null
+    wait "$ORD_SRV_PID" 2>/dev/null
+    ORD_SRV_PID=""
+  fi
+}
 # Tear our server down on EVERY exit path -- normal, error, or signal. Without the trap an early
 # `exit` (bind failure, probe timeout) leaks the server and, with it, the box lock.
-trap 'kill -9 "$ORD_SRV_PID" 2>/dev/null' EXIT TERM INT HUP
-sleep 3
-python3 - "$LBL" <<'PY'
+trap cleanup_ord EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
+
+# PORT_OVERRIDE means the caller already owns the server. correctness_suite uses this mode so its
+# ordering probe actually shares the server receiving the concurrent memtier load.
+if [ -z "${PORT_OVERRIDE:-}" ]; then
+  OTD=$(mktemp -d "$J/ord_test.XXXXXX") || exit 2
+  taskset -c 0-7 "$BIN" --port "$PORT" --dir "$OTD" --tomokv-nodes 1 --tomokv-thread-io 4 \
+    --tomokv-thread-ex 4 $EXTRA --save '' --appendonly no \
+    --protected-mode no --logfile "$OTD/server.log" >/dev/null 2>&1 &
+  ORD_SRV_PID=$!
+  sleep 3
+fi
+
+ORD_RC=0
+python3 - "$LBL" "$PORT" <<'PY' || ORD_RC=$?
 import socket,re,sys
 lbl=sys.argv[1]
-try: s=socket.create_connection(("127.0.0.1",7984)); s.settimeout(25)
+port=int(sys.argv[2])
+try: s=socket.create_connection(("127.0.0.1",port)); s.settimeout(25)
 except Exception as e: print(f"{lbl}: BOOTFAIL"); raise SystemExit(1)
 def cmd(*a):
     o=f"*{len(a)}\r\n".encode()
@@ -57,4 +77,5 @@ for p in d.split(b"+OK\r\n")[1:]:
 # read-only pipeline must still take the fast path: verify MGET-only throughput is unhurt
 print(f"{lbl}: checked={chk} stale={stale} => {'FAIL(ordering)' if stale else 'PASS'}")
 PY
-kill -9 "$ORD_SRV_PID" 2>/dev/null   # our pid only -- never a shared name
+cleanup_ord   # our pid only -- never a shared name
+exit "$ORD_RC"
