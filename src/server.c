@@ -90,6 +90,12 @@ struct redisServer server; /* Server global state */
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
 static polyThreadCtx tm_flip_claim_marker;
+/* Startup activation fence. The normal Redis listener is installed before RDB/AOF loading and
+ * processEventsWhileBlocked() may serve CMD_LOADING commands during that window. DEBUG RESHARD is
+ * one such command, so "custom listeners are deferred" is not by itself a control-plane fence:
+ * a pre-start reshard could leave a boot EX->IO transition waiting behind migration_active forever.
+ * Publish only after every Tomo owner thread has adopted its boot role. */
+static _Atomic int tomo_threads_ready;
 
 static inline int tmFlipActive(void) {
     return atomic_load_explicit(&server.tm_flip_ctx, memory_order_acquire) != NULL;
@@ -101,6 +107,10 @@ static inline polyThreadCtx *tmFlipCtxPublished(void) {
 }
 
 static int tmFlipTryClaim(const char **err) {
+    if (!atomic_load_explicit(&tomo_threads_ready, memory_order_acquire)) {
+        *err = "the Tomo thread pool is not active yet";
+        return 0;
+    }
     polyThreadCtx *expected = NULL;
     if (!atomic_compare_exchange_strong_explicit(&server.tm_flip_ctx, &expected,
                                                  &tm_flip_claim_marker,
@@ -413,6 +423,10 @@ static inline int flatIoHi(void) {
 static inline void flatRegisterIoSlot(int slot) {
     serverAssert(slot >= 0 && slot <= flatIoHi());
     serverAssert(flat_extern_depth == 0);      /* identity must never change inside a region */
+    /* An EX->IO conversion keeps the same OS thread. Do not leave flatRetire() pointing at the
+     * worker-private list after that identity stops running commands; non-worker retires belong on
+     * the table's shared stack. The worker hands its already-produced batches to main separately. */
+    flat_local_sink = NULL;
     flat_slot_owned = slot;
 }
 static inline void flatRegisterWorker(void) {
@@ -7066,17 +7080,49 @@ static void flatWorkerReclaim(exThread *worker) {
     }
 }
 
-/* NOTE (deliberate non-feature): main does NOT adopt a non-live worker's pending local retires.
- * It is unnecessary — the residual is BOUNDED, never growing:
- *   - a worker mid-role-change runs no NEW commands (the bucket table routes nothing to it), so it
- *     creates no new retires;
- *   - a converted EX->IO worker still reaches exSlice to drain stragglers, so it keeps running
- *     flatWorkerReclaim and frees its own list;
- * so a stopped worker holds at most the retires of its final pass (plus <=2 un-graced batches),
- * all freed the moment it runs again. It would also be UNSAFE: main cannot steal the list race-free
- * while a non-live worker can still enter exSlice and push (the steal and the push interleave into a
- * lost node whose ->next dangles onto a freed one => double free). Keeping the list strictly
- * worker-private is what makes the hot path atomic-free. */
+/* A role-changing owner publishes its FINAL, detached worker-private batch chain here. This is not
+ * the unsafe "main steals a non-live worker's list" shape: the EX owner first closes admission,
+ * retires every queue frontier, finishes its last exSlice, closes flat_retire_local, and detaches
+ * the chain itself before publishing it with release. It will perform no further EX mutation until
+ * a later IO->EX transition. Main only ever consumes already-detached chains.
+ *
+ * This handoff is necessary because the converted OS thread enters a blocking IO loop and may never
+ * execute another exSlice. Merely bounding the residual would leak value refcounts indefinitely. */
+static _Atomic(flatBatch *) flat_orphan_batches;
+static flatBatch *flat_orphan_batches_main;
+
+static void flatWorkerHandoffReclaims(exThread *worker) {
+    flatWorkerReclaim(worker);
+    flatBatch *head = worker->flat_batches_local;
+    flatBatch *tail = worker->flat_batches_tail;
+    if (!head) return;
+    serverAssert(tail != NULL);
+    worker->flat_batches_local = NULL;
+    worker->flat_batches_tail = NULL;
+
+    flatBatch *old = atomic_load_explicit(&flat_orphan_batches, memory_order_relaxed);
+    do {
+        tail->next = old;
+    } while (!atomic_compare_exchange_weak_explicit(&flat_orphan_batches, &old, head,
+                                                     memory_order_release,
+                                                     memory_order_relaxed));
+}
+
+static void flatReclaimOrphanBatches(void) {
+    /* Avoid an unconditional exchange on a shared line in every beforeSleep pass. */
+    if (atomic_load_explicit(&flat_orphan_batches, memory_order_relaxed)) {
+        flatBatch *incoming =
+            atomic_exchange_explicit(&flat_orphan_batches, NULL, memory_order_acquire);
+        if (incoming) {
+            flatBatch *tail = incoming;
+            while (tail->next) tail = tail->next;
+            tail->next = flat_orphan_batches_main;
+            flat_orphan_batches_main = incoming;
+        }
+    }
+    if (flat_orphan_batches_main)
+        flatDrainReadyBatches(&flat_orphan_batches_main, NULL, NULL);
+}
 
 
 /* ---- RCU retirement of a REPLACED table -------------------------------------------------------
@@ -7125,6 +7171,7 @@ static void flatReclaimTable(flatTable *t) {
 }
 void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
+    flatReclaimOrphanBatches();
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
@@ -8870,8 +8917,10 @@ static inline void *csgCalloc(csGroup *g, size_t n) {
 
 static inline void csgFree(csGroup *g, void *p) {
     if (!p) return;
-    char *b = (char *)g->inl;
-    if ((char *)p >= b && (char *)p < b + g->inl_cap) return;   /* inline: dies with the group */
+    /* Relational comparison of unrelated C pointers is undefined. Integer addresses make this
+     * membership test well-defined for both the inline region and an independent heap spill. */
+    uintptr_t pa = (uintptr_t)p, ba = (uintptr_t)g->inl;
+    if (pa >= ba && pa - ba < (uintptr_t)g->inl_cap) return;   /* inline: dies with the group */
     zfree(p);
 }
 
@@ -10856,6 +10905,9 @@ static _Atomic uint64_t tomo_reshard_cutover_no_coord = 0;
 static _Atomic uint64_t mig_arm_seq = 0;
 static _Atomic uint64_t co_serving_arm = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
+    /* Base Redis can execute CMD_LOADING commands while the dataset is loading. No migration may
+     * publish state until every EX/IO owner has adopted its boot role. */
+    if (!atomic_load_explicit(&tomo_threads_ready, memory_order_acquire)) return 0;
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||        /* review [2]: flush froze boundaries */
         atomic_load_explicit(&tomo_flush_pending, memory_order_acquire) ||
@@ -11228,12 +11280,12 @@ static void reshardCoordinatorTick(void) {
                     serverLog(LL_WARNING,
                               "ee451 reshard ABORT: drain fence did not complete within %d ms; "
                               "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
-                    /* The flip tail must NOT run: action 2 would ask a thread that still owns its
-                     * range for the IO role (its checkpoint asserts zero owned buckets), and action
-                     * 3 publishes a liveness the un-taken FLIP never granted. The flip controller
-                     * has its own watchdog for a conversion that does not land. */
+                    /* The flip tail must NOT request an EX->IO role change or publish a new EX
+                     * liveness: ownership did not move. Keep the action intact until teardown so
+                     * it can roll back the pre-ARM live-set change (action 2), or retry an inactive
+                     * grown-back worker's seed (action 3). Clearing it here leaked a worker from
+                     * the controller's accounting and left tm_flip_ctx claimed forever. */
                     co_aborted = 1;
-                    server.tm_mig_flip_action = 0;
                     atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
                     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
                     /* Same wake as the FLIP path: an abandoned cutover must release its parked
@@ -11331,6 +11383,20 @@ static void reshardCoordinatorTick(void) {
      * requested). Before the release-store this coordinator is still the sole owner. */
     int flip_act = server.tm_mig_flip_action;
     server.tm_mig_flip_action = 0;
+    /* GROW-FRONT delists src before ARM. An aborted fence never moved its buckets, so restore that
+     * exact accounting before reopening migration_active; otherwise fan-outs and the controller
+     * permanently skip a worker that still owns live data. GROW-BACK has already changed role but
+     * is intentionally not live until its seed flips; put its actuator back in phase 1 to re-arm
+     * after this migration has torn down. */
+    int rollback_front = co_aborted && flip_act == 2;
+    if (rollback_front) {
+        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        tmNodeWliveAdd(src, +1);
+        server.tm_flip_aborted_node = tmNodeOfWorker(src);
+        server.tm_flip_aborted = 1;
+    } else if (co_aborted && flip_act == 3) {
+        server.tm_flip_phase = 1;
+    }
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
      * serverLog(), then co_state=IDLE at the end of this function) left a window in which a
      * cross-thread DEBUG RESHARD START could arm a migration that reshardBeginCutover then refused
@@ -11355,7 +11421,11 @@ static void reshardCoordinatorTick(void) {
      * now on dst, CLEANUP deleted the src copies and teardown is complete, so it is safe to ask
      * the thread for its new role. It adopts at its next checkpoint, which drains its (now
      * traffic-less) queues and asserts it owns no buckets before taking the IO identity. */
-    if (flip_act == 2) {
+    if (rollback_front) {
+        serverLog(LL_WARNING, "ee451 flip: GROW-FRONT rollback — worker %d remains EX/live",
+                  src);
+        tmFlipRelease();
+    } else if (flip_act == 2) {
         polyThreadCtx *fc = tmFlipCtxPublished();
         if (fc) {
             atomic_store_explicit(&fc->target_mode, server.tm_flip_target, memory_order_release);
@@ -17632,8 +17702,13 @@ void startTomoThreads(void) {
             }
             for (int i = server.tm_boot_w_live; i < server.num_workers; i++) {
                 polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
-                while (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO)
+                while (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
+                    if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_IO) {
+                        serverLog(LL_WARNING, "Boot IO activation failed for converted worker %d", i);
+                        exit(1);
+                    }
                     sched_yield();
+                }
             }
         }
     }
@@ -17664,6 +17739,19 @@ void startTomoThreads(void) {
         }
         pinIOThreadToCore(t->tid, i);
     }
+    if (server.poly_threads) {
+        for (int i = 1; i < server.io_threads; i++) {
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
+            while (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
+                if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_IO) {
+                    serverLog(LL_WARNING, "Boot IO activation failed for base IO thread %d", i);
+                    exit(1);
+                }
+                sched_yield();
+            }
+        }
+    }
+    atomic_store_explicit(&tomo_threads_ready, 1, memory_order_release);
 }
 /* Thread CPU time is the IO analogue of exThread.tm_busy_us: unlike elapsed time around
  * aeProcessEventsIO(), it excludes time blocked in epoll while including event handlers,
@@ -17826,9 +17914,6 @@ void *polyThreadMain(void *arg) {
                     }
                     serverAssert(resid == 0);
                 }
-                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
-                iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
-                flatRegisterIoSlot(ctx->io_slot);
                 if (!ctx->io_listening) {
                     /* ee451 (rank-2 re-bind fix): an IO-EXIT CLOSES this slot's listener
                      * (tmMigLeaveAcceptGroup — leaving the reuseport dispatch group closes
@@ -17874,6 +17959,16 @@ void *polyThreadMain(void *arg) {
                         ok = 0; break;
                     }
                     ctx->io_listening = 1;
+                }
+                /* Listener activation can fail and roll target_mode back. Commit identity only
+                 * after every fallible IO-entry step succeeded, so a refused shift continues as
+                 * a genuine EX owner rather than EX mode with an IO TLS identity. */
+                if (cur == TOMO_MODE_EX && server.shared_node_dbs)
+                    flatWorkerHandoffReclaims(ctx->ex);
+                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
+                iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
+                flatRegisterIoSlot(ctx->io_slot);
+                if (cur == TOMO_MODE_EX) {
                     serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT role change complete — worker %d is now "
                                          "IO thread %d (iotid=%d), listener live, accepting",
                               ctx->ex ? ctx->ex->id : -1, ctx->io->id, iotid);
