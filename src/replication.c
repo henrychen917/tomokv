@@ -1000,6 +1000,7 @@ int masterTryPartialResynchronization(client *c, long long psync_offset) {
     c->repl_ack_time = server.unixtime;
     c->repl_start_cmd_stream_on_ack = 0;
     listAddNodeTail(server.slaves,c);
+    tomoReplicaClientCountAdd(1);
     /* We can't use the connection buffers since they are used to accumulate
      * new commands at this stage. But we are sure the socket send buffer is
      * empty so this write will never fail actually. */
@@ -1113,6 +1114,7 @@ int startBgsaveForReplication(int mincapa, int req) {
                 slave->replstate = REPL_STATE_NONE;
                 slave->flags &= ~CLIENT_SLAVE;
                 listDelNode(server.slaves,ln);
+                tomoReplicaClientCountAdd(-1);
                 addReplyError(slave,
                     "BGSAVE failed, replication can't continue");
                 slave->flags |= CLIENT_CLOSE_AFTER_REPLY;
@@ -1256,6 +1258,7 @@ void syncCommand(client *c) {
                 c->replstate = SLAVE_STATE_WAIT_RDB_CHANNEL;
                 c->repl_ack_time = server.unixtime;
                 listAddNodeTail(server.slaves, c);
+                tomoReplicaClientCountAdd(1);
                 createReplicationBacklogIfNeeded();
 
                 serverLog(LL_NOTICE,
@@ -1290,6 +1293,7 @@ void syncCommand(client *c) {
     c->repldbfd = -1;
     c->flags |= CLIENT_SLAVE;
     listAddNodeTail(server.slaves,c);
+    tomoReplicaClientCountAdd(1);
 
     /* Create the replication backlog if needed. */
     createReplicationBacklogIfNeeded();

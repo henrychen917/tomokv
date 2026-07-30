@@ -2392,6 +2392,18 @@ static int isValidActiveDefrag(int val, const char **err) {
     return 1;
 }
 
+/* Validate before the numeric config framework publishes server.port. A late apply-hook refusal
+ * alone leaves a window in which a role-changing owner can rebind a custom listener to the
+ * transient new port. Startup parsing precedes custom IO activation and remains fully accepted. */
+static int isValidTomoRuntimePort(long long val, const char **err) {
+    UNUSED(val);
+    if (server.custom_io_threads_active) {
+        *err = "port is immutable while Tomo custom IO listeners are active";
+        return 0;
+    }
+    return 1;
+}
+
 static int isValidDBfilename(char *val, const char **err) {
     if (!pathIsBaseName(val)) {
         *err = "dbfilename can't be a path, just a filename";
@@ -2997,6 +3009,14 @@ static int setConfigBindOption(standardConfig *config, sds* argv, int argc, cons
     UNUSED(config);
     int j;
 
+    /* This setter frees the old strings before the apply hook runs. Refuse before any mutation so
+     * owner threads can never rebind against a transient address set. Startup runs with the custom
+     * pool inactive, so bind remains valid in configuration files. */
+    if (server.custom_io_threads_active) {
+        *err = "bind is immutable while Tomo custom IO listeners are active";
+        return 0;
+    }
+
     if (argc > CONFIG_BINDADDR_MAX) {
         *err = "Too many bind addresses specified.";
         return 0;
@@ -3425,7 +3445,7 @@ standardConfig static_configs[] = {
 
     /* Integer configs */
     createIntConfig("databases", NULL, IMMUTABLE_CONFIG, 1, INT_MAX, server.dbnum, 16, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, NULL, updatePort), /* TCP port. */
+    createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, isValidTomoRuntimePort, updatePort), /* TCP port. */
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
     /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
      * (stock Redis upstream IO threads have been removed); the thread pool is described by

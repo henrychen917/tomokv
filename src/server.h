@@ -6077,6 +6077,7 @@ void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void tomoClientCountAdd(int delta); /* owner publishes its client-list cardinality */
+void tomoReplicaClientCountAdd(int delta); /* publish physical server.slaves cardinality */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 void queueToWorker(client *c, int ex_id);

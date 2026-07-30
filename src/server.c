@@ -248,9 +248,20 @@ _Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
 _Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
                "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+/* Physical downstream-replica connections. server.slaves is a mutable main-owner list and INFO
+ * may execute on another IO owner, so cardinality crosses threads only through this scalar. */
+static _Atomic unsigned long tomo_replica_clients;
 
 void tomoClientCountAdd(int delta) {
     atomic_fetch_add_explicit(&tm_io_sig[iotid].client_count, delta, memory_order_relaxed);
+}
+void tomoReplicaClientCountAdd(int delta) {
+    if (delta > 0)
+        atomic_fetch_add_explicit(&tomo_replica_clients, (unsigned long)delta,
+                                  memory_order_relaxed);
+    else
+        atomic_fetch_sub_explicit(&tomo_replica_clients, (unsigned long)(-delta),
+                                  memory_order_relaxed);
 }
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
@@ -11399,8 +11410,6 @@ static void reshardCoordinatorTick(void) {
         atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
         tmNodeWliveAdd(dst, +1);
         server.tm_relevel_pending = 1;
-        server.tm_flip_aborted_node = tmNodeOfWorker(dst);
-        server.tm_flip_aborted = 1;
     }
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
      * serverLog(), then co_state=IDLE at the end of this function) left a window in which a
@@ -14107,9 +14116,8 @@ static long long expiredSubkeysActiveTotal(void) {
 /* Snapshot the exact owner-published IO constituency. Never traverse another IO owner's
  * server.clients[t] list: listLength itself races its link/unlink writes. */
 static unsigned long tomoClientCountTotal(void) {
-    int nprod = server.custom_io_threads_active
-        ? server.io_threads + server.tm_ngrow_io
-        : 1;
+    int nprod = server.io_threads + server.tm_ngrow_io;
+    if (nprod < 1) nprod = 1;
     unsigned long total = 0;
     for (int t = 0; t < nprod; t++)
         total += (unsigned long)atomic_load_explicit(&tm_io_sig[t].client_count,
@@ -14201,7 +14209,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         totalNumberOfStatefulKeys(&blocking_keys, &blocking_keys_on_nokey, &watched_keys);
         if (sections++) info = sdscat(info,"\r\n");
         unsigned long tomo_clients = tomoClientCountTotal();
-        unsigned long replica_clients = listLength(server.slaves);
+        unsigned long replica_clients =
+            atomic_load_explicit(&tomo_replica_clients, memory_order_relaxed);
         if (replica_clients > tomo_clients) replica_clients = tomo_clients;
         info = sdscatprintf(info, "# Clients\r\n" FMTARGS(
             "connected_clients:%lu\r\n", tomo_clients - replica_clients,

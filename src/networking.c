@@ -2713,6 +2713,7 @@ void freeClient(client *c) {
         ln = listSearchKey(l,c);
         serverAssert(ln != NULL);
         listDelNode(l,ln);
+        if (l == server.slaves) tomoReplicaClientCountAdd(-1);
         /* We need to remember the time when we started to have zero
          * attached slaves, as after some time we'll free the replication
          * backlog. */
