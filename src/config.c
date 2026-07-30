@@ -3284,9 +3284,6 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
     createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
     createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
-    createIntConfig("tomokv-reshard-sustain-ticks",   NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.reshard_sustain_ticks,   0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy single-tick; -1=auto ceil(1/alpha); N=K consecutive-outlier ticks required */
-
-
     /* ================= OS DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults
      * made TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off. That is disabling a
      * feature to simplify a config surface, which is not the same as retiring a knob. */
@@ -3308,7 +3305,7 @@ standardConfig static_configs[] = {
      * the chunk size. Their fields still carry full -1/0/N semantics (see tomoInitRetiredKnobDefaults)
      * for anyone who needs to re-expose one; they are simply not decisions an operator should have to
      * make. Disable the whole balancer with tomokv-key-lb 0. */
-    createIntConfig("tomokv-key-lb-sustain",         NULL, MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-key-lb-sustain",         "tomokv-reshard-sustain-ticks", MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
     /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
      * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
      * path). That is too coarse for the veto: a hot key is one BUCKET, and averaged over its 64
