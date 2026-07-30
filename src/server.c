@@ -226,8 +226,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * the same reason tmMigMailbox.io_exiting is: it is read cross-thread, and a plain int would be
      * a C11 data race even though the load is non-torn in practice. */
     _Atomic int pinned_nonmig;
+    _Atomic int client_count; /* owner-published cardinality; control plane never walks clients[t] */
     unsigned lat_idx;   /* lat_ring cursor (ring is write-only, see tmLatMaybeStamp) */
-    unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
+    _Atomic unsigned long q_full_events;  /* worker-queue exhaustion count; INFO snapshots atomically */
     uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds.
                                        * WRITE-ONLY since 2026-07-28 — see tmLatMaybeStamp. */
 } tmIoSignal;
@@ -241,6 +242,10 @@ _Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
 _Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
                "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+
+void tomoClientCountAdd(int delta) {
+    atomic_fetch_add_explicit(&tm_io_sig[iotid].client_count, delta, memory_order_relaxed);
+}
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
@@ -2824,7 +2829,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
      * tomokv_ex_queue_full) so the sizing is observable, per the "expose the state" rule. Plain
      * increment on a per-io-identity line: this thread is its only writer, and it is off the fast
      * path by construction (we are already about to spin). */
-    tm_io_sig[iotid].q_full_events++;
+    atomic_fetch_add_explicit(&tm_io_sig[iotid].q_full_events, 1, memory_order_relaxed);
     /* Do not hold unrelated staged commands hostage while this producer
      * back-pressures on one full worker. */
     flushExQueues();
@@ -7374,6 +7379,7 @@ void flatReclaimAll(void) {
 
 static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
 static _Atomic int tomo_flush_gate;   /* fwd decl (real def below near flush) */
+static _Atomic unsigned int tomo_flush_pending; /* sentinels not yet retired */
 /* ee451 FLATSTORE Stage-2 COOPERATIVE resize coordinator (main thread, beforeSleep). A NON-BLOCKING
  * state machine — it never spins the main thread (review fix #6): each beforeSleep pass advances one
  * step and returns to the event loop, so PING / cluster bus / accept keep flowing while workers are
@@ -9124,7 +9130,7 @@ static void csPushSpin(int w, client *sub) {
     int counted = 0;
     while (exQueuePush(q, sub) != 0) {
         if (!counted) {
-            tm_io_sig[iotid].q_full_events++;
+            atomic_fetch_add_explicit(&tm_io_sig[iotid].q_full_events, 1, memory_order_relaxed);
             flushExQueues();       /* publish every worker this producer already touched */
             counted = 1;
         }   /* see exDispatchPush */
@@ -10849,6 +10855,12 @@ typedef struct tomoFlushBar {
  * the [1] deadlock); held across census+push (bucket boundaries frozen: reshardArm refuses while
  * set — the [2] TOCTOU); released by the LAST barrier participant. */
 static _Atomic int tomo_flush_gate = 0;
+/* Counts every queued flush sentinel, including the DICT-backed path that
+ * does not need tomo_flush_gate's shared-kvstore rendezvous. Connection
+ * handoff and role conversion snapshot this after their ordinary quiescence
+ * checks so a post-FLUSH command cannot move to a different producer queue
+ * and overtake its sentinel. */
+static _Atomic unsigned int tomo_flush_pending = 0;
 
 void flushAllShards(client *c, int dbid, int async) {
     if (!server.exThreads || server.num_workers <= 0) return;
@@ -10921,6 +10933,8 @@ void flushAllShards(client *c, int dbid, int async) {
         }
         if (total == 0) { zfree(bars); atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release); }
         else {
+            atomic_fetch_add_explicit(&tomo_flush_pending, (unsigned int)total,
+                                      memory_order_release);
             atomic_store_explicit(&bars[0].refs, total, memory_order_relaxed); /* array-level free count */
             for (int w = 0; w < nshard; w++) {
                 int blo = w ? server.ex_bucket_end[w - 1] : 0;
@@ -10937,6 +10951,8 @@ void flushAllShards(client *c, int dbid, int async) {
         emptyDbStructure(server.db, dbid, async, NULL);
         return;
     }
+    atomic_fetch_add_explicit(&tomo_flush_pending, (unsigned int)nflush,
+                              memory_order_release);
     for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         sentinel->is_flush = 1;
@@ -11062,6 +11078,7 @@ static _Atomic uint64_t co_serving_arm = 0;
 static int reshardArm(int lo, int hi, int src, int dst) {
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||        /* review [2]: flush froze boundaries */
+        atomic_load_explicit(&tomo_flush_pending, memory_order_acquire) ||
         atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
         flatResizePending() ||                                                 /* FIX C + #7: excl. flat resize (pending OR active) */
         !reshardRangeValid(lo, hi, src, dst)) {
@@ -11157,8 +11174,6 @@ static void migPushFenceIfNeeded(void) {
  * migration is armed. */
 static int migAnyKeyInRange(client *c) {
     if (!c->cmd || !c->argv) return 0;
-    if (c->cmd->legacy_range_key_spec.bs.index.pos == 1 && c->argc >= 2 && c->argv[1])
-        return migBucketInRange(migKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr)));
     getKeysResult res = GETKEYS_RESULT_INIT;
     int n = getKeysFromCommand(c->cmd, c->argv, c->argc, &res);
     int hit = 0;
@@ -14596,7 +14611,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * that the derived worker dispatch ring is undersized. It back-pressures rather than growing, so
          * without this counter an undersized ring is invisible except as unexplained latency. */
         unsigned long long tomo_qfull = 0;
-        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
+        for (int _t = 0; _t < TOMO_IO_THREADS_MAX; _t++)
+            tomo_qfull += atomic_load_explicit(&tm_io_sig[_t].q_full_events, memory_order_relaxed);
         /* xshard INLINE storage counters. These EXIST so an A/B cannot be vacuous: a build with
          * CS_INLINE_MAX_BYTES 0 must report every array as a heap fallback, and a normal build
          * must report the common case as inline hits. An A/B whose counters read the same on both
@@ -16720,6 +16736,22 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
 }
 
+/* Exact transport quiescence for a worker at a role boundary. `head` advances
+ * before execution, so it is not a retirement proof; retired is published only
+ * after the whole popped batch executes. Producer admission was closed by the
+ * migration DRAINING sentinels before the ownership flip, hence equality for
+ * every real producer is stable at the EX->IO checkpoint. */
+static int exQueuesRetired(exThread *worker) {
+    int nprod = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
+    for (int t = 0; t < nprod; t++) {
+        exQueue *q = &worker->queues[t];
+        unsigned int tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+        if (atomic_load_explicit(&q->retired, memory_order_acquire) != tail)
+            return 0;
+    }
+    return 1;
+}
+
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision — moved VERBATIM from the old
@@ -16945,6 +16977,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                 } else {
                     emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
                 }
+                atomic_fetch_sub_explicit(&tomo_flush_pending, 1, memory_order_release);
                 freeFakeClient(fake);
                 j++;
                 continue;
@@ -17062,6 +17095,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                               memory_order_release);
     }
 
+    /* No flat-table or kvobj access occurs below this point. Publish quiescence
+     * before adaptive PAUSE/yield so a resize never waits on an idle worker. */
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
      * work/spin/yield decision below — work passes fold the standing backlog and accumulate
      * busy TIME; the YIELD branch (a sustained-idleness EPISODE) 0-folds the EWMA; cheap
@@ -17112,9 +17149,6 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         sched_yield();
         ctx->empty_rounds = 0;
     }
-    /* leave the flat section — the coordinator's drain-to-zero can now observe us idle (exSlice has
-     * this single return, so this covers every exit path). */
-    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
     return any;
 }
 
@@ -17656,21 +17690,14 @@ void initExThreads(void) {
              * seeded to match in initIOThreads and initServer. In static mode tm_boot_w_live ==
              * num_workers and the condition is never true, so every worker is EX-born as before.
              * mode is UNSET (not 0, not a role) until the first checkpoint adopts the target. */
-            int born_io = (i >= server.tm_boot_w_live) && ctx->io;
             atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
-            atomic_store_explicit(&ctx->target_mode, born_io ? TOMO_MODE_IO : TOMO_MODE_EX, memory_order_relaxed);
-            if (born_io)
-                serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
-                                     "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
-            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
-                serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
-                exit(1);
-            }
-            server.exThreads[i].thread = ctx->thread;   /* keep exThread.thread meaningful */
-        } else {
-            pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
+            /* Every provisioned worker first adopts EX during startTomoThreads.
+             * Even the symmetric pool's zero-bucket IO-at-boot suffix does so:
+             * the startup barrier can then prove every routable worker is
+             * initialized before any custom listener joins SO_REUSEPORT. The
+             * suffix is retargeted to IO only after that proof. */
+            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_relaxed);
         }
-        pinExToCore(server.exThreads[i].thread, i);   /* same core index either way — pin map unchanged */
     }
 }
 
@@ -17735,20 +17762,15 @@ void initIOThreads(void) {
             exit(1);
         }
 
-        /* Create a SO_REUSEPORT listening socket for this thread */
-        t->fd = anetTcpServer(server.neterr, server.port, NULL, server.tcp_backlog);
+        /* Bind now, but do not listen or spawn. Custom IO must not accept
+         * before ACL loading, worker initialization, and RDB/AOF loading have
+         * completed. startTomoThreads performs the activation barrier. */
+        t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
         if (t->fd == ANET_ERR) {
-            serverLog(LL_WARNING, "Failed creating listening socket for IO thread %d: %s", i, server.neterr);
+            serverLog(LL_WARNING, "Failed binding deferred listener for IO thread %d: %s", i, server.neterr);
             exit(1);
         }
         anetNonBlock(NULL, t->fd);
-
-        /* Register the accept handler on this thread's event loop */
-        if (aeCreateFileEvent(t->el, t->fd, AE_READABLE,
-            connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
-            serverLog(LL_WARNING, "Failed registering accept handler for IO thread %d", i);
-            exit(1);
-        }
 
         /* Stripped down before/after sleep for IO threads */
         aeSetBeforeSleepProc(t->el, beforeSleepIO);
@@ -17758,7 +17780,6 @@ void initIOThreads(void) {
          * thread (registered on its loop now, before the thread starts polling). */
         tmMigInitSlot(i, t->el);
 
-        /* Spin up the thread */
         if (server.poly_threads) {
             /* ee451 (thread-modes v1, step 2): IO-born poly thread. Fixed identity
              * pair: io_slot = its io thread id (listener + event loop pre-built
@@ -17772,19 +17793,10 @@ void initIOThreads(void) {
             ctx->io = t;
             ctx->io_slot = i;
             ctx->ex_slot = server.num_workers + i;
-            ctx->io_listening = 1;   /* listener live from boot */
+            ctx->io_listening = 0;   /* bound, deliberately not live until startup activation */
             atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
             atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_relaxed);
-            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
-                serverLog(LL_WARNING, "Failed creating poly IO thread %d: %s", i, strerror(errno));
-                exit(1);
-            }
-            t->tid = ctx->thread;
-        } else if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
-            serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
-            exit(1);
         }
-        pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
     /* flip: build the dormant io bindings for the growth slots [io_threads .. io_threads+ngrow_io).
      * A converting EX worker's poly thread adopts one at grow-front (its io_slot is stamped in the
@@ -17794,6 +17806,84 @@ void initIOThreads(void) {
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
+}
+
+/* Activate the Tomo thread pool only after ACLs and the on-disk dataset are
+ * fully installed. Allocation/binding happens earlier so RDB loading can route
+ * into server.exThreads[w].db, but no custom socket is listening and no worker
+ * can race the loader until this function.
+ *
+ * Order is load-bearing:
+ *   1. start every provisioned worker in EX mode;
+ *   2. wait for its owner-published mode adoption;
+ *   3. convert the symmetric pool's zero-bucket suffix to IO;
+ *   4. finally listen and start the base IO threads.
+ * Thus the first accepted command always has a fully initialized owner. */
+void startTomoThreads(void) {
+    if (server.exThreads) {
+        for (int i = 0; i < server.num_workers; i++) {
+            if (server.poly_threads) {
+                polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+                if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                    serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
+                    exit(1);
+                }
+                server.exThreads[i].thread = ctx->thread;
+            } else if (pthread_create(&server.exThreads[i].thread, NULL,
+                                      exThreadMain, &server.exThreads[i]) != 0) {
+                serverLog(LL_WARNING, "Failed creating EX thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            pinExToCore(server.exThreads[i].thread, i);
+        }
+        if (server.poly_threads) {
+            for (int i = 0; i < server.num_workers; i++) {
+                polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+                while (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX)
+                    sched_yield();
+            }
+            for (int i = server.tm_boot_w_live; i < server.num_workers; i++) {
+                polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+                serverAssert(ctx->io != NULL);
+                atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);
+                serverLog(LL_NOTICE, "ee451 flip: boot split — zero-bucket worker %d "
+                                     "retargeted to IO thread %d after worker startup barrier",
+                          i, ctx->io_slot);
+            }
+            for (int i = server.tm_boot_w_live; i < server.num_workers; i++) {
+                polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+                while (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO)
+                    sched_yield();
+            }
+        }
+    }
+
+    for (int i = 1; i < server.io_threads; i++) {
+        ioThreadArgs *t = &server.ioThreads[i];
+        if (listen(t->fd, server.tcp_backlog) != 0) {
+            serverLog(LL_WARNING, "Failed activating listener for IO thread %d: %s",
+                      i, strerror(errno));
+            exit(1);
+        }
+        if (aeCreateFileEvent(t->el, t->fd, AE_READABLE,
+            connectionByType(CONN_TYPE_SOCKET)->accept_handler, NULL) == AE_ERR) {
+            serverLog(LL_WARNING, "Failed registering accept handler for IO thread %d", i);
+            exit(1);
+        }
+        if (server.poly_threads) {
+            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
+            ctx->io_listening = 1;
+            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+                serverLog(LL_WARNING, "Failed creating poly IO thread %d: %s", i, strerror(errno));
+                exit(1);
+            }
+            t->tid = ctx->thread;
+        } else if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
+            serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
+            exit(1);
+        }
+        pinIOThreadToCore(t->tid, i);
+    }
 }
 /* Thread CPU time is the IO analogue of exThread.tm_busy_us: unlike elapsed time around
  * aeProcessEventsIO(), it excludes time blocked in epoll while including event handlers,
@@ -17926,15 +18016,14 @@ void *polyThreadMain(void *arg) {
                      * anymore and the live-set fan-outs (KEYS/FLUSH) stopped at live--, one
                      * whole migration earlier. If a migration involving this shard is somehow
                      * still active, stay EX and retry at the next checkpoint. ---- */
-                    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
-                        (server.migration.src == ctx->ex->id || server.migration.dst == ctx->ex->id)) {
+                    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) {
                         ok = 0; break;
                     }
-                    /* Drain stragglers: keep slicing (queues + freeback rings + reply
-                     * signals) until every source has stayed quiet for 50ms. */
-                    mstime_t quiet0 = mstime();
-                    while (mstime() - quiet0 < 50)
-                        if (exSlice(ctx->ex, &exctx)) quiet0 = mstime();
+                    /* The cutover's producer-owned sentinels closed admission
+                     * before it flipped the final range. Retire to the exact
+                     * published frontier; elapsed "quiet" time is not a proof. */
+                    while (!exQueuesRetired(ctx->ex))
+                        exSlice(ctx->ex, &exctx);
                     /* INVARIANT: a worker leaving the EX role owns NOTHING — the outbound
                      * migration moved its whole range. Fail loud rather than strand data.
                      * ee451 (shared-kv): under per-node sharing ctx->ex->db IS the node's shared
@@ -18101,13 +18190,6 @@ void *polyThreadMain(void *arg) {
         switch (cur) {
         case TOMO_MODE_IO:
             ioSlice(ctx->io);
-            /* review [13]: a converted worker's EX queues can still receive a STRAGGLER sub — an
-             * IO thread that snapshotted the live set, stalled past the grow-front 50ms
-             * quiet-drain, and pushed (KEYS fan / flush sentinel). Unconsumed, it would hang the
-             * group barrier forever. Keep draining the dormant EX binding each loop: an
-             * empty-queue scan is a few loads, and a straggler executes against the (empty-range)
-             * shard correctly. */
-            if (ctx->ex) exSlice(ctx->ex, &exctx);
             break;
         case TOMO_MODE_EX: exSlice(ctx->ex, &exctx); break;
         default: {
@@ -18149,6 +18231,16 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inheri
  * holds the atomic flip claim and has validated liveness order; this does the ctx/migration
  * mechanics + BOTH global and node counts. Every refusal releases the claim. */
 static int tomoGrowFrontWorker(int w, const char **err) {
+    if (server.thread_mode != TOMO_THREAD_MODE_AUTO) {
+        *err = "role conversion is disabled in static mode";
+        tmFlipRelease();
+        return 0;
+    }
+    if (atomic_load_explicit(&tomo_flush_pending, memory_order_acquire)) {
+        *err = "a FLUSH sentinel is still in flight";
+        tmFlipRelease();
+        return 0;
+    }
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
     if (io_live >= server.io_threads + server.tm_ngrow_io) { *err = "no growth io slot available"; tmFlipRelease(); return 0; }
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; tmFlipRelease(); return 0; }
@@ -18162,18 +18254,14 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     int lo = (w == 0) ? 0 : server.ex_bucket_end[w - 1];
     int hi = server.ex_bucket_end[w];
     if (hi <= lo) {
-        /* review [5]: a ZERO-BUCKET worker (a grow-back seeded it empty because its neighbour was too
-         * small, or the balancer drained it) must still be RECLAIMABLE — otherwise the pool is stuck a
-         * core short forever. No range to migrate: hand it the IO role right away — its checkpoint's
-         * drain + zero-buckets assertion holds trivially — and let tmFlipTick publish the result. */
-        server.tm_flip_target = TOMO_MODE_IO;
-        atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
-        tmNodeWliveAdd(w, -1);
-        tmFlipPublish(ctx);
-        atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);
-        serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, EX->IO directly (io_slot %d)",
-                  w, ctx->io_slot);
-        return 1;
+        /* A zero-range shortcut has no migration DRAINING epoch and therefore
+         * no per-producer sentinel proof. A producer with a stale live-set
+         * snapshot could enqueue a fanout after the worker changed identity.
+         * Refuse this rare controller move rather than resurrect the invalid
+         * IO-mode dormant exSlice workaround. */
+        *err = "zero-bucket worker has no cutover fence; refusing EX->IO";
+        tmFlipRelease();
+        return 0;
     }
     server.tm_flip_target = TOMO_MODE_IO;
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
@@ -18469,7 +18557,8 @@ static int tmGatherLiveDests(int exclude, int *out, int cap) {
  * NOT be used for load decisions.) Reads are cross-thread-racy but non-torn: fine for a
  * balancing heuristic. */
 static long tmIoThreadLoad(int id) {
-    return server.clients[id] ? (long)listLength(server.clients[id]) : 0;
+    if (id < 0 || id >= TOMO_IO_THREADS_MAX) return 0;
+    return (long)atomic_load_explicit(&tm_io_sig[id].client_count, memory_order_relaxed);
 }
 
 /* Client-LB weight for io thread `id` (events-per-pass, Q4 fixed-point). This is deliberately
@@ -18719,6 +18808,7 @@ static void tmMigHandoff(client *c, int dest) {
         uint64_t idk = htonu64(c->id);
         raxRemove(server.clients_index[iotid], (unsigned char *)&idk, sizeof(idk), NULL);
         listDelNode(server.clients[iotid], c->client_list_node);
+        tomoClientCountAdd(-1);
         c->client_list_node = NULL;
     }
     if (server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;
@@ -18852,6 +18942,8 @@ void tmMigServiceOut(void) {
             continue;
         }
         if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */
+        if (atomic_load_explicit(&tomo_flush_pending, memory_order_acquire))
+            continue;   /* preserve FLUSH ordering across producer-queue handoff */
         int dest;
         if (exiting) {
             /* ee451 (client-lb unify): place each quiesced conn on the currently least-loaded live
@@ -20053,6 +20145,10 @@ int main(int argc, char **argv) {
         aofOpenIfNeededOnServerStart();
         aofDelHistoryFiles();
         applyAppendOnlyConfig();
+        /* Custom sockets were only bound and workers only allocated above.
+         * Activate them after ACL + dataset readiness, immediately before the
+         * server advertises that it can accept commands. */
+        startTomoThreads();
 
         if (server.cluster_enabled) {
             serverAssert(verifyClusterConfigWithData() == C_OK);
@@ -20075,6 +20171,7 @@ int main(int argc, char **argv) {
         }
         warnAboutInsecureConfig();
     } else {
+        startTomoThreads();
         sentinelIsRunning();
         if (server.supervised_mode == SUPERVISED_SYSTEMD) {
             redisCommunicateSystemd("STATUS=Ready to accept connections\n");

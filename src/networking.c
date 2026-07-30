@@ -99,6 +99,7 @@ void freeClientReplyValue(void *o) {
  * unlinkClient() does the opposite, among other things. */
 void linkClient(client *c) {
     listAddNodeTail(server.clients[iotid],c);
+    tomoClientCountAdd(1);
     /* Note that we remember the linked list node where the client is stored,
      * this way removing the client in unlinkClient() will not require
      * a linear scan, but just a constant time operation. */
@@ -1655,7 +1656,15 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * entirely; otherwise a worker fake uses copy-avoidance only when the value is at least
      * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
      * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
-    int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
+    /* A role-convertible worker cannot hand a value reference to an IO thread:
+     * ownership of the key may move before that IO thread returns the ref, at
+     * which point the old and new owners would race the value refcount. AUTO
+     * therefore copies worker replies. Static mode cannot role-shift and keeps
+     * the measured large-value zero-copy path. This is immutable for the life
+     * of the process; no per-reference close protocol or escape remains. */
+    int zc_on = (server.thread_mode != TOMO_THREAD_MODE_AUTO &&
+                 server.zerocopy_min_value > 0 &&
+                 len >= (size_t)server.zerocopy_min_value);
     int on_ex = zc_on && c->isFake && iotid > TOMO_IO_THREADS_MAX;
     if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
@@ -2282,6 +2291,7 @@ void unlinkClient(client *c) {
             uint64_t id = htonu64(c->id);
             raxRemove(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),NULL);
             listDelNode(server.clients[iotid],c->client_list_node);
+            tomoClientCountAdd(-1);
             c->client_list_node = NULL;
         }
 

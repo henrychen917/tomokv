@@ -4305,6 +4305,20 @@ void replicaofCommand(client *c) {
         return;
     }
 
+    /* Boot rejects replication because it cannot see the sharded keyspace.
+     * Apply the same policy to the runtime role-change path; otherwise a
+     * process can bypass the boot check after workers own live data. Keep
+     * NO ONE available so an already-replicating process can recover. */
+    if (server.num_workers > 0 &&
+        (strcasecmp(c->argv[1]->ptr,"no") ||
+         strcasecmp(c->argv[2]->ptr,"one")))
+    {
+        addReplyError(c, "REPLICAOF is not supported with tomokv sharding "
+                         "(tomokv-thread-ex >= 1): replication does not safely "
+                         "manage the sharded keyspace");
+        return;
+    }
+
     /* The special host/port combination "NO" "ONE" turns the instance
      * into a master. Otherwise the new master address is set. */
     if (!strcasecmp(c->argv[1]->ptr,"no") &&
