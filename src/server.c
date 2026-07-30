@@ -213,7 +213,12 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     char _pad_flat_epoch[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
 
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
-    int busy_ewma_q4;   /* ingress: EWMA (Q4, alpha 1/8) of aeProcessEventsIO events-per-pass; 0 = idle passes */
+    int busy_ewma_q4;   /* client-LB load weight only: EWMA (Q4, alpha 1/8) of IO events/pass.
+                         * NOT a utilization signal and not consumed by the flip controller. */
+    unsigned int tm_busy_us; /* thread CPU µs consumed while serving the IO role. Like
+                              * exThread.tm_busy_us, this is a wrap-safe cumulative counter;
+                              * blocked poll time does not advance it, while zero-timeout drain
+                              * spins do. Wraps at ~71min at 100% utilization. */
     int rob;            /* reply-ROB occupancy: snapshot of this thread's replyWorking, published each loop pass */
     /* ee451 (LB-1): does this io thread pin a conn that IO-EXIT could never drain (pubsub/blocked/
      * MULTI/...)? PUBLISHED BY THE OWNER, because server.clients[] is single-writer-per-slot and
@@ -17724,6 +17729,21 @@ void initIOThreads(void) {
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
 }
+/* Thread CPU time is the IO analogue of exThread.tm_busy_us: unlike elapsed time around
+ * aeProcessEventsIO(), it excludes time blocked in epoll while including event handlers,
+ * before-sleep reply drain, and zero-timeout/userpoll spinning. The absolute mark is TLS
+ * because it is accounting state, not a cross-thread signal; only tm_busy_us is published.
+ * One clock read at each pass end makes adjacent deltas telescope, so no start read is needed. */
+static __thread uint64_t tm_io_cpu_mark_us;
+static inline uint64_t tmIoThreadCpuUs(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    return (uint64_t)ts.tv_sec * 1000000ULL + (uint64_t)ts.tv_nsec / 1000ULL;
+}
+static inline void tmIoBusyBegin(void) {
+    tm_io_cpu_mark_us = tmIoThreadCpuUs();
+}
+
 /* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
  * persistent loop-local state of its own (the event loop owns all of it inside
  * t->el), so there is no ioSliceCtx — a slice is exactly one aeProcessEventsIO()
@@ -17732,15 +17752,19 @@ void initIOThreads(void) {
  * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
 static int ioSlice(ioThreadArgs *t) {
     int ne = aeProcessEventsIO(t->el);
-    /* ee451 (thread-modes step 4, signal b): ingress-busy EWMA (Q4, alpha 1/8) of events
-     * per event-loop pass — 0-event (timeout/idle) passes decay it. Own padded line, owner-
-     * written; the balancer samples it racily. NOTE: the main thread runs aeMain (not this
-     * slice), so ingress covers io threads 1..N-1 (+ any grown io slot) only —
-     * main's load is still visible to the balancer via its ROB/write-backlog signals. */
-    if (server.poly_threads) {   /* was thread_auto: busy is consumed by BOTH the flip controller
-                                  * and the continuous client-lb, so maintain it whenever the flip
-                                  * machinery is on (one cheap EWMA/pass). */
+    if (server.poly_threads) {
         tmIoSignal *s = &tm_io_sig[t->id];
+        if (server.thread_auto) {
+            /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
+             * the preceding IO-pass publication (including between-pass IO-role housekeeping);
+             * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
+             * per event. */
+            uint64_t cpu_now_us = tmIoThreadCpuUs();
+            s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
+            tm_io_cpu_mark_us = cpu_now_us;
+        }
+        /* Events/pass remains useful as a relative per-thread weight for client placement,
+         * but zero-event reply-drain passes make it invalid as role saturation. */
         s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     }
     return ne;
@@ -17921,6 +17945,9 @@ void *polyThreadMain(void *arg) {
                 } else if (cur == TOMO_MODE_UNSET) {
                     fprintf(stderr, "IO thread %d started (poly, iotid=%d)\n", ctx->io->id, iotid);
                 }
+                /* Seed after the role transition so EX-role CPU and listener setup are not charged
+                 * to IO utilization. The first ioSlice publishes only CPU spent in the IO role. */
+                tmIoBusyBegin();
                 break;
             case TOMO_MODE_EX:
                 if (!ctx->ex) { ok = 0; break; }        /* no shard slot binding */
@@ -18379,9 +18406,10 @@ static long tmIoThreadLoad(int id) {
     return server.clients[id] ? (long)listLength(server.clients[id]) : 0;
 }
 
-/* flip: ingress-busy EWMA of io thread `id` (events-per-pass, Q4 fixed-point). Reflects real
- * work, not just conn count: 5 busy conns can outweigh 20 idle ones. Cross-thread-racy read of
- * a single int (non-torn) — fine for a balancing heuristic. 0 when the thread has been idle. */
+/* Client-LB weight for io thread `id` (events-per-pass, Q4 fixed-point). This is deliberately
+ * retained for relative connection placement, where per-thread event density is useful, but it
+ * is NOT the flip controller's IO saturation signal (tm_busy_us is). Cross-thread-racy read of
+ * a single int (non-torn) — fine for a balancing heuristic. */
 static double tmIoThreadBusy(int id) {
     return (id >= 0 && id <= TOMO_IO_THREADS_MAX) ? (double)tm_io_sig[id].busy_ewma_q4 : 0.0;
 }
@@ -19006,10 +19034,9 @@ int tomoMigrateTest(int val, const char **err) {
  * fully active, so the only move available is the io/ex boundary — grow-front (ex->io) and
  * grow-back (io->ex) within the node budget, total threads constant. FRONT pressure (io ingress
  * saturated while the workers have slack) -> grow-front; BACK pressure (workers saturated while io
- * has slack) -> grow-back. Signals are worker busy% utilization + ingress events/pass EWMA, with a
+ * has slack) -> grow-back. Signals are IO-thread + worker busy% utilization, with a
  * Schmitt sustain and a post-flip settle cooldown; the flip actuators enforce the per-role bounds.
- * No-op unless tomokv-thread-mode auto (which also feeds busy_ewma_q4, so the grow-front client
- * rebalance runs EWMA-weighted rather than conn-count when this is on). */
+ * No-op unless tomokv-thread-mode auto. */
 /* Per-node flip actuators (topo_nodes>=2). Defined below; see the node-scoped implementations. */
 
 /* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
@@ -19140,6 +19167,9 @@ static void tomoFlipController(void) {
     if (tmFlipActive()) return;                             /* a flip is mid-flight */
 
     static mstime_t prev_wall = 0, last_log = 0;
+    static uint32_t fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_ex_busy_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
+    static mstime_t fc_prev_busy_wall[TM_MAXNODE];
     mstime_t now = mstime();
     long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
     prev_wall = now;
@@ -19191,6 +19221,11 @@ static void tomoFlipController(void) {
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
         flipCtlState *fc = &fctl[node];   /* zero-init is the correct PID start (I=0, bias=0, unprimed) */
+        /* Both role counters below must be divided by wall time over the SAME span. A node body
+         * can be skipped when an earlier node starts a flip, so the controller-entry wall delta
+         * is not necessarily this node's counter-snapshot delta. */
+        long node_wall_ms = fc_prev_busy_wall[node] ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
+        fc_prev_busy_wall[node] = now;
 
         /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
          * (a converted-to-IO worker's counter freezes => contributes 0 delta; the workers that
@@ -19217,18 +19252,26 @@ static void tomoFlipController(void) {
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
         }
-        long ing_sum = 0; int ing_cnt = 0, io_live_node = 0;
+        long io_busy_sum = 0; int io_busy_cnt = 0, io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
+            if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
+            /* Snapshot EVERY node-owned slot, including a growth slot currently serving EX.
+             * Its counter freezes outside the IO role; continuing to advance the baseline here
+             * makes a later EX->IO re-entry naturally start with only this tick's IO CPU. */
+            uint32_t cb = tm_io_sig[t].tm_busy_us;
+            uint32_t db = cb - fc_prev_io_busy_us[node][t];
+            fc_prev_io_busy_us[node][t] = cb;
             polyThreadCtx *ic = tmCtxForIotid(t);
             if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 if (t >= server.io_threads) continue;      /* growth slot not live */
             }
-            if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
-            ing_sum += tm_io_sig[t].busy_ewma_q4 >> 4; ing_cnt++;
+            int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0; /* us/(ms*1000)*100 */
+            if (b > 100) b = 100;
+            io_busy_sum += b; io_busy_cnt++;
             io_live_node++;
         }
-        int ing_mean = ing_cnt ? (int)(ing_sum / ing_cnt) : 0;
+        int io_busy_mean = io_busy_cnt ? (int)(io_busy_sum / io_busy_cnt) : 0;
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
          * any decision is measured against; nothing here is an absolute number). --- */
@@ -19243,7 +19286,7 @@ static void tomoFlipController(void) {
          * idle when the node executed nothing AND shows no queued/ingress pressure — a purely
          * observational fact, not a threshold. Idle ticks freeze mean/var (and the settle/judge
          * phases below see an unchanged mean rather than a crater). */
-        int node_idle = (inst <= 0.0) && (qd_max == 0) && (ing_mean == 0);
+        int node_idle = (inst <= 0.0) && (qd_max == 0) && (io_busy_mean == 0);
         if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
         else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
@@ -19255,32 +19298,28 @@ static void tomoFlipController(void) {
         /* --- BACK pressure = ex-worker utilization: per-worker busy-us delta / wall (0-100),
          * hottest worker, leaky-smoothed — mirrors the quorum balancer's busy signal. Combined with
          * standing queue depth (qd_max) so a saturated-OR-backlogged ex side both read as pressure. */
-        static uint32_t fc_prev_busy_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
-        static mstime_t fc_prev_busy_wall[TM_MAXNODE];
-        /* review [signal]: the busy% delta must be divided by the wall interval OVER THE SAME SPAN as
-         * the tm_busy_us delta. The shared `wall_ms` is once-per-entry, but a node's body may be
-         * SKIPPED for a tick (an earlier node's flip breaks the loop; a refused revert returns), so
-         * fc_prev_busy_us[node] can span 2+ ticks while `wall_ms` spans 1 => a ~2x inflated busy% on
-         * that node. Track the wall per node so both deltas cover the same interval. */
-        long node_wall_ms = fc_prev_busy_wall[node] ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
-        fc_prev_busy_wall[node] = now;
         int busy_max = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
-            uint32_t cb = et->tm_busy_us, db = cb - fc_prev_busy_us[node][w];
-            fc_prev_busy_us[node][w] = cb;
+            uint32_t cb = et->tm_busy_us, db = cb - fc_prev_ex_busy_us[node][w];
+            fc_prev_ex_busy_us[node][w] = cb;
             int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0;   /* us/(ms*1000)*100 */
             if (b > 100) b = 100;
             if (b > busy_max) busy_max = b;
         }
         fc->busy_smooth += (busy_max - fc->busy_smooth) / 2;
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
-         * free, no absolute operating point): io_sat = ingress / ing_distress(32 events/pass);
+         * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
-         * constraint (grow front); <0 => ex is the constraint (grow back). --- */
+         * constraint (grow front); <0 => ex is the constraint (grow back).
+         *
+         * INTENTIONAL RANGE CHANGE: the old events/pass io_sat was unbounded. Utilization bounds
+         * this component to [0, 100/75]. The comparison units stay compatible (dimensionless role
+         * saturation, with 1.0 at the 75% busy distress point), so the phase/deadzone machinery and
+         * its 0.25 constants remain untouched. --- */
         int fc_popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
         long fc_qd_hi = 8L * fc_popmax;
-        double io_sat = (double)ing_mean / 32.0;
+        double io_sat = (double)io_busy_mean / 75.0;
         double ex_sat = fmax((double)fc->busy_smooth / 75.0,
                              fc_qd_hi > 0 ? (double)qd_max / (double)fc_qd_hi : 0.0);
         double imbalance = io_sat - ex_sat;
