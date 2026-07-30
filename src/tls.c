@@ -593,6 +593,7 @@ static void registerSSLEvent(tls_connection *conn, WantIOType want) {
             serverAssert(0);
             break;
     }
+    connUpdateReadableClientEventKind(&conn->c);
 }
 
 static void updateSSLEvent(tls_connection *conn) {
@@ -610,6 +611,8 @@ static void updateSSLEvent(tls_connection *conn) {
         aeCreateFileEvent(conn->c.el, conn->c.fd, AE_WRITABLE, tlsEventHandler, conn);
     if (!need_write && (mask & AE_WRITABLE))
         aeDeleteFileEvent(conn->c.el, conn->c.fd, AE_WRITABLE);
+
+    connUpdateReadableClientEventKind(&conn->c);
 }
 
 /* Add a connection to the list of connections with pending data that has

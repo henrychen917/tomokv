@@ -248,12 +248,15 @@ static int connSocketSetReadHandler(connection *conn, ConnectionCallbackFunc fun
     if (func == conn->read_handler) return C_OK;
 
     conn->read_handler = func;
-    if (!conn->read_handler)
+    int ret = C_OK;
+    if (!conn->read_handler) {
         aeDeleteFileEvent(conn->el,conn->fd,AE_READABLE);
-    else
+    } else {
         if (aeCreateFileEvent(conn->el,conn->fd,
-                    AE_READABLE,conn->type->ae_handler,conn) == AE_ERR) return C_ERR;
-    return C_OK;
+                    AE_READABLE,conn->type->ae_handler,conn) == AE_ERR) ret = C_ERR;
+    }
+    connUpdateReadableClientEventKind(conn);
+    return ret;
 }
 
 static const char *connSocketGetLastError(connection *conn) {

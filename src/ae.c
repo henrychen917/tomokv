@@ -81,13 +81,16 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     eventLoop->maxfd = -1;
     eventLoop->beforesleep = NULL;
     eventLoop->aftersleep = NULL;
+    eventLoop->prefetch_fired = NULL;
     eventLoop->flags = 0;
     memset(eventLoop->privdata, 0, sizeof(eventLoop->privdata));
     if (aeApiCreate(eventLoop) == -1) goto err;
     /* Events with mask == AE_NONE are not set. So let's initialize the
      * vector with it. */
-    for (i = 0; i < eventLoop->nevents; i++)
+    for (i = 0; i < eventLoop->nevents; i++) {
         eventLoop->events[i].mask = AE_NONE;
+        eventLoop->events[i].kind = AE_FILE_EVENT_KIND_NONE;
+    }
     return eventLoop;
 
 err:
@@ -179,8 +182,10 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
         eventLoop->fired = zrealloc(eventLoop->fired, sizeof(aeFiredEvent) * newnevents);
 
         /* Initialize new slots with an AE_NONE mask */
-        for (int i = eventLoop->nevents; i < newnevents; i++)
+        for (int i = eventLoop->nevents; i < newnevents; i++) {
             eventLoop->events[i].mask = AE_NONE;
+            eventLoop->events[i].kind = AE_FILE_EVENT_KIND_NONE;
+        }
         eventLoop->nevents = newnevents;
     }
 
@@ -189,7 +194,12 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
     if (aeApiAddEvent(eventLoop, fd, mask) == -1)
         return AE_ERR;
     fe->mask |= mask;
-    if (mask & AE_READABLE) fe->rfileProc = proc;
+    if (mask & AE_READABLE) {
+        fe->rfileProc = proc;
+        /* A readable event is generic until its owner explicitly identifies
+         * its clientData as a readable client connection. */
+        fe->kind = AE_FILE_EVENT_KIND_NONE;
+    }
     if (mask & AE_WRITABLE) fe->wfileProc = proc;
     fe->clientData = clientData;
     if (fd > eventLoop->maxfd)
@@ -209,6 +219,8 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
 
     aeApiDelEvent(eventLoop, fd, mask);
     fe->mask = fe->mask & (~mask);
+    if ((mask & AE_READABLE) || fe->mask == AE_NONE)
+        fe->kind = AE_FILE_EVENT_KIND_NONE;
     if (fd == eventLoop->maxfd && fe->mask == AE_NONE) {
         /* Update the max fd */
         int j;
@@ -232,6 +244,20 @@ int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
     aeFileEvent *fe = &eventLoop->events[fd];
 
     return fe->mask;
+}
+
+void aeSetFileEventKind(aeEventLoop *eventLoop, int fd, aeFileEventKind kind) {
+    if (fd < 0 || fd >= eventLoop->nevents) return;
+    aeFileEvent *fe = &eventLoop->events[fd];
+
+    if (!(fe->mask & AE_READABLE))
+        kind = AE_FILE_EVENT_KIND_NONE;
+    fe->kind = (unsigned char)kind;
+}
+
+aeFileEventKind aeGetFileEventKind(aeEventLoop *eventLoop, int fd) {
+    if (fd < 0 || fd >= eventLoop->nevents) return AE_FILE_EVENT_KIND_NONE;
+    return (aeFileEventKind)eventLoop->events[fd].kind;
 }
 
 long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
@@ -425,6 +451,9 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
             eventLoop->aftersleep(eventLoop);
 
+        if (numevents && eventLoop->prefetch_fired)
+            eventLoop->prefetch_fired(eventLoop, numevents);
+
         for (j = 0; j < numevents; j++) {
             int fd = eventLoop->fired[j].fd;
             aeFileEvent *fe = &eventLoop->events[fd];
@@ -563,6 +592,9 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     numevents = aeApiPoll(eventLoop, tvp);
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
+    if (numevents && eventLoop->prefetch_fired)
+        eventLoop->prefetch_fired(eventLoop, numevents);
+
     for (int j = 0; j < numevents; j++) {
         int fd = eventLoop->fired[j].fd;
         aeFileEvent *fe = &eventLoop->events[fd];
@@ -631,4 +663,8 @@ void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep
 
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep) {
     eventLoop->aftersleep = aftersleep;
+}
+
+void aeSetFiredEventPrefetchProc(aeEventLoop *eventLoop, aeFiredEventPrefetchProc *prefetch_fired) {
+    eventLoop->prefetch_fired = prefetch_fired;
 }

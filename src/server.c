@@ -201,6 +201,52 @@ static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-i
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 
+/* IO-prefetch counters are owner-local on the request path. Each IO owner periodically publishes
+ * a relaxed atomic snapshot; INFO never reads a live word and no hint performs an atomic RMW. */
+typedef enum {
+    TOMO_IO_PF_INGRESS_PASSES = 0,
+    TOMO_IO_PF_INGRESS_SELECTED,
+    TOMO_IO_PF_INGRESS_SHORT,
+    TOMO_IO_PF_INGRESS_OCCUPANCY,
+    TOMO_IO_PF_INGRESS_CONNECTION,
+    TOMO_IO_PF_INGRESS_CLIENT,
+    TOMO_IO_PF_INGRESS_QUERYBUF,
+    TOMO_IO_PF_INGRESS_BYTES,
+    TOMO_IO_PF_INGRESS_PARTIAL,
+    TOMO_IO_PF_INGRESS_NOISSUE,
+    TOMO_IO_PF_REPLY_PASSES,
+    TOMO_IO_PF_REPLY_GROUPS,
+    TOMO_IO_PF_REPLY_SHORT,
+    TOMO_IO_PF_REPLY_OCCUPANCY,
+    TOMO_IO_PF_REPLY_INFLIGHT,
+    TOMO_IO_PF_REPLY_READY,
+    TOMO_IO_PF_REPLY_RING,
+    TOMO_IO_PF_REPLY_ROUTE,
+    TOMO_IO_PF_REPLY_CDB,
+    TOMO_IO_PF_REPLY_CDB_ACQUIRE,
+    TOMO_IO_PF_REPLY_CLIENT,
+    TOMO_IO_PF_REPLY_FAKE,
+    TOMO_IO_PF_REPLY_BUFFER,
+    TOMO_IO_PF_REPLY_LIST,
+    TOMO_IO_PF_REPLY_NODE,
+    TOMO_IO_PF_REPLY_BLOCK,
+    TOMO_IO_PF_REPLY_BULK_ELIGIBLE,
+    TOMO_IO_PF_REPLY_BULK_OBJECT,
+    TOMO_IO_PF_REPLY_BULK_PAYLOAD,
+    TOMO_IO_PF_REPLY_NO_READY,
+    TOMO_IO_PF_REPLY_NOISSUE,
+    TOMO_IO_PF_STAT_COUNT
+} tomoIoPrefetchStat;
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    unsigned int publish_tick;
+    uint64_t v[TOMO_IO_PF_STAT_COUNT];
+} tomoIoPrefetchLocal;
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic uint64_t v[TOMO_IO_PF_STAT_COUNT];
+} tomoIoPrefetchSnapshot;
+
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
  * io_threads..io_threads+ngrow = flip growth slots). Each field is written ONLY by the owning
@@ -237,12 +283,17 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     _Atomic int pinned_nonmig;
     _Atomic int client_count; /* owner-published cardinality; control plane never walks clients[t] */
     _Atomic unsigned long q_full_events;  /* worker-queue exhaustion count; INFO snapshots atomically */
+    tomoIoPrefetchLocal pf_io_local;
+    tomoIoPrefetchSnapshot pf_io_published;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
+_Static_assert(offsetof(tmIoSignal, pf_io_local) / CACHE_LINE_SIZE
+               != offsetof(tmIoSignal, pf_io_published) / CACHE_LINE_SIZE,
+               "IO prefetch live counters share a cache line with their INFO snapshot");
 _Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
                "flatBatch.io_snap[32+1] in flatstore.h must match TOMO_IO_THREADS_MAX+1");
 _Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
@@ -251,6 +302,30 @@ static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 /* Physical downstream-replica connections. server.slaves is a mutable main-owner list and INFO
  * may execute on another IO owner, so cardinality crosses threads only through this scalar. */
 static _Atomic unsigned long tomo_replica_clients;
+
+int tomoPrefetchIoLevel(void) {
+    int level = server.prefetch_io;
+    return level < 0 ? 4 : level;
+}
+
+static inline void tomoIoPrefetchAdd(tomoIoPrefetchStat stat, uint64_t n) {
+    tm_io_sig[iotid].pf_io_local.v[stat] += n;
+}
+
+static inline void tomoIoPrefetchPublishNow(void) {
+    tmIoSignal *s = &tm_io_sig[iotid];
+    for (int i = 0; i < TOMO_IO_PF_STAT_COUNT; i++)
+        atomic_store_explicit(&s->pf_io_published.v[i], s->pf_io_local.v[i],
+                              memory_order_relaxed);
+}
+
+static inline void tomoIoPrefetchPublish(void) {
+    tmIoSignal *s = &tm_io_sig[iotid];
+    /* Publish the first enabled pass, then every 64. This makes a short diagnostic run visible
+     * without putting an atomic store on every group. Only the owning IO identity calls here. */
+    if (((++s->pf_io_local.publish_tick) & 63u) != 1u) return;
+    tomoIoPrefetchPublishNow();
+}
 
 void tomoClientCountAdd(int delta) {
     atomic_fetch_add_explicit(&tm_io_sig[iotid].client_count, delta, memory_order_relaxed);
@@ -2347,19 +2422,121 @@ static inline int cdbIndexFor(int ex_id) {
     return (ex_id % server.num_cdb);
 }
 
-/* ee451 (S5): combined reply-ready mask = OR of all active CDB masks. Each
- * atomicGetAcquire synchronizes-with the worker release fetch_or on that SAME
- * cdb object, so visibility holds per bit regardless of which CDB carries it.
- * Bound is server.num_cdb (fixed at init): OFF => one load of reply_cdb[0],
- * byte-equivalent to the old single-mask snapshot. Kept element-wise so the
- * compiler cannot collapse the distinct _Atomic objects into one wide load. */
-static inline uint32_t cdbCombinedMask(client *real) {
-    uint32_t m = 0, tmp;
-    for (int c = 0; c < server.num_cdb; c++) {
-        atomicGetAcquire(real->reply_cdb[c].v, tmp);
-        m |= tmp;
+/* The fake captures its completion CDB before dispatch. Probe that exact bus instead of OR-scanning
+ * every worker bus for every pending client (64 acquire loads at full width). A ready-prefix can
+ * cross CDBs, so cache one acquire snapshot per distinct bus encountered in this drain pass. */
+typedef struct cdbReadAcc {
+    int n;
+    uint8_t cdb[TOMO_PIPELINE_DEPTH_MAX];
+    uint32_t mask[TOMO_PIPELINE_DEPTH_MAX];
+} cdbReadAcc;
+
+static inline uint32_t cdbReadMask(cdbReadAcc *a, client *real, int cdb) {
+    serverAssert(cdb >= 0 && cdb < server.num_cdb);
+    for (int i = 0; i < a->n; i++)
+        if (a->cdb[i] == (uint8_t)cdb) return a->mask[i];
+    uint32_t mask;
+    atomicGetAcquire(real->reply_cdb[cdb].v, mask);
+    a->cdb[a->n] = (uint8_t)cdb;
+    a->mask[a->n] = mask;
+    a->n++;
+    return mask;
+}
+
+static inline int cdbForFake(const client *fake) {
+    return server.num_cdb == 1 ? 0 : fake->cdb;
+}
+
+/* Stage the first bounded group of readable client events before AE invokes any callback. Only
+ * explicitly tagged connection-backed events are followed: listener pipes, module fds and other
+ * arbitrary ae clientData never enter this chain. All clients belong to this event-loop owner,
+ * and no callback (hence no client/querybuf mutation or free) runs between these rotations. */
+#define TOMO_IO_PREFETCH_GROUP_MAX 16
+void __attribute__((noinline)) tomoPrefetchIngress(aeEventLoop *eventLoop, int numevents) {
+    connection *conns[TOMO_IO_PREFETCH_GROUP_MAX];
+    int fds[TOMO_IO_PREFETCH_GROUP_MAX];
+    client *clients[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
+    sds querybufs[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
+    int n = 0;
+    uint64_t issued = 0;
+
+    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PASSES, 1);
+    for (int j = 0; j < numevents && n < TOMO_IO_PREFETCH_GROUP_MAX; j++) {
+        int fd = eventLoop->fired[j].fd;
+        if (fd < 0 || fd >= eventLoop->nevents) continue;
+        aeFiredEvent *fired = &eventLoop->fired[j];
+        aeFileEvent *fe = &eventLoop->events[fd];
+        if (!(fired->mask & AE_READABLE) || !(fe->mask & AE_READABLE) ||
+            fe->kind != AE_FILE_EVENT_KIND_CLIENT_READABLE || !fe->clientData)
+            continue;
+        conns[n] = fe->clientData;
+        fds[n++] = fd;
     }
-    return m;
+    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SELECTED, n);
+    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_OCCUPANCY, n);
+
+    /* A three-link chain plus callback needs at least four independent events to create useful
+     * distance. Short polls remain the original callback loop and issue no speculative load. */
+    if (n < 4) {
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SHORT, 1);
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
+        tomoIoPrefetchPublish();
+        return;
+    }
+
+    for (int i = 0; i < n; i++) {
+        redis_prefetch_read(conns[i]);
+        issued++;
+    }
+    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CONNECTION, n);
+
+    /* private_data is read only after its connection line was staged. Hinting the shell does not
+     * dereference it; the next rotation performs the authoritative reverse-association checks. */
+    for (int i = 0; i < n; i++) {
+        if (conns[i]->el != eventLoop || conns[i]->fd != fds[i]) continue;
+        client *c = connGetPrivateData(conns[i]);
+        if (!c) continue;
+        clients[i] = c;
+        redis_prefetch_read(c);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 1);
+    }
+    for (int i = 0; i < n; i++) {
+        client *c = clients[i];
+        if (!c || c->conn != conns[i] || c->tid != iotid) {
+            clients[i] = NULL;
+            continue;
+        }
+        redis_prefetch_read(&c->flags);
+        redis_prefetch_read(&c->io_flags);
+        redis_prefetch_read(&c->querybuf);
+        issued += 3;
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 3);
+    }
+
+    /* Warm SDS metadata before asking for its length. A query buffer exists for every established
+     * network client, but only an already-buffered partial request has bytes useful to the coming
+     * callback; an empty buffer deliberately stops at this stage. */
+    for (int i = 0; i < n; i++) {
+        client *c = clients[i];
+        if (!c || !c->querybuf ||
+            (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)) continue;
+        querybufs[i] = c->querybuf;
+        redis_prefetch_read((char *)querybufs[i] - 1);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_QUERYBUF, 1);
+    }
+    for (int i = 0; i < n; i++) {
+        client *c = clients[i];
+        sds q = querybufs[i];
+        if (!c || !q || sdslen(q) <= c->qb_pos) continue;
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PARTIAL, 1);
+        redis_prefetch_read(q + c->qb_pos);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_BYTES, 1);
+    }
+    if (!issued) tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
+    tomoIoPrefetchPublish();
 }
 
 /* ee451 (#A1): batched CDB clear. The drain paths issued one lock-prefixed fetch_and PER RETIRED SLOT
@@ -2709,17 +2886,11 @@ static inline void foldClientCommandsProcessed(client *real, client *fake) {
     }
 }
 
-void handleWorkerReplies(void) {
-    /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
-     * any reply. This is the single guaranteed pre-drain / pre-sleep point
-     * (beforeSleepIO calls us first each loop), so a staged job is always
-     * visible to its worker before the drain can wait on its slot. */
-    flushExQueues();
-    listIter li;
-    listNode *ln;
-    listRewind(server.clients_pending_ex[iotid], &li);
-    while ((ln = listNext(&li))) {
-        client *real = listNodeValue(ln);
+/* Consume one real client's authoritative ready prefix. The caller owns both `real` and `ln`;
+ * workers only publish reply bits/buffers. Return the client id when its stalled input should be
+ * re-driven after the caller's whole cross-client group is consumed. */
+static uint64_t handleWorkerReplyClient(client *real, listNode *ln,
+                                        const cdbReadAcc *prefetched_cdb) {
 
         /* Guard: real might have been torn down (connection closed,
          * output-buffer-limit overflow, etc.) between dispatch and now.
@@ -2737,13 +2908,14 @@ void handleWorkerReplies(void) {
          * real from the pending_worker list; freeClient will reclaim on the
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
-            uint32_t close_mask;
-            close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
+            cdbReadAcc racc = prefetched_cdb ? *prefetched_cdb : (cdbReadAcc){ .n = 0 };
             cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
                 unsigned int slot = real->flushid & real->ring_mask;
-                if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
+                int cdb = cdbForFake(fake);
+                if (!(cdbReadMask(&racc, real, cdb) & (1u << slot)))
+                    break;  /* wait for the exact worker bus */
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_EX_PENDING;
@@ -2769,31 +2941,26 @@ void handleWorkerReplies(void) {
                 foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
+                cdbClrAdd(&cacc, cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
             }
             cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
             if (real->flushid == real->dispatchid) {
                 listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
-            continue;
+            return 0;
         }
 
-        /* Snapshot the ready-mask once per pass. Acquire pairs with the
-         * workers' release on bit set, so all of each ready fake's reply
-         * writes are visible before we read its buffer. Bits set by workers
-         * after this load just stay for the next drain pass. */
-        uint32_t mask;
-        mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs (1 load when off) */
-
-        /* Fast skip — no slot ready for this client. */
-        if (mask == 0) {
-            if (real->flushid == real->dispatchid) {
-                /* Nothing ready, nothing in flight — drop off the flush list. */
-                listUnlinkNode(server.clients_pending_ex[iotid], ln);
-            }
-            continue;
+        if (real->flushid == real->dispatchid) {
+            listUnlinkNode(server.clients_pending_ex[iotid], ln);
+            return 0;
         }
+        cdbReadAcc racc = prefetched_cdb ? *prefetched_cdb : (cdbReadAcc){ .n = 0 };
+        unsigned int head_slot = real->flushid & real->ring_mask;
+        client *head_fake = real->fakeClients[head_slot];
+        if (!(cdbReadMask(&racc, real, cdbForFake(head_fake)) &
+              (1u << head_slot)))
+            return 0;
 
         /* Splice ready fakes (in ring order) onto real's output, accumulating
          * a single writeToClient call at the end. */
@@ -2813,9 +2980,10 @@ void handleWorkerReplies(void) {
         cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
             unsigned int slot = real->flushid & real->ring_mask;
-            if (!(mask & (1u << slot))) break;   /* head of ring not done */
-
             client *fake = real->fakeClients[slot];
+            int cdb = cdbForFake(fake);
+            if (!(cdbReadMask(&racc, real, cdb) & (1u << slot)))
+                break;   /* head of ring not done */
             int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
             /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
@@ -2871,7 +3039,7 @@ void handleWorkerReplies(void) {
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
                 /* Clear this slot's ready bit so it doesn't linger. */
-                cdbClrAdd(&acc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
+                cdbClrAdd(&acc, cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 close_asap = 1;
                 break;
             }
@@ -2880,7 +3048,7 @@ void handleWorkerReplies(void) {
              * ready bit (relaxed — the only other writers are workers, but
              * they only OR; we're the sole clearer) and retire fake state.
              * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
-            cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
+            cdbClrAdd(&acc, cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
@@ -2924,11 +3092,279 @@ void handleWorkerReplies(void) {
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
             (real->cs_barrier ? (real->dispatchid == real->flushid)
                               : ((real->dispatchid - real->flushid) < real->ring_size)))
-        {
-            real->flags &= ~CLIENT_PIPELINE_STALLED;
-            processInputBuffer(real);
+            return real->id;
+        return 0;
+}
+
+static void resumeWorkerReplyClient(uint64_t id) {
+    client *real = lookupClientByID(id);
+    if (!real || real->tid != iotid) return;
+    if ((real->flags & CLIENT_PIPELINE_STALLED) &&
+        (real->cs_barrier ? (real->dispatchid == real->flushid)
+                          : ((real->dispatchid - real->flushid) < real->ring_size))) {
+        real->flags &= ~CLIENT_PIPELINE_STALLED;
+        processInputBuffer(real);
+    }
+}
+
+typedef struct tomoIoReplyDesc {
+    listNode *ln;
+    client *real;
+    client *fake;
+    list *reply;
+    listNode *reply_node;
+    clientReplyBlock *block;
+    robj *bulk_obj;
+    cdbReadAcc acquired;
+    unsigned int slot;
+    int ready;
+} tomoIoReplyDesc;
+
+static int tomoReplyBulkLength(const bulkStrRef *ref, size_t *len) {
+    long long parsed;
+    size_t n = ref->prefix_cnt;
+    if (n < 4 || n > sizeof(ref->prefix) ||
+        ref->prefix[0] != '$' || ref->prefix[n - 2] != '\r' ||
+        ref->prefix[n - 1] != '\n' ||
+        !string2ll(ref->prefix + 1, n - 3, &parsed) || parsed < 0)
+        return 0;
+    *len = (size_t)parsed;
+    return (long long)*len == parsed;
+}
+
+static size_t tomoIoPayloadBudget(int group_n) {
+    int live = atomic_load_explicit(&server.io_threads_live, memory_order_relaxed);
+    int domains = server.detected_l3_domains > 0 ? server.detected_l3_domains : 1;
+    int sharing = (live + domains - 1) / domains;
+    if (sharing < 1) sharing = 1;
+    if (group_n < 1 || !server.detected_l3_bytes) return 0;
+    return server.detected_l3_bytes / (2UL * (size_t)sharing * (size_t)group_n);
+}
+
+/* Stage exactly the heads this group will consume. The captured completion acquire is passed into
+ * handleWorkerReplyClient(), so this is one consumer pipeline rather than the rejected shape that
+ * walked a same-client ready prefix and then walked it again. Deeper prefix slots continue through
+ * the authoritative helper and exact CDB cache without speculative pointer retention. */
+static uint64_t __attribute__((noinline))
+tomoPrefetchReplyGroup(tomoIoReplyDesc *d, int n, int level) {
+    uint64_t issued = 0;
+    int ready = 0;
+
+    for (int i = 0; i < n; i++) {
+        client *real = d[i].real;
+        redis_prefetch_read(&real->flushid);
+        redis_prefetch_read(&real->reply_cdb);
+        redis_prefetch_read(&real->flags);
+        issued += 3;
+    }
+    tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_CLIENT, (uint64_t)n * 3);
+
+    /* fakeClients[] and fake->cdb are IO-owner dispatch state. Stage the exact ring slot before
+     * loading the persistent shell pointer; high ring indices sit several lines past flushid. */
+    for (int i = 0; i < n; i++) {
+        client *real = d[i].real;
+        if (real->flushid == real->dispatchid) continue;
+        d[i].slot = real->flushid & real->ring_mask;
+        redis_prefetch_read(&real->fakeClients[d[i].slot]);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_RING, 1);
+    }
+    for (int i = 0; i < n; i++) {
+        client *real = d[i].real;
+        if (real->flushid == real->dispatchid) continue;
+        client *fake = real->fakeClients[d[i].slot];
+        if (!fake) continue;
+        d[i].fake = fake;
+        redis_prefetch_read(&fake->cdb);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_ROUTE, 1);
+    }
+    /* No worker-written fake output is read until the exact completion bus has been acquire-loaded
+     * and its head bit is present. cdb is immutable IO dispatch state and is safe after its line. */
+    for (int i = 0; i < n; i++) {
+        client *fake = d[i].fake;
+        if (!fake) continue;
+        int cdb = cdbForFake(fake);
+        d[i].acquired.n = 1;
+        d[i].acquired.cdb[0] = (uint8_t)cdb;
+        redis_prefetch_read(&d[i].real->reply_cdb[cdb].v);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_INFLIGHT, 1);
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_CDB, 1);
+    }
+
+    for (int i = 0; i < n; i++) {
+        client *fake = d[i].fake;
+        if (!fake) continue;
+        uint32_t mask;
+        int cdb = d[i].acquired.cdb[0];
+        atomicGetAcquire(d[i].real->reply_cdb[cdb].v, mask);
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_CDB_ACQUIRE, 1);
+        d[i].acquired.mask[0] = mask;
+        if (!(mask & (1u << fake->fake_slot))) continue;
+        d[i].ready = 1;
+        ready++;
+        redis_prefetch_read(&fake->flags);
+        redis_prefetch_read(&fake->bufpos);
+        redis_prefetch_read(&fake->reply);
+        issued += 3;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_FAKE, 3);
+    }
+    tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_READY, ready);
+    if (!ready) tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NO_READY, 1);
+
+    /* These pointers are worker output and are legal to load only in ready descriptors. The
+     * release completion bit pins their final values; commandProcessed cannot recycle the fake
+     * until this owner consumes it below. */
+    for (int i = 0; i < n; i++) {
+        client *fake = d[i].fake;
+        if (!d[i].ready) continue;
+        if (fake->bufpos && fake->buf) {
+            redis_prefetch_read(fake->buf);
+            issued++;
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_BUFFER, 1);
+        }
+        d[i].reply = fake->reply;
+        if (d[i].reply) {
+            redis_prefetch_read(d[i].reply);
+            issued++;
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_LIST, 1);
         }
     }
+    for (int i = 0; i < n; i++) {
+        if (!d[i].reply || !listLength(d[i].reply)) continue;
+        d[i].reply_node = listFirst(d[i].reply);
+        if (!d[i].reply_node) continue;
+        redis_prefetch_read(d[i].reply_node);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NODE, 1);
+    }
+    for (int i = 0; i < n; i++) {
+        if (!d[i].reply_node) continue;
+        d[i].block = listNodeValue(d[i].reply_node);
+        if (!d[i].block) continue;  /* deferred reply-length placeholder */
+        redis_prefetch_read(d[i].block);
+        issued++;
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_BLOCK, 1);
+    }
+
+    if (level >= 4) {
+        size_t auto_budget = server.prefetch_io < 0 ? tomoIoPayloadBudget(n) : SIZE_MAX;
+        for (int i = 0; i < n; i++) {
+            clientReplyBlock *block = d[i].block;
+            if (!block || !block->buf_encoded ||
+                block->used < sizeof(payloadHeader) + sizeof(bulkStrRef))
+                continue;
+            payloadHeader *head = (payloadHeader *)block->buf;
+            if (head->payload_type != BULK_STR_REF ||
+                head->payload_len != sizeof(bulkStrRef) ||
+                block->used < sizeof(payloadHeader) + head->payload_len)
+                continue;
+            bulkStrRef *ref = (bulkStrRef *)(block->buf + sizeof(payloadHeader));
+            size_t bulk_len;
+            if (!ref->obj || !tomoReplyBulkLength(ref, &bulk_len))
+                continue;
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_BULK_ELIGIBLE, 1);
+            if (bulk_len > auto_budget) continue;
+            d[i].bulk_obj = ref->obj;
+            redis_prefetch_read(d[i].bulk_obj);
+            issued++;
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_BULK_OBJECT, 1);
+        }
+        for (int i = 0; i < n; i++) {
+            robj *obj = d[i].bulk_obj;
+            if (!obj || obj->type != OBJ_STRING ||
+                obj->encoding != OBJ_ENCODING_RAW || !obj->ptr)
+                continue;
+            redis_prefetch_read((char *)obj->ptr - 1);
+            issued++;
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_BULK_PAYLOAD, 1);
+        }
+    }
+    return issued;
+}
+
+static void handleWorkerRepliesSerial(void) {
+    listIter li;
+    listNode *ln;
+    listRewind(server.clients_pending_ex[iotid], &li);
+    while ((ln = listNext(&li))) {
+        client *real = listNodeValue(ln);
+        uint64_t wake_id = handleWorkerReplyClient(real, ln, NULL);
+        if (wake_id) resumeWorkerReplyClient(wake_id);
+    }
+}
+
+static void __attribute__((noinline)) handleWorkerRepliesGrouped(int level) {
+    list *pending = server.clients_pending_ex[iotid];
+    listNode boundary;
+    tomoIoReplyDesc d[TOMO_IO_PREFETCH_GROUP_MAX];
+    uint64_t wake_ids[TOMO_IO_PREFETCH_GROUP_MAX];
+
+    tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_PASSES, 1);
+    if (!listLength(pending)) {
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NOISSUE, 1);
+        tomoIoPrefetchPublish();
+        return;
+    }
+
+    /* Nodes linked after this marker are either already consumed-but-still-in-flight or were
+     * enrolled by a resumed client. Thus callbacks can kill/append clients between groups without
+     * invalidating a saved iterator, and this pass visits every entry present at entry at most once. */
+    listInitNode(&boundary, NULL);
+    listLinkNodeTail(pending, &boundary);
+    while (listFirst(pending) != &boundary) {
+        memset(d, 0, sizeof(d));
+        int n = 0;
+        listNode *ln = listFirst(pending);
+        while (ln != &boundary && n < TOMO_IO_PREFETCH_GROUP_MAX) {
+            d[n].ln = ln;
+            d[n].real = listNodeValue(ln);
+            n++;
+            ln = listNextNode(ln);
+        }
+
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_GROUPS, 1);
+        tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_OCCUPANCY, n);
+        uint64_t issued = 0;
+        if (n < 4) {
+            tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_SHORT, 1);
+        } else {
+            issued = tomoPrefetchReplyGroup(d, n, level);
+        }
+        if (!issued) tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NOISSUE, 1);
+
+        int nwake = 0;
+        for (int i = 0; i < n; i++) {
+            const cdbReadAcc *seed = d[i].acquired.n ? &d[i].acquired : NULL;
+            uint64_t id = handleWorkerReplyClient(d[i].real, d[i].ln, seed);
+            if (id) wake_ids[nwake++] = id;
+
+            /* A still-in-flight real remains enrolled. Move it behind the boundary so the marker
+             * is a stable end-of-snapshot even when the later resume redispatches or kills peers. */
+            if (d[i].real->flushid != d[i].real->dispatchid) {
+                listUnlinkNode(pending, d[i].ln);
+                listLinkNodeTail(pending, d[i].ln);
+            }
+        }
+
+        /* No descriptor pointer is used after this point. IDs are resolved again because one
+         * resumed command may CLIENT KILL another member or migrate it to a different owner. */
+        for (int i = 0; i < nwake; i++)
+            resumeWorkerReplyClient(wake_ids[i]);
+    }
+    listUnlinkNode(pending, &boundary);
+    tomoIoPrefetchPublish();
+}
+
+void handleWorkerReplies(void) {
+    /* Publish every staged dispatch before testing its completion. */
+    flushExQueues();
+    if (__builtin_expect(tomoPrefetchIoLevel() < 3, 1)) {
+        handleWorkerRepliesSerial();
+        return;
+    }
+    handleWorkerRepliesGrouped(tomoPrefetchIoLevel());
 }
 
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
@@ -4658,6 +5094,8 @@ void initServer(void) {
 
     aeSetBeforeSleepProc(server.el, beforeSleep);
     aeSetAfterSleepProc(server.el, afterSleep);
+    if (tomoPrefetchIoLevel() >= 2)
+        aeSetFiredEventPrefetchProc(server.el, tomoPrefetchIngress);
 
     if (server.arch_bits == 32 && server.maxmemory == 0) {
         serverLog(LL_WARNING, "Warning: 32 bit instance detected but no memory limit set. Setting 3 GB maxmemory limit with 'noeviction' policy now.");
@@ -4678,9 +5116,9 @@ void initServer(void) {
 
     applyWatchdogPeriod();
 
-    /* prefetchCommandsBatchInit() removed — upstream command-prefetch batch
-     * (memory_prefetch.c) is unused. Cache warming for worker-dispatched
-     * commands happens in exPrefetchBatch() against the worker's DB. */
+    /* Do not allocate the stock Redis IO-handoff prefetch batch at boot. Tomo rejects that second
+     * IO pool; if it is made reachable later, level 1 lazily constructs the fixed-width batch.
+     * Worker-dispatched commands use exPrefetchBatch() against the real worker DB instead. */
 }
 void initListeners(void) {
     /* Setup listeners from server config for TCP/TLS/Unix */
@@ -14711,6 +15149,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         tomo_pf.mset_groups += atomic_load_explicit(&_p->v[TOMO_PF_MSET_GROUPS], memory_order_relaxed);
         tomo_pf.mset_noissue += atomic_load_explicit(&_p->v[TOMO_PF_MSET_NOISSUE], memory_order_relaxed);
     }
+    uint64_t tomo_io_pf[TOMO_IO_PF_STAT_COUNT] = {0};
+    for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
+        tomoIoPrefetchSnapshot *_p = &tm_io_sig[_t].pf_io_published;
+        for (int _s = 0; _s < TOMO_IO_PF_STAT_COUNT; _s++)
+            tomo_io_pf[_s] += atomic_load_explicit(&_p->v[_s], memory_order_relaxed);
+    }
     if (all_sections || (dictFind(section_dict,"threads") != NULL)) {
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscatprintf(info, "# Threads\r\n");
@@ -14864,6 +15308,89 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomo_prefetch_mget_noissue:%llu\r\n", tomo_pf.mget_noissue,
             "tomo_prefetch_mset_groups:%llu\r\n", tomo_pf.mset_groups,
             "tomo_prefetch_mset_noissue:%llu\r\n", tomo_pf.mset_noissue));
+        uint64_t tomo_io_pf_issued =
+            tomo_io_pf[TOMO_IO_PF_INGRESS_CONNECTION] +
+            tomo_io_pf[TOMO_IO_PF_INGRESS_CLIENT] +
+            tomo_io_pf[TOMO_IO_PF_INGRESS_QUERYBUF] +
+            tomo_io_pf[TOMO_IO_PF_INGRESS_BYTES] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_CLIENT] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_RING] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_ROUTE] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_CDB] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_FAKE] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_BUFFER] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_LIST] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_NODE] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_BLOCK] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_BULK_OBJECT] +
+            tomo_io_pf[TOMO_IO_PF_REPLY_BULK_PAYLOAD];
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_prefetch_io_configured:%d\r\n", server.prefetch_io,
+            "tomokv_prefetch_io_level:%d\r\n", tomoPrefetchIoLevel(),
+            "tomokv_prefetch_io_issued:%llu\r\n",
+                (unsigned long long)tomo_io_pf_issued,
+            "tomokv_prefetch_io_ingress_passes:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_PASSES],
+            "tomokv_prefetch_io_ingress_selected:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_SELECTED],
+            "tomokv_prefetch_io_ingress_short:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_SHORT],
+            "tomokv_prefetch_io_ingress_occupancy:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_OCCUPANCY],
+            "tomokv_prefetch_io_ingress_connection:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_CONNECTION],
+            "tomokv_prefetch_io_ingress_client:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_CLIENT],
+            "tomokv_prefetch_io_ingress_querybuf:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_QUERYBUF],
+            "tomokv_prefetch_io_ingress_bytes:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_BYTES],
+            "tomokv_prefetch_io_ingress_partial:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_PARTIAL],
+            "tomokv_prefetch_io_ingress_noissue:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_INGRESS_NOISSUE],
+            "tomokv_prefetch_io_reply_passes:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_PASSES],
+            "tomokv_prefetch_io_reply_groups:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_GROUPS],
+            "tomokv_prefetch_io_reply_short:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_SHORT],
+            "tomokv_prefetch_io_reply_occupancy:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_OCCUPANCY],
+            "tomokv_prefetch_io_reply_inflight:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_INFLIGHT],
+            "tomokv_prefetch_io_reply_ready:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_READY],
+            "tomokv_prefetch_io_reply_ring:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_RING],
+            "tomokv_prefetch_io_reply_route:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_ROUTE],
+            "tomokv_prefetch_io_reply_cdb:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_CDB],
+            "tomokv_prefetch_io_reply_cdb_acquire:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_CDB_ACQUIRE],
+            "tomokv_prefetch_io_reply_client:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_CLIENT],
+            "tomokv_prefetch_io_reply_fake:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_FAKE],
+            "tomokv_prefetch_io_reply_buffer:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_BUFFER],
+            "tomokv_prefetch_io_reply_list:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_LIST],
+            "tomokv_prefetch_io_reply_node:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_NODE],
+            "tomokv_prefetch_io_reply_block:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_BLOCK],
+            "tomokv_prefetch_io_reply_bulk_eligible:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_BULK_ELIGIBLE],
+            "tomokv_prefetch_io_reply_bulk_object:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_BULK_OBJECT],
+            "tomokv_prefetch_io_reply_bulk_payload:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_BULK_PAYLOAD],
+            "tomokv_prefetch_io_reply_no_ready:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_NO_READY],
+            "tomokv_prefetch_io_reply_noissue:%llu\r\n",
+                (unsigned long long)tomo_io_pf[TOMO_IO_PF_REPLY_NOISSUE]));
         /* MERGE 2026-07-28: the fork-local tomokv_* counters and upstream's Stats block are now
          * TWO sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
          * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
@@ -18080,6 +18607,8 @@ static void tmMakeDormantIoBinding(int slot) {
     if (t->fd == ANET_ERR) { serverLog(LL_WARNING, "flip: dormant listener bind failed slot %d: %s", slot, server.neterr); exit(1); }
     aeSetBeforeSleepProc(t->el, beforeSleepIO);
     aeSetAfterSleepProc(t->el, afterSleepIO);
+    if (tomoPrefetchIoLevel() >= 2)
+        aeSetFiredEventPrefetchProc(t->el, tomoPrefetchIngress);
     tmMigInitSlot(slot, t->el);   /* conn-migration inbox + wakeup, usable once the worker runs IO */
 }
 
@@ -18136,6 +18665,8 @@ void initIOThreads(void) {
         /* Stripped down before/after sleep for IO threads */
         aeSetBeforeSleepProc(t->el, beforeSleepIO);
         aeSetAfterSleepProc(t->el, afterSleepIO);
+        if (tomoPrefetchIoLevel() >= 2)
+            aeSetFiredEventPrefetchProc(t->el, tomoPrefetchIngress);
 
         /* ee451 (thread-modes v1.6): connection-migration mailbox + wakeup fd for this io
          * thread (registered on its loop now, before the thread starts polling). */
@@ -18525,6 +19056,8 @@ void *polyThreadMain(void *arg) {
                                          "0 clients; taking the EX role", ctx->io_slot);
                 }
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
+                if (cur == TOMO_MODE_IO && tomoPrefetchIoLevel() >= 2)
+                    tomoIoPrefetchPublishNow();         /* final owner snapshot before identity retires */
                 iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
                 flatRegisterWorker();
                 if (!ex_inited) {

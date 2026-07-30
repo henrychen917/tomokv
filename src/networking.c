@@ -399,6 +399,7 @@ void freePooledFakeClient(client *c) {
 
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
+    c->conn = conn;
 
     /* ee451 (#75): the S3/S5 per-CDB reply masks are now a HEAP array (c->reply_cdb), aligned to
      * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
@@ -420,8 +421,10 @@ client *createClient(connection *conn) {
         connEnableTcpNoDelay(conn);
         if (server.tcpkeepalive)
             connKeepAlive(conn,server.tcpkeepalive);
-        connSetReadHandler(conn, readQueryFromClient);
         connSetPrivateData(conn, c);
+        connSetReadHandler(conn, readQueryFromClient);
+        if (tomoPrefetchIoLevel() >= 2)
+            connSetReadableClient(conn, 1);
     }
     c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
     selectDb(c,0);
@@ -437,7 +440,6 @@ client *createClient(connection *conn) {
 #else
     c->resp = 2;
 #endif
-    c->conn = conn;
     c->name = NULL;
     c->lib_name = NULL;
     c->lib_ver = NULL;

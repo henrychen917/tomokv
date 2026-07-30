@@ -82,12 +82,12 @@ typedef struct PrefetchCommandsBatch {
     GetValueDataFunc get_value_data_func; /* Function to get the value data */
 } PrefetchCommandsBatch;
 
-/* Tomo KV-dev: this file is dead code. All call sites for the upstream
- * command-prefetch batch have been removed from the fork's live paths.
- * The functions below compile but are never invoked. Left intact rather
- * than deleted to avoid touching the Makefile and to simplify rebase
- * from upstream. */
+/* The upstream command-prefetch batch is reachable only through Redis's stock IO-thread handoff.
+ * Tomo rejects that second IO pool at boot, but keeps the code and accepted config surface for
+ * upstream compatibility. tomokv-prefetch-io level 1 owns this legacy stage if that topology is
+ * made reachable again; Tomo's live custom-IO ingress/reply stages begin at levels 2 and 3. */
 static PrefetchCommandsBatch *batch = NULL;
+#define TOMO_IO_HANDOFF_GROUP 16
 
 void freePrefetchCommandsBatch(void) {
     if (batch == NULL) {
@@ -105,14 +105,12 @@ void freePrefetchCommandsBatch(void) {
 void prefetchCommandsBatchInit(void) {
     serverAssert(!batch);
 
-    /* To avoid prefetching small batches, we set the max size to twice
-     * the configured size, so if not exceeding twice the limit, we can
-     * prefetch all of it. See also `determinePrefetchCount` */
-    size_t max_prefetch_size = server.prefetch_batch_max_size * 2;
-
-    if (max_prefetch_size == 0) {
-        return;
-    }
+    /* tomokv-prefetch-io is the sole IO prefetch policy. Preserve the old hidden
+     * prefetch-batch-max-size parser for config-file compatibility, but do not let it become a
+     * fourth control. Level 1 retains the legacy handoff shape at its former default width:
+     * consume a tail below 2*16 in full, otherwise take 16. */
+    if (tomoPrefetchIoLevel() < 1) return;
+    size_t max_prefetch_size = TOMO_IO_HANDOFF_GROUP * 2;
 
     batch = zcalloc(sizeof(PrefetchCommandsBatch));
     batch->max_prefetch_size = max_prefetch_size;
@@ -301,8 +299,7 @@ static void *getObjectValuePtr(const void *value) {
 
 void resetCommandsBatch(void) {
     if (batch == NULL) {
-        /* Handle the case where prefetching becomes enabled from disabled. */
-        if (server.prefetch_batch_max_size) prefetchCommandsBatchInit();
+        if (tomoPrefetchIoLevel() >= 1) prefetchCommandsBatchInit();
         return;
     }
 
@@ -310,8 +307,7 @@ void resetCommandsBatch(void) {
     batch->key_count = 0;
     batch->client_count = 0;
 
-    /* Handle the case where the max prefetch size has been changed. */
-    if (batch->max_prefetch_size != (size_t)server.prefetch_batch_max_size * 2) {
+    if (batch->max_prefetch_size != TOMO_IO_HANDOFF_GROUP * 2) {
         onMaxBatchSizeChange();
     }
 }

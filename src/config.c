@@ -3252,11 +3252,12 @@ standardConfig static_configs[] = {
      * lever is separately switchable and separately measurable. */
 
     /* ================= PREFETCH ==============================================================
-     * Exactly one EX-side level replaces the retired independent widths. It is immutable so a
-     * worker never crosses partially initialized per-batch state: -1 auto resolves to level 1,
-     * 0 hard-off, 1 current scoreboard, 2 adds FLAT/MGET/next-op, 3 adds RAW payload hints.
-     * Widths, residency, value budget and next-op distance remain derived from live occupancy,
-     * detected L3 and the value-size EWMA. */
+     * Exactly one level per side replaces the retired independent widths. Both are immutable so
+     * an owner never crosses partially initialized per-request state. IO: -1 auto=>4, 0 off,
+     * 1 current handoff, 2 + ingress, 3 + replies, 4 + referenced payload. EX: -1 auto=>1,
+     * 0 off, 1 current scoreboard, 2 + FLAT/MGET/next-op, 3 + RAW payload. */
+    createIntConfig("tomokv-prefetch-io", NULL, IMMUTABLE_CONFIG, -1, 4,
+                    server.prefetch_io, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-prefetch-ex", NULL, IMMUTABLE_CONFIG, -1, 3,
                     server.prefetch_ex, -1, INTEGER_CONFIG, NULL, NULL),
 
@@ -3441,6 +3442,8 @@ standardConfig static_configs[] = {
      * second way to say the same thing. With tomokv-nodes 1 (the default) the new per-node
      * knobs ARE the old flat counts. */
     /* ee451 (reshard-better §1.1): trigger-hardening knobs — every default 0 reproduces legacy behavior bit-for-bit (clean A/B baseline). */
+    /* Accepted for existing Redis config files, but intentionally no longer a Tomo behavior
+     * control: tomokv-prefetch-io is the sole IO prefetch knob and derives its width. */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

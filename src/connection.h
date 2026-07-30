@@ -36,6 +36,7 @@ typedef enum {
 
 #define CONN_FLAG_CLOSE_SCHEDULED   (1<<0)      /* Closed scheduled by a handler */
 #define CONN_FLAG_WRITE_BARRIER     (1<<1)      /* Write barrier requested */
+#define CONN_FLAG_READABLE_CLIENT   (1<<2)      /* private_data is a client on readable events */
 
 #define CONN_TYPE_SOCKET            "tcp"
 #define CONN_TYPE_UNIX              "unix"
@@ -219,6 +220,25 @@ static inline int connSetWriteHandler(connection *conn, ConnectionCallbackFunc f
  */
 static inline int connSetReadHandler(connection *conn, ConnectionCallbackFunc func) {
     return conn->type->set_read_handler(conn, func);
+}
+
+/* Keep the transient ae tag in sync with the persistent connection
+ * declaration.  The flag survives an IO-loop unbind/rebind; the event tag
+ * only exists while a real client read handler is registered. */
+static inline void connUpdateReadableClientEventKind(connection *conn) {
+    if (!conn->el || conn->fd < 0) return;
+    aeFileEventKind kind =
+        (conn->read_handler && (conn->flags & CONN_FLAG_READABLE_CLIENT)) ?
+        AE_FILE_EVENT_KIND_CLIENT_READABLE : AE_FILE_EVENT_KIND_NONE;
+    aeSetFileEventKind(conn->el, conn->fd, kind);
+}
+
+static inline void connSetReadableClient(connection *conn, int enabled) {
+    if (enabled)
+        conn->flags |= CONN_FLAG_READABLE_CLIENT;
+    else
+        conn->flags &= ~CONN_FLAG_READABLE_CLIENT;
+    connUpdateReadableClientEventKind(conn);
 }
 
 /* Set a write handler, and possibly enable a write barrier, this flag is

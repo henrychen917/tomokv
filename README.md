@@ -319,12 +319,19 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 
 ### Batching, spin & prefetch
 
-The retired per-stage prefetch controls remain retired. `tomokv-prefetch-ex` is the single
-startup-only EX control: `-1` auto (the level-1 current behavior), `0` hard off, `1` the
+The retired per-stage prefetch controls remain retired. There is one immutable level per side.
+`tomokv-prefetch-io` is `-1` auto (level 4 with an L3 payload budget), `0` hard off, `1` the
+legacy Redis handoff shape, `2` adds typed readable-event ingress staging, `3` adds cross-client
+reply-source staging, and `4` adds validated referenced RAW payload heads. Its default is `1`.
+`tomokv-prefetch-ex` is `-1` auto (the level-1 current behavior), `0` hard off, `1` the
 metadata/DICT scoreboard plus MSET and BITCOUNT staging, `2` adds FLAT/MGET storage and a live
-DICT next-op look-ahead, and `3` adds exact-key-qualified RAW payload hints. Widths and the
-residency/value budgets are still derived from current occupancy, detected L3, and the value-size
-EWMA rather than exposed independently.
+DICT next-op look-ahead, and `3` adds exact-key-qualified RAW payload hints.
+
+IO reply groups consume the same client heads they stage; they never repeat the measured-negative
+same-client prefix walk. Each fake captures its exact completion bus at dispatch, so a group probes
+one bus per client rather than scanning all worker buses. Both IO and EX widths and their
+residency/value budgets derive from current occupancy, detected L3, and the value-size EWMA rather
+than being exposed independently.
 
 What runs, and what it derives itself:
 

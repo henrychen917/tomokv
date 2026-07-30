@@ -3194,7 +3194,8 @@ struct redisServer {
     int io_threads_active;      /* Is IO threads currently active? */
     pendingCommandPool cmd_pool; /* Shared pool for reusing pendingCommand,
                                   * only when IO threads disabled */
-    int prefetch_batch_max_size;/* Maximum number of keys to prefetch in a single batch */
+    int prefetch_batch_max_size;/* Accepted hidden upstream compatibility value; Tomo IO width is
+                                 * structurally 16 and controlled only by tomokv-prefetch-io. */
     long long events_processed_while_blocked; /* processEventsWhileBlocked() */
     int enable_protected_configs;    /* Enable the modification of protected configs, see PROTECTED_ACTION_ALLOWED_* */
     int enable_debug_cmd;            /* Enable DEBUG commands, see PROTECTED_ACTION_ALLOWED_* */
@@ -3775,6 +3776,9 @@ struct redisServer {
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
+    int prefetch_io;           /* tomokv-prefetch-io: -1 auto=>4, 0 hard off,
+                                * 1 current handoff, 2 + ingress, 3 + replies,
+                                * 4 + referenced reply payload */
     int prefetch_ex;           /* tomokv-prefetch-ex: -1 auto=>1, 0 hard off,
                                 * 1 scoreboard, 2 + FLAT/MGET/next-op, 3 + RAW payload */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
@@ -6040,6 +6044,8 @@ void queueToWorker(client *c, int ex_id);
 void *exThreadMain(void *arg);
 void initExThreads(void);
 void handleWorkerReplies(void);
+int tomoPrefetchIoLevel(void);
+void tomoPrefetchIngress(struct aeEventLoop *eventLoop, int numevents);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */

@@ -47,10 +47,21 @@ typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData,
 typedef int aeTimeProc(struct aeEventLoop *eventLoop, long long id, void *clientData);
 typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientData);
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
+typedef void aeFiredEventPrefetchProc(struct aeEventLoop *eventLoop, int numevents);
+
+/* File-event kinds are deliberately narrow.  Most ae clientData values are
+ * not connections (listeners and notifier pipes are two examples), so an
+ * ingress prefetch hook must only follow clientData for an explicitly tagged
+ * readable client connection. */
+typedef enum aeFileEventKind {
+    AE_FILE_EVENT_KIND_NONE = 0,
+    AE_FILE_EVENT_KIND_CLIENT_READABLE
+} aeFileEventKind;
 
 /* File event structure */
 typedef struct aeFileEvent {
     int mask; /* one of AE_(READABLE|WRITABLE|BARRIER) */
+    unsigned char kind; /* aeFileEventKind; occupies existing pointer-alignment padding */
     aeFileProc *rfileProc;
     aeFileProc *wfileProc;
     void *clientData;
@@ -88,6 +99,7 @@ typedef struct aeEventLoop {
     void *apidata; /* This is used for polling API specific data */
     aeBeforeSleepProc *beforesleep;
     aeBeforeSleepProc *aftersleep;
+    aeFiredEventPrefetchProc *prefetch_fired;
     int flags;
     void *privdata[2];
 } aeEventLoop;
@@ -105,6 +117,8 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
 void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask);
 int aeGetFileEvents(aeEventLoop *eventLoop, int fd);
 void *aeGetFileClientData(aeEventLoop *eventLoop, int fd);
+void aeSetFileEventKind(aeEventLoop *eventLoop, int fd, aeFileEventKind kind);
+aeFileEventKind aeGetFileEventKind(aeEventLoop *eventLoop, int fd);
 long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeTimeProc *proc, void *clientData,
         aeEventFinalizerProc *finalizerProc);
@@ -117,6 +131,7 @@ void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep);
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep);
+void aeSetFiredEventPrefetchProc(aeEventLoop *eventLoop, aeFiredEventPrefetchProc *prefetch_fired);
 int aeGetSetSize(aeEventLoop *eventLoop);
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize);
 void aeSetDontWait(aeEventLoop *eventLoop, int noWait);
