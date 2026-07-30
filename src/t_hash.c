@@ -386,7 +386,9 @@ void listpackExExpire(redisDb *db, kvobj *kv, ExpireInfo *info, int activeEx) {
 
         propagateHashFieldDeletion(db, key, (char *)((fref) ? fref : intbuf), flen);
         server.stat_expired_subkeys++;
-        if (activeEx) server.stat_expired_subkeys_active++;
+        /* activeEx == 2 is the sharded worker cycle. Its owning exThread folds a
+         * worker-private counter into INFO; do not race this main-thread stat. */
+        if (activeEx == 1) server.stat_expired_subkeys_active++;
 
         ptr = lpNext(lpt->lp, ptr);
 
@@ -1870,6 +1872,8 @@ void hashTypeRandomElement(robj *hashobj, unsigned long hashsize, CommonEntry *k
  *
  * updateSubexpires - If the hash should be updated in the subexpires DB with new
  *                   expiration time in case expired fields were deleted.
+ * activeEx         - 0 for lazy expiry, 1 for the main-thread active cycle, and
+ *                   2 for the sharded worker cycle (whose caller owns its stat).
  *
  * Return next Expire time of the hash
  * - 0 if hash got deleted
@@ -3522,7 +3526,7 @@ static ExpireAction onFieldExpire(eItem item, void *ctx) {
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(expCtx->db, getKeySlot(key), kv, oldsize, kvobjAllocSize(kv));
     server.stat_expired_subkeys++;
-    if (expCtx->activeEx)
+    if (expCtx->activeEx == 1)
         server.stat_expired_subkeys_active++;
     return ACT_REMOVE_EXP_ITEM;
 }

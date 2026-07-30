@@ -1766,14 +1766,17 @@ void databasesCron(void) {
             flatExternEnter();   /* FLATSTORE QSBR: samples/deletes hold raw flat pointers */
             activeExpireCycle(ACTIVE_EXPIRE_CYCLE_SLOW);
             flatExternExit();
-            /* ee451 (bug #42): the call above walks server.db, which under sharding is the empty
-             * DECOY — it can never expire a real key. The real keyspace is the per-node db owned
-             * bucket-range-by-bucket-range by the EX workers, and only the OWNING worker may delete
-             * from it (main reaching in would break the single-writer invariant the whole sharding
-             * design rests on). So publish the CADENCE here and let each worker run its own bounded
-             * pass from exSlice: one release store per cron tick, edge-detected by each worker.
-             * Without this, a key given a TTL and never touched again was NEVER reclaimed —
-             * invisible to functional tests because lazy expiry keeps every read correct. */
+            /* ee451 (bug #42/#50): the call above walks server.db, which under sharding is the
+             * empty DECOY — it can expire neither a real key (activeExpireCycle) nor a real
+             * hash field (activeSubexpiresCycle, which walks the same decoy's `subexpires`
+             * estore). The real keyspace is the per-node db owned bucket-range-by-bucket-range by
+             * the EX workers, and only the OWNING worker may delete from it (main reaching in
+             * would break the single-writer invariant the whole sharding design rests on). So
+             * publish the CADENCE here and let each worker run its own bounded pass from exSlice:
+             * one release store per cron tick, edge-detected by each worker.
+             * Without this, a key OR HASH FIELD given a TTL and never touched again was NEVER
+             * reclaimed — invisible to functional tests because lazy expiry keeps every read
+             * correct. */
             if (server.num_workers > 0)
                 atomic_fetch_add_explicit(&server.tomo_expire_gen, 1, memory_order_release);
         } else {
@@ -3904,11 +3907,15 @@ void resetServerStats(void) {
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
-    /* ee451 (bug #42): and the per-worker active-expire counters expiredKeysActiveTotal() folds in,
+    /* ee451 (bug #42/#50): and the per-worker active-expire counters the INFO fold helpers read,
      * for the same reason as the per-thread command counters above — clearing only the fold
      * baseline would leave INFO reporting the pre-reset total. */
-    if (server.exThreads)
-        for (int w = 0; w < server.num_workers; w++) server.exThreads[w].aexp_active = 0;
+    if (server.exThreads) {
+        for (int w = 0; w < server.num_workers; w++) {
+            server.exThreads[w].aexp_active = 0;
+            server.exThreads[w].asubexp_active = 0;
+        }
+    }
     server.stat_expired_subkeys = 0;
     server.stat_expired_subkeys_active = 0;
     server.stat_expired_stale_perc = 0;
@@ -13890,6 +13897,18 @@ static long long expiredKeysActiveTotal(void) {
     return s;
 }
 
+/* ee451 (bug #50): hash-field active expiry follows the SAME worker-private accounting rule, and
+ * for the same reason — expired_subkeys_active is the only instrument that separates the active
+ * HFE cycle from lazy field expiry, and it read 0 forever on a sharded server. The main-thread
+ * component stays in the sum for non-sharded operation (and for the decoy cycle, which contributes
+ * nothing but costs nothing to include). */
+static long long expiredSubkeysActiveTotal(void) {
+    long long s = server.stat_expired_subkeys_active;
+    if (server.exThreads)
+        for (int w = 0; w < server.num_workers; w++) s += server.exThreads[w].asubexp_active;
+    return s;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -14328,7 +14347,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "sync_partial_ok:%lld\r\n", server.stat_sync_partial_ok,
             "sync_partial_err:%lld\r\n", server.stat_sync_partial_err,
             "expired_subkeys:%lld\r\n", server.stat_expired_subkeys,
-            "expired_subkeys_active:%lld\r\n", server.stat_expired_subkeys_active,
+            "expired_subkeys_active:%lld\r\n", expiredSubkeysActiveTotal(),
             "expired_keys:%lld\r\n", server.stat_expiredkeys,
             "expired_keys_active:%lld\r\n", expiredKeysActiveTotal(),
             "expired_stale_perc:%.2f\r\n", server.stat_expired_stale_perc*100,
@@ -16431,7 +16450,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * kvstore, so no worker has anything to do for it. The loop_seq heartbeat above keeps beating
      * regardless: the coordinator's RCU teardown still waits on it. */
 
-    /* ee451 (bug #42): ACTIVE EXPIRY of this worker's OWN bucket range. Edge-triggered off the
+    /* ee451 (bug #42/#50): ACTIVE EXPIRY of the keys AND hash fields in this worker's OWN bucket
+     * range (one budget, shared: the hash-field half runs first and is charged to the SAME
+     * deadline, so enabling it did not create a second 2% allowance). Edge-triggered off the
      * cadence counter main bumps once per serverCron tick, so the steady-state cost of the check is
      * one relaxed load of a read-mostly line (it shares one with flat_resize_active, which this pass
      * has already touched) plus a compare — the pass runs at most server.hz times a second and is
@@ -16450,7 +16471,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      *    EX->PARKED or EX->IO because of background reclaim would be a wrong actuation. The cost is
      *    that the balancer under-reads a worker's true CPU by at most
      *    ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC% (2% at the default effort), and only while there are
-     *    expired keys to reclaim.
+     *    expired keys or fields to reclaim.
      *  - ops_total / lb_grp_ops: NOT bumped. The key-LB / auto-reshard bucket balancer therefore
      *    does not read expiry as bucket heat. Correct: this sweep is uniform across the worker's
      *    whole range by construction, so attributing it to buckets would inject a flat DC offset

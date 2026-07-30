@@ -2436,7 +2436,7 @@ typedef struct exThread {
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */
-    /* ee451 (bug #42): per-worker ACTIVE-EXPIRE cycle state. All four are worker-private (written
+    /* ee451 (bug #42): per-worker ACTIVE-EXPIRE cycle state. All are worker-private (written
      * only by the owning worker from exSlice), so they need no atomics; aexp_active is read racily
      * by INFO on another thread, which is fine for a stat. Appended at the very END for the same
      * reason the reclaim fields above were: inserting mid-struct shifts the tuned hot block.
@@ -2444,6 +2444,11 @@ typedef struct exThread {
      *   aexp_dbid   sweep cursor: which db (0..dbnum-1) — carried across ticks so every db is swept
      *   aexp_bucket sweep cursor: which bucket-dict WITHIN this worker's own [lo,hi) range
      *   aexp_cursor kvstoreScan cursor inside that one bucket-dict (0 = bucket finished)
+     *   asubexp_*   the parallel db/bucket/backlog state for HASH-FIELD TTLs (bug #50). subexpires
+     *               is an estore bucketed by the SAME tomo bucket index as the keyspace
+     *               (estoreCreate(.., TOMO_BUCKET_BITS), estoreAdd keyed by getKeySlot), so the
+     *               owner's [lo,hi) range selects it exactly and no dictScan cursor is needed —
+     *               ebExpire drains a bucket to completion or to the field quota.
      * A reshard moves the range under us; the cursor is then simply out of range and restarts at
      * the range start. That costs one re-sweep, never a wrong-owner touch (see exActiveExpireCycle). */
     uint32_t aexp_gen;
@@ -2451,6 +2456,10 @@ typedef struct exThread {
     int aexp_bucket;
     unsigned long long aexp_cursor;
     unsigned long long aexp_active;         /* keys this worker actively expired (folded into INFO) */
+    int asubexp_dbid;
+    int asubexp_bucket;
+    unsigned long long asubexp_sequence;    /* fields expired while a bucket remains backlogged */
+    unsigned long long asubexp_active;      /* fields actively expired (folded into INFO) */
     /* ee451 (2026-07-28): the ARMED per-BUCKET load window (see TOMO_LB_FINE_WIN). lb_fine_win is
      * written ONLY by the main thread (the 1 Hz balancer) and read relaxed by the owning worker;
      * the counters are written ONLY by the owning worker and read (never written) by the balancer,
@@ -5675,10 +5684,12 @@ void handleExpiredIdmpEntries(void);
 
 /* expire.c -- Handling of expired keys */
 void activeExpireCycle(int type);
-/* ee451 (bug #42): the SHARDED half of active expiry. activeExpireCycle() above walks server.db,
- * which is the empty decoy under sharding; this one is run BY a worker, on its OWN bucket range of
- * the real node db, at the cadence server.tomo_expire_gen publishes. See expire.c for the full
- * rationale (why not on main, why not via activeExpireCycleTryExpire). */
+/* ee451 (bug #42/#50): the SHARDED half of active expiry, for whole keys AND hash fields.
+ * activeExpireCycle()/activeSubexpiresCycle() above walk server.db, which is the empty decoy under
+ * sharding; this one is run BY a worker, on its OWN bucket range of the real node db, at the
+ * cadence server.tomo_expire_gen publishes. See expire.c for the full rationale (why not on main,
+ * why not via activeExpireCycleTryExpire, and why the hash-field half takes the whole node's
+ * worker-lock set rather than just the owner's). */
 void exActiveExpireCycle(exThread *worker);
 void expireSlaveKeys(void);
 void rememberSlaveKeyWithExpire(redisDb *db, sds key);

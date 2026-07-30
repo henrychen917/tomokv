@@ -379,6 +379,7 @@ be reset on another, clearing the wrong thread's flag.
 candidate fix must be judged over many runs — a single green fence run is luck, not evidence.
 | #48 | reshard read-straddle (part of #19) | |
 | #49 | pipelined **cross-key** non-serialisation — owner ruled *not guaranteed*, so **document, don't fix** | |
+| #50 | HASH-FIELD TTLs were never actively reclaimed — `activeSubexpiresCycle()` walks the `server.db` decoy's `subexpires`, exactly bug #42 one level down. Silent unbounded leak; lazy expiry keeps every read correct so no functional test could see it | **FIXED** — worker-side `exActiveSubexpiresCycle()`, `tools/preflight/active_subexpiry_probe.sh` |
 | — | `SCAN` returns 0 keys when `!(flat_store && shared_node_dbs)` | config-derived |
 | F-clock | workers share ONE coarse `cmd_time_snapshot` | **FIXED** 2026-07-28 — see §A-F below |
 
