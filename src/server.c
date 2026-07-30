@@ -389,14 +389,20 @@ static __thread int      flat_slot_owned  = FLAT_SLOT_NONE;  /* io slot this thr
 static __thread int      flat_epoch_slot  = -1;              /* slot LATCHED at the outermost enter */
 static __thread uint64_t flat_epoch_val;                     /* the ODD value published at that enter */
 static __thread int      flat_foreign_held;                  /* 1 => this thread holds the global pin */
+/* Worker queues with producer-private jobs staged by this IO owner. One bit per
+ * provisioned worker (the global cap is exactly 64). A full scan of every
+ * worker at both parse completion and before-sleep made batching cost O(W)
+ * even when a request touched one shard; this makes the publishing pass its
+ * own exact work list. */
+static __thread uint64_t ex_staged_workers;
 
 /* ONE bound expression for the io constituency. Boot-fixed (server.io_threads and tm_ngrow_io are
  * computed once in initServer), so slot MEMBERSHIP never changes at runtime — only occupancy. Every
  * writer AND every reader must use this, so the reader constituency can never be narrower than the
  * writer set. */
 static inline int flatIoHi(void) {
-    int hi = server.io_threads + server.tm_ngrow_io;
-    return hi > TOMO_IO_THREADS_MAX ? TOMO_IO_THREADS_MAX : hi;
+    int hi = server.io_threads + server.tm_ngrow_io - 1;
+    return hi >= TOMO_IO_THREADS_MAX ? TOMO_IO_THREADS_MAX - 1 : hi;
 }
 
 /* Positive slot claim. Called at EVERY site that assigns iotid; nothing else may publish an epoch.
@@ -2804,7 +2810,14 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * publish later at flushExQueues (handleWorkerReplies top / beforeSleep). */
 static inline void exDispatchPush(int ex_id, client *fake) {
     exQueue *q = &server.exThreads[ex_id].queues[iotid];
-    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
+    uint64_t bit = UINT64_C(1) << ex_id;
+    /* Arrival is a property of this logical dispatch, not of a ring retry. */
+    if (__builtin_expect(server.strict_order != 0, 0))
+        fake->arrival_us = getMonotonicUs();
+    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
+        ex_staged_workers |= bit;
+        return;                                                   /* staged; batched publish later */
+    }
     /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
      * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
      * undersized worker dispatch ring showed up only as unexplained latency. Count it (INFO:
@@ -2812,6 +2825,9 @@ static inline void exDispatchPush(int ex_id, client *fake) {
      * increment on a per-io-identity line: this thread is its only writer, and it is off the fast
      * path by construction (we are already about to spin). */
     tm_io_sig[iotid].q_full_events++;
+    /* Do not hold unrelated staged commands hostage while this producer
+     * back-pressures on one full worker. */
+    flushExQueues();
     int spins = 0;
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
@@ -2819,6 +2835,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         if ((++spins & 4095) == 0) sched_yield();
     } while (exQueuePush(q, fake) != 0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+    ex_staged_workers &= ~bit;
 }
 
 /* ee451 (#B2): fold a retiring fake's per-client command count into its real client.
@@ -4238,6 +4255,19 @@ void initServer(void) {
      * flipping, not a separate switch. */
     server.tm_flip_rebalance = server.thread_auto;
 
+    /* This fork owns its IO threads, event loops, client lists and command
+     * execution. Upstream io-threads would create a second, incompatible pool
+     * over the same connections. Keep the accepted CONFIG name for existing
+     * files, but refuse the only unsafe values rather than silently starting
+     * both models. */
+    if (server.io_threads_num != 1) {
+        serverLog(LL_WARNING,
+            "FATAL: 'io-threads %d' is not supported by TomoKV. TomoKV already "
+            "runs its own dedicated IO pool; set io-threads 1 and size it with "
+            "tomokv-thread-io.", server.io_threads_num);
+        exit(1);
+    }
+
     /* ---- clusters: REFUSED, because tomokv sharding owns the kvstore geometry ---------------
      * cluster-enabled and tomokv sharding both want to define what a kvstore "slot" IS.  Cluster
      * indexes the 16384 dicts by CRC16 hash slot (getKeySlot -> the cluster slot); tomokv indexes
@@ -4312,10 +4342,26 @@ void initServer(void) {
                       "<= cores-per-node.", ipn, epn, cpn);
             exit(1);
         }
+        long io_total = (long)nodes * ipn;
+        long ex_total = (long)nodes * epn;
+        if (io_total > TOMO_IO_THREADS_MAX ||
+            ex_total > TOMO_EX_THREADS_MAX ||
+            io_total + ex_total > TOMO_THREADS_MAX)
+        {
+            serverLog(LL_WARNING,
+                "FATAL: global TomoKV topology exceeds fixed capacity: "
+                "%d node(s) x (io %d + ex %d) => io=%ld/%d ex=%ld/%d "
+                "total=%ld/%d. tomokv-thread-io and tomokv-thread-ex are "
+                "per-node; reduce the per-node split or tomokv-nodes.",
+                nodes, ipn, epn, io_total, TOMO_IO_THREADS_MAX,
+                ex_total, TOMO_EX_THREADS_MAX, io_total + ex_total,
+                TOMO_THREADS_MAX);
+            exit(1);
+        }
         server.topo_nodes = nodes; server.cores_per_node = cpn;
         server.io_per_node = ipn; server.ex_per_node = epn;
-        server.io_threads = nodes * ipn;                         /* GLOBAL totals */
-        server.ex_threads = nodes * epn;
+        server.io_threads = (int)io_total;                       /* GLOBAL totals */
+        server.ex_threads = (int)ex_total;
         serverLog(LL_NOTICE, "tomokv topology: %d node(s) x %d cores (io %d + ex %d per node) "
                   "=> io_threads=%d ex_threads=%d, thread-mode=%s, pin-mode=%s",
                   nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
@@ -4378,6 +4424,16 @@ void initServer(void) {
         server.tm_ngrow_io = server.ex_threads - 1;
         if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
+    }
+    if (server.thread_auto && server.tm_ngrow_io == 0) {
+        serverLog(LL_WARNING,
+            "tomokv thread-mode auto has no IO growth slot at this topology "
+            "(io=%d ex=%d, fixed maxima %d+%d); holding the configured split "
+            "and disabling controller-only hot-path signals.",
+            server.io_threads, server.ex_threads,
+            TOMO_IO_THREADS_MAX, TOMO_EX_THREADS_MAX);
+        server.thread_auto = 0;
+        server.tm_flip_rebalance = 0;
     }
     /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this
      * server. It would run every command inline on the IO threads against the shared decoy
@@ -4526,7 +4582,7 @@ void initServer(void) {
     /* Initialize per-thread client lists (index 0 = main thread, 1..N = IO threads). flip: include
      * the growth io slots [io_threads .. io_threads+ngrow_io) so a converted worker running IO has
      * live per-iotid structures (handleWorkerReplies/beforeSleepIO index these by iotid). */
-    for (int t = 0; t <= server.io_threads + server.tm_ngrow_io; t++) {
+    for (int t = 0; t < server.io_threads + server.tm_ngrow_io; t++) {
         server.unblocked_clients[t] = listCreate();
         server.clients_index[t]                  = raxNew();
         server.clients[t]                        = listCreate();
@@ -9061,10 +9117,17 @@ static void csFreeSub(client *sub) {
  * concurrently, so the full-spin is bounded by its pop rate. */
 static void csPushSpin(int w, client *sub) {
     exQueue *q = &server.exThreads[w].queues[iotid];
+    uint64_t bit = UINT64_C(1) << w;
+    if (__builtin_expect(server.strict_order != 0, 0))
+        sub->arrival_us = getMonotonicUs();
     int spins = 0;
     int counted = 0;
     while (exQueuePush(q, sub) != 0) {
-        if (!counted) { tm_io_sig[iotid].q_full_events++; counted = 1; }   /* see exDispatchPush */
+        if (!counted) {
+            tm_io_sig[iotid].q_full_events++;
+            flushExQueues();       /* publish every worker this producer already touched */
+            counted = 1;
+        }   /* see exDispatchPush */
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exPauseCpu();
@@ -9072,6 +9135,9 @@ static void csPushSpin(int w, client *sub) {
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    /* The release above also published any ordinary commands previously
+     * staged for this worker, so a later sparse flush must not revisit it. */
+    ex_staged_workers &= ~bit;
 }
 
 /* xshard (universal): the shared COALESCED scatter used by every 1-hop cross-shard read/scatter cmd
@@ -15965,19 +16031,22 @@ void exQueueInit(exQueue *q) {
  * it (standard SPSC batch publish). */
 void flushExQueues(void) {
     exThread *ex = server.exThreads;
-    if (!ex) return;
-    /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop.
-     * SLOT-sized, unconditionally — exQueuePush only STAGES; this publish is what makes a job
-     * visible to its worker. A grow-back seed FLIP can route to a revived slot before its
-     * liveness signal propagates, so EVERY slot's queues must be covered (a job staged there
-     * but never published = a hung client). For a slot with no traffic the extra iteration is
-     * a no-op compare (staged_tail == tail, no store). */
-    int nw = server.num_workers;
-    for (int w = 0; w < nw; w++) {
+    if (!ex) {
+        ex_staged_workers = 0;
+        return;
+    }
+    /* Snapshot-and-clear before publishing. This is thread-local producer
+     * state, so no atomic operation is needed and no owner can be missed. A
+     * revived worker is covered as soon as routing stages its first job: the
+     * bit denotes actual work, not a liveness snapshot. */
+    uint64_t dirty = ex_staged_workers;
+    ex_staged_workers = 0;
+    while (dirty) {
+        int w = __builtin_ctzll(dirty);
+        dirty &= dirty - 1;
+        serverAssert(w < server.num_workers);
         exQueue *q = &ex[w].queues[iotid];
-        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-        if (q->staged_tail != published)
-            atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
     }
 }
 
@@ -16006,7 +16075,7 @@ static inline void freebackDrainAll(exThread *worker) {
      * fills and freebackPush spins forever (wedging that IO thread + leaking every forwarded value).
      * The growth slots are alloc-sized and empty until live, so the extra iterations are no-ops. */
     int nfb = server.io_threads + server.tm_ngrow_io;
-    for (int t = 0; t <= nfb; t++) {
+    for (int t = 0; t < nfb; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
@@ -16020,9 +16089,6 @@ static inline void freebackDrainAll(exThread *worker) {
 }
 
 int exQueuePush(exQueue *q, client *c) {
-    /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
-     * Gated so the default (off) hot path pays nothing. */
-    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
      * flushExQueues() (handleWorkerReplies top), batching up to
@@ -16647,7 +16713,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + 1 + (server.poly_threads ? server.tm_ngrow_io : 0);
+    ctx->nq = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -17550,7 +17616,7 @@ void initExThreads(void) {
          * thread. Without this, the 2nd+ grow-front conversion pushes to an uninitialized queue
          * (crash). Slot io_threads (the 1st conversion) was already covered by <=io_threads. */
         int nprod_slots = server.io_threads + server.tm_ngrow_io;
-        for (int t = 0; t <= nprod_slots; t++) {
+        for (int t = 0; t < nprod_slots; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
             /* ee451 (S8): init this worker's free-back ring for producer t. */
             freebackRing *fb = &server.exThreads[i].freeback[t];
@@ -18384,8 +18450,8 @@ static int tmGatherLiveDests(int exclude, int *out, int cap) {
     /* Bound includes the flip growth slots (io_threads..io_threads+tm_ngrow_io): a converted
      * worker running as IO is a valid migration dest. The mode==IO gate below excludes any
      * grown slot that isn't currently live, so widening the range is safe. */
-    int hi = server.io_threads + server.tm_ngrow_io;
-    for (int id = 1; id <= hi && n < cap; id++) {
+    int nprod = server.io_threads + server.tm_ngrow_io;
+    for (int id = 1; id < nprod && n < cap; id++) {
         if (id == exclude) continue;
         if (atomic_load_explicit(&tm_mig_mbox[id].io_exiting, memory_order_relaxed)) continue;
         polyThreadCtx *ctx = tmCtxForIotid(id);
@@ -19253,8 +19319,8 @@ static void tomoFlipController(void) {
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
         }
         long io_busy_sum = 0; int io_busy_cnt = 0, io_live_node = 0;
-        int io_hi = server.io_threads + server.tm_ngrow_io;
-        for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
+        int nprod = server.io_threads + server.tm_ngrow_io;
+        for (int t = 1; t < nprod && t < TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             /* Snapshot EVERY node-owned slot, including a growth slot currently serving EX.
              * Its counter freezes outside the IO role; continuing to advance the baseline here

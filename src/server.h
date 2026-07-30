@@ -1470,6 +1470,7 @@ typedef struct {
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
 #define TOMO_IO_THREADS_MAX 32
 #define TOMO_EX_THREADS_MAX 64
+#define TOMO_THREADS_MAX (TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX)
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
@@ -2280,17 +2281,19 @@ typedef struct exQueue {
     redisAtomic unsigned int retired;
     redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451: cached_head — non-atomic snapshot of `head`, touched ONLY by the
-     * producer (owning IO thread). Sits after `tail` on tail's cache line,
-     * which the producer already owns. The producer tests "full" against
+     * producer (owning IO thread). Keep it and staged_tail on a producer-private
+     * line: the worker acquire-loads tail whenever its cached view empties, and
+     * must not pull the producer's two write-hot cursors into that shared line.
+     * The producer tests "full" against
      * cached_head and only acquire-reloads the real head when the cache says
      * full. cached_head can only lag the true head — never a false not-full. */
-    unsigned int cached_head;
+    unsigned int cached_head __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (S4): batched producer-side push. exQueuePush writes jobs[] and
      * advances this producer-private staged_tail WITHOUT publishing; the owning
      * IO thread publishes all staged jobs with ONE release-store of `tail` per
-     * queue at flushExQueues() (called at the top of handleWorkerReplies,
+     * touched queue at flushExQueues() (called at the top of handleWorkerReplies,
      * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
-     * tail release-stores into one. Producer-private, lives on tail's line. */
+     * tail release-stores into one. Producer-private, lives with cached_head. */
     unsigned int staged_tail;
     client *jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } exQueue;
