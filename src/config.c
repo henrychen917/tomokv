@@ -3123,44 +3123,14 @@ void rewriteConfigLatencyTrackingInfoPercentilesOutputOption(standardConfig *con
 }
 
 static int applyClientMaxMemoryUsage(const char **err) {
-    listIter li;
-    listNode *ln;
-
-    /* TASK#37 (review fix): the bucket machinery is only safe under provable main exclusivity, and
-     * initServerClientMemUsageBuckets() now refuses to build the buckets otherwise — but it refuses
-     * SILENTLY, so `CONFIG SET maxmemory-clients` used to return +OK and leave client eviction
-     * accepted-and-unenforced (boot refuses FATAL; runtime did not). Refuse explicitly instead. */
-    if (server.maxmemory_clients != 0 && !clientMemBucketsExclusive()) {
+    /* Client eviction depended on the deleted sharding-off execution model.
+     * Keep the configuration surface for compatibility, but reject attempts
+     * to enable it exactly as every supported configuration did before. */
+    if (server.maxmemory_clients != 0) {
         *err = "maxmemory-clients (client eviction) is not supported when IO threads or workers "
                "are enabled — the client memory-usage buckets require single-threaded exclusivity";
         return 0;
     }
-
-    /* server.client_mem_usage_buckets is an indication that the previous config
-     * was non-zero, in which case we can exit and no apply is needed. */
-    if(server.maxmemory_clients !=0 && server.client_mem_usage_buckets)
-        return 1;
-    if (server.maxmemory_clients != 0)
-        initServerClientMemUsageBuckets();
-
-    pauseAllIOThreads();
-    /* When client eviction is enabled update memory buckets for all clients.
-     * When disabled, clear that data structure. */
-    listRewind(server.clients[iotid], &li);
-    while ((ln = listNext(&li)) != NULL) {
-        client *c = listNodeValue(ln);
-        if (server.maxmemory_clients == 0) {
-            /* Remove client from memory usage bucket. */
-            removeClientFromMemUsageBucket(c, 0);
-        } else {
-            /* Update each client(s) memory usage and add to appropriate bucket. */
-            updateClientMemUsageAndBucket(c);
-        }
-    }
-    resumeAllIOThreads();
-
-    if (server.maxmemory_clients == 0)
-        freeServerClientMemUsageBuckets();
     return 1;
 }
 

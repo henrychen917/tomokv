@@ -151,12 +151,6 @@ struct hdr_histogram;
 #define CONFIG_STREAM_IDMP_MIN_MAXSIZE 1         /* Min IDMP max entries. */
 #define CONFIG_STREAM_IDMP_MAX_MAXSIZE 10000     /* Max IDMP max entries. */
 
-/* Bucket sizes for client eviction pools. Each bucket stores clients with
- * memory usage of up to twice the size of the bucket below it. */
-#define CLIENT_MEM_USAGE_BUCKET_MIN_LOG 15 /* Bucket sizes start at up to 32KB (2^15) */
-#define CLIENT_MEM_USAGE_BUCKET_MAX_LOG 33 /* Bucket for largest clients: sizes above 4GB (2^32) */
-#define CLIENT_MEM_USAGE_BUCKETS (1+CLIENT_MEM_USAGE_BUCKET_MAX_LOG-CLIENT_MEM_USAGE_BUCKET_MIN_LOG)
-
 #define ACTIVE_EXPIRE_CYCLE_SLOW 0
 #define ACTIVE_EXPIRE_CYCLE_FAST 1
 
@@ -1392,11 +1386,6 @@ typedef struct replDataBuf {
                              * the db. */
 } replDataBuf;
 
-typedef struct {
-    list *clients;
-    size_t mem_usage_sum;
-} clientMemUsageBucket;
-
 #define DEFERRED_OBJECT_TYPE_PENDING_COMMAND 1
 #define DEFERRED_OBJECT_TYPE_ROBJ 2
 /* Structure to hold objects that need to be freed later by IO threads.
@@ -1682,13 +1671,6 @@ typedef struct client {
      * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
     listNode *mig_parked_node;
     int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
-    /* ee451 (thread-modes step 4, p99 guardrail): dispatch timestamp (getMonotonicUs) on
-     * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
-     * dispatch (BEFORE the queue push) and read+cleared by the SAME IO thread at drain
-     * retire — the worker never touches it, so there is no cross-thread access. Gated on
-     * tomokv-thread-mode auto (a stale stamp surviving a balance-off window is discarded by
-     * the drain's 10s sanity cap). */
-    uint64_t tm_lat_stamp;
     uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
                                 * tomokv-strict-order != 0). Within a queue it is monotonic
                                 * (single producer), so the head is that queue's oldest; the
@@ -1839,9 +1821,6 @@ typedef struct client {
     size_t last_memory_usage;
     int last_memory_type;
 
-    listNode *mem_usage_bucket_node;
-    clientMemUsageBucket *mem_usage_bucket;
-
     listNode *ref_repl_buf_node; /* Referenced node of replication buffer blocks,
                                   * see the definition of replBufBlock. */
     size_t ref_block_pos;        /* Access position of referenced buffer block,
@@ -1855,6 +1834,8 @@ typedef struct client {
     size_t io_bound_block_pos;   /* Bound position we are sending repl data from
                                   * in IO thread. */
 
+    /* Intrusive nodes for owner-only hot lists. */
+    listNode clients_pending_ex_node;
     /* list node in clients_pending_write list */
     listNode clients_pending_write_node;
     /* list node in clients_with_pending_ref_reply list */
@@ -3236,9 +3217,6 @@ struct redisServer {
     unsigned int client_default_resp;
 #endif
 
-    /* Stuff for client mem eviction */
-    clientMemUsageBucket* client_mem_usage_buckets;
-
     rax *clients_timeout_table; /* Radix tree for blocked clients timeouts. */
     /* ee451 (A-F.4): `int execution_nesting` USED TO LIVE HERE. It is now the thread-local
      * `execution_nesting` declared below — see the block comment at its definition in server.c. */
@@ -3677,7 +3655,7 @@ struct redisServer {
     /* Limits */
     unsigned int maxclients;            /* Max number of simultaneous clients */
     unsigned long long maxmemory;   /* Max number of memory bytes to use */
-    ssize_t maxmemory_clients;       /* Memory limit for total client buffers */
+    ssize_t maxmemory_clients;       /* Compatibility config; nonzero is unsupported */
     int maxmemory_policy;           /* Policy for key eviction */
     int maxmemory_samples;          /* Precision of random sampling */
     int maxmemory_eviction_tenacity;/* Aggressiveness of eviction processing */
@@ -4782,7 +4760,6 @@ int getClientTypeByName(char *name);
 char *getClientTypeName(int class);
 void flushSlavesOutputBuffers(void);
 void disconnectSlaves(void);
-void evictClients(void);
 int listenToPort(connListener *fds);
 void pauseActions(pause_purpose purpose, mstime_t end, uint32_t actions_bitmask);
 void unpauseActions(pause_purpose purpose);
@@ -4796,9 +4773,6 @@ void blockingOperationStarts(void);
 void blockingOperationEnds(void);
 int handleClientsWithPendingWrites(void);
 int clientHasPendingReplies(client *c);
-int clientMemBucketsExclusive(void);   /* TASK#37: bucket machinery only under provable main exclusivity */
-int updateClientMemUsageAndBucket(client *c);
-void removeClientFromMemUsageBucket(client *c, int allow_eviction);
 void unlinkClient(client *c);
 void tryUnlinkClientFromPendingRefReply(client *c, int force);
 int writeToClient(client *c, int handler_installed);
@@ -5454,8 +5428,6 @@ void initConfigValues(void);
 void removeConfig(sds name);
 sds getConfigDebugInfo(void);
 int allowProtectedAction(int config, client *c);
-void initServerClientMemUsageBuckets(void);
-void freeServerClientMemUsageBuckets(void);
 static inline int clusterSlotStatsEnabled(int stat) { return server.cluster_enabled && (server.cluster_slot_stats_enabled & stat); }
 
 /* Module Configuration */

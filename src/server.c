@@ -196,7 +196,6 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
  * io_threads..io_threads+ngrow = flip growth slots). Each field is written ONLY by the owning
  * IO thread (no false sharing — the line is private) and read racily by the 4Hz controller on
  * the main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
-#define TM_LAT_RING 64
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* LINE 0 — read-mostly, snapshotted by every batch close (flatBatchClose) and probed per-batch
      * in flatBatchReady only while that batch's io_pin_mask bit is set. Nothing hot-written may
@@ -227,10 +226,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * a C11 data race even though the load is non-torn in practice. */
     _Atomic int pinned_nonmig;
     _Atomic int client_count; /* owner-published cardinality; control plane never walks clients[t] */
-    unsigned lat_idx;   /* lat_ring cursor (ring is write-only, see tmLatMaybeStamp) */
     _Atomic unsigned long q_full_events;  /* worker-queue exhaustion count; INFO snapshots atomically */
-    uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds.
-                                       * WRITE-ONLY since 2026-07-28 — see tmLatMaybeStamp. */
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -504,24 +500,6 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta);
 static int tomoGrowFrontNode(int node, const char **err);  /* per-node flip actuators */
 static int tomoGrowBackNode(int node, const char **err);
 
-/* ee451 (thread-modes step 4): stamp ~1/1024 worker-dispatched fakes with a dispatch timestamp.
- * Called on the dispatching IO thread right BEFORE the queue push (the worker never reads the
- * field, so there is no cross-thread access; the drain that reads it runs on this same thread).
- * The unconditional stamp-or-zero store keeps recycled ring slots from carrying a stale stamp
- * while the controller is on.
- *
- * ORPHANED 2026-07-28, READ BY NOTHING. Its one consumer was the reserve-thread quorum
- * balancer's p99 VETO, deleted with the reserve thread; tomoFlipController has no p99 guardrail.
- * The samples still land in tm_io_sig[].lat_ring and are never read. Left in place ONLY because
- * removing client.tm_lat_stamp reshapes a layout-sensitive struct and this fork has measured
- * double-digit swings from exactly that — it needs an A/B on an idle box, which the deletion
- * commit could not get. NEXT TOUCH: either wire lat_ring into tomoFlipController as its veto, or
- * delete stamp+ring+client field together and measure. Do not leave it half-alive. */
-static inline void tmLatMaybeStamp(client *fake) {
-    if (!server.thread_auto) return;
-    static __thread unsigned tm_lat_ctr = 0;
-    fake->tm_lat_stamp = ((++tm_lat_ctr & 1023u) == 0) ? getMonotonicUs() : 0;
-}
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -1496,63 +1474,6 @@ int clientsCronTrackExpansiveClients(client *c) {
     return 0; /* This function never terminates the client. */
 }
 
-/* All normal clients are placed in one of the "mem usage buckets" according
- * to how much memory they currently use. We use this function to find the
- * appropriate bucket based on a given memory usage value. The algorithm simply
- * does a log2(mem) to ge the bucket. This means, for examples, that if a
- * client's memory usage doubles it's moved up to the next bucket, if it's
- * halved we move it down a bucket.
- * For more details see CLIENT_MEM_USAGE_BUCKETS documentation in server.h. */
-static inline clientMemUsageBucket *getMemUsageBucket(size_t mem) {
-    int size_in_bits = 8*(int)sizeof(mem);
-    int clz = mem > 0 ? __builtin_clzl(mem) : size_in_bits;
-    int bucket_idx = size_in_bits - clz;
-    if (bucket_idx > CLIENT_MEM_USAGE_BUCKET_MAX_LOG)
-        bucket_idx = CLIENT_MEM_USAGE_BUCKET_MAX_LOG;
-    else if (bucket_idx < CLIENT_MEM_USAGE_BUCKET_MIN_LOG)
-        bucket_idx = CLIENT_MEM_USAGE_BUCKET_MIN_LOG;
-    bucket_idx -= CLIENT_MEM_USAGE_BUCKET_MIN_LOG;
-    return &server.client_mem_usage_buckets[bucket_idx];
-}
-
-/* TASK#37 (client mem-usage bucket race) — fork exclusivity policy.
- *
- * Stock Redis keeps every evictable client in a GLOBAL mem-usage bucket
- * (unlocked adlists in server.client_mem_usage_buckets) and is only correct
- * under an exclusivity protocol: every updateClientMemUsageAndBucket call
- * runs on the main thread, and main pauses the (stock) IO threads before
- * touching a client it does not run (see the comment inside
- * updateClientMemUsageAndBucket below).
- *
- * This fork structurally breaks that protocol and NEVER pauses:
- *   - every tomo IO identity thread runs the full "main-thread" command path
- *     concurrently: createClient stamps running_tid = IOTHREAD_MAIN_THREAD_ID
- *     on ALL clients, so every stock `running_tid == main` gate passes on
- *     every identity at once, and writeToClient / processInputBuffer /
- *     processCommandAndResetClient all reach the bucket code in parallel;
- *   - EX workers execute command procs on ring fakes, and procs fan out to
- *     OTHER identities' real clients (pubsub/tracking/monitor feeds);
- *   - evictClients() is called from processCommand on every identity.
- * Two identities running listAddNodeTail/listDelNode against one unlocked
- * bucket list corrupt it (bench crash: listDelNode on a bucket list, and a
- * stale bucket node handing a recycled ring fake — reply == NULL — to
- * getClientMemoryUsage).
- *
- * Policy: the bucket machinery (maxmemory-clients / client eviction) may run
- * ONLY when main can PROVE exclusivity: a single tomo IO identity (main
- * itself), no EX workers, and no thread-modes runtime revival — i.e. the fork
- * configured down to stock single-threaded shape. Otherwise the buckets are
- * never allocated or touched (initServerClientMemUsageBuckets refuses), and
- * every caller degrades to the stock eviction-disabled behavior: plain
- * per-OWNER-thread memory accounting via clientsCron (the fakeRingClientCron
- * precedent — per-client work runs only on the thread that owns the client).
- * All three inputs are boot-time (tomokv-thread-io / tomokv-thread-ex /
- * tomokv-thread-mode are IMMUTABLE_CONFIG), so the verdict cannot flip
- * mid-run. */
-int clientMemBucketsExclusive(void) {
-    return server.io_threads <= 1 && server.num_workers <= 0 && !server.poly_threads;
-}
-
 /*
  * This method updates the client memory usage and update the
  * server stats for client type.
@@ -1561,16 +1482,10 @@ int clientMemBucketsExclusive(void) {
  * stats for non CLIENT_TYPE_NORMAL/PUBSUB clients to accurately
  * provide information around clients memory usage.
  *
- * It is also used in updateClientMemUsageAndBucket to have latest
- * client memory usage information to place it into appropriate client memory
- * usage bucket.
  */
 void updateClientMemoryUsage(client *c) {
-    /* TASK#37: ring/sub FAKES are per-command execution scratch. A dispatched
-     * fake BORROWS parent->conn (resetFakeClientState: "dispatch borrows
-     * parent->conn"), so the `c->conn` gates at call sites do NOT filter
-     * them, and freeFakeClient/freePooledFakeClient recycle them with no
-     * stat or bucket teardown. Their transient memory is never accounted. */
+    /* Ring/sub fakes are per-command execution scratch and their transient
+     * memory is never included in the per-type client totals. */
     if (c->isFake) return;
     serverAssert(c->conn);
     size_t mem = getClientMemoryUsage(c, NULL);
@@ -1588,99 +1503,6 @@ void updateClientMemoryUsage(client *c) {
     /* Remember what we added and where, to remove it next time. */
     c->last_memory_type = type;
     c->last_memory_usage = mem;
-}
-
-int clientEvictionAllowed(client *c) {
-    if (server.maxmemory_clients == 0 || c->flags & CLIENT_NO_EVICT || !c->conn) {
-        return 0;
-    }
-    int type = getClientType(c);
-    return (type == CLIENT_TYPE_NORMAL || type == CLIENT_TYPE_PUBSUB);
-}
-
-
-/* This function is used to cleanup the client's previously tracked memory usage.
- * This is called during incremental client memory usage tracking as well as
- * used to reset when client to bucket allocation is not required when
- * client eviction is disabled.  */
-void removeClientFromMemUsageBucket(client *c, int allow_eviction) {
-    if (c->mem_usage_bucket) {
-        c->mem_usage_bucket->mem_usage_sum -= c->last_memory_usage;
-        /* If this client can't be evicted then remove it from the mem usage
-         * buckets */
-        if (!allow_eviction) {
-            listDelNode(c->mem_usage_bucket->clients, c->mem_usage_bucket_node);
-            c->mem_usage_bucket = NULL;
-            c->mem_usage_bucket_node = NULL;
-        }
-    }
-}
-
-/* This is called only if explicit clients when something changed their buffers,
- * so we can track clients' memory and enforce clients' maxmemory in real time.
- *
- * This also adds the client to the correct memory usage bucket. Each bucket contains
- * all clients with roughly the same amount of memory. This way we group
- * together clients consuming about the same amount of memory and can quickly
- * free them in case we reach maxmemory-clients (client eviction).
- *
- * Note: This function filters clients of type no-evict, master or replica regardless
- * of whether the eviction is enabled or not, so the memory usage we get from these
- * types of clients via the INFO command may be out of date.
- *
- * returns 1 if client eviction for this client is allowed, 0 otherwise.
- */
-int updateClientMemUsageAndBucket(client *c) {
-    /* TASK#37: fakes never enter accounting or buckets. A dispatched fake
-     * carries a (borrowed) conn, so callers' `if (c->conn)` checks do not
-     * exclude it here — e.g. CLIENT NO-EVICT OFF and flushallSyncBgDone run
-     * inline on a ring-slot fake in this fork. */
-    if (c->isFake) return 0;
-
-    /* TASK#37: without provable main-thread exclusivity the global bucket
-     * lists are untouchable — this fork's identities all pass the stock
-     * running_tid gate concurrently and nothing ever pauses them (see
-     * clientMemBucketsExclusive). Report "eviction not allowed" and do NO
-     * client-field sampling at all: off-owner callers (pubsub/tracking/
-     * monitor fanout to another identity's live client, bio-side flush
-     * completions) must not read c->reply/querybuf/argv the owner is
-     * mutating. Per-owner accounting still happens exactly as in stock
-     * eviction-disabled mode: clientsCronRunClient sees our 0 and calls
-     * updateClientMemoryUsage(c) itself, 1Hz, on the owning thread. */
-    if (!clientMemBucketsExclusive()) return 0;
-
-    /* The unlikely case this function was called from a thread different
-     * than the main one is a module call from a spawned thread. This is safe
-     * since this call must have been made after calling
-     * RedisModule_ThreadSafeContextLock i.e the module is holding the GIL. In
-     * that special case we assert that at least the updated client's
-     * running_tid is the main thread. The true main thread is allowed to call
-     * this function on clients handled by IO-threads as it makes sure the
-     * IO-threads are paused, f.e see cleintsCron() and evictClients(). */
-    serverAssert((pthread_equal(pthread_self(), server.main_thread_id) ||
-                  c->running_tid == IOTHREAD_MAIN_THREAD_ID) && c->conn);
-    int allow_eviction = clientEvictionAllowed(c);
-    removeClientFromMemUsageBucket(c, allow_eviction);
-
-    if (!allow_eviction) {
-        return 0;
-    }
-
-    /* Update client memory usage. */
-    updateClientMemoryUsage(c);
-
-    /* Update the client in the mem usage buckets */
-    clientMemUsageBucket *bucket = getMemUsageBucket(c->last_memory_usage);
-    bucket->mem_usage_sum += c->last_memory_usage;
-    if (bucket != c->mem_usage_bucket) {
-        if (c->mem_usage_bucket)
-            listDelNode(c->mem_usage_bucket->clients,
-                        c->mem_usage_bucket_node);
-        c->mem_usage_bucket = bucket;
-        listAddNodeTail(bucket->clients, c);
-        c->mem_usage_bucket_node = listLast(bucket->clients);
-    }
-    return 1;
 }
 
 /* Return the max samples in the memory usage of clients tracked by
@@ -1717,10 +1539,8 @@ int clientsCronRunClient(client *c) {
      * in turn would make the INFO command too slow. So we perform this
      * computation incrementally and track the (not instantaneous but updated
      * to the second) total memory used by clients using clientsCron() in
-     * a more incremental way (depending on server.hz).
-     * If client eviction is enabled, update the bucket as well. */
-    if (!updateClientMemUsageAndBucket(c))
-        updateClientMemoryUsage(c);
+     * a more incremental way (depending on server.hz). */
+    updateClientMemoryUsage(c);
 
     if (closeClientOnOutputBufferLimitReached(c, 0)) return 1;
     return 0;
@@ -2929,7 +2749,7 @@ void handleWorkerReplies(void) {
             }
             cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
             if (real->flushid == real->dispatchid) {
-                listDelNode(server.clients_pending_ex[iotid], ln);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -2945,7 +2765,7 @@ void handleWorkerReplies(void) {
         if (mask == 0) {
             if (real->flushid == real->dispatchid) {
                 /* Nothing ready, nothing in flight — drop off the flush list. */
-                listDelNode(server.clients_pending_ex[iotid], ln);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -2977,21 +2797,6 @@ void handleWorkerReplies(void) {
              * too — else the IO loop's replyWorking stays >0 forever. Capture before
              * csReassemble NULLs csgroup. */
             int was_cs = (fake->csgroup != NULL);
-
-            /* ee451 (thread-modes step 4, signal f): retire a sampled dispatch stamp into
-             * this IO thread's 64-entry latency ring. Same-thread read of a field this
-             * thread wrote at dispatch; the 10s cap discards any stamp that went stale
-             * across a controller-off window. The ring is currently WRITE-ONLY — its
-             * consumer (the reserve-thread balancer's p99 veto) was deleted 2026-07-28;
-             * see the note on tmLatMaybeStamp before touching either half. */
-            if (server.thread_auto && fake->tm_lat_stamp) {
-                uint64_t tm_d = getMonotonicUs() - fake->tm_lat_stamp;
-                fake->tm_lat_stamp = 0;
-                if (tm_d < 10ULL * 1000 * 1000) {
-                    tmIoSignal *tm_s = &tm_io_sig[iotid];
-                    tm_s->lat_ring[tm_s->lat_idx++ & (TM_LAT_RING - 1)] = (uint32_t)tm_d;
-                }
-            }
 
             /* Clear the worker-pending flag BEFORE commandProcessed, because
              * resetClient() early-returns when the flag is set. */
@@ -3078,7 +2883,7 @@ void handleWorkerReplies(void) {
          * any remaining set bits must correspond to slots >= flushid, but
          * flushid == dispatchid means there are no outstanding slots. */
         if (real->flushid == real->dispatchid) {
-            listDelNode(server.clients_pending_ex[iotid], ln);
+            listUnlinkNode(server.clients_pending_ex[iotid], ln);
         }
 
         /* A slot opened up; if real stalled waiting for ring space or drain,
@@ -3271,8 +3076,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     if (server.repl_backlog)
         incrementalTrimReplicationBacklog(10*REPL_BACKLOG_TRIM_BLOCKS_PER_CALL);
-
-    evictClients();
 
     monotime duration_after_write = getMonotonicUs() - cron_start_time_after_write;
 
@@ -3542,39 +3345,6 @@ void createSharedObjects(void) {
      * string in string comparisons for the ZRANGEBYLEX command. */
     shared.minstring = sdsnew("minstring");
     shared.maxstring = sdsnew("maxstring");
-}
-
-void initServerClientMemUsageBuckets(void) {
-    if (server.client_mem_usage_buckets)
-        return;
-    /* TASK#37: never build the bucket apparatus without exclusivity (see
-     * clientMemBucketsExclusive). A NULL pointer keeps every consumer —
-     * evictClients, freeClient's bucket unlink, DEBUG CLIENT-EVICTION,
-     * applyClientMaxMemoryUsage — on its existing NULL no-op path. Reached
-     * from initServer and from CONFIG SET maxmemory-clients. */
-    if (!clientMemBucketsExclusive()) {
-        serverLog(LL_WARNING,
-            "maxmemory-clients: client-eviction buckets DISABLED — tomo "
-            "multi-threaded mode (io=%d ex=%d thread-modes=%d) cannot "
-            "guarantee the main-thread exclusivity stock Redis requires; "
-            "per-owner-thread client memory accounting stays active.",
-            server.io_threads, server.num_workers, server.poly_threads);
-        return;
-    }
-    server.client_mem_usage_buckets = zmalloc(sizeof(clientMemUsageBucket)*CLIENT_MEM_USAGE_BUCKETS);
-    for (int j = 0; j < CLIENT_MEM_USAGE_BUCKETS; j++) {
-        server.client_mem_usage_buckets[j].mem_usage_sum = 0;
-        server.client_mem_usage_buckets[j].clients = listCreate();
-    }
-}
-
-void freeServerClientMemUsageBuckets(void) {
-    if (!server.client_mem_usage_buckets)
-        return;
-    for (int j = 0; j < CLIENT_MEM_USAGE_BUCKETS; j++)
-        listRelease(server.client_mem_usage_buckets[j].clients);
-    zfree(server.client_mem_usage_buckets);
-    server.client_mem_usage_buckets = NULL;
 }
 
 void initServerConfig(void) {
@@ -4580,7 +4350,6 @@ void initServer(void) {
     server.reply_buffer_peak_reset_time = REPLY_BUFFER_DEFAULT_PEAK_RESET_TIME;
     server.reply_buffer_resizing_enabled = 1;
     server.reply_copy_avoidance_enabled = 1;
-    server.client_mem_usage_buckets = NULL;
     server.memory_tracking_enabled = server.key_memory_histograms || clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_MEM);
     resetReplicationBuffer();
 
@@ -4883,9 +4652,6 @@ void initServer(void) {
     ACLUpdateDefaultUserPassword(server.requirepass);
 
     applyWatchdogPeriod();
-
-    if (server.maxmemory_clients != 0)
-        initServerClientMemUsageBuckets();
 
     /* prefetchCommandsBatchInit() removed — upstream command-prefetch batch
      * (memory_prefetch.c) is unused. Cache warming for worker-dispatched
@@ -6400,15 +6166,6 @@ int processCommand(client *c) {
         }
     }
 
-    /* Disconnect some clients if total clients memory is too high. We do this
-     * before key eviction, after the last command was executed and consumed
-     * some client output buffer memory. */
-    evictClients();
-    if (server.current_client[iotid].p == NULL) {
-        /* If we evicted ourself then abort processing the command */
-        return C_ERR;
-    }
-
     /* Handle the maxmemory directive.
      *
      * Note that we do not want to reclaim memory if we are here re-entering
@@ -6773,7 +6530,7 @@ int processCommand(client *c) {
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
-        listAddNodeTail(server.clients_pending_ex[iotid], c);
+        listLinkNodeTail(server.clients_pending_ex[iotid], &c->clients_pending_ex_node);
     }
 
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
@@ -6804,7 +6561,6 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
@@ -6833,7 +6589,6 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
@@ -9060,7 +8815,8 @@ static csGroup *csGroupNew(size_t want) {
 
 /* Inline demand of a GATHER/PIPELINE group, from the row + the key count + the fan-out bound.
  * Mirrors, in the same order, exactly what dispatchGather/csBuildCoalescedSubs will allocate.
- * Each per-sub int[] is padded to 8 bytes, hence the +4*nsub slack on the posmap term. */
+ * Each per-sub int[] is padded to 8 bytes, hence the +4*nsub slack on the posmap term. Sub argv
+ * vectors contribute one command pointer per sub plus the row's key/extra pointers. */
 static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) {
     size_t w = 8 * (size_t)nsub;                                   /* subs[] */
     if (posmap) w += 8 * (size_t)nsub                              /* posmap pointer array */
@@ -9072,7 +8828,21 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     case CS_RES_KEYREPORT: w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* klen + ktype */
     default: break;
     }
-    if (s->has_hop2) w += 8 * CS_H2_MAX;   /* csLaunchHop2 re-allocates subs[] after HOP1 */
+    w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
+    if (s->has_hop2) {
+        if (s->h2_op == CS_H2_SCATTER) {
+            /* MSETNX: HOP2 re-runs the builder with [CMD key value] vectors. */
+            w += 8 * (size_t)nsub;                       /* replacement subs[] */
+            w += 8 * ((size_t)nsub + 2 * (size_t)nkeys); /* replacement sub argv */
+        } else if (s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP) {
+            w += 8;       /* one replacement sub */
+            w += 8 * 6;   /* [CMD 1 key DIR [COUNT n]] */
+        } else {
+            int h2_nsub = (s->dst_argi != 0) + (s->h2_del_src != 0);
+            w += 8 * (size_t)h2_nsub;       /* replacement subs[] */
+            w += 16 * (size_t)h2_nsub;      /* [CMD key] per HOP2 sub */
+        }
+    }
     return w;
 }
 
@@ -9107,8 +8877,10 @@ static inline void csgFree(csGroup *g, void *p) {
 
 static void csFreeSub(client *sub) {
     if (sub->argv) {
+        csGroup *g = sub->csparent;
+        serverAssert(g != NULL);
         for (int a = 0; a < sub->argc; a++) if (sub->argv[a]) decrRefCount(sub->argv[a]);
-        zfree(sub->argv); sub->argv = NULL; sub->argc = 0;
+        csgFree(g, sub->argv); sub->argv = NULL; sub->argc = 0;
     }
     sub->csparent = NULL;
     freePooledFakeClient(sub);
@@ -9254,7 +9026,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
+        sub->argv = csgAlloc(g, sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
         sub->db = &server.exThreads[w].db[dbid];
@@ -9287,13 +9059,13 @@ static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     return sub;
 }
 static void csSubSetKeyArgv(client *sub, client *head, robj *key) {  /* argv = [CMD key] */
-    sub->argv = zmalloc(sizeof(robj*) * 2);
+    sub->argv = csgAlloc(sub->csparent, sizeof(robj*) * 2);
     sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
     sub->argv[1] = key;           incrRefCount(key);
     sub->argc = 2;
 }
 static void csSubCopyFullArgv(client *sub, client *head) {           /* same-shard TWOHOP */
-    sub->argv = zmalloc(sizeof(robj*) * head->argc);
+    sub->argv = csgAlloc(sub->csparent, sizeof(robj*) * head->argc);
     for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
     sub->argc = head->argc;
 }
@@ -9337,9 +9109,12 @@ static void csPipeFreeStageSubs(csGroup *g) {
 static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
     int nw = server.num_workers;
     int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one SIZES sub per distinct shard */
-    /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], allocated below. Later stages re-bump and
-     * simply spill once the region is used up — correct, just not free. */
-    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) + 12 * (size_t)nkeys);
+    /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], plus the later GATHER1/PROBE subs and
+     * argv vectors. The probe upper bound is one sub per initial shard and all keys but the
+     * selected smallest key. */
+    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
+                            12 * (size_t)nkeys +
+                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
@@ -9578,7 +9353,7 @@ static int csPipeAdvance(csGroup *g) {
         robj *k0 = head->argv[first + kidx[0] * s->key_stride];
         int w = exIndexForKey(k0->ptr, sdslen(k0->ptr));
         client *sub = csMakeSub(g, 0, w, dbid);
-        sub->argv = zmalloc(sizeof(robj*) * (nk + 1));
+        sub->argv = csgAlloc(g, sizeof(robj*) * (nk + 1));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         zfree(g->pipe_probe_pos);
         g->pipe_probe_pos = zmalloc(sizeof(*g->pipe_probe_pos) * (size_t)nk);
@@ -9605,7 +9380,7 @@ static int csPipeAdvance(csGroup *g) {
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
 static void dispatchLocalReal(client *head, int w, int dbid) {
-    csGroup *g = csGroupNew(sizeof(client *));   /* one sub, nothing else */
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc));
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -9791,7 +9566,7 @@ static void dispatchFanAll(client *head) {
     int nw = 0;
     for (int w = 0; w < server.num_workers; w++)
         if (tmWorkerLive(w)) lw[nw++] = w;
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw);   /* one sub per live worker */
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*) * nw);
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
@@ -9806,7 +9581,7 @@ static void dispatchFanAll(client *head) {
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * head->argc);
+        sub->argv = csgAlloc(g, sizeof(robj*) * head->argc);
         for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
         sub->argc = head->argc;
         sub->db = &server.exThreads[w].db[dbid];
@@ -10091,9 +9866,14 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int src_shard = server.ex_bucket_table[src_bkt];
     int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
-    /* 2-hop: at most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 re-allocates
-     * subs[] for up to CS_H2_MAX HOP2 subs out of the same region. */
-    csGroup *g = csGroupNew(sizeof(client *) * (2 + CS_H2_MAX));
+    /* 2-hop: reserve the larger of the same-shard full argv and the cross-shard HOP1+HOP2
+     * vectors. At most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 allocates
+     * up to CS_H2_MAX HOP2 subs from the same bump region. */
+    size_t h1_argv = 2 * (size_t)(1 + s->h1_probe_dst) + (s->h1_extra_argi != 0);
+    size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
+    size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
+                        (size_t)head->argc : h1_argv + h2_argv;
+    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -10185,7 +9965,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (i == 0 && s->h1_extra_argi) {
             /* sub 0 carries [CMD src extra] (SMOVE member) — the sub owns its own refs. */
             robj *extra = head->argv[(int)s->h1_extra_argi];
-            sub->argv = zmalloc(sizeof(robj*) * 3);
+            sub->argv = csgAlloc(g, sizeof(robj*) * 3);
             sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
             sub->argv[1] = src;           incrRefCount(src);
             sub->argv[2] = extra;         incrRefCount(extra);
@@ -10451,7 +10231,7 @@ static int csLaunchHop2(csGroup *g) {
             getLongLongFromObject(head->argv[(int)s->numkeys_argi], &nk);
             int dpos = csFirstKeyArg(s) + (int)nk;      /* direction token */
             int has_count = (dpos + 1 < head->argc);    /* [COUNT n] follows (shape-validated) */
-            sub->argv = zmalloc(sizeof(robj*) * (has_count ? 6 : 4));
+            sub->argv = csgAlloc(g, sizeof(robj*) * (has_count ? 6 : 4));
             sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
             sub->argv[1] = createStringObject("1", 1);
             sub->argv[2] = key;           incrRefCount(key);
