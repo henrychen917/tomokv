@@ -2934,6 +2934,16 @@ struct redisServer {
                                     * new config and wedges the hill-climb in a worse one). */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
+    /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
+     * STARTING POINT, not the reachable range — every non-main thread is provisioned as a worker with
+     * a dormant io binding (io_threads := 1, num_workers := pool-1) and the split is applied at boot
+     * by BIRTHING the top (boot io - 1) workers in IO mode. These two carry that split; everywhere
+     * else `io_threads`/`num_workers` keep their meaning (provisioned counts, pin bases, registry
+     * layout) and the LIVE counts are io_threads_live / num_workers_live as before. In STATIC mode
+     * they are just the configured counts and nothing below changes. */
+    int tm_boot_io_live;           /* io threads LIVE at boot (io_threads_live seed) */
+    int tm_boot_w_live;            /* workers LIVE at boot (num_workers_live seed, bucket-table split) */
+    int tm_pool_symmetric;         /* 1 = the auto remap above was applied */
     int tm_flip_rebalance;     /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
     int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
     int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even

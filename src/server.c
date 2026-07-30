@@ -4140,6 +4140,56 @@ void initServer(void) {
                   nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
                   server.thread_auto ? "auto" : "static", tomoPinModeName(server.pin_mode));
     }
+    /* ===== AUTO SYMMETRIC POOL (2026-07-29). In thread-mode AUTO the io/ex split is a STARTING
+     * POINT the controller is expected to move. Until now the boot split also fixed the REACHABLE
+     * range, in three stacked ways, and all three bit at once on `--tomokv-thread-io 7
+     * --tomokv-thread-ex 1 --tomokv-thread-mode auto`:
+     *   1. tm_ngrow_io = ex_threads-1 = 0, so tomoFlipController returned at its FIRST guard: zero
+     *      ticks, zero readings, no signal even computed.
+     *   2. the six IO threads were IO-BORN poly threads with ctx->ex == NULL, so even reaching the
+     *      actuator, tomoGrowBackSlot refuses ("no EX binding to revive"). Only a worker that had
+     *      grown FRONT could ever grow back — the front-heavy side was a one-way door.
+     *   3. shared_node_dbs is (workers-per-node > 1), so at ex=1 the keyspace is a PRIVATE dict per
+     *      worker. The reshard is now purely an ownership flip inside one shared flat table (the copy
+     *      engine is deleted), so a second worker could not have been given a bucket range even if
+     *      one had existed.
+     * Measured on the previous tip: p32 from that boot held 1 850 356 ops/s for 70s with all six
+     * slots mode=IO and zero flip-ctl lines, against 7 837 026 for io4/ex4. It did not fail to
+     * converge; it had nowhere to go.
+     *
+     * THE FIX IS ALLOCATION, NOT A NEW ACTUATOR. Provision the whole pool as workers — io_threads
+     * := 1 (main), num_workers := pool-1, so tm_ngrow_io = pool-2 and the growth io slots are
+     * 1..pool-1 — and apply the operator's split by BIRTHING the top (boot_io - 1) workers in IO
+     * mode on their dormant io bindings. Every reachable configuration is then a state the existing,
+     * already-validated grow-front/grow-back machinery produces, the live worker set is still a
+     * prefix (contiguity, seeding and the bucket-table FLIP arithmetic are untouched), and both
+     * directions span io 1..pool-1 from ANY boot split.
+     *
+     * STATIC mode is deliberately left alone: there the config IS the config, nothing moves, and
+     * paying for pool-1 worker slots to run four of them is pure overhead.
+     * Single-node only: with topo_nodes > 1 the per-node io/ex prefixes, node-scoped actuators and
+     * NUMA pin map carry their own placement rules; remapping those is a separate change. */
+    server.tm_boot_io_live = server.io_threads;
+    server.tm_boot_w_live  = server.ex_threads;
+    server.tm_pool_symmetric = 0;
+    if (server.thread_auto && server.topo_nodes == 1 &&
+        server.io_threads >= 1 && server.ex_threads >= 1 &&
+        server.io_threads + server.ex_threads - 1 <= TOMO_EX_THREADS_MAX &&
+        server.io_threads + server.ex_threads - 1 <= 255 &&   /* ex_bucket_table entries are uint8_t */
+        server.io_threads + server.ex_threads <= TOMO_IO_THREADS_MAX) {
+        int pool = server.io_threads + server.ex_threads;
+        server.ex_threads   = pool - 1;
+        server.io_threads   = 1;
+        server.ex_per_node  = server.ex_threads;
+        server.io_per_node  = 1;
+        server.tm_pool_symmetric = 1;
+        serverLog(LL_NOTICE, "tomokv thread-mode auto: SYMMETRIC POOL — %d threads provisioned as "
+                             "1 io (main) + %d convertible workers; boot split io %d / ex %d applied "
+                             "by birthing workers %d..%d in IO mode. Reachable range io 1..%d "
+                             "(both directions, from any boot split).",
+                  pool, server.ex_threads, server.tm_boot_io_live, server.tm_boot_w_live,
+                  server.tm_boot_w_live, server.ex_threads - 1, pool - 1);
+    }
     /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
      * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
     server.tm_ngrow_io = 0;
@@ -4218,7 +4268,12 @@ void initServer(void) {
      * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W.
      * The adjacent-shift rebalancer later mutates this. */
     {
-        int W = server.ex_threads;
+        /* ee451 (auto symmetric pool): split over the workers that are LIVE at boot, not over every
+         * provisioned slot. Under the symmetric pool the slots above tm_boot_w_live are born in IO
+         * mode and own nothing — they take the canonical empty suffix range below, exactly as a
+         * grown-front worker's slot does after its range is migrated away. In static mode
+         * tm_boot_w_live == ex_threads and this is the historical initialization unchanged. */
+        int W = server.tm_boot_w_live > 0 ? server.tm_boot_w_live : server.ex_threads;
         for (int b = 0; b < TOMO_BUCKETS; b++)
             server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
         /* ee451 (non-pow2 fix): end[i] must be the EXACT boundary of the table formula above —
@@ -4366,12 +4421,17 @@ void initServer(void) {
      * (configured threads < allowed cores) must match initIOThreads'; alloc grows only
      * for the EX-capable subset of that. */
     server.num_workers_alloc = server.num_workers;
-    atomic_store_explicit(&server.num_workers_live, server.num_workers, memory_order_relaxed);
-    /* ee451 (per-node flip): per-node live prefixes — full at boot. */
+    /* ee451 (auto symmetric pool): the LIVE worker set is the boot split's prefix, not every
+     * provisioned slot. Static mode: tm_boot_w_live == num_workers, i.e. unchanged. */
+    atomic_store_explicit(&server.num_workers_live, server.tm_boot_w_live, memory_order_relaxed);
+    /* ee451 (per-node flip): per-node live prefixes — the boot split at boot. */
     {
         int nn = server.topo_nodes > 0 ? server.topo_nodes : 1;
-        int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
-        int ipn = server.io_per_node > 0 ? server.io_per_node : server.io_threads;
+        int wpn = server.tm_boot_w_live > 0 ? server.tm_boot_w_live
+                                            : (server.ex_per_node > 0 ? server.ex_per_node : server.num_workers);
+        int ipn = server.tm_boot_io_live > 0 ? server.tm_boot_io_live
+                                             : (server.io_per_node > 0 ? server.io_per_node : server.io_threads);
+        if (nn > 1) { wpn = server.ex_per_node; ipn = server.io_per_node; }   /* multi-node: unchanged */
         for (int n = 0; n < 16 && n < nn; n++) {
             atomic_store_explicit(&server.tm_node_wlive[n], wpn, memory_order_relaxed);
             atomic_store_explicit(&server.tm_node_iolive[n], ipn, memory_order_relaxed);
@@ -17008,8 +17068,20 @@ void initExThreads(void) {
                 ctx->io_slot = server.io_threads + 1 + i;   /* reserved name only (worker 0 / capped) */
             }
             ctx->io_listening = 0;
+            /* ee451 (auto symmetric pool): APPLY THE BOOT SPLIT. Workers at or above tm_boot_w_live
+             * are born in IO mode on their dormant binding instead of EX — the same PARKED->IO edge
+             * grow-front drives, taken once at birth (the checkpoint listen()s the pre-bound socket
+             * and registers the accept handler before the first slice). The bucket table gave them
+             * the empty suffix range, so nothing routes to them as workers and nothing is lost. This
+             * is the ONLY place the split is applied; io_threads_live/num_workers_live are seeded to
+             * match in initIOThreads and initServer. In static mode tm_boot_w_live == num_workers and
+             * the condition is never true, so every worker is EX-born exactly as before. */
+            int born_io = (i >= server.tm_boot_w_live) && ctx->io;
             atomic_store_explicit(&ctx->mode, TOMO_MODE_PARKED, memory_order_relaxed);
-            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_relaxed);
+            atomic_store_explicit(&ctx->target_mode, born_io ? TOMO_MODE_IO : TOMO_MODE_EX, memory_order_relaxed);
+            if (born_io)
+                serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
+                                     "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
             if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
                 serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
                 exit(1);
@@ -17152,7 +17224,10 @@ void initIOThreads(void) {
      * convert to IO (grow-front). ngrow_io = num_workers-1 (worker 0 is the >=1 EX floor).
      * Capped so io_threads+ngrow_io <= TOMO_IO_THREADS_MAX. Dormant bindings built below. */
     int ngrow_io = server.tm_ngrow_io;   /* computed early in initServer (per-iotid arrays sized for it) */
-    atomic_store_explicit(&server.io_threads_live, server.io_threads, memory_order_relaxed);
+    /* ee451 (auto symmetric pool): the io threads LIVE at boot are the operator's split, which under
+     * the symmetric pool exceeds server.io_threads (== 1, main) by the workers born in IO mode.
+     * Static mode: tm_boot_io_live == io_threads, i.e. unchanged. */
+    atomic_store_explicit(&server.io_threads_live, server.tm_boot_io_live, memory_order_relaxed);
     server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + spare + ngrow_io));
     server.custom_io_threads_active = 1;
     /* Thread 0 is the main thread, start from 1 */
