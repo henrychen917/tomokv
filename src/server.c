@@ -2962,6 +2962,8 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 
 void flatReclaimAll(void);
 void flatResizeCoordinate(void);
+int flatResizeState(void);
+extern _Atomic unsigned long long flat_rz_quiesce_waits;   /* defined with tomoFlatResizeQuiesce below */
 static void flatRetiredTablesTryFree(void);   /* RCU: free tables replaced by a rebuild */
 
 void beforeSleep(struct aeEventLoop *eventLoop) {
@@ -7163,6 +7165,15 @@ static int        flat_rz_n = 0, flat_rz_j = 0;
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL   /* 200ms: normal commands quiesce in us; only a genuinely long op trips this */
 #define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16) /* 64k slots/pass -> ~1-2ms of copy, then back to the event loop */
 
+/* ee451: the coordinator's state, for observability only (INFO). Main-thread-owned int, read
+ * racily from an io thread exactly like flatResizePending() below already does. IDLE=0 QUIESCING=1
+ * COPYING=2. The distinction is load-bearing for any TEST of the resize window: flat_resize_active
+ * is set at ARM time, so it reads 1 all through QUIESCING — which usually ABORTS at
+ * FLAT_RZ_QUIESCE_DEADLINE_US having copied nothing. Only COPYING is the state in which the old
+ * table must be immutable, and a probe that waits on the flag instead fires into a window that has
+ * already shut. */
+int flatResizeState(void) { return flat_rz_state; }
+
 /* a resize is PENDING (flagged, not yet finished) or in progress — reshard/flush check this to avoid
  * starving it. Safe to call from any thread: reads atomics + a main-thread-owned state int (benign race). */
 int flatResizePending(void) {
@@ -10696,6 +10707,54 @@ void flushAllShards(client *c, int dbid, int async) {
     }
     /* Empty the IO-side DBs too (single-key data lives in shards, but stay thorough). */
     emptyDbStructure(server.db, dbid, async, NULL);
+}
+
+/* ee451 FLATSTORE: give a NON-WORKER mutation of a shared node db the entry condition that every
+ * other shard-wide mutation already has — no flat resize in flight.
+ *
+ * FLAT_RZ_COPYING requires the old table to be IMMUTABLE for the whole rebuild. The coordinator
+ * enforces that against WORKERS (it parks them at their pop point) and against a non-worker region
+ * that is ALREADY OPEN (QUIESCING refuses to complete while any io flat_epoch is odd). What nothing
+ * re-checks is a non-worker region that OPENS while a resize is already COPYING. emptyData's shard
+ * fold, rdbLoad's dbAddRDBLoad and kvstoreExpand's flat rebuild are all such mutators, and call()
+ * holds ONE region across all three for the whole of a DEBUG RELOAD.
+ *
+ * MEASURED, not theorised — tools/preflight/flat_resize_reload_race.sh, at the DEFAULT hz on an
+ * unmodified build. A reload that starts mid-COPYING has its empty applied to the OLD table while
+ * the coordinator rebuilds the NEW one from a pre-empty snapshot. Slots the copy had already
+ * visited are carried forward, so the swap both resurrects keys the empty tombstoned AND
+ * re-publishes kvobjs the empty retired. Both halves are fatal and both were observed:
+ *   "Guru Meditation: Duplicated key found in RDB file #rdb.c:4016"  (the reload's re-insert
+ *      collides with a resurrected key), and
+ *   "keymeta.c:584 'pClass->state == CLASS_STATE_INUSE' is not true" (the swap republishes a
+ *      retired kvobj), which fires at the swap itself.
+ *
+ * ONE WAIT COVERS THE WHOLE COMMAND, not merely the empty: call() holds this thread's flat region
+ * open (FLAT_EXTERN_REGION => epoch odd), so once an in-flight resize drains, QUIESCING can no
+ * longer complete and no NEW resize can reach COPYING until this command ends. That is why the wait
+ * belongs here, at the front of the mutation, rather than being bolted onto each mutator.
+ *
+ * Wait on ACTIVE only, never on flatResizePending(): resize_needed is cleared only by a resize that
+ * RUNS TO COMPLETION, and our own odd epoch is exactly what prevents one — waiting on pending would
+ * deadlock against ourselves. ACTIVE always drains: COPYING advances in bounded chunks and does not
+ * depend on our epoch at all, and a QUIESCING that our pin blocks self-clears at
+ * FLAT_RZ_QUIESCE_DEADLINE_US. Having READ the old table stays safe either way — flatTableRetire
+ * defers the free until every reader has left its region, and ours is open. */
+_Atomic unsigned long long flat_rz_quiesce_waits;   /* INFO: times this guard actually had to wait */
+void tomoFlatResizeQuiesce(void) {
+    if (!server.shared_node_dbs) return;
+    /* Count the calls that FIND a resize in flight, not the calls. A guard that never fires proves
+     * nothing, so the acceptance test asserts this counter is non-zero — otherwise a green run just
+     * means the window was never entered. Incremented once per call, before the wait. */
+    if (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire))
+        atomic_fetch_add_explicit(&flat_rz_quiesce_waits, 1, memory_order_relaxed);
+    while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) {
+        /* Only the main thread runs the coordinator (beforeSleep), so if WE are main a plain sleep
+         * would be waiting on a machine nobody is advancing — the same pump flushAllShards uses.
+         * Workers take iotid = TOMO_IO_THREADS_MAX + 1 + id, so this never fires off-main. */
+        if (iotid == 0) flatResizeCoordinate();
+        usleep(100);
+    }
 }
 /* ========================== end cross-shard ========================== */
 
@@ -14297,6 +14356,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
+            /* ee451: the resize coordinator's QUIESCING/COPYING window, per this tree's
+             * "expose the state" rule. Nothing else could observe it, which is why
+             * flat_resize_reload_race.sh could not tell whether it had actually fired a reload INTO
+             * a live copy — it was inferring the window from whether a DBSIZE blocked, and scored
+             * 2 hits in 12 tries. INFO is answered inline on an io thread and is never parked, so
+             * polling this is safe while every worker is parked. */
+            "tomokv_flat_resize_active:%d\r\n", atomic_load_explicit(&server.flat_resize_active, memory_order_relaxed),
+            "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
+            "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_nested_cmd_frames:%llu\r\n",
                 atomic_load_explicit(&tomo_nested_cmd_frames, memory_order_relaxed),

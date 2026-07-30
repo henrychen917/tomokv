@@ -2113,6 +2113,8 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
+void tomoFlatResizeQuiesce(void);  /* server.c; wait out an in-flight FLATSTORE resize before a
+                                    * NON-WORKER mutation of a shared node db (emptyData's fold) */
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
 void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */

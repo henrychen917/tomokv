@@ -1301,25 +1301,40 @@ Nothing is working on these.
   a negative slot. Under sharding `maxmemory` is boot-refused (RP-1) so nothing *acts* on the
   number, which is why this has survived: it only misinforms operators. Needs someone to dump the
   per-thread slots and pick the mechanism before fixing.
-- **The FLATSTORE resize guard is ONE-SIDED** (evidence added
-  2026-07-29, §3b). `FLAT_RZ_COPYING` needs the old table immutable for the whole rebuild. The
-  coordinator enforces that against WORKERS (it parks them) and against a non-worker region that is
-  **already** open (QUIESCING will not complete while any io `flat_epoch` is odd). Nothing re-checks
-  the epoch once past QUIESCING, so a non-worker region that **opens during COPYING** is unguarded —
-  and `emptyData`'s shard fold and `rdbLoad`'s `dbAddRDBLoad` are exactly such mutators. Observed
-  directly: the coordinator completing a rebuild *between* `Loading RDB` and `Done loading RDB`
-  (`live=91719/73365/18328` of 100000), i.e. from a pre-empty snapshot.
-  **CORRECTION, 2026-07-29 (§3b-2): this is NOT what caused the 8-in-10, and it is NOT item 2's
-  blocker.** The 8-in-10 was `c8aab4059`'s one-past-the-end `node_dbs` read; with the bound fixed,
-  10 runs generated **30** resizes with **zero** failures, and every one of them landed after the
-  reload returned. The one-sided guard is nonetheless still a real hole — it is simply not
-  *demonstrated* to bite, and nothing in the acceptance provokes a resize *into* a reload window.
-  `cfea82654` is a candidate fix (`tomoFlatResizeQuiesce`) and is **still never compiled and never
-  run**; note its "one wait is sufficient" argument rests on `call()` holding the io flat region open
-  for the whole command, which holds for `DEBUG RELOAD` but not for a caller outside `call()`.
-  Whoever owns this should also decide whether the coordinator, not the mutator, is the right side to
-  fix (re-check the epochs during COPYING and abort) — that covers every non-worker writer at once,
-  at the cost of aborting a resize whenever an inline command opens a region.
+- ~~**The FLATSTORE resize guard is ONE-SIDED**~~ — **FIXED 2026-07-30.** `FLAT_RZ_COPYING` needs the
+  old table immutable for the whole rebuild. The coordinator enforced that against WORKERS (parks
+  them) and against a non-worker region that is *already* open (QUIESCING will not complete while any
+  io `flat_epoch` is odd), but nothing re-checked once past QUIESCING, so a non-worker region that
+  **opens during COPYING** was unguarded — and `emptyData`'s shard fold, `rdbLoad`'s `dbAddRDBLoad`
+  and `kvstoreExpand`'s flat rebuild are all such mutators. §3b-2 recorded this as real but
+  *undemonstrated*: 30 resizes over 10 runs never hit it. **It is now demonstrated and fixed.**
+  `tomoFlatResizeQuiesce()` at the front of the shard fold waits out an in-flight resize; because
+  `call()` holds the io flat region open for the rest of the command, that one wait also covers the
+  `rdbLoad`/`kvstoreExpand` that follow. Acceptance
+  `tools/preflight/flat_resize_reload_race.sh`: **pre-fix 0/3 runs survive** (all three die with
+  `illegal decrRefCount ... refcount 0`, and other runs produced
+  `Duplicated key found in RDB file #rdb.c:4016` and
+  `keymeta.c:584 'pClass->state == CLASS_STATE_INUSE'` at the swap); **post-fix 3/3 runs 10 passed /
+  0 failed with the guard PROVEN to fire** (`tomokv_flat_resize_quiesce_waits` = 3/3/2). The
+  coordinator-side alternative (re-check epochs during COPYING and abort) was considered and
+  **rejected**: the epoch cannot distinguish a reader from a writer, so it would abort a rebuild
+  whenever any inline command — `PING` included — opened a region, and starve the table to its
+  table-full wall under ordinary traffic.
+- **`kvstoreExpand`'s flat arm replaces and FREES the live table with no synchronisation at all**
+  (found 2026-07-30 while building the probe above; **NOT fixed**). `kvstore.c`:
+  `kvs->flat = nw; flatTableFree(t);` — a plain non-atomic publish and an *immediate* free, no
+  release store, no `flatTableRetire`, no QSBR grace. Its comment states the premise: *"Only called
+  during RDB load, which is single-threaded and runs before clients connect (workers idle), so a
+  straight rebuild + swap is race-free."* **That premise is false for `DEBUG RELOAD`**, which runs
+  `rdbLoad` on a live server with clients connected, workers running and the resize coordinator
+  active. This is what grows the table 4M→8M mid-reload with no coordinator log line. The
+  `tomoFlatResizeQuiesce` fix above closes it against the *coordinator* (no copy can be in flight for
+  the rest of the command), but NOT against workers or io threads holding raw slot pointers: a
+  reload concurrent with live traffic can still free the table under a live reader. Fixing it
+  properly means either retiring the old table through `flatTableRetire` instead of
+  `flatTableFree`, or parking the workers for the reload. Note the acceptance drives **no**
+  concurrent traffic, so nothing in the suite covers this.
+
 - **THE FLIP CONTROLLER DOES NOT FOLLOW THE WORKLOAD, and it blocks merge-queue item 6** (found
   2026-07-29 by `flip_updown`'s first ever execution, §3e — **pre-existing: the pre-merge arm
   behaves identically, field for field**). Booted io4/ex4 with `--tomokv-thread-mode auto` and
