@@ -1675,14 +1675,11 @@ typedef struct client {
                                 * tomokv-strict-order != 0). Within a queue it is monotonic
                                 * (single producer), so the head is that queue's oldest; the
                                 * worker merges queues by picking the globally-oldest head. */
-    /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
-     * the worker prefetch stage (exPrefetchBatch) and reused at command
-     * execution via dictArmHashHint() to avoid hashing the key twice. Valid
-     * only for the window between prefetch and proc() for this fake. */
+    /* Dict hash of argv[1], computed by the worker prefetch stage and reused by
+     * dictArmHashHint(). It is a functional hash hint, never a lookup result.
+     * Valid only between exPrefetchBatch() and this fake's proc(). */
     uint64_t prefetch_key_hash;
     int prefetch_key_hash_valid;
-    dict *prefetch_dict;              /* #3: this fake's resolved shard dict (set in exPrefetchBatch pass-2) */
-    unsigned long prefetch_bucket_idx;/* #3: ht_table[0] slot for the key -> exec-loop next-op look-ahead */
     uint64_t id;            /* Client incremental unique ID. */
     uint64_t flags;         /* Client flags: CLIENT_* macros. */
     connection *conn;
@@ -1870,10 +1867,9 @@ typedef struct client {
      * drain, +1 RFO on the worker's next reply build — measured ~2-5%%). Parked at the TAIL so the
      * pre-shared-kv hot-field offsets are restored; these fields are dispatch/exec-warm anyway and
      * ride whatever line the tail gives them. */
-    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): argv[1]'s sds ptr whose bucket was computed at
-                                * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
-                                * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
-    int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
+    const void *tomo_bkt_ptr;  /* argv[1]'s sds ptr whose full xxh64 was computed at dispatch.
+                                * Every consumer pointer-checks before deriving the low bucket bits. */
+    uint64_t tomo_hash;        /* full xxh64; replaces the old int+padding without growing client */
     struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
                                 * workers rendezvous at their sentinels; the LAST arrival empties the
                                 * shared node kvstore while the others spin (µs), preserving the
@@ -2132,93 +2128,13 @@ typedef enum { MIG_IDLE=0, MIG_COPYING, MIG_DRAINING, MIG_FLIPPED, MIG_CLEANUP, 
  * so a single-client burst can be drained in one shot. */
 #define WORKER_POP_BATCH 16
 
-/* ── Worker prefetch: structural constants (2026-07-28 knob retirement) ───────────────────────
- * The ten tomokv-pf-* / tomokv-prefetch-* knobs were retired from the config surface on
- * 2026-07-28. Nine of them shipped in their AUTO arm; the AUTO arm is now hardwired and these
- * constants are what is left. They are STRUCTURAL (properties of the pipeline), not tuning: an
- * operator had no information the server does not measure for itself.
- *
- * WHAT THE MECHANISM IS. exPrefetchBatch (server.c) is GROUP PREFETCHING with software
- * pipelining: a batch of independent lookups is walked stage by stage, each stage issuing its
- * prefetch for the whole group before any lookup dereferences the line it just requested. The
- * prefetch DISTANCE is the group size — the standard form — which is exactly what the retired
- * knobs' AUTO arm (-1) meant: "width follows the current batch occupancy n". No history, so a
- * workload shift re-tunes on the very next batch.
- *
- * WHY NOT AMAC HERE. AMAC (Kocberber et al., "Asynchronous Memory Access Chaining", VLDB'15)
- * keeps a per-lookup state machine and refills a completed slot from a fresh lookup, so the
- * group never stalls on its slowest member. That buys something only when the chains have
- * VARIABLE depth — hash chains of differing length, tree descents of differing height — because
- * a plain group prefetcher must then wait out the longest chain in the group. Tomo's flat table
- * does not have that shape: a 15-bit tag in the slot gates the kvobj dereference, so a hit is a
- * CONSTANT ~2 dependent steps (slot line, then kvobj) and a miss is 1. With constant depth every
- * group member finishes in the same number of stages, AMAC's refill never fires, and all that is
- * left of it is the per-slot state-machine bookkeeping — a cost with no matching benefit.
- * The round-robin cursor in exPrefetchBatch already gives the part that DOES pay: a lookup's
- * dereference happens a full rotation after its prefetch was issued. Revisit this only if a
- * variable-depth structure enters the hot path (a real collision-chain fallback, a tree index).
- *
- * EX-SIDE vs IO-SIDE (for the planned io+ex prefetch work). The stage set splits cleanly by
- * which thread owns the memory, which is the split that work will need:
- *   IO-SIDE-CAPABLE — the front end already touches these before dispatch, so they could be
- *   issued at parse/dispatch time on the IO thread: PFS_STRUCT (client struct + exec fields),
- *   PFS_ARGV (argv vector), PFS_KEYOBJ (key robj header), PFS_KEYBYTES (key bytes). None of
- *   them reads the keyspace. PFS_HASH is a boundary case: the SipHash compute is IO-side-safe
- *   (pure function of the key bytes, and the bucket id it yields is what dispatch routes on),
- *   but the bucket-line prefetch it issues is EX-side memory.
- *   EX-SIDE ONLY — these dereference the shard's keyspace, which only the owning worker may
- *   touch under its bucket lock: the bucket-line half of PFS_HASH, PFS_ENTRY (bucket -> entry),
- *   PFS_VALUE (entry -> kvobj/value). Issuing these from an IO thread would read a table another
- *   thread is mutating; a prefetch of a stale address is harmless, but the dict/idx it needs are
- *   worker-private state.
- * Note this file already carries the plumbing for the cross-thread half: PFS_HASH stashes
- * (prefetch_key_hash, prefetch_dict, prefetch_bucket_idx) on the fake client, which is precisely
- * the handoff an IO-side issuer would fill in and an EX-side consumer would read. */
+/* Worker group prefetch is a bounded software pipeline over the already-popped batch. Its
+ * distance follows current occupancy, so the retired per-stage widths stay retired. FLAT probes
+ * have constant depth (home line, tag-gated shell), therefore AMAC's refill/state machinery has
+ * no variable chain to exploit and remains intentionally absent. The value width is derived from
+ * this worker's measured value-size EWMA and fair L3 share. */
 #define TOMO_PF_W_VALUE_MIN 4     /* value chase cannot cover a scoreboard rotation below this */
 #define TOMO_PF_W_VALUE_MAX 256   /* ceiling only; must merely exceed any reachable batch size */
-/* #3 exec-loop next-op look-ahead distance.
- *
- * ⚠ SELECTING AUTO HERE IS CURRENTLY A NO-OP — THE LOOK-AHEAD STILL NEVER FIRES. This was meant
- * to be the one retirement that changes runtime behaviour: tomokv-pf-w-nextop shipped at 0 = OFF,
- * so the look-ahead had never run in a shipped build, and the owner ruled it ON ("next op prefetch
- * on for now might change that later"). Hardwiring AUTO does select the branch — but the AUTO arm
- * resolves the look-ahead DISTANCE to the batch occupancy n, and the exec loop then computes
- *     la = j + n,  with j iterating [0, n),  guarded by  if (la < n)
- * so la >= n for every j and the guard is false unconditionally. The body is unreachable. AUTO and
- * 0 are therefore behaviourally identical today, which is why the merge that flipped this measured
- * as a wash in every regime rather than as the predicted cost.
- *
- * MEASURED 2026-07-29, io7/ex1, 4M keys, gate open (ls_pref_instr_disp.all per prefetch batch):
- *   AUTO (this file, la = j+n) .... 193.87 and 195.05 on two runs
- *   strict 4 (la = j+4) ........... 207.65      <- +7.1%, i.e. ~13 extra prefetches/batch,
- *                                                  matching the ~13.6 fakes/batch the loop runs
- * The counter plainly resolves the look-ahead when it fires, and sees nothing from the AUTO arm.
- *
- * The value is left at AUTO rather than reset to 0 so the owner's ruling stays recorded in the
- * code. TO ACTUALLY ENABLE IT the distance has to become a real look-ahead (a small constant, or
- * a fraction of n — NOT n itself), and that is a genuine new behaviour that needs its own A/B in
- * the ex1 + gate-open regime before it ships; it was deliberately not done as part of a knob
- * retirement. The asymmetry below still governs WHERE it could ever matter once fixed.
- *
- * WHERE IT WOULD CHANGE ANYTHING ONCE THE DISTANCE IS FIXED — the asymmetry matters, and getting
- * it wrong once already forced a revert (a "these stages are dead, delete them" conclusion that
- * was false at ex=1):
- *   ex >= 2 workers per node  -> shared_node_dbs, so the keyspace kvstore carries KVSTORE_FLAT.
- *                                Its dicts[] are ALLOCATE_DICTS_ON_DEMAND and no flat path ever
- *                                creates one, so PFS_HASH's kvstoreGetDict() returns NULL, the
- *                                stage retires at the !d guard, and prefetch_key_hash_valid stays
- *                                0 — which is exactly the input this look-ahead is gated on. So
- *                                on a flat store it CANNOT fire, knob or no knob. No change.
- *   ex == 1 worker per node   -> shared_node_dbs is false, the keyspace stays DICT-backed,
- *                                PFS_HASH populates the (hash, dict, bucket_idx) stash, and this
- *                                look-ahead becomes live. io7/ex1 is a standard test config, so
- *                                this is a real configuration, not a corner case.
- * Net: once the distance is fixed, it would change behaviour ONLY at one worker per node. */
-#define TOMO_PFW_NEXTOP_AUTO (-1) /* look-ahead = current batch occupancy n -- see above: as a
-                                   * DISTANCE this lands past the end of the batch every time */
-#define TOMO_PF_W_NEXTOP TOMO_PFW_NEXTOP_AUTO  /* owner ruling 2026-07-28: ON (was 0 = OFF).
-                                                * Selected, but a no-op until the distance is
-                                                * fixed -- see the block above. */
 
 /* Lock-free SPSC ring buffer. The architecture already guarantees that
  * each exQueue has exactly one producer (the IO thread whose index
@@ -2327,6 +2243,26 @@ typedef enum {
     TOMO_MODE_EX    = 2,
 } tomoThreadMode;
 
+/* Prefetch stats remain owner-local on the request path. The owner periodically publishes a
+ * relaxed atomic snapshot for INFO; readers never race the live counters or make every hint an
+ * atomic RMW. */
+typedef enum {
+    TOMO_PF_BATCHES = 0, TOMO_PF_GATED, TOMO_PF_NOISSUE,
+    TOMO_PF_STRUCT, TOMO_PF_ARGV, TOMO_PF_KEYOBJ, TOMO_PF_KEYBYTES,
+    TOMO_PF_DICT_BUCKET, TOMO_PF_DICT_ENTRY, TOMO_PF_FLAT_SLOT,
+    TOMO_PF_KVOBJ, TOMO_PF_VALDATA, TOMO_PF_BITDATA, TOMO_PF_NEXTOP,
+    TOMO_PF_FLAT_ELIGIBLE, TOMO_PF_FLAT_CANDIDATE,
+    TOMO_PF_VAL_ELIGIBLE, TOMO_PF_NEXT_ELIGIBLE,
+    TOMO_PF_FLAT_GROUPS, TOMO_PF_FLAT_NOISSUE,
+    TOMO_PF_MGET_GROUPS, TOMO_PF_MGET_NOISSUE,
+    TOMO_PF_MSET_GROUPS, TOMO_PF_MSET_NOISSUE,
+    TOMO_PF_STAT_COUNT
+} tomoPrefetchStat;
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoPrefetchSnapshot {
+    _Atomic uint64_t v[TOMO_PF_STAT_COUNT];
+} tomoPrefetchSnapshot;
+
 typedef struct exThread {
     int id;
     pthread_t thread;
@@ -2350,13 +2286,12 @@ typedef struct exThread {
      * worker loop, sampled once/sec by the EWMA load-balancer in serverCron. Own cache line region
      * (per-worker struct) so the sampling read causes no false sharing on the hot path. */
     _Atomic uint64_t ops_total;   /* single-writer (owning worker); tomoRelaxedBump/Read */
-    /* L0 prefetch observability. Single-writer (the owning worker); INFO reads them racily, which
-     * is fine for a stat. These exist because EVERY prefetch A/B in this project's history was
-     * unfalsifiable without them -- one recorded ablation compared prefetch-OFF against
-     * prefetch-OFF because the gate was already shut and nothing reported it. */
+    /* L0 prefetch observability. These are owner-local; INFO reads pf_published below, never these
+     * live words. They exist because a prior ablation compared prefetch-OFF against prefetch-OFF
+     * while the residency gate was silently shut. */
     unsigned long long pf_batches;   /* exPrefetchBatch entries */
     unsigned long long pf_gated;     /* ... that returned at the DRAM-residency gate */
-    unsigned long long pf_issued;    /* prefetch stages actually issued */
+    unsigned long long pf_struct;    /* actual PFS_STRUCT instructions (two per issued visit) */
     /* ee451 (flatstore lb): coarse per-group op counts, single-writer (owning worker), non-atomic
      * (the balancer's 1Hz relaxed read tolerates a torn word — it is an approximate load signal).
      * Indexed by TOMO_LB_GROUP(bucket). A worker only touches buckets it owns, so it only writes the
@@ -2457,6 +2392,31 @@ typedef struct exThread {
      * against the previous build cannot be contaminated by layout. */
     _Atomic uint64_t lb_fine_win;
     uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
+    /* Instruction-level prefetch counters. Appended so the tuned pre-existing hot-field offsets
+     * stay fixed; every field is written only by this worker and periodically snapshotted. */
+    unsigned long long pf_argv;
+    unsigned long long pf_keyobj;
+    unsigned long long pf_keybytes;
+    unsigned long long pf_dict_bucket;
+    unsigned long long pf_dict_entry;
+    unsigned long long pf_flat_slot;
+    unsigned long long pf_kvobj;
+    unsigned long long pf_valdata;
+    unsigned long long pf_bitdata;
+    unsigned long long pf_nextop;
+    unsigned long long pf_noissue;       /* enabled, gate-open batches with zero actual hints */
+    unsigned long long pf_flat_eligible; /* keyed FLAT lanes presented to the shared helper */
+    unsigned long long pf_flat_candidate;/* matching-tag shells actually hinted */
+    unsigned long long pf_val_eligible;  /* exact-key RAW payload lanes */
+    unsigned long long pf_next_eligible; /* in-range DICT next-op targets */
+    unsigned long long pf_flat_groups;
+    unsigned long long pf_flat_noissue;
+    unsigned long long pf_mget_groups;
+    unsigned long long pf_mget_noissue;
+    unsigned long long pf_mset_groups;
+    unsigned long long pf_mset_noissue;
+    unsigned int pf_publish_tick;
+    tomoPrefetchSnapshot pf_published;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -3815,12 +3775,8 @@ struct redisServer {
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
-    /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
-     * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
-     * — see exPrefetchBatch in server.c and the constants next to WORKER_POP_BATCH above. The
-     * fields are gone rather than seeded in tomoInitRetiredKnobDefaults deliberately: a retired
-     * knob's field is initialised by the config table, so a field that outlives its knob falls to
-     * 0 by omission. No field, no way to zero it. */
+    int prefetch_ex;           /* tomokv-prefetch-ex: -1 auto=>1, 0 hard off,
+                                * 1 scoreboard, 2 + FLAT/MGET/next-op, 3 + RAW payload */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int detected_l3_domains;      /* L1a: distinct L3 domains (CCX/CCD); workers-per-L3 for the prefetch gate */

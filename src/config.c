@@ -3251,27 +3251,14 @@ standardConfig static_configs[] = {
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
 
-    /* ================= PREFETCH — no knobs, by design (2026-07-28) =========================
-     * There is deliberately no tomokv-pf-* / tomokv-prefetch-* knob. The ten that used to live
-     * here (pf-w-struct/-argv/-keyobj/-keybytes/-hash/-nextop/-entry/-value, pf-value-budget-kb,
-     * prefetch-min-keys) were retired as a CONFIG SURFACE only: every prefetch stage, the batch
-     * scoreboard, the #3 next-op look-ahead and the value chase are all still there in
-     * exPrefetchBatch, unchanged and under active work (io-side prefetch is planned next).
-     *
-     * They came out because none of them was a decision an operator had information for. Nine
-     * shipped in their AUTO arm, and the AUTO arms are self-deriving: the stage widths follow the
-     * CURRENT batch occupancy (group prefetching with prefetch distance = group size — the
-     * standard software-pipelining form), the residency gate follows the detected L3 divided by
-     * the workers that share it, and the value-chase budget follows a measured value-size EWMA.
-     * A number typed into a config file could only restate what the server already measures, and
-     * would then be wrong on the next machine. See the constants beside WORKER_POP_BATCH in
-     * server.h for what is left, and the note there for why AMAC's per-slot state machine is not
-     * the right shape for a CONSTANT-depth probe chain.
-     *
-     * NOT a re-run of the earlier deletion: that one removed the STAGES on a false "unreachable
-     * under FLATSTORE" premise (false at tomokv-thread-ex 1, where shared_node_dbs is 0 and the
-     * keyspace stays DICT-backed, and io7/ex1 is a standard test config). Nothing is deleted here
-     * except operator-facing names. */
+    /* ================= PREFETCH ==============================================================
+     * Exactly one EX-side level replaces the retired independent widths. It is immutable so a
+     * worker never crosses partially initialized per-batch state: -1 auto resolves to level 1,
+     * 0 hard-off, 1 current scoreboard, 2 adds FLAT/MGET/next-op, 3 adds RAW payload hints.
+     * Widths, residency, value budget and next-op distance remain derived from live occupancy,
+     * detected L3 and the value-size EWMA. */
+    createIntConfig("tomokv-prefetch-ex", NULL, IMMUTABLE_CONFIG, -1, 3,
+                    server.prefetch_ex, -1, INTEGER_CONFIG, NULL, NULL),
 
 
     /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy

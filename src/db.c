@@ -512,7 +512,7 @@ int getKeySlot(sds key) {
          * every exec path). Real clients zmalloc'd by createClient never initialize the field —
          * the flags check keeps us from ever reading it there. */
         if (cc && (cc->flags & CLIENT_EX_PENDING) && cc->tomo_bkt_ptr == (const void *)key)
-            return cc->tomo_bkt;
+            return (int)(cc->tomo_hash & TOMO_BUCKET_MASK);
         return tomoKeyBucket(key, sdslen(key));
     }
     /* This is performance optimization that uses pre-set slot id from the current command,

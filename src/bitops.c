@@ -62,7 +62,8 @@ static const uint8_t bitsinbyte[256] = {
  * 'count' bytes. The implementation of this function is required to
  * work with an input string length up to 512 MB or more (server.proto_max_bulk_len) */
 ATTRIBUTE_TARGET_POPCNT
-long long redisPopcount(void *s, long count) {
+static long long redisPopcountMode(void *s, long count, int prefetch,
+                                   unsigned long long *issued) {
     long long bits = 0;
     unsigned char *p = s;
     uint32_t *p4;
@@ -90,16 +91,28 @@ long long redisPopcount(void *s, long count) {
          * Unroll the loop to avoid the overhead of a single popcnt per iteration,
          * allowing the CPU to extract more instruction-level parallelism.
          * Reference: https://danluu.com/assembly-intrinsics/ */
-        while (count >= 32) {
-            cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
-            cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
-            cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
-            cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
-            count -= 32;
-            p += 32;
-            /* Prefetch with 2K stride is just enough to overlap L3 miss latency effectively
-             * without causing pressure on lower memory hierarchy or polluting L1/L2 */
-            redis_prefetch_read(p + 2048);
+        if (prefetch) {
+            if (issued) *issued += (unsigned long long)count / 32;
+            while (count >= 32) {
+                cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
+                cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
+                cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
+                cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
+                count -= 32;
+                p += 32;
+                /* A 2 KiB stride overlaps the sequential payload scan without
+                 * pressuring L1/L2. The feature branch stays outside the loop. */
+                redis_prefetch_read(p + 2048);
+            }
+        } else {
+            while (count >= 32) {
+                cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
+                cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
+                cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
+                cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
+                count -= 32;
+                p += 32;
+            }
         }
         bits += cnt[0] + cnt[1] + cnt[2] + cnt[3];
         goto remain;
@@ -147,6 +160,11 @@ remain:
     /* Count the remaining bytes. */
     while(count--) bits += bitsinbyte[*p++];
     return bits;
+}
+
+ATTRIBUTE_TARGET_POPCNT
+long long redisPopcount(void *s, long count) {
+    return redisPopcountMode(s, count, 1, NULL);
 }
 
 #ifdef HAVE_AARCH64_NEON
@@ -270,7 +288,8 @@ long long redisPopCountAarch64(void *s, long count) {
 /* AVX512 optimized version of redisPopcount using VPOPCNTDQ instruction.
  * This function requires AVX512F and AVX512VPOPCNTDQ support. */
 ATTRIBUTE_TARGET_AVX512_POPCOUNT
-long long redisPopCountAvx512(void *s, long count) {
+static long long redisPopCountAvx512Mode(void *s, long count, int prefetch,
+                                        unsigned long long *issued) {
     long long bits = 0;
     unsigned char *p = s;
 
@@ -280,19 +299,25 @@ long long redisPopCountAvx512(void *s, long count) {
         count--;
     }
 
-    /* Process 64 bytes at a time using AVX512 */
-    while (count >= 64) {
-        __m512i data = _mm512_loadu_si512((__m512i*)p);
-        __m512i popcnt = _mm512_popcnt_epi64(data);
-
-        /* Sum all 8 64-bit popcount results */
-        bits += _mm512_reduce_add_epi64(popcnt);
-
-        p += 64;
-        count -= 64;
-
-        /* Prefetch next cache line */
-        redis_prefetch_read(p + 2048);
+    /* Select once; level 0 carries no feature branch inside the payload loop. */
+    if (prefetch) {
+        if (issued) *issued += (unsigned long long)count / 64;
+        while (count >= 64) {
+            __m512i data = _mm512_loadu_si512((__m512i*)p);
+            __m512i popcnt = _mm512_popcnt_epi64(data);
+            bits += _mm512_reduce_add_epi64(popcnt);
+            p += 64;
+            count -= 64;
+            redis_prefetch_read(p + 2048);
+        }
+    } else {
+        while (count >= 64) {
+            __m512i data = _mm512_loadu_si512((__m512i*)p);
+            __m512i popcnt = _mm512_popcnt_epi64(data);
+            bits += _mm512_reduce_add_epi64(popcnt);
+            p += 64;
+            count -= 64;
+        }
     }
 
     /* Handle remaining bytes with scalar popcount */
@@ -309,13 +334,19 @@ long long redisPopCountAvx512(void *s, long count) {
 
     return bits;
 }
+
+ATTRIBUTE_TARGET_AVX512_POPCOUNT
+long long redisPopCountAvx512(void *s, long count) {
+    return redisPopCountAvx512Mode(s, count, 1, NULL);
+}
 #endif
 
 #ifdef HAVE_AVX2
 /* AVX2 optimized version of redisPopcount.
  * This function requires AVX2 and POPCNT support. */
 ATTRIBUTE_TARGET_AVX2_POPCOUNT
-long long redisPopCountAvx2(void *s, long count) {
+static long long redisPopCountAvx2Mode(void *s, long count, int prefetch,
+                                      unsigned long long *issued) {
     long long bits = 0;
     unsigned char *p = s;
 
@@ -329,18 +360,27 @@ long long redisPopCountAvx2(void *s, long count) {
     uint64_t cnt[4];
     memset(cnt, 0, sizeof(cnt));
 
-    /* Process 32 bytes at a time using POPCNT on 64-bit chunks */
-    while (count >= 32) {
-        cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
-        cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
-        cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
-        cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
-
-        p += 32;
-        count -= 32;
-
-        /* Prefetch next cache line */
-        redis_prefetch_read(p + 2048);
+    /* Select once; level 0 carries no feature branch inside the payload loop. */
+    if (prefetch) {
+        if (issued) *issued += (unsigned long long)count / 32;
+        while (count >= 32) {
+            cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
+            cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
+            cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
+            cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
+            p += 32;
+            count -= 32;
+            redis_prefetch_read(p + 2048);
+        }
+    } else {
+        while (count >= 32) {
+            cnt[0] += __builtin_popcountll(*(uint64_t*)(p));
+            cnt[1] += __builtin_popcountll(*(uint64_t*)(p + 8));
+            cnt[2] += __builtin_popcountll(*(uint64_t*)(p + 16));
+            cnt[3] += __builtin_popcountll(*(uint64_t*)(p + 24));
+            p += 32;
+            count -= 32;
+        }
     }
 
     bits += cnt[0] + cnt[1] + cnt[2] + cnt[3];
@@ -359,24 +399,31 @@ long long redisPopCountAvx2(void *s, long count) {
 
     return bits;
 }
+
+ATTRIBUTE_TARGET_AVX2_POPCOUNT
+long long redisPopCountAvx2(void *s, long count) {
+    return redisPopCountAvx2Mode(s, count, 1, NULL);
+}
 #endif
 
 /* Automatically select the best available popcount implementation */
-static inline long long redisPopcountAuto(const unsigned char *p, long count) {
+static inline long long redisPopcountAuto(const unsigned char *p, long count,
+                                          int prefetch,
+                                          unsigned long long *issued) {
 #ifdef HAVE_AVX512
     if (BITOP_USE_AVX512) {
-        return redisPopCountAvx512((void*)p, count);
+        return redisPopCountAvx512Mode((void*)p, count, prefetch, issued);
     }
 #endif
 #ifdef HAVE_AVX2
     if (BITOP_USE_AVX2) {
-        return redisPopCountAvx2((void*)p, count);
+        return redisPopCountAvx2Mode((void*)p, count, prefetch, issued);
     }
 #endif
 #ifdef HAVE_AARCH64_NEON
     return redisPopCountAarch64((void*)p, count);
 #else
-    return redisPopcount((void*)p, count);
+    return redisPopcountMode((void*)p, count, prefetch, issued);
 #endif
 }
 
@@ -1533,9 +1580,12 @@ void bitcountCommand(client *c) {
     } else {
         long bytes = (long)(end-start+1);
         long long count;
+        int prefetch = server.prefetch_ex != 0;
+        unsigned long long prefetch_issued = 0;
 
-        /* Use the best available popcount implementation */
-        count = redisPopcountAuto(p+start, bytes);
+        /* EX level 0 selects a compute-only loop before scanning the payload;
+         * there is no feature branch inside either loop. */
+        count = redisPopcountAuto(p+start, bytes, prefetch, &prefetch_issued);
 
         if (first_byte_neg_mask != 0 || last_byte_neg_mask != 0) {
             unsigned char firstlast[2] = {0, 0};
@@ -1546,8 +1596,11 @@ void bitcountCommand(client *c) {
             if (last_byte_neg_mask != 0) firstlast[1] = p[end] & last_byte_neg_mask;
 
             /* Use the same popcount implementation for consistency */
-            count -= redisPopcountAuto(firstlast, 2);
+            count -= redisPopcountAuto(firstlast, 2, prefetch, &prefetch_issued);
         }
+        int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+        if (prefetch_issued && wid >= 0 && wid < server.num_workers)
+            server.exThreads[wid].pf_bitdata += prefetch_issued;
         addReplyLongLong(c,count);
     }
 }

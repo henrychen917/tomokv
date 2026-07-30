@@ -154,6 +154,8 @@ static void resetFakeClientState(client *c, client *parent) {
     c->is_flush = 0;
     c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
+    c->prefetch_key_hash = 0;
+    c->prefetch_key_hash_valid = 0;
     c->drain_ack = NULL;
     c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
     c->mig_parked_tid = 0;

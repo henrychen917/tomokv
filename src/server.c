@@ -7338,7 +7338,7 @@ int getWorkerForCommand(client *c) {
     if (c->cmd && c->cmd->proc == scanCommand && server.exThreads) {
         /* SCAN has no key, so the keyed path below never sets tomo_bkt — leave it valid (0) so the
          * post-exec LB accounting (worker->lb_grp_ops[TOMO_LB_GROUP(tomo_bkt)]) doesn't index OOB. */
-        c->tomo_bkt = 0; c->tomo_bkt_ptr = NULL;
+        c->tomo_hash = 0; c->tomo_bkt_ptr = NULL;
         for (int w = 0; w < server.num_workers; w++) if (tmWorkerLive(w)) return w;
         return 0;
     }
@@ -7392,11 +7392,12 @@ int getWorkerForCommand(client *c) {
      * Fast path: xxh64 (non-cryptographic, ~3-5x faster than SipHash on
      * short keys) + the bucket indirection table: any worker count, resharding-aware, and
      * dispatch is one table load (the power-of-two dispatch MASK it replaced is long gone). */
-    /* ee451 (hash-carry): compute the bucket ONCE here and carry it on the fake — the worker-side
-     * getKeySlot (lookupKey + dbAdd + expires all recompute it) consumes via pointer match. */
+    /* Carry the full routing hash. The low bits still select the bucket, while the FLAT
+     * prefetch stage can use the same value without re-reading key bytes or hashing again. */
     {
-        int b = tomoKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
-        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[1]->ptr;
+        uint64_t h = tomoKeyHash(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+        int b = (int)(h & TOMO_BUCKET_MASK);
+        c->tomo_hash = h; c->tomo_bkt_ptr = c->argv[1]->ptr;
         return (int)server.ex_bucket_table[b];
     }
 }
@@ -7485,7 +7486,7 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * known UP FRONT: besides amortizing parse/pcmd/dispatch over N, the execution can SOFTWARE-
  * PIPELINE the memory accesses. N pipelined GETs each serialize one dependent argv -> key-bytes ->
  * hash -> slot-line -> kvobj chain (~2-3 DRAM round-trips of ~100ns, back-to-back — on a FLAT
- * store the cross-command prefetcher is inert, see the interaction audit below); a wave issues
+ * store the ordinary level-2 prefetcher stages the same constant-depth probe); a wave issues
  * each chain stage for the WHOLE wave before consuming it, so the misses overlap up to the core's
  * memory-level parallelism (~10-12 sustained outstanding DRAM misses on Zen4).
  *
@@ -7497,16 +7498,10 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * line has fallen out of L1 by then it is still L2-resident (~14cy), keeping the bulk of the
  * ~100ns saving.
  *
- * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / the old mget-coalesce level 2): on a FLAT store every
- * table-touching stage of the existing prefetch machinery self-disables — exPrefetchBatch's
- * PFS_HASH reads kvstoreGetDict(), which is NULL under KVSTORE_FLAT (dicts are on-demand,
- * initServer/kvstoreCreate; no flat path ever creates one), so it retires at the !d guard,
- * prefetch_key_hash_valid stays 0, and the #3 next-op look-ahead (TOMO_PF_W_NEXTOP, exec loop) never
- * fires; the in-sub two-pass dict prefetch (mget-coalesce level 2, csSubExec CS_MGET) nulls its
- * ds[] the same way. These waves are therefore the ONLY issuer of flat-table prefetches: no
- * double-prefetch, no LFB competition. The batch prefetcher still warms fake METADATA
- * (struct/argv vector/argv[1]) — complementary, not conflicting; the single overlap (key 0's
- * robj/byte lines) costs one dropped L1-hit prefetch. Neither pf knob changes meaning.
+ * INTERACTION: ordinary single-key batches and coalesced MGET share
+ * tomoFlatPrefetchGroup(), so tag handling, exact-key payload qualification, counters, and
+ * lifetime rules cannot drift. MSET uses a write-specific home-slot wave because its apply body
+ * consumes key/value pairs and no old payload. All three are disabled by EX level 0.
  *
  * PASSES over a wave of nw <= TOMO_MWAVE keys:
  *   A0  prefetch key robj headers (argv was built on the IO thread — cross-core cold here);
@@ -7550,6 +7545,272 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * regression, halve it; if they show no tail cost, raise it toward TOMO_MWAVE. */
 #define TOMO_MWAVE 32
 #define TOMO_MSUBWAVE 8
+
+static inline int tomoPrefetchExLevel(void) {
+    int level = server.prefetch_ex;
+    return level < 0 ? 1 : level;
+}
+
+typedef struct tomoPrefetchDelta {
+    uint64_t structure, argv, keyobj, keybytes;
+    uint64_t dict_bucket, dict_entry, flat_slot, kvobj, valdata;
+    uint64_t flat_eligible, flat_candidate, val_eligible;
+    uint64_t flat_groups, flat_noissue;
+    uint64_t mget_groups, mget_noissue;
+    uint64_t mset_groups, mset_noissue;
+} tomoPrefetchDelta;
+
+static inline void tomoPrefetchFold(exThread *w, const tomoPrefetchDelta *d) {
+    w->pf_struct += d->structure;
+    w->pf_argv += d->argv;
+    w->pf_keyobj += d->keyobj;
+    w->pf_keybytes += d->keybytes;
+    w->pf_dict_bucket += d->dict_bucket;
+    w->pf_dict_entry += d->dict_entry;
+    w->pf_flat_slot += d->flat_slot;
+    w->pf_kvobj += d->kvobj;
+    w->pf_valdata += d->valdata;
+    w->pf_flat_eligible += d->flat_eligible;
+    w->pf_flat_candidate += d->flat_candidate;
+    w->pf_val_eligible += d->val_eligible;
+    w->pf_flat_groups += d->flat_groups;
+    w->pf_flat_noissue += d->flat_noissue;
+    w->pf_mget_groups += d->mget_groups;
+    w->pf_mget_noissue += d->mget_noissue;
+    w->pf_mset_groups += d->mset_groups;
+    w->pf_mset_noissue += d->mset_noissue;
+}
+
+__attribute__((noinline))
+static void tomoPrefetchPublish(exThread *w) {
+    const uint64_t values[TOMO_PF_STAT_COUNT] = {
+        [TOMO_PF_BATCHES] = w->pf_batches,
+        [TOMO_PF_GATED] = w->pf_gated,
+        [TOMO_PF_NOISSUE] = w->pf_noissue,
+        [TOMO_PF_STRUCT] = w->pf_struct,
+        [TOMO_PF_ARGV] = w->pf_argv,
+        [TOMO_PF_KEYOBJ] = w->pf_keyobj,
+        [TOMO_PF_KEYBYTES] = w->pf_keybytes,
+        [TOMO_PF_DICT_BUCKET] = w->pf_dict_bucket,
+        [TOMO_PF_DICT_ENTRY] = w->pf_dict_entry,
+        [TOMO_PF_FLAT_SLOT] = w->pf_flat_slot,
+        [TOMO_PF_KVOBJ] = w->pf_kvobj,
+        [TOMO_PF_VALDATA] = w->pf_valdata,
+        [TOMO_PF_BITDATA] = w->pf_bitdata,
+        [TOMO_PF_NEXTOP] = w->pf_nextop,
+        [TOMO_PF_FLAT_ELIGIBLE] = w->pf_flat_eligible,
+        [TOMO_PF_FLAT_CANDIDATE] = w->pf_flat_candidate,
+        [TOMO_PF_VAL_ELIGIBLE] = w->pf_val_eligible,
+        [TOMO_PF_NEXT_ELIGIBLE] = w->pf_next_eligible,
+        [TOMO_PF_FLAT_GROUPS] = w->pf_flat_groups,
+        [TOMO_PF_FLAT_NOISSUE] = w->pf_flat_noissue,
+        [TOMO_PF_MGET_GROUPS] = w->pf_mget_groups,
+        [TOMO_PF_MGET_NOISSUE] = w->pf_mget_noissue,
+        [TOMO_PF_MSET_GROUPS] = w->pf_mset_groups,
+        [TOMO_PF_MSET_NOISSUE] = w->pf_mset_noissue,
+    };
+    for (int s = 0; s < TOMO_PF_STAT_COUNT; s++)
+        atomic_store_explicit(&w->pf_published.v[s], values[s],
+                              memory_order_relaxed);
+}
+
+static inline void tomoPrefetchMaybePublish(exThread *w) {
+    /* 24 stores per 64 popped batches: bounded observability cost without a reader race or
+     * per-hint atomic RMW. INFO may lag by at most 63 batches. */
+    if ((w->pf_publish_tick++ & 63u) == 0)
+        tomoPrefetchPublish(w);
+}
+
+static inline void tomoPrefetchObserveValue(exThread *w, size_t bytes) {
+    int sample = bytes > INT_MAX ? INT_MAX : (int)bytes;
+    int cur = (int)w->w_ewma_vsize;
+    cur += (sample - cur) >> 4;
+    w->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
+}
+
+/* Current EX group-derived MGET width. Written and consumed by the same worker thread. */
+static __thread int tomo_pf_mget_width = 1;
+static __thread int tomo_pf_payload_width;
+static __thread int tomo_pf_storage_active;
+
+/* Shared FLAT read staging for ordinary worker batches and coalesced MGET. It returns no lookup
+ * result: the caller always performs the normal full probe. The enclosing worker flat section
+ * pins the table and kvobj shell; value interiors are not pinned, so the RAW pointer is used only
+ * as the immediate operand of a prefetch instruction after an exact embedded-key comparison. */
+__attribute__((noinline))
+static int tomoFlatPrefetchGroup(redisDb **dbs, robj **keys, const uint64_t *hashes,
+                                 const uint8_t *payload_eligible, int n, int level,
+                                 tomoPrefetchDelta *delta)
+{
+    if (!dbs || n <= 0 || n > TOMO_MWAVE || level < 2) return 0;
+    flatTable *tables[TOMO_MWAVE];
+    kvobj *candidates[TOMO_MWAVE];
+    int issued = 0;
+    for (int i = 0; i < n; i++) {
+        tables[i] = dbs[i] ? kvstoreFlatTable(dbs[i]->keys) : NULL;
+        candidates[i] = NULL;
+        if (!tables[i]) continue;
+        delta->flat_eligible++;
+        redis_prefetch_read(&tables[i]->slots[hashes[i] & tables[i]->mask]);
+        delta->flat_slot++;
+        issued++;
+    }
+
+    for (int i = 0; i < n; i++) {
+        flatTable *t = tables[i];
+        if (!t) continue;
+        uint64_t h = hashes[i], home = h & t->mask;
+        uintptr_t addr = (uintptr_t)&t->slots[home];
+        uint64_t line_slots =
+            (CACHE_LINE_SIZE - (addr % CACHE_LINE_SIZE)) / sizeof(flatSlot);
+        uint64_t line_last = home + line_slots - 1;
+        if (line_last > t->mask) line_last = t->mask;
+        uint64_t tag = flat_tag_of(h);
+        for (uint64_t s = home; s <= line_last; s++) {
+            uint64_t word = atomic_load_explicit(&t->slots[s].w, memory_order_acquire);
+            if (FLAT_IS_EMPTY(word)) break;
+            if (FLAT_IS_LIVE(word) && flat_word_tag(word) == tag) {
+                kvobj *kv = dictGetKV(flat_word_ptr(word));
+                candidates[i] = kv;
+                redis_prefetch_read(kv);
+                delta->kvobj++;
+                delta->flat_candidate++;
+                issued++;
+                break;
+            }
+        }
+    }
+
+    if (level < 3) return issued;
+    for (int i = 0; i < n; i++) {
+        kvobj *kv = candidates[i];
+        robj *keyobj = keys[i];
+        if (!kv || !keyobj || !keyobj->ptr ||
+            (payload_eligible && !payload_eligible[i]))
+            continue;
+        sds wanted = keyobj->ptr;
+        sds stored = kvobjGetKey(kv);
+        size_t wanted_len = sdslen(wanted);
+        if (sdslen(stored) != wanted_len ||
+            memcmp(stored, wanted, wanted_len) != 0)
+            continue;
+        if (kv->type == OBJ_STRING && kv->encoding == OBJ_ENCODING_RAW && kv->ptr) {
+            delta->val_eligible++;
+            redis_prefetch_read((char *)kv->ptr - 1);
+            delta->valdata++;
+            issued++;
+        }
+    }
+    return issued;
+}
+
+/* Keep enabled-only argv/hash/candidate scratch out of csSubExec's hard-off frame. */
+__attribute__((noinline))
+static void csMgetFlatReadWave(client *sub, csGroup *g, int *pos, int level,
+                               int width, exThread *pfw, size_t *value_bytes)
+{
+    int issued = 0;
+    tomoPrefetchDelta delta = {.mget_groups = 1};
+    if (width < 1) width = 1;
+    if (width > TOMO_MWAVE) width = TOMO_MWAVE;
+    for (int base = 1; base < sub->argc; base += width) {
+        int nw = sub->argc - base;
+        if (nw > width) nw = width;
+        redisDb *dbs[TOMO_MWAVE];
+        robj *keys[TOMO_MWAVE];
+        uint64_t hashes[TOMO_MWAVE];
+        uint8_t payload[TOMO_MWAVE];
+        for (int i = 0; i < nw; i++) {
+            dbs[i] = sub->db;
+            keys[i] = sub->argv[base + i];
+            payload[i] = i < tomo_pf_payload_width;
+            redis_prefetch_read(keys[i]);
+            delta.keyobj++;
+            issued++;
+        }
+        for (int i = 0; i < nw; i++) {
+            if (keys[i]->encoding != OBJ_ENCODING_EMBSTR && keys[i]->ptr) {
+                redis_prefetch_read(keys[i]->ptr);
+                delta.keybytes++;
+                issued++;
+            }
+        }
+        for (int i = 0; i < nw; i++)
+            hashes[i] = tomoKeyHash(keys[i]->ptr, sdslen(keys[i]->ptr));
+        issued += tomoFlatPrefetchGroup(dbs, keys, hashes, payload, nw, level,
+                                        &delta);
+        for (int i = 0; i < nw; i++) {
+            int a = base + i;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (o != NULL && o->type == OBJ_STRING) {
+                *value_bytes += stringObjectLen(o);
+                g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                               : sdsfromlonglong((long)o->ptr);
+            }
+        }
+    }
+    if (issued == 0) delta.mget_noissue++;
+    tomoPrefetchFold(pfw, &delta);
+}
+
+/* Existing FLAT write wave, isolated so EX level 0 does not reserve its scratch or run any hint. */
+__attribute__((noinline))
+static void csMsetFlatWriteWave(client *sub, exThread *pfw)
+{
+    flatTable *t = kvstoreFlatTable(sub->db->keys);
+    int npairs = (sub->argc - 1) / 2;
+    int issued = 0;
+    tomoPrefetchDelta delta = {.mset_groups = 1};
+    for (int base = 0; base < npairs; base += TOMO_MSUBWAVE) {
+        int nw = npairs - base;
+        if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;
+        uint64_t h[TOMO_MWAVE];
+        for (int i = 0; i < nw; i++) {
+            int a = 1 + 2 * (base + i);
+            redis_prefetch_read(sub->argv[a]);
+            redis_prefetch_read(sub->argv[a + 1]);
+            delta.keyobj += 2;
+            issued += 2;
+        }
+        for (int i = 0; i < nw; i++) {
+            int a = 1 + 2 * (base + i);
+            robj *k = sub->argv[a], *v = sub->argv[a + 1];
+            if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
+                redis_prefetch_read(k->ptr);
+                delta.keybytes++;
+                issued++;
+            }
+            if (v->encoding != OBJ_ENCODING_EMBSTR && v->ptr) {
+                redis_prefetch_read(v->ptr);
+                delta.keybytes++;
+                issued++;
+            }
+        }
+        for (int i = 0; i < nw; i++) {
+            robj *k = sub->argv[1 + 2 * (base + i)];
+            h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
+        }
+        for (int i = 0; i < nw; i++) {
+            redis_prefetch_read(&t->slots[h[i] & t->mask]);
+            delta.flat_slot++;
+            issued++;
+        }
+        for (int i = 0; i < nw; i++) {
+            int a = 1 + 2 * (base + i);
+            robj *keyo = sub->argv[a];
+            sub->tomo_hash = h[i];
+            sub->tomo_bkt_ptr = keyo->ptr;
+            sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+            setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+            sub->argv[a+1] = NULL;
+            notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+            markDirty(1);
+        }
+    }
+    sub->tomo_bkt_ptr = NULL;
+    if (issued == 0) delta.mset_noissue++;
+    tomoPrefetchFold(pfw, &delta);
+}
 
 /* (Deleted 2026-07-27: a block here described a "per-node worker-borrow" SCATTER-then-COMBINE
  * design for CS_MGET/CS_EXISTS whose csSubExec "borrow branch" read each key from its TRUE owner
@@ -8218,6 +8479,10 @@ static void csSubExec(client *sub) {
     }
     switch (g->ctype) {
     case CS_MGET: {
+        int level = tomoPrefetchExLevel();
+        int observe = level != 0;
+        size_t pf_value_bytes = 0;
+        int pf_value_samples = 0;
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
          * not getCommand. */
         if (g->mget_vals) {
@@ -8225,26 +8490,44 @@ static void csSubExec(client *sub) {
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
             int *pos = g->mget_pos[sub->cssub_idx];
-            /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
-             * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
-             * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each
-             * key's hash + prefetches its dict bucket; pass 2 arms the hash (single-shot hint, same
-             * exExecFake handshake) so lookup reuses it AND lands on a warm bucket. Pure hint => output
-             * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
-            /* ee451 2026-07-28: the in-sub two-pass dict prefetch (mget-coalesce level 2) is
-             * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
-             * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
-            for (int a = 1; a < sub->argc; a++) {
-                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-                if (o != NULL && o->type == OBJ_STRING)
-                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
-                                                                   : sdsfromlonglong((long)o->ptr);
+            if (observe) pf_value_samples = sub->argc - 1;
+            if (level >= 2 && tomo_pf_storage_active &&
+                kvstoreIsFlat(sub->db->keys)) {
+                exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
+                csMgetFlatReadWave(sub, g, pos, level, tomo_pf_mget_width,
+                                   pfw, &pf_value_bytes);
+            } else if (!observe) {
+                /* Literal legacy loop for EX level 0: no sampling branch or controller work
+                 * exists inside the per-key path. */
+                for (int a = 1; a < sub->argc; a++) {
+                    robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                    if (o != NULL && o->type == OBJ_STRING)
+                        g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                       : sdsfromlonglong((long)o->ptr);
+                }
+            } else {
+                for (int a = 1; a < sub->argc; a++) {
+                    robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                    if (o != NULL && o->type == OBJ_STRING) {
+                        pf_value_bytes += stringObjectLen(o);
+                        g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                       : sdsfromlonglong((long)o->ptr);
+                    }
+                }
             }
         } else {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+            if (observe) pf_value_samples = 1;
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
-            else addReplyBulk(sub, o);
+            else {
+                if (observe) pf_value_bytes = stringObjectLen(o);
+                addReplyBulk(sub, o);
+            }
+        }
+        if (observe && pf_value_samples > 0) {
+            exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
+            tomoPrefetchObserveValue(pfw, pf_value_bytes / (size_t)pf_value_samples);
         }
         break;
     }
@@ -8282,45 +8565,9 @@ static void csSubExec(client *sub) {
          * (heavier) apply wave is still L2-resident. MSETNX HOP2 falls through and gets the same
          * treatment. Follow-up (not done): teach the flat kvstoreDictFindLink a full-hash hint to
          * drop the second xxh64 — dictArmHashHint's TLS is consumed by the dict path only. */
-        if (kvstoreIsFlat(sub->db->keys)) {
-            flatTable *t = kvstoreFlatTable(sub->db->keys);
-            int npairs = (sub->argc - 1) / 2;
-            for (int base = 0; base < npairs; base += TOMO_MSUBWAVE) {
-                int nw = npairs - base; if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;   /* sub-wave: stage N, execute N */
-                uint64_t h[TOMO_MWAVE];
-                for (int i = 0; i < nw; i++) {                    /* A0: k+v robj headers */
-                    int a = 1 + 2 * (base + i);
-                    redis_prefetch_read(sub->argv[a]);
-                    redis_prefetch_read(sub->argv[a + 1]);
-                }
-                for (int i = 0; i < nw; i++) {                    /* A1: k+v byte lines */
-                    int a = 1 + 2 * (base + i);
-                    robj *k = sub->argv[a], *v = sub->argv[a + 1];
-                    if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) redis_prefetch_read(k->ptr);
-                    /* value bytes: tryObjectEncoding's string2ll probe reads them */
-                    if (v->encoding != OBJ_ENCODING_EMBSTR && v->ptr) redis_prefetch_read(v->ptr);
-                }
-                for (int i = 0; i < nw; i++) {                    /* A2: hash (independent) */
-                    robj *k = sub->argv[1 + 2 * (base + i)];
-                    h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
-                }
-                for (int i = 0; i < nw; i++)                      /* B: first-probe slot lines */
-                    redis_prefetch_read(&t->slots[h[i] & t->mask]);
-                for (int i = 0; i < nw; i++) {                    /* C: apply — body unchanged */
-                    int a = 1 + 2 * (base + i);
-                    robj *keyo = sub->argv[a];
-                    sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);   /* hash-carry: reuse A2 */
-                    sub->tomo_bkt_ptr = keyo->ptr;
-                    sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-                    setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
-                    sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
-                    notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
-                    markDirty(1);
-                }
-            }
-            /* stale-hint trap (mirror exExecFake's clear): pooled subs recycle — a stale ptr
-             * could pointer-match a recycled sds in a later life => wrong bucket. One clear. */
-            sub->tomo_bkt_ptr = NULL;
+        if (tomoPrefetchExLevel() != 0 && kvstoreIsFlat(sub->db->keys)) {
+            exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
+            csMsetFlatWriteWave(sub, pfw);
             break;
         }
         for (int a = 1; a + 1 < sub->argc; a += 2) {
@@ -14425,14 +14672,44 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     int stat_io_ops_processed_calculated = 0;
     long long stat_io_reads_processed = 0, stat_io_writes_processed = 0;
     long long stat_total_reads_processed = 0, stat_total_writes_processed = 0;
-    /* L0 prefetch observability: sum the per-worker counters. Racy reads of single-writer
-     * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
-     * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
-    unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
+    /* L0 prefetch observability: sum owner-published atomic snapshots. INFO never reads the
+     * worker's live counters. tomo_prefetch_gated == batches means the residency gate is shut. */
+    struct {
+        unsigned long long batches, gated, noissue;
+        unsigned long long structure, argv, keyobj, keybytes;
+        unsigned long long dict_bucket, dict_entry, flat_slot, kvobj, valdata, bitdata, nextop;
+        unsigned long long flat_eligible, flat_candidate, val_eligible, next_eligible;
+        unsigned long long flat_groups, flat_noissue;
+        unsigned long long mget_groups, mget_noissue;
+        unsigned long long mset_groups, mset_noissue;
+    } tomo_pf = {0};
     for (int _w = 0; _w < server.num_workers; _w++) {
-        tomo_pf_batches += server.exThreads[_w].pf_batches;
-        tomo_pf_gated   += server.exThreads[_w].pf_gated;
-        tomo_pf_issued  += server.exThreads[_w].pf_issued;
+        exThread *_pfw = &server.exThreads[_w];
+        tomoPrefetchSnapshot *_p = &_pfw->pf_published;
+        tomo_pf.batches += atomic_load_explicit(&_p->v[TOMO_PF_BATCHES], memory_order_relaxed);
+        tomo_pf.gated += atomic_load_explicit(&_p->v[TOMO_PF_GATED], memory_order_relaxed);
+        tomo_pf.noissue += atomic_load_explicit(&_p->v[TOMO_PF_NOISSUE], memory_order_relaxed);
+        tomo_pf.structure += atomic_load_explicit(&_p->v[TOMO_PF_STRUCT], memory_order_relaxed);
+        tomo_pf.argv += atomic_load_explicit(&_p->v[TOMO_PF_ARGV], memory_order_relaxed);
+        tomo_pf.keyobj += atomic_load_explicit(&_p->v[TOMO_PF_KEYOBJ], memory_order_relaxed);
+        tomo_pf.keybytes += atomic_load_explicit(&_p->v[TOMO_PF_KEYBYTES], memory_order_relaxed);
+        tomo_pf.dict_bucket += atomic_load_explicit(&_p->v[TOMO_PF_DICT_BUCKET], memory_order_relaxed);
+        tomo_pf.dict_entry += atomic_load_explicit(&_p->v[TOMO_PF_DICT_ENTRY], memory_order_relaxed);
+        tomo_pf.flat_slot += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_SLOT], memory_order_relaxed);
+        tomo_pf.kvobj += atomic_load_explicit(&_p->v[TOMO_PF_KVOBJ], memory_order_relaxed);
+        tomo_pf.valdata += atomic_load_explicit(&_p->v[TOMO_PF_VALDATA], memory_order_relaxed);
+        tomo_pf.bitdata += atomic_load_explicit(&_p->v[TOMO_PF_BITDATA], memory_order_relaxed);
+        tomo_pf.nextop += atomic_load_explicit(&_p->v[TOMO_PF_NEXTOP], memory_order_relaxed);
+        tomo_pf.flat_eligible += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_ELIGIBLE], memory_order_relaxed);
+        tomo_pf.flat_candidate += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_CANDIDATE], memory_order_relaxed);
+        tomo_pf.val_eligible += atomic_load_explicit(&_p->v[TOMO_PF_VAL_ELIGIBLE], memory_order_relaxed);
+        tomo_pf.next_eligible += atomic_load_explicit(&_p->v[TOMO_PF_NEXT_ELIGIBLE], memory_order_relaxed);
+        tomo_pf.flat_groups += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_GROUPS], memory_order_relaxed);
+        tomo_pf.flat_noissue += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_NOISSUE], memory_order_relaxed);
+        tomo_pf.mget_groups += atomic_load_explicit(&_p->v[TOMO_PF_MGET_GROUPS], memory_order_relaxed);
+        tomo_pf.mget_noissue += atomic_load_explicit(&_p->v[TOMO_PF_MGET_NOISSUE], memory_order_relaxed);
+        tomo_pf.mset_groups += atomic_load_explicit(&_p->v[TOMO_PF_MSET_GROUPS], memory_order_relaxed);
+        tomo_pf.mset_noissue += atomic_load_explicit(&_p->v[TOMO_PF_MSET_NOISSUE], memory_order_relaxed);
     }
     if (all_sections || (dictFind(section_dict,"threads") != NULL)) {
         if (sections++) info = sdscat(info,"\r\n");
@@ -14555,6 +14832,38 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        unsigned long long tomo_pf_issued =
+            tomo_pf.structure + tomo_pf.argv + tomo_pf.keyobj + tomo_pf.keybytes +
+            tomo_pf.dict_bucket + tomo_pf.dict_entry + tomo_pf.flat_slot +
+            tomo_pf.kvobj + tomo_pf.valdata + tomo_pf.bitdata + tomo_pf.nextop;
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_prefetch_ex_configured:%d\r\n", server.prefetch_ex,
+            "tomokv_prefetch_ex_level:%d\r\n", tomoPrefetchExLevel(),
+            "tomo_prefetch_batches:%llu\r\n", tomo_pf.batches,
+            "tomo_prefetch_gated:%llu\r\n", tomo_pf.gated,
+            "tomo_prefetch_noissue:%llu\r\n", tomo_pf.noissue,
+            "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
+            "tomo_prefetch_struct:%llu\r\n", tomo_pf.structure,
+            "tomo_prefetch_argv:%llu\r\n", tomo_pf.argv,
+            "tomo_prefetch_keyobj:%llu\r\n", tomo_pf.keyobj,
+            "tomo_prefetch_keybytes:%llu\r\n", tomo_pf.keybytes,
+            "tomo_prefetch_dict_bucket:%llu\r\n", tomo_pf.dict_bucket,
+            "tomo_prefetch_dict_entry:%llu\r\n", tomo_pf.dict_entry,
+            "tomo_prefetch_flat_slot:%llu\r\n", tomo_pf.flat_slot,
+            "tomo_prefetch_kvobj:%llu\r\n", tomo_pf.kvobj,
+            "tomo_prefetch_valdata:%llu\r\n", tomo_pf.valdata,
+            "tomo_prefetch_bitdata:%llu\r\n", tomo_pf.bitdata,
+            "tomo_prefetch_nextop:%llu\r\n", tomo_pf.nextop,
+            "tomo_prefetch_flat_eligible:%llu\r\n", tomo_pf.flat_eligible,
+            "tomo_prefetch_flat_candidate:%llu\r\n", tomo_pf.flat_candidate,
+            "tomo_prefetch_val_eligible:%llu\r\n", tomo_pf.val_eligible,
+            "tomo_prefetch_next_eligible:%llu\r\n", tomo_pf.next_eligible,
+            "tomo_prefetch_flat_groups:%llu\r\n", tomo_pf.flat_groups,
+            "tomo_prefetch_flat_noissue:%llu\r\n", tomo_pf.flat_noissue,
+            "tomo_prefetch_mget_groups:%llu\r\n", tomo_pf.mget_groups,
+            "tomo_prefetch_mget_noissue:%llu\r\n", tomo_pf.mget_noissue,
+            "tomo_prefetch_mset_groups:%llu\r\n", tomo_pf.mset_groups,
+            "tomo_prefetch_mset_noissue:%llu\r\n", tomo_pf.mset_noissue));
         /* MERGE 2026-07-28: the fork-local tomokv_* counters and upstream's Stats block are now
          * TWO sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
          * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
@@ -14611,9 +14920,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "unexpected_error_replies:%lld\r\n", server.stat_unexpected_error_replies,
             "total_error_replies:%lld\r\n", getTotalErrorReplies(),   /* ee451 (#B2): folded per-thread */
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
-            "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
-            "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
-            "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
             "total_writes_processed:%lld\r\n", stat_total_writes_processed,
             "io_threaded_reads_processed:%lld\r\n", stat_io_reads_processed,
@@ -16117,24 +16423,29 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * Passes mirror the requested ordering "prefetch fc -> prefetch command
  * execution stages -> prefetch key value -> execute":
  *   1. fake client struct, its argv vector, the command descriptor, key robj
- *   2. key sds bytes; compute SipHash ONCE and stash it on the fake (reused at
- *      execution via dictArmHashHint so we don't hash the key a second time);
- *      prefetch the bucket slot
- *   3. dereference the (now-warm) bucket slot to the head entry; prefetch it
- *   4. dereference the (now-warm) entry to the stored kvobj; prefetch the value
+ *   2. key sds bytes; in DICT mode compute the dict hash once and stash only
+ *      that scalar for dictArmHashHint()
+ *   3. DICT: bucket -> entry -> kvobj -> exact-key RAW value data
+ *      FLAT: home slot -> tag candidate kvobj -> exact-key RAW value data
  *
  * fake->db was already pointed at the worker's shard during dispatch, so
- * kvstoreGetDict here returns the worker-local dict. Scratch arrays are bounded
- * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a
- * prefetch of a stale address is harmless, and a missed hash hint simply falls
- * back to recomputation at execution. */
-static inline void exPrefetchBatch(client **batch, int n) {
+ * kvstoreGetDict here returns the worker-local dict in the one-worker engine;
+ * the multi-worker engine uses kvstoreFlatTable instead. Scratch arrays are
+ * bounded by WORKER_POP_BATCH. No table/entry/value pointer survives into the
+ * authoritative command lookup. */
+__attribute__((noinline))
+static int exPrefetchBatch(client **batch, int n, int level) {
     dict *dts[WORKER_POP_BATCH];
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];
-
-    /* ee451 (v13): opt-prefetch-worker master knob RETIRED (hardwired on) — control is the
-     * adaptive DB-size gate below + per-stage widths (all 0 = no prefetch issues). */
+    kvobj *kvs[WORKER_POP_BATCH];
+    redisDb *flat_dbs[WORKER_POP_BATCH];
+    robj *flat_keys[WORKER_POP_BATCH];
+    uint64_t flat_hashes[WORKER_POP_BATCH];
+    uint8_t flat_payload[WORKER_POP_BATCH];
+    int flat_n = 0;
+    int issued_total = 0;
+    tomoPrefetchDelta delta = {0};
 
     /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
      * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
@@ -16144,14 +16455,20 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * of a hardware-encoding constant: open prefetch once the shard's estimated footprint
      * (dbSize x (96B dict/robj overhead + EWMA value size)) clearly exceeds the machine's own
      * L3 (read from sysfs at startup) by a dimensionless 8x — below that, hot subsets are
-     * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
-     * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
+     * largely cache-resident and prefetch measurably hurt (-4-5%). The immutable EX level
+     * selects the stage set; this derived threshold decides whether the selected batch stages
+     * should issue. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
     exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
     pfw->pf_batches++;                         /* L0: entries, denominator for gated/issued */
+    for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
+    tomo_pf_mget_width = n / 2;
+    if (tomo_pf_mget_width < 1) tomo_pf_mget_width = 1;
+    tomo_pf_storage_active = 0;
+    tomo_pf_payload_width = 0;
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
-     * Full prefetch-off remains available via the stage widths (all 0). */
+     * Full prefetch-off is tomokv-prefetch-ex 0 and never enters this helper. */
     {
         /* ee451 (v14): the L3-derived gate needs a 64-bit divide (8*L3/fp); fp tracks the slow-moving
          * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
@@ -16217,8 +16534,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
             }
             if (est < auto_min) {
                 pfw->pf_gated++;                       /* L0: prove whether the gate is shut */
-                for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
-                return;
+                return 0;
             }
         }
     }
@@ -16259,6 +16575,8 @@ static inline void exPrefetchBatch(client **batch, int n) {
         w4cap = (int)aw;
     }
     int w4 = n < w4cap ? n : w4cap;
+    tomo_pf_payload_width = w4;
+    tomo_pf_storage_active = 1;
 
     /* ── Tomo SCOREBOARD prefetcher (v13) ────────────────────────────────────────────
      * Redis-8-style round-robin FSM (see upstream memory_prefetch.c) over Tomo's
@@ -16272,12 +16590,14 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * after HASH — no wasted visits, unlike the fixed pass structure).
      * Stage set (superset of Redis's dict-only FSM — our operands cross a core
      * boundary, ifid-parse -> worker-exec, so the struct/argv/key links are cold too):
-     *   STRUCT -> ARGV -> KEYOBJ -> KEYBYTES -> HASH -> ENTRY -> VALUE -> DONE
-     * gem5 per-stage widths gate each stage's PREFETCH (0 = stage issues nothing);
-     * the FUNCTIONAL work (SipHash + hash/dict/bucket stash, consumed by hash-carry,
-     * #3 nextop, and the predictors) always runs for all n regardless of widths.
+     *   STRUCT -> ARGV -> KEYOBJ -> KEYBYTES -> HASH -> ENTRY -> KVOBJ -> VALDATA -> DONE
+     * The retired per-stage widths resolve structurally to batch occupancy. DICT hash
+     * computation is functional state consumed by hash-carry and level-2 next-op.
      * pf-cmd stays deleted (command table is permanently L1-hot). */
-    enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
+    enum {
+        PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH,
+        PFS_ENTRY, PFS_KVOBJ, PFS_VALDATA, PFS_DONE
+    };
     uint8_t st[WORKER_POP_BATCH];
     /* ee451 (2026-07-28): pass-1 stage widths, all hardwired to the AUTO arm they shipped in
      * (width = current batch occupancy n). Kept as named locals rather than folded away so the
@@ -16290,7 +16610,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
         st[j] = PFS_STRUCT;
         dts[j] = NULL;
         des[j] = NULL;
-        batch[j]->prefetch_key_hash_valid = 0;
+        kvs[j] = NULL;
     }
     int remaining = n;
     int cur = 0;
@@ -16307,20 +16627,29 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 if (j < w1a) {
                     redis_prefetch_read(fake);          /* ee451 metadata head line */
                     redis_prefetch_read(&fake->argc);   /* exec-fields line (argv/argc/db) */
-                    issued = 1;
+                    delta.structure += 2;
+                    issued = 2;
                 }
                 break;
             case PFS_ARGV:
                 /* struct lines had a full rotation to land; cheap guards read them. */
                 if (fake->argc < 2 || !fake->argv || !fake->db) { st[j] = PFS_DONE; break; }
                 st[j] = PFS_KEYOBJ;
-                if (j < w1b) { redis_prefetch_read(fake->argv); issued = 1; }
+                if (j < w1b) {
+                    redis_prefetch_read(fake->argv);
+                    delta.argv++;
+                    issued = 1;
+                }
                 break;
             case PFS_KEYOBJ: {
                 robj *k = fake->argv[1];                /* argv vector line warm */
                 if (!k) { st[j] = PFS_DONE; break; }
                 st[j] = PFS_KEYBYTES;
-                if (j < w1c) { redis_prefetch_read(k); issued = 1; }
+                if (j < w1c) {
+                    redis_prefetch_read(k);
+                    delta.keyobj++;
+                    issued = 1;
+                }
                 break;
             }
             case PFS_KEYBYTES: {
@@ -16329,27 +16658,57 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 /* embstr: key bytes share the robj line KEYOBJ already pulled. */
                 if (j < w1d && k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
                     redis_prefetch_read(k->ptr);
+                    delta.keybytes++;
                     issued = 1;
                 }
                 break;
             }
             case PFS_HASH: {
-                /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
-                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
-                 * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
-                 * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
-                dict *d = kvstoreGetDict(fake->db->keys,
-                    server.ex_threads > 0
-                        ? ((fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
-                               ? fake->tomo_bkt
-                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
-                        : (fake->slot > 0 ? fake->slot : 0));
+                /* argv[1] is not necessarily a key (SCAN's cursor is the important routed
+                 * counterexample). Only commands declaring their first key at argv[1] may stage
+                 * keyspace storage. */
+                if (!fake->cmd ||
+                    fake->cmd->legacy_range_key_spec.bs.index.pos != 1 ||
+                    !fake->argv[1]->ptr) {
+                    st[j] = PFS_DONE;
+                    break;
+                }
+                robj *keyobj = fake->argv[1];
+                sds key = keyobj->ptr;
+
+                /* FLAT has no backing dict. Collect independent lanes and issue the home-line /
+                 * tag-shell pipeline after the metadata scoreboard has retired. */
+                if (kvstoreIsFlat(fake->db->keys)) {
+                    if (level >= 2 && flat_n < WORKER_POP_BATCH) {
+                        uint64_t h =
+                            fake->tomo_bkt_ptr == (const void *)key
+                                ? fake->tomo_hash
+                                : tomoKeyHash(key, sdslen(key));
+                        flat_dbs[flat_n] = fake->db;
+                        flat_keys[flat_n] = keyobj;
+                        flat_hashes[flat_n] = h;
+                        flat_payload[flat_n] =
+                            (fake->cmd->flags & CMD_READONLY) != 0 &&
+                            flat_n < tomo_pf_payload_width;
+                        flat_n++;
+                    }
+                    st[j] = PFS_DONE;
+                    break;
+                }
+
+                /* DICT index == argv[1]'s ownership bucket. The hash is functional state reused
+                 * by dictArmHashHint(), but no table or entry pointer crosses into execution. */
+                int didx = server.ex_threads > 0
+                    ? (fake->tomo_bkt_ptr == (const void *)key
+                           ? (int)(fake->tomo_hash & TOMO_BUCKET_MASK)
+                           : tomoKeyBucket(key, sdslen(key)))
+                    : (fake->slot > 0 ? fake->slot : 0);
+                dict *d = kvstoreGetDict(fake->db->keys, didx);
                 if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
-                uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
+                uint64_t h = dictGetHash(d, key);
                 fake->prefetch_key_hash = h;
                 fake->prefetch_key_hash_valid = 1;
                 unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
-                fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3 feed */
                 /* Chase bucket->entry->value only for READ commands (a write installs a
                  * NEW value and never reads the old payload — the chase measurably hurt
                  * write-heavy: pure-SET populate regressed ~35% with it on), optionally
@@ -16361,6 +16720,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
                 if (j < TOMO_PF_GROUP_WIDTH) {   /* tomokv-pf-w-hash RETIRED: hardwired AUTO (width = batch n) */
                     redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
+                    delta.dict_bucket++;
                     issued = 1;
                 }
                 break;
@@ -16369,15 +16729,40 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 dictEntry *de = dts[j]->ht_table[0][idxs[j]];    /* bucket line warm */
                 if (!de) { st[j] = PFS_DONE; break; }
                 des[j] = de;
-                st[j] = (j < w4) ? PFS_VALUE : PFS_DONE;
+                st[j] = (j < w4) ? PFS_KVOBJ : PFS_DONE;
                 redis_prefetch_read(de);
+                delta.dict_entry++;
                 issued = 1;
                 break;
             }
-            case PFS_VALUE: {
-                void *kv = dictGetKey(des[j]);                   /* entry line warm */
+            case PFS_KVOBJ: {
+                kvobj *kv = dictGetKV(des[j]);                   /* entry line warm */
+                if (!kv) { st[j] = PFS_DONE; break; }
+                kvs[j] = kv;
+                st[j] = level >= 3 ? PFS_VALDATA : PFS_DONE;
+                redis_prefetch_read(kv);
+                delta.kvobj++;
+                issued = 1;
+                break;
+            }
+            case PFS_VALDATA: {
+                kvobj *kv = kvs[j];                              /* kvobj shell warm */
+                robj *keyobj = fake->argv[1];
                 st[j] = PFS_DONE;
-                if (kv) { redis_prefetch_read(kv); issued = 1; }
+                if (!kv || !keyobj || !keyobj->ptr) break;
+                sds wanted = keyobj->ptr;
+                sds stored = kvobjGetKey(kv);
+                size_t wanted_len = sdslen(wanted);
+                if (sdslen(stored) != wanted_len ||
+                    memcmp(stored, wanted, wanted_len) != 0)
+                    break;
+                if (kv->type == OBJ_STRING &&
+                    kv->encoding == OBJ_ENCODING_RAW && kv->ptr) {
+                    delta.val_eligible++;
+                    redis_prefetch_read((char *)kv->ptr - 1);
+                    delta.valdata++;
+                    issued = 1;
+                }
                 break;
             }
             default:
@@ -16385,9 +16770,19 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 break;
             }
         }
-        pfw->pf_issued += (unsigned)issued;   /* L0: prefetch stages actually issued */
+        issued_total += issued;
         if (st[j] == PFS_DONE) remaining--;
     }
+    if (flat_n) {
+        delta.flat_groups++;
+        int flat_issued = tomoFlatPrefetchGroup(flat_dbs, flat_keys, flat_hashes,
+                                                flat_payload, flat_n, level, &delta);
+        if (flat_issued == 0) delta.flat_noissue++;
+        issued_total += flat_issued;
+    }
+    if (issued_total == 0) pfw->pf_noissue++;
+    tomoPrefetchFold(pfw, &delta);
+    return 1;
 }
 /* Scoped to this function on purpose: it expands to the bare identifier `n`, so leaving it
  * defined would let a later function's own `n` silently capture it. The io-side prefetch work
@@ -16415,7 +16810,7 @@ static inline void exPauseCpu(void) {
  * worker-private iotid) so command procs read a valid, owned client through
  * server.current_client[iotid].p/executing_client[iotid].p — e.g. lookupKey's
  * NO_TOUCH check, getKeySlot, and dbSetValue's overwrite old-value free.
- * Reuses the SipHash computed in exPrefetchBatch so the key lookup doesn't
+ * Reuses the dict hash computed in exPrefetchBatch so the key lookup doesn't
  * re-hash argv[1]. After the command, releases the DB-aliasing argv references
  * (refcount > 1) HERE so this worker is the SOLE mutator of its shard's value
  * refcounts — a plain decrement, never a free(), which kills the worker-vs-IO
@@ -16429,7 +16824,7 @@ static inline void exPauseCpu(void) {
  * deleted with the value-forwarding apparatus (see the note in db.c). */
 
 
-static inline void exExecFake(client *fake) {
+static inline void exExecFake(client *fake, int prefetch_batch_active) {
     serverAssert(fake->isFake);
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
@@ -16459,7 +16854,8 @@ static inline void exExecFake(client *fake) {
          * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
          * even when nothing was armed; now only armed ops pay it. */
         int hh_armed = 0;
-        if (fake->prefetch_key_hash_valid && fake->argv && fake->argv[1]) {
+        if (prefetch_batch_active && fake->prefetch_key_hash_valid &&
+            fake->argv && fake->argv[1]) {
             dictArmHashHint(fake->argv[1]->ptr, fake->prefetch_key_hash);
             hh_armed = 1;
         }
@@ -16510,7 +16906,7 @@ static inline void exExecFake(client *fake) {
                  * re-hashing here was a 3rd xxh64 of the same bytes. Pointer-match guard as in
                  * db.c getKeySlot; the ex_bucket_table load stays FRESH (reshard-safe). */
                 int b = (fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
-                            ? fake->tomo_bkt
+                            ? (int)(fake->tomo_hash & TOMO_BUCKET_MASK)
                             : tomoBktBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
                 mlk_wkr = (int)server.ex_bucket_table[b];
                 tomoWkrLock(mlk_wkr);
@@ -16790,8 +17186,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         }
         any = 1;
 
-        /* Warm the cache before executing the batch. */
-        exPrefetchBatch(ctx->batch, n);
+        /* One immutable level check is the entire EX-prefetch cost when hard-off. Enabled
+         * scratch lives in the noinline helper and therefore does not inflate this frame. */
+        int prefetch_level = tomoPrefetchExLevel();
+        int prefetch_batch_active = 0;
+        if (__builtin_expect(prefetch_level != 0, 1))
+            prefetch_batch_active =
+                exPrefetchBatch(ctx->batch, n, prefetch_level);
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
@@ -16803,6 +17204,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         client *sig_parents[WORKER_POP_BATCH];
         uint32_t sig_masks[WORKER_POP_BATCH];
         int sig_n = 0;
+        uint64_t pf_next_eligible = 0, pf_nextop = 0;
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
          * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
@@ -16812,23 +17214,36 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         for (int j = 0; j < n; ) {
             client *fake = ctx->batch[j];
 
-            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
-             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-             * faults). Targets the big-DB cache-miss regime; 0 = off. */
-            /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
-             * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
-             * owner's explicit ruling. It only actually fires at ONE worker per node, though —
-             * with >= 2 the node db is KVSTORE_FLAT, PFS_HASH's kvstoreGetDict() is NULL, and the
-             * prefetch_key_hash_valid this reads is never set. See TOMO_PF_W_NEXTOP in server.h. */
-            if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
-                int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
+            /* Execution-adjacent DICT look-ahead. A quarter-batch is far enough to overlap the
+             * current proc and, unlike the retired j+n expression, is in range for every batch
+             * with at least two entries. Reacquire the current dict/table/exponent now: retaining
+             * those pointers on a fake across earlier executions would make a staged hint depend
+             * on storage that an earlier write may rehash. */
+            if (prefetch_batch_active && prefetch_level >= 2) {
+                int distance = n / 4;
+                if (distance < 1) distance = 1;
+                int la = j + distance;
                 if (la < n) {
                     client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+                    if (nf->prefetch_key_hash_valid && nf->argc >= 2 &&
+                        nf->argv && nf->argv[1] && nf->argv[1]->ptr &&
+                        nf->db && !kvstoreIsFlat(nf->db->keys)) {
+                        pf_next_eligible++;
+                        sds key = nf->argv[1]->ptr;
+                        int didx = server.ex_threads > 0
+                            ? (nf->tomo_bkt_ptr == (const void *)key
+                                   ? (int)(nf->tomo_hash & TOMO_BUCKET_MASK)
+                                   : tomoKeyBucket(key, sdslen(key)))
+                            : (nf->slot > 0 ? nf->slot : 0);
+                        dict *d = kvstoreGetDict(nf->db->keys, didx);
+                        if (d && d->ht_table[0]) {
+                            unsigned long idx =
+                                nf->prefetch_key_hash &
+                                DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+                            redis_prefetch_read(&d->ht_table[0][idx]);
+                            pf_nextop++;
+                        }
+                    }
                 }
             }
 
@@ -16909,7 +17324,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                 continue;
             }
 
-            exExecFake(fake);
+            exExecFake(fake, prefetch_batch_active);
 
             /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
              * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1
@@ -16923,7 +17338,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * always-on working set stays at the 1KB group array instead of the 64KB a full
              * per-bucket table would cost — see TOMO_LB_FINE_WIN. */
             if (fake->argc >= 2) {
-                unsigned bkt = (unsigned)fake->tomo_bkt;
+                /* exExecFake has already cleared the pointer guard; as with the old carried
+                 * bucket field, the scalar remains valid through this post-exec accounting. */
+                unsigned bkt = (unsigned)(fake->tomo_hash & TOMO_BUCKET_MASK);
                 worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
                 uint64_t win = atomic_load_explicit(&worker->lb_fine_win, memory_order_relaxed);
                 unsigned fo = bkt - (uint32_t)win;
@@ -16934,11 +17351,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
              * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
              * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
              * downward. Drives the value-size-adaptive pf-w-value width. */
-            if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
-                int cur = (int)worker->w_ewma_vsize;
-                cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
-                worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
-            }
+            if (prefetch_level != 0 && fake->cmd &&
+                (fake->cmd->flags & CMD_READONLY))
+                tomoPrefetchObserveValue(worker, fake->bufpos + fake->reply_bytes);
 
             /* ee451: coalesced reply-ready signal — OR each fake's slot bit
              * into a per-parent accumulator; one release fetch_or per
@@ -16971,6 +17386,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         for (int s = 0; s < sig_n; s++)
             atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[ctx->wcdb].v,  /* ee451 (S5): this worker's CDB */
                                      sig_masks[s]);
+        if (prefetch_level != 0) {
+            worker->pf_next_eligible += pf_next_eligible;
+            worker->pf_nextop += pf_nextop;
+            tomoPrefetchMaybePublish(worker);
+        }
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish

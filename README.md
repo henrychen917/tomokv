@@ -317,13 +317,14 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
-### Batching, spin & prefetch — no knobs, by design
+### Batching, spin & prefetch
 
-**This section has no configuration table because it has no knobs left.** Every controller here
-resolved its own value from something the server measures, and the "strict override" arms were an
-operator restating a number the box already reports — which is then wrong on the next machine.
-The last five (the prefetch widths) were retired 2026-07-28. The MACHINERY is untouched and under
-active development; only the operator-facing names are gone.
+The retired per-stage prefetch controls remain retired. `tomokv-prefetch-ex` is the single
+startup-only EX control: `-1` auto (the level-1 current behavior), `0` hard off, `1` the
+metadata/DICT scoreboard plus MSET and BITCOUNT staging, `2` adds FLAT/MGET storage and a live
+DICT next-op look-ahead, and `3` adds exact-key-qualified RAW payload hints. Widths and the
+residency/value budgets are still derived from current occupancy, detected L3, and the value-size
+EWMA rather than exposed independently.
 
 What runs, and what it derives itself:
 
@@ -334,7 +335,7 @@ What runs, and what it derives itself:
 | Prefetch residency gate | Opens once a worker's estimated footprint (its share of `dbSize` × (96 B + EWMA value size)) exceeds 8× its share of the machine's detected L3 — L3 read from sysfs, divided by the workers that actually share that L3 domain. Prefetching a cache-resident shard measurably hurts (−4–5%), so the gate exists to stay SHUT in that regime. `INFO tomo_prefetch_batches / _gated / _issued` shows whether it is opening. |
 | Per-stage prefetch widths | Width = the *current* batch occupancy — i.e. group prefetching with prefetch distance = group size. Zero history, so a workload shift re-tunes on the very next batch. |
 | Value-chase width | Cache-budget controller: (L3 / 2·workers) / EWMA(value size), clamped to a structural [4, 256]. Big values go shallow (they flood the line-fill buffers), small values keep the full window. |
-| Next-op look-ahead | Selected but **still does not fire**. `tomokv-pf-w-nextop` shipped at `0` = off and was hardwired to AUTO on 2026-07-28, which was intended to turn it on. AUTO resolves the look-ahead *distance* to the batch occupancy `n`, so the exec loop computes `la = j + n` with `j` in `[0,n)` and the `la < n` guard is false every time — the body is unreachable, and AUTO is behaviourally identical to `0`. Verified by PMU: `ls_pref_instr_disp.all` per prefetch batch is 193.9/195.1 on AUTO vs 207.7 on a strict distance of 4 (+7.1%), at io7/ex1 with the gate open. Enabling it for real needs a distance that is a small constant or a fraction of `n`, plus its own A/B in that regime. See `TOMO_PF_W_NEXTOP` in `server.h`. |
+| Next-op look-ahead | EX level 2 derives `max(1,n/4)`, which is inside the current batch whenever a target exists. The worker reacquires the target's current DICT table and exponent immediately before issuing the hint; no staged table pointer survives an earlier command. |
 
 On AMAC: the stage set is a round-robin scoreboard, not AMAC's per-slot state machine with refill.
 AMAC pays when chains have *variable* depth, because a plain group prefetcher stalls on the
