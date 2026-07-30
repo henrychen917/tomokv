@@ -303,7 +303,7 @@ starved each other. That was an orchestration error, not a box problem.
 | 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
-| 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is CLOSED and was RE-CHECKED on this tip 2026-07-29. NOT MERGED.** | Modifies flip actuation. Author validated only the MANUAL actuator. The gate blocker is a **flip-controller** defect, not this branch's: §4, now with the mechanism measured. Three merge hazards, all re-checked against this tip and two of them corrections to what this row used to say — see §3f |
+| 6 | parked-removal `6b9d3a0b9` | ~~GATED on `flip_updown` passing~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `96e8fd7ae`. The gate OPENED with item #58 (§3h) and was then met on the merge itself, in both directions from **both** boots: `flip_updown` PASS (`io=3→6→3→6`, `pool=8/8`, 0 violations), io7/ex1 auto boot walks `io 6→…→2→3` under p32 and `3→…→6` under p1, manual `MODESHIFT 7`/`8` both OK. Shown to discriminate on this build: with grow-back disabled the same suite FAILs `3→6→6→6`. 15/0, postmerge worst −0.8%. Four merge hazards resolved (the merge conflicted in **16** hunks, not 12) — see §3f |
 | 7 | h2-fence `e7628efc4` | ~~rebase first~~ ~~fix the initializer and re-merge~~ | **DONE 2026-07-29 — RE-MERGED AND PUSHED** as `6f7cfc06d`, after `21013fded` → `3c12160c6`. The revert's diagnosis was right and was the entire product delta: two lines initializing `mig_parked_node` / `mig_parked_tid` in `createClient`. Crash gone 8/8 alive vs 4/4 dead, acceptance 8/8 → 0/8 with `fence_midbatch_ticks=17`, `reshard_suite` 5/0, `correctness_suite` 15/0, postmerge worst −0.5%. **The throughput claim is measured too**: 1578 ms window, range 17 328 → 4 ops/s → 17 216 ops/s while non-migrating buckets keep running on BOTH workers. See §3g |
 
 ### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
@@ -714,7 +714,7 @@ Raw: `$J/step3_deletions/` (`run.log`, `run_step.sh`, `run_probefix.sh`, `probef
 `reshard_post_fixedprobe.out`, `rs_{pre,post}.log`, `flip_{pre,post}.out`,
 `flip_{pre,post}.srv.log`, `postmerge_post.out`, and both staged binaries).
 
-### 3f. Item 6, parked-removal — NOT MERGED 2026-07-29: the gate is shut, and now it is shut for a *measured* reason
+### 3f. Item 6, parked-removal — MERGED 2026-07-29 (`96e8fd7ae`). The record of the shut gate is kept below it.
 
 Nothing was merged, nothing was committed to `src/`, the branch tip is unchanged. The gate said
 "`flip_updown` must PASS"; it FAILs. What this step adds is that the FAIL is no longer just an
@@ -810,6 +810,53 @@ unilaterally to unblock a merge.
 
 Raw: `$J/step3_parked/` (`gate.sh`, `run.log`, `gate.out`, `flip_head.out`, `flip_head.srv.log`,
 `diagB.srv.log`, `static_p1.tsv`, and the staged binary `redis-flip6`).
+
+---
+
+#### 3f-2. MERGED 2026-07-29 (`96e8fd7ae`) — the gate was opened by item #58, then met by the merge
+
+**The recommendation above was overtaken, not accepted.** §3f argued the gate graded the
+*controller* while this branch changes the *actuator*, and proposed re-scoping it. That was not
+needed: item #58 (§3h) fixed the three controller/provisioning defects and `flip_updown` PASSES on
+the pre-merge tip. So the gate as written was applied to the merge, unchanged, plus the second boot
+the owner's wording asks for and `flip_updown` does not cover.
+
+| check | result |
+|---|---|
+| `flip_updown.sh`, io4/ex4 auto | **PASS** — `io_live_node 3 → 6 → 3 → 6`, 95 flip log lines, `pool=8/8` over 26 ticks, 0 violations, 0 server warnings |
+| io7/ex1 auto boot, p32 then p1, 60 s each | **both directions** — p32 `io 6→5→4→3→2`, walk back to 3, held (GROW-BACK complete ×5); p1 `io 3→4→5→6` pool edge, held 8 ticks (GROW-FRONT ×11 total). `pool=8/8`, 0 refusals, 0 `flip invariant violated`, 0 asserts. Phase averages 5 216 712 / 803 713 ops/s, both including the convergence transient from a boot split wrong for the phase |
+| manual actuator (4 suites' positive control) | `DEBUG TOMO-MODESHIFT 7` → OK, `GROW-FRONT complete io_threads_live=5 num_workers_live=3`; `8` → OK, `GROW-BACK complete num_workers_live=4 io_threads_live=4`; 200 keys + `GET k7` intact across both; verbs `0/1/2/3` refused loudly |
+| discrimination, on THIS build | `tomoGrowBackSlot` forced to refuse ⇒ `flip_updown` **FAIL rc=1**, "no BACK growth", `io 3 → 6 → 6 → 6`. Restored; committed source byte-identical to the measured binary (only `BUILD_ID` differs) |
+| `postmerge.sh` (acceptance = `flip_updown.sh`) | exit=0 — p32GET 7 878 495 (−0.8%), p32SET 6 885 803 (+0.5%), p1GET 829 467 (+0.3%), p1SET 820 330 (+0.4%) |
+| `correctness_suite.sh` | 15 passed, 0 failed |
+| build | zero new warnings; the only warning is the pre-existing `kvstore.c:73`, and this merge does not touch `kvstore.c` |
+
+**The hazard list needed a fourth entry and one correction.** The 3-way merge conflicted in
+**16** hunks (§3f said 12): `server.c` 12, `server.h` 2, `config.c` 1, `debug.c` 1.
+
+1. `num_workers_alloc` — as recorded: the two active-expiry folds from #42 sit outside every
+   conflict marker, so auto-merge succeeds and the build fails. Both are now `w < num_workers`.
+2. `TOMO_MODE_WB` — not resurrected. Enum kept at `UNSET=-1 / IO=1 / EX=2`, 3 left unused.
+3. Every HEAD-side fix in the same functions was preserved rather than replaced by the branch's
+   older text: #58's symmetric AUTO pool (`tm_boot_io_live`/`tm_boot_w_live`, the born-IO boot
+   split — now `UNSET→IO` instead of `PARKED→IO`), A10's `co_state = CO_IDLE` *before*
+   `active = 0`, the unconditional cross-db reshard refusal, `migReleaseParkedClients` and the H2
+   client-parking fields (a *different* mechanism that shares the word "parked"), `pinned_nonmig`,
+   and the `pool=` conservation field `flip_updown` grades fatally. Verified mechanically: every
+   line the merge removes from HEAD beyond the branch's own delta is spare/PARKED prose or the two
+   folds in (1).
+4. **NEW: `controller_sweep`'s design-assert cell arrived stale.** The branch repointed it at
+   `"poly threads (3 io-born, 4 ex-born)"`. On this tip AUTO provisions the whole pool as workers,
+   so that line always reads `(0 io-born, 7 ex-born)` — the cell could only ever report SUSPECT,
+   which is not a check. Repointed at the `SYMMETRIC POOL` boot line (same claim, verified present
+   verbatim in a real boot log).
+
+**`$J/mrg/step4_parked_removal_RESOLVED.patch` was correctly judged stale and was not used**; the
+merge was resolved hunk by hunk against this tip.
+
+Raw: `$J/postmerge.out`, `$J/flip_updown.out`, `$J/flip_updown.srv.log`,
+`$J/parked_io7ex1.log`, `$J/parked_manual.log`, `$J/correctness_suite.out`; binaries
+`$J/redis-parked6` (merged) and `$J/redis-brk6` (the discrimination arm).
 
 ---
 
@@ -1199,6 +1246,22 @@ Nothing is working on these.
   `flip_updown` PASSES — `io=3 → 6 → 3 → 6` across four regime changes, its first pass on any
   build.** The pin was never touched; three separate defects were, and none of them was the
   "revived thread is never counted" the item was opened for. See §3h.
+- **An IO-born convertible worker slices its dormant EX binding with an UNINITIALISED
+  `exSliceCtx`** (found 2026-07-29 while building item 6's discrimination arm; **pre-existing on
+  HEAD, not introduced by the parked-removal merge** — the text is identical on both sides, so it
+  belongs to #58's symmetric pool, which is what first created IO-mode threads that hold an `ex`
+  binding they have never adopted). `polyThreadMain`'s IO slice runs
+  `if (ctx->ex) exSlice(ctx->ex, &exctx);` (review [13]'s straggler drain), but `exctx` is only ever
+  passed to `exSliceInit` on the **EX** adoption path. A worker born in IO mode therefore reads an
+  uninitialised stack struct on every loop pass. It survives today only because a fresh pthread
+  stack reads as zeros and `exctx` lives in the frame nothing else writes: perturbing that frame
+  (an `if (1)` inserted in the same function for an unrelated experiment) **SEGVs the server at
+  boot, in `exQueuePopBatch`, 3 s in, before any client** — same build, same config, otherwise
+  green. So this is live UB whose benign behaviour is a stack-layout accident, not a guarantee.
+  The straggler-drain rationale only applies to a worker that HAS been EX (a converted one, which
+  has `ex_inited == 1`); an IO-born worker sits above `num_workers_live`, so nothing routes or fans
+  out to it. The one-line gate is `if (ctx->ex && ex_inited)`. Not fixed in the item-6 step: it is
+  not that merge's defect and it deserves its own gate run.
 - **LB-2** `server.hotkeys` — one process-global struct used as per-command scratch by every io
   thread. OOB read, double free, and `current_client` clobbering that indexes `argv[pos]` into a
   *different* client's argv. Dormant until `HOTKEYS START`, but the subsystem is unusable as written.
