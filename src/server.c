@@ -86,6 +86,43 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 
 /* Global vars */
 struct redisServer server; /* Server global state */
+/* LB-3: tm_flip_ctx is both the flip-in-progress gate and the publication edge for
+ * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
+ * fields between the successful claim and the release-publication of the real ctx. */
+static polyThreadCtx tm_flip_claim_marker;
+
+static inline int tmFlipActive(void) {
+    return atomic_load_explicit(&server.tm_flip_ctx, memory_order_acquire) != NULL;
+}
+
+static inline polyThreadCtx *tmFlipCtxPublished(void) {
+    polyThreadCtx *ctx = atomic_load_explicit(&server.tm_flip_ctx, memory_order_acquire);
+    return ctx == &tm_flip_claim_marker ? NULL : ctx;
+}
+
+static int tmFlipTryClaim(const char **err) {
+    polyThreadCtx *expected = NULL;
+    if (!atomic_compare_exchange_strong_explicit(&server.tm_flip_ctx, &expected,
+                                                 &tm_flip_claim_marker,
+                                                 memory_order_acq_rel,
+                                                 memory_order_acquire)) {
+        *err = "a flip is already in progress";
+        return 0;
+    }
+    return 1;
+}
+
+static inline void tmFlipPublish(polyThreadCtx *ctx) {
+    atomic_store_explicit(&server.tm_flip_ctx, ctx, memory_order_release);
+}
+
+static inline void tmFlipRelease(void) {
+    /* Reset winner-owned state before reopening the gate: a new claimer may start
+     * writing it as soon as its acquire-CAS observes the NULL release. */
+    server.tm_flip_target = TOMO_MODE_UNSET;
+    server.tm_flip_phase = 0;
+    atomic_store_explicit(&server.tm_flip_ctx, NULL, memory_order_release);
+}
 /* thread vars */
 __thread int iotid = 0;
 /* ee451 (F-clock family): per-execution-context "read expired/trimmed keys" guards. See the
@@ -2980,7 +3017,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     migReleaseParkedClients();   /* ee451 (H2 handover): main is io slot 0 and parks clients too */
     /* flip: drive a conversion to completion (await the role change, then publish the new
      * io/worker counts). Cheap when idle. */
-    if (__builtin_expect(server.tm_flip_ctx != NULL, 0)) tmFlipTick();
+    if (__builtin_expect(tmFlipActive(), 0)) tmFlipTick();
 
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
      * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
@@ -4453,6 +4490,7 @@ void initServer(void) {
         }
     }
     server.tm_mig_flip_action = 0;
+    atomic_store_explicit(&server.tm_flip_ctx, NULL, memory_order_relaxed);
     server.tm_flip_target = TOMO_MODE_UNSET;   /* no flip in progress; 0 is not a mode */
     /* (The old "tomokv-thread-balance requires tomokv-thread-modes" boot check is GONE by
      * construction: tomokv-thread-mode is a single enum, so the half-configured state that used
@@ -10659,7 +10697,7 @@ void flushAllShards(client *c, int dbid, int async) {
         }
         while (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
                atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||   /* wait out a resize (#7) */
-               server.tm_flip_ctx != NULL) {
+               tmFlipActive()) {
             if (iotid == 0) { if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }  /* pump: else a main-thread flush deadlocks. tick gated -- see the note above */
             usleep(100);
         }
@@ -10794,7 +10832,7 @@ static int reshardRangeValid(int lo, int hi, int src, int dst) {
     /* "would empty src" is REJECTED for normal load-balance moves, but is the POINT of a
      * GROW-FRONT flip: tm_flip_ctx is converting the node's highest live worker entirely out to
      * its neighbor before it takes the IO role. That flip is the only exemption. */
-    if (lo == s_lo && hi == s_hi && server.tm_flip_ctx == NULL)
+    if (lo == s_lo && hi == s_hi && !tmFlipActive())
         return 0;   /* would empty src */
     if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
     for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
@@ -11319,7 +11357,7 @@ static void reshardCoordinatorTick(void) {
      * the thread for its new role. It adopts at its next checkpoint, which drains its (now
      * traffic-less) queues and asserts it owns no buckets before taking the IO identity. */
     if (flip_act == 2) {
-        polyThreadCtx *fc = server.tm_flip_ctx;
+        polyThreadCtx *fc = tmFlipCtxPublished();
         if (fc) {
             atomic_store_explicit(&fc->target_mode, server.tm_flip_target, memory_order_release);
             serverLog(LL_NOTICE, "ee451 flip: buckets returned to worker %d — role change requested "
@@ -12019,7 +12057,7 @@ void reshardAutoTune(void) {
      * tm_flip_ctx set (the controller's top guard then blocks ALL flips until it clears). Deferring the
      * balancer until the flip completes is exactly right — the post-flip kick (tm_rebalance_now) then
      * makes it rebalance aggressively the instant tm_flip_ctx clears. */
-    if (server.tm_flip_ctx != NULL) return;
+    if (tmFlipActive()) return;
     /* ee451 (thread-modes): balance over the LIVE worker set. A slot whose thread is running IO
      * must never be a migration endpoint (it isn't running exSlice — buckets flipped to it would
      * blackhole every op on them). live-- precedes the grow-front migration (same thread as this
@@ -17860,15 +17898,16 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inheri
     atomic_fetch_add_explicit(&server.tm_node_iolive[w_of_ctx / server.ex_per_node], delta, memory_order_release);
 }
 
-/* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. Callers have
- * validated liveness order; this does the ctx/migration mechanics + BOTH global and node counts. */
+/* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. The caller
+ * holds the atomic flip claim and has validated liveness order; this does the ctx/migration
+ * mechanics + BOTH global and node counts. Every refusal releases the claim. */
 static int tomoGrowFrontWorker(int w, const char **err) {
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
-    if (io_live >= server.io_threads + server.tm_ngrow_io) { *err = "no growth io slot available"; return 0; }
-    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; return 0; }
+    if (io_live >= server.io_threads + server.tm_ngrow_io) { *err = "no growth io slot available"; tmFlipRelease(); return 0; }
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; tmFlipRelease(); return 0; }
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
-    if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; return 0; }
-    if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; return 0; }
+    if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; tmFlipRelease(); return 0; }
+    if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; tmFlipRelease(); return 0; }
     int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     /* Migrate w's WHOLE range to its neighbor w-1 (prefix move, dst=src-1 — the FLIP bookkeeping
      * handles it; validated by reshardRangeValid's boundary+ownership checks). Same-node by
@@ -17880,15 +17919,15 @@ static int tomoGrowFrontWorker(int w, const char **err) {
          * small, or the balancer drained it) must still be RECLAIMABLE — otherwise the pool is stuck a
          * core short forever. No range to migrate: hand it the IO role right away — its checkpoint's
          * drain + zero-buckets assertion holds trivially — and let tmFlipTick publish the result. */
-        server.tm_flip_ctx = ctx; server.tm_flip_target = TOMO_MODE_IO;
+        server.tm_flip_target = TOMO_MODE_IO;
         atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
         tmNodeWliveAdd(w, -1);
+        tmFlipPublish(ctx);
         atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);
         serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, EX->IO directly (io_slot %d)",
                   w, ctx->io_slot);
         return 1;
     }
-    server.tm_flip_ctx = ctx;
     server.tm_flip_target = TOMO_MODE_IO;
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
      * while it keeps draining. */
@@ -17896,11 +17935,13 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     tmNodeWliveAdd(w, -1);
     server.tm_mig_flip_action = 2;                     /* coordinator tail retargets tm_flip_ctx */
     if (!reshardArm(lo, hi, w, w - 1)) {
-        server.tm_mig_flip_action = 0; server.tm_flip_ctx = NULL;
+        server.tm_mig_flip_action = 0;
         atomic_store_explicit(&server.num_workers_live, live, memory_order_release);
         tmNodeWliveAdd(w, +1);
+        tmFlipRelease();
         *err = "reshardArm rejected the grow-front migration"; return 0;
     }
+    tmFlipPublish(ctx);
     reshardBeginCutover();
     serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d converting to IO (io_slot %d); "
                          "range [%d,%d) -> worker %d, then EX->IO", w, ctx->io_slot, lo, hi, w - 1);
@@ -17909,12 +17950,12 @@ static int tomoGrowFrontWorker(int w, const char **err) {
 
 int tomoGrowFront(const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     /* review [10]: the global sum is NOT the highest live worker once nodes flip independently —
      * converting sum-1 would corrupt the per-node prefix. Multi-node must use the per-node hooks. */
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 70+n)"; return 0; }
+    if (!tmFlipTryClaim(err)) return 0;
     int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
-    if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; return 0; }
+    if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; tmFlipRelease(); return 0; }
     return tomoGrowFrontWorker(live - 1, err);          /* highest live worker converts */
 }
 
@@ -17927,21 +17968,22 @@ static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined bel
  * then requests the EX role from its own service-out tail. tmFlipTick then seeds the revived
  * worker a bucket range from its neighbor. Only a GROWN io slot can grow back (a native io thread
  * / main has no EX binding). Non-blocking: arms IO-EXIT here, tmFlipTick drives the rest. */
-/* Core grow-back: convert grown io slot `io_slot` back to its EX worker. Callers pick the slot
- * (global: highest grown; per-node: the node's highest IO-mode grown slot). */
+/* Core grow-back: convert grown io slot `io_slot` back to its EX worker. The caller holds the
+ * atomic flip claim and picks the slot (global: highest grown; per-node: the node's highest
+ * IO-mode grown slot). Every refusal releases the claim. */
 static int tomoGrowBackSlot(int io_slot, const char **err) {
-    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; return 0; }
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) { *err = "a migration is in flight"; tmFlipRelease(); return 0; }
     polyThreadCtx *ctx = tmCtxForIotid(io_slot);
-    if (!ctx || !ctx->ex) { *err = "grown io thread has no EX binding to revive"; return 0; }
-    if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) { *err = "thread not in IO mode"; return 0; }
+    if (!ctx || !ctx->ex) { *err = "grown io thread has no EX binding to revive"; tmFlipRelease(); return 0; }
+    if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) { *err = "thread not in IO mode"; tmFlipRelease(); return 0; }
     tmMigMailbox *mb = &tm_mig_mbox[io_slot];
     if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
         listLength(mb->migrating_out) ||
         atomic_load_explicit(&mb->io_exiting, memory_order_relaxed))
-        { *err = "a migration/exit is already in progress on that io thread"; return 0; }
+        { *err = "a migration/exit is already in progress on that io thread"; tmFlipRelease(); return 0; }
     int rem[TOMO_IO_THREADS_MAX + 1];
     if (tmGatherLiveDests(io_slot, rem, TOMO_IO_THREADS_MAX + 1) < 1)
-        { *err = "no other live io thread to receive the exiting thread's conns"; return 0; }
+        { *err = "no other live io thread to receive the exiting thread's conns"; tmFlipRelease(); return 0; }
     /* review [3]: refuse if a persistently non-migratable conn (pubsub/blocked/MULTI) is pinned here
      * — IO-EXIT could never drain it and phase 0 would wait forever. (A conn that becomes
      * non-migratable DURING the exit is caught by the phase-0 timeout-abort in tmFlipTick.)
@@ -17952,12 +17994,12 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
      * staleness contract as before (<=~100ms, and the phase-0 watchdog still backstops it), minus
      * the cross-thread pointer chase. */
     if (atomic_load_explicit(&tm_io_sig[io_slot].pinned_nonmig, memory_order_relaxed))
-        { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; return 0; }
-    server.tm_flip_ctx = ctx;
+        { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; tmFlipRelease(); return 0; }
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT + EX adoption */
     server.tm_flip_abort_ms = mstime() + 10000;         /* phase-0 watchdog deadline (review [3] abort) */
     server.tm_flip_wslot = ctx->ex->id;                /* the worker index this thread revives as */
+    tmFlipPublish(ctx);
     /* IO-EXIT: leave accept group + migrate every conn out (round-robin => even split), then the
      * thread requests EX from tmMigServiceOut's completion tail. */
     tmMigPublishReq(mb, TM_MIGREQ_IOEXIT, -1, 0, 1);    /* this exit COMMITS to the EX role */
@@ -17969,10 +18011,10 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
 
 int tomoGrowBack(const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 80+n)"; return 0; }  /* review [10] */
+    if (!tmFlipTryClaim(err)) return 0;
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
-    if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; return 0; }
+    if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; tmFlipRelease(); return 0; }
     return tomoGrowBackSlot(io_live - 1, err);          /* highest grown io thread (LIFO with grow-front) */
 }
 
@@ -17983,7 +18025,7 @@ int tomoGrowBack(const char **err) {
  * that can still cancel while the exit is uncommitted), phase 1 arms the seed migration, phase 2
  * awaits the seed FLIP where the coordinator publishes num_workers_live. */
 void tmFlipTick(void) {
-    polyThreadCtx *ctx = server.tm_flip_ctx;
+    polyThreadCtx *ctx = tmFlipCtxPublished();
     if (!ctx) return;
     if (server.tm_flip_target == TOMO_MODE_IO) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
@@ -18005,7 +18047,7 @@ void tmFlipTick(void) {
              * so the EWMA balancer sees the imbalance and evens it out via its normal path. */
             reshardKickAfterFlip(ctx->ex ? ctx->ex->id : -1, ctx->ex ? ctx->ex->id - 1 : -1);
             server.tm_relevel_pending = 1;             /* even out the merged range across the live set */
-            server.tm_flip_ctx = NULL; server.tm_flip_target = TOMO_MODE_UNSET;
+            tmFlipRelease();
         }
         return;
     }
@@ -18041,11 +18083,9 @@ void tmFlipTick(void) {
                     serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d could not drain "
                                           "(pinned non-migratable conn); re-joining accept group, staying IO",
                               ctx->io_slot);
-                    server.tm_flip_ctx = NULL;
-                    server.tm_flip_target = TOMO_MODE_UNSET;
-                    server.tm_flip_phase = 0;
                     server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
                     server.tm_flip_aborted = 1;         /* tell the OWNING node's controller its probe never applied */
+                    tmFlipRelease();
                 }
                 return;
             }
@@ -18062,7 +18102,7 @@ void tmFlipTick(void) {
             if (m != TOMO_MODE_EX) return;
             int w = server.tm_flip_wslot;              /* revived worker index (== current num_workers_live) */
             int src = w - 1;                           /* neighbor whose range we split (suffix move dst=src+1) */
-            if (src < 0) { server.tm_flip_ctx = NULL; server.tm_flip_target = TOMO_MODE_UNSET; return; }
+            if (src < 0) { tmFlipRelease(); return; }
             int lo_src = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
             int hi_src = server.ex_bucket_end[src];
             if (hi_src - lo_src < 2) {                  /* neighbor too small to split — leave worker empty-but-live */
@@ -18071,7 +18111,7 @@ void tmFlipTick(void) {
                 serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — worker %d LIVE (no seed; neighbor too small) "
                                      "num_workers_live=%d", w,
                           atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
-                server.tm_flip_ctx = NULL; server.tm_flip_target = TOMO_MODE_UNSET; server.tm_flip_phase = 0;
+                tmFlipRelease();
                 return;
             }
             int lo = lo_src + (hi_src - lo_src) / 2, hi = hi_src;
@@ -18098,7 +18138,7 @@ void tmFlipTick(void) {
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
             reshardKickAfterFlip(-1, -1);   /* grow-back's seed already half-splits: no weight transfer, just let the balancer act promptly */
             server.tm_relevel_pending = 1;  /* the half-split only touched ONE neighbour — re-level all */
-            server.tm_flip_ctx = NULL; server.tm_flip_target = TOMO_MODE_UNSET; server.tm_flip_phase = 0;
+            tmFlipRelease();
             return;
         }
     }
@@ -18943,7 +18983,7 @@ static void tomoFlipController(void) {
     if (!server.thread_auto || !server.poly_threads || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
-    if (server.tm_flip_ctx) return;                         /* a flip is mid-flight */
+    if (tmFlipActive()) return;                             /* a flip is mid-flight */
 
     static mstime_t prev_wall = 0, last_log = 0;
     mstime_t now = mstime();
@@ -19421,18 +19461,18 @@ int tomoNodeFlipTest(int val, const char **err) {
 
 static int tomoGrowFrontNode(int node, const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     int wpn = server.ex_per_node;
     if (wpn <= 0) { *err = "no per-node topology"; return 0; }
+    if (!tmFlipTryClaim(err)) return 0;
     int live_n = atomic_load_explicit(&server.tm_node_wlive[node], memory_order_acquire);
-    if (live_n <= 1) { *err = "need >= 2 live EX workers in the node"; return 0; }
+    if (live_n <= 1) { *err = "need >= 2 live EX workers in the node"; tmFlipRelease(); return 0; }
     return tomoGrowFrontWorker(node * wpn + live_n - 1, err);   /* node's highest live worker */
 }
 static int tomoGrowBackNode(int node, const char **err) {
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
-    if (server.tm_flip_ctx) { *err = "a flip is already in progress"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
+    if (!tmFlipTryClaim(err)) return 0;
     /* The node's highest grown io slot currently serving IO (LIFO within the node). */
     int pick = -1;
     for (int g = 0; g < server.tm_ngrow_io; g++) {
@@ -19443,7 +19483,7 @@ static int tomoGrowBackNode(int node, const char **err) {
         if (atomic_load_explicit(&c->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
         if (slot > pick) pick = slot;
     }
-    if (pick < 0) { *err = "no grown io thread in this node to convert back"; return 0; }
+    if (pick < 0) { *err = "no grown io thread in this node to convert back"; tmFlipRelease(); return 0; }
     return tomoGrowBackSlot(pick, err);
 }
 

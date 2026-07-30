@@ -2970,12 +2970,14 @@ struct redisServer {
     _Atomic int tm_node_iolive[16];
     _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
                                     * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
-    struct polyThreadCtx *tm_flip_ctx;   /* the poly ctx currently converting (NULL = none); the
-                                          * reshard coordinator tail retargets THIS thread's mode
-                                          * once the grow-front migration's teardown is complete */
-    int tm_flip_target;            /* the TOMO_MODE_* the flipping thread should reach.
-                                    * TOMO_MODE_UNSET when no flip is in progress — NOT 0, which
-                                    * is not a mode (see tomoThreadMode). */
+    _Atomic(struct polyThreadCtx *) tm_flip_ctx;
+                                   /* the flip claim + published poly ctx. NULL = idle; a private
+                                    * marker = claimed while the winner initializes the plain state
+                                    * below; otherwise the converting ctx. Every actuator wins the
+                                    * NULL->marker CAS before selecting its mutable role slot. */
+    int tm_flip_target;            /* successful claimer writes before release-publishing the ctx;
+                                    * main reads after acquire-loading it. TOMO_MODE_UNSET when idle
+                                    * — NOT 0, which is not a mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
                                     * seed migration, 2=await seed FLIP */
     mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the conn drain;
@@ -3081,9 +3083,9 @@ struct redisServer {
      *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO);
      * 3 = GROW-BACK seed: the coordinator publishes num_workers_live++ at the FLIP.
      * (Value 1 was the reserve-thread activation tail, deleted 2026-07-28 with the reserve.)
-     * Written by the flip actuator (main thread) strictly before reshardArm, read + cleared by
-     * the single coordinator of that migration — one-migration-at-a-time makes this
-     * race-free. */
+     * Written by the successful flip claimer (main or DEBUG's io thread) strictly before
+     * reshardArm, read + cleared by the single coordinator of that migration. The atomic flip
+     * claim plus one-migration-at-a-time makes this race-free. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
     unsigned int pipeline_ring_mask;
