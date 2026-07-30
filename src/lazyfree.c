@@ -292,7 +292,7 @@ void emptyDbAsync(redisDb *db) {
     kvstore *oldkeys = db->keys, *oldexpires = db->expires;
     estore *oldsubexpires = db->subexpires;
     dict *old_stream_idmp_keys = db->stream_idmp_keys;
-    db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+    db->keys = dbCreateKeyspaceKvstore(slot_count_bits, flags);
     db->expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
     db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
     db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);

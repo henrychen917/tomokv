@@ -1010,11 +1010,6 @@ uint64_t dictSdsCaseHash(const void *key) {
 }
 
 /* Dict hash function for null terminated string */
-uint64_t dictCStrHash(const void *key) {
-    return dictGenHashFunction((unsigned char*)key, strlen((char*)key));
-}
-
-/* Dict hash function for null terminated string */
 uint64_t dictCStrCaseHash(const void *key) {
     return dictGenCaseHashFunction((unsigned char*)key, strlen((char*)key));
 }
@@ -4759,10 +4754,9 @@ void initServer(void) {
                       server.ex_queue_size, want);
     }
 
-    /* Derive runtime constants. pipeline_ring_depth and ex_queue_size are validated as powers
-     * of two (masks below); ex_threads may be ANY count — worker routing goes through the
+    /* pipeline_ring_depth and ex_queue_size are validated as powers of two; derive the queue
+     * mask below. ex_threads may be ANY count — worker routing goes through the
      * bucket indirection table, NOT a mask (the legacy ex_dispatch_mask was deleted 2026-07-28). */
-    server.pipeline_ring_mask  = (unsigned int)(server.pipeline_ring_depth - 1);
     server.ex_queue_mask    = (unsigned int)(server.ex_queue_size - 1);
     /* ee451 (v8): initialize the bucket->worker map with CONTIGUOUS ranges (worker i owns
      * buckets [i*TOMO_BUCKETS/W, (i+1)*TOMO_BUCKETS/W)). Works for ANY worker count W.
@@ -4853,7 +4847,6 @@ void initServer(void) {
         server.clients[t]                        = listCreate();
         server.clients_to_close[t]               = listCreate();
         server.clients_pending_write[t]          = listCreate();
-        server.clients_pending_read[t]           = listCreate();
         server.clients_with_pending_ref_reply[t] = listCreate();
         server.clients_pending_ex[t]         = listCreate();
         server.clients_mig_parked[t]         = listCreate();   /* ee451 (H2 handover range-hold) */
@@ -4896,7 +4889,8 @@ void initServer(void) {
          * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
          * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
          * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
-         * that benign stale-read race into a use-after-free. Dicts persist once created. */
+         * that benign stale-read race into a use-after-free. Dicts persist once created;
+         * dbCreateKeyspaceKvstore enforces this at every keyspace creation. */
         slot_count_bits = TOMO_BUCKET_BITS;
     }
 
@@ -4904,7 +4898,7 @@ void initServer(void) {
      * These dbs are empty - real data lives in ex_dbs. */
     server.db = zmalloc(sizeof(redisDb) * server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
-        server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+        server.db[j].keys = dbCreateKeyspaceKvstore(slot_count_bits, flags);
         server.db[j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
         server.db[j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
         server.db[j].expires_cursor = 0;
@@ -5009,7 +5003,7 @@ void initServer(void) {
         for (int n = 0; n < nnodes; n++) {
             server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
             for (j = 0; j < server.dbnum; j++) {
-                server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
+                server.node_dbs[n][j].keys = dbCreateKeyspaceKvstore(slot_count_bits, shflags);
                 server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags & ~KVSTORE_FLAT);  /* review [crit]: expires stays on the dict path (its insert path AddRaw has no flat branch) */
                 server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
                 server.node_dbs[n][j].expires_cursor = 0;
@@ -5222,11 +5216,7 @@ void initListeners(void) {
     }
 }
 
-/* Some steps in server initialization need to be done last (after modules
- * are loaded).
- * Specifically, creation of threads due to a race bug in ld.so, in which
- * Thread Local Storage initialization collides with dlopen call.
- * see: https://sourceware.org/bugzilla/show_bug.cgi?id=19329 */
+/* Some server initialization steps must run after bundled modules are initialized. */
 void InitServerLast(void) {
     bioInit();
     initThreadedIO();
@@ -12879,9 +12869,9 @@ void reshardAutoTune(void) {
      * migrations (range move, then the grow-back seed) across several beforeSleep ticks with brief
      * migration_active==0 gaps between the stages; if the balancer stole the migration slot in one of
      * those gaps, the flip's next reshardArm would be rejected and tmFlipTick would stall with
-     * tm_flip_ctx set (the controller's top guard then blocks ALL flips until it clears). Deferring the
-     * balancer until the flip completes is exactly right — the post-flip kick (tm_rebalance_now) then
-     * makes it rebalance aggressively the instant tm_flip_ctx clears. */
+     * tm_flip_ctx set (the controller's top guard then blocks ALL flips until it clears). The
+     * completed flip transfers its EWMA weight, so the ordinary trigger below sees the imbalance
+     * after tm_flip_ctx clears. */
     if (tmFlipActive()) return;
     /* ee451 (thread-modes): balance over the LIVE worker set. A slot whose thread is running IO
      * must never be a migration endpoint (it isn't running exSlice — buckets flipped to it would
@@ -18942,7 +18932,6 @@ static void tmMakeDormantIoBinding(int slot) {
 }
 
 void initIOThreads(void) {
-    server.ioThreadsNum = server.io_threads;
     if (server.poly_threads) {
         /* The pool is exactly io-born + ex-born; there is no reserve thread to size in. */
         int npoly = (server.io_threads - 1) + server.num_workers;
@@ -20369,7 +20358,7 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
     atomic_store(&mb->req_pending, 0);
     atomic_store_explicit(&mb->req_data, 0, memory_order_relaxed);
     atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
-    mb->accept_left = 0; mb->rr_cursor = 0; mb->batch_dest = -1; mb->exit_then_ex = 0;
+    mb->accept_left = 0; mb->batch_dest = -1; mb->exit_then_ex = 0;
     mb->notifier = createEventNotifier();
     if (mb->notifier)
         aeCreateFileEvent(el, getReadEventFd(mb->notifier), AE_READABLE,
@@ -21382,7 +21371,7 @@ int main(int argc, char **argv) {
     if (!server.sentinel_mode) {
         moduleInitModulesSystemLast();
         moduleLoadInternalModules();
-        moduleLoadFromQueue();
+        moduleValidateConfigs();
     }
     ACLLoadUsersAtStartup();
     initListeners();

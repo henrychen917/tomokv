@@ -33,6 +33,18 @@
 
 static_assert(MAX_KEYSIZES_TYPES == OBJ_TYPE_BASIC_MAX, "Must be equal");
 
+/* EX next-op prefetch may retain a bucket-dict address until a later batch stage.
+ * Tomo keyspace dicts therefore persist until keyspace teardown. Keep the check
+ * on the common constructor so a future flags refactor cannot silently restore
+ * free-on-empty and turn a hint into a dangling pointer. */
+kvstore *dbCreateKeyspaceKvstore(int slot_count_bits, int flags) {
+    if (server.ex_threads > 0 && !server.cluster_enabled &&
+        (flags & KVSTORE_FREE_EMPTY_DICTS))
+        serverPanic("Tomo next-op prefetch requires persistent keyspace dicts; "
+                    "KVSTORE_FREE_EMPTY_DICTS is forbidden");
+    return kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+}
+
 /* Flags for expireIfNeeded */
 #define EXPIRE_FORCE_DELETE_EXPIRED 1
 #define EXPIRE_AVOID_DELETE_EXPIRED 2
@@ -1259,8 +1271,7 @@ redisDb *initTempDb(void) {
     redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
     for (int i=0; i<server.dbnum; i++) {
         tempDb[i].id = i;
-        tempDb[i].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits,
-                                       flags);
+        tempDb[i].keys = dbCreateKeyspaceKvstore(slot_count_bits, flags);
         tempDb[i].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType,
                                           slot_count_bits, flags);
         tempDb[i].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);

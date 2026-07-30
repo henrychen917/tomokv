@@ -47,7 +47,6 @@
 #include "hdr_histogram.h"
 #include "crc16_slottable.h"
 #include <dlfcn.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <string.h>
@@ -4035,10 +4034,6 @@ int RM_GetContextFlags(RedisModuleCtx *ctx) {
     /* Presence of children processes. */
     if (hasActiveChildProcess()) flags |= REDISMODULE_CTX_FLAGS_ACTIVE_CHILD;
     if (server.in_fork_child) flags |= REDISMODULE_CTX_FLAGS_IS_CHILD;
-
-    /* Non-empty server.loadmodule_queue means that Redis is starting. */
-    if (listLength(server.loadmodule_queue) > 0)
-        flags |= REDISMODULE_CTX_FLAGS_SERVER_STARTUP;
 
     /* If debug commands are completely enabled */
     if (server.enable_debug_cmd == PROTECTED_ACTION_ALLOWED_YES) {
@@ -13003,33 +12998,9 @@ void moduleLoadInternalModules(void) {
 #endif
 }
 
-/* Load all the modules in the server.loadmodule_queue list, which is
- * populated by `loadmodule` directives in the configuration file.
- * We can't load modules directly when processing the configuration file
- * because the server must be fully initialized before loading modules.
- *
- * The function aborts the server on errors, since to start with missing
- * modules is not considered sane: clients may rely on the existence of
- * given commands, loading AOF also may need some modules to exist, and
- * if this instance is a slave, it must understand commands from master. */
-void moduleLoadFromQueue(void) {
-    listIter li;
-    listNode *ln;
-
-    listRewind(server.loadmodule_queue,&li);
-    while((ln = listNext(&li))) {
-        struct moduleLoadQueueEntry *loadmod = ln->value;
-        if (moduleLoad(loadmod->path,(void **)loadmod->argv,loadmod->argc, 0)
-            == C_ERR)
-        {
-            serverLog(LL_WARNING,
-                "Can't load module from %s: server aborting",
-                loadmod->path);
-            exit(1);
-        }
-        moduleLoadQueueEntryFree(loadmod);
-        listDelNode(server.loadmodule_queue, ln);
-    }
+/* Validate startup configuration after bundled modules have had a chance to
+ * register and apply their module-specific configuration directives. */
+void moduleValidateConfigs(void) {
     if (dictSize(server.module_configs_queue)) {
         serverLog(LL_WARNING, "Unresolved Configuration(s) Detected:");
         dictIterator di;
@@ -13153,48 +13124,7 @@ void moduleUnregisterCommands(struct RedisModule *module) {
     resumeAllIOThreads();
 }
 
-/* We parse argv to add sds "NAME VALUE" pairs to the server.module_configs_queue list of configs.
- * We also increment the module_argv pointer to just after ARGS if there are args, otherwise
- * we set it to NULL */
-int parseLoadexArguments(RedisModuleString ***module_argv, int *module_argc) {
-    int args_specified = 0;
-    RedisModuleString **argv = *module_argv;
-    int argc = *module_argc;
-    for (int i = 0; i < argc; i++) {
-        char *arg_val = argv[i]->ptr;
-        if (!strcasecmp(arg_val, "CONFIG")) {
-            if (i + 2 >= argc) {
-                serverLog(LL_NOTICE, "CONFIG specified without name value pair");
-                return REDISMODULE_ERR;
-            }
-            sds name = sdsdup(argv[i + 1]->ptr);
-            sds value = sdsdup(argv[i + 2]->ptr);
-            if (!dictReplace(server.module_configs_queue, name, value)) sdsfree(name);
-            i += 2;
-        } else if (!strcasecmp(arg_val, "ARGS")) {
-            args_specified = 1;
-            i++;
-            if (i >= argc) {
-                *module_argv = NULL;
-                *module_argc = 0;
-            } else {
-                *module_argv = argv + i;
-                *module_argc = argc - i;
-            }
-            break;
-        } else {
-            serverLog(LL_NOTICE, "Syntax Error from arguments to loadex around %s.", redactLogCstr(arg_val));
-            return REDISMODULE_ERR;
-        }
-    }
-    if (!args_specified) {
-        *module_argv = NULL;
-        *module_argc = 0;
-    }
-    return REDISMODULE_OK;
-}
-
-/* Unregister module-related things, called when moduleLoad fails or moduleUnload. */
+/* Unregister module-related things, called when moduleOnLoad fails or moduleUnload. */
 void moduleUnregisterCleanup(RedisModule *module) {
     moduleFreeAuthenticatedClients(module);
     moduleUnregisterCommands(module);
@@ -13207,41 +13137,10 @@ void moduleUnregisterCleanup(RedisModule *module) {
     moduleUnregisterAuthCBs(module);
 }
 
-/* Load a module by path and initialize it. On success C_OK is returned, otherwise
- * C_ERR is returned. */
-int moduleLoad(const char *path, void **module_argv, int module_argc, int is_loadex) {
-    int (*onload)(void *, void **, int);
-    void *handle;
-
-    struct stat st;
-    if (stat(path, &st) == 0) {
-        /* This check is best effort */
-        if (!(st.st_mode & (S_IXUSR  | S_IXGRP | S_IXOTH))) {
-            serverLog(LL_WARNING, "Module %s failed to load: It does not have execute permissions.", path);
-            return C_ERR;
-        }
-    }
-
-    handle = dlopen(path,RTLD_NOW|RTLD_LOCAL);
-    if (handle == NULL) {
-        serverLog(LL_WARNING, "Module %s failed to load: %s", path, dlerror());
-        return C_ERR;
-    }
-    onload = (int (*)(void *, void **, int))(unsigned long) dlsym(handle,"RedisModule_OnLoad");
-    if (onload == NULL) {
-        dlclose(handle);
-        serverLog(LL_WARNING,
-            "Module %s does not export RedisModule_OnLoad() "
-            "symbol. Module not loaded.",path);
-        return C_ERR;
-    }
-
-    return moduleOnLoad(onload, path, handle, module_argv, module_argc, is_loadex);
-}
-
 /* Load a module by its 'onload' callback and initialize it. On success C_OK is returned, otherwise
  * C_ERR is returned. */
 int moduleOnLoad(int (*onload)(void *, void **, int), const char *path, void *handle, void **module_argv, int module_argc, int is_loadex) {
+    UNUSED(is_loadex); /* Keep the bundled-module initialization interface stable. */
     RedisModuleCtx ctx;
     moduleCreateContext(&ctx, NULL, REDISMODULE_CTX_TEMP_CLIENT); /* We pass NULL since we don't have a module yet. */
     if (onload((void*)&ctx,module_argv,module_argc) == REDISMODULE_ERR) {
@@ -13281,11 +13180,6 @@ int moduleOnLoad(int (*onload)(void *, void **, int), const char *path, void *ha
     int post_load_err = 0;
     if (listLength(ctx.module->module_configs) && !(ctx.module->configs_initialized & MODULE_CONFIGS_USER_VALS)) {
         serverLogRaw(LL_WARNING, "Module Configurations were not set, missing LoadConfigs call. Unloading the module.");
-        post_load_err = 1;
-    }
-
-    if (is_loadex && dictSize(server.module_configs_queue)) {
-        serverLogRaw(LL_WARNING, "Loadex configurations were not applied, likely due to invalid arguments. Unloading the module.");
         post_load_err = 1;
     }
 
@@ -13491,12 +13385,6 @@ sds genModulesInfoString(sds info) {
  * Module Configurations API internals
  * -------------------------------------------------------------------------- */
 	 
-/* Check if the configuration name is already registered */
-int isModuleConfigNameRegistered(RedisModule *module, const char *name) {
-    listNode *match = listSearchKey(module->module_configs, (void *) name);
-    return match != NULL;
-}
-
 /* Assert that the flags passed into the RM_RegisterConfig Suite are valid */
 int moduleVerifyConfigFlags(unsigned int flags, configType type) {
     if ((flags & ~(REDISMODULE_CONFIG_DEFAULT
@@ -14110,14 +13998,13 @@ int RM_LoadDefaultConfigs(RedisModuleCtx *ctx) {
 /* Applies all pending configurations on the module load. This should be called
  * after all of the configurations have been registered for the module inside of RedisModule_OnLoad.
  * This will return REDISMODULE_ERR if it is called outside RedisModule_OnLoad.
- * This API needs to be called when configurations are provided in either `MODULE LOADEX`
- * or provided as startup arguments. */
+ * Bundled modules use this API to apply module-specific startup configuration. */
 int RM_LoadConfigs(RedisModuleCtx *ctx) {
     if (!ctx || !ctx->module || !ctx->module->onload) {
         return REDISMODULE_ERR;
     }
     RedisModule *module = ctx->module;
-    /* Load configs from conf file or arguments from loadex */
+    /* Load bundled-module configs from the startup configuration. */
     return loadModuleConfigs(module);
 }
 
@@ -14554,14 +14441,13 @@ int RM_ConfigSetNumeric(RedisModuleCtx *ctx, const char *name, long long value, 
  * MODULE LOADEX <path> [[CONFIG NAME VALUE] [CONFIG NAME VALUE]] [ARGS ...]
  * MODULE UNLOAD <name>
  */
-/* ee451: the module API is not supported by this fork — 'loadmodule' is a boot FATAL (initServer).
- * LOAD/LOADEX are the runtime equivalents and must be refused for the same reason rather than
- * half-working: a module command's proc is not on canDispatchToWorker's whitelist, so it executes
- * inline on an IO thread against the EMPTY decoy server.db and sees none of the sharded keyspace;
- * and the module APIs that do reach shard data (RM_Scan via dbScan's FLATSTORE arm) are handed
- * kvobjs owned by another worker thread — see the residency guard in RM_StringDMA above.
- * LIST and UNLOAD stay: nothing can be loaded, so LIST is empty and UNLOAD is a no-op, but they
- * remain honest answers rather than errors. */
+/* ee451: dynamically loaded modules are not supported by this fork — 'loadmodule' is a boot FATAL
+ * (initServer), and LOAD/LOADEX are refused here. A module command would otherwise run inline on
+ * an IO thread against the EMPTY decoy server.db, while module APIs that do reach shard data can
+ * be handed objects owned by another worker thread.
+ *
+ * LIST and UNLOAD stay live for bundled modules. Bundled modules are initialized directly through
+ * moduleOnLoad(), appear in LIST, and are identified by their empty path so UNLOAD refuses them. */
 static void moduleRefuseLoad(client *c) {
     addReplyError(c,
         "MODULE LOAD is not supported by this fork: TomoKV shards the keyspace across worker "
@@ -14590,39 +14476,6 @@ void moduleCommand(client *c) {
 NULL
         };
         addReplyHelp(c, help);
-    } else if (!strcasecmp(subcmd,"load") && c->argc >= 3) {
-        robj **argv = NULL;
-        int argc = 0;
-
-        if (c->argc > 3) {
-            argc = c->argc - 3;
-            argv = &c->argv[3];
-        }
-
-        if (moduleLoad(c->argv[2]->ptr,(void **)argv,argc, 0) == C_OK)
-            addReply(c,shared.ok);
-        else
-            addReplyError(c,
-                "Error loading the extension. Please check the server logs.");
-    } else if (!strcasecmp(subcmd,"loadex") && c->argc >= 3) {
-        robj **argv = NULL;
-        int argc = 0;
-
-        if (c->argc > 3) {
-            argc = c->argc - 3;
-            argv = &c->argv[3];
-        }
-        /* If this is a loadex command we want to populate server.module_configs_queue with 
-         * sds NAME VALUE pairs. We also want to increment argv to just after ARGS, if supplied. */
-        if (parseLoadexArguments((RedisModuleString ***) &argv, &argc) == REDISMODULE_OK &&
-            moduleLoad(c->argv[2]->ptr, (void **)argv, argc, 1) == C_OK)
-            addReply(c,shared.ok);
-        else {
-            dictEmpty(server.module_configs_queue, NULL);
-            addReplyError(c,
-                "Error loading the extension. Please check the server logs.");
-        }
-
     } else if (!strcasecmp(subcmd,"unload") && c->argc == 3) {
         const char *errmsg = NULL;
         if (moduleUnload(c->argv[2]->ptr, &errmsg, 0) == C_OK)

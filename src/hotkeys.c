@@ -293,6 +293,15 @@ void hotkeysCommand(client *c) {
         };
         addReplyHelp(c, help);
     } else if (!strcasecmp(sub, "START")) {
+        /* The upstream implementation owns one process-global sketch, heap, scratch area and
+         * session pointer. Tomo has multiple IO owners and executes keyed commands directly on
+         * EX workers, so START would both race those globals and omit worker-routed traffic.
+         * Refuse the sole session-creation path until the feature has owner-local shards plus a
+         * stop/final-publication handshake. GET/STOP/RESET remain for protocol compatibility and
+         * are harmless because a supported Tomo process can never create a session. */
+        addReplyError(c, "HOTKEYS START is not supported by TomoKV's multi-owner command path");
+        return;
+
         /* HOTKEYS START
          *         <METRICS count [CPU] [NET]>
          *         [COUNT k]

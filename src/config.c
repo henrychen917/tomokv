@@ -605,10 +605,8 @@ void loadServerConfigFromString(char *config) {
                 queueSentinelConfig(argv+1,argc-1,linenum,lines[i]);
             }
         } else {
-            /* Collect all unknown configurations into `module_configs_queue`.
-             * These may include valid module configurations or invalid ones.
-             * They will be validated later by loadModuleConfigs() against the
-             * configurations declared by the loaded module(s). */
+            /* Collect unknown configurations so bundled modules initialized
+             * later can claim them. In server mode, leftovers are rejected at startup. */
             
             if (argc < 2) {
                 err = "Bad directive or wrong number of arguments";
@@ -1597,30 +1595,6 @@ void rewriteConfigBindOption(standardConfig *config, const char *name, struct re
     rewriteConfigRewriteLine(state,name,line,force);
 }
 
-/* Rewrite the loadmodule option. */
-void rewriteConfigLoadmoduleOption(struct rewriteConfigState *state) {
-    sds line;
-    dictIterator di;
-    dictEntry *de;
-    dictInitIterator(&di, modules);
-    while ((de = dictNext(&di)) != NULL) {
-        struct RedisModule *module = dictGetVal(de);
-        /* Internal modules doesn't have path and are not part of the configuration file */
-        if (sdslen(module->loadmod->path) == 0) continue;
-
-        line = sdsnew("loadmodule ");
-        line = sdscatsds(line, module->loadmod->path);
-        for (int i = 0; i < module->loadmod->argc; i++) {
-            line = sdscatlen(line, " ", 1);
-            line = sdscatsds(line, module->loadmod->argv[i]->ptr);
-        }
-        rewriteConfigRewriteLine(state,"loadmodule",line,1);
-    }
-    dictResetIterator(&di);
-    /* Mark "loadmodule" as processed in case modules is empty. */
-    rewriteConfigMarkAsProcessed(state,"loadmodule");
-}
-
 /* Glue together the configuration lines in the current configuration
  * rewrite state into a single string, stripping multiple empty lines. */
 sds rewriteConfigGetContentFromState(struct rewriteConfigState *state) {
@@ -1799,7 +1773,9 @@ int rewriteConfig(char *path, int force_write) {
     dictResetIterator(&di);
 
     rewriteConfigUserOption(state);
-    rewriteConfigLoadmoduleOption(state);
+    /* Dynamic modules cannot survive startup, so CONFIG REWRITE must never emit
+     * loadmodule directives. Mark any stale line as processed so it is removed. */
+    rewriteConfigMarkAsProcessed(state,"loadmodule");
 
     /* Rewrite Sentinel config if in Sentinel mode. */
     if (server.sentinel_mode) rewriteConfigSentinelOption(state);

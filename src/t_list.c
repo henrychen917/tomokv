@@ -1196,15 +1196,6 @@ int getListPositionFromObjectOrReply(client *c, robj *arg, int *position) {
     return C_OK;
 }
 
-robj *getStringObjectFromListPosition(int position) {
-    if (position == LIST_HEAD) {
-        return shared.left;
-    } else {
-        // LIST_TAIL
-        return shared.right;
-    }
-}
-
 void lmoveGenericCommand(client *c, int wherefrom, int whereto) {
     size_t oldsize = 0;
     kvobj *kvsrc = lookupKeyWriteOrReply(c,c->argv[1],shared.null[c->resp]);
