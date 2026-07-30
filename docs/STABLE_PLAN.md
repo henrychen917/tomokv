@@ -299,7 +299,7 @@ starved each other. That was an orchestration error, not a box problem.
 | # | branch | acceptance | notes |
 |---|---|---|---|
 | 1 | cmdstats `8a24ab1b8`+2 | ~~`cmdstat_check.sh` 18 failures → 0; `LATENCY HISTOGRAM` calls == exact count~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `eac51d50a` (+ probe `fb1986434`). Acceptance met and shown to discriminate. Perf is no longer unmeasured: **−3.2 to −3.4% on p32 SET io4ex4, which EXCEEDS the 3% budget**; every other cell ≤1%. See §3a |
-| 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **MERGED 2026-07-29 AND REVERTED — the acceptance FAILED.** POST reaches 12/0 in only **2 of 10 runs**; the other 8 crash the server. The residual this row called "FLATSTORE panics ~1 in 3" is understated on every axis: **8 in 10**, and mostly a **double free after silent data loss**, not a panic. Re-merge only together with a *validated* `cfea82654` (or an equivalent quiesce). See §3b |
+| 2 | debug-reload `c8aab4059` **only** | ~~`debug_reload.sh` 0/2 → 12/0~~ | **DONE 2026-07-29 — FIXED, MERGED AND PUSHED** as `480c3e6cb`, after the first attempt was merged and reverted the same day. The 8-in-10 residual was **not** the FLATSTORE resize race it was attributed to: `c8aab4059`'s fold looped `n <= server.n_node_dbs`, correct on its own branch (which still allocated a `+1` spare-private array) and **one past the end** on stable-dev. Re-authored with `n < server.n_node_dbs`: **10 runs of 10 at 12/0, zero crash markers in 20 logs**, 15/0, postmerge worst cell −1.3%. See §3b |
 | 3 | fpipe-lru `43bdd8972` **only** | ~~`xshard_lookup_accounting.sh` 5/2 → 7/0~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `bdec8d5ba` (+ preflight wiring `6d8211379`). Acceptance met and shown to discriminate on both arms; 15/0; postmerge worst cell −1.2%. See §3c |
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
@@ -453,6 +453,54 @@ that fails 8 times in 10. Rig, arms and every server log are kept at `$J/step3_d
 
 **Not measured, deliberately:** the two `postmerge.sh` throughput cells. `emptyData` is not on any
 command path a benchmark touches, and the merge was reverted on correctness before perf could matter.
+
+#### 3b-2. SECOND ATTEMPT, 2026-07-29 — FIXED, MERGED AND PUSHED as `480c3e6cb`
+
+**The 8-in-10 was a one-past-the-end read, not the resize race.** `c8aab4059`'s fold looped
+`for (n = 0; n <= server.n_node_dbs; n++)`. That was CORRECT on the branch it was written on — that
+tree still did `server.node_dbs = zmalloc(sizeof(redisDb *) * (nnodes + 1))`, a `+1` spare-PRIVATE
+array for a reserve worker slot. **The spare was deleted 2026-07-28** (see the comment in
+`initServer`: "every worker slot belongs to a node, so the array count is exactly the node count.
+Every fold over the physical arrays is `n < n_node_dbs`"), and stable-dev allocates exactly
+`n_node_dbs` entries, initialising only `0 .. n_node_dbs-1`. The auto-merge was textually clean
+because the two edits are in different hunks, so nothing flagged it: the fold read one pointer of
+uninitialised heap, handed it to `emptyDbStructure` as a `redisDb *`, and called
+`estoreEmpty`/`kvstoreEmpty` on garbage. That is the whole reported signature — illegal
+`decrRefCount` on hash/zset/string objects, keys missing under an intact `dbsize`, the 30 s wedge —
+and it also accounts for §3b correction 3 (the "unattributed" dict-regime `getClientMemoryUsage`
+SIGSEGV): `topo_nodes` is **1** on this box, so `node_dbs[1]` is out of bounds at BOTH `ex=1` and
+`ex=4`, in every run of both regimes.
+
+Re-authored directly on stable-dev with the bound every other physical-array fold in the tree uses,
+`n < server.n_node_dbs`. Numbers:
+
+| | |
+|---|---|
+| PRE (`a195b6290` unmodified, md5 `afb623ed`) | **0 passed / 2 failed**, exit 1 — both regimes, reload #1, `Guru Meditation: Duplicated key found in RDB file #rdb.c:4016` |
+| POST (md5 `66206ba8`) | **10 runs of 10 at 12 passed / 0 failed**, exit 0 every run; **0 crash markers in 20 server logs** |
+| resizes | **3 FLATSTORE resizes per run (30 total)**, up from 1 on the OOB build, and none raced a reload — with the fold correct the empty→refill compaction lands in the gap AFTER the reload returns (`rebuilt 524288 -> 524288 slots (live=100000)`) |
+| `correctness_suite` | 15 passed / 0 failed, no crash markers |
+| `postmerge.sh` | p32GET 7 943 860→**7 837 041** (−1.3%), p32SET 6 852 385→**6 815 814** (−0.5%), p1GET 826 877→**828 412** (+0.2%), p1SET 817 393→**819 242** (+0.2%) — no regression |
+| build | clean PRE build exit 0, **exactly one** warning (`kvstore.c:73`, proven pre-existing on the UNMODIFIED HEAD); POST build exit 0, **zero** warnings |
+| provenance | read out of the binaries: `emptyData` disassembles to **2** `emptyDbStructure` calls in PRE, **3** in POST |
+
+Ten reps because the reverted build reached 12/0 in 2 runs of 10 — one green run cannot tell a fix
+from luck at that rate. Rig and every log: `$J/step_dbgreload2/` (`run_reps.sh`, `memprobe.sh`,
+`dr2_pre.out`, `dr2_post_r1..10.out`, `srv_post_r*_{dict,flat}.log`, `build_{pre,post}.log`,
+`postmerge_post.log`).
+
+**The sanity gate caught a pre-existing defect that is NOT this one** (filed in §4). After the first
+reload `used_memory` reads **~4.29 GB for a 76 MB dataset** (INFO `used_memory` 4 294 150 192, peak
+4.39 GB), in both regimes. Not a leak and not from this change: `VmRSS` never exceeds 93 MB, and
+`DEBUG RELOAD MERGE NOFLUSH` — which never calls `emptyData`, so PRE and POST run identical code —
+produces the same jump on **both** arms (PRE 4 289 856 136 vs POST 4 289 854 384, 1 752 bytes apart),
+while a reload of an EMPTY db jumps on neither (70.6 MB both).
+
+**Left open on purpose, and NOT covered by this acceptance:** (a) the one-sided COPYING guard is
+unchanged — 30 resizes over 10 runs did not hit it, so it is not this item's blocker, but it is not
+fixed and `cfea82654` is still uncompiled; (b) `DEBUG RELOAD` does not park the workers, so a reload
+concurrent with live traffic still has main and the workers writing one shared flat table — the
+acceptance drives no concurrent traffic.
 
 ### 3c. Item 3, fpipe-lru — MERGED 2026-07-29 (`bdec8d5ba`, wiring `6d8211379`)
 
@@ -1188,16 +1236,40 @@ Nothing is working on these.
   `origin/2s-numa-stable-dev`, so they came in with an earlier merge and nobody noticed. Harmless
   to the build, but it means ~40 lines of that file are two versions stacked on top of each other
   and whatever they document has never been read as one text. Someone has to pick a side.
-- **The FLATSTORE resize guard is ONE-SIDED, and it is what blocks §3 item 2** (evidence added
+- **`zmalloc_used_memory()` reports ~4.29 GB after one thread frees ~100k objects the workers
+  allocated** (found 2026-07-29, §3b-2 — **pre-existing, proven on both arms**). Reproduce with
+  `DEBUG RELOAD MERGE NOFLUSH` on a 100k-key dataset: `used_memory` goes 79 574 720 → 4 289 856 136
+  and `used_memory_peak` to 4.38 GB, while `VmRSS` stays at 73 MB — so INFO, `used_memory_peak` and
+  the RDB `used-mem` aux field are all reporting a phantom ~2^32. It is NOT a leak and it is not
+  proportional to anything real; a reload of an EMPTY db does not move it. The trigger is the
+  cross-thread mass free, and the suspect is `src/zmalloc.c`: the counter is one `long long` slot
+  per thread, the slot index is `&= THREAD_MASK` with `MAX_THREADS 16` (so thread 17 aliases
+  thread 1's slot), and `zmalloc_local_add` writes it with a **relaxed non-atomic
+  load-modify-store** on an explicit single-writer assumption that slot aliasing breaks. Nobody has
+  confirmed which of those two is the mechanism — the aliasing is the obvious candidate but the
+  landing value is suspiciously always just under 2^32, which looks more like a 32-bit truncation of
+  a negative slot. Under sharding `maxmemory` is boot-refused (RP-1) so nothing *acts* on the
+  number, which is why this has survived: it only misinforms operators. Needs someone to dump the
+  per-thread slots and pick the mechanism before fixing.
+- **The FLATSTORE resize guard is ONE-SIDED** (evidence added
   2026-07-29, §3b). `FLAT_RZ_COPYING` needs the old table immutable for the whole rebuild. The
   coordinator enforces that against WORKERS (it parks them) and against a non-worker region that is
   **already** open (QUIESCING will not complete while any io `flat_epoch` is odd). Nothing re-checks
   the epoch once past QUIESCING, so a non-worker region that **opens during COPYING** is unguarded —
-  and `emptyData`'s shard fold and `rdbLoad`'s `dbAddRDBLoad` are exactly such mutators. Measured:
-  the coordinator snapshotting a table mid-reload (`live=91719/73365/18328` of 100000) loses keys
-  silently, wedges the server, and ends in a double free, 8 runs in 10. `cfea82654` is a candidate
-  fix (`tomoFlatResizeQuiesce`) and is **still never compiled and never run**. Owning this is the
-  precondition for merging the `emptyData` fold.
+  and `emptyData`'s shard fold and `rdbLoad`'s `dbAddRDBLoad` are exactly such mutators. Observed
+  directly: the coordinator completing a rebuild *between* `Loading RDB` and `Done loading RDB`
+  (`live=91719/73365/18328` of 100000), i.e. from a pre-empty snapshot.
+  **CORRECTION, 2026-07-29 (§3b-2): this is NOT what caused the 8-in-10, and it is NOT item 2's
+  blocker.** The 8-in-10 was `c8aab4059`'s one-past-the-end `node_dbs` read; with the bound fixed,
+  10 runs generated **30** resizes with **zero** failures, and every one of them landed after the
+  reload returned. The one-sided guard is nonetheless still a real hole — it is simply not
+  *demonstrated* to bite, and nothing in the acceptance provokes a resize *into* a reload window.
+  `cfea82654` is a candidate fix (`tomoFlatResizeQuiesce`) and is **still never compiled and never
+  run**; note its "one wait is sufficient" argument rests on `call()` holding the io flat region open
+  for the whole command, which holds for `DEBUG RELOAD` but not for a caller outside `call()`.
+  Whoever owns this should also decide whether the coordinator, not the mutator, is the right side to
+  fix (re-check the epochs during COPYING and abort) — that covers every non-worker writer at once,
+  at the cost of aborting a resize whenever an inline command opens a region.
 - **THE FLIP CONTROLLER DOES NOT FOLLOW THE WORKLOAD, and it blocks merge-queue item 6** (found
   2026-07-29 by `flip_updown`'s first ever execution, §3e — **pre-existing: the pre-merge arm
   behaves identically, field for field**). Booted io4/ex4 with `--tomokv-thread-mode auto` and
