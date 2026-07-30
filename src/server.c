@@ -17279,6 +17279,25 @@ static polyThreadCtx *tmPolyCtxs = NULL;
  * Zero-initialized (static storage); live slots get lists/notifier from tmMigInitSlot. */
 tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];
 
+/* LB-4: req_pending is the existing release/acquire availability edge, but it does not serialize
+ * the two possible control-plane publishers. Pack the entire request payload into one atomic word
+ * so an overlap can select one complete request or the other, never a mixture. Destination is
+ * stored as dest+1 (0 encodes -1); kind and then_ex occupy the low bits; count occupies the high
+ * 32 bits. */
+static inline uint64_t tmMigReqPack(tmMigReqKind kind, int dest, int count, int then_ex) {
+    return ((uint64_t)(uint32_t)count << 32) |
+           ((uint64_t)(uint16_t)(dest + 1) << 16) |
+           ((uint64_t)(then_ex != 0) << 8) |
+           (uint8_t)kind;
+}
+
+static inline void tmMigPublishReq(tmMigMailbox *mb, tmMigReqKind kind,
+                                   int dest, int count, int then_ex) {
+    atomic_store_explicit(&mb->req_data, tmMigReqPack(kind, dest, count, then_ex),
+                          memory_order_relaxed);
+    atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+}
+
 /* fwd (rank-1 inbox-wedge fix): the IO->EX checkpoint expels stranded inbox conns. */
 static int tmMigExpelInbox(int id);
 
@@ -17941,11 +17960,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
     server.tm_flip_wslot = ctx->ex->id;                /* the worker index this thread revives as */
     /* IO-EXIT: leave accept group + migrate every conn out (round-robin => even split), then the
      * thread requests EX from tmMigServiceOut's completion tail. */
-    mb->req_kind = TM_MIGREQ_IOEXIT;
-    mb->req_dest = -1;
-    mb->req_count = 0;
-    mb->req_then_ex = 1;                                /* this exit COMMITS to the EX role */
-    atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+    tmMigPublishReq(mb, TM_MIGREQ_IOEXIT, -1, 0, 1);    /* this exit COMMITS to the EX role */
     triggerEventNotifier(mb->notifier);
     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread %d (%ld conns) IO-EXIT + even-split out, "
                          "then IO->EX as worker %d", io_slot, tmIoThreadLoad(io_slot), ctx->ex->id);
@@ -18021,8 +18036,7 @@ void tmFlipTick(void) {
                     return;
                 if (mstime() >= server.tm_flip_abort_ms) {
                     tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
-                    mb->req_kind = TM_MIGREQ_IOEXIT_CANCEL; mb->req_dest = -1; mb->req_count = 0;
-                    atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+                    tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
                     triggerEventNotifier(mb->notifier);
                     serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d could not drain "
                                           "(pinned non-migratable conn); re-joining accept group, staying IO",
@@ -18235,10 +18249,7 @@ static void tmRebalanceOntoNewIo(int new_id) {
         if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
             listLength(mb->migrating_out) ||
             atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) continue;   /* busy — next tick */
-        mb->req_kind  = TM_MIGREQ_REBALANCE;
-        mb->req_dest  = new_id;
-        mb->req_count = count;
-        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        tmMigPublishReq(mb, TM_MIGREQ_REBALANCE, new_id, count, 0);
         triggerEventNotifier(mb->notifier);
         posted++;
     }
@@ -18304,8 +18315,7 @@ void tmClientBalanceCron(void) {
         if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
             listLength(mb->migrating_out) ||
             atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) continue;
-        mb->req_kind = TM_MIGREQ_REBALANCE; mb->req_dest = dst; mb->req_count = count;
-        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        tmMigPublishReq(mb, TM_MIGREQ_REBALANCE, dst, count, 0);
         triggerEventNotifier(mb->notifier);
         serverLog(LL_NOTICE, "ee451 client-lb: io %d busy-outlier (%.0f vs mean %.0f) -> %d conn(s) to io %d",
                   hot, hotv, mean, count, dst);
@@ -18489,7 +18499,11 @@ void tmMigServiceOut(void) {
 
     /* 1. New control-plane request? */
     if (atomic_load_explicit(&mb->req_pending, memory_order_acquire)) {
-        int kind = mb->req_kind, dest = mb->req_dest, count = mb->req_count;
+        uint64_t req = atomic_load_explicit(&mb->req_data, memory_order_relaxed);
+        int kind = (int)(uint8_t)req;
+        int dest = (int)(uint16_t)(req >> 16) - 1;
+        int count = (int)(uint32_t)(req >> 32);
+        int then_ex = (int)((req >> 8) & 1);
         atomic_store_explicit(&mb->req_pending, 0, memory_order_release);
         if (kind == TM_MIGREQ_REBALANCE) {
             mb->batch_dest = dest;
@@ -18506,7 +18520,7 @@ void tmMigServiceOut(void) {
                                  "conn migrations to io thread %d", id, started, count, dest);
         } else if (kind == TM_MIGREQ_IOEXIT) {
             atomic_store_explicit(&mb->io_exiting, 1, memory_order_relaxed);
-            mb->exit_then_ex = mb->req_then_ex;   /* latched under the req_pending acquire */
+            mb->exit_then_ex = then_ex;   /* latched under the req_pending acquire */
             if (!mb->accept_left) { tmMigLeaveAcceptGroup(id); mb->accept_left = 1; }
         } else if (kind == TM_MIGREQ_IOEXIT_CANCEL) {
             mb->exit_then_ex = 0;
@@ -18724,6 +18738,7 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
     pthread_mutex_init(&mb->inbox_lock, NULL);
     atomic_store(&mb->inbox_n, 0);
     atomic_store(&mb->req_pending, 0);
+    atomic_store_explicit(&mb->req_data, 0, memory_order_relaxed);
     atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
     mb->accept_left = 0; mb->rr_cursor = 0; mb->batch_dest = -1; mb->exit_then_ex = 0;
     mb->notifier = createEventNotifier();
@@ -18757,10 +18772,7 @@ int tomoMigrateTest(int val, const char **err) {
         if (dst < 0) { *err = "no destination io thread"; return 0; }
         int count = (int)(tmIoThreadLoad(src) / 2);
         if (count < 1) { *err = "source io thread has too few conns to rebalance"; return 0; }
-        mb->req_kind = TM_MIGREQ_REBALANCE;
-        mb->req_dest = dst;
-        mb->req_count = count;
-        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        tmMigPublishReq(mb, TM_MIGREQ_REBALANCE, dst, count, 0);
         triggerEventNotifier(mb->notifier);
         serverLog(LL_NOTICE, "ee451 thread-modes v1.6: REBALANCE requested — io thread %d (load %ld) "
                              "-> io thread %d (load %ld), up to %d conns",
@@ -18779,13 +18791,10 @@ int tomoMigrateTest(int val, const char **err) {
             listLength(mb->migrating_out) ||
             atomic_load_explicit(&mb->io_exiting, memory_order_relaxed))
             { *err = "a migration/exit is already in progress on that io thread"; return 0; }
-        mb->req_kind = TM_MIGREQ_IOEXIT;
-        mb->req_dest = -1;
-        mb->req_count = 0;
-        mb->req_then_ex = 0;   /* conn-migration test hook only: NO grow-back behind it, so the
-                                * thread drains and stays IO (out of the accept group). Requesting
-                                * EX here would flip a thread the pool still counts as IO. */
-        atomic_store_explicit(&mb->req_pending, 1, memory_order_release);
+        /* Conn-migration test hook only: NO grow-back behind it, so the thread drains and stays
+         * IO (out of the accept group). Requesting EX here would flip a thread the pool still
+         * counts as IO. */
+        tmMigPublishReq(mb, TM_MIGREQ_IOEXIT, -1, 0, 0);
         triggerEventNotifier(mb->notifier);
         serverLog(LL_NOTICE, "ee451 thread-modes v1.6: IO-EXIT requested — io thread %d leaves accept "
                              "group + migrates %ld conns out", src, tmIoThreadLoad(src));

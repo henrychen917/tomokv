@@ -2849,9 +2849,9 @@ typedef struct polyThreadCtx {
  * hot path) and wakes it; the destination re-registers on its own loop. */
 typedef enum {
     TM_MIGREQ_NONE = 0,
-    TM_MIGREQ_REBALANCE,     /* move req_count conns to req_dest (no mode change) */
+    TM_MIGREQ_REBALANCE,     /* move req_data's count conns to req_data's dest (no mode change) */
     TM_MIGREQ_IOEXIT,        /* leave accept group, move ALL migratable conns out; then take the
-                              * EX role iff req_then_ex (grow-back), else stay IO and idle */
+                              * EX role iff req_data's then_ex (grow-back), else stay IO and idle */
     TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
 } tmMigReqKind;
 
@@ -2865,15 +2865,11 @@ typedef struct tmMigMailbox {
     eventNotifier *notifier;      /* wakes this thread's loop on inbox push or new request */
     /* SOURCE REQUEST (control plane -> this thread; published before req_pending). */
     _Atomic int req_pending;      /* 0 = none; 1 = a request is waiting to be picked up */
-    int req_kind;                 /* tmMigReqKind */
-    int req_dest;                 /* destination iotid for REBALANCE (-1 = spread least-loaded) */
-    int req_count;                /* how many conns to move (REBALANCE) */
-    int req_then_ex;              /* IO-EXIT only: 1 = this exit is the first leg of a GROW-BACK, so
-                                   * the thread requests the EX role once its last conn is gone;
-                                   * 0 = a bare conn-drain test hook (DEBUG TOMO-MODESHIFT 5) with
-                                   * NO controller bookkeeping behind it — the thread must stay IO,
-                                   * or io_threads_live would over-count a thread that silently
-                                   * became a worker. Published with req_kind, before req_pending. */
+    _Atomic uint64_t req_data;    /* kind/dest/count/then_ex packed into one atomic publication:
+                                   * two control-plane publishers may overlap after both observe
+                                   * req_pending == 0, but the owner can never see fields from
+                                   * different requests. req_pending remains the release/acquire
+                                   * availability edge. */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
     _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count
@@ -2887,7 +2883,7 @@ typedef struct tmMigMailbox {
                                    * window between the request and the role change. */
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
     int exit_then_ex;             /* owner's latched copy of req_then_ex for the current exit */
-    int batch_dest;               /* REBALANCE: fixed destination for the current batch */
+    int batch_dest;               /* REBALANCE: owner-latched destination for the current batch */
     unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
 } tmMigMailbox;
 
