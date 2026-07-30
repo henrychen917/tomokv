@@ -2551,6 +2551,119 @@ long long getTotalErrorReplies(void) {
     return s;
 }
 
+/* ---- Per-thread error-name statistics -------------------------------------------------------
+ *
+ * An owner's rax supplies arbitrary-string lookup on the error path. INFO must not traverse that
+ * rax: the owner can be in raxInsert concurrently. Each new redisError is therefore also prepended
+ * to an immutable list and the new head is release-published. Existing nodes never change except
+ * for their atomic count, so readers can safely snapshot every published head and merge the lists
+ * into a request-local rax.
+ *
+ * RESETSTAT changes only the global generation. Each owner notices the new generation on its next
+ * error, unpublishes and retires its own old rax, and starts a new one. INFO filters by the
+ * generation it sampled, so reset is immediately visible even before every owner has observed it.
+ * errorstats_readers pins retired published lists only long enough to copy them; owners reclaim
+ * their own retired raxes once that count reaches zero. */
+#define ERROR_STATS_NUMBER 128
+#define ERRORSTATS_DISABLED_BIT UINT64_C(1)
+
+static inline uint64_t tomoErrorStatsGeneration(uint64_t state) {
+    return state >> 1;
+}
+
+static void tomoErrorStatReclaim(tomoErrorStatShard *shard) {
+    if (!shard->retired ||
+        atomic_load_explicit(&server.errorstats_readers.n, memory_order_seq_cst) != 0)
+        return;
+
+    tomoErrorGeneration *retired = shard->retired;
+    shard->retired = NULL;
+    while (retired) {
+        tomoErrorGeneration *next = retired->next;
+        /* The reader pin is zero and this rax is no longer published. Its values are exactly
+         * the immutable list nodes, so the stock error-table free path owns both allocations. */
+        freeErrorsRadixTreeAsync(retired->index);
+        zfree(retired);
+        retired = next;
+    }
+}
+
+/* Owner-only generation change. The seq_cst unpublish pairs with INFO's seq_cst head loads and
+ * reader pin: after observing zero readers, no reader can still acquire this retired head. */
+static void tomoErrorStatAdvance(tomoErrorStatShard *shard, uint64_t generation) {
+    if (shard->generation == generation) {
+        tomoErrorStatReclaim(shard);
+        return;
+    }
+
+    tomoErrorGeneration *retired = NULL;
+    if (shard->index) {
+        retired = zmalloc(sizeof(*retired));
+        retired->index = shard->index;
+        retired->next = shard->retired;
+    }
+
+    atomic_store_explicit(&shard->published, NULL, memory_order_seq_cst);
+    if (retired) shard->retired = retired;
+    shard->index = NULL;
+    shard->head = NULL;
+    shard->generation = generation;
+    tomoErrorStatReclaim(shard);
+}
+
+/* Add a new name to THIS owner's current generation and publish it only after the rax insertion
+ * and every immutable node field are complete. */
+static struct redisError *tomoErrorStatInsert(tomoErrorStatShard *shard,
+                                               const char *name, size_t namelen,
+                                               uint64_t generation)
+{
+    if (!shard->index) shard->index = raxNew();
+
+    struct redisError *error = zmalloc(sizeof(*error) + namelen);
+    tomoRelaxedSet(error->count, 1);
+    error->generation = generation;
+    error->name_len = namelen;
+    error->next = shard->head;
+    memcpy(error->name, name, namelen);
+    raxInsert(shard->index, error->name, namelen, error, NULL);
+
+    shard->head = error;
+    atomic_store_explicit(&shard->published, error, memory_order_release);
+    return error;
+}
+
+/* Copy a point-in-time set of published entries into an rax owned solely by the INFO caller.
+ * The generation sample linearizes the snapshot with RESETSTAT; counts can naturally include an
+ * increment concurrent with INFO, just as every other statistics read can. */
+static rax *tomoErrorStatsSnapshot(void) {
+    rax *snapshot = raxNew();
+    atomic_fetch_add_explicit(&server.errorstats_readers.n, 1, memory_order_seq_cst);
+    uint64_t state = atomic_load_explicit(&server.errorstats_ctl.state, memory_order_acquire);
+    uint64_t generation = tomoErrorStatsGeneration(state);
+
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+        struct redisError *error =
+            atomic_load_explicit(&server.errorstats[i].published, memory_order_seq_cst);
+        while (error) {
+            if (error->generation == generation) {
+                long long count = tomoRelaxedRead(error->count);
+                void *result;
+                if (!raxFind(snapshot, error->name, error->name_len, &result)) {
+                    struct redisError *sum = zmalloc(sizeof(*sum));
+                    tomoRelaxedSet(sum->count, count);
+                    raxInsert(snapshot, error->name, error->name_len, sum, NULL);
+                } else {
+                    struct redisError *sum = result;
+                    tomoRelaxedBump(sum->count, count);
+                }
+            }
+            error = error->next;
+        }
+    }
+    atomic_fetch_sub_explicit(&server.errorstats_readers.n, 1, memory_order_seq_cst);
+    return snapshot;
+}
+
 /* Allocate THIS thread's per-command counter block and publish it. Runs once per thread, on its
  * first executed command; every later command takes the acquire-load fast path in server.h. */
 tomoCmdStat *tomoCmdStatBlockAlloc(void) {
@@ -4360,8 +4473,17 @@ void initServer(void) {
     server.main_thread_id = pthread_self();
     flatRegisterIoSlot(0);   /* FLATSTORE QSBR: main owns io slot 0; registration is mandatory */
 
-    server.errors = raxNew();
-    server.errors_enabled = 1;
+    /* Errorstats generation 1 starts enabled. Shards allocate their owner-only rax lazily on
+     * first error; published heads must be initialized before any IO/EX thread starts. */
+    atomic_store_explicit(&server.errorstats_ctl.state, UINT64_C(2), memory_order_relaxed);
+    atomic_store_explicit(&server.errorstats_readers.n, 0, memory_order_relaxed);
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+        server.errorstats[i].index = NULL;
+        server.errorstats[i].head = NULL;
+        server.errorstats[i].retired = NULL;
+        server.errorstats[i].generation = 0;
+        atomic_store_explicit(&server.errorstats[i].published, NULL, memory_order_relaxed);
+    }
     execution_nesting = 0;   /* ee451 (A-F.4): main thread's own slot; every other thread's is
                               * zero-initialised by the TLS runtime when it starts. */
     //server.clients_index = raxNew();
@@ -5078,9 +5200,20 @@ void resetCommandTableStats(dict* commands) {
 }
 
 void resetErrorTableStats(void) {
-    freeErrorsRadixTreeAsync(server.errors);
-    server.errors = raxNew();
-    server.errors_enabled = 1;
+    uint64_t state = atomic_load_explicit(&server.errorstats_ctl.state, memory_order_relaxed);
+    uint64_t next;
+    do {
+        /* A reset always starts a fresh ENABLED generation, including after the cardinality
+         * guard disabled the previous one. The single CAS prevents a stale disabler from
+         * overwriting a concurrent reset. */
+        next = (tomoErrorStatsGeneration(state) + 1) << 1;
+    } while (!atomic_compare_exchange_weak_explicit(&server.errorstats_ctl.state, &state, next,
+                                                     memory_order_seq_cst,
+                                                     memory_order_relaxed));
+
+    /* CONFIG is executing on this iotid's owner thread, so it may retire its own table now.
+     * Every other owner observes the generation lazily; INFO already filters their old entries. */
+    tomoErrorStatAdvance(&server.errorstats[iotid], tomoErrorStatsGeneration(next));
 }
 
 /* ========================== Redis OP Array API ============================ */
@@ -12533,22 +12666,39 @@ int areCommandKeysInSameSlot(client *c, int *hashslot) {
 /* ====================== Error lookup and execution ===================== */
 
 /* Users who abuse lua error_reply will generate a new error object on each
- * error call, which can make server.errors get bigger and bigger. This will
+ * error call, which can make the error table bigger and bigger. This will
  * cause the server to block when calling INFO (we also return errorstats by
- * default). To prevent the damage it can cause, when a misuse is detected,
- * we will print the warning log and disable the errorstats to avoid adding
- * more new errors. It can be re-enabled via CONFIG RESETSTAT. */
-#define ERROR_STATS_NUMBER 128
+ * default). To prevent the damage it can cause, each owner shard retains the
+ * stock 128-name limit; reaching it disables the global generation. This
+ * bounds one generation to TOMO_STAT_SLOTS * 128 published entries even when
+ * distinct names are spread across threads. CONFIG RESETSTAT re-enables it. */
 void incrementErrorCount(const char *fullerr, size_t namelen) {
-    /* errorstats is disabled, return ASAP. */
-    if (!server.errors_enabled) return;
+    uint64_t state = atomic_load_explicit(&server.errorstats_ctl.state, memory_order_acquire);
+    if (state & ERRORSTATS_DISABLED_BIT) return;
 
+    uint64_t generation = tomoErrorStatsGeneration(state);
+    tomoErrorStatShard *shard = &server.errorstats[iotid];
+    if (unlikely(shard->generation != generation))
+        tomoErrorStatAdvance(shard, generation);
+
+    /* Only this iotid ever searches or mutates this rax. INFO reads the published immutable
+     * list instead, so raxFind/raxInsert cannot overlap a foreign structural traversal. */
     void *result;
-    if (!raxFind(server.errors,(unsigned char*)fullerr,namelen,&result)) {
-        if (server.errors->numele >= ERROR_STATS_NUMBER) {
+    if (!shard->index ||
+        !raxFind(shard->index, (unsigned char *)fullerr, namelen, &result))
+    {
+        if (shard->index && shard->index->numele >= ERROR_STATS_NUMBER) {
+            /* Disable exactly once. Advancing the generation logically clears every shard; the
+             * winner publishes the sole ERRORSTATS_DISABLED entry in its own new generation. */
+            uint64_t disabled = ((generation + 1) << 1) | ERRORSTATS_DISABLED_BIT;
+            if (!atomic_compare_exchange_strong_explicit(&server.errorstats_ctl.state, &state,
+                                                          disabled, memory_order_seq_cst,
+                                                          memory_order_relaxed))
+                return;
+
             sds errors = sdsempty();
             raxIterator ri;
-            raxStart(&ri, server.errors);
+            raxStart(&ri, shard->index);
             raxSeek(&ri, "^", NULL, 0);
             while (raxNext(&ri)) {
                 char *tmpsafe;
@@ -12559,7 +12709,7 @@ void incrementErrorCount(const char *fullerr, size_t namelen) {
             sdsrange(errors, 0, -3); /* Remove final ", ". */
             raxStop(&ri);
 
-            /* Print the warning log and the contents of server.errors to the log. */
+            /* Print the warning log and the contents of the owner table that hit the cap. */
             serverLog(LL_WARNING,
                       "Errorstats stopped adding new errors because the number of "
                       "errors reached the limit, may be misuse of lua error_reply, "
@@ -12568,20 +12718,20 @@ void incrementErrorCount(const char *fullerr, size_t namelen) {
             serverLog(LL_WARNING, "Current errors code list: %s", errors);
             sdsfree(errors);
 
-            /* Reset the errors and add a single element to indicate that it is disabled. */
-            resetErrorTableStats();
-            incrementErrorCount("ERRORSTATS_DISABLED", 19);
-            server.errors_enabled = 0;
+            tomoErrorStatAdvance(shard, generation + 1);
+            tomoErrorStatInsert(shard, "ERRORSTATS_DISABLED", 19, generation + 1);
+            tomoErrorStatReclaim(shard);
             return;
         }
 
-        struct redisError *error = zmalloc(sizeof(*error));
-        error->count = 1;
-        raxInsert(server.errors,(unsigned char*)fullerr,namelen,error,NULL);
+        tomoErrorStatInsert(shard, fullerr, namelen, generation);
     } else {
         struct redisError *error = result;
-        error->count++;
+        /* One writer, so a relaxed load+store avoids a locked RMW while INFO still gets a
+         * defined, untorn cross-thread snapshot. */
+        tomoRelaxedBump(error->count, 1);
     }
+    if (unlikely(shard->retired)) tomoErrorStatReclaim(shard);
 }
 
 /*================================== Shutdown =============================== */
@@ -14703,8 +14853,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     if (all_sections || (dictFind(section_dict,"errorstats") != NULL)) {
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscat(info, "# Errorstats\r\n");
+        /* INFO traverses only its private merged snapshot, never an owner's live rax/list. */
+        rax *errors = tomoErrorStatsSnapshot();
         raxIterator ri;
-        raxStart(&ri,server.errors);
+        raxStart(&ri,errors);
         raxSeek(&ri,"^",NULL,0);
         struct redisError *e;
         while(raxNext(&ri)) {
@@ -14712,10 +14864,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             e = (struct redisError *) ri.data;
             info = sdscatprintf(info,
                 "errorstat_%.*s:count=%lld\r\n",
-                (int)ri.key_len, getSafeInfoString((char *) ri.key, ri.key_len, &tmpsafe), e->count);
+                (int)ri.key_len, getSafeInfoString((char *) ri.key, ri.key_len, &tmpsafe),
+                tomoRelaxedRead(e->count));
             if (tmpsafe != NULL) zfree(tmpsafe);
         }
         raxStop(&ri);
+        raxFreeWithCallback(errors, zfree);
     }
 
     /* Latency by percentile distribution per command */

@@ -2914,6 +2914,25 @@ typedef struct tomoCmdStat {
  * block, allocated lazily by the first thread that executes anything. */
 #define TOMO_CMDSTAT_IDS USER_COMMAND_BITS_COUNT
 
+/* Errorstats has arbitrary string keys, so it cannot use cmdstat's dense command-id array.
+ * Each iotid owns one rax for lookup and publishes an immutable list of the same entries for
+ * cross-thread INFO readers. The rax, head and retired list are owner-only; published is the
+ * only pointer a reader may follow. Cache-line alignment keeps different error-producing
+ * threads from sharing the shard-control line. */
+struct redisError;
+typedef struct tomoErrorGeneration {
+    rax *index;
+    struct tomoErrorGeneration *next;
+} tomoErrorGeneration;
+
+typedef struct tomoErrorStatShard {
+    rax *index;                         /* owner-only current-generation lookup table */
+    struct redisError *head;            /* owner-only current immutable-list head */
+    tomoErrorGeneration *retired;       /* owner-only tables awaiting reader quiescence */
+    uint64_t generation;                /* owner-only generation represented by index/head */
+    _Atomic(struct redisError *) published; /* release-published immutable head; readers only */
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoErrorStatShard;
+
 struct redisServer {
     /* new front end io */
     int ioThreadsNum;
@@ -3129,8 +3148,17 @@ struct redisServer {
     dict *commands;             /* Command table */
     dict *orig_commands;        /* Command table before command renaming. */
     aeEventLoop *el;
-    rax *errors;                /* Errors table */
-    int errors_enabled;         /* If true, errorstats is enabled, and we will add new errors. */
+    /* Errorstats control is split from the INFO-reader pin so INFO's cold RMW never invalidates
+     * the state cache line read on each error reply. state = generation<<1 | disabled. */
+    struct {
+        _Atomic uint64_t state;
+        char _pad[CACHE_LINE_SIZE - sizeof(uint64_t)];
+    } errorstats_ctl __attribute__((aligned(CACHE_LINE_SIZE)));
+    struct {
+        _Atomic unsigned int n;
+        char _pad[CACHE_LINE_SIZE - sizeof(unsigned int)];
+    } errorstats_readers __attribute__((aligned(CACHE_LINE_SIZE)));
+    tomoErrorStatShard errorstats[TOMO_STAT_SLOTS];
     unsigned int lruclock; /* Clock for LRU eviction */
     redisAtomic int shutdown_asap; /* Shutdown ordered by signal handler. */
     redisAtomic int crashing;      /* Server is crashing report. */
@@ -4328,7 +4356,11 @@ struct redisCommand {
 };
 
 struct redisError {
-    long long count;
+    _Atomic long long count;       /* one shard owner writes; INFO snapshot readers load */
+    uint64_t generation;
+    size_t name_len;
+    struct redisError *next;       /* immutable after this entry is release-published */
+    unsigned char name[];          /* arbitrary error name, also used as the owner-rax key */
 };
 
 struct redisFunctionSym {
