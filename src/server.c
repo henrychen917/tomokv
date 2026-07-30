@@ -19441,8 +19441,24 @@ static void tomoFlipController(void) {
          * still decaying (a p32->p1 switch leaves mean ABOVE inst for ~3-4s; flipping then misreads
          * the first step's before-rate high, so a real gain reads as a wash and stops the climb one
          * step in). |Δmean|<sigma alone passed too early on that slow tail — require mean≈inst. Runs
-         * every active tick; a climb's own config changes reset it (only the START path consumes it). */
-        if (fabs(fc->mean - inst) < 2.0 * sigma) { if (fc->idle_stable < 1000) fc->idle_stable++; } else fc->idle_stable = 0;
+         * every active tick; a climb's own config changes reset it (only the START path consumes it).
+         *
+         * ee451 2026-07-29 — THE SIGMA TEST ALONE LETS THROUGH THE VERY EVENT IT EXCLUDES. sigma is
+         * the EWMA sigma of the SAME series as mean, so the transition that corrupts the mean also
+         * inflates sigma, and 2*sigma grows to cover the gap it is supposed to detect. Measured on
+         * the io7/ex1 boot's second phase: the p32->p1 switch left mean at 4 623 952 while the true
+         * p1 rate was ~600k — an 87% gap — and the gate passed, so the climb anchored best_rate on a
+         * phantom 4.6M baseline. Every subsequent step then read as a loss, including io7/ex1's
+         * genuine 830 800, and it walked back to io4/ex4 (~600k) and pinned dz_front at 1.71, which
+         * shuts the forward direction for the life of the process.
+         * A RELATIVE bound is the missing half, and it must be ANDed (fmin), not ORed: the gap has to
+         * be small BOTH against the measured noise AND as a fraction of the rate itself. 10% is ~4x
+         * the per-tick CV observed on this box in both regimes (sigma/mean 1.7-2.7% at p1 and p32),
+         * so steady state passes as before; a regime change of any real size cannot. Cost is a ~4s
+         * delay before a climb may start after a workload switch, which is exactly the interval whose
+         * measurements are worthless anyway. */
+        if (fabs(fc->mean - inst) < fmin(2.0 * sigma, 0.10 * fc->mean)) { if (fc->idle_stable < 1000) fc->idle_stable++; }
+        else fc->idle_stable = 0;
         if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d pool=%d/%d",
