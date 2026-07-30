@@ -239,7 +239,8 @@ typedef enum {
 } tomoIoPrefetchStat;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
-    unsigned int publish_tick;
+    unsigned int publish_tick[2];
+    unsigned char published_issuing[2];
     uint64_t v[TOMO_IO_PF_STAT_COUNT];
 } tomoIoPrefetchLocal;
 
@@ -319,11 +320,20 @@ static inline void tomoIoPrefetchPublishNow(void) {
                               memory_order_relaxed);
 }
 
-static inline void tomoIoPrefetchPublish(void) {
+enum {
+    TOMO_IO_PUBLISH_INGRESS = 0,
+    TOMO_IO_PUBLISH_REPLY = 1,
+};
+
+static inline void tomoIoPrefetchPublish(int side, int issued) {
     tmIoSignal *s = &tm_io_sig[iotid];
-    /* Publish the first enabled pass, then every 64. This makes a short diagnostic run visible
-     * without putting an atomic store on every group. Only the owning IO identity calls here. */
-    if (((++s->pf_io_local.publish_tick) & 63u) != 1u) return;
+    serverAssert(side == TOMO_IO_PUBLISH_INGRESS || side == TOMO_IO_PUBLISH_REPLY);
+    /* Each side publishes its first pass independently. Also force the first pass that actually
+     * issues a hint: a short/no-ready diagnostic followed by one useful group must not leave INFO
+     * saying "enabled, issuing nothing" until 63 unrelated passes later. */
+    int first_issuing = issued && !s->pf_io_local.published_issuing[side];
+    if (first_issuing) s->pf_io_local.published_issuing[side] = 1;
+    if (((++s->pf_io_local.publish_tick[side]) & 63u) != 1u && !first_issuing) return;
     tomoIoPrefetchPublishNow();
 }
 
@@ -449,6 +459,9 @@ _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, 
                "flat_retire_local shares a cache line with loop_seq (false sharing)");
 _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, in_flat_section) / 64,
                "flat_retire_local shares a cache line with in_flat_section (false sharing)");
+_Static_assert(offsetof(exThread, sched_stats) / CACHE_LINE_SIZE !=
+               offsetof(exThread, sched_published) / CACHE_LINE_SIZE,
+               "scheduler live counters share a cache line with their INFO snapshot");
 
 /* NON-WORKER quiescence for the FLATSTORE QSBR grace (see flatBatchReady).
  * Workers prove quiescence with loop_seq / in_flat_section. Every OTHER thread that can execute a
@@ -2447,96 +2460,110 @@ static inline int cdbForFake(const client *fake) {
     return server.num_cdb == 1 ? 0 : fake->cdb;
 }
 
-/* Stage the first bounded group of readable client events before AE invokes any callback. Only
- * explicitly tagged connection-backed events are followed: listener pipes, module fds and other
- * arbitrary ae clientData never enter this chain. All clients belong to this event-loop owner,
- * and no callback (hence no client/querybuf mutation or free) runs between these rotations. */
+/* Stage bounded groups of readable clients and then consume the exact contiguous fired range
+ * that supplied each group. This hook owns the whole fired array when installed: it never does a
+ * whole-poll prepass followed by AE restarting at event zero, and it continues past the first 16
+ * eligible clients. Listener pipes, module fds and arbitrary ae clientData are consumed in order
+ * but never followed by the typed prefetch chain. All touched state belongs to this event loop's
+ * IO owner, and no callback runs between a wave's dependent staging rotations. */
 #define TOMO_IO_PREFETCH_GROUP_MAX 16
-void __attribute__((noinline)) tomoPrefetchIngress(aeEventLoop *eventLoop, int numevents) {
-    connection *conns[TOMO_IO_PREFETCH_GROUP_MAX];
-    int fds[TOMO_IO_PREFETCH_GROUP_MAX];
-    client *clients[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
-    sds querybufs[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
-    int n = 0;
-    uint64_t issued = 0;
+int __attribute__((noinline)) tomoPrefetchIngress(aeEventLoop *eventLoop, int numevents,
+                                                  int style)
+{
+    int first = 0;
+    int processed = 0;
+    while (first < numevents) {
+        connection *conns[TOMO_IO_PREFETCH_GROUP_MAX];
+        int fds[TOMO_IO_PREFETCH_GROUP_MAX];
+        client *clients[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
+        sds querybufs[TOMO_IO_PREFETCH_GROUP_MAX] = {0};
+        int n = 0;
+        int end = first;
+        uint64_t issued = 0;
 
-    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PASSES, 1);
-    for (int j = 0; j < numevents && n < TOMO_IO_PREFETCH_GROUP_MAX; j++) {
-        int fd = eventLoop->fired[j].fd;
-        if (fd < 0 || fd >= eventLoop->nevents) continue;
-        aeFiredEvent *fired = &eventLoop->fired[j];
-        aeFileEvent *fe = &eventLoop->events[fd];
-        if (!(fired->mask & AE_READABLE) || !(fe->mask & AE_READABLE) ||
-            fe->kind != AE_FILE_EVENT_KIND_CLIENT_READABLE || !fe->clientData)
-            continue;
-        conns[n] = fe->clientData;
-        fds[n++] = fd;
-    }
-    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SELECTED, n);
-    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_OCCUPANCY, n);
-
-    /* A three-link chain plus callback needs at least four independent events to create useful
-     * distance. Short polls remain the original callback loop and issue no speculative load. */
-    if (n < 4) {
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SHORT, 1);
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
-        tomoIoPrefetchPublish();
-        return;
-    }
-
-    for (int i = 0; i < n; i++) {
-        redis_prefetch_read(conns[i]);
-        issued++;
-    }
-    tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CONNECTION, n);
-
-    /* private_data is read only after its connection line was staged. Hinting the shell does not
-     * dereference it; the next rotation performs the authoritative reverse-association checks. */
-    for (int i = 0; i < n; i++) {
-        if (conns[i]->el != eventLoop || conns[i]->fd != fds[i]) continue;
-        client *c = connGetPrivateData(conns[i]);
-        if (!c) continue;
-        clients[i] = c;
-        redis_prefetch_read(c);
-        issued++;
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 1);
-    }
-    for (int i = 0; i < n; i++) {
-        client *c = clients[i];
-        if (!c || c->conn != conns[i] || c->tid != iotid) {
-            clients[i] = NULL;
-            continue;
+        /* Bound both selection work and callback delay by 16 fired entries. Eligible clients
+         * within the range still form an independent cross-client pipeline; later ranges are
+         * rescanned and consumed rather than being omitted. */
+        int limit = first + TOMO_IO_PREFETCH_GROUP_MAX;
+        if (limit > numevents) limit = numevents;
+        for (; end < limit; end++) {
+            int fd = eventLoop->fired[end].fd;
+            if (fd < 0 || fd >= eventLoop->nevents) continue;
+            aeFiredEvent *fired = &eventLoop->fired[end];
+            aeFileEvent *fe = &eventLoop->events[fd];
+            if (!(fired->mask & AE_READABLE) || !(fe->mask & AE_READABLE) ||
+                fe->kind != AE_FILE_EVENT_KIND_CLIENT_READABLE || !fe->clientData)
+                continue;
+            conns[n] = fe->clientData;
+            fds[n++] = fd;
         }
-        redis_prefetch_read(&c->flags);
-        redis_prefetch_read(&c->io_flags);
-        redis_prefetch_read(&c->querybuf);
-        issued += 3;
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 3);
-    }
+        serverAssert(end > first);
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PASSES, 1);
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SELECTED, n);
+        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_OCCUPANCY, n);
 
-    /* Warm SDS metadata before asking for its length. A query buffer exists for every established
-     * network client, but only an already-buffered partial request has bytes useful to the coming
-     * callback; an empty buffer deliberately stops at this stage. */
-    for (int i = 0; i < n; i++) {
-        client *c = clients[i];
-        if (!c || !c->querybuf ||
-            (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)) continue;
-        querybufs[i] = c->querybuf;
-        redis_prefetch_read((char *)querybufs[i] - 1);
-        issued++;
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_QUERYBUF, 1);
+        /* A three-link chain plus callback needs at least four independent clients. */
+        if (n < 4) {
+            tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_SHORT, 1);
+            tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
+        } else {
+            for (int i = 0; i < n; i++) {
+                redis_prefetch_read(conns[i]);
+                issued++;
+            }
+            tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CONNECTION, n);
+
+            /* private_data is loaded only after its connection line was staged. */
+            for (int i = 0; i < n; i++) {
+                if (conns[i]->el != eventLoop || conns[i]->fd != fds[i]) continue;
+                client *c = connGetPrivateData(conns[i]);
+                if (!c) continue;
+                clients[i] = c;
+                redis_prefetch_read(c);
+                issued++;
+                tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 1);
+            }
+            for (int i = 0; i < n; i++) {
+                client *c = clients[i];
+                if (!c || c->conn != conns[i] || c->tid != iotid) {
+                    clients[i] = NULL;
+                    continue;
+                }
+                redis_prefetch_read(&c->flags);
+                redis_prefetch_read(&c->io_flags);
+                redis_prefetch_read(&c->querybuf);
+                issued += 3;
+                tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_CLIENT, 3);
+            }
+
+            /* Only an existing, non-reusable partial query buffer can be useful to the
+             * imminent read callback. Newly allocated/reusable buffers are deliberately skipped. */
+            for (int i = 0; i < n; i++) {
+                client *c = clients[i];
+                if (!c || !c->querybuf ||
+                    (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)) continue;
+                querybufs[i] = c->querybuf;
+                redis_prefetch_read((char *)querybufs[i] - 1);
+                issued++;
+                tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_QUERYBUF, 1);
+            }
+            for (int i = 0; i < n; i++) {
+                client *c = clients[i];
+                sds q = querybufs[i];
+                if (!c || !q || sdslen(q) <= c->qb_pos) continue;
+                tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PARTIAL, 1);
+                redis_prefetch_read(q + c->qb_pos);
+                issued++;
+                tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_BYTES, 1);
+            }
+            if (!issued) tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
+        }
+
+        tomoIoPrefetchPublish(TOMO_IO_PUBLISH_INGRESS, issued != 0);
+        processed += aeProcessFiredRange(eventLoop, first, end - first, style);
+        first = end;
     }
-    for (int i = 0; i < n; i++) {
-        client *c = clients[i];
-        sds q = querybufs[i];
-        if (!c || !q || sdslen(q) <= c->qb_pos) continue;
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_PARTIAL, 1);
-        redis_prefetch_read(q + c->qb_pos);
-        issued++;
-        tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_BYTES, 1);
-    }
-    if (!issued) tomoIoPrefetchAdd(TOMO_IO_PF_INGRESS_NOISSUE, 1);
-    tomoIoPrefetchPublish();
+    return processed;
 }
 
 /* ee451 (#A1): batched CDB clear. The drain paths issued one lock-prefixed fetch_and PER RETIRED SLOT
@@ -3304,10 +3331,11 @@ static void __attribute__((noinline)) handleWorkerRepliesGrouped(int level) {
     tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_PASSES, 1);
     if (!listLength(pending)) {
         tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NOISSUE, 1);
-        tomoIoPrefetchPublish();
+        tomoIoPrefetchPublish(TOMO_IO_PUBLISH_REPLY, 0);
         return;
     }
 
+    int pass_issued = 0;
     /* Nodes linked after this marker are either already consumed-but-still-in-flight or were
      * enrolled by a resumed client. Thus callbacks can kill/append clients between groups without
      * invalidating a saved iterator, and this pass visits every entry present at entry at most once. */
@@ -3332,6 +3360,7 @@ static void __attribute__((noinline)) handleWorkerRepliesGrouped(int level) {
         } else {
             issued = tomoPrefetchReplyGroup(d, n, level);
         }
+        if (issued) pass_issued = 1;
         if (!issued) tomoIoPrefetchAdd(TOMO_IO_PF_REPLY_NOISSUE, 1);
 
         int nwake = 0;
@@ -3354,17 +3383,18 @@ static void __attribute__((noinline)) handleWorkerRepliesGrouped(int level) {
             resumeWorkerReplyClient(wake_ids[i]);
     }
     listUnlinkNode(pending, &boundary);
-    tomoIoPrefetchPublish();
+    tomoIoPrefetchPublish(TOMO_IO_PUBLISH_REPLY, pass_issued);
 }
 
 void handleWorkerReplies(void) {
     /* Publish every staged dispatch before testing its completion. */
     flushExQueues();
-    if (__builtin_expect(tomoPrefetchIoLevel() < 3, 1)) {
+    int level = tomoPrefetchIoLevel();
+    if (__builtin_expect(level < 3, 1)) {
         handleWorkerRepliesSerial();
         return;
     }
-    handleWorkerRepliesGrouped(tomoPrefetchIoLevel());
+    handleWorkerRepliesGrouped(level);
 }
 
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
@@ -6993,6 +7023,14 @@ int processCommand(client *c) {
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
+        /* Owner-published same-client dependency marker. The worker must not inspect the real
+         * client's mutable ring cursors: only its owning IO thread can prove that this request
+         * has no older in-flight reply. Strict-order is an incompatible legacy policy and wins.
+         * When reorder is hard-off, this is one predicted configuration branch and no scheduler
+         * state is written. */
+        if (__builtin_expect(server.reorder != 0, 0) && server.strict_order == 0 &&
+            fake->cmd && (fake->cmd->tomo_route & TOMO_R_SCHED_SAFE))
+            fake->flags |= CLIENT_TOMO_SCHED_HEAD;
         listLinkNodeTail(server.clients_pending_ex[iotid], &c->clients_pending_ex_node);
     }
 
@@ -8693,6 +8731,18 @@ static void csStampRoute(struct redisCommand *c) {
     c->cs_spec = csSpecLookup(c->proc);
     if (isStatefulCommandSlow(c)) c->tomo_route |= TOMO_R_STATEFUL;
     if (c->proc == getCommand || c->proc == setCommand) c->tomo_route |= TOMO_R_EXPRESS;
+    /* Scheduler v1 is deliberately a native-proc whitelist, not a deduction from command
+     * metadata. Module key specs and movable/custom getkeys callbacks can change after load;
+     * stamping them "safe" would turn an optimization mistake into reordering across an
+     * unmodelled dependency. GET/SET/BITCOUNT are exact argv[1] single-key forms in this fork.
+     * SET is a neutral fence-by-key; GET and BITCOUNT form the short/long cost classes. */
+    if (c->proc == getCommand) {
+        c->tomo_route |= TOMO_R_SCHED_SAFE | TOMO_R_COST_SHORT;
+    } else if (c->proc == setCommand) {
+        c->tomo_route |= TOMO_R_SCHED_SAFE;
+    } else if (c->proc == bitcountCommand) {
+        c->tomo_route |= TOMO_R_SCHED_SAFE | TOMO_R_COST_LONG;
+    }
     if (tomoScriptFamily(c)) c->tomo_route |= TOMO_R_SCRIPTFAM;   /* fence: stamped once, bit-tested per op */
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
@@ -15149,6 +15199,21 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         tomo_pf.mset_groups += atomic_load_explicit(&_p->v[TOMO_PF_MSET_GROUPS], memory_order_relaxed);
         tomo_pf.mset_noissue += atomic_load_explicit(&_p->v[TOMO_PF_MSET_NOISSUE], memory_order_relaxed);
     }
+    uint64_t tomo_sched[TOMO_SCHED_STAT_COUNT] = {0};
+    int tomo_sched_auto_active = 0;
+    for (int _w = 0; _w < server.num_workers; _w++) {
+        tomoSchedSnapshot *_p = &server.exThreads[_w].sched_published;
+        for (int _s = 0; _s < TOMO_SCHED_STAT_COUNT; _s++) {
+            uint64_t v = atomic_load_explicit(&_p->v[_s], memory_order_relaxed);
+            if (_s == TOMO_SCHED_MAX_BYPASS) {
+                if (v > tomo_sched[_s]) tomo_sched[_s] = v;
+            } else {
+                tomo_sched[_s] += v;
+            }
+        }
+        tomo_sched_auto_active +=
+            atomic_load_explicit(&_p->auto_active, memory_order_relaxed);
+    }
     uint64_t tomo_io_pf[TOMO_IO_PF_STAT_COUNT] = {0};
     for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
         tomoIoPrefetchSnapshot *_p = &tm_io_sig[_t].pf_io_published;
@@ -15308,6 +15373,42 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomo_prefetch_mget_noissue:%llu\r\n", tomo_pf.mget_noissue,
             "tomo_prefetch_mset_groups:%llu\r\n", tomo_pf.mset_groups,
             "tomo_prefetch_mset_noissue:%llu\r\n", tomo_pf.mset_noissue));
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_reorder_configured:%d\r\n", server.reorder,
+            "tomokv_reorder_strict_override:%d\r\n", server.strict_order != 0,
+            "tomokv_reorder_auto_active_workers:%d\r\n", tomo_sched_auto_active,
+            "tomokv_reorder_enabled_batches:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_ENABLED_BATCHES],
+            "tomokv_reorder_inspected:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_INSPECTED],
+            "tomokv_reorder_auto_probes:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_AUTO_PROBES],
+            "tomokv_reorder_sentinel_fences:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_SENTINEL_FENCES],
+            "tomokv_reorder_opportunities:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_OPPORTUNITIES],
+            "tomokv_reorder_batches:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_REORDERED_BATCHES],
+            "tomokv_reorder_selected_short:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_SELECTED_SHORT],
+            "tomokv_reorder_promoted:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_PROMOTED],
+            "tomokv_reorder_dependency_refused:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_DEP_REFUSED],
+            "tomokv_reorder_early_batches:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_EARLY_BATCHES],
+            "tomokv_reorder_early_completions:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_EARLY_COMPLETIONS],
+            "tomokv_reorder_early_cdb_rmws:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_EARLY_CDB_RMWS],
+            "tomokv_reorder_bound_checks:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_BOUND_CHECKS],
+            "tomokv_reorder_bound_nonvacuous:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_BOUND_NONVACUOUS],
+            "tomokv_reorder_max_bypass:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_MAX_BYPASS],
+            "tomokv_reorder_bound_violations:%llu\r\n",
+                (unsigned long long)tomo_sched[TOMO_SCHED_BOUND_VIOLATIONS]));
         uint64_t tomo_io_pf_issued =
             tomo_io_pf[TOMO_IO_PF_INGRESS_CONNECTION] +
             tomo_io_pf[TOMO_IO_PF_INGRESS_CLIENT] +
@@ -17316,6 +17417,159 @@ static int exPrefetchBatch(client **batch, int n, int level) {
  * will add functions to this file; the predecessor macro (PFW) leaked, this one does not. */
 #undef TOMO_PF_GROUP_WIDTH
 
+/* tomokv-reorder uses two TRANSIENT queues over one already-popped FIFO prefix. There is no
+ * persistent second admission path: the worker drains both lanes before popping again, which is
+ * what turns starvation from an open-ended policy question into the closed bound n-1 <= 15.
+ *
+ * Runtime classification deliberately repeats the pointer-identity check even though the command
+ * table carries a safe bit. The dispatch hash is useful only while it still names argv[1]; a
+ * recycled fake or an unusual command rewrite becomes a fence, never a guessed dependency. */
+enum tomoSchedClass {
+    TOMO_SC_FENCE = -1,
+    TOMO_SC_NEUTRAL = 0,
+    TOMO_SC_SHORT = 1,
+    TOMO_SC_LONG = 2,
+};
+_Static_assert(WORKER_POP_BATCH == 16,
+               "reorder starvation proof and INFO bound assume a 16-entry closed batch");
+
+typedef struct tomoSchedDecision {
+    int fast_n;
+    int bypass;
+} tomoSchedDecision;
+
+static inline int tomoSchedClassify(client *fake) {
+    if (!fake || fake->is_flush || fake->drain_ack || fake->csparent || fake->csgroup ||
+        !fake->cmd || !(fake->cmd->tomo_route & TOMO_R_SCHED_SAFE) ||
+        fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->argv[1]->ptr ||
+        fake->tomo_bkt_ptr != (const void *)fake->argv[1]->ptr)
+        return TOMO_SC_FENCE;
+    if (fake->cmd->tomo_route & TOMO_R_COST_SHORT) return TOMO_SC_SHORT;
+    if (fake->cmd->tomo_route & TOMO_R_COST_LONG) return TOMO_SC_LONG;
+    return TOMO_SC_NEUTRAL;
+}
+
+__attribute__((noinline))
+static void tomoSchedPublish(exThread *w) {
+    for (int s = 0; s < TOMO_SCHED_STAT_COUNT; s++)
+        atomic_store_explicit(&w->sched_published.v[s], w->sched_stats[s],
+                              memory_order_relaxed);
+    atomic_store_explicit(&w->sched_published.auto_active, w->sched_auto_active,
+                          memory_order_relaxed);
+}
+
+static inline void tomoSchedMaybePublish(exThread *w) {
+    if ((w->sched_publish_tick++ & 63u) == 0)
+        tomoSchedPublish(w);
+}
+
+/* Stable-partition one closed batch into a short lane and a deferred lane. `blocked` is the
+ * dependency signature of everything already deferred. A 64-bit collision can refuse a legal
+ * promotion, but cannot admit an illegal one: equal hashes necessarily set the same bit.
+ * Unknown/control work contributes UINT64_MAX, making it a fence for every later request. */
+__attribute__((noinline))
+static tomoSchedDecision tomoSchedPartition(exThread *w, client **batch, int n) {
+    tomoSchedDecision d = {0};
+    int have_short_head = 0, have_long = 0;
+
+    /* FLUSH and migration sentinels are stronger than ordinary fences. They prove a FIFO
+     * frontier to another subsystem, so the whole popped prefix stays verbatim and completes
+     * through the normal batch-end signal/retirement path. */
+    for (int i = 0; i < n; i++) {
+        client *fake = batch[i];
+        serverAssert(fake != NULL);
+        if (fake->is_flush || fake->drain_ack) {
+            w->sched_stats[TOMO_SCHED_SENTINEL_FENCES]++;
+            return d;
+        }
+        int cls = tomoSchedClassify(fake);
+        if (cls == TOMO_SC_SHORT && (fake->flags & CLIENT_TOMO_SCHED_HEAD))
+            have_short_head = 1;
+        else if (cls == TOMO_SC_LONG)
+            have_long = 1;
+    }
+    if (!have_short_head || !have_long) return d;
+
+    w->sched_stats[TOMO_SCHED_OPPORTUNITIES]++;
+
+    client *deferred[WORKER_POP_BATCH];
+    int deferred_n = 0;
+    int seen_deferred = 0;
+    uint64_t blocked = 0;
+    for (int i = 0; i < n; i++) {
+        client *fake = batch[i];
+        int cls = tomoSchedClassify(fake);
+        uint64_t sig = cls == TOMO_SC_FENCE
+            ? UINT64_MAX
+            : UINT64_C(1) << (fake->tomo_hash & 63);
+        int wants_short = cls == TOMO_SC_SHORT &&
+                          (fake->flags & CLIENT_TOMO_SCHED_HEAD);
+        if (wants_short && !(blocked & sig)) {
+            batch[d.fast_n++] = fake;
+            if (seen_deferred) d.bypass++;
+        } else {
+            if (wants_short && (blocked & sig))
+                w->sched_stats[TOMO_SCHED_DEP_REFUSED]++;
+            deferred[deferred_n++] = fake;
+            blocked |= sig;
+            seen_deferred = 1;
+        }
+    }
+    memcpy(batch + d.fast_n, deferred, (size_t)deferred_n * sizeof(*deferred));
+
+    w->sched_stats[TOMO_SCHED_SELECTED_SHORT] += (unsigned)d.fast_n;
+    w->sched_stats[TOMO_SCHED_PROMOTED] += (unsigned)d.bypass;
+    if (d.bypass) w->sched_stats[TOMO_SCHED_REORDERED_BATCHES]++;
+
+    /* The earliest deferred request sees the maximum bypass count in a stable two-lane
+     * partition. Because no refill occurs until the deferred lane drains, this is the exact
+     * anti-starvation bound for the batch, not a sampled latency proxy. */
+    w->sched_stats[TOMO_SCHED_BOUND_CHECKS]++;
+    if (d.bypass) w->sched_stats[TOMO_SCHED_BOUND_NONVACUOUS]++;
+    if ((unsigned)d.bypass > w->sched_stats[TOMO_SCHED_MAX_BYPASS])
+        w->sched_stats[TOMO_SCHED_MAX_BYPASS] = (unsigned)d.bypass;
+    if (d.bypass > n - 1 || d.bypass > WORKER_POP_BATCH - 1)
+        w->sched_stats[TOMO_SCHED_BOUND_VIOLATIONS]++;
+    return d;
+}
+
+static int tomoSchedMaybePartition(exThread *w, client **batch, int n, int mode) {
+    w->sched_stats[TOMO_SCHED_ENABLED_BATCHES]++;
+    if (n < 2) {
+        tomoSchedMaybePublish(w);
+        return 0;
+    }
+
+    int inspect = mode > 0 || w->sched_auto_active;
+    if (mode < 0 && !inspect) {
+        /* Auto's inactive cost is one owner-private increment per eligible batch and one
+         * out-of-line inspection every 64th batch. The sampled batch is really scheduled if
+         * useful; this is not a shadow mode whose counters can claim a win it did not execute. */
+        inspect = ((++w->sched_probe_tick & 63u) == 0);
+        if (inspect) w->sched_stats[TOMO_SCHED_AUTO_PROBES]++;
+    }
+    if (!inspect) {
+        tomoSchedMaybePublish(w);
+        return 0;
+    }
+
+    w->sched_stats[TOMO_SCHED_INSPECTED]++;
+    tomoSchedDecision d = tomoSchedPartition(w, batch, n);
+    if (mode < 0) {
+        if (d.fast_n) {
+            w->sched_auto_active = 1;
+            w->sched_auto_noop = 0;
+        } else if (w->sched_auto_active && ++w->sched_auto_noop >= 256u) {
+            w->sched_auto_active = 0;
+            w->sched_auto_noop = 0;
+        }
+    }
+    /* A selected prefix publishes after it records early completions; every other enabled
+     * batch publishes here. This keeps the hard-off worker path to its single mode guard. */
+    if (!d.fast_n) tomoSchedMaybePublish(w);
+    return d.fast_n;
+}
+
 /* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
  * hyperthreading to yield pipeline slots to the sibling logical core,
  * and also lengthens the spin without burning memory bandwidth); on
@@ -17486,10 +17740,97 @@ static inline void exExecFake(client *fake, int prefetch_batch_active) {
     }
 }
 
+/* Execution-adjacent DICT look-ahead shared by the scheduled short prefix and the ordinary
+ * suffix. Reacquire the dictionary and exponent at the point of use: earlier commands may
+ * rehash, so no staged storage pointer is retained on a fake. */
+static inline void tomoPrefetchNextOp(client **batch, int n, int j,
+                                      int prefetch_batch_active, int prefetch_level,
+                                      uint64_t *eligible, uint64_t *issued)
+{
+    if (!prefetch_batch_active || prefetch_level < 2) return;
+    int distance = n / 4;
+    if (distance < 1) distance = 1;
+    int la = j + distance;
+    if (la >= n) return;
 
+    client *nf = batch[la];
+    if (nf->prefetch_key_hash_valid && nf->argc >= 2 &&
+        nf->argv && nf->argv[1] && nf->argv[1]->ptr &&
+        nf->db && !kvstoreIsFlat(nf->db->keys)) {
+        (*eligible)++;
+        sds key = nf->argv[1]->ptr;
+        int didx = server.ex_threads > 0
+            ? (nf->tomo_bkt_ptr == (const void *)key
+                   ? (int)(nf->tomo_hash & TOMO_BUCKET_MASK)
+                   : tomoKeyBucket(key, sdslen(key)))
+            : (nf->slot > 0 ? nf->slot : 0);
+        dict *d = kvstoreGetDict(nf->db->keys, didx);
+        if (d && d->ht_table[0]) {
+            unsigned long idx =
+                nf->prefetch_key_hash &
+                DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+            redis_prefetch_read(&d->ht_table[0][idx]);
+            (*issued)++;
+        }
+    }
+}
 
+/* Execute and release the selected short lane before touching the deferred lane. The prefix is
+ * GET-only and HEAD-only by construction. Every fake-side obligation that the normal loop
+ * performs is duplicated here before the completion release: command execution/argv release,
+ * load accounting, value EWMA, and parent/slot capture. After the release RMWs below this
+ * function never dereferences a prefix fake or parent again. */
+__attribute__((noinline))
+static void tomoExecuteShortPrefix(exThread *worker, client **batch, int n, int fast_n,
+                                   int wcdb, int prefetch_batch_active, int prefetch_level,
+                                   uint64_t *pf_next_eligible, uint64_t *pf_nextop)
+{
+    client *sig_parents[WORKER_POP_BATCH];
+    uint32_t sig_masks[WORKER_POP_BATCH];
+    int sig_n = 0;
 
+    for (int j = 0; j < fast_n; j++) {
+        client *fake = batch[j];
+        serverAssert(fake->cmd && fake->cmd->proc == getCommand);
+        serverAssert(fake->flags & CLIENT_TOMO_SCHED_HEAD);
+        serverAssert(!fake->is_flush && !fake->drain_ack &&
+                     !fake->csparent && !fake->csgroup);
 
+        tomoPrefetchNextOp(batch, n, j, prefetch_batch_active, prefetch_level,
+                           pf_next_eligible, pf_nextop);
+        exExecFake(fake, prefetch_batch_active);
+
+        if (fake->argc >= 2) {
+            unsigned bkt = (unsigned)(fake->tomo_hash & TOMO_BUCKET_MASK);
+            worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
+            uint64_t win = atomic_load_explicit(&worker->lb_fine_win, memory_order_relaxed);
+            unsigned fo = bkt - (uint32_t)win;
+            if (fo < (uint32_t)(win >> 32)) worker->lb_fine_ops[fo]++;
+        }
+        if (prefetch_level != 0)
+            tomoPrefetchObserveValue(worker, fake->bufpos + fake->reply_bytes);
+
+        client *parent = fake->parent;
+        uint32_t bit = 1u << fake->fake_slot;
+        int s;
+        for (s = 0; s < sig_n; s++)
+            if (sig_parents[s] == parent) break;
+        if (s == sig_n) {
+            sig_parents[sig_n] = parent;
+            sig_masks[sig_n] = 0;
+            sig_n++;
+        }
+        sig_masks[s] |= bit;
+        /* No fake dereference below this point in this iteration. */
+    }
+
+    worker->sched_stats[TOMO_SCHED_EARLY_BATCHES]++;
+    worker->sched_stats[TOMO_SCHED_EARLY_COMPLETIONS] += (unsigned)fast_n;
+    worker->sched_stats[TOMO_SCHED_EARLY_CDB_RMWS] += (unsigned)sig_n;
+    tomoSchedMaybePublish(worker);
+    for (int s = 0; s < sig_n; s++)
+        atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[wcdb].v, sig_masks[s]);
+}
 
 /* ee451 (thread-modes v1, step 1): EX slice context — ALL persistent loop-local
  * state of exThreadMain's old while(1) body, hoisted so one pass (a "slice")
@@ -17713,6 +18054,16 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         }
         any = 1;
 
+        /* Hard-off pays only this predicted immutable-level branch. Enabled scratch and the
+         * O(n) dependency scan live in the noinline helper and run BEFORE prefetch so storage
+         * staging follows the actual execution order. */
+        int fast_n = 0;
+        /* Load only after a real pop; empty PAUSE-spin passes never touch the new config word.
+         * Legacy strict order wins, and both controls are immutable. */
+        int reorder_mode = so == 0 ? server.reorder : 0;
+        if (__builtin_expect(reorder_mode != 0, 0))
+            fast_n = tomoSchedMaybePartition(worker, ctx->batch, n, reorder_mode);
+
         /* One immutable level check is the entire EX-prefetch cost when hard-off. Enabled
          * scratch lives in the noinline helper and therefore does not inflate this frame. */
         int prefetch_level = tomoPrefetchExLevel();
@@ -17723,6 +18074,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
+        uint64_t pf_next_eligible = 0, pf_nextop = 0;
+        if (fast_n)
+            tomoExecuteShortPrefix(worker, ctx->batch, n, fast_n, ctx->wcdb,
+                                   prefetch_batch_active, prefetch_level,
+                                   &pf_next_eligible, &pf_nextop);
         /* ee451: per-batch reply-ready signal coalescing accumulator.
          * sig_parents holds the distinct parent clients seen in this
          * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
@@ -17731,48 +18087,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
         client *sig_parents[WORKER_POP_BATCH];
         uint32_t sig_masks[WORKER_POP_BATCH];
         int sig_n = 0;
-        uint64_t pf_next_eligible = 0, pf_nextop = 0;
 
-        /* Execute the batch in issue (queue) order — plain, one op at a time.
+        /* Execute the deferred lane in stable issue order. When scheduling is off fast_n is
+         * zero, so this is the original loop with no per-request policy branch.
          * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
          * (paper negative result: neutral in every regime, real workloads lack same-key
          * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
          * The record/replay helpers in db.c remain dormant for the paper's artifact. */
-        for (int j = 0; j < n; ) {
+        for (int j = fast_n; j < n; ) {
             client *fake = ctx->batch[j];
 
-            /* Execution-adjacent DICT look-ahead. A quarter-batch is far enough to overlap the
-             * current proc and, unlike the retired j+n expression, is in range for every batch
-             * with at least two entries. Reacquire the current dict/table/exponent now: retaining
-             * those pointers on a fake across earlier executions would make a staged hint depend
-             * on storage that an earlier write may rehash. */
-            if (prefetch_batch_active && prefetch_level >= 2) {
-                int distance = n / 4;
-                if (distance < 1) distance = 1;
-                int la = j + distance;
-                if (la < n) {
-                    client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->argc >= 2 &&
-                        nf->argv && nf->argv[1] && nf->argv[1]->ptr &&
-                        nf->db && !kvstoreIsFlat(nf->db->keys)) {
-                        pf_next_eligible++;
-                        sds key = nf->argv[1]->ptr;
-                        int didx = server.ex_threads > 0
-                            ? (nf->tomo_bkt_ptr == (const void *)key
-                                   ? (int)(nf->tomo_hash & TOMO_BUCKET_MASK)
-                                   : tomoKeyBucket(key, sdslen(key)))
-                            : (nf->slot > 0 ? nf->slot : 0);
-                        dict *d = kvstoreGetDict(nf->db->keys, didx);
-                        if (d && d->ht_table[0]) {
-                            unsigned long idx =
-                                nf->prefetch_key_hash &
-                                DICTHT_SIZE_MASK(d->ht_size_exp[0]);
-                            redis_prefetch_read(&d->ht_table[0][idx]);
-                            pf_nextop++;
-                        }
-                    }
-                }
-            }
+            tomoPrefetchNextOp(ctx->batch, n, j, prefetch_batch_active, prefetch_level,
+                               &pf_next_eligible, &pf_nextop);
 
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
@@ -17808,8 +18134,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
                 } else {
                     emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
                 }
-                atomic_fetch_sub_explicit(&tomo_flush_pending, 1, memory_order_release);
                 freeFakeClient(fake);
+                /* Publish the global "all sentinels retired" state only after this sentinel's
+                 * storage is gone. A role-transfer observer that sees zero may immediately
+                 * conclude the old EX path has no remaining sentinel-owned state. */
+                atomic_fetch_sub_explicit(&tomo_flush_pending, 1, memory_order_release);
                 j++;
                 continue;
             }
@@ -19004,8 +19333,11 @@ void *polyThreadMain(void *arg) {
                 /* Listener activation can fail and roll target_mode back. Commit identity only
                  * after every fallible IO-entry step succeeded, so a refused shift continues as
                  * a genuine EX owner rather than EX mode with an IO TLS identity. */
-                if (cur == TOMO_MODE_EX && server.shared_node_dbs)
-                    flatWorkerHandoffReclaims(ctx->ex);
+                if (cur == TOMO_MODE_EX) {
+                    if (server.shared_node_dbs) flatWorkerHandoffReclaims(ctx->ex);
+                    if (tomoPrefetchExLevel() != 0) tomoPrefetchPublish(ctx->ex);
+                    if (server.reorder != 0) tomoSchedPublish(ctx->ex);
+                }
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 flatRegisterIoSlot(ctx->io_slot);

@@ -3192,7 +3192,11 @@ standardConfig static_configs[] = {
     /* NO tomokv-xshard-inline-* knob, deliberately: the inline region is sized per command from
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
-    createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
+    /* Keep the legacy parameter so existing configuration files continue to boot, but do not
+     * allow a live 0->N transition: queued fakes are timestamped only when strict mode is active,
+     * so changing it with work in flight would merge unstamped and stamped requests. Nonzero
+     * strict order takes precedence over tomokv-reorder. */
+    createIntConfig("tomokv-strict-order", NULL, IMMUTABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
     /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
      * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
      * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
@@ -3260,6 +3264,10 @@ standardConfig static_configs[] = {
                     server.prefetch_io, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-prefetch-ex", NULL, IMMUTABLE_CONFIG, -1, 3,
                     server.prefetch_ex, -1, INTEGER_CONFIG, NULL, NULL),
+    /* Closed already-popped cost lanes. -1 samples 1/64 batches until mixed short/long work is
+     * observed, 0 removes classification from the EX hot path, 1 always inspects. */
+    createIntConfig("tomokv-reorder", NULL, IMMUTABLE_CONFIG, -1, 1,
+                    server.reorder, 0, INTEGER_CONFIG, NULL, NULL),
 
 
     /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy

@@ -47,7 +47,11 @@ typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData,
 typedef int aeTimeProc(struct aeEventLoop *eventLoop, long long id, void *clientData);
 typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientData);
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
-typedef void aeFiredEventPrefetchProc(struct aeEventLoop *eventLoop, int numevents);
+/* An installed ingress hook owns consumption of the entire fired array. `style` selects the
+ * stock generic callback ordering or the custom IO loop's ordering. */
+#define AE_FIRED_STYLE_GENERIC 0
+#define AE_FIRED_STYLE_IO 1
+typedef int aeFiredEventPrefetchProc(struct aeEventLoop *eventLoop, int numevents, int style);
 
 /* File-event kinds are deliberately narrow.  Most ae clientData values are
  * not connections (listeners and notifier pipes are two examples), so an
@@ -125,6 +129,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
 int aeProcessEventsIO(aeEventLoop *eventLoop);
+int aeProcessFiredRange(aeEventLoop *eventLoop, int first, int count, int style);
 
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);

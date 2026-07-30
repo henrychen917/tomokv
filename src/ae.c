@@ -387,6 +387,50 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
     return processed;
 }
 
+/* Consume a contiguous fired-event range with the exact callback ordering of the caller that
+ * polled it. This is exported only for an installed consuming prefetch hook: the hard-off AE
+ * paths retain their original inline loops and do not pay this call. */
+int aeProcessFiredRange(aeEventLoop *eventLoop, int first, int count, int style) {
+    for (int j = first; j < first + count; j++) {
+        int fd = eventLoop->fired[j].fd;
+        aeFileEvent *fe = &eventLoop->events[fd];
+        int mask = eventLoop->fired[j].mask;
+        int fired = 0;
+
+        if (style == AE_FIRED_STYLE_GENERIC) {
+            int invert = fe->mask & AE_BARRIER;
+            if (!invert && fe->mask & mask & AE_READABLE) {
+                fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+                fired++;
+                fe = &eventLoop->events[fd];
+            }
+            if (fe->mask & mask & AE_WRITABLE) {
+                if (!fired || fe->wfileProc != fe->rfileProc) {
+                    fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+                    fired++;
+                }
+            }
+            if (invert) {
+                fe = &eventLoop->events[fd];
+                if ((fe->mask & mask & AE_READABLE) &&
+                    (!fired || fe->wfileProc != fe->rfileProc))
+                    fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+            }
+        } else {
+            if (fe->mask & mask & AE_READABLE) {
+                fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+                fired++;
+                fe = &eventLoop->events[fd];
+            }
+            if (fe->mask & mask & AE_WRITABLE) {
+                if (!fired || fe->wfileProc != fe->rfileProc)
+                    fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+            }
+        }
+    }
+    return count;
+}
+
 /* Process every pending file event, then every pending time event
  * (that may be registered by file event callbacks just processed).
  * Without special flags the function sleeps until some file event
@@ -451,10 +495,12 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
             eventLoop->aftersleep(eventLoop);
 
-        if (numevents && eventLoop->prefetch_fired)
-            eventLoop->prefetch_fired(eventLoop, numevents);
-
-        for (j = 0; j < numevents; j++) {
+        if (numevents && eventLoop->prefetch_fired) {
+            /* The enabled hook stages bounded cross-client waves and consumes every fired
+             * event itself. Do not restart a second whole-array traversal here. */
+            processed += eventLoop->prefetch_fired(eventLoop, numevents,
+                                                    AE_FIRED_STYLE_GENERIC);
+        } else for (j = 0; j < numevents; j++) {
             int fd = eventLoop->fired[j].fd;
             aeFileEvent *fe = &eventLoop->events[fd];
             int mask = eventLoop->fired[j].mask;
@@ -592,8 +638,9 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     numevents = aeApiPoll(eventLoop, tvp);
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
-    if (numevents && eventLoop->prefetch_fired)
-        eventLoop->prefetch_fired(eventLoop, numevents);
+    if (numevents && eventLoop->prefetch_fired) {
+        return eventLoop->prefetch_fired(eventLoop, numevents, AE_FIRED_STYLE_IO);
+    }
 
     for (int j = 0; j < numevents; j++) {
         int fd = eventLoop->fired[j].fd;

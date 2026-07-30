@@ -446,6 +446,12 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
  * destination io thread re-registers it. Only ever set/read by the client's owning
  * io thread and by the source thread during the drain window. */
 #define CLIENT_MIGRATING (1ULL << 57)
+/* The IO owner stamps only the first in-flight request of a real client. The EX
+ * scheduler may advance that request across independent keys, but never a later
+ * request whose earlier same-client reply is still outstanding. moveExecutionState*
+ * rebuilds the fake flag word on every dispatch, so recycled ring slots cannot
+ * retain this bit. */
+#define CLIENT_TOMO_SCHED_HEAD (1ULL << 58)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -2263,6 +2269,33 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoPrefetchSnapshot {
     _Atomic uint64_t v[TOMO_PF_STAT_COUNT];
 } tomoPrefetchSnapshot;
 
+/* Owner-local reorder counters are periodically copied into this atomic INFO
+ * snapshot. MAX_BYPASS is a maximum; every other entry is a monotonic count. */
+typedef enum {
+    TOMO_SCHED_ENABLED_BATCHES = 0,
+    TOMO_SCHED_INSPECTED,
+    TOMO_SCHED_AUTO_PROBES,
+    TOMO_SCHED_SENTINEL_FENCES,
+    TOMO_SCHED_OPPORTUNITIES,
+    TOMO_SCHED_REORDERED_BATCHES,
+    TOMO_SCHED_SELECTED_SHORT,
+    TOMO_SCHED_PROMOTED,
+    TOMO_SCHED_DEP_REFUSED,
+    TOMO_SCHED_EARLY_BATCHES,
+    TOMO_SCHED_EARLY_COMPLETIONS,
+    TOMO_SCHED_EARLY_CDB_RMWS,
+    TOMO_SCHED_BOUND_CHECKS,
+    TOMO_SCHED_BOUND_NONVACUOUS,
+    TOMO_SCHED_MAX_BYPASS,
+    TOMO_SCHED_BOUND_VIOLATIONS,
+    TOMO_SCHED_STAT_COUNT
+} tomoSchedStat;
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoSchedSnapshot {
+    _Atomic uint64_t v[TOMO_SCHED_STAT_COUNT];
+    _Atomic int auto_active;
+} tomoSchedSnapshot;
+
 typedef struct exThread {
     int id;
     pthread_t thread;
@@ -2417,6 +2450,15 @@ typedef struct exThread {
     unsigned long long pf_mset_noissue;
     unsigned int pf_publish_tick;
     tomoPrefetchSnapshot pf_published;
+    /* Closed-batch scheduler state. Appended after the prefetch block so no
+     * established worker-hot offset moves. All non-atomic fields have exactly
+     * one writer: this worker. INFO reads only sched_published. */
+    unsigned long long sched_stats[TOMO_SCHED_STAT_COUNT];
+    unsigned int sched_publish_tick;
+    unsigned int sched_probe_tick;
+    unsigned int sched_auto_noop;
+    int sched_auto_active;
+    tomoSchedSnapshot sched_published;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -3781,6 +3823,8 @@ struct redisServer {
                                 * 4 + referenced reply payload */
     int prefetch_ex;           /* tomokv-prefetch-ex: -1 auto=>1, 0 hard off,
                                 * 1 scoreboard, 2 + FLAT/MGET/next-op, 3 + RAW payload */
+    int reorder;               /* tomokv-reorder: -1 sampled auto, 0 hard off,
+                                * 1 dependency-safe closed-batch cost lanes */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int detected_l3_domains;      /* L1a: distinct L3 domains (CCX/CCD); workers-per-L3 for the prefetch gate */
@@ -4238,6 +4282,9 @@ typedef struct csCmdSpec {
 #define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (derived: registry row with ported==CS_PORT_OK) */
 #define TOMO_R_XGUARD   8u   /* multi-key-capable AND not table-PORTED => SAFE-GATE checks it */
 #define TOMO_R_SCRIPTFAM 16u /* eval/fcall/script/function-subcommand — serializes on the script fence */
+#define TOMO_R_SCHED_SAFE 32u /* exact native single-key argv[1] form; runtime guard still required */
+#define TOMO_R_COST_SHORT 64u /* first version: GET only */
+#define TOMO_R_COST_LONG 128u /* first version: BITCOUNT only */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
@@ -6045,7 +6092,7 @@ void *exThreadMain(void *arg);
 void initExThreads(void);
 void handleWorkerReplies(void);
 int tomoPrefetchIoLevel(void);
-void tomoPrefetchIngress(struct aeEventLoop *eventLoop, int numevents);
+int tomoPrefetchIngress(struct aeEventLoop *eventLoop, int numevents, int style);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */

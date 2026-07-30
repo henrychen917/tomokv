@@ -76,11 +76,11 @@ cross‑worker synchronization on the data path.
 command that finished early on an idle shard never overtakes an earlier command still running on a busy one.
 Replies leave over the ingress thread's **epoll** `write()` path.
 
-**Correctness.** Because each key is owned by exactly one worker, there are no locks on the data path and no
-cross‑worker hazards. Commands to *different* keys execute fully in parallel and out of order; commands to
-the *same* key (or one connection) are serialized and committed to the socket in the exact order the client
-sent them. **Linearizability per key and FIFO per connection are preserved** — the client cannot tell the
-work was reordered, exactly as a program cannot tell its instructions were.
+**Correctness.** Because each key is owned by exactly one worker, there are no locks on the ordinary data
+path and no cross‑worker hazards. Commands to the *same* key retain owner-queue order. Commands to different
+keys — including different keys from one pipelined connection — may execute out of order, while the
+connection's `flushid` barrier still commits replies to the socket in request order. Per-key ordering and
+FIFO replies are preserved; cross-key execution order is deliberately not an API guarantee.
 
 ---
 
@@ -317,7 +317,7 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
-### Batching, spin & prefetch
+### Batching, spin, prefetch & scheduling
 
 The retired per-stage prefetch controls remain retired. There is one immutable level per side.
 `tomokv-prefetch-io` is `-1` auto (level 4 with an L3 payload budget), `0` hard off, `1` the
@@ -326,6 +326,17 @@ reply-source staging, and `4` adds validated referenced RAW payload heads. Its d
 `tomokv-prefetch-ex` is `-1` auto (the level-1 current behavior), `0` hard off, `1` the
 metadata/DICT scoreboard plus MSET and BITCOUNT staging, `2` adds FLAT/MGET storage and a live
 DICT next-op look-ahead, and `3` adds exact-key-qualified RAW payload hints.
+
+`tomokv-reorder` is the sole request-scheduling control: `-1` samples one of every 64 eligible
+batches and stays active while useful, `0` hard-disables scheduling (the default), and `1` forces
+the first static policy. The worker creates two stable transient lanes inside one already-popped
+16-request FIFO prefix: first-in-flight GET heads may pass independent SET/BITCOUNT keys; SET is a
+dependency-only class and BITCOUNT is the long class. Unknown, module, cross-shard, multi-stage,
+FLUSH, and migration work fences the policy. A 64-bit key signature can falsely refuse a move but
+cannot admit an equal-key move. No refill occurs until the deferred lane drains, so a request can
+be bypassed by at most 15 selected GETs once; `INFO tomokv_reorder_max_bypass` and
+`tomokv_reorder_bound_violations` expose that proof. Nonzero legacy `tomokv-strict-order` overrides
+this scheduler and remains accepted for configuration compatibility.
 
 IO reply groups consume the same client heads they stage; they never repeat the measured-negative
 same-client prefix walk. Each fake captures its exact completion bus at dispatch, so a group probes
