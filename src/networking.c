@@ -154,6 +154,8 @@ static void resetFakeClientState(client *c, client *parent) {
     c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
     c->drain_ack = NULL;
+    c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
+    c->mig_parked_tid = 0;
     c->tm_lat_stamp = 0;   /* ee451 (thread-modes step 4): p99-guardrail dispatch stamp, 0 = unsampled */
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
@@ -575,6 +577,16 @@ client *createClient(connection *conn) {
         c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
     }
     c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
+    /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
+     * carries whatever was in that heap word. unlinkClient tests mig_parked_node on EVERY client
+     * teardown and, when it is non-NULL, does listDelNode(clients_mig_parked[mig_parked_tid], ...).
+     * Left uninitialized that is a garbage index into an array whose entries are listCreate()d
+     * only for live io slots — a NULL list, and listDelNode dereferences nil. Fresh mmap pages
+     * read as zero, so this only bites once the allocator starts recycling: low-churn suites pass
+     * and a 200-connection load cell SEGVs every time (measured 4/4 on the first h2-fence merge,
+     * 21013fded, which is what got it reverted). Initialize both, here, like cs_barrier above. */
+    c->mig_parked_node = NULL;
+    c->mig_parked_tid  = 0;
     c->fake_ring_cur_depth  = 0;
     c->fake_ring_decay_skip = 0;
     c->fake_ring_hwm_ewma   = 0.0;
@@ -2251,6 +2263,12 @@ int anyOtherSlaveWaitRdb(client *except_me) {
  * This is used by freeClient() and replicationCacheMaster(). */
 void unlinkClient(client *c) {
     listNode *ln;
+
+    /* ee451 (H2 handover): drop this client from the cutover range-hold park list. A parked client
+     * has an EMPTY pipeline ring and no in-flight fake, so none of the other unlink paths below
+     * reference it — the park list would be the only holder of the pointer, and a stale entry there
+     * is a use-after-free the next time the range changes hands. Cheap: one NULL test. */
+    if (__builtin_expect(c->mig_parked_node != NULL, 0)) migUnparkClient(c);
 
     /* If this is marked as current client unset it. */
     if (c->conn && server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;

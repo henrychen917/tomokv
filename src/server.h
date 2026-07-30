@@ -1664,14 +1664,23 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
-    /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command;
-     * worker A pops it in queue order, which proves every range primary dispatched before it has
-     * executed (no in-flight range write straddles the table flip).
-     * CONTRACT (corrected 2026-07-28 — this said "decrements *drain_ack", which is not what the
-     * code does): the pointer is a NON-NULL MARKER only, never dereferenced. Every sentinel is
-     * stamped with &migration.fence_acked[0]; the ACK is A storing 1 into fence_acked[QUEUE SLOT
-     * the sentinel was popped from], i.e. per producer slot, not a counter decrement. */
+    /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command.
+     * CONTRACT (corrected 2026-07-28 — the old comment described a barrier that does not exist:
+     * it claimed worker A "decrements *drain_ack", while the code stores 1 into
+     * server.migration.fence_acked[queue index]. There is no counter and nothing is decremented;
+     * this field is a NON-NULL MARKER ONLY, deliberately pointing at fence_acked[0] so it is
+     * never a dangling pointer. Do not dereference it.)
+     * Worker A reaches the sentinel in its EXECUTE loop in queue order (H2), which proves every
+     * command this producer pushed BEFORE it has already executed — not merely been popped —
+     * and stores 1 into fence_acked[the slot the sentinel came up]. That store is the ONLY
+     * sound drain proof the cutover has; see reshardCoordinatorTick C.2. */
     _Atomic int *drain_ack;
+    /* ee451 (H2 handover): this client is parked by the cutover range-hold; the node is its entry in
+     * clients_mig_parked[its io thread]. Kept on the client so unlinkClient can remove it in O(1)
+     * when the connection dies mid-hold (a parked client has an EMPTY ring, so nothing else would
+     * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
+    listNode *mig_parked_node;
+    int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
     /* ee451 (thread-modes step 4, p99 guardrail): dispatch timestamp (getMonotonicUs) on
      * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
      * dispatch (BEFORE the queue push) and read+cleared by the SAME IO thread at drain
@@ -2253,6 +2262,20 @@ typedef struct exQueue {
      * tail (one producer monotonically advances it), so the cached check is
      * always conservative — never a false not-empty. */
     unsigned int cached_tail;
+    /* ee451 (H2, reshard drain fence): consumer-published EXECUTION frontier.
+     * `head` is advanced by exQueuePopBatch BEFORE the popped batch runs, so
+     * `head == tail` means "nothing left to POP", NOT "nothing in flight" — a
+     * worker that has popped 16 commands and is executing them reads as EMPTY.
+     * That is the steady state of a busy worker, and the cutover fence used to
+     * conclude "idle producer" from it and flip bucket ownership out from under
+     * commands still executing on the old owner (silent lost write / two owners
+     * mutating one bucket at once).
+     * `retired` is stored ONCE PER BATCH, after the last command of that batch
+     * has executed, so `retired == tail` is the real quiescence predicate.
+     * Written only by the consumer (the owning worker); it sits on head's cache
+     * line, which the consumer already owns and dirties, so it costs no new
+     * shared line and one relaxed store per batch of up to WORKER_POP_BATCH. */
+    redisAtomic unsigned int retired;
     redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451: cached_head — non-atomic snapshot of `head`, touched ONLY by the
      * producer (owning IO thread). Sits after `tail` on tail's cache line,
@@ -2880,6 +2903,13 @@ struct redisServer {
     int in_fork_child;          /* indication that this is a fork child */
     exThread *exThreads;
     list *clients_pending_ex[TOMO_IO_THREADS_MAX + 1]; //ee451 per-thread worker handoff queue, index 0 = main thread
+    /* ee451 (H2 handover): clients PARKED by the cutover range-hold, per io thread. Only the owning
+     * io thread touches its own list (park at dispatch, release at beforeSleep, unlink at free), so
+     * no lock. See migHoldClientIfDraining: the hold is per-COMMAND and keyed on the migrating
+     * bucket range, and it parks the ONE client that asked for the range — never the thread and
+     * never a worker, so every other client on this thread, and both workers' other buckets, keep
+     * running at full rate for the whole window. */
+    list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
     int num_workers;
     /* ee451 (thread-modes v1, step 3): worker-slot accounting for the EX-capable spare.
      * num_workers stays the CONFIGURED count W (pin-map bases, num_cdb resolution and the
@@ -2932,6 +2962,15 @@ struct redisServer {
                                     * controller's settle gate waits for this to go QUIET before
                                     * judging a probe (a mid-rebalance measurement under-reads the
                                     * new config and wedges the hill-climb in a worse one). */
+    /* ee451 (H2): drain-fence observability. Both are cumulative and exported in INFO, because a
+     * fence whose window is never entered proves nothing about the fence (§G vacuous validation).
+     * midbatch = how many times the coordinator saw a producer's queue EMPTY while worker A still
+     * had that queue's popped batch in flight — i.e. the exact state the old idle-ack acked on.
+     * aborts = cutovers abandoned because the fence did not complete in time (see the knob). */
+    _Atomic uint64_t reshard_fence_midbatch;
+    _Atomic uint64_t reshard_fence_aborts;
+    int reshard_fence_timeout_ms;  /* 0 = wait forever; N = abort a cutover whose drain fence has
+                                    * not completed within N ms (never flips: pure anti-hang net) */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
@@ -3031,9 +3070,11 @@ struct redisServer {
         int lo, hi;                    /* migrating bucket range [lo,hi) (published before active=1) */
         int src, dst;                  /* adjacent workers: A (src) -> B (dst) */
         _Atomic int phase;             /* migPhase: IDLE/COPYING/DRAINING/FLIPPED/DONE */
-        _Atomic int fence_acked[TOMO_IO_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack
-                                        * (set when A pops that slot's sentinel; coordinator also marks
-                                        * a slot done when A's queue from it stays empty = idle producer) */
+        _Atomic int fence_acked[TOMO_IO_THREADS_MAX + 1]; /* cutover drain-fence: per producer-slot ack.
+                                        * Set by worker A when it EXECUTES that slot's drain sentinel.
+                                        * (The old "or the queue looked empty for 2ms" idle-ack was
+                                        * removed 2026-07-28 — see the H2 note on reshardCoordinatorTick:
+                                        * an empty queue is the steady state of a busy worker.) */
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
     } migration;
     redisDb **ex_dbs;
@@ -5986,6 +6027,7 @@ void initIOThreads(void);
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 void queueToWorker(client *c, int ex_id);
 void *exThreadMain(void *arg);
