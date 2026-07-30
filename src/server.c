@@ -3827,10 +3827,10 @@ int listenToPort(connListener *sfd) {
         if (optional) addr++;
         if (strchr(addr,':')) {
             /* Bind IPv6 address. */
-            sfd->fd[sfd->count] = anetTcp6Server(server.neterr,port,NULL,server.tcp_backlog);
+            sfd->fd[sfd->count] = anetTcp6Server(server.neterr,port,addr,server.tcp_backlog);
         } else {
             /* Bind IPv4 address. */
-            sfd->fd[sfd->count] = anetTcpServer(server.neterr,port,NULL,server.tcp_backlog);
+            sfd->fd[sfd->count] = anetTcpServer(server.neterr,port,addr,server.tcp_backlog);
         }
         if (sfd->fd[sfd->count] == ANET_ERR) {
             int net_errno = errno;
@@ -4209,7 +4209,7 @@ void initServer(void) {
     /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
      * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
     server.tm_ngrow_io = 0;
-    if (server.poly_threads && server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
+    if (server.thread_auto && server.ex_threads > 1) {   /* static mode has no role conversion: no dormant producer/listener slots */
         server.tm_ngrow_io = server.ex_threads - 1;
         if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
@@ -11385,17 +11385,22 @@ static void reshardCoordinatorTick(void) {
     server.tm_mig_flip_action = 0;
     /* GROW-FRONT delists src before ARM. An aborted fence never moved its buckets, so restore that
      * exact accounting before reopening migration_active; otherwise fan-outs and the controller
-     * permanently skip a worker that still owns live data. GROW-BACK has already changed role but
-     * is intentionally not live until its seed flips; put its actuator back in phase 1 to re-arm
-     * after this migration has torn down. */
+     * permanently skip a worker that still owns live data. GROW-BACK has already changed role; if
+     * its seed aborts, publish the supported zero-range-but-live EX shape and let normal releveling
+     * seed it later. Retrying the same timed-out fence forever would wedge the global flip claim. */
     int rollback_front = co_aborted && flip_act == 2;
+    int rollback_back = co_aborted && flip_act == 3;
     if (rollback_front) {
         atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
         tmNodeWliveAdd(src, +1);
         server.tm_flip_aborted_node = tmNodeOfWorker(src);
         server.tm_flip_aborted = 1;
-    } else if (co_aborted && flip_act == 3) {
-        server.tm_flip_phase = 1;
+    } else if (rollback_back) {
+        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        tmNodeWliveAdd(dst, +1);
+        server.tm_relevel_pending = 1;
+        server.tm_flip_aborted_node = tmNodeOfWorker(dst);
+        server.tm_flip_aborted = 1;
     }
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
      * serverLog(), then co_state=IDLE at the end of this function) left a window in which a
@@ -11407,6 +11412,11 @@ static void reshardCoordinatorTick(void) {
      * release store, any armer that acquire-observes active==0 necessarily also observes
      * co_state == CO_IDLE, so its cutover's CAS cannot fail. */
     atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
+    /* Close an aborted role transaction before migration admission reopens. In particular,
+     * reshardRangeValid's total-range exception consults tm_flip_ctx: publishing active=0 while
+     * the stale claim remained visible let a concurrent manual ARM validate against the wrong
+     * control-plane state. Counts/abort publication above happen-before this release. */
+    if (rollback_front || rollback_back) tmFlipRelease();
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     if (co_aborted) {   /* ee451 (H2): teardown ran, but no ownership changed hands */
         serverLog(LL_WARNING, "ee451 reshard ABORTED: [%d,%d) still owned by worker %d "
@@ -11424,7 +11434,9 @@ static void reshardCoordinatorTick(void) {
     if (rollback_front) {
         serverLog(LL_WARNING, "ee451 flip: GROW-FRONT rollback — worker %d remains EX/live",
                   src);
-        tmFlipRelease();
+    } else if (rollback_back) {
+        serverLog(LL_WARNING, "ee451 flip: GROW-BACK rollback — worker %d remains EX/live "
+                              "with an empty range; relevel pending", dst);
     } else if (flip_act == 2) {
         polyThreadCtx *fc = tmFlipCtxPublished();
         if (fc) {
@@ -14092,6 +14104,19 @@ static long long expiredSubkeysActiveTotal(void) {
     return s;
 }
 
+/* Snapshot the exact owner-published IO constituency. Never traverse another IO owner's
+ * server.clients[t] list: listLength itself races its link/unlink writes. */
+static unsigned long tomoClientCountTotal(void) {
+    int nprod = server.custom_io_threads_active
+        ? server.io_threads + server.tm_ngrow_io
+        : 1;
+    unsigned long total = 0;
+    for (int t = 0; t < nprod; t++)
+        total += (unsigned long)atomic_load_explicit(&tm_io_sig[t].client_count,
+                                                    memory_order_relaxed);
+    return total;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -14175,8 +14200,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         getExpansiveClientsInfo(&maxin,&maxout);
         totalNumberOfStatefulKeys(&blocking_keys, &blocking_keys_on_nokey, &watched_keys);
         if (sections++) info = sdscat(info,"\r\n");
+        unsigned long tomo_clients = tomoClientCountTotal();
+        unsigned long replica_clients = listLength(server.slaves);
+        if (replica_clients > tomo_clients) replica_clients = tomo_clients;
         info = sdscatprintf(info, "# Clients\r\n" FMTARGS(
-            "connected_clients:%lu\r\n", listLength(server.clients[iotid]) - listLength(server.slaves),
+            "connected_clients:%lu\r\n", tomo_clients - replica_clients,
             "cluster_connections:%lu\r\n", getClusterConnectionsCount(),
             "maxclients:%u\r\n", server.maxclients,
             "client_recent_max_input_buffer:%zu\r\n", maxin,
@@ -14404,11 +14432,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         for (j = 0; j < server.io_threads_num; j++) {
             atomicGet(server.stat_io_reads_processed[j], reads);
             atomicGet(server.stat_io_writes_processed[j], writes);
-            /* ee451: report the AUTHORITATIVE live client count (listLength) — the
-             * io_threads_clients_num counter only grows in the tomokv path (no freeClient
-             * decrement) and is not a live count. */
+            /* Owner-published cardinality: INFO may execute on any IO owner and must never walk
+             * another owner's list object. */
             info = sdscatprintf(info, "io_thread_%d:clients=%lu,reads=%lld,writes=%lld\r\n",
-                                       j, server.clients[j] ? listLength(server.clients[j]) : 0,
+                                       j, (unsigned long)atomic_load_explicit(
+                                              &tm_io_sig[j].client_count, memory_order_relaxed),
                                        reads, writes);
             stat_total_reads_processed += reads;
             if (j != 0) stat_io_reads_processed += reads; /* Skip the main thread */
@@ -14417,12 +14445,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         }
         /* ee451 (thread-modes v1.6): per-tomokv-io-thread live connection counts. The loop
          * above runs upstream semantics (io_threads_num==1 here, so it only prints thread 0);
-         * this breaks out every tomokv io slot's authoritative listLength so connection
+         * this breaks out every tomokv io slot's owner-published cardinality so connection
          * migration / rebalancing is directly observable. */
         if (server.custom_io_threads_active) {
-            for (int t = 0; t <= server.io_threads; t++)
+            int nprod = server.io_threads + server.tm_ngrow_io;
+            for (int t = 0; t < nprod; t++)
                 info = sdscatprintf(info, "tomo_io_thread_%d:clients=%lu\r\n",
-                                    t, server.clients[t] ? listLength(server.clients[t]) : 0);
+                                    t, (unsigned long)atomic_load_explicit(
+                                           &tm_io_sig[t].client_count, memory_order_relaxed));
         }
         stat_io_ops_processed_calculated = 1;
     }
@@ -17553,6 +17583,56 @@ void initExThreads(void) {
 
 
 
+/* Custom IO currently owns one plaintext IPv4 listener per thread. Select one address from the
+ * configured TCP surface and reuse it for every socket, including later role re-entry. Other
+ * configured addresses remain served by the normal main listener; critically, no custom thread
+ * opens wildcard/ephemeral plaintext outside that surface. Runtime bind/port changes are rejected
+ * while these sockets exist (config.c). Keep a private copy because CONFIG SET's transactional
+ * parser may temporarily replace/free a configured string even when the apply hook rejects it. */
+static char *tm_custom_bindaddr;
+static int tmBindCustomIoSocket(void) {
+    if (server.port == 0) {
+        snprintf(server.neterr, ANET_ERR_LEN,
+                 "Tomo custom IO requires a non-zero plaintext TCP port");
+        errno = EINVAL;
+        return ANET_ERR;
+    }
+    if (tm_custom_bindaddr) {
+        int fd = anetTcpServerBindOnly(server.neterr, server.port,
+                                       (char *)tm_custom_bindaddr);
+        if (fd != ANET_ERR) {
+            if (server.socket_mark_id > 0) anetSetSockMarkId(NULL, fd, server.socket_mark_id);
+            anetNonBlock(NULL, fd);
+            anetCloexec(fd);
+        }
+        return fd;
+    }
+
+    for (int i = 0; i < server.bindaddr_count; i++) {
+        const char *configured = server.bindaddr[i];
+        int optional = configured[0] == '-';
+        const char *addr = optional ? configured + 1 : configured;
+        if (strchr(addr, ':')) continue;                 /* one-fd custom path is IPv4 only */
+        int fd = anetTcpServerBindOnly(server.neterr, server.port, (char *)addr);
+        if (fd == ANET_ERR) {
+            if (optional && errno == EADDRNOTAVAIL) continue;
+            return ANET_ERR;
+        }
+        tm_custom_bindaddr = zstrdup(addr);
+        if (server.socket_mark_id > 0) anetSetSockMarkId(NULL, fd, server.socket_mark_id);
+        anetNonBlock(NULL, fd);
+        anetCloexec(fd);
+        serverLog(LL_NOTICE, "Tomo custom IO listeners bound to configured IPv4 address %s:%d; "
+                             "other configured addresses remain on the main listener",
+                  addr, server.port);
+        return fd;
+    }
+    snprintf(server.neterr, ANET_ERR_LEN,
+             "Tomo custom IO requires at least one usable configured IPv4 bind address");
+    errno = EAFNOSUPPORT;
+    return ANET_ERR;
+}
+
 /* The io binding of a growth slot (event loop + REUSEPORT listener) is pre-allocated at boot so
  * IO-entry is instant, but the listener is bound-NOT-listening: a TCP socket only joins the
  * kernel's reuseport dispatch group at listen(), so the dormant socket steals no connections
@@ -17567,9 +17647,8 @@ static void tmMakeDormantIoBinding(int slot) {
     t->id = slot;
     t->el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
     if (t->el == NULL) { serverLog(LL_WARNING, "flip: event loop alloc failed for io slot %d", slot); exit(1); }
-    t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+    t->fd = tmBindCustomIoSocket();
     if (t->fd == ANET_ERR) { serverLog(LL_WARNING, "flip: dormant listener bind failed slot %d: %s", slot, server.neterr); exit(1); }
-    anetNonBlock(NULL, t->fd);
     aeSetBeforeSleepProc(t->el, beforeSleepIO);
     aeSetAfterSleepProc(t->el, afterSleepIO);
     tmMigInitSlot(slot, t->el);   /* conn-migration inbox + wakeup, usable once the worker runs IO */
@@ -17600,7 +17679,12 @@ void initIOThreads(void) {
      * Static mode: tm_boot_io_live == io_threads, i.e. unchanged. */
     atomic_store_explicit(&server.io_threads_live, server.tm_boot_io_live, memory_order_relaxed);
     server.ioThreads = zmalloc(sizeof(ioThreadArgs) * (server.io_threads + ngrow_io));
-    server.custom_io_threads_active = 1;
+    server.custom_io_threads_active = (server.io_threads + ngrow_io) > 1;
+    if (server.custom_io_threads_active && server.port == 0) {
+        serverLog(LL_WARNING, "FATAL: Tomo custom IO requires `port` > 0; TLS-only/disabled TCP "
+                              "cannot be served by the plaintext custom accept path");
+        exit(1);
+    }
     /* Thread 0 is the main thread, start from 1 */
     for (int i = 1; i < server.io_threads; i++) {
         ioThreadArgs *t = &server.ioThreads[i];
@@ -17615,13 +17699,11 @@ void initIOThreads(void) {
         /* Bind now, but do not listen or spawn. Custom IO must not accept
          * before ACL loading, worker initialization, and RDB/AOF loading have
          * completed. startTomoThreads performs the activation barrier. */
-        t->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+        t->fd = tmBindCustomIoSocket();
         if (t->fd == ANET_ERR) {
             serverLog(LL_WARNING, "Failed binding deferred listener for IO thread %d: %s", i, server.neterr);
             exit(1);
         }
-        anetNonBlock(NULL, t->fd);
-
         /* Stripped down before/after sleep for IO threads */
         aeSetBeforeSleepProc(t->el, beforeSleepIO);
         aeSetAfterSleepProc(t->el, afterSleepIO);
@@ -17926,7 +18008,7 @@ void *polyThreadMain(void *arg) {
                      * half-requested. Owner-thread store, like tmMigServiceOut's. */
                     int rollback = ctx->ex ? TOMO_MODE_EX : TOMO_MODE_UNSET;
                     if (ctx->io->fd < 0) {
-                        ctx->io->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+                        ctx->io->fd = tmBindCustomIoSocket();
                         if (ctx->io->fd == ANET_ERR) {
                             serverLog(LL_WARNING, "thread-modes: io thread %d listener re-bind failed: %s "
                                                   "— rolling target back to mode %d", ctx->io_slot,
@@ -17935,7 +18017,6 @@ void *polyThreadMain(void *arg) {
                             atomic_store_explicit(&ctx->target_mode, rollback, memory_order_release);
                             ok = 0; break;
                         }
-                        anetNonBlock(NULL, ctx->io->fd);
                     }
                     /* IO-ENTRY: make the pre-bound dormant listener live. listen() joins the
                      * SO_REUSEPORT dispatch group — instant. */
@@ -18653,9 +18734,8 @@ static int tmMigRejoinAcceptGroup(int id) {
     if (!ctx || !ctx->io) return 0;
     if (ctx->io_listening) return 1;
     if (ctx->io->fd < 0) {
-        ctx->io->fd = anetTcpServerBindOnly(server.neterr, server.port, NULL);
+        ctx->io->fd = tmBindCustomIoSocket();
         if (ctx->io->fd == ANET_ERR) { ctx->io->fd = -1; return 0; }
-        anetNonBlock(NULL, ctx->io->fd);
     }
     if (listen(ctx->io->fd, server.tcp_backlog) != 0) return 0;
     if (aeCreateFileEvent(ctx->io->el, ctx->io->fd, AE_READABLE,
@@ -19006,6 +19086,13 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
  * source/dest, publishes a request to the source's mailbox, and wakes it. The source runs
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
+    /* The base Redis listener can serve CMD_LOADING DEBUG commands before the custom pool starts.
+     * Direct IO-exit/rebalance requests bypass both reshardArm and tmFlipTryClaim, so fence this
+     * entry explicitly before it can close a boot listener or mutate an owner mailbox. */
+    if (!atomic_load_explicit(&tomo_threads_ready, memory_order_acquire)) {
+        *err = "the Tomo thread pool is not active yet";
+        return 0;
+    }
     if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     int all[TOMO_IO_THREADS_MAX + 1];
     int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* all live io threads */

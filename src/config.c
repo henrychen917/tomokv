@@ -2515,6 +2515,10 @@ static int updateHZ(const char **err) {
 }
 
 static int updatePort(const char **err) {
+    if (server.custom_io_threads_active) {
+        *err = "port is immutable while Tomo custom IO listeners are active";
+        return 0;
+    }
     connListener *listener = listenerByType(CONN_TYPE_SOCKET);
 
     serverAssert(listener != NULL);
@@ -2693,6 +2697,10 @@ int updateAppendFsync(const char **err) {
 
 /* applyBind affects both TCP and TLS (if enabled) together */
 static int applyBind(const char **err) {
+    if (server.custom_io_threads_active) {
+        *err = "bind is immutable while Tomo custom IO listeners are active";
+        return 0;
+    }
     connListener *tcp_listener = listenerByType(CONN_TYPE_SOCKET);
     connListener *tls_listener = listenerByType(CONN_TYPE_TLS);
 

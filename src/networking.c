@@ -1657,7 +1657,7 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * therefore copies worker replies. Static mode cannot role-shift and keeps
      * the measured large-value zero-copy path. This is immutable for the life
      * of the process; no per-reference close protocol or escape remains. */
-    int zc_on = (server.thread_mode != TOMO_THREAD_MODE_AUTO &&
+    int zc_on = (!server.thread_auto &&
                  server.zerocopy_min_value > 0 &&
                  len >= (size_t)server.zerocopy_min_value);
     int on_ex = zc_on && c->isFake && iotid > TOMO_IO_THREADS_MAX;
