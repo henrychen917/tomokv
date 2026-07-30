@@ -948,6 +948,68 @@ Raw: `$J/step3_h2/` — `run.sh`, `run.log`, `crash.sh`, `crash.log`,
 
 ---
 
+### 3h. Item #58, flip thread accounting — FIXED 2026-07-29, four commits, `flip_updown` PASSES
+
+Opened as "a revived thread is never counted — the controller runs a 7-of-8 budget", from the
+observation that all 27 flip-ctl ticks on an io4/ex4 auto boot read `w_live + io == 7`, never 8.
+
+**(A) was not a defect.** `io=` is `io_live_node`, which counts poly io SLOTS `t = 1..io_hi` and so
+EXCLUDES iotid 0 — it is `io_threads_live − 1` on numa==1, exactly as §3f item 2 already recorded, so
+`w_live + io == pool − 1` is the CORRECT reading. The grow-back increment exists and fires: the
+coordinator publishes `num_workers_live++` at the seed FLIP (`server.c:10933`), and the captured run
+moves 4/4 → 5/3 → 6/2 → 7/1 → 6/2 → 5/3 → 4/4, summing to 8 at every completion. Do not re-derive
+this from the log field a third time — `5397f2614` makes the controller publish the conserved
+quantity itself as `pool=<live>/<configured>`, warn `POOL BROKEN` on any tick that violates it, and
+`flip_updown` now grades it FATALLY and ahead of direction. Shown to discriminate: with the
+increment deleted the suite returns rc=3, `pool=6/8`, 13 violating ticks, 31 server warnings.
+
+**(B) was real, and its cause was ALLOCATION, three times over.** From an io7/ex1 auto boot: (1)
+`tm_ngrow_io = ex_threads-1 = 0`, so the controller returned at its first guard — zero ticks, which
+is also why every slot read `busy=0` in that capture, nothing was sampling; (2) the six IO threads
+were IO-born with `ctx->ex == NULL`, so `tomoGrowBackSlot` refuses — the front-heavy side was a
+one-way door; (3) `shared_node_dbs` is (workers-per-node > 1), so at ex=1 the keyspace is a private
+dict and, with the copy engine deleted, no second worker could be given a range. Fixed by
+`81f59b118`: in AUTO the split is a starting point, so provision the whole pool as workers
+(`io_threads := 1`, `num_workers := pool-1`) and apply the requested split by birthing the top
+(boot_io − 1) workers in IO mode. No new actuator, no new mode, no new migration path; the live
+worker set is still a prefix. STATIC mode is untouched.
+
+That exposed two controller-policy defects that had been invisible because the range was too small
+to show them. `f794f07a5`: the walk-back target and the momentum decision were sharing one noise
+band, so a step that beat the best but not by 2σ left `best_rate` on the previous config — both
+gates landed exactly one step short (io4/ex4 measured 7 802 487 vs a best of 7 443 842 and was still
+logged COAST). Split into a plain argmax (`best_dist`) plus a momentum budget (`coast_used`).
+`f1937849c`: the catch-up gate tested `|mean − inst| < 2σ` against the σ of the same series, so the
+transition that corrupts the mean inflates the band that is supposed to catch it — the §3f phantom
+baseline, measured here at `baseline 4 623 952` for a p1 phase whose true rate was ~600k. ANDed a
+relative bound in, `fmin(2σ, 0.10·mean)`.
+
+**Result — all four legs, both directions, both boots** (70s phases; steady-state window from the
+flip-ctl HOLD ticks, since the whole-phase average includes the convergence transient):
+
+| boot | phase | trajectory | steady | vs static |
+|---|---|---|---|---|
+| io7/ex1 | p32 | io7→io6→io5→**io4/ex4**→io3→io2, walk back 2, held | 7 807 367 | −0.38% |
+| io7/ex1 | p1 | io4→io5→io6→**io7/ex1**, pool edge, held 50s | 830 185 | −0.18% |
+| io4/ex4 | p1 | io5→io6→**io7/ex1**, pool edge, held 50s | 829 894 | −0.21% |
+| io4/ex4 | p32 | io6→io5→**io4/ex4**→io3→io2, walk back 2, held | 7 837 079 | +0.00% |
+
+Before: the io7/ex1 boot never actuated at all — 1 850 356 ops/s under p32, all six slots `mode=IO`
+for 70 s, zero flip-ctl lines. `flip_updown` PASS, `postmerge` exit=0 on the final tip,
+`correctness_suite` 13/13 in BOTH static and auto (the symmetric pool changes the auto ex=1 boot
+from dict-backed to FLAT, so it was run under both). Zero new build warnings.
+
+**Not fixed, filed:** `busy_ewma_q4` is events-per-`aeProcessEventsIO`-pass, and
+`aeProcessEventsIO` burns zero-timeout passes while `replyWorking > 0` — so the metric collapses
+toward zero exactly when an io thread is spinning hardest on reply drain. Measured on ONE config
+(io7/ex1) at two loads: p32 `busy` 0–5 at 1 850 356 ops/s, p1 `busy` 16–180 at 834 103 ops/s — the
+higher-throughput regime reads lower. It did not cause (B) (the controller was not running) and it
+does not misdirect the gates (a collapsed `io_sat` against a huge `ex_sat` still yields grow-back,
+which is correct), but a genuinely io-bound saturated state would read `io_sat ≈ 0` and never
+trigger grow-front. `io_sat` needs a utilization signal, not a batch-size one.
+
+---
+
 ## 4. Unowned defects
 
 Nothing is working on these.
@@ -1022,6 +1084,11 @@ Nothing is working on these.
   Any fix must be A/B'd against BOTH regimes — the pin exists to make the steady state cost zero
   flips, and loosening it is exactly the thrash the momentum rework was built to stop
   (see `thredis-flip-controller-momentum`).
+
+  **CLOSED 2026-07-29 (item #58, four commits `5397f2614` `81f59b118` `f794f07a5` `f1937849c`).
+  `flip_updown` PASSES — `io=3 → 6 → 3 → 6` across four regime changes, its first pass on any
+  build.** The pin was never touched; three separate defects were, and none of them was the
+  "revived thread is never counted" the item was opened for. See §3h.
 - **LB-2** `server.hotkeys` — one process-global struct used as per-command scratch by every io
   thread. OOB read, double free, and `current_client` clobbering that indexes `argv[pos]` into a
   *different* client's argv. Dormant until `HOTKEYS START`, but the subsystem is unusable as written.
