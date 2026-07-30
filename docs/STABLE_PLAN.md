@@ -1215,6 +1215,56 @@ trigger grow-front. `io_sat` needs a utilization signal, not a batch-size one.
 
 ---
 
+### 3i. Item #50, csgroup-sso — ALREADY DONE (`968565c72`), re-verified live 2026-07-29. NO CODE CHANGE.
+
+Assigned as "CONFIRMED NOT DONE — csGroup has no inline storage; its own comment says it allocates
+'the largest shape any command might have'". Both halves of that are wrong, and the second is a
+misread of the comment's own *negation*. `src/server.h:2088-2098` reads: sized per command "so a
+command that needs one 32-byte array pays for 32 bytes **and not for the largest shape any command
+might have**". The quoted phrase is what the code does NOT do.
+
+The mechanism shipped in `968565c72` ("xshard: inline (SSO) storage for csGroup arrays, sized per
+command; delete two knobs") and is an ancestor of this branch's HEAD:
+  - `csGroup` ends in `uint16_t inl_cap; uint16_t inl_used; long long inl[];` — a flexible bump
+    region inside the group's own allocation.
+  - `csGroupNew`/`csInlineWant`/`csgAlloc`/`csgCalloc`/`csgFree` at `src/server.c:8793-8852`; size
+    derived per command from the registry row + `nkeys` + fan-out bound, capped by
+    `CS_INLINE_MAX_BYTES` (**512** on HEAD — i.e. NOT built out; `0` is the A/B off-arm).
+  - 13 call sites take their arrays from it (`subs[]`, `mget_vals[]`, both posmaps, the per-sub
+    `int[]`, `pipe_shard_of`, …).
+
+The −5.2% instr/op was ALSO not a prototype number: the commit message carries a 3-rep ABBA A/B
+between two binaries from that tree differing only in `CS_INLINE_MAX_BYTES` — mget4_p8 −5.21%,
+mget4_p32 −3.86%, mset4_p8 −0.61%, mset4_p32 +0.06%, get_p32/set_p32 flat, with allocs/op
+26.01→20.33 on mget4_p8. The earlier FIXED-320-byte version *was* a prototype and *was* rejected for
+regressing mset4_p32 +1.27%; per-command sizing is what replaced it. That is presumably where
+"prototype" in the memory note comes from.
+
+**Gate proven OPEN on this branch's build**, not assumed (per the vacuous-validation rule).
+`INFO stats` ships `tomokv_xshard_inline_hits` / `tomokv_xshard_heap_fallbacks`. Booted HEAD's
+`src/redis-server` at io4/ex4 static, under the box lock:
+
+| point | inline_hits | heap_fallbacks | multikey_split |
+|---|---|---|---|
+| baseline, no xshard traffic | 0 | 0 | 0 |
+| after 200 × `MSET(4)` | 200 | 0 | 0 |
+| after 200 × `MGET(4)` | 1349 | 0 | 196 |
+
+The counter discriminates (it starts at 0 and only the M-path moves it), and the arithmetic
+cross-checks the mechanism: MSET(4) = exactly 1 inline array per group (`subs[]`, 32B — the same
+fact that killed the fixed-320B version), MGET(4) = 1149/196 = **5.86** inline allocations per
+group against the commit's predicted 5.73 (3 fixed arrays + E[distinct shards] = 4·(1−(3/4)⁴) =
+2.73 per-sub `int[]`). `heap_fallbacks` stayed 0, so the derived sizing is not being exceeded on the
+common case, and `MGET k7:a..d` returned `v1 v2 v3 v4` in order.
+
+No `postmerge.sh` run and no commit of product code: there is no change to gate. The follow-on
+(per-command arena) is what `csGroupNew`'s region already is; **per-type pools stay DISPROVEN** —
+`tomokv-opt-operand-pool` was deleted in this same commit with the A/B that showed it net-negative
+on all six workloads (+2.2% … +4.1% instr/op, and MORE allocations per op, because a pool miss
+allocated robj+sds separately where the normal path allocates one embstr).
+
+---
+
 ## 4. Unowned defects
 
 Nothing is working on these.
