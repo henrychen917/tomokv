@@ -147,8 +147,6 @@ nothing. Pinning them removes the last unowned mutable refcount in the tree. `sh
 already `makeObjectShared` upstream, which is why the `XCLAIM` argv (`t_stream.c:1858`) was never
 exposed despite being built on a worker.
 
-<<<<<<< HEAD
-=======
 ### A10. A migration armed in the cutover teardown window is armed FOREVER — P0, server kill — `af9d6b590`
 
 `reshardCoordinatorTick`'s teardown published `migration_active = 0` and only **then**
@@ -178,18 +176,45 @@ I first shipped a second half — `reshardArm` additionally requiring `co_state 
 "defence in depth". It was removed: see §B4. Two successive reviews found that each guard added to
 protect this invariant opened a wider hole than the one it closed. The reorder needs no guard.
 
-**Not vacuous, in both directions.** `INFO stats` gained `tomokv_reshard_arm_refused_coord` (the
-window was entered) and `tomokv_reshard_cutover_no_coord` (the defect firing).
-`tools/preflight/reshard_arm_race.py` requires *both* continued cutover progress *and*
-`cutover_no_coord == 0`, and reports **SKIP, not PASS**, below 200 completed cutovers so a run that
-never raced cannot pass. Acceptance ran it against a **defect-reintroduced** build (`bins/pre`,
-built with the two guards reverted but the counters left in place, so it cannot fail for the wrong
-reason) as well as the fixed one.
+**Not vacuous, in both directions.** `INFO stats` exposes `tomokv_reshard_cutover_no_coord` (the
+defect firing). `tools/preflight/reshard_arm_race.py` requires *both* `cutover_no_coord == 0` *and*
+continued cutover progress, and reports **SKIP, not PASS**, below 200 completed cutovers so a run
+that never raced cannot pass. Acceptance runs it against a **defect-reintroduced** build (this file's
+fix backed out, everything else identical) as well as the fixed one.
+
+#### The 2026-07-29 audit: this section described a fix that was not in the tree, and a test that could not fail
+
+Two things had to be repaired before any of the above was true of the shipped branch.
+
+**The fix was gone.** The store reorder was reverted with `823c33ad0` (`Revert "Merge commit
+'af9d6b590'"`). `67b5844ba` was meant to re-ship it *alone* — its message even says "what ships is 2
+moved stores" — but its `src/server.c` diff contains **only deletions** (the arm guard, the rollback,
+the `beforeSleep` self-heal). The reorder was never re-applied. `2s-numa-stable-dev` carried the
+original defective order (`migration_active = 0` → `serverLog()` → `co_state = CO_IDLE`) for eleven
+commits while this section claimed it fixed, and while §B4 below explained at length why the reorder
+was the right minimal fix.
+
+**The test could not fail.** `mig_arm_seq` was declared and never incremented. It stays 0 for the
+life of the process, so `reshardBeginCutover`'s "is the running coordinator servicing MY arm?" latch
+(`co_serving_arm == mig_arm_seq`) is `0 == 0` — **true for every caller**. The CAS-failure path
+therefore returned `+OK` for a migration that got no coordinator and never reached the
+`cutover_no_coord` increment: the counter was unreachable and both of the test's assertions were
+dead. Measured before the fix: the arm-race test passed **3/3** on the defective `HEAD`, and passed
+**2/2** on a build with `usleep(200)` inserted into the teardown window — a 200 µs window, ~50 k arm
+attempts/s, and still zero counts. That is the shape of a dead assertion, not of a healthy server.
+With the increment restored the same test fails **2/2** on the defect-reintroduced build
+(`cutover_no_coord=1`, orphan visible in `server.log` as an `ARM` line logged *before* the `DONE` it
+raced) and passes **2/2 + 1** on the fixed one.
+
+**Lesson (the same one as §A7, one level down).** A guard whose input never changes is not a guard,
+and a counter that cannot count certifies nothing. `mig_arm_seq` was introduced *by the fix for this
+bug*, specifically to keep the acceptance counter honest, and it was introduced already broken — so
+the very mechanism added to prevent a vacuous validation produced one. Before trusting a green
+acceptance, prove the assertion is *reachable*: reintroduce the defect and watch it go red.
 
 **Found while classifying something else, which turned out not to be a server defect at all** — see
 §J.
 
->>>>>>> 67b5844ba
 ---
 
 ## B. Defects I INTRODUCED — found and fixed

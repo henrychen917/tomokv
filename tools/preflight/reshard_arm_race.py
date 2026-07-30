@@ -25,7 +25,16 @@ from a broken one:
      because a build that wedges early never reaches MIN_CUTOVERS and must report FAIL, not SKIP.
   2. tomokv_reshard_cutover_no_coord == 0. That counter is incremented at exactly the point where
      an armed migration fails to get a coordinator. It is non-zero on a broken build and
-     unreachable on a fixed one.
+     unreachable on a fixed one. It is the PRIMARY assertion — checked before `wedged`, which is
+     the coarser symptom and can misname its own cause (see the comment in main()).
+
+A COUNTER IS ONLY AN ASSERTION IF IT CAN COUNT. Until 2026-07-29 this test passed on every build,
+defective or not, including one with the teardown window artificially widened to 200 us: `mig_arm_seq`
+was declared and never incremented, so reshardBeginCutover's "is the running coordinator servicing
+MY arm" latch (`co_serving_arm == mig_arm_seq`, 0 == 0) was true for every caller, the CAS-failure
+path returned +OK instead of counting, and cutover_no_coord could never leave 0. Both this test's
+assertions were dead. If this test ever again passes on a build you believe is broken, check that
+the counter is REACHABLE before you conclude the defect is absent.
 
 ANTI-VACUITY. A run that never armed anything would pass (1) trivially, so the test FAILS with
 SKIP status if it did not complete at least MIN_CUTOVERS real cutovers. And the acceptance rule
@@ -201,16 +210,28 @@ def main():
     print("reshard_arm_race: cutovers=%d arm_refusals=%d wedged=%d cutover_no_coord=%s"
           % (cutovers, refused, int(wedged), no_coord))
 
-    if wedged:
-        print("FAIL: DEBUG RESHARD START refused for >10s straight after a successful arm — a "
-              "migration is armed with no coordinator; migration_active is stuck and flat resizes "
-              "are blocked for the life of this process")
-        return 1
+    # THE COUNTER IS CHECKED FIRST, and that ordering is a correction, not a preference. Measured
+    # 2026-07-29 on a defect-reintroduced build: the run reported BOTH wedged=1 and
+    # cutover_no_coord=1, and the wedge message ("migration_active is stuck for the life of this
+    # process") was WRONG about its own mechanism — the server log showed the orphaned migration
+    # was adopted by the NEXT pipelined CUTOVER and completed. What actually stopped the run was
+    # this probe's own bookkeeping: an orphaned arm replies -ERR to its CUTOVER, so `src, dst` are
+    # not swapped, while the migration completes anyway and moves the buckets — every later START
+    # then fails reshardRangeValid and is refused forever. Both symptoms are downstream of the same
+    # defect, so the verdict was right either way, but only cutover_no_coord names it exactly.
     if no_coord is None:
         print("FAIL: server does not expose tomokv_reshard_cutover_no_coord (old binary?)")
         return 1
     if no_coord != 0:
-        print("FAIL: %d migration(s) were armed with no coordinator" % no_coord)
+        print("FAIL: %d migration(s) were ARMED WITH NO COORDINATOR — an arm landed inside the "
+              "cutover teardown window and its CUTOVER's CAS lost to the outgoing coordinator "
+              "(docs/BUGS.md A10)" % no_coord)
+        return 1
+    if wedged:
+        print("FAIL: DEBUG RESHARD START refused for >10s straight after a successful arm. "
+              "cutover_no_coord is 0, so this is NOT the A10 orphan: either migration_active is "
+              "genuinely stuck, or the armable range moved out from under this probe — read "
+              "server.log before attributing it")
         return 1
     if cutovers < MIN_CUTOVERS:
         print("SKIP: only %d cutovers completed (< %d) — too few to have raced the teardown "

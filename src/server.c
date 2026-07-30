@@ -10777,6 +10777,14 @@ static int reshardArm(int lo, int hi, int src, int dst) {
     server.migration.src = src; server.migration.dst = dst;
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+    /* Bump the arm sequence BEFORE publishing active=1. reshardBeginCutover reads migration_active
+     * with acquire and only then reads mig_arm_seq, so the winner it latches into co_serving_arm is
+     * always the seq of the arm it is actually coordinating. Without this increment the seq is
+     * frozen at 0 for the life of the process, co_serving_arm == mig_arm_seq is trivially true for
+     * EVERY caller, and the "is the running coordinator servicing MY arm" test degenerates to
+     * "yes, always" — which makes DEBUG RESHARD CUTOVER reply +OK for a migration that got no
+     * coordinator and makes tomo_reshard_cutover_no_coord unreachable (a dead assertion). */
+    atomic_fetch_add_explicit(&mig_arm_seq, 1, memory_order_release);
     atomic_store_explicit(&server.migration_active, 1, memory_order_release); /* published LAST */
     atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
     serverLog(LL_NOTICE, "ee451 reshard ARM: buckets [%d,%d) worker %d -> %d (COPYING)", lo, hi, src, dst);
@@ -11033,6 +11041,16 @@ static void reshardCoordinatorTick(void) {
      * requested). Before the release-store this coordinator is still the sole owner. */
     int spare_act = server.tm_mig_spare_action;
     server.tm_mig_spare_action = 0;
+    /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
+     * serverLog(), then co_state=IDLE at the end of this function) left a window in which a
+     * cross-thread DEBUG RESHARD START could arm a migration that reshardBeginCutover then refused
+     * to coordinate — armed forever, migration_active stuck at 1, the balancer dead and
+     * flatResizeCoordinate() blocked for the life of the process (docs/BUGS.md A10).
+     * Publishing IDLE first cannot be hijacked by the OUTGOING migration: reshardBeginCutover also
+     * requires phase == MIG_COPYING and the phase here is MIG_DONE. And because active=0 is a
+     * release store, any armer that acquire-observes active==0 necessarily also observes
+     * co_state == CO_IDLE, so its cutover's CAS cannot fail. */
+    atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
     atomic_store_explicit(&server.migration_active, 0, memory_order_release);  /* publish LAST */
     serverLog(LL_NOTICE, "ee451 reshard DONE: [%d,%d) %d -> %d complete", lo, hi, src, dst);
     atomic_fetch_add_explicit(&server.reshard_done_seq, 1, memory_order_relaxed);
@@ -11051,7 +11069,10 @@ static void reshardCoordinatorTick(void) {
             serverLog(LL_NOTICE, "ee451 thread-modes: buckets returned to worker %d — park requested", dst);
         }
     }
-    atomic_store_explicit(&co_state, CO_IDLE, memory_order_release);
+    /* NOTE: co_state was published IDLE above, BEFORE migration_active dropped. It must NOT be
+     * re-stored here: once active is 0 a new migration may already have armed and CASed co_state
+     * to CO_WAIT_CONVERGE, and a trailing store would slam it back to IDLE — stranding THAT
+     * migration exactly the way the window this fix closes used to. */
 }
 
 /* Spawn the detached cutover coordinator. It internally waits for the cold copy to converge before
