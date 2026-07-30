@@ -2251,7 +2251,8 @@ typedef enum {
     TOMO_PF_BATCHES = 0, TOMO_PF_GATED, TOMO_PF_NOISSUE,
     TOMO_PF_STRUCT, TOMO_PF_ARGV, TOMO_PF_KEYOBJ, TOMO_PF_KEYBYTES,
     TOMO_PF_DICT_BUCKET, TOMO_PF_DICT_ENTRY, TOMO_PF_FLAT_SLOT,
-    TOMO_PF_KVOBJ, TOMO_PF_VALDATA, TOMO_PF_BITDATA, TOMO_PF_NEXTOP,
+    TOMO_PF_KVOBJ, TOMO_PF_VALDATA, TOMO_PF_BITDATA,
+    TOMO_PF_BIT_GROUPS, TOMO_PF_BIT_NOISSUE, TOMO_PF_NEXTOP,
     TOMO_PF_FLAT_ELIGIBLE, TOMO_PF_FLAT_CANDIDATE,
     TOMO_PF_VAL_ELIGIBLE, TOMO_PF_NEXT_ELIGIBLE,
     TOMO_PF_FLAT_GROUPS, TOMO_PF_FLAT_NOISSUE,
@@ -2431,6 +2432,8 @@ typedef struct exThread {
     unsigned long long pf_kvobj;
     unsigned long long pf_valdata;
     unsigned long long pf_bitdata;
+    unsigned long long pf_bit_groups;
+    unsigned long long pf_bit_noissue;
     unsigned long long pf_nextop;
     unsigned long long pf_noissue;       /* enabled, gate-open batches with zero actual hints */
     unsigned long long pf_flat_eligible; /* keyed FLAT lanes presented to the shared helper */

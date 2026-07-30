@@ -1599,8 +1599,14 @@ void bitcountCommand(client *c) {
             count -= redisPopcountAuto(firstlast, 2, prefetch, &prefetch_issued);
         }
         int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
-        if (prefetch_issued && wid >= 0 && wid < server.num_workers)
-            server.exThreads[wid].pf_bitdata += prefetch_issued;
+        if (prefetch && wid >= 0 && wid < server.num_workers) {
+            exThread *worker = &server.exThreads[wid];
+            worker->pf_bit_groups++;
+            if (prefetch_issued)
+                worker->pf_bitdata += prefetch_issued;
+            else
+                worker->pf_bit_noissue++;
+        }
         addReplyLongLong(c,count);
     }
 }

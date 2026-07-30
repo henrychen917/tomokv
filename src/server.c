@@ -8040,6 +8040,8 @@ static void tomoPrefetchPublish(exThread *w) {
         [TOMO_PF_KVOBJ] = w->pf_kvobj,
         [TOMO_PF_VALDATA] = w->pf_valdata,
         [TOMO_PF_BITDATA] = w->pf_bitdata,
+        [TOMO_PF_BIT_GROUPS] = w->pf_bit_groups,
+        [TOMO_PF_BIT_NOISSUE] = w->pf_bit_noissue,
         [TOMO_PF_NEXTOP] = w->pf_nextop,
         [TOMO_PF_FLAT_ELIGIBLE] = w->pf_flat_eligible,
         [TOMO_PF_FLAT_CANDIDATE] = w->pf_flat_candidate,
@@ -8058,7 +8060,7 @@ static void tomoPrefetchPublish(exThread *w) {
 }
 
 static inline void tomoPrefetchMaybePublish(exThread *w) {
-    /* 24 stores per 64 popped batches: bounded observability cost without a reader race or
+    /* One bounded snapshot per 64 popped batches: observability without a reader race or
      * per-hint atomic RMW. INFO may lag by at most 63 batches. */
     if ((w->pf_publish_tick++ & 63u) == 0)
         tomoPrefetchPublish(w);
@@ -15133,6 +15135,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long batches, gated, noissue;
         unsigned long long structure, argv, keyobj, keybytes;
         unsigned long long dict_bucket, dict_entry, flat_slot, kvobj, valdata, bitdata, nextop;
+        unsigned long long bit_groups, bit_noissue;
         unsigned long long flat_eligible, flat_candidate, val_eligible, next_eligible;
         unsigned long long flat_groups, flat_noissue;
         unsigned long long mget_groups, mget_noissue;
@@ -15154,6 +15157,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         tomo_pf.kvobj += atomic_load_explicit(&_p->v[TOMO_PF_KVOBJ], memory_order_relaxed);
         tomo_pf.valdata += atomic_load_explicit(&_p->v[TOMO_PF_VALDATA], memory_order_relaxed);
         tomo_pf.bitdata += atomic_load_explicit(&_p->v[TOMO_PF_BITDATA], memory_order_relaxed);
+        tomo_pf.bit_groups += atomic_load_explicit(&_p->v[TOMO_PF_BIT_GROUPS], memory_order_relaxed);
+        tomo_pf.bit_noissue += atomic_load_explicit(&_p->v[TOMO_PF_BIT_NOISSUE], memory_order_relaxed);
         tomo_pf.nextop += atomic_load_explicit(&_p->v[TOMO_PF_NEXTOP], memory_order_relaxed);
         tomo_pf.flat_eligible += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_ELIGIBLE], memory_order_relaxed);
         tomo_pf.flat_candidate += atomic_load_explicit(&_p->v[TOMO_PF_FLAT_CANDIDATE], memory_order_relaxed);
@@ -15329,6 +15334,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomo_prefetch_kvobj:%llu\r\n", tomo_pf.kvobj,
             "tomo_prefetch_valdata:%llu\r\n", tomo_pf.valdata,
             "tomo_prefetch_bitdata:%llu\r\n", tomo_pf.bitdata,
+            "tomo_prefetch_bit_groups:%llu\r\n", tomo_pf.bit_groups,
+            "tomo_prefetch_bit_noissue:%llu\r\n", tomo_pf.bit_noissue,
             "tomo_prefetch_nextop:%llu\r\n", tomo_pf.nextop,
             "tomo_prefetch_flat_eligible:%llu\r\n", tomo_pf.flat_eligible,
             "tomo_prefetch_flat_candidate:%llu\r\n", tomo_pf.flat_candidate,
