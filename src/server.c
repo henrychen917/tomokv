@@ -19083,8 +19083,11 @@ typedef struct {
     int      just_settled;   /* a climb just ended => pin the deadzones from the next fresh imbalance */
     double   imb_ewma;       /* EWMA of io_sat-ex_sat — the smoothed DECISION signal (start + pin) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
-    double   best_rate;      /* best throughput seen in the current climb (the look-ahead reference) */
-    int      best_dist;      /* steps taken since best_rate was set (0 = at the best) */
+    double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
+    int      best_dist;      /* steps taken since best_rate was set (0 = standing on the best) */
+    int      coast_used;     /* consecutive steps that did not beat the best SIGNIFICANTLY (momentum
+                              * budget). Split from best_dist 2026-07-29: they answer different
+                              * questions and conflating them walked the climb off its own optimum. */
     int      revert_steps;   /* walk-back-to-best counter after an exhausted coast (>0 => repositioning) */
     int      walkback_armed; /* a walk-back step is in flight; confirm it landed (no abort) before counting */
 } flipCtlState;
@@ -19368,23 +19371,55 @@ static void tomoFlipController(void) {
              * transient-inflated start baseline); once the coast budget is spent we have clearly
              * overshot the peak => WALK BACK best_dist steps to the best config and end. Bounding the
              * coast to FLIP_COAST+1 steps means no unbounded drift (no ratchet). */
+            /* TWO DIFFERENT QUESTIONS, and one band used to answer both (2026-07-29):
+             *   "keep climbing?"      — needs a NOISE BAND, or the climb chases jitter for ever.
+             *   "which config was best, i.e. where does the walk-back land?" — is a plain ARGMAX
+             *                           over the measured windows. Choosing within the noise band
+             *                           costs, by definition, no more than the noise; refusing to
+             *                           record the best MEASURED config costs a whole step.
+             * Conflating them made a step that beat the best but not by 2 sigma leave best_rate at
+             * the PREVIOUS config, so the walk-back returned there. Both gates landed exactly one
+             * step short of the optimum for this reason, and the measurements are in the logs:
+             *   io7/ex1 boot, p32: io4/ex4 measured 7 802 487 vs best 7 443 842 (io5/ex3) => +4.8%,
+             *                      logged COAST, walked back 2 to io5/ex3 and held there at ~7.40M.
+             *   io4/ex4 boot, p1 : io7/ex1 measured 831 204 vs best 814 000-ish (io6/ex2), logged
+             *                      COAST, walked back to io6/ex2 and held at ~790k.
+             * The noise band is real — sigma is inflated mid-climb because the variance EWMA folds
+             * in the config changes the controller itself is making — so it is KEPT for the momentum
+             * decision and only removed from the argmax. Exploration stays bounded: coast_used, not
+             * best_dist, is now what FLIP_COAST bounds, so a climb still ends within COAST+1
+             * non-significant steps and there is no ratchet. */
             double band = fmax(2.0 * sigma, 0.02 * fc->best_rate);
-            if (after > fc->best_rate + band) {
-                fc->best_rate = after; fc->best_dist = 0;   /* improved on the best => keep climbing */
+            int significant = (after > fc->best_rate + band);   /* worth spending another step on */
+            int improved    = (after > fc->best_rate);          /* the best config measured so far */
+            if (improved) { fc->best_rate = after; fc->best_dist = 0; }
+            else fc->best_dist++;
+            if (significant) {
+                fc->coast_used = 0;
                 fc->wait = FLIP_WAIT_KEEP;                  /* fc->dir unchanged => PHASE 0 steps again */
                 serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN %s (best %.0f, sigma %.0f) -> keep climbing",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, sigma);
-            } else if (++fc->best_dist <= FLIP_COAST) {
+            } else if (++fc->coast_used <= FLIP_COAST) {
                 fc->wait = FLIP_WAIT_KEEP;                  /* coast: bet the next step recovers past a dip */
-                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, dist %d) -> keep climbing",
-                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
-            } else {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, coast %d, back %d) -> keep climbing",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
+                          fc->coast_used, fc->best_dist);
+            } else if (fc->best_dist > 0) {
                 /* coast spent without beating the best => overshot. Walk back best_dist steps to the
                  * best config, then end the climb (PHASE 0 pins the deadzones there). */
                 fc->revert_steps = fc->best_dist;
                 fc->wait = 0;
                 serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s (%.0f vs best %.0f) -> walk back %d step(s) to best",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
+            } else {
+                /* Coast spent while STANDING ON the best measured config — the ordinary end of a
+                 * climb whose last steps were real but sub-band improvements. There is nowhere to
+                 * walk back to; end here and let PHASE 0 pin the deadzones. Without this arm
+                 * revert_steps would be set to 0, the walk-back block (gated `> 0`) would skip, and
+                 * dir would stay non-zero => the climb marches on past its own optimum for ever. */
+                fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] AT-BEST %s (%.0f, coast spent) -> hold here",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->best_rate);
             }
             fc->phase = 0;
             continue;
@@ -19525,6 +19560,7 @@ static void tomoFlipController(void) {
             if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped clear */
             fc->revert_dir = 0; fc->revert_retry = 0;    /* new climb anchors on the ACTUAL config */
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
+            fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
