@@ -20,6 +20,7 @@ being clean.
 | `5b3b4581a` | active expiry never ran on the sharded keyspace (#42) | **KEEP** — re-validated post-merge, both regimes, both arms; 15/0; tax −1.42% worst |
 | `0a2ef6c6f` | `flip_updown` exit status was a constant | both exit codes observed |
 | `21013fded` → `3c12160c6` | h2-fence merged, then **REVERTED the same hour** | a new SIGSEGV on every real client teardown; 4/4 crashed vs 0/4 on the pre-merge arm. See §3g. The pair is deliberately left in history: `git show 21013fded` is the fully-resolved-against-post-deletions merge, and redoing those 12 conflict hunks is exactly the waste §3f complains about |
+| `6f7cfc06d` | h2-fence **RE-MERGED** with the missing `createClient` initializer | **KEEP** — crash gone (8 interleaved cells, 8/8 alive, 0 crash markers, vs 4/4 dead before); acceptance 8/8 → 0/8 with `fence_midbatch_ticks=17`; `reshard_suite` 5/0; `correctness_suite` 15/0; postmerge worst cell −0.5%. And the owner's throughput claim is now **measured**, not reasoned about. See §3g |
 
 ### The "pushed without a post-merge green" deviation — status 2026-07-29
 
@@ -303,7 +304,7 @@ starved each other. That was an orchestration error, not a box problem.
 | 4 | exec-nesting `c53223863` | ~~builds + 15/0; probe if cheap~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5b078b10b` (+ suite `a6e66f6d4`). The probe did not have to be waived: **two** probes discriminate, one of them under the DEFAULT configuration. 15/0; postmerge a wash (worst cell −0.3%). See §3d |
 | 5 | deletions (5 commits) | ~~15/0 + `reshard_suite` + `flip_updown`~~ | **DONE 2026-07-29 — MERGED AND PUSHED** as `5562e377b` (+ probe/README repair `6b6f088f0`). 15/0; `reshard_suite` 3/0 on **both** arms. **`flip_updown` FAILS — but IDENTICALLY on the pre-merge arm, so it is not this merge's**, and it is now a measured product finding rather than an unrun suite. Perf +0.3…+1.1%. See §3e |
 | 6 | parked-removal `6b9d3a0b9` | **GATED on `flip_updown` passing — the gate is CLOSED and was RE-CHECKED on this tip 2026-07-29. NOT MERGED.** | Modifies flip actuation. Author validated only the MANUAL actuator. The gate blocker is a **flip-controller** defect, not this branch's: §4, now with the mechanism measured. Three merge hazards, all re-checked against this tip and two of them corrections to what this row used to say — see §3f |
-| 7 | h2-fence `e7628efc4` | ~~rebase first (base `95872c371`, collides with the private-binary commit)~~ | **MERGED 2026-07-29 (`21013fded`) AND REVERTED (`3c12160c6`) — a NEW CRASH.** SIGSEGV `listDelNode` ← `unlinkClient` on ordinary connection churn, **4/4 merged cells vs 0/4 pre-merge, interleaved**. Cause is one missing initializer, not the fence: `createClient` never sets `mig_parked_node`. Everything else PASSED on the same binary — acceptance discriminates 8/8 → 0/8 with `fence_midbatch_ticks=1089`, `reshard_suite` 5/0, `correctness_suite` 15/0. See §3g |
+| 7 | h2-fence `e7628efc4` | ~~rebase first~~ ~~fix the initializer and re-merge~~ | **DONE 2026-07-29 — RE-MERGED AND PUSHED** as `6f7cfc06d`, after `21013fded` → `3c12160c6`. The revert's diagnosis was right and was the entire product delta: two lines initializing `mig_parked_node` / `mig_parked_tid` in `createClient`. Crash gone 8/8 alive vs 4/4 dead, acceptance 8/8 → 0/8 with `fence_midbatch_ticks=17`, `reshard_suite` 5/0, `correctness_suite` 15/0, postmerge worst −0.5%. **The throughput claim is measured too**: 1578 ms window, range 17 328 → 4 ops/s → 17 216 ops/s while non-migrating buckets keep running on BOTH workers. See §3g |
 
 ### 3a. Item 1, cmdstats — MERGED 2026-07-29 (`eac51d50a`, probe `fb1986434`)
 
@@ -939,12 +940,121 @@ enough to sample (either by keeping worker A busy with a long `LINSERT` batch, w
 builds a long window and makes worker **B** — uninvolved in the migration — the discriminating
 cell, or by stalling a producer in `DEBUG SLEEP`, which only the fixed build can survive), and it
 runs `NRANGE=6` connections on in-range keys so the old build's per-thread spin actually engages.
-Run it against the re-merge.
+Run it against the re-merge. *(Done — see §3g-2.6.)*
 
 Raw: `$J/step3_h2/` — `run.sh`, `run.log`, `crash.sh`, `crash.log`,
 `crash_redis-cpost_*.log` (the backtraces), `pre_mb.out` / `post_mb.out`, `pm_pre.out` /
 `pm_post.out`, `pre_build.log` / `post_build.log` / `revert_build.log`, and the staged binaries
 `redis-h2pre` / `redis-h2post`.
+
+---
+
+### 3g-2. Item 7, h2-fence — RE-MERGED AND PUSHED 2026-07-29 (`6f7cfc06d`)
+
+The revert's own diagnosis was correct and complete, and the whole product delta on top of
+`21013fded` is two lines in `createClient`:
+
+```c
+c->mig_parked_node = NULL;
+c->mig_parked_tid  = 0;
+```
+
+Nothing else was changed — not the fence, not the range hold, not the conflict resolution. Method:
+`git revert --no-commit 3c12160c6` (so the 12 resolved hunks were not re-derived by hand), then the
+initializer. `resetFakeClientState` already had both fields; only real clients were exposed, and
+`tmClientMigratable` reads the same field, so it needed the same fix.
+
+**1. The crash is gone.** Same script and same config as the table in §3g, arms INTERLEAVED inside
+one box acquisition (io4/ex4, `--tomokv-thread-mode static`, `memtier -t 8 -c 25 --pipeline 32
+-d 32`, 2M keys, 20 s). Compare §3g: **4/4 dead** there, **0/4 dead** here.
+
+| arm | ratio | rep | ops/s | alive | crash markers |
+|---|---|---|---|---|---|
+| **FIXED** | 1:0 | 1 | 6 798 554 | 1 | 0 |
+| base `c4e4c46be` | 1:0 | 1 | 6 695 565 | 1 | 0 |
+| **FIXED** | 0:1 | 1 | 7 904 206 | 1 | 0 |
+| base | 0:1 | 1 | 7 900 725 | 1 | 0 |
+| **FIXED** | 1:0 | 2 | 6 714 066 | 1 | 0 |
+| base | 1:0 | 2 | 6 782 845 | 1 | 0 |
+| **FIXED** | 0:1 | 2 | 7 901 590 | 1 | 0 |
+| base | 0:1 | 2 | 7 960 784 | 1 | 0 |
+
+**2. Acceptance re-discriminates against THIS tip** (both arms rebuilt from `c4e4c46be`, not reused
+from the first attempt), `reshard_midbatch.py`, 8 rounds, same 2M-element list:
+
+| arm | result |
+|---|---|
+| base | **violations=8 early_flips=8 / 8, cutovers=8, worst_gap=8**, `fence_midbatch_ticks=0` (counter does not exist), `fence_aborts=-1` (INFO field absent) |
+| **FIXED** | **violations=0 early_flips=0 / 8, cutovers=8, worst_gap=0**, `fence_midbatch_ticks=17`, `fence_aborts=0` |
+
+Every base round moved ownership **25 ms** into a 1200 ms producer stall with 8 range writes still
+queued for the old owner, and the client-visible consequence followed each time (`LLEN` smaller than
+a `LINSERT` reply issued earlier on the same connection). The gate provably opened on the fixed arm:
+17 coordinator ticks saw "queue empty while that queue's batch is still in flight" and refused to
+ack. `reshard_suite` **5/0** (`reshard_order` 0 / 176 117 ops across 15 cutovers). `correctness_suite`
+**15/0**. Build: **one** warning, `kvstore.c:73`, on a clean `distclean` rebuild — pre-existing.
+
+**3. Postmerge, against the shared baseline — no regression.** These are the io4/ex4 p32 cells the
+first attempt could not measure at all, because the server died inside them and postmerge scored the
+corpse as "−13.9% / −50.6%".
+
+| cell | base | now | delta |
+|---|---|---|---|
+| p1GET_io7ex1 | 826 877 | 832 974 | **+0.7%** |
+| p1SET_io7ex1 | 817 393 | 821 799 | **+0.5%** |
+| p32GET_io4ex4 | 7 943 860 | 7 957 922 | **+0.2%** |
+| p32SET_io4ex4 | 6 852 385 | 6 820 616 | **−0.5%** |
+
+**4. THE THROUGHPUT CLAIM IS NOW MEASURED**, and it holds. `h2_thr2.py mode=stall` is the only cell
+that produces a samplable window, and on the fixed build it produced one of **1578 ms** —
+corroborated independently by the server log (`DRAINING` 18:28:27.368 → `fence drained` 18:28:28.945
+= 1577 ms), which is what makes the row a measurement rather than a client-side artefact. Within
+that window, with `NRANGE=6` connections on in-range keys and 8 pipelined loaders on
+non-migrating buckets:
+
+| | BEFORE (1 s) | DURING (1578 ms) | AFTER (1 s) |
+|---|---|---|---|
+| non-migrating buckets, worker0 (**old owner**) | 193 712 ops/s | 163 605 ops/s (**0.84×**) | 196 944 ops/s |
+| non-migrating buckets, worker1 (**uninvolved**) | 196 752 ops/s | 329 288 ops/s (**1.67×**) | 194 144 ops/s |
+| **the migrating range** | 17 328 ops/s | **4 ops/s** (6 completions) | 17 216 ops/s |
+
+That is the claim, line by line: only the contended range waits (17 328 → 4 ops/s), **both** workers
+keep serving their other buckets right through the cutover, and the range resumes at full rate the
+moment ownership lands — which also proves `migReleaseParkedClients` actually wakes the parked
+clients rather than stranding them. Combined non-migrating throughput *rises*, 390 464 → 492 893
+ops/s (1.26×), which is why worker1 reads 1.67× and is not a suspicious number: the 6 range
+connections are round-trip, not pipelined, and parking them returns their event-loop capacity to the
+loaders. Nothing is throttled by the fence except the range.
+
+Two cells in the same run are **not** usable, and are reported here rather than averaged in:
+
+* **`mode=hog` cannot hold the window open** — 1 ms (fixed) and 3 ms (base). One `LINSERT` into the
+  800 k list measured 0.2-0.5 ms, so 120 of them is ~0.02-0.06 s of worker A, and the fence drains
+  faster than that. `DURING` is a 1-3 ms sample on both arms; it says nothing.
+* **`mode=stall` on the base arm is not a cutover-window measurement**, and its own server log says
+  so: the probe reported a 1584 ms window while the log shows `DRAINING` → `FLIP` in **14 ms**. The
+  cause is a placement hole in the probe, not in the server — stall mode validates that `ctrl` is not
+  on the staller's io thread but never that the staller is not on the **main** thread, and main is the
+  cutover coordinator. On that run the `DEBUG SLEEP` landed on main, so `DRAINING` was not raised
+  until main woke 1.57 s later and the fence then drained in 14 ms. Under the sanity-gate rule the
+  base `DURING` row is discarded. It costs nothing: **the base build cannot produce a long DRAINING
+  window at all** — idle-acking a silent producer slot in ~14 ms *is* defect H2 — so this cell is
+  structurally single-arm, and the discriminating contrast is range vs non-range *inside* the fixed
+  arm's window, which is exactly what the table above is.
+
+**5. One harness fix, and why it was allowed.** `h2_thr2.py`'s original per-worker sampler reads
+`DEBUG RESHARD PERWORKER` on its own connection, which in stall mode can be the connection sitting
+behind the stalled io thread. It then collected two samples milliseconds apart and turned a
+cumulative-counter delta into **17.8 M ops/s for a single worker** — not a physically possible number
+on this box, and it is what made the first run's table unreadable. Fixed two ways: `rate()` now
+returns `n/a` below 3 samples / 100 ms of span, and the loader threads count their own completions
+client-side, which cannot starve that way. This was the one thing blocking the owner's design claim,
+which is the standing exception to "no new harnesses" — and no new harness was added: `h2_thr2.py`
+and `run.sh` are the existing ones, edited.
+
+Raw: `$J/step3_h2/` — `attempt2.nohup` (all three phases), `crash2.log`, `run2.log`, `base_mb.out`,
+`rm_mb.out`, `thr2b.nohup` plus `*_thr2b_{hog,stall}.out` and their `.srv.log`s,
+`remerge_fullbuild.log`, and the staged binaries `redis-h2base` / `redis-h2rm`.
 
 ---
 
