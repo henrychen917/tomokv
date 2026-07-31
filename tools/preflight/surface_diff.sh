@@ -494,8 +494,12 @@ validate_surface_dump() { # dir
         ''|0|*[!0-9]*) say "  INVALID COMMAND COUNT value '$count'"; return 1 ;;
     esac
     actual=$(wc -l <"$dst/commands.txt" | tr -d '[:space:]')
-    if [ "$count" != "$actual" ]; then
-        say "  INVALID COMMAND LIST has $actual names but COMMAND COUNT says $count"
+    # COMMAND COUNT is top-level command-table entries, while COMMAND LIST
+    # includes `parent|subcommand` names as separate rows. Therefore LIST is
+    # normally larger (275 vs 412 in this release); equality would reject the
+    # documented surface. A truncated LIST is still invalid.
+    if [ "$actual" -lt "$count" ]; then
+        say "  INVALID COMMAND LIST has only $actual names but COMMAND COUNT says $count top-level entries"
         return 1
     fi
     return 0
