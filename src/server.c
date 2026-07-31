@@ -16113,7 +16113,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
     dictEntry *des[WORKER_POP_BATCH];
 
     /* ee451 (v13): opt-prefetch-worker master knob RETIRED (hardwired on) — control is the
-     * adaptive DB-size gate below + per-stage widths (all 0 = no prefetch issues). */
+     * adaptive DB-size gate below. */
 
     /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
      * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
@@ -16129,8 +16129,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
     exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
     pfw->pf_batches++;                         /* L0: entries, denominator for gated/issued */
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
-     * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once).
-     * Full prefetch-off remains available via the stage widths (all 0). */
+     * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once). */
     {
         /* ee451 (v14): the L3-derived gate needs a 64-bit divide (8*L3/fp); fp tracks the slow-moving
          * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
@@ -16202,20 +16201,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
         }
     }
 
-    /* ee451 (gem5): per-stage prefetch widths. Each stage prefetches at most its
-     * configured window of the popped batch. The hash COMPUTE in pass 2 still runs
-     * for all n (it is functional, not prefetch). */
-    /* (v13) w1 replaced by per-stage widths w1a..w1d below */
-/* ee451 (2026-07-28): the per-stage width KNOBS (tomokv-pf-w-struct/-argv/-keyobj/-keybytes/
- * -hash/-entry) are RETIRED. Every one of them shipped in its AUTO arm (-1), whose semantics is
- * "prefetch distance = current batch occupancy n" — the textbook group-prefetch / software-
- * pipelining form, pure current-signal with no history, so a workload shift re-tunes on the very
- * next batch. That arm is hardwired below as TOMO_PF_GROUP_WIDTH. The STAGES ARE UNCHANGED and every
- * one still issues; only the operator-facing cap is gone. Because the width now always equals n
- * and j ranges over [0,n), each `j < wXX` test is a tautology the compiler folds away — that is
- * the retirement paying for itself, not a stage being removed. */
-#define TOMO_PF_GROUP_WIDTH (n)   /* width follows CURRENT batch occupancy; `n` must be in scope */
-    int w3 = TOMO_PF_GROUP_WIDTH;
+    /* The retired group-stage widths all resolved to the current batch occupancy, so these
+     * stages cover the entire popped batch. The hash COMPUTE still runs for all n (it is
+     * functional, not a prefetch), while VALUE retains its adaptive width below. */
 
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
@@ -16252,19 +16240,13 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * Stage set (superset of Redis's dict-only FSM — our operands cross a core
      * boundary, ifid-parse -> worker-exec, so the struct/argv/key links are cold too):
      *   STRUCT -> ARGV -> KEYOBJ -> KEYBYTES -> HASH -> ENTRY -> VALUE -> DONE
-     * gem5 per-stage widths gate each stage's PREFETCH (0 = stage issues nothing);
-     * the FUNCTIONAL work (SipHash + hash/dict/bucket stash, consumed by hash-carry,
-     * #3 nextop, and the predictors) always runs for all n regardless of widths.
+     * The group stages issue across the full batch; only the adaptive VALUE width can
+     * stop the entry-to-value chase early. The FUNCTIONAL work (SipHash +
+     * hash/dict/bucket stash, consumed by hash-carry, #3 nextop, and the predictors)
+     * always runs for all n.
      * pf-cmd stays deleted (command table is permanently L1-hot). */
     enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
     uint8_t st[WORKER_POP_BATCH];
-    /* ee451 (2026-07-28): pass-1 stage widths, all hardwired to the AUTO arm they shipped in
-     * (width = current batch occupancy n). Kept as named locals rather than folded away so the
-     * four stages stay individually visible in the FSM below. */
-    int w1a = TOMO_PF_GROUP_WIDTH;
-    int w1b = TOMO_PF_GROUP_WIDTH;
-    int w1c = TOMO_PF_GROUP_WIDTH;
-    int w1d = TOMO_PF_GROUP_WIDTH;
     for (int j = 0; j < n; j++) {
         st[j] = PFS_STRUCT;
         dts[j] = NULL;
@@ -16283,30 +16265,30 @@ static inline void exPrefetchBatch(client **batch, int n) {
             switch (st[j]) {
             case PFS_STRUCT:
                 st[j] = PFS_ARGV;
-                if (j < w1a) {
-                    redis_prefetch_read(fake);          /* ee451 metadata head line */
-                    redis_prefetch_read(&fake->argc);   /* exec-fields line (argv/argc/db) */
-                    issued = 1;
-                }
+                redis_prefetch_read(fake);          /* ee451 metadata head line */
+                redis_prefetch_read(&fake->argc);   /* exec-fields line (argv/argc/db) */
+                issued = 1;
                 break;
             case PFS_ARGV:
                 /* struct lines had a full rotation to land; cheap guards read them. */
                 if (fake->argc < 2 || !fake->argv || !fake->db) { st[j] = PFS_DONE; break; }
                 st[j] = PFS_KEYOBJ;
-                if (j < w1b) { redis_prefetch_read(fake->argv); issued = 1; }
+                redis_prefetch_read(fake->argv);
+                issued = 1;
                 break;
             case PFS_KEYOBJ: {
                 robj *k = fake->argv[1];                /* argv vector line warm */
                 if (!k) { st[j] = PFS_DONE; break; }
                 st[j] = PFS_KEYBYTES;
-                if (j < w1c) { redis_prefetch_read(k); issued = 1; }
+                redis_prefetch_read(k);
+                issued = 1;
                 break;
             }
             case PFS_KEYBYTES: {
                 robj *k = fake->argv[1];                /* robj header line warm */
                 st[j] = PFS_HASH;
                 /* embstr: key bytes share the robj line KEYOBJ already pulled. */
-                if (j < w1d && k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
+                if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
                     redis_prefetch_read(k->ptr);
                     issued = 1;
                 }
@@ -16334,14 +16316,12 @@ static inline void exPrefetchBatch(client **batch, int n) {
                  * write-heavy: pure-SET populate regressed ~35% with it on), optionally
                  * throttled by the #20 feedback / #21 reuse predictors. */
                 /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
-                 * the chase is gated by READONLY + stage widths only. */
+                 * the chase is gated by READONLY; VALUE remains adaptively capped. */
                 int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
-                if (chase && j < w3) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
+                if (chase) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
-                if (j < TOMO_PF_GROUP_WIDTH) {   /* tomokv-pf-w-hash RETIRED: hardwired AUTO (width = batch n) */
-                    redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
-                    issued = 1;
-                }
+                redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
+                issued = 1;
                 break;
             }
             case PFS_ENTRY: {
@@ -16368,10 +16348,6 @@ static inline void exPrefetchBatch(client **batch, int n) {
         if (st[j] == PFS_DONE) remaining--;
     }
 }
-/* Scoped to this function on purpose: it expands to the bare identifier `n`, so leaving it
- * defined would let a later function's own `n` silently capture it. The io-side prefetch work
- * will add functions to this file; the predecessor macro (PFW) leaked, this one does not. */
-#undef TOMO_PF_GROUP_WIDTH
 
 /* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
  * hyperthreading to yield pipeline slots to the sibling logical core,
