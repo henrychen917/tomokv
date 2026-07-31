@@ -2,10 +2,30 @@
 # CORRECTNESS SUITE — every ordering/boundary invariant this fork has actually broken at least once.
 # Runs inside preflight, BEFORE any comparison benchmark. Each check exists because a real bug got
 # past a weaker check; the comment on each says which.
+#
+# CASE exact-2m-seed
+#   OUT OF SPEC: bounded boot/seed/DBSIZE proof times out or exits nonzero, memtier Totals is
+#   missing/non-numeric/zero, or DBSIZE is not exactly 2,000,000 after seeding keys 1..2,000,000.
+# CASE ordering-under-load
+#   OUT OF SPEC: its canonical background generator does not materialize, the exact ordering probe
+#   times out/exits nonzero/checks zero replies, or any checked reply is stale.
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}; P=/shared/Projects
 PORT=7994
+KEY_MIN=1
+KEY_MAX=2000000
+VALUE_BYTES=32
+SEED_TIMEOUT=${TOMO_SEED_TIMEOUT:-300}
+BOOT_TIMEOUT=${TOMO_BOOT_TIMEOUT:-20}
+CLIENT_TIMEOUT=${TOMO_CLIENT_TIMEOUT:-15}
+DRIVER_TIMEOUT=${TOMO_DRIVER_TIMEOUT:-600}
+ORDER_TIMEOUT=${TOMO_ORDER_TIMEOUT:-120}
+LOAD_TIMEOUT=${TOMO_LOAD_TIMEOUT:-60}
+EXPECT_NODES=${TOMO_EXPECT_NODES:-1}
+EXPECT_IO=${TOMO_EXPECT_IO:-4}
+EXPECT_EX=${TOMO_EXPECT_EX:-4}
+EXPECT_MODE=${TOMO_EXPECT_MODE:-static}
 if [ -n "${TOMO_RESULT_FILE:-}" ]; then
   OUT=$TOMO_RESULT_FILE
   if ! (set -o noclobber; : > "$OUT") 2>/dev/null; then
@@ -27,15 +47,40 @@ mkdir -p "$DATA"
 
 CORR_PID=""
 MTPID=""
+CLIENT_PID=""
+reap_owned_group(){
+  local pid=${1:-} n=0
+  [ -n "$pid" ] || return 0
+  # Every group passed here was launched with setsid and its leader PID was captured at launch.
+  # Kill that owned group only; never select processes by command name or command line.
+  kill -TERM -- "-$pid" 2>/dev/null || kill -TERM -- "$pid" 2>/dev/null || true
+  while kill -0 "$pid" 2>/dev/null && [ "$n" -lt 30 ]; do
+    sleep 0.1
+    n=$((n+1))
+  done
+  kill -KILL -- "-$pid" 2>/dev/null || kill -KILL -- "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+}
+wait_owned_group(){
+  local pid=$1 rc
+  wait "$pid"
+  rc=$?
+  # timeout(1) can exit after killing its direct child while a descendant is still winding down.
+  # Sweep only the captured, private process group before forgetting its PID.
+  reap_owned_group "$pid"
+  return "$rc"
+}
 cleanup_correctness(){
   if [ -n "${MTPID:-}" ]; then
-    kill -9 "$MTPID" 2>/dev/null
-    wait "$MTPID" 2>/dev/null
+    reap_owned_group "$MTPID"
     MTPID=""
   fi
+  if [ -n "${CLIENT_PID:-}" ]; then
+    reap_owned_group "$CLIENT_PID"
+    CLIENT_PID=""
+  fi
   if [ -n "${CORR_PID:-}" ]; then
-    kill -9 "$CORR_PID" 2>/dev/null
-    wait "$CORR_PID" 2>/dev/null
+    reap_owned_group "$CORR_PID"
     CORR_PID=""
   fi
   # The per-run work dir is the price of not sharing a name with another session's run; the staged
@@ -58,13 +103,229 @@ if ! cp "$BIN" "$CB" 2>/dev/null || ! chmod +x "$CB" 2>/dev/null; then
   emit "RESULT: 0 passed, 1 failed"
   exit 1
 fi
-taskset -c 0-7 "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
+setsid taskset -c 0-7 "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 1 --tomokv-thread-io 4 \
+  --tomokv-thread-ex 4 --tomokv-thread-mode static --enable-debug-command local \
+  ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
   --logfile "$LOG" >"$WORK/server.launch.log" 2>&1 &
 CORR_PID=$!
-sleep 3
+
+# Bounded boot with process identity: a pre-existing listener on the fixed suite port must not be
+# mistaken for the staged candidate. A timeout or mismatched INFO process_id is a hard failure.
+BOOT_PROBE=$WORK/boot.probe
+setsid timeout --foreground --signal=TERM --kill-after=2 "${BOOT_TIMEOUT}s" \
+  python3 - "$PORT" "$CORR_PID" "$BOOT_TIMEOUT" >"$BOOT_PROBE" 2>&1 <<'PY' &
+import os, re, socket, sys, time
+port, wanted, limit = int(sys.argv[1]), int(sys.argv[2]), float(sys.argv[3])
+deadline = time.monotonic() + max(1.0, limit - 1.0)
+req = b"*2\r\n$4\r\nINFO\r\n$6\r\nserver\r\n"
+last = "not listening"
+while time.monotonic() < deadline:
+    try:
+        os.kill(wanted, 0)
+    except OSError:
+        print("captured server PID exited before readiness")
+        raise SystemExit(1)
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=.75) as s:
+            s.settimeout(.75)
+            s.sendall(req)
+            data = b""
+            while b"\r\nprocess_id:" not in data and len(data) < (1 << 20):
+                chunk = s.recv(65536)
+                if not chunk:
+                    break
+                data += chunk
+            m = re.search(rb"(?:^|\r\n)process_id:(\d+)\r\n", data)
+            if m:
+                actual = int(m.group(1))
+                if actual != wanted:
+                    print(f"port owned by pid={actual}, captured pid={wanted}")
+                    raise SystemExit(1)
+                print(f"READY process_id={actual}")
+                raise SystemExit(0)
+            last = "INFO server omitted process_id"
+    except (ConnectionError, OSError, socket.timeout) as e:
+        last = f"{type(e).__name__}: {e}"
+    time.sleep(.1)
+print(f"readiness deadline expired: {last}")
+raise SystemExit(1)
+PY
+CLIENT_PID=$!
+wait_owned_group "$CLIENT_PID"
+BOOT_RC=$?
+CLIENT_PID=""
+if [ "$BOOT_RC" -ne 0 ]; then
+  emit "boot	FAIL	bounded readiness failed rc=$BOOT_RC: $(tr '\n' ' ' <"$BOOT_PROBE")"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+
+# Prove the labeled matrix row, rather than merely proving that some server
+# answered. CONFIG establishes the immutable requested shape and DEBUG proves
+# every live role slot exactly once at the initial split.
+TOPOLOGY_OUT=$WORK/topology.proof
+setsid timeout --foreground --signal=TERM --kill-after=2 "${CLIENT_TIMEOUT}s" \
+  python3 - "$PORT" "$EXPECT_NODES" "$EXPECT_IO" "$EXPECT_EX" "$EXPECT_MODE" \
+  >"$TOPOLOGY_OUT" 2>&1 <<'PY' &
+import re, socket, sys
+port, nodes, io, ex = map(int, sys.argv[1:5])
+mode = sys.argv[5]
+
+def request(*args):
+    out = f"*{len(args)}\r\n".encode()
+    for arg in args:
+        value = str(arg).encode()
+        out += b"$%d\r\n%s\r\n" % (len(value), value)
+    return out
+
+def read_resp(stream):
+    kind = stream.read(1)
+    if not kind:
+        raise RuntimeError("EOF")
+    line = stream.readline()
+    if not line.endswith(b"\r\n"):
+        raise RuntimeError("truncated RESP line")
+    body = line[:-2]
+    if kind == b"+":
+        return body
+    if kind == b"-":
+        raise RuntimeError(f"server error: {body!r}")
+    if kind == b":":
+        return int(body)
+    if kind == b"$":
+        length = int(body)
+        if length < 0:
+            return None
+        value = stream.read(length)
+        if len(value) != length or stream.read(2) != b"\r\n":
+            raise RuntimeError("truncated bulk")
+        return value
+    if kind == b"*":
+        return [read_resp(stream) for _ in range(int(body))]
+    raise RuntimeError(f"unsupported RESP type {kind!r}")
+
+with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
+    sock.settimeout(5)
+    stream = sock.makefile("rb")
+    def command(*args):
+        sock.sendall(request(*args))
+        return read_resp(stream)
+    values = {}
+    for key in (
+        "tomokv-nodes", "tomokv-thread-io", "tomokv-thread-ex",
+        "tomokv-thread-mode",
+    ):
+        reply = command("CONFIG", "GET", key)
+        if not isinstance(reply, list) or len(reply) != 2:
+            raise RuntimeError(f"CONFIG GET {key} malformed: {reply!r}")
+        values[key] = reply[1].decode()
+    roles_reply = command("DEBUG", "TOMO-IOLOAD")
+
+expected = {
+    "tomokv-nodes": str(nodes),
+    "tomokv-thread-io": str(1 if mode == "auto" and nodes == 1 else io),
+    "tomokv-thread-ex": str(
+        io + ex - 1 if mode == "auto" and nodes == 1 else ex
+    ),
+    "tomokv-thread-mode": mode,
+}
+if values != expected:
+    raise RuntimeError(f"CONFIG shape {values!r}, expected {expected!r}")
+if not isinstance(roles_reply, bytes):
+    raise RuntimeError(f"DEBUG TOMO-IOLOAD malformed: {roles_reply!r}")
+seen = {}
+for line in roles_reply.decode().splitlines():
+    match = re.fullmatch(
+        r"io_slot ([0-9]+) mode=(IO|EX) conns=[0-9]+ busy=.*", line
+    )
+    if not match:
+        continue
+    slot = int(match.group(1))
+    if slot in seen:
+        raise RuntimeError(f"duplicate role slot {slot}")
+    seen[slot] = match.group(2)
+expected_io, expected_ex = nodes * io, nodes * ex
+expected_slots = set(range(expected_io + expected_ex))
+if set(seen) != expected_slots:
+    raise RuntimeError(
+        f"role slots {sorted(seen)}, expected {sorted(expected_slots)}"
+    )
+actual_io = sum(value == "IO" for value in seen.values())
+actual_ex = sum(value == "EX" for value in seen.values())
+if (actual_io, actual_ex) != (expected_io, expected_ex):
+    raise RuntimeError(
+        f"roles={actual_io}/{actual_ex}, expected={expected_io}/{expected_ex}"
+    )
+print(
+    f"nodes={nodes} per-node={io}/{ex} mode={mode} "
+    f"roles={actual_io}/{actual_ex} unique-slots={len(seen)}"
+)
+PY
+CLIENT_PID=$!
+wait_owned_group "$CLIENT_PID"
+TOPOLOGY_RC=$?
+CLIENT_PID=""
+if [ "$TOPOLOGY_RC" -ne 0 ]; then
+  emit "topology-proof	FAIL	rc=$TOPOLOGY_RC $(tr '\n' ' ' <"$TOPOLOGY_OUT")"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+emit "topology-proof	PASS	$(tr '\n' ' ' <"$TOPOLOGY_OUT")"
+
+# Acceptance prerequisite: materialize exactly the canonical 1..2,000,000 key range before any
+# functional checks. A successful memtier exit without a positive Totals rate is still a non-run.
+SEEDLOG=$WORK/exact-2m-seed.memtier
+setsid timeout --foreground --signal=TERM --kill-after=5 "${SEED_TIMEOUT}s" \
+  taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  --ratio=1:0 --key-pattern=P:P --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" \
+  -n allkeys -d "$VALUE_BYTES" -t 8 -c 25 --pipeline 32 --distinct-client-seed \
+  --connection-timeout=5 --connection-stage-timeout=15 >"$SEEDLOG" 2>&1 &
+MTPID=$!
+wait_owned_group "$MTPID"
+SEED_RC=$?
+MTPID=""
+SEED_OPS=$(awk '$1=="Totals"{v=$2} END{print v}' "$SEEDLOG" 2>/dev/null)
+if [ "$SEED_RC" -ne 0 ] || ! valid_total "${SEED_OPS:-}"; then
+  emit "exact-2m-seed	FAIL	generator rc=$SEED_RC Totals=${SEED_OPS:-empty} (timeout rc=124)"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+
+# DBSIZE is read through a separately bounded exact RESP parser. This proves the parallel pattern
+# did not silently omit or duplicate part of the requested numeric range.
+DBSIZE_OUT=$WORK/exact-2m-seed.dbsize
+DBSIZE_ERR=$WORK/exact-2m-seed.dbsize.err
+setsid timeout --foreground --signal=TERM --kill-after=2 "${CLIENT_TIMEOUT}s" \
+  python3 - "$PORT" >"$DBSIZE_OUT" 2>"$DBSIZE_ERR" <<'PY' &
+import socket, sys
+with socket.create_connection(("127.0.0.1", int(sys.argv[1])), timeout=5) as s:
+    s.settimeout(5)
+    s.sendall(b"*1\r\n$6\r\nDBSIZE\r\n")
+    data = b""
+    while not data.endswith(b"\r\n") and len(data) < 128:
+        chunk = s.recv(128)
+        if not chunk:
+            break
+        data += chunk
+if not data.startswith(b":") or not data.endswith(b"\r\n"):
+    raise SystemExit(f"invalid DBSIZE reply: {data!r}")
+print(int(data[1:-2]))
+PY
+CLIENT_PID=$!
+wait_owned_group "$CLIENT_PID"
+DBSIZE_RC=$?
+CLIENT_PID=""
+DBSIZE=$(tr -d '\r\n' <"$DBSIZE_OUT")
+if [ "$DBSIZE_RC" -ne 0 ] || [ "$DBSIZE" != "$KEY_MAX" ]; then
+  emit "exact-2m-seed	FAIL	DBSIZE=${DBSIZE:-empty} expected=$KEY_MAX rc=$DBSIZE_RC $(tr '\n' ' ' <"$DBSIZE_ERR")"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+emit "exact-2m-seed	PASS	keys=$KEY_MIN..$KEY_MAX dbsize=$DBSIZE value_bytes=$VALUE_BYTES load_ops=$SEED_OPS"
+
 PY_RC=0
-python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' || PY_RC=$?
+setsid timeout --foreground --signal=TERM --kill-after=5 "${DRIVER_TIMEOUT}s" \
+taskset -c 8-15 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' &
 import socket, sys, random, struct
 out, port, smoke = sys.argv[1], int(sys.argv[2]), sys.argv[3]=="1"
 R = (lambda n: max(1, n//5)) if smoke else (lambda n: n)
@@ -98,9 +359,18 @@ rd(lambda d: d.count(b"+OK")>=2*N)
 s.sendall(b"".join(cmd("SET",f"bk:{i}","NEW")+cmd("MGET",f"ak:{i}",f"bk:{i}") for i in range(N)))
 d=rd(lambda d: d.count(b"*2\r\n")>=N)
 import re
-stale=sum(1 for p in d.split(b"+OK\r\n")[1:]
-          if (m:=re.match(rb"\*2\r\n\$1\r\nA\r\n\$\d+\r\n([A-Z]+)\r\n",p)) and m.group(1)!=b"NEW")
-rec("pipeline-ordering-nonfirst-key", stale==0, f"stale={stale}/{N}")
+matched=stale=0
+for p in d.split(b"+OK\r\n")[1:]:
+    m=re.match(rb"\*2\r\n\$1\r\nA\r\n\$\d+\r\n([A-Z]+)\r\n",p)
+    if m:
+        matched += 1
+        if m.group(1) != b"NEW":
+            stale += 1
+rec(
+    "pipeline-ordering-nonfirst-key",
+    matched == N and stale == 0,
+    f"matched={matched}/{N},stale={stale}",
+)
 
 # 2. M-COMMAND ARITY ACROSS SUB-WAVE BOUNDARIES (sub-wave staging advanced base by the full wave
 #    while capping nw at the sub-wave => MGET(10) emitted an 8-element body under a 10-element
@@ -401,27 +671,110 @@ rows="".join(f"{n}\t{v}\t{d}\n" for n,v,d in res)
 open(out,"a").write(rows)
 print(rows, end="")
 PY
+CLIENT_PID=$!
+wait_owned_group "$CLIENT_PID"
+PY_RC=$?
+CLIENT_PID=""
 # STRESS-ORDERING: re-run the ordering check WHILE the server is under churn — the P0 stale-read
 # bug was load-dependent, so a quiescent check alone is not sufficient evidence.
 if [ "$PY_RC" -ne 0 ]; then
   emit "correctness-driver	FAIL	exited $PY_RC before all checks completed"
-  emit "ordering-under-load	SKIP	main correctness run did not complete"
+  emit "ordering-under-load	FAIL	main correctness run did not complete"
 else
   MTLOG=$WORK/ordering-load.memtier
-  taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --test-time=25 --ratio=1:1 \
-    -d 64 --key-pattern=R:R --key-maximum=200000 -t 4 -c 10 --pipeline 16 --distinct-client-seed >"$MTLOG" 2>&1 &
+  setsid timeout --foreground --signal=TERM --kill-after=5 "${LOAD_TIMEOUT}s" \
+    taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    --test-time=25 --ratio=1:1 -d "$VALUE_BYTES" --key-pattern=R:R \
+    --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" -t 8 -c 25 --pipeline 16 \
+    --distinct-client-seed --connection-timeout=5 --connection-stage-timeout=15 \
+    >"$MTLOG" 2>&1 &
   MTPID=$!
-  ORD_OUT=$(TOMO_BIN="$BIN" LBL="under-load" EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE=$PORT \
-    "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh 2>&1)
-  ORD_RC=$?
-  wait "$MTPID" 2>/dev/null
+  LOAD_OVERLAP=0
+  MT_STATE=
+  ORD_FILE=$WORK/ordering-under-load.out
+  LOAD_READY_FILE=$WORK/ordering-load.ready
+  setsid timeout --foreground --signal=TERM --kill-after=2 15s \
+    taskset -c 8-15 python3 - "$PORT" >"$LOAD_READY_FILE" 2>&1 <<'PY' &
+import socket, sys, time
+port = int(sys.argv[1])
+
+def info_sample():
+    with socket.create_connection(("127.0.0.1", port), timeout=2) as sock:
+        sock.settimeout(2)
+        sock.sendall(b"*1\r\n$4\r\nINFO\r\n")
+        stream = sock.makefile("rb")
+        if stream.read(1) != b"$":
+            raise RuntimeError("INFO did not return bulk")
+        length = int(stream.readline()[:-2])
+        payload = stream.read(length)
+        if len(payload) != length or stream.read(2) != b"\r\n":
+            raise RuntimeError("truncated INFO")
+    fields = {}
+    for line in payload.splitlines():
+        if b":" in line and not line.startswith(b"#"):
+            key, value = line.split(b":", 1)
+            fields[key] = value
+    return int(fields[b"connected_clients"]), int(
+        fields[b"total_commands_processed"]
+    )
+
+deadline = time.monotonic() + 12
+previous = None
+while time.monotonic() < deadline:
+    connected, commands = info_sample()
+    if previous is not None and connected >= 20 and commands - previous >= 100:
+        print(
+            f"connected_clients={connected} "
+            f"commands_delta={commands - previous}"
+        )
+        raise SystemExit(0)
+    previous = commands
+    time.sleep(.2)
+raise SystemExit("memtier did not establish active concurrent command flow")
+PY
+  CLIENT_PID=$!
+  wait_owned_group "$CLIENT_PID"
+  LOAD_READY_RC=$?
+  CLIENT_PID=""
+  if [ "$LOAD_READY_RC" -eq 0 ] && ! kill -0 "$MTPID" 2>/dev/null; then
+    LOAD_READY_RC=1
+    printf '%s\n' "generator exited before ordering probe launch" >>"$LOAD_READY_FILE"
+  fi
+  if [ "$LOAD_READY_RC" -eq 0 ]; then
+    setsid timeout --foreground --signal=TERM --kill-after=5 "${ORDER_TIMEOUT}s" \
+      taskset -c 8-15 env TOMO_BIN="$BIN" LBL="under-load" \
+      EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE="$PORT" \
+      "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh >"$ORD_FILE" 2>&1 &
+    CLIENT_PID=$!
+    wait_owned_group "$CLIENT_PID"
+    ORD_RC=$?
+    CLIENT_PID=""
+    ORD_OUT=$(tr '\n' ' ' <"$ORD_FILE")
+    MT_STATE=$(ps -o stat= -p "$MTPID" 2>/dev/null | tr -d '[:space:]')
+    if [ -n "$MT_STATE" ] && [[ "$MT_STATE" != *Z* ]]; then
+      LOAD_OVERLAP=1
+    else
+      printf '%s\n' \
+        "generator was not live when ordering probe completed (state=${MT_STATE:-missing})" \
+        >>"$LOAD_READY_FILE"
+    fi
+  else
+    ORD_RC=125
+    ORD_OUT="load readiness failed: $(tr '\n' ' ' <"$LOAD_READY_FILE")"
+  fi
+  wait_owned_group "$MTPID"
   MT_RC=$?
   MTPID=""
-  MT_OPS=$(awk '/^Totals/{print $2; exit}' "$MTLOG" 2>/dev/null)
-  if [ "$MT_RC" -ne 0 ] || ! valid_total "${MT_OPS:-}"; then
-      emit "ordering-under-load	SKIP	load did not materialize (memtier exit=$MT_RC, Totals=${MT_OPS:-empty})"
+  MT_OPS=$(awk '$1=="Totals"{v=$2} END{print v}' "$MTLOG" 2>/dev/null)
+  if [ "$LOAD_READY_RC" -ne 0 ]; then
+      emit "ordering-under-load	FAIL	$ORD_OUT"
+  elif [ "$LOAD_OVERLAP" -ne 1 ]; then
+      emit "ordering-under-load	FAIL	ordering probe outlived concurrent generator: $(tr '\n' ' ' <"$LOAD_READY_FILE")"
+  elif [ "$MT_RC" -ne 0 ] || ! valid_total "${MT_OPS:-}"; then
+      emit "ordering-under-load	FAIL	load did not materialize (memtier exit=$MT_RC, Totals=${MT_OPS:-empty}; timeout rc=124)"
   else
-      if [ "$ORD_RC" -eq 0 ] && printf '%s\n' "$ORD_OUT" | grep -qE 'checked=[1-9][0-9]* stale=0'; then
+      if [ "$ORD_RC" -eq 0 ] &&
+         printf '%s\n' "$ORD_OUT" | grep -qE 'checked=6000 stale=0 => PASS'; then
         emit "ordering-under-load	PASS	$ORD_OUT load_ops=$MT_OPS"
       elif [ "$ORD_RC" -ne 0 ]; then
         emit "ordering-under-load	FAIL	probe exited $ORD_RC: $ORD_OUT"
@@ -431,14 +784,16 @@ else
   fi
 fi
 
-CRASHES=$(grep -cE 'Guru|crashed by signal|ASSERTION' "$LOG" 2>/dev/null) || true
+CRASHES=$(grep -Eic \
+  'serverAssert|ASSERTION FAILED|(^|[^[:alpha:]])assert(ion|ed)?([^[:alpha:]]|$)|(^|[^[:alpha:]])panic([^[:alpha:]]|$)|(^|[^[:alpha:]])fatal([^[:alpha:]]|$)|[[:alpha:]]+Sanitizer|Sanitizer:|runtime error:|Guru Meditation|REDIS BUG REPORT|crashed by signal|segmentation fault|Aborted \(core dumped\)|core dumped|SIG(SEGV|ABRT|BUS|ILL)' \
+  "$LOG" 2>/dev/null) || true
 CRASHES=${CRASHES:-0}
 if [ "$CRASHES" -gt 0 ]; then
   emit "crash-markers	FAIL	$CRASHES"
 elif [ "$PY_RC" -eq 0 ]; then
   emit "crash-markers	PASS	0"
 else
-  emit "crash-markers	SKIP	main correctness run did not complete"
+  emit "crash-markers	FAIL	main correctness run did not complete"
 fi
 
 cleanup_correctness
