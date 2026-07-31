@@ -14,10 +14,13 @@
 #   OUT OF SPEC: either dump is invalid/empty, or any name was added/removed.
 #
 # CASE SD-BOOT-{DICT-STATIC,FLAT-STATIC,DICT-AUTO,FLAT-AUTO,TWONODE}
-#   PASS: candidate starts in the shape, the listening PID is the PID launched
-#   here, and SET followed by GET returns the exact value.
+#   PASS: candidate CONFIG reports the documented effective allocation/mode
+#   (auto single-node pools provision as 1 IO + pool-1 EX), DEBUG TOMO-IOLOAD
+#   reports the requested initial live split with unique slots, the listening
+#   PID is the PID launched here, and SET/GET is exact.
 #   OUT OF SPEC: bind/start timeout, early exit, foreign-port response, client
-#   timeout/error, or a wrong/missing GET value.
+#   timeout/error, ignored/misreported topology, duplicate/missing role slots,
+#   or a wrong/missing GET value.
 #
 # CASE SD-CONFIG-{BASE,CANDIDATE}-{REDIS,REDIS-FULL}
 #   PASS: the exact shipped file parses and boots (operational values such as
@@ -84,6 +87,23 @@ compare_surface_file() { # label left right diff-file
     return 1
 }
 
+role_shape_class() { # debug-file expected-io expected-ex
+    local file=$1 expected_io=$2 expected_ex=$3
+    awk -v expected_io="$expected_io" -v expected_ex="$expected_ex" '
+        /^io_slot [0-9]+ mode=(IO|EX) conns=[0-9]+ busy=/ {
+            slot = $2 + 0
+            if (slot < 0 || seen[slot]++) bad = 1
+            if ($3 == "mode=IO") io++
+            else if ($3 == "mode=EX") ex++
+        }
+        END {
+            total = expected_io + expected_ex
+            for (slot=0; slot<total; slot++) if (!seen[slot]) bad = 1
+            if (bad || io != expected_io || ex != expected_ex) print "FAIL"
+            else print "PASS"
+        }' "$file"
+}
+
 selftest() {
     local tmp f bad=0
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/surface-diff-selftest.XXXXXX") || {
@@ -115,10 +135,25 @@ selftest() {
     if compare_surface_file "debug/empty" "$tmp/a/debug.txt" "$tmp/b/debug.txt" "$tmp/empty.diff"; then
         bad=1
     fi
+    printf '%s\n' \
+        'io_slot 0 mode=IO conns=1 busy=1' \
+        'io_slot 1 mode=IO conns=1 busy=1' \
+        'io_slot 2 mode=EX conns=0 busy=0' \
+        'io_slot 3 mode=EX conns=0 busy=0' >"$tmp/roles"
+    if [ "$(role_shape_class "$tmp/roles" 2 2)" != PASS ]; then
+        bad=1
+    fi
+    sed 's/^io_slot 3 /io_slot 2 /' "$tmp/roles" >"$tmp/roles.duplicate"
+    if [ "$(role_shape_class "$tmp/roles.duplicate" 2 2)" != FAIL ]; then
+        bad=1
+    fi
+    if [ "$(role_shape_class "$tmp/roles" 3 1)" != FAIL ]; then
+        bad=1
+    fi
 
     SILENT=0
     if [ "$bad" = 0 ]; then
-        printf 'PASS SD-SELFTEST additions and nonempty removals in all five surfaces, plus an empty dump, were rejected\n'
+        printf 'PASS SD-SELFTEST surface additions/removals/empty dumps and duplicate/wrong role shapes were rejected\n'
     else
         printf 'FAIL SD-SELFTEST comparator accepted at least one injected defect; details=%s\n' "$REPORT"
     fi
@@ -328,7 +363,12 @@ boot_server() { # binary log cwd [config-or-options...]
         pong=$(cli_cmd PING 2>/dev/null || true)
         if [ "$(printf '%s' "$pong" | tr -d '\r')" = PONG ]; then
             if assert_active_server; then
-                return 0
+                if [ -s "$log" ]; then
+                    return 0
+                fi
+                say "  server reached readiness but retained an empty server log"
+                stop_server
+                return 1
             fi
             say "  PING answered but INFO process_id was not our child PID=$ACTIVE_PID"
             stop_server
@@ -535,9 +575,17 @@ else
     say "  surface comparisons not attempted because at least one dump was invalid"
 fi
 
-try_shape() { # label options...
-    local label=$1 log value set_reply detail
-    shift
+config_value() { # config-key
+    local raw
+    raw=$(cli_cmd CONFIG GET "$1") || return $?
+    printf '%s\n' "$raw" | tr -d '\r' | sed -n '2p'
+}
+
+try_shape() { # label nodes io-per-node ex-per-node mode options...
+    local label=$1 nodes=$2 io=$3 ex=$4 mode=$5
+    local log value set_reply detail got_nodes got_io got_ex got_mode
+    local roles expected_io expected_ex config_io=$io config_ex=$ex shape_ok=1
+    shift 5
     log=$OUT/boot_$label.log
     if ! boot_server "$B_BIN" "$log" "$TREE_ROOT" "$@"; then
         detail=$(boot_failure_tail "$log")
@@ -545,23 +593,57 @@ try_shape() { # label options...
         stop_server
         return
     fi
+    got_nodes=$(config_value tomokv-nodes 2>/dev/null || true)
+    got_io=$(config_value tomokv-thread-io 2>/dev/null || true)
+    got_ex=$(config_value tomokv-thread-ex 2>/dev/null || true)
+    got_mode=$(config_value tomokv-thread-mode 2>/dev/null || true)
+    roles=$OUT/boot_$label.roles
+    if ! cli_cmd DEBUG TOMO-IOLOAD >"$roles" 2>"$roles.err"; then
+        shape_ok=0
+        detail="DEBUG TOMO-IOLOAD failed/timed out"
+    fi
+    expected_io=$((nodes * io))
+    expected_ex=$((nodes * ex))
+    if [ "$mode" = auto ] && [ "$nodes" -eq 1 ]; then
+        config_io=1
+        config_ex=$((io + ex - 1))
+    fi
+    if [ "$got_nodes" != "$nodes" ] || [ "$got_io" != "$config_io" ] ||
+       [ "$got_ex" != "$config_ex" ] || [ "$got_mode" != "$mode" ]; then
+        shape_ok=0
+        detail="CONFIG effective shape nodes=$got_nodes io=$got_io ex=$got_ex mode=$got_mode expected=$nodes/$config_io/$config_ex/$mode"
+    elif [ "$shape_ok" = 1 ] &&
+         [ "$(role_shape_class "$roles" "$expected_io" "$expected_ex")" != PASS ]; then
+        shape_ok=0
+        detail="DEBUG roles were not $expected_io IO/$expected_ex EX unique slots"
+    fi
     set_reply=$(cli_cmd SET "surface:$label" "value:$label" 2>&1 || true)
     value=$(cli_cmd GET "surface:$label" 2>&1 || true)
-    if [ "$(printf '%s' "$set_reply" | tr -d '\r')" = OK ] &&
+    if [ "$shape_ok" = 1 ] &&
+       [ "$(printf '%s' "$set_reply" | tr -d '\r')" = OK ] &&
        [ "$(printf '%s' "$value" | tr -d '\r')" = "value:$label" ]; then
-        case_result PASS "SD-BOOT-$label" "owned PID answered exact SET/GET"
+        case_result PASS "SD-BOOT-$label" \
+            "requested=$nodes nodes x $io IO/$ex EX mode=$mode effective-config=$nodes/$config_io/$config_ex/$mode roles=$expected_io/$expected_ex; owned PID answered exact SET/GET"
     else
-        case_result FAIL "SD-BOOT-$label" "SET/GET mismatch SET='$set_reply' GET='$value'"
+        case_result FAIL "SD-BOOT-$label" \
+            "${detail:-SET/GET mismatch} SET='$set_reply' GET='$value'"
     fi
     stop_server
 }
 
 say "=== five-shape candidate boot matrix ==="
-try_shape DICT-STATIC --tomokv-nodes 1 --tomokv-thread-io 7 --tomokv-thread-ex 1 --tomokv-thread-mode static
-try_shape FLAT-STATIC --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static
-try_shape FLAT-AUTO --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto
-try_shape DICT-AUTO --tomokv-nodes 1 --tomokv-thread-io 7 --tomokv-thread-ex 1 --tomokv-thread-mode auto
-try_shape TWONODE --tomokv-nodes 2 --tomokv-thread-io 2 --tomokv-thread-ex 2 --tomokv-thread-mode static
+try_shape DICT-STATIC 1 7 1 static \
+    --tomokv-nodes 1 --tomokv-thread-io 7 --tomokv-thread-ex 1 --tomokv-thread-mode static
+try_shape FLAT-STATIC 1 4 4 static \
+    --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static
+try_shape FLAT-AUTO 1 4 4 auto \
+    --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto
+# Auto 7/1 symmetrically provisions the whole 8-slot pool and therefore uses
+# FLAT. A genuine DICT auto shape is the mechanically non-convertible 1/1 pool.
+try_shape DICT-AUTO 1 1 1 auto \
+    --tomokv-nodes 1 --tomokv-thread-io 1 --tomokv-thread-ex 1 --tomokv-thread-mode auto
+try_shape TWONODE 2 2 2 static \
+    --tomokv-nodes 2 --tomokv-thread-io 2 --tomokv-thread-ex 2 --tomokv-thread-mode static
 
 if [ -n "${SURFACE_CONFIG_ROOT:-}" ]; then
     CONFIG_ROOT=$SURFACE_CONFIG_ROOT
