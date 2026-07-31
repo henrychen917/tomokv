@@ -16367,6 +16367,8 @@ typedef enum exSliceIdlePolicy {
     EX_SLICE_IDLE_RETURN
 } exSliceIdlePolicy;
 
+#define TOMO_DORMANT_EX_PROBE_PASSES 128
+
 /* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state at
  * thread-start timing (num_cdb and io_threads are both immutable after startup). */
 static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
@@ -17540,6 +17542,8 @@ void *polyThreadMain(void *arg) {
     exSliceCtx exctx;
     int ex_inited = 0;         /* one-time EX setup done (send ring / NUMA bind / slice ctx) */
     int dormant_ex_followup = 0; /* work pass requires one empty pass to clear qdepth exactly */
+    unsigned int dormant_ex_probe_passes = 0; /* amortize empty probes while IO stays busy */
+    int io_events;
     int refused = 0;           /* last refused target (0 = none; 0 is not a mode), to log once */
     {   /* DEBUG TOMO-JESTATS: one registration per OS thread (identity may change mode later;
          * the jemalloc counters are per-thread, so the name is the birth identity pair). */
@@ -17747,23 +17751,41 @@ void *polyThreadMain(void *arg) {
             /* review [13]: a converted worker's EX queues can still receive a STRAGGLER sub — an
              * IO thread that snapshotted the live set, stalled past the grow-front 50ms
              * quiet-drain, and pushed (KEYS fan / flush sentinel). Unconsumed, it would hang the
-             * group barrier forever. Probe the dormant binding before each IO pass and run the
-             * complete EX safety slice only when a queue/freeback/reclaim source is nonempty.
-             * A work-bearing slice is followed by one forced empty slice so the controller qdepth
-             * signal is cleared exactly. Stragglers still execute against the empty-range shard
-             * correctly; the common no-work path avoids flat-section fences and worker bookkeeping.
-             * The following IO wait is capped for this converted role so a producer publishing
-             * immediately after the probe is serviced within a bounded interval. */
+             * group barrier forever. Probe the dormant binding periodically during busy IO and
+             * after every idle wait, and run the complete EX safety slice only when a
+             * queue/freeback/reclaim source is nonempty. A work-bearing slice is followed by one
+             * forced empty slice so the controller qdepth signal is cleared exactly. Stragglers
+             * still execute against the empty-range shard correctly; the common no-work path
+             * avoids flat-section fences and worker bookkeeping. The following IO wait is capped
+             * for this converted role so a producer publishing immediately after the probe is
+             * serviced after at most one idle timeout or 128 non-idle IO passes. */
             /* An EX-bound thread born in IO has not owned buckets or accepted
              * routed work yet, so its dormant binding is quiescent until its
              * first EX adoption initializes exctx.  Once it has served EX,
              * keep draining late fan-out/freeback stragglers while in IO. */
             if (ctx->ex && ex_inited &&
-                (dormant_ex_followup ||
-                 exDormantSliceNeeded(ctx->ex, &exctx)))
-                dormant_ex_followup =
-                    exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
-            ioSlice(ctx->io, (ctx->ex && ex_inited) ? 1000 : -1);
+                (dormant_ex_followup || dormant_ex_probe_passes == 0)) {
+                if (dormant_ex_followup ||
+                    exDormantSliceNeeded(ctx->ex, &exctx))
+                    dormant_ex_followup =
+                        exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
+                dormant_ex_probe_passes = TOMO_DORMANT_EX_PROBE_PASSES;
+            }
+            io_events =
+                ioSlice(ctx->io, (ctx->ex && ex_inited) ? 1000 : -1);
+            if (ctx->ex && ex_inited) {
+                /* A true idle timeout forces a probe on the next pass,
+                 * preserving the 1 ms wall-clock bound when no activity can
+                 * advance the busy-pass countdown. A zero-fd poll with worker
+                 * replies still in flight is a productive drain pass, not
+                 * idleness; count it with non-idle IO so pipeline
+                 * workloads do not collapse back to an all-ring scan on every
+                 * pass. Follow-up EX work still drains immediately. */
+                if (io_events == 0 && replyWorking == 0)
+                    dormant_ex_probe_passes = 0;
+                else if (dormant_ex_probe_passes > 0)
+                    dormant_ex_probe_passes--;
+            }
             break;
         case TOMO_MODE_EX:
             exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF);
