@@ -8920,7 +8920,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
     g->subs = csgAlloc(g, sizeof(client*) * nsub);
-    if (spec->posmap) *spec->posmap = csgCalloc(g, sizeof(int*) * nsub);
+    if (spec->posmap) { *spec->posmap = csgCalloc(g, sizeof(int*) * nsub); g->posmap_nsub = nsub; }
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
     client *wsub[TOMO_EX_THREADS_MAX + 1];         /* worker -> its sub (NULL if none) */
@@ -10106,8 +10106,9 @@ static int csLaunchHop2(csGroup *g) {
     csgFree(g, g->subs); g->subs = NULL;
     /* posmaps are sized by the HOP1 sub count — free them NOW, before nsub is repurposed for
      * the HOP2 plan (the generic teardown would walk them with the wrong bound => leak). */
-    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); g->setop_pos = NULL; }
-    if (g->mget_pos)  { for (int i = 0; i < g->nsub; i++) csgFree(g, g->mget_pos[i]);  csgFree(g, g->mget_pos);  g->mget_pos  = NULL; }
+    if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); g->setop_pos = NULL; }
+    if (g->mget_pos)  { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);  csgFree(g, g->mget_pos);  g->mget_pos  = NULL; }
+    g->posmap_nsub = 0;
 
     if (g->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
@@ -10490,14 +10491,14 @@ static void csReassemble(client *dst, client *head) {
         }
         csgFree(g, g->setmem); csgFree(g, g->setcnt); csgFree(g, g->zscore);
     }
-    if (g->setop_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
+    if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
      * (MGET + the step-7 string-image gathers BITOP/PFCOUNT/PFMERGE all use these slots.) */
     if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
-        if (g->mget_pos) { for (int i = 0; i < g->nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
+        if (g->mget_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
     }
     /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
      * probe-report lanes (zfree(NULL) is a no-op). */

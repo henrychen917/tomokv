@@ -2014,6 +2014,12 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
+    int  posmap_nsub;          /* ROW COUNT of mget_pos/setop_pos, captured when they were built.
+                                * NOT g->nsub: nsub is repurposed by every later pipeline stage
+                                * (HOP2 plan, per-key fan-out, SIZES->apply), so freeing a posmap
+                                * with the CURRENT nsub under-frees (leak) or over-walks (OOB).
+                                * Only one build's posmaps are live at a time -- the HOP1 teardown
+                                * frees and NULLs both before HOP2 rebuilds. */
     /* cs_node_lock DELETED 2026-07-27 with the node-local borrow: CS_LOCAL is now always a
      * single-OWNER localfast (all keys on one worker), so its sub needs only that worker's lock. */
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
