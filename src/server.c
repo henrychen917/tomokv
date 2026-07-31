@@ -16362,6 +16362,11 @@ typedef struct exSliceCtx {
     client *batch[WORKER_POP_BATCH];
 } exSliceCtx;
 
+typedef enum exSliceIdlePolicy {
+    EX_SLICE_IDLE_BACKOFF,
+    EX_SLICE_IDLE_RETURN
+} exSliceIdlePolicy;
+
 /* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state at
  * thread-start timing (num_cdb and io_threads are both immutable after startup). */
 static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
@@ -16382,7 +16387,8 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
  * any work, 0 for an idle pass. */
-static int exSlice(exThread *worker, exSliceCtx *ctx) {
+static int exSlice(exThread *worker, exSliceCtx *ctx,
+                   exSliceIdlePolicy idle_policy) {
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
      * back after sending — done here on the worker so the shard's value
      * refcounts are only ever mutated by this thread. */
@@ -16744,6 +16750,16 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
             ctx->spin_budget += ctx->spin_budget >> 1;
             if (ctx->spin_budget > 256) ctx->spin_budget = 256;
         }
+        ctx->empty_rounds = 0;
+    } else if (idle_policy == EX_SLICE_IDLE_RETURN) {
+        /* This EX binding is dormant while its thread serves IO. Keep the
+         * complete scan above for late fan-out/freeback work, but do not spin
+         * or yield as though a live worker were waiting for dispatch: the
+         * useful next action is the next IO pass. An empty complete scan also
+         * proves that this non-live worker has no standing backlog, so clear
+         * its controller signal rather than carrying stale EX pressure. */
+        if (server.thread_auto)
+            worker->tm_qdepth_ewma_q4 = 0;
         ctx->empty_rounds = 0;
     } else if (ctx->empty_rounds < ctx->spin_budget) {
         /* PAUSE-spin: stay hot, let the IO thread publish work during the
@@ -17523,7 +17539,7 @@ void *polyThreadMain(void *arg) {
                      * signals) until every source has stayed quiet for 50ms. */
                     mstime_t quiet0 = mstime();
                     while (mstime() - quiet0 < 50)
-                        if (exSlice(ctx->ex, &exctx)) quiet0 = mstime();
+                        if (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) quiet0 = mstime();
                     /* INVARIANT: a worker leaving the EX role owns NOTHING — the outbound
                      * migration moved its whole range. Fail loud rather than strand data.
                      * ee451 (shared-kv): under per-node sharing ctx->ex->db IS the node's shared
@@ -17658,7 +17674,7 @@ void *polyThreadMain(void *arg) {
                      * executing it after the seed migration would delete live data. No migration
                      * can be active here: the flip actuator checks migration_active and then
                      * waits for this checkpoint to publish EX mode before arming the seed. */
-                    while (exSlice(ctx->ex, &exctx)) ;
+                    while (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) ;
                     long long sz = 0;
                     for (int d = 0; d < server.dbnum; d++) sz += dbSize(&ctx->ex->db[d]);
                     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK role change complete — io thread %d is now "
@@ -17700,9 +17716,12 @@ void *polyThreadMain(void *arg) {
              * routed work yet, so its dormant binding is quiescent until its
              * first EX adoption initializes exctx.  Once it has served EX,
              * keep draining late fan-out/freeback stragglers while in IO. */
-            if (ctx->ex && ex_inited) exSlice(ctx->ex, &exctx);
+            if (ctx->ex && ex_inited)
+                exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
             break;
-        case TOMO_MODE_EX: exSlice(ctx->ex, &exctx); break;
+        case TOMO_MODE_EX:
+            exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF);
+            break;
         default: {
             /* NEVER-ENTERED (birth, or every target so far refused): 50ms bounded wait, then
              * re-check target. A thread only sits here before its first adoption or while a
