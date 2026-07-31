@@ -34,12 +34,24 @@
 #   OUT OF SPEC: tools/preflight/correctness_suite.sh exits nonzero, times out,
 #   emits any FAIL row, or fails to materialize its per-run result file.
 #
-# CASE OWNERSHIP-MOVE-FLAT
+# CASE OWNERSHIP-MOVE-{DICT,FLAT}-{STATIC,AUTO}
 #   OUT OF SPEC: exact canary reads differ during/after traffic; an automatic
 #   key-balancer decision does not reach FLIP and DONE; final status stays
 #   active; a fence abort occurs; or the logged moved range contains no exact
-#   canary whose DEBUG route changed. No migration is INCONCLUSIVE,
-#   ENGAGED=NO—not PASS. DICT has no second owner and is reported separately.
+#   canary whose DEBUG route changed. Full mode proves one canary in every
+#   ownership bucket and therefore every bucket of the selected range; QUICK
+#   explicitly reports stride-four sampling. No migration is INCONCLUSIVE,
+#   ENGAGED=NO—not PASS. AUTO and DIFFUSE decisions are normalized and paired
+#   only with their later matching FLIP/DONE, so controller/RELEVEL records
+#   cannot impersonate key-balancer engagement. The DICT arms still execute
+#   identical before/traffic/after fidelity but cannot engage with one owner.
+#   AUTO also requires both a completed controller log record and changed DEBUG
+#   per-slot roles while the exact readers remain live.
+#
+# CASE OWNERSHIP-MOVE-{STORAGE-ENGINE,THREAD-MODE}-EQUIVALENCE
+#   OUT OF SPEC: the exact canary digests differ across engines/modes, a
+#   prerequisite arm failed to execute, or the FLAT static/auto comparison did
+#   not include an ownership move and an observed AUTO role conversion.
 #
 # CASE CONNECTION-LIFECYCLE-{DICT,FLAT}-{STATIC,AUTO}
 #   OUT OF SPEC: any captured long-lived socket disconnects, changes client ID,
@@ -88,6 +100,8 @@ readonly KEY_MIN=1
 readonly KEY_MAX=2000000
 readonly VALUE_BYTES=32
 readonly PORT_DEFAULT=7986
+readonly MIGRATION_BUCKET_LO=2048
+readonly MIGRATION_BUCKET_HI=4096
 
 PASS_N=0
 FAIL_N=0
@@ -115,6 +129,10 @@ declare -A FID_ENGAGED=()
 declare -A LIFE_DIGEST=()
 declare -A LIFE_OK=()
 declare -A LIFE_ENGAGED=()
+declare -A MOVE_DIGEST=()
+declare -A MOVE_OK=()
+declare -A MOVE_ENGAGED=()
+declare -A MOVE_CONTROLLER=()
 
 say() {
     printf '%s\n' "$*" | tee -a "$OUT"
@@ -237,6 +255,208 @@ controller_evidence_decision() { # canonical-completion-seen debug-role-change-s
     fi
 }
 
+migration_correlations() { # server-log baseline-line-count
+    # Normalize only key-balancer decisions (AUTO and DIFFUSE), then bind each
+    # to the first later matching FLIP and DONE. Controller/RELEVEL FLIP/DONE
+    # records without a preceding key decision are intentionally ignored.
+    timeout --foreground --kill-after=1 5s python3 - "$1" "$2" <<'PY'
+import re
+import sys
+
+path, baseline_text = sys.argv[1:3]
+try:
+    baseline = int(baseline_text)
+except ValueError:
+    print(f"invalid baseline line count: {baseline_text!r}", file=sys.stderr)
+    raise SystemExit(2)
+if baseline < 0:
+    print(f"negative baseline line count: {baseline}", file=sys.stderr)
+    raise SystemExit(2)
+
+auto_re = re.compile(
+    r"reshard AUTO: hot=w([0-9]+).* -> w([0-9]+).*"
+    r"moving \[([0-9]+),([0-9]+)\)"
+)
+diffuse_re = re.compile(
+    r"reshard DIFFUSE: .*moving \[([0-9]+),([0-9]+)\) "
+    r"([0-9]+) -> ([0-9]+)"
+)
+flip_re = re.compile(
+    r"reshard FLIP: buckets \[([0-9]+),([0-9]+)\) "
+    r"now served by worker ([0-9]+)"
+)
+done_re = re.compile(
+    r"reshard DONE: \[([0-9]+),([0-9]+)\) "
+    r"([0-9]+) -> ([0-9]+) complete"
+)
+
+try:
+    with open(path, encoding="utf-8", errors="replace") as stream:
+        lines = stream.readlines()
+except OSError as exc:
+    print(f"cannot read migration log {path}: {exc}", file=sys.stderr)
+    raise SystemExit(2)
+# A concurrently appended final record is not malformed until its newline is
+# durable. Ignore that one partial tail and parse it on the next bounded poll.
+if lines and not lines[-1].endswith("\n"):
+    lines.pop()
+if baseline > len(lines):
+    print(
+        f"migration log shrank below baseline: baseline={baseline} "
+        f"lines={len(lines)}",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)
+
+decisions = []
+for line_number, line in enumerate(lines[baseline:], baseline + 1):
+    match = auto_re.search(line)
+    if match:
+        src, dst, lo, hi = map(int, match.groups())
+        decisions.append(
+            {
+                "kind": "AUTO",
+                "lo": lo,
+                "hi": hi,
+                "src": src,
+                "dst": dst,
+                "decision": line_number,
+                "flip": 0,
+                "done": 0,
+            }
+        )
+        continue
+    if "reshard AUTO:" in line:
+        print(f"malformed AUTO decision at line {line_number}", file=sys.stderr)
+        raise SystemExit(2)
+
+    match = diffuse_re.search(line)
+    if match:
+        lo, hi, src, dst = map(int, match.groups())
+        decisions.append(
+            {
+                "kind": "DIFFUSE",
+                "lo": lo,
+                "hi": hi,
+                "src": src,
+                "dst": dst,
+                "decision": line_number,
+                "flip": 0,
+                "done": 0,
+            }
+        )
+        continue
+    if "reshard DIFFUSE:" in line:
+        print(f"malformed DIFFUSE decision at line {line_number}", file=sys.stderr)
+        raise SystemExit(2)
+
+    match = flip_re.search(line)
+    if match:
+        lo, hi, dst = map(int, match.groups())
+        for decision in decisions:
+            if (
+                decision["flip"] == 0
+                and decision["decision"] < line_number
+                and (decision["lo"], decision["hi"], decision["dst"])
+                == (lo, hi, dst)
+            ):
+                decision["flip"] = line_number
+                break
+        continue
+    if "reshard FLIP:" in line:
+        print(f"malformed FLIP record at line {line_number}", file=sys.stderr)
+        raise SystemExit(2)
+
+    match = done_re.search(line)
+    if match:
+        lo, hi, src, dst = map(int, match.groups())
+        for decision in decisions:
+            if (
+                decision["done"] == 0
+                and decision["flip"] != 0
+                and decision["flip"] < line_number
+                and (
+                    decision["lo"],
+                    decision["hi"],
+                    decision["src"],
+                    decision["dst"],
+                )
+                == (lo, hi, src, dst)
+            ):
+                decision["done"] = line_number
+                break
+        continue
+    if "reshard DONE:" in line:
+        print(f"malformed DONE record at line {line_number}", file=sys.stderr)
+        raise SystemExit(2)
+
+for decision in decisions:
+    state = (
+        "DONE"
+        if decision["done"]
+        else "FLIP"
+        if decision["flip"]
+        else "DECISION"
+    )
+    print(
+        decision["kind"],
+        decision["lo"],
+        decision["hi"],
+        decision["src"],
+        decision["dst"],
+        state,
+        decision["decision"],
+        decision["flip"],
+        decision["done"],
+    )
+PY
+}
+
+publish_control_file() { # path content...
+    local path=$1 temporary=$1.publish.$$
+    shift
+    if [ -e "$path" ] || [ -e "$temporary" ]; then
+        return 1
+    fi
+    (umask 077; printf '%s\n' "$*" >"$temporary") || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    if ! mv -- "$temporary" "$path"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+}
+
+migration_ready_row() { # normalized-correlation-file
+    awk -v traffic_lo="$MIGRATION_BUCKET_LO" \
+        -v traffic_hi="$MIGRATION_BUCKET_HI" \
+        '($6 == "FLIP" || $6 == "DONE") &&
+         $2 >= traffic_lo && $3 <= traffic_hi {print; exit}' "$1"
+}
+
+migration_unselected_state() { # normalized-correlation-file
+    local file=$1 count incomplete states
+    count=$(wc -l <"$file" | tr -d ' ')
+    incomplete=$(awk '$6 != "DONE" {n++} END {print n+0}' "$file")
+    if [ "$incomplete" -ne 0 ]; then
+        states=$(awk \
+            '{printf "%s%s:%s", sep, $1, $6; sep=","}' "$file")
+        printf 'FAIL %s\n' "$states"
+        return 1
+    fi
+    printf 'NO %s\n' "$count"
+}
+
+migration_stride_matches() { # quick-flag observed-stride
+    local quick=$1 stride=$2
+    if [ "$quick" = 1 ]; then
+        [ "$stride" = 4 ]
+    else
+        [ "$quick" = 0 ] && [ "$stride" = 1 ]
+    fi
+}
+
 selftest() {
     local pass=0 fail=0 got fixture_dir
     check() {
@@ -255,6 +475,16 @@ selftest() {
     digest_class() { digest_equal "$1" "$2" && printf PASS || printf FAIL; }
     role_class() { parse_roles "$1" 8 2>/dev/null || printf FAIL; }
     controller_class() { controller_evidence_decision "$1" "$2"; }
+    migration_class() {
+        migration_correlations "$1" 0 2>/dev/null || printf FAIL
+    }
+    migration_ready_class() { migration_ready_row "$1"; }
+    migration_policy_class() {
+        migration_unselected_state "$1" 2>/dev/null
+    }
+    migration_stride_class() {
+        migration_stride_matches "$1" "$2" && printf PASS || printf FAIL
+    }
     memory_class() {
         local mode=$1 series result
         series=$fixture_dir/$mode.tsv
@@ -301,6 +531,58 @@ selftest() {
     check controller-neither INCONCLUSIVE controller_class 0 0
     check controller-log-only FAIL controller_class 1 0
     check controller-debug-only FAIL controller_class 0 1
+    printf '%s\n' \
+        'ee451 reshard FLIP: buckets [100,200) now served by worker 1' \
+        'ee451 reshard DONE: [100,200) 0 -> 1 complete' \
+        'ee451 reshard AUTO: hot=w2(900 ops) -> w3(100 ops), moving [300,400) (100 buckets, uniform split: ~1 ops moved, predicted peak 1)' \
+        'ee451 reshard FLIP: buckets [300,400) now served by worker 3' \
+        'ee451 reshard DONE: [300,400) 2 -> 3 complete' \
+        >"$fixture_dir/migration.auto"
+    check migration-ignore-auxiliary \
+        'AUTO 300 400 2 3 DONE 3 4 5' \
+        migration_class "$fixture_dir/migration.auto"
+    printf '%s\n' \
+        'ee451 reshard DIFFUSE: boundary w5|w4 (900 vs 100 ops), moving [700,732) 5 -> 4' \
+        'ee451 reshard FLIP: buckets [700,732) now served by worker 4' \
+        'ee451 reshard DONE: [700,732) 5 -> 4 complete' \
+        >"$fixture_dir/migration.diffuse"
+    check migration-diffuse-normalized \
+        'DIFFUSE 700 732 5 4 DONE 1 2 3' \
+        migration_class "$fixture_dir/migration.diffuse"
+    printf '%s\n' \
+        'ee451 reshard AUTO: hot=w1(900 ops) -> w0(100 ops), moving [10,20) (10 buckets, uniform split: ~1 ops moved, predicted peak 1)' \
+        'ee451 reshard FLIP: buckets [10,20) now served by worker 0' \
+        >"$fixture_dir/migration.partial"
+    check migration-partial \
+        'AUTO 10 20 1 0 FLIP 1 2 0' \
+        migration_class "$fixture_dir/migration.partial"
+    printf '%s\n' \
+        'ee451 reshard AUTO: unparseable tuple' \
+        >"$fixture_dir/migration.malformed"
+    check migration-malformed FAIL \
+        migration_class "$fixture_dir/migration.malformed"
+    printf '%s\n' \
+        'AUTO 100 200 0 1 DONE 1 2 3' \
+        'DIFFUSE 2050 2070 2 3 FLIP 4 5 0' \
+        >"$fixture_dir/migration.policy-ready"
+    check migration-policy-ready \
+        'DIFFUSE 2050 2070 2 3 FLIP 4 5 0' \
+        migration_ready_class "$fixture_dir/migration.policy-ready"
+    printf '%s\n' \
+        'AUTO 100 200 0 1 DONE 1 2 3' \
+        >"$fixture_dir/migration.policy-outside"
+    check migration-policy-outside 'NO 1' \
+        migration_policy_class "$fixture_dir/migration.policy-outside"
+    printf '%s\n' \
+        'AUTO 100 200 0 1 DONE 1 2 3' \
+        'DIFFUSE 2050 2070 2 3 DECISION 4 0 0' \
+        >"$fixture_dir/migration.policy-incomplete"
+    check migration-policy-incomplete 'FAIL AUTO:DONE,DIFFUSE:DECISION' \
+        migration_policy_class "$fixture_dir/migration.policy-incomplete"
+    check migration-stride-quick PASS migration_stride_class 1 4
+    check migration-stride-quick-wrong FAIL migration_stride_class 1 1
+    check migration-stride-full PASS migration_stride_class 0 1
+    check migration-stride-full-wrong FAIL migration_stride_class 0 4
     check memory-stable PASS memory_class stable
     check memory-rising FAIL memory_class rising
     check memory-diverging FAIL memory_class diverging
@@ -980,18 +1262,19 @@ run_correctness_case() { # label io ex mode
 }
 
 RESHARD_STATUS=
-wait_reshard_inactive() {
-    local try status
+wait_reshard_inactive() { # artifact-label
+    local artifact_label=$1 try status
     RESHARD_STATUS=
     for try in $(seq 1 80); do
-        if run_cli "$WORK/reshard-status.$try" "$WORK/reshard-status.$try.err" \
+        if run_cli "$WORK/$artifact_label.reshard-status.$try" \
+            "$WORK/$artifact_label.reshard-status.$try.err" \
             DEBUG RESHARD STATUS; then
-            status=$(tr -d '\r' <"$WORK/reshard-status.$try")
+            status=$(tr -d '\r' <"$WORK/$artifact_label.reshard-status.$try")
             if [[ "$status" == active=0* ]]; then
                 RESHARD_STATUS=$status
                 return 0
             fi
-        elif [ "$LAST_RC" -eq 124 ] || [ "$LAST_RC" -eq 137 ]; then
+        else
             return 1
         fi
         sleep 0.25
@@ -999,224 +1282,585 @@ wait_reshard_inactive() {
     return 1
 }
 
-run_migration_case() {
-    local label=OWNERSHIP-MOVE-FLAT out=$WORK/migration.json err=$WORK/migration.err
-    local verify=$WORK/migration.verify.json verifyerr=$WORK/migration.verify.err
-    local ready=$WORK/migration.readers-active quick_arg=()
-    local before before_done before_auto before_abort auto flips done aborts status
-    local line= done_line= lo= hi= src= dst= digest ops rc=0 status_ok=1 helper_rc=0
-    local ready_deadline overlap=0 keylb_enabled=0 pair_ok=0 selected_auto=0
-    local auto_tuples=$WORK/migration.auto-tuples
-    local flip_tuples=$WORK/migration.flip-tuples
-    local done_tuples=$WORK/migration.done-tuples
-    local canaries pre_proofs post_proofs workers ready_published changed
-    local moved_canaries find_proofs change_proofs destination_proofs moved_src moved_dst
-    local initial_routes
+run_migration_variant() { # key label io ex mode expected-engine
+    local key=$1 label=$2 io=$3 ex=$4 mode=$5 expected_engine=$6
+    local out=$WORK/$label.json err=$WORK/$label.err
+    local verify=$WORK/$label.verify.json verifyerr=$WORK/$label.verify.err
+    local ready=$WORK/$label.readers-active
+    local selection=$WORK/$label.selection
+    local stop=$WORK/$label.stop
+    local correlations=$WORK/$label.correlations
+    local correlation_err=$WORK/$label.correlations.err
+    local quick_arg=()
+    local engine infra=1 helper_rc=0 helper_started=0
+    local ready_deadline key_deadline done_deadline helper_deadline
+    local controller_deadline lease_seconds poll=0
+    local baseline_lines abort0 abort1 aborts=0
+    local key_enabled=0 key_state=NO controller_state=PASS
+    local selected_row= matching_row= selected_kind=
+    local selected_lo= selected_hi= selected_src= selected_dst=
+    local selected_phase= selected_decision= selected_flip= selected_done=
+    local decision_count=0 decision_states= policy_state= policy_tag=
+    local verify_overlap=0
+    local roles0= roles1= converted_roles= observed_role_change=0
+    local flips0=0 flips1=0 log_conversion=0
+    local exact_ok=0 route_ok=0
+    local digest= ops= canaries= pre_proofs= post_proofs= workers= min_client_ops=
+    local ready_published= stop_observed= coverage_complete= coverage_stride=
+    local target_lo= target_hi=
+    local selection_published= selected_canaries= source_proofs=
+    local traffic_buckets= selected_traffic_proofs=
+    local selected_complete=
+    local helper_selected_lo= helper_selected_hi=
+    local helper_selected_src= helper_selected_dst=
+    local verify_digest= moved_canaries= moved_span= moved_complete= moved_stride=
+    local find_proofs= change_proofs= destination_proofs=
+    local moved_src= moved_dst= expected_canaries expected_complete
+    local expected_traffic_buckets
+    local failure=
+
     [ "$QUICK" = 1 ] && quick_arg=(--quick)
-    if ! boot_server migration 4 4 static --tomokv-key-lb 0; then
+    if [ "$QUICK" = 1 ]; then
+        expected_canaries=4096
+        expected_complete=False
+        expected_traffic_buckets=512
+    else
+        expected_canaries=16384
+        expected_complete=True
+        expected_traffic_buckets=2048
+    fi
+    MOVE_OK["$key"]=0
+    MOVE_ENGAGED["$key"]=-1
+    if [ "$mode" = auto ]; then
+        MOVE_CONTROLLER["$key"]=-1
+        lease_seconds=$((MIGRATION_SECS + AUTO_DRIVE_SECS + 240))
+    else
+        MOVE_CONTROLLER["$key"]=1
+        lease_seconds=$((MIGRATION_SECS + 240))
+    fi
+
+    if ! boot_server "$label" "$io" "$ex" "$mode" --tomokv-key-lb 0; then
         case_result "$label" FAIL "$LAST_REASON"
         return
     fi
-    if ! seed_keys migration; then
+    engine=FLAT
+    [ "$EFFECTIVE_EX" -eq 1 ] && engine=DICT
+    if [ "$engine" != "$expected_engine" ]; then
+        case_result "$label" FAIL \
+            "effective engine=$engine expected=$expected_engine effective-ex=$EFFECTIVE_EX"
+        stop_server
+        return
+    fi
+    if ! seed_keys "$label"; then
         case_result "$label" FAIL "$LAST_REASON"
         stop_server
         return
     fi
-    run_cli "$WORK/keylb.sustain" "$WORK/keylb.sustain.err" \
-        CONFIG SET tomokv-key-lb-sustain 1 || rc=1
-    before=$(grep -c 'ee451 reshard FLIP:' "$ACTIVE_LOG" 2>/dev/null || true)
-    before_done=$(grep -c 'ee451 reshard DONE:' "$ACTIVE_LOG" 2>/dev/null || true)
-    before_auto=$(grep -c 'ee451 reshard AUTO:' "$ACTIVE_LOG" 2>/dev/null || true)
-    before_abort=$(grep -cE 'reshard ABORT|GROW-(FRONT|BACK) ABORTED' \
+    if ! run_cli "$WORK/$label.keylb.sustain" \
+        "$WORK/$label.keylb.sustain.err" \
+        CONFIG SET tomokv-key-lb-sustain 1; then
+        case_result "$label" FAIL \
+            "could not configure key-balancer sustain ($WORK/$label.keylb.sustain.err)"
+        stop_server
+        return
+    fi
+
+    baseline_lines=$(wc -l <"$ACTIVE_LOG" | tr -d ' ')
+    abort0=$(grep -cE \
+        'reshard ABORT|GROW-(FRONT|BACK) ABORTED' \
         "$ACTIVE_LOG" 2>/dev/null || true)
-    if [ "$rc" = 0 ]; then
-        setsid timeout --foreground --signal=TERM --kill-after=5 \
-            "$((MIGRATION_SECS + 180))s" taskset -c "$LOAD_CORES" \
-            python3 "$HELPER" migration --port "$PORT" \
-            --seconds "$MIGRATION_SECS" --ready-file "$ready" \
-            "${quick_arg[@]}" >"$out" 2>"$err" &
-        HELPER_PID=$!
-        ready_deadline=$((SECONDS + 90))
-        while [ ! -e "$ready" ] && kill -0 "$HELPER_PID" 2>/dev/null &&
-              [ "$SECONDS" -lt "$ready_deadline" ]; do
-            sleep 0.1
-        done
-        if [ ! -e "$ready" ]; then
-            rc=1
-            LAST_REASON="migration exact-reader readiness did not materialize within 90s ($(tail -2 "$err" 2>/dev/null | tr '\n' ' '))"
-            stop_helper
-            helper_rc=124
-        elif ! run_cli "$WORK/keylb.enable" "$WORK/keylb.enable.err" \
+
+    setsid timeout --foreground --signal=TERM --kill-after=5 \
+        "$((lease_seconds + 180))s" taskset -c "$LOAD_CORES" \
+        python3 "$HELPER" migration --port "$PORT" \
+        --seconds "$lease_seconds" --ready-file "$ready" \
+        --selection-file "$selection" --stop-file "$stop" \
+        "${quick_arg[@]}" >"$out" 2>"$err" &
+    HELPER_PID=$!
+    helper_started=1
+
+    ready_deadline=$((SECONDS + (QUICK == 1 ? 90 : 180)))
+    while [ ! -e "$ready" ] &&
+          kill -0 "$HELPER_PID" 2>/dev/null &&
+          [ "$SECONDS" -lt "$ready_deadline" ]; do
+        poll=$((poll + 1))
+        sleep 0.1
+    done
+    if [ "$infra" = 1 ] && [ ! -e "$ready" ]; then
+        infra=0
+        failure="migration exact-reader lease did not materialize within the bounded wait ($(tail -2 "$err" 2>/dev/null | tr '\n' ' '))"
+    fi
+    if [ "$infra" = 1 ] && ! kill -0 "$HELPER_PID" 2>/dev/null; then
+        infra=0
+        failure="migration helper exited before key-balancer enablement"
+    fi
+
+    if [ "$infra" = 1 ]; then
+        if run_cli "$WORK/$label.keylb.enable" \
+            "$WORK/$label.keylb.enable.err" \
             CONFIG SET tomokv-key-lb 1000; then
-            rc=1
-            LAST_REASON="could not enable key balancer after exact-reader readiness"
-            stop_helper
-            helper_rc=1
+            key_enabled=1
         else
-            keylb_enabled=1
-            while kill -0 "$HELPER_PID" 2>/dev/null; do
-                flips=$(( $(grep -c 'ee451 reshard FLIP:' "$ACTIVE_LOG" \
-                    2>/dev/null || true) - before ))
-                if [ "$flips" -gt 0 ] && [ -e "$ready" ]; then
-                    # The marker is an active-reader lease. Disable immediately
-                    # at the first overlapping FLIP so no later, post-traffic
-                    # migration can become the range we verify.
-                    if [ -e "$ready" ]; then
-                        overlap=1
-                        line=$(grep 'ee451 reshard FLIP:' "$ACTIVE_LOG" |
-                            sed -n "$((before + 1))p")
-                        if run_cli "$WORK/keylb.disable.overlap" \
-                            "$WORK/keylb.disable.overlap.err" \
-                            CONFIG SET tomokv-key-lb 0; then
-                            keylb_enabled=0
-                        else
-                            rc=1
-                            LAST_REASON="could not disable key balancer at overlapping FLIP"
-                        fi
-                        break
-                    fi
-                fi
-                sleep 0.05
-            done
-            wait_owned_group "$HELPER_PID"
-            helper_rc=$?
-            HELPER_PID=
-            if [ "$helper_rc" -ne 0 ]; then
-                rc=1
-                LAST_REASON="migration fidelity helper rc=$helper_rc ($(tail -2 "$err" 2>/dev/null | tr '\n' ' '))"
-            fi
-        fi
-    fi
-    if [ "$keylb_enabled" = 1 ]; then
-        if run_cli "$WORK/keylb.disable.final" "$WORK/keylb.disable.final.err" \
-            CONFIG SET tomokv-key-lb 0; then
-            keylb_enabled=0
-        else
-            rc=1
-            LAST_REASON="could not disable key balancer before final status/route proof"
-        fi
-    fi
-    if ! wait_reshard_inactive; then
-        status_ok=0
-        rc=1
-        LAST_REASON="DEBUG RESHARD STATUS failed or did not become inactive within the bounded wait"
-    fi
-    status=$RESHARD_STATUS
-    auto=$(( $(grep -c 'ee451 reshard AUTO:' "$ACTIVE_LOG" 2>/dev/null || true) - before_auto ))
-    flips=$(( $(grep -c 'ee451 reshard FLIP:' "$ACTIVE_LOG" 2>/dev/null || true) - before ))
-    done=$(( $(grep -c 'ee451 reshard DONE:' "$ACTIVE_LOG" 2>/dev/null || true) - before_done ))
-    aborts=$(( $(grep -cE 'reshard ABORT|GROW-(FRONT|BACK) ABORTED' \
-        "$ACTIVE_LOG" 2>/dev/null || true) - before_abort ))
-    grep 'ee451 reshard AUTO:' "$ACTIVE_LOG" 2>/dev/null |
-        tail -n "+$((before_auto + 1))" |
-        sed -n 's/.*AUTO: hot=w\([0-9][0-9]*\).* -> w\([0-9][0-9]*\).*moving \[\([0-9][0-9]*\),\([0-9][0-9]*\)).*/\3 \4 \1 \2/p' \
-        >"$auto_tuples"
-    grep 'ee451 reshard FLIP:' "$ACTIVE_LOG" 2>/dev/null |
-        tail -n "+$((before + 1))" |
-        sed -n 's/.*buckets \[\([0-9][0-9]*\),\([0-9][0-9]*\)).*worker \([0-9][0-9]*\).*/\1 \2 \3/p' \
-        >"$flip_tuples"
-    grep 'ee451 reshard DONE:' "$ACTIVE_LOG" 2>/dev/null |
-        tail -n "+$((before_done + 1))" |
-        sed -n 's/.*DONE: \[\([0-9][0-9]*\),\([0-9][0-9]*\)).* \([0-9][0-9]*\) -> \([0-9][0-9]*\) complete.*/\1 \2 \3 \4/p' \
-        >"$done_tuples"
-    if [ "$(wc -l <"$auto_tuples" | tr -d ' ')" -eq "$auto" ] &&
-       [ "$(wc -l <"$flip_tuples" | tr -d ' ')" -eq "$flips" ] &&
-       [ "$(wc -l <"$done_tuples" | tr -d ' ')" -eq "$done" ] &&
-       cmp -s <(sort "$auto_tuples") <(sort "$done_tuples") &&
-       cmp -s <(awk '{print $1, $2, $4}' "$auto_tuples" | sort) \
-              <(sort "$flip_tuples"); then
-        pair_ok=1
-    fi
-    if [ -z "${line:-}" ] && [ "$flips" -gt 0 ]; then
-        line=$(grep 'ee451 reshard FLIP:' "$ACTIVE_LOG" 2>/dev/null |
-            sed -n "$((before + 1))p")
-    fi
-    lo=$(printf '%s\n' "$line" | sed -n 's/.*buckets \[\([0-9][0-9]*\),\([0-9][0-9]*\)).*/\1/p')
-    hi=$(printf '%s\n' "$line" | sed -n 's/.*buckets \[\([0-9][0-9]*\),\([0-9][0-9]*\)).*/\2/p')
-    dst=$(printf '%s\n' "$line" | sed -n 's/.*now served by worker \([0-9][0-9]*\).*/\1/p')
-    if [ -n "$lo" ] && [ -n "$hi" ] && [ -n "$dst" ]; then
-        done_line=$(grep 'ee451 reshard DONE:' "$ACTIVE_LOG" 2>/dev/null |
-            tail -n "+$((before_done + 1))" |
-            grep "DONE: \[$lo,$hi).* -> $dst complete" | head -1)
-        src=$(printf '%s\n' "$done_line" |
-            sed -n 's/.*) \([0-9][0-9]*\) -> [0-9][0-9]* complete.*/\1/p')
-        if [ -n "$src" ]; then
-            selected_auto=$(grep -c "^$lo $hi $src $dst$" \
-                "$auto_tuples" 2>/dev/null || true)
+            infra=0
+            failure="could not enable key balancer after exact-reader readiness"
         fi
     fi
 
-    if [ "$rc" = 0 ] && [ "$overlap" = 1 ] && [ "$flips" -gt 0 ] &&
-       [ -n "$lo" ] && [ -n "$hi" ] && [ -n "$dst" ]; then
-        if ! run_client_group "$verify" "$verifyerr" 180 \
-            taskset -c "$LOAD_CORES" python3 "$HELPER" migration --port "$PORT" \
-            --seconds 1 --verify-only --moved-lo "$lo" --moved-hi "$hi" \
-            "${quick_arg[@]}"; then
-            rc=1
-            LAST_REASON="moved-range verifier rc=$LAST_RC ($(tail -2 "$verifyerr" | tr '\n' ' '))"
+    if [ "$infra" = 1 ]; then
+        key_deadline=$((SECONDS + MIGRATION_SECS))
+        while [ "$SECONDS" -lt "$key_deadline" ]; do
+            if ! kill -0 "$HELPER_PID" 2>/dev/null || [ ! -e "$ready" ]; then
+                infra=0
+                failure="exact-reader lease ended before key decision selection"
+                break
+            fi
+            if ! migration_correlations "$ACTIVE_LOG" "$baseline_lines" \
+                >"$correlations" 2>"$correlation_err"; then
+                infra=0
+                failure="key-decision parser failed/timeout ($(tail -2 "$correlation_err" 2>/dev/null | tr '\n' ' '))"
+                break
+            fi
+            selected_row=$(migration_ready_row "$correlations")
+            [ -n "$selected_row" ] && break
+            poll=$((poll + 1))
+            # The exact-reader lease spans the whole key phase; one parse per
+            # second observes completed moves without making Python startup a
+            # competing load generator on a no-move topology.
+            sleep 1
+        done
+    fi
+
+    # One final bounded parse closes the polling edge at the key deadline.
+    if [ "$infra" = 1 ] && [ -z "$selected_row" ]; then
+        if ! migration_correlations "$ACTIVE_LOG" "$baseline_lines" \
+            >"$correlations" 2>"$correlation_err"; then
+            infra=0
+            failure="final key-decision parser failed/timeout ($(tail -2 "$correlation_err" 2>/dev/null | tr '\n' ' '))"
+        else
+            selected_row=$(migration_ready_row "$correlations")
         fi
     fi
+
+    if [ "$infra" = 1 ] && [ -n "$selected_row" ]; then
+        read -r selected_kind selected_lo selected_hi selected_src selected_dst \
+            selected_phase selected_decision selected_flip selected_done \
+            <<<"$selected_row"
+        if ! kill -0 "$HELPER_PID" 2>/dev/null || [ ! -e "$ready" ]; then
+            infra=0
+            key_state=FAIL
+            failure="key decision was not selected under the active-reader lease"
+        elif ! publish_control_file "$selection" \
+            "$selected_lo $selected_hi $selected_src $selected_dst"; then
+            infra=0
+            key_state=FAIL
+            failure="could not atomically publish the selected key decision"
+        elif ! run_cli "$WORK/$label.keylb.disable.selected" \
+            "$WORK/$label.keylb.disable.selected.err" \
+            CONFIG SET tomokv-key-lb 0; then
+            infra=0
+            key_state=FAIL
+            failure="could not disable key balancing at selected FLIP"
+        else
+            key_enabled=0
+        fi
+
+        if [ "$infra" = 1 ]; then
+            done_deadline=$((SECONDS + 120))
+            while [ "$SECONDS" -lt "$done_deadline" ]; do
+                if ! kill -0 "$HELPER_PID" 2>/dev/null ||
+                   [ ! -e "$ready" ]; then
+                    infra=0
+                    key_state=FAIL
+                    failure="exact-reader lease ended before selected key DONE"
+                    break
+                fi
+                if ! migration_correlations "$ACTIVE_LOG" "$baseline_lines" \
+                    >"$correlations" 2>"$correlation_err"; then
+                    infra=0
+                    key_state=FAIL
+                    failure="key-decision parser failed while waiting for DONE ($(tail -2 "$correlation_err" 2>/dev/null | tr '\n' ' '))"
+                    break
+                fi
+                matching_row=$(awk -v decision="$selected_decision" \
+                    '$7 == decision {print; exit}' "$correlations")
+                if [ -z "$matching_row" ]; then
+                    infra=0
+                    key_state=FAIL
+                    failure="selected key decision disappeared from normalized log"
+                    break
+                fi
+                read -r selected_kind selected_lo selected_hi selected_src \
+                    selected_dst selected_phase selected_decision selected_flip \
+                    selected_done <<<"$matching_row"
+                [ "$selected_phase" = DONE ] && break
+                poll=$((poll + 1))
+                sleep 0.1
+            done
+            if [ "$infra" = 1 ] && [ "$selected_phase" != DONE ]; then
+                infra=0
+                key_state=FAIL
+                failure="selected key decision did not reach matching DONE within 120s"
+            fi
+        fi
+        if [ "$infra" = 1 ] && ! wait_reshard_inactive "$label.keydone"; then
+            infra=0
+            key_state=FAIL
+            failure="selected key migration reached DONE but DEBUG RESHARD STATUS did not become inactive"
+        fi
+        if [ "$infra" = 1 ]; then
+            if ! kill -0 "$HELPER_PID" 2>/dev/null || [ ! -e "$ready" ]; then
+                infra=0
+                key_state=FAIL
+                failure="exact-reader lease ended before immediate moved-range verification"
+            elif ! run_client_group "$verify" "$verifyerr" 360 \
+                taskset -c "$LOAD_CORES" python3 "$HELPER" migration \
+                --port "$PORT" --seconds 1 --verify-only \
+                --moved-lo "$selected_lo" --moved-hi "$selected_hi" \
+                --moved-src "$selected_src" --moved-dst "$selected_dst" \
+                "${quick_arg[@]}"; then
+                infra=0
+                key_state=FAIL
+                failure="immediate moved-range verifier rc=$LAST_RC ($(tail -2 "$verifyerr" 2>/dev/null | tr '\n' ' '))"
+            elif ! kill -0 "$HELPER_PID" 2>/dev/null ||
+                 [ ! -e "$ready" ]; then
+                infra=0
+                key_state=FAIL
+                failure="exact-reader lease ended during moved-range verification"
+            else
+                verify_overlap=1
+                key_state=PASS
+            fi
+        fi
+    elif [ "$infra" = 1 ]; then
+        if policy_state=$(migration_unselected_state "$correlations"); then
+            read -r policy_tag decision_count <<<"$policy_state"
+            # Zero decisions, or only completed decisions outside the exact
+            # traffic domain: neither can qualify fidelity-during-move.
+            key_state=NO
+            MOVE_ENGAGED["$key"]=0
+        else
+            decision_states=${policy_state#FAIL }
+            key_state=FAIL
+            infra=0
+            failure="key balancer emitted incomplete normalized decisions: $decision_states"
+        fi
+    fi
+
+    if [ "$key_enabled" = 1 ]; then
+        if run_cli "$WORK/$label.keylb.disable.final" \
+            "$WORK/$label.keylb.disable.final.err" \
+            CONFIG SET tomokv-key-lb 0; then
+            key_enabled=0
+        elif [ "$infra" = 1 ]; then
+            infra=0
+            key_state=FAIL
+            failure="could not disable key balancing at key-phase deadline"
+        fi
+    fi
+    if [ "$infra" = 1 ] && [ -z "$selected_row" ] &&
+       ! wait_reshard_inactive "$label.keyphase"; then
+        infra=0
+        key_state=FAIL
+        MOVE_ENGAGED["$key"]=-1
+        failure="key phase ended with DEBUG RESHARD STATUS active or unavailable"
+    fi
+
+    # Controller-driving load starts only after the selected key move has been
+    # immediately verified (or after a clean, decision-free key phase).
+    if [ "$infra" = 1 ] && [ "$mode" = auto ]; then
+        if ! kill -0 "$HELPER_PID" 2>/dev/null || [ ! -e "$ready" ]; then
+            infra=0
+            controller_state=FAIL
+            failure="exact-reader lease ended before controller drive"
+        elif ! role_snapshot "$label.controller-before"; then
+            infra=0
+            controller_state=FAIL
+            failure=$LAST_REASON
+        else
+            # Evidence is scoped to the post-key p1 drive. An incidental role
+            # conversion during setup/key balancing cannot satisfy this arm.
+            roles0="$SNAP_IO/$SNAP_EX"
+            roles1=$roles0
+            converted_roles=
+            observed_role_change=0
+            log_conversion=0
+            flips0=$(grep -cE \
+                'GROW-(FRONT|BACK) complete —' \
+                "$ACTIVE_LOG" 2>/dev/null || true)
+            start_mt_background "$label.auto-drive" "$AUTO_DRIVE_SECS" 0:1 1
+            controller_deadline=$((SECONDS + AUTO_DRIVE_SECS + GEN_GRACE + 15))
+            while kill -0 "$GEN_PID" 2>/dev/null; do
+                if [ "$SECONDS" -ge "$controller_deadline" ]; then
+                    infra=0
+                    controller_state=FAIL
+                    failure="controller generator exceeded bounded supervision deadline"
+                    break
+                fi
+                if ! kill -0 "$HELPER_PID" 2>/dev/null ||
+                   [ ! -e "$ready" ]; then
+                    infra=0
+                    controller_state=FAIL
+                    failure="exact-reader lease ended during controller conversion drive"
+                    break
+                fi
+                if role_snapshot "$label.auto-drive.$poll"; then
+                    roles1="$SNAP_IO/$SNAP_EX"
+                    if [ "$roles1" != "$roles0" ]; then
+                        observed_role_change=1
+                        converted_roles=$roles1
+                    fi
+                else
+                    infra=0
+                    controller_state=FAIL
+                    failure=$LAST_REASON
+                    break
+                fi
+                poll=$((poll + 1))
+                sleep 2
+            done
+            if [ "$infra" = 1 ]; then
+                if ! finish_mt_background; then
+                    infra=0
+                    controller_state=FAIL
+                    failure=$LAST_REASON
+                fi
+            else
+                stop_generator
+            fi
+        fi
+        if [ "$infra" = 1 ] && ! wait_reshard_inactive "$label.controller"; then
+            infra=0
+            controller_state=FAIL
+            failure="controller drive ended with DEBUG RESHARD STATUS active or unavailable"
+        fi
+        if [ "$infra" = 1 ]; then
+            if ! kill -0 "$HELPER_PID" 2>/dev/null || [ ! -e "$ready" ]; then
+                infra=0
+                controller_state=FAIL
+                failure="exact-reader lease ended before final controller role snapshot"
+            elif role_snapshot "$label.auto-after"; then
+                roles1="$SNAP_IO/$SNAP_EX"
+                if [ "$roles1" != "$roles0" ]; then
+                    observed_role_change=1
+                    converted_roles=$roles1
+                fi
+            else
+                infra=0
+                controller_state=FAIL
+                failure=$LAST_REASON
+            fi
+        fi
+        flips1=$(grep -cE \
+            'GROW-(FRONT|BACK) complete —' \
+            "$ACTIVE_LOG" 2>/dev/null || true)
+        [ "$flips1" -gt "$flips0" ] && log_conversion=1
+        if [ "$infra" = 1 ]; then
+            controller_state=$(controller_evidence_decision \
+                "$log_conversion" "$observed_role_change")
+        fi
+        case "$controller_state" in
+            PASS) MOVE_CONTROLLER["$key"]=1 ;;
+            INCONCLUSIVE) MOVE_CONTROLLER["$key"]=0 ;;
+            *) MOVE_CONTROLLER["$key"]=-1 ;;
+        esac
+    fi
+
+    if [ "$helper_started" = 1 ] && kill -0 "$HELPER_PID" 2>/dev/null; then
+        if ! publish_control_file "$stop" STOP; then
+            [ "$infra" = 0 ] || failure="could not publish migration stop control"
+            infra=0
+        fi
+        helper_deadline=$((SECONDS + 180))
+        while kill -0 "$HELPER_PID" 2>/dev/null &&
+              [ "$SECONDS" -lt "$helper_deadline" ]; do
+            sleep 0.1
+        done
+        if kill -0 "$HELPER_PID" 2>/dev/null; then
+            stop_helper
+            helper_rc=124
+            [ "$infra" = 0 ] ||
+                failure="migration helper did not stop within 180s"
+            infra=0
+        else
+            wait_owned_group "$HELPER_PID"
+            helper_rc=$?
+            HELPER_PID=
+        fi
+    elif [ "$helper_started" = 1 ]; then
+        wait_owned_group "$HELPER_PID"
+        helper_rc=$?
+        HELPER_PID=
+        [ "$infra" = 0 ] ||
+            failure="migration helper exited before stop control"
+        infra=0
+    fi
+    if [ "$helper_rc" -ne 0 ]; then
+        [ "$infra" = 0 ] ||
+            failure="migration fidelity helper rc=$helper_rc ($(tail -2 "$err" 2>/dev/null | tr '\n' ' '))"
+        infra=0
+    fi
+
+    abort1=$(grep -cE \
+        'reshard ABORT|GROW-(FRONT|BACK) ABORTED' \
+        "$ACTIVE_LOG" 2>/dev/null || true)
+    aborts=$((abort1 - abort0))
+    if [ "$aborts" -ne 0 ]; then
+        key_state=FAIL
+        MOVE_ENGAGED["$key"]=-1
+        [ "$infra" = 0 ] ||
+            failure="migration/controller abort markers during case=$aborts"
+        infra=0
+    fi
+
     digest=$(json_field "$out" digest 2>/dev/null || true)
     ops=$(json_field "$out" get_ops 2>/dev/null || true)
     canaries=$(json_field "$out" canaries 2>/dev/null || true)
     pre_proofs=$(json_field "$out" route_pre_find_proofs 2>/dev/null || true)
     post_proofs=$(json_field "$out" route_post_find_proofs 2>/dev/null || true)
     workers=$(json_field "$out" exact_get_workers_running 2>/dev/null || true)
+    min_client_ops=$(json_field "$out" min_client_get_ops 2>/dev/null || true)
     ready_published=$(json_field "$out" ready_file_published 2>/dev/null || true)
-    initial_routes=$(json_field "$out" initial_routes 2>/dev/null || true)
-    changed=$(json_field "$out" route_changed_from_initial 2>/dev/null || true)
-    moved_canaries=$(json_field "$verify" moved_canaries 2>/dev/null || true)
-    find_proofs=$(json_field "$verify" moved_route_find_proofs 2>/dev/null || true)
-    change_proofs=$(json_field "$verify" moved_route_change_proofs 2>/dev/null || true)
-    destination_proofs=$(json_field "$verify" moved_route_destination_proofs 2>/dev/null || true)
-    moved_src=$(json_field "$verify" moved_src 2>/dev/null || true)
-    moved_dst=$(json_field "$verify" moved_dst 2>/dev/null || true)
+    stop_observed=$(json_field "$out" stop_file_observed 2>/dev/null || true)
+    coverage_complete=$(json_field "$out" bucket_coverage_complete 2>/dev/null || true)
+    coverage_stride=$(json_field "$out" bucket_coverage_stride 2>/dev/null || true)
+    target_lo=$(json_field "$out" target_lo 2>/dev/null || true)
+    target_hi=$(json_field "$out" target_hi 2>/dev/null || true)
+    selection_published=$(json_field "$out" selection_published 2>/dev/null || true)
+    selected_canaries=$(json_field "$out" selected_canaries 2>/dev/null || true)
+    source_proofs=$(json_field "$out" selected_initial_source_proofs 2>/dev/null || true)
+    traffic_buckets=$(json_field "$out" traffic_read_bucket_proofs 2>/dev/null || true)
+    selected_traffic_proofs=$(json_field "$out" selected_traffic_read_proofs 2>/dev/null || true)
+    selected_complete=$(json_field "$out" selected_bucket_coverage_complete 2>/dev/null || true)
+    if [ -n "$digest" ] && valid_ops "$ops" &&
+       [ "$canaries" = "$expected_canaries" ] &&
+       [ "$pre_proofs" = "$canaries" ] &&
+       [ "$post_proofs" = "$canaries" ] &&
+       [ "$workers" = 8 ] &&
+       [[ "$min_client_ops" =~ ^[1-9][0-9]*$ ]] &&
+       [ "$min_client_ops" -ge "$expected_traffic_buckets" ] &&
+       [ "$ready_published" = True ] &&
+       [ "$stop_observed" = True ] &&
+       [ "$target_lo" = "$MIGRATION_BUCKET_LO" ] &&
+       [ "$target_hi" = "$MIGRATION_BUCKET_HI" ] &&
+       [ "$traffic_buckets" = "$expected_traffic_buckets" ] &&
+       [ "$coverage_complete" = "$expected_complete" ] &&
+       migration_stride_matches "$QUICK" "$coverage_stride"; then
+        exact_ok=1
+        MOVE_OK["$key"]=1
+        MOVE_DIGEST["$key"]=$digest
+    fi
+
+    if [ -n "$selected_row" ]; then
+        helper_selected_lo=$(json_field "$out" selected_lo 2>/dev/null || true)
+        helper_selected_hi=$(json_field "$out" selected_hi 2>/dev/null || true)
+        helper_selected_src=$(json_field "$out" selected_src 2>/dev/null || true)
+        helper_selected_dst=$(json_field "$out" selected_dst 2>/dev/null || true)
+        verify_digest=$(json_field "$verify" digest 2>/dev/null || true)
+        moved_canaries=$(json_field "$verify" moved_canaries 2>/dev/null || true)
+        moved_span=$(json_field "$verify" moved_bucket_span 2>/dev/null || true)
+        moved_complete=$(json_field "$verify" moved_bucket_coverage_complete 2>/dev/null || true)
+        moved_stride=$(json_field "$verify" moved_bucket_coverage_stride 2>/dev/null || true)
+        find_proofs=$(json_field "$verify" moved_route_find_proofs 2>/dev/null || true)
+        change_proofs=$(json_field "$verify" moved_route_change_proofs 2>/dev/null || true)
+        destination_proofs=$(json_field "$verify" moved_route_destination_proofs 2>/dev/null || true)
+        moved_src=$(json_field "$verify" moved_src 2>/dev/null || true)
+        moved_dst=$(json_field "$verify" moved_dst 2>/dev/null || true)
+        if [ "$key_state" = PASS ] && [ "$verify_overlap" = 1 ] &&
+           [ "$selection_published" = True ] &&
+           [ "$helper_selected_lo" = "$selected_lo" ] &&
+           [ "$helper_selected_hi" = "$selected_hi" ] &&
+           [ "$helper_selected_src" = "$selected_src" ] &&
+           [ "$helper_selected_dst" = "$selected_dst" ] &&
+           [[ "$selected_canaries" =~ ^[1-9][0-9]*$ ]] &&
+           [ "$selected_complete" = "$expected_complete" ] &&
+           [ "$source_proofs" = "$selected_canaries" ] &&
+           [ "$selected_traffic_proofs" = "$selected_canaries" ] &&
+           [ "$moved_canaries" = "$selected_canaries" ] &&
+           [ "$moved_span" = "$((selected_hi - selected_lo))" ] &&
+           [ "$moved_complete" = "$expected_complete" ] &&
+           migration_stride_matches "$QUICK" "$moved_stride" &&
+           [ "$find_proofs" = "$moved_canaries" ] &&
+           [ "$change_proofs" = "$moved_canaries" ] &&
+           [ "$destination_proofs" = "$moved_canaries" ] &&
+           [ "$moved_src" = "$selected_src" ] &&
+           [ "$moved_dst" = "$selected_dst" ] &&
+           digest_equal "$digest" "$verify_digest"; then
+            route_ok=1
+            MOVE_ENGAGED["$key"]=1
+        else
+            MOVE_ENGAGED["$key"]=-1
+        fi
+    elif [ "$key_state" = NO ] &&
+         [ "$selection_published" = False ] &&
+         [ "$selected_canaries" = 0 ] &&
+         [ "$source_proofs" = 0 ] &&
+         [ "$selected_traffic_proofs" = 0 ]; then
+        MOVE_ENGAGED["$key"]=0
+        route_ok=1
+    fi
+
     stop_server
 
-    if [ "$rc" != 0 ]; then
-        case_result "$label" FAIL "${LAST_REASON:-migration setup failed}"
-    elif ! valid_ops "$ops" || [[ ! "$canaries" =~ ^[1-9][0-9]*$ ]] ||
-         [ "$pre_proofs" != "$canaries" ] || [ "$post_proofs" != "$canaries" ] ||
-         [ "$workers" != 8 ] || [ "$ready_published" != True ] ||
-         [ "$initial_routes" != '[0]' ]; then
+    if [ "$exact_ok" != 1 ]; then
         case_result "$label" FAIL \
-            "exact traffic proof invalid ops=${ops:-empty} canaries=${canaries:-empty} pre-FIND=${pre_proofs:-empty} post-FIND=${post_proofs:-empty} workers=${workers:-empty} ready=${ready_published:-empty} initial-routes=${initial_routes:-empty}"
-    elif [ "$aborts" -ne 0 ]; then
+            "exact migration traffic invalid ops=${ops:-empty} min-client-ops=${min_client_ops:-empty}/$expected_traffic_buckets digest=${digest:-empty} canaries=${canaries:-empty}/$expected_canaries pre-FIND=${pre_proofs:-empty} post-FIND=${post_proofs:-empty} workers=${workers:-empty} ready=${ready_published:-empty} stop=${stop_observed:-empty} target=[${target_lo:-?},${target_hi:-?}) hot-bucket-reads=${traffic_buckets:-empty}/$expected_traffic_buckets complete=${coverage_complete:-empty} stride=${coverage_stride:-empty}; ${failure:-helper evidence malformed}"
+    elif [ "$infra" != 1 ]; then
         case_result "$label" FAIL \
-            "key-balancer attempt aborted AUTO=$auto FLIP=$flips DONE=$done aborts=$aborts"
-    elif [ "$auto" -eq 0 ] && [ "$flips" -eq 0 ] &&
-         [ "$done" -eq 0 ] && [ "$overlap" -eq 0 ] &&
-         [ "$changed" = 0 ]; then
+            "${failure:-migration orchestration failed}; key=$key_state controller=$controller_state aborts=$aborts exact-ops=$ops digest=$digest"
+    elif [ "$route_ok" != 1 ]; then
+        case_result "$label" FAIL \
+            "selected-route proof invalid kind=${selected_kind:-none} range=[${selected_lo:-?},${selected_hi:-?}) logged=${selected_src:-?}->${selected_dst:-?} overlap=$verify_overlap selection=$selection_published traffic-reads=$selected_traffic_proofs/$selected_canaries initial-source=$source_proofs/$selected_canaries moved-FIND=$find_proofs/$moved_canaries destination=$destination_proofs digest-match=$([ -n "$verify_digest" ] && digest_equal "$digest" "$verify_digest" && printf YES || printf NO)"
+    elif [ "${MOVE_CONTROLLER[$key]}" = -1 ]; then
+        case_result "$label" FAIL \
+            "controller evidence disagrees log-conversion=$log_conversion DEBUG-role-change=$observed_role_change roles=${roles0:-n/a}->${converted_roles:-none}; exact migration data PASS"
+    elif [ "${MOVE_ENGAGED[$key]}" = 0 ] &&
+         [ "${MOVE_CONTROLLER[$key]}" = 0 ]; then
         case_result "$label" INCONCLUSIVE \
-            "ENGAGED=NO OVERLAP=NO exact-data=PASS ops=$ops automatic-decisions=0 flips=0 done=0 route-changes=0"
-    elif [ "$auto" -eq 0 ] || [ "$flips" -eq 0 ] ||
-         [ "$overlap" != 1 ] || [ "$done" -ne "$flips" ] ||
-         [ "$auto" -ne "$flips" ] ||
-         [ "$status_ok" != 1 ] ||
-         [ "$pair_ok" != 1 ] ||
-         [ -z "$status" ]; then
-        case_result "$label" FAIL \
-            "ENGAGED=YES OVERLAP=$([ "$overlap" = 1 ] && printf YES || printf NO) AUTO=$auto FLIP=$flips DONE=$done tuple-pairs=$pair_ok expected-DONE=$flips status=${status:-missing} status-ok=$status_ok aborts=$aborts"
-    elif [ ! -s "$verify" ]; then
-        case_result "$label" FAIL "moved range [$lo,$hi) was not exactly verified"
-    elif ! digest_equal "$digest" "$(json_field "$verify" digest 2>/dev/null || true)"; then
-        case_result "$label" FAIL \
-            "post-move read-only digest differs from original exact canaries"
-    elif [ -z "$src" ] || [ "$src" != 0 ] || [ "$selected_auto" -ne 1 ] ||
-         [ "$moved_src" != "$src" ] ||
-         [ "$moved_dst" != "$dst" ] ||
-         [ "$find_proofs" != "$moved_canaries" ] ||
-         [ "$change_proofs" != "$moved_canaries" ] ||
-         [ "$destination_proofs" != "$moved_canaries" ] ||
-         [[ ! "$changed" =~ ^[1-9][0-9]*$ ]]; then
-        case_result "$label" FAIL \
-            "route proof incomplete initial=$initial_routes AUTO-bind=$selected_auto logged=$src->$dst verified=${moved_src:-empty}->${moved_dst:-empty} moved-canaries=${moved_canaries:-empty} FIND=${find_proofs:-empty} changed=${change_proofs:-empty} at-destination=${destination_proofs:-empty} all-route-changes=${changed:-empty}"
+            "ENGAGED=NO qualifying-traffic-range=NO normalized-decisions=$decision_count controller-conversions=0 exact-data=PASS canaries=$canaries coverage=$([ "$QUICK" = 1 ] && printf SAMPLED || printf COMPLETE) ops=$ops digest=$digest"
+    elif [ "${MOVE_ENGAGED[$key]}" = 0 ]; then
+        case_result "$label" INCONCLUSIVE \
+            "ENGAGED=NO qualifying-traffic-range=NO normalized-decisions=$decision_count controller=$controller_state exact-data=PASS canaries=$canaries coverage=$([ "$QUICK" = 1 ] && printf SAMPLED || printf COMPLETE) ops=$ops digest=$digest"
+    elif [ "${MOVE_CONTROLLER[$key]}" = 0 ]; then
+        case_result "$label" INCONCLUSIVE \
+            "KEY-ENGAGED=YES CONTROLLER-ENGAGED=NO exact-data=PASS kind=$selected_kind range=[$selected_lo,$selected_hi) $selected_src->$selected_dst moved-canaries=$moved_canaries ops=$ops digest=$digest"
     else
         case_result "$label" PASS \
-            "ENGAGED=YES OVERLAP=YES readers=8 AUTO=$auto FLIP=$flips DONE=$done tuple-pairs=YES initial=$initial_routes range=[$lo,$hi) src=$src dst=$dst moved-canaries=$moved_canaries exhaustive-FIND=$find_proofs status='$status' exact-ops=$ops digest=$digest aborts=0"
+            "KEY-ENGAGED=YES CONTROLLER=$controller_state OVERLAP=YES kind=$selected_kind decision-line=$selected_decision FLIP-line=$selected_flip DONE-line=$selected_done range=[$selected_lo,$selected_hi) $selected_src->$selected_dst moved-canaries=$moved_canaries exact-traffic-buckets=$selected_traffic_proofs coverage=$([ "$QUICK" = 1 ] && printf SAMPLED/4 || printf COMPLETE) exact-ops=$ops digest=$digest aborts=0 roles=${roles0:-static}->${converted_roles:-static}"
     fi
-    case_result OWNERSHIP-MOVE-DICT INCONCLUSIVE \
-        "ENGAGED=NO EX=1 DICT has no second owner; ownership migration is mechanically inapplicable"
+}
+
+compare_migration() { # left-key right-key case detail require-controller
+    local left=$1 right=$2 case_name=$3 detail=$4 require_controller=${5:-0}
+    local left_engaged=${MOVE_ENGAGED[$left]:--1}
+    local right_engaged=${MOVE_ENGAGED[$right]:--1}
+    local left_controller=${MOVE_CONTROLLER[$left]:--1}
+    local right_controller=${MOVE_CONTROLLER[$right]:--1}
+    if [ "${MOVE_OK[$left]:-0}" != 1 ] ||
+       [ "${MOVE_OK[$right]:-0}" != 1 ]; then
+        case_result "$case_name" FAIL \
+            "$detail prerequisite exact arm missing left=${MOVE_OK[$left]:-0} right=${MOVE_OK[$right]:-0}"
+    elif ! digest_equal "${MOVE_DIGEST[$left]:-}" \
+        "${MOVE_DIGEST[$right]:-}"; then
+        case_result "$case_name" FAIL \
+            "$detail canonical canary digest mismatch left=${MOVE_DIGEST[$left]:-missing} right=${MOVE_DIGEST[$right]:-missing}"
+    elif [ "$left_engaged" = -1 ] || [ "$right_engaged" = -1 ] ||
+         { [ "$require_controller" = 1 ] &&
+           { [ "$left_controller" = -1 ] ||
+             [ "$right_controller" = -1 ]; }; }; then
+        case_result "$case_name" FAIL \
+            "$detail exact digest equal but engagement evidence is broken moves=$left_engaged/$right_engaged controllers=$left_controller/$right_controller"
+    elif [ "$left_engaged" != 1 ] || [ "$right_engaged" != 1 ]; then
+        case_result "$case_name" INCONCLUSIVE \
+            "ENGAGED=NO $detail exact digest equal=${MOVE_DIGEST[$left]} moves=$left_engaged/$right_engaged"
+    elif [ "$require_controller" = 1 ] &&
+         { [ "$left_controller" != 1 ] ||
+           [ "$right_controller" != 1 ]; }; then
+        case_result "$case_name" INCONCLUSIVE \
+            "CONTROLLER-ENGAGED=NO $detail exact digest equal=${MOVE_DIGEST[$left]} controllers=$left_controller/$right_controller"
+    else
+        case_result "$case_name" PASS \
+            "$detail exact digest=${MOVE_DIGEST[$left]} moves=YES/YES controllers=$left_controller/$right_controller"
+    fi
 }
 
 run_lifecycle_variant() { # key label io ex mode expected-engine
@@ -1729,7 +2373,41 @@ else
     run_correctness_case CORRECTNESS-FLAT-AUTO 4 4 auto
 fi
 
-run_migration_case
+run_migration_variant \
+    dict_static OWNERSHIP-MOVE-DICT-STATIC 7 1 static DICT
+run_migration_variant \
+    flat_static OWNERSHIP-MOVE-FLAT-STATIC 4 4 static FLAT
+if [ "$QUICK" = 1 ]; then
+    case_result OWNERSHIP-MOVE-DICT-AUTO SKIP "QUICK functional subset"
+    case_result OWNERSHIP-MOVE-FLAT-AUTO SKIP "QUICK functional subset"
+else
+    run_migration_variant \
+        dict_auto OWNERSHIP-MOVE-DICT-AUTO 1 1 auto DICT
+    run_migration_variant \
+        flat_auto OWNERSHIP-MOVE-FLAT-AUTO 4 4 auto FLAT
+fi
+
+compare_migration dict_static flat_static \
+    OWNERSHIP-MOVE-STORAGE-ENGINE-EQUIVALENCE-STATIC \
+    "DICT-static vs FLAT-static" 0
+if [ "$QUICK" = 1 ]; then
+    case_result OWNERSHIP-MOVE-STORAGE-ENGINE-EQUIVALENCE-AUTO SKIP \
+        "QUICK functional subset"
+    case_result OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-DICT SKIP \
+        "QUICK functional subset"
+    case_result OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-FLAT SKIP \
+        "QUICK functional subset"
+else
+    compare_migration dict_auto flat_auto \
+        OWNERSHIP-MOVE-STORAGE-ENGINE-EQUIVALENCE-AUTO \
+        "DICT-auto vs FLAT-auto" 1
+    compare_migration dict_static dict_auto \
+        OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-DICT \
+        "DICT static vs auto" 1
+    compare_migration flat_static flat_auto \
+        OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-FLAT \
+        "FLAT static vs auto" 1
+fi
 run_lifecycle_matrix
 run_memory_case
 run_reference_cells

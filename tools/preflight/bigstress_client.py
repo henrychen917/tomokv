@@ -13,9 +13,11 @@ Out-of-spec results, by subcommand:
 * migration: a wrong/missing canary reply during pipelined traffic or final
   verification, zero completed GETs, a bad local XXH64 mirror, failure to
   publish a requested readiness marker after all eight exact readers run, or
-  (when --moved-lo/--moved-hi are supplied) any deterministic canary in the
-  range which does not route away from the recorded source to the completed,
-  valid destination.
+  any selected canary which did not begin on the decision's logged source, or
+  (in --verify-only mode) any deterministic canary in the explicit
+  --moved-lo/--moved-hi range which does not route away from --moved-src to
+  --moved-dst. Full mode proves one canary per ownership bucket; QUICK reports
+  its stride-four sampling and never calls that coverage complete.
 * lifecycle: any long-lived connection disconnecting or returning a wrong byte,
   zero connect/SET/GET/disconnect churn, failure to get an accepted
   DEBUG TOMO-MODESHIFT 6 request, or no surviving socket reporting a changed
@@ -51,6 +53,7 @@ VALUE_SIZES = (32, 4096, 65536)
 TOMO_BUCKETS = 16384
 MIGRATION_LO = 2048
 MIGRATION_HI = 4096
+MIGRATION_QUICK_STRIDE = 4
 CONNECT_TIMEOUT = 5.0
 QUICK_COMMAND_TIMEOUT = 12.0
 FULL_COMMAND_TIMEOUT = 30.0
@@ -397,6 +400,26 @@ def validate_ready_file(path: str | None) -> str | None:
     return absolute
 
 
+def validate_control_file(path: str | None, option: str) -> str | None:
+    """Validate a shell-published control path which must not exist at launch."""
+
+    if path is None:
+        return None
+    if not path:
+        raise ConformanceError(f"{option} must not be empty")
+    absolute = os.path.abspath(path)
+    parent = os.path.dirname(absolute)
+    if not os.path.isdir(parent):
+        raise ConformanceError(
+            f"{option} parent directory does not exist: {parent}"
+        )
+    if os.path.lexists(absolute):
+        raise ConformanceError(
+            f"{option} already exists; refusing a stale control file: {absolute}"
+        )
+    return absolute
+
+
 def publish_ready_file(path: str) -> None:
     """Atomically publish an empty existence-only readiness marker."""
 
@@ -465,6 +488,54 @@ def join_threads(
             f"timeout joining {description}; alive={','.join(alive)}"
         )
     errors.check()
+
+
+def read_migration_selection(path: str | None) -> tuple[int, int, int, int] | None:
+    """Read the shell's atomically-published ``lo hi src dst`` selection."""
+
+    if path is None or not os.path.exists(path):
+        return None
+    try:
+        with open(path, "rb") as stream:
+            raw = stream.read(4097)
+    except OSError as exc:
+        raise ConformanceError(
+            f"could not read migration selection file {path}: {exc}"
+        ) from exc
+    if len(raw) > 4096:
+        raise ConformanceError("migration selection file exceeds 4096 bytes")
+    match = re.fullmatch(
+        rb"[ \t]*([0-9]+)[ \t]+([0-9]+)[ \t]+([0-9]+)[ \t]+([0-9]+)[ \t]*(?:\r?\n)?",
+        raw,
+    )
+    if match is None:
+        raise ConformanceError(
+            f"migration selection file has invalid contents: {raw[:160]!r}"
+        )
+    lo, hi, src, dst = (int(value) for value in match.groups())
+    if not (0 <= lo < hi <= TOMO_BUCKETS):
+        raise ConformanceError(f"migration selection has invalid range [{lo},{hi})")
+    if src < 0 or dst < 0 or src == dst:
+        raise ConformanceError(
+            f"migration selection has invalid workers {src}->{dst}"
+        )
+    return lo, hi, src, dst
+
+
+def _watch_stop_file(
+    path: str,
+    deadline: float,
+    stop: threading.Event,
+    observed: threading.Event,
+) -> None:
+    """Turn an atomically-created stop file into a normal worker-stop request."""
+
+    while not stop.is_set() and time.monotonic() < deadline:
+        if os.path.exists(path):
+            observed.set()
+            stop.set()
+            return
+        stop.wait(0.05)
 
 
 def delete_keys(conn: RespConnection, keys: Sequence[bytes]) -> None:
@@ -966,10 +1037,12 @@ def tomo_bucket(key: bytes) -> int:
 def generate_migration_canaries(
     quick: bool,
 ) -> tuple[list[tuple[bytes, bytes, int]], dict[int, tuple[bytes, bytes]]]:
-    # Full mode has one exact canary in every bucket of the broad suffix.
-    # QUICK samples every fourth bucket but still spans the complete suffix.
-    step = 4 if quick else 1
-    wanted = set(range(MIGRATION_LO, MIGRATION_HI, step))
+    # Full qualification has one exact canary in every ownership bucket.  A
+    # controller role move or post-flip RELEVEL can change the live boundaries
+    # before the key balancer fires, so covering only the originally-hot suffix
+    # cannot prove an arbitrary logged moved range. QUICK is explicitly sampled.
+    step = MIGRATION_QUICK_STRIDE if quick else 1
+    wanted = set(range(0, TOMO_BUCKETS, step))
     by_bucket: dict[int, tuple[bytes, bytes]] = {}
     candidate = 0
     while wanted and candidate < 2_000_000:
@@ -984,7 +1057,7 @@ def generate_migration_canaries(
         candidate += 1
     if wanted:
         raise ConformanceError(
-            f"could not generate canaries for {len(wanted)} target buckets"
+            f"could not generate canaries for {len(wanted)} ownership buckets"
         )
     ordered = [
         (key, value, bucket)
@@ -993,8 +1066,7 @@ def generate_migration_canaries(
     return ordered, by_bucket
 
 
-def debug_find(conn: RespConnection, key: bytes) -> tuple[int, int]:
-    reply = conn.command(b"DEBUG", b"RESHARD", b"FIND", key)
+def parse_debug_find_reply(reply: Any, key: bytes) -> tuple[int, int]:
     if not isinstance(reply, RespSimpleString):
         raise ConformanceError(
             f"DEBUG RESHARD FIND {key!r}: expected status, "
@@ -1018,6 +1090,34 @@ def debug_find(conn: RespConnection, key: bytes) -> tuple[int, int]:
             f"XXH64 routing mismatch for {key!r}: local={local} server={bucket}"
         )
     return bucket, routed
+
+
+def debug_find(conn: RespConnection, key: bytes) -> tuple[int, int]:
+    return parse_debug_find_reply(
+        conn.command(b"DEBUG", b"RESHARD", b"FIND", key), key
+    )
+
+
+def debug_find_many(
+    conn: RespConnection, entries: Sequence[tuple[int, bytes]]
+) -> list[tuple[int, int]]:
+    """Pipeline strict FIND proofs without changing their per-key oracle."""
+
+    found: list[tuple[int, int]] = []
+    for offset in range(0, len(entries), 128):
+        batch = entries[offset : offset + 128]
+        replies = conn.pipeline(
+            [(b"DEBUG", b"RESHARD", b"FIND", key) for _bucket, key in batch]
+        )
+        for (expected_bucket, key), reply in zip(batch, replies):
+            bucket, route = parse_debug_find_reply(reply, key)
+            if bucket != expected_bucket:
+                raise ConformanceError(
+                    f"DEBUG RESHARD FIND {key!r}: expected bucket "
+                    f"{expected_bucket}, server reported {bucket}"
+                )
+            found.append((bucket, route))
+    return found
 
 
 def debug_worker_count(conn: RespConnection) -> int:
@@ -1067,8 +1167,11 @@ def prove_moved_routes(
     moved: Sequence[tuple[int, bytes, bytes]],
     moved_lo: int,
     moved_hi: int,
+    moved_src: int,
+    moved_dst: int,
+    quick: bool,
 ) -> dict[str, Any]:
-    """Exhaustively prove the completed range routes from src to valid dst."""
+    """Prove the selected completed range routes from its logged src to dst."""
 
     status = debug_reshard_status(conn)
     worker_count = debug_worker_count(conn)
@@ -1083,56 +1186,70 @@ def prove_moved_routes(
             f"argument=[{moved_lo},{moved_hi}) "
             f"status=[{status[b'lo']},{status[b'hi']})"
         )
-    source = status[b"src"]
-    destination = status[b"dst"]
+    if status[b"src"] != moved_src or status[b"dst"] != moved_dst:
+        raise ConformanceError(
+            "reported moved workers disagree with DEBUG RESHARD STATUS: "
+            f"argument={moved_src}->{moved_dst} "
+            f"status={status[b'src']}->{status[b'dst']}"
+        )
     if (
-        source < 0
-        or source >= worker_count
-        or destination < 0
-        or destination >= worker_count
-        or source == destination
+        moved_src < 0
+        or moved_src >= worker_count
+        or moved_dst < 0
+        or moved_dst >= worker_count
+        or moved_src == moved_dst
     ):
         raise ConformanceError(
             "DEBUG RESHARD STATUS has invalid source/destination for "
-            f"{worker_count} worker slots: src={source} dst={destination}"
+            f"{worker_count} worker slots: src={moved_src} dst={moved_dst}"
+        )
+    expected_canaries = moved_hi - moved_lo
+    coverage_complete = not quick
+    if coverage_complete and len(moved) != expected_canaries:
+        raise ConformanceError(
+            "full moved-range proof is not bucket-complete: "
+            f"range=[{moved_lo},{moved_hi}) expected={expected_canaries} "
+            f"canaries={len(moved)}"
         )
 
     routes: set[int] = set()
     changed_proofs = 0
     destination_proofs = 0
-    for bucket, key, _value in moved:
-        found_bucket, route = debug_find(conn, key)
-        if found_bucket != bucket:
-            raise ConformanceError(
-                f"moved canary {key!r}: expected bucket {bucket}, "
-                f"server reported {found_bucket}"
-            )
+    entries = [(bucket, key) for bucket, key, _value in moved]
+    for (bucket, key, _value), (_found_bucket, route) in zip(
+        moved, debug_find_many(conn, entries)
+    ):
         if route < 0 or route >= worker_count:
             raise ConformanceError(
                 f"moved canary {key!r}: routed_ex={route} is outside "
                 f"valid worker slots [0,{worker_count})"
             )
-        if route == source:
+        if route == moved_src:
             raise ConformanceError(
                 f"moved canary {key!r}: route did not change from "
-                f"recorded source worker {source}"
+                f"recorded source worker {moved_src}"
             )
         changed_proofs += 1
-        if route != destination:
+        if route != moved_dst:
             raise ConformanceError(
                 f"moved canary {key!r}: expected completed destination "
-                f"worker {destination}, got {route}"
+                f"worker {moved_dst}, got {route}"
             )
         destination_proofs += 1
         routes.add(route)
 
     return {
-        "moved_dst": destination,
+        "moved_bucket_coverage_complete": coverage_complete,
+        "moved_bucket_coverage_stride": (
+            MIGRATION_QUICK_STRIDE if quick else 1
+        ),
+        "moved_bucket_span": expected_canaries,
+        "moved_dst": moved_dst,
         "moved_route_change_proofs": changed_proofs,
         "moved_route_destination_proofs": destination_proofs,
         "moved_route_find_proofs": len(moved),
         "moved_routes": sorted(routes),
-        "moved_src": source,
+        "moved_src": moved_src,
         "route_worker_slots": worker_count,
     }
 
@@ -1141,7 +1258,8 @@ def _migration_worker(
     client_id: int,
     port: int,
     timeout: float,
-    keys: Sequence[bytes],
+    focus_keys: Sequence[bytes],
+    buckets_by_key: dict[bytes, int],
     values: dict[bytes, bytes],
     pipeline_size: int,
     seed: int,
@@ -1154,10 +1272,12 @@ def _migration_worker(
     active_lock: threading.Lock,
     run_deadline: list[float],
     ready_file: str | None,
+    touched_buckets: set[int],
+    touched_lock: threading.Lock,
     errors: ErrorBox,
     ops_by_client: list[int],
 ) -> None:
-    rng = random.Random(seed)
+    cursor = seed % len(focus_keys)
     entered_sustained_loop = False
     try:
         with RespConnection(port, timeout, f"migration-client-{client_id}") as conn:
@@ -1169,7 +1289,11 @@ def _migration_worker(
             while (
                 time.monotonic() < run_deadline[0] and not errors.stop.is_set()
             ):
-                chosen = [keys[rng.randrange(len(keys))] for _ in range(pipeline_size)]
+                chosen = [
+                    focus_keys[(cursor + index) % len(focus_keys)]
+                    for index in range(pipeline_size)
+                ]
+                cursor = (cursor + pipeline_size) % len(focus_keys)
                 replies = conn.pipeline([(b"GET", key) for key in chosen])
                 for index, (key, reply) in enumerate(zip(chosen, replies)):
                     expect_exact(
@@ -1177,11 +1301,16 @@ def _migration_worker(
                         values[key],
                         f"migration c{client_id} pipeline[{index}] key={key!r}",
                     )
+                with touched_lock:
+                    touched_buckets.update(buckets_by_key[key] for key in chosen)
                 local_ops += len(chosen)
-                if local_ops == len(chosen):
-                    # Readiness means more than "socket connected": this
-                    # worker has completed and byte-compared its first exact
-                    # GET pipeline and has entered the sustained traffic loop.
+                if (
+                    not entered_sustained_loop
+                    and local_ops >= len(focus_keys)
+                ):
+                    # Readiness means every worker has completed at least one
+                    # deterministic, byte-exact sweep of the entire hot domain,
+                    # then remained in the same cyclic sustained-traffic loop.
                     with active_lock:
                         active[0] += 1
                     entered_sustained_loop = True
@@ -1211,27 +1340,64 @@ def run_migration(args: argparse.Namespace) -> None:
     validate_seconds(args.seconds)
     timeout = command_timeout(args.quick)
     ready_file = validate_ready_file(args.ready_file)
-    if args.verify_only and ready_file is not None:
+    selection_file = validate_control_file(args.selection_file, "--selection-file")
+    stop_file = validate_control_file(args.stop_file, "--stop-file")
+    if args.verify_only and any(
+        path is not None for path in (ready_file, selection_file, stop_file)
+    ):
         raise ConformanceError(
-            "--ready-file is only valid for the traffic-bearing migration run"
+            "--ready-file, --selection-file, and --stop-file are only valid "
+            "for the traffic-bearing migration run"
         )
-    if (args.moved_lo is None) != (args.moved_hi is None):
-        raise ConformanceError("--moved-lo and --moved-hi must be supplied together")
+    moved_arguments = (
+        args.moved_lo,
+        args.moved_hi,
+        args.moved_src,
+        args.moved_dst,
+    )
+    if any(value is not None for value in moved_arguments) and not all(
+        value is not None for value in moved_arguments
+    ):
+        raise ConformanceError(
+            "--moved-lo, --moved-hi, --moved-src, and --moved-dst "
+            "must be supplied together"
+        )
     if args.moved_lo is not None and not (
         0 <= args.moved_lo < args.moved_hi <= TOMO_BUCKETS
     ):
         raise ConformanceError(
             f"invalid moved range [{args.moved_lo},{args.moved_hi})"
         )
+    if args.moved_src is not None and (
+        args.moved_src < 0
+        or args.moved_dst < 0
+        or args.moved_src == args.moved_dst
+    ):
+        raise ConformanceError(
+            f"invalid moved workers {args.moved_src}->{args.moved_dst}"
+        )
+    if not args.verify_only and any(value is not None for value in moved_arguments):
+        raise ConformanceError(
+            "--moved-* arguments are only valid with --verify-only; use "
+            "--selection-file for the traffic-bearing run"
+        )
 
     canaries, by_bucket = generate_migration_canaries(args.quick)
     values = {key: value for key, value, _bucket in canaries}
     keys = [key for key, _value, _bucket in canaries]
+    buckets_by_key = {key: bucket for key, _value, bucket in canaries}
+    focus_keys = [
+        key
+        for key, _value, bucket in canaries
+        if MIGRATION_LO <= bucket < MIGRATION_HI
+    ]
+    if not focus_keys:
+        raise ConformanceError("migration traffic focus has no deterministic canary")
 
     if args.verify_only:
         if args.moved_lo is None:
             raise ConformanceError(
-                "--verify-only requires --moved-lo and --moved-hi"
+                "--verify-only requires all four --moved-* arguments"
             )
         verify_records: list[tuple[bytes, bytes, bytes]] = []
         moved = [
@@ -1246,6 +1412,18 @@ def run_migration(args: argparse.Namespace) -> None:
             )
         route_proof: dict[str, Any]
         with RespConnection(args.port, timeout, "migration-read-only-verify") as conn:
+            # Bind the selected logged status/range first. The all-canary
+            # value digest follows on the same bounded connection, but must
+            # not delay this immediate post-DONE ownership observation.
+            route_proof = prove_moved_routes(
+                conn,
+                moved,
+                args.moved_lo,
+                args.moved_hi,
+                args.moved_src,
+                args.moved_dst,
+                args.quick,
+            )
             pairs = sorted(values.items())
             for offset in range(0, len(pairs), 64):
                 for key, value in verify_mget(
@@ -1254,10 +1432,11 @@ def run_migration(args: argparse.Namespace) -> None:
                     f"migration read-only final MGET {offset // 64}",
                 ):
                     verify_records.append((b"canary", key, value))
-            route_proof = prove_moved_routes(
-                conn, moved, args.moved_lo, args.moved_hi
-            )
         verify_result = {
+            "bucket_coverage_complete": not args.quick,
+            "bucket_coverage_stride": (
+                MIGRATION_QUICK_STRIDE if args.quick else 1
+            ),
             "canaries": len(canaries),
             "case": "migration-read-only-verify",
             "digest": canonical_digest(verify_records),
@@ -1285,13 +1464,12 @@ def run_migration(args: argparse.Namespace) -> None:
         initial_routes: set[int] = set()
         initial_route_by_key: dict[bytes, int] = {}
         initial_worker_count = debug_worker_count(setup)
-        for key, _value, bucket in canaries:
-            found_bucket, route = debug_find(setup, key)
-            if found_bucket != bucket:
-                raise ConformanceError(
-                    f"initial canary {key!r}: expected bucket {bucket}, "
-                    f"server reported {found_bucket}"
-                )
+        initial_found = debug_find_many(
+            setup, [(bucket, key) for key, _value, bucket in canaries]
+        )
+        for (key, _value, _bucket), (_found_bucket, route) in zip(
+            canaries, initial_found
+        ):
             if route < 0 or route >= initial_worker_count:
                 raise ConformanceError(
                     f"initial canary {key!r}: routed_ex={route} is outside "
@@ -1299,11 +1477,6 @@ def run_migration(args: argparse.Namespace) -> None:
                 )
             initial_route_by_key[key] = route
             initial_routes.add(route)
-        if args.moved_lo is None and initial_routes != {0}:
-            raise ConformanceError(
-                "migration precondition failed: broad suffix canaries did not "
-                f"start on worker 0 (routes={sorted(initial_routes)})"
-            )
 
     seeds = [0x5EED0000 + client_id * 0x9E37 for client_id in range(NCLIENTS)]
     pipeline_size = 24 if args.quick else 64
@@ -1319,6 +1492,8 @@ def run_migration(args: argparse.Namespace) -> None:
     # window begins only after every worker completes one exact GET pipeline.
     run_deadline = [float("inf")]
     ops_by_client = [0] * NCLIENTS
+    touched_buckets: set[int] = set()
+    touched_lock = threading.Lock()
     workers = [
         threading.Thread(
             target=_migration_worker,
@@ -1327,7 +1502,8 @@ def run_migration(args: argparse.Namespace) -> None:
                 client_id,
                 args.port,
                 timeout,
-                keys,
+                focus_keys,
+                buckets_by_key,
                 values,
                 pipeline_size,
                 seeds[client_id],
@@ -1340,6 +1516,8 @@ def run_migration(args: argparse.Namespace) -> None:
                 active_lock,
                 run_deadline,
                 ready_file,
+                touched_buckets,
+                touched_lock,
                 errors,
                 ops_by_client,
             ),
@@ -1349,6 +1527,8 @@ def run_migration(args: argparse.Namespace) -> None:
     ]
     for worker in workers:
         worker.start()
+    stop_observed = threading.Event()
+    stop_watcher: threading.Thread | None = None
     try:
         wait_for(
             lambda: connected[0] == NCLIENTS,
@@ -1361,7 +1541,7 @@ def run_migration(args: argparse.Namespace) -> None:
             lambda: running[0] == NCLIENTS,
             time.monotonic() + timeout,
             errors,
-            "all migration clients to complete an exact GET pipeline",
+            "all migration clients to complete an exact hot-domain GET sweep",
         )
         errors.check()
         if not all(worker.is_alive() for worker in workers):
@@ -1374,6 +1554,19 @@ def run_migration(args: argparse.Namespace) -> None:
         # only while all eight qualified GET workers are in their timed loop.
         if ready_file is not None:
             publish_ready_file(ready_file)
+        if stop_file is not None:
+            stop_watcher = threading.Thread(
+                target=_watch_stop_file,
+                name="migration-stop-file-watcher",
+                args=(
+                    stop_file,
+                    run_deadline[0] + timeout + 5.0,
+                    errors.stop,
+                    stop_observed,
+                ),
+                daemon=True,
+            )
+            stop_watcher.start()
         join_threads(
             workers,
             run_deadline[0] + timeout + 5.0,
@@ -1389,6 +1582,8 @@ def run_migration(args: argparse.Namespace) -> None:
             if remaining <= 0:
                 break
             worker.join(remaining)
+        if stop_watcher is not None:
+            stop_watcher.join(max(0.0, cleanup_deadline - time.monotonic()))
         if ready_file is not None:
             try:
                 os.unlink(ready_file)
@@ -1399,12 +1594,78 @@ def run_migration(args: argparse.Namespace) -> None:
         raise ConformanceError(
             f"migration client completed no GETs: ops={ops_by_client}"
         )
+    focus_buckets = {
+        bucket
+        for _key, _value, bucket in canaries
+        if MIGRATION_LO <= bucket < MIGRATION_HI
+    }
+    if touched_buckets != focus_buckets:
+        raise ConformanceError(
+            "sustained exact traffic did not cover the complete hot domain: "
+            f"proved={len(touched_buckets)} expected={len(focus_buckets)}"
+        )
+
+    selection = read_migration_selection(selection_file)
+    selected_canaries = 0
+    selected_initial_source_proofs = 0
+    selected_traffic_read_proofs = 0
+    selected_bucket_coverage_complete = False
+    selected_lo: int | None = None
+    selected_hi: int | None = None
+    selected_src: int | None = None
+    selected_dst: int | None = None
+    if selection is not None:
+        selected_lo, selected_hi, selected_src, selected_dst = selection
+        if (
+            selected_src >= initial_worker_count
+            or selected_dst >= initial_worker_count
+        ):
+            raise ConformanceError(
+                "migration selection workers are outside the initial worker "
+                f"slots [0,{initial_worker_count}): {selected_src}->{selected_dst}"
+            )
+        selected = [
+            (bucket, key)
+            for key, _value, bucket in canaries
+            if selected_lo <= bucket < selected_hi
+        ]
+        if not selected:
+            raise ConformanceError(
+                f"selected range [{selected_lo},{selected_hi}) contains no "
+                "deterministic canary"
+            )
+        selected_canaries = len(selected)
+        for bucket, key in selected:
+            if bucket in touched_buckets:
+                selected_traffic_read_proofs += 1
+            route = initial_route_by_key[key]
+            if route != selected_src:
+                raise ConformanceError(
+                    f"selected canary bucket={bucket} key={key!r} began on "
+                    f"worker {route}, not logged source {selected_src}"
+                )
+            selected_initial_source_proofs += 1
+        if selected_traffic_read_proofs != selected_canaries:
+            raise ConformanceError(
+                "selected moved range was not covered by exact helper traffic: "
+                f"proved={selected_traffic_read_proofs} "
+                f"selected={selected_canaries}"
+            )
+        selected_bucket_coverage_complete = not args.quick
+        if (
+            selected_bucket_coverage_complete
+            and selected_canaries != selected_hi - selected_lo
+        ):
+            raise ConformanceError(
+                "full selected-range initial-source proof is not "
+                f"bucket-complete: range=[{selected_lo},{selected_hi}) "
+                f"expected={selected_hi - selected_lo} "
+                f"canaries={selected_canaries}"
+            )
 
     records: list[tuple[bytes, bytes, bytes]] = []
     final_routes: set[int] = set()
     final_route_by_key: dict[bytes, int] = {}
-    moved_canaries = 0
-    moved_route_proof: dict[str, Any] = {}
     with RespConnection(args.port, timeout, "migration-final") as final_conn:
         pairs = sorted(values.items())
         for offset in range(0, len(pairs), 64):
@@ -1416,13 +1677,12 @@ def run_migration(args: argparse.Namespace) -> None:
                 records.append((b"canary", key, value))
 
         final_worker_count = debug_worker_count(final_conn)
-        for key, _value, bucket in canaries:
-            found_bucket, route = debug_find(final_conn, key)
-            if found_bucket != bucket:
-                raise ConformanceError(
-                    f"final canary {key!r}: expected bucket {bucket}, "
-                    f"server reported {found_bucket}"
-                )
+        final_found = debug_find_many(
+            final_conn, [(bucket, key) for key, _value, bucket in canaries]
+        )
+        for (key, _value, _bucket), (_found_bucket, route) in zip(
+            canaries, final_found
+        ):
             if route < 0 or route >= final_worker_count:
                 raise ConformanceError(
                     f"final canary {key!r}: routed_ex={route} is outside "
@@ -1431,30 +1691,14 @@ def run_migration(args: argparse.Namespace) -> None:
             final_route_by_key[key] = route
             final_routes.add(route)
 
-        if args.moved_lo is not None:
-            moved = [
-                (bucket, by_bucket[bucket][0], by_bucket[bucket][1])
-                for bucket in sorted(by_bucket)
-                if args.moved_lo <= bucket < args.moved_hi
-            ]
-            if not moved:
-                raise ConformanceError(
-                    f"reported moved range [{args.moved_lo},{args.moved_hi}) "
-                    "contains no deterministic canary"
-                )
-            moved_canaries = len(moved)
-            # Exact values above establish fidelity; this independent,
-            # exhaustive route proof establishes that every deterministic
-            # canary in the logged range left its recorded source and reached
-            # the valid destination recorded by the completed migration.
-            moved_route_proof = prove_moved_routes(
-                final_conn, moved, args.moved_lo, args.moved_hi
-            )
-
     changed_from_initial = sum(
         final_route_by_key[key] != initial_route_by_key[key] for key in keys
     )
     result: dict[str, Any] = {
+        "bucket_coverage_complete": not args.quick,
+        "bucket_coverage_stride": (
+            MIGRATION_QUICK_STRIDE if args.quick else 1
+        ),
         "canaries": len(canaries),
         "case": "migration",
         "clients": NCLIENTS,
@@ -1463,6 +1707,7 @@ def run_migration(args: argparse.Namespace) -> None:
         "final_routes": sorted(final_routes),
         "get_ops": sum(ops_by_client),
         "initial_routes": sorted(initial_routes),
+        "min_client_get_ops": min(ops_by_client),
         "pipeline": pipeline_size,
         "profile": "quick" if args.quick else "full",
         "ready_file_published": ready_file is not None,
@@ -1471,19 +1716,28 @@ def run_migration(args: argparse.Namespace) -> None:
         "route_pre_find_proofs": len(initial_route_by_key),
         "route_unchanged_from_initial": len(canaries) - changed_from_initial,
         "route_worker_slots": final_worker_count,
+        "selected_bucket_coverage_complete": (
+            selected_bucket_coverage_complete
+        ),
+        "selected_canaries": selected_canaries,
+        "selected_initial_source_proofs": selected_initial_source_proofs,
+        "selected_traffic_read_proofs": selected_traffic_read_proofs,
+        "selection_published": selection is not None,
         "seeds": seeds,
+        "stop_file_observed": stop_observed.is_set(),
         "target_hi": MIGRATION_HI,
         "target_lo": MIGRATION_LO,
+        "traffic_read_bucket_proofs": len(touched_buckets),
     }
-    if args.moved_lo is not None:
+    if selection is not None:
         result.update(
             {
-                "moved_canaries": moved_canaries,
-                "moved_hi": args.moved_hi,
-                "moved_lo": args.moved_lo,
+                "selected_dst": selected_dst,
+                "selected_hi": selected_hi,
+                "selected_lo": selected_lo,
+                "selected_src": selected_src,
             }
         )
-        result.update(moved_route_proof)
     emit_json(result)
 
 
@@ -1871,12 +2125,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--ready-file",
         help=(
             "atomically create this marker after all exact GET workers have "
-            "completed a pipeline; it remains present only during their "
+            "completed a full hot-domain sweep; it remains present during their "
             "sustained exact-GET interval"
+        ),
+    )
+    migration.add_argument(
+        "--selection-file",
+        help=(
+            "read an atomically published 'lo hi src dst' selection after "
+            "traffic stops, and prove its canaries began on the logged source"
+        ),
+    )
+    migration.add_argument(
+        "--stop-file",
+        help=(
+            "stop sustained exact readers normally when this path is "
+            "atomically created"
         ),
     )
     migration.add_argument("--moved-lo", type=int)
     migration.add_argument("--moved-hi", type=int)
+    migration.add_argument("--moved-src", type=int)
+    migration.add_argument("--moved-dst", type=int)
     migration.set_defaults(func=run_migration)
 
     lifecycle = subparsers.add_parser(
