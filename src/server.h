@@ -3830,9 +3830,9 @@ struct redisServer {
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
      * — see exPrefetchBatch in server.c and the constants next to WORKER_POP_BATCH above. The
-     * fields are gone rather than seeded in tomoInitRetiredKnobDefaults deliberately: a retired
-     * knob's field is initialised by the config table, so a field that outlives its knob falls to
-     * 0 by omission. No field, no way to zero it. */
+     * fields and their config entries were deleted together deliberately: a retired knob's field
+     * was initialised by the config table, so a field that outlives its knob falls to 0 by
+     * omission. No field, no way to zero it. */
     /* ee451: independent batch + value-forward trigger knobs (runtime). */
     size_t detected_l3_bytes;      /* v13: L3 size self-read from sysfs at startup (for -1=auto thresholds) */
     int detected_l3_domains;      /* L1a: distinct L3 domains (CCX/CCD); workers-per-L3 for the prefetch gate */
@@ -3861,9 +3861,8 @@ struct redisServer {
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
                                         * (the old double-read Schmitt gate could act on two
                                         * different values) */
-    /* Reshard TRIGGER parameters. Only the first is an operator config (tomokv-key-lb-sustain);
-     * the other two are hardwired to their self-deriving arm in tomoInitRetiredKnobDefaults and
-     * keep full -1/0/N semantics so either can be re-exposed without touching reshardAutoTune. */
+    /* Reshard TRIGGER parameters retain full -1/0/N semantics; see config.c for the exposed
+     * operator controls and their defaults. */
     int reshard_sustain_ticks;   /* tomokv-key-lb-sustain: -1=auto max(3,ceil(1/alpha)) [default];
                                   * 0=debounce OFF, fire on the first violating tick (A/B arm);
                                   * N=require N consecutive outlier ticks */

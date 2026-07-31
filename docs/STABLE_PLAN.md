@@ -1500,11 +1500,11 @@ Two things the deleted code had established, worth carrying into any future atte
   issuer from the start.
 
 **Note on the retired-knob trap.** The five knobs were deleted outright — entries *and* fields —
-not left as fields seeded to 0. See the `tomoInitRetiredKnobDefaults` comment in `config.c`: a
-field that outlives its knob falls to 0 by omission, which is how FLATSTORE was once silently
-turned off while `correctness_suite` stayed 15/15. `knob_matrix.sh`'s io_uring cells were removed
-rather than converted to `reject()` assertions, because keeping them would have kept the retired
-names alive in the tree; the boot log remains the witness that nothing else was zeroed.
+not left as fields seeded to 0. A field that outlives its config-table entry falls to 0 by
+omission, which is how FLATSTORE was once silently turned off while `correctness_suite` stayed
+15/15. `knob_matrix.sh`'s io_uring cells were removed rather than converted to `reject()`
+assertions, because keeping them would have kept the retired names alive in the tree; the boot log
+remains the witness that nothing else was zeroed.
 
 *This section is the only place in the tree, outside git history, where the deleted backend is
 named. It is kept deliberately, as the record of what was removed and why.*

@@ -3302,9 +3302,9 @@ standardConfig static_configs[] = {
      *    N = require N consecutive violating ticks
      * Everything else in the detector self-derives from the signal and needs no operator input:
      * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
-     * the chunk size. Their fields still carry full -1/0/N semantics (see tomoInitRetiredKnobDefaults)
-     * for anyone who needs to re-expose one; they are simply not decisions an operator should have to
-     * make. Disable the whole balancer with tomokv-key-lb 0. */
+     * the chunk size. Their fields still carry full -1/0/N semantics for anyone who needs to
+     * re-expose one; they are simply not decisions an operator should have to make. Disable the
+     * whole balancer with tomokv-key-lb 0. */
     createIntConfig("tomokv-key-lb-sustain",         "tomokv-reshard-sustain-ticks", MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
     /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
      * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
@@ -3604,66 +3604,6 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
 /* Initialize configs to their default values and create and populate the 
  * runtime configuration dictionary. */
 
-/* ee451 (knob retirement, 2026-07-28): HARDWIRED DEFAULTS FOR THE RETIRED KNOBS THAT STILL
- * HAVE A FIELD. A retired knob leaves this block for good once its value has been folded into
- * the code (the field deleted, the conditional collapsed) — that is the finished state; a seed
- * here is the halfway house. The history below is why the halfway house exists at all, and it
- * names fields (thredis_flat_store, xshard_guard, ...) that have since been folded away.
- *
- * THIS BLOCK IS LOAD-BEARING. Redis applies a config's default by ITERATING THE CONFIG TABLE
- * (initConfigValues -> standard_configs), so deleting a createXConfig() entry also deletes the only
- * thing that ever initialised its field. The field then sits at 0 from the zero-initialised `server`
- * global -- NOT at the default it used to have.
- *
- * That is exactly what happened, and it was silent: 29 of the 44 retired knobs had a non-zero
- * default, so retiring them turned FLATSTORE off (thredis_flat_store 1 -> 0), turned the cross-shard
- * SAFE-GATE off (xshard_guard 1 -> 0, i.e. unported multi-key commands would corrupt the decoy db
- * instead of being rejected), disabled the client pipeline ring (pipeline_ring_depth -1 -> 0 => the
- * boot log literally printed "ring disabled (depth 1)"), zeroed every prefetch width, and killed the
- * M2/M3 connection balancer (tm_flip_rebalance 1 -> 0).
- *
- * None of it was caught by correctness_suite (15/15), the legacy-config boot test, or three green
- * preflight suites -- because those check SEMANTICS, and the fork is still semantically correct with
- * its architecture switched off. The boot log was the only witness.
- *
- * So: if a knob is retired, its former default MUST be restored here in the same commit. A retired
- * knob means "the operator no longer chooses this", never "the value becomes zero".
- */
-/* THE OTHER HALF OF THE SAME BUG, found 2026-07-28 while retiring the prefetch knobs.
- *
- * This function is called at the END of initConfigValues(), i.e. AFTER the config table has
- * applied every default. So a seed here does not "fill a gap left by a retired knob" — it
- * OVERRIDES whatever the table just wrote. That is fine for a name with no table entry, and it is
- * a silent shadow for a name that has one.
- *
- * Six names had one: os-opts, os-busypoll, and four network-backend knobs (since deleted
- * outright). They were retired, seeded here, then RESTORED as live knobs (commit 56a62a30f) — but
- * the seeds were not removed with them, so each was a live createBoolConfig whose field this
- * function then re-assigned. It happened to be invisible because the table default and the seed
- * both say 0; flipping either table default to 1 would have been silently undone at boot, and the
- * boot log would not have mentioned it. Same failure mode as the 0-by-omission bug above, one
- * level up: there, retiring a knob zeroed its field; here, un-retiring one leaves a zeroing behind.
- *
- * The seeds are therefore gone (the config table initialises the surviving fields, with the same
- * value, which is why this is a no-op today). The block stays for its documentation and for the
- * invariant check, which is what makes the trap non-reintroducible. */
-static void tomoInitRetiredKnobDefaults(void) {
-    /* Knobs whose retirement is FINISHED no longer appear here at all: their former default is a
-     * literal at the use site and the server field is deleted, so there is no field left to zero.
-     * That is the preferred shape — the ten prefetch knobs (2026-07-28) were retired that way.
-     *
-     * Anything added back to this list MUST NOT also be a live config name. The loop enforces it:
-     * seeded-and-live means this function is shadowing the table's default. */
-    static const char *const seeded[] = { NULL };   /* {"tomokv-x", ...} — see invariant above */
-    for (int i = 0; seeded[i] != NULL; i++) {
-        sds n = sdsnew(seeded[i]);
-        int live = (lookupConfig(n) != NULL);
-        sdsfree(n);
-        /* Seeding a field whose knob is live overrides the default the table just applied. */
-        serverAssert(!live);
-    }
-}
-
 void initConfigValues(void) {
     configs = dictCreate(&sdsHashDictType);
     dictExpand(configs, sizeof(static_configs) / sizeof(standardConfig));
@@ -3680,8 +3620,6 @@ void initConfigValues(void) {
             serverAssert(ret);
         }
     }
-    tomoInitRetiredKnobDefaults();   /* see the block above -- retiring a knob deletes its default */
-
 }
 
 /* Remove a config by name from the configs dict. */
