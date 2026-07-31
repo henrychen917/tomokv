@@ -648,7 +648,11 @@ CLI_TIMEOUT=8
 SEED_TIMEOUT=600
 GEN_GRACE=45
 
-for dep in timeout taskset setsid python3 awk sed grep sort tee readlink memtier_benchmark; do
+for dep in \
+    timeout taskset setsid python3 memtier_benchmark \
+    awk chmod cp find grep head mktemp mv readlink rm sed seq sleep sort \
+    tail tee tr wc
+do
     if ! command -v "$dep" >/dev/null 2>&1; then
         printf 'FAIL BIGSTRESS-INFRA missing dependency: %s\n' "$dep" >&2
         exit 2
