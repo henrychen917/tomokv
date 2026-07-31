@@ -156,7 +156,6 @@ static void resetFakeClientState(client *c, client *parent) {
     c->drain_ack = NULL;
     c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
     c->mig_parked_tid = 0;
-    c->tm_lat_stamp = 0;   /* ee451 (thread-modes step 4): p99-guardrail dispatch stamp, 0 = unsampled */
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
     c->bufpos = 0;

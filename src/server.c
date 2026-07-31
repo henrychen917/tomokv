@@ -196,7 +196,6 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
  * io_threads..io_threads+ngrow = flip growth slots). Each field is written ONLY by the owning
  * IO thread (no false sharing — the line is private) and read racily by the 4Hz controller on
  * the main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
-#define TM_LAT_RING 64
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* LINE 0 — read-mostly, snapshotted by every batch close (flatBatchClose) and probed per-batch
      * in flatBatchReady only while that batch's io_pin_mask bit is set. Nothing hot-written may
@@ -226,10 +225,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * the same reason tmMigMailbox.io_exiting is: it is read cross-thread, and a plain int would be
      * a C11 data race even though the load is non-torn in practice. */
     _Atomic int pinned_nonmig;
-    unsigned lat_idx;   /* lat_ring cursor (ring is write-only, see tmLatMaybeStamp) */
     unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
-    uint32_t lat_ring[TM_LAT_RING];   /* sampled dispatch->drain-retire latency, microseconds.
-                                       * WRITE-ONLY since 2026-07-28 — see tmLatMaybeStamp. */
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -493,24 +489,6 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta);
 static int tomoGrowFrontNode(int node, const char **err);  /* per-node flip actuators */
 static int tomoGrowBackNode(int node, const char **err);
 
-/* ee451 (thread-modes step 4): stamp ~1/1024 worker-dispatched fakes with a dispatch timestamp.
- * Called on the dispatching IO thread right BEFORE the queue push (the worker never reads the
- * field, so there is no cross-thread access; the drain that reads it runs on this same thread).
- * The unconditional stamp-or-zero store keeps recycled ring slots from carrying a stale stamp
- * while the controller is on.
- *
- * ORPHANED 2026-07-28, READ BY NOTHING. Its one consumer was the reserve-thread quorum
- * balancer's p99 VETO, deleted with the reserve thread; tomoFlipController has no p99 guardrail.
- * The samples still land in tm_io_sig[].lat_ring and are never read. Left in place ONLY because
- * removing client.tm_lat_stamp reshapes a layout-sensitive struct and this fork has measured
- * double-digit swings from exactly that — it needs an A/B on an idle box, which the deletion
- * commit could not get. NEXT TOUCH: either wire lat_ring into tomoFlipController as its veto, or
- * delete stamp+ring+client field together and measure. Do not leave it half-alive. */
-static inline void tmLatMaybeStamp(client *fake) {
-    if (!server.thread_auto) return;
-    static __thread unsigned tm_lat_ctr = 0;
-    fake->tm_lat_stamp = ((++tm_lat_ctr & 1023u) == 0) ? getMonotonicUs() : 0;
-}
 /*============================ Utility functions ============================ */
 
 /* Check if a given command can be reused without performing a lookup.
@@ -2955,21 +2933,6 @@ void handleWorkerReplies(void) {
              * too — else the IO loop's replyWorking stays >0 forever. Capture before
              * csReassemble NULLs csgroup. */
             int was_cs = (fake->csgroup != NULL);
-
-            /* ee451 (thread-modes step 4, signal f): retire a sampled dispatch stamp into
-             * this IO thread's 64-entry latency ring. Same-thread read of a field this
-             * thread wrote at dispatch; the 10s cap discards any stamp that went stale
-             * across a controller-off window. The ring is currently WRITE-ONLY — its
-             * consumer (the reserve-thread balancer's p99 veto) was deleted 2026-07-28;
-             * see the note on tmLatMaybeStamp before touching either half. */
-            if (server.thread_auto && fake->tm_lat_stamp) {
-                uint64_t tm_d = getMonotonicUs() - fake->tm_lat_stamp;
-                fake->tm_lat_stamp = 0;
-                if (tm_d < 10ULL * 1000 * 1000) {
-                    tmIoSignal *tm_s = &tm_io_sig[iotid];
-                    tm_s->lat_ring[tm_s->lat_idx++ & (TM_LAT_RING - 1)] = (uint32_t)tm_d;
-                }
-            }
 
             /* Clear the worker-pending flag BEFORE commandProcessed, because
              * resetClient() early-returns when the flag is set. */
@@ -6743,7 +6706,6 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
@@ -6772,7 +6734,6 @@ int processCommand(client *c) {
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
-        tmLatMaybeStamp(fake);   /* ee451 (thread-modes step 4): 1/1024 p99 sample, pre-push */
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);

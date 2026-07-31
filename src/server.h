@@ -1681,13 +1681,6 @@ typedef struct client {
      * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
     listNode *mig_parked_node;
     int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
-    /* ee451 (thread-modes step 4, p99 guardrail): dispatch timestamp (getMonotonicUs) on
-     * ~1/1024 worker-dispatched fakes; 0 = unsampled. Written by the owning IO thread at
-     * dispatch (BEFORE the queue push) and read+cleared by the SAME IO thread at drain
-     * retire — the worker never touches it, so there is no cross-thread access. Gated on
-     * tomokv-thread-mode auto (a stale stamp surviving a balance-off window is discarded by
-     * the drain's 10s sanity cap). */
-    uint64_t tm_lat_stamp;
     uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
                                 * tomokv-strict-order != 0). Within a queue it is monotonic
                                 * (single producer), so the head is that queue's oldest; the
