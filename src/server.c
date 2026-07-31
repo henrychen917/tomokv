@@ -6575,10 +6575,12 @@ int processCommand(client *c) {
 int canDispatchToWorker(client *c) {
     redisCommandProc *p = c->cmd->proc;
 
-    /* ee451 FLATSTORE: top-level SCAN must run on a WORKER (exSlice) so its cross-node lock-free
-     * reads are covered by in_flat_section (no resize/free mid-slice) + loop_seq (QSBR grace). Only
-     * under a flat shared kvstore; otherwise SCAN keeps its existing (inline) handling. */
-    if (p == scanCommand) return server.shared_node_dbs;
+    /* Top-level SCAN must run on a WORKER in both storage engines. FLATSTORE needs the worker's
+     * in_flat_section/QSBR protection. DICT needs the real worker DB: inline execution sees the
+     * deliberately-empty server.db decoy and used to return an empty scan for EX=1 even though GET
+     * and DBSIZE saw the keys. scanGenericCommand carries an owner cursor when multiple private
+     * DICT workers exist, so each slice still obeys the single-writer invariant. */
+    if (p == scanCommand) return server.num_workers > 0;
 
     /* DEL is variadic-key; only the single-key form (argc == 2) is safe
      * to dispatch. Multi-key DEL would cross shards and silently lose
@@ -7182,13 +7184,23 @@ void flatResizeCoordinate(void) {
 }
 
 int getWorkerForCommand(client *c) {
-    /* ee451 FLATSTORE: SCAN's argv[1] is a cursor (not a key). The flat SCAN cursor is stateless
-     * (encodes node|gen|slot), so ANY live worker can resume it — route to the first live worker
-     * (never a grown-front slot, whose thread is running IO and would never pop the fake). */
+    /* SCAN's argv[1] is a cursor (not a key). A FLAT cursor is stateless and any live worker can
+     * resume it. A non-shared multi-worker DICT cursor embeds its owner immediately above the
+     * kvstore bucket bits; route that slice back to that worker so no worker traverses a foreign
+     * dict. The command validates the cursor later, so malformed input may route to worker zero
+     * and produce the normal syntax error there. */
     if (c->cmd && c->cmd->proc == scanCommand && server.exThreads) {
         /* SCAN has no key, so the keyed path below never sets tomo_bkt — leave it valid (0) so the
          * post-exec LB accounting (worker->lb_grp_ops[TOMO_LB_GROUP(tomo_bkt)]) doesn't index OOB. */
         c->tomo_bkt = 0; c->tomo_bkt_ptr = NULL;
+        if (!server.shared_node_dbs && server.num_workers > 1) {
+            char *end = NULL;
+            unsigned long long cursor = strtoull(c->argv[1]->ptr, &end, 10);
+            int owner = (int)((cursor >> TOMO_SCAN_WORKER_SHIFT) & TOMO_SCAN_WORKER_MASK);
+            if (end != c->argv[1]->ptr && *end == '\0' &&
+                owner < server.num_workers && tmWorkerLive(owner))
+                return owner;
+        }
         for (int w = 0; w < server.num_workers; w++) if (tmWorkerLive(w)) return w;
         return 0;
     }

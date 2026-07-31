@@ -2000,6 +2000,25 @@ static int flatScanEligible(redisDb *db) {
            kvstoreIsFlat(server.node_dbs[0][db->id].keys);
 }
 
+/* Non-shared worker DBs cannot be walked from one coordinator: each dict belongs to exactly one
+ * worker. Encode the current worker alongside kvstoreScan's cursor so the next client SCAN command
+ * is dispatched back to the owner of that slice. Layout:
+ *
+ *   [63:22] dictScan cursor | [21:14] worker | [13:0] kvstore bucket/dict index
+ *
+ * kvstoreScan already reserves the low TOMO_BUCKET_BITS. The extra worker field leaves a 42-bit
+ * hash-table cursor, enough for over four trillion buckets and beyond supported memory. */
+static unsigned long long dictShardScanCursorToKv(unsigned long long cursor) {
+    unsigned long long didx = cursor & TOMO_BUCKET_MASK;
+    return ((cursor >> TOMO_SCAN_DICT_SHIFT) << TOMO_BUCKET_BITS) | didx;
+}
+
+static unsigned long long dictShardScanCursorFromKv(unsigned long long cursor, int worker) {
+    unsigned long long didx = cursor & TOMO_BUCKET_MASK;
+    return ((cursor >> TOMO_BUCKET_BITS) << TOMO_SCAN_DICT_SHIFT) |
+           ((unsigned long long)worker << TOMO_SCAN_WORKER_SHIFT) | didx;
+}
+
 /* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
  * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
  * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
@@ -2157,6 +2176,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * 6. data.no_values: to control whether values will be returned or
          * only keys are returned. */
         int flat_scan = (o == NULL && flatScanEligible(c->db));
+        int dict_shard_scan = (o == NULL && !server.shared_node_dbs && server.num_workers > 1);
         scanData data = {
             .keys = keys,
             .o = o,
@@ -2177,6 +2197,27 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
         if (flat_scan) {
             /* ee451 FLATSTORE: composite-cursor walk over all node flat tables (this runs on a worker). */
             cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data, &data.sampled);
+        } else if (dict_shard_scan) {
+            /* This command was dispatched to the cursor's owner. Scan only that private kvstore;
+             * after it completes, return a cursor owned by the next worker. Empty owners consume a
+             * round trip deliberately—walking the next owner's dict here would violate ownership. */
+            int worker = (int)((cursor >> TOMO_SCAN_WORKER_SHIFT) & TOMO_SCAN_WORKER_MASK);
+            /* A non-shared pool has one configured worker per node. It cannot role-flip that
+             * worker away (there is no sibling owner for its private dict), so every slot here is
+             * live; getWorkerForCommand applies the same range check before dispatch. */
+            if (worker >= server.num_workers) worker = 0;
+            unsigned long long kv_cursor = dictShardScanCursorToKv(cursor);
+            do {
+                kv_cursor = kvstoreScan(c->db->keys, kv_cursor, onlydidx,
+                                        scanCallback, scanShouldSkipDict, &data);
+            } while (kv_cursor && maxiterations-- && data.sampled < count);
+            if (kv_cursor) {
+                cursor = dictShardScanCursorFromKv(kv_cursor, worker);
+            } else if (worker + 1 < server.num_workers) {
+                cursor = (unsigned long long)(worker + 1) << TOMO_SCAN_WORKER_SHIFT;
+            } else {
+                cursor = 0;
+            }
         } else {
             do {
                 /* In cluster mode there is a separate dictionary for each slot.

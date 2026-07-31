@@ -1536,6 +1536,15 @@ typedef struct {
  * bucket-dict has exactly one owning worker (single-writer preserved at bucket granularity).
  * 14 bits == 16384 == kvstore's native cluster-slot configuration (well-tested path). */
 #define TOMO_BUCKET_BITS 14
+/* Top-level SCAN over non-shared (DICT-backed) worker DBs uses one opaque cursor across the
+ * worker-owned kvstores. kvstoreScan already stores its 14-bit bucket/dict index in the low bits;
+ * place the worker id immediately above it and leave the remaining 42 bits to dictScan's cursor.
+ * A 42-bit cursor still addresses a table far beyond any supported key count, while keeping each
+ * slice on its owning worker (a worker must never traverse another worker's dict). */
+#define TOMO_SCAN_WORKER_BITS 8
+#define TOMO_SCAN_WORKER_SHIFT TOMO_BUCKET_BITS
+#define TOMO_SCAN_DICT_SHIFT (TOMO_BUCKET_BITS + TOMO_SCAN_WORKER_BITS)
+#define TOMO_SCAN_WORKER_MASK ((1ULL << TOMO_SCAN_WORKER_BITS) - 1)
 /* ee451 review: single-writer stat-counter idiom. Each such counter has exactly ONE writer
  * thread, so a relaxed load+store pair (NOT atomic_fetch_add — that is a lock'd RMW) compiles
  * to plain mov/add on x86-64: zero hot-path cost, while cross-thread readers get defined,
