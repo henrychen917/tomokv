@@ -716,40 +716,6 @@ int ACLSetSelectorCategory(aclSelector *selector, const char *category, int allo
     return C_OK;
 }
 
-void ACLCountCategoryBitsForCommands(dict *commands, aclSelector *selector, unsigned long *on, unsigned long *off, uint64_t cflag) {
-    dictIterator di;
-    dictEntry *de;
-    dictInitIterator(&di, commands);
-    while ((de = dictNext(&di)) != NULL) {
-        struct redisCommand *cmd = dictGetVal(de);
-        if (cmd->acl_categories & cflag) {
-            if (ACLGetSelectorCommandBit(selector,cmd->id))
-                (*on)++;
-            else
-                (*off)++;
-        }
-        if (cmd->subcommands_dict) {
-            ACLCountCategoryBitsForCommands(cmd->subcommands_dict, selector, on, off, cflag);
-        }
-    }
-    dictResetIterator(&di);
-}
-
-/* Return the number of commands allowed (on) and denied (off) for the user 'u'
- * in the subset of commands flagged with the specified category name.
- * If the category name is not valid, C_ERR is returned, otherwise C_OK is
- * returned and on and off are populated by reference. */
-int ACLCountCategoryBitsForSelector(aclSelector *selector, unsigned long *on, unsigned long *off,
-                                const char *category)
-{
-    uint64_t cflag = ACLGetCommandCategoryFlagByName(category);
-    if (!cflag) return C_ERR;
-
-    *on = *off = 0;
-    ACLCountCategoryBitsForCommands(server.orig_commands, selector, on, off, cflag);
-    return C_OK;
-}
-
 /* This function returns an SDS string representing the specified selector ACL
  * rules related to command execution, in the same format you could set them
  * back using ACL SETUSER. The function will return just the set of rules needed

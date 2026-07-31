@@ -133,10 +133,6 @@ static inline size_t rioRead(rio *r, void *buf, size_t len) {
     return 1;
 }
 
-static inline off_t rioTell(rio *r) {
-    return r->tell(r);
-}
-
 static inline int rioFlush(rio *r) {
     return r->flush(r);
 }
@@ -148,19 +144,9 @@ static inline void rioAbort(rio *r) {
 }
 
 /* This function allows to know if there was a read error in any past
- * operation, since the rio stream was created or since the last call
- * to rioClearError(). */
+ * operation since the rio stream was created. */
 static inline int rioGetReadError(rio *r) {
     return (r->flags & RIO_FLAG_READ_ERROR) != 0;
-}
-
-/* Like rioGetReadError() but for write errors. */
-static inline int rioGetWriteError(rio *r) {
-    return (r->flags & RIO_FLAG_WRITE_ERROR) != 0;
-}
-
-static inline void rioClearErrors(rio *r) {
-    r->flags &= ~(RIO_FLAG_READ_ERROR|RIO_FLAG_WRITE_ERROR);
 }
 
 void rioInitWithFile(rio *r, FILE *fp);

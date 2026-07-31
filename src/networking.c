@@ -1630,13 +1630,6 @@ void addReplyNullArray(client *c) {
     }
 }
 
-/* Create the length prefix of a bulk reply, example: $2234 */
-void addReplyBulkLen(client *c, robj *obj) {
-    size_t len = stringObjectLen(obj);
-    if (_prepareClientToWrite(c) != C_OK) return;
-    _addReplyLongLongBulk(c, len);
-}
-
 /* Check if copy avoidance is preferred for this client and object.
  * Copy avoidance allows I/O threads to directly reference obj->ptr
  * instead of copying data to reply buffers. */

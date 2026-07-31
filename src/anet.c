@@ -471,34 +471,6 @@ int anetTcpNonBlockBestEffortBindConnect(char *err, const char *addr, int port,
             ANET_CONNECT_NONBLOCK|ANET_CONNECT_BE_BINDING);
 }
 
-int anetUnixGenericConnect(char *err, const char *path, int flags)
-{
-    int s;
-    struct sockaddr_un sa;
-
-    if ((s = anetCreateSocket(err,AF_LOCAL)) == ANET_ERR)
-        return ANET_ERR;
-
-    sa.sun_family = AF_LOCAL;
-    redis_strlcpy(sa.sun_path,path,sizeof(sa.sun_path));
-    if (flags & ANET_CONNECT_NONBLOCK) {
-        if (anetNonBlock(err,s) != ANET_OK) {
-            close(s);
-            return ANET_ERR;
-        }
-    }
-    if (connect(s,(struct sockaddr*)&sa,sizeof(sa)) == -1) {
-        if (errno == EINPROGRESS &&
-            flags & ANET_CONNECT_NONBLOCK)
-            return s;
-
-        anetSetError(err, "connect: %s", strerror(errno));
-        close(s);
-        return ANET_ERR;
-    }
-    return s;
-}
-
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog, mode_t perm) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));

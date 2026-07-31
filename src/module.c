@@ -13491,12 +13491,6 @@ sds genModulesInfoString(sds info) {
  * Module Configurations API internals
  * -------------------------------------------------------------------------- */
 	 
-/* Check if the configuration name is already registered */
-int isModuleConfigNameRegistered(RedisModule *module, const char *name) {
-    listNode *match = listSearchKey(module->module_configs, (void *) name);
-    return match != NULL;
-}
-
 /* Assert that the flags passed into the RM_RegisterConfig Suite are valid */
 int moduleVerifyConfigFlags(unsigned int flags, configType type) {
     if ((flags & ~(REDISMODULE_CONFIG_DEFAULT

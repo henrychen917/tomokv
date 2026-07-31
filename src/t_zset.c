@@ -2335,20 +2335,14 @@ typedef struct {
 } zsetopsrc;
 
 
-/* Use dirty flags for pointers that need to be cleaned up in the next
- * iteration over the zsetopval. The dirty flag for the long long value is
- * special, since long long values don't need cleanup. Instead, it means that
- * we already checked that "ell" holds a long long, or tried to convert another
- * representation into a long long value. When this was successful,
- * OPVAL_VALID_LL is set as well. */
+/* Use a dirty flag for pointers that need to be cleaned up in the next
+ * iteration over the zsetopval. */
 #define OPVAL_DIRTY_SDS 1
-#define OPVAL_DIRTY_LL 2
-#define OPVAL_VALID_LL 4
 
 /* Store value retrieved from the iterator. */
 typedef struct {
     int flags;
-    unsigned char _buf[32]; /* Private buffer. */
+    unsigned char _reserved[32]; /* Preserve the iteration-state layout. */
     sds ele;
     unsigned char *estr;
     unsigned int elen;
@@ -2528,24 +2522,6 @@ int zuiNext(zsetopsrc *op, zsetopval *val) {
     return 1;
 }
 
-int zuiLongLongFromValue(zsetopval *val) {
-    if (!(val->flags & OPVAL_DIRTY_LL)) {
-        val->flags |= OPVAL_DIRTY_LL;
-
-        if (val->ele != NULL) {
-            if (string2ll(val->ele,sdslen(val->ele),&val->ell))
-                val->flags |= OPVAL_VALID_LL;
-        } else if (val->estr != NULL) {
-            if (string2ll((char*)val->estr,val->elen,&val->ell))
-                val->flags |= OPVAL_VALID_LL;
-        } else {
-            /* The long long was already set, flag as valid. */
-            val->flags |= OPVAL_VALID_LL;
-        }
-    }
-    return val->flags & OPVAL_VALID_LL;
-}
-
 sds zuiSdsFromValue(zsetopval *val) {
     if (val->ele == NULL) {
         if (val->estr != NULL) {
@@ -2574,19 +2550,6 @@ sds zuiNewSdsFromValue(zsetopval *val) {
     } else {
         return sdsfromlonglong(val->ell);
     }
-}
-
-int zuiBufferFromValue(zsetopval *val) {
-    if (val->estr == NULL) {
-        if (val->ele != NULL) {
-            val->elen = sdslen(val->ele);
-            val->estr = (unsigned char*)val->ele;
-        } else {
-            val->elen = ll2string((char*)val->_buf,sizeof(val->_buf),val->ell);
-            val->estr = val->_buf;
-        }
-    }
-    return 1;
 }
 
 /* Find value pointed to by val in the source pointer to by op. When found,

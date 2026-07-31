@@ -1829,19 +1829,6 @@ robj *hashTypeDup(kvobj *o, uint64_t *minHashExpire) {
     return hobj;
 }
 
-/* Create a new sds string from the listpack entry. */
-sds hashSdsFromListpackEntry(listpackEntry *e) {
-    return e->sval ? sdsnewlen(e->sval, e->slen) : sdsfromlonglong(e->lval);
-}
-
-/* Reply with bulk string from the listpack entry. */
-void hashReplyFromListpackEntry(client *c, listpackEntry *e) {
-    if (e->sval)
-        addReplyBulkCBuffer(c, e->sval, e->slen);
-    else
-        addReplyBulkLongLong(c, e->lval);
-}
-
 /* Return random element from a non empty hash.
  * 'key' and 'val' will be set to hold the element.
  * The memory in them is not to be freed or modified by the caller.

@@ -886,11 +886,6 @@ uint64_t dictSdsCaseHash(const void *key) {
 }
 
 /* Dict hash function for null terminated string */
-uint64_t dictCStrHash(const void *key) {
-    return dictGenHashFunction((unsigned char*)key, strlen((char*)key));
-}
-
-/* Dict hash function for null terminated string */
 uint64_t dictCStrCaseHash(const void *key) {
     return dictGenCaseHashFunction((unsigned char*)key, strlen((char*)key));
 }

@@ -249,10 +249,6 @@ static inline ssize_t connSyncWrite(connection *conn, char *ptr, ssize_t size, l
     return conn->type->sync_write(conn, ptr, size, timeout);
 }
 
-static inline ssize_t connSyncRead(connection *conn, char *ptr, ssize_t size, long long timeout) {
-    return conn->type->sync_read(conn, ptr, size, timeout);
-}
-
 static inline ssize_t connSyncReadLine(connection *conn, char *ptr, ssize_t size, long long timeout) {
     return conn->type->sync_readline(conn, ptr, size, timeout);
 }
