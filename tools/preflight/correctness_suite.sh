@@ -19,7 +19,7 @@ WORK=$(mktemp -d "$J/correctness_suite.XXXXXX.work") || {
   echo "correctness-harness	FAIL	could not create per-run work directory" | tee -a "$OUT"
   exit 2
 }
-CB=$WORK/redis-corr
+CB=$WORK/redis-corr-$BASHPID
 DATA=$WORK/data
 LOG=$WORK/cs.log
 mkdir -p "$DATA"
@@ -48,6 +48,10 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 trap 'exit 129' HUP
 emit(){ printf '%s\n' "$1" | tee -a "$OUT"; }
+valid_total(){
+  [[ "${1:-}" =~ ^[0-9]+([.][0-9]+)?$ ]] &&
+    awk -v v="$1" 'BEGIN { exit !(v + 0 > 0) }'
+}
 
 if ! cp "$BIN" "$CB" 2>/dev/null || ! chmod +x "$CB" 2>/dev/null; then
   emit "correctness-harness	FAIL	could not stage binary under test"
@@ -56,7 +60,7 @@ if ! cp "$BIN" "$CB" 2>/dev/null || ! chmod +x "$CB" 2>/dev/null; then
 fi
 taskset -c 0-7 "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 1 --tomokv-thread-io 4 \
   --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
-  --logfile "$LOG" >/dev/null 2>&1 &
+  --logfile "$LOG" >"$WORK/server.launch.log" 2>&1 &
 CORR_PID=$!
 sleep 3
 PY_RC=0
@@ -414,11 +418,9 @@ else
   MT_RC=$?
   MTPID=""
   MT_OPS=$(awk '/^Totals/{print $2; exit}' "$MTLOG" 2>/dev/null)
-  case "${MT_OPS:-}" in
-    ''|0|0.0|0.00)
+  if [ "$MT_RC" -ne 0 ] || ! valid_total "${MT_OPS:-}"; then
       emit "ordering-under-load	SKIP	load did not materialize (memtier exit=$MT_RC, Totals=${MT_OPS:-empty})"
-      ;;
-    *)
+  else
       if [ "$ORD_RC" -eq 0 ] && printf '%s\n' "$ORD_OUT" | grep -qE 'checked=[1-9][0-9]* stale=0'; then
         emit "ordering-under-load	PASS	$ORD_OUT load_ops=$MT_OPS"
       elif [ "$ORD_RC" -ne 0 ]; then
@@ -426,8 +428,7 @@ else
       else
         emit "ordering-under-load	FAIL	stale or zero checked replies: $ORD_OUT"
       fi
-      ;;
-  esac
+  fi
 fi
 
 CRASHES=$(grep -cE 'Guru|crashed by signal|ASSERTION' "$LOG" 2>/dev/null) || true
