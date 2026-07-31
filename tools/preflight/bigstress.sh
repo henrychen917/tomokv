@@ -63,9 +63,10 @@
 #
 # CASE STEADY-STATE-MEMORY
 #   OUT OF SPEC (after warmup): the late low-water floor exceeds the early
-#   floor by >max(1%,8 MiB) used_memory or >max(2%,16 MiB) RSS; the RSS-minus-
-#   used floor widens by >max(2% of starting RSS,16 MiB); or linear slopes
-#   exceed 1 MiB/min used_memory, 2 MiB/min RSS, or 2 MiB/min divergence.
+#   floor by >max(1%,8 MiB) used_memory or >max(2%,16 MiB) RSS; the absolute
+#   early-to-late RSS-minus-used floor change exceeds
+#   max(2% of starting RSS,16 MiB); or linear slopes exceed 1 MiB/min
+#   used_memory, 2 MiB/min RSS, or an absolute 2 MiB/min divergence.
 #   QUICK records a smoke series but explicitly does not qualify this long-run
 #   property. Every paired sample interval is <=10 seconds.
 #
@@ -199,10 +200,10 @@ checks={
   "sample_interval": interval_max <= 10.0,
   "used_floor": lfu-efu <= allow_u,
   "rss_floor": lfr-efr <= allow_r,
-  "gap_floor": lfg-efg <= allow_g,
+  "gap_floor": abs(lfg-efg) <= allow_g,
   "used_slope": su <= 1*1024**2,
   "rss_slope": sr <= 2*1024**2,
-  "gap_slope": sg <= 2*1024**2,
+  "gap_slope": abs(sg) <= 2*1024**2,
 }
 o={
  "samples":len(rows),"interval_max_s":interval_max,
@@ -211,7 +212,9 @@ o={
  "rss_floor_early":int(efr),"rss_floor_late":int(lfr),
  "used_floor_early":int(efu),"used_floor_late":int(lfu),
  "gap_floor_early":int(efg),"gap_floor_late":int(lfg),
+ "gap_floor_delta_abs":abs(int(lfg)-int(efg)),
  "rss_slope_bpm":sr,"used_slope_bpm":su,"gap_slope_bpm":sg,
+ "gap_slope_abs_bpm":abs(sg),
  "allow_rss_floor":allow_r,"allow_used_floor":allow_u,"allow_gap_floor":allow_g,
  "checks":checks,"pass":all(checks.values()),
 }
@@ -496,7 +499,9 @@ selftest() {
                 used = 300*1024*1024
                 rss = 500*1024*1024
                 if (mode == "rising") used += i*5*1024*1024
-                if (mode == "rising" || mode == "diverging") rss += i*5*1024*1024
+                if (mode == "rising") rss += i*5*1024*1024
+                if (mode == "diverging") used -= i*5*1024*1024
+                if (mode == "diverging-negative") rss -= i*5*1024*1024
                 printf "%d\t%d\t%d\n", i*step, rss, used
             }
         }' >"$series"
@@ -586,6 +591,7 @@ selftest() {
     check memory-stable PASS memory_class stable
     check memory-rising FAIL memory_class rising
     check memory-diverging FAIL memory_class diverging
+    check memory-diverging-negative FAIL memory_class diverging-negative
     check memory-slow-cadence FAIL memory_class interval
     printf 'SELFTEST SUMMARY pass=%d fail=%d\n' "$pass" "$fail"
     rm -r -- "$fixture_dir"
