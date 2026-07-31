@@ -144,7 +144,7 @@ completed_count() {
 all_flip_count() {
     local logfile=$1
     awk 'index($0, "GROW-FRONT complete — io_threads_live=") ||
-         index($0, "GROW-BACK complete — num_workers_live=") { n++ }
+         index($0, "GROW-BACK complete —") { n++ }
          END { print n+0 }' "$logfile" 2>/dev/null
 }
 
@@ -294,12 +294,15 @@ selftest() {
     selfcheck role-parser-missing INVALID role_class "$fixture.missing"
     printf '%s\n' \
         'ee451 flip: GROW-FRONT complete — io_threads_live=6 num_workers_live=2' \
+        'ee451 flip: GROW-BACK complete — num_workers_live=4 io_threads_live=4' \
+        'ee451 flip: GROW-BACK complete — worker 7 LIVE (no seed; neighbor too small) num_workers_live=8' \
         'ordinary notice' \
         'FATAL: synthetic positive-control marker' > "$fixture"
     selfcheck completed-front-count 1 completed_count "$fixture" \
         'GROW-FRONT complete — io_threads_live='
-    selfcheck completed-back-count 0 completed_count "$fixture" \
-        'GROW-BACK complete — num_workers_live='
+    selfcheck completed-back-forms 2 completed_count "$fixture" \
+        'GROW-BACK complete —'
+    selfcheck completed-all-forms 3 all_flip_count "$fixture"
     selfcheck clean-log-positive-control 1 clean_marker_count "$fixture"
     rm -f -- "$fixture" "$fixture.duplicate" "$fixture.missing"
 
@@ -691,7 +694,7 @@ run_transition() {
         drive_secs=$DRIVE_FRONT
     else
         direction=GROW-BACK
-        token='GROW-BACK complete — num_workers_live='
+        token='GROW-BACK complete —'
         drive_secs=$DRIVE_BACK
     fi
 

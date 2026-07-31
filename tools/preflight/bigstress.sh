@@ -258,6 +258,12 @@ controller_evidence_decision() { # canonical-completion-seen debug-role-change-s
     fi
 }
 
+role_completion_count() { # logfile
+    grep -cE \
+        'GROW-FRONT complete — io_threads_live=|GROW-BACK complete —' \
+        "$1" 2>/dev/null || true
+}
+
 migration_correlations() { # server-log baseline-line-count
     # Normalize only key-balancer decisions (AUTO and DIFFUSE), then bind each
     # to the first later matching FLIP and DONE. Controller/RELEVEL FLIP/DONE
@@ -478,6 +484,7 @@ selftest() {
     digest_class() { digest_equal "$1" "$2" && printf PASS || printf FAIL; }
     role_class() { parse_roles "$1" 8 2>/dev/null || printf FAIL; }
     controller_class() { controller_evidence_decision "$1" "$2"; }
+    completion_class() { role_completion_count "$1"; }
     migration_class() {
         migration_correlations "$1" 0 2>/dev/null || printf FAIL
     }
@@ -536,6 +543,13 @@ selftest() {
     check controller-neither INCONCLUSIVE controller_class 0 0
     check controller-log-only FAIL controller_class 1 0
     check controller-debug-only FAIL controller_class 0 1
+    printf '%s\n' \
+        'ee451 flip: GROW-FRONT complete — io_threads_live=6 num_workers_live=2' \
+        'ee451 flip: GROW-BACK complete — num_workers_live=4 io_threads_live=4' \
+        'ee451 flip: GROW-BACK complete — worker 7 LIVE (no seed; neighbor too small) num_workers_live=8' \
+        >"$fixture_dir/controller-completions"
+    check controller-completion-forms 3 completion_class \
+        "$fixture_dir/controller-completions"
     printf '%s\n' \
         'ee451 reshard FLIP: buckets [100,200) now served by worker 1' \
         'ee451 reshard DONE: [100,200) 0 -> 1 complete' \
@@ -1024,8 +1038,7 @@ run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [
     if [ "$infra" = 1 ] && [ "$mode" = auto ]; then
         role_snapshot "$label.auto-before" || infra=0
         roles0="$SNAP_IO/$SNAP_EX"
-        flips0=$(grep -cE 'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' \
-            "$ACTIVE_LOG" 2>/dev/null || true)
+        flips0=$(role_completion_count "$ACTIVE_LOG")
         if [ "$expected_engine" = FLAT ]; then
             start_mt_background "$label.auto-drive" "$AUTO_DRIVE_SECS" 0:1 1
         fi
@@ -1088,9 +1101,7 @@ run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [
             LAST_REASON="exact fidelity helper rc=$LAST_RC ($(tail -2 "$err" 2>/dev/null | tr '\n' ' '))"
         fi
         if [ "$mode" = auto ]; then
-            flips_helper_end=$(grep -cE \
-                'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' \
-                "$ACTIVE_LOG" 2>/dev/null || true)
+            flips_helper_end=$(role_completion_count "$ACTIVE_LOG")
         fi
     fi
 
@@ -1102,8 +1113,7 @@ run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [
     if [ "$infra" = 1 ] && [ "$mode" = auto ]; then
         role_snapshot "$label.auto-after" || infra=0
         roles1="$SNAP_IO/$SNAP_EX"
-        flips1=$(grep -cE 'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' \
-            "$ACTIVE_LOG" 2>/dev/null || true)
+        flips1=$(role_completion_count "$ACTIVE_LOG")
         [ "$flips_helper_end" -gt "$flips0" ] && log_conversion=1
         controller_status=$(controller_evidence_decision \
             "$log_conversion" "$observed_role_change")
@@ -1246,7 +1256,7 @@ run_correctness_case() { # label io ex mode
     fi
     if [ "$mode" = auto ]; then
         flip_count=$(find "$dir" -type f -name cs.log -exec \
-            grep -hEc 'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' {} + \
+            grep -hEc 'GROW-FRONT complete — io_threads_live=|GROW-BACK complete —' {} + \
             2>/dev/null | awk '{n += $1} END {print n+0}')
         if [ -z "$role_first" ]; then
             case_result "$label" FAIL \
@@ -1915,9 +1925,7 @@ run_lifecycle_variant() { # key label io ex mode expected-engine
         else
             infra=0
         fi
-        flips0=$(grep -cE \
-            'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' \
-            "$ACTIVE_LOG" 2>/dev/null || true)
+        flips0=$(role_completion_count "$ACTIVE_LOG")
         if [ "$expected_engine" = FLAT ]; then
             start_mt_background "$label.auto-drive" "$LIFECYCLE_SECS" 0:1 1
         fi
@@ -1961,9 +1969,7 @@ run_lifecycle_variant() { # key label io ex mode expected-engine
             HELPER_PID=
         fi
         LAST_RC=$helper_rc
-        flips1=$(grep -cE \
-            'GROW-FRONT complete — io_threads_live=|GROW-BACK complete — num_workers_live=' \
-            "$ACTIVE_LOG" 2>/dev/null || true)
+        flips1=$(role_completion_count "$ACTIVE_LOG")
     elif [ "$infra" = 1 ]; then
         run_client_group "$out" "$err" "$((LIFECYCLE_SECS + 180))" \
             taskset -c "$LOAD_CORES" python3 "$HELPER" lifecycle --port "$PORT" \
