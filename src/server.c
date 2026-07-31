@@ -17696,7 +17696,11 @@ void *polyThreadMain(void *arg) {
              * group barrier forever. Keep draining the dormant EX binding each loop: an
              * empty-queue scan is a few loads, and a straggler executes against the (empty-range)
              * shard correctly. */
-            if (ctx->ex) exSlice(ctx->ex, &exctx);
+            /* An EX-bound thread born in IO has not owned buckets or accepted
+             * routed work yet, so its dormant binding is quiescent until its
+             * first EX adoption initializes exctx.  Once it has served EX,
+             * keep draining late fan-out/freeback stragglers while in IO. */
+            if (ctx->ex && ex_inited) exSlice(ctx->ex, &exctx);
             break;
         case TOMO_MODE_EX: exSlice(ctx->ex, &exctx); break;
         default: {
