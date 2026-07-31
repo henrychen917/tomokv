@@ -3056,14 +3056,14 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
     /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
      * are re-registered before the rest of the pass processes their sockets. */
-    if (server.poly_threads) tmMigDrainInbox();
+    tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
      * mid-drain is dropped from migrating_out before it is freed). */
-    if (server.poly_threads) tmMigServiceOut();
+    tmMigServiceOut();
     freeClientsInAsyncFreeQueue();
 
     /* ee451 (v13, hot-path audit #17): the old once-per-second "stall dump" block here cost a
@@ -4337,7 +4337,7 @@ void initServer(void) {
     /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
      * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
     server.tm_ngrow_io = 0;
-    if (server.poly_threads && server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
+    if (server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
         server.tm_ngrow_io = server.ex_threads - 1;
         if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
@@ -11226,7 +11226,7 @@ static void reshardCoordinatorTick(void) {
      * be running as an IO producer — fence those too. A growth slot that never went live just has
      * empty queues and the ~2ms idle-ack below clears it; once a worker has grown into it, its
      * in-flight dispatches drain exactly like any other producer's. */
-    int nprod = server.io_threads + (server.poly_threads ? server.tm_ngrow_io : 0);
+    int nprod = server.io_threads + server.tm_ngrow_io;
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: the cold-copy convergence wait (scan_done, applied_seq >= issued_seq) was
@@ -15892,7 +15892,7 @@ static void moveExecutionState(client *real, client *fake) {
  *   - Producer: the IO thread whose iotid matches the queue's index.
  *     Only the dispatch path (exQueuePush) in that IO thread's context pushes.
  *   - Consumer: the worker thread owning the enclosing exThread
- *     struct. Only that worker's exThreadMain pops.
+ *     struct. Only that worker's EX slice pops.
  *
  * Therefore a mutex is unnecessary. Two atomic indices (head, tail)
  * with acquire/release barriers suffice. head and tail sit on separate
@@ -16559,9 +16559,8 @@ static inline void exExecFake(client *fake) {
 
 
 /* ee451 (thread-modes v1, step 1): EX slice context — ALL persistent loop-local
- * state of exThreadMain's old while(1) body, hoisted so one pass (a "slice")
- * can be driven by any thread main: exThreadMain today, polyThreadMain once
- * modes shift (THREAD-MODES-DESIGN.md). Deliberately NOT in here: the __thread
+ * state of the worker loop, hoisted so one pass (a "slice") can be driven by
+ * polyThreadMain. Deliberately NOT in here: the __thread
  * iotid assignment — that is mode-scoped IDENTITY (current_client[]/
  * executing_client[] slots and queues[producer]/freeback[producer] indexing
  * all derive from it); it stays in the thread main, and step 2 must swap it
@@ -16597,10 +16596,8 @@ typedef struct exSliceCtx {
     client *batch[WORKER_POP_BATCH];
 } exSliceCtx;
 
-/* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state exactly
- * as the old exThreadMain preamble did — same values, same thread-start timing
- * (num_cdb and io_threads are both immutable after startup, so capturing them
- * here == capturing them at the top of the old thread main). */
+/* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state at
+ * thread-start timing (num_cdb and io_threads are both immutable after startup). */
 static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->wcdb = cdbIndexFor(worker->id);
     /* flip: scan the flip growth producer slots too (a converted worker running as an IO thread
@@ -16608,7 +16605,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + 1 + (server.poly_threads ? server.tm_ngrow_io : 0);
+    ctx->nq = server.io_threads + 1 + server.tm_ngrow_io;
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -16617,9 +16614,8 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
 
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
- * signals, then the adaptive idle-spin decision — moved VERBATIM from the old
- * exThreadMain while(1) body (only the persistent locals moved into ctx).
- * Returns 1 if this pass popped any work, 0 for an idle pass. */
+ * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
+ * any work, 0 for an idle pass. */
 static int exSlice(exThread *worker, exSliceCtx *ctx) {
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
      * back after sending — done here on the worker so the shard's value
@@ -17011,36 +17007,6 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
      * this single return, so this covers every exit path). */
     atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
     return any;
-}
-
-void *exThreadMain(void *arg) {
-    exThread *worker = (exThread *)arg;
-    /* ee451: give this worker a PRIVATE iotid above the IO-thread range
-     * (IO threads occupy 0..io_threads-1; main thread is 0). Without this,
-     * iotid stays at its __thread default of 0 and every worker aliases
-     * IO-thread-0's slot in server.current_client[]/executing_client[], racing
-     * the main thread. The fixed base TOMO_IO_THREADS_MAX+1 guarantees no overlap
-     * with any IO-thread iotid regardless of the configured io_threads. */
-    /* ee451 (thread-modes v1): this TLS store is mode-scoped IDENTITY — when modes
-     * go dynamic (step 2) it must swap atomically at the transition checkpoint. */
-    iotid = TOMO_IO_THREADS_MAX + 1 + worker->id;
-    flatRegisterWorker();   /* FLATSTORE QSBR: quiescence via loop_seq/in_flat_section, never an io slot */
-
-    /* ee451 (v14): one-shot core-capacity calibration DELETED — calibrate-then-lock
-     * anti-pattern (user rule: controllers, not calibrators); it also poisoned the
-     * balancer's spread (uncalibrated cap=1). The balancer judges raw op rates. */
-    exBindNumaLocal(worker->id);   /* v8d: NUMA-local shard memory (no-op unless pin_mode==2 auto) */
-
-    fprintf(stderr, "[worker %d] started (iotid=%d)\n", worker->id, iotid);
-    {   /* DEBUG TOMO-JESTATS: register this worker's jemalloc per-thread counters (once). */
-        char wn[24]; snprintf(wn, sizeof(wn), "worker_%d", worker->id);
-        zmalloc_thread_stats_register(wn);
-    }
-
-    exSliceCtx ctx;
-    exSliceInit(worker, &ctx);
-    while (1) exSlice(worker, &ctx);
-    return NULL;
 }
 
 /* Pin a worker's pthread to a single core so its per-shard DB stays
@@ -17459,9 +17425,9 @@ static inline void tmMigPublishReq(tmMigMailbox *mb, tmMigReqKind kind,
 /* fwd (rank-1 inbox-wedge fix): the IO->EX checkpoint expels stranded inbox conns. */
 static int tmMigExpelInbox(int id);
 
-/* Map an io-mode iotid to its poly context (NULL for main / non-poly / unknown). */
+/* Map an io-mode iotid to its poly context (NULL for main / unknown). */
 static polyThreadCtx *tmCtxForIotid(int id) {
-    if (!server.poly_threads || !tmPolyCtxs) return NULL;
+    if (!tmPolyCtxs) return NULL;
     if (id >= 1 && id < server.io_threads) return &tmPolyCtxs[id - 1];   /* io-born 1..io_threads-1 */
     /* flip growth slots (io_threads..io_threads+tm_ngrow_io): a converted EX worker now running
      * as IO. grow-front converts the highest live worker first (io_slot io_threads, io_threads+1,
@@ -17518,53 +17484,49 @@ void initExThreads(void) {
             atomic_store_explicit(&fb->head, 0, memory_order_relaxed);
             atomic_store_explicit(&fb->tail, 0, memory_order_relaxed);
         }
-        if (server.poly_threads) {
-            /* ee451 (thread-modes v1, step 2): EX-born poly thread. Fixed identity
-             * pair: ex_slot = its worker index (the EX identity it was born to);
-             * io_slot = a growth slot when this worker is grow-front-capable, else
-             * io_threads+1+i, a reserved NAME only (no io binding — such a thread can
-             * never enter IO mode). Born TOMO_MODE_EX: polyThreadMain adopts the preset
-             * target at its first checkpoint, setting iotid BEFORE the first slice runs. */
-            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
-            ctx->ex = &server.exThreads[i];
-            ctx->ex_slot = i;
-            /* flip: convertible workers [1 .. num_workers-1] get a DORMANT io binding so they can
-             * grow-front (EX->IO in place). io_slot is contiguous-on-conversion: the highest worker
-             * converts first and takes io_slot io_threads, next takes io_threads+1, ... => worker i
-             * gets io_slot = io_threads + (num_workers-1 - i). Worker 0 is the >=1 EX floor: no io
-             * binding. Bindings for slots >= io_threads were built in initIOThreads. */
-            int gidx = (server.num_workers - 1) - i;   /* 0 for the top worker */
-            if (i >= 1 && gidx >= 0 && gidx < server.tm_ngrow_io) {
-                ctx->io = &server.ioThreads[server.io_threads + gidx];
-                ctx->io_slot = server.io_threads + gidx;
-            } else {
-                ctx->io = NULL;
-                ctx->io_slot = server.io_threads + 1 + i;   /* reserved name only (worker 0 / capped) */
-            }
-            ctx->io_listening = 0;
-            /* ee451 (auto symmetric pool): APPLY THE BOOT SPLIT. Workers at or above tm_boot_w_live
-             * are born in IO mode on their dormant binding instead of EX — the same birth edge an
-             * EX-born worker takes, aimed at the other role (the checkpoint listen()s the pre-bound
-             * socket and registers the accept handler before the first slice). The bucket table gave
-             * them the empty suffix range, so nothing routes to them as workers and nothing is lost.
-             * This is the ONLY place the split is applied; io_threads_live/num_workers_live are
-             * seeded to match in initIOThreads and initServer. In static mode tm_boot_w_live ==
-             * num_workers and the condition is never true, so every worker is EX-born as before.
-             * mode is UNSET (not 0, not a role) until the first checkpoint adopts the target. */
-            int born_io = (i >= server.tm_boot_w_live) && ctx->io;
-            atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
-            atomic_store_explicit(&ctx->target_mode, born_io ? TOMO_MODE_IO : TOMO_MODE_EX, memory_order_relaxed);
-            if (born_io)
-                serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
-                                     "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
-            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
-                serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
-                exit(1);
-            }
-            server.exThreads[i].thread = ctx->thread;   /* keep exThread.thread meaningful */
+        /* ee451 (thread-modes v1, step 2): EX-born poly thread. Fixed identity
+         * pair: ex_slot = its worker index (the EX identity it was born to);
+         * io_slot = a growth slot when this worker is grow-front-capable, else
+         * io_threads+1+i, a reserved NAME only (no io binding — such a thread can
+         * never enter IO mode). Born TOMO_MODE_EX: polyThreadMain adopts the preset
+         * target at its first checkpoint, setting iotid BEFORE the first slice runs. */
+        polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, i);
+        ctx->ex = &server.exThreads[i];
+        ctx->ex_slot = i;
+        /* flip: convertible workers [1 .. num_workers-1] get a DORMANT io binding so they can
+         * grow-front (EX->IO in place). io_slot is contiguous-on-conversion: the highest worker
+         * converts first and takes io_slot io_threads, next takes io_threads+1, ... => worker i
+         * gets io_slot = io_threads + (num_workers-1 - i). Worker 0 is the >=1 EX floor: no io
+         * binding. Bindings for slots >= io_threads were built in initIOThreads. */
+        int gidx = (server.num_workers - 1) - i;   /* 0 for the top worker */
+        if (i >= 1 && gidx >= 0 && gidx < server.tm_ngrow_io) {
+            ctx->io = &server.ioThreads[server.io_threads + gidx];
+            ctx->io_slot = server.io_threads + gidx;
         } else {
-            pthread_create(&server.exThreads[i].thread, NULL, exThreadMain, &server.exThreads[i]);
+            ctx->io = NULL;
+            ctx->io_slot = server.io_threads + 1 + i;   /* reserved name only (worker 0 / capped) */
         }
+        ctx->io_listening = 0;
+        /* ee451 (auto symmetric pool): APPLY THE BOOT SPLIT. Workers at or above tm_boot_w_live
+         * are born in IO mode on their dormant binding instead of EX — the same birth edge an
+         * EX-born worker takes, aimed at the other role (the checkpoint listen()s the pre-bound
+         * socket and registers the accept handler before the first slice). The bucket table gave
+         * them the empty suffix range, so nothing routes to them as workers and nothing is lost.
+         * This is the ONLY place the split is applied; io_threads_live/num_workers_live are
+         * seeded to match in initIOThreads and initServer. In static mode tm_boot_w_live ==
+         * num_workers and the condition is never true, so every worker is EX-born as before.
+         * mode is UNSET (not 0, not a role) until the first checkpoint adopts the target. */
+        int born_io = (i >= server.tm_boot_w_live) && ctx->io;
+        atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
+        atomic_store_explicit(&ctx->target_mode, born_io ? TOMO_MODE_IO : TOMO_MODE_EX, memory_order_relaxed);
+        if (born_io)
+            serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
+                                 "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
+        if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+            serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
+            exit(1);
+        }
+        server.exThreads[i].thread = ctx->thread;   /* keep exThread.thread meaningful */
         pinExToCore(server.exThreads[i].thread, i);   /* same core index either way — pin map unchanged */
     }
 }
@@ -17595,20 +17557,18 @@ static void tmMakeDormantIoBinding(int slot) {
 
 void initIOThreads(void) {
     server.ioThreadsNum = server.io_threads;
-    if (server.poly_threads) {
-        /* The pool is exactly io-born + ex-born; there is no reserve thread to size in. */
-        int npoly = (server.io_threads - 1) + server.num_workers;
-        tmPolyCtxs = zcalloc(sizeof(polyThreadCtx) * (npoly > 0 ? npoly : 1));
-        /* zcalloc leaves mode/target_mode at 0, and 0 is NOT a mode (see tomoThreadMode).
-         * Stamp every slot UNSET so a ctx that somehow escapes the explicit per-thread init
-         * below trips the checkpoint's mode assert instead of silently running as IO. */
-        for (int k = 0; k < (npoly > 0 ? npoly : 1); k++) {
-            atomic_store_explicit(&tmPolyCtxs[k].mode, TOMO_MODE_UNSET, memory_order_relaxed);
-            atomic_store_explicit(&tmPolyCtxs[k].target_mode, TOMO_MODE_UNSET, memory_order_relaxed);
-        }
-        serverLog(LL_NOTICE, "ee451 thread-modes ON: %d poly threads (%d io-born, %d ex-born)",
-                  npoly, server.io_threads - 1, server.num_workers);
+    /* The pool is exactly io-born + ex-born; there is no reserve thread to size in. */
+    int npoly = (server.io_threads - 1) + server.num_workers;
+    tmPolyCtxs = zcalloc(sizeof(polyThreadCtx) * (npoly > 0 ? npoly : 1));
+    /* zcalloc leaves mode/target_mode at 0, and 0 is NOT a mode (see tomoThreadMode).
+     * Stamp every slot UNSET so a ctx that somehow escapes the explicit per-thread init
+     * below trips the checkpoint's mode assert instead of silently running as IO. */
+    for (int k = 0; k < (npoly > 0 ? npoly : 1); k++) {
+        atomic_store_explicit(&tmPolyCtxs[k].mode, TOMO_MODE_UNSET, memory_order_relaxed);
+        atomic_store_explicit(&tmPolyCtxs[k].target_mode, TOMO_MODE_UNSET, memory_order_relaxed);
     }
+    serverLog(LL_NOTICE, "ee451 thread-modes ON: %d poly threads (%d io-born, %d ex-born)",
+              npoly, server.io_threads - 1, server.num_workers);
     /* flip: reserve growth io slots [io_threads .. io_threads+ngrow_io) for EX workers that
      * convert to IO (grow-front). ngrow_io = num_workers-1 (worker 0 is the >=1 EX floor).
      * Capped so io_threads+ngrow_io <= TOMO_IO_THREADS_MAX. Dormant bindings built below. */
@@ -17654,31 +17614,25 @@ void initIOThreads(void) {
         tmMigInitSlot(i, t->el);
 
         /* Spin up the thread */
-        if (server.poly_threads) {
-            /* ee451 (thread-modes v1, step 2): IO-born poly thread. Fixed identity
-             * pair: io_slot = its io thread id (listener + event loop pre-built
-             * above, exactly as the static path); ex_slot = num_workers+i, a
-             * reserved NAME (no ex binding — a BASE io thread can never grow back;
-             * only a slot that grew front can, and it keeps its own ex binding).
-             * Born TOMO_MODE_IO: the first checkpoint sets iotid = io_slot before
-             * the first slice, then behavior is identical to ioThreadMain. */
-            polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
-            ctx->ex = NULL;
-            ctx->io = t;
-            ctx->io_slot = i;
-            ctx->ex_slot = server.num_workers + i;
-            ctx->io_listening = 1;   /* listener live from boot */
-            atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
-            atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_relaxed);
-            if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
-                serverLog(LL_WARNING, "Failed creating poly IO thread %d: %s", i, strerror(errno));
-                exit(1);
-            }
-            t->tid = ctx->thread;
-        } else if (pthread_create(&t->tid, NULL, ioThreadMain, t) != 0) {
-            serverLog(LL_WARNING, "Failed creating IO thread %d: %s", i, strerror(errno));
+        /* ee451 (thread-modes v1, step 2): IO-born poly thread. Fixed identity
+         * pair: io_slot = its io thread id (listener + event loop pre-built
+         * above); ex_slot = num_workers+i, a reserved NAME (no ex binding — a
+         * BASE io thread can never grow back; only a slot that grew front can,
+         * and it keeps its own ex binding). Born TOMO_MODE_IO: the first
+         * checkpoint sets iotid = io_slot before the first slice. */
+        polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_IO, i);
+        ctx->ex = NULL;
+        ctx->io = t;
+        ctx->io_slot = i;
+        ctx->ex_slot = server.num_workers + i;
+        ctx->io_listening = 1;   /* listener live from boot */
+        atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
+        atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_relaxed);
+        if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
+            serverLog(LL_WARNING, "Failed creating poly IO thread %d: %s", i, strerror(errno));
             exit(1);
         }
+        t->tid = ctx->thread;
         pinIOThreadToCore(t->tid, i);   /* ee451 (S2): dedicate a core to this IO thread */
     }
     /* flip: build the dormant io bindings for the growth slots [io_threads .. io_threads+ngrow_io).
@@ -17713,49 +17667,24 @@ static inline void tmIoBusyBegin(void) {
  * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
 static int ioSlice(ioThreadArgs *t) {
     int ne = aeProcessEventsIO(t->el);
-    if (server.poly_threads) {
-        tmIoSignal *s = &tm_io_sig[t->id];
-        if (server.thread_auto) {
-            /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
-             * the preceding IO-pass publication (including between-pass IO-role housekeeping);
-             * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
-             * per event. */
-            uint64_t cpu_now_us = tmIoThreadCpuUs();
-            s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
-            tm_io_cpu_mark_us = cpu_now_us;
-        }
-        /* Events/pass remains useful as a relative per-thread weight for client placement,
-         * but zero-event reply-drain passes make it invalid as role saturation. */
-        s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
+    tmIoSignal *s = &tm_io_sig[t->id];
+    if (server.thread_auto) {
+        /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
+         * the preceding IO-pass publication (including between-pass IO-role housekeeping);
+         * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
+         * per event. */
+        uint64_t cpu_now_us = tmIoThreadCpuUs();
+        s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
+        tm_io_cpu_mark_us = cpu_now_us;
     }
+    /* Events/pass remains useful as a relative per-thread weight for client placement,
+     * but zero-event reply-drain passes make it invalid as role saturation. */
+    s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     return ne;
 }
 
-void *ioThreadMain(void *arg) {
-    ioThreadArgs *t = (ioThreadArgs *)arg;
-    /* ee451 (thread-modes v1): mode-scoped IDENTITY — IO identity is the raw io
-     * thread id (EX identity is TOMO_IO_THREADS_MAX+1+id); queue/freeback
-     * producer slots and replyWorking[] index off it. Step 2 swaps it atomically
-     * at the mode-transition checkpoint. */
-    iotid = t->id;
-    flatRegisterIoSlot(t->id);   /* FLATSTORE QSBR: claim this io slot's epoch word */
-
-    fprintf(stderr, "IO thread %d started\n", t->id);
-    {   /* DEBUG TOMO-JESTATS: register this IO thread's jemalloc per-thread counters (once). */
-        char n[24]; snprintf(n, sizeof(n), "io_%d", t->id);
-        zmalloc_thread_stats_register(n);
-    }
-
-    while (1) {
-        ioSlice(t);
-    }
-
-    return NULL;
-}
-
-/* ee451 (thread-modes v1, step 2): unified polymorphic thread main — WIRED when
- * the poly-thread apparatus is on (all tomokv threads run this; the static mains are
- * untouched when 0). arg = this thread's polyThreadCtx (fixed identity pair + bindings).
+/* ee451 (thread-modes v1, step 2): unified polymorphic thread main. All tomokv
+ * threads run this. arg = this thread's polyThreadCtx (fixed identity pair + bindings).
  *
  * The MODE-SCOPED IDENTITY protocol (the historic worker-slot crash class was
  * two live threads aliasing one __thread iotid slot):
@@ -17949,7 +17878,7 @@ void *polyThreadMain(void *arg) {
                 iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
                 flatRegisterWorker();
                 if (!ex_inited) {
-                    /* One-time EX setup, exactly as exThreadMain's preamble. */
+                    /* One-time EX setup before the first EX slice. */
                     /* v12-K absent on numa lineage — stripped */
                     exBindNumaLocal(ctx->ex->id);
                     exSliceInit(ctx->ex, &exctx);
@@ -18091,7 +18020,6 @@ static int tomoGrowFrontWorker(int w, const char **err) {
 }
 
 int tomoGrowFront(const char **err) {
-    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     /* review [10]: the global sum is NOT the highest live worker once nodes flip independently —
      * converting sum-1 would corrupt the per-node prefix. Multi-node must use the per-node hooks. */
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 70+n)"; return 0; }
@@ -18152,7 +18080,6 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
 }
 
 int tomoGrowBack(const char **err) {
-    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 80+n)"; return 0; }  /* review [10] */
     if (!tmFlipTryClaim(err)) return 0;
     int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
@@ -18454,7 +18381,7 @@ void tmClientBalanceCron(void) {
     /* Gated by its OWN knob since 2026-07-28. It used to share tm_flip_rebalance with the
      * one-shot grow-front rebalance, which meant turning off the flip-time conn move also
      * silently killed the continuous balancer -- two different decisions on one switch. */
-    if (!server.poly_threads || !server.tm_client_lb) return;
+    if (!server.tm_client_lb) return;
     int all[TOMO_IO_THREADS_MAX + 1];
     int n0 = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);
     int nnodes = tmNumNodes();
@@ -18675,7 +18602,6 @@ static int tmMigExpelInbox(int id) {
  * marking migratable clients while exiting, complete quiesced handoffs, and request the EX role
  * when an IO-EXIT has drained the last client. */
 void tmMigServiceOut(void) {
-    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->migrating_out) return;   /* not an io-capable migration slot */
@@ -18863,7 +18789,6 @@ void tmMigServiceOut(void) {
 /* DEST side, called each pass from beforeSleepIO: adopt clients handed to this thread's inbox.
  * Re-registers each fd on THIS loop, re-links into the per-iotid structures, resumes reads. */
 void tmMigDrainInbox(void) {
-    if (!server.poly_threads) return;
     int id = iotid;
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->inbox) return;
@@ -18914,7 +18839,6 @@ static void tmMigNotifierHandler(aeEventLoop *el, int fd, void *clientData, int 
  * each io thread's event loop is created (initIOThreads / tmMakeDormantIoBinding), before the thread
  * starts polling — so registering on el from the main thread is race-free. */
 void tmMigInitSlot(int io_slot, aeEventLoop *el) {
-    if (!server.poly_threads) return;
     tmMigMailbox *mb = &tm_mig_mbox[io_slot];
     mb->inbox = listCreate();
     mb->migrating_out = listCreate();
@@ -18934,7 +18858,6 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
  * source/dest, publishes a request to the source's mailbox, and wakes it. The source runs
  * the protocol on its own loop; this returns immediately. */
 int tomoMigrateTest(int val, const char **err) {
-    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     int all[TOMO_IO_THREADS_MAX + 1];
     int n = tmGatherLiveDests(-1, all, TOMO_IO_THREADS_MAX + 1);   /* all live io threads */
 
@@ -19122,7 +19045,7 @@ static int tmFlipDo(int node, int dir, const char **err) {
 }
 
 static void tomoFlipController(void) {
-    if (!server.thread_auto || !server.poly_threads || !server.exThreads) return;
+    if (!server.thread_auto || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
     if (tmFlipActive()) return;                             /* a flip is mid-flight */
@@ -19614,7 +19537,6 @@ int tomoNodeFlipTest(int val, const char **err) {
 }
 
 static int tomoGrowFrontNode(int node, const char **err) {
-    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     int wpn = server.ex_per_node;
     if (wpn <= 0) { *err = "no per-node topology"; return 0; }
@@ -19624,7 +19546,6 @@ static int tomoGrowFrontNode(int node, const char **err) {
     return tomoGrowFrontWorker(node * wpn + live_n - 1, err);   /* node's highest live worker */
 }
 static int tomoGrowBackNode(int node, const char **err) {
-    if (!server.poly_threads) { *err = "the poly-thread apparatus is not initialised"; return 0; }
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     if (!tmFlipTryClaim(err)) return 0;
     /* The node's highest grown io slot currently serving IO (LIFO within the node). */

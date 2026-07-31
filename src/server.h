@@ -6096,7 +6096,6 @@ void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid 
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 void queueToWorker(client *c, int ex_id);
-void *exThreadMain(void *arg);
 void initExThreads(void);
 void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
@@ -6107,7 +6106,6 @@ client *createFakeClient(client *parent);               /* ee451 (v7): for cross
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
-void *ioThreadMain(void *arg);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */
