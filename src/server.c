@@ -1458,63 +1458,6 @@ int clientsCronTrackExpansiveClients(client *c) {
     return 0; /* This function never terminates the client. */
 }
 
-/* All normal clients are placed in one of the "mem usage buckets" according
- * to how much memory they currently use. We use this function to find the
- * appropriate bucket based on a given memory usage value. The algorithm simply
- * does a log2(mem) to ge the bucket. This means, for examples, that if a
- * client's memory usage doubles it's moved up to the next bucket, if it's
- * halved we move it down a bucket.
- * For more details see CLIENT_MEM_USAGE_BUCKETS documentation in server.h. */
-static inline clientMemUsageBucket *getMemUsageBucket(size_t mem) {
-    int size_in_bits = 8*(int)sizeof(mem);
-    int clz = mem > 0 ? __builtin_clzl(mem) : size_in_bits;
-    int bucket_idx = size_in_bits - clz;
-    if (bucket_idx > CLIENT_MEM_USAGE_BUCKET_MAX_LOG)
-        bucket_idx = CLIENT_MEM_USAGE_BUCKET_MAX_LOG;
-    else if (bucket_idx < CLIENT_MEM_USAGE_BUCKET_MIN_LOG)
-        bucket_idx = CLIENT_MEM_USAGE_BUCKET_MIN_LOG;
-    bucket_idx -= CLIENT_MEM_USAGE_BUCKET_MIN_LOG;
-    return &server.client_mem_usage_buckets[bucket_idx];
-}
-
-/* TASK#37 (client mem-usage bucket race) — fork exclusivity policy.
- *
- * Stock Redis keeps every evictable client in a GLOBAL mem-usage bucket
- * (unlocked adlists in server.client_mem_usage_buckets) and is only correct
- * under an exclusivity protocol: every updateClientMemUsageAndBucket call
- * runs on the main thread, and main pauses the (stock) IO threads before
- * touching a client it does not run (see the comment inside
- * updateClientMemUsageAndBucket below).
- *
- * This fork structurally breaks that protocol and NEVER pauses:
- *   - every tomo IO identity thread runs the full "main-thread" command path
- *     concurrently: createClient stamps running_tid = IOTHREAD_MAIN_THREAD_ID
- *     on ALL clients, so every stock `running_tid == main` gate passes on
- *     every identity at once, and writeToClient / processInputBuffer /
- *     processCommandAndResetClient all reach the bucket code in parallel;
- *   - EX workers execute command procs on ring fakes, and procs fan out to
- *     OTHER identities' real clients (pubsub/tracking/monitor feeds);
- *   - evictClients() is called from processCommand on every identity.
- * Two identities running listAddNodeTail/listDelNode against one unlocked
- * bucket list corrupt it (bench crash: listDelNode on a bucket list, and a
- * stale bucket node handing a recycled ring fake — reply == NULL — to
- * getClientMemoryUsage).
- *
- * Policy: the bucket machinery (maxmemory-clients / client eviction) may run
- * ONLY when main can PROVE exclusivity: a single tomo IO identity (main
- * itself), no EX workers, and no thread-modes runtime revival — i.e. the fork
- * configured down to stock single-threaded shape. Otherwise the buckets are
- * never allocated or touched (initServerClientMemUsageBuckets refuses), and
- * every caller degrades to the stock eviction-disabled behavior: plain
- * per-OWNER-thread memory accounting via clientsCron (the fakeRingClientCron
- * precedent — per-client work runs only on the thread that owns the client).
- * All three inputs are boot-time (tomokv-thread-io / tomokv-thread-ex /
- * tomokv-thread-mode are IMMUTABLE_CONFIG), so the verdict cannot flip
- * mid-run. */
-int clientMemBucketsExclusive(void) {
-    return server.io_threads <= 1 && server.num_workers <= 0 && !server.poly_threads;
-}
-
 /*
  * This method updates the client memory usage and update the
  * server stats for client type.
@@ -1523,16 +1466,10 @@ int clientMemBucketsExclusive(void) {
  * stats for non CLIENT_TYPE_NORMAL/PUBSUB clients to accurately
  * provide information around clients memory usage.
  *
- * It is also used in updateClientMemUsageAndBucket to have latest
- * client memory usage information to place it into appropriate client memory
- * usage bucket.
  */
 void updateClientMemoryUsage(client *c) {
-    /* TASK#37: ring/sub FAKES are per-command execution scratch. A dispatched
-     * fake BORROWS parent->conn (resetFakeClientState: "dispatch borrows
-     * parent->conn"), so the `c->conn` gates at call sites do NOT filter
-     * them, and freeFakeClient/freePooledFakeClient recycle them with no
-     * stat or bucket teardown. Their transient memory is never accounted. */
+    /* Ring/sub fakes are per-command execution scratch and their transient
+     * memory is never included in the per-type client totals. */
     if (c->isFake) return;
     serverAssert(c->conn);
     size_t mem = getClientMemoryUsage(c, NULL);
@@ -1550,99 +1487,6 @@ void updateClientMemoryUsage(client *c) {
     /* Remember what we added and where, to remove it next time. */
     c->last_memory_type = type;
     c->last_memory_usage = mem;
-}
-
-int clientEvictionAllowed(client *c) {
-    if (server.maxmemory_clients == 0 || c->flags & CLIENT_NO_EVICT || !c->conn) {
-        return 0;
-    }
-    int type = getClientType(c);
-    return (type == CLIENT_TYPE_NORMAL || type == CLIENT_TYPE_PUBSUB);
-}
-
-
-/* This function is used to cleanup the client's previously tracked memory usage.
- * This is called during incremental client memory usage tracking as well as
- * used to reset when client to bucket allocation is not required when
- * client eviction is disabled.  */
-void removeClientFromMemUsageBucket(client *c, int allow_eviction) {
-    if (c->mem_usage_bucket) {
-        c->mem_usage_bucket->mem_usage_sum -= c->last_memory_usage;
-        /* If this client can't be evicted then remove it from the mem usage
-         * buckets */
-        if (!allow_eviction) {
-            listDelNode(c->mem_usage_bucket->clients, c->mem_usage_bucket_node);
-            c->mem_usage_bucket = NULL;
-            c->mem_usage_bucket_node = NULL;
-        }
-    }
-}
-
-/* This is called only if explicit clients when something changed their buffers,
- * so we can track clients' memory and enforce clients' maxmemory in real time.
- *
- * This also adds the client to the correct memory usage bucket. Each bucket contains
- * all clients with roughly the same amount of memory. This way we group
- * together clients consuming about the same amount of memory and can quickly
- * free them in case we reach maxmemory-clients (client eviction).
- *
- * Note: This function filters clients of type no-evict, master or replica regardless
- * of whether the eviction is enabled or not, so the memory usage we get from these
- * types of clients via the INFO command may be out of date.
- *
- * returns 1 if client eviction for this client is allowed, 0 otherwise.
- */
-int updateClientMemUsageAndBucket(client *c) {
-    /* TASK#37: fakes never enter accounting or buckets. A dispatched fake
-     * carries a (borrowed) conn, so callers' `if (c->conn)` checks do not
-     * exclude it here — e.g. CLIENT NO-EVICT OFF and flushallSyncBgDone run
-     * inline on a ring-slot fake in this fork. */
-    if (c->isFake) return 0;
-
-    /* TASK#37: without provable main-thread exclusivity the global bucket
-     * lists are untouchable — this fork's identities all pass the stock
-     * running_tid gate concurrently and nothing ever pauses them (see
-     * clientMemBucketsExclusive). Report "eviction not allowed" and do NO
-     * client-field sampling at all: off-owner callers (pubsub/tracking/
-     * monitor fanout to another identity's live client, bio-side flush
-     * completions) must not read c->reply/querybuf/argv the owner is
-     * mutating. Per-owner accounting still happens exactly as in stock
-     * eviction-disabled mode: clientsCronRunClient sees our 0 and calls
-     * updateClientMemoryUsage(c) itself, 1Hz, on the owning thread. */
-    if (!clientMemBucketsExclusive()) return 0;
-
-    /* The unlikely case this function was called from a thread different
-     * than the main one is a module call from a spawned thread. This is safe
-     * since this call must have been made after calling
-     * RedisModule_ThreadSafeContextLock i.e the module is holding the GIL. In
-     * that special case we assert that at least the updated client's
-     * running_tid is the main thread. The true main thread is allowed to call
-     * this function on clients handled by IO-threads as it makes sure the
-     * IO-threads are paused, f.e see cleintsCron() and evictClients(). */
-    serverAssert((pthread_equal(pthread_self(), server.main_thread_id) ||
-                  c->running_tid == IOTHREAD_MAIN_THREAD_ID) && c->conn);
-    int allow_eviction = clientEvictionAllowed(c);
-    removeClientFromMemUsageBucket(c, allow_eviction);
-
-    if (!allow_eviction) {
-        return 0;
-    }
-
-    /* Update client memory usage. */
-    updateClientMemoryUsage(c);
-
-    /* Update the client in the mem usage buckets */
-    clientMemUsageBucket *bucket = getMemUsageBucket(c->last_memory_usage);
-    bucket->mem_usage_sum += c->last_memory_usage;
-    if (bucket != c->mem_usage_bucket) {
-        if (c->mem_usage_bucket)
-            listDelNode(c->mem_usage_bucket->clients,
-                        c->mem_usage_bucket_node);
-        c->mem_usage_bucket = bucket;
-        listAddNodeTail(bucket->clients, c);
-        c->mem_usage_bucket_node = listLast(bucket->clients);
-    }
-    return 1;
 }
 
 /* Return the max samples in the memory usage of clients tracked by
@@ -1679,10 +1523,8 @@ int clientsCronRunClient(client *c) {
      * in turn would make the INFO command too slow. So we perform this
      * computation incrementally and track the (not instantaneous but updated
      * to the second) total memory used by clients using clientsCron() in
-     * a more incremental way (depending on server.hz).
-     * If client eviction is enabled, update the bucket as well. */
-    if (!updateClientMemUsageAndBucket(c))
-        updateClientMemoryUsage(c);
+     * a more incremental way (depending on server.hz). */
+    updateClientMemoryUsage(c);
 
     if (closeClientOnOutputBufferLimitReached(c, 0)) return 1;
     return 0;
@@ -3208,8 +3050,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     if (server.repl_backlog)
         incrementalTrimReplicationBacklog(10*REPL_BACKLOG_TRIM_BLOCKS_PER_CALL);
 
-    evictClients();
-
     monotime duration_after_write = getMonotonicUs() - cron_start_time_after_write;
 
     if (server.el_start > 0) {
@@ -3478,39 +3318,6 @@ void createSharedObjects(void) {
      * string in string comparisons for the ZRANGEBYLEX command. */
     shared.minstring = sdsnew("minstring");
     shared.maxstring = sdsnew("maxstring");
-}
-
-void initServerClientMemUsageBuckets(void) {
-    if (server.client_mem_usage_buckets)
-        return;
-    /* TASK#37: never build the bucket apparatus without exclusivity (see
-     * clientMemBucketsExclusive). A NULL pointer keeps every consumer —
-     * evictClients, freeClient's bucket unlink, DEBUG CLIENT-EVICTION,
-     * applyClientMaxMemoryUsage — on its existing NULL no-op path. Reached
-     * from initServer and from CONFIG SET maxmemory-clients. */
-    if (!clientMemBucketsExclusive()) {
-        serverLog(LL_WARNING,
-            "maxmemory-clients: client-eviction buckets DISABLED — tomo "
-            "multi-threaded mode (io=%d ex=%d thread-modes=%d) cannot "
-            "guarantee the main-thread exclusivity stock Redis requires; "
-            "per-owner-thread client memory accounting stays active.",
-            server.io_threads, server.num_workers, server.poly_threads);
-        return;
-    }
-    server.client_mem_usage_buckets = zmalloc(sizeof(clientMemUsageBucket)*CLIENT_MEM_USAGE_BUCKETS);
-    for (int j = 0; j < CLIENT_MEM_USAGE_BUCKETS; j++) {
-        server.client_mem_usage_buckets[j].mem_usage_sum = 0;
-        server.client_mem_usage_buckets[j].clients = listCreate();
-    }
-}
-
-void freeServerClientMemUsageBuckets(void) {
-    if (!server.client_mem_usage_buckets)
-        return;
-    for (int j = 0; j < CLIENT_MEM_USAGE_BUCKETS; j++)
-        listRelease(server.client_mem_usage_buckets[j].clients);
-    zfree(server.client_mem_usage_buckets);
-    server.client_mem_usage_buckets = NULL;
 }
 
 void initServerConfig(void) {
@@ -4476,7 +4283,6 @@ void initServer(void) {
     server.reply_buffer_peak_reset_time = REPLY_BUFFER_DEFAULT_PEAK_RESET_TIME;
     server.reply_buffer_resizing_enabled = 1;
     server.reply_copy_avoidance_enabled = 1;
-    server.client_mem_usage_buckets = NULL;
     server.memory_tracking_enabled = server.key_memory_histograms || clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_MEM);
     resetReplicationBuffer();
 
@@ -4778,9 +4584,6 @@ void initServer(void) {
     ACLUpdateDefaultUserPassword(server.requirepass);
 
     applyWatchdogPeriod();
-
-    if (server.maxmemory_clients != 0)
-        initServerClientMemUsageBuckets();
 
     /* prefetchCommandsBatchInit() removed — upstream command-prefetch batch
      * (memory_prefetch.c) is unused. Cache warming for worker-dispatched
@@ -6293,15 +6096,6 @@ int processCommand(client *c) {
              * this variable to decide if we continue checking accessing keys. */
             c->cluster_compatibility_check_slot = -2;
         }
-    }
-
-    /* Disconnect some clients if total clients memory is too high. We do this
-     * before key eviction, after the last command was executed and consumed
-     * some client output buffer memory. */
-    evictClients();
-    if (server.current_client[iotid].p == NULL) {
-        /* If we evicted ourself then abort processing the command */
-        return C_ERR;
     }
 
     /* Handle the maxmemory directive.

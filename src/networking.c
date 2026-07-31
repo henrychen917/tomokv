@@ -287,7 +287,6 @@ static void resetFakeClientState(client *c, client *parent) {
      *   - watched_keys / pubsub dicts
      *   - peerid / sockname (fake shares parent's conn, no separate addr)
      *   - client_list_node / io_thread_client_list_node / postponed_list_node
-     *   - mem_usage_bucket
      *   - module_blocked_client / module_auth_ctx / auth_callback
      *   - client_tracking_* (tracking is a real-client concept)
      *   - task / node_id
@@ -310,8 +309,6 @@ static void resetFakeClientState(client *c, client *parent) {
     c->auth_callback = NULL;
     c->auth_callback_privdata = NULL;
     c->auth_module = NULL;
-    c->mem_usage_bucket = NULL;
-    c->mem_usage_bucket_node = NULL;
     c->task = NULL;
     c->node_id = NULL;
 
@@ -531,8 +528,6 @@ client *createClient(connection *conn) {
     c->auth_module = NULL;
     listInitNode(&c->clients_pending_write_node, c);
     listInitNode(&c->pending_ref_reply_node, c);
-    c->mem_usage_bucket = NULL;
-    c->mem_usage_bucket_node = NULL;
     c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
     if (conn) linkClient(c);
@@ -2482,7 +2477,7 @@ static void releaseAllBufReferences(client *c) {
 void freeFakeClient(client *c) {
     /* Fakes don't own: conn (shared with parent), peerid/sockname (no socket of
      * their own), pubsub dicts, watched_keys, mstate, bstate, module bookkeeping,
-     * client_list_node, io_thread_client_list_node, mem_usage_bucket. None of
+     * client_list_node and io_thread_client_list_node. None of
      * those were initialized in createFakeClient, so we don't touch them. */
 
     /* Free the query buffer (fake shouldn't have one, but be defensive) */
@@ -2717,11 +2712,6 @@ void freeClient(client *c) {
     /* Master/slave cleanup Case 2:
      * we lost the connection with the master. */
     if (c->flags & CLIENT_MASTER) replicationHandleMasterDisconnection();
-    /* Remove client from memory usage buckets */
-    if (c->mem_usage_bucket) {
-        c->mem_usage_bucket->mem_usage_sum -= c->last_memory_usage;
-        listDelNode(c->mem_usage_bucket->clients, c->mem_usage_bucket_node);
-    }
     /* Release other dynamically allocated client structure fields,
      * and finally release the client structure itself. */
     if (c->name) decrRefCount(c->name);
@@ -3279,11 +3269,6 @@ int writeToClient(client *c, int handler_installed) {
             if (!replicaFromIOThreadHasPendingRead(c))
                 enqueuePendingClientsToMainThread(c, 0);
         }
-    }
-    /* Update client's memory usage after writing.
-     * Since this isn't thread safe we do this conditionally. */
-    if (c->running_tid == IOTHREAD_MAIN_THREAD_ID) {
-        updateClientMemUsageAndBucket(c);
     }
     return C_OK;
 }
@@ -3966,7 +3951,6 @@ int processCommandAndResetClient(client *c) {
              * normal post-stateful-command cleanup (real executed MULTI queueing
              * or a stateful command inline). */
             commandProcessed(c);
-            if (c->conn) updateClientMemUsageAndBucket(c);
         }
     }
     if (server.current_client[iotid].p == NULL) deadclient = 1;
@@ -4281,12 +4265,6 @@ int processInputBuffer(client *c) {
         sdsrange(c->querybuf,c->qb_pos,-1);
         c->qb_pos = 0;
     }
-
-    /* Update client memory usage after processing the query buffer, this is
-     * important in case the query buffer is big and wasn't drained during
-     * the above loop (because of partially sent big commands). */
-    if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
-        updateClientMemUsageAndBucket(c);
 
     /* ee451 (#E1): publish this parse-batch's staged worker jobs NOW, instead of deferring to the
      * next beforeSleep flushExQueues. Under opt_batch_push the pushes above only advanced staged_tail
@@ -4895,11 +4873,9 @@ NULL
         /* CLIENT NO-EVICT ON|OFF */
         if (!strcasecmp(c->argv[2]->ptr,"on")) {
             c->flags |= CLIENT_NO_EVICT;
-            removeClientFromMemUsageBucket(c, 0);
             addReply(c,shared.ok);
         } else if (!strcasecmp(c->argv[2]->ptr,"off")) {
             c->flags &= ~CLIENT_NO_EVICT;
-            updateClientMemUsageAndBucket(c);
             addReply(c,shared.ok);
         } else {
             addReplyErrorObject(c,shared.syntaxerr);
@@ -6083,91 +6059,6 @@ void processEventsWhileBlocked(void) {
     serverAssert(ProcessingEventsWhileBlocked >= 0);
 
     server.cmd_time_snapshot = prev_cmd_time_snapshot;
-}
-
-/* Returns the actual client eviction limit based on current configuration or
- * 0 if no limit. */
-size_t getClientEvictionLimit(void) {
-    size_t maxmemory_clients_actual = SIZE_MAX;
-
-    /* Handle percentage of maxmemory*/
-    if (server.maxmemory_clients < 0 && server.maxmemory > 0) {
-        unsigned long long maxmemory_clients_bytes = (unsigned long long)((double)server.maxmemory * -(double) server.maxmemory_clients / 100);
-        if (maxmemory_clients_bytes <= SIZE_MAX)
-            maxmemory_clients_actual = maxmemory_clients_bytes;
-    }
-    else if (server.maxmemory_clients > 0)
-        maxmemory_clients_actual = server.maxmemory_clients;
-    else
-        return 0;
-
-    /* Don't allow a too small maxmemory-clients to avoid cases where we can't communicate
-     * at all with the server because of bad configuration */
-    if (maxmemory_clients_actual < 1024*128)
-        maxmemory_clients_actual = 1024*128;
-
-    return maxmemory_clients_actual;
-}
-
-void evictClients(void) {
-    if (!server.client_mem_usage_buckets)
-        return;
-    /* TASK#37: defense in depth — buckets can only exist in exclusive mode
-     * (initServerClientMemUsageBuckets refuses otherwise), and this walk
-     * samples/frees clients owned by other identities, so bail if
-     * exclusivity is not provable. Called per command from processCommand
-     * and from cron: the NULL check above keeps the hot path unchanged. */
-    if (!clientMemBucketsExclusive())
-        return;
-    /* Start eviction from topmost bucket (largest clients) */
-    int curr_bucket = CLIENT_MEM_USAGE_BUCKETS-1;
-    listIter bucket_iter;
-    listRewind(server.client_mem_usage_buckets[curr_bucket].clients, &bucket_iter);
-    size_t client_eviction_limit = getClientEvictionLimit();
-    if (client_eviction_limit == 0)
-        return;
-    while (server.stat_clients_type_memory[CLIENT_TYPE_NORMAL] +
-           server.stat_clients_type_memory[CLIENT_TYPE_PUBSUB] >= client_eviction_limit) {
-        listNode *ln = listNext(&bucket_iter);
-        if (ln) {
-            client *c = ln->value;
-            size_t last_memory = c->last_memory_usage;
-            int tid = c->running_tid;
-            if (tid != IOTHREAD_MAIN_THREAD_ID) {
-                pauseIOThread(tid);
-                /* We need to update the client memory usage and bucket if the client
-                 * is running in IO thread. This is because the client memory usage
-                 * and bucket are updated 'only' in the main thread, such as processing
-                 * command and clientsCron, it may delay updating, to avoid incorrectly
-                 * evicting clients, we update again before evicting, if the memory
-                 * used by the client does not decrease or memory usage bucket is not
-                 * changed, then we will evict it, otherwise, not evict it. */
-                updateClientMemUsageAndBucket(c);
-            }
-            if (c->last_memory_usage >= last_memory ||
-                c->mem_usage_bucket == &server.client_mem_usage_buckets[curr_bucket])
-            {
-                sds ci = catClientInfoString(sdsempty(),c);
-                serverLog(LL_NOTICE, "Evicting client: %s", ci);
-                freeClient(c);
-                sdsfree(ci);
-                server.stat_evictedclients++;
-            }
-            if (tid != IOTHREAD_MAIN_THREAD_ID) {
-                resumeIOThread(tid);
-                /* The 'next' of 'bucket_iter' may be changed after updating client memory
-                 * usage and freeing client, so let reset 'bucket_iter'. */
-                listRewind(server.client_mem_usage_buckets[curr_bucket].clients, &bucket_iter);
-            }
-        } else {
-            curr_bucket--;
-            if (curr_bucket < 0) {
-                serverLog(LL_WARNING, "Over client maxmemory after evicting all evictable clients");
-                break;
-            }
-            listRewind(server.client_mem_usage_buckets[curr_bucket].clients, &bucket_iter);
-        }
-    }
 }
 
 /* Acquire a pending command from the shared pool or allocate a new one.

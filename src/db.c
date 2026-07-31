@@ -1461,9 +1461,6 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
         commandProcessed(c);
     }
 
-    /* On flush completion, update the client's memory */
-    updateClientMemUsageAndBucket(c);
-
     /* restore current_client */
     server.current_client[iotid].p = old_client;
 }

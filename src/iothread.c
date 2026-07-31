@@ -94,10 +94,6 @@ int runClientCronFromIOThread(client *c) {
     {
         c->io_last_client_cron = server.mstime;
         if (clientsCronRunClient(c)) return 1;
-    } else {
-        /* Update the client in the mem usage if clientsCronRunClient is not
-         * being called, since that function already performs the update. */
-        updateClientMemUsageAndBucket(c);
     }
 
     return 0;
@@ -494,12 +490,10 @@ int prefetchIOThreadCommands(IOThread *t) {
         redis_prefetch_read(&c[i]->pending_cmds);
     }
     /* Phase 2: Access client data (now likely in cache) and add to batch.
-     * Also prefetch additional fields (reply, mem_usage_bucket) that will be
-     * needed later during command execution. */
+     * Also prefetch the reply field needed later during command execution. */
     for (int i = 0; i < to_prefetch; i++) {
         if (addCommandToBatch(c[i]) == C_ERR) break;
         if (c[i]->reply) redis_prefetch_read(c[i]->reply);
-        redis_prefetch_read(&c[i]->mem_usage_bucket);
         clients++;
     }
     /* Prefetch the commands in the batch. */
