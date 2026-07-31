@@ -10905,7 +10905,7 @@ void tomoFlatResizeQuiesce(void) {
  * DELETED 2026-07-28 (owner ruling: cross-node key migration is not happening): the copy engine
  * that used to back a src!=dst PHYSICAL db — the totally-ordered A->B effect log, the post-image/
  * tombstone capture on every write path, A's background cold-key scan, B's ordered replay, and A's
- * post-flip range delete (MIG_CLEANUP). It was only reachable when ex_dbs[src] != ex_dbs[dst],
+ * post-flip source-range delete. It was only reachable when ex_dbs[src] != ex_dbs[dst],
  * which reshardArm now refuses outright. (The RESHARD_DOUBLEWRITE_PROTOCOL.md the old comments
  * pointed at is not in the tree; git history is the record of the retired protocol.) */
 
@@ -11149,9 +11149,9 @@ static void migHoldKeyIfDraining(robj *key) {
  * suppress the DELETION (and with it the capture — they must go TOGETHER: delete-without-
  * capture recreates the W6-E1 resurrection, capture-without-fence keeps the clobber) on worker
  * A for in-range keys: the read observes expired-as-missing, the standard replica expire-read
- * semantics (db.c masterhost branch). B lazily expires its own copy post-flip; A's stale copy
- * dies in CLEANUP anyway. Callers: expireIfNeeded (non-forced path) + the two HFE lazy-expiry
- * entry points in t_hash.c. Returns 1 = caller must treat as expired WITHOUT deleting.
+ * semantics (db.c masterhost branch). The new owner lazily expires the same physical entry
+ * post-flip; there is no stale source copy. Callers: expireIfNeeded (non-forced path) + the two
+ * HFE lazy-expiry entry points in t_hash.c. Returns 1 = caller must treat as expired WITHOUT deleting.
  * Sub-microsecond window, but it defeats the protocol's central invariant. */
 int migSuppressLazyExpire(redisDb *db, sds keyname) {
     if (!__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
@@ -11166,8 +11166,8 @@ int migSuppressLazyExpire(redisDb *db, sds keyname) {
 }
 
 /* ---- Cutover coordinator: DRAINING -> fence -> FLIP -> DONE. (The B-caught-up, ref-fence and
- * CLEANUP waits went with the copy engine — with one physical kvstore there is nothing to copy,
- * nothing pointing into a doomed source value, and no stale source copy to delete.) ---- */
+ * source-copy cleanup waits went with the copy engine — with one physical kvstore there is nothing
+ * to copy, nothing pointing into a doomed source value, and no stale source copy to delete.) ---- */
 /* ee451 (zero-thread-churn): the cutover coordinator is a MAIN-THREAD TICK STATE MACHINE, not
  * a per-migration detached thread (user rule: thread count fixed boot->shutdown; the old
  * pthread_create-per-migration was the last violation). Called from beforeSleep every main-loop
@@ -11317,39 +11317,28 @@ static void reshardCoordinatorTick(void) {
         if (pending) {
             int tmo = server.reshard_fence_timeout_ms;
             if (tmo > 0 && (now - co_fence_t0) >= (monotime)tmo * 1000) {
-                if (server.shared_node_dbs) {
-                    /* ABORT — never flip. Under shared node dbs a reshard moves OWNERSHIP only
-                     * (the range's data already lives in the one table the new owner would serve,
-                     * which is why CLEANUP is skipped), so abandoning a cutover is a pure no-op on
-                     * the keyspace: leaving phase and jumping straight to DONE releases every held
-                     * producer, and the untouched bucket table keeps routing [lo,hi) to A. The
-                     * balancer will re-arm later. */
-                    atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
-                    serverLog(LL_WARNING,
-                              "ee451 reshard ABORT: drain fence did not complete within %d ms; "
-                              "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
-                    /* The flip tail must NOT run: action 2 would ask a thread that still owns its
-                     * range for the IO role (its checkpoint asserts zero owned buckets), and action
-                     * 3 publishes a liveness the un-taken FLIP never granted. The flip controller
-                     * has its own watchdog for a conversion that does not land. */
-                    co_aborted = 1;
-                    server.tm_mig_flip_action = 0;
-                    atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
-                    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
-                    /* Same wake as the FLIP path: an abandoned cutover must release its parked
-                     * clients too, or the abort trades a stalled range for a stalled client. */
-                    for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
-                    atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
-                } else {
-                    /* Copy mode: B holds a partial copy of the range, so abandoning here would
-                     * leave ghost keys in B's shard that the fan-out paths would still enumerate.
-                     * Reshard is unreachable in this mode anyway (shared_node_dbs is exactly
-                     * workers-per-node > 1, and a move is always within one node), so keep waiting
-                     * and say so once per timeout rather than ship an untested teardown. */
-                    serverLog(LL_WARNING, "ee451 reshard: drain fence still pending after %d ms "
-                                          "(copy mode: not aborting)", tmo);
-                    co_fence_t0 = now;
-                }
+                /* ABORT — never flip. Every successfully armed reshard moves OWNERSHIP inside one
+                 * shared physical db (the range's data already lives in the table the new owner
+                 * would serve), so abandoning a cutover is a pure no-op on the keyspace: leaving
+                 * phase and jumping straight to DONE releases every held producer, and the
+                 * untouched bucket table keeps routing [lo,hi) to A. The balancer will re-arm
+                 * later. */
+                atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
+                serverLog(LL_WARNING,
+                          "ee451 reshard ABORT: drain fence did not complete within %d ms; "
+                          "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
+                /* The flip tail must NOT run: action 2 would ask a thread that still owns its
+                 * range for the IO role (its checkpoint asserts zero owned buckets), and action
+                 * 3 publishes a liveness the un-taken FLIP never granted. The flip controller
+                 * has its own watchdog for a conversion that does not land. */
+                co_aborted = 1;
+                server.tm_mig_flip_action = 0;
+                atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+                atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                /* Same wake as the FLIP path: an abandoned cutover must release its parked
+                 * clients too, or the abort trades a stalled range for a stalled client. */
+                for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
+                atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
             }
             return;
         }
@@ -11399,11 +11388,11 @@ static void reshardCoordinatorTick(void) {
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
-        /* Phase D.1/D.2: the ref-fence (outstanding_a_refs) and the CLEANUP hand-off to worker A
-         * both existed only for the copy engine — the fence held the flip until no zero-copy reply
-         * still pointed into a value A's CLEANUP was about to free. There is no second copy and no
-         * CLEANUP now (the flipped range's data is in the SAME dict[b] the new owner already
-         * serves), so nothing can dangle and the phase goes straight to DONE. */
+        /* Phase D.1/D.2: the ref-fence and source-copy cleanup hand-off both existed only for the
+         * copy engine — the fence held the flip until no zero-copy reply still pointed into a
+         * source value the cleanup was about to free. There is no second copy or source cleanup
+         * now (the flipped range's data is in the SAME dict[b] the new owner already serves), so
+         * nothing can dangle and the phase goes straight to DONE. */
         atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
         atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
         return;
@@ -11452,9 +11441,9 @@ static void reshardCoordinatorTick(void) {
     atomic_fetch_add_explicit(&server.reshard_done_seq, 1, memory_order_relaxed);
 
     /* ee451 (thread-modes): GROW-FRONT tail (action 2). The converting worker's ENTIRE range is
-     * now on dst, CLEANUP deleted the src copies and teardown is complete, so it is safe to ask
-     * the thread for its new role. It adopts at its next checkpoint, which drains its (now
-     * traffic-less) queues and asserts it owns no buckets before taking the IO identity. */
+     * now owned by dst and teardown is complete, so it is safe to ask the thread for its new role.
+     * It adopts at its next checkpoint, which drains its (now traffic-less) queues and asserts it
+     * owns no buckets before taking the IO identity. */
     if (flip_act == 2) {
         polyThreadCtx *fc = tmFlipCtxPublished();
         if (fc) {
@@ -16667,10 +16656,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx) {
     }
 
     /* ee451 (v8d): the per-worker online-resharding duties (B replaying the ordered effect log,
-     * A advancing the cold-key scan during COPYING and deleting its range at CLEANUP) were the
-     * COPY ENGINE and are deleted — a reshard now only flips ownership inside one shared physical
-     * kvstore, so no worker has anything to do for it. The loop_seq heartbeat above keeps beating
-     * regardless: the coordinator's RCU teardown still waits on it. */
+     * A advancing the cold-key scan and deleting its source copy) were the COPY ENGINE and are
+     * deleted — a reshard now only flips ownership inside one shared physical kvstore, so no
+     * worker has anything to do for it. The loop_seq heartbeat above keeps beating regardless:
+     * the coordinator's RCU teardown still waits on it. */
 
     /* ee451 (bug #42/#50): ACTIVE EXPIRY of the keys AND hash fields in this worker's OWN bucket
      * range (one budget, shared: the hash-field half runs first and is charged to the SAME

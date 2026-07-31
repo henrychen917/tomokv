@@ -2117,9 +2117,9 @@ void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, ca
  * only ever moves a bucket range between two workers of ONE node, and those workers share ONE
  * physical flat kvstore (shared_node_dbs), so the cutover is a drain-fence plus an ownership flip
  * in ex_bucket_table — no key ever moves. reshardArm now REFUSES any (src,dst) pair on different
- * physical dbs, which is what made the copy path reachable at all. MIG_CLEANUP is retained (and
- * unused) so the phase integers a live DEBUG RESHARD STATUS reports keep their historical values. */
-typedef enum { MIG_IDLE=0, MIG_COPYING, MIG_DRAINING, MIG_FLIPPED, MIG_CLEANUP, MIG_DONE } migPhase;
+ * physical dbs, which is what made the copy path reachable at all. Value 4 stays reserved so a
+ * live DEBUG RESHARD STATUS keeps the historical phase integers. */
+typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DONE=5 } migPhase;
 //ee451
 /* Worker queue capacity: size of the ring each IO thread pushes fake-client
  * jobs into for a given worker. Always a power of two. Runtime value lives
