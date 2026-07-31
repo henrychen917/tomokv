@@ -842,6 +842,7 @@ run_correctness_case() { # label io ex mode
     local label=$1 io=$2 ex=$3 mode=$4
     local dir=$WORK/correctness/$label result log rc smoke=0 summary passed failed
     local functional_ok=1 detail= poll=0 deadline role_first= role_last=
+    local poll_timeout=0 poll_timeout_detail=
     local role_changed=0 flip_count=0 row row_count occurrence
     local log_conversion=0 controller_status=PASS
     mkdir -p "$dir"
@@ -872,6 +873,9 @@ run_correctness_case() { # label io ex mode
                 elif [ "$role_last" != "$role_first" ]; then
                     role_changed=1
                 fi
+            elif [ "$LAST_RC" -eq 124 ] || [ "$LAST_RC" -eq 137 ]; then
+                poll_timeout=1
+                poll_timeout_detail=$LAST_REASON
             fi
             poll=$((poll + 1))
             sleep 2
@@ -890,7 +894,10 @@ run_correctness_case() { # label io ex mode
         rc=$?
         HELPER_PID=
     fi
-    if [ "$rc" -ne 0 ]; then
+    if [ "$poll_timeout" = 1 ]; then
+        functional_ok=0
+        detail="correctness DEBUG TOMO-IOLOAD client timed out: $poll_timeout_detail"
+    elif [ "$rc" -ne 0 ]; then
         functional_ok=0
         detail="correctness suite rc=$rc (timeout=124); $(grep -E $'\\tFAIL' "$result" 2>/dev/null | head -2 | tr '\n' ' ')"
     elif [ ! -s "$result" ]; then
