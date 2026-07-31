@@ -312,7 +312,8 @@ static void resetFakeClientState(client *c, client *parent) {
     c->task = NULL;
     c->node_id = NULL;
 
-    /* Intrusive list nodes — fake can be put on pending_write queues */
+    /* Intrusive list nodes */
+    listInitNode(&c->clients_pending_ex_node, c);
     listInitNode(&c->clients_pending_write_node, c);
     listInitNode(&c->pending_ref_reply_node, c);
 
@@ -526,6 +527,7 @@ client *createClient(connection *conn) {
     c->auth_callback = NULL;
     c->auth_callback_privdata = NULL;
     c->auth_module = NULL;
+    listInitNode(&c->clients_pending_ex_node, c);
     listInitNode(&c->clients_pending_write_node, c);
     listInitNode(&c->pending_ref_reply_node, c);
     c->net_input_bytes_curr_cmd = 0;

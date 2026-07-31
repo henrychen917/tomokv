@@ -2714,7 +2714,7 @@ void handleWorkerReplies(void) {
             }
             cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
             if (real->flushid == real->dispatchid) {
-                listDelNode(server.clients_pending_ex[iotid], ln);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -2730,7 +2730,7 @@ void handleWorkerReplies(void) {
         if (mask == 0) {
             if (real->flushid == real->dispatchid) {
                 /* Nothing ready, nothing in flight — drop off the flush list. */
-                listDelNode(server.clients_pending_ex[iotid], ln);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
@@ -2848,7 +2848,7 @@ void handleWorkerReplies(void) {
          * any remaining set bits must correspond to slots >= flushid, but
          * flushid == dispatchid means there are no outstanding slots. */
         if (real->flushid == real->dispatchid) {
-            listDelNode(server.clients_pending_ex[iotid], ln);
+            listUnlinkNode(server.clients_pending_ex[iotid], ln);
         }
 
         /* A slot opened up; if real stalled waiting for ring space or drain,
@@ -6439,7 +6439,7 @@ int processCommand(client *c) {
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
-        listAddNodeTail(server.clients_pending_ex[iotid], c);
+        listLinkNodeTail(server.clients_pending_ex[iotid], &c->clients_pending_ex_node);
     }
 
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
@@ -8663,9 +8663,9 @@ static void csSubExec(client *sub) {
 
 /* ==== xshard INLINE (small-size) storage for a group's coordinator-owned arrays ====
  *
- * The problem this solves: a cross-shard MGET(4) fanning to 4 shards made and destroyed EIGHT
- * separate heap blocks -- the csGroup itself, subs[], mget_vals[], mget_pos[], and one int[]
- * position list per sub -- for a command whose entire per-command working set is ~128 bytes.
+ * The problem this solves: a cross-shard MGET(4) fanning to 4 shards made and destroyed TWELVE
+ * separate heap blocks -- the csGroup itself, subs[], mget_vals[], mget_pos[], one int[]
+ * position list per sub and one argv[] per sub -- for a working set of ~192 bytes.
  * None of them outlive the command. That is the textbook case for INLINE storage with heap
  * spill: LLVM SmallVector, folly::small_vector, absl::InlinedVector, std::string's SSO.
  *
@@ -8702,12 +8702,12 @@ static struct __attribute__((aligned(CACHE_LINE_SIZE))) {
  * no tuning by anyone. This is the whole reason there is no tomokv-xshard-inline-* knob: a knob
  * would only let someone get this wrong.
  *
- * WHY IT MATTERS (measured, not assumed): a FIXED 320-byte region -- sized for MGET's
- * subs+values+posmap -- made MSET(4) slower. MSET uses exactly ONE inline array (subs[], 32B),
- * so the other 288 bytes were pure per-command memset and cache footprint: mset4 at p32 came out
- * +1.27% instr/op while mget4 at p8 came out -5.96%. docs/sizing-policy.md states the rule this
- * violated -- "every unused inline slot is dead weight in EVERY instance". Sizing per command
- * makes MSET ask for 32 bytes and MGET(4) ask for ~128.
+ * WHY IT MATTERS (measured, not assumed): the original coordinator-array change tried a FIXED
+ * 320-byte region and made MSET(4) slower because MSET then needed only subs[] (32B); the other
+ * 288 bytes were pure memset/cache footprint. Derived sizing fixed that. Sub argv follows the
+ * same rule here: MSET(4) adds exactly its vectors' 96 bytes and MGET(4) adds exactly 64 bytes,
+ * rather than restoring a fixed reservation. docs/sizing-policy.md's rule still holds:
+ * "every unused inline slot is dead weight in EVERY instance".
  *
  * Under-estimating is SAFE by construction: anything that does not fit spills to zmalloc, i.e.
  * an arithmetic slip degrades to the pre-inline behaviour, never to a bug. */
@@ -8723,7 +8723,8 @@ static csGroup *csGroupNew(size_t want) {
 
 /* Inline demand of a GATHER/PIPELINE group, from the row + the key count + the fan-out bound.
  * Mirrors, in the same order, exactly what dispatchGather/csBuildCoalescedSubs will allocate.
- * Each per-sub int[] is padded to 8 bytes, hence the +4*nsub slack on the posmap term. */
+ * Each per-sub int[] is padded to 8 bytes, hence the +4*nsub slack on the posmap term. Sub argv
+ * vectors contribute one command pointer per sub plus the row's key/extra pointers. */
 static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) {
     size_t w = 8 * (size_t)nsub;                                   /* subs[] */
     if (posmap) w += 8 * (size_t)nsub                              /* posmap pointer array */
@@ -8735,7 +8736,21 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     case CS_RES_KEYREPORT: w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* klen + ktype */
     default: break;
     }
-    if (s->has_hop2) w += 8 * CS_H2_MAX;   /* csLaunchHop2 re-allocates subs[] after HOP1 */
+    w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
+    if (s->has_hop2) {
+        if (s->h2_op == CS_H2_SCATTER) {
+            /* MSETNX: HOP2 re-runs the builder with [CMD key value] vectors. */
+            w += 8 * (size_t)nsub;                       /* replacement subs[] */
+            w += 8 * ((size_t)nsub + 2 * (size_t)nkeys); /* replacement sub argv */
+        } else if (s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP) {
+            w += 8;       /* one replacement sub */
+            w += 8 * 6;   /* [CMD 1 key DIR [COUNT n]] */
+        } else {
+            int h2_nsub = (s->dst_argi != 0) + (s->h2_del_src != 0);
+            w += 8 * (size_t)h2_nsub;       /* replacement subs[] */
+            w += 16 * (size_t)h2_nsub;      /* [CMD key] per HOP2 sub */
+        }
+    }
     return w;
 }
 
@@ -8770,8 +8785,10 @@ static inline void csgFree(csGroup *g, void *p) {
 
 static void csFreeSub(client *sub) {
     if (sub->argv) {
+        csGroup *g = sub->csparent;
+        serverAssert(g != NULL);
         for (int a = 0; a < sub->argc; a++) if (sub->argv[a]) decrRefCount(sub->argv[a]);
-        zfree(sub->argv); sub->argv = NULL; sub->argc = 0;
+        csgFree(g, sub->argv); sub->argv = NULL; sub->argc = 0;
     }
     sub->csparent = NULL;
     freePooledFakeClient(sub);
@@ -8907,7 +8924,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
+        sub->argv = csgAlloc(g, sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
         sub->db = &server.exThreads[w].db[dbid];
@@ -8940,13 +8957,13 @@ static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     return sub;
 }
 static void csSubSetKeyArgv(client *sub, client *head, robj *key) {  /* argv = [CMD key] */
-    sub->argv = zmalloc(sizeof(robj*) * 2);
+    sub->argv = csgAlloc(sub->csparent, sizeof(robj*) * 2);
     sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
     sub->argv[1] = key;           incrRefCount(key);
     sub->argc = 2;
 }
 static void csSubCopyFullArgv(client *sub, client *head) {           /* same-shard TWOHOP */
-    sub->argv = zmalloc(sizeof(robj*) * head->argc);
+    sub->argv = csgAlloc(sub->csparent, sizeof(robj*) * head->argc);
     for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
     sub->argc = head->argc;
 }
@@ -8990,9 +9007,12 @@ static void csPipeFreeStageSubs(csGroup *g) {
 static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
     int nw = server.num_workers;
     int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one SIZES sub per distinct shard */
-    /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], allocated below. Later stages re-bump and
-     * simply spill once the region is used up — correct, just not free. */
-    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) + 12 * (size_t)nkeys);
+    /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], plus the later GATHER1/PROBE subs and
+     * argv vectors. The probe upper bound is one sub per initial shard and all keys but the
+     * selected smallest key. */
+    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
+                            12 * (size_t)nkeys +
+                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
@@ -9231,7 +9251,7 @@ static int csPipeAdvance(csGroup *g) {
         robj *k0 = head->argv[first + kidx[0] * s->key_stride];
         int w = exIndexForKey(k0->ptr, sdslen(k0->ptr));
         client *sub = csMakeSub(g, 0, w, dbid);
-        sub->argv = zmalloc(sizeof(robj*) * (nk + 1));
+        sub->argv = csgAlloc(g, sizeof(robj*) * (nk + 1));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         zfree(g->pipe_probe_pos);
         g->pipe_probe_pos = zmalloc(sizeof(*g->pipe_probe_pos) * (size_t)nk);
@@ -9258,7 +9278,7 @@ static int csPipeAdvance(csGroup *g) {
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
 static void dispatchLocalReal(client *head, int w, int dbid) {
-    csGroup *g = csGroupNew(sizeof(client *));   /* one sub, nothing else */
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc));
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -9444,7 +9464,7 @@ static void dispatchFanAll(client *head) {
     int nw = 0;
     for (int w = 0; w < server.num_workers; w++)
         if (tmWorkerLive(w)) lw[nw++] = w;
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw);   /* one sub per live worker */
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc));
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*) * nw);
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
@@ -9459,7 +9479,7 @@ static void dispatchFanAll(client *head) {
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
-        sub->argv = zmalloc(sizeof(robj*) * head->argc);
+        sub->argv = csgAlloc(g, sizeof(robj*) * head->argc);
         for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
         sub->argc = head->argc;
         sub->db = &server.exThreads[w].db[dbid];
@@ -9744,9 +9764,14 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int src_shard = server.ex_bucket_table[src_bkt];
     int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
-    /* 2-hop: at most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 re-allocates
-     * subs[] for up to CS_H2_MAX HOP2 subs out of the same region. */
-    csGroup *g = csGroupNew(sizeof(client *) * (2 + CS_H2_MAX));
+    /* 2-hop: reserve the larger of the same-shard full argv and the cross-shard HOP1+HOP2
+     * vectors. At most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 allocates
+     * up to CS_H2_MAX HOP2 subs from the same bump region. */
+    size_t h1_argv = 2 * (size_t)(1 + s->h1_probe_dst) + (s->h1_extra_argi != 0);
+    size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
+    size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
+                        (size_t)head->argc : h1_argv + h2_argv;
+    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -9838,7 +9863,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (i == 0 && s->h1_extra_argi) {
             /* sub 0 carries [CMD src extra] (SMOVE member) — the sub owns its own refs. */
             robj *extra = head->argv[(int)s->h1_extra_argi];
-            sub->argv = zmalloc(sizeof(robj*) * 3);
+            sub->argv = csgAlloc(g, sizeof(robj*) * 3);
             sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
             sub->argv[1] = src;           incrRefCount(src);
             sub->argv[2] = extra;         incrRefCount(extra);
@@ -10104,7 +10129,7 @@ static int csLaunchHop2(csGroup *g) {
             getLongLongFromObject(head->argv[(int)s->numkeys_argi], &nk);
             int dpos = csFirstKeyArg(s) + (int)nk;      /* direction token */
             int has_count = (dpos + 1 < head->argc);    /* [COUNT n] follows (shape-validated) */
-            sub->argv = zmalloc(sizeof(robj*) * (has_count ? 6 : 4));
+            sub->argv = csgAlloc(g, sizeof(robj*) * (has_count ? 6 : 4));
             sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
             sub->argv[1] = createStringObject("1", 1);
             sub->argv[2] = key;           incrRefCount(key);
