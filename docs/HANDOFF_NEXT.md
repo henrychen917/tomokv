@@ -15,7 +15,19 @@ allocation change (embedded pending-execution list node, cross-shard sub argv on
 Gate at push: `correctness_suite` 15/15, zero crash markers, clean build, cells +0.5% / +0.1% /
 +2.1% / +0.4% against reference. **Zero new knobs** — config surface byte-identical to base.
 
-### It has a known defect
+### STATUS UPDATE at end of session
+
+Remote is now **`2725fdb5e`**. Since the text below was first written:
+* `stress0b`'s 22 commits were harvested, rebased, independently re-gated by the
+  maintainer (`bigstress QUICK PASS=20 FAIL=0`, cells +0.53/-0.07/-0.24/-0.58%) and pushed.
+  They include four product fixes — dict SCAN routed through owning workers, a dormant-EX-slice
+  initialisation guard, the shipped `redis-full.conf` boot failure, and surface/topology gate
+  corrections — plus `tools/preflight/bigstress.sh`, the standing acceptance suite
+  (full run: PASS=29 FAIL=0 INCONCLUSIVE=12 SKIP=0, 63.9 min, 0 fatal markers in 630 logs).
+* The set-op leak below was **partially** fixed in `2725fdb5e`. See "still leaking" immediately
+  after it.
+
+### It had a known defect — now partially fixed, NOT closed
 An adversarial review of the pushed tree returned **DEFECTIVE**: cross-shard intersection pipelines
 (`SINTER`, `SINTERCARD`, `ZINTER`, `ZINTERCARD`) **leak one spilled position-map row per request**.
 Cause: the SIZES stage owns two `setop_pos` rows while `g->nsub` is reused as the current stage's
@@ -23,7 +35,23 @@ sub-count, so the spilled row is attributed to the wrong owner and never release
 `src/server.c:8927`, `:8931`, `:9002-9004`, `:9203-9207`, `:10481`; inline cap `src/server.h:2082`.
 Repro: single-node, two EX workers (flat), 24 non-empty sets split across both, repeated `SINTER`
 over all 24. **Unfixed at handoff** — a fix attempt was refused by the content filter mid-edit;
-`cw/fix-setop/` holds partial work. This is the single highest-priority item.
+`cw/fix-setop/` holds partial work.
+
+**FIXED IN PART by `2725fdb5e`.** Root cause confirmed and corrected: `mget_pos`/`setop_pos` are
+allocated in `csBuildCoalescedSubs` with that build's sub count, but `g->nsub` is repurposed by
+every later pipeline stage, and both free loops walked `g->nsub`. Smaller now leaks; larger now
+walks past the end of the pointer array. The HOP1 teardown already worked around it by freeing
+early "before nsub is repurposed"; the generic teardown — the path ordinary cross-shard set
+operations take — did not. Fix captures the row count at allocation in `csGroup.posmap_nsub`.
+Cold path only.
+
+**STILL LEAKING — open, highest priority.** Same repro, `used_memory` per 4000 SINTERs:
+before `+444,648` then `+324,208`; after `+132,000` then `+127,792`. The residual is FLAT, not
+decaying, so it is a continuing leak of roughly 32 bytes per request, not warm-up. The
+position-map accounting was *a* leak on this path, not *the* leak. The remaining source is
+unidentified. Reproduce with `/tmp/sinter_check.sh` (24 sets of 40 members split across 4 workers,
+single node, repeated SINTER over all 24 keys) — it discriminates: it showed the before/after
+difference above.
 
 Why nothing caught it: the four gate cells are single-key GET/SET and the correctness suite does not
 drive cross-shard set operations. That is the "what the gate structurally cannot see" category.
