@@ -30,6 +30,11 @@
 #   OUT OF SPEC: the canonical exact-value digests differ, or a prerequisite
 #   fidelity row did not execute. A rate comparison is not a fidelity oracle.
 #
+# CASE DICT-MULTINODE-EQUIVALENCE
+#   OUT OF SPEC: one-node and two-node private-DICT runs do not both execute,
+#   do not exhaust their composite SCAN cursors, or emit different exact
+#   canonical digests.
+#
 # CASE CORRECTNESS-{DICT,FLAT}-{STATIC,AUTO}
 #   OUT OF SPEC: tools/preflight/correctness_suite.sh exits nonzero, times out,
 #   emits any FAIL row, or fails to materialize its per-run result file.
@@ -61,6 +66,11 @@
 #   requires a completed role conversion and changed per-slot role snapshot
 #   during exact lifecycle traffic; the one-IO DICT-auto topology cannot engage.
 #
+# CASE CONNECTION-LIFECYCLE-{STORAGE,THREAD}-EQUIVALENCE
+#   OUT OF SPEC: the exact surviving-connection digests differ across engines
+#   or thread modes, a prerequisite lifecycle arm did not execute, or an AUTO
+#   comparison claims PASS without its required handoff and role conversion.
+#
 # CASE STEADY-STATE-MEMORY
 #   OUT OF SPEC (after warmup): the late low-water floor exceeds the early
 #   floor by >max(1%,8 MiB) used_memory or >max(2%,16 MiB) RSS; the absolute
@@ -70,6 +80,11 @@
 #   QUICK records a smoke series but explicitly does not qualify this long-run
 #   property. Every paired sample interval is <=10 seconds.
 #
+# CASE MEMORY-SMOKE
+#   OUT OF SPEC: QUICK cannot collect at least seven valid paired samples at
+#   <=10-second cadence, or the short series violates the same floor, slope, or
+#   divergence oracle. A PASS is execution evidence, not long-run qualification.
+#
 # CASE CLEAN-LOG
 #   OUT OF SPEC: any expected server log is absent/empty, or any assertion,
 #   panic, fatal, sanitizer, Guru, Redis bug-report, or crash marker appears.
@@ -78,10 +93,16 @@
 #   OUT OF SPEC: the prescribed 2M-key, d32, t8/c25 cell times out, emits an
 #   empty/non-numeric/zero Totals value, or falls >4% below its fixed reference.
 #
+# CASE SURFACE-HARNESS-DISCRIMINATION / ROLE-HARNESS-DISCRIMINATION
+#   OUT OF SPEC: either adopted harness self-test accepts its injected surface,
+#   topology, role, rate, zero-work, or log defect.
+#
 # CASE SURFACE-GATE / ROLE-CONTROLLER-GATE
-#   OUT OF SPEC: the adopted harness self-test cannot detect an injected
-#   difference, or its live full-mode conformance invocation fails. A controller
+#   OUT OF SPEC: a live full-mode conformance invocation fails. A controller
 #   run with no conversions is INCONCLUSIVE, not PASS.
+#
+# CASE FULL-COVERAGE
+#   OUT OF SPEC: full mode emits even one SKIP row.
 #
 # Process contract:
 #   * the server is pinned to cores 0–7 and every load process to cores 8–15;
