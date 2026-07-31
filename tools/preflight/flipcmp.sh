@@ -8,22 +8,26 @@
 # This is an acceptance harness, not a data-collection-only benchmark.  Its cases
 # and the result that is out of specification are:
 #
-#   static-io7-ex1-p1-get
-#       FAIL if the static server does not boot as exactly 7 IO / 1 EX, if the
-#       exact 2 M-key seed or any p1 GET measurement times out/fails/materializes
-#       zero operations, or if a role changes while thread-mode=static.
+#   static-reference-ioN-exM-pP-{get,set}
+#       For every role split at which an auto row actually converges, boot that
+#       exact N/M split in static mode and run the same workload. FAIL if the
+#       static server does not hold the exact split, the exact 2 M-key seed or
+#       any measurement times out/fails/materializes zero operations, or any
+#       controller completion appears anywhere in a static server log.
 #
-#   static-io4-ex4-p32-set
-#       FAIL under the corresponding conditions for exactly 4 IO / 4 EX and the
-#       p32 SET workload.
-#
-#   auto-44-to-71, auto-71-to-44-from-front,
-#   auto-71-to-44-from-boot, auto-44-to-71-from-back
-#       FAIL if the controller moves the wrong way, does not reach and hold the
-#       named role split, flips during the settled measurement windows, produces
-#       an invalid/zero generator result, or differs by more than 1% from the
-#       matching static throughput.  If there is no completed GROW-FRONT or
-#       GROW-BACK at all, the row is INCONCLUSIVE with ENGAGED=NO, never PASS.
+#   auto-grow-front-from44, auto-grow-back-after-front,
+#   auto-grow-back-from71, auto-grow-front-after-back
+#       FAIL if the controller does not complete the requested direction and
+#       reach and hold a directionally converged split, flips during the settled
+#       measurement windows, produces an invalid/zero generator result, or
+#       falls more than 1% below the same workload at the exact converged split
+#       in static mode.
+#       Exceeding static is conforming. The controller is
+#       an optimizer and may walk back from a pool edge (for example, p1 can
+#       converge at 6/2 after measuring 7/1), so the observed stable split—not a
+#       forced pool-edge target—is recreated for the static rate reference. If
+#       there is no completed GROW-FRONT or GROW-BACK at all, the row is
+#       INCONCLUSIVE with ENGAGED=NO, never PASS.
 #       A completed role conversion is confirmed twice: by the directional
 #       completion record in the server log and by full DEBUG TOMO-IOLOAD
 #       per-slot role snapshots.
@@ -39,8 +43,8 @@
 # is no process-name matching and no attempt to kill work belonging to another
 # run.
 #
-# QUICK=1 retains all four direction/comparison rows but uses one short measure
-# window.  Full mode uses the median of three settled windows.
+# QUICK=1 retains all four direction/comparison rows and uses the median of
+# three short windows. Full mode uses the median of three longer windows.
 
 set -uo pipefail
 # Keep asynchronous children in this shell's process group until `setsid` runs.
@@ -66,6 +70,22 @@ ACTIVE_LOG=
 WORK=
 OUT=/dev/stdout
 declare -a SERVER_LOGS=()
+declare -a LAUNCH_LOGS=()
+declare -A STATIC_VALUES=()
+declare -A STATIC_SAMPLES=()
+declare -A STATIC_OK=()
+declare -a TRANS_NAMES=()
+declare -a TRANS_DIRECTIONS=()
+declare -a TRANS_COMPLETED=()
+declare -a TRANS_START_IO=()
+declare -a TRANS_START_EX=()
+declare -a TRANS_END_IO=()
+declare -a TRANS_END_EX=()
+declare -a TRANS_TARGET_IO=()
+declare -a TRANS_TARGET_EX=()
+declare -a TRANS_RATIOS=()
+declare -a TRANS_PIPELINES=()
+declare -a TRANS_AUTO_OPS=()
 
 say() {
     printf '%s\n' "$*" | tee -a "$OUT"
@@ -93,7 +113,7 @@ within_tolerance() {
     local actual=${1:-} reference=${2:-}
     valid_ops "$actual" && valid_ops "$reference" &&
         awk -v a="$actual" -v r="$reference" -v t="$ACCEPT_TOL_PCT" \
-            'BEGIN { d = a-r; if (d < 0) d = -d; exit !(d <= r*t/100) }'
+            'BEGIN { exit !(a >= r*(1-t/100)) }'
 }
 
 pct_delta() {
@@ -123,15 +143,45 @@ completed_count() {
 
 all_flip_count() {
     local logfile=$1
-    awk 'index($0, "GROW-FRONT role change complete") ||
-         index($0, "GROW-BACK role change complete") { n++ }
+    awk 'index($0, "GROW-FRONT complete — io_threads_live=") ||
+         index($0, "GROW-BACK complete — num_workers_live=") { n++ }
          END { print n+0 }' "$logfile" 2>/dev/null
+}
+
+all_flip_start_count() {
+    local logfile=$1
+    awk 'index($0, "GROW-FRONT — worker ") &&
+             (index($0, "converting to IO") || index($0, "owns no buckets")) { n++ }
+         index($0, "GROW-BACK — io thread ") &&
+             index($0, " IO-EXIT + even-split out") { n++ }
+         END { print n+0 }' "$logfile" 2>/dev/null
+}
+
+flip_abort_count() {
+    local logfile=$1
+    awk 'index($0, "GROW-FRONT ABORTED") ||
+         index($0, "GROW-BACK ABORTED") { n++ }
+         END { print n+0 }' "$logfile" 2>/dev/null
+}
+
+flip_activity_count() {
+    local logfile=$1
+    printf '%d\n' "$(( $(all_flip_start_count "$logfile") +
+                         $(all_flip_count "$logfile") +
+                         $(flip_abort_count "$logfile") ))"
+}
+
+flip_outstanding_count() {
+    local logfile=$1
+    printf '%d\n' "$(( $(all_flip_start_count "$logfile") -
+                         $(all_flip_count "$logfile") -
+                         $(flip_abort_count "$logfile") ))"
 }
 
 clean_marker_count() {
     local logfile=$1
     grep -Eic \
-        'serverAssert|(^|[^[:alpha:]])assert(ion|ed)?([^[:alpha:]]|$)|(^|[^[:alpha:]])panic([^[:alpha:]]|$)|(^|[^[:alpha:]])fatal([^[:alpha:]]|$)|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|Guru Meditation|REDIS BUG REPORT|crashed by signal' \
+        'serverAssert|ASSERTION FAILED|(^|[^[:alpha:]])assert(ion|ed)?([^[:alpha:]]|$)|(^|[^[:alpha:]])panic([^[:alpha:]]|$)|(^|[^[:alpha:]])fatal([^[:alpha:]]|$)|[[:alpha:]]+Sanitizer|Sanitizer:|runtime error:|Guru Meditation|REDIS BUG REPORT|crashed by signal|segmentation fault|Aborted \(core dumped\)|core dumped|SIG(SEGV|ABRT|BUS|ILL)' \
         "$logfile" 2>/dev/null || true
 }
 
@@ -139,31 +189,50 @@ parse_roles() {
     local role_file=$1
     awk '
         /^io_slot [0-9]+ mode=(IO|EX) conns=[0-9]+ busy=/ {
+            slot = $2 + 0
+            if (slot < 0 || slot > 7 || seen[slot]++) bad = 1
             if ($3 == "mode=IO") io++
             else if ($3 == "mode=EX") ex++
             next
         }
         END {
-            if (io + ex == 0) exit 1
+            for (slot=0; slot<8; slot++) if (!seen[slot]) bad = 1
+            if (bad || io + ex != 8) exit 1
             printf "%d %d\n", io+0, ex+0
         }' "$role_file"
 }
 
-# Pure decision function used by both the live rows and SELFTEST.  Arguments:
-# infra-ok source-ok total-flips expected-direction-flips settled roles-ok
-# flips-during-measure auto-ops static-ops
+# Pure controller decision function used by both live rows and SELFTEST.
+# Arguments: infra-ok source-ok total-completions expected-direction-completions
+# settled roles-ok activity-during-measure aborts initiations outstanding
+# any-DEBUG-role-change.
 transition_decision() {
     local infra=$1 source=$2 total=$3 expected=$4 settled=$5 roles=$6
-    local measuring_flips=$7 auto_ops=$8 static_ops=$9
+    local measuring_activity=$7 aborted=$8 initiated=$9 outstanding=${10}
+    local debug_changed=${11}
     if [ "$infra" != 1 ] || [ "$source" != 1 ]; then
         printf 'FAIL'
     elif [ "$total" -eq 0 ]; then
-        printf 'INCONCLUSIVE'
+        if [ "$initiated" -eq 0 ] && [ "$aborted" -eq 0 ] &&
+           [ "$outstanding" -eq 0 ] && [ "$debug_changed" -eq 0 ]; then
+            printf 'INCONCLUSIVE'
+        else
+            printf 'FAIL'
+        fi
     elif [ "$expected" -eq 0 ]; then
         printf 'FAIL'
-    elif [ "$settled" != 1 ] || [ "$roles" != 1 ] || [ "$measuring_flips" -ne 0 ]; then
+    elif [ "$settled" != 1 ] || [ "$roles" != 1 ] ||
+         [ "$measuring_activity" -ne 0 ] || [ "$aborted" -ne 0 ] ||
+         [ "$outstanding" -ne 0 ]; then
         printf 'FAIL'
-    elif within_tolerance "$auto_ops" "$static_ops"; then
+    else
+        printf 'PASS'
+    fi
+}
+
+comparison_decision() {
+    local infra=$1 auto_ops=$2 static_ops=$3
+    if [ "$infra" = 1 ] && within_tolerance "$auto_ops" "$static_ops"; then
         printf 'PASS'
     else
         printf 'FAIL'
@@ -185,6 +254,7 @@ selftest() {
         fi
     }
     ops_class() { valid_ops "$1" && printf VALID || printf INVALID; }
+    role_class() { parse_roles "$1" 2>/dev/null || printf INVALID; }
     tolerance_class() { within_tolerance "$1" "$2" && printf PASS || printf FAIL; }
 
     selfcheck totals-positive VALID ops_class 123.45
@@ -193,29 +263,45 @@ selftest() {
     selfcheck totals-garbage INVALID ops_class NaN
     selfcheck tolerance-edge PASS tolerance_class 990 1000
     selfcheck tolerance-regression FAIL tolerance_class 989 1000
-    selfcheck transition-conforming PASS transition_decision 1 1 3 3 1 1 0 995 1000
-    selfcheck transition-never-engaged INCONCLUSIVE transition_decision 1 1 0 0 0 0 0 995 1000
-    selfcheck transition-wrong-direction FAIL transition_decision 1 1 2 0 1 1 0 1000 1000
-    selfcheck transition-role-mismatch FAIL transition_decision 1 1 2 2 1 0 0 1000 1000
-    selfcheck transition-zero-throughput FAIL transition_decision 1 1 2 2 1 1 0 0.00 1000
-    selfcheck transition-slow FAIL transition_decision 1 1 2 2 1 1 0 980 1000
+    selfcheck tolerance-improvement PASS tolerance_class 1100 1000
+    selfcheck transition-conforming PASS transition_decision 1 1 3 3 1 1 0 0 3 0 1
+    selfcheck transition-never-engaged INCONCLUSIVE transition_decision 1 1 0 0 0 0 0 0 0 0 0
+    selfcheck transition-wrong-direction FAIL transition_decision 1 1 2 0 1 1 0 0 2 0 1
+    selfcheck transition-role-mismatch FAIL transition_decision 1 1 2 2 1 0 0 0 2 0 1
+    selfcheck transition-inflight-activity FAIL transition_decision 1 1 2 2 1 1 1 0 2 0 1
+    selfcheck transition-aborted FAIL transition_decision 1 1 2 2 1 1 0 1 3 0 1
+    selfcheck transition-zero-completion-abort FAIL transition_decision 1 1 0 0 0 0 0 1 1 0 0
+    selfcheck transition-zero-completion-outstanding FAIL transition_decision 1 1 0 0 0 0 0 0 1 1 0
+    selfcheck transition-debug-only FAIL transition_decision 1 1 0 0 0 0 0 0 0 0 1
+    selfcheck comparison-conforming PASS comparison_decision 1 995 1000
+    selfcheck comparison-zero-throughput FAIL comparison_decision 1 0.00 1000
+    selfcheck comparison-slow FAIL comparison_decision 1 980 1000
 
     fixture=$(mktemp "${TMPDIR:-/tmp}/flipcmp.roles.XXXXXX") || return 1
     printf '%s\n' \
         'io_slot 0 mode=IO conns=20 busy=30' \
         'io_slot 1 mode=EX conns=0 busy=0' \
-        'io_slot 2 mode=IO conns=3 busy=10' > "$fixture"
-    selfcheck role-parser '2 1' parse_roles "$fixture"
+        'io_slot 2 mode=IO conns=3 busy=10' \
+        'io_slot 3 mode=EX conns=0 busy=0' \
+        'io_slot 4 mode=IO conns=3 busy=10' \
+        'io_slot 5 mode=EX conns=0 busy=0' \
+        'io_slot 6 mode=IO conns=3 busy=10' \
+        'io_slot 7 mode=EX conns=0 busy=0' > "$fixture"
+    selfcheck role-parser '4 4' role_class "$fixture"
+    sed 's/^io_slot 7 /io_slot 6 /' "$fixture" > "$fixture.duplicate"
+    selfcheck role-parser-duplicate INVALID role_class "$fixture.duplicate"
+    sed '/^io_slot 7 /d' "$fixture" > "$fixture.missing"
+    selfcheck role-parser-missing INVALID role_class "$fixture.missing"
     printf '%s\n' \
-        'ee451 flip: GROW-FRONT role change complete — worker 2 is now IO' \
+        'ee451 flip: GROW-FRONT complete — io_threads_live=6 num_workers_live=2' \
         'ordinary notice' \
         'FATAL: synthetic positive-control marker' > "$fixture"
     selfcheck completed-front-count 1 completed_count "$fixture" \
-        'GROW-FRONT role change complete'
+        'GROW-FRONT complete — io_threads_live='
     selfcheck completed-back-count 0 completed_count "$fixture" \
-        'GROW-BACK role change complete'
+        'GROW-BACK complete — num_workers_live='
     selfcheck clean-log-positive-control 1 clean_marker_count "$fixture"
-    rm -f -- "$fixture"
+    rm -f -- "$fixture" "$fixture.duplicate" "$fixture.missing"
 
     printf 'SELFTEST SUMMARY pass=%d fail=%d\n' "$st_pass" "$st_fail"
     [ "$st_fail" -eq 0 ]
@@ -226,25 +312,33 @@ if [ "${SELFTEST:-0}" = 1 ]; then
     exit $?
 fi
 
+case "${QUICK:-0}" in 0|1) ;; *)
+    printf 'FAIL: QUICK must be exactly 0 or 1\n' >&2
+    exit 2
+esac
 if [ "${QUICK:-0}" = 1 ]; then
-    DRIVE_FRONT=${DRIVE_FRONT:-45}
-    DRIVE_BACK=${DRIVE_BACK:-60}
-    MEASURE_SECS=${MEASURE_SECS:-15}
-    MEASURE_REPS=${MEASURE_REPS:-1}
-    SETTLE_SECS=${SETTLE_SECS:-8}
-    SETTLE_TRIES=${SETTLE_TRIES:-3}
+    DRIVE_FRONT=45
+    DRIVE_BACK=60
+    STATIC_WARM_SECS=60
+    CONVERGE_WARM_SECS=30
+    MEASURE_SECS=15
+    MEASURE_REPS=3
+    SETTLE_SECS=8
+    SETTLE_TRIES=3
 else
-    DRIVE_FRONT=${DRIVE_FRONT:-90}
-    DRIVE_BACK=${DRIVE_BACK:-120}
-    MEASURE_SECS=${MEASURE_SECS:-30}
-    MEASURE_REPS=${MEASURE_REPS:-3}
-    SETTLE_SECS=${SETTLE_SECS:-10}
-    SETTLE_TRIES=${SETTLE_TRIES:-5}
+    DRIVE_FRONT=90
+    DRIVE_BACK=120
+    STATIC_WARM_SECS=120
+    CONVERGE_WARM_SECS=60
+    MEASURE_SECS=30
+    MEASURE_REPS=3
+    SETTLE_SECS=10
+    SETTLE_TRIES=5
 fi
-START_TIMEOUT=${START_TIMEOUT:-20}
-CLI_TIMEOUT=${CLI_TIMEOUT:-5}
-SEED_TIMEOUT=${SEED_TIMEOUT:-600}
-GEN_GRACE=${GEN_GRACE:-45}
+START_TIMEOUT=20
+CLI_TIMEOUT=5
+SEED_TIMEOUT=600
+GEN_GRACE=45
 PORT=${PORT:-7995}
 
 BIN=${1:-${TOMO_BIN:-}}
@@ -291,14 +385,27 @@ chmod 700 "$STAGED" || exit 2
 bounded_group_reap() {
     local pid=${1:-}
     [ -n "$pid" ] || return 0
-    kill -TERM -- "-$pid" 2>/dev/null || true
+    # There is a narrow interval between fork and setsid(2) where -$pid is not
+    # a process group yet. Signal the captured positive PID as a fallback so a
+    # TERM/INT/HUP in that interval cannot strand an owned child.
+    kill -TERM -- "-$pid" 2>/dev/null ||
+        kill -TERM -- "$pid" 2>/dev/null || true
     local n
     for n in $(seq 1 40); do
         kill -0 "$pid" 2>/dev/null || break
         sleep 0.1
     done
-    kill -KILL -- "-$pid" 2>/dev/null || true
+    kill -KILL -- "-$pid" 2>/dev/null ||
+        kill -KILL -- "$pid" 2>/dev/null || true
     wait "$pid" 2>/dev/null || true
+}
+
+wait_owned_group() {
+    local pid=$1 rc
+    wait "$pid"
+    rc=$?
+    bounded_group_reap "$pid"
+    return "$rc"
 }
 
 stop_generator() {
@@ -339,7 +446,7 @@ run_cli() {
     setsid timeout --foreground --signal=TERM --kill-after=2 "$CLI_TIMEOUT" \
         "$CLI" -h 127.0.0.1 -p "$PORT" "$@" >"$stdout_file" 2>"$stderr_file" &
     CLIENT_PID=$!
-    wait "$CLIENT_PID"
+    wait_owned_group "$CLIENT_PID"
     rc=$?
     CLIENT_PID=
     LAST_CLIENT_RC=$rc
@@ -349,7 +456,8 @@ run_cli() {
 run_mt() {
     local label=$1 limit=$2
     shift 2
-    local logfile=$WORK/$label.memtier rc
+    local logfile rc
+    logfile=$WORK/$label.memtier
     LAST_OPS=INVALID
     LAST_REASON=
     setsid timeout --foreground --signal=TERM --kill-after=5 "$limit" \
@@ -358,7 +466,7 @@ run_mt() {
         -d "$VALUE_BYTES" -t 8 -c 25 --distinct-client-seed "$@" \
         >"$logfile" 2>&1 &
     GEN_PID=$!
-    wait "$GEN_PID"
+    wait_owned_group "$GEN_PID"
     rc=$?
     GEN_PID=
     LAST_OPS=$(awk '$1 == "Totals" { value=$2 } END { print value }' "$logfile")
@@ -376,29 +484,40 @@ run_mt() {
 }
 
 seed_keys() {
-    local label=$1
+    local label=$1 dbsize
     if run_mt "$label" "$SEED_TIMEOUT" --ratio=1:0 --key-pattern=P:P \
             -n allkeys --pipeline=32; then
-        say "  $label seeded keys=$KEY_MIN..$KEY_MAX ops/s=$LAST_OPS"
-        return 0
+        if ! run_cli "$WORK/$label.dbsize" "$WORK/$label.dbsize.err" dbsize; then
+            LAST_REASON="bounded DBSIZE verification failed after seed"
+        else
+            dbsize=$(tr -d '\r' <"$WORK/$label.dbsize")
+            if [ "$dbsize" = "$KEY_MAX" ]; then
+                say "  $label seeded DBSIZE=$dbsize keys=$KEY_MIN..$KEY_MAX ops/s=$LAST_OPS"
+                return 0
+            fi
+            LAST_REASON="seed materialized DBSIZE=${dbsize:-empty}, expected $KEY_MAX"
+        fi
     fi
     say "  $label seed FAIL: $LAST_REASON"
     return 1
 }
 
 boot_server() {
-    local label=$1 io=$2 ex=$3 mode=$4
+    local label=$1 io=$2 ex=$3 mode=$4 launch_log
     stop_server
     ACTIVE_LOG=$WORK/$label.server.log
+    launch_log=$WORK/$label.launch.log
     : > "$ACTIVE_LOG"
+    : > "$launch_log"
     SERVER_LOGS+=("$ACTIVE_LOG")
+    LAUNCH_LOGS+=("$launch_log")
     setsid taskset -c "$SERVER_CORES" "$STAGED" \
         --port "$PORT" --bind 127.0.0.1 \
         --tomokv-nodes 1 --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
         --tomokv-thread-mode "$mode" --save '' --appendonly no \
         --daemonize no --protected-mode no --enable-debug-command local \
         --logfile "$ACTIVE_LOG" --loglevel notice \
-        >"$WORK/$label.launch.log" 2>&1 &
+        >"$launch_log" 2>&1 &
     SERVER_PID=$!
 
     local deadline=$((SECONDS + START_TIMEOUT)) pong ping_rc info_pid info_rc
@@ -496,11 +615,10 @@ measure_many() {
     return 0
 }
 
-STATIC_71=INVALID
-STATIC_44=INVALID
 static_case() {
-    local name=$1 io=$2 ex=$3 ratio=$4 pipeline=$5 output_var=$6
-    local infra=1 roles_ok=1 before_flips=0 after_flips=0 value=INVALID
+    local name=$1 io=$2 ex=$3 ratio=$4 pipeline=$5 key=$6
+    local infra=1 roles_ok=1 after_activity=0 value=INVALID
+    LAST_REASON=
     if ! boot_server "$name" "$io" "$ex" static; then
         infra=0
     fi
@@ -508,7 +626,20 @@ static_case() {
         infra=0
     fi
     if [ "$infra" = 1 ]; then
-        before_flips=$(all_flip_count "$ACTIVE_LOG")
+        if ! run_mt "$name.warm" "$((STATIC_WARM_SECS + GEN_GRACE))" \
+                --test-time="$STATIC_WARM_SECS" --ratio="$ratio" \
+                --key-pattern=R:R --pipeline="$pipeline"; then
+            infra=0
+        else
+            say "  $name thermal-warm=$LAST_OPS ops/s (${STATIC_WARM_SECS}s)"
+        fi
+    fi
+    if [ "$infra" = 1 ]; then
+        after_activity=$(flip_activity_count "$ACTIVE_LOG")
+        if [ "$after_activity" -ne 0 ]; then
+            roles_ok=0
+            LAST_REASON="static log recorded $after_activity controller start/completion/abort event(s) before measurement"
+        fi
         if ! role_snapshot "$name.before"; then
             infra=0
         elif [ "$SNAP_IO" -ne "$io" ] || [ "$SNAP_EX" -ne "$ex" ]; then
@@ -528,43 +659,51 @@ static_case() {
             roles_ok=0
             LAST_REASON="static roles changed to $SNAP_IO/$SNAP_EX"
         fi
-        after_flips=$(all_flip_count "$ACTIVE_LOG")
-        [ "$after_flips" -eq "$before_flips" ] || {
+        after_activity=$(flip_activity_count "$ACTIVE_LOG")
+        [ "$after_activity" -eq 0 ] || {
             roles_ok=0
-            LAST_REASON="static log recorded $((after_flips-before_flips)) role conversion(s)"
+            LAST_REASON="static log recorded $after_activity controller start/completion/abort event(s)"
         }
     fi
     stop_server
+    STATIC_VALUES["$key"]=$value
+    STATIC_SAMPLES["$key"]=${MEASURE_VALUES[*]:-}
     if [ "$infra" != 1 ] || [ "$roles_ok" != 1 ] || ! valid_ops "$value"; then
+        STATIC_OK["$key"]=0
         case_result "$name" FAIL "${LAST_REASON:-invalid static cell}; ops=$value"
-        printf -v "$output_var" '%s' INVALID
     else
+        STATIC_OK["$key"]=1
         case_result "$name" PASS "roles=$io/$ex ops/s=$value samples=${MEASURE_VALUES[*]}"
-        printf -v "$output_var" '%s' "$value"
     fi
 }
 
 SEED_READY=0
 TRANSITION_STATUS=FAIL
+LAST_SETTLE_IO=0
+LAST_SETTLE_EX=0
 run_transition() {
     local name=$1 source_io=$2 source_ex=$3 target_io=$4 target_ex=$5
-    local ratio=$6 pipeline=$7 static_ops=$8 seed_first=$9
+    local ratio=$6 pipeline=$7 seed_first=$8
     local direction token drive_secs
     if [ "$target_io" -gt "$source_io" ]; then
         direction=GROW-FRONT
-        token='GROW-FRONT role change complete'
+        token='GROW-FRONT complete — io_threads_live='
         drive_secs=$DRIVE_FRONT
     else
         direction=GROW-BACK
-        token='GROW-BACK role change complete'
+        token='GROW-BACK complete — num_workers_live='
         drive_secs=$DRIVE_BACK
     fi
 
-    local infra=1 source_ok=1 settled=0 roles_ok=0
+    local infra=1 source_ok=1 settled=0 roles_ok=0 directional=0 debug_changed=0
     local start_io=0 start_ex=0 settle_io=0 settle_ex=0 end_io=0 end_ex=0
-    local all0 expected0 all_settle expected_settle all_measure0 all_measure1
-    local total_flips=0 expected_flips=0 measuring_flips=0
+    local before_io=0 before_ex=0
+    local all0 expected0 all_settle expected_settle activity0 activity1
+    local start_count0 start_count1 initiated=0 outstanding=0
+    local warm_activity0 warm_activity1 abort0 abort1
+    local total_flips=0 expected_flips=0 measuring_activity=0 aborted=0
     local auto_ops=INVALID try
+    LAST_REASON=
 
     if ! role_snapshot "$name.start"; then
         infra=0
@@ -573,10 +712,13 @@ run_transition() {
         start_ex=$SNAP_EX
         if [ "$start_io" -ne "$source_io" ] || [ "$start_ex" -ne "$source_ex" ]; then
             source_ok=0
+            LAST_REASON="source roles were $start_io/$start_ex, expected $source_io/$source_ex"
         fi
     fi
     all0=$(all_flip_count "$ACTIVE_LOG")
     expected0=$(completed_count "$ACTIVE_LOG" "$token")
+    abort0=$(flip_abort_count "$ACTIVE_LOG")
+    start_count0=$(all_flip_start_count "$ACTIVE_LOG")
 
     if [ "$infra" = 1 ] && [ "$seed_first" = 1 ]; then
         if seed_keys "$name.seed"; then
@@ -599,15 +741,22 @@ run_transition() {
         fi
     fi
 
-    # "Converged" means a complete probe window at the target split with zero
-    # completed flips, not merely a snapshot taken between two flips.
+    # Convergence is a complete loaded probe window at a directionally moved
+    # split with no controller start, completion, abort, or outstanding
+    # operation—not a snapshot between flip initiation and completion.
     if [ "$infra" = 1 ]; then
         for try in $(seq 1 "$SETTLE_TRIES"); do
             if ! role_snapshot "$name.settle${try}.before"; then
                 infra=0
                 break
             fi
-            all_measure0=$(all_flip_count "$ACTIVE_LOG")
+            before_io=$SNAP_IO
+            before_ex=$SNAP_EX
+            if [ "$before_io" -ne "$start_io" ] ||
+               [ "$before_ex" -ne "$start_ex" ]; then
+                debug_changed=1
+            fi
+            activity0=$(flip_activity_count "$ACTIVE_LOG")
             if ! run_mt "$name.settle${try}" "$((SETTLE_SECS + GEN_GRACE))" \
                     --test-time="$SETTLE_SECS" --ratio="$ratio" --key-pattern=R:R \
                     --pipeline="$pipeline"; then
@@ -618,24 +767,65 @@ run_transition() {
                 infra=0
                 break
             fi
-            all_measure1=$(all_flip_count "$ACTIVE_LOG")
+            activity1=$(flip_activity_count "$ACTIVE_LOG")
             settle_io=$SNAP_IO
             settle_ex=$SNAP_EX
-            if [ "$settle_io" -eq "$target_io" ] &&
-               [ "$settle_ex" -eq "$target_ex" ] &&
-               [ "$all_measure1" -eq "$all_measure0" ]; then
+            if [ "$settle_io" -ne "$start_io" ] ||
+               [ "$settle_ex" -ne "$start_ex" ]; then
+                debug_changed=1
+            fi
+            directional=0
+            if [ "$direction" = GROW-FRONT ] &&
+               [ "$settle_io" -gt "$start_io" ] &&
+               [ "$settle_ex" -lt "$start_ex" ]; then
+                directional=1
+            elif [ "$direction" = GROW-BACK ] &&
+                 [ "$settle_io" -lt "$start_io" ] &&
+                 [ "$settle_ex" -gt "$start_ex" ]; then
+                directional=1
+            fi
+            if [ "$directional" = 1 ] &&
+               [ "$activity1" -eq "$activity0" ] &&
+               [ "$(flip_outstanding_count "$ACTIVE_LOG")" -eq 0 ]; then
                 settled=1
                 break
             fi
         done
     fi
+    if [ "$infra" = 1 ] && [ "$settled" = 1 ]; then
+        warm_activity0=$(flip_activity_count "$ACTIVE_LOG")
+        if ! run_mt "$name.converge-warm" "$((CONVERGE_WARM_SECS + GEN_GRACE))" \
+                --test-time="$CONVERGE_WARM_SECS" --ratio="$ratio" \
+                --key-pattern=R:R --pipeline="$pipeline"; then
+            infra=0
+        elif ! role_snapshot "$name.converge-warm.after"; then
+            infra=0
+        else
+            if [ "$SNAP_IO" -ne "$start_io" ] ||
+               [ "$SNAP_EX" -ne "$start_ex" ]; then
+                debug_changed=1
+            fi
+            warm_activity1=$(flip_activity_count "$ACTIVE_LOG")
+            if [ "$SNAP_IO" -ne "$settle_io" ] ||
+               [ "$SNAP_EX" -ne "$settle_ex" ] ||
+               [ "$warm_activity1" -ne "$warm_activity0" ] ||
+               [ "$(flip_outstanding_count "$ACTIVE_LOG")" -ne 0 ]; then
+                settled=0
+                LAST_REASON="role/rate convergence warm phase did not hold $settle_io/$settle_ex without controller activity/outstanding operation"
+            else
+                say "  $name converge-warm=$LAST_OPS ops/s roles=$settle_io/$settle_ex (${CONVERGE_WARM_SECS}s)"
+            fi
+        fi
+    fi
     all_settle=$(all_flip_count "$ACTIVE_LOG")
     expected_settle=$(completed_count "$ACTIVE_LOG" "$token")
     total_flips=$((all_settle - all0))
     expected_flips=$((expected_settle - expected0))
+    abort1=$(flip_abort_count "$ACTIVE_LOG")
+    aborted=$((abort1 - abort0))
 
     if [ "$infra" = 1 ] && [ "$settled" = 1 ]; then
-        all_measure0=$(all_flip_count "$ACTIVE_LOG")
+        activity0=$(flip_activity_count "$ACTIVE_LOG")
         if measure_many "$name" "$ratio" "$pipeline"; then
             auto_ops=$LAST_MEDIAN
         else
@@ -645,24 +835,52 @@ run_transition() {
             if role_snapshot "$name.end"; then
                 end_io=$SNAP_IO
                 end_ex=$SNAP_EX
+                if [ "$end_io" -ne "$start_io" ] ||
+                   [ "$end_ex" -ne "$start_ex" ]; then
+                    debug_changed=1
+                fi
             else
                 infra=0
             fi
         fi
-        all_measure1=$(all_flip_count "$ACTIVE_LOG")
-        measuring_flips=$((all_measure1 - all_measure0))
-        if [ "$end_io" -eq "$target_io" ] && [ "$end_ex" -eq "$target_ex" ]; then
+        activity1=$(flip_activity_count "$ACTIVE_LOG")
+        measuring_activity=$((activity1 - activity0))
+        if [ "$end_io" -eq "$settle_io" ] &&
+           [ "$end_ex" -eq "$settle_ex" ] &&
+           [ "$(flip_outstanding_count "$ACTIVE_LOG")" -eq 0 ]; then
             roles_ok=1
         fi
     fi
+    all_settle=$(all_flip_count "$ACTIVE_LOG")
+    expected_settle=$(completed_count "$ACTIVE_LOG" "$token")
+    total_flips=$((all_settle - all0))
+    expected_flips=$((expected_settle - expected0))
+    abort1=$(flip_abort_count "$ACTIVE_LOG")
+    aborted=$((abort1 - abort0))
+    start_count1=$(all_flip_start_count "$ACTIVE_LOG")
+    initiated=$((start_count1 - start_count0))
+    outstanding=$(flip_outstanding_count "$ACTIVE_LOG")
 
     TRANSITION_STATUS=$(transition_decision "$infra" "$source_ok" "$total_flips" \
-        "$expected_flips" "$settled" "$roles_ok" "$measuring_flips" \
-        "$auto_ops" "$static_ops")
+        "$expected_flips" "$settled" "$roles_ok" "$measuring_activity" "$aborted" \
+        "$initiated" "$outstanding" "$debug_changed")
     case "$TRANSITION_STATUS" in
         PASS)
-            case_result "$name" PASS \
-                "ENGAGED=YES direction=$direction completed=$expected_flips roles=$start_io/$start_ex->$end_io/$end_ex auto=$auto_ops static=$static_ops delta=$(pct_delta "$auto_ops" "$static_ops")"
+            LAST_SETTLE_IO=$end_io
+            LAST_SETTLE_EX=$end_ex
+            TRANS_NAMES+=("$name")
+            TRANS_DIRECTIONS+=("$direction")
+            TRANS_COMPLETED+=("$expected_flips")
+            TRANS_START_IO+=("$start_io")
+            TRANS_START_EX+=("$start_ex")
+            TRANS_END_IO+=("$end_io")
+            TRANS_END_EX+=("$end_ex")
+            TRANS_TARGET_IO+=("$target_io")
+            TRANS_TARGET_EX+=("$target_ex")
+            TRANS_RATIOS+=("$ratio")
+            TRANS_PIPELINES+=("$pipeline")
+            TRANS_AUTO_OPS+=("$auto_ops")
+            say "  $name controller-qualified ENGAGED=YES completed=$expected_flips roles=$start_io/$start_ex->$end_io/$end_ex auto=$auto_ops; exact static comparison pending"
             ;;
         INCONCLUSIVE)
             case_result "$name" INCONCLUSIVE \
@@ -670,9 +888,13 @@ run_transition() {
             ;;
         *)
             local engaged=NO
-            [ "$total_flips" -gt 0 ] && engaged=YES
+            if [ "$total_flips" -gt 0 ] || [ "$initiated" -gt 0 ] ||
+               [ "$aborted" -gt 0 ] || [ "$outstanding" -ne 0 ] ||
+               [ "$debug_changed" -eq 1 ]; then
+                engaged=YES
+            fi
             case_result "$name" FAIL \
-                "ENGAGED=$engaged direction=$direction completed=$expected_flips/all=$total_flips source=$start_io/$start_ex expected-source=$source_io/$source_ex settled=$settled roles=$end_io/$end_ex target=$target_io/$target_ex flips-during-measure=$measuring_flips auto=$auto_ops static=$static_ops delta=$(pct_delta "$auto_ops" "$static_ops") reason=${LAST_REASON:-acceptance mismatch}"
+                "ENGAGED=$engaged direction=$direction initiated=$initiated completed=$expected_flips/all=$total_flips source=$start_io/$start_ex expected-source=$source_io/$source_ex settled=$settled DEBUG-role-change=$debug_changed roles=$end_io/$end_ex drive-target=$target_io/$target_ex activity-during-measure=$measuring_activity aborts=$aborted outstanding=$outstanding auto=$auto_ops reason=${LAST_REASON:-controller acceptance mismatch}"
             ;;
     esac
 }
@@ -680,10 +902,9 @@ run_transition() {
 auto_sequence() {
     local boot_label=$1 boot_io=$2 boot_ex=$3 first_name=$4
     local first_source_io=$5 first_source_ex=$6 first_target_io=$7 first_target_ex=$8
-    local first_ratio=$9 first_pipeline=${10} first_static=${11}
-    local second_name=${12} second_source_io=${13} second_source_ex=${14}
-    local second_target_io=${15} second_target_ex=${16}
-    local second_ratio=${17} second_pipeline=${18} second_static=${19}
+    local first_ratio=$9 first_pipeline=${10} second_name=${11}
+    local second_target_io=${12} second_target_ex=${13}
+    local second_ratio=${14} second_pipeline=${15}
 
     SEED_READY=0
     if ! boot_server "$boot_label" "$boot_io" "$boot_ex" auto; then
@@ -693,12 +914,65 @@ auto_sequence() {
         return
     fi
     run_transition "$first_name" "$first_source_io" "$first_source_ex" \
-        "$first_target_io" "$first_target_ex" "$first_ratio" "$first_pipeline" \
-        "$first_static" 1
-    run_transition "$second_name" "$second_source_io" "$second_source_ex" \
-        "$second_target_io" "$second_target_ex" "$second_ratio" "$second_pipeline" \
-        "$second_static" 0
+        "$first_target_io" "$first_target_ex" "$first_ratio" "$first_pipeline" 1
+    if [ "$TRANSITION_STATUS" = PASS ]; then
+        run_transition "$second_name" "$LAST_SETTLE_IO" "$LAST_SETTLE_EX" \
+            "$second_target_io" "$second_target_ex" "$second_ratio" \
+            "$second_pipeline" 0
+    elif [ "$TRANSITION_STATUS" = INCONCLUSIVE ]; then
+        case_result "$second_name" INCONCLUSIVE \
+            "ENGAGED=NO; prerequisite direction $first_name never converted, so derivative controller behaviour was not executed"
+    else
+        case_result "$second_name" FAIL \
+            "prerequisite direction $first_name did not converge; derivative row not executed"
+    fi
     stop_server
+}
+
+reference_key() {
+    local io=$1 ex=$2 ratio=$3 pipeline=$4
+    printf '%s_%s_%s_%s' "$io" "$ex" "${ratio/:/_}" "$pipeline"
+}
+
+workload_name() {
+    case "$1" in
+        0:1) printf get ;;
+        1:0) printf set ;;
+        *) printf mix ;;
+    esac
+}
+
+run_static_references() {
+    local i key name op
+    for i in "${!TRANS_NAMES[@]}"; do
+        key=$(reference_key "${TRANS_END_IO[$i]}" "${TRANS_END_EX[$i]}" \
+            "${TRANS_RATIOS[$i]}" "${TRANS_PIPELINES[$i]}")
+        if [ -n "${STATIC_OK[$key]+present}" ]; then
+            continue
+        fi
+        op=$(workload_name "${TRANS_RATIOS[$i]}")
+        name="static-reference-io${TRANS_END_IO[$i]}-ex${TRANS_END_EX[$i]}-p${TRANS_PIPELINES[$i]}-$op"
+        static_case "$name" "${TRANS_END_IO[$i]}" "${TRANS_END_EX[$i]}" \
+            "${TRANS_RATIOS[$i]}" "${TRANS_PIPELINES[$i]}" "$key"
+    done
+}
+
+report_transition_comparisons() {
+    local i key static_ops status
+    for i in "${!TRANS_NAMES[@]}"; do
+        key=$(reference_key "${TRANS_END_IO[$i]}" "${TRANS_END_EX[$i]}" \
+            "${TRANS_RATIOS[$i]}" "${TRANS_PIPELINES[$i]}")
+        static_ops=${STATIC_VALUES[$key]-INVALID}
+        status=$(comparison_decision "${STATIC_OK[$key]-0}" \
+            "${TRANS_AUTO_OPS[$i]}" "$static_ops")
+        if [ "$status" = PASS ]; then
+            case_result "${TRANS_NAMES[$i]}" PASS \
+                "ENGAGED=YES direction=${TRANS_DIRECTIONS[$i]} completed=${TRANS_COMPLETED[$i]} roles=${TRANS_START_IO[$i]}/${TRANS_START_EX[$i]}->${TRANS_END_IO[$i]}/${TRANS_END_EX[$i]} static-shape=${TRANS_END_IO[$i]}/${TRANS_END_EX[$i]} auto=${TRANS_AUTO_OPS[$i]} static=$static_ops delta=$(pct_delta "${TRANS_AUTO_OPS[$i]}" "$static_ops")"
+        else
+            case_result "${TRANS_NAMES[$i]}" FAIL \
+                "ENGAGED=YES direction=${TRANS_DIRECTIONS[$i]} completed=${TRANS_COMPLETED[$i]} roles=${TRANS_START_IO[$i]}/${TRANS_START_EX[$i]}->${TRANS_END_IO[$i]}/${TRANS_END_EX[$i]} static-shape=${TRANS_END_IO[$i]}/${TRANS_END_EX[$i]} auto=${TRANS_AUTO_OPS[$i]} static=$static_ops delta=$(pct_delta "${TRANS_AUTO_OPS[$i]}" "$static_ops") reason=auto throughput below exact-shape static acceptance floor or static reference failed"
+        fi
+    done
 }
 
 clean_log_case() {
@@ -708,28 +982,33 @@ clean_log_case() {
         n=$(clean_marker_count "$logfile")
         count=$((count + n))
     done
+    for logfile in "${LAUNCH_LOGS[@]}"; do
+        [ -e "$logfile" ] || missing=$((missing + 1))
+        n=$(clean_marker_count "$logfile")
+        count=$((count + n))
+    done
     if [ "$count" -eq 0 ] && [ "$missing" -eq 0 ] && [ "${#SERVER_LOGS[@]}" -gt 0 ]; then
-        case_result clean-log PASS "markers=0 logs=${#SERVER_LOGS[@]}"
+        case_result clean-log PASS \
+            "markers=0 server-logs=${#SERVER_LOGS[@]} launch-logs=${#LAUNCH_LOGS[@]}"
     else
         case_result clean-log FAIL \
-            "markers=$count acceptance=0 missing-or-empty=$missing logs=${SERVER_LOGS[*]:-none}"
+            "markers=$count acceptance=0 missing-or-empty=$missing server-logs=${SERVER_LOGS[*]:-none} launch-logs=${LAUNCH_LOGS[*]:-none}"
     fi
 }
 
 say "flipcmp: binary=$BIN staged=$STAGED QUICK=${QUICK:-0} tolerance=${ACCEPT_TOL_PCT}%"
 say "flipcmp: server-cores=$SERVER_CORES load-cores=$LOAD_CORES keys=$KEY_MIN..$KEY_MAX d=$VALUE_BYTES t=8 c=25"
 
-static_case static-io7-ex1-p1-get 7 1 0:1 1 STATIC_71
-static_case static-io4-ex4-p32-set 4 4 1:0 32 STATIC_44
-
 auto_sequence auto-boot44 4 4 \
-    auto-44-to-71 4 4 7 1 0:1 1 "$STATIC_71" \
-    auto-71-to-44-from-front 7 1 4 4 1:0 32 "$STATIC_44"
+    auto-grow-front-from44 4 4 7 1 0:1 1 \
+    auto-grow-back-after-front 4 4 1:0 32
 
 auto_sequence auto-boot71 7 1 \
-    auto-71-to-44-from-boot 7 1 4 4 1:0 32 "$STATIC_44" \
-    auto-44-to-71-from-back 4 4 7 1 0:1 1 "$STATIC_71"
+    auto-grow-back-from71 7 1 4 4 1:0 32 \
+    auto-grow-front-after-back 7 1 0:1 1
 
+run_static_references
+report_transition_comparisons
 clean_log_case
 say "SUMMARY pass=$PASS_N fail=$FAIL_N inconclusive=$INCONCLUSIVE_N total=$((PASS_N + FAIL_N + INCONCLUSIVE_N)) artifacts=$WORK"
 
