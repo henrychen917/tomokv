@@ -1460,11 +1460,8 @@ typedef struct {
  *
  * Static arrays are sized by the compile-time MAX; loop bounds and slot
  * masks use the runtime server.my_* values so the build is stable while
- * actual resource usage scales with config. The runtime mask
- * c->ring_mask (NOT server.pipeline_ring_mask: that field is never read, and ring depth is
-     * per-client and dynamic, so the server-wide value indexes the wrong slot on any client
-     * whose ring has grown or decayed) = server.pipeline_ring_depth - 1 is recomputed
- * once at startup after config load.
+ * actual resource usage scales with config. Each client's c->ring_mask is
+ * derived from its current ring size because rings grow and decay independently.
  * ========================================================================= */
 
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
@@ -1562,9 +1559,7 @@ typedef struct {
 #define tomoRelaxedSet(field, v) atomic_store_explicit(&(field), (v), memory_order_relaxed)
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
-#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask (NOT server.pipeline_ring_mask: that field is never read, and ring depth is
-     * per-client and dynamic, so the server-wide value indexes the wrong slot on any client
-     * whose ring has grown or decayed) */
+#define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
 /* ee451 (S5): multi-CDB reply signaling. Instead of one shared reply_ready_mask
  * per client (the single common-data-bus), give each client up to NUM_CDB_MAX
  * masks, each on its OWN cache line, and route each worker's completion signal to
@@ -2877,7 +2872,6 @@ typedef struct tmMigMailbox {
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
     int exit_then_ex;             /* owner's latched copy of req_then_ex for the current exit */
     int batch_dest;               /* REBALANCE: owner-latched destination for the current batch */
-    unsigned rr_cursor;           /* IO-EXIT spread: round-robin cursor over live dests */
 } tmMigMailbox;
 
 /* ee451 (#B2): PER-THREAD, PER-COMMAND stats shard.
@@ -2928,7 +2922,6 @@ typedef struct tomoErrorStatShard {
 
 struct redisServer {
     /* new front end io */
-    int ioThreadsNum;
     ioThreadArgs *ioThreads;
     int replyWorking[TOMO_IO_THREADS_MAX + 1];
     int custom_io_threads_active;
@@ -3037,10 +3030,8 @@ struct redisServer {
     int tm_pool_symmetric;         /* 1 = the auto remap above was applied */
     int tm_flip_rebalance;     /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
     int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
-    int tm_rebalance_now;          /* flip: >0 => reshardAutoTune runs AGGRESSIVELY (bypass sustain/settle) to even
-                                    * the flip-induced bucket imbalance right away; counts down per balancer tick */
     /* Tomo KV-dev custom threading/pipelining runtime state. io_threads/ex_threads come from
-     * redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`); pipeline_ring_mask is derived from
+     * redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`); pipeline_ring_depth comes from
      * `tomokv-pipeline-depth`, and ex_queue_size/ex_queue_mask are derived from the thread shape
      * (tomokv-ex-queue-depth is retired — see the derivation in initServer). */
     int io_threads;
@@ -3100,7 +3091,6 @@ struct redisServer {
      * claim plus one-migration-at-a-time makes this race-free. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
-    unsigned int pipeline_ring_mask;
     int ex_queue_size;
     unsigned int ex_queue_mask;
     /* (ex_dispatch_mask DELETED 2026-07-28: a v8 leftover — worker routing goes through the
@@ -3201,7 +3191,6 @@ struct redisServer {
     list *clients[TOMO_IO_THREADS_MAX + 1];
     list *clients_to_close[TOMO_IO_THREADS_MAX + 1];
     list *clients_pending_write[TOMO_IO_THREADS_MAX + 1];
-    list *clients_pending_read[TOMO_IO_THREADS_MAX + 1];
     list *clients_with_pending_ref_reply[TOMO_IO_THREADS_MAX + 1];
     list *slaves, *monitors;    /* List of slaves and MONITORs */
     //ee451 per-thread current/executing client, index 0 = main thread, 1..N = io threads,
@@ -3242,7 +3231,6 @@ struct redisServer {
     int protected_mode;         /* Don't accept external connections. */
     int io_threads_num;         /* Number of IO threads to use. */
     int io_threads_clients_num[IO_THREADS_MAX_NUM]; /* Number of clients assigned to each IO thread. */
-    int io_threads_do_reads;    /* Read and parse from IO threads? */
     int io_threads_active;      /* Is IO threads currently active? */
     pendingCommandPool cmd_pool; /* Shared pool for reusing pendingCommand,
                                   * only when IO threads disabled */
