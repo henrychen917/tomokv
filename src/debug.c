@@ -940,6 +940,12 @@ NULL
         extern int tmIoModePub(int id);
         extern double tmIoBusyPub(int id);
         sds o = sdsempty();
+        /* The main event-loop thread is the fixed IO endpoint of the role pool.
+         * It has no polyThreadCtx, so tmIoModePub(0) intentionally returns
+         * UNSET; publish it explicitly or a 7-IO/1-EX topology misleadingly
+         * appears as only six IO roles. */
+        o = sdscatprintf(o, "io_slot 0 mode=IO conns=%ld busy=%.0f\n",
+                         tmIoThreadLoadPub(0), tmIoBusyPub(0));
         for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
             int md = tmIoModePub(t);
             if (md < 0) continue;                 /* slot not allocated, or not adopted yet (UNSET) */
@@ -947,6 +953,16 @@ NULL
             o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld busy=%.0f\n", t,
                              md == 1 ? "IO" : (md == 2 ? "EX" : "?"),
                              tmIoThreadLoadPub(t), tmIoBusyPub(t));
+        }
+        /* Worker zero is the fixed EX endpoint: grow-front never converts it,
+         * and therefore it likewise has no live IO identity for
+         * tmIoModePub(). The other workers' growth-slot identities occupy
+         * [io_threads, io_threads+tm_ngrow_io), making the next slot a stable,
+         * unique label for this final fixed role. */
+        if (server.num_workers > 0) {
+            int fixed_ex_slot = server.io_threads + server.tm_ngrow_io;
+            o = sdscatprintf(o, "io_slot %d mode=EX conns=0 busy=0\n",
+                             fixed_ex_slot);
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
