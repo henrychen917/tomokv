@@ -16383,6 +16383,39 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
 }
 
+/* A converted IO thread retains its old EX binding solely to consume work that
+ * raced the grow-front quiet drain. Do not run a complete EX slice on every IO
+ * pass when that binding is quiescent: besides the queue/freeback probes, a
+ * full slice publishes two seq_cst flat-section transitions and performs
+ * reclaim, resize and expiry bookkeeping.
+ *
+ * These are the authoritative owner-side work predicates. Published queue and
+ * freeback tails are acquired exactly as their normal consumers acquire them.
+ * The reclaim pointers are plain owner-only fields: the converted IO role and
+ * this dormant EX binding are the same OS thread. A producer that publishes
+ * just after a probe is observed after the following bounded IO wait. */
+static inline int exDormantSliceNeeded(exThread *worker,
+                                       const exSliceCtx *ctx) {
+    if (__builtin_expect(worker->flat_retire_local != NULL ||
+                         worker->flat_batches_local != NULL, 0))
+        return 1;
+
+    for (int t = 0; t < ctx->nq; t++) {
+        freebackRing *fb = &worker->freeback[t];
+        unsigned int fh =
+            atomic_load_explicit(&fb->head, memory_order_relaxed);
+        if (fh != atomic_load_explicit(&fb->tail, memory_order_acquire))
+            return 1;
+
+        exQueue *q = &worker->queues[t];
+        unsigned int qh =
+            atomic_load_explicit(&q->head, memory_order_relaxed);
+        if (qh != atomic_load_explicit(&q->tail, memory_order_acquire))
+            return 1;
+    }
+    return 0;
+}
+
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
@@ -17443,11 +17476,12 @@ static inline void tmIoBusyBegin(void) {
 /* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
  * persistent loop-local state of its own (the event loop owns all of it inside
  * t->el), so there is no ioSliceCtx — a slice is exactly one aeProcessEventsIO()
- * pass. Returns the number of events processed (0 = idle pass). NOTE for step 2:
- * aeApiPoll blocks with tvp=NULL while replyWorking==0, so a mode check between
- * slices is NOT prompt — IO-exit needs a wakeup or a bounded poll timeout. */
-static int ioSlice(ioThreadArgs *t) {
-    int ne = aeProcessEventsIO(t->el);
+ * pass. Returns the number of events processed (0 = idle pass). idle_wait_us is
+ * negative for a base IO thread's normal indefinite wait. A converted IO thread
+ * uses a bounded wait so late dormant-EX work is observed without relying on an
+ * event-loop wakeup; reply-bearing passes retain ae.c's shorter drain policy. */
+static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
+    int ne = aeProcessEventsIO(t->el, idle_wait_us);
     tmIoSignal *s = &tm_io_sig[t->id];
     if (server.thread_auto) {
         /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
@@ -17505,6 +17539,7 @@ void *polyThreadMain(void *arg) {
     int cur = TOMO_MODE_UNSET; /* no mode entered yet */
     exSliceCtx exctx;
     int ex_inited = 0;         /* one-time EX setup done (send ring / NUMA bind / slice ctx) */
+    int dormant_ex_followup = 0; /* work pass requires one empty pass to clear qdepth exactly */
     int refused = 0;           /* last refused target (0 = none; 0 is not a mode), to log once */
     {   /* DEBUG TOMO-JESTATS: one registration per OS thread (identity may change mode later;
          * the jemalloc counters are per-thread, so the name is the birth identity pair). */
@@ -17561,6 +17596,10 @@ void *polyThreadMain(void *arg) {
                                       ctx->ex->id, resid);
                     }
                     serverAssert(resid == 0);
+                    /* Force one empty RETURN-policy slice after adoption. The
+                     * quiet drain uses live-worker backoff, whose integer EWMA
+                     * decay can stop at 1..7 rather than clearing exactly. */
+                    dormant_ex_followup = 1;
                 }
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
@@ -17705,19 +17744,26 @@ void *polyThreadMain(void *arg) {
 
         switch (cur) {
         case TOMO_MODE_IO:
-            ioSlice(ctx->io);
             /* review [13]: a converted worker's EX queues can still receive a STRAGGLER sub — an
              * IO thread that snapshotted the live set, stalled past the grow-front 50ms
              * quiet-drain, and pushed (KEYS fan / flush sentinel). Unconsumed, it would hang the
-             * group barrier forever. Keep draining the dormant EX binding each loop: an
-             * empty-queue scan is a few loads, and a straggler executes against the (empty-range)
-             * shard correctly. */
+             * group barrier forever. Probe the dormant binding before each IO pass and run the
+             * complete EX safety slice only when a queue/freeback/reclaim source is nonempty.
+             * A work-bearing slice is followed by one forced empty slice so the controller qdepth
+             * signal is cleared exactly. Stragglers still execute against the empty-range shard
+             * correctly; the common no-work path avoids flat-section fences and worker bookkeeping.
+             * The following IO wait is capped for this converted role so a producer publishing
+             * immediately after the probe is serviced within a bounded interval. */
             /* An EX-bound thread born in IO has not owned buckets or accepted
              * routed work yet, so its dormant binding is quiescent until its
              * first EX adoption initializes exctx.  Once it has served EX,
              * keep draining late fan-out/freeback stragglers while in IO. */
-            if (ctx->ex && ex_inited)
-                exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
+            if (ctx->ex && ex_inited &&
+                (dormant_ex_followup ||
+                 exDormantSliceNeeded(ctx->ex, &exctx)))
+                dormant_ex_followup =
+                    exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
+            ioSlice(ctx->io, (ctx->ex && ex_inited) ? 1000 : -1);
             break;
         case TOMO_MODE_EX:
             exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF);

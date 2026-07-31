@@ -485,13 +485,15 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
-int aeProcessEventsIO(aeEventLoop *eventLoop) {
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
     int processed = 0, numevents;
     if (eventLoop->maxfd == -1) return 0;
 
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
-    /* ee451 (AE-1): sleep policy. replyWorking==0 -> block until an fd event (tvp NULL).
+    /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
+     * (tvp NULL). A non-negative idle_wait_us gives converted IO threads a bounded
+     * idle wait so they can service work published to their dormant EX binding.
      * replyWorking>0 -> replies are in flight on workers: burn up to AE_IO_DRAIN_SPIN
      * ZERO-timeout passes (each still services fd events, and beforesleep above drains
      * completed replies) so a 1-5us worker completion is picked up in ~that time instead
@@ -549,6 +551,11 @@ int aeProcessEventsIO(aeEventLoop *eventLoop) {
     struct timeval tv, *tvp = NULL;
     if (replyWorking == 0) {
         drainPasses = 0;
+        if (idle_wait_us >= 0) {
+            tv.tv_sec = idle_wait_us / 1000000;
+            tv.tv_usec = idle_wait_us % 1000000;
+            tvp = &tv;
+        }
     } else {
         tv.tv_sec = 0;
         if (drainPasses < AE_IO_DRAIN_SPIN) {
