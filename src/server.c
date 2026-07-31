@@ -2134,14 +2134,6 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         run_with_period(1000) replicationCron();
     }
 
-    /* Run the Redis Cluster cron. */
-    run_with_period(100) {
-        if (server.cluster_enabled) {
-            clusterCron();
-            asmCron();
-        }
-    }
-
     /* Run the Sentinel timer if we are in sentinel mode. */
     if (server.sentinel_mode) sentinelTimer();
 
@@ -2968,11 +2960,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     connTypeProcessPendingData(server.el);
 
     int dont_sleep = connTypeHasPendingData(server.el);
-
-    if (server.cluster_enabled) {
-        clusterBeforeSleep();
-        asmBeforeSleep();
-    }
 
     blockedBeforeSleep();
 
@@ -4007,10 +3994,9 @@ void initServer(void) {
      * cluster-enabled and tomokv sharding both want to define what a kvstore "slot" IS.  Cluster
      * indexes the 16384 dicts by CRC16 hash slot (getKeySlot -> the cluster slot); tomokv indexes
      * the SAME 16384 dicts by ownership BUCKET (TOMO_BUCKET_BITS; dict index == the bucket one
-     * worker owns).  The kvstore-flag block later in this function picks exactly one of the two
-     * (an if / else-if on cluster_enabled), but everything downstream is built unconditionally on
-     * the tomokv meaning: the per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and the
-     * online reshard all key off buckets regardless of which branch set slot_count_bits.
+     * worker owns).  Everything downstream is built unconditionally on the tomokv meaning: the
+     * per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and the online reshard all key off
+     * buckets, and the kvstore setup below therefore always uses TOMO_BUCKET_BITS.
      *
      * Sharding is NOT optional in this fork — tomokv-thread-io / tomokv-thread-ex are mandatory
      * and ex_threads >= 1 is enforced a few lines below ("sharding-off mode is not supported").
@@ -4322,24 +4308,15 @@ void initServer(void) {
     /* Create per-worker Redis databases. Each worker owns its own
      * independent set of databases (0..dbnum-1). Keys are partitioned
      * across workers by hash, so worker N only ever touches ex_dbs[N]. */
-    int slot_count_bits = 0;
+    int slot_count_bits = TOMO_BUCKET_BITS;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
-    if (server.cluster_enabled) {
-        /* UNREACHABLE: cluster-enabled is refused at boot above (the two slot geometries are not
-         * composable and the node dbs / FLATSTORE below are built for the tomokv one regardless).
-         * Kept verbatim so the upstream shape of this block stays visible in the diff. */
-        slot_count_bits = CLUSTER_SLOT_MASK_BITS;
-        flags |= KVSTORE_FREE_EMPTY_DICTS;
-    } else if (server.ex_threads > 0) {
-        /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
-         * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
-         * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
-         * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
-         * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
-         * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
-         * that benign stale-read race into a use-after-free. Dicts persist once created. */
-        slot_count_bits = TOMO_BUCKET_BITS;
-    }
+    /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
+     * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
+     * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
+     * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
+     * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
+     * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
+     * that benign stale-read race into a use-after-free. Dicts persist once created. */
 
     /* Keep server.db allocated so legacy code paths don't crash.
      * These dbs are empty - real data lives in ex_dbs. */
@@ -19594,10 +19571,6 @@ int main(int argc, char **argv) {
     if (server.set_proc_title) redisSetProcTitle(NULL);
     redisAsciiArt();
     checkTcpBacklogSettings();
-    if (server.cluster_enabled) {
-        clusterCommonInit();
-        clusterInit();
-    }
     if (!server.sentinel_mode) {
         moduleInitModulesSystemLast();
         moduleLoadInternalModules();
@@ -19605,9 +19578,6 @@ int main(int argc, char **argv) {
     }
     ACLLoadUsersAtStartup();
     initListeners();
-    if (server.cluster_enabled) {
-        clusterInitLast();
-    }
     InitServerLast();
     if (!server.sentinel_mode) {
         initExThreads();
@@ -19620,10 +19590,6 @@ int main(int argc, char **argv) {
         aofOpenIfNeededOnServerStart();
         aofDelHistoryFiles();
         applyAppendOnlyConfig();
-
-        if (server.cluster_enabled) {
-            serverAssert(verifyClusterConfigWithData() == C_OK);
-        }
 
         for (j = 0; j < CONN_TYPE_MAX; j++) {
             connListener *listener = &server.listeners[j];
