@@ -283,7 +283,9 @@ selftest() {
     selfcheck transition-debug-only FAIL transition_decision 1 1 0 0 0 0 0 0 0 0 1
     selfcheck comparison-conforming PASS comparison_decision 1 995 1000
     selfcheck comparison-zero-throughput FAIL comparison_decision 1 0.00 1000
-    selfcheck comparison-slow FAIL comparison_decision 1 980 1000
+    # -4.0%: unambiguously outside ACCEPT_TOL_PCT (3). Was 980 (-2.0%), which sat inside
+    # the widened tolerance and made this check assert the opposite of the policy.
+    selfcheck comparison-slow FAIL comparison_decision 1 960 1000
 
     fixture=$(mktemp "${TMPDIR:-/tmp}/flipcmp.roles.XXXXXX") || return 1
     printf '%s\n' \
