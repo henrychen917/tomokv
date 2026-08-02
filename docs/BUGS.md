@@ -1137,31 +1137,55 @@ Fix is to the harness, not the server: the DICT arms should be relabelled as wha
 worker-count equivalence, so `INCONCLUSIVE` stops meaning "we never tested it" in a report that
 otherwise reads as healthy.
 
-### J6. `DEBUG RELOAD` orphans client sockets — OPEN, newly visible
+### J6. RETRACTED — `DEBUG RELOAD` does NOT orphans client sockets. I filed this on bad evidence.
 
-Exposed by J3: with the duplicate-key panic gone, the server survives the reload and this becomes
-observable for the first time. It is **pre-existing** — the panic used to kill the process before
-anyone could look.
+**The original filing was wrong and is retracted in full.** Recording it rather than deleting it,
+because the way it went wrong is the reusable lesson.
 
-After a `DEBUG RELOAD` under concurrent load the server is healthy by every internal measure and
-still strands its clients:
+What I claimed: after a reload the server showed `connected_clients:1` while `ss` still showed 15
+ESTABLISHED sockets with `recvq=2262`, so the reload must have detached clients from the census and
+their event loop without closing the fds.
 
-    connected_clients:1            <- only the redis-cli that just connected
-    ss established on :7988 = 15   <- memtier's sockets, still ESTABLISHED
-    total_recvq = 2262             <- their requests sat unread in kernel buffers
-    tomokv_ex_queue_full:0  tomokv_flat_resize_active:0  blocked_clients:0
+Why that was wrong — **`connected_clients` is per-io-thread**:
 
-The fds are still open in the process (otherwise the peer would see FIN/RST and error out rather
-than hang), but the server no longer counts the clients and no event loop is reading them. So this
-is not a lost reply and not a dropped dispatch — the connections were detached from both the client
-census and their io thread's event registration without being closed.
+    "connected_clients:%lu\r\n", listLength(server.clients[iotid]) - listLength(server.slaves),
 
-Consequence: `DEBUG RELOAD` is safe for the server but still hangs every client that had traffic in
-flight, so it remains unusable under load. That is why J3 is a partial fix and is described as
-removing the kill, not making the reload atomic.
+`server.clients` is an array indexed by io thread. `connected_clients:1` meant "one client on the io
+thread that happened to answer this INFO" — the `redis-cli` asking the question, which `CLIENT LIST`
+showed on `io-thread=3`. `CLIENT LIST` is scoped identically, which is why it also showed one entry.
+The other connections were on the other three io threads, alive and being served. And `recvq=2262`
+spread over 15 connections is ~150 B each: ordinary in-flight pipelining, not an unread backlog.
 
-Next step when picked up: find who detaches these clients — candidates are `protectClient()` /
-`unprotectClient()` around the load, the sharded flush barrier's fake-client sentinels, and
-`freeClientsInAsyncFreeQueue` (a mass-hard-kill livelock in that function is already on record).
-The discriminating datum is that the fd stays OPEN while the client is uncounted, which rules out a
-plain `freeClient()` (it closes) and points at a partial detach.
+A second attempt to prove it was also invalid, in a different way: the probe encoded `k%06d`
+(7 bytes) behind a `$8` length header, so the server correctly closed every connection on a protocol
+error and the probe reported 12/12 "stalled". The tell was that it measured **1 op per connection in
+3 seconds**, which is nonsense for a local Redis — the plausibility check caught it, the result did
+not.
+
+**What actually happens, measured with a correct probe** (16 connections, pipeline depth 4, reading
+exactly as many replies as requests sent so a lost reply shows up as a read timeout):
+
+    pre-reload total ops: 628672
+    DEBUG RELOAD -> OK
+    LOADING replies seen: 836
+    post-reload progress/conn: [104348, 103556, 104504, ... , 104308]   (all 16)
+    HUNG conns: []          VERDICT: ALL LIVE
+
+Every connection survives. The 836 `-LOADING` responses are *valid replies* delivered during the
+load window, not lost ones. `loading` returns to 0 as soon as the reload completes (measured every
+3 s for 36 s: `loading=0 SET=OK` throughout). There is no lost reply, no desync, no orphaned socket.
+
+**The residual is in the load generator, not the server.** `memtier_benchmark` treats `-LOADING` as
+an error response, logs it (94 KB of `handle error response: -LOADING ...` in one run) and then never
+terminates the run — which is what produced the "memtier hung for 22 minutes" observation that
+started this. A `--test-time=15` run was still resident 36 s later while a concurrently-connected
+`redis-cli` was served normally the whole time.
+
+Consequence for J3: with `ALLOW_DUP` in place, `DEBUG RELOAD` under concurrent load is **correct** —
+the server survives, clients are served, and clients that speak Redis properly (retry on `-LOADING`,
+as any client must during any load) see only a brief error window. What it is not is *transparent*,
+and a benchmark tool that cannot tolerate `-LOADING` will appear to hang against it.
+
+**Lesson, twice over in one session: check a counter\'s SCOPE before reasoning from it, and
+plausibility-check a probe\'s own baseline before trusting its verdict.** Both wrong filings would
+have been caught by asking "is this number physically sensible?" first.
