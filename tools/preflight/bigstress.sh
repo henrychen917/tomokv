@@ -164,6 +164,8 @@ declare -A MOVE_CONTROLLER=()
 # cannot move, and the flip controller has nothing to convert, when there is exactly ONE worker --
 # that is a STRUCTURAL impossibility, not a failed attempt, and the two deserve different verdicts.
 declare -A MOVE_EX=()
+declare -A LIFE_EX=()   # ee451 (J5): measured EX count per lifecycle arm
+declare -A FID_EX=()    # ee451 (J5): measured EX count per fidelity arm
 
 say() {
     printf '%s\n' "$*" | tee -a "$OUT"
@@ -1154,6 +1156,7 @@ run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [
     fi
 
     stop_server
+    FID_EX["$key"]=${EFFECTIVE_EX:-0}
     if [ "$infra" != 1 ] || [ "$helper_ok" != 1 ]; then
         case_result "$label" FAIL "${LAST_REASON:-fidelity prerequisite failed}"
         FID_OK["$key"]=0
@@ -1161,6 +1164,16 @@ run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [
         FID_OK["$key"]=0
         case_result "$label" FAIL \
             "controller evidence disagrees exact-data=PASS engine=$expected_engine digest=${FID_DIGEST[$key]} roles=${roles0:-?}->${converted_roles:-none}->${roles1:-?} flips-during-exact=$((flips_helper_end-flips0)) DEBUG-role-change=$observed_role_change"
+    elif [ "$mode" = auto ] && [ "$engaged" != 1 ] && [ "${FID_EX[$key]:-0}" -lt 2 ]; then
+        # ee451 (J5, 2026-08-02): STRUCTURALLY IMPOSSIBLE, not merely unobserved. With ONE ex
+        # worker the controller cannot act: growing front drives ex to 0, and growing back makes
+        # ex=2, which turns the keyspace into FLATSTORE and violates this case's own engine
+        # precondition. No conversion can ever be observed here however long it runs, so
+        # INCONCLUSIVE ("we could not tell") keeps sending people after a non-defect. Gated on
+        # the MEASURED worker count so it re-engages if DICT ever returns at ex>=2. The exact
+        # assertions above still ran and still had to pass.
+        case_result "$label" NA \
+            "NOT-APPLICABLE single-worker arm (effective-ex=${FID_EX[$key]}): the controller cannot convert without changing the engine; exact-data=PASS engine=$expected_engine digest=${FID_DIGEST[$key]}"
     elif [ "$mode" = auto ] && [ "$engaged" != 1 ]; then
         case_result "$label" INCONCLUSIVE \
             "ENGAGED=NO exact-data=PASS engine=$expected_engine digest=${FID_DIGEST[$key]} roles=${roles0:-?}->${converted_roles:-none}->${roles1:-?} flips-during-exact=$((flips_helper_end-flips0)); controller behaviour unqualified"
@@ -1302,6 +1315,13 @@ run_correctness_case() { # label io ex mode
             elif [ "$controller_status" = FAIL ]; then
                 case_result "$label" FAIL \
                     "controller evidence disagrees exact-correctness=PASS $summary roles=${role_first:-none}->${role_last:-none} completed-flips=$flip_count DEBUG-role-change=$role_changed"
+            elif [ "${role_first#*/}" -lt 2 ] 2>/dev/null; then
+                # ee451 (J5): derive the worker count from the roles THIS case observed
+                # ("io/ex", e.g. 1/1), not from the global EFFECTIVE_EX -- this case does not
+                # boot its own server, so by the time the verdict runs that global has already
+                # been overwritten by a later boot and read >=2 even for a single-worker arm.
+                case_result "$label" NA \
+                    "NOT-APPLICABLE single-worker arm (roles=${role_first}): the controller cannot convert without changing the engine; exact-correctness=PASS $summary"
             else
                 case_result "$label" INCONCLUSIVE \
                     "ENGAGED=NO exact-correctness=PASS $summary roles=${role_first:-none}->${role_last:-none} completed-flips=$flip_count"
@@ -2079,6 +2099,7 @@ run_lifecycle_variant() { # key label io ex mode expected-engine
             "$log_conversion" "$observed_role_change")
     fi
     stop_server
+    LIFE_EX["$key"]=${EFFECTIVE_EX:-0}
 
     if [ "$infra" != 1 ]; then
         LIFE_OK["$key"]=0
@@ -2087,6 +2108,12 @@ run_lifecycle_variant() { # key label io ex mode expected-engine
         LIFE_OK["$key"]=0
         case_result "$label" FAIL \
             "controller evidence disagrees client-handoff-accepted=${accepted:-unknown} moved-survivors=${moved:-unknown} exact-survivors=PASS controller-completions=$((flips1-flips0)) roles=${roles0:-?}->${converted_roles:-none}->${roles1:-?} DEBUG-role-change=$observed_role_change digest=${digest:-missing}"
+    elif { [ "$accepted" -eq 0 ] || [ "$moved" -eq 0 ]; } && [ "${EFFECTIVE_EX:-0}" -lt 2 ]; then
+        # ee451 (J5): with ONE ex worker there is no OTHER owner to hand a socket to, so a
+        # same-socket owner change cannot occur however much the connection churns. The
+        # survivor-digest assertion above still ran and still had to pass.
+        case_result "$label" NA \
+            "NOT-APPLICABLE single-worker arm (effective-ex=${EFFECTIVE_EX:-?}): no second owner exists for a live handoff; exact-survivors=PASS survivors=$survivors churn=$churn stable-ids=$stable disconnects=0 digest=$digest"
     elif [ "$accepted" -eq 0 ] || [ "$moved" -eq 0 ]; then
         case_result "$label" INCONCLUSIVE \
             "ENGAGED=NO exact-survivors=PASS engine=$expected_engine accepted=$accepted moved-survivors=$moved survivors=$survivors churn=$churn stable-ids=$stable disconnects=0 digest=$digest; no accepted live handoff with same-socket owner change"
@@ -2111,6 +2138,13 @@ compare_lifecycle() { # key-a key-b case-name dimension [require-engagement]
     elif ! digest_equal "${LIFE_DIGEST[$a]:-}" "${LIFE_DIGEST[$b]:-}"; then
         case_result "$name" FAIL \
             "$dimension exact survivor digests differ ${LIFE_DIGEST[$a]:-missing} != ${LIFE_DIGEST[$b]:-missing}"
+    elif [ "$require" = 1 ] &&
+         { [ "${LIFE_ENGAGED[$a]:-0}" != 1 ] || [ "${LIFE_ENGAGED[$b]:-0}" != 1 ]; } &&
+         { [ "${LIFE_EX[$a]:-0}" -lt 2 ] || [ "${LIFE_EX[$b]:-0}" -lt 2 ]; }; then
+        # ee451 (J5): one arm is single-worker, so this is a worker-count comparison, not a
+        # handoff one -- and the digest equality, which IS the assertion, held.
+        case_result "$name" NA \
+            "NOT-APPLICABLE $dimension one arm is single-worker (effective-ex=${LIFE_EX[$a]:-?}/${LIFE_EX[$b]:-?}); live handoff cannot engage there. Exact survivor digest equal=${LIFE_DIGEST[$a]} -- the equivalence assertion itself PASSED"
     elif [ "$require" = 1 ] &&
          { [ "${LIFE_ENGAGED[$a]:-0}" != 1 ] ||
            [ "${LIFE_ENGAGED[$b]:-0}" != 1 ]; }; then
@@ -2377,6 +2411,13 @@ compare_fidelity() {
     elif ! digest_equal "${FID_DIGEST[$a]}" "${FID_DIGEST[$b]}"; then
         case_result "$case_name" FAIL \
             "$dimension mismatch $a=${FID_DIGEST[$a]} $b=${FID_DIGEST[$b]}"
+    elif [ "$require_engaged" = 1 ] &&
+         { [ "${FID_ENGAGED[$a]:-0}" != 1 ] || [ "${FID_ENGAGED[$b]:-0}" != 1 ]; } &&
+         { [ "${FID_EX[$a]:-0}" -lt 2 ] || [ "${FID_EX[$b]:-0}" -lt 2 ]; }; then
+        # ee451 (J5): one arm is single-worker, where the controller cannot convert without
+        # changing the engine. The digest equality IS the assertion, and it held.
+        case_result "$case_name" NA \
+            "NOT-APPLICABLE $dimension one arm is single-worker (effective-ex=${FID_EX[$a]:-?}/${FID_EX[$b]:-?}); the controller cannot engage there. Exact functional digest equal=${FID_DIGEST[$a]} -- the equivalence assertion itself PASSED"
     elif [ "$require_engaged" = 1 ] &&
          { [ "${FID_ENGAGED[$a]:-0}" != 1 ] ||
            [ "${FID_ENGAGED[$b]:-0}" != 1 ]; }; then
