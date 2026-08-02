@@ -634,6 +634,28 @@ NULL
             }
         }
 
+        /* ee451 (BUGS.md J3, 2026-08-02): under sharding a plain RELOAD *is* one of the "special
+         * modes" RDBFLAGS_ALLOW_DUP was written for, so force it.
+         *
+         * emptyData() and rdbLoad() are not atomic with respect to the workers: the workers keep
+         * serving between the two, so any key a client writes in that window is present again by
+         * the time rdbLoad re-adds it. dbAddRDBLoad then returns NULL and the default path calls
+         * serverPanic("Duplicated key found in RDB file") — a deterministic SERVER KILL, measured
+         * 8/8 under a trivial 1:9 memtier load, in BOTH the ex=1 (dict) and ex>=2 (FLATSTORE)
+         * regimes, i.e. it is a concurrency property and not an engine one. The duplicate always
+         * carried the concurrent writer's key prefix, never the seeded one, which is what proves it
+         * is post-flush re-insertion rather than a save-side double-emit. SAVE and BGSAVE are both
+         * clean under the same load, so nothing here is a durability defect.
+         *
+         * ALLOW_DUP makes the RDB's copy win for keys it contains, which is the only sensible
+         * reading of "reload" and is strictly better than dying. Scope is deliberately narrow: this
+         * is the DEBUG RELOAD path only. Startup loads and replica full resync still pass
+         * RDBFLAGS_NONE, so a genuinely corrupt RDB with a repeated key is still caught there.
+         *
+         * This does NOT make the reload atomic — rdbLoad remains a non-owner writer of the shared
+         * node dbs, which the flat-resize quiesce comment already documents. It removes the kill. */
+        if (server.shared_node_dbs || server.num_workers > 1) flags |= RDBFLAGS_ALLOW_DUP;
+
         /* The default behavior is to remove the current dataset from
          * memory before loading the RDB file, however when MERGE is
          * used together with NOFLUSH, we are able to merge two datasets. */
