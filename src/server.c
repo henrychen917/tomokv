@@ -2896,6 +2896,7 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 
 void flatReclaimAll(void);
 void flatResizeCoordinate(void);
+void flatResizeWatchdog(void);   /* ee451 (J4): any-thread unpark for a coordinator that stopped running */
 int flatResizeState(void);
 extern _Atomic unsigned long long flat_rz_quiesce_waits;   /* defined with tomoFlatResizeQuiesce below */
 static void flatRetiredTablesTryFree(void);   /* RCU: free tables replaced by a rebuild */
@@ -7068,13 +7069,26 @@ static _Atomic int tomo_flush_gate;   /* fwd decl (real def below near flush) */
  * Reshard/flush are held off while a resize is pending or active (mig_arm_lock + flatResizePending),
  * so a resize can't be starved to the table-full wall (fix #7). */
 enum { FLAT_RZ_IDLE = 0, FLAT_RZ_QUIESCING, FLAT_RZ_COPYING };
-static int        flat_rz_state = FLAT_RZ_IDLE;
+/* ee451 (BUGS.md J4, 2026-08-02): ATOMIC, and the QUIESCING exit is a CAS. This was a plain
+ * main-thread-owned int, which was fine while main was the only thread that could move the state
+ * machine — and that was exactly the P0: flat_resize_active=1 parks every worker, only
+ * flatResizeCoordinate() clears it, and every spin site drives it under `if (iotid == 0)` with main
+ * AS io slot 0. A main that blocks (observed: futex_do_wait during a DEBUG RELOAD) parks every
+ * worker for the life of the process. The 200ms deadline below could not save it: it is evaluated
+ * INSIDE the coordinator, i.e. by the very thread whose blocking caused the wedge.
+ * Now any parked thread can abort a stuck QUIESCE via flatResizeAbortQuiesce(). */
+static _Atomic int flat_rz_state = FLAT_RZ_IDLE;
 static kvstore   *flat_rz_kvs = NULL;
 static flatTable *flat_rz_old = NULL, *flat_rz_new = NULL;
 static uint64_t   flat_rz_cursor = 0;
-static monotime   flat_rz_arm_us = 0;
+static _Atomic monotime flat_rz_arm_us = 0;
 static int        flat_rz_n = 0, flat_rz_j = 0;
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL   /* 200ms: normal commands quiesce in us; only a genuinely long op trips this */
+/* The watchdog deadline is deliberately 10x the coordinator's own. In normal operation the
+ * coordinator always wins this race and aborts at 200ms; the watchdog only ever fires when the
+ * coordinator is NOT RUNNING AT ALL, which is the J4 wedge. Keeping it far away means the watchdog
+ * can never pre-empt a healthy quiesce and turn a would-be resize into a spurious abort. */
+#define FLAT_RZ_WATCHDOG_US          2000000ULL  /* 2s with no coordinator progress => unpark the world */
 #define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16) /* 64k slots/pass -> ~1-2ms of copy, then back to the event loop */
 
 /* ee451: the coordinator's state, for observability only (INFO). Main-thread-owned int, read
@@ -7084,7 +7098,48 @@ static int        flat_rz_n = 0, flat_rz_j = 0;
  * FLAT_RZ_QUIESCE_DEADLINE_US having copied nothing. Only COPYING is the state in which the old
  * table must be immutable, and a probe that waits on the flag instead fires into a window that has
  * already shut. */
-int flatResizeState(void) { return flat_rz_state; }
+int flatResizeState(void) { return atomic_load_explicit(&flat_rz_state, memory_order_relaxed); }
+
+/* ee451 (J4): abort an ARMED-BUT-NOT-YET-COPYING resize and unpark every worker. Callable from ANY
+ * thread. Exactly one caller can win, because the QUIESCING exit is a CAS shared with the
+ * coordinator's QUIESCING->COPYING transition — so this can never race a copy into existence, and
+ * two concurrent aborters can never both release mig_arm_lock (which would hand a migration that
+ * armed in between a lock it does not hold).
+ *
+ * SAFETY, stated exactly: in QUIESCING the coordinator has allocated NOTHING and mutated NOTHING.
+ * It has only set flat_resize_active, taken mig_arm_lock, and recorded which table it intends to
+ * rebuild. Undoing that is precisely what the coordinator's own deadline path already does; this
+ * only lets a different thread perform the identical undo. Aborting in COPYING would be a
+ * use-after-free (the old table must stay immutable for the whole rebuild), which is why the CAS
+ * refuses any state that is not QUIESCING. The resize is not lost — resize_needed is still set, so
+ * the next coordinator pass re-arms it. */
+static int flatResizeAbortQuiesce(void) {
+    int expected = FLAT_RZ_QUIESCING;
+    if (!atomic_compare_exchange_strong_explicit(&flat_rz_state, &expected, FLAT_RZ_IDLE,
+                                                 memory_order_acq_rel, memory_order_acquire))
+        return 0;
+    atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
+    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+    return 1;
+}
+
+/* ee451 (J4): the watchdog. Called from the two places a thread SPINS waiting out a resize — the
+ * worker park loop and the io-thread resize wait — so it costs nothing on any path that is not
+ * already stalled. Zero hot-path cost by construction: a running server never calls it.
+ * Counter (not just a log line) because the J4 diagnosis turned on 'zero FLATSTORE resize: lines in
+ * the log' — a gate that never opens must be observable. */
+_Atomic unsigned long long flat_rz_watchdog_aborts;   /* INFO: times the watchdog had to unpark the world */
+void flatResizeWatchdog(void) {
+    if (!atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) return;
+    if (atomic_load_explicit(&flat_rz_state, memory_order_acquire) != FLAT_RZ_QUIESCING) return;
+    monotime arm = atomic_load_explicit(&flat_rz_arm_us, memory_order_acquire);
+    if (!arm || getMonotonicUs() - arm <= FLAT_RZ_WATCHDOG_US) return;
+    if (flatResizeAbortQuiesce()) {
+        atomic_fetch_add_explicit(&flat_rz_watchdog_aborts, 1, memory_order_relaxed);
+        serverLog(LL_WARNING, "FLATSTORE resize: WATCHDOG aborted a stuck quiesce (no coordinator "
+                              "progress for %llums) — workers unparked", FLAT_RZ_WATCHDOG_US / 1000);
+    }
+}
 
 /* a resize is PENDING (flagged, not yet finished) or in progress — reshard/flush check this to avoid
  * starving it. Safe to call from any thread: reads atomics + a main-thread-owned state int (benign race). */
@@ -7128,7 +7183,7 @@ void flatResizeCoordinate(void) {
             return;
         }
         flat_rz_kvs = kvs; flat_rz_old = t; flat_rz_n = fn; flat_rz_j = fj;
-        flat_rz_arm_us = getMonotonicUs();
+        atomic_store_explicit(&flat_rz_arm_us, getMonotonicUs(), memory_order_release);
         flat_rz_state = FLAT_RZ_QUIESCING;
         return;   /* let workers park; poll next pass */
     }
@@ -7157,20 +7212,31 @@ void flatResizeCoordinate(void) {
                 if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst) & 1) { all = 0; break; }
         }
         if (!all) {
-            if (getMonotonicUs() - flat_rz_arm_us > FLAT_RZ_QUIESCE_DEADLINE_US) {
+            if (getMonotonicUs() - atomic_load_explicit(&flat_rz_arm_us, memory_order_relaxed)
+                    > FLAT_RZ_QUIESCE_DEADLINE_US) {
                 /* a worker is stuck in a long command — unpark everyone and retry later so we never
-                 * park the whole server indefinitely (fix #6). The table is not yet full (0.5 trigger). */
-                atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);
-                atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-                flat_rz_state = FLAT_RZ_IDLE;
-                serverLog(LL_WARNING, "FLATSTORE resize: quiesce deadline (node %d db %d) — will retry", flat_rz_n, flat_rz_j);
+                 * park the whole server indefinitely (fix #6). The table is not yet full (0.5 trigger).
+                 * ee451 (J4): via the shared CAS, so this and the watchdog cannot both fire and
+                 * double-release mig_arm_lock. Losing the CAS means the watchdog already unparked. */
+                if (flatResizeAbortQuiesce())
+                    serverLog(LL_WARNING, "FLATSTORE resize: quiesce deadline (node %d db %d) — will retry", flat_rz_n, flat_rz_j);
             }
             return;
         }
-        /* quiesced — allocate the right-sized target (workers parked, so old is now immutable) */
+        /* quiesced — claim the transition BEFORE allocating. ee451 (J4): CAS, shared with
+         * flatResizeAbortQuiesce(). Losing it means a watchdog decided this quiesce was stuck and
+         * already unparked the workers; the old table is live again, so copying it now would be
+         * exactly the use-after-free the mutual exclusion above exists to prevent. resize_needed is
+         * still set, so the next pass simply re-arms. */
+        {
+            int expected = FLAT_RZ_QUIESCING;
+            if (!atomic_compare_exchange_strong_explicit(&flat_rz_state, &expected, FLAT_RZ_COPYING,
+                                                         memory_order_acq_rel, memory_order_acquire))
+                return;
+        }
+        /* allocate the right-sized target (workers parked, so old is now immutable) */
         flat_rz_new = flatTableAllocFor(flat_rz_old);
         flat_rz_cursor = 0;
-        flat_rz_state = FLAT_RZ_COPYING;
         return;
     }
 
@@ -10710,6 +10776,10 @@ void tomoFlatResizeQuiesce(void) {
          * would be waiting on a machine nobody is advancing — the same pump flushAllShards uses.
          * Workers take iotid = TOMO_IO_THREADS_MAX + 1 + id, so this never fires off-main. */
         if (iotid == 0) flatResizeCoordinate();
+        /* ee451 (J4): off-main threads wait here too, and until now they waited on a machine only
+         * main advances — so a blocked main stalled them for the life of the process. usleep(100)
+         * makes the watchdog's clock read free at this site. */
+        else flatResizeWatchdog();
         usleep(100);
     }
 }
@@ -14333,6 +14403,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_resize_active:%d\r\n", atomic_load_explicit(&server.flat_resize_active, memory_order_relaxed),
             "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
+            /* ee451 (J4): non-zero means a resize armed and the coordinator then stopped running,
+             * and a parked thread had to unpark the world. Should be 0 on a healthy server; any
+             * non-zero value is a real incident, not noise. */
+            "tomokv_flat_resize_watchdog_aborts:%llu\r\n", atomic_load_explicit(&flat_rz_watchdog_aborts, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             "tomokv_handoff_missed:%llu\r\n", tomo_handoff_missed,
             "tomokv_nested_cmd_frames:%llu\r\n",
@@ -16542,7 +16616,15 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
     while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
-        while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) sched_yield();
+        /* ee451 (J4): a parked worker is the LAST line of defence against a coordinator that has
+         * stopped running (main is io slot 0, and only io slot 0 drives it). Throttled to once per
+         * 1024 yields so the common case — a healthy 200us quiesce — costs no clock reads at all. */
+        for (unsigned spins = 0;
+             atomic_load_explicit(&server.flat_resize_active, memory_order_acquire);
+             spins++) {
+            if ((spins & 1023) == 1023) flatResizeWatchdog();
+            sched_yield();
+        }
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
     }
 
