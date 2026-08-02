@@ -1136,3 +1136,32 @@ Fix is to the harness, not the server: the DICT arms should be relabelled as wha
 (single-worker functional-equivalence checks) and the engine-equivalence pair renamed to
 worker-count equivalence, so `INCONCLUSIVE` stops meaning "we never tested it" in a report that
 otherwise reads as healthy.
+
+### J6. `DEBUG RELOAD` orphans client sockets — OPEN, newly visible
+
+Exposed by J3: with the duplicate-key panic gone, the server survives the reload and this becomes
+observable for the first time. It is **pre-existing** — the panic used to kill the process before
+anyone could look.
+
+After a `DEBUG RELOAD` under concurrent load the server is healthy by every internal measure and
+still strands its clients:
+
+    connected_clients:1            <- only the redis-cli that just connected
+    ss established on :7988 = 15   <- memtier's sockets, still ESTABLISHED
+    total_recvq = 2262             <- their requests sat unread in kernel buffers
+    tomokv_ex_queue_full:0  tomokv_flat_resize_active:0  blocked_clients:0
+
+The fds are still open in the process (otherwise the peer would see FIN/RST and error out rather
+than hang), but the server no longer counts the clients and no event loop is reading them. So this
+is not a lost reply and not a dropped dispatch — the connections were detached from both the client
+census and their io thread's event registration without being closed.
+
+Consequence: `DEBUG RELOAD` is safe for the server but still hangs every client that had traffic in
+flight, so it remains unusable under load. That is why J3 is a partial fix and is described as
+removing the kill, not making the reload atomic.
+
+Next step when picked up: find who detaches these clients — candidates are `protectClient()` /
+`unprotectClient()` around the load, the sharded flush barrier's fake-client sentinels, and
+`freeClientsInAsyncFreeQueue` (a mass-hard-kill livelock in that function is already on record).
+The discriminating datum is that the fd stays OPEN while the client is uncounted, which rules out a
+plain `freeClient()` (it closes) and points at a partial detach.
