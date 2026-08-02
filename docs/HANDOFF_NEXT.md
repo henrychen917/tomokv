@@ -231,3 +231,38 @@ Diffs staged at `/tmp/{sys-atomics,sys-general,xshard-cost}.patch` (base
 13f39c6f0) and in `cw/{polling,sys-uring}` (committed). Recommended next order:
 sys-atomics (decide vs xshard-cost) -> sys-uring (off-by-default, low risk) ->
 sched_yield/clock removals from sys-general -> polling.
+
+---
+
+## SESSION 3 — MERGE PASS COMPLETE (remote `5b9c26fb0`)
+
+Four of the five transport/syscall forks are merged, each test-merge-tested
+individually (build -> quick gate -> commit only on green). Knob count 24 -> 25.
+
+| commit | change | knob |
+|---|---|---|
+| `476117bb9` | revert of the CDB-snapshot skip (superseded, see next) | — |
+| `20e4d3ae9` | **reply completion is an SPSC flag, not a bitmap** — worker publish `fetch_or`->release store, drainer clear `fetch_and`->relaxed store. Both LOCK-prefixed RMWs gone; on x86-64 they become plain MOVs. Deletes `cdbCombinedMask` and the batched-clear accumulator. | none |
+| `bbb1cba73` | **two per-iteration syscalls removed**: `CLOCK_THREAD_CPUTIME_ID` (a real syscall) -> vDSO `CLOCK_MONOTONIC` spans collected in ae.c; `sched_yield()` in the polling spin -> `exPauseCpu()`. Both knobs the fork offered were DELETED and the better arm hard-coded. | none (2 added, 2 deleted) |
+| `5b9c26fb0` | **io_uring reintroduced**, per-IO-owner ring, SINGLE_ISSUER\|DEFER_TASKRUN, FAST_POLL, provided/registered buffers, no SQPOLL. Validated OFF *and* ON — survives 40 client-churn generations, the client-LB socket migration that wedged the previous attempt 3/3. | `tomokv-io-uring`, default 0 |
+
+Cells stayed within noise and mostly positive across all four merges; the
+justification for the syscall/atomics work is the removed kernel entries and
+locked RMWs, not the deltas, which this box cannot resolve.
+
+### `polling` NOT merged — needs a rewrite, not a merge
+`cw/polling` (3 commits, sparse per-worker summary words for consumer-side lane
+discovery) is built on the OLD reply bus. It reintroduces `cdbCombinedMask` and
+the per-CDB `.v` masks that `20e4d3ae9` deleted — 12 conflicts in server.c that
+are supersession, not textual overlap. Its *idea* is still the outstanding
+96-core transport item (a worker visits every producer header each pass), but it
+must be REIMPLEMENTED against the SPSC-flag bus. Its design write-up
+(`cw/polling/POLLING.md`, 492 lines: level-triggered summary bits, publication/
+clearing protocol, lost-wakeup argument) remains the specification to build from.
+
+### Still open
+* `threadcap` — remove the 32-IO/64-EX ceilings. Brief at `cw/threadcap/BRIEF.txt`.
+  Note it must now also handle the SPSC-flag bus and the uring ring-per-owner
+  allocation, in addition to the four structural limits already documented.
+* ABCD port/redo — `abcd_brief.txt`.
+* The set-op position-map fix stands; there is no unbounded leak (see above).
