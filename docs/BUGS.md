@@ -1054,7 +1054,7 @@ workers without first waiting out an armed resize, and without pumping the coord
 waiting — neither guard, both of which the existing flush path has. See J4, which is the general
 defect it exposed. Do not re-attempt this shape without J4 addressed.
 
-### J4. P0-class: the FLATSTORE resize unpark has a single driver and no watchdog — OPEN, owner call
+### J4. P0-class: the FLATSTORE resize unpark had a single driver and no watchdog — **FIXED `4754a73a5`**
 
 Found while diagnosing J3, but **independent of `DEBUG RELOAD`** and shipping-relevant.
 
@@ -1082,9 +1082,36 @@ deadline" warning — which is the proof the coordinator stopped being *called* 
 than looping.
 
 This is the same class as A10 (`af9d6b590`): one stuck coordinator flag is a delayed server kill.
-**Not fixed here** — the resize/QSBR state machine is on the owner's read-only list, and the fix
-(let any thread enforce the QUIESCING deadline, which is safe because QUIESCING has not yet touched
-the table) changes that state machine. Needs an explicit owner decision.
+
+**FIXED in `4754a73a5`.** `flat_rz_state` became atomic and the QUIESCING exit became a **CAS**,
+shared between the coordinator's `QUIESCING -> COPYING` transition and a new
+`flatResizeAbortQuiesce()`. Exactly one caller can win, so a watchdog can never race a copy into
+existence, and two concurrent aborters can never both release `mig_arm_lock` (which would hand a
+migration that armed in between a lock it does not hold). `flatResizeWatchdog()` is called only from
+the two sites where a thread ALREADY SPINS waiting out a resize — the worker park loop (throttled to
+1 per 1024 yields) and the io-thread resize wait — so it costs nothing on any path that is not
+already stalled, and a running server never calls it at all.
+
+Safe because in QUIESCING the coordinator has allocated nothing and mutated nothing: undoing it is
+exactly what its own deadline path already does. The resize is not lost — `resize_needed` stays set
+and the next pass re-arms. Aborting in COPYING would be the use-after-free the mutual exclusion
+exists to prevent, which is why the CAS refuses any state that is not QUIESCING.
+
+Proven to ENGAGE, not merely to compile — the first attempt (stall io threads with `DEBUG SLEEP`)
+reported `WATCHDOG_ABORTS=0` and was discarded rather than written up as a pass:
+
+    deadlines inverted (watchdog 1ms, coordinator 60s) so the watchdog must win every quiesce:
+      WATCHDOG_ABORTS=278, matching log lines, dbsize=3000004 intact, no crash, no wedge
+      -> 278 forced aborts are non-destructive
+    shipped constants (watchdog 2s, coordinator 200ms):
+      WATCHDOG_ABORTS=0, resizes complete normally, no spurious fires
+
+New INFO field `tomokv_flat_resize_watchdog_aborts` — 0 on a healthy server; any non-zero value is a
+real incident, not noise.
+
+Note this does NOT fix J3: the watchdog converts "server dead forever" into "server recovers", which
+is what a watchdog is for, but a `DEBUG RELOAD` that unparks workers mid-load still re-admits the
+concurrent writes that cause the duplicate-key crash.
 
 ### J5. 13 of 41 bigstress cases certify nothing — harness debt, not a server defect
 
