@@ -987,3 +987,125 @@ Gate it on the Threadripper.
 a physically plausible story about NUMA locality that I produced *instead of* checking the
 mechanism. Plausibility is not evidence; in every case one grep settled it. Check the mechanism
 first.
+
+---
+
+## J. Verification sweep 2026-08-02 — "fix everything found and not confirmed fixed"
+
+Every row below was re-tested against the tree at `f3ed56c50`, not trusted from an earlier filing.
+Two rows changed status in the direction nobody wants: one "highest-priority open defect" turned out
+to be already fixed, and one attempted fix turned out to be a worse bug than the one it fixed.
+
+### J1. Set-op position-map leak — CONFIRMED FIXED
+
+`HANDOFF_NEXT.md` §1 called this "the single highest-priority item": `SINTER`/`SINTERCARD`/`ZINTER`
+leaking one spilled `setop_pos` row per request, because the SIZES stage owns two rows while
+`g->nsub` is reused as the *current* stage's sub-count, so the free loop misses the spilled row.
+
+Fixed by capturing the row count at build time in `csGroup.posmap_nsub` (`src/server.h:2023`,
+built at `src/server.c:8962`, consumed by all four free sites: `:10148`, `:10149`, `:10533`, `:10540`).
+
+Confirmed by measurement, with the preconditions **asserted** so the test cannot pass vacuously —
+the first attempt built empty sets via `EVAL` and reported a clean result while exercising nothing:
+
+    ex=2 (cross-shard), 24 sets x 200 members, scard=200 asserted, SINTER cardinality=200 asserted
+    SINTER     used_memory deltas over 3 x 5000 requests: 24688, 0, 24688
+    SINTERCARD used_memory deltas over 3 x 5000 requests: 0, 24688, 0
+
+Non-monotonic and out of phase between the two commands: that is jemalloc bin stepping. A live
+one-row-per-request leak is >=16 B x 5000 = >=80 KB per window and strictly increasing. It is not.
+
+### J2. Active expiry on shard dbs (#42) — CONFIRMED FIXED
+
+Was real: `activeExpireCycle()` walks `server.db`, which under sharding is the empty DECOY, so
+`kvstoreSize(db->expires)` was 0 on every pass and **nothing was ever actively expired**. Lazy
+expiry hid it from every observable read — only the memory of keys nobody reads leaked. Fixed by
+`ee451` (`src/expire.c`), which runs the cycle on each worker over its own buckets, cadence
+published by main via `server.tomo_expire_gen`.
+
+Confirmed on both engines, clean dir, no stale RDB, 100000 keys at `EX 10`:
+
+    ex=1 (DICT keyspace)  seeded 100000 -> dbsize 0 at t=20s, expired_keys_active=100000
+    ex=4 (FLATSTORE)      seeded 100000 -> dbsize 0 at t=20s, expired_keys_active=100000
+
+Minor open discrepancy, not chased: at ex=4 `expired_keys_active=100000` but `expired_keys=99996`.
+Four keys are counted by one counter and not the other.
+
+### J3. `DEBUG RELOAD` under concurrent write load kills the server — OPEN, fix reverted
+
+Reproduces 8/8: `Guru Meditation: Duplicated key found in RDB file #rdb.c:4016`.
+
+Corrected diagnosis (the earlier filing blamed a FLATSTORE residual, which sent the previous
+investigation the wrong way):
+ * **load-dependent, engine-INDEPENDENT** — FLAT idle OK / FLAT under load FAIL; DICT idle OK /
+   DICT under load FAIL;
+ * the duplicate key always carries the *concurrent writer's* prefix, never the seeded prefix, so
+   it is **post-flush re-insertion**, not a save-side double-emit;
+ * `SAVE` and `BGSAVE` are both clean under the same load (RDB loads, restart OK, dbsize preserved)
+   — there is **no durability bug** here.
+
+The invariant that is actually violated: between `emptyData()` and the end of `rdbLoad()` no other
+writer may insert, and `dbAddRDBLoad` is a non-worker writer racing live workers.
+
+**A stop-the-world fix was implemented and then REVERTED — it is strictly worse than the crash.**
+It parked workers at their pop point on a new `tomo_stw_active` flag. It stopped the crash (reload
+completed, `keys loaded: 300001`, no Guru) and then wedged the whole server. Cause: it parked
+workers without first waiting out an armed resize, and without pumping the coordinators while
+waiting — neither guard, both of which the existing flush path has. See J4, which is the general
+defect it exposed. Do not re-attempt this shape without J4 addressed.
+
+### J4. P0-class: the FLATSTORE resize unpark has a single driver and no watchdog — OPEN, owner call
+
+Found while diagnosing J3, but **independent of `DEBUG RELOAD`** and shipping-relevant.
+
+`flat_resize_active = 1` parks every worker. It can only be cleared by `flatResizeCoordinate()`,
+which at every spin site runs `if (iotid == 0)` — and main *is* IO slot 0. So:
+
+    resize arms -> all workers park -> main blocks for any reason
+      -> nobody calls flatResizeCoordinate() -> flag never clears -> workers parked forever
+
+The `FLAT_RZ_QUIESCE_DEADLINE_US` (200 ms) escape added as "fix #6" **cannot save this**, because it
+is evaluated *inside the same coordinator* — the deadline is driven by exactly the thread whose
+blocking caused the wedge. `FLAT_RZ_COPYING` has no deadline at all.
+
+Observed state of the wedged process (pid 1345529), 18 minutes after the reload returned:
+
+    tomokv_flat_resize_active:1      tomokv_ex_queue_full:0
+    main  (= IO slot 0)  state=S  wchan=futex_do_wait    <-- the single driver, blocked
+    4 workers            state=R  ~100% CPU              <-- spinning in the park loop
+    1 IO thread          state=R  ~100% CPU              <-- spinning on a parked worker
+    2 IO threads         state=S  wchan=ep_poll
+    PING/DBSIZE answer intermittently (IO-thread work); every worker-routed command hangs forever.
+
+Zero `FLATSTORE resize:` lines in the log — neither the "rebuilt" completion nor the "quiesce
+deadline" warning — which is the proof the coordinator stopped being *called* while armed, rather
+than looping.
+
+This is the same class as A10 (`af9d6b590`): one stuck coordinator flag is a delayed server kill.
+**Not fixed here** — the resize/QSBR state machine is on the owner's read-only list, and the fix
+(let any thread enforce the QUIESCING deadline, which is safe because QUIESCING has not yet touched
+the table) changes that state machine. Needs an explicit owner decision.
+
+### J5. 13 of 41 bigstress cases certify nothing — harness debt, not a server defect
+
+The full gate reads `PASS=28 FAIL=0 INCONCLUSIVE=13`. **All 13 are `ENGAGED=NO`**, and all 13 are
+the LB/reshard/handoff cases — the riskiest subsystem in the tree:
+
+    roles=1/1->none->1/1   completed-flips=0   controller-conversions=0
+    moves=0/1              moves=0/0           normalized-decisions=0
+    accepted=0             moved-survivors=0   qualifying-traffic-range=NO
+
+Cause: the harness selects the DICT engine by dropping to **one EX worker**
+(`dict_auto OWNERSHIP-MOVE-DICT-AUTO 1 1 auto DICT`), because `shared_node_dbs = (workers_per_node > 1)`.
+But FLATSTORE has been **unconditional since 2026-07-28** — the knob was deleted — so "DICT" no
+longer names an engine choice, it names "ex=1, single worker". With one worker there is nowhere for
+a bucket to move and nothing for the controller to convert. These cases cannot ever engage.
+
+Coverage is **not** actually missing: every FLAT counterpart engages and passes, with evidence —
+`moved-canaries=694`, `coverage=COMPLETE`, `aborts=0`, `completed-flips=5`, `accepted=2
+moved-survivors=31 disconnects=0`, digests identical across arms.
+
+Fix is to the harness, not the server: the DICT arms should be relabelled as what they now are
+(single-worker functional-equivalence checks) and the engine-equivalence pair renamed to
+worker-count equivalence, so `INCONCLUSIVE` stops meaning "we never tested it" in a report that
+otherwise reads as healthy.
