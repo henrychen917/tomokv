@@ -2616,8 +2616,38 @@ static inline void exHandoffAdvertise(exThread *ex) {
                              memory_order_release);
 }
 
+/* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
+ *
+ * flushExQueues() used to sweep every worker slot on every flush -- at 32 IO x 64 EX that is 64
+ * distinct cache lines touched per flush even when a single worker was written, and the old
+ * comment justified it as "a no-op compare for a slot with no traffic". The compare is cheap; the
+ * LINE IT LIVES ON is not, because each ex[w].queues[iotid] is a different line.
+ *
+ * The bit is set by exQueueFor() below, which is the ONLY way to obtain a queue pointer -- marking
+ * is inseparable from acquiring, so a staging site cannot forget to mark. That matters more than it
+ * sounds: a staged-but-never-published job is a hung client, which is exactly the defect class the
+ * consumer-side sparse handoff had when only 4 of its 5 publish sites were instrumented.
+ *
+ * Thread-local and consumed only by the same thread's flush, so there is no synchronisation: a
+ * producer stages into ITS OWN queues[iotid] column and flushes that same column.
+ *
+ * This mask is also why threadcap (task #66) is sequenced after ABCD: 64 workers is the width of a
+ * uint64, and A1's boot check now refuses anything larger for exactly this reason. */
+_Static_assert(TOMO_EX_THREADS_MAX <= 64,
+               "ex_dirty_mask is a uint64 bitmap of worker slots: raising TOMO_EX_THREADS_MAX past "
+               "64 silently drops publications (staged-but-unpublished job == hung client). "
+               "Widen the mask together with the limit.");
+static __thread uint64_t ex_dirty_mask;
+
+/* Obtain this thread's queue to worker ex_id AND record that it is dirty. Never index
+ * exThreads[].queues[] directly on a staging path -- go through here. */
+static inline exQueue *exQueueFor(int ex_id) {
+    ex_dirty_mask |= 1ull << (unsigned)ex_id;
+    return &server.exThreads[ex_id].queues[iotid];
+}
+
 static inline void exDispatchPush(int ex_id, client *fake) {
-    exQueue *q = &server.exThreads[ex_id].queues[iotid];
+    exQueue *q = exQueueFor(ex_id);
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
     /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
      * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
@@ -8977,7 +9007,7 @@ static void csFreeSub(client *sub) {
  * immediate release-store races nothing; the worker is the sole consumer and drains
  * concurrently, so the full-spin is bounded by its pop rate. */
 static void csPushSpin(int w, client *sub) {
-    exQueue *q = &server.exThreads[w].queues[iotid];
+    exQueue *q = exQueueFor(w);
     int spins = 0;
     int counted = 0;
     while (exQueuePush(q, sub) != 0) {
@@ -15941,8 +15971,20 @@ void flushExQueues(void) {
      * liveness signal propagates, so EVERY slot's queues must be covered (a job staged there
      * but never published = a hung client). For a slot with no traffic the extra iteration is
      * a no-op compare (staged_tail == tail, no store). */
+    /* ee451 (A2): visit only the workers THIS thread actually staged into, via ctz over the
+     * dirty mask, instead of sweeping every slot. The mask is a precise record of where a job was
+     * staged, which is strictly better than the old "cover every slot" rule it replaces: that rule
+     * existed because a grow-back seed FLIP can route to a revived slot before its liveness signal
+     * propagates, and the mask is independent of liveness entirely -- it records the store that
+     * actually happened. Snapshot-and-clear is race-free because the producer and the flusher are
+     * the same thread. */
     int nw = server.num_workers;
-    for (int w = 0; w < nw; w++) {
+    uint64_t m = ex_dirty_mask;
+    ex_dirty_mask = 0;
+    while (m) {
+        int w = __builtin_ctzll(m);
+        m &= m - 1;
+        if (__builtin_expect(w >= nw, 0)) continue;   /* slot retired since it was staged */
         exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published) {
