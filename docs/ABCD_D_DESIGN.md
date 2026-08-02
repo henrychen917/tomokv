@@ -137,6 +137,45 @@ scheduler more to work with and amortises polling, but adds queueing delay **bef
 runs**. A constant cannot be right across regimes; that is the whole reason this is a feedback
 loop.
 
+### 5.1 It is built exactly like the load balancers — owner ruling, and the hot path pays almost nothing
+
+Copy the `lb_grp_ops` idiom. That signal is described in-tree as *"already paid for … one L1
+increment … reading it here costs one 1 Hz main-thread pass and adds **NOTHING** to the data
+path."* The batch controller gets the same three-part shape and no more:
+
+**1. Hot path — one load, zero arithmetic.**
+The parse loop reads the window as a **single relaxed load of one published `int`**. It does not
+average, compare EWMAs, inspect queues, or read a clock. Every decision was already made off the
+hot path; the hot path only consumes the answer. On x86 a relaxed load is a plain `MOV`.
+
+**2. Signals — per-thread, single-writer, non-atomic, on a line the thread already owns.**
+Reuse what exists (`tomokv_ex_queue_depth`, the ROB occupancy the reply path already maintains).
+Anything new is a plain `uint32`/`uint64` counter in the thread's **own** struct, incremented
+non-atomically like `worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++` — no LOCK prefix, no shared line,
+no false sharing with another thread's counter. The §4.3 latency EWMA is accumulated this way by
+each worker into its own row.
+
+**3. Controller — 1 Hz, main thread, off the data path.**
+Runs at the existing periodic site, next to `reshardCoordinatorTick()` / `tmFlipTick()` /
+`flatResizeCoordinate()`. It sweeps the per-thread counters, folds them into EWMAs, decides, and
+**publishes one value with a single release store**. Deltas are computed against a `_last`
+snapshot with **unsigned subtraction so counter wrap is safe** — the same reason `mig_grp_last`
+exists.
+
+**Level 0 means the machinery does not exist**, not that it is skipped: state is **lazily
+allocated on the first tick the controller actually runs**, exactly as the bucket balancer does for
+`tomokv-key-lb 0`. At level 0 there is no allocation, no tick work, and the parse loop uses the
+compile-time constant — so the load itself disappears.
+
+**Budget.** At ~7.9M ops/s, 1% ≈ 1.3 ns/op, and always-on machinery must stay ≤3%. The steady-state
+cost here is one L1-resident load per parse batch (not per command) plus one non-atomic increment
+per command on a line the thread is already writing. That is inside the noise floor by
+construction, which is the point of copying this pattern rather than inventing one.
+
+**Do not** put the controller on a worker or IO thread, and do not let the hot path recompute the
+window "just in case it changed" — a stale window for up to one second is completely acceptable,
+which is precisely why 1 Hz is enough for the balancers too.
+
 ---
 
 ## 6. D5 — starvation bound (required)
