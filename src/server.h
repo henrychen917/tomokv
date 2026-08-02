@@ -1498,6 +1498,7 @@ typedef struct {
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
+#define TOMO_HANDOFF_DENSE_EVERY 64   /* self-healing dense sweep cadence (see exThread.q_summary) */
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* fixed upper bound for the per-client fake/ready-slot arrays */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
@@ -2350,6 +2351,28 @@ typedef struct exThread {
      * head line (id/thread) instead of the tail line the owning worker dirties every op
      * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
     redisDb *db;
+    /* ee451 (sparse handoff): one bit per PRODUCER slot that has published work to
+     * this worker and not yet been drained. Replaces the consumer's dense sweep of
+     * every queues[] lane with one exchange plus a ctz walk of the set bits.
+     *
+     * PROTOCOL. Producer: release-store tail FIRST, then fetch_or its bit (release),
+     * so a consumer that observes the bit is guaranteed to observe the tail.
+     * Consumer: exchange the whole word to 0 (acquire) BEFORE draining, so a publish
+     * that lands mid-drain re-sets the bit instead of being erased, then re-set the
+     * bits of any lane it could not fully drain. Clear-then-drain is the safe order;
+     * drain-then-clear would erase a concurrent publish and strand that lane.
+     *
+     * A missed bit means a queued fake is never popped: its reply-ready byte is never
+     * set, flushid cannot advance, the client's ring wedges full and it stalls forever
+     * (the silent reply-loss failure documented at exDispatchPush). Because that is
+     * unattributable in production, the consumer also performs a DENSE sweep every
+     * TOMO_HANDOFF_DENSE_EVERY passes and counts anything the summary failed to
+     * advertise in handoff_missed. That counter is the correctness oracle: it must be
+     * zero, and a non-zero value localises a missing publish site immediately.
+     * TOMO_IO_THREADS_MAX is 32, so one 64-bit word covers every producer slot. */
+    _Atomic uint64_t q_summary __attribute__((aligned(CACHE_LINE_SIZE)));
+    unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
+    unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
     freebackRing freeback[TOMO_IO_THREADS_MAX + 1];

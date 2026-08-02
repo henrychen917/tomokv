@@ -2607,6 +2607,15 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * correctly). We are the sole producer for queues[iotid], so the immediate release-store races
  * nothing. The fast (not-full) path is byte-identical to the old bare push: one stage, batched
  * publish later at flushExQueues (handleWorkerReplies top / beforeSleep). */
+/* ee451 (sparse handoff): advertise that producer `iotid` has published to worker
+ * `ex`. MUST be called AFTER the release-store of q->tail so the tail is visible to
+ * any consumer that sees this bit. Every site that release-stores a tail must call
+ * this -- a missed call strands the lane (see exThread.q_summary). */
+static inline void exHandoffAdvertise(exThread *ex) {
+    atomic_fetch_or_explicit(&ex->q_summary, 1ull << (unsigned)iotid,
+                             memory_order_release);
+}
+
 static inline void exDispatchPush(int ex_id, client *fake) {
     exQueue *q = &server.exThreads[ex_id].queues[iotid];
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
@@ -2620,10 +2629,12 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     int spins = 0;
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
+        exHandoffAdvertise(&server.exThreads[ex_id]);
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     } while (exQueuePush(q, fake) != 0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+    exHandoffAdvertise(&server.exThreads[ex_id]);
 }
 
 /* ee451 (#B2): fold a retiring fake's per-client command count into its real client.
@@ -8826,11 +8837,13 @@ static void csPushSpin(int w, client *sub) {
         if (!counted) { tm_io_sig[iotid].q_full_events++; counted = 1; }   /* see exDispatchPush */
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        exHandoffAdvertise(&server.exThreads[w]);
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    exHandoffAdvertise(&server.exThreads[w]);
 }
 
 /* xshard (universal): the shared COALESCED scatter used by every 1-hop cross-shard read/scatter cmd
@@ -14289,6 +14302,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * without this counter an undersized ring is invisible except as unexplained latency. */
         unsigned long long tomo_qfull = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
+        unsigned long long tomo_handoff_missed = 0;   /* sparse-handoff protocol oracle: MUST be 0 */
+        if (server.exThreads)
+            for (int _w = 0; _w < server.num_workers; _w++)
+                tomo_handoff_missed += server.exThreads[_w].handoff_missed;
         /* xshard INLINE storage counters. These EXIST so an A/B cannot be vacuous: a build with
          * CS_INLINE_MAX_BYTES 0 must report every array as a heap fallback, and a normal build
          * must report the common case as inline hits. An A/B whose counters read the same on both
@@ -14317,6 +14334,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
+            "tomokv_handoff_missed:%llu\r\n", tomo_handoff_missed,
             "tomokv_nested_cmd_frames:%llu\r\n",
                 atomic_load_explicit(&tomo_nested_cmd_frames, memory_order_relaxed),
             /* ee451 (H2): drain-fence evidence. midbatch counts coordinator ticks that saw a
@@ -15772,8 +15790,10 @@ void flushExQueues(void) {
     for (int w = 0; w < nw; w++) {
         exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-        if (q->staged_tail != published)
+        if (q->staged_tail != published) {
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+            exHandoffAdvertise(&ex[w]);   /* AFTER the tail store -- see exThread.q_summary */
+        }
     }
 }
 
@@ -16585,6 +16605,23 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     if (++ctx->scan_start >= ctx->nq) ctx->scan_start = 0;
     int tm_pass_depth = 0;   /* ee451 (thread-modes step 4, signal a): items seen this pass */
     int so = server.strict_order;   /* 0 = off (batched rotation); N>0 = cross-queue merge, eps=(N-1)us */
+
+    /* ee451 (sparse handoff): take the advertised producer set for this pass. Cleared
+     * BEFORE draining so a publish landing mid-drain re-sets its bit rather than being
+     * erased; lanes we cannot fully drain are re-advertised at the end of the pass.
+     *
+     * Every TOMO_HANDOFF_DENSE_EVERY passes we sweep densely regardless and count any
+     * lane that held work the summary had not advertised. That count MUST be zero: it
+     * is the oracle for the publish-site protocol, and it also bounds the damage of a
+     * hypothetical missed bit to one dense interval instead of a permanent stall.
+     * strict_order needs the global oldest-arrival across ALL lanes, so it always
+     * sweeps densely and ignores the summary. */
+    int dense = (so != 0) || (++worker->handoff_dense_tick >= TOMO_HANDOFF_DENSE_EVERY);
+    if (dense) worker->handoff_dense_tick = 0;
+    uint64_t advertised = atomic_exchange_explicit(&worker->q_summary, 0,
+                                                   memory_order_acquire);
+    uint64_t residual = 0;
+
     for (int k = 0; k < ctx->nq; k++) {
         int i, n;
         if (__builtin_expect(so != 0, 0)) {
@@ -16602,7 +16639,23 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             n = exQueuePopOrdered(&worker->queues[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
         } else {
             i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
+            uint64_t bit = (i < 64) ? (1ull << (unsigned)i) : 0;
+            if (!dense && !(advertised & bit)) continue;   /* lane not advertised: skip the probe */
             n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+            if (n != 0) {
+                /* Could not be fully drained within popmax, or more arrived: re-advertise. */
+                residual |= bit;
+                /* ORACLE. A lane holding work is a protocol violation only if NOTHING
+                 * advertised it -- neither this pass's snapshot nor the LIVE word. A
+                 * producer that publishes after our exchange but before we reach its
+                 * lane has already OR'd its bit, so it shows up in the live word and is
+                 * a benign race, not a stranded lane. Testing the snapshot alone counts
+                 * those races and is not discriminating (measured ~54k/20s at 7
+                 * producers, all benign). */
+                if (dense && !(advertised & bit) &&
+                    !(atomic_load_explicit(&worker->q_summary, memory_order_relaxed) & bit))
+                    worker->handoff_missed++;
+            }
         }
         if (n == 0) continue;
 
@@ -16799,6 +16852,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                               atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed),
                               memory_order_release);
     }
+
+    /* ee451 (sparse handoff): re-advertise every lane that still holds work, so the
+     * next pass visits it without a dense sweep. Producers only ever OR into this
+     * word and this consumer is its only clearer, so an OR here cannot lose a
+     * concurrent publish. */
+    if (residual) atomic_fetch_or_explicit(&worker->q_summary, residual,
+                                           memory_order_release);
 
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
      * work/spin/yield decision below — work passes fold the standing backlog and accumulate
