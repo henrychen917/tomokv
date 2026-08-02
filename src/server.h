@@ -1444,8 +1444,7 @@ typedef struct {
  *     server.ex_threads (default 3, max TOMO_EX_THREADS_MAX).
  *   - Per-client fake-client ring for pipelining. Depth configured via
  *     `tomokv-pipeline-depth` -> server.pipeline_ring_depth (default 16,
- *     max TOMO_PIPELINE_DEPTH_MAX which is 32 due to reply_ready_mask being
- *     uint32_t). Must be a power of two.
+ *     max TOMO_PIPELINE_DEPTH_MAX (currently 32). Must be a power of two.
  *
  * Static arrays are sized by the compile-time MAX; loop bounds and slot
  * masks use the runtime server.my_* values so the build is stable while
@@ -1491,7 +1490,7 @@ typedef struct {
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
-#define TOMO_PIPELINE_DEPTH_MAX 32  /* cannot exceed 32 — reply_ready_mask is uint32_t */
+#define TOMO_PIPELINE_DEPTH_MAX 32  /* fixed upper bound for the per-client fake/ready-slot arrays */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
  * ex_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
@@ -1558,21 +1557,30 @@ typedef struct {
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
-/* ee451 (S5): multi-CDB reply signaling. Instead of one shared reply_ready_mask
- * per client (the single common-data-bus), give each client up to NUM_CDB_MAX
- * masks, each on its OWN cache line, and route each worker's completion signal to
- * the CDB indexed by its worker id. Workers on different shards/CCDs then OR into
- * DIFFERENT lines instead of ping-ponging one hot line across the fabric. With the
- * optimization OFF, server.num_cdb == 1 and only reply_cdb[0] is ever used, which
- * is byte-equivalent to the original single-mask protocol. Toggle is IMMUTABLE
- * (startup-only): num_cdb is fixed at init, so the writer's captured CDB index
- * (fake->cdb), the clearer (drain reads fake->cdb), and the combined-read bound
- * (server.num_cdb) can never desync. */
-#define NUM_CDB_MAX 256 /* ceiling for num_cdb + the dynamic reply_cdb array; bit slots still cap at 32 */
-typedef struct cdbMask {
-    redisAtomic uint32_t v;
-    char _pad[CACHE_LINE_SIZE - sizeof(uint32_t)];
-} __attribute__((aligned(CACHE_LINE_SIZE))) cdbMask;
+/* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one independent
+ * atomic byte per fake-ring slot and occupies exactly one cache line. A worker
+ * release-stores 1 to the captured (cdb,slot); the owning IO thread acquire-loads
+ * that exact byte and relaxed-stores 0 after consuming it.
+ *
+ * The old representation packed all slots into one uint32_t. Setting or clearing
+ * one logical bit then required a locked fetch_or/fetch_and because other workers
+ * could concurrently change other bits in the word. Separate atomic objects make
+ * the real ownership visible: for one slot there is one completer and one drainer,
+ * and slot reuse cannot begin until that drainer has cleared it. CDB cache-line
+ * partitioning remains, so workers mapped to different CDBs still avoid sharing a
+ * completion line. */
+#define NUM_CDB_MAX 256
+typedef struct cdbSlots {
+    redisAtomic uint8_t ready[TOMO_PIPELINE_DEPTH_MAX];
+    char _pad[CACHE_LINE_SIZE -
+              sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX];
+} __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
+_Static_assert(sizeof(redisAtomic uint8_t) == 1,
+               "reply-ready atomics must occupy one byte");
+_Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
+               "reply-ready byte atomics must always be lock-free");
+_Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
+               "each reply CDB must occupy exactly one cache line");
 
 typedef struct client client;
 typedef struct client {
@@ -1613,35 +1621,19 @@ typedef struct client {
                                          * 1Hz point sample read 0 for every sub-second burst,
                                          * so the "hwm" EWMA decayed to ~1 and the ring was
                                          * freed + rebuilt every ~3s even for busy clients) */
-    /* Real-client: bitmap of which ring slots have completed replies.
-     * Bit N corresponds to fakeClients[N]. Workers set bits with
-     * atomicFetchOrWithRelease; drain snapshots once with atomicGetAcquire
-     * and clears bits with atomicFetchAnd as slots are drained.
-     *
-     * ee451 (S3): isolate this word on its own cache line. Workers across
-     * many cores/CCDs RMW this with release, while the owning IO thread reads/
-     * writes dispatchid/flushid/fakeClients (just above) on every dispatch and
-     * drain. Without isolation they false-share the same line — a cross-CCD
-     * coherence ping-pong on the single hottest line in the system, paid once
-     * per dispatch AND once per completion. The trailing aligned field below
-     * pushes everything after the mask onto the next line, so the mask owns
-     * its line alone. */
-    /* ee451 (S3/S5): per-CDB reply-ready masks. reply_cdb[c].v bit N = ring slot N
-     * completed, signaled by a worker mapped to CDB c. Workers set bits with
-     * atomicFetchOrWithRelease; the owning IO thread combines all num_cdb masks with
-     * atomicGetAcquire and clears bits with atomicFetchAnd as slots drain. Each
-     * cdbMask is cache-line isolated (S3 subsumed: even reply_cdb[0] owns its line).
-     * With multi-cdb OFF, num_cdb==1 and only [0] is used. */
-    cdbMask *reply_cdb;     /* #75: heap array of exactly server.num_cdb cache-line-isolated reply buses
+    /* Real-client per-CDB reply-ready slots. reply_cdb[c].ready[N] == 1 means
+     * ring slot N completed on CDB c. Each CDB is cache-line isolated; each slot
+     * is a distinct atomic object, so the one-bit SPSC publication uses a release
+     * store instead of a word-wide RMW. */
+    cdbSlots *reply_cdb;    /* heap array of exactly server.num_cdb cache-line-isolated reply buses
                              * (real clients; aligned via zmalloc+offset in createClient, freed in freeClient).
                              * Fakes leave this NULL and signal completions into parent->reply_cdb. */
     /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
      * stamped once at preallocation. Unused on real clients. */
     unsigned int fake_slot;
-    /* ee451 (S5): the CDB index this fake's completion bit is routed to, captured
-     * once at dispatch from its owning worker. The worker signals reply_cdb[cdb] and
-     * the drain clears reply_cdb[cdb] — one captured value keeps writer and clearer
-     * in agreement regardless of toggle state. 0 for the inline (non-worker) path. */
+    /* ee451 (S5): the CDB index this fake's completion slot is routed to, captured
+     * once at dispatch from its owning worker. The worker signals
+     * reply_cdb[cdb].ready[fake_slot] and the drain clears that same byte. */
     int cdb;
     /* ee451 (v7 cross-shard): set on a ring-slot fake that is a multi-key (MGET/MSET/
      * DEL/EXISTS) GROUP HEAD (NULL otherwise); and on a SUB-FAKE, csparent points back
@@ -1887,7 +1879,7 @@ typedef struct client {
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
  * slot that represents one multi-key command). Each sub-fake runs the per-shard
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) sets the
- * group head's reply-ready bit so the IO drain reassembles. Single-writer-per-key is
+ * group head's reply-ready byte so the IO drain reassembles. Single-writer-per-key is
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
@@ -2042,7 +2034,7 @@ typedef struct csGroup {
      * (per remaining shard ascending-size, candidates probed in place, survivors shrink).
      * All stages are READS: CLOSE_ASAP teardown needs no special casing (unlike 2-hop).
      * pipe_cand is coordinator-written BEFORE the stage sub is pushed (SPSC release/acquire
-     * publishes it); pipe_verdict is worker-written, drain-acquired via the completion bit. */
+     * publishes it); pipe_verdict is worker-written, drain-acquired via the completion byte. */
     int pipe_stage;            /* 0=off, CS_PIPE_* otherwise */
     int pipe_next;             /* next index into pipe_order for the PROBE chain */
     int pipe_nshard;           /* distinct shards */
@@ -2067,8 +2059,8 @@ typedef struct csGroup {
      * — counted at csReassemble, the group's single completion point, exactly like #B1's
      * numCommandsBump. `usec` is the SUM of the subs' proc times (the work the command cost the
      * server), not the group's wall clock, which would fold in queueing and scatter latency that
-     * stock's per-command `usec` never contains. Both are written by concurrent subs, so both are
-     * atomic — this is the cross-shard path, which already takes an atomic per sub for `pending`. */
+     * stock's per-command `usec` never contains. Multi-sub stages update it concurrently and retain
+     * an atomic RMW; a singleton stage uses the owner-local atomic load/store idiom. */
     redisAtomic long long usec;  /* summed sub proc time, microseconds */
     redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
@@ -3045,11 +3037,9 @@ struct redisServer {
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
     _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
     /* ee451 (bug #42, worker active expiry): the CADENCE signal for the per-worker active-expire
-     * cycle. serverCron (main) bumps it once per tick; every worker relaxed-loads it in exSlice and
-     * runs ONE bounded pass over its OWN bucket range when it differs from the value it last saw.
-     * Main publishes the schedule, the owning worker does the deleting — main must never delete
-     * from a shard it does not own. Same main->worker signalling shape (and same read-mostly line)
-     * as flat_resize_active above, so the per-pass poll is a load off an already-resident line. */
+     * cycle. Main is the sole writer and bumps with the owner-local relaxed load/store idiom;
+     * workers poll relaxed and run one bounded pass after observing a new generation. It carries
+     * no payload: an old value merely coalesces ticks until a later exSlice. */
     _Atomic uint32_t tomo_expire_gen;
     /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
      * polyThreadMain with a preset mode. The pool is ALWAYS fully active: there is no reserve

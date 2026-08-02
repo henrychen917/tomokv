@@ -43,10 +43,8 @@
 #endif
 #endif
 
-/* ee451 (v4): S3 cache-line mask isolation is a struct LAYOUT optimization and
- * therefore compile-time, not runtime-toggleable. Build with -DTHREDIS_OPT_MASK_ISOLATE=0
- * to ablate it (reply_ready_mask/fake_slot then false-share the surrounding
- * dispatch metadata). Default on. */
+/* Legacy source-compatibility definitions. Reply CDBs are now heap-resident
+ * cdbSlots and are always cache-line isolated; these macros have no live user. */
 #ifndef THREDIS_OPT_MASK_ISOLATE
 #define THREDIS_OPT_MASK_ISOLATE 1
 #endif

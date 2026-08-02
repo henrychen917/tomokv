@@ -398,7 +398,7 @@ void freePooledFakeClient(client *c) {
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
 
-    /* ee451 (#75): the S3/S5 per-CDB reply masks are now a HEAP array (c->reply_cdb), aligned to
+    /* ee451 (#75): the per-CDB reply slots are a HEAP array (c->reply_cdb), aligned to
      * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
      * isolation no longer depends on the client struct's own alignment, and the old inline-array +
      * jemalloc-luck self-check is retired. */
@@ -541,24 +541,27 @@ client *createClient(connection *conn) {
     c->node_id = NULL;
     atomicSet(c->pending_read, 0);
 
-    /* ee451 (#75): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
+    /* ee451 (#75/atomics): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
      * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
      * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
      * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
      * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal parent->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
-        void *raw = zmalloc(sizeof(cdbMask) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
+        void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
-        c->reply_cdb = (cdbMask *)aligned;
-        for (int cc = 0; cc < ncdb; cc++) atomicSet(c->reply_cdb[cc].v, 0);
+        c->reply_cdb = (cdbSlots *)aligned;
+        for (int cc = 0; cc < ncdb; cc++)
+            for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
+                atomic_store_explicit(&c->reply_cdb[cc].ready[slot], 0,
+                                      memory_order_relaxed);
     }
     c->cdb = 0;
 
     /* Size the fake ring. Each fake borrows conn/user/db at dispatch, owns its own output
      * buffer, and lives for the lifetime of the parent. fake_slot is stamped to the ring index
-     * so workers know which bit to set in parent->reply_ready_mask at completion.
+     * so workers know which parent reply-ready slot to publish at completion.
      * 2s-auto D3: tomokv-fake-ring-depth is retired at AUTO. The ring opens at the resolved
      * pipeline depth (the slot modulus and the in-flight cap), every slot is created lazily at
      * the dispatch site, and fakeRingClientCron decays the depth toward measured demand. The
@@ -3181,8 +3184,9 @@ static inline int _writeToClientSlave(client *c, ssize_t *nwritten) {
 int writeToClient(client *c, int handler_installed) {
     if (!(c->io_flags & CLIENT_IO_WRITE_ENABLED)) return C_OK;
     /* Update the number of writes of io threads on server */
-    server.stat_io_writes_processed[iotid] += 1;   /* ee451 (v13,#18): plain per-iotid add — single writer;
-                                                    * running_tid was 0 (INFO skips slot 0 => stat was dead) */
+    /* CONFIG RESETSTAT is a second writer, so this must remain one atomic
+     * RMW; no ordering is carried by the statistic. */
+    atomicIncr(server.stat_io_writes_processed[iotid], 1);
 
     ssize_t nwritten = 0, totwritten = 0;
     const int is_slave = clientTypeIsSlave(c);
@@ -4297,7 +4301,7 @@ void readQueryFromClient(connection *conn) {
     c->read_error = 0;
 
     /* Update the number of reads of io threads on server */
-    server.stat_io_reads_processed[iotid] += 1;    /* ee451 (v13,#18): see writes_processed note */
+    atomicIncr(server.stat_io_reads_processed[iotid], 1);
 
     readlen = PROTO_IOBUF_LEN;
     /* If this is a multi bulk request, and we are processing a bulk reply

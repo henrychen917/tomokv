@@ -1630,12 +1630,12 @@ void databasesCron(void) {
              * the EX workers, and only the OWNING worker may delete from it (main reaching in
              * would break the single-writer invariant the whole sharding design rests on). So
              * publish the CADENCE here and let each worker run its own bounded pass from exSlice:
-             * one release store per cron tick, edge-detected by each worker.
+             * one relaxed owner-local store per cron tick, edge-detected by each worker.
              * Without this, a key OR HASH FIELD given a TTL and never touched again was NEVER
              * reclaimed — invisible to functional tests because lazy expiry keeps every read
              * correct. */
             if (server.num_workers > 0)
-                atomic_fetch_add_explicit(&server.tomo_expire_gen, 1, memory_order_release);
+                tomoRelaxedBump(server.tomo_expire_gen, 1);
         } else {
             expireSlaveKeys();
         }
@@ -2298,41 +2298,26 @@ static inline int cdbIndexFor(int ex_id) {
     return (ex_id % server.num_cdb);
 }
 
-/* ee451 (S5): combined reply-ready mask = OR of all active CDB masks. Each
- * atomicGetAcquire synchronizes-with the worker release fetch_or on that SAME
- * cdb object, so visibility holds per bit regardless of which CDB carries it.
- * Bound is server.num_cdb (fixed at init): OFF => one load of reply_cdb[0],
- * byte-equivalent to the old single-mask snapshot. Kept element-wise so the
- * compiler cannot collapse the distinct _Atomic objects into one wide load. */
-static inline uint32_t cdbCombinedMask(client *real) {
-    uint32_t m = 0, tmp;
-    for (int c = 0; c < server.num_cdb; c++) {
-        atomicGetAcquire(real->reply_cdb[c].v, tmp);
-        m |= tmp;
-    }
-    return m;
+/* ee451 (atomics): a reply completion is one SPSC flag, not a shared bitmap
+ * update. The worker is the sole 0->1 publisher for this fake generation and
+ * the owning IO thread is the sole 1->0 clearer. A ring slot cannot be reused
+ * (or re-armed for a later cross-shard stage) until that IO thread clears it.
+ *
+ * Release/acquire is still load-bearing: the flag publishes the fake's reply
+ * payload and lifetime state. Only the clear is relaxed; it publishes no
+ * payload, and every reuse is subsequently published through an SPSC queue
+ * release store. Keeping the byte atomic also forces every poll to reload it. */
+static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
+    return atomic_load_explicit(&real->reply_cdb[cdb].ready[slot],
+                                memory_order_acquire) != 0;
 }
-
-/* ee451 (#A1): batched CDB clear. The drain paths issued one lock-prefixed fetch_and PER RETIRED SLOT
- * on the same cache line(s) the workers concurrently fetch_or into — up to pipeline-depth RMWs per
- * pass. Bits are only ever OR'd by workers and cleared by the sole drainer, so N single-bit clears are
- * equivalent to ONE combined clear per cdb: accumulate the masks over the ready-prefix walk and flush
- * once per touched cdb. INVARIANT: the flush must complete before any code that can REUSE a ring slot
- * (the same-thread STALLED-resume redispatch). Gated: tomokv-opt-batched-clear. */
-typedef struct cdbClrAcc {
-    int n;
-    uint8_t cdb[TOMO_PIPELINE_DEPTH_MAX];      /* cdb index < NUM_CDB_MAX (256) fits a byte */
-    uint32_t mask[TOMO_PIPELINE_DEPTH_MAX];
-} cdbClrAcc;
-static inline void cdbClrAdd(cdbClrAcc *a, int cdb, uint32_t bit) {
-    for (int i = 0; i < a->n; i++)
-        if (a->cdb[i] == (uint8_t)cdb) { a->mask[i] |= bit; return; }
-    a->cdb[a->n] = (uint8_t)cdb; a->mask[a->n] = bit; a->n++;
+static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
+    atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 1,
+                          memory_order_release);
 }
-static inline void cdbClrFlush(cdbClrAcc *a, client *real) {
-    for (int i = 0; i < a->n; i++)
-        atomicFetchAnd(real->reply_cdb[a->cdb[i]].v, ~a->mask[i]);
-    a->n = 0;
+static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
+    atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 0,
+                          memory_order_relaxed);
 }
 
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
@@ -2598,7 +2583,7 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * queue (queues[iotid]) and returns -1 when that queue is full. The two hot dispatch sites in
  * processCommand (express-lane GET/SET and the whitelist worker branch) used to IGNORE that failure
  * while still advancing c->dispatchid -> the dropped fake consumed a pipeline ring slot the worker
- * never ran, so its reply-ready bit was never set, flushid could never advance past it, the ring
+ * never ran, so its reply-ready byte was never set, flushid could never advance past it, the ring
  * wedged full, and the client stalled forever with its tail replies never produced (silent reply
  * loss; the single-hot-key P32 memtier end-of-run drain then hangs: rc=137, no Totals, server still
  * alive/PONG). A single hot key funnels every connection to ONE worker whose per-iotid queue
@@ -2639,7 +2624,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
  * real client from the worker: `real` is owned by this IO thread, which also writes that same
  * field from call() on its inline commands, so a worker-side bump would be a cross-thread
  * non-atomic RMW. This runs on the drain thread after it has acquire-loaded the fake's completion
- * bit, so the worker's store is already visible and the fake is quiescent.
+ * byte, so the worker's store is already visible and the fake is quiescent.
  *
  * Idempotent: it clears the fake's counter, and fakes are recycled without re-init. */
 static inline void foldClientCommandsProcessed(client *real, client *fake) {
@@ -2670,20 +2655,17 @@ void handleWorkerReplies(void) {
          * We still need to advance flushid as workers finish their fakes —
          * otherwise freeClient keeps deferring forever (dispatchid !=
          * flushid) and real never actually gets freed. So for each ready
-         * slot: clear its mask bit, retire fake state via commandProcessed
+         * slot: clear its ready byte, retire fake state via commandProcessed
          * (worker's release barrier means it's done touching the fake),
          * advance flushid. Do NOT call AddReplyFromClient / writeToClient —
          * real's conn is on its way out. Once the ring is empty, remove
          * real from the pending_worker list; freeClient will reclaim on the
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
-            uint32_t close_mask;
-            close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
-            cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
                 unsigned int slot = real->flushid & real->ring_mask;
-                if (!(close_mask & (1u << slot))) break;  /* wait for worker */
                 client *fake = real->fakeClients[slot];
+                if (!cdbSlotReady(real, fake->cdb, slot)) break;  /* wait for worker */
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_EX_PENDING;
@@ -2707,31 +2689,20 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
+                cdbSlotClear(real, fake->cdb, slot);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                cdbClrAdd(&cacc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 real->flushid++;
             }
-            cdbClrFlush(&cacc, real);             /* ee451 (#A1): one fetch_and per touched cdb */
             if (real->flushid == real->dispatchid) {
                 listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
 
-        /* Snapshot the ready-mask once per pass. Acquire pairs with the
-         * workers' release on bit set, so all of each ready fake's reply
-         * writes are visible before we read its buffer. Bits set by workers
-         * after this load just stay for the next drain pass. */
-        uint32_t mask;
-        mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs (1 load when off) */
-
-        /* Fast skip — no slot ready for this client. */
-        if (mask == 0) {
-            if (real->flushid == real->dispatchid) {
-                /* Nothing ready, nothing in flight — drop off the flush list. */
-                listUnlinkNode(server.clients_pending_ex[iotid], ln);
-            }
+        /* Nothing in flight: drop off the flush list before deriving a slot. */
+        if (real->flushid == real->dispatchid) {
+            listUnlinkNode(server.clients_pending_ex[iotid], ln);
             continue;
         }
 
@@ -2750,12 +2721,12 @@ void handleWorkerReplies(void) {
         /* ee451 (v13): io-side drain prefetch DELETED (knob retired hard-OFF — measured net-
          * negative in v11, ≈noise in every eval since; duplicated the splice loop's walk). */
 
-        cdbClrAcc acc = { .n = 0 };               /* ee451 (#A1): accumulate this pass's clears */
         while (real->flushid != real->dispatchid) {
             unsigned int slot = real->flushid & real->ring_mask;
-            if (!(mask & (1u << slot))) break;   /* head of ring not done */
-
             client *fake = real->fakeClients[slot];
+            /* Acquire pairs with this slot's worker release publication. A
+             * stale zero only postpones the prefix until the next poll. */
+            if (!cdbSlotReady(real, fake->cdb, slot)) break;
             int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
             /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
@@ -2788,7 +2759,7 @@ void handleWorkerReplies(void) {
                     atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE &&
                     /* universal xshard 2-HOP: HOP1 gather done, launch HOP2 write on THIS drain thread.
                      * The head stays in flight — not retired, flushid NOT advanced, replyWorking untouched
-                     * — so the drain keeps polling; csLaunchHop2 clears the stale bit and the HOP2 sub
+                     * — so the drain keeps polling; csLaunchHop2 clears the stale slot and the HOP2 sub
                      * re-signals this same slot. Stop walking here (in-order retire): the head must retire
                      * before any later ring slot, and it isn't retiring this pass. Returns 0 (prep
                      * refused, HOP1 subs intact) => fall through to reassemble in THIS pass. */
@@ -2807,28 +2778,22 @@ void handleWorkerReplies(void) {
                  * Retire the fake state, stop walking the ring. The async
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
+                cdbSlotClear(real, fake->cdb, slot);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
-                /* Clear this slot's ready bit so it doesn't linger. */
-                cdbClrAdd(&acc, fake->cdb, 1u << slot);   /* ee451 (#A1, v13): batched clear hardwired */
                 close_asap = 1;
                 break;
             }
 
-            /* Fake is fully drained into real's output. Clear this slot's
-             * ready bit (relaxed — the only other writers are workers, but
-             * they only OR; we're the sole clearer) and retire fake state.
-             * commandProcessed frees argv, pending_cmd, resets cmd/argc/slot. */
-            cdbClrAdd(&acc, fake->cdb, 1u << slot);       /* ee451 (#A1, v13): batched clear hardwired */
+            /* Fake is fully drained into real's output. Clear its independent
+             * ready byte before retiring/reusing this fake-ring slot. */
+            cdbSlotClear(real, fake->cdb, slot);
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
             real->flushid++;
         }
-        /* ee451 (#A1): flush the accumulated clears NOW — before the STALLED-resume below can
-         * redispatch into these freed slots on this same thread. Same-thread => no other ordering. */
-        cdbClrFlush(&acc, real);
 
         /* Single socket flush for everything we spliced this pass. */
         if (spliced && !close_asap) {
@@ -2843,10 +2808,8 @@ void handleWorkerReplies(void) {
                 putClientInPendingWriteQueue(real);
         }
 
-        /* Ring fully drained and all ready bits consumed — drop off the
-         * flush-walk list. Test mask == 0 indirectly via flushid/dispatchid:
-         * any remaining set bits must correspond to slots >= flushid, but
-         * flushid == dispatchid means there are no outstanding slots. */
+        /* Ring fully drained and all ready slots consumed — drop off the
+         * flush-walk list. */
         if (real->flushid == real->dispatchid) {
             listUnlinkNode(server.clients_pending_ex[iotid], ln);
         }
@@ -6445,7 +6408,7 @@ int processCommand(client *c) {
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
      * one single-key sub-fake per shard worker; the ring-slot `fake` becomes the group
      * head and is NOT itself worker-dispatched (no CLIENT_EX_PENDING, so the drain's
-     * was_ex_dispatched stays 0 and replyWorking is untouched). Its completion bit is
+     * was_ex_dispatched stays 0 and replyWorking is untouched). Its completion byte is
      * set by the last sub; the drain reassembles via csReassemble. */
     /* ee451 (H2 handover): the cutover hold that used to SPIN THIS IO THREAD here is gone. It is now
      * migHoldClientIfDraining, evaluated before the ring slot above: it parks the one client that
@@ -6491,7 +6454,7 @@ int processCommand(client *c) {
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
-         * reply_cdb[fake->cdb] and the drain clears reply_cdb[fake->cdb] — one
+         * reply_cdb[fake->cdb].ready[fake_slot] and the drain clears that byte — one
          * captured value, published to the worker via the SPSC queue's release
          * store (exQueuePush below), so writer and clearer never disagree. */
         fake->cdb = cdbIndexFor(ex_id);
@@ -6518,7 +6481,7 @@ int processCommand(client *c) {
          * fakes: it splices in ring order, blocking at the first incomplete
          * slot. replyWorking++ pairs with the drain's was_ex_dispatched
          * decrement like every dispatched fake; net zero before the sleep
-         * decision since the completion bit below is set synchronously. The
+         * decision since the completion byte below is set synchronously. The
          * flag is cleared where all ring fakes clear it: the drain (both the
          * live-splice and the CLOSE_ASAP-teardown walk). */
         fake->flags |= CLIENT_EX_PENDING;
@@ -6534,11 +6497,10 @@ int processCommand(client *c) {
          * guard with acquired=0 (review findings 1/9/12/13). */
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
-        /* Signal completion: set our bit in parent's ready mask. Release
+        /* Signal completion in this fake's independent ready slot. Release
          * order ensures the reply-buffer writes from call() are visible
-         * to the drain thread when it acquire-loads the mask. */
-        atomicFetchOrWithRelease(fake->parent->reply_cdb[fake->cdb].v,
-                                 1u << fake->fake_slot);
+         * to the drain when it acquire-loads this byte. */
+        cdbSlotPublish(fake->parent, fake->cdb, fake->fake_slot);
     }
     }   /* end express-lane else */
 
@@ -8051,7 +8013,14 @@ static void keysFlatCB(dictEntry *masked, void *priv) {
  * and nothing branches on these values. Called on every csSubExec exit path. */
 static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
     if (__builtin_expect(t0 == 0, 0)) return;   /* nested latch: an outer frame owns the timing */
-    atomic_fetch_add_explicit(&g->usec, (long long)(getMonotonicUs() - t0), memory_order_relaxed);
+    long long delta = (long long)(getMonotonicUs() - t0);
+    /* A singleton stage has exactly one writer. Later singleton stages are
+     * serialized through ready publication/drain and the next SPSC push, so
+     * the owner-local load/add/store cannot lose a concurrent update. */
+    if (g->nsub == 1)
+        tomoRelaxedBump(g->usec, delta);
+    else
+        atomic_fetch_add_explicit(&g->usec, delta, memory_order_relaxed);
     if (__builtin_expect(tomoErrRepliesLocal() != e0, 0))
         atomic_store_explicit(&g->had_err, 1, memory_order_relaxed);
 }
@@ -8993,7 +8962,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
  * smallest-first bounds ALL cross-thread traffic by k_shards x |smallest input| instead of the
  * total input volume the gather route pays; measured headroom ~25x at 500k/10 skew).
  * Stage machine, driven from the IO drain exactly like csLaunchHop2 (head stays in flight
- * between stages; stale completion bit cleared on each re-arm):
+ * between stages; stale completion byte cleared on each re-arm):
  *   SIZES:   one coalesced sub per shard reports each key's setTypeSize (type-checked) into
  *            pipe_scard[] — no members move. Any missing/empty key => empty result, done.
  *   GATHER1: one sub ships ONLY the globally-smallest key's members (the candidate list).
@@ -9213,7 +9182,7 @@ static int csPipeAdvance(csGroup *g) {
         g->pipe_nshard = ns; g->pipe_next = 0;
         /* re-arm: GATHER1 single sub for the smallest key (re-route: bucket may have flipped) */
         csPipeFreeStageSubs(g);
-        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        cdbSlotClear(head->parent, head->cdb, head->fake_slot);
         g->pipe_stage = CS_PIPE_GATHER1;
         g->nsub = 1; g->subs = csgAlloc(g, sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -9255,7 +9224,7 @@ static int csPipeAdvance(csGroup *g) {
             if (g->pipe_shard_of[i] == shard && i != g->pipe_smallest) kidx[nk++] = i;
         if (nk == 0) { zfree(kidx); continue; }        /* only the smallest key lived here */
         csPipeFreeStageSubs(g);
-        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        cdbSlotClear(head->parent, head->cdb, head->fake_slot);
         g->pipe_stage = CS_PIPE_PROBE;
         g->nsub = 1; g->subs = csgAlloc(g, sizeof(client*));
         atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -9395,7 +9364,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     g->spec = s; g->h2_dbid = dbid;
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
-    head->cdb = 0;   /* group-head completion bit routes to CDB 0 (matches drain's clear) */
+    head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
@@ -9757,7 +9726,7 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * target and never risks queueing the head for a direct socket write. dst==NULL means the
  * real client is being torn down (CLOSE_ASAP): skip the reply, just free the subs/group.
  * Called from the IO drain, which has acquire-synchronized with every sub via the head
- * completion bit (release-acquire chain through g->pending; see the block header). */
+ * completion byte (release-acquire chain through g->pending; see the block header). */
 /* universal xshard: 2-hop dispatcher (registry route CS_RT_TWOHOP; RENAME today, conditional
  * moves in step 4). Same-shard => ONE sub carries the FULL original argv and the worker runs the
  * real proc (typed/normal; reply spliced at reassemble). Cross-shard => HOP1 gather sub(s) on the
@@ -9888,16 +9857,16 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
 }
 
 /* universal xshard: hop-commit — the phase-transition protocol in exactly ONE place.
- * ORDER IS THE PROTOCOL: pending -> phase -> clear stale ready bit -> push.
+ * ORDER IS THE PROTOCOL: pending -> phase -> clear stale ready byte -> push.
  *  - pending before push: barrier armed before any worker can decrement.
  *  - phase before push: workers read g->phase in csSubExec.
- *  - bit-clear before FIRST push (atomic AND; this IO drain thread is the sole clearer):
- *    the new hop's completion set-bit must never be clobbered. */
+ *  - slot-clear before FIRST push (this IO drain thread is the sole clearer):
+ *    the new hop's completion store must never be clobbered. */
 static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     g->phase = phase;
     client *head = g->head;
-    atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+    cdbSlotClear(head->parent, head->cdb, head->fake_slot);
     for (int i = 0; i < nsub; i++) csPushSpin(shards[i], g->subs[i]);
 }
 
@@ -10116,7 +10085,7 @@ static int csLaunchHop2(csGroup *g) {
          * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
          * arms pending before its own pushes. */
         g->phase = CS_PH_HOP2;
-        atomicFetchAnd(head->parent->reply_cdb[head->cdb].v, ~(1u << head->fake_slot));
+        cdbSlotClear(head->parent, head->cdb, head->fake_slot);
         csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
         csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
         return 1;
@@ -15655,9 +15624,9 @@ static void moveExecutionState(client *real, client *fake) {
     fake->flags = real->flags & (CLIENT_INTERNAL | CLIENT_ASKING |
                                   CLIENT_READONLY | CLIENT_DENY_BLOCKING);
 
-    /* Fake's output buffer starts empty every dispatch. The corresponding
-     * bit in parent->reply_ready_mask was cleared by the drain that retired
-     * the previous occupant of this slot, so no mask touch is needed here. */
+    /* Fake's output buffer starts empty every dispatch. Its corresponding
+     * parent reply-ready byte was cleared by the drain that retired the
+     * previous occupant of this slot, so no flag touch is needed here. */
     fake->bufpos      = 0;
     fake->sentlen     = 0;
     fake->reply_bytes = 0;
@@ -16283,7 +16252,7 @@ static inline void exExecFake(client *fake) {
          * The per-client counter is bumped on the FAKE, not on fake->parent: the parent is owned
          * by an IO thread that concurrently writes the same field from call() on its own inline
          * commands. The drain folds fake->commands_processed into the real client when it retires
-         * the ring slot, under the release/acquire the completion bit already provides. */
+         * the ring slot, under the release/acquire the completion byte already provides. */
         if (__builtin_expect(cs_t0 != 0, 1)) {
             long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
             int cs_failed = (tomoErrRepliesLocal() != cs_e0);
@@ -16510,7 +16479,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * If any of those is ever changed to include this cycle, it must be changed knowingly: a
      * background reclaimer that reads as request pressure will make the flip controller chase it. */
     {
-        uint32_t egen = atomic_load_explicit(&server.tomo_expire_gen, memory_order_acquire);
+        /* This generation publishes no payload. A stale value merely coalesces
+         * this tick into a later exSlice; the mismatch remains until observed. */
+        uint32_t egen = atomic_load_explicit(&server.tomo_expire_gen, memory_order_relaxed);
         if (__builtin_expect(egen != worker->aexp_gen, 0)) {
             worker->aexp_gen = egen;
             exActiveExpireCycle(worker);
@@ -16573,13 +16544,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
-        /* ee451: per-batch reply-ready signal coalescing accumulator.
-         * sig_parents holds the distinct parent clients seen in this
-         * batch, sig_masks their OR-accumulated ready-slot bits. Bounded
-         * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). Flushed with one
-         * release fetch_or per distinct parent after the inner loop. */
+        /* Delay ready publication until the whole batch has finished, as before,
+         * but retain independent (parent,slot) records instead of folding slots
+         * into a word that then requires a locked OR. Do not retain fake pointers:
+         * the IO owner may recycle a fake as soon as its slot is published. */
         client *sig_parents[WORKER_POP_BATCH];
-        uint32_t sig_masks[WORKER_POP_BATCH];
+        uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
@@ -16649,12 +16619,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 continue;
             }
 
-            /* ee451 (v7): cross-shard sub-fake. Serialize its single MGET element into
-             * its own buffer, then complete the group: fetch_sub(ACQ_REL) builds the
-             * release-acquire chain across all subs so the last one sees every sub's
-             * buffer; the last sub publishes the head slot's reply bit (into the head's
-             * captured CDB, not this worker's wcdb) with release, pairing with the IO
-             * drain's acquire-load. Subs bypass value-forwarding/coalescing entirely. */
+            /* ee451 (v7): cross-shard sub-fake. For a multi-sub stage,
+             * fetch_sub(ACQ_REL) builds the release/acquire chain that lets the
+             * last sub publish every sibling's output. A one-sub stage has no
+             * sibling writer, so its pending decrement is an owner-local relaxed
+             * store rather than an accidental locked RMW. */
             if (fake->csparent) {
                 csGroup *g = fake->csparent;
                 /* mcmd-lock: every scatter sub that touches this worker's slice of the SHARED node
@@ -16677,10 +16646,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 tomoWkrLock(worker->id);
                 csSubExec(fake);
                 tomoWkrUnlock(worker->id);
-                if (atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1) {
+                int last;
+                if (g->nsub == 1) {
+                    atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
+                    last = 1;
+                } else {
+                    last = atomic_fetch_sub_explicit(&g->pending, 1,
+                                                     memory_order_acq_rel) == 1;
+                }
+                if (last) {
                     client *hp = g->head->parent;
-                    atomicFetchOrWithRelease(hp->reply_cdb[g->head->cdb].v,
-                                             1u << g->head->fake_slot);
+                    cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                 }
                 j++;
                 continue;
@@ -16717,37 +16693,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
             }
 
-            /* ee451: coalesced reply-ready signal — OR each fake's slot bit
-             * into a per-parent accumulator; one release fetch_or per
-             * distinct parent is flushed after the whole batch.
-             * ee451 (v4): with coalescing disabled, do an immediate release
-             * fetch_or per fake (sig_n stays 0 so the post-batch flush is a
-             * no-op). Both are correct: bits are only OR'd by workers and
-             * cleared by the one owning IO thread, so coalescing N ORs into
-             * one cannot lose a bit. */
-            {
-                client *p = fake->parent;
-                uint32_t bit = 1u << fake->fake_slot;
-                /* ee451 (v13): coalescing HARDWIRED (strictly fewer release RMWs; bits only
-                 * OR'd by workers/cleared by the sole drainer, so N ORs == 1). */
-                int s;
-                for (s = 0; s < sig_n; s++) if (sig_parents[s] == p) break;
-                if (s == sig_n) { sig_parents[sig_n] = p; sig_masks[sig_n] = 0; sig_n++; }
-                sig_masks[s] |= bit;
-            }
+            sig_parents[sig_n] = fake->parent;
+            sig_slots[sig_n] = (uint8_t)fake->fake_slot;
+            sig_n++;
             j++;
         }
 
-        /* ee451: flush coalesced signals — one release fetch_or per
-         * distinct parent. This release happens-after every proc() and
-         * argv release for ALL of that parent's fakes in this batch, so
-         * the draining IO thread's acquire-load of reply_ready_mask sees
-         * all their reply writes. Bits are only ever OR-ed by workers and
-         * cleared by the single owning IO thread, so coalescing N ORs into
-         * one is equivalent and cannot lose a bit. */
+        /* Each release store publishes its fake's reply writes. This loop is
+         * the worker's final access to each saved parent; after a store, the
+         * IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
-            atomicFetchOrWithRelease(sig_parents[s]->reply_cdb[ctx->wcdb].v,  /* ee451 (S5): this worker's CDB */
-                                     sig_masks[s]);
+            cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
