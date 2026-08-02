@@ -1189,3 +1189,86 @@ and a benchmark tool that cannot tolerate `-LOADING` will appear to hang against
 **Lesson, twice over in one session: check a counter\'s SCOPE before reasoning from it, and
 plausibility-check a probe\'s own baseline before trusting its verdict.** Both wrong filings would
 have been caught by asking "is this number physically sensible?" first.
+
+---
+
+## K. stress_validation — the ~2h soak, and what building it found
+
+`tools/preflight/stress_validation.sh` + `stress_validation.py`. ONE long-lived server per NUMA
+topology (1 node, then 2), each driven ~55 minutes without a restart, while every command family,
+connection churn, keyspace growth/shrink, thread-mode flips, key-balancer reshards and FLATSTORE
+resizes all happen concurrently on that same process. Restarting between cases hides exactly the
+defects it is looking for.
+
+Run it after every big change. It stops on the first failure by design: a soak resumed after a fix
+has not soaked.
+
+### K1. `OBJECT` / `MEMORY USAGE` answered from the empty decoy db — FIXED
+
+Found by the new suite's first self-test. `OBJECT ENCODING key` returned **nil** for a key that
+plainly existed; so did `OBJECT REFCOUNT`, `OBJECT FREQ` and `MEMORY USAGE`. `TYPE`, `TTL`,
+`STRLEN`, `LLEN`, `DUMP`, `LPOS` and ~20 others were all correct, so the blast radius was exactly
+the commands whose key is **not at argv[1]**.
+
+Mechanism, and it is the same class already fixed once for SCAN: `getWorkerForCommand` hashes
+`argv[1]`, but `OBJECT ENCODING key` carries the SUBCOMMAND there. They were also absent from
+`canDispatchToWorker`, so they never reached a worker at all — they ran INLINE on the io thread,
+where the only db in scope is the deliberately-empty `server.db` decoy. Silent: a caller cannot
+distinguish "no such key" from "asked the wrong shard".
+
+Fixed by routing them on `argv[2]` via a single `tomoKeyAtArgv2()` predicate shared by the dispatch
+decision and the shard hash — kept as one predicate precisely so the two can never disagree about
+which argument is the key, which would route to one worker and look up on another. Verified:
+
+    OBJECT ENCODING -> embstr     OBJECT REFCOUNT -> 1     MEMORY USAGE -> 40
+    OBJECT FREQ     -> the correct upstream "LFU policy not selected" error, not a silent nil
+
+`DEBUG OBJECT` still reports `ERR no such key` — DEBUG runs inline by design, and a loud error is
+not the silent-wrong-answer class. Left alone.
+
+### K2. `handoff_missed` is a RATE, not a must-be-zero invariant — filing corrected, no code change
+
+The sparse-handoff merge shipped `tomokv_handoff_missed` with "MUST be 0" in its comment, and the
+new soak promptly measured 2–5 per 4-minute phase on a healthy server.
+
+It is not the flip controller. A/B, same load:
+
+    static (0 flips) -> 5        auto (5 flips) -> 0        static (0 flips) -> 2
+
+The reason it cannot be zero: a producer must store its item **before** OR-ing its summary bit.
+Advertising first would let a consumer drain the lane, clear the bit, and only then have the item
+land — which is the genuine strand this protocol exists to prevent. So there is an inherent
+store-to-advertise window in which a lane legitimately holds work with no bit set anywhere, and the
+existing live-word check cannot exclude it (it only excludes producers that published after the
+consumer's exchange).
+
+**An attempted fix was written and then reverted before shipping.** It only counted a lane that was
+unadvertised-with-work on two consecutive dense sweeps. That looked right and measured 0/0 on a
+healthy server — but `residual` is OR'd back into `q_summary` at the end of every pass, so a suspect
+lane is *always* advertised again by the next dense sweep. The refined oracle would therefore have
+read ~0 even with `exHandoffAdvertise()` completely broken: a vacuous counter, strictly worse than
+the over-strict one. It was reverted rather than shipped on the strength of a green run.
+
+Current disposition: the counter is unchanged, and `stress_validation` judges it as a ceiling of
+5 misses per million commands (healthy measures ~0.1/M) instead of zero. A systematically broken
+publish site is orders of magnitude above that. A properly discriminating oracle — one that survives
+a defect-injection test against a build with the advertise call removed — is still open work.
+
+### K3. A gate must not be perturbable by a file in the working directory — FIXED
+
+The full gate failed `ROLE-CONTROLLER-GATE` with `seed materialized DBSIZE=2000001, expected
+2000000`, in both flip directions, deterministically. Not a server regression: `flipcmp.sh` booted
+its server with **no `--dir`**, so it inherited the caller's CWD and silently loaded a `dump.rdb`
+that an unrelated `DEBUG RELOAD` test had left in the repo root. That RDB held 300001 keys; the 2M
+seed overwrote all of them except **`memtier-0`** — written by a `--key-pattern=R:R` run, index 0
+being outside the 1..2000000 seed range — leaving exactly one extra key.
+
+`flipcmp.sh` now boots with an explicit, emptied `--dir`. `stress_validation.sh` does the same, and
+says why.
+
+### K4. FULL mode: `NA` is now distinct from `SKIP`
+
+J5 made structurally-impossible cases report `SKIP NOT-APPLICABLE`, which then tripped
+`FULL-COVERAGE` ("full mode emits even one SKIP row") — correctly, because SKIP means "we chose not
+to run this" and in FULL mode that is a coverage gap. Added a separate `NA` class: SKIP still fails
+FULL coverage, NA does not, and the summary reports both.

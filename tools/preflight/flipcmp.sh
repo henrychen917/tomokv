@@ -514,8 +514,18 @@ boot_server() {
     : > "$launch_log"
     SERVER_LOGS+=("$ACTIVE_LOG")
     LAUNCH_LOGS+=("$launch_log")
+    # ee451 (2026-08-02): give the server an EXPLICIT, EMPTY data dir. Without --dir it
+    # inherits the caller's CWD and silently LOADS any dump.rdb sitting there -- which is
+    # exactly how this gate once failed: an unrelated DEBUG RELOAD test had left a
+    # dump.rdb in the repo root, the server booted with 300001 stale keys, the 2M seed
+    # overwrote all but `memtier-0` (written by a --key-pattern=R:R run, index 0 is
+    # outside the 1..2000000 seed range), and the seed check saw DBSIZE=2000001 and
+    # declared both flip directions INVALID. A gate must not be perturbable by a file
+    # left in the working directory.
+    mkdir -p "$WORK/data.$label"
+    rm -f "$WORK/data.$label"/*.rdb 2>/dev/null || true
     setsid taskset -c "$SERVER_CORES" "$STAGED" \
-        --port "$PORT" --bind 127.0.0.1 \
+        --port "$PORT" --bind 127.0.0.1 --dir "$WORK/data.$label" \
         --tomokv-nodes 1 --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
         --tomokv-thread-mode "$mode" --save '' --appendonly no \
         --daemonize no --protected-mode no --enable-debug-command local \

@@ -129,6 +129,11 @@ PASS_N=0
 FAIL_N=0
 INCONCLUSIVE_N=0
 SKIP_N=0
+# ee451 (J5): NOT-APPLICABLE is its OWN class. SKIP means "we chose not to run this here"
+# (the QUICK subset) and in FULL mode that is a coverage gap that must fail. NA means "this
+# property cannot exist in this configuration" -- reporting it as SKIP would either hide a real
+# coverage gap or fail the run for a reason that is not a defect.
+NA_N=0
 SERVER_PID=
 GEN_PID=
 CLIENT_PID=
@@ -164,7 +169,7 @@ say() {
     printf '%s\n' "$*" | tee -a "$OUT"
 }
 
-case_result() { # name PASS|FAIL|INCONCLUSIVE|SKIP detail...
+case_result() { # name PASS|FAIL|INCONCLUSIVE|SKIP|NA detail...
     local name=$1 status=$2
     shift 2
     case "$status" in
@@ -172,6 +177,7 @@ case_result() { # name PASS|FAIL|INCONCLUSIVE|SKIP detail...
         FAIL) FAIL_N=$((FAIL_N + 1)) ;;
         INCONCLUSIVE) INCONCLUSIVE_N=$((INCONCLUSIVE_N + 1)) ;;
         SKIP) SKIP_N=$((SKIP_N + 1)) ;;
+        NA) NA_N=$((NA_N + 1)) ;;
         *)
             status=FAIL
             FAIL_N=$((FAIL_N + 1))
@@ -1867,7 +1873,7 @@ run_migration_variant() { # key label io ex mode expected-engine
         # ran and still have to pass; only the movement mechanism is inapplicable, and the FLAT arm
         # is what covers it (and FAILs if IT fails to engage). Gated on the MEASURED worker count,
         # not on the label, so this correctly starts engaging again if DICT ever returns at ex>=2.
-        case_result "$label" SKIP \
+        case_result "$label" NA \
             "NOT-APPLICABLE single-worker arm (effective-ex=${MOVE_EX[$key]}): bucket ownership cannot move and the controller has nothing to convert; functional exact-data=PASS canaries=$canaries ops=$ops digest=$digest"
     elif [ "${MOVE_ENGAGED[$key]}" = 0 ] &&
          [ "${MOVE_CONTROLLER[$key]}" = 0 ]; then
@@ -1909,7 +1915,7 @@ compare_migration() { # left-key right-key case detail require-controller
          { [ "$left_engaged" != 1 ] || [ "$right_engaged" != 1 ]; }; then
         # ee451 (J5): one side ran single-worker, so this is a WORKER-COUNT equivalence check, not a
         # storage-engine one -- and the digests matching is the real assertion, which held.
-        case_result "$case_name" SKIP \
+        case_result "$case_name" NA \
             "NOT-APPLICABLE $detail one arm is single-worker (effective-ex=${MOVE_EX[$left]:-?}/${MOVE_EX[$right]:-?}); movement cannot engage there. Exact digest equal=${MOVE_DIGEST[$left]} -- the equivalence assertion itself PASSED"
     elif [ "$left_engaged" != 1 ] || [ "$right_engaged" != 1 ]; then
         case_result "$case_name" INCONCLUSIVE \
@@ -2475,7 +2481,7 @@ if [ "$QUICK" != 1 ] && [ "$SKIP_N" -gt 0 ]; then
     case_result FULL-COVERAGE FAIL \
         "full qualification emitted $SKIP_N skipped propert$( [ "$SKIP_N" -eq 1 ] && printf y || printf ies )"
 fi
-say "SUMMARY PASS=$PASS_N FAIL=$FAIL_N INCONCLUSIVE=$INCONCLUSIVE_N SKIP=$SKIP_N TOTAL=$((PASS_N + FAIL_N + INCONCLUSIVE_N + SKIP_N)) MODE=$([ "$QUICK" = 1 ] && printf QUICK || printf FULL) ARTIFACTS=$WORK"
+say "SUMMARY PASS=$PASS_N FAIL=$FAIL_N INCONCLUSIVE=$INCONCLUSIVE_N SKIP=$SKIP_N NA=$NA_N TOTAL=$((PASS_N + FAIL_N + INCONCLUSIVE_N + SKIP_N + NA_N)) MODE=$([ "$QUICK" = 1 ] && printf QUICK || printf FULL) ARTIFACTS=$WORK"
 if [ "$FAIL_N" -gt 0 ]; then
     exit 1
 fi

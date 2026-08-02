@@ -6582,8 +6582,26 @@ int processCommand(client *c) {
  *
  * When in doubt leave a command off — it will run inline on the IO
  * thread via the else branch in processCommand. */
+/* ee451 (J7): the two whitelisted commands that carry their key at argv[2] rather than argv[1].
+ * Kept as one predicate so the dispatch decision and the shard hash can never disagree about
+ * which argument is the key -- disagreeing would route to one worker and look up on another. */
+static int tomoKeyAtArgv2(client *c) {
+    if (!c->cmd) return 0;
+    /* OBJECT ENCODING|REFCOUNT|FREQ|IDLETIME <key>: always exactly 3 args, always read-only. */
+    if (c->cmd->proc == objectCommand) return c->argc == 3;
+    /* MEMORY USAGE <key> [SAMPLES n]. Other MEMORY subcommands (DOCTOR, STATS, ...) take no key
+     * and must keep running inline. */
+    if (c->cmd->proc == memoryCommand)
+        return c->argc >= 3 && !strcasecmp(c->argv[1]->ptr, "usage");
+    return 0;
+}
+
 int canDispatchToWorker(client *c) {
     redisCommandProc *p = c->cmd->proc;
+
+    /* ee451 (J7): OBJECT/MEMORY USAGE must reach the OWNING worker. Inline they see the empty
+     * decoy db and silently answer nil. See the matching branch in getWorkerForCommand. */
+    if (p == objectCommand || p == memoryCommand) return tomoKeyAtArgv2(c);
 
     /* Top-level SCAN must run on a WORKER in both storage engines. FLATSTORE needs the worker's
      * in_flat_section/QSBR protection. DICT needs the real worker DB: inline execution sees the
@@ -7331,6 +7349,20 @@ int getWorkerForCommand(client *c) {
      * dispatch is one table load (the power-of-two dispatch MASK it replaced is long gone). */
     /* ee451 (hash-carry): compute the bucket ONCE here and carry it on the fake — the worker-side
      * getKeySlot (lookupKey + dbAdd + expires all recompute it) consumes via pointer match. */
+    /* ee451 (2026-08-02, BUGS.md J7): the key is NOT always at argv[1]. `OBJECT ENCODING key`
+     * and `MEMORY USAGE key` carry a SUBCOMMAND there, so the generic hash below would route on
+     * the literal "ENCODING"/"USAGE" -- and because they were also absent from
+     * canDispatchToWorker they never reached a worker at all: they ran INLINE on the io thread,
+     * where the only db in scope is the deliberately-empty server.db decoy, and returned nil for
+     * a key that plainly exists. Exactly the class already fixed for SCAN, and silent -- a caller
+     * cannot distinguish "no such key" from "asked the wrong shard".
+     * Both are read-only, single-key and deterministic, so they are safe to dispatch once hashed
+     * on the RIGHT argument. */
+    if (tomoKeyAtArgv2(c)) {
+        int b = tomoKeyBucket(c->argv[2]->ptr, sdslen(c->argv[2]->ptr));
+        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[2]->ptr;
+        return (int)server.ex_bucket_table[b];
+    }
     {
         int b = tomoKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
         c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[1]->ptr;
