@@ -485,8 +485,15 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
+static inline uint64_t aeMonotonicNs(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timing) {
     int processed = 0, numevents;
+    if (timing) timing->active_us = 0;
     if (eventLoop->maxfd == -1) return 0;
 
     if (eventLoop->beforesleep != NULL)
@@ -567,7 +574,16 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
         tvp = &tv;
     }
 
+    /* Optional vDSO-only busy accounting. A zero-timeout poll is CPU work and
+     * is therefore included. An infinite or timed poll may block, so its whole
+     * wall interval is excluded. This intentionally trades exact scheduled
+     * thread CPU time for an active-wall proxy; the caller exposes it only
+     * behind an opt-in knob. On Linux CLOCK_MONOTONIC is served by the vDSO. */
+    uint64_t poll_start_ns = 0, poll_end_ns = 0;
+    int poll_may_block = (tvp == NULL || tvp->tv_sec != 0 || tvp->tv_usec != 0);
+    if (timing) poll_start_ns = aeMonotonicNs();
     numevents = aeApiPoll(eventLoop, tvp);
+    if (timing && poll_may_block) poll_end_ns = aeMonotonicNs();
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
     for (int j = 0; j < numevents; j++) {
@@ -591,6 +607,17 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
         }
 
         processed++;
+    }
+
+    if (timing) {
+        uint64_t pass_end_ns = aeMonotonicNs();
+        uint64_t active_ns = poll_start_ns - timing->active_ns_mark;
+        active_ns += poll_may_block ? pass_end_ns - poll_end_ns
+                                    : pass_end_ns - poll_start_ns;
+        timing->active_ns_mark = pass_end_ns;
+        active_ns += timing->remainder_ns;
+        timing->active_us = active_ns / 1000;
+        timing->remainder_ns = active_ns % 1000;
     }
 
     return processed;

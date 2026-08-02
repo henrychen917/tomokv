@@ -1471,6 +1471,14 @@ typedef struct {
 #define TOMO_THREAD_MODE_AUTO   0
 #define TOMO_THREAD_MODE_STATIC 1
 
+/* ---- tomokv-io-busy-clock (IMMUTABLE enum) ---------------------------------
+ * Selects the IO-utilisation numerator used only by thread-mode=auto:
+ *   thread-cpu       — exact scheduled thread CPU time; one real
+ *                      CLOCK_THREAD_CPUTIME_ID syscall per IO loop pass.
+ *   monotonic-active — CLOCK_MONOTONIC active-wall spans with potentially
+ *                      blocking poll time subtracted; vDSO-only on Linux.
+ * The current thread-cpu behaviour remains the default. */
+
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
  *   float  — no pinning at all; the scheduler places threads. A node is a pure logical shard

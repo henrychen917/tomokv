@@ -190,6 +190,7 @@ static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its co
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
+static inline void tomoPollingYield(void);
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
@@ -540,7 +541,11 @@ void serverLogRaw(int level, const char *msg) {
         struct timeval tv;
         int role_char;
         int daylight_active = 0;
-        pid_t pid = getpid();
+        /* The parent PID is immutable after init. Before init, and in a fork
+         * child (whose inherited server.pid is the parent's), ask the kernel.
+         * Reuse this one value below instead of issuing a second getpid(). */
+        pid_t pid = (server.pid > 0 && server.in_fork_child == CHILD_TYPE_NONE)
+                        ? server.pid : getpid();
 
         gettimeofday(&tv,NULL);
         struct tm tm;
@@ -556,7 +561,7 @@ void serverLogRaw(int level, const char *msg) {
             role_char = (server.masterhost ? 'S':'M'); /* Slave or Master. */
         }
         fprintf(fp,"%d:%c %s %c %s\n",
-            (int)getpid(),role_char, buf,c[level],msg);
+            (int)pid,role_char, buf,c[level],msg);
     }
     fflush(fp);
 
@@ -2608,7 +2613,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
         exPauseCpu();
-        if ((++spins & 4095) == 0) sched_yield();
+        if ((++spins & 4095) == 0) tomoPollingYield();
     } while (exQueuePush(q, fake) != 0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
 }
@@ -8791,7 +8796,7 @@ static void csPushSpin(int w, client *sub) {
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exPauseCpu();
-        if ((++spins & 4095) == 0) sched_yield();
+        if ((++spins & 4095) == 0) tomoPollingYield();
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
@@ -13933,7 +13938,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "multiplexing_api:%s\r\n", aeGetApiName(),
             "atomicvar_api:%s\r\n", REDIS_ATOMIC_API,
             "gcc_version:%s\r\n", GNUC_VERSION_STR,
-            "process_id:%I\r\n", (int64_t) getpid(),
+            "process_id:%I\r\n",
+                (int64_t)(server.in_fork_child == CHILD_TYPE_NONE ? server.pid : getpid()),
             "process_supervised:%s\r\n", supervised,
             "run_id:%s\r\n", server.runid,
             "tcp_port:%i\r\n", server.port ? server.port : server.tls_port,
@@ -15712,7 +15718,7 @@ void freebackPush(int ex_id, robj *obj) {
     unsigned int t = atomic_load_explicit(&fb->tail, memory_order_relaxed);
     unsigned int next_t = (t + 1) & FREEBACK_RING_MASK;
     while (next_t == atomic_load_explicit(&fb->head, memory_order_acquire))
-        sched_yield();  /* back-pressure: wait for the worker to drain */
+        tomoPollingYield();  /* back-pressure: wait for the worker to drain */
     fb->objs[t] = obj;
     atomic_store_explicit(&fb->tail, next_t, memory_order_release);
 }
@@ -16133,6 +16139,14 @@ static inline void exPauseCpu(void) {
 #else
     __asm__ __volatile__("" ::: "memory");
 #endif
+}
+
+/* Polling is the communication contract for the Tomo IO/EX paths. Keep the
+ * historic sched_yield behavior by default, but allow operators to remove the
+ * kernel entry from polling/backpressure loops. The FLATSTORE resize wait is
+ * intentionally excluded: that subsystem has separate ownership. */
+static inline void tomoPollingYield(void) {
+    exPauseCpu();   /* hard-coded: sched_yield() here was a syscall per spin iteration */
 }
 
 /* ee451: execute one fake on the worker thread.
@@ -17417,19 +17431,26 @@ void initIOThreads(void) {
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
 }
-/* Thread CPU time is the IO analogue of exThread.tm_busy_us: unlike elapsed time around
- * aeProcessEventsIO(), it excludes time blocked in epoll while including event handlers,
- * before-sleep reply drain, and zero-timeout/userpoll spinning. The absolute mark is TLS
- * because it is accounting state, not a cross-thread signal; only tm_busy_us is published.
- * One clock read at each pass end makes adjacent deltas telescope, so no start read is needed. */
-static __thread uint64_t tm_io_cpu_mark_us;
-static inline uint64_t tmIoThreadCpuUs(void) {
-    struct timespec ts;
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-    return (uint64_t)ts.tv_sec * 1000000ULL + (uint64_t)ts.tv_nsec / 1000ULL;
-}
+/* IO busy-time accounting has two immutable modes:
+ *  - thread-cpu (default/current behaviour): exact scheduled CPU time, but
+ *    CLOCK_THREAD_CPUTIME_ID is a real Linux syscall once per IO pass.
+ *  - monotonic-active: aeProcessEventsIO measures active wall spans and
+ *    subtracts potentially-blocking epoll intervals using CLOCK_MONOTONIC
+ *    (vDSO on Linux). It includes zero-timeout poll work but can include
+ *    scheduler preemption outside poll, so it is opt-in.
+ *
+ * Both marks are TLS accounting state; only tm_busy_us is published. */
+static __thread aeIoTiming tm_io_active_timing;
 static inline void tmIoBusyBegin(void) {
-    tm_io_cpu_mark_us = tmIoThreadCpuUs();
+    /* Static mode never reads either mark. Avoid even its one role-entry CPU
+     * clock syscall. */
+    if (!server.thread_auto) return;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);   /* vDSO */
+    tm_io_active_timing.active_ns_mark =
+        (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+    tm_io_active_timing.remainder_ns = 0;
+    tm_io_active_timing.active_us = 0;
 }
 
 /* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
@@ -17438,18 +17459,19 @@ static inline void tmIoBusyBegin(void) {
  * pass. Returns the number of events processed (0 = idle pass). idle_wait_us is
  * negative for a base IO thread's normal indefinite wait. A converted IO thread
  * uses a bounded wait so late dormant-EX work is observed without relying on an
- * event-loop wakeup; reply-bearing passes retain ae.c's shorter drain policy. */
+ * event-loop wakeup; reply-bearing passes retain ae.c's shorter drain policy.
+ *
+ * The IO busy numerator is collected by ae.c from vDSO CLOCK_MONOTONIC spans,
+ * excluding any poll that could block. It replaced a per-pass
+ * clock_gettime(CLOCK_THREAD_CPUTIME_ID), which is a real syscall on Linux. */
 static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
-    int ne = aeProcessEventsIO(t->el, idle_wait_us);
+    aeIoTiming *timing = server.thread_auto ? &tm_io_active_timing : NULL;
+    int ne = aeProcessEventsIO(t->el, idle_wait_us, timing);
     tmIoSignal *s = &tm_io_sig[t->id];
     if (server.thread_auto) {
-        /* Owner-published IO utilization numerator. The delta covers all CPU consumed since
-         * the preceding IO-pass publication (including between-pass IO-role housekeeping);
-         * sleeping in aeApiPoll contributes zero thread CPU. One clock read per PASS, never
-         * per event. */
-        uint64_t cpu_now_us = tmIoThreadCpuUs();
-        s->tm_busy_us += (unsigned int)(cpu_now_us - tm_io_cpu_mark_us);
-        tm_io_cpu_mark_us = cpu_now_us;
+        /* Owner-published IO utilization numerator, collected by ae.c from vDSO
+         * spans that exclude any poll which could block. */
+        s->tm_busy_us += (unsigned int)timing->active_us;
     }
     /* Events/pass remains useful as a relative per-thread weight for client placement,
      * but zero-event reply-drain passes make it invalid as role saturation. */

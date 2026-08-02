@@ -174,6 +174,7 @@ configEnum tomokv_thread_mode_enum[] = {
     {NULL, 0}
 };
 
+
 configEnum tomokv_pin_mode_enum[] = {
     {"float", TOMO_PIN_FLOAT},              /* no pinning; scheduler decides */
     {"ccd", TOMO_PIN_CCD},                  /* a node is a CCD / shared-L3 domain (DEFAULT) */
