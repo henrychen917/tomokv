@@ -184,3 +184,50 @@ reexplore}/` · briefs at top level (`abcd_brief.txt`, `final_brief.txt`, `confo
 
 **Start here next session:** fix the set-op leak, harvest `stress0b`'s commits, then run
 `final_brief.txt`.
+
+---
+
+## SESSION 2 UPDATE (remote now `682a488ef`)
+
+### The "memory leak" — RESOLVED as a measurement artifact, no unbounded leak
+Multi-window warm measurement is dispositive. SUNION over 6 windows:
+`20480 276528 -20480 272296 0 0` — a NEGATIVE delta and two ZEROs at steady
+state. SINTER oscillates in a band (`24688 20480 4208 20480 24688`) with a dip,
+not accumulation. Even single-key SET (not cross-shard) showed the same
+page-granular `+20480` jumps. The earlier "flat ~32 B/req leak" was two points
+on a settling jemalloc/high-water curve read as a line — the exact sanity-gate
+trap. The position-map ownership fix (`2725fdb5e`) STANDS as correctness
+hardening (frees with the build-time count, not the repurposed `g->nsub` —
+matters on the HOP2 set-op teardown path), but there is no leak to chase.
+Repro for the record: `/tmp/leak_converge.sh` (6 warm windows; converges to 0).
+
+### Merged this session
+* `682a488ef` xshard: skip the full CDB reply-bus snapshot while the in-order
+  ring head is incomplete. No knob (gated on runtime num_cdb). Single-CDB
+  byte-for-byte; gate flat (+0.24/+0.23/+0.71/-0.42%). NOT exercised by the gate
+  (num_cdb defaults OFF) — the win is a multi-CDB/multi-CCD property, unverified
+  on this box.
+
+### The five transport/syscall forks are NOT independently stackable
+They overlap in two concurrency-critical regions and must be CHOSEN/sequenced,
+not stacked. This is why only xshard-cost landed:
+
+* **`sys-atomics` COMPETES WITH `682a488ef` (xshard-cost).** It is a *redesign*
+  of the same reply bus: it deletes the per-CDB bitmap (`reply_cdb[c].v`, with
+  LOCK-prefixed fetch_or/fetch_and) and replaces it with per-slot SPSC ready
+  flags (`reply_cdb[c].ready[slot]`, plain release/relaxed stores, NO RMW). This
+  is the stronger change for the "reduce hot-path atomics" goal — it removes the
+  locked RMWs entirely — but taking it means REVERTING xshard-cost, and it is a
+  lock-free reply-path rework that needs the FULL bigstress under load (not just
+  the quick gate) to prove no reply is dropped. A focused session, not a stack.
+* **`sys-general`, `polling`, `sys-uring` all conflict on `src/ae.c:485-487`** —
+  the event-loop poll site. They are competing reworks of the same hot loop
+  (sched_yield/clock removal; consumer-side sparse discovery; io_uring poll).
+  Pick/sequence ONE at a time, each with its own hard-code A/B (owner ruling:
+  no knob except sys-uring's) and full gate. `sys-uring` is default-OFF so it is
+  the safest to land first once its ae.c conflict is resolved.
+
+Diffs staged at `/tmp/{sys-atomics,sys-general,xshard-cost}.patch` (base
+13f39c6f0) and in `cw/{polling,sys-uring}` (committed). Recommended next order:
+sys-atomics (decide vs xshard-cost) -> sys-uring (off-by-default, low risk) ->
+sched_yield/clock removals from sys-general -> polling.
