@@ -22,6 +22,7 @@
 #include "cluster_asm.h"
 #include "memory_prefetch.h"
 #include "connection.h"
+#include "uring.h"
 #include <sys/socket.h>
 #include <sys/uio.h>
 #include <math.h>
@@ -140,6 +141,7 @@ static void resetFakeClientState(client *c, client *parent) {
     c->isFake = 1;
     c->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal parent->reply_cdb */
     c->parent = parent;
+    c->uring = NULL;
     memset(c->fakeClients, 0, sizeof(c->fakeClients));
     c->dispatchid = 0;
     c->flushid = 0;
@@ -397,6 +399,7 @@ void freePooledFakeClient(client *c) {
 
 client *createClient(connection *conn) {
     client *c = zmalloc(sizeof(client));
+    c->uring = NULL;
 
     /* ee451 (#75): the per-CDB reply slots are a HEAP array (c->reply_cdb), aligned to
      * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
@@ -595,6 +598,11 @@ client *createClient(connection *conn) {
 }
 
 void installClientWriteHandler(client *c) {
+    if (server.io_uring && tomoUringClientAttached(c) &&
+        tomoUringClientQueueWrite(c) == C_OK) {
+        connSetWriteHandler(c->conn, NULL);
+        return;
+    }
     int ae_barrier = 0;
     /* For the fsync=always policy, we want that a given FD is never
      * served for reading and writing in the same event loop iteration,
@@ -1937,6 +1945,7 @@ static inline int _clientHasPendingRepliesSlave(client *c) {
 /* Return true if the specified client has pending reply buffers to write to
  * the socket. */
 int clientHasPendingReplies(client *c) {
+    if (server.io_uring && tomoUringClientSendPending(c)) return 1;
     if (unlikely(clientTypeIsSlave(c))) {
         return _clientHasPendingRepliesSlave(c);
     }
@@ -2014,6 +2023,23 @@ void clientAcceptHandler(connection *conn) {
 
     /* Assign the client to an IO thread */
     if (server.io_threads_num > 1) assignClientToIOThread(c);
+
+    /* Successful ordinary accepted TCP connections switch from epoll reads
+     * to one owner-ring multishot receive here.  createClient() is too early:
+     * outgoing replication and ASM callers set their special flags only
+     * after creating the client. */
+    if (server.io_uring && c->tid == iotid &&
+        c->conn->type == connectionTypeTcp() &&
+        !(c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
+                      CLIENT_REPL_RDB_CHANNEL))) {
+        if (tomoUringClientAttach(c) != C_OK) {
+            serverLog(LL_WARNING,
+                      "FATAL: failed to attach accepted TCP client %llu to "
+                      "requested io_uring owner %d",
+                      (unsigned long long)c->id, iotid);
+            exit(1);
+        }
+    }
 }
 
 void acceptCommonHandler(connection *conn, int flags, char *ip) {
@@ -2530,6 +2556,13 @@ void freeClient(client *c) {
         freeClientAsync(c->parent);
         return;
     }
+    if (server.io_uring && tomoUringClientAttached(c)) {
+        tomoUringClientRequestClose(c);
+        if (!tomoUringClientCloseReady(c)) {
+            freeClientAsync(c);
+            return;
+        }
+    }
     /* ee451 (thread-modes v1.6): if this real client is mid-migration, drop it from its
      * source thread's migrating_out set so the scan never touches a freed pointer. */
     if (c->flags & CLIENT_MIGRATING) tmMigForgetOnFree(c);
@@ -2671,6 +2704,9 @@ void freeClient(client *c) {
      * This will also clean all remaining pending commands in the client,
      * as they are no longer valid.
      */
+    /* No recv/cancel CQE can still name the sidecar at this point.  Release
+     * it before connClose makes the fd reusable. */
+    if (server.io_uring) tomoUringClientRelease(c);
     unlinkClient(c);
     freeClientMultiState(c);
     serverAssert(c->pending_cmds.len == 0);
@@ -2819,6 +2855,10 @@ int freeClientsInAsyncFreeQueue(void) {
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
+        if (server.io_uring && tomoUringClientAttached(c)) {
+            tomoUringClientRequestClose(c);
+            if (!tomoUringClientCloseReady(c)) continue;
+        }
         if (c->flags & CLIENT_PROTECTED) continue;
         if (c->flags & CLIENT_EX_PENDING) continue;
         c->flags &= ~CLIENT_CLOSE_ASAP;
@@ -3183,6 +3223,9 @@ static inline int _writeToClientSlave(client *c, ssize_t *nwritten) {
  * thread safe. */
 int writeToClient(client *c, int handler_installed) {
     if (!(c->io_flags & CLIENT_IO_WRITE_ENABLED)) return C_OK;
+    /* A ring-owned prefix is the only writer until its data CQE retires it.
+     * A legacy syscall here would overtake that prefix on the same stream. */
+    if (server.io_uring && tomoUringClientSendPending(c)) return C_OK;
     /* Update the number of writes of io threads on server */
     /* CONFIG RESETSTAT is a second writer, so this must remain one atomic
      * RMW; no ordering is carried by the statistic. */
@@ -3282,6 +3325,11 @@ int writeToClient(client *c, int handler_installed) {
 /* Write event handler. Just send data to the client. */
 void sendReplyToClient(connection *conn) {
     client *c = connGetPrivateData(conn);
+    if (server.io_uring && tomoUringClientAttached(c) &&
+        tomoUringClientQueueWrite(c) == C_OK) {
+        connSetWriteHandler(c->conn, NULL);
+        return;
+    }
     writeToClient(c,1);
 }
 
@@ -3312,6 +3360,12 @@ int handleClientsWithPendingWrites(void) {
 
         /* Don't write to clients that are going to be closed anyway. */
         if (c->flags & CLIENT_CLOSE_ASAP) continue;
+
+        /* Queue one stable prefix per client; all clients' SEND SQEs are
+         * staged together by the owner ring's single enter for this pass. */
+        if (server.io_uring && tomoUringClientAttached(c) &&
+            tomoUringClientQueueWrite(c) == C_OK)
+            continue;
 
         /* Let IO thread handle the client if possible. */
         if (server.io_threads_num > 1 &&
@@ -3442,8 +3496,13 @@ void resetClient(client *c, int num_pcmds_to_free) {
  *    path, it is not really released, but only marked for later release. */
 void protectClient(client *c) {
     c->flags |= CLIENT_PROTECTED;
+    int uring_attached =
+        server.io_uring && tomoUringClientAttached(c);
+    if (uring_attached)
+        tomoUringClientPause(c);
     if (c->conn && c->tid == IOTHREAD_MAIN_THREAD_ID) {
-        connSetReadHandler(c->conn,NULL);
+        if (!uring_attached)
+            connSetReadHandler(c->conn,NULL);
         connSetWriteHandler(c->conn,NULL);
     }
 }
@@ -3453,7 +3512,9 @@ void unprotectClient(client *c) {
     if (c->flags & CLIENT_PROTECTED) {
         c->flags &= ~CLIENT_PROTECTED;
         if (c->conn) {
-            if (c->tid == IOTHREAD_MAIN_THREAD_ID)
+            if (server.io_uring && tomoUringClientAttached(c))
+                tomoUringClientResume(c);
+            else if (c->tid == IOTHREAD_MAIN_THREAD_ID)
                 connSetReadHandler(c->conn,readQueryFromClient);
             if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);
         }
@@ -4283,6 +4344,80 @@ int processInputBuffer(client *c) {
     flushExQueues();   /* ee451 (#E1+S4, v13): batch-push + eager publish both hardwired */
 
     return C_OK;
+}
+
+/* Append one provided-buffer receive to a client-owned SDS.  Unlike the
+ * epoll reader this never borrows thread_reusable_qb: bytes consumed while a
+ * recv is being disarmed may have to travel with the client to another IO
+ * owner.  No pointer into the provided buffer survives this call. */
+int appendClientInputFromUring(client *c, const void *buf, size_t len) {
+    if (!c || !len || (c->flags & CLIENT_CLOSE_ASAP)) return C_ERR;
+
+    c->read_error = 0;
+    server.stat_io_reads_processed[iotid] += 1;
+    if (c->querybuf == NULL) c->querybuf = sdsempty();
+    c->querybuf = sdscatlen(c->querybuf, buf, len);
+    size_t qblen = sdslen(c->querybuf);
+    if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+
+    if (!(c->flags & CLIENT_MASTER) ||
+        c->running_tid == IOTHREAD_MAIN_THREAD_ID)
+        c->lastinteraction = server.unixtime;
+    else
+        c->io_lastinteraction = server.unixtime;
+
+    if (c->flags & CLIENT_MASTER) {
+        if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
+            c->read_reploff += (long long)len;
+        else
+            c->io_read_reploff += (long long)len;
+        atomicIncr(server.stat_net_repl_input_bytes, len);
+    } else {
+        tomoRelaxedBump(server.netstat[iotid].in, len);
+    }
+    c->net_input_bytes += len;
+
+    if (!(c->flags & CLIENT_MASTER) &&
+        (c->mstate.argv_len_sums + qblen > server.client_max_querybuf_len ||
+         (c->mstate.argv_len_sums + qblen > 1024*1024 &&
+          authRequired(c)))) {
+        c->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+        atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
+        freeClientAsync(c);
+        return C_ERR;
+    }
+    return C_OK;
+}
+
+/* Process bytes already copied out of the provided-buffer ring.  The uring
+ * reaper calls this only after advancing the CQ and returning every BID, so a
+ * nested processEventsWhileBlocked() cannot observe the same CQE twice. */
+int processClientInputFromUring(client *c) {
+    if (!c) return C_ERR;
+
+    if (isClientReadErrorFatal(c)) {
+        handleClientReadError(c);
+        freeClientAsync(c);
+        return C_ERR;
+    }
+    if (c->flags & CLIENT_EX_PENDING) return C_OK;
+    if (!(c->io_flags & CLIENT_IO_READ_ENABLED)) {
+        atomicSetWithSync(c->pending_read, 1);
+        return C_OK;
+    }
+    if (server.io_threads_num > 1)
+        atomicSetWithSync(c->pending_read, 0);
+
+    if (c->querybuf && sdslen(c->querybuf) > c->qb_pos) {
+        if (processInputBuffer(c) == C_ERR) return C_ERR;
+    }
+    if (isClientReadErrorFatal(c)) {
+        if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
+            handleClientReadError(c);
+        freeClientAsync(c);
+        return C_ERR;
+    }
+    return beforeNextClient(c);
 }
 
 void readQueryFromClient(connection *conn) {

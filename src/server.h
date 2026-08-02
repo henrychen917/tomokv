@@ -1590,6 +1590,7 @@ _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
 
+struct tomoUringClient;
 typedef struct client client;
 typedef struct client {
     int isFake;
@@ -1882,6 +1883,10 @@ typedef struct client {
                                 * shared node kvstore while the others spin (µs), preserving the
                                 * per-connection FIFO flush semantics without concurrent kvstoreEmpty
                                 * races. NULL = sharing off (private per-worker db): empty directly. */
+    /* Allocated only for an accepted TCP client while tomokv-io-uring=1.
+     * Kept at the cold tail so the default epoll path does not perturb the
+     * request/reply cache-line layout. */
+    struct tomoUringClient *uring;
 } client;
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
@@ -3040,6 +3045,10 @@ struct redisServer {
      * (tomokv-ex-queue-depth is retired — see the derivation in initServer). */
     int io_threads;
     int ex_threads;
+    /* One immutable numeric gate for the complete io_uring network backend.
+     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects one
+     * SINGLE_ISSUER|DEFER_TASKRUN ring per live IO owner. */
+    int io_uring;
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
@@ -4686,6 +4695,8 @@ void setDeferredAttributeLen(client *c, void *node, long length);
 void setDeferredPushLen(client *c, void *node, long length);
 int isClientReadErrorFatal(client *c);
 int processInputBuffer(client *c);
+int appendClientInputFromUring(client *c, const void *buf, size_t len);
+int processClientInputFromUring(client *c);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
 int prepareClientToWrite(client *c);

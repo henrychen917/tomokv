@@ -3207,6 +3207,7 @@ standardConfig static_configs[] = {
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
+    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 1, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll/no uring machinery; 1=unified per-IO-owner SI|DTR ring */
 
     /* ================= PINNING =============================================================
      * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting

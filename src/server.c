@@ -34,6 +34,7 @@
 #include "estore.h"
 #include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
+#include "uring.h"
 
 #include <time.h>
 #include <signal.h>
@@ -1392,6 +1393,13 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
     /* in case the resizing is disabled return immediately */
     if(!server.reply_buffer_resizing_enabled)
         return 0;
+
+    /*
+     * An ordinary io_uring SEND may reference the immutable unsent prefix of
+     * c->buf directly. Reply construction only appends behind that prefix;
+     * defer the rare cron reallocation until its data CQE ends the reference.
+     */
+    if (server.io_uring && tomoUringClientSendPending(c)) return 0;
 
     /* Don't resize encoded buffers. When buf is encoded, we track the last
      * partially written payloadHeader pointer, so we can't
@@ -2800,17 +2808,17 @@ void handleWorkerReplies(void) {
             real->flushid++;
         }
 
-        /* Single socket flush for everything we spliced this pass. */
+        /* With io_uring, queue one client write after splicing so it joins the
+         * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
+         * write path byte-for-byte. */
         if (spliced && !close_asap) {
-            /* 2s-auto T2: tomokv-drain-tail-skip retired at AUTO; the "direct write only"
-             * legacy arm (which DROPPED a short-written tail) went with it.
-             * writeToClient returning C_ERR means the conn errored; it calls
-             * freeClientAsync(real) internally. We just stop touching real. If it
-             * couldn't flush everything (short write / EAGAIN), enqueue for the
-             * pending-write pass so the tail isn't dropped. */
-            (void)writeToClient(real, 0);
-            if (clientHasPendingReplies(real))
+            if (server.io_uring && tomoUringClientAttached(real)) {
                 putClientInPendingWriteQueue(real);
+            } else {
+                (void)writeToClient(real, 0);
+                if (clientHasPendingReplies(real))
+                    putClientInPendingWriteQueue(real);
+            }
         }
 
         /* Ring fully drained and all ready slots consumed — drop off the
@@ -3957,6 +3965,29 @@ void initServer(void) {
      * thread no connection is routed to has only done half the work, so backfill is part of
      * flipping, not a separate switch. */
     server.tm_flip_rebalance = server.thread_auto;
+
+    /* This fork's IO ownership is the tomokv-thread-io/poly-thread model.
+     * The unrelated upstream `io-threads` handoff moves clients through a
+     * second ownership protocol and is intentionally not mixed with it. */
+    if (server.io_uring && server.io_threads_num != 1) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-io-uring 1 requires the upstream 'io-threads' "
+            "setting to remain 1; size TomoKV IO ownership with "
+            "tomokv-thread-io instead");
+        exit(1);
+    }
+
+#ifndef HAVE_LIBURING
+    /* The runtime gate is deliberately strict.  A binary built without the
+     * required liburing support must not turn a requested uring experiment
+     * into an epoll run with a misleading label. */
+    if (server.io_uring) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-io-uring 1 requires a Linux build with "
+            "liburing >= 2.4 (rebuild with USE_URING=yes)");
+        exit(1);
+    }
+#endif
 
     /* ---- clusters: REFUSED, because tomokv sharding owns the kvstore geometry ---------------
      * cluster-enabled and tomokv sharding both want to define what a kvstore "slot" IS.  Cluster
@@ -14311,8 +14342,45 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
-        /* MERGE 2026-07-28: the fork-local tomokv_* counters and upstream's Stats block are now
-         * TWO sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
+        tomoUringStats ust;
+        tomoUringGetStats(&ust);
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_uring_enabled:%d\r\n", server.io_uring,
+            "tomokv_uring_rings_ready:%llu\r\n", (unsigned long long)ust.rings_ready,
+            "tomokv_uring_enters:%llu\r\n", (unsigned long long)ust.enters,
+            "tomokv_uring_sqes_submitted:%llu\r\n", (unsigned long long)ust.sqes_submitted,
+            "tomokv_uring_sqes_max_batch:%llu\r\n", (unsigned long long)ust.sqes_max_batch,
+            "tomokv_uring_cqes:%llu\r\n", (unsigned long long)ust.cqes,
+            "tomokv_uring_epoll_wakes:%llu\r\n", (unsigned long long)ust.epoll_wakes,
+            "tomokv_uring_init_failures:%llu\r\n", (unsigned long long)ust.init_failures,
+            "tomokv_uring_recv_arms:%llu\r\n", (unsigned long long)ust.recv_arms,
+            "tomokv_uring_recv_rearms:%llu\r\n", (unsigned long long)ust.recv_rearms,
+            "tomokv_uring_recv_cqes:%llu\r\n", (unsigned long long)ust.recv_cqes,
+            "tomokv_uring_recv_bytes:%llu\r\n", (unsigned long long)ust.recv_bytes,
+            "tomokv_uring_recv_enobufs:%llu\r\n", (unsigned long long)ust.recv_enobufs,
+            "tomokv_uring_recv_buffers_returned:%llu\r\n", (unsigned long long)ust.recv_buffers_returned,
+            "tomokv_uring_recv_cancel_queued:%llu\r\n", (unsigned long long)ust.recv_cancel_queued,
+            "tomokv_uring_recv_cancel_cqes:%llu\r\n", (unsigned long long)ust.recv_cancel_cqes,
+            "tomokv_uring_recv_cancel_enoent:%llu\r\n", (unsigned long long)ust.recv_cancel_enoent,
+            "tomokv_uring_recv_cancel_ealready:%llu\r\n", (unsigned long long)ust.recv_cancel_ealready,
+            "tomokv_uring_recv_terminal_waits:%llu\r\n", (unsigned long long)ust.recv_terminal_waits,
+            "tomokv_uring_recv_migration_acks:%llu\r\n", (unsigned long long)ust.recv_migration_acks,
+            "tomokv_uring_send_queued:%llu\r\n", (unsigned long long)ust.send_queued,
+            "tomokv_uring_send_submitted:%llu\r\n", (unsigned long long)ust.send_submitted,
+            "tomokv_uring_send_cqes:%llu\r\n", (unsigned long long)ust.send_cqes,
+            "tomokv_uring_send_bytes:%llu\r\n", (unsigned long long)ust.send_bytes,
+            "tomokv_uring_send_partial:%llu\r\n", (unsigned long long)ust.send_partial,
+            "tomokv_uring_send_errors:%llu\r\n", (unsigned long long)ust.send_errors,
+            "tomokv_uring_send_buffer_exhaustions:%llu\r\n", (unsigned long long)ust.send_buffer_exhaustions,
+            "tomokv_uring_send_buffers_recycled:%llu\r\n", (unsigned long long)ust.send_buffers_recycled,
+            "tomokv_uring_send_zc_submitted:%llu\r\n", (unsigned long long)ust.send_zc_submitted,
+            "tomokv_uring_send_zc_notifications:%llu\r\n", (unsigned long long)ust.send_zc_notifications,
+            "tomokv_uring_send_zc_copied:%llu\r\n", (unsigned long long)ust.send_zc_copied,
+            "tomokv_uring_send_zc_fallbacks:%llu\r\n", (unsigned long long)ust.send_zc_fallbacks,
+            "tomokv_uring_send_cancel_queued:%llu\r\n", (unsigned long long)ust.send_cancel_queued,
+            "tomokv_uring_send_cancel_cqes:%llu\r\n", (unsigned long long)ust.send_cancel_cqes));
+        /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
+         * separate sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
          * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
          * and the mset-move merge each appended one pair and together overflowed it, which fails
          * as an unreadable token-pasting error on COMPACT_FMT_, not as "too many arguments".
@@ -15039,6 +15107,7 @@ void setupChildSignalHandlers(void) {
  * parent restarts it can bind/lock despite the child possibly still running. */
 void closeChildUnusedResourceAfterFork(void) {
     closeListeningSockets(0);
+    tomoUringAfterForkChild();
     if (server.cluster_enabled && server.cluster_config_file_lock_fd != -1)
         close(server.cluster_config_file_lock_fd);  /* don't care if this fails */
 
@@ -17430,6 +17499,11 @@ void initIOThreads(void) {
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
+    if (tomoUringInitThread(0, server.el) != C_OK) {
+        serverLog(LL_WARNING,
+                  "FATAL: failed to initialize requested io_uring owner 0");
+        exit(1);
+    }
 }
 /* IO busy-time accounting has two immutable modes:
  *  - thread-cpu (default/current behaviour): exact scheduled CPU time, but
@@ -17587,6 +17661,12 @@ void *polyThreadMain(void *arg) {
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 flatRegisterIoSlot(ctx->io_slot);
+                if (tomoUringInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
+                    serverLog(LL_WARNING,
+                              "FATAL: failed to initialize requested io_uring owner %d",
+                              ctx->io_slot);
+                    exit(1);
+                }
                 if (!ctx->io_listening) {
                     /* ee451 (rank-2 re-bind fix): an IO-EXIT CLOSES this slot's listener
                      * (tmMigLeaveAcceptGroup — leaving the reuseport dispatch group closes
@@ -18096,6 +18176,8 @@ static int tmClientQuiesced(client *c) {
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
     if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
+    if (server.io_uring && tomoUringClientAttached(c) &&
+        !tomoUringClientMigrationReady(c)) return 0;       /* cancel CQE + recv terminal CQE */
     /* (v12-K worker_direct_send wds_busy/wds_inflight fence absent on the numa lineage — stripped) */
     return 1;
 }
@@ -18307,18 +18389,32 @@ static int tmPlaceConnDest(int exclude, long *in_flight) {
  * keeps draining) and enroll it in the source's migrating_out set. Runs on the owning thread. */
 static void tmMigStartClient(client *c) {
     c->flags |= CLIENT_MIGRATING;
-    connSetReadHandler(c->conn, NULL);     /* delete AE_READABLE on this thread's loop; writes stay live so replies flush */
+    if (server.io_uring && tomoUringClientAttached(c))
+        tomoUringClientStartMigration(c);
+    else
+        connSetReadHandler(c->conn, NULL); /* epoll reader; writes stay live so replies flush */
     listAddNodeTail(tm_mig_mbox[iotid].migrating_out, c);
 }
 
 /* Abort a migration (client became non-migratable mid-drain, e.g. ran SUBSCRIBE/MULTI):
- * resume reads and leave it on this thread. */
-static void tmMigAbortClient(client *c) {
+ * resume reads and leave it on this thread.  A uring client stays enrolled
+ * and MIGRATING until the same cancel+terminal barrier required by handoff
+ * has completed. */
+static int tmMigAbortClient(client *c) {
+    if (server.io_uring && tomoUringClientAttached(c) &&
+        !tomoUringClientAbortMigration(c))
+        return 0;
     c->flags &= ~CLIENT_MIGRATING;
-    if (c->conn) connSetReadHandler(c->conn, readQueryFromClient);
+    if (c->conn) {
+        if (server.io_uring && tomoUringClientAttached(c))
+            tomoUringClientResume(c);
+        else
+            connSetReadHandler(c->conn, readQueryFromClient);
+    }
     serverLog(LL_NOTICE, "ee451 thread-modes v1.6: migration of client %llu ABORTED — became "
                          "non-migratable during drain; left on io thread %d",
               (unsigned long long)c->id, iotid);
+    return 1;
 }
 
 /* IO-EXIT: leave the reuseport accept group so NO new conns hash here. Deletes the read
@@ -18366,6 +18462,13 @@ static int tmMigRejoinAcceptGroup(int id) {
  * in clients_pending_write / _ref_reply; migratable ⇒ not in unblocked_clients). Runs on the
  * owning (source) thread; dest re-registers on its own loop. */
 static void tmMigHandoff(client *c, int dest) {
+    if (server.io_uring && tomoUringClientAttached(c)) {
+        serverAssert(tomoUringClientMigrationReady(c));
+        /* This clears the source-ring ownership only after both CQEs.  The
+         * mailbox publication below is the release edge observed by dest. */
+        tomoUringClientPublishTransit(c);
+    }
+
     /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
      * handler + TLS state and nulls conn->el so dest's rebind assert holds). */
     connUnbindEventLoop(c->conn);
@@ -18379,7 +18482,6 @@ static void tmMigHandoff(client *c, int dest) {
         c->client_list_node = NULL;
     }
     if (server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;
-    c->flags &= ~CLIENT_MIGRATING;
     /* (the live count is server.clients[iotid], already shrunk by the listDelNode above) */
 
     /* 3. Re-owner and publish to dest's inbox, then wake dest. */
@@ -18497,13 +18599,15 @@ void tmMigServiceOut(void) {
         client *c = listNodeValue(ln);
         /* Died / closing during drain — drop it; the async-free pass reclaims it. */
         if (!c->conn || (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY))) {
+            if (server.io_uring && tomoUringClientAttached(c))
+                tomoUringClientRequestClose(c);
             c->flags &= ~CLIENT_MIGRATING;
             listDelNode(mb->migrating_out, ln);
             continue;
         }
         /* Ran a stateful command mid-drain (e.g. SUBSCRIBE) — abort, leave on source. */
         if (!tmClientMigratable(c)) {
-            tmMigAbortClient(c);
+            if (!tmMigAbortClient(c)) continue;
             listDelNode(mb->migrating_out, ln);
             continue;
         }
@@ -18524,7 +18628,11 @@ void tmMigServiceOut(void) {
                 atomic_load_explicit(&dctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 /* the chosen destination went away — fall back to least-loaded, else abort */
                 dest = tmLeastLoadedIoDest(id);
-                if (dest < 0) { tmMigAbortClient(c); listDelNode(mb->migrating_out, ln); continue; }
+                if (dest < 0) {
+                    if (tmMigAbortClient(c))
+                        listDelNode(mb->migrating_out, ln);
+                    continue;
+                }
             }
         }
         listDelNode(mb->migrating_out, ln);
@@ -18643,9 +18751,24 @@ void tmMigDrainInbox(void) {
 
         /* c->conn->el is NULL (source unbound it); rebind to this loop, re-link, resume. */
         connRebindEventLoop(c->conn, my_el);
-        linkClient(c);                                   /* into clients[id] + clients_index[id] (uses iotid); grows the live count */
-        connSetReadHandler(c->conn, readQueryFromClient);/* AE_READABLE on this loop; pending socket data fires immediately (level-triggered) */
-        c->flags &= ~CLIENT_MIGRATING;
+        linkClient(c); /* into clients[id] + clients_index[id] (uses iotid) */
+        if (server.io_uring && tomoUringClientAttached(c)) {
+            /* Acquire from the inbox precedes installing destination
+             * ownership.  Process source-copied bytes before queuing the new
+             * multishot arm, so byte order crosses the migration intact. */
+            if (tomoUringClientAdopt(c) != C_OK) {
+                serverLog(LL_WARNING,
+                          "FATAL: io_uring destination %d could not adopt "
+                          "migrated client %llu",
+                          id, (unsigned long long)c->id);
+                exit(1);
+            }
+            c->flags &= ~CLIENT_MIGRATING;
+            tomoUringClientResume(c);
+        } else {
+            connSetReadHandler(c->conn, readQueryFromClient);
+            c->flags &= ~CLIENT_MIGRATING;
+        }
         if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);   /* defensive: nothing should be pending at quiesce */
         serverLog(LL_VERBOSE, "ee451 thread-modes v1.6: io thread %d ADOPTED migrated client %llu",
                   id, (unsigned long long)c->id);

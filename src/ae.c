@@ -81,6 +81,10 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     eventLoop->maxfd = -1;
     eventLoop->beforesleep = NULL;
     eventLoop->aftersleep = NULL;
+    eventLoop->uring_enter = NULL;
+    eventLoop->uring_reap = NULL;
+    eventLoop->uring_epoll_drained = NULL;
+    eventLoop->uring_free = NULL;
     eventLoop->flags = 0;
     memset(eventLoop->privdata, 0, sizeof(eventLoop->privdata));
     if (aeApiCreate(eventLoop) == -1) goto err;
@@ -141,6 +145,7 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
 }
 
 void aeDeleteEventLoop(aeEventLoop *eventLoop) {
+    if (eventLoop->uring_free) eventLoop->uring_free(eventLoop);
     aeApiFree(eventLoop);
     zfree(eventLoop->events);
     zfree(eventLoop->fired);
@@ -379,15 +384,25 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
 int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 {
     int processed = 0, numevents;
+    int uring_ready = 0;
 
     /* Nothing to do? return ASAP */
     if (!(flags & AE_TIME_EVENTS) && !(flags & AE_FILE_EVENTS)) return 0;
+
+    /* CQ memory is owned by this event-loop thread.  Reap anything already
+     * visible before beforeSleep so send results and received requests can
+     * participate in the same pass's normal batching. */
+    if (eventLoop->uring_reap) {
+        int rr = eventLoop->uring_reap(eventLoop, flags & AE_FILE_EVENTS);
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+    }
 
     /* Note that we want to call aeApiPoll() even if there are no
      * file events to process as long as we want to process time
      * events, in order to sleep until the next time event is ready
      * to fire. */
-    if (eventLoop->maxfd != -1 ||
+    if (eventLoop->maxfd != -1 || eventLoop->uring_enter ||
         ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT))) {
         int j;
         struct timeval tv, *tvp = NULL; /* NULL means infinite wait. */
@@ -412,9 +427,22 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp = &tv;
             }
         }
-        /* Call the multiplexing API, will return only on timeout or when
-         * some event fires. */
-        numevents = aeApiPoll(eventLoop, tvp);
+        /* A native-backend readiness CQE is already pending, so this pass
+         * must not block again.  The enter is still made: DEFER_TASKRUN
+         * requires it, and it submits every arm/cancel/send staged above. */
+        if (uring_ready) {
+            tv.tv_sec = tv.tv_usec = 0;
+            tvp = &tv;
+        }
+
+        if (eventLoop->uring_enter) {
+            (void)eventLoop->uring_enter(eventLoop, tvp);
+            numevents = 0;
+        } else {
+            /* Call the multiplexing API, will return only on timeout or when
+             * some event fires. */
+            numevents = aeApiPoll(eventLoop, tvp);
+        }
 
         /* Don't process file events if not requested. */
         if (!(flags & AE_FILE_EVENTS)) {
@@ -424,6 +452,23 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         /* After sleep callback. */
         if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
             eventLoop->aftersleep(eventLoop);
+
+        if (eventLoop->uring_reap) {
+            int rr = eventLoop->uring_reap(eventLoop, flags & AE_FILE_EVENTS);
+            processed += rr & AE_URING_COUNT_MASK;
+            uring_ready |= rr & AE_URING_EPOLL_READY;
+            if (uring_ready) {
+                struct timeval nowait = {0};
+                numevents = aeApiPoll(eventLoop, &nowait);
+                if (eventLoop->uring_epoll_drained)
+                    eventLoop->uring_epoll_drained(eventLoop);
+            }
+        }
+
+        /* The completion backend can discover native readiness only after
+         * the initial flags check above.  Preserve ae's contract for callers
+         * that requested timers without file-event dispatch. */
+        if (!(flags & AE_FILE_EVENTS)) numevents = 0;
 
         for (j = 0; j < numevents; j++) {
             int fd = eventLoop->fired[j].fd;
@@ -494,7 +539,14 @@ static inline uint64_t aeMonotonicNs(void) {
 int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timing) {
     int processed = 0, numevents;
     if (timing) timing->active_us = 0;
-    if (eventLoop->maxfd == -1) return 0;
+    if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) return 0;
+
+    int uring_ready = 0;
+    if (eventLoop->uring_reap) {
+        int rr = eventLoop->uring_reap(eventLoop, 1);
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+    }
 
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
@@ -574,15 +626,41 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timi
         tvp = &tv;
     }
 
-    /* Optional vDSO-only busy accounting. A zero-timeout poll is CPU work and
-     * is therefore included. An infinite or timed poll may block, so its whole
-     * wall interval is excluded. This intentionally trades exact scheduled
-     * thread CPU time for an active-wall proxy; the caller exposes it only
-     * behind an opt-in knob. On Linux CLOCK_MONOTONIC is served by the vDSO. */
+    /* A CQE was already reaped above, so there is work in hand: force this pass's
+     * wait to zero so it cannot block behind work we can already run. */
+    if (uring_ready) {
+        tv.tv_sec = tv.tv_usec = 0;
+        tvp = &tv;
+    }
+
+    /* vDSO-only busy accounting, bracketing the ENTIRE wait -- io_uring_enter as
+     * well as epoll_wait, since either can be the blocking call. A zero-timeout
+     * wait is CPU work and is therefore included; an infinite or timed wait may
+     * block, so its whole wall interval is excluded. poll_may_block is evaluated
+     * AFTER the uring_ready override above, so a forced zero-timeout pass counts
+     * as busy. This trades exact scheduled thread CPU for an active-wall proxy;
+     * on Linux CLOCK_MONOTONIC is served by the vDSO, CLOCK_THREAD_CPUTIME_ID is
+     * a real syscall. */
     uint64_t poll_start_ns = 0, poll_end_ns = 0;
     int poll_may_block = (tvp == NULL || tvp->tv_sec != 0 || tvp->tv_usec != 0);
     if (timing) poll_start_ns = aeMonotonicNs();
-    numevents = aeApiPoll(eventLoop, tvp);
+
+    if (eventLoop->uring_enter) {
+        (void)eventLoop->uring_enter(eventLoop, tvp);
+        int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+        if (uring_ready) {
+            struct timeval nowait = {0};
+            numevents = aeApiPoll(eventLoop, &nowait);
+            if (eventLoop->uring_epoll_drained)
+                eventLoop->uring_epoll_drained(eventLoop);
+        } else {
+            numevents = 0;
+        }
+    } else {
+        numevents = aeApiPoll(eventLoop, tvp);
+    }
     if (timing && poll_may_block) poll_end_ns = aeMonotonicNs();
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
@@ -665,4 +743,23 @@ void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep
 
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep) {
     eventLoop->aftersleep = aftersleep;
+}
+
+void aeSetUringProcs(aeEventLoop *eventLoop, aeUringEnterProc *enter,
+                     aeUringReapProc *reap,
+                     aeUringEpollDrainedProc *epoll_drained,
+                     aeUringFreeProc *free_proc) {
+    eventLoop->uring_enter = enter;
+    eventLoop->uring_reap = reap;
+    eventLoop->uring_epoll_drained = epoll_drained;
+    eventLoop->uring_free = free_proc;
+}
+
+int aeGetPollFd(aeEventLoop *eventLoop) {
+#ifdef HAVE_EPOLL
+    return aeApiPollFd(eventLoop);
+#else
+    (void)eventLoop;
+    return -1;
+#endif
 }

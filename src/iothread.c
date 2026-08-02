@@ -9,6 +9,7 @@
  */
 
 #include "server.h"
+#include "uring.h"
 
 /* IO threads. */
 static IOThread IOThreads[IO_THREADS_MAX_NUM];
@@ -167,6 +168,16 @@ void unbindClientFromIOThreadEventLoop(client *c) {
 void keepClientInMainThread(client *c) {
     if (c->tid == IOTHREAD_MAIN_THREAD_ID) return;
     serverAssert(c->running_tid == IOTHREAD_MAIN_THREAD_ID);
+    /*
+     * This is the unrelated upstream IO-thread transfer primitive; it has no
+     * Tomo owner mailbox and cannot safely mutate main's event loop from a
+     * custom IO owner. Supported uring configurations disable upstream IO
+     * threads, and commands that could reach this transition are refused in
+     * the sharded runtime. Fail closed if that contract ever changes: a live
+     * source-ring multishot must never be followed by a main-epoll arm.
+     */
+    if (server.io_uring)
+        serverAssert(!tomoUringClientAttached(c));
     /* IO thread no longer manage it. */
     server.io_threads_clients_num[c->tid]--;
     /* Unbind connection of client from io thread event loop. */

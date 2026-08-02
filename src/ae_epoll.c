@@ -133,3 +133,12 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
 static char *aeApiName(void) {
     return "epoll";
 }
+
+/* epoll descriptors are pollable: they become readable while their ready
+ * list is non-empty.  The uring backend keeps one POLL_ADD on this fd so
+ * listeners and cold control fds share the same blocking io_uring_enter as
+ * data-socket completions. */
+static int aeApiPollFd(aeEventLoop *eventLoop) {
+    aeApiState *state = eventLoop->apidata;
+    return state->epfd;
+}
