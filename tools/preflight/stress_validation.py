@@ -47,6 +47,19 @@ class RespError(Exception):
         super().__init__(msg)
         self.msg = msg
 
+def transient(msg):
+    """Replies that mean "not now, ask again", NOT "your request was wrong".
+
+    LOADING: the DEBUG RELOAD window.
+    BUSY <space>: TomoKV serialises scripts ("one script at a time in phase 1"), so concurrent
+      EVAL lanes legitimately collide. Upstream's "BUSY Redis is busy running a script" is the
+      same shape. The trailing space matters -- BUSYKEY (RESTORE onto an existing key) and
+      BUSYGROUP (consumer group exists) are real errors and must NOT be retried away.
+
+    A client that cannot retry through these is broken; treating them as failures is how a
+    harness invents defects that are not there."""
+    return msg.startswith("LOADING") or msg.startswith("BUSY ")
+
 class Conn:
     """Minimal RESP2 client. Deliberately not redis-py: this needs exact control of
     pipelining and of reply-count-vs-request-count, because a LOST REPLY must show
@@ -121,8 +134,8 @@ class Conn:
             try:
                 return self._read()
             except RespError as e:
-                if retry_loading and e.msg.startswith("LOADING") and time.time() < deadline:
-                    time.sleep(0.05); continue
+                if retry_loading and transient(e.msg) and time.time() < deadline:
+                    time.sleep(0.02); continue
                 raise
 
     def pipe(self, cmds, retry_loading=True):
@@ -138,8 +151,8 @@ class Conn:
                 try:
                     out.append(self._read())
                 except RespError as e:
-                    if e.msg.startswith("LOADING"): loading = True; out.append(e)
-                    else: out.append(e)
+                    if transient(e.msg): loading = True
+                    out.append(e)
             if loading and retry_loading and time.time() < deadline:
                 time.sleep(0.05); continue
             return out
@@ -551,7 +564,13 @@ class Engine:
     def __init__(self, a):
         self.a = a
         self.stop = threading.Event()
-        self.pause = threading.Event()      # set => lanes idle (exclusive windows)
+        self.pause = threading.Event()      # set => ALL lanes idle (exclusive calibration)
+        # DEBUG RELOAD is save -> FLUSH -> load, so every key written after the snapshot is
+        # legitimately discarded. A lane that asserts its own writes survive cannot also run
+        # across a reload -- the two requirements contradict. Value-asserting lanes stand down
+        # for the reload; bulk/skew/churn keep hammering, so the reload still happens under
+        # real concurrent load (which is what found J3 and exercised the J4 watchdog).
+        self.oracle_pause = threading.Event()
         self.lock = threading.Lock()
         self.failures = []                  # hard failures; first one ends the run
         self.ops = defaultdict(int)
@@ -567,10 +586,11 @@ class Engine:
         return Conn(self.a.host, self.a.port, timeout=self.a.timeout, name=name)
 
     def fail(self, where, detail):
+        ts = time.strftime("%H:%M:%S") + ".%03d" % int((time.time() % 1) * 1000)
         with self.lock:
             if not self.failures:
-                print(f"\n!!! FAIL [{where}] {detail}", flush=True)
-            self.failures.append((where, detail))
+                print(f"\n!!! FAIL [{ts}] [{where}] {detail}", flush=True)
+            self.failures.append((ts, where, detail))
         self.stop.set()
 
     def bump(self, k, n=1):
@@ -585,8 +605,9 @@ class Engine:
                 out[k.strip()] = v.strip()
         return out
 
-    def wait_while_paused(self):
-        while self.pause.is_set() and not self.stop.is_set():
+    def wait_while_paused(self, oracle=False):
+        while (self.pause.is_set() or (oracle and self.oracle_pause.is_set())) \
+                and not self.stop.is_set():
             time.sleep(0.05)
 
     # -- lanes -----------------------------------------------------------------
@@ -596,7 +617,7 @@ class Engine:
         i = 0
         try:
             while not self.stop.is_set():
-                self.wait_while_paused()
+                self.wait_while_paused(oracle=True)
                 if self.stop.is_set(): break
                 name, fn = SCENARIOS[i % len(SCENARIOS)]
                 ns = f"sv:sc{idx}:{i % 32}"
@@ -646,7 +667,7 @@ class Engine:
         c = self.conn(f"big{idx}")
         try:
             while not self.stop.is_set():
-                self.wait_while_paused()
+                self.wait_while_paused(oracle=True)
                 if self.stop.is_set(): break
                 size = random.choice([4096, 16384, 65536])
                 k = f"sv:big:{random.randrange(256)}"
@@ -723,6 +744,7 @@ class Engine:
                 self.fail("longlived-setup", f"{type(e).__name__}: {e}"); return
         while not self.stop.is_set():
             time.sleep(2.0)
+            if self.oracle_pause.is_set(): continue   # its value can vanish across a reload
             for i, c in enumerate(self.longlived):
                 try:
                     if s(c.cmd("GET", f"sv:ll:{i}")) != f"ll{i}":
@@ -849,11 +871,16 @@ class Engine:
             # DEBUG RELOAD under live load, on some cycles: a big, real edge case.
             if self.a.reload and cycle % 2 == 0 and not self.stop.is_set():
                 print("  DEBUG RELOAD under load ...", flush=True)
+                self.oracle_pause.set()
+                time.sleep(1.0)          # let in-flight assertions finish before the flush
                 try:
                     eq(ctl.cmd("DEBUG", "RELOAD"), "OK", "DEBUG RELOAD")
                     self.bump("reloads")
                 except Exception as e:
                     self.fail("debug-reload", f"{type(e).__name__}: {e}")
+                finally:
+                    time.sleep(1.0)      # and let the keyspace settle before they resume
+                    self.oracle_pause.clear()
 
             if self.stop.is_set(): break
             print("  shrink ...", flush=True)
