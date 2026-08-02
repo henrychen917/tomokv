@@ -2313,6 +2313,21 @@ static inline uint32_t cdbCombinedMask(client *real) {
     return m;
 }
 
+/* Complete a combined snapshot after handleWorkerReplies has already acquire-loaded
+ * the in-order head's CDB. Reusing that value keeps an immediately-ready head at C
+ * loads rather than C+1; bits published to the known CDB after its first snapshot
+ * simply remain for the next drain pass, exactly as with cdbCombinedMask's per-CDB
+ * load race. */
+static inline uint32_t cdbCombinedMaskAfterHead(client *real, int head_cdb, uint32_t head_mask) {
+    uint32_t m = head_mask, tmp;
+    for (int c = 0; c < server.num_cdb; c++) {
+        if (c == head_cdb) continue;
+        atomicGetAcquire(real->reply_cdb[c].v, tmp);
+        m |= tmp;
+    }
+    return m;
+}
+
 /* ee451 (#A1): batched CDB clear. The drain paths issued one lock-prefixed fetch_and PER RETIRED SLOT
  * on the same cache line(s) the workers concurrently fetch_or into — up to pipeline-depth RMWs per
  * pass. Bits are only ever OR'd by workers and cleared by the sole drainer, so N single-bit clears are
@@ -2660,6 +2675,22 @@ void handleWorkerReplies(void) {
     listRewind(server.clients_pending_ex[iotid], &li);
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
+        int head_cdb = -1;
+        uint32_t head_mask = 0;
+
+        /* On a multi-CDB host, do not acquire-load every worker's reply bus while the
+         * in-order ring head is still incomplete. No later ready slot can be retired
+         * past that head, and every fake captures the one CDB its producer release-ORs.
+         * Complete the combined snapshot below only on the ready path, reusing this
+         * acquired value so an immediately-ready head still costs exactly num_cdb loads.
+         * The single-CDB case is gated out and remains byte-for-byte on the old path. */
+        if (server.num_cdb > 1 && real->flushid != real->dispatchid) {
+            unsigned int head_slot = real->flushid & real->ring_mask;
+            client *head_fake = real->fakeClients[head_slot];
+            head_cdb = head_fake->cdb;
+            atomicGetAcquire(real->reply_cdb[head_fake->cdb].v, head_mask);
+            if (!(head_mask & (1u << head_slot))) continue;
+        }
 
         /* Guard: real might have been torn down (connection closed,
          * output-buffer-limit overflow, etc.) between dispatch and now.
@@ -2678,7 +2709,9 @@ void handleWorkerReplies(void) {
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
             uint32_t close_mask;
-            close_mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
+            close_mask = head_cdb >= 0
+                       ? cdbCombinedMaskAfterHead(real, head_cdb, head_mask)
+                       : cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs */
             cdbClrAcc cacc = { .n = 0 };          /* ee451 (#A1) */
             while (real->flushid != real->dispatchid) {
                 unsigned int slot = real->flushid & real->ring_mask;
@@ -2724,7 +2757,9 @@ void handleWorkerReplies(void) {
          * writes are visible before we read its buffer. Bits set by workers
          * after this load just stay for the next drain pass. */
         uint32_t mask;
-        mask = cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs (1 load when off) */
+        mask = head_cdb >= 0
+             ? cdbCombinedMaskAfterHead(real, head_cdb, head_mask)
+             : cdbCombinedMask(real);   /* ee451 (S5): OR of all CDBs (1 load when off) */
 
         /* Fast skip — no slot ready for this client. */
         if (mask == 0) {
