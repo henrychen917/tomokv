@@ -155,6 +155,10 @@ declare -A MOVE_DIGEST=()
 declare -A MOVE_OK=()
 declare -A MOVE_ENGAGED=()
 declare -A MOVE_CONTROLLER=()
+# ee451 (BUGS.md J5): the effective EX-worker count each arm actually ran with. Bucket ownership
+# cannot move, and the flip controller has nothing to convert, when there is exactly ONE worker --
+# that is a STRUCTURAL impossibility, not a failed attempt, and the two deserve different verdicts.
+declare -A MOVE_EX=()
 
 say() {
     printf '%s\n' "$*" | tee -a "$OUT"
@@ -1384,6 +1388,7 @@ run_migration_variant() { # key label io ex mode expected-engine
         case_result "$label" FAIL "$LAST_REASON"
         return
     fi
+    MOVE_EX["$key"]=$EFFECTIVE_EX
     engine=FLAT
     [ "$EFFECTIVE_EX" -eq 1 ] && engine=DICT
     if [ "$engine" != "$expected_engine" ]; then
@@ -1854,6 +1859,16 @@ run_migration_variant() { # key label io ex mode expected-engine
     elif [ "${MOVE_CONTROLLER[$key]}" = -1 ]; then
         case_result "$label" FAIL \
             "controller evidence disagrees log-conversion=$log_conversion DEBUG-role-change=$observed_role_change roles=${roles0:-n/a}->${converted_roles:-none}; exact migration data PASS"
+    elif [ "${MOVE_EX[$key]:-0}" -lt 2 ] && [ "${MOVE_ENGAGED[$key]}" != 1 ]; then
+        # ee451 (J5): NOT INCONCLUSIVE. With one EX worker there is nowhere for a bucket to move and
+        # nothing for the controller to convert, so this arm can never engage no matter how long it
+        # runs. FLATSTORE has been unconditional since 2026-07-28 (the knob was deleted), so "DICT"
+        # no longer names an engine choice -- it names ex=1. The functional assertions above still
+        # ran and still have to pass; only the movement mechanism is inapplicable, and the FLAT arm
+        # is what covers it (and FAILs if IT fails to engage). Gated on the MEASURED worker count,
+        # not on the label, so this correctly starts engaging again if DICT ever returns at ex>=2.
+        case_result "$label" SKIP \
+            "NOT-APPLICABLE single-worker arm (effective-ex=${MOVE_EX[$key]}): bucket ownership cannot move and the controller has nothing to convert; functional exact-data=PASS canaries=$canaries ops=$ops digest=$digest"
     elif [ "${MOVE_ENGAGED[$key]}" = 0 ] &&
          [ "${MOVE_CONTROLLER[$key]}" = 0 ]; then
         case_result "$label" INCONCLUSIVE \
@@ -1890,6 +1905,12 @@ compare_migration() { # left-key right-key case detail require-controller
              [ "$right_controller" = -1 ]; }; }; then
         case_result "$case_name" FAIL \
             "$detail exact digest equal but engagement evidence is broken moves=$left_engaged/$right_engaged controllers=$left_controller/$right_controller"
+    elif { [ "${MOVE_EX[$left]:-0}" -lt 2 ] || [ "${MOVE_EX[$right]:-0}" -lt 2 ]; } &&
+         { [ "$left_engaged" != 1 ] || [ "$right_engaged" != 1 ]; }; then
+        # ee451 (J5): one side ran single-worker, so this is a WORKER-COUNT equivalence check, not a
+        # storage-engine one -- and the digests matching is the real assertion, which held.
+        case_result "$case_name" SKIP \
+            "NOT-APPLICABLE $detail one arm is single-worker (effective-ex=${MOVE_EX[$left]:-?}/${MOVE_EX[$right]:-?}); movement cannot engage there. Exact digest equal=${MOVE_DIGEST[$left]} -- the equivalence assertion itself PASSED"
     elif [ "$left_engaged" != 1 ] || [ "$right_engaged" != 1 ]; then
         case_result "$case_name" INCONCLUSIVE \
             "ENGAGED=NO $detail exact digest equal=${MOVE_DIGEST[$left]} moves=$left_engaged/$right_engaged"
