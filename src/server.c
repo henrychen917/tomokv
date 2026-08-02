@@ -4050,6 +4050,23 @@ void initServer(void) {
         exit(1);
     }
 
+    /* ee451 (A1, 2026-08-02): refuse upstream's `io-threads` pool. This fork owns its threading
+     * end to end -- its own io threads, its own workers, its own client-to-thread assignment and
+     * its own pinning. Leaving stock io-threads enabled starts a SECOND, independent pool:
+     * beforeSleep would drive processClientsOfAllIOThreads() alongside our dispatch, clients would
+     * be owned by two different assignment schemes at once, and the resulting single-writer
+     * violations would look like data corruption rather than a misconfiguration. It is IMMUTABLE
+     * at runtime, so boot is the only place this can be caught. */
+    if (server.io_threads_num > 1) {
+        serverLog(LL_WARNING,
+            "FATAL: 'io-threads %d' is not supported by this fork. TomoKV runs its own IO and "
+            "worker pools (--tomokv-thread-io / --tomokv-thread-ex) and assigns clients to them "
+            "itself; upstream's io-threads pool would run concurrently against the same clients. "
+            "Remove the 'io-threads' directive (or set it to 1) and size the pool with "
+            "--tomokv-thread-io / --tomokv-thread-ex instead.", server.io_threads_num);
+        exit(1);
+    }
+
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
      * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. */
@@ -4072,6 +4089,38 @@ void initServer(void) {
             serverLog(LL_WARNING, "FATAL: node topology invalid (tomokv-thread-io=%d "
                       "tomokv-thread-ex=%d tomokv-cores-per-node=%d): need thread-io + thread-ex "
                       "<= cores-per-node.", ipn, epn, cpn);
+            exit(1);
+        }
+        /* ee451 (A1, 2026-08-02): GLOBAL CAPACITY BOUNDS, checked HERE -- before anything indexes
+         * a fixed-size array by thread id. tm_io_sig[] is TOMO_IO_THREADS_MAX+1 entries and is
+         * indexed by io slot; the per-worker queue matrix, the flat batch io_snap[] and the
+         * sparse-handoff summary word are all sized from these constants too. Until now the only
+         * checks were "> 0" and "fits in cores-per-node", so a large -c machine (or simply
+         * --tomokv-nodes 8 --tomokv-thread-io 8) silently produced io_threads > 32 and corrupted
+         * memory past the end of those arrays instead of refusing to start.
+         *
+         * The 64-bit summary word is the binding constraint on the EX side and is a structural
+         * limit, not a tunable: a worker's advertised-producer set is one uint64 mask. Say so
+         * explicitly rather than letting someone raise TOMO_EX_THREADS_MAX and get silent
+         * truncation. */
+        int io_total = nodes * ipn, ex_total = nodes * epn;
+        if (io_total > TOMO_IO_THREADS_MAX || ex_total > TOMO_EX_THREADS_MAX) {
+            serverLog(LL_WARNING,
+                "FATAL: thread pool exceeds the compiled capacity. Requested io=%d ex=%d "
+                "(%d node(s) x io %d / ex %d per node); the limits are io <= %d and ex <= %d. "
+                "These bound fixed-size arrays indexed by thread id (tm_io_sig[], the per-(io,ex) "
+                "queue matrix, the flat batch io_snap[]) and the 64-bit per-worker handoff summary "
+                "mask, so exceeding them would corrupt memory rather than merely run slowly. "
+                "Reduce --tomokv-thread-io / --tomokv-thread-ex / --tomokv-nodes.",
+                io_total, ex_total, nodes, ipn, epn,
+                TOMO_IO_THREADS_MAX, TOMO_EX_THREADS_MAX);
+            exit(1);
+        }
+        if (io_total + ex_total > TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX) {
+            serverLog(LL_WARNING,
+                "FATAL: total thread pool %d exceeds the compiled maximum %d (io %d + ex %d).",
+                io_total + ex_total, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX,
+                TOMO_IO_THREADS_MAX, TOMO_EX_THREADS_MAX);
             exit(1);
         }
         server.topo_nodes = nodes; server.cores_per_node = cpn;
