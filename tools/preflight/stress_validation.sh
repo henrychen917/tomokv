@@ -180,6 +180,7 @@ for nodes in $SV_NODES; do
     say "  booted pid=$SERVER_PID nodes=$nodes per-node io=$io ex=$ex slots=$roles0"
 
     json=$WORK/$label.json
+    phase_start=$SECONDS
     taskset -c "$LOAD_CORES" python3 "$ENGINE" \
         --port "$SV_PORT" --server-pid "$SERVER_PID" \
         --phase-secs "$phase_secs" --cycles "$SV_CYCLES" \
@@ -205,7 +206,7 @@ for nodes in $SV_NODES; do
     if [ "$alive" != yes ]; then
         result "SOAK-$label-SURVIVAL" FAIL "server not answering at end of phase"
     else
-        result "SOAK-$label-SURVIVAL" PASS "server answered PING after ${phase_secs}s"
+        result "SOAK-$label-SURVIVAL" PASS "server answered PING after $((SECONDS - phase_start))s of actual uptime"
     fi
 
     SV_MEM_TOLERANCE=$SV_MEM_TOLERANCE SV_TPUT_FLOOR=$SV_TPUT_FLOOR \

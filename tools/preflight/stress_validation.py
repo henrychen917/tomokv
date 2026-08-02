@@ -421,19 +421,42 @@ def sc_dump_restore(c, ns):
     c.cmd("DEL", a, b)
 
 def sc_scan(c, ns):
-    # SCAN guarantees: a key present for the WHOLE iteration is returned. Our own
-    # namespace is untouched by other lanes, so exact completeness is assertable.
+    """SCAN guarantees: a key present for the WHOLE iteration is returned. Our own namespace is
+    untouched by other lanes, so exact completeness is assertable -- and this runs while the flat
+    table is being REBUILT and buckets are being resharded underneath the cursor, which is the
+    interesting part.
+
+    Two things this got wrong the first time, both worth keeping in mind:
+      * MATCH filters the OUTPUT, it does not shorten the WALK. A full iteration costs
+        dbsize/COUNT round trips no matter how narrow the pattern, so COUNT must be large or the
+        scenario alone dominates the lane (it did: 45 scenario executions in a phase instead of
+        930, and six later scenarios never ran at all).
+      * the termination guard has to scale with the KEYSPACE, not be a constant. A fixed 20000
+        was fine at 150k keys and tripped at ~500k, reporting a harness limit as a server defect.
+    """
     keys = [f"{ns}:sc{i}" for i in range(40)]
     c.cmd("MSET", *[x for k in keys for x in (k, "v")])
+    try:
+        dbsize = int(s(c.cmd("DBSIZE")))
+    except Exception:
+        dbsize = 1000000
+    count = 1000
+    # 10x the round trips a perfectly even walk would need, with a floor: SCAN may revisit
+    # buckets across a rehash/resize, so some slack is legitimate, but an unbounded loop is not.
+    guard_max = max(2000, (dbsize // count + 1) * 10)
     seen, cur, guard = set(), 0, 0
     while True:
-        cur, batch = c.cmd("SCAN", cur, "MATCH", f"{ns}:sc*", "COUNT", 20)
+        cur, batch = c.cmd("SCAN", cur, "MATCH", f"{ns}:sc*", "COUNT", count)
         cur = int(s(cur)); seen |= bset(batch)
         guard += 1
         if cur == 0: break
-        if guard > 20000: raise OracleFail("SCAN did not terminate")
+        if guard > guard_max:
+            raise OracleFail(f"SCAN did not terminate in {guard} iterations "
+                             f"(dbsize={dbsize} count={count} guard_max={guard_max})")
     missing = bset(keys) - seen
-    if missing: raise OracleFail("SCAN missed %d keys e.g. %r" % (len(missing), sorted(missing)[:3]))
+    if missing:
+        raise OracleFail("SCAN missed %d of its own keys e.g. %r (dbsize=%d)"
+                         % (len(missing), sorted(missing)[:3], dbsize))
     c.cmd("DEL", *keys)
 
 def sc_txn_guard(c, ns):
