@@ -2845,14 +2845,39 @@ int beforeNextClient(client *c) {
 
 /* Free the clients marked as CLOSE_ASAP, return the number of clients
  * freed. */
+/* ee451 (N, 2026-08-03): CLOSE_ASAP clients left queued because their worker ring was still in
+ * flight. Non-zero is NORMAL under connection churn -- it means the deferral below did its job.
+ * A counter rather than a log line because this is the state whose ABSENCE of handling wedged the
+ * server, and "a counter that cannot count certifies nothing". */
+_Atomic unsigned long long tomo_close_deferred_ring;
+
 int freeClientsInAsyncFreeQueue(void) {
     //fprintf(stderr,"freeClientsInAsyncFreeQueue %d\n",iotid);
     int freed = 0;
     listIter li;
     listNode *ln;
 
+    /* BOUND THIS PASS TO THE QUEUE LENGTH AT ENTRY.
+     *
+     * freeClient() has several early-return paths that call freeClientAsync(c) and return WITHOUT
+     * freeing. We must clear CLIENT_CLOSE_ASAP before calling it (freeClient() removes the node
+     * itself when the flag is set, and we also listDelNode() it below -- leaving the flag set
+     * double-deletes). But clearing it is exactly what disarms freeClientAsync()'s re-entry guard,
+     * so such a path re-appends the client to the TAIL of the very list this loop is walking.
+     * An unbounded listNext() then reaches it, tries again, re-appends, forever -- allocating one
+     * list node per turn. The pass never returns to the event loop, so handleWorkerReplies() never
+     * runs, so flushid never advances, so the condition that sent it down that path can never
+     * clear. Self-sustaining, and the malloc storm starves the main thread on the allocator lock,
+     * which stops the resize coordinator and fires its 2s watchdog -- the symptom that made this
+     * look like a FLATSTORE resize bug for two runs (docs/BUGS.md N).
+     *
+     * The dispatchid guard below is the actual fix. This bound is the structural invariant behind
+     * it: a drain pass must never be extendable by its own re-adds, so ANY future early-return
+     * added to freeClient() degrades to "retried next pass" instead of "server wedged". */
+    unsigned long budget = listLength(server.clients_to_close[iotid]);
+
     listRewind(server.clients_to_close[iotid],&li);
-    while ((ln = listNext(&li)) != NULL) {
+    while (budget-- > 0 && (ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
         if (server.io_uring && tomoUringClientAttached(c)) {
@@ -2861,6 +2886,15 @@ int freeClientsInAsyncFreeQueue(void) {
         }
         if (c->flags & CLIENT_PROTECTED) continue;
         if (c->flags & CLIENT_EX_PENDING) continue;
+        /* Ring not drained: freeClient() would bounce straight back out through
+         * freeClientAsync() and re-queue this client. Skip it here for exactly the same reason
+         * PROTECTED and EX_PENDING are skipped -- leave it queued with CLOSE_ASAP still SET (so
+         * the re-entry guard stays armed) and retry on a later pass, once handleWorkerReplies()
+         * has advanced flushid. Mirrors freeClient()'s own condition; keep the two in step. */
+        if (!c->isFake && c->dispatchid != c->flushid) {
+            atomic_fetch_add_explicit(&tomo_close_deferred_ring, 1, memory_order_relaxed);
+            continue;
+        }
         c->flags &= ~CLIENT_CLOSE_ASAP;
         freeClient(c);
         listDelNode(server.clients_to_close[iotid],ln);

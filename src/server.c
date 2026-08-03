@@ -14581,6 +14581,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * and a parked thread had to unpark the world. Should be 0 on a healthy server; any
              * non-zero value is a real incident, not noise. */
             "tomokv_flat_resize_watchdog_aborts:%llu\r\n", atomic_load_explicit(&flat_rz_watchdog_aborts, memory_order_relaxed),
+            /* ee451 (N): CLOSE_ASAP clients deferred because their worker ring was still in
+             * flight. Expected to be NON-zero under connection churn -- it is the deferral
+             * working. It is the state this counter names that used to livelock the drain. */
+            "tomokv_close_deferred_ring:%llu\r\n", atomic_load_explicit(&tomo_close_deferred_ring, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
             /* ee451 (A3 acceptance): the cross-shard scatter's share of the total above. Both are
              * back-pressure on the SAME rings, but a wide MGET saturates one in a single command

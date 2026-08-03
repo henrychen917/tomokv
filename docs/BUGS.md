@@ -1411,7 +1411,49 @@ in this tree with a per-connection timeout owes that control.
 
 ---
 
-## N. memtier hangs in the DEBUG RELOAD cycle — OPEN, reproducible
+## N. FIXED — the drain re-queued the client it was freeing (freeClientsInAsyncFreeQueue livelock)
+
+**Root cause.** `freeClient()` returns early via `freeClientAsync(c)` when a real client still has
+worker commands in flight (`c->dispatchid != c->flushid`). `freeClientsInAsyncFreeQueue()` clears
+`CLIENT_CLOSE_ASAP` immediately before that call — it must, because `freeClient()` deletes the list
+node itself when the flag is set and the drain deletes it again — and clearing it disarms exactly
+the re-entry guard at the top of `freeClientAsync()`. The client is therefore re-appended to the
+TAIL of the list the drain is walking. `listNext()` reaches it, tries again, re-appends, forever,
+allocating one list node per turn. The pass never returns to the event loop, so
+`handleWorkerReplies()` never runs, so `flushid` never advances, so the condition that sent it down
+that path can never clear. Self-sustaining.
+
+The drain already skips `CLIENT_PROTECTED` and `CLIENT_EX_PENDING` for this reason. It did not skip
+the ring-not-drained case — and `CLIENT_EX_PENDING` does not cover it, because that flag is only ever
+set on FAKES (`fake->flags` / `sub->flags`), never on a real client.
+
+**Why it was misdiagnosed twice.** The looping thread allocates flat out and starves the main thread
+on the allocator lock; main then stops driving the FLATSTORE resize coordinator, and that
+subsystem's 2 s watchdog fires. The log therefore accuses the resize machinery, which is a
+SYMPTOM. And PING keeps answering — it lands on another IO thread and needs no worker — so a
+PING-based liveness control reports a healthy server. Same wrong-control class as §M.
+
+**Evidence.** Caught live 2026-08-03 in soak run 5 (numa2). Eight all-thread stack dumps, taken via
+an explicitly-sent SIGALRM (`logStackTrace(current_thread=0)` → `writeStacktraces`, since gdb cannot
+attach under `ptrace_scope=1`). Main was pinned at an identical PC in every sample —
+`pthread_mutex_lock` ← `afterSleep` — while IO thread 2197784 moved through
+`freeClientsInAsyncFreeQueue` → `freeClientAsync` → `zmalloc`: blocked vs spinning, which is the
+whole diagnosis. Artifacts: `N-evidence-run5/numa2.server.log`.
+
+**Fix.** `src/networking.c`: skip clients whose ring is still in flight (leaving `CLOSE_ASAP` set so
+the guard stays armed, retried next pass), plus bound the pass to the queue length at entry so ANY
+future early-return added to `freeClient()` degrades to "retried" rather than "server wedged".
+New counter `INFO tomokv_close_deferred_ring` — expected NON-zero under churn.
+
+**Acceptance — discriminating, both arms run.** `tools/preflight/close_asap_livelock.sh`:
+pre-fix binary WEDGES at round 4 ("server is not serving writes any more"); fixed binary survives
+25 rounds / 1600 connections killed mid-pipeline with `tomokv_close_deferred_ring=155602`.
+Note the probe needs BOTH ingredients: mass closes alone did not reproduce it (40 rounds, 2560
+connections against the known-bad binary, clean) because `handleWorkerReplies()` runs just before
+the drain and normally advances `flushid` first. The window only opens while workers are PARKED by
+a FLATSTORE resize — which is why every occurrence sat next to a resize event.
+
+### N (historical) — the original filing, which was wrong about the cause
 
 `stress_validation` cycle 2 (the even cycle, which is the one that fires `DEBUG RELOAD` under load)
 fails calibration with memtier timing out after 140 s against a `--test-time 20` run. Reproduced in

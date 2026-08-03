@@ -4704,6 +4704,9 @@ void resetClientQbufState(client *c);
 /* ee451 (#44): nested-command-frame counter, defined in networking.c, reported as
  * INFO tomokv_nested_cmd_frames. See the definition for why it exists. */
 extern _Atomic unsigned long long tomo_nested_cmd_frames;
+/* ee451 (N): CLOSE_ASAP clients deferred by freeClientsInAsyncFreeQueue because their worker ring
+ * was still in flight; defined in networking.c, reported as INFO tomokv_close_deferred_ring. */
+extern _Atomic unsigned long long tomo_close_deferred_ring;
 void freeClientOriginalArgv(client *c);
 void freeClientArgv(client *c);
 void freeClientPendingCommands(client *c, int num_pcmds_to_free);
