@@ -1411,6 +1411,51 @@ in this tree with a per-connection timeout owes that control.
 
 ---
 
+## O. OPEN — main blocks forever on the MODULE GIL in afterSleep
+
+**Distinct from N, and it survived N's fix.** Soak run 6 (numa2, 2026-08-03) still failed cycle-2
+calibration with memtier timing out at 140 s, `SUMMARY PASS=22 FAIL=1`.
+
+**What the stacks show.** Main, in every capture (2 in run 6, 3 in run 5 — five samples, two
+different server processes, identical PC):
+
+```
+__restore_rt                      <- SIGALRM trampoline
+__lll_lock_wait+48                <- BLOCKED IN THE KERNEL on a futex
+pthread_mutex_lock+0x111
+afterSleep+0x15e                  <- = the insn after `call pthread_mutex_lock@plt` at +345
+aeMain+0x336
+```
+
+Disassembly pins `afterSleep+0x15e` exactly: `+345` is the ONLY `pthread_mutex_lock` call in the
+function, and it is `pthread_mutex_lock(&moduleGIL)` — inlined `moduleAcquireGIL()`. `__lll_lock_wait`
+means genuinely blocked, not sampled in passing.
+
+**Why this path is live at all.** `moduleCount()` is `dictSize(modules)`, and this Redis 8 build
+ships **`vectorset` as a built-in module**, so `moduleCount() == 1` on a server started with no
+`--loadmodule`. Main therefore does `moduleAcquireGIL()` in `afterSleep` and `moduleReleaseGIL()` at
+the END of `beforeSleep` on EVERY event-loop iteration — a process-global mutex per iteration, for a
+module this workload never calls.
+
+**The suspected asymmetry, NOT yet confirmed.** `beforeSleep` returns early at `server.c:3009` inside
+`if (ProcessingEventsWhileBlocked)`, BEFORE the release at `server.c:3116`. `afterSleep` guards its
+acquire with the mirror `if (!ProcessingEventsWhileBlocked)`, so upstream the two are symmetric. They
+stop being symmetric if that flag differs between an acquire and its matching release — then the
+release is skipped and the NEXT `afterSleep` self-deadlocks on a non-recursive mutex, permanently.
+This fork has form here: `fa9aca003` fixed nested save/restore under `processEventsWhileBlocked`, and
+the script-fence STW machinery wraps the same region. **Unconfirmed — do not treat as diagnosed.**
+
+**Why it looks like everything else.** Main blocked ⇒ the FLATSTORE resize coordinator stops ⇒ its
+2 s watchdog fires and writes the only log line; memtier and INFO stall; PING and even SET/GET keep
+working on OTHER IO threads, so a liveness control sees a healthy server. That is how this got filed
+as a DEBUG RELOAD bug and then as a resize bug before the stacks existed.
+
+**Next step.** Instrument the acquire/release pairing directly: a per-iteration counter of
+`moduleAcquireGIL`/`moduleReleaseGIL` on main, asserted equal at the top of `afterSleep`, plus the
+value of `ProcessingEventsWhileBlocked` at both sites. If they diverge, the early return is the bug
+and the fix is to release on that path (or to hold the acquire/release decision in a local rather
+than re-reading the flag). Evidence: `O-evidence-run6/wedge.numa2/wedge-{1,2}.txt`.
+
 ## N. FIXED — the drain re-queued the client it was freeing (freeClientsInAsyncFreeQueue livelock)
 
 **Root cause.** `freeClient()` returns early via `freeClientAsync(c)` when a real client still has
