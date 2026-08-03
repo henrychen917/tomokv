@@ -287,3 +287,49 @@ default 1 — flat here and theoretically better where a miss costs a cross-comp
 owner's stated hard-code-on criterion — and **re-run this exact A/B on the multi-CCD 24-core before
 building any further stage.** If prefetch cannot beat noise there either, B is finished and should
 be recorded as a negative result rather than extended.
+
+### B1b — why prefetch is a wash: the worker is OVERHEAD-bound, not memory-bound
+
+Two sweeps, both with engagement proven per arm (`issued` 0 on every off arm, 180–355 M on every
+on arm).
+
+**Dataset scaling, io4/ex4 p32, random GET:**
+
+| keys | RSS | pf=0 | pf=1 |
+|---|---|---|---|
+| 2M | 243 MB | 7,896,532 | 7,966,399 |
+| 8M | 785 MB | 7,897,455 | 7,873,611 |
+| 24M | 2.35 GB | 7,772,769 | 7,820,892 |
+| 48M | **5.14 GB** | 7,618,184 | 7,611,701 |
+
+Throughput falls **3.5%** while the working set grows **21x**, from 7.6x L3 to 160x L3. A
+memory-bound workload collapses; this does not.
+
+**Thread-config sweep at 24M keys** (owner's suggestion: starve the workers to force worker-bound):
+
+| config | pf=0 | pf=1 | delta | per-worker |
+|---|---|---|---|---|
+| io4/ex4 | 7,797,864 | 7,829,288 | +0.40% | 1.95M |
+| io5/ex3 | 6,263,660 | 6,299,965 | +0.58% | 2.09M |
+| io6/ex2 | 4,074,672 | 4,025,997 | −1.19% | 2.04M |
+
+**Per-worker throughput is ~2.0M ops/s in every configuration.** So the workers were already the
+bottleneck at 4/4 — the earlier "dispatch-bound" reading was wrong. Starving them lowers absolute
+throughput exactly as intended, but cannot change the prefetch verdict, because the constraint was
+never on the IO side.
+
+**Conclusion, and it is the useful one:** per-worker throughput is pinned regardless of config,
+while a 21x dataset increase costs 3.5%. Therefore the worker is limited by **fixed per-command
+work** — fake-client setup, dispatch bookkeeping, reply construction — and **not** by cache misses.
+Prefetch hides memory latency, which is not the constraint here. That is why it is a wash at every
+dataset size and every thread config with hundreds of millions of prefetches actually issued.
+
+**Therefore B2/B3/B4 are the wrong target.** They add stages to hide a latency that is not costing
+us. The lever for EX throughput is reducing per-command WORK — the allocation-reduction campaign
+(tasks #36/#50/#51) — not prefetching. Re-test prefetch only where a miss is genuinely expensive:
+multi-CCD, cross-NUMA, or a command mix whose per-command work is small relative to its footprint
+(large values, HGETALL, BITCOUNT).
+
+**Adopt io5/ex3 p32 as a standing EX-side cell.** It concentrates load onto fewer workers and drops
+throughput ~20%, so a real EX regression shows up proportionally larger there than at io4/ex4. It
+does not manufacture a memory bottleneck the workload lacks.
