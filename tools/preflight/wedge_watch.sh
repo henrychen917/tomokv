@@ -51,25 +51,37 @@ while kill -0 "$PID" 2>/dev/null && [ "$caps" -lt "$MAXCAP" ]; do
     now=$(date +%s)
 
     if [ -z "$cur" ]; then
-        # INFO itself timed out. That is a HARDER symptom than the one we are hunting (INFO is
-        # served inline on an IO thread), so record it and keep the clock running rather than
-        # resetting it -- an unanswerable INFO must not look like progress.
+        # INFO itself timed out. That is a HARDER symptom than the one we are hunting, not a
+        # softer one: INFO is served inline on an IO thread, so an unanswerable INFO means that
+        # thread is gone too.
+        #
+        # An earlier version logged this line and `continue`d -- which skipped the capture block
+        # below entirely. On 2026-08-03 it recorded "INFO did not answer" 18 times across ten
+        # minutes of a genuine wedge and captured NOTHING, because the only path to the stack dump
+        # ran through the branch it had just jumped over. The diagnosis had to be taken by hand
+        # afterwards. Falling through is the whole point: this is the case we most want a stack for.
         echo "$(date +%H:%M:%S) INFO did not answer" >>"$OUT/timeline"
-        continue
+        unanswerable=1
+    else
+        unanswerable=0
+        if [ -z "$last" ]; then last=$cur; last_change=$now; continue; fi
+        if [ $((cur - last)) -gt "$SELF_ALLOWANCE" ]; then last=$cur; last_change=$now; continue; fi
+        last=$cur
     fi
-    if [ -z "$last" ]; then last=$cur; last_change=$now; continue; fi
-    if [ $((cur - last)) -gt "$SELF_ALLOWANCE" ]; then last=$cur; last_change=$now; continue; fi
-    last=$cur
 
     stalled=$((now - last_change))
     [ "$stalled" -lt "$STALL" ] && continue
 
     # Commands have not advanced for $stalled s. Is it wedged, or just idle? An idle server is
-    # boring and must not trigger: ask whether anyone is actually WAITING on it. blocked_clients
-    # plus a nonzero client count with pending input is the difference between "no work" and
-    # "work that is not moving".
-    conns=$(info_field clients connected_clients); conns=${conns:-0}
-    if [ "${conns:-0}" -le 1 ]; then last_change=$now; continue; fi   # nobody but us: idle, not wedged
+    # boring and must not trigger: ask whether anyone is actually WAITING on it. Skip that question
+    # entirely when INFO is unanswerable -- we cannot ask it, and "the server stopped answering"
+    # is never the idle case.
+    if [ "$unanswerable" = 0 ]; then
+        conns=$(info_field clients connected_clients); conns=${conns:-0}
+        if [ "${conns:-0}" -le 1 ]; then last_change=$now; continue; fi   # nobody but us: idle
+    else
+        conns="unknown (INFO unanswerable)"
+    fi
 
     caps=$((caps + 1))
     snap=$OUT/wedge-$caps.txt
