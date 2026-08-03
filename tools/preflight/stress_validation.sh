@@ -207,7 +207,16 @@ for nodes in $SV_NODES; do
     reshards=$(count_matches 'ee451 reshard DONE:' "$ACTIVE_LOG")
     resizes=$(count_matches 'FLATSTORE resize: node .* rebuilt' "$ACTIVE_LOG")
     watchdogs=$(count_matches 'FLATSTORE resize: WATCHDOG' "$ACTIVE_LOG")
-    alive=$([ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ] && printf yes || printf no)
+    # SURVIVAL must exercise a WORKER, not just the accept path. PING is answered inline on an IO
+    # thread and needs no worker, so it answers straight through a total data-plane wedge -- this
+    # very case PASSED on "server answered PING" while the server had served nothing for ten
+    # minutes (docs/BUGS.md N). Round-trip a real key and require the value back.
+    alive=no
+    if [ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null | tr -d '\r')" = "PONG" ] &&
+       [ "$("$CLI" -p "$SV_PORT" set sv:survival:probe ok 2>/dev/null | tr -d '\r')" = "OK" ] &&
+       [ "$("$CLI" -p "$SV_PORT" get sv:survival:probe 2>/dev/null | tr -d '\r')" = "ok" ]; then
+        alive=yes
+    fi
     stop_server
 
     # ---- verdicts
@@ -217,9 +226,9 @@ for nodes in $SV_NODES; do
         result "SOAK-$label-CLEAN-LOG" PASS "markers=0"
     fi
     if [ "$alive" != yes ]; then
-        result "SOAK-$label-SURVIVAL" FAIL "server not answering at end of phase"
+        result "SOAK-$label-SURVIVAL" FAIL "server did not complete a SET+GET round-trip at end of phase (a worker-backed probe, not a PING)"
     else
-        result "SOAK-$label-SURVIVAL" PASS "server answered PING after $((SECONDS - phase_start))s of actual uptime"
+        result "SOAK-$label-SURVIVAL" PASS "server completed a worker-backed SET+GET after $((SECONDS - phase_start))s of actual uptime"
     fi
 
     SV_MEM_TOLERANCE=$SV_MEM_TOLERANCE SV_TPUT_FLOOR=$SV_TPUT_FLOOR \
