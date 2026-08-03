@@ -605,11 +605,24 @@ class Engine:
         Measured 2026-08-02: a reducer built on the same thread-per-lane shape "reproduced" reply
         loss 3 runs of 3, and a rewrite of the SAME test around a single select() loop showed
         54,650,112 replies with 0 owed across DEBUG RELOAD. The defect was the apparatus. See
-        docs/BUGS.md section M."""
+        docs/BUGS.md section M.
+
+        IT MUST NOT BE A PING. PING is answered inline on an IO thread and needs NO WORKER, so it
+        answers cheerfully through a total data-plane wedge -- which is precisely what happened
+        during docs/BUGS.md section N: an IO thread livelocked in freeClientsInAsyncFreeQueue, the
+        server served no commands for ten minutes, and a PING control reported it healthy the whole
+        time. A control has to exercise the path the timing-out lane was using, so this does a
+        round-trip through a WORKER (SET then GET on a control-only key) and requires the value to
+        come back. Cost is two commands on a fresh connection, only ever on the failure path."""
         try:
             c = Conn(self.a.host, self.a.port, timeout=budget, name="control")
             try:
-                return c.cmd("PING") == "PONG"
+                probe = f"sv:control:{os.getpid()}"
+                if c.cmd("PING") != "PONG":
+                    return False
+                if s(c.cmd("SET", probe, "1")) != "OK":
+                    return False
+                return s(c.cmd("GET", probe)) == "1"
             finally:
                 c.close()
         except Exception:
