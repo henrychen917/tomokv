@@ -1408,3 +1408,35 @@ making a timeout **discriminate before it accuses** — M5.
 reported as a defect it must be paired with a control taken at that moment: a fresh connection the
 server answers promptly proves the server was serving and the lane was merely starved. Every probe
 in this tree with a per-connection timeout owes that control.
+
+---
+
+## N. memtier hangs in the DEBUG RELOAD cycle — OPEN, reproducible
+
+`stress_validation` cycle 2 (the even cycle, which is the one that fires `DEBUG RELOAD` under load)
+fails calibration with memtier timing out after 140 s against a `--test-time 20` run. Reproduced in
+run 2 and run 4, independently, at the same point.
+
+**What is ruled out.** Lane contention: run 4 quiesced cleanly first (progress-based `await_quiet`
+returned quiet, no "did not quiesce" message) and memtier still hung. Server death: a fresh
+connection is answered immediately, `SURVIVAL` passes, `CLEAN-LOG markers=0`. Cycle 1 calibrates
+fine at ~4.09 M ops/s **on the same server process** — only the post-reload cycle fails.
+
+**What is suspected.** `docs/NEXT_CONTEXT_PLAN.md` already recorded, from J3/J6, that `DEBUG RELOAD`
+is *safe for the server but not transparent*, and that **memtier cannot retry `-LOADING` and hangs**.
+This looks like that, but the timing is not yet explained: the reload completes in the middle of the
+cycle and calibration runs at the end, so a plain `-LOADING` window should be long closed. Either
+something keeps returning `-LOADING`/erroring to new connections after the reload, or memtier's
+connection setup wedges on something else. **Not yet diagnosed — do not assume the pre-existing note
+explains it.**
+
+**Harness bug found alongside it, fixed.** `Engine.fail()` was reclassifying this as a client stall
+because the message contained "timed out" and a fresh `PING` succeeded. That control is valid for a
+LANE read timeout; it is not valid for a memtier subprocess timeout, because answering a PING does
+not mean the server can serve a benchmark. It now applies only to lane timeouts, so this failure is
+reported truthfully instead of being absorbed into a counter. Same over-reach class as M: a control
+that answers a narrower question than the one being asked.
+
+**Next step:** run memtier by hand against a server immediately after a `DEBUG RELOAD` under load,
+with `--distinct-client-seed` and a short `--test-time`, and capture its stderr — `calibrate()` now
+keeps rc/stdout/stderr, which run 4 did not have.

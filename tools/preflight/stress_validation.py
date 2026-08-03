@@ -620,7 +620,11 @@ class Engine:
         # a fresh connection is served promptly at this moment, the server was serving and this
         # lane was starved -- count it and let the run continue rather than burning the soak and
         # sending the next reader into the server for a client bug.
-        if "TimeoutError" in detail or "timed out" in detail:
+        # NOT for calibrate: that is a memtier SUBPROCESS timeout, and the control speaks only to
+        # lane scheduling. "The server answers a fresh PING" does not imply "the server can serve a
+        # benchmark", so reclassifying it hid a reproducible cycle-2 signal behind a stall counter.
+        # Whitelist the lane read timeouts this control is actually valid for.
+        if where != "calibrate" and ("TimeoutError" in detail or "timed out" in detail):
             if self.server_is_serving():
                 with self.lock:
                     self.ops["client_stalls"] += 1
