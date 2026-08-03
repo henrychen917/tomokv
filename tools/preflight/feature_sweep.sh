@@ -173,9 +173,31 @@ boot_srv() { # kind(fork|oracle) port dir extra-args... ; rc!=0 on failure
     return 0
 }
 
-# is_our_server: PID-reuse guard — only ever signal a pid whose exact comm is
-# redis-server (comm truncates at 15 chars; "redis-server" fits).
-is_our_server() { [ "$(cat "/proc/$1/comm" 2>/dev/null)" = "redis-server" ]; }
+# is_our_server: PID-reuse guard — only ever signal a pid whose comm is one of the binaries THIS
+# SUITE ACTUALLY LAUNCHED.
+#
+# It used to hardcode "redis-server", and that hung preflight for 8 hours (preflight8, 2026-08-03).
+# Two safety mechanisms collided: preflight stages the binary under test as a PRIVATE name
+# (/tmp/tomo_pfbin_<pid>/redis-pf) precisely so other sessions' `pkill -9 -x redis-server` cannot
+# reap it — and that rename silently disarmed this guard. stop_srv then took the path
+#     is_our_server -> false  =>  kill -TERM never sent
+#     100 x kill -0           =>  still alive (nothing killed it)
+#     still alive, guard false =>  kill -9 never sent either
+#     wait "$pid"             =>  child is ALIVE, blocks forever
+# The comment on that wait said "our dead child: returns immediately". It was never killed.
+# Evidence: every historical run in preflight_feature_sweep.sh.log used bins/stable/redis-server and
+# finished in 444-1362s; the first run with bin=redis-pf never wrote a DONE line.
+#
+# Derive the whitelist from the binaries we run instead of naming one. comm truncates at 15 chars,
+# so truncate the basenames the same way or a long private name would never match.
+_comm15() { printf '%.15s' "$(basename "$1")"; }
+OUR_COMMS=" $(_comm15 "$FORKSRV") $(_comm15 "$ORACLESRV") "
+is_our_server() {
+    local c; c=$(cat "/proc/$1/comm" 2>/dev/null) || return 1
+    [ -n "$c" ] || return 1
+    case "$OUR_COMMS" in *" $c "*) return 0 ;; esac
+    return 1
+}
 
 stop_srv() { # pid
     local pid=${1:-} i
@@ -185,7 +207,14 @@ stop_srv() { # pid
     if kill -0 "$pid" 2>/dev/null && is_our_server "$pid"; then
         kill -9 "$pid" 2>/dev/null; sleep 0.3
     fi
-    wait "$pid" 2>/dev/null   # our dead child: returns immediately
+    # NEVER `wait` on a pid that is still alive: bash blocks forever and the suite hangs instead of
+    # failing. That is exactly how the comm-mismatch above burned 8 hours of a release gate. A
+    # harness that hangs yields no verdict at all, which is strictly worse than one that fails.
+    if kill -0 "$pid" 2>/dev/null; then
+        log "stop_srv: pid $pid (comm=$(cat "/proc/$pid/comm" 2>/dev/null), allowed=$OUR_COMMS) SURVIVED teardown — refusing to wait on a live child"
+        return 1
+    fi
+    wait "$pid" 2>/dev/null   # confirmed dead above, so this returns immediately
     return 0
 }
 

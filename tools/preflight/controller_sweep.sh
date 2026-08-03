@@ -197,6 +197,14 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   if [ "$up" != 1 ]; then
     tsv boot "$name" "boot" "did-not-boot" "PONG" FAIL
     grep -iE 'FATAL|error|invalid|Bad directive' "$SRVLOG" | tail -3 | sed 's/^/      /'
+    # KILL BEFORE WAITING. This path is reached with up=0, which includes the case where the server
+    # is ALIVE but never answers PING — a wedged event loop, i.e. the exact defect class this tree
+    # keeps hitting. `wait` on a live child blocks forever, turning a FAIL into a silent hang that
+    # yields no verdict (see feature_sweep's 8h hang, preflight8 2026-08-03).
+    if kill -0 "$SRV_PID" 2>/dev/null; then
+      kill -9 "$SRV_PID" 2>/dev/null
+      local k; for k in $(seq 1 50); do kill -0 "$SRV_PID" 2>/dev/null || break; sleep 0.1; done
+    fi
     wait "$SRV_PID" 2>/dev/null; SRV_PID=; return 1
   fi
   # assert exactly ONE server before measuring
