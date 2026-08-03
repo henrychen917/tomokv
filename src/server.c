@@ -2638,6 +2638,7 @@ _Static_assert(TOMO_EX_THREADS_MAX <= 64,
                "64 silently drops publications (staged-but-unpublished job == hung client). "
                "Widen the mask together with the limit.");
 static __thread uint64_t ex_dirty_mask;
+void flushExQueues(void);   /* defined below; used by the back-pressure path (A3) */
 
 /* Obtain this thread's queue to worker ex_id AND record that it is dirty. Never index
  * exThreads[].queues[] directly on a staging path -- go through here. */
@@ -2660,6 +2661,15 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
         exHandoffAdvertise(&server.exThreads[ex_id]);
+    /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
+     * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
+     * thread already staged for OTHER workers invisible -- so those workers sit idle for the whole
+     * spin, and they are exactly the ones whose progress frees the pressure (a full ring is
+     * usually a symptom of the pool being behind, not of one worker being slow). Cheap here by
+     * construction: we are already spinning, and after A2 this visits only the workers actually
+     * staged into. `q` is published explicitly above on every iteration because flushExQueues()
+     * consumes the dirty mask, so it cannot be relied on to re-publish `q` on a later pass. */
+    flushExQueues();
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     } while (exQueuePush(q, fake) != 0);
@@ -9015,6 +9025,15 @@ static void csPushSpin(int w, client *sub) {
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertise(&server.exThreads[w]);
+    /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
+     * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
+     * thread already staged for OTHER workers invisible -- so those workers sit idle for the whole
+     * spin, and they are exactly the ones whose progress frees the pressure (a full ring is
+     * usually a symptom of the pool being behind, not of one worker being slow). Cheap here by
+     * construction: we are already spinning, and after A2 this visits only the workers actually
+     * staged into. `q` is published explicitly above on every iteration because flushExQueues()
+     * consumes the dirty mask, so it cannot be relied on to re-publish `q` on a later pass. */
+    flushExQueues();
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     }
