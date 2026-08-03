@@ -2294,6 +2294,10 @@ static void sendGetackToReplicas(void) {
 }
 
 extern int ProcessingEventsWhileBlocked;
+/* ee451 (O): does MAIN currently hold the module GIL? Set by afterSleep when it actually acquires,
+ * cleared by beforeSleep when it releases. Only main touches it, so a plain int is right. See the
+ * comment at the acquire for why the release cannot key off ProcessingEventsWhileBlocked. */
+static int main_holds_module_gil = 0;
 
 /* This function gets called every time Redis is entering the
  * main loop of the event driven library, that is, before to sleep
@@ -3006,6 +3010,11 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         processed += sendPendingClientsToIOThreads();
 
         server.events_processed_while_blocked += processed;
+        /* ee451 (O): if we hold the GIL we must hand it back before sleeping, even on this path.
+         * Reaching here having acquired it means the global flipped under us after our own
+         * afterSleep took the lock (another thread's processEventsWhileBlocked) -- the genuine
+         * nested case never acquired, so main_holds_module_gil is 0 and this is a no-op there. */
+        if (main_holds_module_gil) { main_holds_module_gil = 0; moduleReleaseGIL(); }
         return;
     }
 
@@ -3113,7 +3122,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     aeSetDontWait(server.el, dont_sleep);
 
-    if (moduleCount()) moduleReleaseGIL();
+    if (main_holds_module_gil) { main_holds_module_gil = 0; moduleReleaseGIL(); }
 }
 
 /* This function is called immediately after the event loop multiplexing
@@ -3132,6 +3141,17 @@ void afterSleep(struct aeEventLoop *eventLoop) {
 
             atomicSet(server.module_gil_acquring, 1);
             moduleAcquireGIL();
+            /* ee451 (O): REMEMBER that WE took it. beforeSleep must not decide whether to release
+             * by re-reading ProcessingEventsWhileBlocked, because that is a plain GLOBAL int
+             * (networking.c:43) in a server with one event loop PER IO THREAD. Any other thread
+             * entering processEventsWhileBlocked() -- e.g. rdb.c's load-progress callback, which
+             * runs on whichever IO thread owns the DEBUG RELOAD client, and which unlike
+             * script.c:159 has no `iotid == 0` guard -- flips that global under main. main's
+             * beforeSleep then takes its early return, skips the release, and main's NEXT
+             * afterSleep deadlocks on a non-recursive mutex it already owns. Permanently: the GIL
+             * starts life locked (module.c:12936) and is only ever handed off by this pair.
+             * Pairing on our own record makes the release exact no matter what the global does. */
+            main_holds_module_gil = 1;
             atomicSet(server.module_gil_acquring, 0);
             moduleFireServerEvent(REDISMODULE_EVENT_EVENTLOOP,
                                   REDISMODULE_SUBEVENT_EVENTLOOP_AFTER_SLEEP,

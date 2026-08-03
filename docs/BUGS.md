@@ -1450,7 +1450,28 @@ the script-fence STW machinery wraps the same region. **Unconfirmed — do not t
 working on OTHER IO threads, so a liveness control sees a healthy server. That is how this got filed
 as a DEBUG RELOAD bug and then as a resize bug before the stacks existed.
 
-**Next step.** Instrument the acquire/release pairing directly: a per-iteration counter of
+**UPDATE 2026-08-03 — mechanism identified, fix landed, NOT validated against a repro.**
+`ProcessingEventsWhileBlocked` is a plain **global** `int` (`networking.c:43`) in a server that runs
+one event loop PER IO THREAD. `rdb.c:3618` calls `processEventsWhileBlocked()` from the RDB
+load-progress callback — i.e. on whichever IO thread owns the `DEBUG RELOAD` client, since `DEBUG`
+is not worker-dispatchable. `script.c:159` guards its call with `if (iotid == 0)`; **rdb.c does
+not**, which is direct evidence the hazard was known at one site and missed at another. So another
+thread can flip that global under main, main's `beforeSleep` takes its early return, skips
+`moduleReleaseGIL()`, and main's next `afterSleep` locks a non-recursive mutex it already owns.
+That also explains why every occurrence is cycle 2 — the DEBUG RELOAD cycle.
+
+Fixed by pairing on main's OWN record (`main_holds_module_gil`) instead of re-reading the racing
+global, and releasing on the early-return path too. This is correct independently of O: deciding
+whether to unlock by reading a flag another thread can change is wrong however it got there.
+
+**It is NOT validated against a reproduction.** `tools/preflight/module_gil_pairing.sh` drives 60
+`DEBUG RELOAD`s from 8 connections under load and watches `uptime_in_seconds` (refreshed only by
+main, so a frozen clock on a server still answering commands is the one external signature of this
+bug). The PRE-FIX binary **passed** it — 60 reloads, drift 1 s. The window is far narrower than that
+probe covers. Treat O as OPEN until a soak run passes cycle 2, and do not credit the fix on
+reasoning alone.
+
+**Original next step (still valid if it recurs).** Instrument the acquire/release pairing directly: a per-iteration counter of
 `moduleAcquireGIL`/`moduleReleaseGIL` on main, asserted equal at the top of `afterSleep`, plus the
 value of `ProcessingEventsWhileBlocked` at both sites. If they diverge, the early return is the bug
 and the fix is to release on that path (or to hold the acquire/release decision in a local rather
