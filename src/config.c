@@ -3196,6 +3196,12 @@ standardConfig static_configs[] = {
      * a NUMA node. Which partitioning is better for the target hardware is NOT yet known — it
      * is a measurement to run on the EPYC/Threadripper box, which is why it is one knob and not
      * a compile-time assumption. */
+    /* ee451 (B1): EX-side prefetch, as monotonic LEVELS so a sweep is one-dimensional.
+     * 0 = the machinery is not entered at all (counters stay still, so "disabled" and "gated"
+     * are distinguishable in INFO). 1 = the existing operand/key pipeline. Higher levels are
+     * reserved for the staged flat probe and the KVOBJ/VALDATA split. Default 1 preserves
+     * current behaviour exactly -- this knob exists so the feature can finally be MEASURED. */
+    createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
 

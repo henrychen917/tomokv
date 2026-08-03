@@ -3102,6 +3102,7 @@ struct redisServer {
      * fully active (no reserve thread). io_per_node + ex_per_node <= cores_per_node. io_threads /
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
      * controller flip the io/ex boundary WITHIN each node's core budget. */
+    int prefetch_ex_level;   /* ee451 (B1): 0 = EX prefetch machinery not entered; levels monotonic */
     int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
                                 * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
                                 * node when it is `numa`. Hence topo_ (topology), not numa_. */

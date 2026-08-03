@@ -16190,6 +16190,19 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * prefetch of a stale address is harmless, and a missed hash hint simply falls
  * back to recomputation at execution. */
 static inline void exPrefetchBatch(client **batch, int n) {
+    /* ee451 (B1, 2026-08-02): LEVEL 0 == the machinery does not exist on this path.
+     *
+     * This feature has never had a trustworthy measurement. Its residency gate is exactly 100%
+     * SHUT at 2M x 32B -- the standard apparatus and the one every previous prefetch A/B used --
+     * so every historical "prefetch is neutral" verdict measured DISABLED MACHINERY (measured
+     * 2026-08-02: batches 11088850, gated 11088850, issued 0). Without an off switch there was no
+     * way to compare engaged-against-absent at all, which is why nobody could attribute a number
+     * to this code.
+     *
+     * Returning here BEFORE pf_batches++ is deliberate: at level 0 the counters must not move
+     * either, so a gated run and a disabled run are distinguishable in INFO rather than both
+     * reading as zero issues. Levels are monotonic supersets so a sweep stays one-dimensional. */
+    if (__builtin_expect(server.prefetch_ex_level == 0, 0)) return;
     dict *dts[WORKER_POP_BATCH];
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];

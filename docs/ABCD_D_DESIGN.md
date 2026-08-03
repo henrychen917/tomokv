@@ -248,3 +248,42 @@ gate; it was measuring a gated feature in the one regime where the gate is guara
 **Consequence for B: any B measurement must be taken at ≥8M × 32 B or ≥512 B values**, and must
 report `issued` alongside the throughput number so the reader can tell an engaged run from a gated
 one. A B result quoted at 2M × 32 B is meaningless by construction.
+
+## B1 — the first trustworthy A/B of EX prefetch
+
+`tomokv-prefetch-ex` added as monotonic levels; 0 returns before `pf_batches++` so a DISABLED run
+and a GATED run are distinguishable in INFO instead of both reading zero-issued. Because the knob
+is `MODIFIABLE_CONFIG`, the arms run on **one server against one dataset with the knob flipped
+live** — no seed-to-seed or build-to-build variation at all.
+
+Only gate-open regimes, 15 s per arm, interleaved off/on x3:
+
+| regime | OFF median | ON median | median delta | pair-to-pair spread |
+|---|---|---|---|---|
+| 8M x 32 B | 7,890,151 | 7,890,123 | **−0.0004%** | 1.77% |
+| 2M x 512 B | 3,866,214 | 3,849,531 | **−0.43%** | 1.52% |
+
+ENGAGED, proven per arm: `issued_delta` was **0 on every OFF arm** and 352–356 M (8M×32B) /
+173–175 M (2M×512B) **on every ON arm**.
+
+**Verdict: a wash.** With the gate open and hundreds of millions of prefetches actually issued, the
+effect is smaller than the noise between consecutive pairs. Note this also contradicts the recorded
+"operand stages cost 0.3–1.2%" — that figure cannot have come from an engaged run at this
+apparatus, for the same reason the "neutral" verdicts could not.
+
+### What follows for B2/B3/B4
+
+**Do not build more prefetch stages on the strength of this.** B2 (DICT KVOBJ/VALDATA split), B3
+(the staged flat probe) and B4 (shared multi-key probe) all add stages to a pipeline that, fully
+engaged, moves throughput by less than the measurement noise. Adding stages to a wash is
+speculative work, and this project has already retired ten `tomokv-pf-*` knobs built that way.
+
+B3's stated premise also looks wrong: it claims prefetch is inert in the flat regime because it
+retires at `kvstoreGetDict() == NULL`. But these runs are FLATSTORE (ex=4 ⇒ shared node db) and
+issued 352 M prefetches — it is not retiring early.
+
+**Recommendation:** keep the knob (it is the measurement instrument, and the brief mandates levels),
+default 1 — flat here and theoretically better where a miss costs a cross-complex hop, which is the
+owner's stated hard-code-on criterion — and **re-run this exact A/B on the multi-CCD 24-core before
+building any further stage.** If prefetch cannot beat noise there either, B is finished and should
+be recorded as a negative result rather than extended.
