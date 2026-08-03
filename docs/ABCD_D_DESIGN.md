@@ -333,3 +333,20 @@ multi-CCD, cross-NUMA, or a command mix whose per-command work is small relative
 **Adopt io5/ex3 p32 as a standing EX-side cell.** It concentrates load onto fewer workers and drops
 throughput ~20%, so a real EX regression shows up proportionally larger there than at io4/ex4. It
 does not manufacture a memory bottleneck the workload lacks.
+
+### B1c — io5/ex3 p32, the standing EX-side cell
+
+24M keys x 32B, rss 2.57 GB, one server / one dataset / knob flipped live, 4 pairs:
+
+| pair | prefetch OFF | prefetch ON | delta | issued (ON) |
+|---|---|---|---|---|
+| 1 | 6,344,260 | 6,305,161 | −0.62% | 283,761,081 |
+| 2 | 6,381,129 | 6,332,110 | −0.77% | 284,974,737 |
+| 3 | 6,301,177 | 6,310,255 | +0.14% | 283,987,317 |
+| 4 | 6,290,924 | 6,305,675 | +0.23% | 283,783,569 |
+| **median** | **6,322,718** | **6,307,965** | **−0.23%** | |
+
+OFF spread 1.43%, ON spread 0.43%. Engagement proven per arm (0 vs ~284 M). **Median −0.23%, inside
+the OFF spread — a wash**, matching io4/ex4 and io6/ex2. Concentrating load on fewer workers lowers
+absolute throughput ~20% as intended, but does not change the verdict, because the workers were
+already the ceiling and that ceiling is per-command WORK, not memory latency.
