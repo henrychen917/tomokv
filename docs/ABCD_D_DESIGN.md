@@ -216,3 +216,35 @@ by starving long requests is not a win. That is what §6 exists to prevent, and 
 counter is how we check it actually did.
 
 The topology signal (§4.1) is untestable on this host and must be re-measured on multi-CCD.
+
+---
+
+# B — EX prefetch: the residency gate, measured
+
+**Measured 2026-08-02, before writing any B code.** The brief's B3 assumes prefetch was inert
+because of a flat-regime hole. The first thing to establish is whether the gate opens at all, since
+memory recorded "the gate had NEVER opened".
+
+Static server, io4/ex4, seed then 12 s of GET, reading `tomo_prefetch_{batches,gated,issued}`:
+
+| regime | batches | gated | issued | verdict |
+|---|---|---|---|---|
+| **2M keys × 32 B** | 11,088,850 | **11,088,850** | **0** | **gate 100% SHUT** |
+| 8M keys × 32 B | 11,343,132 | 245,096 | 302,154,165 | gate open (97.8% of batches) |
+| 2M keys × 512 B | 10,313,372 | 372,288 | 139,350,765 | gate open (96.4% of batches) |
+
+**The gate does open.** "It never opens" is false. The precise and more useful statement is that it
+is **exactly 100% shut at 2M × 32 B** — which is the standard apparatus, the one all four reference
+cells use and the one every previous prefetch A/B was run on. So every historical "prefetch is
+neutral" result measured **disabled machinery**, and neither the neutral verdicts nor the
+0.3–1.2% cost figure can be attributed to the prefetch itself without knowing which regime produced
+them.
+
+The gate is behaving as designed: `budget = detected_l3_bytes / (2 × num_workers)`, and it refuses
+to prefetch while the worker's share of the keyspace still fits in its share of L3. Prefetching a
+cache-resident working set is pure overhead, so shutting there is correct. The defect was never the
+gate; it was measuring a gated feature in the one regime where the gate is guaranteed shut.
+
+**Consequence for B: any B measurement must be taken at ≥8M × 32 B or ≥512 B values**, and must
+report `issued` alongside the throughput number so the reader can tell an engaged run from a gated
+one. A B result quoted at 2M × 32 B is meaningless by construction.
