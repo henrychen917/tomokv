@@ -2267,8 +2267,49 @@ run_memory_case() {
     fi
 }
 
+# ee451 (2026-08-02): RATCHETING BASELINES.
+#
+# The hardcoded numbers are a FLOOR, never the whole story: once the tree is genuinely faster the
+# old bar hides a later regression. So each green observation is recorded and the effective
+# reference becomes max(hardcoded, median of the last SV_REF_WINDOW observations).
+#
+# The ratchet is on the MEDIAN, deliberately NOT on the maximum. Max-of-N is an extreme-value
+# statistic and is biased high: ten runs of effectively-identical code measured 7921887..8155710 on
+# FLAT-GET, a 2.95% spread that is pure noise. Ratcheting to that max puts the -4% floor at
+# 7829481, leaving the LOWEST normal run only 1.13% of headroom -- inside the +/-2% noise band, so
+# the gate would start failing clean code, and monotonically, since one lucky run raises the bar
+# forever. That is the same mistake as a tolerance tighter than the measurement, which this suite
+# has already been bitten by once (flipcmp ACCEPT_TOL_PCT). The median moves on real improvement
+# and ignores a single lucky sample.
+#
+# Never ratchets DOWN: a slow machine or a bad day cannot lower the bar, because the hardcoded
+# value is a floor and only observations ABOVE the current effective reference can raise it.
+REF_HISTORY=${REF_HISTORY:-$(cd "$(dirname "$0")" && pwd)/reference_history.tsv}
+REF_WINDOW=${REF_WINDOW:-9}
+
+effective_reference() { # name hardcoded-ref -> effective ref on stdout
+    local name=$1 hard=$2 med
+    [ -r "$REF_HISTORY" ] || { printf '%s' "$hard"; return; }
+    med=$(awk -v n="$name" -v w="$REF_WINDOW" '
+        $1 == n { v[++c] = $2 + 0 }
+        END {
+            if (c == 0) { print ""; exit }
+            lo = (c > w ? c - w + 1 : 1); m = 0
+            for (i = lo; i <= c; i++) a[++m] = v[i]
+            for (i = 1; i < m; i++) for (j = i+1; j <= m; j++)
+                if (a[j] < a[i]) { t = a[i]; a[i] = a[j]; a[j] = t }
+            print (m % 2 ? a[(m+1)/2] : int((a[m/2] + a[m/2+1]) / 2))
+        }' "$REF_HISTORY")
+    if [ -n "$med" ] && awk -v m="$med" -v h="$hard" 'BEGIN{exit !(m > h)}'; then
+        printf '%s' "$med"
+    else
+        printf '%s' "$hard"
+    fi
+}
+
 reference_case() { # name ratio pipeline ref
-    local name=$1 ratio=$2 pipeline=$3 ref=$4 actual delta
+    local name=$1 ratio=$2 pipeline=$3 hard=$4 ref actual delta
+    ref=$(effective_reference "$name" "$hard")
     if ! run_mt "$name" "$((PERF_SECS + GEN_GRACE))" --test-time="$PERF_SECS" \
         --ratio="$ratio" --key-pattern=R:R --pipeline="$pipeline"; then
         case_result "$name" FAIL "$LAST_REASON"
@@ -2277,7 +2318,9 @@ reference_case() { # name ratio pipeline ref
     actual=$LAST_OPS
     delta=$(awk -v a="$actual" -v r="$ref" 'BEGIN{printf "%+.2f%%",(a-r)/r*100}')
     if awk -v a="$actual" -v r="$ref" 'BEGIN{exit !(a >= r*.96)}'; then
-        case_result "$name" PASS "actual=$actual reference=$ref delta=$delta floor=$(awk -v r="$ref" 'BEGIN{printf "%.0f",r*.96}')"
+        # record only GREEN observations, so a regression cannot teach the ratchet a lower bar
+        printf '%s\t%s\n' "$name" "$actual" >> "$REF_HISTORY" 2>/dev/null || true
+        case_result "$name" PASS "actual=$actual reference=$ref$([ "$ref" != "$hard" ] && printf ' (ratcheted from %s)' "$hard") delta=$delta floor=$(awk -v r="$ref" 'BEGIN{printf "%.0f",r*.96}')"
     else
         case_result "$name" FAIL "actual=$actual reference=$ref delta=$delta (>4% below)"
     fi
