@@ -1477,6 +1477,75 @@ value of `ProcessingEventsWhileBlocked` at both sites. If they diverge, the earl
 and the fix is to release on that path (or to hold the acquire/release decision in a local rather
 than re-reading the flag). Evidence: `O-evidence-run6/wedge.numa2/wedge-{1,2}.txt`.
 
+### UPDATE 2026-08-03 (2) — MY FIX FOR O REPRODUCED O. Two corrections, both load-bearing.
+
+**1. The fix was broken at its initialiser, and deterministically deadlocked every boot.**
+`moduleInitModulesSystem()` locks the GIL **on main** during init (`module.c`: *"Our thread-safe
+contexts GIL must start with already locked"*), and nothing unlocks it before `aeMain`. Upstream's
+**unconditional** release at the tail of `beforeSleep` is what balanced that boot-time lock on
+iteration 1. The moment the release became conditional on `main_holds_module_gil`, a `0` initialiser
+made iteration 1 skip the release — and then `afterSleep` re-locked a non-recursive mutex main
+already owned. Self-deadlock on the FIRST event-loop pass, on every boot. `main_holds_module_gil`
+now starts at **1**, which is simply the truth about who holds it. Fixed in `a137ce5cf`.
+
+Measured — fresh connections that never get a reply, because a wedged event-loop thread keeps being
+handed connections by its own listener and answers none:
+
+| binary | io=4 auto | io=1 static |
+|---|---|---|
+| before the O fix | 0/113 hung | — |
+| O fix, flag init 0 | **12/53 hung (23%)** | **0/12 conns — serves nothing at all** |
+| O fix, flag init 1 | 0/113 hung | 0/50 hung |
+
+23% is 1 of 4 IO threads, and **IO thread 0 is main**. At `io=1` main is the only IO thread, so the
+same defect takes the whole server down. This is what made `stress_validation`'s self-test gate fail
+every scenario against a "healthy" server and refuse to soak — **that gate did its job**, and soak 7
+never ran, which is the only reason this did not reach a push.
+
+**2. `uptime_in_seconds` IS NOT A MAIN-LIVENESS SIGNAL IN THIS FORK.** The claim above — "refreshed
+only by main, so a frozen clock is the one external signature" — is **false**. `afterSleepIO()`
+calls `updateCachedTime(1)` (`server.c:2962`) and is registered on **every** IO thread's event loop
+(`server.c:17796`, `17851`). The clock advances perfectly with main deadlocked; it read 47 s over
+45 s of wall clock on a binary whose main was provably dead in `afterSleep`. Every conclusion that
+rested on that oracle is void, including this section's own "the pre-fix binary passed the probe".
+
+The oracle is now the **fresh-connection hang rate**, and it discriminates 25% (io=4) / 100% (io=1)
+against 0% healthy. Established connections on surviving threads keep working — which is exactly why
+PING, SET, GET and INFO all report health. **Only fresh connections expose a dead event loop.**
+
+**3. A third defect in my own fix, caught by re-reading the diff, not by any test.** The
+early-return path in `beforeSleep` released the GIL, with the comment *"the genuine nested case
+never acquired, so `main_holds_module_gil` is 0 and this is a no-op there"*. **That is false** — in
+the genuine nested case main holds the GIL from the outer loop, so the flag is 1 and the line
+**dropped the GIL in the middle of nested command processing**, letting a module thread run
+concurrently with main. Upstream deliberately holds it across that path. Removed.
+
+It was also never needed. Pairing at the TAIL alone already closes O, because the acquire is
+guarded by the mirror condition — with `X` = another thread flipping the global:
+
+```
+afterSleep    !PEWB, flag 0  -> ACQUIRE, flag 1
+X sets PEWB
+beforeSleep    PEWB          -> early return, no release, flag stays 1
+X clears PEWB
+afterSleep    !PEWB, flag 1  -> SKIP the acquire        <- upstream DEADLOCKS here
+```
+
+**THE ROOT FIX, NOT DONE.** `ProcessingEventsWhileBlocked` should be **per-IO-thread**, not a
+global — its meaning ("am *I* in nested processing?") is inherently per-thread in a server with one
+event loop per IO thread, and `script.c:159`'s `if (iotid == 0)` guard is a workaround for exactly
+that. It is only **12 references** (`networking.c` 4, `server.c` 6, `iothread.c` 2), so the change
+is contained. It is not done here because there is no reproduction to validate it against, and
+shipping unvalidatable changes to this path is precisely what produced the three defects above.
+Note the residual hole it would close: if the global is set by another thread in the window right
+after main's tail release, main processes events *without* the GIL until the next acquire. **That
+hole exists in upstream too** and is not a regression from this work.
+
+**Status: O is still OPEN.** The rewritten probe does *not* reproduce the original O race either —
+the pre-O-fix binary passes 30 reloads × 120k keys. So the pairing fix is *correct by construction*
+(main's own record cannot be flipped by another thread) and is now *known not to be harmful*, but it
+remains **uncredited against a real reproduction of O**. It needs a soak that clears numa2 cycle 2.
+
 ## N. FIXED — the drain re-queued the client it was freeing (freeClientsInAsyncFreeQueue livelock)
 
 **Root cause.** `freeClient()` returns early via `freeClientAsync(c)` when a real client still has

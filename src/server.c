@@ -3019,11 +3019,23 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         processed += sendPendingClientsToIOThreads();
 
         server.events_processed_while_blocked += processed;
-        /* ee451 (O): if we hold the GIL we must hand it back before sleeping, even on this path.
-         * Reaching here having acquired it means the global flipped under us after our own
-         * afterSleep took the lock (another thread's processEventsWhileBlocked) -- the genuine
-         * nested case never acquired, so main_holds_module_gil is 0 and this is a no-op there. */
-        if (main_holds_module_gil) { main_holds_module_gil = 0; moduleReleaseGIL(); }
+        /* ee451 (O): DO NOT release the GIL here. This is the nested path -- we got here from
+         * inside a command that called processEventsWhileBlocked(), and main is HOLDING the GIL
+         * for the duration of that command, exactly as upstream intends. Releasing would let a
+         * module thread take it and run concurrently with main still processing events, which is
+         * the one thing the GIL exists to prevent. (An earlier revision released here on the
+         * theory that "the genuine nested case never acquired, so the flag is 0". That is simply
+         * false: the flag is 1, inherited from the outer loop.)
+         *
+         * Pairing at the TAIL of beforeSleep is already sufficient to fix O, because the acquire
+         * is guarded by the mirror condition. Trace, with X = another thread flipping the global:
+         *   afterSleep  !PEWB, flag 0 -> ACQUIRE, flag 1
+         *   X sets PEWB
+         *   beforeSleep  PEWB -> early return, no release, flag stays 1
+         *   X clears PEWB
+         *   afterSleep  !PEWB, flag 1 -> SKIP the acquire        <- upstream deadlocks HERE
+         * The record of who holds the lock is what closes the hole; releasing on this path is not
+         * part of the fix and never was. */
         return;
     }
 
