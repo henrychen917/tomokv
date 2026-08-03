@@ -1,0 +1,33 @@
+# PINNED SURFACE BASELINE for tools/preflight/surface_diff.sh (via surface_baseline.sh).
+#
+# The observable surface (CONFIG names, COMMAND names, INFO fields, DEBUG subcommands) of the
+# commit below is the ACCEPTED baseline. surface_diff.sh asserts the candidate's surface is
+# byte-identical to it. Anything else is a surface change and must be justified.
+#
+# THIS PIN MUST NOT TRACK HEAD. A baseline that advances with every commit absorbs surface
+# changes one commit at a time and detects nothing -- the whole point is that it lags deliberately.
+# Move it only when a surface change has been reviewed and accepted, and append a line to the log
+# below saying what changed and why.
+#
+# HOW TO MOVE IT
+#   1. Run bigstress; read the SD-SURFACE-* rows to see exactly what was added/removed.
+#   2. Confirm every difference is intended (a new INFO counter usually is; a renamed or removed
+#      CONFIG almost never is -- that breaks deployed configs).
+#   3. Replace the SHA, add a log line, commit both together with the change that caused it.
+#
+# ---------------------------------------------------------------------------------------------
+# LOG
+#   2026-08-02  2c54f89a8  Initial pin. Chosen because it is the last commit to pass a FULL
+#               bigstress green (PASS=28 FAIL=0 NA=12) and is the state under the first complete
+#               stress_validation soak. Before this pin existed, bigstress defaulted SURFACE_BASE
+#               to the candidate itself, so CASE SURFACE-GATE compared a binary against itself and
+#               correctly reported INCONCLUSIVE rather than a meaningless PASS.
+#
+#               KNOWN PENDING DIFF against this pin, intentional, to be folded in when reviewed:
+#                 + INFO tomokv_ex_queue_full_xshard  (splits the cross-shard scatter's share out
+#                   of tomokv_ex_queue_full so tools/preflight/ex_backpressure.sh can prove WHICH
+#                   back-pressure site it entered). Additive only; the existing field keeps its
+#                   meaning as the combined total.
+# ---------------------------------------------------------------------------------------------
+
+2c54f89a8

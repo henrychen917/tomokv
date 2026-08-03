@@ -2377,6 +2377,17 @@ run_adopted_gates() {
         return
     fi
 
+    # Fall back to the PINNED baseline (tools/preflight/surface_baseline.sha) before falling back
+    # to $STAGED. Comparing the candidate against itself is what made this case INCONCLUSIVE: it is
+    # trivially identical and qualifies nothing. Materialising the pin costs one cached build.
+    # If the pin cannot be built we keep the old self-compare and stay INCONCLUSIVE -- degrading to
+    # a FAIL here would block a run for a missing baseline, and degrading to PASS would be a lie.
+    if [ -z "${SURFACE_BASE:-}" ] && [ -x "$TREE_ROOT/tools/preflight/surface_baseline.sh" ]; then
+        local _pinned
+        if _pinned=$("$TREE_ROOT/tools/preflight/surface_baseline.sh" 2>>"$WORK/surface_baseline.err"); then
+            [ -x "$_pinned" ] && SURFACE_BASE=$_pinned
+        fi
+    fi
     local surface_base=${SURFACE_BASE:-$STAGED} surface_has_baseline=0
     local sflive=$WORK/surface.live.out fclive=$WORK/flip.live.out
     if [ -n "${SURFACE_BASE:-}" ] &&

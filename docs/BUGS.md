@@ -1272,3 +1272,82 @@ J5 made structurally-impossible cases report `SKIP NOT-APPLICABLE`, which then t
 `FULL-COVERAGE` ("full mode emits even one SKIP row") — correctly, because SKIP means "we chose not
 to run this" and in FULL mode that is a coverage gap. Added a separate `NA` class: SKIP still fails
 FULL coverage, NA does not, and the summary reports both.
+
+---
+
+## L. A3 acceptance — the back-pressure path no test had ever entered (2026-08-02)
+
+### L1. The gap
+
+`exDispatchPush()` and `csPushSpin()` each contain a spin loop taken only when a worker's SPSC ring
+is full, and A3 changed both (publish *every* staged ring, not just the one being waited on).
+Neither loop was ever entered by any test in this tree: `INFO tomokv_ex_queue_full` read **0**
+across a full `bigstress` run *and* across the first complete `stress_validation` soak
+(`cycle 1 ... qfull=0`). A fix to a path no test enters is indistinguishable from no fix — the
+vacuous-validation class already recorded in §E and §J5.
+
+### L2. One counter could not attribute the path — SPLIT
+
+Both sites bumped the same `q_full_events`, so a probe that drove the total above zero could not
+say *which* loop it had entered, and could have "passed" while leaving one site untouched. Added
+`q_full_cs_events` (owner-written, on an already-spinning path) and `INFO
+tomokv_ex_queue_full_xshard`. The original field keeps its meaning as the combined total, so this
+is additive; it is recorded as the pending intentional diff in
+`tools/preflight/surface_baseline.sha`.
+
+### L3. `csPushSpin`'s stated justification was obsolete — CORRECTED
+
+Its docstring justified the immediate-publish design with *"a single MGET may stage more subs than
+the queue depth ... so the push would deadlock."* That has not been true since xshard OPT-1: the
+coalesced scatter builds **one sub per worker**, not one per key, so a single command stages at
+most `nw` ≤ 64 subs into 64 *distinct* rings — one each — against a depth of 2048. The other two
+call sites (set-op `GATHER1`, `PROBE`) push exactly one sub. **No single command can overflow a
+ring.**
+
+This matters beyond tidiness: anyone sizing the ring or reasoning about scatter deadlock from that
+comment would be reasoning from a condition that no longer exists, and the acceptance probe would
+have been built to reproduce the wrong thing (one wide MGET). Back-pressure is reachable only via
+**many concurrent** commands from one io thread to one worker. The immediate publish is still
+required, for a different reason now stated in the comment: the scatter's caller is blocked on
+these subs, so leaving one staged defers it to the next `beforeSleep`.
+
+### L4. `queues[]` was indexable out of bounds by construction — ASSERTED
+
+`exThread.queues[]` has `TOMO_IO_THREADS_MAX + 1` = 33 lanes and is indexed by `iotid`, but a
+**worker's** `iotid` is `TOMO_IO_THREADS_MAX + 1 + ex_slot` — always ≥ 33. A worker-side call would
+therefore be a silent OOB write into the next `exThread`'s ring, not a benign mistake. It was
+correct only because every call site happened to be IO-side, which nothing enforced. A2 had already
+funnelled all staging through `exQueueFor()`, so one `debugServerAssert` there covers every site;
+`debugServerAssert` rather than `serverAssert` because the property is structural (which thread
+calls it) and cannot first fail under production load.
+
+### L5. The probe — `tools/preflight/ex_backpressure.sh`
+
+Four arms on **one** server: two negative controls at low concurrency that must leave both counters
+at **0**, and two saturation arms that must drive their own counter above 0 — `S1` a deep pipeline
+on a single key (one bucket ⇒ one worker ⇒ one ring) for `exDispatchPush`, `S2` deeply pipelined
+multi-key `MGET`s for `csPushSpin`. Every reply is verified, so it also asserts correctness *while*
+an io thread is spinning inside the loop. The control arms are what make the result attributable:
+without them, "counter > 0" would not distinguish induced saturation from a counter that climbs
+under any load.
+
+**What it does not prove:** A3's *benefit*. The counter increments with or without A3, which
+changed only what is published inside the spin — i.e. drain latency. Demonstrating that needs an
+A/B against an A3-reverted build. This probe establishes reachability and correctness under
+back-pressure, and must not be cited for more.
+
+### L6. `SURFACE-GATE` was comparing the binary against itself — BASELINE PINNED
+
+The one remaining `INCONCLUSIVE` was honest: with no `SURFACE_BASE`, `bigstress` passed `$STAGED`
+as both base and candidate, and "byte-identical" is vacuous against yourself. Added
+`surface_baseline.sha` (a deliberately-lagging pinned commit, with the rules for moving it) and
+`surface_baseline.sh` (builds it once into a SHA-keyed cache, in a throwaway worktree so the
+caller's tree is never touched). `bigstress` now defaults to it, and falls back to the old
+self-compare — staying `INCONCLUSIVE` — if the pin cannot be built, because failing a run over a
+missing baseline would be wrong and passing it would be a lie.
+
+### L7. `withbox.sh` was not in the repo
+
+`stress_validation.sh` documents its own invocation as `tools/preflight/withbox.sh`, which did not
+exist — the shared box lock lived only in a job scratch directory. The mandatory gate was therefore
+not reproducible from a clone. Copied in verbatim.

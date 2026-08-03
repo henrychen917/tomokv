@@ -228,6 +228,15 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * a C11 data race even though the load is non-torn in practice. */
     _Atomic int pinned_nonmig;
     unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
+    /* ee451 (A3 acceptance, 2026-08-02): the SAME exhaustion counted separately for the cross-shard
+     * scatter (csPushSpin) and the single-key dispatch (exDispatchPush). They are different call
+     * sites with different saturation causes -- a deep pipeline on one key floods a single ring via
+     * exDispatchPush, while one wide MGET can overrun the same ring in a single command via
+     * csPushSpin -- and both received the A3 "publish everything staged" fix. With ONE shared
+     * counter a test that drives the total above zero cannot say which path it actually entered,
+     * so the acceptance probe could pass while leaving one site unexercised. Split so the probe can
+     * assert per-path. Owner-written on an already-spinning path; racy read by INFO. */
+    unsigned long q_full_cs_events;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -2643,6 +2652,20 @@ void flushExQueues(void);   /* defined below; used by the back-pressure path (A3
 /* Obtain this thread's queue to worker ex_id AND record that it is dirty. Never index
  * exThreads[].queues[] directly on a staging path -- go through here. */
 static inline exQueue *exQueueFor(int ex_id) {
+    /* ee451 (2026-08-02): queues[] has TOMO_IO_THREADS_MAX+1 lanes, so it is indexable ONLY by an
+     * IO identity (iotid 0..TOMO_IO_THREADS_MAX). A WORKER's iotid is TOMO_IO_THREADS_MAX+1+ex_slot
+     * — i.e. always out of bounds — so calling this from a worker thread is a silent OOB write into
+     * the next exThread's ring, not a benign mistake. It is correct today only because every call
+     * site happens to be IO-side, which nothing enforced. This is the single funnel for the staging
+     * path (see the comment above), so one check covers all of them.
+     *
+     * debugServerAssert, not serverAssert: this is per-dispatch hot. The property is structural —
+     * which thread calls it — so it cannot start failing only under production load, and the ASAN /
+     * debug gates are exactly where a new worker-side call site would first appear.
+     *
+     * ex_dirty_mask is likewise a per-IO-thread TLS: A2 sized it uint64 against TOMO_EX_THREADS_MAX,
+     * asserted <= 64 there. */
+    debugServerAssert(iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX);
     ex_dirty_mask |= 1ull << (unsigned)ex_id;
     return &server.exThreads[ex_id].queues[iotid];
 }
@@ -2661,15 +2684,16 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
         exHandoffAdvertise(&server.exThreads[ex_id]);
-    /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
-     * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
-     * thread already staged for OTHER workers invisible -- so those workers sit idle for the whole
-     * spin, and they are exactly the ones whose progress frees the pressure (a full ring is
-     * usually a symptom of the pool being behind, not of one worker being slow). Cheap here by
-     * construction: we are already spinning, and after A2 this visits only the workers actually
-     * staged into. `q` is published explicitly above on every iteration because flushExQueues()
-     * consumes the dirty mask, so it cannot be relied on to re-publish `q` on a later pass. */
-    flushExQueues();
+        /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
+         * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
+         * thread already staged for OTHER workers invisible -- so those workers sit idle for the
+         * whole spin, and they are exactly the ones whose progress frees the pressure (a full ring
+         * is usually a symptom of the pool being behind, not of one worker being slow). Cheap here
+         * by construction: we are already spinning, and after A2 this visits only the workers
+         * actually staged into. `q` is published explicitly above on every iteration because
+         * flushExQueues() consumes the dirty mask, so it cannot be relied on to re-publish `q` on
+         * a later pass. */
+        flushExQueues();
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     } while (exQueuePush(q, fake) != 0);
@@ -9010,30 +9034,47 @@ static void csFreeSub(client *sub) {
 }
 
 /* Push a sub to a worker queue, publishing `tail` IMMEDIATELY (not waiting for the
- * event-loop's batched flushExQueues) and spinning while the queue is full. A single
- * MGET may stage more subs than the queue depth; under opt_batch_push the staged jobs are
- * invisible to the worker until tail is published, so without this the worker could never
- * drain and the push would deadlock. We are the sole producer for queues[iotid], so the
- * immediate release-store races nothing; the worker is the sole consumer and drains
- * concurrently, so the full-spin is bounded by its pop rate. */
+ * event-loop's batched flushExQueues) and spinning while the queue is full. We are the sole
+ * producer for queues[iotid], so the immediate release-store races nothing; the worker is the
+ * sole consumer and drains concurrently, so the full-spin is bounded by its pop rate.
+ *
+ * WHY IMMEDIATE (corrected 2026-08-02). This used to say "a single MGET may stage more subs
+ * than the queue depth ... so the push would deadlock". That justification is OBSOLETE and was
+ * left behind by xshard OPT-1: the coalesced scatter now builds ONE sub per WORKER, not one per
+ * key, so a single command stages at most nw (<= TOMO_EX_THREADS_MAX = 64) subs into 64 distinct
+ * rings — one each. With rings 2048 deep, no single command can overflow one. The other two call
+ * sites (the set-op pipeline's GATHER1 and PROBE hops) push exactly one sub each.
+ *
+ * The immediate publish is still REQUIRED, for a different reason: the scatter's caller cannot
+ * make progress until these subs complete, and under opt_batch_push a staged-but-unpublished sub
+ * is invisible to its worker until the next flush point. Leaving it staged converts "worker
+ * drains it now" into "worker drains it after the io thread next reaches beforeSleep", which is
+ * a latency cliff on the exact path that is already blocking. Back-pressure here is therefore
+ * driven by CONCURRENT commands (many pipelined scatters from one io thread to one worker),
+ * not by one wide command — which is what tools/preflight/ex_backpressure.sh has to reproduce. */
 static void csPushSpin(int w, client *sub) {
     exQueue *q = exQueueFor(w);
     int spins = 0;
     int counted = 0;
     while (exQueuePush(q, sub) != 0) {
-        if (!counted) { tm_io_sig[iotid].q_full_events++; counted = 1; }   /* see exDispatchPush */
+        if (!counted) {   /* see exDispatchPush; _cs_ is the scatter's own tally, see tmIoSignal */
+            tm_io_sig[iotid].q_full_events++;
+            tm_io_sig[iotid].q_full_cs_events++;
+            counted = 1;
+        }
         /* Full: ensure everything staged so far is visible so the worker drains. */
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertise(&server.exThreads[w]);
-    /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
-     * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
-     * thread already staged for OTHER workers invisible -- so those workers sit idle for the whole
-     * spin, and they are exactly the ones whose progress frees the pressure (a full ring is
-     * usually a symptom of the pool being behind, not of one worker being slow). Cheap here by
-     * construction: we are already spinning, and after A2 this visits only the workers actually
-     * staged into. `q` is published explicitly above on every iteration because flushExQueues()
-     * consumes the dirty mask, so it cannot be relied on to re-publish `q` on a later pass. */
-    flushExQueues();
+        /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
+         * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
+         * thread already staged for OTHER workers invisible -- so those workers sit idle for the
+         * whole spin, and they are exactly the ones whose progress frees the pressure (a full ring
+         * is usually a symptom of the pool being behind, not of one worker being slow). Cheap here
+         * by construction: we are already spinning, and after A2 this visits only the workers
+         * actually staged into. `q` is published explicitly above on every iteration because
+         * flushExQueues() consumes the dirty mask, so it cannot be relied on to re-publish `q` on
+         * a later pass. */
+        flushExQueues();
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     }
@@ -14500,8 +14541,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         /* Adaptive-sizing observability ("expose the state"): worker-queue exhaustion is the signal
          * that the derived worker dispatch ring is undersized. It back-pressures rather than growing, so
          * without this counter an undersized ring is invisible except as unexplained latency. */
-        unsigned long long tomo_qfull = 0;
-        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) tomo_qfull += tm_io_sig[_t].q_full_events;
+        unsigned long long tomo_qfull = 0, tomo_qfull_cs = 0;
+        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
+            tomo_qfull    += tm_io_sig[_t].q_full_events;
+            tomo_qfull_cs += tm_io_sig[_t].q_full_cs_events;
+        }
         unsigned long long tomo_handoff_missed = 0;   /* sparse-handoff protocol oracle: MUST be 0 */
         if (server.exThreads)
             for (int _w = 0; _w < server.num_workers; _w++)
@@ -14538,6 +14582,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * non-zero value is a real incident, not noise. */
             "tomokv_flat_resize_watchdog_aborts:%llu\r\n", atomic_load_explicit(&flat_rz_watchdog_aborts, memory_order_relaxed),
             "tomokv_ex_queue_full:%llu\r\n", tomo_qfull,
+            /* ee451 (A3 acceptance): the cross-shard scatter's share of the total above. Both are
+             * back-pressure on the SAME rings, but a wide MGET saturates one in a single command
+             * while a deep same-key pipeline saturates it over many, so the acceptance probe needs
+             * to name which site it entered rather than infer it from a shared total. */
+            "tomokv_ex_queue_full_xshard:%llu\r\n", tomo_qfull_cs,
             "tomokv_handoff_missed:%llu\r\n", tomo_handoff_missed,
             "tomokv_nested_cmd_frames:%llu\r\n",
                 atomic_load_explicit(&tomo_nested_cmd_frames, memory_order_relaxed),
