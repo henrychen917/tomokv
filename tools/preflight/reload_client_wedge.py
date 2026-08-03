@@ -107,8 +107,17 @@ def main():
     ap.add_argument("--inflight-conns", type=int, default=8)
     ap.add_argument("--inflight-depth", type=int, default=256)
     ap.add_argument("--reply-timeout", type=float, default=10.0)
+    # Which mutation to fire under load. emptyData()'s shard fold dispatches a per-worker sentinel
+    # through the SAME queue as normal commands, so a flush is ordered wrt in-flight work by
+    # construction; rdbLoad writes the shared node dbs from the main thread and is not. Running
+    # both separates "the flush loses replies" from "the load does", which decides whether this is
+    # a test-command defect or a production one (FLUSHALL is production; DEBUG RELOAD is not).
+    ap.add_argument("--fire", default="DEBUG RELOAD",
+                    help="command to run under load: 'DEBUG RELOAD', 'FLUSHALL', "
+                         "'DEBUG RELOAD NOSAVE NOFLUSH MERGE', ...")
     a = ap.parse_args()
 
+    a_fire = a.fire
     VAL = "v" * 32
     try:
         ctl = C(a.host, a.port, "ctl", timeout=120.0)
@@ -131,31 +140,93 @@ def main():
     # IDLE lane: open now, touch nothing until after the reload.
     idle = C(a.host, a.port, "idle", timeout=a.reply_timeout)
 
-    # INFLIGHT lanes: keep a deep pipeline running across the reload.
+    # INFLIGHT lanes, driven by ONE select() loop rather than one thread each.
+    #
+    # WHY THIS MATTERS, and why the first version of this probe could not be trusted: with a thread
+    # per lane, all of them are Python threads contending for the GIL while parsing tens of millions
+    # of replies. A lane that simply does not get SCHEDULED for `reply-timeout` seconds raises
+    # exactly the same TimeoutError as a lane the server never answered. That first version
+    # "reproduced" reply loss 3 runs of 3 and then 0 of 2 after edits that could not possibly have
+    # affected the server -- which is the signature of measuring the client, not the server.
+    # A single select() loop has no such failure mode: every socket is polled by the same thread, so
+    # a timeout means the bytes genuinely did not arrive.
     inflight = [C(a.host, a.port, "inflight%d" % i, timeout=a.reply_timeout)
                 for i in range(a.inflight_conns)]
-    stop = threading.Event()
+    for c in inflight:
+        c.s.setblocking(False)
+    bursts = [b"".join(enc("GET", "wk:%d" % (i * 1000 + j)) for j in range(a.inflight_depth))
+              for i in range(len(inflight))]
     sent = [0] * len(inflight)
     got = [0] * len(inflight)
     errs = [None] * len(inflight)
+    pend = [b""] * len(inflight)
+    outst = [0] * len(inflight)
+    last_rx = [time.time()] * len(inflight)
 
-    def pump(idx):
-        c = inflight[idx]
-        burst = b"".join(enc("GET", "wk:%d" % (idx * 1000 + j)) for j in range(a.inflight_depth))
-        try:
-            while not stop.is_set():
-                c.send(burst)
-                sent[idx] += a.inflight_depth
-                for _ in range(a.inflight_depth):
-                    c.read(a.reply_timeout)
-                    got[idx] += 1
-        except Exception as e:
-            errs[idx] = "%s: %s" % (type(e).__name__, e)
+    def drain(i):
+        """Consume complete replies buffered on lane i. All replies here are GET bulk strings."""
+        c = inflight[i]
+        n, k = 0, 0
+        b = c.buf
+        while True:
+            j = b.find(b"\r\n", k)
+            if j < 0:
+                break
+            if b[k:k + 1] != b"$":
+                k = j + 2; n += 1; continue          # +OK / :N / -ERR
+            ln = int(b[k + 1:j])
+            if ln == -1:
+                k = j + 2; n += 1; continue
+            if len(b) < j + 2 + ln + 2:
+                break
+            k = j + 2 + ln + 2; n += 1
+        if k:
+            c.buf = b[k:]
+        got[i] += n
+        outst[i] -= n
+        if n:
+            last_rx[i] = time.time()
+        return n
 
-    threads = [threading.Thread(target=pump, args=(i,), daemon=True) for i in range(len(inflight))]
-    for t in threads:
-        t.start()
-    time.sleep(1.0)   # let the pipelines get genuinely deep
+    def pump_until(deadline, stall_limit):
+        """Run every lane until `deadline`. Returns the list of lanes that went `stall_limit`
+        seconds with no bytes while still owed replies."""
+        stalled = set()
+        while time.time() < deadline:
+            for i, c in enumerate(inflight):
+                if not pend[i] and outst[i] <= a.inflight_depth // 2:
+                    pend[i] = bursts[i]
+                    sent[i] += a.inflight_depth
+                    outst[i] += a.inflight_depth
+            rl = [c.s for i, c in enumerate(inflight) if outst[i] > 0 and errs[i] is None]
+            wl = [c.s for i, c in enumerate(inflight) if pend[i] and errs[i] is None]
+            if not rl and not wl:
+                break
+            r, w, _ = select.select(rl, wl, [], 0.25)
+            byfd = {c.s: i for i, c in enumerate(inflight)}
+            for sk in w:
+                i = byfd[sk]
+                try:
+                    nb = sk.send(pend[i]); pend[i] = pend[i][nb:]
+                except Exception as e:
+                    errs[i] = "send %s: %s" % (type(e).__name__, e)
+            for sk in r:
+                i = byfd[sk]
+                try:
+                    d = sk.recv(1 << 20)
+                    if not d:
+                        errs[i] = "closed by peer"; continue
+                    inflight[i].buf += d
+                    drain(i)
+                except BlockingIOError:
+                    pass
+                except Exception as e:
+                    errs[i] = "recv %s: %s" % (type(e).__name__, e)
+            now = time.time()
+            for i in range(len(inflight)):
+                if outst[i] > 0 and errs[i] is None and now - last_rx[i] > stall_limit:
+                    stalled.add(i)
+        return sorted(stalled)
 
     def fresh_ping(tag):
         """Open a NEW connection and PING it. Returns (ok, seconds, err).
@@ -173,47 +244,80 @@ def main():
         except Exception as e:
             return False, time.time() - t, "%s: %s" % (type(e).__name__, e)
 
+    # Warm the lanes so the pipelines are genuinely deep before anything is fired.
+    pump_until(time.time() + 2.0, stall_limit=1e9)
+
     # CONTROL, and the whole reason this probe can conclude anything. If a fresh connection cannot
-    # be served under this load even WITHOUT a reload, then a post-reload failure says nothing
-    # about the reload -- it is just the load. Filing a DEBUG RELOAD defect without this control is
-    # exactly how J6 got filed, and retracted, twice.
+    # be served under this load even WITHOUT the mutation, then a failure afterwards says nothing
+    # about the mutation -- it is just the load. Filing a DEBUG RELOAD defect without this control
+    # is exactly how J6 got filed, and retracted, twice.
     pre_ok, pre_s, pre_e = fresh_ping("pre")
-    print("control: fresh connection under load, BEFORE any reload -> ok=%s in %.3fs"
-          % (pre_ok, pre_s) + ("  %s" % pre_e if pre_e else ""), flush=True)
+    print("control: fresh conn under load, BEFORE %s -> ok=%s in %.3fs %s"
+          % (a_fire, pre_ok, pre_s, pre_e), flush=True)
 
-    print("issuing DEBUG RELOAD under load ...", flush=True)
-    t0 = time.time()
-    ctl.send(enc("DEBUG", "RELOAD"))
-    try:
-        r = ctl.read(120.0)
-    except Exception as e:
-        print("RESULT server did not answer DEBUG RELOAD: %s: %s" % (type(e).__name__, e))
-        return 1
-    reload_secs = time.time() - t0
-    print("DEBUG RELOAD -> %r in %.3fs" % (r, reload_secs), flush=True)
+    # Fire the mutation from ONE otherwise-idle thread, so the select loop keeps servicing every
+    # lane throughout. This is the only thread besides the driver, and it spends its life blocked
+    # on a single reply, so it cannot starve the loop the way the old thread-per-lane design did.
+    fired = {}
 
-    # Fresh connection immediately after the reload, still under the SAME load as the control.
-    # This pair (pre vs post) is the measurement; a bare post-reload failure is not.
+    def fire_it():
+        t = time.time()
+        try:
+            ctl.send(enc(*a_fire.split()))
+            fired["reply"] = ctl.read(120.0)
+        except Exception as e:
+            fired["reply"] = "%s: %s" % (type(e).__name__, e)
+        fired["secs"] = time.time() - t
+
+    th = threading.Thread(target=fire_it, daemon=True)
+    print("issuing %s under load ..." % a_fire, flush=True)
+    th.start()
+    # Keep pumping across the whole mutation, and for a generous window after it, watching for a
+    # lane that stops receiving while still owed replies.
+    while th.is_alive():
+        pump_until(time.time() + 0.25, stall_limit=1e9)
+    th.join(timeout=5.0)
+    reload_secs = fired.get("secs", 0.0)
+    r = fired.get("reply")
+    print("%s -> %r in %.3fs" % (a_fire, r, reload_secs), flush=True)
+
     post_ok, post_s, post_e = fresh_ping("post")
-    print("fresh connection under load, AFTER the reload -> ok=%s in %.3fs  %s" % (post_ok, post_s, post_e),
-          flush=True)
+    print("fresh conn under load, AFTER %s -> ok=%s in %.3fs %s"
+          % (a_fire, post_ok, post_s, post_e), flush=True)
 
-    # Give the in-flight lanes a bounded chance to finish what they had outstanding, then stop the
-    # load COMPLETELY before the quiesced probes -- otherwise "server is saturated" and "server is
-    # wedged" are indistinguishable, which is what made the first run of this probe inconclusive.
-    time.sleep(a.reply_timeout + 2.0)
-    stop.set()
-    for t in threads:
-        t.join(timeout=a.reply_timeout + 5.0)
-    time.sleep(2.0)
+    # THE MEASUREMENT. Keep pumping well past the mutation. A lane that receives nothing for
+    # `reply-timeout` seconds while still owed replies is stalled; if it is STILL owed them after
+    # this whole window, they never came.
+    stalled = pump_until(time.time() + a.reply_timeout * 2, stall_limit=a.reply_timeout)
+    owed_before_quiesce = [sent[i] - got[i] for i in range(len(inflight))]
 
-    # FRESH, quiesced: no load at all. If this fails the server is genuinely not serving.
+    # Stop issuing, then drain only. Anything that arrives now was LATE, not lost.
+    for i in range(len(inflight)):
+        pend[i] = b""
+    late_start = sum(got)
+    t_end = time.time() + 5.0
+    while time.time() < t_end:
+        rl = [c.s for i, c in enumerate(inflight) if outst[i] > 0 and errs[i] is None]
+        if not rl:
+            break
+        r2, _, _ = select.select(rl, [], [], 0.25)
+        byfd = {c.s: i for i, c in enumerate(inflight)}
+        for sk in r2:
+            i = byfd[sk]
+            try:
+                d = sk.recv(1 << 20)
+                if not d:
+                    errs[i] = "closed by peer"; continue
+                inflight[i].buf += d
+                drain(i)
+            except Exception:
+                pass
+    late = sum(got) - late_start
+
     fresh_ok, fresh_s, fresh_e = fresh_ping("fresh")
-    print("fresh connection QUIESCED (load stopped) -> ok=%s in %.3fs  %s" % (fresh_ok, fresh_s, fresh_e),
-          flush=True)
+    print("fresh conn QUIESCED (load stopped) -> ok=%s in %.3fs %s"
+          % (fresh_ok, fresh_s, fresh_e), flush=True)
 
-    # IDLE lane: was open across the reload but sent nothing during it. Tested only now, with the
-    # load stopped, so a failure here cannot be blamed on saturation.
     idle_ok = False
     idle_err = ""
     try:
@@ -222,68 +326,49 @@ def main():
     except Exception as e:
         idle_err = "%s: %s" % (type(e).__name__, e)
 
-    # THE DECISIVE MEASUREMENT: are the missing replies LOST, or merely LATE? Every wedged lane is
-    # given one more quiesced chance to deliver what it was still owed. If they arrive now, the
-    # defect is a multi-second STALL under load (bad, but bounded and not data loss). If they never
-    # arrive, replies were DROPPED and the connection can never resynchronise -- a different and
-    # much more serious defect, because the client is permanently desynchronised from its stream.
-    late = 0
-    for i, c in enumerate(inflight):
-        owed = sent[i] - got[i]
-        if owed <= 0:
-            continue
-        try:
-            while owed > 0:
-                c.read(3.0)
-                late += 1
-                got[i] += 1
-                owed -= 1
-        except Exception:
-            pass
-
-    wedged = [i for i, e in enumerate(errs) if e]
-    total_sent, total_got = sum(sent), sum(got)   # got[] now includes any LATE arrivals
+    wedged = [i for i in range(len(inflight)) if sent[i] - got[i] > 0 or errs[i]]
+    total_sent, total_got = sum(sent), sum(got)
 
     print("")
-    print("reload_secs        = %.3f" % reload_secs)
-    print("fresh PRE-reload   = %s in %.3fs   (control, under load) %s" % (pre_ok, pre_s, pre_e))
-    print("fresh POST-reload  = %s in %.3fs   (under the same load) %s" % (post_ok, post_s, post_e))
+    print("mutation_secs      = %.3f" % reload_secs)
+    print("fresh PRE          = %s in %.3fs   (control, under load) %s" % (pre_ok, pre_s, pre_e))
+    print("fresh POST         = %s in %.3fs   (under the same load) %s" % (post_ok, post_s, post_e))
     print("fresh QUIESCED     = %s in %.3fs   (load stopped) %s" % (fresh_ok, fresh_s, fresh_e))
     print("idle_conn_ok       = %s   %s" % (idle_ok, idle_err))
-    print("inflight lanes     = %d, wedged = %d" % (len(inflight), len(wedged)))
-    print("inflight replies   = %d received of %d sent (missing %d)"
+    print("lanes stalled >%.0fs = %s" % (a.reply_timeout, stalled))
+    print("inflight replies   = %d received of %d sent (still owed %d)"
           % (total_got, total_sent, total_sent - total_got))
-    print("late replies       = %d arrived only after the load stopped => stall, not loss" % late)
-    for i in wedged[:4]:
-        print("    lane %d: %s" % (i, errs[i]))
+    print("late replies       = %d arrived only after issuing stopped" % late)
+    for i in wedged[:6]:
+        print("    lane %d: owed %d, err=%s" % (i, sent[i] - got[i], errs[i]))
 
-    ctl.close()
-    idle.close()
+    ctl.close(); idle.close()
     for c in inflight:
         c.close()
 
     # ---- verdict, in the order that keeps the attribution honest ----
     if not pre_ok:
         print("\nRESULT INVALID the control failed: a fresh connection could not be served under "
-              "this load BEFORE any reload, so nothing here can be attributed to DEBUG RELOAD. "
-              "Lower --inflight-conns/--inflight-depth until the control passes, then re-run.")
+              "this load BEFORE the mutation, so nothing here is attributable to it. Lower "
+              "--inflight-conns/--inflight-depth until the control passes, then re-run.")
         return 2
     if not fresh_ok:
-        print("\nRESULT SERVER NOT SERVING even with the load stopped, after a DEBUG RELOAD that "
-              "returned +OK. That is a server-wide wedge, not per-connection orphaning.")
+        print("\nRESULT SERVER NOT SERVING with the load stopped, after %s returned %r. That is a "
+              "server-wide wedge, not per-connection reply loss." % (a_fire, r))
         return 1
-    if wedged or not idle_ok:
+    lost = total_sent - total_got
+    if lost > 0 or not idle_ok:
         which = []
-        if wedged:
-            which.append("INFLIGHT (%d/%d lanes, %d replies never arrived)"
-                         % (len(wedged), len(inflight), total_sent - total_got))
+        if lost:
+            which.append("%d replies never arrived on lanes %s" % (lost, wedged))
         if not idle_ok:
-            which.append("IDLE")
-        print("\nRESULT WEDGE REPRODUCED on %s, while the control passed before the reload and a "
-              "fresh connection works after it => DEBUG RELOAD leaves PRE-EXISTING connections "
-              "without replies." % " and ".join(which))
+            which.append("the IDLE connection stopped answering")
+        print("\nRESULT REPLY LOSS on %s: %s. Control passed before the mutation and a fresh "
+              "connection works after it, and %d replies arrived late (so the drain window was "
+              "long enough to catch a mere stall)." % (a_fire, "; ".join(which), late))
         return 1
-    print("\nRESULT no wedge: every pre-existing connection kept getting replies across the reload.")
+    print("\nRESULT clean: %s under load lost nothing (%d replies, %d late, 0 owed)."
+          % (a_fire, total_got, late))
     return 0
 
 

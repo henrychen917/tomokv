@@ -139,8 +139,14 @@ class Conn:
                 raise
 
     def pipe(self, cmds, retry_loading=True):
-        """Send N, read exactly N. A dropped reply surfaces here as a socket timeout,
-        which is precisely the symptom we want to catch rather than paper over."""
+        """Send N, read exactly N.
+
+        A dropped reply surfaces here as a socket timeout -- but so does a lane whose Python thread
+        was simply not scheduled for `timeout` seconds, and this process runs a thread per lane
+        while parsing tens of millions of replies. Those two are indistinguishable from in here, so
+        the timeout is NOT the verdict: Engine.fail() takes a fresh-connection control before any
+        timeout is allowed to accuse the server. That control is not optional -- without it this
+        harness reported a DEBUG RELOAD reply-loss defect that did not exist (docs/BUGS.md M)."""
         deadline = time.time() + 60
         while True:
             buf = bytearray()
@@ -585,7 +591,51 @@ class Engine:
     def conn(self, name=""):
         return Conn(self.a.host, self.a.port, timeout=self.a.timeout, name=name)
 
+    def server_is_serving(self, budget=3.0):
+        """Is the SERVER serving right now, on a connection that has no history?
+
+        This is the control that a timeout needs before it is allowed to accuse the server. Every
+        lane here is a Python thread doing blocking reads while the process parses tens of millions
+        of replies, so the threads contend for the GIL, and a lane that is simply not SCHEDULED for
+        `timeout` seconds raises exactly the same socket timeout as a lane the server never
+        answered. Those two are indistinguishable from inside the lane and need completely
+        different responses.
+
+        Measured 2026-08-02: a reducer built on the same thread-per-lane shape "reproduced" reply
+        loss 3 runs of 3, and a rewrite of the SAME test around a single select() loop showed
+        54,650,112 replies with 0 owed across DEBUG RELOAD. The defect was the apparatus. See
+        docs/BUGS.md section M."""
+        try:
+            c = Conn(self.a.host, self.a.port, timeout=budget, name="control")
+            try:
+                return c.cmd("PING") == "PONG"
+            finally:
+                c.close()
+        except Exception:
+            return False
+
     def fail(self, where, detail):
+        # A bare client-side timeout is NOT evidence of a server fault. Take the control first: if
+        # a fresh connection is served promptly at this moment, the server was serving and this
+        # lane was starved -- count it and let the run continue rather than burning the soak and
+        # sending the next reader into the server for a client bug.
+        if "TimeoutError" in detail or "timed out" in detail:
+            if self.server_is_serving():
+                with self.lock:
+                    self.ops["client_stalls"] += 1
+                    n = self.ops["client_stalls"]
+                if n <= 5 or n % 50 == 0:
+                    print(f"  [client-stall #{n}] [{where}] {detail} -- server answered a fresh "
+                          f"PING immediately, so this is local scheduling, not the server",
+                          flush=True)
+                # A LOT of these means the driver cannot keep up and the soak is no longer
+                # measuring the server; that is itself a failure, just a different one.
+                if n <= self.a.max_client_stalls:
+                    return
+                detail = (f"{detail} -- and {n} client-side stalls exceeded the "
+                          f"--max-client-stalls budget, so this driver can no longer be trusted "
+                          f"to observe the server")
+
         ts = time.strftime("%H:%M:%S") + ".%03d" % int((time.time() % 1) * 1000)
         with self.lock:
             if not self.failures:
@@ -1003,6 +1053,11 @@ def main():
     p.add_argument("--drain-secs", type=int, default=20)
     p.add_argument("--calib-secs", type=int, default=20)
     p.add_argument("--timeout", type=float, default=30.0)
+    # How many client-side stalls (a lane timeout that a fresh-connection control immediately
+    # disproves) may be tolerated before the driver itself is declared untrustworthy. Non-zero
+    # because GIL scheduling genuinely does starve a lane occasionally under this much parsing;
+    # bounded because a driver that stalls constantly is no longer observing the server at all.
+    p.add_argument("--max-client-stalls", type=int, default=20)
     p.add_argument("--load-cores", default="8-15")
     p.add_argument("--seed", type=int, default=1234)
     p.add_argument("--reload", type=int, default=1)

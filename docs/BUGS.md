@@ -1354,68 +1354,57 @@ not reproducible from a clone. Copied in verbatim.
 
 ---
 
-## M. DEBUG RELOAD silently LOSES replies for in-flight commands (2026-08-02) — OPEN
+## M. RETRACTED — "DEBUG RELOAD loses replies" was my harness, not the server (2026-08-02)
 
-**Found by `stress_validation`, on its first run that got far enough to find anything.** Phase
-numa1, cycle 2. This is the defect class the soak was built for: no crash, no log marker, only a
-client that waits forever.
+**Filed, then disproven the same hour. Recorded in full because it is the THIRD time a DEBUG RELOAD
+defect has been filed on client-side evidence (J6 twice, now M), and the pattern is the point.**
 
-### M1. Evidence
+### M1. What was claimed
 
-Soak, verbatim:
+`stress_validation` phase numa1 cycle 2 failed with `[bulk-conn] TimeoutError` exactly 30 s after a
+`DEBUG RELOAD` that returned `+OK` in 288 ms, while the server stayed healthy (`SURVIVAL PASS`,
+`markers=0`). A reducer reproduced "2 of 8 lanes wedged, 480 replies missing, late=0" three runs of
+three, and I concluded replies were permanently lost.
 
-    20:37:17.332  DB saved on disk
-    20:37:17.620  DB reloaded by DEBUG RELOAD     <- 288 ms, clean, +OK
-    20:37:47.445  FAIL [bulk-conn] TimeoutError   <- exactly 30 s later = the CLIENT's own timeout
+### M2. Why it was wrong
 
-`SOAK-numa1-SURVIVAL PASS` (server answered PING after 1242 s) and `CLEAN-LOG PASS markers=0` — the
-server was entirely healthy. Only pre-existing connections were affected.
+The reducer used **one Python thread per lane**, each doing blocking reads with a 10 s timeout while
+parsing tens of millions of replies. Those threads contend for the GIL. **A lane that is simply not
+SCHEDULED for 10 s raises exactly the same `TimeoutError` as a lane the server never answered.**
 
-Reduced to `tools/preflight/reload_client_wedge.py`, which reproduces it in ~90 s, 3 runs of 3:
+The tell was there and I nearly talked past it: the "defect" reproduced 3/3, then 0/2 after probe
+edits that could not possibly have changed server behaviour. A result that moves when only the
+measuring apparatus changes is a measurement of the apparatus.
 
-    control: fresh conn under load, BEFORE reload  -> PONG in 0.005s     PASSES
-    DEBUG RELOAD                                   -> OK in 0.687s
-    fresh conn after reload / idle conn            -> fine
-    in-flight lanes                                -> 2 of 8 wedged, 480 replies missing
-    late replies once the load stopped             -> 0
+Rewritten with a **single `select()` loop** over all lanes — no GIL starvation possible, so a
+timeout means the bytes genuinely did not arrive:
 
-**`late = 0` is the finding.** With the load stopped and 3 s of grace per wedged lane, not one of
-the 480 replies ever arrived. They are **lost, not late**. The socket stays open and the server
-stays healthy, so the client is permanently desynchronised from its own reply stream — it can never
-resynchronise, because RESP has no reply framing to resynchronise to.
+    FLUSHALL      67,025,920 replies, 0 still owed, 1,536 late
+    DEBUG RELOAD  54,650,112 replies, 0 still owed, 1,024 late
 
-The control is what makes this attributable, and it is not optional: a fresh connection served in
-5 ms under the identical load immediately before the reload rules out "the server was just busy".
-J6 was filed and retracted twice for want of exactly that control.
+Nothing is lost under either. The **non-zero late counts are what make "0 owed" meaningful**: the
+drain window demonstrably catches replies arriving after issuing stops, so it would have caught a
+stall. There is no reply-loss defect.
 
-### M2. Root cause is already on the record
+### M3. The design fact that should have been the prior
 
-`src/debug.c` (the J3 fix) states it outright:
+`emptyData()`'s shard fold does **not** mutate the shard dbs from the calling thread. It pushes a
+per-worker sentinel through `csPushSpin`, so each worker flushes its own shard **in queue order**,
+single-writer — already ordered with respect to in-flight commands by construction. I had read that
+code and still assumed a fence was missing, because the J3 comment says the reload "is not atomic".
+J3's non-atomicity is real, but it is `rdbLoad` racing the *table* — a data-race/crash class, **not**
+a lost-reply class. Two different defects that happen to live near `DEBUG RELOAD`.
 
-> *emptyData() and rdbLoad() are not atomic with respect to the workers: the workers keep going ...
-> This does NOT make the reload atomic — rdbLoad remains a non-owner writer of the shared node dbs.
-> It removes the kill.*
+### M4. The real defect this exposed — in `stress_validation.py`
 
-J3 fixed the **crash** (duplicate keys ⇒ Guru) and knowingly left the **non-atomicity**. M is that
-residue: the keyspace is swapped underneath commands already dispatched to workers, and their
-replies are never published. J3's scope was correct — it just was not the whole defect, and nothing
-recorded that the remainder was still live until the soak hit it.
+The soak's own client has the **same** thread-per-lane shape, so its `[bulk-conn] TimeoutError` is
+very likely the same artifact. A soak that reports a server defect when its own client thread was
+descheduled is worse than no soak: it burns hours and sends you hunting in the server. Fixed by
+making a timeout **discriminate before it accuses** — M5.
 
-### M3. The fix, and the trap in front of it
+### M5. Rule this adds
 
-The shape is a **drain fence**: quiesce in-flight worker dispatches and publish their replies before
-`emptyData()`, and hold new dispatches until `rdbLoad()` completes. The machinery exists — the
-FLATSTORE resize quiesce (hardened in J4 with a CAS'd state and a watchdog) and the migration
-drain-fence are both this primitive.
-
-**Do not reach for a naive stop-the-world.** One was already written and reverted this session
-because it converted a crash into a whole-server wedge: it parked the workers without waiting out an
-armed resize and without pumping the coordinators, both of which the flush path does. Any fix here
-must satisfy the same two obligations, and `flatResizeWatchdog()` is the precedent for making the
-quiesce recoverable rather than trusting it.
-
-### M4. Status
-
-**OPEN.** Reproducer committed and green-as-in-reproduces. Not yet fixed. `stress_validation` cannot
-pass until it is, because the soak exercises `DEBUG RELOAD` under load on every even cycle — which
-is precisely why it was written that way.
+**A client-side timeout is never, by itself, evidence of a server fault.** Before any timeout is
+reported as a defect it must be paired with a control taken at that moment: a fresh connection the
+server answers promptly proves the server was serving and the lane was merely starved. Every probe
+in this tree with a per-connection timeout owes that control.
