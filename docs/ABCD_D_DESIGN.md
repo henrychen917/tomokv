@@ -127,7 +127,10 @@ queue-plus-thread-pool boundaries added latency and that stages should be merged
 already-parsed batch *before* the push — transient, no new queue. This is also what D1 demands
 ("two transient lanes over ONE ALREADY-POPPED prefix, **not persistent admission queues**").
 
-* **actuator**: parse batch size — which *is* the reorder window (one knob, not two)
+* **actuator**: parse batch size — which *is* the reorder window (one actuator, not two)
+  **OWNER RULING 2026-08-03, supersedes "one knob, not two": the actuator is shared, the two
+  MECHANISMS are split. Batch sizing is HARD-CODED (always on, self-tuning, no knob); the reorder
+  is a KNOB. See §5.3.**
 * **observables**: per-worker queue depth (`tomokv_ex_queue_depth`, exists), ROB occupancy,
   the per-class latency EWMA of §4.3
 * **objective**: hold a p99 target while maximising amortisation
@@ -175,6 +178,37 @@ construction, which is the point of copying this pattern rather than inventing o
 **Do not** put the controller on a worker or IO thread, and do not let the hot path recompute the
 window "just in case it changed" — a stale window for up to one second is completely acceptable,
 which is precisely why 1 Hz is enough for the balancers too.
+
+### 5.3 OWNER RULING (2026-08-03): batch sizing is hard-coded, reordering stays a knob
+
+The original text fused them ("one knob, not two"). They are now split along **whether the
+mechanism changes observable order**:
+
+| mechanism | ships as | why |
+|---|---|---|
+| **batch / window sizing** | **HARD-CODED**, always on, self-tuning | It is a numeric self-derived tunable in the house style (ratios/EWMAs, no hardware knowledge), and it is **semantically inert**: a batch is still pushed in client order, so it cannot change any observable result. It also pays for itself independently of the reorder, by amortising the poll and collapsing `staged_tail` publishes. |
+| **reorder (stable partition by target worker, readiness, D5 aging)** | **KNOB** | It changes observable cross-client order, and its benefit is stall-variance-driven — i.e. **multi-CCD / cross-node**, which this single-CCD box cannot measure. It must be possible to turn it off and to prove it engaged. |
+
+**This cut is safer than the fused design**, which is the main argument for it: the half that is now
+unconditional cannot violate ordering at all, so §5.3's causal-independence argument is load-bearing
+*only* for the gated half. Hard-code the semantically inert mechanism; gate the semantically active
+one.
+
+**Three consequences, all binding:**
+
+1. **"Level 0 means the machinery does not exist" now applies only to the REORDER half.** The batch
+   controller is unconditional, so it no longer gets to hide behind level 0 — it must carry the ≤3%
+   always-on budget **on its own, measured with the reorder knob OFF**. That is a new acceptance
+   gate, and it is the price of the split. The design's own cost estimate (one L1-resident load per
+   parse *batch*, plus one non-atomic increment per command on a line the thread already writes)
+   says it should clear easily; it still has to be shown, not assumed.
+2. **D5 (starvation bound / aging) belongs to the gated half.** With no reordering there is no
+   starvation to bound, so D5 must not become unconditional machinery by association.
+3. **The reorder knob needs an engagement counter before any verdict.** Flat-here + theoretically-
+   better-for-multi-CCD is the standing rule for hard-coding — but "flat" proves nothing if the
+   mechanism never fired. Ship a counter for reorders actually performed (and stalls issued
+   around), force a predicted-benefit regime to prove it moves, and only then read "flat" in the
+   neutral regimes as evidence it costs nothing. Otherwise this is the vacuous-validation shape.
 
 ---
 
