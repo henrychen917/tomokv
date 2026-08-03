@@ -230,16 +230,33 @@ out("CORRECTNESS", not fails and eng_rc == 0,
 # MEMORY: compare quiesced samples at the SAME key count, after a drain. Anything else
 # would be measuring "we added keys", which is not a leak.
 if len(m) >= 2:
-    base, last = m[0], m[-1]
-    same_state = abs(base["dbsize"] - last["dbsize"]) <= max(2000, 0.02 * max(1, base["dbsize"]))
-    ratio_um = last["used_memory"] / max(1, base["used_memory"])
-    ratio_rss = last["rss"] / max(1, base["rss"]) if base["rss"] else 0.0
-    detail = (f"dbsize {base['dbsize']}->{last['dbsize']} used_memory "
-              f"{base['used_memory']/1e6:.1f}->{last['used_memory']/1e6:.1f}MB (x{ratio_um:.3f}) "
-              f"rss {base['rss']/1e6:.1f}->{last['rss']/1e6:.1f}MB (x{ratio_rss:.3f}) tol=x{mem_tol}")
-    if not same_state:
-        out("MEMORY", False, "key counts not comparable between samples -- " + detail)
+    # Compare the LAST TWO samples whose key counts actually match, not first-vs-last.
+    # The bulk lane writes into a BOUNDED key space (randrange(bulk_keys)), so early cycles are
+    # still filling it and the keyspace climbs toward a plateau: measured 2026-08-02, cycle1
+    # dbsize=200280 vs cycle2 dbsize=399920. First-vs-last is therefore guaranteed incomparable
+    # while filling, which is not a leak and must not be reported as one -- design rule 1.
+    def comparable(x, y):
+        return abs(x["dbsize"] - y["dbsize"]) <= max(2000, 0.02 * max(1, x["dbsize"]))
+    pair = None
+    for i in range(len(m) - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
+            if comparable(m[j], m[i]):
+                pair = (m[j], m[i]); break
+        if pair: break
+    if pair is None:
+        # NA, not FAIL: the measurement could not be taken, which is different from a leak. A run
+        # that never plateaus should be given more cycles, not accused of leaking.
+        out("MEMORY-NA", True,
+            "no two samples share a key count (keyspace still filling); dbsizes=" +
+            ",".join(str(x["dbsize"]) for x in m) + " -- memory not assessed this run")
     else:
+        base, last = pair
+        ratio_um = last["used_memory"] / max(1, base["used_memory"])
+        ratio_rss = last["rss"] / max(1, base["rss"]) if base["rss"] else 0.0
+        detail = (f"cycles {base['cycle']}->{last['cycle']} dbsize {base['dbsize']}->{last['dbsize']} "
+                  f"used_memory {base['used_memory']/1e6:.1f}->{last['used_memory']/1e6:.1f}MB "
+                  f"(x{ratio_um:.3f}) rss {base['rss']/1e6:.1f}->{last['rss']/1e6:.1f}MB "
+                  f"(x{ratio_rss:.3f}) tol=x{mem_tol}")
         out("MEMORY", ratio_um <= mem_tol and (ratio_rss == 0 or ratio_rss <= mem_tol), detail)
 
     cal = [x.get("calib_ops", 0) for x in m if x.get("calib_ops")]

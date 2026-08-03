@@ -586,6 +586,7 @@ class Engine:
         self.longlived = []
         self.metrics = []                   # per-cycle samples
         self.threads = []
+        self.parked_lanes = 0   # lanes currently parked in wait_while_paused (see await_quiet)
 
     # -- helpers ---------------------------------------------------------------
     def conn(self, name=""):
@@ -656,9 +657,47 @@ class Engine:
         return out
 
     def wait_while_paused(self, oracle=False):
-        while (self.pause.is_set() or (oracle and self.oracle_pause.is_set())) \
-                and not self.stop.is_set():
+        """Park here while paused, and ACKNOWLEDGE the park so calibrate() can know it is alone.
+
+        Design rule 3 says calibration runs exclusive. It used to approximate that with a fixed
+        1.5 s sleep after setting the flag, which is not the same thing: a bulk lane sitting inside
+        one c.pipe() of thousands of commands does not look at the flag until that batch completes,
+        so memtier started while lanes were still saturating the load cores. Measured 2026-08-02 —
+        cycle 1 (200k keys) calibrated fine at 4.03M ops/s, cycle 2 (400k keys) had memtier starved
+        until it blew its 140 s timeout and returned nothing, which the harness then correctly
+        refused to treat as a measurement. Counting parked lanes turns "probably quiet by now" into
+        a fact we can wait on."""
+        parked = False
+        try:
+            while (self.pause.is_set() or (oracle and self.oracle_pause.is_set())) \
+                    and not self.stop.is_set():
+                if not parked:
+                    parked = True
+                    with self.lock:
+                        self.parked_lanes += 1
+                time.sleep(0.05)
+        finally:
+            if parked:
+                with self.lock:
+                    self.parked_lanes -= 1
+
+    def await_quiet(self, budget=30.0):
+        """Block until every lane thread is parked, or the budget expires.
+
+        Returns (quiet, parked, expected). A calibration taken while lanes are still running is not
+        comparable to one taken when they were not, so the caller must report a non-quiet window
+        rather than silently publishing an incomparable number."""
+        expected = len(self.threads)
+        end = time.time() + budget
+        while time.time() < end and not self.stop.is_set():
+            with self.lock:
+                parked = self.parked_lanes
+            if parked >= expected:
+                return True, parked, expected
             time.sleep(0.05)
+        with self.lock:
+            parked = self.parked_lanes
+        return False, parked, expected
 
     # -- lanes -----------------------------------------------------------------
     def lane_scenarios(self, idx):
@@ -843,8 +882,12 @@ class Engine:
         """EXCLUSIVE throughput probe. Lanes are paused so the number is comparable
         across cycles -- that is the entire point."""
         self.pause.set()
-        time.sleep(1.5)
+        # WAIT for the lanes to actually park, do not assume it. A fixed sleep here let memtier
+        # start while a bulk lane was still inside one multi-thousand-command pipe(), so it
+        # competed for the load cores with the traffic it was supposed to replace.
+        quiet, parked, expected = self.await_quiet(self.a.quiesce_budget)
         ops = 0.0
+        why = ""
         try:
             cmd = ["taskset", "-c", self.a.load_cores, "memtier_benchmark",
                    "-s", self.a.host, "-p", str(self.a.port), "--hide-histogram",
@@ -853,13 +896,29 @@ class Engine:
                    "-t", "4", "-c", "10", "--pipeline", "16", "--distinct-client-seed"]
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=self.a.calib_secs + 120)
             m = re.search(r"^\s*Totals\s+(\d+(?:\.\d+)?)", r.stdout, re.M)
-            if m: ops = float(m.group(1))
+            if m:
+                ops = float(m.group(1))
+            else:
+                # Keep the evidence. "memtier returned no throughput" with nothing behind it sent
+                # me looking at the server for a load-generator problem.
+                why = (f"no Totals line; rc={r.returncode} "
+                       f"stdout_tail={r.stdout.strip()[-300:]!r} stderr_tail={r.stderr.strip()[-300:]!r}")
         except Exception as e:
+            why = f"{type(e).__name__}: {e}"
             print(f"  calibrate({tag}) failed: {e}", flush=True)
         finally:
             self.pause.clear()
+        if not quiet:
+            # Not comparable, and saying so is the point -- publishing it would corrupt the
+            # cross-cycle throughput trend that this whole case exists to check.
+            self.fail("calibrate",
+                      f"{tag}: lanes did not quiesce within {self.a.quiesce_budget}s "
+                      f"({parked}/{expected} parked), so this window is not exclusive and any "
+                      f"number from it is incomparable. {why}")
+            return 0.0
         if ops <= 0:
-            self.fail("calibrate", f"{tag}: memtier returned no throughput (0 is never a measurement)")
+            self.fail("calibrate",
+                      f"{tag}: memtier returned no throughput (0 is never a measurement). {why}")
         return ops
 
     def sample(self, c, cycle, phase_t0):
@@ -1058,6 +1117,9 @@ def main():
     # because GIL scheduling genuinely does starve a lane occasionally under this much parsing;
     # bounded because a driver that stalls constantly is no longer observing the server at all.
     p.add_argument("--max-client-stalls", type=int, default=20)
+    # How long calibrate() waits for every lane to park before it gives up on an exclusive window.
+    # Generous: a bulk lane inside one large pipe() legitimately takes seconds to notice the flag.
+    p.add_argument("--quiesce-budget", type=float, default=45.0)
     p.add_argument("--load-cores", default="8-15")
     p.add_argument("--seed", type=int, default=1234)
     p.add_argument("--reload", type=int, default=1)
