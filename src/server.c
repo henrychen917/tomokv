@@ -3122,7 +3122,12 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     aeSetDontWait(server.el, dont_sleep);
 
-    if (main_holds_module_gil) { main_holds_module_gil = 0; moduleReleaseGIL(); }
+    /* ee451 (O/perf): hand the GIL back only when a non-main thread has actually asked for it.
+     * See moduleAcquireGIL() in module.c for why this is safe and why the flag is sticky. */
+    if (main_holds_module_gil && moduleGILNeedsHandoff()) {
+        main_holds_module_gil = 0;
+        moduleReleaseGIL();
+    }
 }
 
 /* This function is called immediately after the event loop multiplexing
@@ -3134,13 +3139,17 @@ void afterSleep(struct aeEventLoop *eventLoop) {
      * Do NOT add anything above moduleAcquireGIL !!! *
      ***************************** ********************/
     if (!ProcessingEventsWhileBlocked) {
-        /* Acquire the modules GIL so that their threads won't touch anything. */
+        /* Acquire the modules GIL so that their threads won't touch anything.
+         * ee451 (O/perf): beforeSleep now hands the GIL off ONLY when someone has asked for it, so
+         * on the common path we still hold it from the previous iteration and must not re-lock a
+         * non-recursive mutex. */
         if (moduleCount()) {
+            if (!main_holds_module_gil) {
             mstime_t latency;
             latencyStartMonitor(latency);
 
             atomicSet(server.module_gil_acquring, 1);
-            moduleAcquireGIL();
+            moduleAcquireGILForMainLoop();
             /* ee451 (O): REMEMBER that WE took it. beforeSleep must not decide whether to release
              * by re-reading ProcessingEventsWhileBlocked, because that is a plain GLOBAL int
              * (networking.c:43) in a server with one event loop PER IO THREAD. Any other thread
@@ -3153,11 +3162,17 @@ void afterSleep(struct aeEventLoop *eventLoop) {
              * Pairing on our own record makes the release exact no matter what the global does. */
             main_holds_module_gil = 1;
             atomicSet(server.module_gil_acquring, 0);
+            latencyEndMonitor(latency);
+            latencyAddSampleIfNeeded("module-acquire-GIL",latency);
+            }
+            /* OUTSIDE the acquire, deliberately. BEFORE_SLEEP fires once per iteration on
+             * moduleCount() alone (server.c:3031), so gating its partner on whether we happened to
+             * re-acquire the lock this time would hand any EVENTLOOP subscriber UNPAIRED events --
+             * a regression introduced by the skip, not by the skip's intent. Keep the pair exact;
+             * only the lock traffic is elided. */
             moduleFireServerEvent(REDISMODULE_EVENT_EVENTLOOP,
                                   REDISMODULE_SUBEVENT_EVENTLOOP_AFTER_SLEEP,
                                   NULL);
-            latencyEndMonitor(latency);
-            latencyAddSampleIfNeeded("module-acquire-GIL",latency);
         }
         /* Set the eventloop start time. */
         server.el_start = getMonotonicUs();

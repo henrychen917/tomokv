@@ -9167,7 +9167,39 @@ void RM_ThreadSafeContextUnlock(RedisModuleCtx *ctx) {
     moduleReleaseGIL();
 }
 
+/* ee451 (O/perf): has anything OTHER than the main event loop ever wanted the GIL?
+ *
+ * The GIL exists so module threads cannot touch server state while the main loop runs. It starts
+ * LOCKED (see moduleInitModulesSystem) and main hands it back and forth every single event-loop
+ * iteration -- moduleReleaseGIL() in beforeSleep, moduleAcquireGIL() in afterSleep. That round trip
+ * is unconditional on moduleCount(), and this Redis 8 build ships `vectorset` as a BUILT-IN module,
+ * so a server started with no --loadmodule at all still pays a process-global mutex per iteration
+ * for a module nothing in the workload ever calls.
+ *
+ * STICKY, deliberately. Until some non-main thread actually asks for the GIL, main simply keeps
+ * holding it and skips both halves -- safe by construction, because a lock nobody else wants cannot
+ * be contended. The FIRST such asker sets this flag and then blocks until main's next beforeSleep,
+ * which is bounded by the serverCron tick (server.hz), not unbounded. From that point on main
+ * releases every iteration exactly as upstream does, forever. So a server that genuinely uses module
+ * threads gets upstream behaviour after a one-time sub-tick delay, and a server that does not -- the
+ * only kind this fork is ever benchmarked or shipped as -- pays one relaxed atomic load instead of a
+ * lock/unlock pair.
+ *
+ * Main must NOT come through here; it uses moduleAcquireGILForMainLoop() so its own acquire does not
+ * trip the flag it is testing. */
+static _Atomic int moduleGILEverWanted = 0;
+
+int moduleGILNeedsHandoff(void) {
+    return atomic_load_explicit(&moduleGILEverWanted, memory_order_acquire);
+}
+
+/* The main event loop's acquire: does not mark the GIL as wanted. */
+void moduleAcquireGILForMainLoop(void) {
+    pthread_mutex_lock(&moduleGIL);
+}
+
 void moduleAcquireGIL(void) {
+    atomic_store_explicit(&moduleGILEverWanted, 1, memory_order_release);
     pthread_mutex_lock(&moduleGIL);
 }
 

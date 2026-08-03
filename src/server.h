@@ -4617,6 +4617,10 @@ void moduleHandleBlockedClients(void);
 void moduleBlockedClientTimedOut(client *c);
 void modulePipeReadable(aeEventLoop *el, int fd, void *privdata, int mask);
 size_t moduleCount(void);
+/* ee451 (O/perf): see the comment at moduleAcquireGIL. main skips the per-iteration GIL round trip
+ * until some other thread has actually asked for the lock. */
+int moduleGILNeedsHandoff(void);
+void moduleAcquireGILForMainLoop(void);
 void moduleAcquireGIL(void);
 int moduleTryAcquireGIL(void);
 void moduleReleaseGIL(void);
