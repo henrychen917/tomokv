@@ -1351,3 +1351,71 @@ missing baseline would be wrong and passing it would be a lie.
 `stress_validation.sh` documents its own invocation as `tools/preflight/withbox.sh`, which did not
 exist — the shared box lock lived only in a job scratch directory. The mandatory gate was therefore
 not reproducible from a clone. Copied in verbatim.
+
+---
+
+## M. DEBUG RELOAD silently LOSES replies for in-flight commands (2026-08-02) — OPEN
+
+**Found by `stress_validation`, on its first run that got far enough to find anything.** Phase
+numa1, cycle 2. This is the defect class the soak was built for: no crash, no log marker, only a
+client that waits forever.
+
+### M1. Evidence
+
+Soak, verbatim:
+
+    20:37:17.332  DB saved on disk
+    20:37:17.620  DB reloaded by DEBUG RELOAD     <- 288 ms, clean, +OK
+    20:37:47.445  FAIL [bulk-conn] TimeoutError   <- exactly 30 s later = the CLIENT's own timeout
+
+`SOAK-numa1-SURVIVAL PASS` (server answered PING after 1242 s) and `CLEAN-LOG PASS markers=0` — the
+server was entirely healthy. Only pre-existing connections were affected.
+
+Reduced to `tools/preflight/reload_client_wedge.py`, which reproduces it in ~90 s, 3 runs of 3:
+
+    control: fresh conn under load, BEFORE reload  -> PONG in 0.005s     PASSES
+    DEBUG RELOAD                                   -> OK in 0.687s
+    fresh conn after reload / idle conn            -> fine
+    in-flight lanes                                -> 2 of 8 wedged, 480 replies missing
+    late replies once the load stopped             -> 0
+
+**`late = 0` is the finding.** With the load stopped and 3 s of grace per wedged lane, not one of
+the 480 replies ever arrived. They are **lost, not late**. The socket stays open and the server
+stays healthy, so the client is permanently desynchronised from its own reply stream — it can never
+resynchronise, because RESP has no reply framing to resynchronise to.
+
+The control is what makes this attributable, and it is not optional: a fresh connection served in
+5 ms under the identical load immediately before the reload rules out "the server was just busy".
+J6 was filed and retracted twice for want of exactly that control.
+
+### M2. Root cause is already on the record
+
+`src/debug.c` (the J3 fix) states it outright:
+
+> *emptyData() and rdbLoad() are not atomic with respect to the workers: the workers keep going ...
+> This does NOT make the reload atomic — rdbLoad remains a non-owner writer of the shared node dbs.
+> It removes the kill.*
+
+J3 fixed the **crash** (duplicate keys ⇒ Guru) and knowingly left the **non-atomicity**. M is that
+residue: the keyspace is swapped underneath commands already dispatched to workers, and their
+replies are never published. J3's scope was correct — it just was not the whole defect, and nothing
+recorded that the remainder was still live until the soak hit it.
+
+### M3. The fix, and the trap in front of it
+
+The shape is a **drain fence**: quiesce in-flight worker dispatches and publish their replies before
+`emptyData()`, and hold new dispatches until `rdbLoad()` completes. The machinery exists — the
+FLATSTORE resize quiesce (hardened in J4 with a CAS'd state and a watchdog) and the migration
+drain-fence are both this primitive.
+
+**Do not reach for a naive stop-the-world.** One was already written and reverted this session
+because it converted a crash into a whole-server wedge: it parked the workers without waiting out an
+armed resize and without pumping the coordinators, both of which the flush path does. Any fix here
+must satisfy the same two obligations, and `flatResizeWatchdog()` is the precedent for making the
+quiesce recoverable rather than trusting it.
+
+### M4. Status
+
+**OPEN.** Reproducer committed and green-as-in-reproduces. Not yet fixed. `stress_validation` cannot
+pass until it is, because the soak exercises `DEBUG RELOAD` under load on every even cycle — which
+is precisely why it was written that way.
