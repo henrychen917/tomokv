@@ -44,9 +44,19 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# One server at a time on this box: refuse rather than contend.
-if ss -ltnp 2>/dev/null | awk 'NR>1 && $4 ~ /:(78[0-9][0-9]|79[0-9][0-9]|6379)$/ {found=1} END{exit !found}'; then
-    echo "ex-backpressure[$TAG]	SKIP	a server is already listening; one at a time on this box"
+# One server at a time on this box. The AUTHORITATIVE mechanism is the shared box lock in
+# withbox.sh, which the caller already holds; this is only a sanity check, so it must be precise
+# rather than broad. An earlier version matched the whole 78xx/79xx space and refused to run
+# because an unrelated service -- not ours, no visible owning process, and on a port this tree
+# never uses -- was listening on 7878. A guard that fires on other people's ports is not a safety
+# feature, it is a self-inflicted outage. Check the port we are about to bind, and separately any
+# port actually held by a redis-like process we can see.
+if ss -ltn "sport = :$PORT" 2>/dev/null | grep -q LISTEN; then
+    echo "ex-backpressure[$TAG]	SKIP	port $PORT already in use; one server at a time on this box"
+    exit 2
+fi
+if ss -ltnp 2>/dev/null | grep -qE 'users:\(\("(redis|tomo)'; then
+    echo "ex-backpressure[$TAG]	SKIP	a redis-like server is already listening; one at a time"
     exit 2
 fi
 

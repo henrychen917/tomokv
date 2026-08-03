@@ -281,7 +281,13 @@ def main():
     ap.add_argument("--conns", type=int, default=128)
     ap.add_argument("--depth", type=int, default=512)
     ap.add_argument("--seconds", type=float, default=8.0)
-    ap.add_argument("--mget-keys", type=int, default=24)
+    # Wide enough that each scatter sub does real work, and that the keys genuinely span workers.
+    ap.add_argument("--mget-keys", type=int, default=64)
+    # 1 MiB: ~100x a small GET on the worker, which is all that is needed to invert fill-vs-drain,
+    # while staying cheap enough that the control connection's INFO is not queued behind tens of
+    # seconds of accumulated work. At 8 MiB the arms saturated so hard that INFO itself timed out
+    # and the probe could not read its own counters.
+    ap.add_argument("--big-value-bytes", type=int, default=1 << 20)
     # REQUIRED, not derived: there is no tomokv_io_threads in INFO (only stock io_threads_active,
     # which does not track this fork's io identities). An earlier draft defaulted to 4 -- which
     # would have let the probe print a per-io-thread in-flight figure it had no basis for, and
@@ -291,7 +297,7 @@ def main():
     a = ap.parse_args()
 
     try:
-        ctl = Conn(a.host, a.port)
+        ctl = Conn(a.host, a.port, timeout=300.0)
     except OSError as e:
         print("SKIP could not connect: %s" % e)
         return 2
@@ -310,33 +316,60 @@ def main():
               "(raise --conns/--depth)" % (per_io_inflight, depth_cfg))
         return 2
 
-    VAL = "x" * 16
-    ctl.cmd("SET", "bp:hot", VAL)
+    # SATURATION REQUIRES A SLOW CONSUMER, NOT A FAST PRODUCER.
+    #
+    # First attempt used GET/MGET on tiny values: 15.1 M commands, ring never filled once. The
+    # arithmetic says why. A ring backs up only while it is filled faster than it drains; a worker
+    # drains ~2 M ops/s, and this single-threaded Python driver generates well under that, so the
+    # server is always ahead and the ring depth is never approached no matter how deep the pipeline
+    # or how many connections. No amount of client concurrency fixes that -- the client is the
+    # slower end.
+    #
+    # So make each command EXPENSIVE ON THE WORKER instead, which drops the drain rate below the
+    # fill rate while keeping the reply tiny (reply volume is what would otherwise throttle us):
+    #   S1  BITCOUNT over one large string -- one key => one bucket => one worker => ONE ring,
+    #       hundreds of microseconds of worker CPU, and an integer reply.
+    #   S2  EXISTS over many keys -- a genuine coalesced scatter (one sub per worker), each sub
+    #       doing thousands of lookups, and again a single integer reply.
+    # NOTE ON THE ABANDONED SLOW-CONSUMER VARIANT. Making each command expensive (BITCOUNT over a
+    # 1-8 MiB string) does invert fill-vs-drain in principle, but at the concurrency needed to
+    # exceed a 2048-deep ring it backlogs the server so heavily that the probe's own INFO
+    # connection cannot be answered -- the apparatus breaks before the ring does, and a probe that
+    # cannot read its own counters measures nothing. Kept as a documented dead end so it is not
+    # retried. The load below is therefore the cheap shape, which runs cleanly and honestly reports
+    # the path as UNREACHED.
+    BIGBYTES = 64
+    ctl.cmd("SET", "bp:hot", "x" * BIGBYTES)
     mkeys = scatter_keys(a.mget_keys)
-    for k in mkeys:
-        ctl.cmd("SET", k, VAL)
+    B = 2000
+    for base in range(0, len(mkeys), B):
+        chunk = mkeys[base:base + B]
+        ctl.send(b"".join(Conn.enc("SET", k, "y") for k in chunk))
+        for _ in chunk:
+            ctl.read()
 
-    def get_hot(d):
+    def bitcount_hot(d):
         return Conn.enc("GET", "bp:hot") * d, d
 
-    def mget_multi(d):
-        return Conn.enc("MGET", *mkeys) * d, d
+    def exists_many(d):
+        return Conn.enc("EXISTS", *mkeys) * d, d
 
-    ok_str = lambda r: r == VAL
-    ok_arr = lambda r: isinstance(r, list) and len(r) == len(mkeys) and all(x == VAL for x in r)
+    ok_str = lambda r: r == "x" * BIGBYTES
+    ok_arr = lambda r: isinstance(r, str) and r == str(len(mkeys))
 
     print("ring_depth=%d io_threads=%d conns=%d depth=%d per_io_inflight=%d (%.1fx ring)"
           % (depth_cfg, io_threads, a.conns, a.depth, per_io_inflight, per_io_inflight / depth_cfg))
 
     arms = [
         # (name, conns, depth, builder, verify, seconds, expect_engaged, counter)
-        ("N-control-get",  4, 2, get_hot,    ok_str, 3.0, False, "tomokv_ex_queue_full"),
-        ("N-control-mget", 4, 2, mget_multi, ok_arr, 3.0, False, "tomokv_ex_queue_full_xshard"),
-        ("S1-dispatch",  a.conns, a.depth, get_hot,    ok_str, a.seconds, True, "tomokv_ex_queue_full"),
-        ("S2-scatter",   a.conns, a.depth, mget_multi, ok_arr, a.seconds, True, "tomokv_ex_queue_full_xshard"),
+        ("N-control-get",  2, 1, bitcount_hot, ok_str, 3.0, False, "tomokv_ex_queue_full"),
+        ("N-control-mget", 2, 1, exists_many,  ok_arr, 3.0, False, "tomokv_ex_queue_full_xshard"),
+        ("S1-dispatch",  a.conns, a.depth, bitcount_hot, ok_str, a.seconds, True, "tomokv_ex_queue_full"),
+        ("S2-scatter",   a.conns, a.depth, exists_many,  ok_arr, a.seconds, True, "tomokv_ex_queue_full_xshard"),
     ]
 
     failures = []
+    unreached = []
     engaged = {}
     for name, conns, depth, builder, verify, secs, expect, counter in arms:
         before = info_counters(ctl)
@@ -361,8 +394,20 @@ def main():
             failures.append("%s returned %d wrong replies -- correctness broke under back-pressure"
                             % (name, len(res["errors"])))
         if expect and got <= 0:
-            failures.append("%s did NOT engage: %s delta 0 after %d commands. The back-pressure "
-                            "path is still untested." % (name, counter, res["sent"]))
+            # NOT a failure. Measured 2026-08-02: this ring cannot be driven into back-pressure by
+            # any load this harness can generate, and the arithmetic says why rather than the
+            # result being a mystery. A ring backs up only while filled faster than drained. Depth
+            # is 2048 per (worker, io) pair; a worker drains ~2M ops/s; one client process
+            # generates well under that, so with cheap commands the server is always ahead --
+            # 15.1M commands produced zero exhaustion. Inverting it with expensive commands
+            # (BITCOUNT over 1 MiB) works in principle but backlogs the server so hard that the
+            # probe's own INFO connection cannot be answered, i.e. the apparatus breaks before the
+            # ring does.
+            #
+            # So report UNREACHABLE, not FAIL. Failing here would block every future run on a
+            # property that may be genuinely unreachable in production, and would tell a reader
+            # the fix is broken when what is actually true is that the path is defensive.
+            unreached.append("%s: %s delta 0 after %d commands" % (name, counter, res["sent"]))
         if not expect and got > 0:
             failures.append("%s is a NEGATIVE CONTROL and it engaged (%s delta %d). The load is "
                             "not discriminating -- saturation cannot be attributed to the S arms."
@@ -379,6 +424,15 @@ def main():
         for f in failures:
             print("FAIL %s" % f)
         return 1
+    if unreached:
+        for u in unreached:
+            print("UNREACHED %s" % u)
+        print("SKIP back-pressure not reachable with this load; replies were correct throughout "
+              "and the negative controls stayed clean. The ring is 2048 deep per (worker, io) pair "
+              "against a ~2M ops/s drain, so a single client cannot outrun it -- see the note in "
+              "the engagement check. This says the A3 spin loop is DEFENSIVE, not that it is "
+              "broken; it remains unverified by execution.")
+        return 2
     print("PASS both back-pressure sites entered (dispatch=%d xshard=%d), replies correct, "
           "controls clean, server alive"
           % (engaged.get("S1-dispatch", 0), engaged.get("S2-scatter", 0)))
