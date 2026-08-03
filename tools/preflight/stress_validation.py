@@ -681,23 +681,38 @@ class Engine:
                 with self.lock:
                     self.parked_lanes -= 1
 
-    def await_quiet(self, budget=30.0):
-        """Block until every lane thread is parked, or the budget expires.
+    def await_quiet(self, budget=30.0, settle=1.0):
+        """Block until the lanes stop DOING work, or the budget expires.
 
-        Returns (quiet, parked, expected). A calibration taken while lanes are still running is not
-        comparable to one taken when they were not, so the caller must report a non-quiet window
-        rather than silently publishing an incomparable number."""
-        expected = len(self.threads)
+        Quiescence is measured by progress, not by a headcount. An earlier version waited for
+        len(self.threads) lanes to appear in wait_while_paused, which can never be satisfied: not
+        every lane parks there (the churn lanes spend their lives opening and closing connections),
+        and a lane that has already exited never parks at all. So the count could not reach the
+        expected value and every calibration was declared non-exclusive -- it reported calib=0 in
+        cycle 1, which is worse than the fixed sleep it replaced.
+
+        Summing the lane op counters and waiting for them to stop moving asks the question we
+        actually care about -- "is anything still generating load" -- and is correct no matter how
+        many lanes exist or how many have died.
+
+        Returns (quiet, parked, expected) for the caller's message; parked/expected are the
+        observed park count and thread count, reported only as context."""
         end = time.time() + budget
-        while time.time() < end and not self.stop.is_set():
+        keys = ("bulk_ops", "skew_ops", "scenario_ops", "bigval_ops", "longlived_ops")
+        def total():
             with self.lock:
-                parked = self.parked_lanes
-            if parked >= expected:
-                return True, parked, expected
-            time.sleep(0.05)
+                return sum(self.ops[k] for k in keys)
+        last, stable_since = total(), time.time()
+        while time.time() < end and not self.stop.is_set():
+            time.sleep(0.1)
+            cur = total()
+            if cur != last:
+                last, stable_since = cur, time.time()
+            elif time.time() - stable_since >= settle:
+                with self.lock:
+                    return True, self.parked_lanes, len(self.threads)
         with self.lock:
-            parked = self.parked_lanes
-        return False, parked, expected
+            return False, self.parked_lanes, len(self.threads)
 
     # -- lanes -----------------------------------------------------------------
     def lane_scenarios(self, idx):
