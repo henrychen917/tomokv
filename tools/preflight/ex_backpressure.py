@@ -41,17 +41,32 @@ HOW SATURATION IS REACHED
 EXIT  0 = pass, 1 = fail, 2 = skip (environment could not support the test)
 """
 
-import argparse, socket, sys, time
+import argparse, select, socket, sys, time
+
+
+class Incomplete(Exception):
+    """Not enough bytes buffered yet to decode one whole reply."""
 
 
 class Conn:
     """Minimal RESP2 client. Deliberately not shared with stress_validation.py: this probe has to
-    keep thousands of replies outstanding, which that Conn's per-command round-trip cannot do."""
+    keep thousands of replies outstanding, which that Conn's per-command round-trip cannot do.
+
+    Both a BLOCKING api (cmd/read, used for setup and INFO) and an INCREMENTAL one (feed/try_read,
+    used by the load arms) are provided. The load arms cannot use the blocking one: with `depth`
+    commands outstanding on each of `conns` sockets, a send-all-then-read-all loop deadlocks as soon
+    as the aggregate reply volume exceeds the socket buffers -- the server blocks writing to the
+    first connection while the driver is still sending to the last, and neither side drains. At
+    depth 512 with 24-key MGETs that is ~271 KB of replies per connection, i.e. comfortably past it.
+    A hung probe is indistinguishable from a hung server, which is the single most expensive kind of
+    harness bug to debug, so the load path is select-driven and never blocks on either direction."""
 
     def __init__(self, host, port, timeout=60.0):
         self.sock = socket.create_connection((host, port), timeout=timeout)
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.buf = b""
+        self.out = b""          # pending outbound bytes (load path)
+        self.outstanding = 0    # replies still expected (load path)
 
     def close(self):
         try:
@@ -110,6 +125,66 @@ class Conn:
         self.send(self.enc(*args))
         return self.read()
 
+    # ---------------- incremental, non-blocking path (load arms only) ----------------
+
+    def set_nonblocking(self):
+        self.sock.setblocking(False)
+
+    def _parse(self, buf, i):
+        """Decode one reply from buf starting at i -> (value, next_i). Raises Incomplete."""
+        j = buf.find(b"\r\n", i)
+        if j < 0:
+            raise Incomplete
+        t, line, nxt = buf[i:i + 1], buf[i + 1:j], j + 2
+        if t in (b"+", b":"):
+            return line.decode(), nxt
+        if t == b"-":
+            return RuntimeError(line.decode()), nxt
+        if t == b"$":
+            n = int(line)
+            if n == -1:
+                return None, nxt
+            if len(buf) < nxt + n + 2:
+                raise Incomplete
+            return buf[nxt:nxt + n].decode(), nxt + n + 2
+        if t == b"*":
+            n = int(line)
+            if n == -1:
+                return None, nxt
+            vals = []
+            for _ in range(n):
+                v, nxt = self._parse(buf, nxt)
+                vals.append(v)
+            return vals, nxt
+        raise RuntimeError("bad RESP type %r" % t)
+
+    def drain_replies(self, verify, errors):
+        """Consume every COMPLETE reply currently buffered. Returns how many were consumed."""
+        got, i = 0, 0
+        while i < len(self.buf):
+            try:
+                v, i = self._parse(self.buf, i)
+            except Incomplete:
+                break
+            got += 1
+            if not verify(v):
+                if len(errors) < 5:
+                    errors.append(repr(v)[:120])
+        if i:
+            self.buf = self.buf[i:]
+        self.outstanding -= got
+        return got
+
+    def pump_read(self):
+        chunk = self.sock.recv(1 << 20)
+        if not chunk:
+            raise ConnectionError("server closed the connection")
+        self.buf += chunk
+
+    def pump_write(self):
+        n = self.sock.send(self.out)
+        self.out = self.out[n:]
+
 
 def info_counters(c):
     """The three numbers this probe judges on, plus the liveness ones it reports."""
@@ -125,7 +200,7 @@ def info_counters(c):
     return out
 
 
-def worker_of_probe(c, nkeys):
+def scatter_keys(nkeys):
     """Pick keys that a MULTI-worker MGET will genuinely scatter over.
 
     We cannot compute the server's key->worker mapping client-side, and there is no DEBUG command
@@ -137,42 +212,66 @@ def worker_of_probe(c, nkeys):
 
 
 def run_arm(host, port, name, conns, depth, payload_builder, verify, seconds):
-    """Open `conns` connections, keep `depth` commands in flight on each, for `seconds`.
+    """Open `conns` connections, keep `depth` commands outstanding on each, for `seconds`.
 
-    Replies are drained per connection after each burst rather than command-by-command; that is
-    what keeps thousands outstanding, which is the whole point -- a request/response loop can
-    never put more than one command per connection into a ring."""
+    Deep outstanding depth IS the mechanism -- a request/response loop can never put more than one
+    command per connection into a ring, so it could not saturate anything. Driven by select() in
+    both directions so that neither the driver nor the server can block the other (see Conn)."""
     cs = []
     try:
         for _ in range(conns):
-            cs.append(Conn(host, port))
+            c = Conn(host, port)
+            c.set_nonblocking()
+            cs.append(c)
     except OSError as e:
         for c in cs:
             c.close()
         return None, "could not open %d connections: %s" % (conns, e)
 
-    burst, nreplies, bad = payload_builder(depth)
-    sent = 0
+    burst, nreplies = payload_builder(depth)
+    completed = 0
     errors = []
     deadline = time.time() + seconds
+    stalled_since = None
     try:
         while time.time() < deadline:
+            # Top every connection back up to `depth` outstanding. Refilling only when a socket has
+            # fully drained would let outstanding sawtooth down to zero, and the ring only fills
+            # while the depth is actually held.
             for c in cs:
-                c.send(burst)
-            for c in cs:
-                for _ in range(nreplies):
-                    r = c.read()
-                    if not verify(r):
-                        if len(errors) < 5:
-                            errors.append(repr(r)[:120])
-            sent += conns * nreplies
+                if not c.out and c.outstanding <= depth // 2:
+                    c.out = burst
+                    c.outstanding += nreplies
+
+            rl = [c.sock for c in cs if c.outstanding]
+            wl = [c.sock for c in cs if c.out]
+            if not rl and not wl:
+                break
+            r, w, _ = select.select(rl, wl, [], 1.0)
+            if not r and not w:
+                # No progress in either direction for a second. Under back-pressure the server is
+                # slow, not silent, so a sustained stall means something is genuinely wedged; fail
+                # loudly rather than burn the arm's whole budget waiting.
+                stalled_since = stalled_since or time.time()
+                if time.time() - stalled_since > 30:
+                    raise TimeoutError("no socket made progress for 30s (server wedged?)")
+                continue
+            stalled_since = None
+
+            byfd = {c.sock: c for c in cs}
+            for s in w:
+                byfd[s].pump_write()
+            for s in r:
+                c = byfd[s]
+                c.pump_read()
+                completed += c.drain_replies(verify, errors)
     except Exception as e:
         for c in cs:
             c.close()
         return None, "%s: %s" % (type(e).__name__, e)
     for c in cs:
         c.close()
-    return {"arm": name, "sent": sent, "errors": errors}, None
+    return {"arm": name, "sent": completed, "errors": errors}, None
 
 
 def main():
@@ -213,15 +312,15 @@ def main():
 
     VAL = "x" * 16
     ctl.cmd("SET", "bp:hot", VAL)
-    mkeys = worker_of_probe(ctl, a.mget_keys)
+    mkeys = scatter_keys(a.mget_keys)
     for k in mkeys:
         ctl.cmd("SET", k, VAL)
 
     def get_hot(d):
-        return Conn.enc("GET", "bp:hot") * d, d, None
+        return Conn.enc("GET", "bp:hot") * d, d
 
     def mget_multi(d):
-        return Conn.enc("MGET", *mkeys) * d, d, None
+        return Conn.enc("MGET", *mkeys) * d, d
 
     ok_str = lambda r: r == VAL
     ok_arr = lambda r: isinstance(r, list) and len(r) == len(mkeys) and all(x == VAL for x in r)
