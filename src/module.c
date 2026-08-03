@@ -9204,6 +9204,11 @@ void moduleAcquireGIL(void) {
 }
 
 int moduleTryAcquireGIL(void) {
+    /* Mark it wanted even though we may fail to take it. Main now HOLDS the GIL across its sleep
+     * and only hands it off once someone asks; a module that only ever uses the try-variant would
+     * otherwise never register that want, main would never release, and every trylock would fail
+     * forever. Recording the want on the attempt makes the next one succeed. */
+    atomic_store_explicit(&moduleGILEverWanted, 1, memory_order_release);
     return pthread_mutex_trylock(&moduleGIL);
 }
 

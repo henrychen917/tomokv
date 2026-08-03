@@ -2296,8 +2296,17 @@ static void sendGetackToReplicas(void) {
 extern int ProcessingEventsWhileBlocked;
 /* ee451 (O): does MAIN currently hold the module GIL? Set by afterSleep when it actually acquires,
  * cleared by beforeSleep when it releases. Only main touches it, so a plain int is right. See the
- * comment at the acquire for why the release cannot key off ProcessingEventsWhileBlocked. */
-static int main_holds_module_gil = 0;
+ * comment at the acquire for why the release cannot key off ProcessingEventsWhileBlocked.
+ *
+ * STARTS AT 1, AND MUST. moduleInitModulesSystem() locks the GIL on THIS thread during init
+ * (module.c: "Our thread-safe contexts GIL must start with already locked") and nothing unlocks it
+ * before aeMain. Upstream's unconditional release in beforeSleep is what balanced that boot-time
+ * lock on the first iteration; once the release became conditional, initialising this to 0 made
+ * iteration 1 skip the release and then made afterSleep re-lock a non-recursive mutex main already
+ * owned -- a guaranteed self-deadlock on the first event loop pass, i.e. this flag mis-initialised
+ * REPRODUCES bug O rather than fixing it. Caught by A/B: 0%% of fresh connections hung before the
+ * O fix, 23%% (== 1 of 4 IO threads, and IO thread 0 is main) after it. */
+static int main_holds_module_gil = 1;
 
 /* This function gets called every time Redis is entering the
  * main loop of the event driven library, that is, before to sleep
