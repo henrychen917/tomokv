@@ -61,6 +61,11 @@ STAGED=$WORK/redis-sv-$$
 
 PASS_N=0; FAIL_N=0
 SERVER_PID=""
+WEDGE_PID=""
+# docs/BUGS.md N: the failure mode is "still answers PING, no longer serves commands", and a
+# timeout alone cannot tell you why. The watcher polls total_commands_processed and dumps every
+# thread's stack the moment progress stops with clients still attached. Costs one INFO per 2s.
+SV_WEDGE_WATCH=${SV_WEDGE_WATCH:-1}
 
 say() { printf '%s\n' "$*" | tee -a "$OUT"; }
 result() { # name PASS|FAIL detail
@@ -73,6 +78,7 @@ result() { # name PASS|FAIL detail
 }
 
 stop_server() {
+    [ -n "$WEDGE_PID" ] && { kill -TERM "$WEDGE_PID" 2>/dev/null; WEDGE_PID=""; }
     [ -n "$SERVER_PID" ] || return 0
     kill -TERM "$SERVER_PID" 2>/dev/null
     for _ in $(seq 1 50); do kill -0 "$SERVER_PID" 2>/dev/null || break; sleep 0.2; done
@@ -122,7 +128,14 @@ boot() { # nodes io ex label
         > "$WORK/$label.launch.log" 2>&1 &
     SERVER_PID=$!
     for _ in $(seq 1 120); do
-        [ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ] && return 0
+        if [ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ]; then
+            if [ "$SV_WEDGE_WATCH" = 1 ] && command -v gdb >/dev/null 2>&1; then
+                SERVER_LOG="$ACTIVE_LOG" "$HERE/wedge_watch.sh" "$SERVER_PID" "$SV_PORT" "$WORK/wedge.$label" 10 3 \
+                    >"$WORK/wedge.$label.log" 2>&1 &
+                WEDGE_PID=$!
+            fi
+            return 0
+        fi
         kill -0 "$SERVER_PID" 2>/dev/null || { say "  boot $label: process died"; return 1; }
         sleep 0.5
     done
