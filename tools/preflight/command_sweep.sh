@@ -261,7 +261,7 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   SRV_PID=$!
   local up=0 i
   for i in $(seq 1 60); do
-    "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG && { up=1; break; }
+    timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG && { up=1; break; }
     kill -0 "$SRV_PID" 2>/dev/null || break
     sleep 0.5
   done
@@ -290,7 +290,7 @@ stopsrv() {
 trap 'stopsrv' EXIT INT TERM
 
 alive_one() { # PONG + exactly one server (assert ONE server pre-measure)
-  "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG || return 1
+  timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG || return 1
   [ "$(pgrep -x redis-server 2>/dev/null | wc -l)" = 1 ]
 }
 

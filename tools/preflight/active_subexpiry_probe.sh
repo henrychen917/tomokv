@@ -82,7 +82,7 @@ run_one() {   # $1 = ex threads, $2 = port ; echoes a verdict line, returns 0 PA
   local up=0 _
   for _ in $(seq 80); do
       sleep 0.25
-      if "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
+      if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
   done
   [ "$up" = 1 ] || { echo "  ex=$EX INVALID: server did not come up"; sed -n '1,30p' "$RUN/d/srv.log"; return 2; }
 

@@ -79,11 +79,11 @@ taskset -c "$SRV_CORES" "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
 SRV=$!
 
 for _ in $(seq 1 80); do
-    [ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
+    [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
     kill -0 "$SRV" 2>/dev/null || { echo "reload-memtier-wedge[$TAG]	FAIL	server died during boot"; exit 1; }
     sleep 0.3
 done
-[ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
+[ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
     echo "reload-memtier-wedge[$TAG]	FAIL	server never answered PING"; exit 1; }
 
 echo "== loading $KEYS keys =="

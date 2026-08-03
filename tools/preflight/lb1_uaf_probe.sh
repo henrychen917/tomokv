@@ -85,7 +85,7 @@ fi
 churn=0; accepted=0
 end=$(( $(date +%s) + SECS ))
 ( while [ "$(date +%s)" -lt "$end" ]; do
-    for i in $(seq 1 40); do ($CLI -p $PORT ping >/dev/null 2>&1 &) ; done
+    for i in $(seq 1 40); do (timeout 2 $CLI -p $PORT ping >/dev/null 2>&1 &) ; done
     wait 2>/dev/null
   done ) &
 CHURN=$!

@@ -60,8 +60,8 @@ cell(){ # $1 arm-name  $2 knob-value ("" = base build, knob does not exist)  $3 
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
     "${knob[@]}" --enable-debug-command yes \
     --save '' --appendonly no --protected-mode no --logfile $J/fine_$1.log >/dev/null 2>&1 &
-  sleep 2; for i in $(seq 1 25); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 0.5; done
-  $CLI ping 2>/dev/null | grep -q PONG || { printf "%s\t%s\tBOOTFAIL\t0\t0\n" "$3" "$1" >> $OUT; return; }
+  sleep 2; for i in $(seq 1 25); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && break; sleep 0.5; done
+  timeout 2 $CLI ping 2>/dev/null | grep -q PONG || { printf "%s\t%s\tBOOTFAIL\t0\t0\n" "$3" "$1" >> $OUT; return; }
   # HARD ASSERT exactly one server: a leaked one from a previous cell silently halves throughput.
   local n; n=$(pgrep -x redis-server | wc -l)
   [ "$n" = 1 ] || { printf "%s\t%s\tLEAK(%s)\t0\t0\n" "$3" "$1" "$n" >> $OUT; killsrv; return; }

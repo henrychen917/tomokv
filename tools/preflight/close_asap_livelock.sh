@@ -48,11 +48,11 @@ taskset -c 0-7 "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
 SRV=$!
 
 for _ in $(seq 1 80); do
-    [ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
+    [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
     kill -0 "$SRV" 2>/dev/null || { echo "close-asap-livelock[$TAG]	FAIL	server died at boot"; exit 1; }
     sleep 0.3
 done
-[ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
+[ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
     echo "close-asap-livelock[$TAG]	FAIL	server never answered PING"; exit 1; }
 
 ulimit -n "$(( CONNS * 8 + 4096 ))" 2>/dev/null || true

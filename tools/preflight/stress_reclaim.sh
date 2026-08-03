@@ -20,8 +20,8 @@ taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile $J/stress.log --loglevel notice >/dev/null 2>&1 &
 SRV=$!    # our OWN pid; `taskset` execs into the binary, so this IS the server
-sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
-$CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }
+sleep 3; for i in $(seq 1 30); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
+timeout 2 $CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }
 # ee451 2026-07-29: was `SRV=$(pgrep -x redis-server | head -1)`. On this shared box that resolves
 # to WHOEVER'S server sorts first -- so the RSS series below could be sampled from another session's
 # process entirely, and preflight now stages the binary under a unique name (`redis-pf`) so the
@@ -56,11 +56,11 @@ while [ $SECONDS -lt $END ]; do
   # expiring keys (delete path retires too)
   for k in $(seq 1 200); do echo "SET vol:$k v$k PX 400"; done | $CLI --pipe >/dev/null 2>&1
   sleep 2
-  cur=$(rss); note "t=${SECONDS}s round=$round rss=${cur}MB dbsize=$($CLI dbsize) ping=$($CLI ping 2>/dev/null)"
+  cur=$(rss); note "t=${SECONDS}s round=$round rss=${cur}MB dbsize=$($CLI dbsize) ping=$(timeout 2 $CLI ping 2>/dev/null)"
   if [ -n "$cur" ] && [ -n "$BASE" ] && [ "$cur" -gt $((BASE + 2000)) ]; then
     note "!! RSS BLEW UP (${BASE}MB -> ${cur}MB) — reclaim stalled"; FAIL=1; break
   fi
-  $CLI ping 2>/dev/null | grep -q PONG || { note "!! SERVER UNRESPONSIVE"; FAIL=1; break; }
+  timeout 2 $CLI ping 2>/dev/null | grep -q PONG || { note "!! SERVER UNRESPONSIVE"; FAIL=1; break; }
 done
 wait $LOAD 2>/dev/null; wait $XLOAD 2>/dev/null
 
@@ -74,7 +74,7 @@ echo "=== VERDICTS ===" >> $OUT
 FIN=$(rss)
 note "rss: base=${BASE}MB final=${FIN}MB"
 [ -n "$FIN" ] && [ "$FIN" -lt $((BASE + 1500)) ] && note "PASS: no runaway RSS" || { note "FAIL: RSS runaway"; FAIL=1; }
-$CLI ping 2>/dev/null | grep -q PONG && note "PASS: alive" || { note "FAIL: dead"; FAIL=1; }
+timeout 2 $CLI ping 2>/dev/null | grep -q PONG && note "PASS: alive" || { note "FAIL: dead"; FAIL=1; }
 if grep -qiE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG|Sanitizer' $J/stress.log 2>/dev/null; then
   note "FAIL: crash/assert in log"; grep -iE 'crashed by signal|ASSERTION FAILED|=== REDIS BUG' $J/stress.log | head -3 >> $OUT; FAIL=1
 else note "PASS: no crash/assert markers"; fi

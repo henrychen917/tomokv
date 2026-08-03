@@ -190,7 +190,7 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   SRV_PID=$!
   local up=0 i
   for i in $(seq 1 60); do
-    "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG && { up=1; break; }
+    timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG && { up=1; break; }
     kill -0 "$SRV_PID" 2>/dev/null || break
     sleep 0.5
   done

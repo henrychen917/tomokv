@@ -58,7 +58,7 @@ boot(){ # io ex extra...
     --protected-mode no --enable-debug-command local --logfile "$LOG" --loglevel notice \
     "${@:3}" >/dev/null 2>&1 &
   sleep 3
-  "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG
+  timeout 2 "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG
 }
 row(){ printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" | tee -a "$OUT"; }
 

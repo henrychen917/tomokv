@@ -46,7 +46,7 @@ boot(){ # $1 = numa nodes
     --save '' --appendonly no --protected-mode no --enable-debug-command yes \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
   N2PID=$!
-  sleep 3; for i in $(seq 1 30); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
+  sleep 3; for i in $(seq 1 30); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
 # rss() read `ps -C redis-server | head -1` -- on a shared box that is whichever server sorts first,
 # i.e. potentially ANOTHER SESSION'S process. Read our own /proc entry instead.
 rss(){ awk '/VmRSS/{print int($2/1024)}' /proc/$N2PID/status 2>/dev/null; }
@@ -90,13 +90,13 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
   N2_MTPID=$!; W=$N2_MTPID
   for r in 1 2 3 4 5 6; do $CLI debug digest >/dev/null 2>&1; $CLI bgsave >/dev/null 2>&1; $CLI randomkey >/dev/null 2>&1; sleep 2; done
   wait $W 2>/dev/null; N2_MTPID=""
-  $CLI ping 2>/dev/null | grep -q PONG && ok "survived DIGEST/BGSAVE walks under churn (numa=2)" || bad "died during walks"
+  timeout 2 $CLI ping 2>/dev/null | grep -q PONG && ok "survived DIGEST/BGSAVE walks under churn (numa=2)" || bad "died during walks"
 
   # D. cross-node MGET (lock-free readers spanning both node tables) + expire/delete churn
   $MT --test-time=30 --command="MGET memtier-1 memtier-2 memtier-3 memtier-4" --command-key-pattern=R --key-maximum=1000000 -t 4 -c 10 --pipeline 8 >/dev/null 2>&1
   for k in $(seq 1 2000); do echo "SET ex:$k v$k PX 300"; done | $CLI --pipe >/dev/null 2>&1
   sleep 3
-  $CLI ping 2>/dev/null | grep -q PONG && ok "alive after cross-node MGET + expire churn" || bad "died on MGET/expire"
+  timeout 2 $CLI ping 2>/dev/null | grep -q PONG && ok "alive after cross-node MGET + expire churn" || bad "died on MGET/expire"
 
   # E. flips under numa=2 (per-node flip is a staged path)
   M=$(wc -l < $J/numa2.log)
@@ -106,7 +106,7 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
   sleep 10; $CLI debug tomo-modeshift 80 >/dev/null 2>&1
   wait $W 2>/dev/null; N2_MTPID=""; sleep 2
   echo "  per-node flips: front=$(tail -n +$M $J/numa2.log | grep -c 'GROW-FRONT complete') back=$(tail -n +$M $J/numa2.log | grep -c 'GROW-BACK complete')" >> $OUT
-  $CLI ping 2>/dev/null | grep -q PONG && ok "alive after per-node flip attempts" || bad "died on per-node flip"
+  timeout 2 $CLI ping 2>/dev/null | grep -q PONG && ok "alive after per-node flip attempts" || bad "died on per-node flip"
 
   # F. FLUSHALL + regrow (per-node table destroy with pending retires)
   $CLI flushall >/dev/null 2>&1; sleep 1

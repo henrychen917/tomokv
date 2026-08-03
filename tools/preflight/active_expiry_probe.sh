@@ -57,7 +57,7 @@ PID=$!
 up=0
 for _ in $(seq 80); do
     sleep 0.25
-    if "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
+    if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
 done
 [ "$up" = 1 ] || { echo "active_expiry_probe: server did not come up (ex=$EX)"; sed -n '1,30p' "$RUN/d/srv.log"; exit 2; }
 

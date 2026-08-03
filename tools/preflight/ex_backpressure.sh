@@ -72,11 +72,11 @@ taskset -c 0-7 "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
 SRV=$!
 
 for _ in $(seq 1 60); do
-    [ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
+    [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break
     kill -0 "$SRV" 2>/dev/null || { echo "ex-backpressure[$TAG]	FAIL	server died during boot (see $OUT/server.log)"; exit 1; }
     sleep 0.3
 done
-if [ "$("$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" != PONG ]; then
+if [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" != PONG ]; then
     echo "ex-backpressure[$TAG]	FAIL	server never answered PING (see $OUT/server.log)"; exit 1
 fi
 

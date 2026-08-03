@@ -57,8 +57,8 @@ run_regime() { # $1 = ex threads, $2 = label
   taskset -c 0-7 $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
     --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
     --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
-  for i in $(seq 1 100); do $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
-  if ! $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec "$LBL-boot" FAIL "no PONG"; return; fi
+  for i in $(seq 1 100); do timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
+  if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec "$LBL-boot" FAIL "no PONG"; return; fi
 
   fill $PORT $NKEYS
   local before after
@@ -75,7 +75,7 @@ run_regime() { # $1 = ex threads, $2 = label
     if ! timeout 180 $CLI -p $PORT debug reload 2>/dev/null | grep -q OK; then
       rec "$LBL-reload$r" FAIL "DEBUG RELOAD did not return OK"; ok=0; break
     fi
-    if ! $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
+    if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
       rec "$LBL-reload$r" FAIL "server died during reload #$r"; ok=0; break
     fi
     after=$($CLI -p $PORT dbsize 2>/dev/null)

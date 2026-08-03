@@ -37,9 +37,9 @@ boot(){ # $1 extra args
     --tomokv-thread-io 4 --tomokv-thread-ex 4 $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
   RECLAIM_PID=$!
-  sleep 2; for i in $(seq 1 25); do $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 0.5; done; return 1
+  sleep 2; for i in $(seq 1 25); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 0.5; done; return 1
 }
-alive(){ [ "$($CLI ping 2>/dev/null | tr -d '\r')" = PONG ]; }
+alive(){ [ "$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')" = PONG ]; }
 rss_kb(){ awk '/VmRSS/{print $2; exit}' "/proc/$RECLAIM_PID/status" 2>/dev/null; }
 
 echo "=== T1: overwrite churn keeps dbsize exact + server alive (the leak path) ===" >> $OUT

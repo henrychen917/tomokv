@@ -128,7 +128,7 @@ boot() { # nodes io ex label
         > "$WORK/$label.launch.log" 2>&1 &
     SERVER_PID=$!
     for _ in $(seq 1 120); do
-        if [ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ]; then
+        if [ "$(timeout 2 "$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ]; then
             if [ "$SV_WEDGE_WATCH" = 1 ] && command -v gdb >/dev/null 2>&1; then
                 SERVER_LOG="$ACTIVE_LOG" "$HERE/wedge_watch.sh" "$SERVER_PID" "$SV_PORT" "$WORK/wedge.$label" 10 3 \
                     >"$WORK/wedge.$label.log" 2>&1 &
@@ -212,7 +212,7 @@ for nodes in $SV_NODES; do
     # very case PASSED on "server answered PING" while the server had served nothing for ten
     # minutes (docs/BUGS.md N). Round-trip a real key and require the value back.
     alive=no
-    if [ "$("$CLI" -p "$SV_PORT" ping 2>/dev/null | tr -d '\r')" = "PONG" ] &&
+    if [ "$(timeout 2 "$CLI" -p "$SV_PORT" ping 2>/dev/null | tr -d '\r')" = "PONG" ] &&
        [ "$("$CLI" -p "$SV_PORT" set sv:survival:probe ok 2>/dev/null | tr -d '\r')" = "OK" ] &&
        [ "$("$CLI" -p "$SV_PORT" get sv:survival:probe 2>/dev/null | tr -d '\r')" = "ok" ]; then
         alive=yes

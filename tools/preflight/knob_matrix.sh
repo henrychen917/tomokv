@@ -33,7 +33,7 @@ reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to bo
   taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
     --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
   sleep 2
-  local up=0; $CLI ping 2>/dev/null | grep -q PONG && up=1
+  local up=0; timeout 2 $CLI ping 2>/dev/null | grep -q PONG && up=1
   kb_kill
   # These are scored. Previously reject() only echoed to stdout, so a retired knob that was still
   # accepted did not move FAIL and the suite reported "0 failed" while asserting nothing -- the
@@ -52,7 +52,7 @@ must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
   taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
     --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
   sleep 2
-  local up=0; $CLI ping 2>/dev/null | grep -q PONG && up=1
+  local up=0; timeout 2 $CLI ping 2>/dev/null | grep -q PONG && up=1
   kb_kill
   if [ "$up" = 1 ]; then bad "$knob=$val WAS ACCEPTED but must be refused ($why)"
   else ok "$knob=$val refused as designed ($why)"; fi
@@ -66,7 +66,7 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (opt
     --$knob $val --save '' --appendonly no --protected-mode no \
     --logfile $J/knob.log --loglevel notice >/dev/null 2>&1 &
   sleep 2; local up=0
-  for i in $(seq 1 20); do $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
+  for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then
     bad "$knob=$val — DID NOT BOOT ($note)"; grep -iE 'unresolved|bad|invalid|error' $J/knob.log | tail -2 >> $OUT; return
   fi
@@ -74,7 +74,7 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (opt
   # serve real traffic so a knob that breaks the data path shows up
   $MT --test-time=4 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 4 -c 8 --pipeline 8 >/dev/null 2>&1
   local ops=$($MT --test-time=5 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 4 -c 8 --pipeline 8 2>&1 | awk '/^Totals/{print int($2)}')
-  local alive=$($CLI ping 2>/dev/null | tr -d '\r')
+  local alive=$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')
   local crash=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' $J/knob.log 2>/dev/null)
   if [ "$alive" = PONG ] && [ "${ops:-0}" -gt 1000 ] && [ "${crash:-0}" = 0 ]; then
     ok "$knob=$val (echo=$got ops=$ops) $note"
@@ -198,7 +198,7 @@ drift_guard(){
   kb_kill; sleep 1; rm -rf $J/kdata2; mkdir -p $J/kdata2
   taskset -c 0-7 $KB --port $PORT --dir $J/kdata2 --tomokv-nodes 1 --tomokv-thread-io 4 \
     --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no --logfile '' >/dev/null 2>&1 &
-  local up=0; for i in $(seq 1 20); do $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
+  local up=0; for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then bad "drift-guard: server would not boot"; return; fi
   $CLI config get 'tomokv-*' 2>/dev/null | awk 'NR%2==1' | tr -d '\r' | sort -u > $J/knob_live.txt
   kb_kill

@@ -35,7 +35,7 @@ taskset -c 0-7 "$BIN" --port $PORT --dir "$OUT/data" \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile "$OUT/server.log" >"$OUT/stdout.log" 2>&1 &
 SRV=$!
-for i in $(seq 1 40); do [ "$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
+for i in $(seq 1 40); do [ "$(timeout 2 "$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
 
 python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
 rc=$?

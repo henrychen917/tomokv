@@ -64,7 +64,7 @@ boot() {  # boot <binary> -> 0 if serving
   local i
   for i in $(seq 1 40); do
     kill -0 "$NCPID" 2>/dev/null || return 1
-    "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG && return 0
+    timeout 2 "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG && return 0
     sleep 0.5
   done
   return 1

@@ -83,7 +83,7 @@ ab=$(grep -c 'reshard ABORT' $J/rs.log 2>/dev/null); ab=${ab:-0}
               || echo "reshard-fence-no-aborts	FAIL	$ab cutover(s) abandoned on the fence watchdog" >> $OUT
 
 # server must still be alive and serving after all those cutovers
-alive=$("$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')
+alive=$(timeout 2 "$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')
 [ "$alive" = "PONG" ] && echo "reshard-survives	PASS	" >> $OUT \
                       || echo "reshard-survives	FAIL	server dead after cutovers" >> $OUT
 cm=$(grep -cE 'Guru|crashed by signal|ASSERTION' $J/rs.log 2>/dev/null); cm=${cm:-0}

@@ -83,10 +83,10 @@ rm -rf $RUN; mkdir -p $RUN
 taskset -c $CPUS $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
   --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
   --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
-for i in $(seq 1 100); do $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
-if ! $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec boot FAIL "no PONG"; fi
+for i in $(seq 1 100); do timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
+if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec boot FAIL "no PONG"; fi
 
-if $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
+if timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
   # small values: the table must be BIG (4M slots) while the RDB stays small, so the save/load legs
   # are short relative to the ~6s copy they have to land inside.
   gen SET 0 $NKEYS | $CLI -p $PORT --pipe >/dev/null 2>&1
@@ -160,7 +160,7 @@ if $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
       t1=$(date +%s.%N)
       echo "$r $t0 $t1" >> $RUN/reload_windows.txt
       if ! echo "$out" | grep -q OK; then rec "reload$r" FAIL "not OK: $out"; ok=0; break; fi
-      if ! $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
+      if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
         rec "reload$r" FAIL "server died"; ok=0; break; fi
       now=$(timeout 300 $CLI -p $PORT dbsize 2>/dev/null)
       if [ "$now" != "$EXPECT" ]; then
@@ -192,7 +192,7 @@ if $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
 
     # verification happens ONCE, after the loop, so it cannot serialise against a copy
     if [ $ok = 1 ]; then
-      if ! $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec alive FAIL "no PONG after reloads"; ok=0
+      if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec alive FAIL "no PONG after reloads"; ok=0
       else
         after=$(timeout 300 $CLI -p $PORT dbsize 2>/dev/null)
         if [ "$after" != "$NKEYS" ]; then rec dbsize FAIL "dbsize=$after want=$NKEYS"; ok=0
