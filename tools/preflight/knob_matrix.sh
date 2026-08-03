@@ -58,6 +58,19 @@ must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
   else ok "$knob=$val refused as designed ($why)"; fi
 }
 
+# ee451 2026-08-03: TWO auto conventions coexist and this suite's CELLS did not follow its own
+# header. A knob declared with min -1 spells auto as -1 (tomokv-pipeline-depth, -key-lb-sustain,
+# -reshard-cool-margin-pct, -reshard-sustain-ticks). A knob declared with min 0 spells auto/off as
+# 0 and its own config.c comment says so -- "0=auto buckets/(16W)", "0=auto outlier bar",
+# "0=legacy 0.85", "0=off, 1=strict". For those, -1 is BELOW the declared minimum and the server is
+# RIGHT to refuse it, so `try <knob> -1` was asserting that an out-of-range value must BOOT. Six
+# cells failed on that alone. They now use must_refuse(), which is the stronger assertion: silently
+# accepting a below-minimum value is the defect worth catching, because a config that boots on
+# nonsense is how a typo'd sweep cell becomes a bogus measurement.
+#
+# OWNER NOTE: the -1-vs-0 split is a real inconsistency in the knob surface, not a test detail
+# (task #31, unify adaptive sizing). This documents the split rather than hiding it.
+
 try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (optional)
   local knob=$1 val=$2 note=$3 companion=${4:-}
   kb_kill; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
@@ -128,7 +141,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-pipeline-depth 0
 
-  try tomokv-reshard-chunk -1
+  must_refuse tomokv-reshard-chunk -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-reshard-chunk 0
 
@@ -136,11 +149,11 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-reshard-cool-margin-pct 0
 
-  try tomokv-reshard-imbalance-pct -1
+  must_refuse tomokv-reshard-imbalance-pct -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-reshard-imbalance-pct 0
 
-  try tomokv-reshard-progress-ratio -1
+  must_refuse tomokv-reshard-progress-ratio -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-reshard-progress-ratio 0
 
@@ -148,13 +161,27 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-reshard-sustain-ticks 0
 
-  try tomokv-strict-order -1
+  must_refuse tomokv-strict-order -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-strict-order 0
 
-  try tomokv-zerocopy-min-value -1
+  must_refuse tomokv-zerocopy-min-value -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-zerocopy-min-value 0
+
+  # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
+  # tomokv-io-uring is IMMUTABLE 0..1; only 0 is driven here on purpose -- 1 arms the uring
+  # machinery, which needs a USE_URING=yes build, and a cell that silently hangs on an epoll build
+  # is exactly the harness trap this suite exists to prevent.
+  try tomokv-io-uring 0
+  must_refuse tomokv-io-uring -1 "below the declared minimum -- this knob spells auto as 0"
+
+  try tomokv-prefetch-ex 0
+  try tomokv-prefetch-ex 3
+  must_refuse tomokv-prefetch-ex -1 "below the declared minimum -- this knob spells auto as 0"
+
+  try tomokv-reshard-fence-timeout 0
+  must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
 # RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
 # either the knob was not really retired or a shim is swallowing it -- both hide a config error
