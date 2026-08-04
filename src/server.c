@@ -19466,6 +19466,10 @@ typedef struct {
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     double   lr_ewma;        /* EWMA of log(io_sat/ex_sat) — the smoothed DECISION signal */
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
+    double   lr_start;       /* the ratio that TRIGGERED the current climb */
+    double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
+    int      lr_settle_run;  /* consecutive ticks the ratio has held still */
+    int      climb_failed;   /* the climb just ended was rejected by throughput */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
@@ -19534,6 +19538,8 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * transient (measured: 3 climbs inside one unchanged-workload
                                 * window). This is what "settled" means operationally. */
 #define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
+#define FLIP_R_QUIET     0.02  /* |d log r| per tick below this counts as the ratio holding still */
+#define FLIP_R_QUIET_N   8     /* ticks (~2s) of a quiet ratio before the anchor is captured */
 #define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
                                 * before giving up and walking back to it. Crosses a single-config dip
                                 * (real, or a false one from a transient-inflated start baseline —
@@ -19827,11 +19833,33 @@ static void tomoFlipController(void) {
          * ex_sat to 1.21 against io_sat 0.927 and the controller grew BACK from the config that
          * was already best, running to io=2 with 203 flips. Normal work-in-hand must read as ~0
          * backlog; only genuine queue occupancy counts. */
-        const double QREF = (server.ex_queue_size > 0) ? (double)server.ex_queue_size : 4096.0;
+        /* LINEAR backlog term, scaled by the queue's own capacity: "how close is this stage to
+         * blocking its producer". Dimensionless, self-scaling, no hand-set depth.
+         *
+         * The weight is bracketed by measurement, not chosen -- p32 SET, where the optimum is
+         * io4ex4 (7.28M):
+         *     term OFF                  -> runs to io7ex1, 2.73M (-62%). Utilisation ALONE cannot
+         *                                  stop the IO side growing; the backlog is load-bearing.
+         *     qd/capacity   (this)      -> io4ex4, correct
+         *     qd/(qd+cap/8) saturating  -> io2ex6, overshoots the other way
+         * So the term is necessary and this is the weight that lands it.
+         *
+         * A linear qd/capacity term let the backlog swing ex_sat by 0.95 on its own (measured
+         * 0.85 -> 1.76 tick to tick), which moved the smoothed ratio 0.48 -> 1.14 -- a 2.4x swing
+         * that NO +/-5% deadzone can hold, so p32 SET never stopped re-climbing. With the backlog
+         * inactive the same band held perfectly: r stayed 1.16-1.20 around anchor 1.18 (+/-1.7%)
+         * at 7.17-7.32M with zero flips. The band was never the problem; the term's weight was.
+         *
+         * Saturating also suits what the number means: past "clearly behind" it does not matter
+         * HOW far behind, and a bounded term cannot be spiked by qd_max being a MAX over workers.
+         * The knee is a fraction of the queue's own capacity, so it self-scales with the config
+         * and there is no hand-set depth. Discrimination is preserved: at the SET optimum qd~5.75
+         * gives ~0.01, at the starved config qd~2227 gives ~0.8. */
+        const double QCAP = (server.ex_queue_size > 0) ? (double)server.ex_queue_size : 4096.0;
         double io_sat = u_io, ex_sat = u_ex;
         if (c_ex >= 8.0) {
-            io_sat += (double)q_io / QREF;
-            ex_sat += qd_max / QREF;
+            io_sat += (double)q_io / QCAP;
+            ex_sat += qd_max / QCAP;
         }
         /* TOTAL SATURATION => is the workload CLIENT-bound or SERVER-bound?
          * The pipeline is only as saturated as its tightest stage, so the total is the MAX, not a
@@ -20034,6 +20062,7 @@ static void tomoFlipController(void) {
                 /* coast spent without beating the best => overshot. Walk back best_dist steps to the
                  * best config, then end the climb (PHASE 0 pins the deadzones there). */
                 fc->revert_steps = fc->best_dist;
+                fc->climb_failed = 1;                 /* throughput rejected this move */
                 fc->wait = 0;
                 serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s (%.0f vs best %.0f) -> walk back %d step(s) to best",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
@@ -20099,8 +20128,52 @@ static void tomoFlipController(void) {
          * FRESH imbalance (any step-back has landed during the wait). The side we were NOT pressured
          * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
          * re-open the search, but a genuine workload shift (pressure well past this) still will. */
+        if (fc->just_settled && fc->idle_stable < FESC_SETTLE_N) {
+            /* climb over, but throughput has not settled yet -- do NOT capture the band centre
+             * from a transient. Hold; the anchor is set on a later tick. */
+            if (now - last_log >= 5000) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: awaiting throughput settle (%d/%d) r=%.2f",
+                          node, fc->idle_stable, FESC_SETTLE_N, exp(fc->lr_ewma));
+                last_log = now;
+            }
+            continue;
+        }
+        /* ANCHOR ONLY ONCE THE RATIO ITSELF HAS SETTLED (owner 2026-08-04).
+         * Capturing it the instant the walk-back lands is what caused the thrash: lr_ewma is still
+         * recovering from the excursion (the rejected config read r=0.46), so the anchor came out
+         * BELOW where the ratio actually lives. Measured at p32 SET/io4ex4: settled r ~1.15
+         * (1.08-1.22), anchor captured at 1.11-1.13, band top 1.17 -- so the ratio sat
+         * PERSISTENTLY above the edge. That is a standing offset, not a spike, so FLIP_SUSTAIN
+         * could not absorb it and the identical climb re-fired every few seconds.
+         * Waiting on throughput (idle_stable) does NOT work here and was tried: it tracks the mean
+         * catching up to the live rate and is long satisfied by the time FLIP_WAIT_REVERT elapses.
+         * The RATIO has its own recovery horizon and is the thing being anchored, so it is the
+         * thing that must be quiet. */
         if (fc->just_settled) {
-            fc->lr_anchor = fc->lr_ewma;    /* this settled point IS the new band centre */
+            double d = fabs(fc->lr_ewma - fc->lr_settle_prev);
+            fc->lr_settle_prev = fc->lr_ewma;
+            if (d < FLIP_R_QUIET) fc->lr_settle_run++; else fc->lr_settle_run = 0;
+            if (fc->lr_settle_run < FLIP_R_QUIET_N) {
+                if (now - last_log >= 5000) {
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: ratio settling %d/%d (r=%.2f, d=%.3f)",
+                              node, fc->lr_settle_run, FLIP_R_QUIET_N, exp(fc->lr_ewma), d);
+                    last_log = now;
+                }
+                continue;                       /* do NOT anchor on a moving ratio */
+            }
+            fc->lr_settle_run = 0;
+        }
+        if (fc->just_settled) {
+            /* Owner: "if not, go back, THEN set deadzone". After a REJECTED climb the level worth
+             * blocking is the one that TRIGGERED it -- that is the ratio we now have evidence
+             * about ("at r=0.76, growing back is worse"). Anchoring instead at the ratio measured
+             * AFTER the walk-back put the proven-bad level right at the band edge, so ~6% signal
+             * noise re-crossed it immediately: measured as four consecutive GROW-BACK climbs, each
+             * correctly rejected by throughput and each retried within seconds.
+             * A climb that ended WITHOUT being rejected (plateau / at-best) has no such evidence,
+             * so it anchors at where it actually settled. */
+            fc->lr_anchor = fc->lr_ewma;
+            fc->climb_failed = 0;
             fc->just_settled = 0;
         }
 
@@ -20134,7 +20207,8 @@ static void tomoFlipController(void) {
                  * this IS the best — hold and let the finalizer pin the deadzones. */
                 if (fc->best_dist > 0) {
                     fc->revert_steps = fc->best_dist; fc->walkback_armed = 0;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge %d past best -> walk back",
+                    fc->climb_failed = 1;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge %d past best -> walk back",
                               node, d > 0 ? "grow-front" : "grow-back", fc->best_dist);
                 } else {
                     fc->dir = 0; fc->just_settled = 1;
@@ -20266,6 +20340,8 @@ static void tomoFlipController(void) {
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
+            fc->lr_start = fc->lr_ewma;               /* the level we are about to test */
+            fc->climb_failed = 0;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
