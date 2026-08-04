@@ -237,6 +237,21 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * so the acceptance probe could pass while leaving one site unexercised. Split so the probe can
      * assert per-path. Owner-written on an already-spinning path; racy read by INFO. */
     unsigned long q_full_cs_events;
+    /* ee451 (rate-balance saturation, 2026-08-03): the IO station's STANDING SEND BACKLOG --
+     * clients holding replies this thread has not managed to write yet. Published by the owner
+     * beside `rob`, same racy-read contract.
+     *
+     * This is Q_IO in S_r = (A_r + Q_r) * U_r / C_r, and it must be THIS and not `rob`: rob is
+     * replyWorking, i.e. replies still in flight ON WORKERS, so charging it to IO would attribute
+     * EX's backlog to IO and double-count the same work in both stations. The only work genuinely
+     * owed to the IO role is a reply that is ready and unwritten -- which is exactly a client
+     * parked on clients_pending_write[iotid].
+     *
+     * When IO keeps up this is 0 and S_IO degenerates to U_IO, which is correct: a station with no
+     * queue is saturated exactly as much as it is busy. It becomes non-zero precisely in the
+     * send-bound regime (large values, socket backpressure), which is the case utilization alone
+     * cannot express and the reason this term exists. */
+    unsigned long pend_write;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -2945,8 +2960,15 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
      * again. The cost of checking is one list-length load. */
     migReleaseParkedClients();
     /* ee451 (thread-modes step 4, signal c): publish this thread's reply-ROB occupancy
-     * (in-flight worker-dispatched ops) for the balancer — own padded line, one store. */
-    if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
+     * (in-flight worker-dispatched ops) for the balancer — own padded line, one store.
+     * Beside it, the SEND BACKLOG (Q_IO): replies ready but unwritten. One list-length load on a
+     * list this thread already owns; see the pend_write comment on tmIoSignal for why rob cannot
+     * serve this role. */
+    if (server.thread_auto) {
+        tm_io_sig[iotid].rob = replyWorking;
+        tm_io_sig[iotid].pend_write = server.clients_pending_write[iotid] ?
+                                      listLength(server.clients_pending_write[iotid]) : 0;
+    }
     /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
      * are re-registered before the rest of the pass processes their sockets. */
     tmMigDrainInbox();
@@ -3002,8 +3024,12 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
      * on the busiest loop in the server. Hint dropped, predicate unchanged. */
     if (server.shared_node_dbs) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
 
-    /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB too. */
-    if (server.thread_auto) tm_io_sig[iotid].rob = replyWorking;
+    /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB and send backlog too. */
+    if (server.thread_auto) {
+        tm_io_sig[iotid].rob = replyWorking;
+        tm_io_sig[iotid].pend_write = server.clients_pending_write[iotid] ?
+                                      listLength(server.clients_pending_write[iotid]) : 0;
+    }
 
     updatePeakMemory();
 
@@ -19565,11 +19591,64 @@ static void tomoFlipController(void) {
          * this component to [0, 100/75]. The comparison units stay compatible (dimensionless role
          * saturation, with 1.0 at the 75% busy distress point), so the phase/deadzone machinery and
          * its 0.25 constants remain untouched. --- */
-        int fc_popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
-        long fc_qd_hi = 8L * fc_popmax;
-        double io_sat = (double)io_busy_mean / 75.0;
-        double ex_sat = fmax((double)fc->busy_smooth / 75.0,
-                             fc_qd_hi > 0 ? (double)qd_max / (double)fc_qd_hi : 0.0);
+        /* ===== RATE-BALANCE SATURATION (docs/FLIP_SATURATION_SPEC.md, 2026-08-03) =====
+         *
+         *      S_r = (A_r + Q_r) * U_r / C_r          for r in {IO, EX}
+         *
+         * REPLACES io_sat = busy/75 and ex_sat = max(busy/75, qd/(8*POP)). Those were (a) not the
+         * same measurement on the two sides of the subtraction -- EX had a backlog term, IO had
+         * none -- and (b) UTILIZATION, which clips at 1.0 and then carries no further information:
+         * a thread 100% busy keeping up is indistinguishable from one 100% busy and falling behind
+         * 3x. Because the old signal could not express magnitude, magnitude had to come from the
+         * throughput hill-climb, whose best_rate never re-baselines (#74).
+         *
+         * S does not clip, so the same number carries direction AND how far.
+         *
+         * TERMS, all already measured -- this adds no hot-path counter:
+         *   C_EX  commands retired by the node's workers this tick  (node_ops delta = inst * dt)
+         *   A_IO  == C_EX, the pipeline chain identity: every retired command yields exactly one
+         *         reply the IO role must write. Spec section 1.
+         *   A_EX  == C_EX at equilibrium; any excess shows up as queue GROWTH, which is Q_EX. This
+         *         is why the +Q term is load-bearing rather than cosmetic: nearly all our load is
+         *         CLOSED-LOOP (memtier, fixed conns x pipeline), so arrivals are gated by
+         *         completions and A/C -> 1 by construction in a good config and a bad one alike.
+         *         A pure rate ratio would read balanced and discriminate nothing; standing backlog
+         *         is what still separates the configs at equal throughput.
+         *   Q_EX  worker queue depth (commands owed to EX)
+         *   Q_IO  clients holding unwritten replies (commands owed to IO) -- NOT rob, which is
+         *         replyWorking, i.e. in flight ON WORKERS; charging that to IO would attribute EX's
+         *         backlog to IO and count the same work twice. See tmIoSignal.pend_write.
+         *   U_r   role utilization, the existing tm_busy_us ratio, as a fraction.
+         *
+         * Degenerate case is correct by construction: no queue => S_r == U_r, i.e. a station with
+         * nothing owed to it is saturated exactly as much as it is busy. Q_IO only becomes non-zero
+         * in the send-bound regime, which is precisely what utilization alone could not see. */
+        double dt_s = node_wall_ms > 0 ? (double)node_wall_ms / 1000.0 : 0.25;
+        double c_ex = inst * dt_s;                        /* commands retired this tick */
+        long q_io = 0;
+        for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
+            if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
+            q_io += (long)tm_io_sig[t].pend_write;
+        }
+        /* Normalized to the SAME 75% distress point the old io_sat/ex_sat used, not to a true
+         * 0-1 fraction. Deliberate: FLIP_DZ_BASE and every deadzone rule are calibrated against
+         * that scale, so keeping it means this change swaps the SIGNAL and nothing else. Rescaling
+         * to /100 would silently make the controller ~33% less sensitive and confound the A/B with
+         * a sensitivity change. (Spec writes S=1.0 for "exactly saturated"; on this scale that
+         * point is 1.33. Same quantity, same ordering, different unit.) */
+        double u_io = (double)io_busy_mean / 75.0;
+        double u_ex = (double)fc->busy_smooth / 75.0;
+        /* Guard the divide. Below a few commands per tick the ratio is noise, not signal, and the
+         * node is idle anyway (node_idle already gates the decision) -- fall back to bare
+         * utilization rather than manufacturing a huge S from a 1-command denominator. */
+        double io_sat, ex_sat;
+        if (c_ex >= 8.0) {
+            io_sat = (c_ex + (double)q_io)   * u_io / c_ex;
+            ex_sat = (c_ex + (double)qd_max) * u_ex / c_ex;
+        } else {
+            io_sat = u_io;
+            ex_sat = u_ex;
+        }
         double imbalance = io_sat - ex_sat;
         /* smoothed imbalance — the DECISION signal (start direction + settle-pin) uses this, not the
          * raw per-tick imbalance, so a single-tick pressure spike can neither start a spurious climb
@@ -19836,8 +19915,9 @@ static void tomoFlipController(void) {
              * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
              * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | w_live=%d io=%d pool=%d/%d",
-                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back, w_live, io_live_node,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | S(c_ex=%.0f q_io=%ld q_ex=%ld u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back,
+                          c_ex, q_io, qd_max, u_io, u_ex, w_live, io_live_node,
                           pool_live, pool_want);
                 last_log = now;
             }
