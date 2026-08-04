@@ -252,14 +252,6 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
-    /* IO-SIDE VIEW OF THE FAR END. rob (= replyWorking) is commands dispatched and not yet
-     * returned; by Little's Law in-flight = throughput * latency, so a TIME-INTEGRATED rob is the
-     * worker-side latency measured entirely from the IO thread -- no worker instrumentation, one
-     * thread, one clock. Instantaneous rob is useless: read cross-thread by INFO it lands between
-     * bursts and reports 0 at every config. Q4 fixed point (value*16), owner-written, racy read.
-     * APPENDED at the tail on purpose: inserting mid-struct measured -16% on p32 SET. */
-    unsigned int rob_ewma_q4;
-    unsigned int pw_ewma_q4;     /* same, for the flush-side backlog */
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -14720,15 +14712,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * itself under investigation — which is exactly why these are exposed raw rather than
          * pre-divided into a ratio. */
         {
-            unsigned long long io_busy = 0, ex_busy = 0, io_rob = 0, io_pw = 0;
+            unsigned long long io_busy = 0, ex_busy = 0;
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
                 if ((!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO)
                     && t >= server.io_threads) continue;      /* grown slot not serving IO */
                 io_busy += tm_io_sig[t].tm_busy_us; nio++;
-                io_rob += tm_io_sig[t].rob_ewma_q4;  /* TIME-INTEGRATED (Q4): the snapshot reads 0 */
-                io_pw  += tm_io_sig[t].pw_ewma_q4;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
             for (int w = 0; w < wlive && w < TOMO_EX_THREADS_MAX; w++)
@@ -14736,8 +14726,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
-                "tomokv_io_rob:%llu\r\n", io_rob,
-                "tomokv_io_pend_write:%llu\r\n", io_pw,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
@@ -18055,16 +18043,6 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
             tm_io_cpu_next_us = now_us + TOMO_IO_CPU_SAMPLE_US;
         }
     }
-    /* Time-integrate the IO thread's view of both halves: how much is outstanding AT THE WORKERS
-     * (rob) and how much is waiting to be flushed (pend_write). One add+shift each per pass, on a
-     * line this thread already owns. */
-    {
-        double rif = aeReplyInFlight;
-        s->rob_ewma_q4 = (rif > 0.0) ? (unsigned int)(rif * 16.0) : 0u;
-        int pe = (int)s->pw_ewma_q4;
-        pe += ((int)(s->pend_write << 4) - pe) >> 3;
-        s->pw_ewma_q4 = pe < 0 ? 0 : (unsigned int)pe;
-    }
     /* Events/pass remains useful as a relative per-thread weight for client placement,
      * but zero-event reply-drain passes make it invalid as role saturation. */
     s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
@@ -19466,10 +19444,8 @@ typedef struct {
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     double   lr_ewma;        /* EWMA of log(io_sat/ex_sat) — the smoothed DECISION signal */
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
-    double   lr_start;       /* the ratio that TRIGGERED the current climb */
     double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
     int      lr_settle_run;  /* consecutive ticks the ratio has held still */
-    int      climb_failed;   /* the climb just ended was rejected by throughput */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
@@ -20062,7 +20038,6 @@ static void tomoFlipController(void) {
                 /* coast spent without beating the best => overshot. Walk back best_dist steps to the
                  * best config, then end the climb (PHASE 0 pins the deadzones there). */
                 fc->revert_steps = fc->best_dist;
-                fc->climb_failed = 1;                 /* throughput rejected this move */
                 fc->wait = 0;
                 serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s (%.0f vs best %.0f) -> walk back %d step(s) to best",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
@@ -20173,7 +20148,6 @@ static void tomoFlipController(void) {
              * A climb that ended WITHOUT being rejected (plateau / at-best) has no such evidence,
              * so it anchors at where it actually settled. */
             fc->lr_anchor = fc->lr_ewma;
-            fc->climb_failed = 0;
             fc->just_settled = 0;
         }
 
@@ -20207,7 +20181,6 @@ static void tomoFlipController(void) {
                  * this IS the best — hold and let the finalizer pin the deadzones. */
                 if (fc->best_dist > 0) {
                     fc->revert_steps = fc->best_dist; fc->walkback_armed = 0;
-                    fc->climb_failed = 1;
                 serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge %d past best -> walk back",
                               node, d > 0 ? "grow-front" : "grow-back", fc->best_dist);
                 } else {
@@ -20340,8 +20313,6 @@ static void tomoFlipController(void) {
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
-            fc->lr_start = fc->lr_ewma;               /* the level we are about to test */
-            fc->climb_failed = 0;
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
