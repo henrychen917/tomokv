@@ -19469,6 +19469,8 @@ static flipCtlState fctl[TM_MAXNODE];
  * from the measured rate and its noise. */
 #define FESC_ALPHA      0.25   /* throughput mean/variance EWMA rate */
 #define FESC_SETTLE_N   5      /* warmup ends after this many settled ticks (rate plateau AND reshard-quiet; cache warmup needs the extra room) */
+#define FESC_WARM_FAST  12     /* warmup cap (~3s) while the ratio is FAR from target: direction is
+                                * unambiguous there, so only the rate plateau is required */
 #define FESC_WARM_CAP   48     /* safety cap on warmup (~12s) if it never plateaus — NOT a control knob */
 #define FESC_MEAS_N     16     /* measure-window ticks (~4s settled — longer window averages between-window drift) */
 #define FESC_WAIT_BASE  8      /* idle ticks between probes (~2s) */
@@ -19498,6 +19500,8 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * LB's goal is to reach this state. 0.95 not 1.0 because a role
                                 * that is genuinely saturated reads a shade under 1 once the busy
                                 * sampler and the EWMA have smoothed it. */
+#define FLIP_R_FAR       0.69  /* |log r| past this (=2x imbalance) means the split is grossly
+                                * wrong: take the fast warmup, the sign is not in doubt */
 #define FLIP_R_BAND      0.05  /* deadzone half-width: flip when the ratio leaves
                                 * SETTLE_RATIO +/- 5% (owner spec). Centring on the settle point,
                                 * not on 1, is what makes a REJECTED climb stick: the throughput
@@ -19919,8 +19923,27 @@ static void tomoFlipController(void) {
             uint64_t rs = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             if (rs == fc->rs_prev) fc->rs_quiet++; else fc->rs_quiet = 0;
             fc->rs_prev = rs;
-            if ((fc->settle_run >= FESC_SETTLE_N && fc->rs_quiet >= FESC_SETTLE_N) ||
-                fc->warm_ticks >= FESC_WARM_CAP) {
+            /* FAR-FROM-TARGET FAST WARMUP. The plateau + reshard-quiet requirement exists so a
+             * config is not judged mid-rebalance (its comment records 4io/4ex reading 4.56M
+             * mid-rebalance vs 5.8M settled, parking the climb 30% low). That precision matters
+             * NEAR the optimum. It does not matter when the ratio says the current split is
+             * grossly wrong: at r=0.22 the EX side is ~4.5x more saturated and no measurement
+             * error flips the SIGN of that.
+             *
+             * Cost of not distinguishing: a workload TRANSITION rebalances buckets continuously,
+             * so rs_quiet keeps resetting and every step runs to the 12s cap. Traversing the 3
+             * configs from io7 (where p1 leaves it) to io4 (p32's optimum) therefore takes ~50s+,
+             * and measured convergence was 174s against the suite's 170s allowance -- while the
+             * ENDPOINT was correct and held 98.5%. Slow, not wrong.
+             *
+             * So: far from target, require only the rate plateau (settle_run) and cap the wait
+             * short. Near target, the full gate is unchanged. */
+            int far_off = fabs(fc->lr_ewma) > FLIP_R_FAR;
+            int warm_ok = far_off
+                ? (fc->settle_run >= FESC_SETTLE_N || fc->warm_ticks >= FESC_WARM_FAST)
+                : ((fc->settle_run >= FESC_SETTLE_N && fc->rs_quiet >= FESC_SETTLE_N) ||
+                   fc->warm_ticks >= FESC_WARM_CAP);
+            if (warm_ok) {
                 fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
             }
             continue;

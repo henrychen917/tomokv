@@ -1,4 +1,14 @@
 #!/bin/bash
+
+# LEAK GUARD (2026-08-04): without this, ANY early exit -- a failed assert, a timeout, an
+# unset var under `set -u` -- leaves this suite's server running. That is not cosmetic:
+# every IO thread holds its own SO_REUSEPORT listener, so the NEXT suite's server does not
+# fail to bind; the kernel silently SPLITS connections between the two and the suite
+# measures a blend of both. preflight caught stress_reclaim leaking exactly this way, and
+# it is the most likely cause of feature_sweep failures that do not reproduce standalone.
+_leak_guard(){ [ -n "${BIN:-}" ] && pkill -9 -x "$(basename "$BIN")" 2>/dev/null; return 0; }
+trap _leak_guard EXIT
+
 # LOAD-BALANCER SKEW CONFORMANCE — the two LB mechanisms under the skew each one exists for.
 #
 #   A. GAUSSIAN HOT-KEY  -> exercises KEY LB (tomokv-key-lb, the bucket balancer)
