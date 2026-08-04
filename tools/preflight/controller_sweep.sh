@@ -117,11 +117,24 @@ if [ "$NCPU" -ge 16 ]; then SRV_CORES=0-7; CLI_CORES=8-15
 else H=$((NCPU/2)); SRV_CORES=0-$((H-1)); CLI_CORES=$H-$((NCPU-1)); fi
 
 # ---- canonical workloads ----------------------------------------------------
-WKEYS="--key-pattern=R:R --key-maximum=100000 -d 64"
+# CLIENT LOAD (2026-08-04). These drove `-t 4 -c 8` -- 32 connections -- which is 44% BELOW the
+# load generator's own ceiling and therefore never reached the server's. Measured on p32 SET at
+# io4ex4: -t4 -c8 = 4.99M/s, -t8 -c25 = 7.19M/s, -t8 -c40 = 6.68M, -t12 -c25 = 6.86M. So -t8 -c25
+# (200 conns) is the peak and 32 conns simply cannot keep 8 server threads fed at pipeline 32.
+#
+# WHY THAT MATTERED: under-driven, every thread config performs about the same, so the suite could
+# not distinguish configurations that differ by 3x under real load -- and it was grading a
+# controller whose actuator was not the constraint. That is the most plausible explanation for
+# AUTO==STATIC-p1 reading FAIL/FAIL/PASS/FAIL/PASS/FAIL/PASS across seven arms with no change
+# explaining it. -d 32 also matches the reference numbers (d64 costs only ~2%; the connection
+# count was the whole gap).
+WKEYS="--key-pattern=R:R --key-maximum=100000 -d 32"
+WCLIENT="-t 8 -c 25"
 W_FILL="--test-time=$T_SEED --ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 8"
-W_P1GET="--ratio=1:9  $WKEYS -t 4 -c 8 --pipeline 1"
-W_P32SET="--ratio=1:0 $WKEYS -t 4 -c 8 --pipeline 32"
-W_P32MIX="--ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 32"
+W_P1GET="--ratio=1:9  $WKEYS $WCLIENT --pipeline 1"
+W_P32SET="--ratio=1:0 $WKEYS $WCLIENT --pipeline 32"
+W_P32GET="--ratio=0:1 $WKEYS $WCLIENT --pipeline 32"
+W_P32MIX="--ratio=1:1 $WKEYS $WCLIENT --pipeline 32"
 
 mkdir -p "$LOGD" "$DATA" "$(dirname "$LOCK")"
 # Reset the pattern ledger: $J is a fixed directory, so a previous run's hits would otherwise mask
@@ -637,6 +650,39 @@ c1_flip() {
   else
     tsv 1-flip AUTO==STATIC-p32 "settled auto vs static" "implausible ($msettle/$m44w)" "plausible" SUSPECT
   fi
+  # ---- OPPOSITE-OPTIMUM: the only cell here that cannot be passed by accident ----------------
+  # Same boot config (io4ex4), two workloads whose measured best config points OPPOSITE ways:
+  #     p32 SET : io4ex4 7.28M > io5ex3 6.58M > io6ex2 4.26M   => best IS the boot config => HOLD
+  #     p32 GET : io6ex2 9.71M > io5ex3 9.40M > io4ex4 8.18M   => best is 2 grow-fronts away => CLIMB
+  # (static, -t8 -c25, d32, epoll). A controller that always holds passes SET and fails GET; one
+  # that always climbs does the reverse; a locked-out one fails GET. Every other cell in this
+  # suite can be satisfied by a controller that never moves.
+  #
+  # It caught two real defects the other 11 cells missed: a deadzone centred on r=1 instead of on
+  # the settle point (correctly-rejected climbs restarted for ever -- 103 flips, -24% on SET), and
+  # a saturation signal that meant "75% busy" rather than "input == output".
+  for _oo in 1; do
+    local oset oget
+    stopsrv                     # the p32 phase above leaves its server up; boot refuses on count=2
+    boot flip_oo_set --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
+    mt flip_oo_set_fill $W_FILL >/dev/null 2>&1
+    oset=$(mt flip_oo_set_meas $W_P32SET --test-time="$T_MEAS")
+    local ioset; ioset=$(iolive)
+    stopsrv
+    boot flip_oo_get --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
+    mt flip_oo_get_fill $W_FILL >/dev/null 2>&1
+    oget=$(mt flip_oo_get_meas $W_P32GET --test-time="$T_MEAS")
+    local ioget; ioget=$(iolive)
+    stopsrv
+    # SET must stay at the boot config (io_threads_live 4); GET must grow to 6.
+    local vv=PASS
+    [ "${ioset:-0}" = 4 ] || vv=FAIL
+    [ "${ioget:-0}" = 6 ] || vv=FAIL
+    tsv 1-flip OPPOSITE-OPTIMUM "same boot, opposite best config (p32 SET vs GET)" \
+        "SET io_live=${ioset:-?} ops=${oset:-?} | GET io_live=${ioget:-?} ops=${oget:-?}" \
+        "SET holds at 4, GET climbs to 6" "$vv"
+  done
+
   # ENVELOPE across the whole controller run. Bound derivation: workload footprint is ~30-60MB
   # (100k keys x 64B + conn bufs); the leak class this gates (38GB QSBR incident) grew ~210MB/s,
   # i.e. multi-GB over these phases. base+1.5GB sits an order above footprint, an order below leak.
