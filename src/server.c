@@ -19446,6 +19446,7 @@ typedef struct {
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
     double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
     int      lr_settle_run;  /* consecutive ticks the ratio has held still */
+    double   lr_settle_sum;  /* sum of lr over that quiet window -> the anchor is its MEAN */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
@@ -19692,18 +19693,35 @@ static void tomoFlipController(void) {
                                                            : (io_live_node > server.io_per_node));
 
         /* --- BACK pressure = ex-worker utilization: per-worker busy-us delta / wall (0-100),
-         * hottest worker, leaky-smoothed — mirrors the quorum balancer's busy signal. Combined with
-         * standing queue depth (qd_max) so a saturated-OR-backlogged ex side both read as pressure. */
-        int busy_max = 0;
+         * MEAN over live workers, leaky-smoothed.
+         *
+         * The mean, not the hottest worker, and this matters. io_sat is built from io_busy_MEAN,
+         * so taking the EX side's MAX compared two different statistics: one stable, one set by
+         * whichever queue happened to be deepest that tick. Measured at p32/io4ex4 (the optimum,
+         * baseline 7.5M): io_sat held 0.97-0.98 while ex_sat swung 0.69-0.75, moving the ratio
+         * across 1.21-1.37 -- about +/-6% against a +/-5% band. So the controller repeatedly left
+         * the config it was already sitting on, had the move rejected by throughput (7.5M -> 4.7M),
+         * walked back, and re-fired: 11 flips in three supposedly-settled windows, never a 10s
+         * quiet window, so the suite scored it unsettled and measured 17.6% below static WHILE THE
+         * CONFIG WAS CORRECT.
+         *
+         * "Hottest worker" is the right question only when one worker is a bottleneck, i.e. a hot
+         * key -- and that is key-lb's job, not the flip's. For "is this ROLE the constraint" with
+         * work spread across workers, the role's utilization is the mean.
+         *
+         * Smoothing also slowed from alpha 0.5 to FESC_ALPHA (0.25), matching the horizon every
+         * other decision input already uses. --- */
+        int busy_sum = 0, busy_n = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
             uint32_t cb = et->tm_busy_us, db = cb - fc_prev_ex_busy_us[node][w];
             fc_prev_ex_busy_us[node][w] = cb;
             int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0;   /* us/(ms*1000)*100 */
             if (b > 100) b = 100;
-            if (b > busy_max) busy_max = b;
+            busy_sum += b; busy_n++;
         }
-        fc->busy_smooth += (busy_max - fc->busy_smooth) / 2;
+        int busy_mean = busy_n ? (busy_sum / busy_n) : 0;
+        fc->busy_smooth += (int)(FESC_ALPHA * (busy_mean - fc->busy_smooth));
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
          * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
@@ -20150,7 +20168,8 @@ static void tomoFlipController(void) {
         if (fc->just_settled) {
             double d = fabs(fc->lr_ewma - fc->lr_settle_prev);
             fc->lr_settle_prev = fc->lr_ewma;
-            if (d < FLIP_R_QUIET) fc->lr_settle_run++; else fc->lr_settle_run = 0;
+            if (d < FLIP_R_QUIET) { fc->lr_settle_run++; fc->lr_settle_sum += fc->lr_ewma; }
+            else { fc->lr_settle_run = 0; fc->lr_settle_sum = 0.0; }
             if (fc->lr_settle_run < FLIP_R_QUIET_N) {
                 if (now - last_log >= 5000) {
                     serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: ratio settling %d/%d (r=%.2f, d=%.3f)",
