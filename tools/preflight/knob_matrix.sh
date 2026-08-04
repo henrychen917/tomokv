@@ -232,6 +232,14 @@ drift_guard(){
   # names this suite actually drives (try cells), and names it asserts are gone (reject cells)
   grep -oE '^\s*try [a-z0-9-]+'    "$0" | awk '{print $2}' | sort -u > $J/knob_tried.txt
   grep -oE '^\s*reject [a-z0-9-]+' "$0" | awk '{print $2}' | sort -u > $J/knob_rejected.txt
+  grep -oE '^\s*must_refuse [a-z0-9-]+' "$0" | awk '{print $2}' | sort -u > $J/knob_refused.txt
+  # must_refuse is NOT counted as coverage below, on purpose: it only proves the knob rejects an
+  # out-of-range value, never that it BOOTS, so a knob with only a must_refuse cell SHOULD read as
+  # untested. But it needs its own liveness check, because must_refuse and a DELETED knob are
+  # indistinguishable -- the server refuses an unknown parameter exactly as it refuses a
+  # below-minimum one. So a must_refuse cell left behind by a retirement passes forever, asserting
+  # nothing, and neither existing direction can see it (it is not in knob_tried, so the `ghost`
+  # check never looks at it).
   # EXEMPT: knobs this harness PINS on every cell, so a `try` cell for them would fight the
   # fixture (try() hardcodes --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4, and every
   # cell runs under a fixed taskset cpuset). Each is listed with where it IS varied instead; an
@@ -249,12 +257,15 @@ drift_guard(){
   local untested=$(comm -23 $J/knob_live.txt $J/knob_accounted.txt | tr '\n' ' ')
   local ghost=$(comm -13 $J/knob_live.txt $J/knob_tried.txt | tr '\n' ' ')
   local zombie=$(comm -12 $J/knob_live.txt $J/knob_rejected.txt | tr '\n' ' ')
+  local refghost=$(comm -13 $J/knob_live.txt $J/knob_refused.txt | tr '\n' ' ')
   [ -z "$untested" ] && ok "drift-guard: every live tomokv-* knob has a cell" \
                      || bad "drift-guard: LIVE BUT UNTESTED -> $untested"
   [ -z "$ghost" ]    && ok "drift-guard: no cell drives a knob that no longer exists" \
                      || bad "drift-guard: CELL FOR MISSING KNOB -> $ghost"
   [ -z "$zombie" ]   && ok "drift-guard: no retired name is still live" \
                      || bad "drift-guard: RETIRED BUT STILL LIVE -> $zombie"
+  [ -z "$refghost" ] && ok "drift-guard: every must_refuse cell names a live knob" \
+                     || bad "drift-guard: must_refuse CELL FOR MISSING KNOB (passes vacuously) -> $refghost"
 }
 drift_guard
 

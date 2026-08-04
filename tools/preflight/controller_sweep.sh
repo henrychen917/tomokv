@@ -124,6 +124,9 @@ W_P32SET="--ratio=1:0 $WKEYS -t 4 -c 8 --pipeline 32"
 W_P32MIX="--ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 32"
 
 mkdir -p "$LOGD" "$DATA" "$(dirname "$LOCK")"
+# Reset the pattern ledger: $J is a fixed directory, so a previous run's hits would otherwise mask
+# this run's misses -- the exact staleness the guard exists to catch.
+rm -f "$J/pat_all.txt" "$J/pat_hit.txt" "$J/pat_all.u" "$J/pat_hit.u"
 
 # =============================================================================
 # helpers
@@ -213,6 +216,24 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   # other sessions') and the single-instance assert would have failed every cell.
   local n; n=$(pgrep -x "$(basename "$BIN")" 2>/dev/null | wc -l)
   if [ "$n" != 1 ]; then tsv boot "$name" "single-instance" "count=$n" "1" FAIL; stopsrv; return 1; fi
+  # ...and assert we are actually TALKING to it. The two pgrep checks above match by comm, so a
+  # leaked server staged under a different name is invisible to both -- and every io thread here
+  # holds its own SO_REUSEPORT listener, so a second server on this port does NOT fail to bind:
+  # the kernel just load-balances new connections between the two. This suite would then assert
+  # against a server it is not measuring, reading short connection counts and absent log lines as
+  # mechanism failures. Not hypothetical -- seven suites in this tree share a port with another
+  # (7897 7898 7899 7973 7975 7994 7997; controller_sweep shares 7973 with keylb_fine_cost), so it
+  # is one leaked process away, and #71 already caught the same class in numa2_validate.
+  # Identity, not naming: N fresh connections must every one land on OUR pid.
+  local i opid
+  for i in $(seq 1 8); do
+    opid=$(timeout 2 "$CLI" -p "$PORT" info server 2>/dev/null | tr -d '\r' | sed -n 's/^process_id://p')
+    if [ -n "$opid" ] && [ "$opid" != "$SRV_PID" ]; then
+      tsv boot "$name" "port-exclusive" "conn $i landed on pid $opid, not our $SRV_PID" \
+          "all conns reach the server under test (SO_REUSEPORT split => wrong-server measurement)" FAIL
+      stopsrv; return 1
+    fi
+  done
   return 0
 }
 
@@ -256,15 +277,41 @@ rss_stop() { [ -n "${RSS_SPID:-}" ] && { kill "$RSS_SPID" 2>/dev/null; wait "$RS
 rss_peak() { awk 'BEGIN{m=0}{if($1>m)m=$1}END{print m}' "$RSSF"; }
 rss_last() { tail -1 "$RSSF" 2>/dev/null || echo 0; }
 
+# ---- PATTERN LEDGER (contract guard) ---------------------------------------
+# Every assertion in this suite is a fixed-string match against the server log, so a RENAMED or
+# DELETED log line reports exactly what a broken mechanism reports: zero. That ambiguity is not
+# theoretical -- this file has twice carried a cell whose string the server had stopped writing,
+# and the second time the replacement string was chosen specifically because the first "could only
+# ever report SUSPECT", i.e. it had been vacuous for an unknown number of runs.
+#
+# knob_matrix.sh solves its version of this with a drift guard that derives the live knob surface
+# from the server. There is no CONFIG GET for log lines, so the equivalent here is a run-level
+# ledger: record every pattern queried and whether it EVER matched, in ANY cell. A pattern that
+# matched somewhere and is absent here means the mechanism did not fire (a real failure); a pattern
+# that matched NOWHERE across the whole suite is a dead assertion until proven otherwise.
+# It cannot false-alarm, because it only reports what the run itself observed.
+pat_note() { # $1 = pattern, $2 = 1 if it matched
+  { printf '%s\n' "$1" >> "$J/pat_all.txt"; [ "$2" = 1 ] && printf '%s\n' "$1" >> "$J/pat_hit.txt"; } 2>/dev/null
+  return 0
+}
+
 wait_log() { # wait_log <fixed-string> <timeout_s> [file] -> 0 when seen
   # `local` expands ALL its arguments BEFORE performing any of the assignments, so computing
   # n=$((t*2)) in the same statement reads `t` while it is still unset -> fatal under `set -u`.
   local pat=$1 t=$2 f=${3:-$SRVLOG} i n
   n=$(( t * 2 ))
-  for i in $(seq 1 "$n"); do grep -qF "$pat" "$f" 2>/dev/null && return 0; sleep 0.5; done
+  for i in $(seq 1 "$n"); do
+    grep -qF "$pat" "$f" 2>/dev/null && { pat_note "$pat" 1; return 0; }
+    sleep 0.5
+  done
+  pat_note "$pat" 0
   return 1
 }
-count_log() { grep -cF "$1" "$SRVLOG" 2>/dev/null; }
+count_log() { # must print ONLY a number: callers use it inside $(( ... ))
+  local n; n=$(grep -cF "$1" "$SRVLOG" 2>/dev/null) || n=0
+  pat_note "$1" "$( [ "${n:-0}" -gt 0 ] 2>/dev/null && echo 1 || echo 0 )"
+  echo "${n:-0}"
+}
 
 # ---- spec rev 2: settle-first / anti-thrash helpers -------------------------
 atgrade() { # anti-thrash grade: 0 events PASS, 1 SUSPECT, >1 FAIL
@@ -402,9 +449,18 @@ trap cleanup EXIT INT TERM
 
 # =============================================================================
 # 1. tomoFlipController (momentum hill-climb; thread-mode auto)
-#    CODE TRUTH (server.c:16341-16343 + can_back at :17752): grow-back can ONLY
-#    reclaim GROWN io slots — io_threads_live can never go BELOW the boot
-#    io_threads ("no grown io thread to convert back (at base config)"). So the
+#    CODE TRUTH (re-anchored 2026-08-03; the old refs :16341-16343 and :17752 had rotted onto
+#    unrelated code, so they could not be used to judge whether a failure here was real):
+#      server.c:18407  tomoGrowBackSlot's guard —
+#                      if (io_live <= server.io_threads) err = "no grown io thread to convert
+#                      back (at base config)"
+#      server.c:19543  can_back = io_threads_live > server.io_threads  (the controller's own
+#                      precondition, same claim, evaluated per tick)
+#      server.c:4307-4311 + flatIoHi() at :400-405  tm_ngrow_io = ex_threads-1, fixed at boot,
+#                      so the io constituency is [io_threads, io_threads+tm_ngrow_io) forever.
+#    Line numbers drift; re-find by the quoted strings above, not by number.
+#    grow-back can ONLY reclaim GROWN io slots — io_threads_live can never go BELOW the boot
+#    io_threads. So the
 #    reachable range from boot ioN/exM is io in [N .. N+M-1]. The AUTO arm boots
 #    io4ex4 (range io4..io7) and tests BOTH directions inside that range:
 #    Phase A: p1-GET -> GROW-FRONT (io-ward, io4 -> >4); Phase B: p32-SET ->
@@ -636,7 +692,13 @@ c1_flip() {
 # =============================================================================
 
 # =============================================================================
-# 7. Allocator pools + decays (retire-node, pcmd, flat batch spare, operand, xsub)
+# 7. Allocator pools + decays — FOUR pools, not five: the operand pool was deleted 2026-07-28
+#    (measured net-negative; the cell body already says so, only this header still counted it).
+#    Live, with the caps this cell asserts against verified in src 2026-08-03:
+#      retire-node       FLAT_NODE_POOL_CAP 4096   flatstore.h:77
+#      flat batch spare  flat_batches_*            server.c:~7024
+#      pcmd              per-io pcmd freelist      server.c
+#      xsub              XSUB_POOL_CAP 96          networking.c:350
 #    Pool caps sum to single-digit MB — the check is the ENVELOPE (no climb, returns).
 # =============================================================================
 c7_pools() {
@@ -686,7 +748,7 @@ c7_pools() {
       "mget[0]=$act used_memory delta=$((mm1-mm0))B" "correct value + delta <= 8MB (pool bounded)" \
       "$( [ "$act" = "$exp" ] && [ $((mm1-mm0)) -le 8000000 ] && echo PASS || echo FAIL )"
   stopsrv
-  tsv 7-pools occupancy-observable "all five pools" "no occupancy counters exported" \
+  tsv 7-pools occupancy-observable "all four live pools" "no occupancy counters exported" \
       "trim/populate transitions directly observable" KNOWN
 }
 
@@ -960,15 +1022,21 @@ c10_reshard() {
 #          exiting thread to the least-loaded live dest (tmMigServiceOut
 #          server.c:~17422, tmPlaceConnDest, tmClientMigratable ~17057) after
 #          leaving the accept group ("LEFT the reuseport accept group").
-#     !! M2/M3 GATE WARNING (2026-07-28): the retirement deleted the
-#        `tomokv-flip-rebalance` config entry, which was the ONLY writer of
-#        server.tm_flip_rebalance (it supplied the default 1). Nothing assigns
-#        that field now, so it sits at 0 from the zeroed `server` global and BOTH
-#        autonomous paths are dead code — tmClientBalanceCron returns at its first
-#        line and grow-front never calls tmRebalanceOntoNewIo. Until that is fixed
-#        in src/, this cell's distribution/CONVERGENCE rows measure raw [M1]
-#        REUSEPORT placement only, NOT the balancer. The [M4] rows below are
-#        unaffected (tomoMigrateTest is not gated on that field).
+#     !! M2/M3 GATE WARNING — RESCINDED 2026-08-03, THE GATES ARE LIVE. The old text here said the
+#        `tomokv-flip-rebalance` retirement had left server.tm_flip_rebalance with no writer, so
+#        both autonomous paths were dead code and these rows measured raw [M1] REUSEPORT placement
+#        only. VERIFIED FALSE against the current tree:
+#          M3  server.c:4099  server.tm_flip_rebalance = server.thread_auto;   <- the writer
+#              so M3 is ON for every thread-mode auto boot, which is what this cell boots.
+#          M2  moved off that field entirely on 2026-07-28 and is now gated on its own
+#              server.tm_client_lb (tmClientBalanceCron's first line, server.c:18707), fed by
+#              `tomokv-client-lb`, default YES (config.c:3319, confirmed live: a boot with no lb
+#              flag reports `tomokv-client-lb yes`).
+#        Both mechanisms are therefore armed in this cell WITHOUT passing any extra flag, and a
+#        distribution/CONVERGENCE failure here is a REAL failure, not an artifact of a dead gate.
+#        Leaving the stale warning in place was the actual hazard: it pre-excused exactly the two
+#        rows that are currently failing (14-clientlb distribution + SHIFT-ioexit), so a triager
+#        reading it would file them as expected and stop looking.
 #     [M4] Manual actuators (DEBUG TOMO-MODESHIFT, which replaced the retired
 #          tomokv-modeshift-test knob): 5 = IO-EXIT of the highest live io slot,
 #          6 = rebalance half of the most-loaded thread (tomoMigrateTest
@@ -1098,6 +1166,26 @@ main() {
       *)  say "unknown controller id: $c" ;;
     esac
   done
+  # ---- CONTRACT GUARD: patterns that never matched ANYWHERE in this run ----
+  # Only meaningful for a full run; a CONTROLLERS=<subset> invocation legitimately never reaches
+  # the cells that produce some lines, so say which it was rather than implying a verdict.
+  say "=== CONTRACT GUARD (log-string drift) ==="
+  if [ -s "$J/pat_all.txt" ]; then
+    sort -u "$J/pat_all.txt" > "$J/pat_all.u"
+    sort -u "$J/pat_hit.txt" 2>/dev/null > "$J/pat_hit.u" || : > "$J/pat_hit.u"
+    local never; never=$(comm -23 "$J/pat_all.u" "$J/pat_hit.u")
+    if [ -z "$never" ]; then
+      say "  every asserted log string matched at least once — no dead assertions"
+    else
+      say "  NEVER MATCHED IN ANY CELL (dead assertion, or a mechanism that never fired all run):"
+      printf '%s\n' "$never" | sed 's/^/    /' | while IFS= read -r l; do say "$l"; done
+      say "  ^ check these against src/ before reading any =0 above as a real failure."
+      say "    (ran controllers: $CONTROLLERS — a subset run will not reach every producer)"
+    fi
+  else
+    say "  no patterns recorded (no cell ran?)"
+  fi
+
   # ---- final summary ----
   say "=== SUMMARY ==="
   awk -F'\t' 'NR>1{n[$6]++} END{for (k in n) printf "  %-8s %d\n", k, n[k]}' "$OUT"
