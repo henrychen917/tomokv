@@ -14699,6 +14699,36 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
+         * can be derived EXTERNALLY and in STATIC mode. Until now these existed only inside
+         * tomoFlipController, which returns early when thread-mode=static — so the signal that
+         * drives every flip could not be observed in the one mode where the config is held fixed,
+         * i.e. it could never be checked against a measured throughput curve. Take two samples,
+         * divide each delta by (threads * wall * 1000), and you have that role's utilisation.
+         *
+         * NOTE the two sides are NOT measured identically yet: EX accumulates wall time from
+         * first-pop to end-of-pass (work only), IO accumulates sampled thread CPU (all scheduled
+         * time, including poll/spin). Comparing them is apples-to-oranges and that asymmetry is
+         * itself under investigation — which is exactly why these are exposed raw rather than
+         * pre-divided into a ratio. */
+        {
+            unsigned long long io_busy = 0, ex_busy = 0;
+            int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
+            for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
+                polyThreadCtx *ic = tmCtxForIotid(t);
+                if ((!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO)
+                    && t >= server.io_threads) continue;      /* grown slot not serving IO */
+                io_busy += tm_io_sig[t].tm_busy_us; nio++;
+            }
+            int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
+            for (int w = 0; w < wlive && w < TOMO_EX_THREADS_MAX; w++)
+                ex_busy += server.exThreads[w].tm_busy_us;
+            info = sdscatprintf(info, FMTARGS(
+                "tomokv_io_busy_us:%llu\r\n", io_busy,
+                "tomokv_ex_busy_us:%llu\r\n", ex_busy,
+                "tomokv_io_threads_counted:%d\r\n", nio,
+                "tomokv_ex_threads_counted:%d\r\n", wlive));
+        }
         tomoUringStats ust;
         tomoUringGetStats(&ust);
         info = sdscatprintf(info, FMTARGS(
@@ -17039,8 +17069,16 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * backlog = what still waits AFTER we took a full batch, via the REAL tail (one
          * acquire per work pass — cached_tail structurally under-reads standing depth ~2x,
          * it only refreshes when the consumer drains to cache-empty). */
+        /* The START mark must be stamped in EVERY mode, because the accumulation below is now
+         * unconditional. Leaving it gated on thread_auto meant that in static mode tm_mark was
+         * stamped once at thread start and never again, so each work pass added "time since the
+         * thread started" — growing linearly per pass and summing quadratically. Measured as
+         * U_ex of 133x, 172x, and a NEGATIVE reading once the unsigned counter wrapped.
+         * One vDSO read, only on the first pop of a pass. */
+        if (!any) ctx->tm_mark = getMonotonicUs();
         if (server.thread_auto) {
-            if (!any) ctx->tm_mark = getMonotonicUs();
+            /* standing-backlog probe stays gated: two atomic loads per queue per pass, and only
+             * the controller consumes it. */
             unsigned int tm_h = atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed);
             unsigned int tm_t = atomic_load_explicit(&worker->queues[i].tail, memory_order_acquire);
             tm_pass_depth += (int)((tm_t - tm_h) & server.ex_queue_mask);
@@ -17240,12 +17278,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * the 4Hz balancer. */
 
     if (any) {
-        if (server.thread_auto) {
+        {
             int tm_e = (int)worker->tm_qdepth_ewma_q4;
             tm_e += ((tm_pass_depth << 4) - tm_e) >> 3;
             worker->tm_qdepth_ewma_q4 = tm_e < 0 ? 0 : (unsigned int)tm_e;
             /* busy-TIME accounting: first-pop..here = this pass's WORK duration. Two vDSO
-             * clock reads per WORK pass (>=µs-scale), never per spin poll. */
+             * clock reads per WORK pass (>=µs-scale), never per spin poll.
+             * Accumulated in STATIC mode too (was gated on thread_auto, matching the IO side):
+             * without it the EX half of the saturation signal reads exactly ZERO whenever the
+             * config is held fixed, so the ratio the controller decides on could never be
+             * compared against a measured throughput curve. Cost is unchanged in auto mode and
+             * two vDSO reads per work pass in static. */
             worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
         }
         /* ee451 (v14): the pop batch is the compile-time MAX, honestly. Demand-adaptive caps were
@@ -17965,8 +18008,6 @@ static inline uint64_t tmThreadCpuNs(void) {
 }
 
 static inline void tmIoBusyBegin(void) {
-    /* Static mode never reads the counter. Avoid even this one role-entry syscall. */
-    if (!server.thread_auto) return;
     /* Re-baseline on role entry: CPU burned in this thread's PREVIOUS role must not land in the
      * IO numerator. */
     tm_io_cpu_last_ns = tmThreadCpuNs();
@@ -17987,8 +18028,11 @@ static inline void tmIoBusyBegin(void) {
 static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     int ne = aeProcessEventsIO(t->el, idle_wait_us);
     tmIoSignal *s = &tm_io_sig[t->id];
-    if (server.thread_auto) {
+    {
         /* Owner-published IO utilization numerator: scheduled thread CPU, sampled on a gate.
+         * Accumulated in STATIC mode as well as auto: the gate keeps it to ~60 syscalls/s per
+         * thread, and without it the flip signal is invisible in the only mode where the config
+         * is held still long enough to compare it against measured throughput.
          * See the tmIoBusyBegin comment for why this is not derived from wall-clock spans. */
         uint64_t now_us = getMonotonicUs();
         if (now_us >= tm_io_cpu_next_us) {
@@ -19394,14 +19438,19 @@ typedef struct {
     int      last_dir;       /* direction of the probe under evaluation */
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
-    /* pressure-directed control (2026-07-24): deadzones + the imbalance snapshot at flip time */
-    int      dz_init;        /* deadzones seeded to FLIP_DZ_BASE once */
-    double   dz_front;       /* min io-lead (front pressure) to grow-front; raised after a bad front */
-    double   dz_back;        /* min ex-lead (back pressure) to grow-back; raised after a bad back */
-    double   imb_at_flip;    /* io_sat-ex_sat at the last flip (sets the raised deadzone on revert) */
+    /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     int      busy_smooth;    /* leaky-smoothed hottest-ex-worker utilization % (back-pressure signal) */
-    int      just_settled;   /* a climb just ended => pin the deadzones from the next fresh imbalance */
-    double   imb_ewma;       /* EWMA of io_sat-ex_sat — the smoothed DECISION signal (start + pin) */
+    int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
+    /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
+    double   lr_ewma;        /* EWMA of log(io_sat/ex_sat) — the smoothed DECISION signal */
+    int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
+    double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
+                              * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
+                              * the deadzone sits at wherever we actually settled, which is what
+                              * stops a failed direction from being retried immediately. */
+    mstime_t lr_anchor_ms;   /* last re-anchor, for the periodic refresh while holding */
+    int      lr_out_dir;     /* direction of the current out-of-band run (+1 front / -1 back) */
+    int      lr_out_run;     /* consecutive ticks outside the band in that direction (Schmitt) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
     int      best_dist;      /* steps taken since best_rate was set (0 = standing on the best) */
@@ -19424,20 +19473,51 @@ static flipCtlState fctl[TM_MAXNODE];
 
 /* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
  * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
- * from the io-vs-ex saturation imbalance (unit-free, each role's live signal normalized to the
- * quorum-balancer's calibrated distress band); THROUGHPUT only VETOES (revert a measured regress).
- * A per-direction DEADZONE gives hysteresis: after a reverted flip it is raised to the pre-flip
- * imbalance + margin so the same unprofitable move is not retried until pressure clearly exceeds the
- * level that just failed. Balanced-within-deadzone => HOLD (no probe, no measurement churn) — the
- * common case on a stable workload, which is what makes steady-state overhead ~free. --- */
-#define FLIP_DZ_BASE     0.25  /* base deadzone: the busier role must LEAD by >25% of its distress
-                                * band before a flip (kills noise-driven oscillation) */
-#define FLIP_DZ_RAISE    1.5   /* when a climb ends, deadzone := |settle-point imbalance| * this (>1)
-                                * (settle pressure +7.5%): no re-trigger on a fluctuation, but a real
-                                * workload shift (pressure well past the settle point) still climbs.
-                                * Momentum + this settle-pin replace the old absolute saturation floor:
-                                * the climb rides the throughput gradient regardless of absolute
-                                * saturation, and only the settled operating point gets a deadzone. */
+ * from the io-vs-ex saturation RATIO; THROUGHPUT only VETOES (revert a measured regress).
+ * Balanced-within-band => HOLD (no probe, no measurement churn) — the common case on a stable
+ * workload, which is what makes steady-state overhead ~free.
+ *
+ * RATIO, NOT DIFFERENCE (owner design 2026-08-03). The old signal was io_sat - ex_sat. A
+ * difference is not scale-free and it assumes the two roles are symmetric. They are not: at the
+ * config this controller converges to, AND that the static sweep confirms is optimal (io6,
+ * ~828k ops/s), the steady readings are io_sat=1.18 ex_sat=0.68 — the HEALTHY operating point is
+ * r=1.74, not "difference == 0". A difference also compresses the distinction that matters (the
+ * transient that used to pin the deadzone, 0.73/0.08, and the steady state that followed,
+ * 0.87/0.60, are 2.4x apart as differences but 6.3x apart as ratios) and goes blind at low load,
+ * where (0.09, 0.01) is a difference of 0.08 while IO does 9x the work of EX.
+ *
+ * Worked in LOG space, so |log r| is symmetric and ONE band replaces the old dz_front AND
+ * dz_back. The band is centred on the ANCHOR — the log-ratio measured at a settled operating
+ * point — so the controller LEARNS that balanced is 1.74 here instead of assuming 1.0. --- */
+#define FLIP_BOUND_SAT   0.95  /* total sat (= max of the two roles) at or above this => the SERVER is
+                                * the constraint and a flip can win something. Below it no stage is
+                                * saturated, so the CLIENT or the round trip is the constraint and
+                                * there is nothing to win — hold, and stop burning migrations. The
+                                * LB's goal is to reach this state. 0.95 not 1.0 because a role
+                                * that is genuinely saturated reads a shade under 1 once the busy
+                                * sampler and the EWMA have smoothed it. */
+#define FLIP_R_BAND      0.05  /* deadzone half-width: flip when the ratio leaves
+                                * SETTLE_RATIO +/- 5% (owner spec). Centring on the settle point,
+                                * not on 1, is what makes a REJECTED climb stick: the throughput
+                                * veto walks back, we settle at r=1.19, the band becomes
+                                * [1.13,1.25], and r=1.19 is inside => hold. Centred on 1 instead,
+                                * r=1.19 stays out of band and the identical climb restarts for
+                                * ever -- measured as 103 flips and -24% throughput on p32 SET.
+                                * r=1 remains the GOAL the climb moves toward; this is only the
+                                * hysteresis around where it actually came to rest. */
+#define FLIP_ANCHOR_MS   30000 /* also re-anchor after this much stable holding, so the band centre
+                                * follows the operating point WITHOUT a climb having to happen.
+                                * That is the anti-lockout property: the old deadzone was only ever
+                                * recomputed at climb-end, and the deadzone is what prevents a
+                                * climb, so the only path that could lower the barrier sat behind
+                                * the barrier. Must stay well above lr_ewma's horizon (~1s) or the
+                                * anchor chases the signal and nothing ever flips. */
+#define FLIP_SUSTAIN     8     /* consecutive out-of-band ticks (~2s = 2 EWMA time constants) before
+                                * a climb may START. The actuator MOVES the signal -- a flip changes
+                                * the config, which changes both sats -- so acting on the first
+                                * out-of-band tick lets the controller chase its own post-flip
+                                * transient (measured: 3 climbs inside one unchanged-workload
+                                * window). This is what "settled" means operationally. */
 #define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
 #define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
                                 * before giving up and walking back to it. Crosses a single-config dip
@@ -19446,6 +19526,13 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * really 595k, so io5/ex3=714k looks like a dip yet io6/ex2=814k
                                 * recovers). Bounds exploration to COAST+1 steps => no ratchet. */
 #define FLIP_WAIT_REVERT 12    /* longer pause after a REVERT (~3s) so the reverted config settles */
+#define FLIP_SUSTAIN     8     /* consecutive out-of-band ticks (~2s = 2 EWMA time constants) before
+                                * a climb may START. The actuator moves the signal, so without this
+                                * the controller re-triggers on its own post-flip transient. */
+#define FLIP_LOAD_SHIFT  3.0   /* a mid-climb throughput ratio past this is the OFFERED LOAD moving,
+                                * not the config: one flip moves one thread, and the worst case that
+                                * can do is halve the worker side (w=2 -> w=1) on a fully
+                                * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -19664,33 +19751,71 @@ static void tomoFlipController(void) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             q_io += (long)tm_io_sig[t].pend_write;
         }
-        /* Normalized to the SAME 75% distress point the old io_sat/ex_sat used, not to a true
-         * 0-1 fraction. Deliberate: FLIP_DZ_BASE and every deadzone rule are calibrated against
-         * that scale, so keeping it means this change swaps the SIGNAL and nothing else. Rescaling
-         * to /100 would silently make the controller ~33% less sensitive and confound the A/B with
-         * a sensitivity change. (Spec writes S=1.0 for "exactly saturated"; on this scale that
-         * point is 1.33. Same quantity, same ordering, different unit.) */
-        double u_io = (double)io_busy_mean / 75.0;
-        double u_ex = (double)fc->busy_smooth / 75.0;
-        /* Guard the divide. Below a few commands per tick the ratio is noise, not signal, and the
-         * node is idle anyway (node_idle already gates the decision) -- fall back to bare
-         * utilization rather than manufacturing a huge S from a 1-command denominator. */
-        double io_sat, ex_sat;
+        /* ===== SATURATION, as the owner defines it (2026-08-04) =====
+         *   sat < 1  the role's OUTPUT outruns its INPUT (it finishes and idles)
+         *   sat = 1  input == output, exactly keeping up
+         *   sat > 1  INPUT outruns output (work is piling up)
+         *
+         *   sat = U + Q/C
+         *
+         * U is a TRUE 0-1 fraction of wall time spent working, so idle time is literally the slack
+         * by which output beats input; Q/C adds the standing backlog as a fraction of a tick's
+         * completions, which is the only thing that can push a role past 1. A fully busy role with
+         * no queue sits at exactly 1 — saturated but keeping up — which is the definition.
+         *
+         * The old scale divided by 75 (the quorum balancer's "distress" point), so sat=1 meant
+         * "75% busy" and NOT "input == output". Every rule built on top was therefore comparing
+         * something other than what it claimed to. /100 is what makes 1.0 mean what it says.
+         *
+         * Residual asymmetry, deliberately left and worth knowing: io_busy_mean is a MEAN over the
+         * IO threads while busy_smooth is the HOTTEST worker. For "is this role the constraint"
+         * the hottest worker is the right question on the EX side (one pegged worker bounds the
+         * stage), but the two are not the same statistic. */
+        double u_io = (double)io_busy_mean / 100.0;
+        double u_ex = (double)fc->busy_smooth / 100.0;
+        if (u_io > 1.0) u_io = 1.0;
+        if (u_ex > 1.0) u_ex = 1.0;
+        /* Guard the divide: below a few commands per tick the backlog term is noise, not signal
+         * (and node_idle already gates the decision) — fall back to bare utilization rather than
+         * manufacturing a huge sat from a 1-command denominator. */
+        double io_sat = u_io, ex_sat = u_ex;
         if (c_ex >= 8.0) {
-            io_sat = (c_ex + (double)q_io)   * u_io / c_ex;
-            ex_sat = (c_ex + qd_max) * u_ex / c_ex;
-        } else {
-            io_sat = u_io;
-            ex_sat = u_ex;
+            io_sat += (double)q_io / c_ex;
+            ex_sat += qd_max / c_ex;
         }
-        double imbalance = io_sat - ex_sat;
-        /* smoothed imbalance — the DECISION signal (start direction + settle-pin) uses this, not the
-         * raw per-tick imbalance, so a single-tick pressure spike can neither start a spurious climb
-         * nor cause the settle-pin to be captured from a low tick (both seen as io7/ex1 oscillation:
-         * steady -imbalance ~0.55 but a lone 0.42 tick pinned dz_back=0.45, letting later 0.55 ticks
-         * re-trigger grow-back). Raw imbalance stays for logging/observability. */
-        if (!node_idle) fc->imb_ewma += FESC_ALPHA * (imbalance - fc->imb_ewma);
-        if (!fc->dz_init) { fc->dz_front = fc->dz_back = FLIP_DZ_BASE; fc->dz_init = 1; }
+        /* TOTAL SATURATION => is the workload CLIENT-bound or SERVER-bound?
+         * The pipeline is only as saturated as its tightest stage, so the total is the MAX, not a
+         * sum: one stage at 1.0 means the server is the constraint even if the other idles.
+         * Below the threshold NO stage is saturated, so the client (or the network round trip) is
+         * the constraint and there is nothing a thread flip can win — the LB's goal is to REACH
+         * this state, and reaching it is the natural stop condition.
+         *
+         * Measured, this is what separates the two workloads the ratio alone gets wrong:
+         *   SET io4ex4 (the best SET config): io_sat .93 / ex_sat .74 => total .93 => CLIENT-bound
+         *                                     => HOLD, which is correct — and the bare ratio 1.26
+         *                                     would have wrongly grown the IO side by 10%.
+         *   GET io4ex4:                       io_sat .99 / ex_sat .41 => total .99 => SERVER-bound
+         *                                     => flip toward IO, which IS faster (8.2M -> 9.7M). */
+        double sat_total = fmax(io_sat, ex_sat);
+        int server_bound = (sat_total >= FLIP_BOUND_SAT);
+        /* The decision signal: log of the saturation RATIO (see FLIP_R_BAND). Smoothed, so a
+         * single-tick pressure spike can neither start a spurious climb nor be captured as an
+         * anchor (that failure was seen as io7/ex1 oscillation: steady pressure ~0.55 but a lone
+         * 0.42 tick pinned the deadzone and let later 0.55 ticks re-trigger). The raw per-tick
+         * ratio stays for logging/observability. */
+        double ratio = (ex_sat > 1e-6) ? (io_sat / ex_sat) : (io_sat > 1e-6 ? 1e6 : 1.0);
+        double lr = log(ratio);
+        if (!node_idle) {
+            if (!fc->lr_init) {
+                /* Seed the signal from the first loaded sample, but leave the anchor at log(1):
+                 * "assume balanced until a settle proves otherwise". That prior is what lets a
+                 * COLD front-heavy boot climb at all — seeding the anchor here instead would
+                 * anchor on a ramp-up transient, which is exactly how the old 0.65 pin happened. */
+                fc->lr_ewma = lr; fc->lr_init = 1;
+            } else {
+                fc->lr_ewma += FESC_ALPHA * (lr - fc->lr_ewma);
+            }
+        }
 
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
@@ -19788,6 +19913,45 @@ static void tomoFlipController(void) {
              * decision and only removed from the argmax. Exploration stays bounded: coast_used, not
              * best_dist, is now what FLIP_COAST bounds, so a climb still ends within COAST+1
              * non-significant steps and there is no ratchet. */
+            /* LOAD-CHANGE RE-BASELINE (#74). best_rate is the reference for every judgement in this
+             * climb and it is captured ONCE. If the offered load changes mid-climb that reference
+             * belongs to the DEPARTING load, and every later step reads as a catastrophic
+             * regression. Measured live: `best 2449210` latched during p32 while the real p1 rate
+             * was ~440k, so the climb spent its coast immediately, declared OVERSHOOT, walked back
+             * 2 steps, and pinned the deadzone — shutting that direction for the life of the
+             * process. Three of the flip cell's failures were this one behaviour.
+             *
+             * ONE flip moves ONE thread, which bounds how much throughput can physically change:
+             * the worst case is halving the worker side (w=2 -> w=1) on a fully worker-bound load,
+             * i.e. ~2x. A ratio past FLIP_LOAD_SHIFT therefore cannot be the config — the offered
+             * load moved. Adopt the new reference and keep climbing instead of judging against a
+             * phantom. Logged loudly: if this fires when the load did NOT change, that is a real
+             * defect (a flip that costs >3x is a wedge, not a tuning result) and must be visible.
+             *
+             * This does NOT touch the climb law — owner ruling: "when flip triggers still go all
+             * the way then fall back once it overshoots, that part stays the same". The step is
+             * neither a gain nor a loss; only the reference is corrected. */
+            if (after > 0 && fc->best_rate > 0 &&
+                (after > fc->best_rate * FLIP_LOAD_SHIFT || after * FLIP_LOAD_SHIFT < fc->best_rate)) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] RE-BASELINE %s (%.0f vs best %.0f, >%.0fx) -> "
+                          "offered load changed mid-climb, not the config; end climb and re-decide",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
+                          (double)FLIP_LOAD_SHIFT);
+                /* END the climb rather than continuing it. The DIRECTION was chosen from the
+                 * departing load's pressure as well, so that premise is stale too — continuing
+                 * would march further in a direction the new load never asked for. Ending sets
+                 * just_settled, which re-anchors the ratio band at the new operating point, and
+                 * the band then picks the direction afresh. */
+                fc->dir = 0; fc->just_settled = 1;
+                fc->best_rate = after;
+                fc->best_dist = 0;
+                fc->coast_used = 0;
+                fc->revert_steps = 0;       /* never walk back to a config only ever measured under
+                                             * the OLD load — the band will re-decide from here */
+                fc->wait = FLIP_WAIT_REVERT;
+                fc->phase = 0;
+                continue;
+            }
             double band = fmax(2.0 * sigma, 0.02 * fc->best_rate);
             int significant = (after > fc->best_rate + band);   /* worth spending another step on */
             int improved    = (after > fc->best_rate);          /* the best config measured so far */
@@ -19860,8 +20024,8 @@ static void tomoFlipController(void) {
         else fc->idle_stable = 0;
         if (fc->wait > 0) { fc->wait--;                    /* settle gap between steps / after a step-back */
             if (now - last_log >= 3000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f dz(f%.2f/b%.2f) wait=%d dir=%d | w_live=%d io=%d pool=%d/%d",
-                          node, fc->mean, io_sat, ex_sat, fc->dz_front, fc->dz_back, fc->wait, fc->dir, w_live, io_live_node,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] settle %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f wait=%d dir=%d | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, exp(fc->lr_ewma), fc->wait, fc->dir, w_live, io_live_node,
                           pool_live, pool_want);
                 last_log = now;
             }
@@ -19873,8 +20037,8 @@ static void tomoFlipController(void) {
          * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
          * re-open the search, but a genuine workload shift (pressure well past this) still will. */
         if (fc->just_settled) {
-            fc->dz_front = (fc->imb_ewma > 0) ? fmax(FLIP_DZ_BASE, fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
-            fc->dz_back  = (fc->imb_ewma < 0) ? fmax(FLIP_DZ_BASE, -fc->imb_ewma * FLIP_DZ_RAISE) : FLIP_DZ_BASE;
+            fc->lr_anchor = fc->lr_ewma;    /* this settled point IS the new band centre */
+            fc->lr_anchor_ms = now;
             fc->just_settled = 0;
         }
 
@@ -19917,7 +20081,7 @@ static void tomoFlipController(void) {
                 }
                 continue;
             }
-            fc->before = fc->mean; fc->imb_at_flip = imbalance;
+            fc->before = fc->mean;
             const char *err = NULL;
             if (tmFlipDo(node, d, &err)) {
                 if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped */
@@ -19940,17 +20104,71 @@ static void tomoFlipController(void) {
 
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
-        if (fc->imb_ewma > fc->dz_front && can_front) want = +1;        /* io is the constraint => EX->IO */
-        else if (-fc->imb_ewma > fc->dz_back && can_back) want = -1;    /* ex is the constraint => IO->EX */
+        /* TARGET IS 1 (owner, 2026-08-03): sat<1 means the role outputs faster than input, sat>1
+         * means input outruns output, and the whole job of the flip is to bring the two sides
+         * together. So the reference is the FIXED point r=1, not a learned one.
+         *
+         * A learned anchor was tried and REMOVED: it teaches the controller that whatever
+         * imbalance it currently has is normal. Measured — at p1/io6ex1 the anchor learned r=4.87,
+         * declared it the operating point, and stopped grow-front ONE CONFIG SHORT of the optimum
+         * (io7ex1), which is exactly the AUTO==STATIC-p1 failure. Do not reintroduce it.
+         *
+         * Ill-conditioning at a small denominator is a non-issue against a fixed target of 1: a
+         * tiny ex_sat only occurs when r is far from 1, i.e. when the decision is unambiguous.
+         * Measured ratios: p32 io3ex4 1.59 -> io4ex3 1.09 -> io5ex2 1.04 (converged, both sides
+         * ~0.70 busy); p1 io4ex3 12.9 -> io6ex1 4.9, never reaching 1 because the workers stay
+         * near-idle — so the controller keeps moving threads to IO and lands on io7ex1, which IS
+         * the p1 optimum. One rule, both regimes. */
+        double band = log1p(FLIP_R_BAND);
+        int out = 0;
+        if (fc->lr_ewma >  fc->lr_anchor + band) out = +1;      /* io is the constraint => EX->IO */
+        else if (fc->lr_ewma < fc->lr_anchor - band) out = -1;  /* ex is the constraint => IO->EX */
+
+        /* SUSTAIN (Schmitt). THE ACTUATOR MOVES THE SIGNAL: a flip changes the config, which changes
+         * io_sat/ex_sat, which changes r. Acting on the FIRST out-of-band tick therefore lets the
+         * controller chase its own wake — measured as three separate climbs inside one unchanged-
+         * workload window (anti-thrash-p1 and -p32, flips-during=5). Requiring the excursion to
+         * persist FLIP_SUSTAIN ticks (2 EWMA time constants) discards post-flip transients, which
+         * decay, while a genuine workload shift, which does not, still passes in ~2s.
+         *
+         * This instability was always present; the old difference-deadzone merely hid it by having
+         * LATCHED ITSELF SHUT (dz_front pinned at 0.99 against a steady 0.28), so it could not
+         * re-trigger whatever the signal did. The lockout was accidentally supplying the loop
+         * stability that this gate now supplies deliberately. */
+        if (out != 0 && out == fc->lr_out_dir) fc->lr_out_run++;
+        else { fc->lr_out_dir = out; fc->lr_out_run = out ? 1 : 0; }
+        /* CLIENT-BOUND => nothing to win: hold regardless of the ratio. This is the owner's
+         * terminal condition ("lb wants total sat to indicate client bound"): once no stage is
+         * saturated, the workload is limited by something a thread flip cannot move, and further
+         * flips only cost migrations. It also suppresses the one case the bare ratio gets wrong —
+         * SET at io4ex4 reads r=1.26 and would grow the IO side for a measured 10% LOSS. */
+        if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
+        if (fc->lr_out_run >= FLIP_SUSTAIN) {
+            if (out > 0 && can_front) want = +1;
+            else if (out < 0 && can_back) want = -1;
+        }
 
         if (want == 0) {
-            /* balanced within the deadzones: the stable, low-cost HOLD. The deadzones stay PINNED at
-             * the last settle point (no decay) — a genuine workload shift produces pressure well past
-             * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
-             * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
+            /* Re-anchor after a spell of stable holding: the centre follows the operating point
+             * with no climb required, so the controller can never wall itself off from its own
+             * actuator. Gated on idle_stable so the anchor is only taken at a genuine plateau. */
+            if (fc->idle_stable >= FESC_SETTLE_N && now - fc->lr_anchor_ms >= FLIP_ANCHOR_MS) {
+                fc->lr_anchor = fc->lr_ewma;
+                fc->lr_anchor_ms = now;
+            }
+            /* Inside the band: the stable, low-cost HOLD. A genuine workload shift moves the ratio
+             * clear of anchor*(1±BAND) and re-arms a climb immediately, while a fluctuation never
+             * does, so a steady workload sits here with ZERO flips.
+             *
+             * RE-ANCHOR after a spell of stable holding. This is the anti-lockout property: the
+             * band centre follows the operating point WITHOUT a climb having to happen, so the
+             * controller can never wall itself off from its own actuator. Gated on idle_stable so
+             * the anchor is only ever taken at a genuine plateau — anchoring mid-transient is
+             * exactly how the old deadzone got pinned at 0.65 against a steady 0.28. */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
-                          node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, sat_total,
+                          server_bound ? "SRV-BOUND" : "CLI-BOUND",
                           c_ex, q_io, qd_max, u_io, u_ex, w_live, io_live_node,
                           pool_live, pool_want);
                 last_log = now;
@@ -19970,7 +20188,6 @@ static void tomoFlipController(void) {
         }
 
         fc->before = fc->mean;
-        fc->imb_at_flip = imbalance;
         const char *err = NULL;
         if (tmFlipDo(node, want, &err)) {
             if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped clear */
@@ -19978,12 +20195,13 @@ static void tomoFlipController(void) {
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
+            fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
-            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f imb=%.2f > dz%.2f (baseline %.0f ops/s) -> settle+confirm",
-                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, imbalance,
-                      want > 0 ? fc->dz_front : fc->dz_back, fc->before);
+            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm",
+                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
+                      exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
             serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);
