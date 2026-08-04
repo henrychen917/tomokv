@@ -19447,6 +19447,7 @@ typedef struct {
     double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
     int      lr_settle_run;  /* consecutive ticks the ratio has held still */
     double   lr_settle_sum;  /* sum of lr over that quiet window -> the anchor is its MEAN */
+    int      lr_settle_wait; /* ticks spent waiting for the ratio to go quiet (bounded) */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
@@ -19520,6 +19521,8 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * window). This is what "settled" means operationally. */
 #define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
 #define FLIP_R_QUIET     0.02  /* |d log r| per tick below this counts as the ratio holding still */
+#define FLIP_R_QUIET_LOUD 120  /* ticks (~30s) after which an unquiet ratio is WARNED about. Not a
+                                * cap -- the wait is deliberately unbounded, see the anchor site. */
 #define FLIP_R_QUIET_N   8     /* ticks (~2s) of a quiet ratio before the anchor is captured */
 #define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
                                 * before giving up and walking back to it. Crosses a single-config dip
@@ -20047,12 +20050,20 @@ static void tomoFlipController(void) {
              * This does NOT touch the climb law — owner ruling: "when flip triggers still go all
              * the way then fall back once it overshoots, that part stays the same". The step is
              * neither a gain nor a loss; only the reference is corrected. */
-            if (after > 0 && fc->best_rate > 0 &&
-                (after > fc->best_rate * FLIP_LOAD_SHIFT || after * FLIP_LOAD_SHIFT < fc->best_rate)) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] RE-BASELINE %s (%.0f vs best %.0f, >%.0fx) -> "
-                          "offered load changed mid-climb, not the config; end climb and re-decide",
+            /* NO ratio-based "premise gone" test here. It was tried (2026-08-04) and REVERTED:
+             * a climb CHANGES THE CONFIG, which changes the ratio -- that is the entire purpose of
+             * the flip -- so |lr - lr_at_climb_start| trips on the controller's OWN actuation and
+             * aborts successful climbs mid-flight. Measured: p32 landed at io6 (4.15M) and io3
+             * instead of io4, with flips falling 41 -> 7 because climbs were being cut short.
+             * The actuator moves this signal, so this signal cannot police the actuator. Only
+             * throughput -- which the climb is explicitly trying to move, and judges against its
+             * own best -- can end a climb. */
+            if ((after > 0 && fc->best_rate > 0 &&
+                (after > fc->best_rate * FLIP_LOAD_SHIFT || after * FLIP_LOAD_SHIFT < fc->best_rate))) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] RE-BASELINE %s (%.0f vs best %.0f; r %.2f vs "
+                          "anchor %.2f) -> offered load changed mid-climb, not the config; end and re-decide",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
-                          (double)FLIP_LOAD_SHIFT);
+                          exp(fc->lr_ewma), exp(fc->lr_anchor));
                 /* END the climb rather than continuing it. The DIRECTION was chosen from the
                  * departing load's pressure as well, so that premise is stale too — continuing
                  * would march further in a direction the new load never asked for. Ending sets
@@ -20178,6 +20189,25 @@ static void tomoFlipController(void) {
             fc->lr_settle_prev = fc->lr_ewma;
             if (d < FLIP_R_QUIET) { fc->lr_settle_run++; fc->lr_settle_sum += fc->lr_ewma; }
             else { fc->lr_settle_run = 0; fc->lr_settle_sum = 0.0; }
+            /* UNBOUNDED ON PURPOSE (owner, 2026-08-04): "what's scary is if it anchors at the
+             * WRONG spot, not if it ever anchors -- the ratio will settle no matter what."
+             *
+             * Correct, and it reverses an earlier attempt here that anchored on the running mean
+             * after a timeout. A mis-placed anchor mis-places the deadzone, which is the failure
+             * this whole design has been fighting; not having anchored yet merely means not having
+             * ACTED yet, which is the right thing to do while the signal is not anchorable. And
+             * the premise holds in measurement: at steady state |d log r| per tick runs 0.005-0.014
+             * against a 0.02 gate, so the quiet window closes comfortably.
+             *
+             * Waiting long is therefore not a bug -- but a wait that never ends WOULD mean the
+             * ratio is permanently unquiet, which is a real pathology and must not be silent. So
+             * the wait is uncapped and only the LOG escalates. */
+            fc->lr_settle_wait++;
+            if (fc->lr_settle_wait == FLIP_R_QUIET_LOUD)
+                serverLog(LL_WARNING, "[flip-ctl n%d] post-climb: ratio still unquiet after %d ticks "
+                          "(r=%.2f d=%.3f) -- holding rather than anchoring badly; if this persists "
+                          "the ratio signal is never settling and THAT is the defect",
+                          node, FLIP_R_QUIET_LOUD, exp(fc->lr_ewma), d);
             if (fc->lr_settle_run < FLIP_R_QUIET_N) {
                 if (now - last_log >= 5000) {
                     serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: ratio settling %d/%d (r=%.2f, d=%.3f)",
@@ -20279,6 +20309,40 @@ static void tomoFlipController(void) {
          * near-idle — so the controller keeps moving threads to IO and lands on io7ex1, which IS
          * the p1 optimum. One rule, both regimes. */
         double band = log1p(FLIP_R_BAND);
+        /* GRANULARITY FLOOR (owner, 2026-08-04). How close to r=1 can THIS NODE's core count even
+         * get? One flip moves a thread EX->IO, scaling io capacity by n_io/(n_io+1) and ex capacity
+         * by n_ex/(n_ex-1), so it moves the ratio by
+         *      step = ln((n_io+1)/n_io) + ln(n_ex/(n_ex-1))   ~= 1/n_io + 1/n_ex
+         * Achievable ratios are therefore DISCRETE, spaced `step` apart, and the worst case is
+         * landing half a step away from 1. Below that, no flip improves balance -- asking for
+         * better asks for something the hardware cannot express.
+         *      N=8  step 0.511 floor 0.255 (29%)     N=32 step 0.125 floor 0.063
+         *      N=24 step 0.167 floor 0.084 (8.7%)    N=64 step 0.063 floor 0.031 (3.2%)
+         *
+         * PER NODE, not global: io_live_node and w_live are both node-scoped above (the io loop
+         * skips slots whose tmNodeOfIoSlot != node, and w_live counts only this node's workers), so
+         * with tomokv-nodes > 1 each node gets the floor its OWN thread count implies. A global
+         * count would understate the floor on every node and reintroduce exactly the churn this
+         * removes.
+         *
+         * This IS the p32 failure: the measured optimum io4ex4 sits at |log r| = 0.231, INSIDE the
+         * 0.255 floor for 8 threads, so the controller kept trying to improve a balance already as
+         * good as 4io/4ex can be -- each attempt correctly rejected by throughput, then retried.
+         * Derived from core count, so it needs no tuning and tightens automatically as threads grow.
+         *
+         * NOT an objective: io5ex3 (|log r| 0.068) and io6ex2 (0.010) are CLOSER to 1 and
+         * measurably WORSE (6.58M, 4.26M vs 7.28M). Nearness to 1 does not make a config good; it
+         * only means no flip can make it more balanced. Throughput still picks among them. */
+        double gstep;
+        {
+            int ni = io_live_node > 0 ? io_live_node : 1;     /* THIS node's live IO threads */
+            int ne = w_live > 0 ? w_live : 1;                 /* THIS node's live workers */
+            gstep = log((double)(ni + 1) / (double)ni);
+            gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
+                              : 1.0;                          /* last worker: grow-back unavailable */
+        }
+        double gfloor = gstep / 2.0;
+
         int out = 0;
         /* DIRECTION comes from the TARGET (r vs 1), never from which side of the anchor we are on.
          * r>1 means IO is the more saturated stage, so IO is the constraint and the fix is to move
@@ -20288,7 +20352,7 @@ static void tomoFlipController(void) {
          * stale. Measured: anchor 4.02 left over from a different workload, live r=2.04 with
          * io_sat 0.98 vs ex_sat 0.48 — IO twice as saturated — and the controller grew BACK,
          * because 2.04 sits below 4.02. It walked the config to io=2 and lost ~25%. */
-        if (fabs(fc->lr_ewma - fc->lr_anchor) > band)
+        if (fabs(fc->lr_ewma) > gfloor && fabs(fc->lr_ewma - fc->lr_anchor) > band)
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
 
         /* SUSTAIN (Schmitt). THE ACTUATOR MOVES THE SIGNAL: a flip changes the config, which changes
@@ -20333,8 +20397,8 @@ static void tomoFlipController(void) {
              * the anchor is only ever taken at a genuine plateau — anchoring mid-transient is
              * exactly how the old deadzone got pinned at 0.65 against a steady 0.28. */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
-                          node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, sat_total,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% floor=%.2f tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
+                          node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, exp(gfloor), sat_total,
                           server_bound ? "SRV-BOUND" : "CLI-BOUND",
                           c_ex, q_io, qd_max, u_io, u_ex, w_live, io_live_node,
                           pool_live, pool_want);
