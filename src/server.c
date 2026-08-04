@@ -17937,26 +17937,40 @@ void initIOThreads(void) {
         exit(1);
     }
 }
-/* IO busy-time accounting has two immutable modes:
- *  - thread-cpu (default/current behaviour): exact scheduled CPU time, but
- *    CLOCK_THREAD_CPUTIME_ID is a real Linux syscall once per IO pass.
- *  - monotonic-active: aeProcessEventsIO measures active wall spans and
- *    subtracts potentially-blocking epoll intervals using CLOCK_MONOTONIC
- *    (vDSO on Linux). It includes zero-timeout poll work but can include
- *    scheduler preemption outside poll, so it is opt-in.
+/* IO busy-time accounting: exact scheduled thread CPU (CLOCK_THREAD_CPUTIME_ID).
  *
- * Both marks are TLS accounting state; only tm_busy_us is published. */
-static __thread aeIoTiming tm_io_active_timing;
-static inline void tmIoBusyBegin(void) {
-    /* Static mode never reads either mark. Avoid even its one role-entry CPU
-     * clock syscall. */
-    if (!server.thread_auto) return;
+ * The alternative -- CLOCK_MONOTONIC active-wall spans with "potentially blocking" poll time
+ * subtracted -- cannot survive io_uring. Under DEFER_TASKRUN the kernel runs completion work
+ * INSIDE io_uring_enter, so the syscall that model treats as "this thread is asleep" is precisely
+ * where the CPU goes. Measured: IO threads pegged at 99.5% CPU published 17% busy, and the flip
+ * controller (the only consumer) therefore saw an idle server and never actuated at all under
+ * uring -- stranding it at its boot config, worth up to -23% throughput. No amount of bracketing
+ * around the call can separate sleeping-in-the-syscall from working-in-the-syscall; only the
+ * scheduler knows, so ask the scheduler.
+ *
+ * CLOCK_THREAD_CPUTIME_ID is a real syscall (not vDSO), so it is SAMPLED on a ~16ms gate rather
+ * than read every pass. The consumer takes a delta across a 250ms controller tick, so 16ms
+ * granularity is far finer than it needs. Net cost ~60 syscalls/s/thread, against the 2-3 vDSO
+ * clock reads PER EVENT-LOOP PASS that the wall-span scheme needed -- this is cheaper as well as
+ * correct. Both marks are TLS; only tm_busy_us is published. */
+#define TOMO_IO_CPU_SAMPLE_US 16000
+
+static __thread uint64_t tm_io_cpu_last_ns;   /* CLOCK_THREAD_CPUTIME_ID at the last sample */
+static __thread uint64_t tm_io_cpu_next_us;   /* monotonic gate for the next sample */
+
+static inline uint64_t tmThreadCpuNs(void) {
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);   /* vDSO */
-    tm_io_active_timing.active_ns_mark =
-        (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
-    tm_io_active_timing.remainder_ns = 0;
-    tm_io_active_timing.active_us = 0;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+
+static inline void tmIoBusyBegin(void) {
+    /* Static mode never reads the counter. Avoid even this one role-entry syscall. */
+    if (!server.thread_auto) return;
+    /* Re-baseline on role entry: CPU burned in this thread's PREVIOUS role must not land in the
+     * IO numerator. */
+    tm_io_cpu_last_ns = tmThreadCpuNs();
+    tm_io_cpu_next_us = 0;                 /* publish on the next pass */
 }
 
 /* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
@@ -17971,13 +17985,19 @@ static inline void tmIoBusyBegin(void) {
  * excluding any poll that could block. It replaced a per-pass
  * clock_gettime(CLOCK_THREAD_CPUTIME_ID), which is a real syscall on Linux. */
 static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
-    aeIoTiming *timing = server.thread_auto ? &tm_io_active_timing : NULL;
-    int ne = aeProcessEventsIO(t->el, idle_wait_us, timing);
+    int ne = aeProcessEventsIO(t->el, idle_wait_us);
     tmIoSignal *s = &tm_io_sig[t->id];
     if (server.thread_auto) {
-        /* Owner-published IO utilization numerator, collected by ae.c from vDSO
-         * spans that exclude any poll which could block. */
-        s->tm_busy_us += (unsigned int)timing->active_us;
+        /* Owner-published IO utilization numerator: scheduled thread CPU, sampled on a gate.
+         * See the tmIoBusyBegin comment for why this is not derived from wall-clock spans. */
+        uint64_t now_us = getMonotonicUs();
+        if (now_us >= tm_io_cpu_next_us) {
+            uint64_t cpu = tmThreadCpuNs();
+            if (tm_io_cpu_last_ns && cpu > tm_io_cpu_last_ns)
+                s->tm_busy_us += (unsigned int)((cpu - tm_io_cpu_last_ns) / 1000);
+            tm_io_cpu_last_ns = cpu;
+            tm_io_cpu_next_us = now_us + TOMO_IO_CPU_SAMPLE_US;
+        }
     }
     /* Events/pass remains useful as a relative per-thread weight for client placement,
      * but zero-event reply-drain passes make it invalid as role saturation. */

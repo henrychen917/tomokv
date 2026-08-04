@@ -88,18 +88,6 @@ typedef struct aeFiredEvent {
     int mask;
 } aeFiredEvent;
 
-/* Optional accounting state for aeProcessEventsIO().
- *
- * active_ns_mark is the end of the preceding pass. When supplied, the IO loop
- * uses CLOCK_MONOTONIC around its poll boundary and reports only time outside a
- * potentially-blocking poll. remainder_ns carries sub-microsecond fractions so
- * a stream of short passes does not lose them to per-pass truncation. */
-typedef struct aeIoTiming {
-    uint64_t active_ns_mark;
-    uint64_t remainder_ns;
-    uint64_t active_us;
-} aeIoTiming;
-
 /* State of an event based program */
 typedef struct aeEventLoop {
     int maxfd;   /* highest file descriptor currently registered */
@@ -139,7 +127,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeEventFinalizerProc *finalizerProc);
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timing);
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us);
 
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);

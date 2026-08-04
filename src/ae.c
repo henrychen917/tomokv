@@ -530,15 +530,8 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
-static inline uint64_t aeMonotonicNs(void) {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
-}
-
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timing) {
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
     int processed = 0, numevents;
-    if (timing) timing->active_us = 0;
     if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) return 0;
 
     int uring_ready = 0;
@@ -633,18 +626,12 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timi
         tvp = &tv;
     }
 
-    /* vDSO-only busy accounting, bracketing the ENTIRE wait -- io_uring_enter as
-     * well as epoll_wait, since either can be the blocking call. A zero-timeout
-     * wait is CPU work and is therefore included; an infinite or timed wait may
-     * block, so its whole wall interval is excluded. poll_may_block is evaluated
-     * AFTER the uring_ready override above, so a forced zero-timeout pass counts
-     * as busy. This trades exact scheduled thread CPU for an active-wall proxy;
-     * on Linux CLOCK_MONOTONIC is served by the vDSO, CLOCK_THREAD_CPUTIME_ID is
-     * a real syscall. */
-    uint64_t poll_start_ns = 0, poll_end_ns = 0;
-    int poll_may_block = (tvp == NULL || tvp->tv_sec != 0 || tvp->tv_usec != 0);
-    if (timing) poll_start_ns = aeMonotonicNs();
-
+    /* No busy accounting here. It used to live in this function as CLOCK_MONOTONIC active-wall
+     * spans with "potentially blocking" poll time subtracted, which io_uring makes unfixable:
+     * DEFER_TASKRUN runs completion work INSIDE io_uring_enter, so the interval this model must
+     * treat as sleep is exactly where the CPU goes. The IO utilization numerator is now sampled
+     * scheduled thread CPU, published by ioSlice() in server.c -- correct under both backends,
+     * and it costs a gated syscall per 16ms instead of 2-3 vDSO clock reads per pass. */
     if (eventLoop->uring_enter) {
         (void)eventLoop->uring_enter(eventLoop, tvp);
         int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;
@@ -661,7 +648,6 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timi
     } else {
         numevents = aeApiPoll(eventLoop, tvp);
     }
-    if (timing && poll_may_block) poll_end_ns = aeMonotonicNs();
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
     for (int j = 0; j < numevents; j++) {
@@ -687,16 +673,6 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us, aeIoTiming *timi
         processed++;
     }
 
-    if (timing) {
-        uint64_t pass_end_ns = aeMonotonicNs();
-        uint64_t active_ns = poll_start_ns - timing->active_ns_mark;
-        active_ns += poll_may_block ? pass_end_ns - poll_end_ns
-                                    : pass_end_ns - poll_start_ns;
-        timing->active_ns_mark = pass_end_ns;
-        active_ns += timing->remainder_ns;
-        timing->active_us = active_ns / 1000;
-        timing->remainder_ns = active_ns % 1000;
-    }
 
     return processed;
 }

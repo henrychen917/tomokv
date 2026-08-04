@@ -1471,13 +1471,14 @@ typedef struct {
 #define TOMO_THREAD_MODE_AUTO   0
 #define TOMO_THREAD_MODE_STATIC 1
 
-/* ---- tomokv-io-busy-clock (IMMUTABLE enum) ---------------------------------
- * Selects the IO-utilisation numerator used only by thread-mode=auto:
- *   thread-cpu       — exact scheduled thread CPU time; one real
- *                      CLOCK_THREAD_CPUTIME_ID syscall per IO loop pass.
- *   monotonic-active — CLOCK_MONOTONIC active-wall spans with potentially
- *                      blocking poll time subtracted; vDSO-only on Linux.
- * The current thread-cpu behaviour remains the default. */
+/* ---- IO-utilisation numerator (thread-mode=auto only; NOT a knob) -----------
+ * Sampled scheduled thread CPU (CLOCK_THREAD_CPUTIME_ID on a ~16ms gate), in
+ * ioSlice(). The former `tomokv-io-busy-clock` enum offered a monotonic-active
+ * alternative (CLOCK_MONOTONIC wall spans minus potentially-blocking poll time);
+ * that mode is GONE, not merely unselected. It cannot be made correct under
+ * io_uring: DEFER_TASKRUN runs completion work inside io_uring_enter, so the
+ * interval it must treat as sleep is exactly where the CPU goes -- threads at
+ * 99.5% CPU published 17% busy and the flip controller never actuated. */
 
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
