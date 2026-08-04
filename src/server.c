@@ -19626,7 +19626,7 @@ static void tomoFlipController(void) {
         int w0, w1;
         if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
         else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
-        int w_live = 0; double qd_max = 0.0;
+        int w_live = 0; double qd_max = 0.0, qd_sum = 0.0; int qd_n = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
             /* ee451 2026-08-03: read at FULL Q4 PRECISION, not `>>4`.
@@ -19645,6 +19645,7 @@ static void tomoFlipController(void) {
              * that discriminates configs at equal throughput. */
             double qd = (double)et->tm_qdepth_ewma_q4 / 16.0;
             if (qd > qd_max) qd_max = qd;
+            qd_sum += qd; qd_n++;
             /* count a worker "live as EX" only if it is actually in EX mode (converted ones are IO) */
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
@@ -19669,6 +19670,7 @@ static void tomoFlipController(void) {
             io_live_node++;
         }
         int io_busy_mean = io_busy_cnt ? (int)(io_busy_sum / io_busy_cnt) : 0;
+        double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
          * any decision is measured against; nothing here is an absolute number). --- */
@@ -19857,7 +19859,13 @@ static void tomoFlipController(void) {
         double io_sat = u_io, ex_sat = u_ex;
         if (c_ex >= 8.0) {
             io_sat += (double)q_io / QCAP;
-            ex_sat += qd_max / QCAP;
+            /* the MEAN depth, matching the mean used for utilisation on both sides. Leaving this
+             * as qd_max while busy moved to a mean stabilised only HALF of ex_sat: measured at the
+             * p32 optimum, io_sat held 0.96-0.98 while ex_sat still swung 0.67-1.13 (a 68% range)
+             * purely from whichever worker queue was deepest that tick, and every one of those
+             * excursions triggered a climb that throughput then rejected. qd_max stays for the
+             * node_idle test, where "any worker has work" is the right question. */
+            ex_sat += qd_mean / QCAP;
         }
         /* TOTAL SATURATION => is the workload CLIENT-bound or SERVER-bound?
          * The pipeline is only as saturated as its tightest stage, so the total is the MAX, not a
