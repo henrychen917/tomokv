@@ -19517,10 +19517,24 @@ static void tomoFlipController(void) {
         int w0, w1;
         if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
         else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
-        int w_live = 0; long qd_max = 0;                     /* qd_max: observability only (logged) */
+        int w_live = 0; double qd_max = 0.0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
-            long qd = (long)(et->tm_qdepth_ewma_q4 >> 4);
+            /* ee451 2026-08-03: read at FULL Q4 PRECISION, not `>>4`.
+             *
+             * tm_qdepth_ewma_q4 stores depth*16. The old integer shift divided by 16 and floored,
+             * so ANY standing backlog below 1.0 read as exactly 0 -- a worker leaving one item
+             * waiting every other pass has a real backlog of 0.5 and reported nothing. Measured on
+             * the A/B run: q_ex was 0 in every single sample at 4.9M ops/s, which made both the old
+             * ex_sat backlog term (max(busy/75, qd/(8*POP))) and the new S_EX queue term
+             * identically dead -- ex_sat collapsed to bare utilization and nobody noticed, because
+             * the utilization term dominates whenever the queue term is zero.
+             *
+             * Sub-1 depths are exactly the signal that matters here: under CLOSED-LOOP load
+             * arrivals are gated by completions, so a bad config does not show up as a big queue,
+             * it shows up as a persistent SMALL one. Flooring it to zero threw away the only term
+             * that discriminates configs at equal throughput. */
+            double qd = (double)et->tm_qdepth_ewma_q4 / 16.0;
             if (qd > qd_max) qd_max = qd;
             /* count a worker "live as EX" only if it is actually in EX mode (converted ones are IO) */
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
@@ -19560,7 +19574,7 @@ static void tomoFlipController(void) {
          * idle when the node executed nothing AND shows no queued/ingress pressure — a purely
          * observational fact, not a threshold. Idle ticks freeze mean/var (and the settle/judge
          * phases below see an unchanged mean rather than a crater). */
-        int node_idle = (inst <= 0.0) && (qd_max == 0) && (io_busy_mean == 0);
+        int node_idle = (inst <= 0.0) && (qd_max < (1.0/16.0)) && (io_busy_mean == 0);
         if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
         else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
@@ -19644,7 +19658,7 @@ static void tomoFlipController(void) {
         double io_sat, ex_sat;
         if (c_ex >= 8.0) {
             io_sat = (c_ex + (double)q_io)   * u_io / c_ex;
-            ex_sat = (c_ex + (double)qd_max) * u_ex / c_ex;
+            ex_sat = (c_ex + qd_max) * u_ex / c_ex;
         } else {
             io_sat = u_io;
             ex_sat = u_ex;
@@ -19915,7 +19929,7 @@ static void tomoFlipController(void) {
              * pin*1.075 and re-arms a climb immediately, while a mere fluctuation never does, so a
              * steady workload sits here with ZERO flips (decay would re-probe every ~1.5s). */
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | S(c_ex=%.0f q_io=%ld q_ex=%ld u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
+                serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f imb=%.2f dz(f%.2f/b%.2f) | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
                           node, fc->mean, io_sat, ex_sat, imbalance, fc->dz_front, fc->dz_back,
                           c_ex, q_io, qd_max, u_io, u_ex, w_live, io_live_node,
                           pool_live, pool_want);
