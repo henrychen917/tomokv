@@ -252,6 +252,14 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
+    /* IO-SIDE VIEW OF THE FAR END. rob (= replyWorking) is commands dispatched and not yet
+     * returned; by Little's Law in-flight = throughput * latency, so a TIME-INTEGRATED rob is the
+     * worker-side latency measured entirely from the IO thread -- no worker instrumentation, one
+     * thread, one clock. Instantaneous rob is useless: read cross-thread by INFO it lands between
+     * bursts and reports 0 at every config. Q4 fixed point (value*16), owner-written, racy read.
+     * APPENDED at the tail on purpose: inserting mid-struct measured -16% on p32 SET. */
+    unsigned int rob_ewma_q4;
+    unsigned int pw_ewma_q4;     /* same, for the flush-side backlog */
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -14719,9 +14727,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 if ((!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO)
                     && t >= server.io_threads) continue;      /* grown slot not serving IO */
                 io_busy += tm_io_sig[t].tm_busy_us; nio++;
-                io_rob += tm_io_sig[t].rob;          /* replies IN FLIGHT ON WORKERS: the IO thread's
-                                                      * own view of how far behind EX is */
-                io_pw  += tm_io_sig[t].pend_write;   /* flush-side backlog */
+                io_rob += tm_io_sig[t].rob_ewma_q4;  /* TIME-INTEGRATED (Q4): the snapshot reads 0 */
+                io_pw  += tm_io_sig[t].pw_ewma_q4;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
             for (int w = 0; w < wlive && w < TOMO_EX_THREADS_MAX; w++)
@@ -18047,6 +18054,16 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
             tm_io_cpu_last_ns = cpu;
             tm_io_cpu_next_us = now_us + TOMO_IO_CPU_SAMPLE_US;
         }
+    }
+    /* Time-integrate the IO thread's view of both halves: how much is outstanding AT THE WORKERS
+     * (rob) and how much is waiting to be flushed (pend_write). One add+shift each per pass, on a
+     * line this thread already owns. */
+    {
+        double rif = aeReplyInFlight;
+        s->rob_ewma_q4 = (rif > 0.0) ? (unsigned int)(rif * 16.0) : 0u;
+        int pe = (int)s->pw_ewma_q4;
+        pe += ((int)(s->pend_write << 4) - pe) >> 3;
+        s->pw_ewma_q4 = pe < 0 ? 0 : (unsigned int)pe;
     }
     /* Events/pass remains useful as a relative per-thread weight for client placement,
      * but zero-event reply-drain passes make it invalid as role saturation. */

@@ -32,6 +32,8 @@
  * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
  * below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
+/* EWMA of replyWorking, published for the flip controller (see the fold site below). */
+__thread double aeReplyInFlight = 0.0;
 
 /* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the
  * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
@@ -575,7 +577,12 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
 
     /* 2s-auto T1: fold replyWorking into the EWMA and pick a drain mode with a
      * Schmitt band (fast<2 -> userpoll, fast>16 -> syscall) requiring 2 consecutive votes. */
-    if (replyWorking > 0) {
+    /* Publish the in-flight EWMA for the flip controller. tm_io_sig[].rob is set at the BOTTOM of
+     * the drain -- i.e. right after everything retired -- so it samples the MINIMUM and reads 0 at
+     * every config. This EWMA is the honest one; fold on EVERY pass (not only while
+     * replyWorking>0, which would omit exactly the idle samples that make it an average). */
+    aeReplyInFlight = drain_ewma_fast;
+    if (1) {
         double af = 0.4;
         drain_ewma_fast = drain_primed ? (af*(double)replyWorking + (1.0-af)*drain_ewma_fast) : (double)replyWorking;
         drain_primed = 1;

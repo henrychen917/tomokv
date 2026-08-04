@@ -128,6 +128,11 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
 int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us);
+/* Time-averaged replies-in-flight-at-workers for this IO thread. By Little's Law
+ * in-flight = throughput * latency, so this is the worker-side latency observed entirely from the
+ * IO side. The instantaneous tm_io_sig[].rob cannot be used: it is published post-drain and is ~0
+ * at every config. */
+extern __thread double aeReplyInFlight;
 
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
