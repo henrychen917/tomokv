@@ -1453,8 +1453,15 @@ typedef struct {
  * ========================================================================= */
 
 /* Compile-time maxes: bound array sizes in struct redisServer / client. */
-#define TOMO_IO_THREADS_MAX 32
-#define TOMO_EX_THREADS_MAX 64
+#define TOMO_IO_THREADS_MAX 32    /* UNCHANGED tonight, deliberately. The two structures that
+                                    * made raising this expensive are fixed (q_summary is multi-
+                                    * word-capable, lanes are heap-sized to the runtime pool), so
+                                    * the cap itself is now a one-line change — but the >64 audit
+                                    * found THREE more 64-bit walls that must be widened first:
+                                    * ex_dirty_mask (producer dirty-worker set), the QSBR grace
+                                    * batch's io_snap mask (premature-free class), and the
+                                    * TOMO_SCAN_WORKER_BITS cursor encoding. See task #66. */
+#define TOMO_EX_THREADS_MAX 64    /* unchanged tonight — same #66 audit gates the raise */
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
@@ -2134,6 +2141,7 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
  *   num_workers * (io_threads + 1) * TOMO_EX_QUEUE_SIZE_MAX * sizeof(ptr)
  * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
  * (2048) keeps worst case manageable. */
+#define TOMO_QS_WORDS ((TOMO_IO_THREADS_MAX + 1 + 63) / 64)  /* q_summary words (see exThread) */
 #define TOMO_EX_QUEUE_SIZE_MAX 2048
 /* (EX_QUEUE_SIZE / EX_QUEUE_MASK DELETED 2026-07-28: they were tomokv-ex-queue-depth's default
  * and its derived mask, kept "for back-compat" with nothing left to be compatible with — no
@@ -2370,13 +2378,34 @@ typedef struct exThread {
      * TOMO_HANDOFF_DENSE_EVERY passes and counts anything the summary failed to
      * advertise in handoff_missed. That counter is the correctness oracle: it must be
      * zero, and a non-zero value localises a missing publish site immediately.
-     * TOMO_IO_THREADS_MAX is 32, so one 64-bit word covers every producer slot. */
-    _Atomic uint64_t q_summary __attribute__((aligned(CACHE_LINE_SIZE)));
+     * Two-level since 2026-08-05 (TOMO_IO_THREADS_MAX now exceeds 64): q_top bit j hints
+     * that q_summary[j] is non-empty. The O(non-empty) property is preserved exactly:
+     * an idle pass exchanges ONLY q_top (one atomic, same as the old single word), a busy
+     * pass pays 1 + (#non-empty words). Producers set the top bit only on a word's
+     * empty->nonempty transition. A top bit without word bits (consumer took the word
+     * between the two producer stores) is a benign spurious visit; a word bit without a
+     * top bit closes on the producer's next store or the dense sweep — the same
+     * coalesce-into-a-later-slice semantics the single word always had. */
+    _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
+    _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
-    exQueue queues[TOMO_IO_THREADS_MAX + 1];
+    /* ee451 2026-08-05 (owner scalability item 2): lanes are HEAP arrays sized to the runtime
+     * pool, not inline arrays sized to the compile cap. nlanes = io_threads + num_workers + 1 —
+     * slot 0 (main) + every boot io slot + every growth slot a converting worker could occupy —
+     * so a flip can never index past it (tm_ngrow_io <= num_workers by construction; asserted in
+     * exSliceInit). Layout INSIDE a lane (exQueue/freebackRing) is unchanged, so the SPSC hot
+     * path is untouched; the only new cost is one pointer load per lane access. */
+    /* ALIGNMENT BREAK — these three are READ-ONLY after init and are loaded on EVERY lane access
+     * by BOTH sides. Leaving them on the q_top/q_summary line (as first written) put the lane
+     * POINTERS on the one line producers fetch_or per dispatch, so every queue access paid a
+     * contended-line load: measured p32 GET -5.2% (instr/op +3.5%, cyc/op +9% — slower dispatch
+     * also inflates empty spin passes per op). On their own line both sides cache them Shared
+     * forever. */
+    __attribute__((aligned(CACHE_LINE_SIZE))) int nlanes;
+    exQueue *queues;
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
-    freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
+    freebackRing *freeback;
     /* ee451 (flip-actuator, F1): `db` relocated to the head line above; the owner-written fields
      * below now have NO IO-thread reader on their line (no dispatch false-sharing). */
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
@@ -2913,6 +2942,9 @@ typedef struct tmMigMailbox {
                                    * window between the request and the role change. */
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
     int exit_then_ex;             /* owner's latched copy of req_then_ex for the current exit */
+    int exit_logged;              /* one-shot: "IO-EXIT complete" printed for THIS exit — the
+                                   * drained state re-fires every service pass, so an unlatched
+                                   * log would spam; re-armed when the next exit request lands */
     int batch_dest;               /* REBALANCE: owner-latched destination for the current batch */
 } tmMigMailbox;
 

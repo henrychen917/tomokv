@@ -140,6 +140,7 @@ client* scriptGetCaller(void) {
  * and also check if the run should be terminated. */
 uint64_t tomoScriptGateEpoch(void);        /* server.c */
 int tomoScriptKillRequested(uint64_t epoch);
+void tomoScriptOwnerSlowTick(void);
 
 int scriptInterrupt(scriptRunCtx *run_ctx) {
     /* TomoKV kill word: polled by EVERY owner (main or io thread) — this is the only kill path an
@@ -170,6 +171,10 @@ int scriptInterrupt(scriptRunCtx *run_ctx) {
      * both main-thread state (review finding 6); protectClient/PEWB are main-only (finding above).
      * The io owner just keeps running and keeps polling the kill word; log once per second. */
     if (iotid != 0) {
+        /* Leave the accept group (once): this thread cannot accept while inline in Lua, so every
+         * conn the kernel deals to its listener — including the SCRIPT KILL that ends the script —
+         * would rot in the backlog. See tomoScriptOwnerSlowTick. */
+        tomoScriptOwnerSlowTick();
         static __thread long long last_busy_log_ms;
         if (server.mstime - last_busy_log_ms > 1000) {
             last_busy_log_ms = server.mstime;

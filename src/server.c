@@ -324,6 +324,18 @@ int tomoScriptKillRequested(uint64_t epoch) {
            atomic_load_explicit(&tomo_script_kill, memory_order_acquire) == epoch;
 }
 
+/* ee451 2026-08-05 (fence-suite 100-minute wedge): a script running inline on an io thread
+ * leaves that thread's SO_REUSEPORT listener ARMED, so the kernel keeps dealing new connections
+ * to a thread that cannot accept — they rot in its backlog, INCLUDING the foreign SCRIPT KILL
+ * that is the only way to end the script (1/n_listeners odds per attempt; measured live: the
+ * suite's one KILL hashed to the scripting thread's own listener and the server stayed wedged
+ * for 100 minutes until an out-of-band KILL landed on a live listener and everything resumed
+ * instantly). Once a script crosses the busy threshold, the OWNER leaves the accept group from
+ * the Lua hook (own-thread fd surgery, same primitive IO-EXIT uses) and rejoins at gate
+ * release. tomo_script_scrammed is the TLS latch between those two points. */
+static __thread int tomo_script_scrammed;
+static void tomoScriptRejoinIfScrammed(void);
+
 /* INVOCATION-scoped release guard (cleanup attribute, the FLAT_EXTERN_REGION idiom). The gate is
  * released when the processCommand invocation that ACQUIRED it returns — every return path: the
  * normal post-call epilogue, and every reject between the CAS and call() (OOM, ACL, SAFE-GATE,
@@ -332,6 +344,7 @@ int tomoScriptKillRequested(uint64_t epoch) {
 typedef struct { int acquired; } tomoStwGuard;
 static void tomoStwGuardEnd(tomoStwGuard *g) {
     if (!g->acquired) return;
+    tomoScriptRejoinIfScrammed();   /* listener back in the group before the gate reads free */
     tomo_stw_held = 0;
     tomo_stw_owner_real = NULL;
     uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
@@ -2657,8 +2670,18 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * any consumer that sees this bit. Every site that release-stores a tail must call
  * this -- a missed call strands the lane (see exThread.q_summary). */
 static inline void exHandoffAdvertise(exThread *ex) {
-    atomic_fetch_or_explicit(&ex->q_summary, 1ull << (unsigned)iotid,
-                             memory_order_release);
+    unsigned t = (unsigned)iotid;
+    uint64_t old = atomic_fetch_or_explicit(&ex->q_summary[t >> 6], 1ull << (t & 63),
+                                            memory_order_release);
+#if TOMO_QS_WORDS > 1
+    /* Top hint only on the word's empty->nonempty edge — amortizes to ~one extra fetch_or per
+     * word per consumer drain. Order matters: word first, then top, so a consumer that sees the
+     * top bit and finds the word empty merely made a spurious visit (benign, self-healing). */
+    if (old == 0)
+        atomic_fetch_or_explicit(&ex->q_top, 1ull << (t >> 6), memory_order_release);
+#else
+    (void)old;
+#endif
 }
 
 /* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
@@ -14591,9 +14614,29 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * this breaks out every tomokv io slot's authoritative listLength so connection
          * migration / rebalancing is directly observable. */
         if (server.custom_io_threads_active) {
-            for (int t = 0; t <= server.io_threads; t++)
-                info = sdscatprintf(info, "tomo_io_thread_%d:clients=%lu\r\n",
-                                    t, server.clients[t] ? listLength(server.clients[t]) : 0);
+            /* ee451 2026-08-05: cover the WHOLE slot space, not just boot slots. Growth slots
+             * (>= io_threads, created by flip grow-front) were invisible here, so a conn
+             * migrated onto one vanished from this accounting and an IO-EXIT of a grown slot
+             * could not be observed at all (14-clientlb SHIFT-ioexit's exit-slot-conns=NA).
+             * `listening` says whether the slot currently holds the IO role — slot 0 (main)
+             * never listens in custom-io mode but can still hold clients, and a retired grown
+             * slot with clients>0 is a LEAK and must stay visible rather than be filtered. */
+            int hi = server.io_threads + server.tm_ngrow_io;
+            if (hi > TOMO_IO_THREADS_MAX) hi = TOMO_IO_THREADS_MAX;
+            for (int t = 0; t <= hi; t++) {
+                unsigned long nc = server.clients[t] ? listLength(server.clients[t]) : 0;
+                polyThreadCtx *ic = tmCtxForIotid(t);
+                /* io_listening is the LISTENER truth (cleared by tmMigLeaveAcceptGroup, set when a
+                 * listener goes live) — mode==IO is the ROLE and stays IO through a manual IO-EXIT
+                 * that has already left the accept group (measured: exit migrated all conns out,
+                 * flag still read 1 from the role). Report the listener, not the role. */
+                int listening = (t != 0) &&
+                    (ic ? (ic->io_listening != 0)
+                        : (t < server.io_threads));
+                if (t >= server.io_threads && !listening && nc == 0) continue; /* retired+empty */
+                info = sdscatprintf(info, "tomo_io_thread_%d:clients=%lu,listening=%d\r\n",
+                                    t, nc, listening);
+            }
         }
         stat_io_ops_processed_calculated = 1;
     }
@@ -16859,6 +16902,10 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
     ctx->nq = server.io_threads + 1 + server.tm_ngrow_io;
+    /* the scan bound may never exceed the allocated lanes (tm_ngrow_io <= num_workers holds by
+     * construction of the pool split; this converts a violation into a boot-time scream instead
+     * of a heap overrun) */
+    serverAssert(ctx->nq <= worker->nlanes);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -17034,9 +17081,29 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * sweeps densely and ignores the summary. */
     int dense = (so != 0) || (++worker->handoff_dense_tick >= TOMO_HANDOFF_DENSE_EVERY);
     if (dense) worker->handoff_dense_tick = 0;
-    uint64_t advertised = atomic_exchange_explicit(&worker->q_summary, 0,
-                                                   memory_order_acquire);
-    uint64_t residual = 0;
+    /* Harvest the two-level summary. Idle pass touches ONLY q_top — one atomic, identical to
+     * the old single-word exchange. Words are exchanged only when their top bit says non-empty
+     * (or on a dense pass, which probes every lane anyway and so must clear every word). */
+    uint64_t advertised[TOMO_QS_WORDS] = {0};
+    uint64_t residual[TOMO_QS_WORDS] = {0};
+#if TOMO_QS_WORDS > 1
+    {
+        uint64_t topw = atomic_exchange_explicit(&worker->q_top, 0, memory_order_acquire);
+        if (dense) {
+            for (int qw = 0; qw < TOMO_QS_WORDS; qw++)
+                advertised[qw] = atomic_exchange_explicit(&worker->q_summary[qw], 0,
+                                                          memory_order_acquire);
+        } else {
+            while (topw) {
+                int qw = __builtin_ctzll(topw); topw &= topw - 1;
+                advertised[qw] = atomic_exchange_explicit(&worker->q_summary[qw], 0,
+                                                          memory_order_acquire);
+            }
+        }
+    }
+#else
+    advertised[0] = atomic_exchange_explicit(&worker->q_summary[0], 0, memory_order_acquire);
+#endif
 
     for (int k = 0; k < ctx->nq; k++) {
         int i, n;
@@ -17055,12 +17122,14 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             n = exQueuePopOrdered(&worker->queues[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
         } else {
             i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
-            uint64_t bit = (i < 64) ? (1ull << (unsigned)i) : 0;
-            if (!dense && !(advertised & bit)) continue;   /* lane not advertised: skip the probe */
+            /* was: bit = (i < 64) ? 1<<i : 0 — lanes >= 64 could NEVER be advertised and were
+             * probed only on the 1/64 dense sweeps: a silent 64x dispatch-delay cliff, not a cap. */
+            uint64_t bit = 1ull << ((unsigned)i & 63);
+            if (!dense && !(advertised[(unsigned)i >> 6] & bit)) continue;   /* not advertised */
             n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
             if (n != 0) {
                 /* Could not be fully drained within popmax, or more arrived: re-advertise. */
-                residual |= bit;
+                residual[(unsigned)i >> 6] |= bit;
                 /* ORACLE. A lane holding work is a protocol violation only if NOTHING
                  * advertised it -- neither this pass's snapshot nor the LIVE word. A
                  * producer that publishes after our exchange but before we reach its
@@ -17068,8 +17137,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                  * a benign race, not a stranded lane. Testing the snapshot alone counts
                  * those races and is not discriminating (measured ~54k/20s at 7
                  * producers, all benign). */
-                if (dense && !(advertised & bit) &&
-                    !(atomic_load_explicit(&worker->q_summary, memory_order_relaxed) & bit))
+                if (dense && !(advertised[(unsigned)i >> 6] & bit) &&
+                    !(atomic_load_explicit(&worker->q_summary[(unsigned)i >> 6],
+                                           memory_order_relaxed) & bit))
                     worker->handoff_missed++;
             }
         }
@@ -17281,8 +17351,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * next pass visits it without a dense sweep. Producers only ever OR into this
      * word and this consumer is its only clearer, so an OR here cannot lose a
      * concurrent publish. */
-    if (residual) atomic_fetch_or_explicit(&worker->q_summary, residual,
-                                           memory_order_release);
+    for (int qw = 0; qw < TOMO_QS_WORDS; qw++) {
+        if (!residual[qw]) continue;
+        uint64_t oldw = atomic_fetch_or_explicit(&worker->q_summary[qw], residual[qw],
+                                                 memory_order_release);
+#if TOMO_QS_WORDS > 1
+        if (oldw == 0)
+            atomic_fetch_or_explicit(&worker->q_top, 1ull << qw, memory_order_release);
+#else
+        (void)oldw;
+#endif
+    }
 
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
      * work/spin/yield decision below — work passes fold the standing backlog and accumulate
@@ -17821,6 +17900,30 @@ void initExThreads(void) {
     /* One exThread per worker SLOT. zcalloc (numa): the stat/EWMA scalars must not be
      * uninitialized reads. */
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
+    /* ee451 2026-08-05 (owner scalability item 2): per-worker lane arrays, heap-sized to the
+     * RUNTIME pool. nlanes covers slot 0 (main) + boot io slots + every growth slot a converting
+     * worker could occupy, so no flip can index past it. zcalloc through jemalloc returns
+     * page-aligned blocks at these sizes; the assert makes the cacheline assumption loud rather
+     * than silently false-sharing if an allocator change ever breaks it. */
+    {
+        int nlanes = server.io_threads + server.num_workers + 1;
+        if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
+        for (int w = 0; w < server.num_workers; w++) {
+            exThread *et = &server.exThreads[w];
+            et->nlanes  = nlanes;
+            /* ONE block, freeback rings directly after the lanes — the same adjacency the old
+             * inline arrays had. Split allocations measured p32 GET -3.7% (reply path: every
+             * value reply recycles through freeback; a separately-heaped ring block lost the
+             * lanes' locality). sizeof(exQueue) is a CACHE_LINE multiple (aligned members), so
+             * the freeback base stays line-aligned. */
+            size_t qbytes = sizeof(exQueue) * (size_t)nlanes;
+            et->queues  = zcalloc(qbytes + sizeof(freebackRing) * (size_t)nlanes);
+            et->freeback = (freebackRing *)((char *)et->queues + qbytes);
+            serverAssert(((uintptr_t)et->queues  & (CACHE_LINE_SIZE - 1)) == 0);
+            serverAssert(((uintptr_t)et->freeback & (CACHE_LINE_SIZE - 1)) == 0);
+            madvise(et->queues, qbytes + sizeof(freebackRing) * (size_t)nlanes, MADV_HUGEPAGE);
+        }
+    }
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */
@@ -19011,6 +19114,36 @@ static int tmMigRejoinAcceptGroup(int id) {
     return 1;
 }
 
+/* ee451 2026-08-05: slow-script listener scram (see the tomo_script_scrammed comment). Both
+ * halves run on the OWNER io thread — the Lua hook for the leave, the gate-release guard for the
+ * rejoin — so this is the same own-thread listener lifecycle IO-EXIT and its cancel path already
+ * exercise. The flip's own bookkeeping (accept_left / io_exiting) is respected on both sides: if
+ * an IO-EXIT owns the listener state, the scram stays out of its way entirely. */
+void tomoScriptOwnerSlowTick(void) {
+    if (tomo_script_scrammed || iotid <= 0 || iotid > TOMO_IO_THREADS_MAX) return;
+    tmMigMailbox *mb = &tm_mig_mbox[iotid];
+    if (mb->accept_left || atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) return;
+    tmMigLeaveAcceptGroup(iotid);
+    tomo_script_scrammed = 1;
+    serverLog(LL_WARNING, "Slow script: io thread %d left the accept group until the script ends "
+                          "(new connections now hash to live listeners; SCRIPT KILL is deliverable)",
+              iotid);
+}
+static void tomoScriptRejoinIfScrammed(void) {
+    if (!tomo_script_scrammed) return;
+    tomo_script_scrammed = 0;
+    if (iotid <= 0 || iotid > TOMO_IO_THREADS_MAX) return;
+    tmMigMailbox *mb = &tm_mig_mbox[iotid];
+    /* an IO-EXIT that arrived mid-script owns the listener now — do not fight it */
+    if (mb->accept_left || atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) return;
+    if (tmMigRejoinAcceptGroup(iotid))
+        serverLog(LL_NOTICE, "Slow script ended: io thread %d rejoined the accept group", iotid);
+    else
+        serverLog(LL_WARNING, "Slow script ended but io thread %d could NOT rejoin the accept "
+                              "group — thread serves existing conns only until the next role change",
+                  iotid);
+}
+
 /* Surgically detach a quiesced client from THIS thread's per-iotid structures, hand it to
  * `dest`'s inbox, and wake dest. At quiesce the client sits only in clients[iotid] +
  * clients_index[iotid] (the ring is empty ⇒ not in clients_pending_ex; replies flushed ⇒ not
@@ -19121,6 +19254,7 @@ void tmMigServiceOut(void) {
                                  "conn migrations to io thread %d", id, started, count, dest);
         } else if (kind == TM_MIGREQ_IOEXIT) {
             atomic_store_explicit(&mb->io_exiting, 1, memory_order_relaxed);
+            mb->exit_logged = 0;          /* fresh exit: re-arm the completion one-shot */
             mb->exit_then_ex = then_ex;   /* latched under the req_pending acquire */
             if (!mb->accept_left) { tmMigLeaveAcceptGroup(id); mb->accept_left = 1; }
         } else if (kind == TM_MIGREQ_IOEXIT_CANCEL) {
@@ -19214,11 +19348,21 @@ void tmMigServiceOut(void) {
      * one-shot per exit. */
     if (exiting && listLength(mb->migrating_out) == 0 &&
         listLength(server.clients[id]) == 0) {
+        /* Completion is a FACT of the drained state, not of the follow-on role change — a bare
+         * exit (DEBUG TOMO-MODESHIFT 5, exit_then_ex=0) previously never logged it, so observers
+         * grepping "IO-EXIT complete" saw a migration that visibly finished (0 conns left, total
+         * conserved on the siblings) yet "never completed" (14-clientlb SHIFT-ioexit). One-shot:
+         * the latch re-arms when the next exit request lands. */
+        if (!mb->exit_logged) {
+            mb->exit_logged = 1;
+            serverLog(LL_NOTICE, "ee451 flip: io thread %d IO-EXIT complete — all conns migrated out%s",
+                      id, mb->exit_then_ex ? "" : " (bare exit: no role change requested)");
+        }
         polyThreadCtx *ctx = tmCtxForIotid(id);
         if (ctx && ctx->ex && mb->exit_then_ex) {
             if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_EX) {
-                serverLog(LL_NOTICE, "ee451 flip: io thread %d IO-EXIT complete — all conns migrated "
-                                     "out, requesting the EX role (worker %d)", id, ctx->ex->id);
+                serverLog(LL_NOTICE, "ee451 flip: io thread %d exit tail — requesting the EX role "
+                                     "(worker %d)", id, ctx->ex->id);
                 atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_release);
             }
             /* SELF-WAKE (the file-header note "IO-exit needs a wakeup or a bounded poll
@@ -19498,6 +19642,17 @@ typedef struct {
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
     int      refuse_run;     /* consecutive refused climb steps; >= FLIP_SUSTAIN => structural */
+    /* ee451 2026-08-05 VETO BACKOFF. A climb that ends back at its own starting config was a
+     * net-zero probe: throughput rejected the whole excursion. Each consecutive net-zero probe
+     * doubles the sustain the NEXT trigger must survive (8 -> 16 -> 32 -> 64 ticks = 2 -> 16s),
+     * so a periodic disturbance (load waves, thermal drift, suite-context noise) that keeps
+     * pushing r past the band gets geometrically damped to quiescence instead of a
+     * climb-veto-walkback cycle every ~30s (measured: 3 cycles in controller_sweep's settled
+     * p32 windows = 8 flips and -14% while both standalone repros held 250s+ clean). A
+     * PRODUCTIVE climb (ends at a different config), a RE-BASELINE, or an idle/load change
+     * resets it, so a genuine persistent shift still probes with bounded delay. */
+    int      veto_run;       /* consecutive net-zero (vetoed) climbs from the same operating point */
+    int      start_io;       /* io_live_node when the current climb STARTED (net-zero detector) */
     double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     /* OCCUPANCY = 100 - idle%, EWMA(FESC_ALPHA), the ONLY utilization signal the ratio is built
@@ -20258,6 +20413,7 @@ static void tomoFlipController(void) {
                  * just_settled, which re-anchors the ratio band at the new operating point, and
                  * the band then picks the direction afresh. */
                 fc->dir = 0; fc->just_settled = 1;
+                fc->veto_run = 0;                     /* the offered load changed: fresh reactivity */
                 fc->best_rate = after;
                 fc->best_dist = 0;
                 fc->coast_used = 0;
@@ -20331,7 +20487,7 @@ static void tomoFlipController(void) {
         if (w_live < 1) continue;
         if (node_idle || fc->mean < 1000.0) {              /* no offered load — nothing to optimize */
             fc->wait = FESC_WAIT_BASE; fc->just_settled = 0;
-            fc->idle_stable = 0;
+            fc->idle_stable = 0; fc->veto_run = 0;         /* workload boundary: fresh reactivity */
             continue;
         }
         /* mean-CAUGHT-UP tracker: a climb may only START once the EWMA mean has caught up to the live
@@ -20427,6 +20583,16 @@ static void tomoFlipController(void) {
             fc->lr_settle_run = 0;
         }
         if (fc->just_settled) {
+            /* VETO BACKOFF bookkeeping: ending back at the start config = a net-zero probe. */
+            if (io_live_node == fc->start_io) {
+                if (fc->veto_run < 8) fc->veto_run++;
+                if (fc->veto_run > 1)
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] net-zero probe #%d from io=%d — next trigger "
+                              "needs %dx sustain", node, fc->veto_run, io_live_node,
+                              1 << (fc->veto_run > 3 ? 3 : fc->veto_run));
+            } else {
+                fc->veto_run = 0;                     /* productive climb: normal reactivity */
+            }
             /* Owner: "if not, go back, THEN set deadzone". After a REJECTED climb the level worth
              * blocking is the one that TRIGGERED it -- that is the ratio we now have evidence
              * about ("at r=0.76, growing back is worse"). Anchoring instead at the ratio measured
@@ -20653,9 +20819,12 @@ static void tomoFlipController(void) {
          * flips only cost migrations. It also suppresses the one case the bare ratio gets wrong —
          * SET at io4ex4 reads r=1.26 and would grow the IO side for a measured 10% LOSS. */
         if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
-        if (fc->lr_out_run >= FLIP_SUSTAIN) {
-            if (out > 0 && can_front) want = +1;
-            else if (out < 0 && can_back) want = -1;
+        {
+            int need = FLIP_SUSTAIN << (fc->veto_run > 3 ? 3 : fc->veto_run);
+            if (fc->lr_out_run >= need) {
+                if (out > 0 && can_front) want = +1;
+                else if (out < 0 && can_back) want = -1;
+            }
         }
 
         if (want == 0) {
@@ -20732,6 +20901,7 @@ static void tomoFlipController(void) {
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
+            fc->start_io = io_live_node;              /* net-zero detector: where this climb began */
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
