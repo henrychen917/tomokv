@@ -218,6 +218,10 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
                          * NOT a utilization signal and not consumed by the flip controller. */
     unsigned int disp_cnt;   /* ee451 D: dispatches staged by this io identity (lambda for the
                               * window law); plain owner increment, swept 1 Hz, wrap-safe */
+    unsigned int rord_runs;    /* D reorder engagement: per-worker runs entered (r>1, level>=1) */
+    unsigned int rord_heads;   /* head promotions performed */
+    unsigned int rord_grouped; /* same-bucket adjacency pulls performed */
+    unsigned int rord_fences;  /* dependency-guard collisions (run fenced from that point) */
     unsigned int tm_idle_us; /* ee451 2026-08-04 (OBSERVATION ONLY): wall µs in zero-event passes,
                               * i.e. this thread had NO work. Same episode measurement as
                               * exThread.tm_idle_us so the two roles are directly comparable. */
@@ -2711,6 +2715,123 @@ _Static_assert(TOMO_EX_THREADS_MAX <= 64,
 static __thread uint64_t ex_dirty_mask;
 void flushExQueues(void);   /* defined below; used by the back-pressure path (A3) */
 
+/* ===================== ee451 D: SEDA window (mechanism A — HARD-CODED) =====================
+ * One published int per io identity: the max dispatches staged before an EARLY flush. The
+ * pass-end flush is untouched, so 0 (boot state, and whenever the law has no data) means
+ * exactly today's behaviour. Written 1 Hz by tomoSvcTick with release stores; consumed as ONE
+ * relaxed load per staged dispatch. Read-mostly line, deliberately NOT on tm_io_sig (that line
+ * is owner-written by the io thread; a main-written field there would false-share). */
+_Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
+static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's last flush */
+
+/* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
+ * A permutation of the CURRENT WINDOW's dispatches, decided at the admission point before any
+ * ring slot is written. SPSC untouched; ring order = scheduled order; nothing from a later
+ * window can pass anything already pushed, so the starvation bound is structural: a demoted
+ * command is passed only by members of its OWN window (< W dispatches, and W is clamped).
+ *
+ * Scratch is TLS, compile-capped: if the published window exceeds the cap, the drain fires at
+ * the cap (an early flush) — the guard's O(r^2) pass is only cheap because r is small, and this
+ * cap is what keeps that true no matter what the window law publishes.
+ *
+ * Emission order per worker run: heads (arrival-stable) then classes C0..C3 (arrival-stable,
+ * same-bucket entries grouped adjacent behind the first of their bucket). The dependency guard
+ * runs during emission: a same-key collision (h equality) FENCES the remainder of that run —
+ * emitted in arrival order — rather than risking a same-connection same-key swap.
+ * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
+ * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
+#define TOMO_RORD_CAP 64
+static __thread struct {
+    client  *fk[TOMO_RORD_CAP];
+    uint64_t h[TOMO_RORD_CAP];
+    uint8_t  ex[TOMO_RORD_CAP];
+    uint8_t  cls[TOMO_RORD_CAP];   /* class 0..3; bit 7 = head-of-pipe */
+    int      n;
+    int      draining;             /* re-entrancy latch: full-ring fallback inside the drain */
+} tomo_rord;
+
+static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
+
+void tomoReorderDrain(void) {
+    if (tomo_rord.n == 0) return;
+    tomo_rord.draining = 1;
+    int n = tomo_rord.n;
+    int lvl = server.tomo_reorder;
+    /* stable counting-scatter by worker: order[] holds indices grouped by ex id */
+    int order[TOMO_RORD_CAP];
+    {
+        int cnt[TOMO_EX_THREADS_MAX] = {0}, base[TOMO_EX_THREADS_MAX];
+        for (int i = 0; i < n; i++) cnt[tomo_rord.ex[i]]++;
+        int acc = 0;
+        for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) { base[w] = acc; acc += cnt[w]; }
+        for (int i = 0; i < n; i++) order[base[tomo_rord.ex[i]]++] = i;
+    }
+    /* per-run emit */
+    for (int s0 = 0; s0 < n; ) {
+        int w = tomo_rord.ex[order[s0]];
+        int s1 = s0; while (s1 < n && tomo_rord.ex[order[s1]] == w) s1++;
+        int r = s1 - s0;
+        if (r <= 1 || lvl < 1) {
+            for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
+        } else {
+            tm_io_sig[iotid].rord_runs++;
+            /* dependency guard: any same-key pair in this run fences the run from its FIRST
+             * collision point — everything before the collision may still be emitted reordered,
+             * the collision entry and everything after it go in arrival order. */
+            int fence_at = r;
+            for (int a = 1; a < r && fence_at == r; a++) {
+                uint64_t ha = tomo_rord.h[order[s0 + a]];
+                for (int b = 0; b < a; b++)
+                    if (tomo_rord.h[order[s0 + b]] == ha) { fence_at = a; break; }
+            }
+            if (fence_at < r) tm_io_sig[iotid].rord_fences++;
+            /* pass 1: heads, arrival order (never demoted; promotion only) */
+            int emitted = 0;
+            for (int i = 0; i < fence_at; i++) {
+                int idx = order[s0 + i];
+                if (tomo_rord.cls[idx] & 0x80) {
+                    exDispatchDirect(w, tomo_rord.fk[idx]);
+                    tomo_rord.cls[idx] = 0xFF;               /* consumed */
+                    emitted++; tm_io_sig[iotid].rord_heads++;
+                }
+            }
+            /* pass 2: classes C0..C3 arrival-stable; level>=2 groups same-bucket adjacent by a
+             * look-ahead sweep pulling later same-bucket entries in behind the first (stable
+             * within the bucket by construction of the sweep order). */
+            for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                for (int i = 0; i < fence_at; i++) {
+                    int idx = order[s0 + i];
+                    if (tomo_rord.cls[idx] != cl) continue;
+                    exDispatchDirect(w, tomo_rord.fk[idx]);
+                    tomo_rord.cls[idx] = 0xFF;
+                    emitted++;
+                    if (lvl >= 2) {
+                        uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                        for (int j = i + 1; j < fence_at; j++) {
+                            int jdx = order[s0 + j];
+                            if (tomo_rord.cls[jdx] == cl &&
+                                (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                tomo_rord.cls[jdx] = 0xFF;
+                                emitted++; tm_io_sig[iotid].rord_grouped++;
+                            }
+                        }
+                    }
+                }
+            }
+            /* fenced tail (and anything the passes above marked consumed is skipped) */
+            for (int i = fence_at; i < r; i++) {
+                int idx = order[s0 + i];
+                if (tomo_rord.cls[idx] != 0xFF) exDispatchDirect(w, tomo_rord.fk[idx]);
+            }
+            (void)emitted;
+        }
+        s0 = s1;
+    }
+    tomo_rord.n = 0;
+    tomo_rord.draining = 0;
+}
+
 /* Obtain this thread's queue to worker ex_id AND record that it is dirty. Never index
  * exThreads[].queues[] directly on a staging path -- go through here. */
 static inline exQueue *exQueueFor(int ex_id) {
@@ -2732,10 +2853,21 @@ static inline exQueue *exQueueFor(int ex_id) {
     return &server.exThreads[ex_id].queues[iotid];
 }
 
-static inline void exDispatchPush(int ex_id, client *fake) {
+static void exDispatchDirect(int ex_id, client *fake) {
     exQueue *q = exQueueFor(ex_id);
-    tm_io_sig[iotid].disp_cnt++;   /* D window law: arrival counting at the admission point */
-    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
+    if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
+    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
+        /* D mechanism A: EARLY FLUSH once W dispatches are staged. W=0 = law silent = pass-end
+         * only = pre-D behaviour. Suppressed during the reorder drain (already windowed at stage). */
+        if (!tomo_rord.draining) {
+            int w = atomic_load_explicit(&tomo_disp_window[iotid], memory_order_relaxed);
+            if (w > 0 && ++tomo_staged_cnt >= w) {
+                tomo_staged_cnt = 0;
+                flushExQueues();
+            }
+        }
+        return;
+    }
     /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
      * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
      * undersized worker dispatch ring showed up only as unexplained latency. Count it (INFO:
@@ -2762,6 +2894,35 @@ static inline void exDispatchPush(int ex_id, client *fake) {
     } while (exQueuePush(q, fake) != 0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
     exHandoffAdvertise(&server.exThreads[ex_id]);
+}
+
+/* ee451 D: admission front. Candidates stage into the reorder scratch (permuted at drain); every
+ * exclusion — sentinels, cross-shard subs, flush, strict-order mode, level 0 — takes the direct
+ * path BEHIND a drain barrier so cross-boundary arrival order is preserved. */
+static inline void exDispatchPush(int ex_id, client *fake) {
+    if (server.tomo_reorder > 0 && !tomo_rord.draining && server.strict_order == 0 &&
+        fake->cmd && !fake->csparent && !fake->is_flush && !fake->drain_ack &&
+        !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
+        int i = tomo_rord.n;
+        tomo_rord.fk[i]  = fake;
+        tomo_rord.h[i]   = fake->tomo_key_h;
+        tomo_rord.ex[i]  = (uint8_t)ex_id;
+        /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
+         * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
+        uint8_t hd = (fake->parent && fake->parent->dispatchid == fake->parent->flushid + 1) ? 0x80 : 0;
+        tomo_rord.cls[i] = (uint8_t)(fake->cmd->tomo_cls & 0x03) | hd;
+        tomo_rord.n = i + 1;
+        tm_io_sig[iotid].disp_cnt++;
+        int w = atomic_load_explicit(&tomo_disp_window[iotid], memory_order_relaxed);
+        if (tomo_rord.n >= TOMO_RORD_CAP || (w > 0 && tomo_rord.n >= w)) {
+            tomoReorderDrain();
+            tomo_staged_cnt = 0;
+            flushExQueues();
+        }
+        return;
+    }
+    if (tomo_rord.n) tomoReorderDrain();   /* barrier across the candidate/non-candidate boundary */
+    exDispatchDirect(ex_id, fake);
 }
 
 /* ee451 (#B2): fold a retiring fake's per-client command count into its real client.
@@ -5164,6 +5325,45 @@ void tomoSvcTick(void) {
     }
     if (mn_set)
         atomic_store_explicit(&tomo_svc_min_q8, (uint32_t)(mn * 256.0 + 0.5), memory_order_release);
+
+    /* ---- mechanism A: the window law. B = max(svc_min, sojourn/8); W_i = 1 + lam_i * B.
+     * sojourn = qd_mean * svc_mean (Little), all sides measured, same units (µs), no hardware
+     * constant — the /8 is a structural ratio bounding the worst-case staging add at ~12% of the
+     * measured queueing time. Clamp hi = one pop round (POP_BATCH * live workers): staging more
+     * than the workers drain in a round adds delay with no amortization left to buy. 25% publish
+     * deadzone so the 1 Hz tick cannot flap the consumers. */
+    {
+        double svc_sum_us = 0.0, svc_ops = 0.0, qd_sum = 0.0; int qn = 0;
+        for (int k = 0; k < TOMO_SVC_CLASSES; k++) { svc_sum_us += (double)dus[k]; svc_ops += (double)dops[k]; }
+        for (int w = 0; w < nw; w++) { qd_sum += (double)server.exThreads[w].tm_qdepth_ewma_q4 / 16.0; qn++; }
+        double svc_mean = svc_ops > 0.0 ? svc_sum_us / svc_ops : 0.0;
+        double qd_mean  = qn ? qd_sum / qn : 0.0;
+        double svc_min_us = (double)atomic_load_explicit(&tomo_svc_min_q8, memory_order_relaxed) / 256.0;
+        double B = svc_min_us;
+        double soj8 = qd_mean * svc_mean / 8.0;
+        if (soj8 > B) B = soj8;
+        int w_hi = WORKER_POP_BATCH * (nw > 0 ? nw : 1);
+        static unsigned int lam_last[TOMO_IO_THREADS_MAX + 1];
+        int io_hi = server.io_threads + server.tm_ngrow_io;
+        if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
+        for (int t = 0; t <= io_hi; t++) {
+            unsigned int dc = tm_io_sig[t].disp_cnt;
+            double lam_us = (double)(unsigned int)(dc - lam_last[t]) / 1e6;   /* per-second window -> per-µs */
+            lam_last[t] = dc;
+            int wnd = 0;
+            if (svc_ops > 0.0 && B > 0.0) {
+                wnd = 1 + (int)(lam_us * B);
+                if (wnd > w_hi) wnd = w_hi;
+                /* below 3 staged, an early flush cannot beat the pass-end flush it would race —
+                 * publish 0 (= pass-end only) rather than a per-dispatch flush storm */
+                if (wnd <= 2) wnd = 0;
+            }
+            int cur = atomic_load_explicit(&tomo_disp_window[t], memory_order_relaxed);
+            int step = cur >> 2;                     /* 25% deadzone (0 -> always publish) */
+            if (wnd > cur + step || wnd < cur - step)
+                atomic_store_explicit(&tomo_disp_window[t], wnd, memory_order_release);
+        }
+    }
 }
 
 /* ee451 D: stamp each command's cost class once. Name lists are prefixes over declared_name;
@@ -7658,13 +7858,15 @@ int getWorkerForCommand(client *c) {
      * Both are read-only, single-key and deterministic, so they are safe to dispatch once hashed
      * on the RIGHT argument. */
     if (tomoKeyAtArgv2(c)) {
-        int b = tomoKeyBucket(c->argv[2]->ptr, sdslen(c->argv[2]->ptr));
-        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[2]->ptr;
+        uint64_t h = xxh64(c->argv[2]->ptr, sdslen(c->argv[2]->ptr));
+        int b = (int)(h & TOMO_BUCKET_MASK);
+        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[2]->ptr; c->tomo_key_h = h;
         return (int)server.ex_bucket_table[b];
     }
     {
-        int b = tomoKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
-        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[1]->ptr;
+        uint64_t h = xxh64(c->argv[1]->ptr, sdslen(c->argv[1]->ptr));
+        int b = (int)(h & TOMO_BUCKET_MASK);
+        c->tomo_bkt = b; c->tomo_bkt_ptr = c->argv[1]->ptr; c->tomo_key_h = h;
         return (int)server.ex_bucket_table[b];
     }
 }
@@ -14839,6 +15041,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * pre-divided into a ratio. */
         {
             unsigned long long io_busy = 0, ex_busy = 0, io_idle = 0, ex_idle = 0;
+            unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
+            for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
+                rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
+                rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
+            }
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
@@ -14860,6 +15067,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_svc_us_c2:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[2], memory_order_relaxed) / 256.0,
                 "tomokv_svc_us_c3:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[3], memory_order_relaxed) / 256.0,
                 "tomokv_svc_min_us:%.2f\r\n", atomic_load_explicit(&tomo_svc_min_q8, memory_order_relaxed) / 256.0,
+                "tomokv_disp_window_io1:%d\r\n", atomic_load_explicit(&tomo_disp_window[1], memory_order_relaxed),
+                "tomokv_rord_runs:%llu\r\n", (unsigned long long)rord_runs_sum,
+                "tomokv_rord_heads:%llu\r\n", (unsigned long long)rord_heads_sum,
+                "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
+                "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
@@ -16281,6 +16493,9 @@ void exQueueInit(exQueue *q) {
  * cannot see it. One store publishes all the jobs[] writes that happened-before
  * it (standard SPSC batch publish). */
 void flushExQueues(void) {
+    if (tomo_rord.n) tomoReorderDrain();   /* D: reorder scratch never survives a flush boundary */
+    tomo_staged_cnt = 0;   /* D: pass-end flush also restarts the window count */
+
     exThread *ex = server.exThreads;
     if (!ex) return;
     /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop.
@@ -17253,9 +17468,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * U_ex of 133x, 172x, and a NEGATIVE reading once the unsigned counter wrapped.
          * One vDSO read, only on the first pop of a pass. */
         if (!any) ctx->tm_mark = getMonotonicUs();
-        if (server.thread_auto) {
-            /* standing-backlog probe stays gated: two atomic loads per queue per pass, and only
-             * the controller consumes it. */
+        {
+            /* ee451 D (2026-08-05): UNGATED. Was thread_auto-only ("only the [flip] controller
+             * consumes it") — the D window law is a second consumer and it must work in static
+             * mode, where the gate left qd_ewma at 0, the sojourn term at 0, and the law
+             * computing W=1 = a flush-per-dispatch storm (measured -3% on p32 SET). Cost is two
+             * cache-hot atomic loads per non-empty lane per work pass. */
             unsigned int tm_h = atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed);
             unsigned int tm_t = atomic_load_explicit(&worker->queues[i].tail, memory_order_acquire);
             tm_pass_depth += (int)((tm_t - tm_h) & server.ex_queue_mask);

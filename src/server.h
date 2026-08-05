@@ -1897,6 +1897,11 @@ typedef struct client {
                                 * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
                                 * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
     int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
+    uint64_t tomo_key_h;       /* ee451 D: the routing xxh64, kept whole. The reorder's dependency
+                                * guard compares these (same key => same h => always caught; a
+                                * 2^-64 collision lands on the safe fence side) and derives bucket
+                                * equality from the low bits for locality grouping. One u64 store
+                                * per keyed dispatch, at the site that computed the hash anyway. */
     struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
                                 * workers rendezvous at their sentinels; the LAST arrival empties the
                                 * shared node kvstore while the others spin (µs), preserving the
@@ -3919,6 +3924,10 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
+                                * path), 1=worker partition (structural), 2=+class SJF + same-key
+                                * guard + same-bucket grouping. Mutually exclusive with
+                                * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
@@ -5299,6 +5308,7 @@ void usage(void);
 void updateDictResizePolicy(void);
 void populateCommandTable(void);
 void tomoSvcTick(void);   /* ee451 D: 1 Hz svc-plane fold */
+void tomoReorderDrain(void);   /* ee451 D: reorder scratch -> lanes (flushExQueues top) */
 robj *commandNameIntern(const char *p, size_t len);  /* ee451 (v14): argv[0] interning */
 void resetCommandTableStats(dict* commands);
 void resetErrorTableStats(void);
