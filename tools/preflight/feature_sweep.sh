@@ -1122,11 +1122,26 @@ section_C() {
             done
             sleep 2
             grep -aqE "reshard (ARM|AUTO)" "$flog" && armed=1
+            # A reshard that ARMS near the end of the stimulus window is IN FLIGHT, not stuck.
+            # Measured 2026-08-05: this cell tore the server down 101ms after "reshard FLIP" --
+            # ownership had ALREADY changed hands -- and reported "stuck migration". The lifecycle
+            # is AUTO -> ARM -> DRAINING -> FLIP -> DONE, and DONE waits on the destination
+            # worker's heartbeat, so a late arm needs a beat to finish. Give it bounded time.
+            if [ -z "$done_seen" ] && [ -n "$armed" ]; then
+                for _ in $(seq 1 60); do
+                    grep -aq "reshard DONE" "$flog" && break
+                    sleep 0.5
+                done
+            fi
             grep -aq "reshard DONE" "$flog" && done_seen=1
             if [ -n "$done_seen" ]; then
                 row $sec reshard-done "$cfg4" PASS "$(grep -a 'reshard DONE' "$flog" | head -1 | sed 's/.*ee451/ee451/')"
+            elif [ -n "$armed" ] && grep -aq "reshard FLIP" "$flog"; then
+                # Ownership DID change hands and only the completion tail is missing -- a different
+                # thing from a migration that never flipped. Do not report both as "stuck".
+                row $sec reshard-done "$cfg4" FAIL "ownership FLIPPED but no DONE within 30s (completion tail stuck): $(grep -aE 'reshard FLIP' "$flog" | tail -1)"
             elif [ -n "$armed" ]; then
-                row $sec reshard-done "$cfg4" FAIL "reshard ARMED but never reached DONE (stuck migration): $(grep -aE 'reshard (ARM|AUTO)' "$flog" | tail -1)"
+                row $sec reshard-done "$cfg4" FAIL "reshard ARMED but never reached FLIP (stuck migration): $(grep -aE 'reshard (ARM|AUTO)' "$flog" | tail -1)"
             else
                 row $sec reshard-done "$cfg4" SUSPECT "reshard never armed under hot-worker load (box noise or trigger gating; check $flog)"
             fi
