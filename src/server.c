@@ -14633,7 +14633,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 int listening = (t != 0) &&
                     (ic ? (ic->io_listening != 0)
                         : (t < server.io_threads));
-                if (t >= server.io_threads && !listening && nc == 0) continue; /* retired+empty */
+                /* NO FILTER (2026-08-05): a drained slot's "clients=0,listening=0" row is exactly
+                 * what an IO-EXIT observer needs (SHIFT-ioexit read NA because the tombstone was
+                 * hidden). The row count is bounded by the pool (<= io+workers+1 ~ 9 lines). */
                 info = sdscatprintf(info, "tomo_io_thread_%d:clients=%lu,listening=%d\r\n",
                                     t, nc, listening);
             }
@@ -19653,6 +19655,12 @@ typedef struct {
      * resets it, so a genuine persistent shift still probes with bounded delay. */
     int      veto_run;       /* consecutive net-zero (vetoed) climbs from the same operating point */
     int      start_io;       /* io_live_node when the current climb STARTED (net-zero detector) */
+    double   veto_lr;        /* lr_ewma at the last vetoed climb's TRIGGER — the same-wave latch:
+                              * after 2 net-zero probes, only a MATERIALLY different signal state
+                              * (|lr - veto_lr| > gstep, one whole thread-move) may trigger again.
+                              * The same periodic wave re-presenting the same lr is suppressed
+                              * outright, where backoff alone only slowed it (measured: probes at
+                              * ~80s period, 4 flips/160s, after backoff halved the original 8). */
     double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     /* OCCUPANCY = 100 - idle%, EWMA(FESC_ALPHA), the ONLY utilization signal the ratio is built
@@ -20821,7 +20829,14 @@ static void tomoFlipController(void) {
         if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
         {
             int need = FLIP_SUSTAIN << (fc->veto_run > 3 ? 3 : fc->veto_run);
-            if (fc->lr_out_run >= need) {
+            /* SAME-WAVE LATCH: two net-zero probes prove throughput rejects THIS signal level in
+             * THIS direction. A periodic disturbance re-presents ~the same lr every cycle —
+             * re-probing it is pure cost (each probe = 2 flips + a walkback dip). Demand a
+             * materially DIFFERENT state: one whole thread-move of ratio (gstep) away from the
+             * level that pulled the last vetoed trigger. A genuine workload change moves lr well
+             * past gstep (p32<->p1 swings it ~1.0+) and still probes immediately. */
+            int same_wave = (fc->veto_run >= 2 && fabs(fc->lr_ewma - fc->veto_lr) <= gstep);
+            if (fc->lr_out_run >= need && !same_wave) {
                 if (out > 0 && can_front) want = +1;
                 else if (out < 0 && can_back) want = -1;
             }
@@ -20902,6 +20917,7 @@ static void tomoFlipController(void) {
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
             fc->start_io = io_live_node;              /* net-zero detector: where this climb began */
+            fc->veto_lr = fc->lr_ewma;                /* same-wave latch: the lr that pulled this trigger */
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
