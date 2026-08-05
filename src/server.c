@@ -19497,6 +19497,8 @@ typedef struct {
     int      last_dir;       /* direction of the probe under evaluation */
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
+    int      refuse_run;     /* consecutive refused climb steps; >= FLIP_SUSTAIN => structural */
+    double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     /* OCCUPANCY = 100 - idle%, EWMA(FESC_ALPHA), the ONLY utilization signal the ratio is built
      * from. The CPU-time pair (busy_smooth / io_busy_smooth) was deleted 2026-08-04: it called a
@@ -19561,13 +19563,32 @@ static flipCtlState fctl[TM_MAXNODE];
  * Worked in LOG space, so |log r| is symmetric and ONE band replaces the old dz_front AND
  * dz_back. The band is centred on the ANCHOR — the log-ratio measured at a settled operating
  * point — so the controller LEARNS that balanced is 1.74 here instead of assuming 1.0. --- */
-#define FLIP_BOUND_SAT   0.95  /* total sat (= max of the two roles) at or above this => the SERVER is
+#define FLIP_BOUND_SAT   0.75  /* total sat (= max of the two roles) at or above this => the SERVER is
                                 * the constraint and a flip can win something. Below it no stage is
                                 * saturated, so the CLIENT or the round trip is the constraint and
-                                * there is nothing to win — hold, and stop burning migrations. The
-                                * LB's goal is to reach this state. 0.95 not 1.0 because a role
-                                * that is genuinely saturated reads a shade under 1 once the busy
-                                * sampler and the EWMA have smoothed it. */
+                                * there is nothing to win — hold, and stop burning migrations.
+                                *
+                                * WAS 0.95, on the reasoning that "a role that is genuinely
+                                * saturated reads a shade under 1". That was true of CPU TIME. It
+                                * is NOT true of OCCUPANCY (2026-08-04): a constrained EX role has
+                                * real pipeline bubbles and structurally cannot reach 0.95, so the
+                                * occupancy change invalidated this threshold's calibration and it
+                                * should have been re-derived then. Measured occupancy of the
+                                * BUSIEST role at each workload's own optimum:
+                                *     p32 SET  io4ex4   ex 0.834   io 0.993
+                                *     p32 ZR   io4ex4   ex 0.90    io 0.37
+                                *     p1  GET  io7ex1   io 0.996   ex 0.32
+                                * against 0.02-0.37 for a role that is genuinely not the
+                                * constraint. So a constrained role lives at 0.83-1.0 and 0.95 cut
+                                * straight through the legitimate range: p32 ZRANGE from a cold
+                                * io4ex4 boot read 0.90 steady, was labelled CLIENT-bound, and held
+                                * at 95% of peak with its band, floor and direction all already
+                                * correct.
+                                *
+                                * 0.75 is not a new number — it is the distress point the quorum
+                                * pressure balancer already calibrates against (busy_hi, see the
+                                * io_sat/ex_sat comment) — and any value in ~0.5-0.8 separates the
+                                * two populations, so this is not a knife edge. */
 #define FLIP_R_FAR       0.69  /* |log r| past this (=2x imbalance) means the split is grossly
                                 * wrong: take the fast warmup, the sign is not in doubt */
 #define FLIP_R_BAND      0.03  /* deadzone half-width: flip when the ratio leaves
@@ -19786,7 +19807,13 @@ static void tomoFlipController(void) {
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
 
         int can_front = (w_live > 1);
-        int can_back  = (io_live_node > 0) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
+        /* io_live_node >= 2: IO-EXIT hands the exiting thread's connections to ANOTHER live poly
+         * IO thread, and slot 0 is main (which never runs ioSlice, so it is not a destination).
+         * With one poly IO thread left there is nowhere to migrate to and tmFlipDo refuses --
+         * permanently, since the only thing that could change it is the grow-back being refused.
+         * Without this the pre-check said "go" and the actuator said "no" forever (see the
+         * refusal-run guard below for what that cost). */
+        int can_back  = (io_live_node >= 2) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
                                                            : (io_live_node > server.io_per_node));
 
         /* --- BACK pressure = ex-worker utilization: per-worker busy-us delta / wall (0-100),
@@ -20011,7 +20038,24 @@ static void tomoFlipController(void) {
          *   GET io4ex4:                       io_sat .99 / ex_sat .41 => total .99 => SERVER-bound
          *                                     => flip toward IO, which IS faster (8.2M -> 9.7M). */
         double sat_total = fmax(io_sat, ex_sat);
-        int server_bound = (sat_total >= FLIP_BOUND_SAT);
+        /* ee451 2026-08-05: FILTER THE BOUND TEST, like every other input to this controller.
+         *
+         * An instantaneous threshold on a noisy signal is a gate that flickers, and this one does
+         * more than decline to act -- it RESETS lr_out_run (below), so a single blocked tick in
+         * every eight makes the FLIP_SUSTAIN run of 8 unreachable, forever, silently.
+         *
+         * Measured on p32 ZRANGE from a cold io4ex4 boot (static optimum io2ex6, 1.17M): sat_total
+         * oscillated 0.94-1.09 across the 0.95 threshold, so the log alternated SRV-BOUND /
+         * CLI-BOUND, the sustain run never completed, and the controller held at 1.11M -- 95% of
+         * peak -- while its own band and floor had both already passed and its direction was
+         * right. It had the whole answer and the gate kept resetting the evidence.
+         *
+         * EWMA at FESC_ALPHA is the same horizon io_occ/ex_occ/lr already use, so this is one
+         * filter applied consistently rather than a second threshold or a hysteresis band. The
+         * genuine client-bound case (load actually withdrawn) moves the EWMA within ~4 ticks and
+         * still gates; only the tick-to-tick jitter is removed. */
+        fc->sat_smooth += FESC_ALPHA * (sat_total - fc->sat_smooth);
+        int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);
         /* The decision signal: log of the saturation RATIO (see FLIP_R_BAND). Smoothed, so a
          * single-tick pressure spike can neither start a spurious climb nor be captured as an
          * anchor (that failure was seen as io7/ex1 oscillation: steady pressure ~0.55 but a lone
@@ -20416,9 +20460,15 @@ static void tomoFlipController(void) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge %d past best -> walk back",
                               node, d > 0 ? "grow-front" : "grow-back", fc->best_dist);
                 } else {
-                    fc->dir = 0; fc->just_settled = 1;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge -> hold",
-                              node, d > 0 ? "grow-front" : "grow-back");
+                    /* Anchor only if the pressure still agrees with the direction we were climbing
+                     * (see the refusal branch): hitting the FRONT edge under p1 GET with r still
+                     * >1 is a real settle and must anchor, but hitting an edge because the
+                     * WORKLOAD reversed must not pin the band onto the config we are stuck at. */
+                    int pressure = (fc->lr_ewma > 0.0) ? +1 : -1;
+                    fc->dir = 0; fc->just_settled = (pressure == d);
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s hit pool edge -> hold%s",
+                              node, d > 0 ? "grow-front" : "grow-back",
+                              fc->just_settled ? "" : " (pressure reversed — not anchoring)");
                 }
                 continue;
             }
@@ -20426,7 +20476,7 @@ static void tomoFlipController(void) {
             const char *err = NULL;
             if (tmFlipDo(node, d, &err)) {
                 if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped */
-                fc->revert_dir = 0; fc->revert_retry = 0;
+                fc->revert_dir = 0; fc->revert_retry = 0; fc->refuse_run = 0;
                 fc->last_dir = d;
                 fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
                 fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
@@ -20435,10 +20485,39 @@ static void tomoFlipController(void) {
                           node, d > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, fc->before);
                 break;                                       /* one flip per tick (single migration gate) */
             } else if (err) {
-                /* review [9]: a REFUSAL is transient (a migration slot momentarily busy), NOT a
-                 * permanent operating point — do NOT pin the deadzone; pause and RETRY (dir kept). */
+                /* review [9]: a REFUSAL is USUALLY transient (a migration slot momentarily busy),
+                 * so pause and RETRY with dir kept.
+                 *
+                 * ee451 2026-08-05: but NOT ALWAYS, and an unbounded retry is a WEDGE. Measured on
+                 * p1GET -> p32ZRANGE -> p1GET: the ZRANGE phase correctly walked io7ex1 -> io2ex6,
+                 * then the load switched back to p1 GET, which wants io7ex1. The controller had
+                 * the right signal the whole time (io_sat 0.97, ex_sat 0.06, r=16.17) but was
+                 * still mid-climb with dir=-1 from the ZRANGE phase, retrying a grow-back that can
+                 * NEVER succeed -- at one poly IO thread there is nobody to hand the conns to. The
+                 * band, which would have said +1, is only evaluated when dir==0, so it never ran:
+                 * 0 flips for 90s at 337k against the 816k that config-for-load was worth (41%).
+                 * The same wedge is reachable with a long-lived pubsub/blocked/MULTI client, whose
+                 * "pins a non-migratable conn" refusal is equally permanent.
+                 *
+                 * FLIP_SUSTAIN is the existing "persisted this long => not a transient" quantum
+                 * (it is what the band excursion must survive), so reuse it rather than invent a
+                 * second threshold. */
                 serverLog(LL_NOTICE, "[flip-ctl n%d] climb %s refused: %s -> retry", node, d > 0 ? "grow-front" : "grow-back", err);
                 fc->wait = FESC_WAIT_BASE;
+                if (++fc->refuse_run >= FLIP_SUSTAIN) {
+                    int pressure = (fc->lr_ewma > 0.0) ? +1 : -1;
+                    serverLog(LL_WARNING, "[flip-ctl n%d] climb %s refused %d times — STRUCTURAL, not "
+                              "transient; ending the climb so the band can re-decide (r=%.2f => wants %s)",
+                              node, d > 0 ? "grow-front" : "grow-back", fc->refuse_run,
+                              exp(fc->lr_ewma), pressure > 0 ? "grow-front" : "grow-back");
+                    fc->refuse_run = 0;
+                    fc->dir = 0;
+                    /* Anchor ONLY if the pressure still agrees with the climb we were running. A
+                     * climb refused while the pressure has REVERSED means the world changed under
+                     * us, and pinning the band on this point would centre the deadzone on the very
+                     * config we are stuck at -- converting a retry wedge into an anchor wedge. */
+                    fc->just_settled = (pressure == d);
+                }
             }
             continue;
         }
@@ -20585,7 +20664,7 @@ static void tomoFlipController(void) {
              * exactly how the old deadzone got pinned at 0.65 against a steady 0.28. */
             if (now - last_log >= 5000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% floor=%.2f tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d",
-                          node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, exp(gfloor), sat_total,
+                          node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, exp(gfloor), fc->sat_smooth,
                           server_bound ? "SRV-BOUND" : "CLI-BOUND",
                           c_ex, q_io, qd_max, u_io, u_ex, w_live, io_live_node,
                           pool_live, pool_want);
