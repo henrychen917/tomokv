@@ -988,6 +988,15 @@ NULL
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
+        /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
+         * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose
+         * on. The standard HOLD line samples a 4Hz controller at 0.2Hz, which is far too coarse to
+         * tell a slow convergence from a resting oscillation. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tm_flip_trace = (on != 0);
+        addReplyStatus(c, tm_flip_trace ? "flip trace ON" : "flip trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-modeshift") && c->argc == 3) {
         /* DEBUG TOMO-MODESHIFT <mode> -- manual actuator for the thread-mode machinery, moved here
          * from the retired `tomokv-modeshift-test` config knob (2026-07-28, knob surface 55 -> 11).

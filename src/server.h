@@ -2427,6 +2427,15 @@ typedef struct exThread {
      * worker-private (written only by the owning worker), so they share a line only with
      * other worker-private fields — the property that matters is that they are NOT next to
      * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
+    /* ee451 2026-08-04 (OBSERVATION ONLY — not a decision input yet). Wall µs this worker spent
+     * with an EMPTY QUEUE, measured as whole idle EPISODES (2 clock reads per episode, never per
+     * spin round). Pairs with tmIoSignal.tm_idle_us, which measures the same physical question on
+     * the IO side. Together with tm_busy_us they decompose wall time three ways:
+     *     busy (work) | idle (no work available) | residual (work available, NOT SCHEDULED)
+     * The residual is the one that matters for balance: it means the role is starved of CPU, not
+     * of threads, so growing that role cannot help. Neither u_io nor u_ex can currently tell the
+     * two apart, which is exactly why r=1 does not yet mean "balanced". */
+    unsigned int tm_idle_us;
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
                                       * accumulating). The balancer's BUSY vote uses this TIME
@@ -5895,6 +5904,7 @@ void pexpiretimeCommand(client *c);
 void persistCommand(client *c);
 void replicaofCommand(client *c);
 void roleCommand(client *c);
+extern int tm_flip_trace;
 void debugCommand(client *c);
 void msetCommand(client *c);
 void msetnxCommand(client *c);

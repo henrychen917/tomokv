@@ -216,6 +216,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* client-LB load weight only: EWMA (Q4, alpha 1/8) of IO events/pass.
                          * NOT a utilization signal and not consumed by the flip controller. */
+    unsigned int tm_idle_us; /* ee451 2026-08-04 (OBSERVATION ONLY): wall µs in zero-event passes,
+                              * i.e. this thread had NO work. Same episode measurement as
+                              * exThread.tm_idle_us so the two roles are directly comparable. */
     unsigned int tm_busy_us; /* thread CPU µs consumed while serving the IO role. Like
                               * exThread.tm_busy_us, this is a wrap-safe cumulative counter;
                               * blocked poll time does not advance it, while zero-timeout drain
@@ -263,6 +266,11 @@ _Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
 _Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
                "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+/* DEBUG TOMO-FLIPTRACE 1 -- dense per-TICK dump of the flip controller's inputs. The normal HOLD
+ * line is rate limited to one per 5s, i.e. 0.2Hz sampling of a 4Hz controller, which is how a whole
+ * day of diagnosis ended up guessing between "converges slowly" and "thrashes at rest". Off by
+ * default; a test hook, not a tunable. */
+int tm_flip_trace = 0;
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
@@ -14712,20 +14720,23 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * itself under investigation — which is exactly why these are exposed raw rather than
          * pre-divided into a ratio. */
         {
-            unsigned long long io_busy = 0, ex_busy = 0;
+            unsigned long long io_busy = 0, ex_busy = 0, io_idle = 0, ex_idle = 0;
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
                 if ((!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO)
                     && t >= server.io_threads) continue;      /* grown slot not serving IO */
-                io_busy += tm_io_sig[t].tm_busy_us; nio++;
+                io_busy += tm_io_sig[t].tm_busy_us; io_idle += tm_io_sig[t].tm_idle_us; nio++;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
             for (int w = 0; w < wlive && w < TOMO_EX_THREADS_MAX; w++)
-                ex_busy += server.exThreads[w].tm_busy_us;
+                { ex_busy += server.exThreads[w].tm_busy_us;
+                  ex_idle += server.exThreads[w].tm_idle_us; }
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
+                "tomokv_io_idle_us:%llu\r\n", io_idle,
+                "tomokv_ex_idle_us:%llu\r\n", ex_idle,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
@@ -16824,6 +16835,8 @@ typedef struct exSliceCtx {
     /* ee451 (thread-modes step 4): time-accounting mark for the busy-time signal — the
      * monotonic timestamp of the last accounting event (work-pass end or yield). */
     uint64_t tm_mark;
+    /* ee451 2026-08-04 (OBSERVATION ONLY): start of the current idle episode, 0 when not idle. */
+    uint64_t tm_idle_mark;
     /* pop/execute scratch. Contents never persist across passes; it lives here
      * (not on the slice stack) only so the slice body is the verbatim old loop. */
     client *batch[WORKER_POP_BATCH];
@@ -17290,6 +17303,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * compared against a measured throughput curve. Cost is unchanged in auto mode and
              * two vDSO reads per work pass in static. */
             worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
+            /* close any open idle episode: work is here, so the drought ended when we popped. */
+            if (ctx->tm_idle_mark) {
+                worker->tm_idle_us += (unsigned int)(ctx->tm_mark - ctx->tm_idle_mark);
+                ctx->tm_idle_mark = 0;
+            }
         }
         /* ee451 (v14): the pop batch is the compile-time MAX, honestly. Demand-adaptive caps were
          * implemented two ways (per-pass comparator w/ 2-bit confirmation; Q4 demand-EWMA) and both
@@ -17320,6 +17338,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * to yield, it was wasted: halve it (floor 4). Multiplicative,
          * workload-clocked, re-tunes every idle episode. 16 PAUSEs/round
          * is the quantum (~30-60ns on Zen). */
+        if (!ctx->tm_idle_mark) ctx->tm_idle_mark = getMonotonicUs();  /* episode start (once) */
         for (int p = 0; p < 16; p++) exPauseCpu();
         ctx->empty_rounds++;
     } else {
@@ -17332,6 +17351,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * here: it is clocked first-pop..fold within work passes.) */
         if (server.thread_auto)
             worker->tm_qdepth_ewma_q4 -= worker->tm_qdepth_ewma_q4 >> 3;
+        /* The yield branch zeroes empty_rounds, so the spin branch would re-stamp and lose the
+         * elapsed span. Fold what has accrued and re-open across the yield instead. */
+        {
+            uint64_t inow = getMonotonicUs();
+            if (ctx->tm_idle_mark) worker->tm_idle_us += (unsigned int)(inow - ctx->tm_idle_mark);
+            ctx->tm_idle_mark = inow;
+        }
         sched_yield();
         ctx->empty_rounds = 0;
     }
@@ -17999,6 +18025,7 @@ void initIOThreads(void) {
 #define TOMO_IO_CPU_SAMPLE_US 16000
 
 static __thread uint64_t tm_io_cpu_last_ns;   /* CLOCK_THREAD_CPUTIME_ID at the last sample */
+static __thread uint64_t tm_io_idle_mark;     /* start of the current zero-event episode, 0 = busy */
 static __thread uint64_t tm_io_cpu_next_us;   /* monotonic gate for the next sample */
 
 static inline uint64_t tmThreadCpuNs(void) {
@@ -18041,6 +18068,25 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
                 s->tm_busy_us += (unsigned int)((cpu - tm_io_cpu_last_ns) / 1000);
             tm_io_cpu_last_ns = cpu;
             tm_io_cpu_next_us = now_us + TOMO_IO_CPU_SAMPLE_US;
+        }
+        /* ee451 2026-08-04 (OBSERVATION ONLY): idle EPISODES = runs of zero-event passes. A pass
+         * that returns no events found nothing to do, so the whole span until work reappears is
+         * "no work available" — the identical question exSlice answers with an empty queue scan.
+         * getMonotonicUs is already read every pass just above, so this costs a compare and an add. */
+        if (ne == 0) {
+            /* Fold on the same gate as the CPU sample, not only at the end of the episode: a
+             * thread with NO work never sees ne>0, so an end-folded episode would stay open
+             * forever and tm_idle_us would never advance — an idle thread would read as 100%
+             * occupied, the exact inverse of the truth. Bounded staleness = one gate (16ms),
+             * well inside the controller's 250ms tick. */
+            if (!tm_io_idle_mark) tm_io_idle_mark = now_us;
+            else if (now_us - tm_io_idle_mark >= TOMO_IO_CPU_SAMPLE_US) {
+                s->tm_idle_us += (unsigned int)(now_us - tm_io_idle_mark);
+                tm_io_idle_mark = now_us;
+            }
+        } else if (tm_io_idle_mark) {
+            s->tm_idle_us += (unsigned int)(now_us - tm_io_idle_mark);
+            tm_io_idle_mark = 0;
         }
     }
     /* Events/pass remains useful as a relative per-thread weight for client placement,
@@ -19439,7 +19485,13 @@ typedef struct {
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
-    int      busy_smooth;    /* leaky-smoothed hottest-ex-worker utilization % (back-pressure signal) */
+    int      busy_smooth;    /* EWMA(FESC_ALPHA) of MEAN ex-worker utilization % (back-pressure signal) */
+    int      io_busy_smooth; /* EWMA(FESC_ALPHA) of MEAN io-thread utilization % — SAME filter as busy_smooth */
+    /* OCCUPANCY = 100 - idle%. THIS is what the ratio is built from; the two *_busy_smooth above
+     * are kept for INFO/diagnosis only. See the u_io/u_ex comment for the measurement that forced
+     * the change (CPU-time called a 43%-below-peak config "balanced"). */
+    int      io_occ_smooth;
+    int      ex_occ_smooth;
     int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     double   lr_ewma;        /* EWMA of log(io_sat/ex_sat) — the smoothed DECISION signal */
@@ -19555,6 +19607,8 @@ static void tomoFlipController(void) {
     static mstime_t prev_wall = 0, last_log = 0;
     static uint32_t fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_busy_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
+    static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static mstime_t fc_prev_busy_wall[TM_MAXNODE];
     mstime_t now = mstime();
     long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
@@ -19653,7 +19707,7 @@ static void tomoFlipController(void) {
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
         }
-        long io_busy_sum = 0; int io_busy_cnt = 0, io_live_node = 0;
+        long io_busy_sum = 0, io_occ_sum = 0; int io_busy_cnt = 0, io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
@@ -19663,16 +19717,39 @@ static void tomoFlipController(void) {
             uint32_t cb = tm_io_sig[t].tm_busy_us;
             uint32_t db = cb - fc_prev_io_busy_us[node][t];
             fc_prev_io_busy_us[node][t] = cb;
+            uint32_t ci = tm_io_sig[t].tm_idle_us;
+            uint32_t di = ci - fc_prev_io_idle_us[node][t];
+            fc_prev_io_idle_us[node][t] = ci;
             polyThreadCtx *ic = tmCtxForIotid(t);
             if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 if (t >= server.io_threads) continue;      /* growth slot not live */
             }
             int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0; /* us/(ms*1000)*100 */
             if (b > 100) b = 100;
-            io_busy_sum += b; io_busy_cnt++;
+            int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;
+            if (oi > 100) oi = 100;
+            io_busy_sum += b; io_occ_sum += (100 - oi); io_busy_cnt++;
             io_live_node++;
         }
         int io_busy_mean = io_busy_cnt ? (int)(io_busy_sum / io_busy_cnt) : 0;
+        /* ee451 2026-08-04 (SIGNAL SYMMETRY): filter BOTH roles identically.
+         *
+         * u_ex came from busy_smooth, an EWMA(0.25) — roughly a 4-tick (1s at 4Hz) horizon — while
+         * u_io was the RAW per-tick mean. The ratio of a fast signal to a slow one is not a ratio
+         * of utilizations during any transient: on a load STEP the IO term moves immediately and
+         * the EX term takes ~4 ticks to catch up, so r = io_sat/ex_sat spikes HIGH and the
+         * controller reads "IO is the constraint" from nothing but filter lag. The bias has a
+         * fixed sign (always toward growing IO on a rising edge), so it does not average out, and
+         * it is largest exactly when the workload changes — the moment the anchor is most likely
+         * to be captured at the wrong place.
+         *
+         * Same alpha, same horizon, so r=1 compares like with like at every tick, not only in
+         * steady state. NOTE the raw io_busy_mean is still what node_idle tests: idleness is an
+         * instantaneous fact about THIS tick, and a decaying EWMA would keep a just-gone-idle node
+         * looking busy for several ticks. */
+        int io_occ_mean = io_busy_cnt ? (int)(io_occ_sum / io_busy_cnt) : 0;
+        fc->io_busy_smooth += (int)(FESC_ALPHA * (io_busy_mean - fc->io_busy_smooth));
+        fc->io_occ_smooth  += (int)(FESC_ALPHA * (io_occ_mean  - fc->io_occ_smooth));
         double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
@@ -19688,7 +19765,11 @@ static void tomoFlipController(void) {
          * idle when the node executed nothing AND shows no queued/ingress pressure — a purely
          * observational fact, not a threshold. Idle ticks freeze mean/var (and the settle/judge
          * phases below see an unchanged mean rather than a crater). */
-        int node_idle = (inst <= 0.0) && (qd_max < (1.0/16.0)) && (io_busy_mean == 0);
+        /* OCCUPANCY, not CPU: an idle IO thread SPINS (drain spin / short poll timeout), so
+         * io_busy_mean can sit well above 0 on a node serving nothing — the idle test would then
+         * never fire and idle ticks would keep polluting the throughput variance, which is the
+         * failure the test exists to prevent. Occupancy is 0 exactly when there is no work. */
+        int node_idle = (inst <= 0.0) && (qd_max < (1.0/16.0)) && (io_occ_mean == 0);
         if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
         else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
@@ -19716,17 +19797,23 @@ static void tomoFlipController(void) {
          *
          * Smoothing also slowed from alpha 0.5 to FESC_ALPHA (0.25), matching the horizon every
          * other decision input already uses. --- */
-        int busy_sum = 0, busy_n = 0;
+        int busy_sum = 0, occ_sum = 0, busy_n = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
             uint32_t cb = et->tm_busy_us, db = cb - fc_prev_ex_busy_us[node][w];
             fc_prev_ex_busy_us[node][w] = cb;
+            uint32_t ci = et->tm_idle_us, di = ci - fc_prev_ex_idle_us[node][w];
+            fc_prev_ex_idle_us[node][w] = ci;
             int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0;   /* us/(ms*1000)*100 */
             if (b > 100) b = 100;
-            busy_sum += b; busy_n++;
+            int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;
+            if (oi > 100) oi = 100;
+            busy_sum += b; occ_sum += (100 - oi); busy_n++;
         }
         int busy_mean = busy_n ? (busy_sum / busy_n) : 0;
+        int occ_mean  = busy_n ? (occ_sum  / busy_n) : 0;
         fc->busy_smooth += (int)(FESC_ALPHA * (busy_mean - fc->busy_smooth));
+        fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
          * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
@@ -19791,10 +19878,45 @@ static void tomoFlipController(void) {
          * "75% busy" and NOT "input == output". Every rule built on top was therefore comparing
          * something other than what it claimed to. /100 is what makes 1.0 mean what it says.
          *
-         * Residual asymmetry, deliberately left and worth knowing: io_busy_mean is a MEAN over the
-         * IO threads while busy_smooth is the HOTTEST worker. For "is this role the constraint"
-         * the hottest worker is the right question on the EX side (one pegged worker bounds the
-         * stage), but the two are not the same statistic.
+         * Both roles are now the SAME statistic through the SAME filter: EWMA(FESC_ALPHA) of the
+         * per-thread MEAN OCCUPANCY, where occupancy = 1 - (measured wall time with NO WORK
+         * AVAILABLE). (Was: raw-mean IO vs EWMA-hottest EX — two different estimators on two
+         * different horizons, so r=1 did not mean "balanced".)
+         *
+         * WHY OCCUPANCY AND NOT CPU TIME. Measured 2026-08-04, static sweep, p32 SET, 8 cores:
+         *
+         *     cfg      ops/s    u_io(cpu)  idle_io   r_cpu    r_occ
+         *     io4ex4   7.33M      0.989     0.006    1.224    1.171   <- PEAK
+         *     io5ex3   6.31M      0.988     0.020    1.062    1.002
+         *     io6ex2   4.17M      0.914     0.413    0.982    0.598
+         *
+         * At io6ex2 the CPU-time ratio reads 0.982 — dead on 1, inside any sane band — for a
+         * config running at 57% of peak. An over-provisioned IO thread does not block, it SPINS
+         * (the drain spin / short poll timeout), so scheduled CPU counts polling an empty socket
+         * set as work: busy 0.914 while genuinely having nothing to do 41.3% of the time (the two
+         * sum to 1.327 — they overlap, which is the tell). A controller fed that signal cannot
+         * see over-provisioning at all, declares the config balanced, and holds. Occupancy reads
+         * the same config at 0.598 and correctly says "too much IO".
+         *
+         * Occupancy also separates "no work" from "no CPU": at p1 GET io7ex1 the IO threads are
+         * runnable-but-descheduled 14% of the time (busy 0.855, idle 0.004). CPU time reports
+         * that as 15% slack that growing IO could fill; occupancy reports 0.996 — fully occupied,
+         * starved of cores, not of threads — which is the truth and the correct thing to hold on.
+         *
+         * NOTE r=1 still does not sit exactly on the peak, and no reweighting of these two signals
+         * can put it there: the optimum r is workload-dependent (1.17 at p32 SET, 3.11 at p1 GET
+         * where the box runs out of cores before IO stops being the constraint). That is what the
+         * ANCHOR is for — r=1 is only the STARTING guess and the direction of travel; the anchor
+         * re-centres the band on wherever throughput actually settled. Occupancy's job is not to
+         * make 1 the optimum, it is to stop 1 from landing on a config that is 43% wrong.
+         *
+         * IO SLOT 0 IS NOT IN THE MEAN, AND MUST NOT BE. --tomokv-thread-io N starts poly IO
+         * threads with iotid 1..N-1 only; slot 0 is main's default iotid and main runs aeMain,
+         * never ioSlice, so tm_io_sig[0].tm_busy_us NEVER ADVANCES (measured 2026-08-04: 0us delta
+         * across a 12s saturating run while slots 1-3 each took 11.92s). Including it would
+         * average a structural zero into the role and drag u_io down by 1/N. io_live_node counts
+         * the same threads the mean does, which is also what makes the granularity floor right: a
+         * flip moves the MEASURED pool 3->4, so the step really is ln(4/3).
          *
          * THE TWO ROLES USE DIFFERENT CLOCKS ON PURPOSE. DO NOT "UNIFY" THEM.
          *   IO busy = sampled CLOCK_THREAD_CPUTIME_ID (all scheduled CPU)
@@ -19809,8 +19931,8 @@ static void tomoFlipController(void) {
          * and the remaining ~0.85 over 4 workers is ~21% spin EACH. Switching EX to thread CPU
          * would report those workers at ~0.99, hiding 21% of real slack, moving r from 1.26 to
          * ~1.0 and destroying the discrimination that makes p32 SET correctly HOLD. */
-        double u_io = (double)io_busy_mean / 100.0;
-        double u_ex = (double)fc->busy_smooth / 100.0;
+        double u_io = (double)fc->io_occ_smooth / 100.0;
+        double u_ex = (double)fc->ex_occ_smooth / 100.0;
         if (u_io > 1.0) u_io = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
         /* Guard the divide: below a few commands per tick the backlog term is noise, not signal
@@ -20343,6 +20465,16 @@ static void tomoFlipController(void) {
         }
         double gfloor = gstep / 2.0;
 
+        if (tm_flip_trace) {
+            serverLog(LL_NOTICE,
+                "[flip-trace n%d] t=%lld ops=%.0f io_sat=%.4f ex_sat=%.4f r=%.4f lr=%.4f anchor=%.4f "
+                "band=%.4f floor=%.4f u_io=%.3f u_ex=%.3f qd=%.2f qio=%ld c_ex=%.0f io=%d ex=%d "
+                "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f %s",
+                node, (long long)now, fc->mean, io_sat, ex_sat, ratio, fc->lr_ewma, fc->lr_anchor,
+                band, gfloor, u_io, u_ex, qd_mean, q_io, c_ex, io_live_node, w_live,
+                fc->dir, fc->phase, fc->wait, fc->lr_out_run, fc->idle_stable, sat_total,
+                server_bound ? "SRV" : "CLI");
+        }
         int out = 0;
         /* DIRECTION comes from the TARGET (r vs 1), never from which side of the anchor we are on.
          * r>1 means IO is the more saturated stage, so IO is the constraint and the fix is to move
