@@ -20211,11 +20211,31 @@ static void tomoFlipController(void) {
                 fc->wait = FLIP_WAIT_KEEP;                  /* fc->dir unchanged => PHASE 0 steps again */
                 serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN %s (best %.0f, sigma %.0f) -> keep climbing",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, sigma);
-            } else if (++fc->coast_used <= FLIP_COAST) {
+            } else if (fc->best_rate - after <= band && ++fc->coast_used <= FLIP_COAST) {
+                /* ee451 2026-08-04: COAST ONLY ACROSS A DIP THAT COULD BE NOISE.
+                 *
+                 * The coast exists to cross a FALSE dip — a step that reads worse only because the
+                 * baseline was transient-inflated. Judging that with a bare counter spends a step
+                 * confirming every result, including cliffs that are obviously real. Measured on
+                 * the p32-after-p1 transition: the peak is io4ex4 and io4->io3 costs 18% (7.29M ->
+                 * 6.01M) against a band of max(2*sigma, 2%) ~= 146k. That is ~9x the noise floor,
+                 * yet the counter still bought one more step, to io2ex6 at 59% of peak, and then
+                 * had to walk back TWO configs. Four flips and seconds of bucket reseeding spent
+                 * re-learning something the first step already said at 9 sigma.
+                 *
+                 * `band` is the same quantity that defines `significant` just above, so the rule
+                 * is symmetric: a step must beat the best by more than the noise to be worth
+                 * continuing, and must fall short by less than the noise to be worth doubting.
+                 * No new constant — the noise floor is measured (2*sigma) and the 2% is the floor
+                 * already in use for "significant".
+                 *
+                 * The overshoot-then-fall-back shape is UNCHANGED and deliberate (owner ruling):
+                 * the climb still steps past the peak once and walks back. This only stops it from
+                 * stepping past a SECOND time on evidence that was never ambiguous. */
                 fc->wait = FLIP_WAIT_KEEP;                  /* coast: bet the next step recovers past a dip */
-                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, coast %d, back %d) -> keep climbing",
+                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, short %.0f <= band %.0f, coast %d, back %d) -> keep climbing",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
-                          fc->coast_used, fc->best_dist);
+                          fc->best_rate - after, band, fc->coast_used, fc->best_dist);
             } else if (fc->best_dist > 0) {
                 /* coast spent without beating the best => overshot. Walk back best_dist steps to the
                  * best config, then end the climb (PHASE 0 pins the deadzones there). */
