@@ -19500,6 +19500,7 @@ typedef struct {
     int      lr_settle_run;  /* consecutive ticks the ratio has held still */
     double   lr_settle_sum;  /* sum of lr over that quiet window -> the anchor is its MEAN */
     int      lr_settle_wait; /* ticks spent waiting for the ratio to go quiet (bounded) */
+    int      anchor_n;       /* settled ticks folded into lr_anchor — 1/n IS the re-centring rate */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
@@ -20033,7 +20034,11 @@ static void tomoFlipController(void) {
             } else if (!isfinite(fc->lr_ewma) || !isfinite(fc->lr_anchor)) {
                 /* Self-heal instead of staying dead: a single poisoned sample must not disable the
                  * actuator for the life of the process. */
-                fc->lr_ewma = lr; fc->lr_anchor = 0.0;
+                /* anchor_n = 0 DISARMS self-centring, matching boot: the anchor is pinned at
+                 * r=1 (the initial belief) until a climb actually settles somewhere. Arming it
+                 * here would let the anchor drift off 1 with no evidence, and the very first
+                 * workload shift would then find the band already centred on the status quo. */
+                fc->lr_ewma = lr; fc->lr_anchor = 0.0; fc->anchor_n = 0;
             } else {
                 fc->lr_ewma += FESC_ALPHA * (lr - fc->lr_ewma);
             }
@@ -20370,6 +20375,7 @@ static void tomoFlipController(void) {
              * A climb that ended WITHOUT being rejected (plateau / at-best) has no such evidence,
              * so it anchors at where it actually settled. */
             fc->lr_anchor = fc->lr_ewma;
+            fc->anchor_n = 1;               /* fresh anchor: the running mean restarts from here */
             fc->just_settled = 0;
         }
 
@@ -20506,6 +20512,31 @@ static void tomoFlipController(void) {
          * because 2.04 sits below 4.02. It walked the config to io=2 and lost ~25%. */
         if (fabs(fc->lr_ewma) > gfloor && fabs(fc->lr_ewma - fc->lr_anchor) > band)
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
+        else {
+            /* ee451 2026-08-04: SELF-CENTRING ANCHOR — the anchor is the RUNNING MEAN of the
+             * settled ticks, not the single tick that closed the quiet window.
+             *
+             * lr_ewma approaches its plateau FROM ABOVE (a climb leaves IO transiently hot) and the
+             * quiet test only asks that it has stopped moving fast, so the captured value sits
+             * systematically above the true centre. Measured over 130s/120s of dead-still steady
+             * state (zero flips in both):
+             *     p32 SET  anchor 1.1562  vs settled mean r 1.1058   +4.6%
+             *     p1  GET  anchor 2.3662  vs settled mean r 2.3176   +2.1%
+             * while r itself is stable to CV 2.36% / 1.85%. So the MEDIAN deviation from the
+             * anchor was 4.4% against a 5% band — nearly the whole budget spent on capture bias
+             * rather than noise, which is precisely what makes a 1-3% band impossible: at dz=3%,
+             * 91% of steady ticks would read out-of-band on a controller that is perfectly still.
+             *
+             * A running mean needs NO rate constant: 1/n IS the rate, and it slows as evidence
+             * accumulates, so a well-established anchor stops chasing and a genuine drift crosses
+             * the band instead of being absorbed. Only IN-BAND ticks contribute, so an excursion
+             * that is on its way to triggering cannot drag the centre toward itself. */
+            if (fc->dir == 0 && fc->phase == 0 && fc->lr_init && fc->anchor_n > 0 &&
+                isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
+                if (fc->anchor_n < INT_MAX) fc->anchor_n++;
+                fc->lr_anchor += (fc->lr_ewma - fc->lr_anchor) / (double)fc->anchor_n;
+            }
+        }
 
         /* SUSTAIN (Schmitt). THE ACTUATOR MOVES THE SIGNAL: a flip changes the config, which changes
          * io_sat/ex_sat, which changes r. Acting on the FIRST out-of-band tick therefore lets the
