@@ -19485,11 +19485,11 @@ typedef struct {
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
-    int      busy_smooth;    /* EWMA(FESC_ALPHA) of MEAN ex-worker utilization % (back-pressure signal) */
-    int      io_busy_smooth; /* EWMA(FESC_ALPHA) of MEAN io-thread utilization % — SAME filter as busy_smooth */
-    /* OCCUPANCY = 100 - idle%. THIS is what the ratio is built from; the two *_busy_smooth above
-     * are kept for INFO/diagnosis only. See the u_io/u_ex comment for the measurement that forced
-     * the change (CPU-time called a 43%-below-peak config "balanced"). */
+    /* OCCUPANCY = 100 - idle%, EWMA(FESC_ALPHA), the ONLY utilization signal the ratio is built
+     * from. The CPU-time pair (busy_smooth / io_busy_smooth) was deleted 2026-08-04: it called a
+     * 43%-below-peak config "balanced" because an over-provisioned IO thread SPINS rather than
+     * blocking, so scheduled CPU cannot tell working from polling. See the u_io/u_ex comment.
+     * The raw tm_busy_us counters survive for INFO only — nothing decides on them. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
     int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
@@ -19619,8 +19619,6 @@ static void tomoFlipController(void) {
     if (tmFlipActive()) return;                             /* a flip is mid-flight */
 
     static mstime_t prev_wall = 0, last_log = 0;
-    static uint32_t fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
-    static uint32_t fc_prev_ex_busy_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static mstime_t fc_prev_busy_wall[TM_MAXNODE];
@@ -19721,16 +19719,13 @@ static void tomoFlipController(void) {
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
         }
-        long io_busy_sum = 0, io_occ_sum = 0; int io_busy_cnt = 0, io_live_node = 0;
+        long io_occ_sum = 0; int io_occ_cnt = 0, io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             /* Snapshot EVERY node-owned slot, including a growth slot currently serving EX.
              * Its counter freezes outside the IO role; continuing to advance the baseline here
              * makes a later EX->IO re-entry naturally start with only this tick's IO CPU. */
-            uint32_t cb = tm_io_sig[t].tm_busy_us;
-            uint32_t db = cb - fc_prev_io_busy_us[node][t];
-            fc_prev_io_busy_us[node][t] = cb;
             uint32_t ci = tm_io_sig[t].tm_idle_us;
             uint32_t di = ci - fc_prev_io_idle_us[node][t];
             fc_prev_io_idle_us[node][t] = ci;
@@ -19738,32 +19733,21 @@ static void tomoFlipController(void) {
             if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 if (t >= server.io_threads) continue;      /* growth slot not live */
             }
-            int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0; /* us/(ms*1000)*100 */
-            if (b > 100) b = 100;
             int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;
             if (oi > 100) oi = 100;
-            io_busy_sum += b; io_occ_sum += (100 - oi); io_busy_cnt++;
+            io_occ_sum += (100 - oi); io_occ_cnt++;
             io_live_node++;
         }
-        int io_busy_mean = io_busy_cnt ? (int)(io_busy_sum / io_busy_cnt) : 0;
-        /* ee451 2026-08-04 (SIGNAL SYMMETRY): filter BOTH roles identically.
-         *
-         * u_ex came from busy_smooth, an EWMA(0.25) — roughly a 4-tick (1s at 4Hz) horizon — while
-         * u_io was the RAW per-tick mean. The ratio of a fast signal to a slow one is not a ratio
-         * of utilizations during any transient: on a load STEP the IO term moves immediately and
-         * the EX term takes ~4 ticks to catch up, so r = io_sat/ex_sat spikes HIGH and the
-         * controller reads "IO is the constraint" from nothing but filter lag. The bias has a
-         * fixed sign (always toward growing IO on a rising edge), so it does not average out, and
-         * it is largest exactly when the workload changes — the moment the anchor is most likely
-         * to be captured at the wrong place.
-         *
-         * Same alpha, same horizon, so r=1 compares like with like at every tick, not only in
-         * steady state. NOTE the raw io_busy_mean is still what node_idle tests: idleness is an
-         * instantaneous fact about THIS tick, and a decaying EWMA would keep a just-gone-idle node
-         * looking busy for several ticks. */
-        int io_occ_mean = io_busy_cnt ? (int)(io_occ_sum / io_busy_cnt) : 0;
-        fc->io_busy_smooth += (int)(FESC_ALPHA * (io_busy_mean - fc->io_busy_smooth));
-        fc->io_occ_smooth  += (int)(FESC_ALPHA * (io_occ_mean  - fc->io_occ_smooth));
+        /* ee451 2026-08-04: BOTH ROLES, ONE STATISTIC, ONE FILTER — EWMA(FESC_ALPHA) of the
+         * per-thread mean OCCUPANCY. Two asymmetries were removed together:
+         *   - estimator: IO was a raw per-tick mean against an EX side already on an EWMA, so on
+         *     any load STEP the IO term moved first and r spiked high from filter lag alone — a
+         *     fixed-sign bias toward growing IO, largest exactly when the workload changes and the
+         *     anchor is most likely to be captured wrong;
+         *   - quantity: both were CPU time, which counts an idle IO thread's spin as work.
+         * The CPU-time path is gone; see the u_io/u_ex comment for the measurement. */
+        int io_occ_mean = io_occ_cnt ? (int)(io_occ_sum / io_occ_cnt) : 0;
+        fc->io_occ_smooth += (int)(FESC_ALPHA * (io_occ_mean - fc->io_occ_smooth));
         double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
@@ -19780,7 +19764,7 @@ static void tomoFlipController(void) {
          * observational fact, not a threshold. Idle ticks freeze mean/var (and the settle/judge
          * phases below see an unchanged mean rather than a crater). */
         /* OCCUPANCY, not CPU: an idle IO thread SPINS (drain spin / short poll timeout), so
-         * io_busy_mean can sit well above 0 on a node serving nothing — the idle test would then
+         * CPU time can sit well above 0 on a node serving nothing — the idle test would then
          * never fire and idle ticks would keep polluting the throughput variance, which is the
          * failure the test exists to prevent. Occupancy is 0 exactly when there is no work. */
         int node_idle = (inst <= 0.0) && (qd_max < (1.0/16.0)) && (io_occ_mean == 0);
@@ -19811,22 +19795,16 @@ static void tomoFlipController(void) {
          *
          * Smoothing also slowed from alpha 0.5 to FESC_ALPHA (0.25), matching the horizon every
          * other decision input already uses. --- */
-        int busy_sum = 0, occ_sum = 0, busy_n = 0;
+        int occ_sum = 0, occ_n = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
-            uint32_t cb = et->tm_busy_us, db = cb - fc_prev_ex_busy_us[node][w];
-            fc_prev_ex_busy_us[node][w] = cb;
             uint32_t ci = et->tm_idle_us, di = ci - fc_prev_ex_idle_us[node][w];
             fc_prev_ex_idle_us[node][w] = ci;
-            int b = node_wall_ms > 0 ? (int)(db / (uint32_t)(node_wall_ms * 10)) : 0;   /* us/(ms*1000)*100 */
-            if (b > 100) b = 100;
-            int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;
+            int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;  /* us/(ms*1000)*100 */
             if (oi > 100) oi = 100;
-            busy_sum += b; occ_sum += (100 - oi); busy_n++;
+            occ_sum += (100 - oi); occ_n++;
         }
-        int busy_mean = busy_n ? (busy_sum / busy_n) : 0;
-        int occ_mean  = busy_n ? (occ_sum  / busy_n) : 0;
-        fc->busy_smooth += (int)(FESC_ALPHA * (busy_mean - fc->busy_smooth));
+        int occ_mean = occ_n ? (occ_sum / occ_n) : 0;
         fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
          * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
