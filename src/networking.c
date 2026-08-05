@@ -4472,7 +4472,7 @@ void readQueryFromClient(connection *conn) {
     /* Update the number of reads of io threads on server */
     atomicIncr(server.stat_io_reads_processed[iotid], 1);
 
-    readlen = PROTO_IOBUF_LEN;
+    readlen = (size_t)atomic_load_explicit(&tomo_recv_readlen, memory_order_relaxed);  /* ee451 D-recv */
     /* If this is a multi bulk request, and we are processing a bulk reply
      * that is large enough, try to maximize the probability that the query
      * buffer contains exactly the SDS string representing the object, even

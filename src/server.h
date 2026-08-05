@@ -3925,6 +3925,10 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int tomo_recv_batch;       /* ee451 D-recv: 0=off (default). 1=scale the per-recv read size by
+                                * the dispatch window (deep pipeline => bigger reads => fewer recv
+                                * syscalls), driven by the same 1 Hz controller as the flush window.
+                                * Trades query-buffer memory for recv-syscall amortization. */
     int tomo_io_prefetch;      /* ee451 D-C: IO-side dispatch prefetch. 0=off (default; the value
                                 * is multi-CCD, expect nothing single-CCD, per the C spec). N>0 =
                                 * warm the next run's scattered ring-tail line while emitting this
@@ -5972,6 +5976,7 @@ void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
 extern int tm_rord_trace;
+extern _Atomic int tomo_recv_readlen;   /* ee451 D-recv: published per-recv read size */
 void debugCommand(client *c);
 void msetCommand(client *c);
 void msetnxCommand(client *c);

@@ -3210,6 +3210,7 @@ standardConfig static_configs[] = {
      * flip controller may move away from it; under `static` it is held for the whole run. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
+    createIntConfig("tomokv-recv-batch", NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_recv_batch, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-io-prefetch", NULL, MODIFIABLE_CONFIG, 0, 8, server.tomo_io_prefetch, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 2, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),

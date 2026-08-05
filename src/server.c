@@ -2724,6 +2724,10 @@ void flushExQueues(void);   /* defined below; used by the back-pressure path (A3
  * is owner-written by the io thread; a main-written field there would false-share). */
 _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
 static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's last flush */
+/* ee451 D-recv: published per-recv read size (bytes). Default PROTO_IOBUF_LEN = today's behaviour.
+ * The 1 Hz controller raises it under a deep dispatch window so a deep-pipeline socket drains in
+ * one recv instead of several; consumed as one relaxed load per readQueryFromClient. */
+_Atomic int tomo_recv_readlen = PROTO_IOBUF_LEN;
 
 /* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
  * A permutation of the CURRENT WINDOW's dispatches, decided at the admission point before any
@@ -5408,6 +5412,7 @@ void tomoSvcTick(void) {
         if (soj8 > B) B = soj8;
         int w_hi = WORKER_POP_BATCH * (nw > 0 ? nw : 1);
         static unsigned int lam_last[TOMO_IO_THREADS_MAX + 1];
+        int wmax = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         if (io_hi > TOMO_IO_THREADS_MAX) io_hi = TOMO_IO_THREADS_MAX;
         for (int t = 0; t <= io_hi; t++) {
@@ -5426,6 +5431,16 @@ void tomoSvcTick(void) {
             int step = cur >> 2;                     /* 25% deadzone (0 -> always publish) */
             if (wnd > cur + step || wnd < cur - step)
                 atomic_store_explicit(&tomo_disp_window[t], wnd, memory_order_release);
+            if (wnd > wmax) wmax = wnd;
+        }
+        /* D-recv: deep dispatch window => deep pipeline => a socket read can capture more per
+         * recv. Scale readlen 1x..4x PROTO_IOBUF_LEN by the window; W=0 (idle/shallow) keeps the
+         * default so a low-pipeline client never over-allocates its query buffer. */
+        if (server.tomo_recv_batch) {
+            int mult = 1 + (wmax >> 4); if (mult > 4) mult = 4;
+            atomic_store_explicit(&tomo_recv_readlen, PROTO_IOBUF_LEN * mult, memory_order_release);
+        } else {
+            atomic_store_explicit(&tomo_recv_readlen, PROTO_IOBUF_LEN, memory_order_release);
         }
     }
 }
