@@ -16863,6 +16863,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
+    ctx->tm_idle_mark = 0;             /* no drought open yet (exctx is an UNINITIALISED stack local) */
 }
 
 /* A converted IO thread retains its old EX binding solely to consume work that
@@ -18039,6 +18040,12 @@ static inline void tmIoBusyBegin(void) {
      * IO numerator. */
     tm_io_cpu_last_ns = tmThreadCpuNs();
     tm_io_cpu_next_us = 0;                 /* publish on the next pass */
+    /* Same reason, for the idle clock: tm_io_idle_mark is TLS and SURVIVES the role change. A
+     * thread almost always leaves the IO role mid-drought — grow-back is triggered precisely
+     * BECAUSE its IO threads are idle — so without this the first fold after coming back would
+     * bill the entire EX stint as IO idle, reading that thread 100% idle for a tick and pulling
+     * the role mean down by 1/n right when the controller is deciding. */
+    tm_io_idle_mark = 0;
 }
 
 /* ee451 (thread-modes v1, step 1): ONE pass of the IO loop. The IO loop keeps no
@@ -18310,6 +18317,12 @@ void *polyThreadMain(void *arg) {
                     ex_inited = 1;
                     fprintf(stderr, "[worker %d] started (poly, iotid=%d)\n", ctx->ex->id, iotid);
                 }
+                /* EVERY EX entry, not just the first: exctx outlives a role change (it is a stack
+                 * local of this thread's main loop and exSliceInit is one-time), so a drought left
+                 * open when this thread last went IO would otherwise be closed here and bill the
+                 * whole IO stint as EX idle. tm_mark needs no such reset — it is re-stamped at the
+                 * first pop of every work pass. Mirror of tmIoBusyBegin on the IO side. */
+                exctx.tm_idle_mark = 0;
                 if (cur != TOMO_MODE_UNSET) {
                     /* ee451 (hardening 3.1a): sweep STALE SENTINELS before going live. A
                      * FLUSHALL fanned to this slot in the same instant it left the EX role can
