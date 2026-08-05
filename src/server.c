@@ -2741,6 +2741,11 @@ static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's 
  * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
  * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
 #define TOMO_RORD_CAP 64
+/* D5 aging: reorder happens within consecutive arrival CHUNKS of this size, so no command is
+ * displaced more than AGE_BOUND slots from arrival. Stated bound (spec sec 6): extra wait <=
+ * AGE_BOUND * shortest-class-service. Sized to cap the long-class tail while leaving enough
+ * within-chunk mix for the short-class SJF win; a run shorter than this is one chunk = full SJF. */
+#define TOMO_RORD_AGE_BOUND 32
 static __thread struct {
     client  *fk[TOMO_RORD_CAP];
     uint64_t h[TOMO_RORD_CAP];
@@ -2795,25 +2800,33 @@ void tomoReorderDrain(void) {
                     emitted++; tm_io_sig[iotid].rord_heads++;
                 }
             }
-            /* pass 2: classes C0..C3 arrival-stable; level>=2 groups same-bucket adjacent by a
-             * look-ahead sweep pulling later same-bucket entries in behind the first (stable
-             * within the bucket by construction of the sweep order). */
-            for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
-                for (int i = 0; i < fence_at; i++) {
-                    int idx = order[s0 + i];
-                    if (tomo_rord.cls[idx] != cl) continue;
-                    exDispatchDirect(w, tomo_rord.fk[idx]);
-                    tomo_rord.cls[idx] = 0xFF;
-                    emitted++;
-                    if (lvl >= 2) {
-                        uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
-                        for (int j = i + 1; j < fence_at; j++) {
-                            int jdx = order[s0 + j];
-                            if (tomo_rord.cls[jdx] == cl &&
-                                (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
-                                exDispatchDirect(w, tomo_rord.fk[jdx]);
-                                tomo_rord.cls[jdx] = 0xFF;
-                                emitted++; tm_io_sig[iotid].rord_grouped++;
+            /* pass 2: CHUNKED class SJF — the D5 aging bound built into the loop structure, not
+             * bolted on. The run is cut into consecutive arrival-order CHUNKS of at most
+             * TOMO_RORD_AGE_BOUND; SJF (+ same-bucket grouping at lvl>=2) reorders WITHIN a chunk,
+             * chunks emit in arrival order. So no command is displaced past its chunk boundary =>
+             * extra wait <= AGE_BOUND * shortest-class-service. Stated integer bound (spec sec 6),
+             * and it keeps the emit O(r * nclasses) — the un-chunked "scan for lowest class per
+             * emit" was O(r^2), catastrophic at the saturated window (POP_BATCH*w_live) and it
+             * both regressed throughput AND destroyed the SJF win (measured, reverted). Heads were
+             * already emitted across the whole run above (never demoted); this orders the rest. */
+            for (int c0 = 0; c0 < fence_at; c0 += TOMO_RORD_AGE_BOUND) {
+                int c1 = c0 + TOMO_RORD_AGE_BOUND; if (c1 > fence_at) c1 = fence_at;
+                for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                    for (int i = c0; i < c1; i++) {
+                        int idx = order[s0 + i];
+                        if (tomo_rord.cls[idx] != cl) continue;
+                        exDispatchDirect(w, tomo_rord.fk[idx]);
+                        tomo_rord.cls[idx] = 0xFF; emitted++;
+                        if (lvl >= 2) {
+                            uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                            for (int j = i + 1; j < c1; j++) {   /* grouping stays within the chunk */
+                                int jdx = order[s0 + j];
+                                if (tomo_rord.cls[jdx] == cl &&
+                                    (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                    exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                    tomo_rord.cls[jdx] = 0xFF; emitted++;
+                                    tm_io_sig[iotid].rord_grouped++;
+                                }
                             }
                         }
                     }
