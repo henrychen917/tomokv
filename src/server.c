@@ -2904,6 +2904,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         fake->cmd && !fake->csparent && !fake->is_flush && !fake->drain_ack &&
         !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
         int i = tomo_rord.n;
+        fake->arrival_us = getMonotonicUs();   /* D age clock: measured at admission, read at pop */
         tomo_rord.fk[i]  = fake;
         tomo_rord.h[i]   = fake->tomo_key_h;
         tomo_rord.ex[i]  = (uint8_t)ex_id;
@@ -15072,6 +15073,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_heads:%llu\r\n", (unsigned long long)rord_heads_sum,
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
+                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0;_w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
@@ -17468,6 +17470,16 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * U_ex of 133x, 172x, and a NEGATIVE reading once the unsigned counter wrapped.
          * One vDSO read, only on the first pop of a pass. */
         if (!any) ctx->tm_mark = getMonotonicUs();
+        /* D worst-age (reorder verdict aid): the STRUCTURAL bound says a demoted command is passed
+         * only within its own window (< W dispatches), so its wait cannot exceed one window's
+         * service. Measure it: age of the OLDEST-arrival fake in this batch (batch is
+         * arrival-monotone within a lane, so batch[0] is oldest). One reuse of tm_mark, no extra
+         * clock read; 0 when reorder off (arrival_us unstamped => age clamps to 0). */
+        if (server.tomo_reorder > 0 && n > 0 && ctx->batch[0]->arrival_us) {
+            uint64_t age = (uint64_t)(ctx->tm_mark - ctx->batch[0]->arrival_us);
+            if (age < 100000000ULL && age > worker->rord_worst_age_us)
+                worker->rord_worst_age_us = (unsigned int)age;
+        }
         {
             /* ee451 D (2026-08-05): UNGATED. Was thread_auto-only ("only the [flip] controller
              * consumes it") — the D window law is a second consumer and it must work in static

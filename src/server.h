@@ -2485,6 +2485,7 @@ typedef struct exThread {
      * line. Swept 1 Hz by tomoSvcTick into the published svc EWMAs. Wrap-safe cumulative. */
     unsigned int svc_us[TOMO_SVC_CLASSES];
     unsigned int svc_ops[TOMO_SVC_CLASSES];
+    unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
                                       * accumulating). The balancer's BUSY vote uses this TIME
