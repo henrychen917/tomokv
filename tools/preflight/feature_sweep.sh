@@ -1271,6 +1271,16 @@ section_EG() {
     local setok=0
     for i in $(seq 1 20); do
         out=$(timeout 30 "$CLI" -p "$FORK_PORT" SET "ek:$i" "v$i" 2>&1)
+        if [ "$out" != "OK" ]; then
+            # RETRY ONCE. The slow-script listener scram (server, 2026-08-05) RSTs the conns
+            # queued in the scripting thread's backlog when it leaves the accept group — a
+            # designed fast-failure replacing the old silent hang-until-timeout. Real clients
+            # retry on ECONNRESET and the retry lands on a live listener by construction (the
+            # dead one is out of the group). A one-shot CLI must mirror that, or the
+            # availability fix reads as a regression. A server that ACTUALLY drops writes
+            # fails both attempts and still fails the cell.
+            out=$(timeout 30 "$CLI" -p "$FORK_PORT" SET "ek:$i" "v$i" 2>&1)
+        fi
         [ "$out" = "OK" ] && setok=$((setok+1))
     done
     local busy_seen=""
