@@ -19557,8 +19557,21 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * sampler and the EWMA have smoothed it. */
 #define FLIP_R_FAR       0.69  /* |log r| past this (=2x imbalance) means the split is grossly
                                 * wrong: take the fast warmup, the sign is not in doubt */
-#define FLIP_R_BAND      0.05  /* deadzone half-width: flip when the ratio leaves
-                                * SETTLE_RATIO +/- 5% (owner spec). Centring on the settle point,
+#define FLIP_R_BAND      0.03  /* deadzone half-width: flip when the ratio leaves
+                                * SETTLE_RATIO +/- 3%. Was 5%; lowered 2026-08-04 once the
+                                * self-centring anchor removed the +2-5% capture bias that had
+                                * been consuming most of the old budget. MEASURED FLOOR, not a
+                                * guess -- post-settle |lr - anchor| over three 100s+ zero-flip
+                                * windows (-t8 -c25 -d32, 200 conns):
+                                *     phase    p95     p99    out-of-band @2%  @3%   @5%
+                                *     p32boot  2.00%   2.46%      5.0%         0.6%  0.0%
+                                *     p1GET    2.10%   2.10%     13.9%         0.0%  0.0%
+                                *     p32SET   1.79%   2.55%      4.2%         0.0%  0.0%
+                                * 3% is the tightest band this signal supports: at 2% the
+                                * out-of-band rate is 4-14%, which FLIP_SUSTAIN can no longer be
+                                * relied on to absorb. At 3% the marginal ticks are isolated, and
+                                * a trigger needs FLIP_SUSTAIN(8) CONSECUTIVE of them.
+                                * Centring on the settle point,
                                 * not on 1, is what makes a REJECTED climb stick: the throughput
                                 * veto walks back, we settle at r=1.19, the band becomes
                                 * [1.13,1.25], and r=1.19 is inside => hold. Centred on 1 instead,
