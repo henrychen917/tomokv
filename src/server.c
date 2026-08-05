@@ -18306,25 +18306,10 @@ void initExThreads(void) {
      * worker could occupy, so no flip can index past it. zcalloc through jemalloc returns
      * page-aligned blocks at these sizes; the assert makes the cacheline assumption loud rather
      * than silently false-sharing if an allocator change ever breaks it. */
-    {
-        int nlanes = server.io_threads + server.num_workers + 1;
-        if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
-        for (int w = 0; w < server.num_workers; w++) {
-            exThread *et = &server.exThreads[w];
-            et->nlanes  = nlanes;
-            /* ONE block, freeback rings directly after the lanes — the same adjacency the old
-             * inline arrays had. Split allocations measured p32 GET -3.7% (reply path: every
-             * value reply recycles through freeback; a separately-heaped ring block lost the
-             * lanes' locality). sizeof(exQueue) is a CACHE_LINE multiple (aligned members), so
-             * the freeback base stays line-aligned. */
-            size_t qbytes = sizeof(exQueue) * (size_t)nlanes;
-            et->queues  = zcalloc(qbytes + sizeof(freebackRing) * (size_t)nlanes);
-            et->freeback = (freebackRing *)((char *)et->queues + qbytes);
-            serverAssert(((uintptr_t)et->queues  & (CACHE_LINE_SIZE - 1)) == 0);
-            serverAssert(((uintptr_t)et->freeback & (CACHE_LINE_SIZE - 1)) == 0);
-            madvise(et->queues, qbytes + sizeof(freebackRing) * (size_t)nlanes, MADV_HUGEPAGE);
-        }
-    }
+    /* ee451 2026-08-06: inline lanes (see server.h). nlanes = the compile cap so the exSliceInit
+     * nq guard (nq <= nlanes) always holds; the arrays live in the struct, no heap, no ptr load. */
+    for (int w = 0; w < server.num_workers; w++)
+        server.exThreads[w].nlanes = TOMO_IO_THREADS_MAX + 1;
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */

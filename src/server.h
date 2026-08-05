@@ -2405,22 +2405,15 @@ typedef struct exThread {
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
-    /* ee451 2026-08-05 (owner scalability item 2): lanes are HEAP arrays sized to the runtime
-     * pool, not inline arrays sized to the compile cap. nlanes = io_threads + num_workers + 1 —
-     * slot 0 (main) + every boot io slot + every growth slot a converting worker could occupy —
-     * so a flip can never index past it (tm_ngrow_io <= num_workers by construction; asserted in
-     * exSliceInit). Layout INSIDE a lane (exQueue/freebackRing) is unchanged, so the SPSC hot
-     * path is untouched; the only new cost is one pointer load per lane access. */
-    /* ALIGNMENT BREAK — these three are READ-ONLY after init and are loaded on EVERY lane access
-     * by BOTH sides. Leaving them on the q_top/q_summary line (as first written) put the lane
-     * POINTERS on the one line producers fetch_or per dispatch, so every queue access paid a
-     * contended-line load: measured p32 GET -5.2% (instr/op +3.5%, cyc/op +9% — slower dispatch
-     * also inflates empty spin passes per op). On their own line both sides cache them Shared
-     * forever. */
-    __attribute__((aligned(CACHE_LINE_SIZE))) int nlanes;
-    exQueue *queues;
+    /* ee451 2026-08-06: lanes are INLINE again. The heap-sized version (owner scalability item 2)
+     * cost ~1.3% p32 GET (one pointer load per lane access) for a benefit — not multiplying
+     * sizeof(exThread) when the compile cap rises — that is UNREALIZED while the cap is 32. It
+     * comes back as PART OF #66 (the cap raise), where inline at cap 128 would be ~3MB/worker and
+     * the heap version finally pays for itself. Patch preserved: heaplane_for_66.patch. */
+    int nlanes;
+    exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
-    freebackRing *freeback;
+    freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (flip-actuator, F1): `db` relocated to the head line above; the owner-written fields
      * below now have NO IO-thread reader on their line (no dispatch false-sharing). */
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
