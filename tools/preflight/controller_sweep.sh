@@ -128,9 +128,13 @@ else H=$((NCPU/2)); SRV_CORES=0-$((H-1)); CLI_CORES=$H-$((NCPU-1)); fi
 # AUTO==STATIC-p1 reading FAIL/FAIL/PASS/FAIL/PASS/FAIL/PASS across seven arms with no change
 # explaining it. -d 32 also matches the reference numbers (d64 costs only ~2%; the connection
 # count was the whole gap).
-WKEYS="--key-pattern=R:R --key-maximum=100000 -d 32"
+WKEYS="--key-pattern=R:R --key-minimum=1 --key-maximum=100000 -d 32"
 WCLIENT="-t 8 -c 25"
-W_FILL="--test-time=$T_SEED --ratio=1:1 $WKEYS -t 4 -c 8 --pipeline 8"
+# FULL populate: every key in [1,100000] written exactly once, so reads are 100% hits.
+# Was a time-bounded R:R fill with no --distinct-client-seed, so every client wrote the
+# SAME key sequence and dbsize reached only ~22% of key-maximum — ~78% of GETs were cheap
+# MISSES, inflating reads ~37% and moving the measured optimum (task #77).
+W_FILL="--ratio=1:0 -d 32 --key-pattern=P:P --key-minimum=1 --key-maximum=100000 -n allkeys -c 1 -t 8 --pipeline 32"
 W_P1GET="--ratio=1:9  $WKEYS $WCLIENT --pipeline 1"
 W_P32SET="--ratio=1:0 $WKEYS $WCLIENT --pipeline 32"
 W_P32GET="--ratio=0:1 $WKEYS $WCLIENT --pipeline 32"
@@ -200,6 +204,13 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   rm -rf "$DATA"; mkdir -p "$DATA"; : > "$SRVLOG"
   if pgrep -x redis-server >/dev/null 2>&1; then
     tsv preflight boot "$name" "foreign redis-server appeared" "box free" FAIL; return 1; fi
+  # A leaked RENAMED server walks straight past pgrep -x (thredis-selfmatch memory) and, worse,
+  # SO_REUSEPORT means a survivor on our port silently splits the kernel's conn dealing between
+  # two servers — the certified-a-binary-it-never-ran class (#71/#73). The PORT is the authority.
+  if ss -ltn "sport = :$PORT" 2>/dev/null | grep -q ":$PORT"; then
+    tsv preflight boot "$name" "port $PORT already has a listener (leaked server?)" "port free" FAIL
+    return 1
+  fi
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
     --tomokv-nodes 1 "$@" >/dev/null 2>&1 &
@@ -257,6 +268,15 @@ stopsrv() {
   kill -9 "$SRV_PID" 2>/dev/null
   wait "$SRV_PID" 2>/dev/null
   SRV_PID=
+}
+
+fill() { # fill <logname> -- full populate, then PROVE the keyspace is complete.
+  # A populate that silently under-fills is the exact failure this replaced, so it must be loud.
+  # Reads over a partly-filled keyspace are mostly MISSES and are a different (cheaper) command.
+  # shellcheck disable=SC2086
+  mt "$1" $W_FILL >/dev/null 2>&1
+  local got; got=$(timeout 10 "$CLI" -p "$PORT" dbsize 2>/dev/null)
+  [ "$got" = "100000" ] || die_pf populate "$1: dbsize=$got expected 100000 (reads would be mostly misses)"
 }
 
 mt() { # mt <logname> <memtier args...> -> echoes ops/sec (Totals col2)
@@ -338,9 +358,11 @@ flips()   { echo $(( $(count_log "GROW-FRONT complete") + $(count_log "GROW-BACK
 iolive()  { grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | tail -1 | cut -d= -f2; }
 racts()   { echo $(( $(count_log "reshard AUTO:") + $(count_log "reshard DIFFUSE:") )); }
 clbexec() { count_log "REBALANCE — started"; }   # 1 line per EXECUTED conn-migration batch (server.c:17000)
-ioclients() { # per-io-slot live client counts, ONE INFO threads call (server.c:12928-12932)
+ioclients() { # per-io-slot "slot clients listening" — ONE INFO threads call. The emitter reports
+  # listening as the LISTENER truth (io_listening), so checks can scope themselves to the live
+  # accept group instead of hardcoding a slot range that rots when topology moves.
   "$CLI" -p "$PORT" info threads 2>/dev/null | tr -d '\r' \
-    | awk -F'[_:=]' '/^tomo_io_thread_/{print $4, $6}'
+    | awk -F'[_:=,]' '/^tomo_io_thread_/{print $4, $6, $8+0}'
 }
 
 seedkeys() { # seedkeys <n> <valbytes>  (keys k:0..n-1)
@@ -378,7 +400,7 @@ parity() { # parity <ctrl> <check> <label> "<argsA(auto)>" "<argsB(static)>" "<m
     # shellcheck disable=SC2086
     boot "${lab}_${arm}${n}" $args || { tsv "$ctrl" "$chk" "$lab" "boot-fail arm=$arm" "boots" FAIL; return 1; }
     # shellcheck disable=SC2086
-    mt "${lab}_${arm}${n}_fill" $W_FILL >/dev/null
+    fill "${lab}_${arm}${n}_fill"
     if [ "$warm" -gt 0 ] 2>/dev/null; then
       # shellcheck disable=SC2086
       mt "${lab}_${arm}${n}_warm" $W --test-time="$warm" >/dev/null
@@ -491,7 +513,7 @@ c1_flip() {
       set -- $cfg
       boot "flip_static_io$1ex$2_p$pass" --tomokv-thread-mode static --tomokv-thread-io "$1" --tomokv-thread-ex "$2" || continue
       # shellcheck disable=SC2086
-      mt "flip_static_io$1ex$2_p${pass}_fill" $W_FILL >/dev/null
+      fill "flip_static_io$1ex$2_p${pass}_fill"
       # shellcheck disable=SC2086
       ops=$(mt "flip_static_io$1ex$2_p${pass}_p1" $W_P1GET --test-time="$T_MEAS")
       plaus "$ops" && P1[$1_$2]="${P1[$1_$2]} $ops"
@@ -519,7 +541,7 @@ c1_flip() {
   rss_start
   local rss0; rss0=$(rss_kb)
   # shellcheck disable=SC2086
-  mt flip_auto_fill $W_FILL >/dev/null
+  fill flip_auto_fill
   # conformance: the poly pool is FULLY ACTIVE -- every provisioned thread holds a real role and
   # nothing is held in reserve. The reserve-thread count is gone with the reserve thread
   # (2026-07-28), so assert the boot log's pool composition instead.
@@ -641,6 +663,18 @@ c1_flip() {
   msettle=$(med "$o1" "$o2" "$o3")
   tsv 1-flip anti-thrash-p32 "3 settled p32 windows, unchanged workload" "flips-during=$((f_post-f_pre))" \
       "0 PASS / 1 SUSPECT / >1 FAIL (deadzone pinned)" "$(atgrade $((f_post-f_pre)))"
+  # ---- LONG-HOLD (2026-08-05): the re-climb oscillation onsets ~90s AFTER settle with a
+  # 30-40s period, so every short window ever used (20-70s) was structurally blind to it —
+  # measured: 3 climb/veto/walkback cycles inside "settled" windows = 8 flips and -14% while
+  # two 250s+ standalone holds were clean. Hold under sustained stimulus for 160s and count
+  # flips: this is the cell that keeps the veto-backoff honest. ----
+  f_hold0=$(flips)
+  # shellcheck disable=SC2086
+  mt flip_auto_p32hold $W_P32SET --test-time=160 >/dev/null
+  f_hold1=$(flips)
+  tsv 1-flip long-hold-p32 "160s sustained p32 after settle (oscillation window)" \
+      "flips-late=$((f_hold1-f_hold0))" "0-1 PASS / >1 FAIL (re-climb oscillation)" \
+      "$( [ $((f_hold1-f_hold0)) -le 1 ] && echo PASS || echo FAIL )"
   if plaus "$msettle" && plaus "$m44w"; then
     local r2; r2=$( awk -v a="$msettle" -v s="$m44w" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
     [ "$REPS" -lt 3 ] && [ "$r2" = PASS ] && r2=SUSPECT   # smoke: 1-rep static side
@@ -665,12 +699,12 @@ c1_flip() {
     local oset oget
     stopsrv                     # the p32 phase above leaves its server up; boot refuses on count=2
     boot flip_oo_set --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
-    mt flip_oo_set_fill $W_FILL >/dev/null 2>&1
+    fill flip_oo_set_fill
     oset=$(mt flip_oo_set_meas $W_P32SET --test-time="$T_MEAS")
     local ioset; ioset=$(iolive)
     stopsrv
     boot flip_oo_get --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
-    mt flip_oo_get_fill $W_FILL >/dev/null 2>&1
+    fill flip_oo_get_fill
     oget=$(mt flip_oo_get_meas $W_P32GET --test-time="$T_MEAS")
     local ioget; ioget=$(iolive)
     stopsrv
@@ -681,6 +715,34 @@ c1_flip() {
     tsv 1-flip OPPOSITE-OPTIMUM "same boot, opposite best config (p32 SET vs GET)" \
         "SET io_live=${ioset:-?} ops=${oset:-?} | GET io_live=${ioget:-?} ops=${oget:-?}" \
         "SET holds at 4, GET climbs to 6" "$vv"
+  done
+  # ---- EX-BOUND (2026-08-05, task #78): every workload above is IO-heavy or balanced, so half
+  # the actuator's travel (io4 -> io2) was never gate-tested — the p1GET<->ZRANGE harness found
+  # two wedges there (unbounded structural-refusal retry; oscillating bound gate). ZRANGE does
+  # real worker compute + a multi-element reply: measured static optimum io2ex6 (1.17M), 3x worse
+  # at io7ex1. From an io4 boot the controller must grow BACK and must not wedge. ----
+  for _xb in 1; do
+    stopsrv
+    boot flip_exbound --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
+    awk 'BEGIN{for(i=1;i<=20000;i++){printf "ZADD z:memtier-%d",i; for(j=1;j<=64;j++)printf " %d m%d",j,j; printf "\r\n"}}' \
+      | "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
+    zdb=$("$CLI" -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
+    if [ "$zdb" != "20000" ]; then
+      tsv 1-flip EXBOUND "20k zsets x 64 members, ZRANGE full-range" "populate dbsize=$zdb" "20000" FAIL
+      stopsrv; break
+    fi
+    zops=$(mt flip_exbound_zr --command="ZRANGE z:__key__ 0 -1" --command-key-pattern=R \
+           --key-minimum=1 --key-maximum=20000 --test-time=90 $WCLIENT --pipeline=32)
+    zio=$(iolive); zfl=$(flips)
+    zping=$(timeout 3 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')
+    zv=PASS
+    [ "$zping" = "PONG" ] || zv=FAIL
+    [ "${zio:-9}" -le 3 ] || zv=FAIL
+    [ "${zfl:-0}" -ge 1 ] || zv=FAIL
+    tsv 1-flip EXBOUND "EX-bound ZRANGE from io4 boot (static best io2ex6)" \
+        "ops=${zops:-0} io_live=${zio:-?} flips=${zfl:-0} ping=$zping" \
+        "grows BACK to io_live<=3, >=1 flip, server alive" "$zv"
+    stopsrv
   done
 
   # ENVELOPE across the whole controller run. Bound derivation: workload footprint is ~30-60MB
@@ -926,7 +988,7 @@ c10_reshard() {
   # ---- anti-flap arm FIRST (uniform, default min-ops 20000) ----
   boot reshard_uniform $IO4 || return
   # shellcheck disable=SC2086
-  mt reshard_uniform_fill $W_FILL >/dev/null
+  fill reshard_uniform_fill
   # shellcheck disable=SC2086
   mt reshard_uniform_load $W_P32MIX --test-time="$T_CHURN" >/dev/null
   # BOTH actuation paths count as movement: the k-sigma outlier path ("reshard AUTO:",
@@ -938,7 +1000,12 @@ c10_reshard() {
   # ---- skew arm (positive control for the same grep + the real SHIFT check) ----
   # 16-key skew, NOT single-key: single-key saturation hits the known dropped-
   # dispatch wedge (fixed on the 3s dev branch only) — kept out of scope here.
-  boot reshard_skew $IO4 || return
+  # STATIC PIN (2026-08-05): this cell validates the KEY-LB reshard mechanism, and in auto mode
+  # the flip preempts it — under a 16-key gaussian skew three of four workers are genuinely idle,
+  # so the flip converts them to IO before key-LB's min-ops trips, and the reshard never fires
+  # (observed: ARM/DRAINING/FLIP/DONE x3, all flip grow-fronts, AUTO=0 DIFFUSE=0). Mechanism
+  # cells isolate the mechanism; the flip-vs-key-LB ARBITRATION question is task #79, not this row.
+  boot reshard_skew $IO4 --tomokv-thread-mode static || return
   # SPEC REV 2 settle-first: the pre windows must not be measured across an actuation.
   # tomokv-key-lb 0 = controller OFF by code ("off = tomokv-reshard-min-ops 0",
   # the autotune entry gate) => pre is settled BY CONSTRUCTION; the 0-actuation assert
@@ -1105,10 +1172,15 @@ c14_clientlb() {
   # ---- (a) distribution: 40 persistent conns spread across the io listeners ----
   ioclients > "$LOGD/clb_dist1.txt"
   "$CLI" -p "$PORT" debug tomo-ioload > "$LOGD/clb_ioload1.txt" 2>&1
-  dist_gate() { # <file> -> "verdict min max sum" over listener slots 1..3 (io4 => 3 listeners)
-    awk '$1>=1 && $1<=3 {n++; s+=$2; if(min==""||$2<min)min=$2; if($2>max)max=$2}
-         END{mean=(n?s/n:0); ok=(n==3 && min>=1 && max<=2*mean+1);
-             printf "%s %d %d %d", (ok?"PASS":"FAIL"), min, max, s}' "$1"
+  dist_gate() { # <file> -> "verdict min max sum" over the LIVE ACCEPT GROUP (listening==1 rows).
+    # The old gate hardcoded slots 1..3 and n==3, which rots the moment topology moves and says
+    # nothing when the sample itself is wrong; the observed n==1/total=14 failure was a sample
+    # from a DIFFERENT server (leaked listener splitting the port — now blocked by boot()'s port
+    # assert). Judge: >=2 live listeners, none starved, max <= 2x mean + 1, and CONSERVATION —
+    # the holder's 40 conns must be visible somewhere (sum over ALL slots incl. main >= 38).
+    awk '{ tot+=$2 } $3==1 {n++; s+=$2; if(min==""||$2<min)min=$2; if($2>max)max=$2}
+         END{mean=(n?s/n:0); ok=(n>=2 && min>=1 && max<=2*mean+1 && tot>=38);
+             printf "%s %d %d %d", (ok?"PASS":"FAIL"), min+0, max+0, tot+0}' "$1"
   }
   local d1; d1=$(dist_gate "$LOGD/clb_dist1.txt")
   # ---- settle for (c): a 5s window with 0 new executed-migration lines ----
@@ -1142,7 +1214,7 @@ c14_clientlb() {
   ioclients > "$LOGD/clb_pre_exit.txt"
   local sum_pre; sum_pre=$(awk '{s+=$2} END{print s+0}' "$LOGD/clb_pre_exit.txt")
   local ex0; ex0=$(count_log "IO-EXIT complete")
-  "$CLI" -p "$PORT" debug tomo-modeshift 5 >/dev/null 2>&1
+  local msr; msr=$(timeout 5 "$CLI" -p "$PORT" debug tomo-modeshift 5 2>&1 | tr -d '\r')
   local exslot=""
   if wait_log "IO-EXIT requested" 10; then
     exslot=$(grep -F "IO-EXIT requested" "$SRVLOG" | tail -1 | sed 's/.*io thread \([0-9]*\) leaves.*/\1/')
@@ -1159,7 +1231,7 @@ c14_clientlb() {
   [ "$exdone" = 1 ] && [ "$exleft" = 0 ] && \
     [ "$sum_post" -ge $((sum_pre - 2)) ] && [ "$sum_post" -le $((sum_pre + 2)) ] && cons=PASS
   tsv 14-clientlb SHIFT-ioexit "DEBUG TOMO-MODESHIFT 5: io thread ${exslot:-?} leaves accept group + migrates out" \
-      "complete=$exdone exit-slot-conns=$exleft total $sum_pre -> $sum_post" \
+      "complete=$exdone exit-slot-conns=$exleft total $sum_pre -> $sum_post reply=[${msr:0:60}]" \
       "IO-EXIT completes <=35s, exiting slot 0 conns, total conserved (+/-2 for our own CLI conns)" "$cons"
   # ---- positive control for the migration grep: manual rebalance MUST fire it ----
   local pc0; pc0=$(clbexec)

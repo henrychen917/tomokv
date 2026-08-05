@@ -51,8 +51,21 @@ case "$O2" in BUSY*) ok "concurrent -BUSY";; *) bad "concurrent -BUSY (never obs
 okn=0; for k in 1 2 3 4 5; do [ "$($C eval "return $k" 0 2>&1|tr -d '\r')" = "$k" ] && okn=$((okn+1)); done
 [ $okn = 5 ] && ok "sequential no-leak 5/5" || bad "sequential no-leak $okn/5"
 ( $C eval "local i=0 while true do i=i+1 end" 0 > $J/fs_k.out 2>&1 ) & BG=$!
-sleep 1; K=$(timeout 5 $C script kill 2>&1 | tr -d '\r'); wait $BG 2>/dev/null
-[ "$K" = OK ] && grep -q "killed" $J/fs_k.out && ok "foreign SCRIPT KILL" || bad "foreign SCRIPT KILL (reply=$K)"
+sleep 1
+# RETRY the kill with fresh connections. The kill conn itself can REUSEPORT-hash to the scripting
+# thread's own listener, where it is never accepted (measured 2026-08-05: one un-retried kill +
+# an unbounded `wait` wedged the whole gate for 100 minutes). Each attempt re-rolls the hash, and
+# six 3s attempts outlast the 5s busy threshold at which the server now scrams that listener out
+# of the accept group — so on a healthy binary this lands by attempt ~2, and on a broken one the
+# cell FAILS in ~20s instead of hanging forever.
+K=""; KT=0
+for _k in 1 2 3 4 5 6; do
+  K=$(timeout 3 $C script kill 2>&1 | tr -d '\r'); KT=$_k
+  [ "$K" = OK ] && break
+done
+for _w in $(seq 1 40); do kill -0 $BG 2>/dev/null || break; sleep 0.25; done   # bounded reap
+kill -9 $BG 2>/dev/null; wait $BG 2>/dev/null
+[ "$K" = OK ] && grep -q "killed" $J/fs_k.out && ok "foreign SCRIPT KILL (attempt $KT)" || bad "foreign SCRIPT KILL (reply=$K after $KT attempts)"
 [ "$($C eval 'return 12' 0 2>&1|tr -d '\r')" = 12 ] && ok "post-kill epoch clear" || bad "post-kill epoch clear"
 $C eval 'return redis.call("get", KEYS[1])' 1 kx >/dev/null 2>&1
 [ "$($C eval 'return 11' 0 2>&1|tr -d '\r')" = 11 ] && ok "reject-path gate release" || bad "reject-path gate release"
