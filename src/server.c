@@ -19511,6 +19511,8 @@ typedef struct {
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     double   lr_ewma;        /* EWMA of log(io_sat/ex_sat) — the smoothed DECISION signal */
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
+    double   lr_prev_tick;   /* lr_ewma at the previous tick — feeds lr_quiet_run */
+    int      lr_quiet_run;   /* consecutive ticks the RATIO has held still; gates climb START */
     double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
     int      lr_settle_run;  /* consecutive ticks the ratio has held still */
     double   lr_settle_sum;  /* sum of lr over that quiet window -> the anchor is its MEAN */
@@ -20088,7 +20090,18 @@ static void tomoFlipController(void) {
                  * workload shift would then find the band already centred on the status quo. */
                 fc->lr_ewma = lr; fc->lr_anchor = 0.0; fc->anchor_n = 0;
             } else {
+                /* ee451 2026-08-05: track how long the RATIO has been holding still, always — not
+                 * only post-climb. This is the START gate below; see it for why.
+                 * ORDER MATTERS: measure the step the EWMA actually TAKES this tick, i.e. compare
+                 * before-vs-after the update. Comparing lr_ewma against a prev_tick that was
+                 * assigned from lr_ewma at the end of the previous tick yields identically zero,
+                 * so the counter reads "quiet" forever and the gate never fires (measured: 0
+                 * "RATIO still moving" log lines through a storm where r moved 106 -> 4.4). */
+                double lr_before = fc->lr_ewma;
                 fc->lr_ewma += FESC_ALPHA * (lr - fc->lr_ewma);
+                if (fc->lr_init && fabs(fc->lr_ewma - lr_before) < FLIP_R_QUIET) {
+                    if (fc->lr_quiet_run < 1000) fc->lr_quiet_run++;
+                } else fc->lr_quiet_run = 0;
             }
         }
 
@@ -20675,6 +20688,33 @@ static void tomoFlipController(void) {
 
         /* STABILITY GATE: pressure wants a climb, but only START once the throughput mean has settled
          * (see the tracker above) so the first step's baseline is trustworthy. */
+        /* ...AND only once the RATIO has settled too. THE RATE BEING STILL IS NOT ENOUGH.
+         *
+         * Measured (rampstart, mirroring controller_sweep OPPOSITE-OPTIMUM: 1:1 fill at 32 conns
+         * -> p32 SET at 200 conns). The controller starts a climb during the CONNECTION STORM:
+         *     settle 2354065 io_sat=0.39 ex_sat=0.04 r=111.10  dir=0
+         *     START GROW-FRONT io_sat=0.87 ex_sat=0.17 r=5.37 (baseline 2441738 ops/s)
+         * 200 sockets arrive at once, so the IO threads are genuinely saturated doing accepts while
+         * the workers genuinely have nothing yet. NEITHER SIGNAL IS WRONG — they describe a
+         * transient, not the workload. r swings 111 -> 5.37 -> 2.51 -> 0.44 across the next few
+         * ticks. The climb, launched on that, walks io4 -> io7 and lands on io6 at 4.2M against
+         * io4's 7.0M, and inside a 20s measurement window there is no time to walk back.
+         *
+         * The THROUGHPUT gate above cannot catch this: the storm PRECEDES the throughput ramp, so
+         * at that instant mean is still sitting at the fill's rate and looks perfectly settled.
+         * (A trend detector on the rate was tried and did NOT help, for exactly this reason — it
+         * guards the wrong signal.) The ratio is the signal the decision is made from, so the ratio
+         * is what must be stationary before the decision is taken. FLIP_R_QUIET / FLIP_R_QUIET_N
+         * are the same constants the post-climb anchor already uses for this identical question. */
+        if (fc->lr_quiet_run < FLIP_R_QUIET_N) {
+            if (now - last_log >= 3000) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: RATIO still moving (r=%.2f, quiet %d/%d) io_sat=%.2f ex_sat=%.2f",
+                          node, want > 0 ? "grow-front" : "grow-back", exp(fc->lr_ewma),
+                          fc->lr_quiet_run, FLIP_R_QUIET_N, io_sat, ex_sat);
+                last_log = now;
+            }
+            continue;
+        }
         if (fc->idle_stable < FESC_SETTLE_N) {
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f",
