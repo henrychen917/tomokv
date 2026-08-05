@@ -2758,6 +2758,41 @@ static __thread struct {
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
 
+/* D trace helper (armed-only, off the hot path): reproduce the emission order of ONE run into a
+ * string without dispatching. Mirrors tomoReorderDrain's head-pass + chunked class-SJF + bucket
+ * grouping exactly. cls char = class digit, upper=head, | separates the fenced tail. */
+static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl) {
+    char arr[80], emt[80]; int ai = 0, ei = 0;
+    uint8_t used[TOMO_RORD_CAP]; for (int i = 0; i < r && i < TOMO_RORD_CAP; i++) used[i] = 0;
+    for (int i = 0; i < r && ai < 78; i++) {
+        int c = tomo_rord.cls[ridx[i]] & 0x03;
+        arr[ai++] = (tomo_rord.cls[ridx[i]] & 0x80) ? ('A' + c) : ('0' + c);
+        if (i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
+    }
+    arr[ai] = 0;
+    #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & 0x03; \
+        emt[ei++] = (tomo_rord.cls[ridx[K]] & 0x80) ? ('A'+_c) : ('0'+_c); used[K] = 1; } } while(0)
+    for (int i = 0; i < fence_at; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
+    for (int c0 = 0; c0 < fence_at; c0 += TOMO_RORD_AGE_BOUND) {
+        int c1 = c0 + TOMO_RORD_AGE_BOUND; if (c1 > fence_at) c1 = fence_at;
+        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
+            for (int i = c0; i < c1; i++) {
+                if (used[i] || (tomo_rord.cls[ridx[i]] & 0x03) != cl) continue;
+                EMITC(i);
+                if (lvl >= 2) { uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
+                    for (int j = i + 1; j < c1; j++)
+                        if (!used[j] && (tomo_rord.cls[ridx[j]] & 0x03) == cl &&
+                            (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt) EMITC(j); }
+            }
+    }
+    if (fence_at < r && ei < 78) emt[ei++] = '|';
+    for (int i = fence_at; i < r; i++) if (!used[i]) EMITC(i);
+    #undef EMITC
+    emt[ei] = 0;
+    serverLog(LL_NOTICE, "[rord-trace] worker %d r=%d  arrival=[%s]  emitted=[%s]", w, r, arr, emt);
+    tm_rord_trace = 0;   /* one-shot */
+}
+
 void tomoReorderDrain(void) {
     if (tomo_rord.n == 0) return;
     tomo_rord.draining = 1;
@@ -2777,6 +2812,15 @@ void tomoReorderDrain(void) {
         int w = tomo_rord.ex[order[s0]];
         int s1 = s0; while (s1 < n && tomo_rord.ex[order[s1]] == w) s1++;
         int r = s1 - s0;
+        /* D-C IO prefetch: the NEXT run goes to a DIFFERENT worker (order is grouped by worker),
+         * so its ring tail is a cold line this io thread has not touched this pass. Warm it while
+         * we emit the current run — the write lands in THIS io thread's cache (unlike a
+         * cross-thread data prefetch, which would be useless). One prefetch per run. Default off. */
+        if (server.tomo_io_prefetch && s1 < n) {
+            int nw = tomo_rord.ex[order[s1]];
+            exQueue *nq = &server.exThreads[nw].queues[iotid];
+            redis_prefetch_write(&nq->jobs[nq->staged_tail & server.ex_queue_mask]);
+        }
         if (r <= 1 || lvl < 1) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
         } else {
@@ -2791,26 +2835,16 @@ void tomoReorderDrain(void) {
                     if (tomo_rord.h[order[s0 + b]] == ha) { fence_at = a; break; }
             }
             if (fence_at < r) tm_io_sig[iotid].rord_fences++;
-            /* D trace: capture ONE run's arrival vs emit class sequence (one-shot). cls char =
-             * class digit, upper if head-of-pipe; fenced tail shown after a '|'. */
-            char _arr[80], _emt[80]; int _ai=0, _ei=0, _trace = (tm_rord_trace && r >= 4 && r < 70);
-            if (_trace) {
-                for (int _i = 0; _i < r && _ai < 78; _i++) {
-                    int _x = order[s0 + _i]; int _c = tomo_rord.cls[_x] & 0x03;
-                    _arr[_ai++] = (tomo_rord.cls[_x] & 0x80) ? ('A' + _c) : ('0' + _c);
-                    if (_i == fence_at - 1 && fence_at < r) _arr[_ai++] = '|';
-                }
-                _arr[_ai] = 0;
-            }
-            #define _TR_EMIT(IDX) do { if (_trace && _ei < 78) { \
-                int _c2 = tomo_rord.cls[IDX] & 0x03; \
-                _emt[_ei++] = (tomo_rord.cls[IDX] & 0x80) ? ('A'+_c2) : ('0'+_c2); } } while(0)
+            /* D trace (ARMED-ONLY, zero hot-path cost): simulate the emission order into a string
+             * and log, WITHOUT touching the real emit below. Guarded by the one-shot flag so the
+             * millions-of-emits hot path never pays a per-emit branch. */
+            if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
+                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl);
             /* pass 1: heads, arrival order (never demoted; promotion only) */
             int emitted = 0;
             for (int i = 0; i < fence_at; i++) {
                 int idx = order[s0 + i];
                 if (tomo_rord.cls[idx] & 0x80) {
-                    _TR_EMIT(idx);
                     exDispatchDirect(w, tomo_rord.fk[idx]);
                     tomo_rord.cls[idx] = 0xFF;               /* consumed */
                     emitted++; tm_io_sig[iotid].rord_heads++;
@@ -2831,7 +2865,6 @@ void tomoReorderDrain(void) {
                     for (int i = c0; i < c1; i++) {
                         int idx = order[s0 + i];
                         if (tomo_rord.cls[idx] != cl) continue;
-                        _TR_EMIT(idx);
                         exDispatchDirect(w, tomo_rord.fk[idx]);
                         tomo_rord.cls[idx] = 0xFF; emitted++;
                         if (lvl >= 2) {
@@ -2840,7 +2873,6 @@ void tomoReorderDrain(void) {
                                 int jdx = order[s0 + j];
                                 if (tomo_rord.cls[jdx] == cl &&
                                     (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
-                                    _TR_EMIT(jdx);
                                     exDispatchDirect(w, tomo_rord.fk[jdx]);
                                     tomo_rord.cls[jdx] = 0xFF; emitted++;
                                     tm_io_sig[iotid].rord_grouped++;
@@ -2851,20 +2883,11 @@ void tomoReorderDrain(void) {
                 }
             }
             /* fenced tail (and anything the passes above marked consumed is skipped) */
-            if (_trace && fence_at < r && _ei < 78) _emt[_ei++] = '|';
             for (int i = fence_at; i < r; i++) {
                 int idx = order[s0 + i];
-                if (tomo_rord.cls[idx] != 0xFF) { _TR_EMIT(idx); exDispatchDirect(w, tomo_rord.fk[idx]); }
-                else continue;
+                if (tomo_rord.cls[idx] != 0xFF) exDispatchDirect(w, tomo_rord.fk[idx]);
             }
             (void)emitted;
-            if (_trace) {
-                _emt[_ei] = 0;
-                serverLog(LL_NOTICE, "[rord-trace] worker %d r=%d  arrival=[%s]  emitted=[%s]",
-                          w, r, _arr, _emt);
-                tm_rord_trace = 0;   /* one-shot */
-            }
-            #undef _TR_EMIT
         }
         s0 = s1;
     }

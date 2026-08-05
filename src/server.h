@@ -3925,6 +3925,10 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int tomo_io_prefetch;      /* ee451 D-C: IO-side dispatch prefetch. 0=off (default; the value
+                                * is multi-CCD, expect nothing single-CCD, per the C spec). N>0 =
+                                * warm the next run's scattered ring-tail line while emitting this
+                                * run, hiding the cross-worker write miss. */
     int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with
