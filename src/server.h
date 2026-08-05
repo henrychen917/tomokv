@@ -5967,6 +5967,7 @@ void persistCommand(client *c);
 void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
+extern int tm_rord_trace;
 void debugCommand(client *c);
 void msetCommand(client *c);
 void msetnxCommand(client *c);

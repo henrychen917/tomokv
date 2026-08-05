@@ -997,6 +997,12 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tm_flip_trace = (on != 0);
         addReplyStatus(c, tm_flip_trace ? "flip trace ON" : "flip trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
+        /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
+         * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */
+        long on; if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tm_rord_trace = (on != 0);
+        addReplyStatus(c, tm_rord_trace ? "rord trace ARMED" : "rord trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-modeshift") && c->argc == 3) {
         /* DEBUG TOMO-MODESHIFT <mode> -- manual actuator for the thread-mode machinery, moved here
          * from the retired `tomokv-modeshift-test` config knob (2026-07-28, knob surface 55 -> 11).

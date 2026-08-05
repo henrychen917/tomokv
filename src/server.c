@@ -277,6 +277,7 @@ static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
  * day of diagnosis ended up guessing between "converges slowly" and "thrashes at rest". Off by
  * default; a test hook, not a tunable. */
 int tm_flip_trace = 0;
+int tm_rord_trace = 0;   /* ee451 D: dump one run's arrival->emit class sequence */
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
@@ -2790,11 +2791,26 @@ void tomoReorderDrain(void) {
                     if (tomo_rord.h[order[s0 + b]] == ha) { fence_at = a; break; }
             }
             if (fence_at < r) tm_io_sig[iotid].rord_fences++;
+            /* D trace: capture ONE run's arrival vs emit class sequence (one-shot). cls char =
+             * class digit, upper if head-of-pipe; fenced tail shown after a '|'. */
+            char _arr[80], _emt[80]; int _ai=0, _ei=0, _trace = (tm_rord_trace && r >= 4 && r < 70);
+            if (_trace) {
+                for (int _i = 0; _i < r && _ai < 78; _i++) {
+                    int _x = order[s0 + _i]; int _c = tomo_rord.cls[_x] & 0x03;
+                    _arr[_ai++] = (tomo_rord.cls[_x] & 0x80) ? ('A' + _c) : ('0' + _c);
+                    if (_i == fence_at - 1 && fence_at < r) _arr[_ai++] = '|';
+                }
+                _arr[_ai] = 0;
+            }
+            #define _TR_EMIT(IDX) do { if (_trace && _ei < 78) { \
+                int _c2 = tomo_rord.cls[IDX] & 0x03; \
+                _emt[_ei++] = (tomo_rord.cls[IDX] & 0x80) ? ('A'+_c2) : ('0'+_c2); } } while(0)
             /* pass 1: heads, arrival order (never demoted; promotion only) */
             int emitted = 0;
             for (int i = 0; i < fence_at; i++) {
                 int idx = order[s0 + i];
                 if (tomo_rord.cls[idx] & 0x80) {
+                    _TR_EMIT(idx);
                     exDispatchDirect(w, tomo_rord.fk[idx]);
                     tomo_rord.cls[idx] = 0xFF;               /* consumed */
                     emitted++; tm_io_sig[iotid].rord_heads++;
@@ -2815,6 +2831,7 @@ void tomoReorderDrain(void) {
                     for (int i = c0; i < c1; i++) {
                         int idx = order[s0 + i];
                         if (tomo_rord.cls[idx] != cl) continue;
+                        _TR_EMIT(idx);
                         exDispatchDirect(w, tomo_rord.fk[idx]);
                         tomo_rord.cls[idx] = 0xFF; emitted++;
                         if (lvl >= 2) {
@@ -2823,6 +2840,7 @@ void tomoReorderDrain(void) {
                                 int jdx = order[s0 + j];
                                 if (tomo_rord.cls[jdx] == cl &&
                                     (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                    _TR_EMIT(jdx);
                                     exDispatchDirect(w, tomo_rord.fk[jdx]);
                                     tomo_rord.cls[jdx] = 0xFF; emitted++;
                                     tm_io_sig[iotid].rord_grouped++;
@@ -2833,11 +2851,20 @@ void tomoReorderDrain(void) {
                 }
             }
             /* fenced tail (and anything the passes above marked consumed is skipped) */
+            if (_trace && fence_at < r && _ei < 78) _emt[_ei++] = '|';
             for (int i = fence_at; i < r; i++) {
                 int idx = order[s0 + i];
-                if (tomo_rord.cls[idx] != 0xFF) exDispatchDirect(w, tomo_rord.fk[idx]);
+                if (tomo_rord.cls[idx] != 0xFF) { _TR_EMIT(idx); exDispatchDirect(w, tomo_rord.fk[idx]); }
+                else continue;
             }
             (void)emitted;
+            if (_trace) {
+                _emt[_ei] = 0;
+                serverLog(LL_NOTICE, "[rord-trace] worker %d r=%d  arrival=[%s]  emitted=[%s]",
+                          w, r, _arr, _emt);
+                tm_rord_trace = 0;   /* one-shot */
+            }
+            #undef _TR_EMIT
         }
         s0 = s1;
     }
