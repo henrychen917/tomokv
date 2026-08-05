@@ -191,6 +191,7 @@ run_suite $SD/exec_nesting.sh        $PF/exec_nesting.out       $'\tFAIL'
 # (arm B, so the fix is not "never move"), and that the same workload with the window off does NOT
 # reach it (arm C, so A is attributable).
 run_suite $SD/keylb_veto.sh          $PF/keylb_veto.out         $'\tFAIL'
+run_suite $SD/d_reorder.sh            $PF/d_reorder.out           $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL' 'INVALID'
