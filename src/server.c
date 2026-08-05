@@ -216,6 +216,8 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* client-LB load weight only: EWMA (Q4, alpha 1/8) of IO events/pass.
                          * NOT a utilization signal and not consumed by the flip controller. */
+    unsigned int disp_cnt;   /* ee451 D: dispatches staged by this io identity (lambda for the
+                              * window law); plain owner increment, swept 1 Hz, wrap-safe */
     unsigned int tm_idle_us; /* ee451 2026-08-04 (OBSERVATION ONLY): wall µs in zero-event passes,
                               * i.e. this thread had NO work. Same episode measurement as
                               * exThread.tm_idle_us so the two roles are directly comparable. */
@@ -2168,6 +2170,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
      * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
     void tmClientBalanceCron(void);
     run_with_period(1000) reshardAutoTune();
+    run_with_period(1000) tomoSvcTick();   /* ee451 D: fold per-worker svc rows -> published EWMAs */
     run_with_period(1000) tmClientBalanceCron();
     run_with_period(1000) fakeRingAutoTune();
 
@@ -2731,6 +2734,7 @@ static inline exQueue *exQueueFor(int ex_id) {
 
 static inline void exDispatchPush(int ex_id, client *fake) {
     exQueue *q = exQueueFor(ex_id);
+    tm_io_sig[iotid].disp_cnt++;   /* D window law: arrival counting at the admission point */
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) return;   /* staged; batched publish later */
     /* QUEUE EXHAUSTED. The ring is fixed-size and back-pressures rather than growing (DPDK-style),
      * which is the right call for a lock-free SPSC ring — but it was previously SILENT, so an
@@ -5122,6 +5126,67 @@ static void buildCommandIntern(void){
     }
 }
 
+/* ===================== ee451 D: the svc signal plane ===================================
+ * Per-class execution-time EWMAs, published read-mostly. Writers: every worker's svc_us/svc_ops
+ * rows (full population — the duration is computed anyway at the exExecFake exit for cmdstats).
+ * Folder: this 1 Hz main-thread tick, wrap-safe unsigned deltas, EWMA at FESC-family alpha.
+ * Consumers: the window law (svc_min) and the reorder ranks (svc[k]). Fixed-point Q8 µs so a
+ * relaxed 32-bit load is the whole read. */
+_Atomic uint32_t tomo_svc_q8[TOMO_SVC_CLASSES];   /* µs * 256 per class; 0 = no data yet */
+_Atomic uint32_t tomo_svc_min_q8;                 /* min over classes that saw ops last tick */
+
+void tomoSvcTick(void) {
+    static unsigned int last_us[TOMO_EX_THREADS_MAX][TOMO_SVC_CLASSES];
+    static unsigned int last_ops[TOMO_EX_THREADS_MAX][TOMO_SVC_CLASSES];
+    static double ewma[TOMO_SVC_CLASSES];
+    int nw = server.num_workers;
+    if (nw > TOMO_EX_THREADS_MAX) nw = TOMO_EX_THREADS_MAX;
+    uint64_t dus[TOMO_SVC_CLASSES] = {0}, dops[TOMO_SVC_CLASSES] = {0};
+    for (int w = 0; w < nw; w++) {
+        exThread *et = &server.exThreads[w];
+        for (int k = 0; k < TOMO_SVC_CLASSES; k++) {
+            unsigned int cu = et->svc_us[k],  co = et->svc_ops[k];
+            dus[k]  += (unsigned int)(cu - last_us[w][k]);   /* wrap-safe */
+            dops[k] += (unsigned int)(co - last_ops[w][k]);
+            last_us[w][k] = cu; last_ops[w][k] = co;
+        }
+    }
+    double mn = 0.0; int mn_set = 0;
+    for (int k = 0; k < TOMO_SVC_CLASSES; k++) {
+        if (dops[k]) {
+            double inst = (double)dus[k] / (double)dops[k];          /* µs/op, same window both */
+            if (ewma[k] == 0.0) ewma[k] = inst;
+            else ewma[k] += 0.25 * (inst - ewma[k]);                 /* FESC-family alpha */
+            atomic_store_explicit(&tomo_svc_q8[k],
+                (uint32_t)(ewma[k] * 256.0 + 0.5), memory_order_release);
+        }
+        if (ewma[k] > 0.0 && dops[k] && (!mn_set || ewma[k] < mn)) { mn = ewma[k]; mn_set = 1; }
+    }
+    if (mn_set)
+        atomic_store_explicit(&tomo_svc_min_q8, (uint32_t)(mn * 256.0 + 0.5), memory_order_release);
+}
+
+/* ee451 D: stamp each command's cost class once. Name lists are prefixes over declared_name;
+ * subcommands inherit the parent (stamped after the table walk). Anything unlisted defaults by
+ * the write flag — the dynamic svc EWMA corrects magnitudes, the class only buckets. */
+static void tomoStampCmdClass(struct redisCommand *c) {
+    static const char *range_pfx[] = { "zrange", "zrevrange", "zrangebyscore", "zrangebylex",
+        "zdiff", "zunion", "zinter", "hgetall", "hvals", "hkeys", "hrandfield", "lrange", "lpos",
+        "smembers", "sinter", "sunion", "sdiff", "srandmember", "sort", "keys", "scan", "sscan",
+        "hscan", "zscan", "xrange", "xrevrange", "georadius", "geosearch", "bitcount", "mget",
+        "getrange", NULL };
+    static const char *elem_pfx[] = { "zadd", "zincrby", "zrem", "zscore", "zrank", "zrevrank",
+        "hset", "hget", "hdel", "hincrby", "hexists", "hlen", "lpush", "rpush", "lpop", "rpop",
+        "llen", "lindex", "sadd", "srem", "sismember", "scard", "setrange", "append", "setbit",
+        "getbit", "xadd", "geoadd", NULL };
+    const char *nm = c->declared_name;
+    for (int i = 0; range_pfx[i]; i++)
+        if (!strncmp(nm, range_pfx[i], strlen(range_pfx[i]))) { c->tomo_cls = TOMO_CLS_RANGE; return; }
+    for (int i = 0; elem_pfx[i]; i++)
+        if (!strncmp(nm, elem_pfx[i], strlen(elem_pfx[i]))) { c->tomo_cls = TOMO_CLS_ELEM; return; }
+    c->tomo_cls = (c->flags & CMD_WRITE) ? TOMO_CLS_PWRITE : TOMO_CLS_PREAD;
+}
+
 void populateCommandTable(void) {
     int j;
     struct redisCommand *c;
@@ -5141,6 +5206,14 @@ void populateCommandTable(void) {
          * ee451 (xshard registry): TOMO_R_CROSS/XGUARD + cs_spec now derive from the registry
          * table — one list, never two (csStampRoute recurses into subcommands). */
         csStampRoute(c);
+        tomoStampCmdClass(c);   /* ee451 D: cost class, same one-walk idiom */
+        if (c->subcommands_dict) {
+            dictIterator *di = dictGetIterator(c->subcommands_dict);
+            dictEntry *de;
+            while ((de = dictNext(di)) != NULL)
+                tomoStampCmdClass((struct redisCommand *)dictGetVal(de));
+            dictReleaseIterator(di);
+        }
 
         retval1 = dictAdd(server.commands, sdsdup(c->fullname), c);
         /* Populate an additional dictionary that will be unaffected
@@ -14782,6 +14855,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
                 "tomokv_io_idle_us:%llu\r\n", io_idle,
                 "tomokv_ex_idle_us:%llu\r\n", ex_idle,
+                "tomokv_svc_us_c0:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[0], memory_order_relaxed) / 256.0,
+                "tomokv_svc_us_c1:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[1], memory_order_relaxed) / 256.0,
+                "tomokv_svc_us_c2:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[2], memory_order_relaxed) / 256.0,
+                "tomokv_svc_us_c3:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[3], memory_order_relaxed) / 256.0,
+                "tomokv_svc_min_us:%.2f\r\n", atomic_load_explicit(&tomo_svc_min_q8, memory_order_relaxed) / 256.0,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
@@ -16708,6 +16786,10 @@ static inline void tomoPollingYield(void) {
  * deleted with the value-forwarding apparatus (see the note in db.c). */
 
 
+/* ee451 D: the executing worker, for svc attribution — set at slice entry (one TLS store per
+ * pass), read at the exExecFake exit. exExecFake has no worker parameter and grows none. */
+static __thread exThread *tm_cur_ex;
+
 static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
     if (fake->cmd) {
@@ -16810,6 +16892,13 @@ static inline void exExecFake(client *fake) {
             long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
             int cs_failed = (tomoErrRepliesLocal() != cs_e0);
             tomoCmdStatAddCall(cs_cmd, cs_usec, cs_failed);
+            /* D svc plane: two adds, duration already in hand. Clamp keeps a pathological
+             * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
+            if (tm_cur_ex) {
+                unsigned cls = cs_cmd->tomo_cls & (TOMO_SVC_CLASSES - 1);
+                tm_cur_ex->svc_us[cls] += (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
+                tm_cur_ex->svc_ops[cls]++;
+            }
             if (server.latency_tracking_enabled) tomoCmdLatRecord(cs_cmd, cs_usec);
         }
         fake->commands_processed++;
@@ -16954,6 +17043,8 @@ static inline int exDormantSliceNeeded(exThread *worker,
  * any work, 0 for an idle pass. */
 static int exSlice(exThread *worker, exSliceCtx *ctx,
                    exSliceIdlePolicy idle_policy) {
+    tm_cur_ex = worker;   /* D svc attribution: one TLS store per pass */
+
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
      * back after sending — done here on the worker so the shard's value
      * refcounts are only ever mutated by this thread. */

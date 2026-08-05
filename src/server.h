@@ -1462,6 +1462,16 @@ typedef struct {
                                     * batch's io_snap mask (premature-free class), and the
                                     * TOMO_SCAN_WORKER_BITS cursor encoding. See task #66. */
 #define TOMO_EX_THREADS_MAX 64    /* unchanged tonight — same #66 audit gates the raise */
+
+/* ee451 D (2026-08-05): static cost class, stamped once at populateCommandTable. C0/C1 are the
+ * point ops (read/write split because GET/SET dominate), C2 bounded-element container ops, C3
+ * range/aggregate (O(n) reply). The class picks the BUCKET; the per-class dynamic svc EWMA
+ * supplies the MAGNITUDE (this is what separates 64B from 64KB regimes). */
+#define TOMO_SVC_CLASSES 4
+#define TOMO_CLS_PREAD  0
+#define TOMO_CLS_PWRITE 1
+#define TOMO_CLS_ELEM   2
+#define TOMO_CLS_RANGE  3
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
@@ -2465,6 +2475,11 @@ typedef struct exThread {
      * of threads, so growing that role cannot help. Neither u_io nor u_ex can currently tell the
      * two apart, which is exactly why r=1 does not yet mean "balanced". */
     unsigned int tm_idle_us;
+    /* ee451 D svc plane: per-class execution time, FULL population — the duration is computed
+     * anyway for cmdstats at the exExecFake exit, so this is two plain adds on the owner's own
+     * line. Swept 1 Hz by tomoSvcTick into the published svc EWMAs. Wrap-safe cumulative. */
+    unsigned int svc_us[TOMO_SVC_CLASSES];
+    unsigned int svc_ops[TOMO_SVC_CLASSES];
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
                                       * accumulating). The balancer's BUSY vote uses this TIME
@@ -4407,6 +4422,9 @@ struct redisCommand {
                                * replaces per-op proc-pointer compare chains on dispatch. TOMO_R_* */
     const struct csCmdSpec *cs_spec; /* ee451 (xshard registry): row or NULL, stamped at populate
                                * (struct END for the same positional-init reason as tomo_route) */
+    /* ee451 D: TOMO_CLS_* cost class (stamped at table init). TAIL member on purpose —
+     * commands.def initializes this struct POSITIONALLY, so new fields must trail. */
+    uint8_t tomo_cls;
 };
 
 struct redisError {
@@ -5280,6 +5298,7 @@ void serverLogRawFromHandler(int level, const char *msg);
 void usage(void);
 void updateDictResizePolicy(void);
 void populateCommandTable(void);
+void tomoSvcTick(void);   /* ee451 D: 1 Hz svc-plane fold */
 robj *commandNameIntern(const char *p, size_t len);  /* ee451 (v14): argv[0] interning */
 void resetCommandTableStats(dict* commands);
 void resetErrorTableStats(void);
