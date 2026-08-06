@@ -267,15 +267,8 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
-/* ee451 #83: flatBatch.io_snap / io_pin_mask (and snap[]) are sized in flatstore.h, which cannot see
- * this header's cap macros. Bind the two copies here so a cap raise that forgets the flatstore mirror
- * fails at compile time rather than silently truncating the QSBR grace snapshot. */
-_Static_assert(FLAT_IO_SLOTS == TOMO_IO_THREADS_MAX + 1,
-               "flatstore.h FLAT_IO_SLOTS must track TOMO_IO_THREADS_MAX+1 (io_snap sizing)");
-_Static_assert(FLAT_EX_SLOTS == TOMO_EX_THREADS_MAX + 1,
-               "flatstore.h FLAT_EX_SLOTS must track TOMO_EX_THREADS_MAX+1 (snap[] sizing)");
-_Static_assert(FLAT_IO_MASK_WORDS == TOMO_IO_MASK_WORDS,
-               "flatstore.h FLAT_IO_MASK_WORDS must equal TOMO_IO_MASK_WORDS (io_pin_mask words)");
+/* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
+ * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 /* DEBUG TOMO-FLIPTRACE 1 -- dense per-TICK dump of the flip controller's inputs. The normal HOLD
  * line is rate limited to one per 5s, i.e. 0.2Hz sampling of a 4Hz controller, which is how a whole
@@ -7450,19 +7443,31 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
  * INFO tomokv_flat_batches_{closed,freed,pending} per this tree's "expose the state" rule. */
 static _Atomic unsigned long flat_batches_closed_n, flat_batches_freed_n;
 
+/* ee451 #83: runtime size of a flatBatch's QSBR snapshot block. slots = io_threads + num_workers + 1
+ * = the largest io_hi a flip can reach (tm_ngrow_io <= num_workers) + 1, which is also >= num_workers
+ * for snap[]. Process-constant (set once in initExThreads before any batch closes), so every batch
+ * header is the same size and the spare pool recycles uniformly. Sub-arrays are contiguous in
+ * b->arr; FB_* carry the stride. */
+static int flat_batch_slots;
+static int flat_batch_mask_words;
+#define FB_SNAP(b)   ((b)->arr)                          /* uint64_t[flat_batch_slots] */
+#define FB_IOSNAP(b) ((b)->arr + flat_batch_slots)       /* uint64_t[flat_batch_slots] */
+#define FB_IOPIN(b)  ((b)->arr + 2*flat_batch_slots)     /* uint64_t[flat_batch_mask_words] */
+
 static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
     atomic_fetch_add_explicit(&flat_batches_closed_n, 1, memory_order_relaxed);
+    debugServerAssert(flat_batch_slots > 0);   /* initExThreads must have run before any close */
     flatBatch *b = NULL;
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
-    if (!b) b = zmalloc(sizeof(*b));
+    /* ee451 #83: header + the runtime-sized snapshot block in one alloc. Spare batches were closed by
+     * THIS process with the same flat_batch_slots, so a recycled one already has the right size. */
+    if (!b) b = zmalloc(sizeof(*b) + (size_t)(2*flat_batch_slots + flat_batch_mask_words) * sizeof(uint64_t));
     b->head = pend;
-    /* ee451 #83: was a HARD 64 clamp (snap[] used to be [64+1]). At cap 128 that silently dropped
-     * workers 64..127 from the QSBR loop_seq snapshot, so flatBatchReady would free a batch without
-     * confirming those workers passed a grace boundary => premature free / UAF. snap[] is now
-     * FLAT_EX_SLOTS (== TOMO_EX_THREADS_MAX+1), and num_workers is boot-capped to TOMO_EX_THREADS_MAX,
-     * so clamp to the array capacity, not a literal. */
-    int nw = server.num_workers; if (nw > TOMO_EX_THREADS_MAX) nw = TOMO_EX_THREADS_MAX;
+    /* nworkers is bounded by flat_batch_slots (= io_threads+num_workers+1 > num_workers), so snap[w]
+     * for w < nworkers is always in range; clamp defensively to num_workers. */
+    int nw = server.num_workers;
     b->nworkers = nw;
+    uint64_t *snap = FB_SNAP(b), *io_snap = FB_IOSNAP(b), *io_pin = FB_IOPIN(b);
 
     /* MANDATORY StoreLoad fence. Every value in this batch was unlinked with a RELEASE store
      * (flatOverwrite / flatDelete) BEFORE this point — worker path by program order through
@@ -7475,23 +7480,19 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
     atomic_thread_fence(memory_order_seq_cst);
 
     for (int w = 0; w < nw; w++)
-        b->snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
+        snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
 
     /* io identities: snapshot the region epoch. Only ODD slots (inside a region right now) can ever
      * hold a pointer into this batch, so only they are recorded — an EVEN slot at this instant holds
      * nothing, and anything it enters LATER reads a table these values were already unlinked from. */
     int io_hi = flatIoHi();
-    /* Clear the FULL mask, not just the live words: flatBatch headers are recycled from the spare
-     * pool (flatBatchClose reuses *spare), so a stale high-word bit from a prior batch that ran with
-     * more io threads would survive into a batch that ran with fewer. Consume (flatBatchReady) reads
-     * io_snap[t] for EVERY set bit across all TOMO_IO_MASK_WORDS words, so a stale bit reads a stale
-     * io_snap and either wedges the batch (never-ready => leak) or frees it early (UAF). At <=64 io
-     * slots TOMO_IO_MASK_WORDS==1 so this is one store either way; the loop only matters once the cap
-     * rises past 64, which is exactly when few-io-thread configs leave high words unwritten. */
-    for (int wi = 0; wi < TOMO_IO_MASK_WORDS; wi++) b->io_pin_mask[wi] = 0;
+    /* The mask is EXACTLY flat_batch_mask_words words (the live range), so clearing all of it clears
+     * the whole thing — no stale-high-word hazard exists anymore (the array has no words beyond the
+     * live range, unlike the old cap-128 sizing). io_hi <= flat_batch_slots-1 by construction. */
+    for (int wi = 0; wi < flat_batch_mask_words; wi++) io_pin[wi] = 0;
     for (int t = 0; t <= io_hi; t++) {
         uint64_t v = atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst);
-        if (v & 1) { b->io_snap[t] = v; b->io_pin_mask[t >> 6] |= 1ULL << (t & 63); }
+        if (v & 1) { io_snap[t] = v; io_pin[t >> 6] |= 1ULL << (t & 63); }
     }
 
     b->next = next;
@@ -7528,11 +7529,12 @@ static int flatBatchReady(const flatBatch *b) {
      * cache lines on EVERY readiness check of EVERY batch. */
     if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
         return 0;                                   /* unregistered reader inside: fail-safe global pin */
-    for (int wi = 0; wi < TOMO_IO_MASK_WORDS; wi++) {
-      uint64_t m = b->io_pin_mask[wi];
+    const uint64_t *io_pin = FB_IOPIN(b), *io_snap = FB_IOSNAP(b), *snap = FB_SNAP(b);
+    for (int wi = 0; wi < flat_batch_mask_words; wi++) {
+      uint64_t m = io_pin[wi];
       while (m) {
         int t = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
-        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == b->io_snap[t])
+        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == io_snap[t])
             return 0;                               /* still inside the region it was in at close */
       }
     }
@@ -7543,7 +7545,7 @@ static int flatBatchReady(const flatBatch *b) {
      * straggler commands and reading the table. */
     for (int w = 0; w < b->nworkers; w++) {
         exThread *et = &server.exThreads[w];
-        if (atomic_load_explicit(&et->loop_seq, memory_order_acquire) >= b->snap[w] + FLAT_QSBR_MARGIN)
+        if (atomic_load_explicit(&et->loop_seq, memory_order_acquire) >= snap[w] + FLAT_QSBR_MARGIN)
             continue;
         if (!atomic_load_explicit(&et->in_flat_section, memory_order_seq_cst))
             continue;
@@ -18348,6 +18350,10 @@ void initExThreads(void) {
      * io_threads + num_workers, so < 64 there means word 1 is unreachable and the cheap single-word
      * harvest is exact — a normal small-thread boot pays nothing for the cap-128 two-level path. */
     server.tm_qs_multiword = (server.io_threads + server.num_workers >= 64);
+    /* ee451 #83: size the flatBatch QSBR snapshot to the runtime pool (max io_hi+1). Set BEFORE any
+     * flatBatchClose (init runs before workers serve or RDB loads). */
+    flat_batch_slots = server.io_threads + server.num_workers + 1;
+    flat_batch_mask_words = (flat_batch_slots + 63) / 64;
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
     /* ee451 #83 (2026-08-05): per-worker lane arrays, HEAP-sized to the RUNTIME pool (not the
      * compile cap). nlanes covers slot 0 (main) + boot io slots + every growth slot a converting

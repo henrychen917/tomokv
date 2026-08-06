@@ -77,29 +77,22 @@ extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
 void flatNodePoolTrim(void);
 
-/* ee451 #83: flatstore.h cannot see server.h (the cap macros TOMO_{IO,EX}_THREADS_MAX live there).
- * The QSBR snapshot arrays below are sized to those caps, so we MIRROR them here and bind the two
- * copies with _Static_assert in server.c (which sees both). To raise a cap you change the value in
- * server.h AND the matching FLAT_* mirror here; the assert fails loudly if they drift.
- * FLAT_*_MASK_WORDS is the bitmap word count == 1 while the cap is <=64, so a normal (<=64-slot)
- * build compiles to the exact single-word layout it had before this change. */
-#ifndef FLAT_EX_SLOTS
-#define FLAT_EX_SLOTS   (128 + 1)                         /* == TOMO_EX_THREADS_MAX + 1 (#83) */
-#endif
-#ifndef FLAT_IO_SLOTS
-#define FLAT_IO_SLOTS   (128 + 1)                         /* == TOMO_IO_THREADS_MAX + 1 (#83) */
-#endif
-#define FLAT_IO_MASK_WORDS ((FLAT_IO_SLOTS + 63) / 64)    /* io_pin_mask words; 1 at <=64 io slots */
-
+/* ee451 #83: the QSBR snapshot (worker loop_seq + io region-epoch + io pin bitmap) is ONE trailing
+ * block sized to the RUNTIME thread pool, not the 128 compile cap. The batch header is heap-allocated
+ * (flatBatchClose), so the block rides with it and recycles through the spare pool; its size is
+ * flat_batch_slots = io_threads + num_workers + 1 (the largest io_hi a flip can ever reach, since
+ * tm_ngrow_io <= num_workers), which is process-constant so every batch is uniform. This removes the
+ * ~2KB cap-128 header (down to ~150B at a small boot) and the write-path cache cost it caused
+ * (~1% SET at p32). Access ONLY via FB_SNAP/FB_IOSNAP/FB_IOPIN in server.c (they carry the runtime
+ * stride); nothing outside server.c touches the snapshot. Layout:
+ *     arr[0 .. slots)            snap[]         worker loop_seq at close
+ *     arr[slots .. 2*slots)      io_snap[]      tm_io_sig[t].flat_epoch at close (valid iff pinned)
+ *     arr[2*slots .. +mask_words) io_pin_mask[] bit t set iff io_snap[t] was ODD at close */
 typedef struct flatBatch {
     flatRetireNode *head;
-    uint64_t snap[FLAT_EX_SLOTS];              /* loop_seq of each worker at close */
-    uint64_t io_snap[FLAT_IO_SLOTS];           /* tm_io_sig[t].flat_epoch at close; VALID ONLY for
-                                                * bits set in io_pin_mask */
-    uint64_t io_pin_mask[FLAT_IO_MASK_WORDS];  /* bit t set iff io_snap[t] was ODD at close; word
-                                                * array so io slots may exceed 64 (see #83) */
     int nworkers;
     struct flatBatch *next;
+    uint64_t arr[];                            /* flexible; see FB_* in server.c */
 } flatBatch;
 
 typedef struct flatTable {
