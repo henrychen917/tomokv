@@ -2634,6 +2634,159 @@ static GetFieldRes addHashFieldToReply(client *c, kvobj *o, sds field, int hfeFl
     return res;
 }
 
+/* The direct lookup path avoids temporary allocations for very small HMGETs.
+ * Above this crossover, scanning a listpack once is cheaper than restarting
+ * lpFind() for every requested field. */
+#define HMGET_LISTPACK_ONEPASS_MIN_FIELDS 4
+
+typedef struct hmgetFieldMapKey {
+    const unsigned char *field;
+    size_t len;
+    int head;       /* Head of the chain of matching argv/result ordinals. */
+    int resolved;   /* Preserve first-match behavior if a listpack is corrupt. */
+} hmgetFieldMapKey;
+
+static uint64_t hmgetFieldMapHash(const void *key) {
+    const hmgetFieldMapKey *field = key;
+    return dictGenHashFunction(field->field, field->len);
+}
+
+static int hmgetFieldMapCompare(dictCmpCache *cache, const void *key1, const void *key2) {
+    const hmgetFieldMapKey *field1 = key1;
+    const hmgetFieldMapKey *field2 = key2;
+    UNUSED(cache);
+
+    return field1->len == field2->len &&
+           memcmp(field1->field, field2->field, field1->len) == 0;
+}
+
+static dictType hmgetFieldMapDictType = {
+    .hashFunction = hmgetFieldMapHash,
+    .keyCompare = hmgetFieldMapCompare,
+};
+
+/* Resolve a sufficiently large HMGET against a listpack in one pass. The
+ * request map points into argv and records every output position so duplicate
+ * fields retain their original order. Values point into the immutable listpack
+ * until they have been copied to the reply.
+ *
+ * A requested expired field in LISTPACK_EX needs the legacy lazy-expiration
+ * side effects, which can resize or delete the listpack. In that uncommon case
+ * return C_ERR before emitting anything and let hmgetCommand use its existing
+ * per-field path. */
+static int hmgetListpackOnePass(client *c, kvobj *o) {
+    int count = c->argc - 2;
+    serverAssert(count >= HMGET_LISTPACK_ONEPASS_MIN_FIELDS);
+    serverAssert(o->encoding == OBJ_ENCODING_LISTPACK ||
+                 o->encoding == OBJ_ENCODING_LISTPACK_EX);
+
+    /* lpFind() takes a uint32_t field length. Preserve its legacy truncation
+     * behavior for unusually large protocol arguments by using the old path. */
+    for (int i = 0; i < count; i++) {
+        if (sdslen(c->argv[i + 2]->ptr) > UINT32_MAX)
+            return C_ERR;
+    }
+
+    hmgetFieldMapKey *fields = zcalloc_num(count, sizeof(*fields));
+    int *next = zcalloc_num(count, sizeof(*next));
+    unsigned char **values = zcalloc_num(count, sizeof(*values));
+    dict *fieldmap = dictCreate(&hmgetFieldMapDictType);
+    unsigned long unresolved;
+    unsigned char *lp, *p;
+    int tuple_len;
+
+    serverAssert(dictExpand(fieldmap, count) == DICT_OK);
+
+    for (int i = 0; i < count; i++) {
+        sds field = c->argv[i + 2]->ptr;
+        dictEntry *de;
+
+        fields[i].field = (unsigned char *)field;
+        fields[i].len = sdslen(field);
+        fields[i].head = i;
+        fields[i].resolved = 0;
+        next[i] = -1;
+
+        de = dictFind(fieldmap, &fields[i]);
+        if (de) {
+            hmgetFieldMapKey *stored = dictGetKey(de);
+            next[i] = stored->head;
+            stored->head = i;
+        } else {
+            serverAssert(dictAdd(fieldmap, &fields[i], NULL) == DICT_OK);
+        }
+    }
+
+    unresolved = dictSize(fieldmap);
+    lp = hashTypeListpackGetLp(o);
+    tuple_len = o->encoding == OBJ_ENCODING_LISTPACK ? 2 : 3;
+    p = lpFirst(lp);
+
+    while (p && unresolved) {
+        unsigned char intbuf[LP_INTBUF_SIZE];
+        int64_t field_len;
+        unsigned char *field = lpGet(p, &field_len, intbuf);
+        unsigned char *value = lpNext(lp, p);
+        hmgetFieldMapKey lookup;
+        dictEntry *de;
+
+        serverAssert(field != NULL && field_len >= 0 && value != NULL);
+        lookup.field = field;
+        lookup.len = field_len;
+        lookup.head = -1;
+        lookup.resolved = 0;
+        de = dictFind(fieldmap, &lookup);
+
+        if (tuple_len == 3) {
+            long long expire_at;
+            unsigned char *expiry = lpNext(lp, value);
+            serverAssert(expiry && lpGetIntegerValue(expiry, &expire_at));
+            p = lpNext(lp, expiry);
+
+            if (de && hashTypeIsExpired(o, expire_at)) {
+                dictRelease(fieldmap);
+                zfree(values);
+                zfree(next);
+                zfree(fields);
+                return C_ERR;
+            }
+        } else {
+            p = lpNext(lp, value);
+        }
+
+        if (de) {
+            hmgetFieldMapKey *stored = dictGetKey(de);
+            if (!stored->resolved) {
+                for (int i = stored->head; i != -1; i = next[i])
+                    values[i] = value;
+                stored->resolved = 1;
+                unresolved--;
+            }
+        }
+    }
+
+    dictRelease(fieldmap);
+    zfree(next);
+    zfree(fields);
+
+    addReplyArrayLen(c, count);
+    for (int i = 0; i < count; i++) {
+        if (values[i] == NULL) {
+            addReplyNull(c);
+        } else {
+            unsigned int vlen;
+            long long vll;
+            unsigned char *vstr = lpGetValue(values[i], &vlen, &vll);
+            if (vstr)
+                addReplyBulkCBuffer(c, vstr, vlen);
+            else
+                addReplyBulkLongLong(c, vll);
+        }
+    }
+    zfree(values);
+    return C_OK;
+}
+
 void hgetCommand(client *c) {
     kvobj *o;
 
@@ -2652,6 +2805,12 @@ void hmgetCommand(client *c) {
      * hashes, where HMGET should respond with a series of null bulks. */
     kvobj *o = lookupKeyRead(c->db, c->argv[1]);
     if (checkType(c,o,OBJ_HASH)) return;
+
+    if (o && (o->encoding == OBJ_ENCODING_LISTPACK ||
+              o->encoding == OBJ_ENCODING_LISTPACK_EX) &&
+        c->argc - 2 >= HMGET_LISTPACK_ONEPASS_MIN_FIELDS &&
+        hmgetListpackOnePass(c, o) == C_OK)
+        return;
 
     addReplyArrayLen(c, c->argc-2);
     for (i = 2; i < c->argc ; i++) {

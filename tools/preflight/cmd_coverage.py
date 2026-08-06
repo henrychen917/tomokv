@@ -64,6 +64,14 @@ def partA():
     eq(c(s,f,'HLEN','h'),2,'HLEN'); eq(c(s,f,'HEXISTS','h','f1'),1,'HEXISTS'); eq(c(s,f,'HDEL','h','f2'),1,'HDEL')
     eq(c(s,f,'HINCRBY','h','cnt','5'),5,'HINCRBY'); eq(sorted(lst(c(s,f,'HKEYS','h'))),['cnt','f1'],'HKEYS')
     eq(lst(c(s,f,'HMGET','h','f1','nope')),['v1',None],'HMGET')
+    # Large listpack HMGET: reverse-order probes, a miss, and duplicates exercise the one-pass request map.
+    hm_fields=['hf%03d'%i for i in range(400)]; hm_values={name:'hv%03d'%i for i,name in enumerate(hm_fields)}
+    hm_args=[x for name in hm_fields for x in (name,hm_values[name])]
+    c(s,f,'DEL','hmget-lp'); eq(c(s,f,'HSET','hmget-lp',*hm_args),400,'HMGET-listpack-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hmget-lp'),b'listpack','HMGET-listpack-encoding')
+    hm_req=hm_fields[::-2]+['hm-missing',hm_fields[17],hm_fields[17]]
+    hm_want=[hm_values.get(name) for name in hm_req]
+    eq(lst(c(s,f,'HMGET','hmget-lp',*hm_req)),hm_want,'HMGET-listpack-one-pass/order/missing/duplicate')
     # hash field expiry (THredis HFE)
     c(s,f,'HSET','he','x','1'); r=c(s,f,'HEXPIRE','he','100','FIELDS','1','x'); ck(isinstance(r,list) and r[0]==1,'HEXPIRE %r'%r)
     r=c(s,f,'HTTL','he','FIELDS','1','x'); ck(isinstance(r,list) and 0<int(r[0])<=100,'HTTL %r'%r)
@@ -92,6 +100,14 @@ def partA():
     c(s,f,'ZADD','z1','1','a','2','b'); c(s,f,'ZADD','z2','3','b','4','c')
     eq(c(s,f,'ZUNIONSTORE','zu','2','z1','z2'),3,'ZUNIONSTORE'); eq(c(s,f,'ZINTERSTORE','zi','2','z1','z2'),1,'ZINTERSTORE')
     eq(lst(c(s,f,'ZDIFF','2','z1','z2')),['a'],'ZDIFF'); eq(lst(c(s,f,'ZMSCORE','z1','a','x')),['1',None],'ZMSCORE')
+    # Monotonic skiplist inserts (including equal-score lexical tails) must retain exact sorted order.
+    zmono=[('zm%04d'%i,i//3) for i in range(384)]; zmono_args=[x for name,score in zmono for x in (str(score),name)]
+    c(s,f,'DEL','zmono'); eq(c(s,f,'ZADD','zmono',*zmono_args),len(zmono),'ZADD-monotonic-append')
+    eq(c(s,f,'OBJECT','ENCODING','zmono'),b'skiplist','ZADD-monotonic-skiplist-encoding')
+    zmono_want=[x for name,score in zmono for x in (name,str(score))]
+    eq(lst(c(s,f,'ZRANGE','zmono','0','-1','WITHSCORES')),zmono_want,'ZADD-monotonic-append-order')
+    eq(lst(c(s,f,'ZRANGE','zmono','190','195','WITHSCORES')),zmono_want[380:392],'ZADD-monotonic-span-window')
+    eq(c(s,f,'ZRANK','zmono',zmono[-1][0]),len(zmono)-1,'ZADD-monotonic-tail-rank')
     zs,zd='zrs-src','zrs-dst'; zref=[('a',-3),('b',-1),('c',0),('d',1),('e',2),('f',4)]
     def zrs(tail,want,tag):
         exp=[x for m,q in sorted(want,key=lambda p:(p[1],p[0])) for x in (m,str(q))]
@@ -126,12 +142,20 @@ def partA():
     c(s,f,'DEL','sa'); c(s,f,'RPUSH','sa','banana','apple','cherry')
     eq(lst(c(s,f,'SORT','sa','ALPHA','LIMIT','0','2')),['apple','banana'],'SORT-ALPHA-LIMIT')
     eq(lst(c(s,f,'SORT_RO','so','LIMIT','0','2')),['1','2'],'SORT_RO')
-    # SCAN returns everything (cursor loop)
-    seen=set(); cur=b'0'
+    # A huge COUNT is still wall-time sliced: follow every cursor and verify no key is lost or repeated.
+    eq(c(s,f,'FLUSHDB'),b'OK','SCAN-cap-FLUSHDB')
+    scan_want={'scan-cap:%04d'%i for i in range(4096)}
+    scan_args=[x for key in sorted(scan_want) for x in (key,'v')]
+    eq(c(s,f,'MSET',*scan_args),b'OK','SCAN-cap-fixture')
+    seen=[]; cur=b'0'; scan_calls=0
     while True:
-        r=c(s,f,'SCAN',cur,'COUNT','100'); cur=r[0]; seen|=set(lst(r[1]))
+        r=c(s,f,'SCAN',cur,'COUNT','1000000'); cur=r[0]; scan_calls+=1
+        seen.extend(lst(r[1]))
         if cur==b'0': break
-    ck('k2' in seen and 'so' in seen,'SCAN missing keys')
+        if scan_calls>100000: fails.append('SCAN cap cursor did not terminate'); break
+    eq(set(seen),scan_want,'SCAN-cap-full-keyspace')
+    eq(len(seen),len(scan_want),'SCAN-cap-no-duplicates')
+    ck(scan_calls>1,'SCAN cap did not split huge COUNT (calls=%d)'%scan_calls)
     # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
     ck(rejected(c(s,f,'MULTI')),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
     # ---- server/conn ----
