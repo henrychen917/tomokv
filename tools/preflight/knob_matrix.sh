@@ -183,6 +183,23 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
+  # ee451 2026-08-06: D-feature knobs (SEDA reorder + io-side prefetch + socket->io recv batch) were
+  # LIVE BUT UNTESTED after #82's landing. Each is numeric, 0=off, and the three the owner keeps
+  # ("prefetch on/off, ordering on/off"). Drive off + on so the drift guard accounts them and a broken
+  # knob surfaces here, not in a bench.
+  try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"
+  try tomokv-reorder 1 "partition-by-worker only"
+  try tomokv-reorder 2 "full SJF class ordering (range [0,2])"
+  must_refuse tomokv-reorder -1 "below the declared minimum -- 0=off"
+
+  try tomokv-io-prefetch 0 "OFF: no io-side prefetch"
+  try tomokv-io-prefetch 8 "max prefetch depth (range [0,8])"
+  must_refuse tomokv-io-prefetch -1 "below the declared minimum -- 0=off"
+
+  try tomokv-recv-batch 0 "OFF: single recv per pass"
+  try tomokv-recv-batch 1 "batched socket->io recv (range [0,1])"
+  must_refuse tomokv-recv-batch -1 "below the declared minimum -- 0=off"
+
 # RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
 # either the knob was not really retired or a shim is swallowing it -- both hide a config error
 # from an operator. These assert the negative.
