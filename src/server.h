@@ -1947,7 +1947,7 @@ typedef struct client {
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
-               CS_ZOP, CS_ZSTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
+               CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
                CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
@@ -1972,6 +1972,7 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_ERR_CORRUPT     6   /* PF*: hllMerge detected corruption (stock -INVALIDOBJ text) */
 #define CS_ERR_SAMEOBJ     7   /* COPY same key + same dest-db (stock "source and destination
                                 * objects are the same"); 2-hop path has no raw-proc guard */
+#define CS_ERR_SUBREPLY    8   /* a HOP1 stock helper emitted the final error into its sub */
 /* hyperloglog.c — xshard coordinator helpers over gathered HLL objects (step 7). */
 int isHLLObject(robj *o);
 uint64_t hllCountMulti(robj **hlls, int n, int *err);
@@ -6074,6 +6075,7 @@ void zunionCommand(client *c);
 void zinterCommand(client *c);
 void zinterCardCommand(client *c);
 void zrangestoreCommand(client *c);
+robj *zrangestoreResultObject(client *c);
 void zdiffCommand(client *c);
 void zscanCommand(client *c);
 void hkeysCommand(client *c);

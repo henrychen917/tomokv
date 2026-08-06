@@ -8386,6 +8386,36 @@ static int csZstoreShapeOk(client *c)   { return csZTailOk(c, 1, 1, 0, 0); }  /*
 static int csZdstoreShapeOk(client *c)  { return csZTailOk(c, 0, 0, 0, 0); }  /* ZDIFFSTORE */
 static int csZcardShapeOk(client *c)    { return csZTailOk(c, 0, 0, 0, 1); }  /* ZINTERCARD */
 
+/* ZRANGESTORE dst src min max [BYSCORE|BYLEX] [REV] [LIMIT offset count]. Validate
+ * the option tail exactly like zrangeGenericCommand so malformed forms fall inline for the
+ * stock parse error before any key access. Range endpoints are parsed by the stock selector
+ * in HOP1; an endpoint error is carried back in that sub's reply. */
+static int csZrangestoreShapeOk(client *c) {
+    int rangetype = 0;                  /* 0=rank, 1=score, 2=lex */
+    int direction = 0;                  /* 0=auto/forward, 1=reverse */
+    long long opt_offset = 0, opt_limit = -1;
+    for (int j = 5; j < c->argc; j++) {
+        int leftargs = c->argc - j - 1;
+        const char *a = c->argv[j]->ptr;
+        if (!strcasecmp(a, "limit") && leftargs >= 2) {
+            if (getLongLongFromObject(c->argv[j+1], &opt_offset) != C_OK ||
+                getLongLongFromObject(c->argv[j+2], &opt_limit) != C_OK)
+                return 0;
+            j += 2;
+        } else if (direction == 0 && !strcasecmp(a, "rev")) {
+            direction = 1;
+        } else if (rangetype == 0 && !strcasecmp(a, "byscore")) {
+            rangetype = 1;
+        } else if (rangetype == 0 && !strcasecmp(a, "bylex")) {
+            rangetype = 2;
+        } else {
+            return 0;
+        }
+    }
+    UNUSED(opt_offset);
+    return opt_limit == -1 || rangetype != 0;
+}
+
 /* SINTERCARD numkeys key... [LIMIT n]: 1 = well-formed => cross-shard. Malformed numkeys /
  * overrun / bad tail => 0 => fall INLINE for the stock parse error (precedes key access). */
 static int csSintercardShapeOk(client *c) {
@@ -8566,6 +8596,11 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
   .key_stride=1, .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .cs2_kind=CS2_INT, .shape_ok=csZcardShapeOk },
+/* T1 single-source store: source-worker selection produces the serialized result payload;
+ * the destination-worker hop overwrites/deletes dst. A co-located pair runs the stock proc. */
+{ .proc=zrangestoreCommand, .name="zrangestore", .ported=CS_PORT_OK, .ctype=CS_ZRANGESTORE,
+  .route=CS_RT_TWOHOP, .min_argc=4, .src_argi=2, .dst_argi=1,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csZrangestoreShapeOk },
 /* step 7 — byte/HLL ops over raw string images (mget_vals gather, always coalesced so the
  * value slots exist on every path). PFCOUNT-multi is a pure 1-hop count; BITOP folds bytes
  * on the coordinator and writes/deletes the string dst; PFMERGE gathers its DEST's current
@@ -8652,7 +8687,6 @@ static const csCmdSpec csRegistry[] = {
 /* ============ UNPORTED — strays the old blocklist MISSED (silently broken on the decoy
  * DB before the inversion; now loud + greppable instead of implicit-via-predicate) ====== */
 { .proc=lcsCommand,                 .name="lcs"                  },
-{ .proc=zrangestoreCommand,         .name="zrangestore"          },
 { .proc=georadiusroCommand,         .name="georadius_ro"         },
 { .proc=georadiusbymemberroCommand, .name="georadiusbymember_ro" },
 { .proc=blpopCommand,               .name="blpop"                },
@@ -8835,11 +8869,33 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
     }
 }
 
+/* ZRANGESTORE HOP1: run the real ZRANGE parser/selector against src on its owner worker,
+ * retain only the selected (member,score) zset, and serialize that result for HOP2. The
+ * temporary object never crosses threads. Empty selection deliberately leaves payload NULL
+ * so the destination worker deletes dst. */
+static void csH1RangeSelectZ(client *sub, csGroup *g) {
+    robj *res = zrangestoreResultObject(sub);
+    if (res == NULL) {
+        atomic_store_explicit(&g->err, CS_ERR_SUBREPLY, memory_order_relaxed);
+        return;
+    }
+    unsigned long card = zsetLength(res);
+    g->cs2_intreply = (long long)card;
+    if (card > 0) {
+        rio r; rioInitWithBuffer(&r, sdsempty());
+        rdbSaveObjectType(&r, res);
+        rdbSaveObject(&r, res, sub->argv[1], sub->db->id);
+        g->h2_payload = r.io.buffer.ptr;
+    }
+    decrRefCount(res);
+}
+
 /* universal xshard HOP2 dest-side restore (worker, single-writer): rdbLoad the blob FIRST (a
  * load failure then never destroys dst), then overwrite dst + restore TTL + re-register the
  * DB-global HFE-subexpires and stream-IDMP indices (dbAdd does not — stock rename/copy
- * register them explicitly). `nclass`+`event` = keyspace notification (NOTIFY_GENERIC
- * "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
+ * register them explicitly). ZRANGESTORE instead finishes through setKey for stock STORE
+ * overwrite/type-change notifications and invalidation. `nclass`+`event` = keyspace
+ * notification (NOTIFY_GENERIC "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
 static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event) {
     robj *dstkey = sub->argv[1];
     rio r; rioInitWithBuffer(&r, g->h2_payload);
@@ -8847,18 +8903,22 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
     int rerr = 0;
     robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
     if (val != NULL) {
-        int vtype = val->type;
-        uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
-        int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
-        dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
-        dbAdd(sub->db, dstkey, &val);
-        if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
-        if (hmn != EB_EXPIRE_TIME_INVALID) {
-            robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
-            if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
+        if (g->ctype == CS_ZRANGESTORE) {
+            setKey(sub, sub->db, dstkey, &val, 0);
+        } else {
+            int vtype = val->type;
+            uint64_t hmn = (vtype == OBJ_HASH) ? hashTypeGetMinExpire(val, 1) : EB_EXPIRE_TIME_INVALID;
+            int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
+            dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
+            dbAdd(sub->db, dstkey, &val);
+            if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
+            if (hmn != EB_EXPIRE_TIME_INVALID) {
+                robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
+                if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
+            }
+            if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
+                incrRefCount(dstkey);
         }
-        if (has_idmp && dictAdd(sub->db->stream_idmp_keys, dstkey, NULL) == DICT_OK)
-            incrRefCount(dstkey);
         notifyKeyspaceEvent(nclass, event, dstkey, sub->db->id);
         markDirty(1);
     } else {
@@ -9183,6 +9243,22 @@ static void csSubExec(client *sub) {
         }
         break;
     }
+    case CS_ZRANGESTORE:
+        if (!g->has_hop2) {
+            /* Same-shard fast path: both keys live here, so preserve the real stock proc. */
+            zrangestoreCommand(sub);
+        } else if (g->phase == CS_PH_HOP1) {
+            csH1RangeSelectZ(sub, g);
+        } else if (g->h2_payload == NULL) {
+            if (dbSyncDelete(sub->db, sub->argv[1])) {
+                keyModified(sub, sub->db, sub->argv[1], NULL, 1);
+                notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
+                markDirty(1);
+            }
+        } else {
+            csH2RestoreKey(sub, g, NOTIFY_ZSET, "zrangestore");
+        }
+        break;
     case CS_ZSTORE:
         if (g->phase == CS_PH_HOP2) {
             /* step 6 WRITE sub: empty result => delete dst + 0 (stock); else restore the
@@ -10632,8 +10708,8 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * real client is being torn down (CLOSE_ASAP): skip the reply, just free the subs/group.
  * Called from the IO drain, which has acquire-synchronized with every sub via the head
  * completion byte (release-acquire chain through g->pending; see the block header). */
-/* universal xshard: 2-hop dispatcher (registry route CS_RT_TWOHOP; RENAME today, conditional
- * moves in step 4). Same-shard => ONE sub carries the FULL original argv and the worker runs the
+/* universal xshard: 2-hop dispatcher (registry route CS_RT_TWOHOP; RENAME, ZRANGESTORE, and
+ * conditional moves). Same-shard => ONE sub carries the FULL original argv and the worker runs the
  * real proc (typed/normal; reply spliced at reassemble). Cross-shard => HOP1 gather sub(s) on the
  * src shard (+ a dst probe sub when the row asks, step 4+); the drain launches the g->h2sub[]
  * plan stamped HERE from the row — csLaunchHop2 never reads head->argv positions directly. For
@@ -10653,7 +10729,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     /* 2-hop: reserve the larger of the same-shard full argv and the cross-shard HOP1+HOP2
      * vectors. At most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 allocates
      * up to CS_H2_MAX HOP2 subs from the same bump region. */
-    size_t h1_argv = 2 * (size_t)(1 + s->h1_probe_dst) + (s->h1_extra_argi != 0);
+    size_t h1_argv = (s->ctype == CS_ZRANGESTORE) ? (size_t)head->argc :
+                     2 * (size_t)(1 + s->h1_probe_dst) + (s->h1_extra_argi != 0);
     size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
     size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
                         (size_t)head->argc : h1_argv + h2_argv;
@@ -10746,7 +10823,10 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
         client *sub = csMakeSub(g, i, i == 0 ? src_shard : dst_shard, dbid);
-        if (i == 0 && s->h1_extra_argi) {
+        if (i == 0 && s->ctype == CS_ZRANGESTORE) {
+            /* Selection needs dst/src/range/options, but touches only argv[2] in this hop. */
+            csSubCopyFullArgv(sub, head);
+        } else if (i == 0 && s->h1_extra_argi) {
             /* sub 0 carries [CMD src extra] (SMOVE member) — the sub owns its own refs. */
             robj *extra = head->argv[(int)s->h1_extra_argi];
             sub->argv = csgAlloc(g, sizeof(robj*) * 3);
@@ -10793,6 +10873,7 @@ static int csLaunchHop2(csGroup *g) {
      * g->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
     switch (g->ctype) {
     case CS_RENAME: break;
+    case CS_ZRANGESTORE: break;  /* HOP1's source worker already built the result payload */
     case CS_RENAMENX:
         /* NX verdict from the HOP1 dst probe. NOKEY from the src sub is handled by the
          * generic err screen below (src untouched — nothing was deleted in HOP1). */
@@ -11264,6 +11345,16 @@ static void csReassemble(client *dst, client *head) {
             if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard zset-store failed");
             else addReplyLongLong(dst, g->cs2_intreply);
+            break;
+        }
+        case CS_ZRANGESTORE: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (!g->has_hop2 || e == CS_ERR_SUBREPLY)
+                AddReplyFromClient(dst, g->subs[0]);
+            else if (e != CS_ERR_NONE)
+                addReplyError(dst, "cross-shard ZRANGESTORE failed");
+            else
+                addReplyLongLong(dst, g->cs2_intreply);
             break;
         }
         case CS_ZCARD: {

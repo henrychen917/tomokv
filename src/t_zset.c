@@ -3314,6 +3314,14 @@ static void zrangeResultFinalizeStore(zrange_result_handler *handler, size_t res
     }
 }
 
+/* Cross-shard ZRANGESTORE HOP1 uses the stock parser and selection callbacks, but must not
+ * mutate the destination on the source worker. Keep the freshly-built result object owned by
+ * the caller; a NULL result means parsing or type checking already emitted the stock error. */
+static void zrangeResultFinalizeDetached(zrange_result_handler *handler, size_t result_count) {
+    UNUSED(handler);
+    UNUSED(result_count);
+}
+
 /* Initialize the consumer interface type with the requested type. */
 static void zrangeResultHandlerInit(zrange_result_handler *handler,
     client *client, zrange_consumer_type type)
@@ -3449,6 +3457,17 @@ void zrangestoreCommand (client *c) {
     zrangeResultHandlerInit(&handler, c, ZRANGE_CONSUMER_TYPE_INTERNAL);
     zrangeResultHandlerDestinationKeySet(&handler, dstkey);
     zrangeGenericCommand(&handler, 2, 1, ZRANGE_AUTO, ZRANGE_DIRECTION_AUTO);
+}
+
+/* Select ZRANGESTORE's result without storing it. The returned refcount-1 zset is owned by
+ * the caller. Valid missing/empty sources return an empty zset; NULL is reserved for a stock
+ * parse/WRONGTYPE error already serialized on c. */
+robj *zrangestoreResultObject(client *c) {
+    zrange_result_handler handler;
+    zrangeResultHandlerInit(&handler, c, ZRANGE_CONSUMER_TYPE_INTERNAL);
+    handler.finalizeResultEmission = zrangeResultFinalizeDetached;
+    zrangeGenericCommand(&handler, 2, 1, ZRANGE_AUTO, ZRANGE_DIRECTION_AUTO);
+    return handler.dstobj;
 }
 
 /* ZRANGE <key> <min> <max> [BYSCORE | BYLEX] [REV] [WITHSCORES] [LIMIT offset count] */

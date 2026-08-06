@@ -92,9 +92,17 @@ def partA():
     c(s,f,'ZADD','z1','1','a','2','b'); c(s,f,'ZADD','z2','3','b','4','c')
     eq(c(s,f,'ZUNIONSTORE','zu','2','z1','z2'),3,'ZUNIONSTORE'); eq(c(s,f,'ZINTERSTORE','zi','2','z1','z2'),1,'ZINTERSTORE')
     eq(lst(c(s,f,'ZDIFF','2','z1','z2')),['a'],'ZDIFF'); eq(lst(c(s,f,'ZMSCORE','z1','a','x')),['1',None],'ZMSCORE')
-    # ZRANGESTORE is a cross-shard STORE THredis has NOT implemented (others like ZUNIONSTORE work) — it
-    # must fail-SAFE (clean error, not silent corruption). Coverage gap = cross-shard refactor candidate.
-    ck(rejected(c(s,f,'ZRANGESTORE','zr','z1','0','-1')),'ZRANGESTORE cross-shard must reject cleanly (not corrupt)')
+    zs,zd='zrs-src','zrs-dst'; zref=[('a',-3),('b',-1),('c',0),('d',1),('e',2),('f',4)]
+    def zrs(tail,want,tag):
+        exp=[x for m,q in sorted(want,key=lambda p:(p[1],p[0])) for x in (m,str(q))]
+        eq(c(s,f,'ZRANGESTORE',zd,zs,*tail),len(want),tag+'-card'); eq(lst(c(s,f,'ZRANGE',zd,'0','-1','WITHSCORES')),exp,tag+'-data')
+    c(s,f,'ZADD',zs,*[x for m,q in zref for x in (str(q),m)]); c(s,f,'SET',zd,'stale')
+    zrs(('1','4'),zref[1:5],'ZRANGESTORE-index/overwrite'); zrs(('1','3','REV'),zref[::-1][1:4],'ZRANGESTORE-REV')
+    zrs(('-inf','(2','BYSCORE'),[p for p in zref if p[1]<2],'ZRANGESTORE-BYSCORE--inf/exclusive')
+    zrs(('(0','+inf','BYSCORE','LIMIT','1','2'),[p for p in zref if p[1]>0][1:3],'ZRANGESTORE-BYSCORE-+inf/LIMIT')
+    lexref=[(m,7) for m in 'abcdef']; c(s,f,'DEL',zs); c(s,f,'ZADD',zs,*[x for m,q in lexref for x in (str(q),m)])
+    zrs(('[b','(f','BYLEX','LIMIT','1','3'),[p for p in lexref if 'b'<=p[0]<'f'][1:4],'ZRANGESTORE-BYLEX/LIMIT')
+    eq(c(s,f,'ZRANGESTORE',zd,zs,'99','100'),0,'ZRANGESTORE-empty-card'); eq(c(s,f,'EXISTS',zd),0,'ZRANGESTORE-empty-deletes')
     # ---- streams ----
     c(s,f,'DEL','x'); i1=c(s,f,'XADD','x','*','k','v1'); c(s,f,'XADD','x','*','k','v2'); eq(c(s,f,'XLEN','x'),2,'XADD/XLEN')
     r=c(s,f,'XRANGE','x','-','+'); ck(isinstance(r,list) and len(r)==2,'XRANGE %r'%(r if not isinstance(r,list) else len(r)))
