@@ -1495,6 +1495,10 @@ typedef struct {
 #define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
 #define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
 #define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
+/* Shinjuku (reorder mode 3) per-class service-time proxy (relative). argmax(wait/SLO) => a short
+ * class (small SLO) outranks a long one until the long one has waited proportionally longer.
+ * Monotonic in class; values are relative, calibrate later. */
+static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 16384 };
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */

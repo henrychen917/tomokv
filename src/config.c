@@ -3212,7 +3212,7 @@ standardConfig static_configs[] = {
      * different split spends its window converging instead of measuring. */
     createIntConfig("tomokv-recv-batch", NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_recv_batch, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-io-prefetch", NULL, MODIFIABLE_CONFIG, 0, 8, server.tomo_io_prefetch, 0, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 2, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */

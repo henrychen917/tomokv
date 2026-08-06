@@ -2773,6 +2773,7 @@ static __thread struct {
 #define TOMO_RORD_HSET 128
 static __thread uint64_t rord_hset_key[TOMO_RORD_HSET];
 static __thread uint32_t rord_hset_gen[TOMO_RORD_HSET];
+static __thread int rord_dep_pos[TOMO_RORD_HSET];
 static __thread uint32_t rord_hset_curgen;
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
@@ -2812,6 +2813,47 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
     tm_rord_trace = 0;   /* one-shot */
 }
 
+/* Shinjuku-style per-run emit (reorder mode 3): dependency-aware SJF. Emits the run [ord, ord+r)
+ * (indices into tomo_rord, already arrival-order, all for worker w). A command may only be emitted
+ * after its same-(owning-connection, key-hash) predecessor -- Redis guarantees order only within a
+ * connection, so cross-client same-key is free to reorder. Among ready commands, pick max(wait/SLO)
+ * = shortest class first (within one window wait is ~uniform, so this is class-SJF; the wait term is
+ * kept so cross-window aging is a later drop-in). EXACT (not chunk-bounded). r <= TOMO_RORD_CAP. */
+static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
+    uint8_t blocked[TOMO_RORD_CAP];
+    int     succ[TOMO_RORD_CAP];
+    /* per-class arrival-order position lists + cursors */
+    uint8_t clspos[TOMO_SVC_CLASSES][TOMO_RORD_CAP];
+    int     clen[TOMO_SVC_CLASSES] = {0}, ccur[TOMO_SVC_CLASSES] = {0};
+    /* dependency chain via a generation-stamped open-addressing map: dep-key -> last position.
+     * reuse the mode-2 hash-set arrays' pattern; add a parallel position array. */
+    uint32_t g = ++rord_hset_curgen;
+    for (int a = 0; a < r; a++) {
+        int i = ord[a];
+        int c = tomo_rord.cls[i] & TOMO_CLS_MASK;
+        clspos[c][clen[c]++] = (uint8_t)a;
+        succ[a] = -1; blocked[a] = 0;
+        uint64_t dep = tomo_rord.h[i] ^
+            ((uint64_t)(uintptr_t)tomo_rord.fk[i]->parent * 0x9E3779B97F4A7C15ull);
+        unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
+        while (rord_hset_gen[slot] == g) {
+            if (rord_hset_key[slot] == dep) { succ[rord_dep_pos[slot]] = a; blocked[a] = 1; break; }
+            slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+        }
+        rord_hset_gen[slot] = g; rord_hset_key[slot] = dep; rord_dep_pos[slot] = a;
+    }
+    for (int emitted = 0; emitted < r; emitted++) {
+        int pc = -1;
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)          /* ascending class = SJF priority */
+            if (ccur[c] < clen[c] && !blocked[clspos[c][ccur[c]]]) { pc = c; break; }
+        /* pc >= 0 always: the globally-earliest un-emitted command has no un-emitted predecessor
+         * (its predecessor is earlier => already emitted), so at least one class head is ready. */
+        int a = clspos[pc][ccur[pc]++];
+        exDispatchDirect(w, tomo_rord.fk[ord[a]]);
+        if (succ[a] >= 0) blocked[succ[a]] = 0;
+    }
+}
+
 void tomoReorderDrain(void) {
     if (tomo_rord.n == 0) return;
     tomo_rord.draining = 1;
@@ -2848,6 +2890,9 @@ void tomoReorderDrain(void) {
         }
         if (r <= 1 || lvl < 1) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
+        } else if (lvl == 3) {
+            tm_io_sig[iotid].rord_runs++;
+            tomoReorderEmitShinjuku(w, order + s0, r);
         } else {
             tm_io_sig[iotid].rord_runs++;
             /* dependency guard: any same-key pair in this run fences the run from its FIRST
