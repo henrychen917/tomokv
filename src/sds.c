@@ -213,7 +213,10 @@ sds sdsdup(const sds s) {
 /* Free an sds string. No operation is performed if 's' is NULL. */
 void sdsfree(sds s) {
     if (s == NULL) return;
-    s_free((char*)s-sdsHdrSize(s[-1]));
+    if (sdsType(s) == SDS_TYPE_5)
+        s_free(sdsAllocPtr(s));
+    else
+        s_free_with_size(sdsAllocPtr(s), sdsAllocSize(s));
 }
 
 void sdsfreeusable(sds s, size_t *usable) {
