@@ -2761,7 +2761,19 @@ static __thread struct {
     uint8_t  cls[TOMO_RORD_CAP];   /* class 0..5 (TOMO_CLS_MASK); bit 7 = head-of-pipe */
     int      n;
     int      draining;             /* re-entrancy latch: full-ring fallback inside the drain */
+    uint64_t win_us;               /* D age clock: stamped once when the window opens (n:0->1) */
 } tomo_rord;
+
+/* O(r) same-key dependency detection for the drain's per-run fence, replacing the O(r^2) all-pairs
+ * hash scan (pure waste for the all-distinct case, e.g. GET over random keys). Generation-stamped
+ * open addressing => no per-run reset. TOMO_RORD_HSET > max run length (TOMO_RORD_CAP) guarantees a
+ * free slot, so the probe loop always terminates. A gen wraparound (every 2^32 runs) can only
+ * produce a stale MATCH, which fences early = the safe (arrival-order) side, matching the existing
+ * false-collision policy. */
+#define TOMO_RORD_HSET 128
+static __thread uint64_t rord_hset_key[TOMO_RORD_HSET];
+static __thread uint32_t rord_hset_gen[TOMO_RORD_HSET];
+static __thread uint32_t rord_hset_curgen;
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
 
@@ -2805,13 +2817,19 @@ void tomoReorderDrain(void) {
     tomo_rord.draining = 1;
     int n = tomo_rord.n;
     int lvl = server.tomo_reorder;
-    /* stable counting-scatter by worker: order[] holds indices grouped by ex id */
+    /* stable counting-scatter by worker: order[] holds indices grouped by ex id. Bounded by the
+     * MAX worker id present in this window (mx), NOT TOMO_EX_THREADS_MAX: a window touches only a
+     * few live workers, so zeroing+scanning all 128 buckets was a fixed O(TOMO_EX_THREADS_MAX) tax
+     * per drain (doubled when the ex cap went 64->128). Output order[] is unchanged. */
     int order[TOMO_RORD_CAP];
     {
-        int cnt[TOMO_EX_THREADS_MAX] = {0}, base[TOMO_EX_THREADS_MAX];
+        int mx = tomo_rord.ex[0];
+        for (int i = 1; i < n; i++) if (tomo_rord.ex[i] > mx) mx = tomo_rord.ex[i];
+        int cnt[TOMO_EX_THREADS_MAX], base[TOMO_EX_THREADS_MAX];
+        for (int w = 0; w <= mx; w++) cnt[w] = 0;
         for (int i = 0; i < n; i++) cnt[tomo_rord.ex[i]]++;
         int acc = 0;
-        for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) { base[w] = acc; acc += cnt[w]; }
+        for (int w = 0; w <= mx; w++) { base[w] = acc; acc += cnt[w]; }
         for (int i = 0; i < n; i++) order[base[tomo_rord.ex[i]]++] = i;
     }
     /* per-run emit */
@@ -2836,10 +2854,26 @@ void tomoReorderDrain(void) {
              * collision point — everything before the collision may still be emitted reordered,
              * the collision entry and everything after it go in arrival order. */
             int fence_at = r;
-            for (int a = 1; a < r && fence_at == r; a++) {
-                uint64_t ha = tomo_rord.h[order[s0 + a]];
-                for (int b = 0; b < a; b++)
-                    if (tomo_rord.h[order[s0 + b]] == ha) { fence_at = a; break; }
+            uint32_t hgen = ++rord_hset_curgen;
+            for (int a = 0; a < r; a++) {
+                int ia = order[s0 + a];
+                /* dependency key = (key-hash, OWNING CONNECTION). Redis guarantees command order
+                 * only WITHIN a connection, so only same-client same-key pairs must stay ordered;
+                 * same-key commands from DIFFERENT clients have no ordering guarantee and are free to
+                 * reorder. Mixing the parent ptr into the fence key loosens the guard to exactly
+                 * that -- on a hot key hammered by many connections the old key-only fence pinned the
+                 * whole run to arrival order (killing the SJF); now only each client's own
+                 * subsequence fences. (parent==NULL folds to key-only = the safe/strict side.) */
+                uint64_t da = tomo_rord.h[ia] ^
+                    ((uint64_t)(uintptr_t)tomo_rord.fk[ia]->parent * 0x9E3779B97F4A7C15ull);
+                unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
+                while (rord_hset_gen[slot] == hgen) {
+                    if (rord_hset_key[slot] == da) { fence_at = a; break; }
+                    slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+                }
+                if (fence_at != r) break;
+                rord_hset_gen[slot] = hgen;
+                rord_hset_key[slot] = da;
             }
             if (fence_at < r) tm_io_sig[iotid].rord_fences++;
             /* D trace (ARMED-ONLY, zero hot-path cost): simulate the emission order into a string
@@ -3004,7 +3038,12 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         fake->cmd && !fake->csparent && !fake->is_flush && !fake->drain_ack &&
         !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
         int i = tomo_rord.n;
-        fake->arrival_us = getMonotonicUs();   /* D age clock: measured at admission, read at pop */
+        /* D age clock: ONE rdtsc per window (at open), shared by every command in it. The age
+         * consumer reads only batch[0]->arrival_us (the oldest) and a window's commands arrive
+         * within microseconds, so the per-command clock read was ~63/64 wasted -- and it, not the
+         * drain, is the pure-GET staging tax (measured: drain opts alone left it unmoved). */
+        if (i == 0) tomo_rord.win_us = getMonotonicUs();
+        fake->arrival_us = tomo_rord.win_us;
         tomo_rord.fk[i]  = fake;
         tomo_rord.h[i]   = fake->tomo_key_h;
         tomo_rord.ex[i]  = (uint8_t)ex_id;
