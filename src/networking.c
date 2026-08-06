@@ -1849,6 +1849,56 @@ void addReplySubcommandSyntaxError(client *c) {
     sdsfree(cmd);
 }
 
+/* A buffer exchange is deliberately restricted to replies large enough that avoiding
+ * the copy clearly dominates the ownership bookkeeping. It also keeps the express
+ * GET/SET reply path on the existing copy/reference decisions. */
+#define REPLY_BUFFER_TRANSFER_MIN_BYTES (PROTO_REPLY_CHUNK_BYTES / 2)
+
+/* Transfer a completed worker fake's plain inline reply to its IO-owned real
+ * client by exchanging equal-capacity scratch allocations.
+ *
+ * The completion byte is acquire-loaded before AddReplyFromClient is called, so
+ * EX has published every byte and is done touching src. The empty buffer moving
+ * in the other direction lets commandProcessed recycle src immediately. dst is
+ * then the sole owner of the completed buffer: epoll write/writev never retains
+ * its pointer after the syscall returns (partial bytes remain dst-owned), while
+ * the io_uring sidecar either snapshots it into a completion-owned registered
+ * buffer or keeps dst->buf immutable through the data CQE. No pointer remains
+ * borrowed from EX.
+ *
+ * Equal capacities are load-bearing: exchanging them leaves reply-buffer memory
+ * accounting, resize behavior, output-limit treatment, and allocator pressure
+ * exactly as if _addReplyToBufferOrList had copied into dst's existing buffer. */
+static int tryTransferReplyBuffer(client *dst, client *src) {
+    size_t len = src->bufpos;
+
+    if (!server.reply_buffer_transfer_enabled ||
+        !src->isFake || dst->isFake || src->parent != dst ||
+        src->buf_encoded || src->sentlen != 0 || src->last_header != NULL ||
+        listLength(src->reply) != 0 || src->reply_bytes != 0 ||
+        dst->bufpos != 0 || dst->sentlen != 0 || dst->buf_encoded ||
+        dst->last_header != NULL || listLength(dst->reply) != 0 ||
+        src->buf_usable_size != dst->buf_usable_size ||
+        (dst->flags & (CLIENT_CLOSE_AFTER_REPLY | CLIENT_PUSHING)) ||
+        clientTypeIsSlave(dst))
+    {
+        return 0;
+    }
+
+    /* Match _addReplyToBufferOrList's accounting/LOG_REQ_RES side effects,
+     * then exchange ownership instead of copying bytes. */
+    dst->net_output_bytes_curr_cmd += len;
+    reqresSaveClientReplyOffset(dst);
+
+    char *empty = dst->buf;
+    dst->buf = src->buf;
+    src->buf = empty;
+    dst->bufpos = len;
+    src->bufpos = 0;
+    if (dst->buf_peak < len) dst->buf_peak = len;
+    return 1;
+}
+
 /* Append 'src' client output buffers into 'dst' client output buffers.
  * This function clears the output buffers of 'src' */
 void AddReplyFromClient(client *dst, client *src) {
@@ -1865,11 +1915,21 @@ void AddReplyFromClient(client *dst, client *src) {
         return;
     }
 
-    /* First add the static buffer (either into the static buffer or reply list) */
-    addReplyProto(dst,src->buf, src->bufpos);
+    /* First add the static buffer (either by transferring its ownership, or
+     * into the static buffer/reply list through the existing copy path). */
+    if (_prepareClientToWrite(dst) != C_OK)
+        return;
+    /* Short-circuit here, outside the rare helper, so the small GET/SET path
+     * adds only one predicted-not-taken comparison and no function call or
+     * configuration load. */
+    if (likely(src->bufpos < REPLY_BUFFER_TRANSFER_MIN_BYTES) ||
+        !tryTransferReplyBuffer(dst, src))
+    {
+        _addReplyToBufferOrList(dst, src->buf, src->bufpos);
+    }
 
-    /* We need to check with _prepareClientToWrite again (after addReplyProto)
-     * since addReplyProto may have changed something (like CLIENT_CLOSE_ASAP) */
+    /* Check again because appending/transferring may have changed something
+     * (like CLIENT_CLOSE_ASAP). */
     if (_prepareClientToWrite(dst) != C_OK)
         return;
 

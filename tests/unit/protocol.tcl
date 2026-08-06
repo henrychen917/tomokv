@@ -187,6 +187,35 @@ start_server {tags {"protocol network"}} {
     r readraw 0
     r deferred 0
 
+    test {large worker reply-buffer transfer preserves exact RESP bytes} {
+        r del reply-buffer-transfer
+        set value [string repeat x 64]
+        set values [lrepeat 128 $value]
+        r rpush reply-buffer-transfer {*}$values
+
+        set element "\$64\r\n${value}\r\n"
+        set expected "*128\r\n[string repeat $element 128]"
+        set old_transfer [lindex [r config get tomokv-reply-buffer-transfer] 1]
+        set rc [redis_client]
+
+        r config set tomokv-reply-buffer-transfer no
+        $rc readraw 1
+        set disabled "[$rc lrange reply-buffer-transfer 0 -1]\r\n"
+        append disabled [$rc rawread [expr {[string length $expected] - [string length $disabled]}]]
+        $rc readraw 0
+
+        r config set tomokv-reply-buffer-transfer yes
+        $rc readraw 1
+        set enabled "[$rc lrange reply-buffer-transfer 0 -1]\r\n"
+        append enabled [$rc rawread [expr {[string length $expected] - [string length $enabled]}]]
+        $rc readraw 0
+        $rc close
+        r config set tomokv-reply-buffer-transfer $old_transfer
+
+        assert_equal $expected $disabled
+        assert_equal $disabled $enabled
+    }
+
     # check the connection still works
     assert_equal [r ping] {PONG}
 

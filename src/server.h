@@ -3951,6 +3951,9 @@ struct redisServer {
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
+    int reply_buffer_transfer_enabled; /* Transfer a completed fake's large plain reply buffer to
+                                        * its IO-owned real client when equal-capacity scratch can
+                                        * be exchanged. Gated independently for hot-path A/B. */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
