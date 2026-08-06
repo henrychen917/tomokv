@@ -3092,6 +3092,8 @@ void hdelCommand(client *c) {
      * field with expiration and removes it from global HFE DS. */
     int isHFE = hashTypeIsFieldsWithExpire(o);
 
+    if (o->encoding == OBJ_ENCODING_HT)
+        dictPauseAutoResize((dict *)o->ptr);
     for (j = 2; j < c->argc; j++) {
         if (hashTypeDelete(o,c->argv[j]->ptr)) {
             deleted++;
@@ -3104,6 +3106,10 @@ void hdelCommand(client *c) {
                 break;
             }
         }
+    }
+    if (!keyremoved && o->encoding == OBJ_ENCODING_HT) {
+        dictResumeAutoResize((dict *)o->ptr);
+        dictShrinkIfNeeded((dict *)o->ptr);
     }
     if (server.memory_tracking_enabled && !keyremoved)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), o, oldsize, kvobjAllocSize(o));

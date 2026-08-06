@@ -125,6 +125,17 @@ def partA():
     eq(c(s,f,'HLEN','h'),2,'HLEN'); eq(c(s,f,'HEXISTS','h','f1'),1,'HEXISTS'); eq(c(s,f,'HDEL','h','f2'),1,'HDEL')
     eq(c(s,f,'HINCRBY','h','cnt','5'),5,'HINCRBY'); eq(sorted(lst(c(s,f,'HKEYS','h'))),['cnt','f1'],'HKEYS')
     eq(lst(c(s,f,'HMGET','h','f1','nope')),['v1',None],'HMGET')
+    # Batched collection deletes must keep the surviving dict contents and encoding intact.
+    delete_batch_n,delete_batch_keep=1024,64
+    hdel_fields=['hdel%04d'%i for i in range(delete_batch_n)]
+    hdel_args=[x for i,name in enumerate(hdel_fields) for x in (name,'v%04d'%i)]
+    hdel_survivors=hdel_fields[-delete_batch_keep:]
+    c(s,f,'DEL','hdel-batch'); eq(c(s,f,'HSET','hdel-batch',*hdel_args),delete_batch_n,'HDEL-batch-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-before')
+    eq(c(s,f,'HDEL','hdel-batch',*hdel_fields[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'HDEL-batch-delete')
+    eq(c(s,f,'HLEN','hdel-batch'),delete_batch_keep,'HDEL-batch-HLEN')
+    eq(sorted(lst(c(s,f,'HKEYS','hdel-batch'))),hdel_survivors,'HDEL-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-after')
     # Large listpack HMGET: reverse-order probes, a miss, and duplicates exercise the one-pass request map.
     hm_fields=['hf%03d'%i for i in range(400)]; hm_values={name:'hv%03d'%i for i,name in enumerate(hm_fields)}
     hm_args=[x for name in hm_fields for x in (name,hm_values[name])]
@@ -159,6 +170,13 @@ def partA():
     c(s,f,'DEL','st'); eq(c(s,f,'SADD','st','a','b','c'),3,'SADD'); eq(c(s,f,'SCARD','st'),3,'SCARD')
     eq(c(s,f,'SISMEMBER','st','a'),1,'SISMEMBER'); eq(sorted(lst(c(s,f,'SMEMBERS','st'))),['a','b','c'],'SMEMBERS')
     eq(lst(c(s,f,'SMISMEMBER','st','a','z')),[1,0],'SMISMEMBER'); eq(c(s,f,'SREM','st','c'),1,'SREM')
+    srem_members=['srem%04d'%i for i in range(delete_batch_n)]; srem_survivors=srem_members[-delete_batch_keep:]
+    c(s,f,'DEL','srem-batch'); eq(c(s,f,'SADD','srem-batch',*srem_members),delete_batch_n,'SREM-batch-SADD')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-before')
+    eq(c(s,f,'SREM','srem-batch',*srem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'SREM-batch-delete')
+    eq(c(s,f,'SCARD','srem-batch'),delete_batch_keep,'SREM-batch-SCARD')
+    eq(sorted(lst(c(s,f,'SMEMBERS','srem-batch'))),srem_survivors,'SREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-after')
     c(s,f,'SADD','s1','a','b','c','d'); c(s,f,'SADD','s2','c','d','e')
     eq(sorted(lst(c(s,f,'SINTER','s1','s2'))),['c','d'],'SINTER'); eq(sorted(lst(c(s,f,'SUNION','s1','s2'))),['a','b','c','d','e'],'SUNION')
     eq(sorted(lst(c(s,f,'SDIFF','s1','s2'))),['a','b'],'SDIFF'); eq(c(s,f,'SINTERCARD','2','s1','s2'),2,'SINTERCARD')
@@ -171,6 +189,15 @@ def partA():
     eq(lst(c(s,f,'ZRANGEBYSCORE','z','2','3')),['b','c'],'ZRANGEBYSCORE'); eq(c(s,f,'ZRANK','z','c'),2,'ZRANK')
     eq(c(s,f,'ZCOUNT','z','1','2'),2,'ZCOUNT'); eq(c(s,f,'ZINCRBY','z','5','a'),b'6','ZINCRBY')
     eq(lst(c(s,f,'ZPOPMIN','z')),['b','2'],'ZPOPMIN')
+    zrem_members=['zrem%04d'%i for i in range(delete_batch_n)]
+    zrem_args=[x for i,name in enumerate(zrem_members) for x in (i,name)]
+    zrem_survivors=zrem_members[-delete_batch_keep:]
+    c(s,f,'DEL','zrem-batch'); eq(c(s,f,'ZADD','zrem-batch',*zrem_args),delete_batch_n,'ZREM-batch-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-before')
+    eq(c(s,f,'ZREM','zrem-batch',*zrem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'ZREM-batch-delete')
+    eq(c(s,f,'ZCARD','zrem-batch'),delete_batch_keep,'ZREM-batch-ZCARD')
+    eq(lst(c(s,f,'ZRANGE','zrem-batch','0','-1')),zrem_survivors,'ZREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-after')
     # BZPOP uses the same T4 probe/winner path, but preserves its flat [key,member,score] reply.
     bza,bzb=shard_pair(s,f,True,'bzpop')
     c(s,f,'DEL',bza,bzb); c(s,f,'ZADD',bzb,'1','low','9','high')
