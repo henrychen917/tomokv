@@ -8392,6 +8392,74 @@ static int csEvalUnsafeCheck(client *c) {
     if (getLongLongFromObject(c->argv[2], &nk) != C_OK) return 0;
     return nk != 0;
 }
+
+/* XREAD and XREADGROUP share xreadCommand. The WRITE flag identifies the latter even when
+ * rename-command changes argv[0]; the length check also mirrors xreadCommand's own legacy
+ * discriminator, conservatively guarding a renamed XREAD that stock would interpret as GROUP. */
+static int csXreadIsGroup(client *c) {
+    return (c->cmd->flags & CMD_WRITE) || sdslen(c->argv[0]->ptr) == 10;
+}
+
+/* Hybrid-row guard: only plain non-blocking XREAD is ported. Parse option widths up to STREAMS
+ * so a stream key or ID literally named "BLOCK" is not mistaken for the blocking option. */
+static int csXreadUnsafeCheck(client *c) {
+    if (csXreadIsGroup(c)) return 1;                         /* XREADGROUP stays rejected */
+    for (int i = 1; i < c->argc; i++) {
+        int moreargs = c->argc - i - 1;
+        const char *a = c->argv[i]->ptr;
+        if (!strcasecmp(a,"count") && moreargs) {
+            i++;
+        } else if (!strcasecmp(a,"block")) {
+            return 1;                                       /* valid or malformed BLOCK stays safe */
+        } else if (!strcasecmp(a,"streams") && moreargs) {
+            break;
+        } else {
+            break;                                          /* stock syntax error; no key access */
+        }
+    }
+    return 0;
+}
+
+/* Parse the non-blocking XREAD prefix and its STREAMS keys/IDs split without emitting a reply.
+ * IDs remain worker-parsed: stock type-checks each key before parsing its paired ID, so doing
+ * that work on the owner preserves error precedence. */
+static int csXreadParse(client *c, int *first, int *nkeys, long long *count) {
+    long long parsed_count = 0;
+    if (csXreadIsGroup(c)) return 0;
+    for (int i = 1; i < c->argc; i++) {
+        int moreargs = c->argc - i - 1;
+        const char *a = c->argv[i]->ptr;
+        if (!strcasecmp(a,"count") && moreargs) {
+            if (getLongLongFromObject(c->argv[++i],&parsed_count) != C_OK) return 0;
+            if (parsed_count < 0) parsed_count = 0;
+        } else if (!strcasecmp(a,"block") && moreargs) {
+            return 0;
+        } else if (!strcasecmp(a,"streams") && moreargs) {
+            int tail = c->argc - (i + 1);
+            if ((tail & 1) || tail == 0) return 0;
+            if (first) *first = i + 1;
+            if (nkeys) *nkeys = tail / 2;
+            if (count) *count = parsed_count;
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    return 0;
+}
+static int csXreadShapeOk(client *c) {
+    return csXreadParse(c,NULL,NULL,NULL);
+}
+static int csXreadGatherGeom(client *c, int *first, int *nkeys) {
+    return csXreadParse(c,first,nkeys,NULL);
+}
+static void csAppendXreadId(client *head, client *sub, int origpos) {
+    int first, nkeys;
+    serverAssert(csXreadParse(head,&first,&nkeys,NULL));
+    robj *id = head->argv[first + nkeys + origpos];
+    sub->argv[sub->argc++] = id;
+    incrRefCount(id);
+}
 static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
 
 /* step 6 Z-op tail validator: after the keys, accept only the flag set the stock form allows
@@ -8684,6 +8752,13 @@ static const csCmdSpec csRegistry[] = {
 { .proc=lcsCommand, .name="lcs", .ported=CS_PORT_OK, .ctype=CS_LCS,
   .route=CS_RT_GATHER, .min_argc=3, .nkeys_fixed=2, .key_stride=1,
   .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS },
+/* T5 multi-stream read: one paired key/ID list per owner, with position-indexed bare reply
+ * fragments. BLOCK and the shared-proc XREADGROUP forms remain guarded by unsafe_check. */
+{ .proc=xreadCommand, .name="xread", .ported=CS_PORT_OK, .ctype=CS_XREAD,
+  .route=CS_RT_GATHER, .min_argc=4, .key_stride=1, .per_key_extra=1,
+  .res_kind=CS_RES_XREAD, .pos_kind=CS_POS_XREAD, .co_gate=CS_CO_ALWAYS,
+  .gather_geom=csXreadGatherGeom, .shape_ok=csXreadShapeOk,
+  .append_extra=csAppendXreadId, .unsafe_check=csXreadUnsafeCheck },
 /* step 8 — list moves (peek-then-move: HOP1 peeks the element WITHOUT popping + probes dst's
  * type; a failing verdict (empty src => nil, wrong-typed dst => -ERR) never pops, the H3
  * guard; HOP2 = push-dst + pop-src under ONE barrier) and MSETNX (existence probe wave, then
@@ -8751,8 +8826,6 @@ static const csCmdSpec csRegistry[] = {
 { .proc=georadiusbymemberroCommand, .name="georadiusbymember_ro" },
 { .proc=blpopCommand,               .name="blpop"                },
 { .proc=brpopCommand,               .name="brpop"                },
-{ .proc=xreadCommand,               .name="xread"                }, /* covers XREADGROUP iff same
-                                     * proc — the boot audit verifies every row binds */
 { .proc=migrateCommand,             .name="migrate"              },
 { .proc=NULL } /* sentinel */
 };
@@ -9036,6 +9109,10 @@ static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
         atomic_store_explicit(&g->had_err, 1, memory_order_relaxed);
 }
 
+#define CS_XREAD_EMPTY 0
+#define CS_XREAD_HIT   1
+#define CS_XREAD_ERR   2
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -9267,6 +9344,20 @@ static void csSubExec(client *sub) {
         }
         kvstoreIteratorReset(&kvs_it);
         atomic_fetch_add_explicit(&g->rcount, (long)n, memory_order_relaxed);
+        break;
+    }
+    case CS_XREAD: {
+        /* argv is [XREAD key id key id ...] for this owner. Each result client contains no
+         * top-level aggregate header, only one stream element, so fragments remain reorderable. */
+        int *pos = g->xread_pos[sub->cssub_idx];
+        for (int a = 1, j = 0; a + 1 < sub->argc; a += 2, j++) {
+            int idx = pos[j];
+            client *out = g->xread_out[idx];
+            out->db = sub->db;
+            int rc = xreadCommandReadOne(out,sub->argv[a],sub->argv[a+1],g->xread_count);
+            g->xread_status[idx] = rc < 0 ? CS_XREAD_ERR :
+                                    rc > 0 ? CS_XREAD_HIT : CS_XREAD_EMPTY;
+        }
         break;
     }
     case CS_SSTORE:
@@ -9750,6 +9841,7 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     case CS_RES_ZSETMEM:   w += 8 * (size_t)nkeys; /* zscore */    /* fall through */
     case CS_RES_SETMEM:    w += 16 * (size_t)nkeys; break;         /* setmem + setcnt */
     case CS_RES_KEYREPORT: w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* klen + ktype */
+    case CS_RES_XREAD:     w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* out + status */
     default: break;
     }
     w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
@@ -10337,7 +10429,8 @@ static void dispatchLocalReal(client *head, int w, int dbid) {
 static void dispatchGather(client *head, const csCmdSpec *s) {
     int first = csFirstKeyArg(s);
     int nkeys, dbid = head->db->id;
-    if (s->nkeys_fixed) nkeys = s->nkeys_fixed;
+    if (s->gather_geom) serverAssert(s->gather_geom(head,&first,&nkeys));
+    else if (s->nkeys_fixed) nkeys = s->nkeys_fixed;
     else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
@@ -10444,6 +10537,22 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         g->klen  = csgCalloc(g, sizeof(long) * nkeys);
         g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
     }
+    if (s->res_kind == CS_RES_XREAD) {
+        /* Each owner sub writes only its assigned output clients. The pending barrier publishes
+         * those private buffers before the coordinator splices them in original key order. */
+        g->xread_out = csgCalloc(g, sizeof(client*) * nkeys);
+        g->xread_status = csgCalloc(g, sizeof(uint8_t) * nkeys);
+        serverAssert(csXreadParse(head,NULL,NULL,&g->xread_count));
+        for (int i = 0; i < nkeys; i++) {
+            client *out = createPooledFakeClient(head->parent);
+            out->csparent = g;
+            out->cmd = head->cmd;
+            out->resp = head->resp;
+            out->conn = head->conn;
+            out->flags |= CLIENT_EX_PENDING;
+            g->xread_out[i] = out;
+        }
+    }
     /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
      * comment that used to sit here: the STORE / BITOP / PFMERGE / MSETNX / COPY / MPOP rows
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
@@ -10476,7 +10585,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         .first_argi = first, .key_stride = s->key_stride,
         .per_key_extra = s->per_key_extra,
         .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
-                  (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos : NULL };
+                  (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
+                  (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
     csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
 }
 
@@ -11336,6 +11446,28 @@ static void csReassemble(client *dst, client *head) {
             /* xshard-localfast: the single sub ran the real proc — splice its reply verbatim. */
             AddReplyFromClient(dst, g->subs[0]);
             break;
+        case CS_XREAD: {
+            /* Stock validates every key/ID pair before emitting its first element. Select the
+             * earliest positional error first; otherwise omit empty streams and splice hits in
+             * the original STREAMS-key order. */
+            int first_err = -1, hits = 0;
+            for (int i = 0; i < g->nkeys; i++) {
+                if (g->xread_status[i] == CS_XREAD_ERR && first_err < 0) first_err = i;
+                else if (g->xread_status[i] == CS_XREAD_HIT) hits++;
+            }
+            if (first_err >= 0) {
+                AddReplyFromClient(dst,g->xread_out[first_err]);
+            } else if (hits == 0) {
+                addReplyNullArray(dst);
+            } else {
+                if (dst->resp == 2) addReplyArrayLen(dst,hits);
+                else addReplyMapLen(dst,hits);
+                for (int i = 0; i < g->nkeys; i++)
+                    if (g->xread_status[i] == CS_XREAD_HIT)
+                        AddReplyFromClient(dst,g->xread_out[i]);
+            }
+            break;
+        }
         case CS_SETOP:
             /* ee451 v11-F: WRONGTYPE if any key was a non-set (matches Redis, which errors before
              * emitting any element); otherwise compute union/inter/diff over the gathered members. */
@@ -11565,6 +11697,7 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->setmem); csgFree(g, g->setcnt); csgFree(g, g->zscore);
     }
     if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
+    if (g->xread_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->xread_pos[i]); csgFree(g, g->xread_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
      * (MGET + the string-image gathers BITOP/PFCOUNT/PFMERGE/LCS all use these slots.) */
@@ -11572,6 +11705,11 @@ static void csReassemble(client *dst, client *head) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
         if (g->mget_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
+    }
+    if (g->xread_out) {
+        for (int i = 0; i < g->nkeys; i++) csFreeSub(g->xread_out[i]);
+        csgFree(g, g->xread_out);
+        csgFree(g, g->xread_status);
     }
     /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
      * probe-report lanes (zfree(NULL) is a no-op). */

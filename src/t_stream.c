@@ -2685,6 +2685,65 @@ void xlenCommand(client *c) {
  * This is useful because while XREAD is a read command and can be called
  * on slaves, XREADGROUP is not. */
 #define XREAD_BLOCKED_DEFAULT_COUNT 1000
+
+/* Cross-shard XREAD's worker-side primitive. It deliberately emits one BARE
+ * stream element (RESP2: [key, entries], RESP3: key followed by entries), so
+ * the coordinator can prepend the aggregate length and splice elements in the
+ * request's STREAMS-key order. Return -1 on a stock parse/type error, 0 when
+ * this stream has no newer entry, and 1 when a fragment was emitted.
+ *
+ * Option parsing remains coordinator-side and XREADGROUP never reaches here.
+ * The lookup/ID order mirrors xreadCommand: type-check the key before parsing
+ * its paired ID, then do the serving lookup after all per-stream validation. */
+int xreadCommandReadOne(client *c, robj *key, robj *idarg, long long count) {
+    streamID gt;
+    kvobj *o = lookupKeyRead(c->db,key);
+    if (checkType(c,o,OBJ_STREAM)) return -1;
+
+    if (strcmp(idarg->ptr,"$") == 0) {
+        if (o) {
+            stream *s = o->ptr;
+            gt = s->last_id;
+        } else {
+            gt.ms = 0;
+            gt.seq = 0;
+        }
+    } else if (strcmp(idarg->ptr,"+") == 0) {
+        if (o && ((stream *)o->ptr)->length) {
+            streamLastValidID(o->ptr,&gt);
+            streamDecrID(&gt);
+        } else {
+            gt.ms = 0;
+            gt.seq = 0;
+        }
+    } else if (strcmp(idarg->ptr,">") == 0) {
+        addReplyError(c,"The > ID can be specified only when calling "
+                        "XREADGROUP using the GROUP <group> <consumer> option.");
+        return -1;
+    } else if (streamParseStrictIDOrReply(c,idarg,&gt,0,NULL) != C_OK) {
+        return -1;
+    }
+
+    o = lookupKeyRead(c->db,key);
+    if (o == NULL) return 0;
+    stream *s = o->ptr;
+    if (!s->length) return 0;
+
+    streamID maxid;
+    streamLastValidID(s,&maxid);
+    if (streamCompareID(&maxid,&gt) <= 0) return 0;
+
+    streamID start = gt;
+    streamIncrID(&start);
+    if (c->resp == 2) addReplyArrayLen(c,2);
+    addReplyBulk(c,key);
+    size_t old_alloc = kvobjAllocSize(o);
+    streamReplyWithRange(c,s,&start,NULL,count,0,-1,NULL,NULL,0,NULL,NULL);
+    if (server.memory_tracking_enabled)
+        updateSlotAllocSize(c->db,getKeySlot(key->ptr),o,old_alloc,kvobjAllocSize(o));
+    return 1;
+}
+
 void xreadCommand(client *c) {
     long long min_idle_time = -1; /* -1 means, no IDLE argument given. */
     long long timeout = -1; /* -1 means, no BLOCK argument given. */

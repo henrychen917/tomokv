@@ -231,6 +231,28 @@ def partA():
     eq(c(s,f,'GEOSEARCHSTORE',ld,ls,'FROMMEMBER','Palermo','BYRADIUS','200','km'),len(pnear),'GEOSEARCHSTORE same-shard/card'); hashcheck(ld,pnear,gh,'GEOSEARCHSTORE same-shard/data')
     eq(c(s,f,'GEORADIUS',ls,*gpos['Palermo'],'200','km','STORE',ld),len(pnear),'GEORADIUS same-shard/card'); hashcheck(ld,pnear,gh,'GEORADIUS same-shard/data')
     eq(c(s,f,'GEORADIUSBYMEMBER',ls,'Catania','200','km','STOREDIST',ld),len(cnear),'GEORADIUSBYMEMBER same-shard/card'); distcheck(ld,'Catania',cnear,'GEORADIUSBYMEMBER same-shard/data')
+    # XREAD T5: force two owners, then verify entries and stream ordering against a Python shape.
+    xra,xrb=shard_pair(s,f,True,'xread')
+    c(s,f,'DEL',xra,xrb)
+    eq(c(s,f,'XADD',xra,'1-0','f','a'),b'1-0','XREAD fixture A1')
+    eq(c(s,f,'XADD',xra,'2-0','f','b'),b'2-0','XREAD fixture A2')
+    eq(c(s,f,'XADD',xrb,'1-0','g','c'),b'1-0','XREAD fixture B1')
+    eq(c(s,f,'XADD',xrb,'2-0','g','d'),b'2-0','XREAD fixture B2')
+    xread_want=[
+        [B(xrb),[[b'1-0',[b'g',b'c']],[b'2-0',[b'g',b'd']]]],
+        [B(xra),[[b'1-0',[b'f',b'a']],[b'2-0',[b'f',b'b']]]],
+    ]
+    eq(c(s,f,'XREAD','COUNT','2','STREAMS',xrb,xra,'0','0'),xread_want,
+       'XREAD cross-shard/entries+key-order')
+    xread_omit=[[B(xra),[[b'2-0',[b'f',b'b']]]]]
+    eq(c(s,f,'XREAD','STREAMS',xrb,xra,'2-0','1-0'),xread_omit,
+       'XREAD cross-shard/omit-empty')
+    block_err=c(s,f,'XREAD','BLOCK','0','STREAMS',xra,xrb,'0','0')
+    ck(rejected(block_err) and 'not yet supported with tomokv sharding' in str(block_err),
+       'XREAD BLOCK must remain fail-safe rejected: %r'%block_err)
+    group_err=c(s,f,'XREADGROUP','GROUP','g','consumer','STREAMS',xra,xrb,'>','>')
+    ck(rejected(group_err) and 'not yet supported with tomokv sharding' in str(group_err),
+       'XREADGROUP must remain fail-safe rejected: %r'%group_err)
     # ---- generic / key ----
     c(s,f,'SET','k1','v'); eq(c(s,f,'TYPE','k1'),b'string','TYPE'); eq(c(s,f,'EXISTS','k1'),1,'EXISTS')
     c(s,f,'EXPIRE','k1','100'); t=c(s,f,'TTL','k1'); ck(0<int(t)<=100,'TTL %r'%t); eq(c(s,f,'PERSIST','k1'),1,'PERSIST')

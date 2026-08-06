@@ -1948,7 +1948,7 @@ typedef struct client {
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_SORTSTORE, CS_GEOSTORE,
-               CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE, CS_LCS,
+               CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE, CS_LCS, CS_XREAD,
                CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
@@ -2017,10 +2017,12 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
 #define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (step 9 LMPOP/ZMPOP probes) */
 #define CS_RES_ZSETMEM     4   /* setmem/setcnt + parallel zscore[nkeys] (step 6 Z-ops) */
+#define CS_RES_XREAD       5   /* g->xread_out/status[nkeys] — ordered stream reply fragments */
 /* ---- posmap selector for csBuildCoalescedSubs ---- */
 #define CS_POS_NONE        0
 #define CS_POS_MGET        1   /* &g->mget_pos  */
 #define CS_POS_SETOP       2   /* &g->setop_pos */
+#define CS_POS_XREAD       3   /* &g->xread_pos */
 /* ---- coalesce gate ----
  * The tomokv-mget-coalesce / -setop-coalesce knobs were retired (coalescing is unconditional),
  * but the k>=3 THRESHOLD is NOT the knob's off-state: it is the live gate for every 2-key
@@ -2072,6 +2074,10 @@ typedef struct csGroup {
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
+    client **xread_out;        /* CS_XREAD: [nkeys] bare [key,entries] reply fragments */
+    uint8_t *xread_status;     /* CS_XREAD: per-position empty / hit / error verdict */
+    int **xread_pos;           /* CS_XREAD: sub-local stream -> original request position */
+    long long xread_count;     /* parsed COUNT (0 means unlimited, matching stock XREAD) */
     int  posmap_nsub;          /* ROW COUNT of mget_pos/setop_pos, captured when they were built.
                                 * NOT g->nsub: nsub is repurposed by every later pipeline stage
                                 * (HOP2 plan, per-key fan-out, SIZES->apply), so freeing a posmap
@@ -4290,6 +4296,8 @@ typedef struct csCmdSpec {
     int8_t  nkeys_fixed;      /* 0 => derive as above; LCS has exactly 2 keys before options */
     int8_t  key_stride;       /* 1, or 2 for MSET/MSETNX (k v pairs) */
     int8_t  per_key_extra;    /* extra argv slots appended per key (MSET value = 1) */
+    int  (*gather_geom)(client *c, int *first, int *nkeys); /* optional dynamic key span;
+                               * XREAD finds the STREAMS split at runtime */
     uint8_t cs_write;         /* run migHoldKeyIfDraining per key (writes only) */
     uint8_t notouch;          /* per-key sub lookups pass LOOKUP_NOTOUCH (no LRU/LFU bump).
                                * EXISTS and TOUCH share ctype=CS_EXISTS but differ HERE: stock
@@ -6170,6 +6178,7 @@ void xrangeCommand(client *c);
 void xrevrangeCommand(client *c);
 void xlenCommand(client *c);
 void xreadCommand(client *c);
+int xreadCommandReadOne(client *c, robj *key, robj *idarg, long long count);
 void xgroupCommand(client *c);
 void xsetidCommand(client *c);
 void xidmprecordCommand(client *c);
