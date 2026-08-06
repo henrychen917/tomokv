@@ -414,8 +414,69 @@ def partA():
     eq(set(seen),scan_want,'SCAN-cap-full-keyspace')
     eq(len(seen),len(scan_want),'SCAN-cap-no-duplicates')
     ck(scan_calls>1,'SCAN cap did not split huge COUNT (calls=%d)'%scan_calls)
-    # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
-    ck(rejected(c(s,f,'MULTI')),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
+    # ---- T6 single-shard transactions + keyed scripts/functions ----
+    ta,tb=shard_pair(s,f,False,'t6same'); txa,txb=shard_pair(s,f,True,'t6cross')
+    c(s,f,'DEL',ta,tb,txa,txb)
+    eq(c(s,f,'MULTI'),b'OK','MULTI same-shard/open')
+    eq(c(s,f,'SET',ta,'0'),b'QUEUED','MULTI same-shard/queue SET')
+    eq(c(s,f,'INCR',ta),b'QUEUED','MULTI same-shard/queue INCR')
+    eq(c(s,f,'SET',tb,'peer'),b'QUEUED','MULTI same-shard/queue peer')
+    eq(c(s,f,'EXEC'),[b'OK',1,b'OK'],'MULTI same-shard/EXEC replies')
+    eq(lst(c(s,f,'MGET',ta,tb)),['1','peer'],'MULTI same-shard/committed data')
+
+    eq(c(s,f,'MULTI'),b'OK','MULTI cross-shard/open')
+    eq(c(s,f,'SET',txa,'left'),b'QUEUED','MULTI cross-shard/queue left')
+    eq(c(s,f,'SET',txb,'right'),b'QUEUED','MULTI cross-shard/queue right')
+    xexec=c(s,f,'EXEC')
+    ck(rejected(xexec) and 'CROSSSLOT' in str(xexec),'MULTI cross-shard must CROSSSLOT: %r'%xexec)
+    eq(lst(c(s,f,'MGET',txa,txb)),[None,None],'MULTI cross-shard/discarded queue')
+    xwatch=c(s,f,'WATCH',txa,txb)
+    ck(rejected(xwatch) and 'CROSSSLOT' in str(xwatch),'WATCH cross-shard must CROSSSLOT: %r'%xwatch)
+
+    # WATCH is registered on the key owner. A competing owner-routed write must dirty the CAS,
+    # while UNWATCH and DISCARD retain their stock state cleanup.
+    s2,f2=conn()
+    eq(c(s,f,'WATCH',ta),b'OK','WATCH/register')
+    eq(c(s2,f2,'SET',ta,'41'),b'OK','WATCH/concurrent writer')
+    eq(c(s,f,'MULTI'),b'OK','WATCH dirty/MULTI')
+    eq(c(s,f,'INCR',ta),b'QUEUED','WATCH dirty/queue')
+    eq(c(s,f,'EXEC'),None,'WATCH dirty/EXEC abort')
+    eq(c(s,f,'GET',ta),b'41','WATCH dirty/no commit')
+    eq(c(s,f,'WATCH',ta),b'OK','UNWATCH/register')
+    eq(c(s,f,'UNWATCH'),b'OK','UNWATCH')
+    eq(c(s2,f2,'SET',ta,'99'),b'OK','UNWATCH/external write')
+    eq(c(s,f,'MULTI'),b'OK','UNWATCH/MULTI')
+    eq(c(s,f,'INCR',ta),b'QUEUED','UNWATCH/queue')
+    eq(c(s,f,'EXEC'),[100],'UNWATCH/EXEC commits')
+    eq(c(s,f,'MULTI'),b'OK','DISCARD/open')
+    eq(c(s,f,'SET',ta,'discarded'),b'QUEUED','DISCARD/queue')
+    eq(c(s,f,'DISCARD'),b'OK','DISCARD/reply')
+    eq(c(s,f,'GET',ta),b'100','DISCARD/no commit')
+    s2.close()
+
+    pair_script="return redis.call('mset',KEYS[1],ARGV[1],KEYS[2],ARGV[2])"
+    eq(c(s,f,'EVAL',pair_script,'2',ta,tb,'eval-a','eval-b'),b'OK','EVAL keyed same-shard')
+    eq(lst(c(s,f,'MGET',ta,tb)),['eval-a','eval-b'],'EVAL keyed same-shard/data')
+    c(s,f,'SET',txa,'guard-a'); c(s,f,'SET',txb,'guard-b')
+    xeval=c(s,f,'EVAL',pair_script,'2',txa,txb,'bad-a','bad-b')
+    ck(rejected(xeval) and 'CROSSSLOT' in str(xeval),'EVAL keyed cross-shard must CROSSSLOT: %r'%xeval)
+    eq(lst(c(s,f,'MGET',txa,txb)),['guard-a','guard-b'],'EVAL cross-shard/no side effects')
+    eq(c(s,f,'EVAL','return 7','0'),7,'EVAL keyless unchanged')
+    sha=c(s,f,'SCRIPT','LOAD',"return redis.call('get',KEYS[1])")
+    ck(isinstance(sha,bytes) and len(sha)==40,'SCRIPT LOAD for keyed EVALSHA: %r'%sha)
+    eq(c(s,f,'EVALSHA',sha,'1',ta),b'eval-a','EVALSHA keyed same-shard')
+    xevalsha=c(s,f,'EVALSHA',sha,'2',txa,txb)
+    ck(rejected(xevalsha) and 'CROSSSLOT' in str(xevalsha),'EVALSHA keyed cross-shard must CROSSSLOT: %r'%xevalsha)
+
+    flib=("#!lua name=t6lib\n"
+          "redis.register_function('t6pair', function(keys,args) "
+          "redis.call('mset',keys[1],args[1],keys[2],args[2]); "
+          "return redis.call('mget',keys[1],keys[2]) end)")
+    eq(c(s,f,'FUNCTION','LOAD','REPLACE',flib),b't6lib','FUNCTION LOAD T6 fixture')
+    eq(lst(c(s,f,'FCALL','t6pair','2',ta,tb,'fun-a','fun-b')),
+       ['fun-a','fun-b'],'FCALL keyed same-shard')
+    xfcall=c(s,f,'FCALL','t6pair','2',txa,txb,'bad-a','bad-b')
+    ck(rejected(xfcall) and 'CROSSSLOT' in str(xfcall),'FCALL keyed cross-shard must CROSSSLOT: %r'%xfcall)
     # ---- server/conn ----
     eq(c(s,f,'PING'),b'PONG','PING'); eq(c(s,f,'ECHO','hi'),b'hi','ECHO')
     s.close()
@@ -449,6 +510,14 @@ def partB(C=48, iters=12):
                 c(s,f,'SET','ic%d'%cid,'0')
                 for want in range(1,11):
                     if int(c(s,f,'INCR','ic%d'%cid))!=want: fails.append('B conn%d INCR order'%cid); return
+                # Single-owner EXEC is one worker job: per-command replies and the final value must
+                # remain coherent while many connections execute transactions on all workers.
+                tk='mtx%d'%cid
+                if c(s,f,'MULTI')!=b'OK': fails.append('B conn%d MULTI open'%cid); return
+                if c(s,f,'SET',tk,'0')!=b'QUEUED': fails.append('B conn%d MULTI SET queue'%cid); return
+                if c(s,f,'INCR',tk)!=b'QUEUED': fails.append('B conn%d MULTI INCR queue'%cid); return
+                if c(s,f,'GET',tk)!=b'QUEUED': fails.append('B conn%d MULTI GET queue'%cid); return
+                if c(s,f,'EXEC')!=[b'OK',1,b'1']: fails.append('B conn%d MULTI EXEC replies'%cid); return
             s.close()
         except Exception as e:
             fails.append('B conn%d exception %r'%(cid,e))

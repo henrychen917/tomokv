@@ -271,7 +271,7 @@ static int canAddNetworkBytesIn(client *c) {
      * Fourth, the server is not under a MULTI/EXEC transaction, to avoid duplicate aggregation of
      * EXEC's 14 bytes RESP upon nested call()'s afterCommand(). */
     return clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_NET) && c->slot != INVALID_CLUSTER_SLOT &&
-        !(c->flags & CLIENT_BLOCKED) && !server.in_exec;
+        !(c->flags & CLIENT_BLOCKED) && !tomo_in_exec;
 }
 
 /* Adds network ingress bytes of the current command in execution,
