@@ -2103,29 +2103,44 @@ typedef struct csGroup {
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
     int cs2_kind;              /* reply shape (CS2_OK/CS2_INT/CS2_NIL) for the final reply */
-    /* ee451 merge-execution pipeline (v1: SINTER/SINTERCARD; unconditional since 77174fa4a).
-     * Stage machine driven from the drain like the 2-hop launcher: SIZES (per-shard sub
-     * reports per-key set sizes) -> GATHER1 (smallest key's members only) -> PROBE chain
-     * (per remaining shard ascending-size, candidates probed in place, survivors shrink).
-     * All stages are READS: CLOSE_ASAP teardown needs no special casing (unlike 2-hop).
+    /* ee451 merge-execution pipeline. INTER uses SIZES (per-shard sub reports per-key set
+     * sizes) -> GATHER1 (smallest key's members only) -> PROBE chain (per remaining shard,
+     * candidates probed against that shard's whole key slice and survivors shrink). UNION/DIFF
+     * use one LOCAL-* wave: every source shard reduces its own slice and exports only a distinct
+     * partial; the coordinator merges those partials. STORE rows feed the final result into the
+     * normal destination HOP2. All source stages remain lock-free reads.
      * pipe_cand is coordinator-written BEFORE the stage sub is pushed (SPSC release/acquire
      * publishes it); pipe_verdict is worker-written, drain-acquired via the completion byte. */
     int pipe_stage;            /* 0=off, CS_PIPE_* otherwise */
     int pipe_next;             /* next index into pipe_order for the PROBE chain */
     int pipe_nshard;           /* distinct shards */
-    long *pipe_scard;          /* [nkeys] per-key size from SIZES (missing key = 0) */
+    long *pipe_scard;          /* [nkeys] per-key size (INTER SIZES / local ZUNION occurrences) */
     int  *pipe_order;          /* [nshard] shard visit order for PROBE (ascending min-key-size) */
     sds  *pipe_cand;           /* [pipe_ncand] candidate members (coordinator-owned copies) */
     long  pipe_ncand;          /* live candidates (compacted between stages) */
     uint8_t *pipe_verdict;     /* [pipe_ncand] worker-written per-candidate survive flags */
     int  *pipe_shard_of;       /* [nkeys] key -> worker (stamped at dispatch) */
     int   pipe_smallest;       /* key position of the globally smallest set */
-    /* Z extension: cand-major per-key contribution matrix (CS_ZOP only; NULL for counts).
+    /* Z INTER extension: cand-major per-key contribution matrix (CS_ZOP/CS_ZSTORE; NULL for counts).
      * pipe_cscore[c*nkeys + k] = raw score of candidate c in key k (weights applied at the
      * reassemble fold, in stock cardinality-ascending key order). Rows compact with cand. */
     double *pipe_cscore;
     int *pipe_probe_pos;       /* [pipe_probe_nk] original key positions of in-flight PROBE argv */
     int pipe_probe_nk;
+    /* UNION/DIFF shard-local partials. pipe_part[p] contains each member at most once for source
+     * shard p. For DIFF, pipe_base_part is the partial that owns original key 0; that worker has
+     * already subtracted the rest of its local slice. ZDIFF carries scores only on that base
+     * partial. ZUNION additionally retains compact member-index/score arrays per ORIGINAL key so
+     * the coordinator can fold contributions in the exact pre-refactor order (IEEE addition is
+     * not associative); repeated member SDS bytes are still shipped only once per shard. */
+    int pipe_npart;
+    int pipe_base_part;
+    sds **pipe_part;           /* [pipe_npart] arrays of shard-distinct member copies */
+    long *pipe_partcnt;        /* [pipe_npart] lengths of pipe_part[] */
+    double **pipe_partscore;   /* [pipe_npart], ZDIFF base scores; NULL entries otherwise */
+    long **pipe_midx;          /* [nkeys], ZUNION occurrence -> index in pipe_part[key_part] */
+    double **pipe_zraw;        /* [nkeys], ZUNION raw scores parallel to pipe_midx */
+    int *pipe_key_part;        /* [nkeys], ZUNION original key -> shard partial */
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
     /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
      * provably implementable without a shape change): ---- */
