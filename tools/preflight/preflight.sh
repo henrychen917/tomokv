@@ -184,6 +184,13 @@ run_suite $SD/xshard_lookup_accounting.sh $PF/xshard_lookup_accounting.out $'\tF
 # guards (measured io-thread partition, asserted overlap, unarmed control on the same build), so a
 # build where the arm cannot be established FAILS rather than passing silently.
 run_suite $SD/exec_nesting.sh        $PF/exec_nesting.out       $'\tFAIL'
+# Command-coverage: representative KNOWN-correct check per command family (Part A) + a concurrency race
+# sweep (Part B). Here because SORT shipped the same class exec_nesting guards for one counter, but in a
+# command's REPLY: sortCompare read process-global server.sort_desc/alpha, so concurrent SORTs with
+# different DESC/ALPHA on different workers returned wrong-direction results (19 mis-sorts, now fixed).
+# Part B — many conns, each deterministic on its own keys with per-conn-varied params — is the net for
+# that whole "per-invocation state stashed in a process global" class. Runs at reorder 0 and 2.
+run_suite $SD/cmd_coverage.sh        $PF/cmd_coverage.out       $'\tFAIL'
 # Hot-KEY veto. Here because the veto is the one balancer gate whose failure mode is SILENCE: it
 # refuses to migrate, so a build in which it can never engage looks identical to a build in which
 # nothing needed vetoing, and that is precisely the state this fork shipped in. The suite asserts
