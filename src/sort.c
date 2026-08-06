@@ -16,6 +16,8 @@
 
 zskiplistNode* zslGetElementByRank(zskiplist *zsl, unsigned long rank);
 
+static __thread int t_sort_desc, t_sort_alpha, t_sort_bypattern, t_sort_store;
+
 redisSortOperation *createSortOperation(int type, robj *pattern) {
     redisSortOperation *so = zmalloc(sizeof(*so));
     so->type = type;
@@ -123,12 +125,12 @@ noobj:
 
 /* sortCompare() is used by qsort in sortCommand(). Given that qsort_r with
  * the additional parameter is not standard but a BSD-specific we have to
- * pass sorting parameters via the global 'server' structure */
+ * pass sorting parameters via thread-local state. */
 int sortCompare(const void *s1, const void *s2) {
     const redisSortObject *so1 = s1, *so2 = s2;
     int cmp;
 
-    if (!server.sort_alpha) {
+    if (!t_sort_alpha) {
         /* Numeric sorting. Here it's trivial as we precomputed scores */
         if (so1->u.score > so2->u.score) {
             cmp = 1;
@@ -142,7 +144,7 @@ int sortCompare(const void *s1, const void *s2) {
         }
     } else {
         /* Alphanumeric sorting */
-        if (server.sort_bypattern) {
+        if (t_sort_bypattern) {
             if (!so1->u.cmpobj || !so2->u.cmpobj) {
                 /* At least one compare object is NULL */
                 if (so1->u.cmpobj == so2->u.cmpobj)
@@ -153,7 +155,7 @@ int sortCompare(const void *s1, const void *s2) {
                     cmp = 1;
             } else {
                 /* We have both the objects, compare them. */
-                if (server.sort_store) {
+                if (t_sort_store) {
                     cmp = compareStringObjects(so1->u.cmpobj,so2->u.cmpobj);
                 } else {
                     /* Here we can use strcoll() directly as we are sure that
@@ -163,14 +165,14 @@ int sortCompare(const void *s1, const void *s2) {
             }
         } else {
             /* Compare elements directly. */
-            if (server.sort_store) {
+            if (t_sort_store) {
                 cmp = compareStringObjects(so1->obj,so2->obj);
             } else {
                 cmp = collateStringObjects(so1->obj,so2->obj);
             }
         }
     }
-    return server.sort_desc ? -cmp : cmp;
+    return t_sort_desc ? -cmp : cmp;
 }
 
 /* The SORT command is the most complex command in Redis. Warning: this code
@@ -543,11 +545,11 @@ void sortCommandGeneric(client *c, int readonly) {
             }
         }
 
-        server.sort_desc = desc;
-        server.sort_alpha = alpha;
-        server.sort_bypattern = sortby ? 1 : 0;
-        server.sort_store = storekey ? 1 : 0;
-        if (sortby && (start != 0 || end != vectorlen-1))
+        t_sort_desc = desc;
+        t_sort_alpha = alpha;
+        t_sort_bypattern = sortby ? 1 : 0;
+        t_sort_store = storekey ? 1 : 0;
+        if (start != 0 || end != vectorlen-1)
             pqsort(vector,vectorlen,sizeof(redisSortObject),sortCompare, start,end);
         else
             qsort(vector,vectorlen,sizeof(redisSortObject),sortCompare);
