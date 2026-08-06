@@ -3249,11 +3249,12 @@ void handleWorkerReplies(void) {
              * resetClient() early-returns when the flag is set. */
             fake->flags &= ~CLIENT_EX_PENDING;
 
-            /* Zero-copy-ish splice of fake's reply onto real's output:
-             * absorbs the short buf via addReplyProto and listJoins the
-             * reply list (O(1) pointer splice for the tail list). Also
-             * resets fake->bufpos and fake->reply_bytes. May mark real
-             * CLIENT_CLOSE_ASAP on output-buffer-limit overflow. */
+            /* Splice fake's reply onto real's output: large eligible plain
+             * buffers exchange ownership with real's empty equal-capacity
+             * scratch; other inline bytes use the existing copy path; reply
+             * list blocks are listJoined (O(1)). Also resets fake->bufpos and
+             * fake->reply_bytes. May mark real CLIENT_CLOSE_ASAP on
+             * output-buffer-limit overflow. */
             /* ee451 (v7): a cross-shard group head carries no reply of its own. Build the
              * reassembled reply directly onto real (array header + spliced sub elements) and
              * skip the normal head splice. commandProcessed(fake) below still retires the
