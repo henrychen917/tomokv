@@ -169,6 +169,12 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-zerocopy-min-value 0
 
+  # ee451 2026-08-06: reply-buffer-transfer (reply fork) — bool (createBoolConfig), default OFF ships
+  # inert. Drive off + on so the drift guard accounts it and a broken transfer surfaces here, not in a
+  # bench. (Bool config takes yes/no, not 0/1.)
+  try tomokv-reply-buffer-transfer no
+  try tomokv-reply-buffer-transfer yes
+
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..1; only 0 is driven here on purpose -- 1 arms the uring
   # machinery, which needs a USE_URING=yes build, and a cell that silently hangs on an epoll build
