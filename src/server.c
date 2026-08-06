@@ -3171,6 +3171,13 @@ void handleWorkerReplies(void) {
                  * to avoid a leak. */
                 if (fake->csgroup) {
                     csGroup *g = fake->csgroup;
+                    /* A STORE pipeline is part of an accepted write command. Finish its read
+                     * stages even after disconnect so the destination hop is neither lost nor
+                     * half-issued. Pure read pipelines may still be torn down immediately. */
+                    if (g->pipe_stage && g->has_hop2 && csPipeAdvance(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
                     /* universal xshard: a 2-hop whose mutating HOP1 already committed MUST finish HOP2
                      * even though the client is gone — else the write is half-applied (e.g. cross-shard
                      * RENAME: src deleted in HOP1, dst never written => data LOSS). Mirror the live drain
@@ -8656,11 +8663,10 @@ static const csCmdSpec csRegistry[] = {
 { .proc=smoveCommand, .name="smove", .ported=CS_PORT_OK, .ctype=CS_SMOVE,
   .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h1_extra_argi=3, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
-/* step 5 — read-then-store set ops. Sources are READ-ONLY (no lost-update possible): HOP1 =
- * the exact SINTER/SUNION/SDIFF member gather (keys start at argv[2], dst excluded); the
- * coordinator computes the result and serializes it; HOP2 = ONE write sub on dst's shard
- * (empty result => h2_payload NULL => the write sub DELETES dst, stock behavior). WRONGTYPE
- * short-circuits in HOP1 => no write at all. SINTERCARD is the pure-1-hop count variant. */
+/* step 5 — read-then-store set ops. Multi-source HOP1 uses merge execution: INTER shrinks a
+ * smallest-set candidate chain, while UNION/DIFF ship one reduced partial per source shard.
+ * The coordinator merges and serializes; HOP2 is one write on dst (empty => delete). WRONGTYPE
+ * short-circuits before HOP2. Single-source forms retain the legacy gather fallback. */
 { .proc=sinterstoreCommand, .name="sinterstore", .ported=CS_PORT_OK, .ctype=CS_SSTORE,
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .firstkey_argi=2, .dst_argi=1,
   .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
@@ -8677,11 +8683,10 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .setop=CS_SETOP_INTER, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2,
   .key_stride=1, .res_kind=CS_RES_SETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
   .cs2_kind=CS2_INT, .shape_ok=csSintercardShapeOk },
-/* step 6 — zset family. HOP1 gathers (member,score) pairs per key (a plain-set source scores
- * 1.0, stock); the coordinator applies WEIGHTS/AGGREGATE and computes into a temp zset whose
- * skiplist order reproduces stock's reply order exactly. Store variants DUMP the (listpack-
- * converted-if-small) result to the dst shard; empty => delete dst. WITHSCORES/LIMIT are
- * reassemble-time. Tail-malformed forms fall inline for stock parse errors. */
+/* step 6 — zset family. Multi-source HOP1 reduces membership on each source shard (plain SET
+ * inputs still score 1.0); the coordinator preserves the original WEIGHTS/AGGREGATE fold and
+ * rank order. Store variants DUMP the listpack-converted-if-small result to dst; empty deletes
+ * dst. Single-source forms retain the legacy gather fallback. */
 { .proc=zunionCommand, .name="zunion", .ported=CS_PORT_OK, .ctype=CS_ZOP, .route=CS_RT_GATHER,
   .setop=CS_SETOP_UNION, .min_argc=3, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
   .res_kind=CS_RES_ZSETMEM, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_SETOP_K3,
@@ -10110,14 +10115,14 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
  * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
  * key_stride/per_key_extra), MSET value ownership (append_extra). */
-/* ==== ee451 MERGE-EXECUTION pipeline (v1: SINTER/SINTERCARD; unconditional since 77174fa4a) ====
+/* ==== ee451 MERGE-EXECUTION pipeline (INTER shrink + shard-local UNION/DIFF reduction) ========
  * Naming per design: TIERED-TRANSLATION routing (bucket -> node -> worker, page-table-like) +
  * MERGE-EXECUTION multi-key (merge-sort-like: local work where the data lives, then a merge of
  * result-sized partials — for intersections the merge SHRINKS monotonically, so ordering it
  * smallest-first bounds ALL cross-thread traffic by k_shards x |smallest input| instead of the
  * total input volume the gather route pays; measured headroom ~25x at 500k/10 skew).
- * Stage machine, driven from the IO drain exactly like csLaunchHop2 (head stays in flight
- * between stages; stale completion byte cleared on each re-arm):
+ * INTER's stage machine is driven from the IO drain exactly like csLaunchHop2 (head stays in
+ * flight between stages; stale completion byte cleared on each re-arm):
  *   SIZES:   one coalesced sub per shard reports each key's setTypeSize (type-checked) into
  *            pipe_scard[] — no members move. Any missing/empty key => empty result, done.
  *   GATHER1: one sub ships ONLY the globally-smallest key's members (the candidate list).
@@ -10125,15 +10130,16 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
  *            against ALL that shard's keys IN PLACE (owner-legal reads; setTypeIsMember on
  *            its own live objects) and clears the verdict byte of any non-member. The
  *            coordinator compacts survivors between hops, so candidates only shrink.
- * All stages are READS: CLOSE_ASAP teardown needs no special casing (unlike the mutating
- * 2-hop). pipe_cand/verdict cross threads under the same release/acquire discipline as every
- * sub payload: coordinator writes BEFORE csPushSpin (release), worker reads after pop
- * (acquire); worker writes verdicts BEFORE its completion-bit release, drain reads after
- * acquire. Migration-safe like any gather read: each stage re-routes via exIndexForKey at
- * dispatch time. */
+ * UNION/DIFF use a single LOCAL_* wave. Each coalesced source-shard sub unions its own keys
+ * (DIFF: the key-0 shard subtracts its local RHS keys; every other shard unions its RHS keys)
+ * and returns one distinct partial. The coordinator merges only these partials. STORE commands
+ * then use the existing HOP2 writer. Every source stage remains a lock-free read; pipe payloads
+ * cross threads under the same release/acquire discipline as the rest of scatter/gather. */
 #define CS_PIPE_SIZES   1
 #define CS_PIPE_GATHER1 2
 #define CS_PIPE_PROBE   3
+#define CS_PIPE_LOCAL_UNION 4
+#define CS_PIPE_LOCAL_DIFF  5
 
 static void csPipeFreeStageSubs(csGroup *g) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
@@ -10142,7 +10148,7 @@ static void csPipeFreeStageSubs(csGroup *g) {
 
 static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
     int nw = server.num_workers;
-    int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one SIZES sub per distinct shard */
+    int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one initial sub per distinct shard */
     /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], plus the later GATHER1/PROBE subs and
      * argv vectors. The probe upper bound is one sub per initial shard and all keys but the
      * selected smallest key. */
@@ -10155,17 +10161,43 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     head->cdb = 0;
     g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
     g->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
-    g->pipe_stage = CS_PIPE_SIZES;
+    g->pipe_stage = s->setop == CS_SETOP_INTER ? CS_PIPE_SIZES :
+                    s->setop == CS_SETOP_UNION ? CS_PIPE_LOCAL_UNION : CS_PIPE_LOCAL_DIFF;
+    g->pipe_base_part = -1;
     head->parent->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
     for (int i = 0; i < nkeys; i++) {
         robj *k = head->argv[first + i * s->key_stride];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
+            migHoldKeyIfDraining(k);
         g->pipe_shard_of[i] = exIndexForKey(k->ptr, sdslen(k->ptr));
     }
+    if (s->setop != CS_SETOP_INTER) {
+        /* Sized to the fan-out upper bound before the builder pushes anything. Workers publish
+         * into their cssub_idx slot; pipe_npart is captured from the builder for drain cleanup. */
+        g->pipe_part = csgCalloc(g, sizeof(sds*) * nsub_hi);
+        g->pipe_partcnt = csgCalloc(g, sizeof(long) * nsub_hi);
+        g->pipe_partscore = csgCalloc(g, sizeof(double*) * nsub_hi);
+        if ((s->ctype == CS_ZOP || s->ctype == CS_ZSTORE) &&
+            s->setop == CS_SETOP_UNION) {
+            g->pipe_midx = csgCalloc(g, sizeof(long*) * nkeys);
+            g->pipe_zraw = csgCalloc(g, sizeof(double*) * nkeys);
+            g->pipe_key_part = csgAlloc(g, sizeof(int) * nkeys);
+        }
+    }
+    if (s->has_hop2) {
+        g->has_hop2 = 1; g->phase = CS_PH_HOP1;
+        g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind;
+        g->h2sub[0] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
+        g->h2_nsub = 1;
+    }
+    atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     /* SIZES subs via the shared coalesced builder (one sub per distinct shard; posmap maps
      * each sub-local key back to its ORIGINAL position for pipe_scard writes). */
     csCoalesceSpec cs = { .first_argi = first, .key_stride = s->key_stride,
                           .posmap = &g->setop_pos };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, NULL);
+    int initial_nsub = csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, NULL);
+    if (s->setop != CS_SETOP_INTER) g->pipe_npart = initial_nsub;
 }
 
 /* ee451 (F-pipeline): ONE logical read == ONE accounted lookup.
@@ -10187,10 +10219,250 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
  * per command on every outcome, including the empty-input early exit. */
 #define CS_PIPE_REREAD (LOOKUP_NOTOUCH|LOOKUP_NOSTATS|LOOKUP_NONOTIFY)
 
+/* Apply every member of src to a temporary set. ZSET sources are accepted for the Z* family;
+ * scores are deliberately ignored here because this helper is used for UNION membership and
+ * DIFF exclusion partials. All strings copied into dst remain worker-local until export. */
+static void csPipeSetApplySource(robj *dst, robj *src, int remove) {
+    if (src->type == OBJ_SET) {
+        setTypeIterator si; setTypeInitIterator(&si, src);
+        char *str; size_t len; int64_t ll;
+        int enc;
+        while ((enc = setTypeNext(&si, &str, &len, &ll)) != -1) {
+            if (remove) setTypeRemoveAux(dst, str, len, ll, enc == OBJ_ENCODING_HT);
+            else setTypeAddAux(dst, str, len, ll, enc == OBJ_ENCODING_HT);
+        }
+        setTypeResetIterator(&si);
+        return;
+    }
+    serverAssert(src->type == OBJ_ZSET);
+    if (src->encoding == OBJ_ENCODING_LISTPACK) {
+        unsigned char *lp = src->ptr, *ep = lpFirst(lp);
+        unsigned char *sp = ep ? lpNext(lp, ep) : NULL;
+        while (ep) {
+            unsigned int len; long long ll;
+            unsigned char *p = lpGetValue(ep, &len, &ll);
+            sds m = p ? sdsnewlen((char *)p, len) : sdsfromlonglong(ll);
+            if (remove) setTypeRemove(dst, m); else setTypeAdd(dst, m);
+            sdsfree(m);
+            zzlNext(lp, &ep, &sp);
+        }
+    } else {
+        zset *zs = src->ptr;
+        for (zskiplistNode *zn = zs->zsl->header->level[0].forward; zn;
+             zn = zn->level[0].forward) {
+            sds m = zslGetNodeElement(zn);
+            if (remove) setTypeRemove(dst, m); else setTypeAdd(dst, m);
+        }
+    }
+}
+
+/* Load/subtract one SET-or-ZSET source into a temporary zset. SET members carry stock's score
+ * 1.0. Used only by the key-0 shard of ZDIFF, so the surviving scores remain exactly key 0's. */
+static void csPipeZsetApplySource(robj *dst, robj *src, int remove) {
+    int flags;
+    if (src->type == OBJ_SET) {
+        setTypeIterator si; setTypeInitIterator(&si, src);
+        sds m;
+        while ((m = setTypeNextObject(&si)) != NULL) {
+            if (remove) zsetDel(dst, m);
+            else zsetAdd(dst, 1.0, m, ZADD_IN_NONE, &flags, NULL);
+            sdsfree(m);
+        }
+        setTypeResetIterator(&si);
+        return;
+    }
+    serverAssert(src->type == OBJ_ZSET);
+    if (src->encoding == OBJ_ENCODING_LISTPACK) {
+        unsigned char *lp = src->ptr, *ep = lpFirst(lp);
+        unsigned char *sp = ep ? lpNext(lp, ep) : NULL;
+        while (ep) {
+            unsigned int len; long long ll;
+            unsigned char *p = lpGetValue(ep, &len, &ll);
+            sds m = p ? sdsnewlen((char *)p, len) : sdsfromlonglong(ll);
+            if (remove) zsetDel(dst, m);
+            else zsetAdd(dst, zzlGetScore(sp), m, ZADD_IN_NONE, &flags, NULL);
+            sdsfree(m);
+            zzlNext(lp, &ep, &sp);
+        }
+    } else {
+        zset *zs = src->ptr;
+        for (zskiplistNode *zn = zs->zsl->header->level[0].forward; zn;
+             zn = zn->level[0].forward) {
+            sds m = zslGetNodeElement(zn);
+            if (remove) zsetDel(dst, m);
+            else zsetAdd(dst, zn->score, m, ZADD_IN_NONE, &flags, NULL);
+        }
+    }
+}
+
+static void csPipeExportSet(robj *src, sds **members, long *count) {
+    long n = (long)setTypeSize(src), w = 0;
+    sds *out = n ? zmalloc(sizeof(sds) * (size_t)n) : NULL;
+    setTypeIterator si; setTypeInitIterator(&si, src);
+    sds m;
+    while ((m = setTypeNextObject(&si)) != NULL) out[w++] = m;
+    setTypeResetIterator(&si);
+    *members = out; *count = w;
+}
+
+static void csPipeExportZset(robj *src, sds **members, double **scores, long *count) {
+    long n = (long)zsetLength(src), w = 0;
+    sds *out = n ? zmalloc(sizeof(sds) * (size_t)n) : NULL;
+    double *sc = n ? zmalloc(sizeof(double) * (size_t)n) : NULL;
+    serverAssert(src->encoding == OBJ_ENCODING_SKIPLIST);
+    zset *zs = src->ptr;
+    for (zskiplistNode *zn = zs->zsl->header->level[0].forward; zn;
+         zn = zn->level[0].forward) {
+        out[w] = sdsdup(zslGetNodeElement(zn)); sc[w] = zn->score; w++;
+    }
+    *members = out; *scores = sc; *count = w;
+}
+
+/* ZUNION must not regroup floating-point SUMs by shard: (a+b)+c can differ from a+(b+c).
+ * This worker-local dictionary therefore assigns one index to each distinct member and exports
+ * the member bytes once, while each original key records only (member-index, raw-score). */
+typedef struct csPipeUniq {
+    dict *map;
+    sds *members;
+    long count, cap;
+} csPipeUniq;
+
+static void csPipeUniqInit(csPipeUniq *u) {
+    u->map = dictCreate(&sdsReplyDictType);
+    u->members = NULL; u->count = u->cap = 0;
+}
+
+static long csPipeUniqAdd(csPipeUniq *u, sds member) {
+    dictEntry *de = dictFind(u->map, member);
+    if (de) return (long)((uintptr_t)dictGetVal(de) - 1);
+    if (u->count == u->cap) {
+        u->cap = u->cap ? u->cap * 2 : 16;
+        u->members = u->members ? zrealloc(u->members, sizeof(sds) * (size_t)u->cap) :
+                                  zmalloc(sizeof(sds) * (size_t)u->cap);
+    }
+    long idx = u->count++;
+    sds copy = sdsdup(member);
+    u->members[idx] = copy;
+    serverAssert(dictAdd(u->map, copy, (void *)(uintptr_t)(idx + 1)) == DICT_OK);
+    return idx;
+}
+
+static void csPipeRecordZunionSource(csGroup *g, int keyidx, int part, robj *src,
+                                     csPipeUniq *uniq) {
+    long n = src->type == OBJ_SET ? (long)setTypeSize(src) : (long)zsetLength(src);
+    long *midx = n ? zmalloc(sizeof(long) * (size_t)n) : NULL;
+    double *raw = n ? zmalloc(sizeof(double) * (size_t)n) : NULL;
+    long w = 0;
+    if (src->type == OBJ_SET) {
+        setTypeIterator si; setTypeInitIterator(&si, src);
+        sds m;
+        while ((m = setTypeNextObject(&si)) != NULL) {
+            midx[w] = csPipeUniqAdd(uniq, m); raw[w] = 1.0; w++;
+            sdsfree(m);
+        }
+        setTypeResetIterator(&si);
+    } else if (src->encoding == OBJ_ENCODING_LISTPACK) {
+        unsigned char *lp = src->ptr, *ep = lpFirst(lp);
+        unsigned char *sp = ep ? lpNext(lp, ep) : NULL;
+        while (ep) {
+            unsigned int len; long long ll;
+            unsigned char *p = lpGetValue(ep, &len, &ll);
+            sds m = p ? sdsnewlen((char *)p, len) : sdsfromlonglong(ll);
+            midx[w] = csPipeUniqAdd(uniq, m); raw[w] = zzlGetScore(sp); w++;
+            sdsfree(m);
+            zzlNext(lp, &ep, &sp);
+        }
+    } else {
+        zset *zs = src->ptr;
+        for (zskiplistNode *zn = zs->zsl->header->level[0].forward; zn;
+             zn = zn->level[0].forward) {
+            midx[w] = csPipeUniqAdd(uniq, zslGetNodeElement(zn));
+            raw[w] = zn->score; w++;
+        }
+    }
+    g->pipe_scard[keyidx] = w;
+    g->pipe_key_part[keyidx] = part;
+    g->pipe_midx[keyidx] = midx;
+    g->pipe_zraw[keyidx] = raw;
+}
+
+static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
+    int part = sub->cssub_idx;
+    if (g->setop == CS_SETOP_UNION && isz) {
+        csPipeUniq uniq; csPipeUniqInit(&uniq);
+        for (int a = 1; a < sub->argc; a++) {
+            int idx = pos ? pos[a - 1] : part;
+            g->pipe_key_part[idx] = part;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (!o) { g->pipe_scard[idx] = 0; continue; }
+            if (o->type != OBJ_SET && o->type != OBJ_ZSET) {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                g->pipe_scard[idx] = 0;
+                continue;
+            }
+            csPipeRecordZunionSource(g, idx, part, o, &uniq);
+        }
+        dictRelease(uniq.map);             /* no key destructor: member array owns the SDSes */
+        g->pipe_part[part] = uniq.members;
+        g->pipe_partcnt[part] = uniq.count;
+        return;
+    }
+
+    int hasbase = 0;
+    if (g->setop == CS_SETOP_DIFF)
+        for (int a = 1; a < sub->argc; a++)
+            if ((pos ? pos[a - 1] : part) == 0) { hasbase = 1; break; }
+
+    if (isz && g->setop == CS_SETOP_DIFF && hasbase) {
+        robj *local = createZsetObject();
+        for (int a = 1; a < sub->argc; a++) {
+            int idx = pos ? pos[a - 1] : part;
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+            if (!o) { g->pipe_scard[idx] = 0; continue; }
+            if (o->type != OBJ_SET && o->type != OBJ_ZSET) {
+                atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+                g->pipe_scard[idx] = 0;
+                continue;
+            }
+            g->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
+            csPipeZsetApplySource(local, o, idx != 0);
+        }
+        g->pipe_base_part = part;
+        csPipeExportZset(local, &g->pipe_part[part], &g->pipe_partscore[part],
+                        &g->pipe_partcnt[part]);
+        decrRefCount(local);
+        return;
+    }
+
+    robj *local = createIntsetObject();
+    for (int a = 1; a < sub->argc; a++) {
+        int idx = pos ? pos[a - 1] : part;
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+        if (!o) { g->pipe_scard[idx] = 0; continue; }
+        if ((!isz && o->type != OBJ_SET) ||
+            (isz && o->type != OBJ_SET && o->type != OBJ_ZSET)) {
+            atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
+            g->pipe_scard[idx] = 0;
+            continue;
+        }
+        g->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
+        int remove = g->setop == CS_SETOP_DIFF && hasbase && idx != 0;
+        csPipeSetApplySource(local, o, remove);
+    }
+    if (g->setop == CS_SETOP_DIFF && hasbase) g->pipe_base_part = part;
+    csPipeExportSet(local, &g->pipe_part[part], &g->pipe_partcnt[part]);
+    decrRefCount(local);
+}
+
 static void csPipeSubExec(client *sub, csGroup *g) {
     int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
-    int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZCARD);   /* Z family: zsets + sets (score 1) */
+    int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZSTORE || g->ctype == CS_ZCARD);
+                                                            /* Z family: zsets + sets (score 1) */
     switch (g->pipe_stage) {
+    case CS_PIPE_LOCAL_UNION:
+    case CS_PIPE_LOCAL_DIFF:
+        csPipeLocalReduce(sub, g, pos, isz);
+        break;
     case CS_PIPE_SIZES:
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : sub->cssub_idx;
@@ -10215,7 +10487,8 @@ static void csPipeSubExec(client *sub, csGroup *g) {
             n = (long)setTypeSize(o);
             if (n == 0) break;
             arr = zmalloc(sizeof(sds) * n);
-            if (g->ctype == CS_ZOP) gsc = zmalloc(sizeof(double) * n);
+            if (g->ctype == CS_ZOP || g->ctype == CS_ZSTORE)
+                gsc = zmalloc(sizeof(double) * n);
             setTypeIterator si; setTypeInitIterator(&si, o);
             char *str; size_t len; int64_t ll;
             while (w < n && setTypeNext(&si, &str, &len, &ll) != -1) {
@@ -10226,7 +10499,8 @@ static void csPipeSubExec(client *sub, csGroup *g) {
             n = (long)zsetLength(o);
             if (n == 0) break;
             arr = zmalloc(sizeof(sds) * n);
-            if (g->ctype == CS_ZOP) gsc = zmalloc(sizeof(double) * n);
+            if (g->ctype == CS_ZOP || g->ctype == CS_ZSTORE)
+                gsc = zmalloc(sizeof(double) * n);
             if (o->encoding == OBJ_ENCODING_LISTPACK) {
                 unsigned char *lp = o->ptr, *p = lpFirst(lp);
                 while (p && w < n) {
@@ -10302,6 +10576,11 @@ static int csPipeAdvance(csGroup *g) {
     const csCmdSpec *s = g->spec;
     int dbid = g->h2_dbid, first = csFirstKeyArg(s);
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
+
+    /* UNION/DIFF complete in their one coalesced local-reduce wave. Read-only commands merge
+     * now in csReassemble; STORE commands fall through to csLaunchHop2 in the same drain pass. */
+    if (g->pipe_stage == CS_PIPE_LOCAL_UNION || g->pipe_stage == CS_PIPE_LOCAL_DIFF)
+        return 0;
 
     if (g->pipe_stage == CS_PIPE_SIZES) {
         int sm = 0;
@@ -10491,11 +10770,16 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         /* keys span >1 owner => scatter-gather / merge pipeline (the ex-borrow population) */
         atomic_fetch_add_explicit(&tomo_xshard_multikey_split_n, 1, memory_order_relaxed);
     }
-    /* merge-execution pipeline: cross-shard INTER family (sets + zsets), read-only rows only. */
+    /* Merge execution for the whole set-algebra family. INTER keeps the shrinking candidate
+     * chain; UNION/DIFF use one shard-local partial per source owner. STORE rows use the same
+     * read reduction and then the already-existing destination HOP2. Single-input forms retain
+     * the simpler gather path because there is no cross-source reduction to perform. */
     /* xshard-pipeline: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && nkeys >= 2 &&
-        (s->ctype == CS_SETOP || s->ctype == CS_SETCARD ||
-         s->ctype == CS_ZOP   || s->ctype == CS_ZCARD) && s->setop == CS_SETOP_INTER) {
+    if (nkeys >= 2 &&
+        (s->ctype == CS_SETOP || s->ctype == CS_SSTORE || s->ctype == CS_SETCARD ||
+         s->ctype == CS_ZOP   || s->ctype == CS_ZSTORE || s->ctype == CS_ZCARD) &&
+        (s->setop == CS_SETOP_INTER ||
+         (s->ctype != CS_SETCARD && s->ctype != CS_ZCARD))) {
         dispatchPipeline(head, s, nkeys, first, dbid);
         return;
     }
@@ -10781,6 +11065,143 @@ static int csZParseOpts(client *head, int nkeys, double *weights) {
     }
     return aggregate;
 }
+
+/* Materialize a pipeline's already-reduced set result. INTER candidates are globally final;
+ * UNION folds shard-distinct partials; DIFF starts from the key-0 shard's locally-subtracted
+ * partial and removes every other shard's locally-unioned exclusion partial. */
+static robj *csPipeResultSet(csGroup *g) {
+    robj *res = createIntsetObject();
+    if (g->setop == CS_SETOP_INTER) {
+        for (long i = 0; i < g->pipe_ncand; i++) setTypeAdd(res, g->pipe_cand[i]);
+        return res;
+    }
+    if (g->setop == CS_SETOP_UNION) {
+        for (int p = 0; p < g->pipe_npart; p++)
+            for (long i = 0; i < g->pipe_partcnt[p]; i++)
+                setTypeAdd(res, g->pipe_part[p][i]);
+        return res;
+    }
+    if (g->pipe_base_part >= 0) {
+        int base = g->pipe_base_part;
+        for (long i = 0; i < g->pipe_partcnt[base]; i++)
+            setTypeAdd(res, g->pipe_part[base][i]);
+        for (int p = 0; p < g->pipe_npart; p++) {
+            if (p == base) continue;
+            for (long i = 0; i < g->pipe_partcnt[p]; i++)
+                setTypeRemove(res, g->pipe_part[p][i]);
+        }
+    }
+    return res;
+}
+
+/* Weighted pipeline result, preserving the old coordinator fold exactly. INTER uses its
+ * candidate score matrix. ZUNION walks original keys and their occurrence indexes in the same
+ * order as csZSetOpResultZset did before local reduction, so SUM rounding and NaN handling stay
+ * byte-identical. ZDIFF needs only key-0 scores plus membership exclusions. */
+static robj *csPipeResultZset(csGroup *g) {
+    int out_flags;
+    robj *res = createZsetObject();
+    if (g->setop == CS_SETOP_INTER) {
+        int n = g->nkeys;
+        double *weights = zmalloc(sizeof(double) * (size_t)n);
+        int aggregate = csZParseOpts(g->head, n, weights);
+        int *ord = zmalloc(sizeof(int) * (size_t)n);
+        for (int i = 0; i < n; i++) ord[i] = i;
+        for (int i = 1; i < n; i++) {
+            int v = ord[i], j = i - 1;
+            while (j >= 0 && (g->pipe_scard[ord[j]] > g->pipe_scard[v] ||
+                   (g->pipe_scard[ord[j]] == g->pipe_scard[v] && ord[j] > v))) {
+                ord[j+1] = ord[j]; j--;
+            }
+            ord[j+1] = v;
+        }
+        for (long c = 0; c < g->pipe_ncand; c++) {
+            double score = weights[ord[0]] * g->pipe_cscore[c * n + ord[0]];
+            if (isnan(score)) score = 0;
+            for (int i = 1; i < n; i++)
+                csZAggr(&score, weights[ord[i]] * g->pipe_cscore[c * n + ord[i]], aggregate);
+            zsetAdd(res, score, g->pipe_cand[c], ZADD_IN_NONE, &out_flags, NULL);
+        }
+        zfree(ord); zfree(weights);
+        return res;
+    }
+    if (g->setop == CS_SETOP_UNION) {
+        int n = g->nkeys;
+        double *weights = zmalloc(sizeof(double) * (size_t)n);
+        int aggregate = csZParseOpts(g->head, n, weights);
+        for (int i = 0; i < n; i++) {
+            int part = g->pipe_key_part[i];
+            for (long k = 0; k < g->pipe_scard[i]; k++) {
+                long mi = g->pipe_midx[i][k];
+                sds member = g->pipe_part[part][mi];
+                double score = weights[i] * g->pipe_zraw[i][k];
+                if (isnan(score)) score = 0;
+                double old;
+                if (zsetScore(res, member, &old) == C_OK) {
+                    csZAggr(&old, score, aggregate);
+                    zsetAdd(res, old, member, ZADD_IN_NONE, &out_flags, NULL);
+                } else {
+                    zsetAdd(res, score, member, ZADD_IN_NONE, &out_flags, NULL);
+                }
+            }
+        }
+        zfree(weights);
+        return res;
+    }
+    if (g->pipe_base_part >= 0) {
+        int base = g->pipe_base_part;
+        for (long i = 0; i < g->pipe_partcnt[base]; i++)
+            zsetAdd(res, g->pipe_partscore[base][i], g->pipe_part[base][i],
+                    ZADD_IN_NONE, &out_flags, NULL);
+        for (int p = 0; p < g->pipe_npart; p++) {
+            if (p == base) continue;
+            for (long i = 0; i < g->pipe_partcnt[p]; i++) zsetDel(res, g->pipe_part[p][i]);
+        }
+    }
+    return res;
+}
+
+/* Free only the pipeline payload/state, not the current stage subs or their initial posmap.
+ * STORE calls this after serializing the reduced result but before csLaunchHop2 repurposes the
+ * group; read-only reassembly calls it before the generic group teardown. */
+static void csPipeFreeData(csGroup *g) {
+    if (g->pipe_cand) {
+        for (long i = 0; i < g->pipe_ncand; i++) sdsfree(g->pipe_cand[i]);
+        zfree(g->pipe_cand);
+    }
+    if (g->pipe_part) {
+        for (int p = 0; p < g->pipe_npart; p++) {
+            for (long i = 0; i < g->pipe_partcnt[p]; i++) sdsfree(g->pipe_part[p][i]);
+            zfree(g->pipe_part[p]);
+            zfree(g->pipe_partscore[p]);
+        }
+        csgFree(g, g->pipe_part);
+        csgFree(g, g->pipe_partcnt);
+        csgFree(g, g->pipe_partscore);
+    }
+    if (g->pipe_midx) {
+        for (int i = 0; i < g->nkeys; i++) {
+            zfree(g->pipe_midx[i]);
+            zfree(g->pipe_zraw[i]);
+        }
+        csgFree(g, g->pipe_midx);
+        csgFree(g, g->pipe_zraw);
+        csgFree(g, g->pipe_key_part);
+    }
+    zfree(g->pipe_verdict);
+    zfree(g->pipe_cscore);
+    zfree(g->pipe_probe_pos);
+    zfree(g->pipe_order);
+    csgFree(g, g->pipe_scard);
+    csgFree(g, g->pipe_shard_of);
+    g->pipe_cand = NULL; g->pipe_ncand = 0;
+    g->pipe_part = NULL; g->pipe_partcnt = NULL; g->pipe_partscore = NULL;
+    g->pipe_midx = NULL; g->pipe_zraw = NULL; g->pipe_key_part = NULL;
+    g->pipe_verdict = NULL; g->pipe_cscore = NULL; g->pipe_probe_pos = NULL;
+    g->pipe_order = NULL; g->pipe_scard = NULL; g->pipe_shard_of = NULL;
+    g->pipe_npart = 0; g->pipe_stage = 0;
+}
+
 /* Build the weighted UNION/INTER/DIFF result as a temp OBJ_ZSET (skiplist encoding => rank
  * iteration reproduces stock's reply order). Coordinator-owned; only a DUMP blob crosses. */
 static robj *csZSetOpResultZset(csGroup *g) {
@@ -11122,12 +11543,11 @@ static int csLaunchHop2(csGroup *g) {
         break;
     }
     case CS_SSTORE: {
-        /* step 5: compute the set-op result on the coordinator from the gathered members and
-         * serialize it (temp OBJ_SET never crosses a thread — only the blob does). EMPTY result
-         * still launches HOP2 with payload NULL: the write sub must DELETE a pre-existing dst
-         * (stock). WRONGTYPE was flagged in HOP1 => the generic err screen below skips all writes. */
+        /* Compute from either legacy gathered inputs (single-source fallback) or the reduced
+         * pipeline result. EMPTY still launches HOP2 with payload NULL so dst is deleted. */
         if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
-        robj *res = csSetOpResultSet(g);
+        int reduced = g->pipe_stage != 0;
+        robj *res = reduced ? csPipeResultSet(g) : csSetOpResultSet(g);
         long long card = (long long)setTypeSize(res);
         g->cs2_intreply = card;
         if (card > 0) {
@@ -11137,6 +11557,7 @@ static int csLaunchHop2(csGroup *g) {
             g->h2_payload = r.io.buffer.ptr;
         }
         decrRefCount(res);
+        if (reduced) csPipeFreeData(g);
         break;
     }
     case CS_BITOP: {
@@ -11209,11 +11630,11 @@ static int csLaunchHop2(csGroup *g) {
         break;
     }
     case CS_ZSTORE: {
-        /* step 6: weighted compute + serialize; empty => payload NULL => HOP2 deletes dst.
-         * Convert to listpack when small BEFORE dumping so the restored dst's encoding matches
-         * what stock's setKey would have stored. */
+        /* Weighted compute from legacy gathered inputs or shard-reduced pipeline state; empty =>
+         * payload NULL => HOP2 deletes dst. Convert before dump for stock encoding parity. */
         if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) break;
-        robj *res = csZSetOpResultZset(g);
+        int reduced = g->pipe_stage != 0;
+        robj *res = reduced ? csPipeResultZset(g) : csZSetOpResultZset(g);
         long long card = (long long)zsetLength(res);
         g->cs2_intreply = card;
         if (card > 0) {
@@ -11234,6 +11655,7 @@ static int csLaunchHop2(csGroup *g) {
             g->h2_payload = r.io.buffer.ptr;
         }
         decrRefCount(res);
+        if (reduced) csPipeFreeData(g);
         break;
     }
     case CS_SMOVE: {
@@ -11355,61 +11777,44 @@ static void csReassemble(client *dst, client *head) {
                 if (lim > 0 && card > lim) card = lim;
                 addReplyLongLong(dst, card);
             } else if (g->ctype == CS_ZOP) {
-                /* Stock-exact fold: weights applied per contribution, keys folded in
-                 * cardinality-ascending order (tie: original index), NaN->0 on the FIRST
-                 * folded contribution only; result emitted in (score, member) rank order
-                 * like the temp-zset path (stock reply order). */
-                int n = g->nkeys;
-                double *weights = zmalloc(sizeof(double) * n);
-                int aggregate = csZParseOpts(head, n, weights);
+                robj *res = csPipeResultZset(g);
                 int ws = 0;                            /* WITHSCORES present? */
-                for (int a = csFirstKeyArg(g->spec) + n; a < head->argc; a++)
+                for (int a = csFirstKeyArg(g->spec) + g->nkeys; a < head->argc; a++)
                     if (!strcasecmp(head->argv[a]->ptr, "withscores")) { ws = 1; break; }
-                int *ord = zmalloc(sizeof(int) * n);
-                for (int i = 0; i < n; i++) ord[i] = i;
-                for (int i = 1; i < n; i++) {          /* insertion sort by (scard, idx) */
-                    int v = ord[i], j = i - 1;
-                    while (j >= 0 && (g->pipe_scard[ord[j]] > g->pipe_scard[v] ||
-                           (g->pipe_scard[ord[j]] == g->pipe_scard[v] && ord[j] > v))) {
-                        ord[j+1] = ord[j]; j--;
-                    }
-                    ord[j+1] = v;
+                unsigned long length = zsetLength(res);
+                zset *zs = res->ptr;
+                zskiplistNode *zn = zs->zsl->header->level[0].forward;
+                /* Preserve the established INTER pipeline's reply framing; new UNION/DIFF
+                 * paths retain the legacy gathered path's RESP2-flat / RESP3-pair framing. */
+                if (g->setop == CS_SETOP_INTER)
+                    addReplyArrayLen(dst, length * (ws ? 2 : 1));
+                else if (ws && dst->resp == 2)
+                    addReplyArrayLen(dst, length * 2);
+                else
+                    addReplyArrayLen(dst, length);
+                while (zn) {
+                    if (g->setop != CS_SETOP_INTER && ws && dst->resp > 2)
+                        addReplyArrayLen(dst, 2);
+                    sds member = zslGetNodeElement(zn);
+                    addReplyBulkCBuffer(dst, member, sdslen(member));
+                    if (ws) addReplyDouble(dst, zn->score);
+                    zn = zn->level[0].forward;
                 }
-                typedef struct { sds m; double s; } zpair;
-                zpair *out = zmalloc(sizeof(zpair) * (g->pipe_ncand ? g->pipe_ncand : 1));
-                for (long c = 0; c < g->pipe_ncand; c++) {
-                    double sc = weights[ord[0]] * g->pipe_cscore[c * n + ord[0]];
-                    if (isnan(sc)) sc = 0;
-                    for (int i = 1; i < n; i++)
-                        csZAggr(&sc, weights[ord[i]] * g->pipe_cscore[c * n + ord[i]], aggregate);
-                    out[c].m = g->pipe_cand[c]; out[c].s = sc;
-                }
-                /* rank order (score asc, member lex asc) = skiplist order */
-                for (long i = 1; i < g->pipe_ncand; i++) {   /* insertion sort; candidates are small */
-                    zpair v = out[i]; long j = i - 1;
-                    while (j >= 0 && (out[j].s > v.s ||
-                           (out[j].s == v.s && sdscmp(out[j].m, v.m) > 0))) {
-                        out[j+1] = out[j]; j--;
-                    }
-                    out[j+1] = v;
-                }
-                addReplyArrayLen(dst, g->pipe_ncand * (ws ? 2 : 1));
-                for (long c = 0; c < g->pipe_ncand; c++) {
-                    addReplyBulkCBuffer(dst, out[c].m, sdslen(out[c].m));
-                    if (ws) addReplyDouble(dst, out[c].s);
-                }
-                zfree(out); zfree(ord); zfree(weights);
+                decrRefCount(res);
             } else {
-                addReplySetLen(dst, g->pipe_ncand);
-                for (long c = 0; c < g->pipe_ncand; c++)
-                    addReplyBulkCBuffer(dst, g->pipe_cand[c], sdslen(g->pipe_cand[c]));
+                robj *res = csPipeResultSet(g);
+                addReplySetLen(dst, setTypeSize(res));
+                setTypeIterator si; setTypeInitIterator(&si, res);
+                char *str; size_t len; int64_t ll;
+                while (setTypeNext(&si, &str, &len, &ll) != -1) {
+                    if (str) addReplyBulkCBuffer(dst, str, len);
+                    else addReplyBulkLongLong(dst, ll);
+                }
+                setTypeResetIterator(&si);
+                decrRefCount(res);
             }
         }
-        for (long c = 0; c < g->pipe_ncand; c++) sdsfree(g->pipe_cand[c]);
-        zfree(g->pipe_cand); zfree(g->pipe_verdict); zfree(g->pipe_cscore);
-        zfree(g->pipe_probe_pos);
-        csgFree(g, g->pipe_scard); zfree(g->pipe_order); csgFree(g, g->pipe_shard_of);
-        g->pipe_cand = NULL; g->pipe_ncand = 0;
+        csPipeFreeData(g);
         /* fall through to the generic teardown (subs/posmaps/group) with dst handled */
         dst = NULL;
     }
