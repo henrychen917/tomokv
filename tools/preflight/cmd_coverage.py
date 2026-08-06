@@ -198,6 +198,35 @@ def partA():
     eq(c(s,f,'ZCARD','zrem-batch'),delete_batch_keep,'ZREM-batch-ZCARD')
     eq(lst(c(s,f,'ZRANGE','zrem-batch','0','-1')),zrem_survivors,'ZREM-batch-survivors')
     eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-after')
+    # Shared string2ll/listpack edge corpus. Canonical integers must round-trip, while raw spellings
+    # (including values that would collide if normalized) must remain byte-exact in every listpack user.
+    lp_int_values=[
+        b'0',b'5',b'7',b'-7',b'12',b'99999999',b'100000000',
+        b'9999999999999999',b'10000000000000000',
+        b'9223372036854775807',b'-9223372036854775808',
+    ]
+    lp_raw_values=[
+        b'007',b' 12',b'12 ',b'+5',b'-0',
+        b'9223372036854775808',b'-9223372036854775809',
+        b'18446744073709551615',b'12x',b'',
+    ]
+    lp_values=lp_int_values+lp_raw_values
+    c(s,f,'DEL','str2ll-list')
+    eq(c(s,f,'RPUSH','str2ll-list',*lp_values),len(lp_values),'string2ll-list-RPUSH')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-list'),b'listpack','string2ll-list-encoding')
+    eq(c(s,f,'LRANGE','str2ll-list','0','-1'),lp_values,'string2ll-list-roundtrip')
+    c(s,f,'DEL','str2ll-hash')
+    lp_hash_args=[x for value in lp_values for x in (value,value)]
+    eq(c(s,f,'HSET','str2ll-hash',*lp_hash_args),len(lp_values),'string2ll-hash-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-hash'),b'listpack','string2ll-hash-encoding')
+    eq(c(s,f,'HLEN','str2ll-hash'),len(lp_values),'string2ll-hash-distinct-fields')
+    eq(c(s,f,'HMGET','str2ll-hash',*lp_values),lp_values,'string2ll-hash-roundtrip')
+    c(s,f,'DEL','str2ll-zset')
+    lp_zset_args=[x for i,value in enumerate(lp_values) for x in (i,value)]
+    eq(c(s,f,'ZADD','str2ll-zset',*lp_zset_args),len(lp_values),'string2ll-zset-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-zset'),b'listpack','string2ll-zset-encoding')
+    eq(c(s,f,'ZCARD','str2ll-zset'),len(lp_values),'string2ll-zset-distinct-members')
+    eq(c(s,f,'ZRANGE','str2ll-zset','0','-1'),lp_values,'string2ll-zset-roundtrip')
     # BZPOP uses the same T4 probe/winner path, but preserves its flat [key,member,score] reply.
     bza,bzb=shard_pair(s,f,True,'bzpop')
     c(s,f,'DEL',bza,bzb); c(s,f,'ZADD',bzb,'1','low','9','high')
