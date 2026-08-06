@@ -1446,9 +1446,10 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
         return 0;
 
     /*
-     * An ordinary io_uring SEND may reference the immutable unsent prefix of
+     * An io_uring SEND/SENDMSG may reference the immutable unsent prefix of
      * c->buf directly. Reply construction only appends behind that prefix;
-     * defer the rare cron reallocation until its data CQE ends the reference.
+     * defer the rare cron reallocation until the data CQE and any promised
+     * zero-copy notification end the reference.
      */
     if (server.io_uring && tomoUringClientSendPending(c)) return 0;
 

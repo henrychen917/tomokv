@@ -3980,6 +3980,9 @@ struct redisServer {
     int reply_buffer_transfer_enabled; /* Transfer a completed fake's large plain reply buffer to
                                         * its IO-owned real client when equal-capacity scratch can
                                         * be exchanged. Gated independently for hot-path A/B. */
+    int reply_iovec_enabled; /* Lifetime-aware reply scatter/gather. Large owned values may be
+                              * retained by reference and io_uring keeps every iovec/object pinned
+                              * through its terminal data/notification CQE. Default OFF. */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
@@ -4884,6 +4887,10 @@ int processClientInputFromUring(client *c);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
 int prepareClientToWrite(client *c);
+int clientPrepareReplyIOV(client *c, struct iovec *iov, int iovmax,
+                          size_t byte_limit, size_t *iov_bytes_len);
+int clientReplyIOVCanAsync(client *c);
+void clientConsumeReplyBytes(client *c, size_t nwritten);
 void addReplyNull(client *c);
 void addReplyNullArray(client *c);
 void addReplyBool(client *c, int b);

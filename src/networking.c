@@ -1690,6 +1690,42 @@ static int tryAvoidBulkStrCopyToReply(client *c, robj *obj, size_t len) {
     return C_OK;
 }
 
+/* Dragonfly's reply builder copies values through 32 bytes into its retained
+ * scratch.  Below that point an iovec plus a retained object costs more than
+ * the memcpy and, more importantly, needlessly lengthens an object's life. */
+#define REPLY_IOVEC_INLINE_MAX 32
+
+/* Adopt an SDS whose caller already transfers ownership to the reply.
+ *
+ * This is the only new raw-memory reference introduced by tomokv-reply-iovec.
+ * We deliberately do not borrow addReplyBulkCBuffer() input: listpack/hash/set
+ * element pointers can be invalidated by a later command on the owning worker.
+ * An addReplyBulkSds() input, in contrast, is already detached and exclusively
+ * owned by this call.  Wrapping it in a RAW robj lets the existing BULK_STR_REF
+ * machinery carry the lifetime pin through EX -> IO -> transport completion.
+ * The wrapper's sole surviving reference is retired through owner_ex/freeback,
+ * so the SDS itself is freed on its producing worker rather than on an IO CPU.
+ *
+ * zerocopy-min-value remains the single byte threshold and 0 remains a hard
+ * disable. Restricting this adoption to worker fakes keeps non-sharded/module
+ * reply behavior unchanged and gives every retained object a valid owner_ex. */
+static int tryReferenceOwnedBulkSds(client *c, sds s) {
+    size_t len = sdslen(s);
+    if (!server.reply_iovec_enabled || server.zerocopy_min_value <= 0 ||
+        len <= REPLY_IOVEC_INLINE_MAX ||
+        len < (size_t)server.zerocopy_min_value ||
+        !c->isFake || iotid <= TOMO_IO_THREADS_MAX ||
+        (c->flags & CLIENT_CLOSE_AFTER_REPLY))
+    {
+        return C_ERR;
+    }
+
+    robj *owned = createObject(OBJ_STRING, s); /* adopts s, refcount = 1 */
+    _addBulkStrRefToBufferOrList(c, owned, len); /* reply pin: refcount = 2 */
+    decrRefCount(owned); /* drop local owner; reply pin remains */
+    return C_OK;
+}
+
 /* Add a Redis Object as a bulk reply.
  * If avoid_copy is non-zero, attempt to use copy avoidance optimization. */
 void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy) {
@@ -1736,6 +1772,8 @@ void addReplyBulkSds(client *c, sds s) {
         sdsfree(s);
         return;
     }
+    if (tryReferenceOwnedBulkSds(c, s) == C_OK)
+        return;
     _addReplyLongLongWithPrefix(c, sdslen(s), '$');
     _addReplyToBufferOrList(c, s, sdslen(s));
     sdsfree(s);
@@ -1863,8 +1901,8 @@ void addReplySubcommandSyntaxError(client *c) {
  * then the sole owner of the completed buffer: epoll write/writev never retains
  * its pointer after the syscall returns (partial bytes remain dst-owned), while
  * the io_uring sidecar either snapshots it into a completion-owned registered
- * buffer or keeps dst->buf immutable through the data CQE. No pointer remains
- * borrowed from EX.
+ * buffer or keeps dst->buf immutable through the data CQE and any promised
+ * zero-copy notification. No pointer remains borrowed from EX.
  *
  * Equal capacities are load-bearing: exchanging them leaves reply-buffer memory
  * accounting, resize behavior, output-limit treatment, and allocator pressure
@@ -2979,11 +3017,31 @@ typedef struct ReplyIOV {
     int iovmax;             /* Maximum number of iovec entries allocated */
     int iovcnt;             /* Current number of iovec entries in use */
     size_t iov_bytes_len;   /* Total bytes across all iovec entries */
+    size_t iov_bytes_limit; /* Explicit snapshot frontier (SIZE_MAX for writev). */
 } ReplyIOV;
 
 /* Check if the reply IOV has reached its limit yet. */
 static int replyIOVReachLimit(ReplyIOV *reply_iov) {
-    return reply_iov->iovcnt >= reply_iov->iovmax || reply_iov->iov_bytes_len >= NET_MAX_WRITES_PER_EVENT;
+    return reply_iov->iovcnt >= reply_iov->iovmax ||
+           reply_iov->iov_bytes_len >= NET_MAX_WRITES_PER_EVENT ||
+           reply_iov->iov_bytes_len >= reply_iov->iov_bytes_limit;
+}
+
+/* Append one stable range. The ordinary writev caller uses SIZE_MAX and keeps
+ * its historical behavior (a single range may cross NET_MAX_WRITES_PER_EVENT).
+ * Async callers pass a hard byte frontier so a later reply append can never be
+ * accidentally included in the in-flight operation. Returns false if the
+ * range was truncated at that frontier. */
+static int replyIOVAdd(ReplyIOV *reply_iov, void *base, size_t len) {
+    if (replyIOVReachLimit(reply_iov)) return 0;
+    size_t room = reply_iov->iov_bytes_limit - reply_iov->iov_bytes_len;
+    size_t take = min(len, room);
+    if (take == 0) return 0;
+    reply_iov->iov[reply_iov->iovcnt].iov_base = base;
+    reply_iov->iov[reply_iov->iovcnt].iov_len = take;
+    reply_iov->iovcnt++;
+    reply_iov->iov_bytes_len += take;
+    return take == len;
 }
 
 /* Helper function to process encoded buffer and build iov array. */
@@ -2994,9 +3052,10 @@ static void processEncodedBufferForWrite(ReplyIOV *reply_iov, char *start_ptr, c
 
         if (head->payload_type == PLAIN_REPLY) {
             /* Plain data - add directly */
-            reply_iov->iov[reply_iov->iovcnt].iov_base = ptr + sizeof(payloadHeader) + offset;
-            reply_iov->iov[reply_iov->iovcnt].iov_len = head->payload_len - offset;
-            reply_iov->iov_bytes_len += reply_iov->iov[reply_iov->iovcnt++].iov_len;
+            size_t len = head->payload_len - offset;
+            if (len && !replyIOVAdd(reply_iov,
+                                    ptr + sizeof(payloadHeader) + offset, len))
+                return;
         } else {
             /* BULK_STR_REF - expand to prefix + string + crlf */
             bulkStrRef *str_ref = (bulkStrRef *)(ptr + sizeof(payloadHeader));
@@ -3006,9 +3065,9 @@ static void processEncodedBufferForWrite(ReplyIOV *reply_iov, char *start_ptr, c
             /* Add prefix */
             if (offset < prefix_len) {
                 if (replyIOVReachLimit(reply_iov)) return;
-                reply_iov->iov[reply_iov->iovcnt].iov_base = str_ref->prefix + offset;
-                reply_iov->iov[reply_iov->iovcnt].iov_len = prefix_len - offset;
-                reply_iov->iov_bytes_len += reply_iov->iov[reply_iov->iovcnt++].iov_len;
+                if (!replyIOVAdd(reply_iov, str_ref->prefix + offset,
+                                 prefix_len - offset))
+                    return;
                 offset = 0;
             } else {
                 offset -= prefix_len;
@@ -3017,9 +3076,9 @@ static void processEncodedBufferForWrite(ReplyIOV *reply_iov, char *start_ptr, c
             /* Add string data */
             if (offset < str_len) {
                 if (replyIOVReachLimit(reply_iov)) return;
-                reply_iov->iov[reply_iov->iovcnt].iov_base = (char *)str_ref->obj->ptr + offset;
-                reply_iov->iov[reply_iov->iovcnt].iov_len = str_len - offset;
-                reply_iov->iov_bytes_len += reply_iov->iov[(reply_iov->iovcnt)++].iov_len;
+                if (!replyIOVAdd(reply_iov, (char *)str_ref->obj->ptr + offset,
+                                 str_len - offset))
+                    return;
                 offset = 0;
             } else {
                 offset -= str_len;
@@ -3028,15 +3087,122 @@ static void processEncodedBufferForWrite(ReplyIOV *reply_iov, char *start_ptr, c
             /* Add crlf */
             if (offset < 2) {
                 if (replyIOVReachLimit(reply_iov)) return;
-                reply_iov->iov[reply_iov->iovcnt].iov_base = str_ref->crlf + offset;
-                reply_iov->iov[reply_iov->iovcnt].iov_len = 2 - offset;
-                reply_iov->iov_bytes_len += reply_iov->iov[reply_iov->iovcnt++].iov_len;
+                if (!replyIOVAdd(reply_iov, str_ref->crlf + offset, 2 - offset))
+                    return;
             }
         }
 
         offset = 0;
         ptr += sizeof(payloadHeader) + head->payload_len;
     }
+}
+
+/* Snapshot the current logical reply prefix into caller-owned iovec metadata.
+ * The pointed-to bytes remain owned by c (or by BULK_STR_REF's retained robj);
+ * callers that outlive this function must keep c and those reply nodes pinned
+ * until clientConsumeReplyBytes() retires the completed prefix. */
+int clientPrepareReplyIOV(client *c, struct iovec *iov, int iovmax,
+                          size_t byte_limit, size_t *iov_bytes_len) {
+    serverAssert(iov != NULL && iovmax > 0 && byte_limit > 0);
+    ReplyIOV reply_iov = {
+        .iov = iov,
+        .iovmax = iovmax,
+        .iovcnt = 0,
+        .iov_bytes_len = 0,
+        .iov_bytes_limit = byte_limit,
+    };
+
+    /* Add c->buf to iov array. */
+    if (c->bufpos > 0) {
+        if (likely(!c->buf_encoded)) {
+            replyIOVAdd(&reply_iov, c->buf + c->sentlen,
+                        c->bufpos - c->sentlen);
+        } else {
+            char *start_ptr = c->last_header ? (char *)c->last_header : c->buf;
+            serverAssert(start_ptr >= c->buf && start_ptr < (c->buf + c->bufpos));
+            processEncodedBufferForWrite(&reply_iov, start_ptr,
+                                         c->buf + c->bufpos, c->sentlen);
+        }
+    }
+
+    /* Add c->reply list nodes. The list itself is an ownership frontier: EX
+     * hands complete blocks to IO with listJoin and never touches them again. */
+    if (!replyIOVReachLimit(&reply_iov)) {
+        size_t offset = c->bufpos > 0 ? 0 : c->sentlen;
+        payloadHeader *last_header = c->bufpos > 0 ? NULL : c->last_header;
+        listIter iter;
+        listNode *next;
+        listRewind(c->reply, &iter);
+        while ((next = listNext(&iter)) && !replyIOVReachLimit(&reply_iov)) {
+            clientReplyBlock *o = listNodeValue(next);
+            if (o->used == 0) {
+                c->reply_bytes -= o->size;
+                listDelNode(c->reply, next);
+                offset = 0;
+                last_header = NULL;
+                continue;
+            }
+
+            if (!o->buf_encoded) {
+                serverAssert(!last_header);
+                if (!replyIOVAdd(&reply_iov, o->buf + offset, o->used - offset))
+                    break;
+                offset = 0;
+            } else {
+                char *start_ptr = last_header ? (char *)last_header : o->buf;
+                processEncodedBufferForWrite(&reply_iov, start_ptr,
+                                             o->buf + o->used, offset);
+                offset = 0;
+                last_header = NULL;
+            }
+        }
+    }
+
+    if (iov_bytes_len) *iov_bytes_len = reply_iov.iov_bytes_len;
+    return reply_iov.iovcnt;
+}
+
+/* Async flushdb may replace owner_ex == -1 reply objects while IO threads are
+ * paused (protectClientReplyObjects). A submitted io_uring operation would
+ * still hold the old data pointer in the kernel, so those upstream/main-thread
+ * references are not eligible for asynchronous scatter/gather. Worker refs
+ * have owner_ex >= 0, are deliberately absent from that replacement list, and
+ * retain their object through the worker free-back protocol. Plain reply
+ * ranges contain no externally replaceable pointer and are always safe. */
+static int encodedReplyBufferCanAsync(const char *buf, size_t used) {
+    const char *ptr = buf;
+    const char *end = buf + used;
+    while (ptr < end) {
+        const payloadHeader *header = (const payloadHeader *)ptr;
+        ptr += sizeof(*header);
+        serverAssert(ptr + header->payload_len <= end);
+        if (header->payload_type == BULK_STR_REF) {
+            const bulkStrRef *str_ref = (const bulkStrRef *)ptr;
+            if (str_ref->obj != NULL && str_ref->owner_ex < 0)
+                return 0;
+        } else {
+            serverAssert(header->payload_type == PLAIN_REPLY);
+        }
+        ptr += header->payload_len;
+    }
+    return ptr == end;
+}
+
+int clientReplyIOVCanAsync(client *c) {
+    if (c->buf_encoded &&
+        !encodedReplyBufferCanAsync(c->buf, c->bufpos))
+        return 0;
+
+    listIter iter;
+    listNode *next;
+    listRewind(c->reply, &iter);
+    while ((next = listNext(&iter))) {
+        clientReplyBlock *o = listNodeValue(next);
+        if (o && o->buf_encoded &&
+            !encodedReplyBufferCanAsync(o->buf, o->used))
+            return 0;
+    }
+    return 1;
 }
 
 /* Process sent data in the encoded buffer.
@@ -3093,6 +3259,73 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
     return (ptr == end_ptr) ? NULL : (payloadHeader *)ptr;
 }
 
+/* Retire exactly nwritten bytes from the oldest reply prefix. For epoll this is
+ * called immediately after writev returns. For io_uring it is called only from
+ * the data CQE for ordinary SEND/SENDMSG, or after the SEND_ZC notification has
+ * proved the kernel released every referenced range. Fully consumed object
+ * references are returned to their producing worker here; short sends leave
+ * c->sentlen/last_header pointing at the still-pinned payload. */
+void clientConsumeReplyBytes(client *c, size_t nwritten) {
+    ssize_t remaining = (ssize_t)nwritten;
+    serverAssert(nwritten > 0 && (size_t)remaining == nwritten);
+
+    if (c->bufpos > 0 && remaining > 0) {
+        if (likely(!c->buf_encoded)) {
+            size_t available = c->bufpos - c->sentlen;
+            size_t consumed = min((size_t)remaining, available);
+            c->sentlen += consumed;
+            remaining -= (ssize_t)consumed;
+            if (c->sentlen == c->bufpos) {
+                c->bufpos = 0;
+                c->sentlen = 0;
+            }
+        } else {
+            char *start_ptr = c->last_header ? (char *)c->last_header : c->buf;
+            c->last_header = processSentDataInEncodedBuffer(
+                c, start_ptr, c->buf + c->bufpos, &c->sentlen, &remaining);
+            if (!c->last_header) {
+                c->bufpos = 0;
+                c->buf_encoded = 0;
+                c->sentlen = 0;
+            }
+        }
+    }
+
+    listIter iter;
+    listNode *next;
+    listRewind(c->reply, &iter);
+    while (remaining > 0) {
+        next = listNext(&iter);
+        serverAssert(next != NULL);
+        clientReplyBlock *o = listNodeValue(next);
+
+        if (!o->buf_encoded) {
+            size_t available = o->used - c->sentlen;
+            if ((size_t)remaining < available) {
+                c->sentlen += (size_t)remaining;
+                remaining = 0;
+                break;
+            }
+            remaining -= (ssize_t)available;
+            c->reply_bytes -= o->size;
+            listDelNode(c->reply, next);
+            c->sentlen = 0;
+        } else {
+            char *start_ptr = c->last_header ? (char *)c->last_header : o->buf;
+            c->last_header = processSentDataInEncodedBuffer(
+                c, start_ptr, o->buf + o->used, &c->sentlen, &remaining);
+            if (!c->last_header) {
+                c->reply_bytes -= o->size;
+                listDelNode(c->reply, next);
+                c->sentlen = 0;
+            } else {
+                break;
+            }
+        }
+    }
+    serverAssert(remaining == 0);
+}
+
 /* This function should be called from _writeToClient when the reply list is not empty,
  * it gathers the scattered buffers from reply list and sends them away with connWritev.
  * If we write successfully, it returns C_OK, otherwise, C_ERR is returned,
@@ -3101,121 +3334,12 @@ static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr,
 static int _writevToClient(client *c, ssize_t *nwritten) {
     int iovmax = min(IOV_MAX, c->conn->iovcnt);
     struct iovec iov[iovmax];
-    ReplyIOV reply_iov = {iov, iovmax};
-
-    /* Add c->buf to iov array */
-    if (c->bufpos > 0) {
-        if (likely(!c->buf_encoded)) {
-            /* Non-encoded buffer - add directly */
-            iov[reply_iov.iovcnt].iov_base = c->buf + c->sentlen;
-            iov[reply_iov.iovcnt].iov_len = c->bufpos - c->sentlen;
-            reply_iov.iov_bytes_len += iov[reply_iov.iovcnt++].iov_len;
-        } else {
-            /* Encoded buffer */
-            char *start_ptr = c->last_header ? (char *)c->last_header : c->buf;
-            serverAssert(start_ptr >= c->buf && start_ptr < (c->buf + c->bufpos));
-            processEncodedBufferForWrite(&reply_iov, start_ptr, c->buf + c->bufpos, c->sentlen);
-        }
-    }
-
-    /* Add c->reply list nodes to iov array */
-    if (!replyIOVReachLimit(&reply_iov)) {
-        /* The first node of reply list might be incomplete from the last call,
-         * thus it needs to be calibrated to get the actual data address and length. */
-        size_t offset = c->bufpos > 0 ? 0 : c->sentlen;
-        payloadHeader *last_header = c->bufpos > 0 ? NULL : c->last_header;
-        listIter iter;
-        listNode *next;
-        listRewind(c->reply, &iter);
-        while ((next = listNext(&iter)) && !replyIOVReachLimit(&reply_iov)) {
-            clientReplyBlock *o = listNodeValue(next);
-            if (o->used == 0) { /* empty node, just release it and skip. */
-                c->reply_bytes -= o->size;
-                listDelNode(c->reply, next);
-                offset = 0;
-                last_header = NULL;
-                continue;
-            }
-
-            if (!o->buf_encoded) {
-                serverAssert(!last_header);
-                /* Non-encoded reply block - add directly */
-                iov[reply_iov.iovcnt].iov_base = o->buf + offset;
-                iov[reply_iov.iovcnt].iov_len = o->used - offset;
-                reply_iov.iov_bytes_len += iov[reply_iov.iovcnt++].iov_len;
-                offset = 0;
-            } else {
-                /* Encoded reply block */
-                char *start_ptr = last_header ? (char *)last_header : o->buf;
-                processEncodedBufferForWrite(&reply_iov, start_ptr, o->buf + o->used, offset);
-                offset = 0;
-                last_header = NULL;
-            }
-        }
-    }
-
-    if (reply_iov.iovcnt == 0) return C_OK;
-    *nwritten = connWritev(c->conn, iov, reply_iov.iovcnt);
+    int iovcnt = clientPrepareReplyIOV(c, iov, iovmax, SIZE_MAX, NULL);
+    if (iovcnt == 0) return C_OK;
+    *nwritten = connWritev(c->conn, iov, iovcnt);
     if (*nwritten <= 0) return C_ERR;
 
-    /* Locate the new node which has leftover data and
-     * release all nodes in front of it. */
-    ssize_t remaining = *nwritten;
-    if (c->bufpos > 0) {
-        if (likely(!c->buf_encoded)) {
-            int buf_len = c->bufpos - c->sentlen;
-            c->sentlen += remaining;
-            /* If the buffer was sent, set bufpos to zero to continue with
-            * the remainder of the reply. */
-            if (remaining >= buf_len) {
-                c->bufpos = 0;
-                c->sentlen = 0;
-            }
-            remaining -= buf_len;
-        } else {
-            /* For encoded buffers */
-            char *start_ptr = c->last_header ? (char *)c->last_header : c->buf;
-            c->last_header = processSentDataInEncodedBuffer(c, start_ptr, c->buf + c->bufpos, &c->sentlen, &remaining);
-            if (!c->last_header) { /* reach end */
-                c->bufpos = 0;
-                c->buf_encoded = 0;
-                c->sentlen = 0;
-            }
-        }
-    }
-
-    /* Process c->reply list nodes */
-    listIter iter;
-    listNode *next;
-    listRewind(c->reply, &iter);
-    while (remaining > 0) {
-        next = listNext(&iter);
-        clientReplyBlock *o = listNodeValue(next);
-
-        if (!o->buf_encoded) {
-            if (remaining < (ssize_t)(o->used - c->sentlen)) {
-                c->sentlen += remaining;
-                break;
-            }
-            remaining -= (ssize_t)(o->used - c->sentlen);
-            c->reply_bytes -= o->size;
-            listDelNode(c->reply, next);
-            c->sentlen = 0;
-        } else {
-            /* Encoded reply block */
-            char *start_ptr = c->last_header ? (char *)c->last_header : o->buf;
-            c->last_header = processSentDataInEncodedBuffer(c, start_ptr, o->buf + o->used, &c->sentlen, &remaining);
-            if (!c->last_header) { /* reach end */
-                /* Block fully consumed, remove it */
-                c->reply_bytes -= o->size;
-                listDelNode(c->reply, next);
-                c->sentlen = 0;
-            } else {
-                /* Partial write, c->sentlen and o->last_header already updated, stop processing */
-                break;
-            }
-        }
-    }
+    clientConsumeReplyBytes(c, (size_t)*nwritten);
 
     return C_OK;
 }
