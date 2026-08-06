@@ -267,10 +267,15 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
-_Static_assert(TOMO_IO_THREADS_MAX + 1 == 33,
-               "flatBatch.io_snap[32+1] in flatstore.h must match TOMO_IO_THREADS_MAX+1");
-_Static_assert(TOMO_IO_THREADS_MAX + 1 <= 64,
-               "flatBatch.io_pin_mask is a uint64 bitmask over io slots");
+/* ee451 #83: flatBatch.io_snap / io_pin_mask (and snap[]) are sized in flatstore.h, which cannot see
+ * this header's cap macros. Bind the two copies here so a cap raise that forgets the flatstore mirror
+ * fails at compile time rather than silently truncating the QSBR grace snapshot. */
+_Static_assert(FLAT_IO_SLOTS == TOMO_IO_THREADS_MAX + 1,
+               "flatstore.h FLAT_IO_SLOTS must track TOMO_IO_THREADS_MAX+1 (io_snap sizing)");
+_Static_assert(FLAT_EX_SLOTS == TOMO_EX_THREADS_MAX + 1,
+               "flatstore.h FLAT_EX_SLOTS must track TOMO_EX_THREADS_MAX+1 (snap[] sizing)");
+_Static_assert(FLAT_IO_MASK_WORDS == TOMO_IO_MASK_WORDS,
+               "flatstore.h FLAT_IO_MASK_WORDS must equal TOMO_IO_MASK_WORDS (io_pin_mask words)");
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 /* DEBUG TOMO-FLIPTRACE 1 -- dense per-TICK dump of the flip controller's inputs. The normal HOLD
  * line is rate limited to one per 5s, i.e. 0.2Hz sampling of a 4Hz controller, which is how a whole
@@ -2684,9 +2689,12 @@ static inline void exHandoffAdvertise(exThread *ex) {
 #if TOMO_QS_WORDS > 1
     /* Top hint only on the word's empty->nonempty edge — amortizes to ~one extra fetch_or per
      * word per consumer drain. Order matters: word first, then top, so a consumer that sees the
-     * top bit and finds the word empty merely made a spurious visit (benign, self-healing). */
-    if (old == 0)
-        atomic_fetch_or_explicit(&ex->q_top, 1ull << (t >> 6), memory_order_release);
+     * top bit and finds the word empty merely made a spurious visit (benign, self-healing).
+     * ee451 #83: skipped entirely in single-word mode (io slots can't exceed 64 this process), where
+     * the harvest reads q_summary[0] directly — restores the exact cap<=64 cost at a small boot. */
+    if (server.tm_qs_multiword) { if (old == 0)
+        atomic_fetch_or_explicit(&ex->q_top, 1ull << (t >> 6), memory_order_release); }
+    else (void)old;
 #else
     (void)old;
 #endif
@@ -2709,11 +2717,13 @@ static inline void exHandoffAdvertise(exThread *ex) {
  *
  * This mask is also why threadcap (task #66) is sequenced after ABCD: 64 workers is the width of a
  * uint64, and A1's boot check now refuses anything larger for exactly this reason. */
-_Static_assert(TOMO_EX_THREADS_MAX <= 64,
-               "ex_dirty_mask is a uint64 bitmap of worker slots: raising TOMO_EX_THREADS_MAX past "
-               "64 silently drops publications (staged-but-unpublished job == hung client). "
-               "Widen the mask together with the limit.");
-static __thread uint64_t ex_dirty_mask;
+/* ee451 #83: ex_dirty_mask is now a WORD ARRAY over worker slots. At <=64 workers TOMO_EX_MASK_WORDS
+ * == 1 and this is byte-identical to the old single uint64; the set/consume loops touch only word 0
+ * so a normal config pays nothing for the raised cap. */
+static __thread uint64_t ex_dirty_mask[TOMO_EX_MASK_WORDS];
+/* ee451 #83 heap-FAST: per IO thread, the cached heap lane-base of each worker (exQueueFor). Filled
+ * lazily, valid for the process lifetime (lane blocks are never reallocated after initExThreads). */
+static __thread exQueue *tls_qbase[TOMO_EX_THREADS_MAX + 1];
 void flushExQueues(void);   /* defined below; used by the back-pressure path (A3) */
 
 /* ===================== ee451 D: SEDA window (mechanism A — HARD-CODED) =====================
@@ -2916,8 +2926,15 @@ static inline exQueue *exQueueFor(int ex_id) {
      * ex_dirty_mask is likewise a per-IO-thread TLS: A2 sized it uint64 against TOMO_EX_THREADS_MAX,
      * asserted <= 64 there. */
     debugServerAssert(iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX);
-    ex_dirty_mask |= 1ull << (unsigned)ex_id;
-    return &server.exThreads[ex_id].queues[iotid];
+    ex_dirty_mask[(unsigned)ex_id >> 6] |= 1ull << ((unsigned)ex_id & 63);
+    /* ee451 #83 heap-FAST (dispatch side, symmetric to exSlice's WQ hoist): the per-worker lane
+     * base server.exThreads[ex_id].queues is a heap pointer now, and it is STABLE after
+     * initExThreads (never reallocated), so cache it per IO thread. This replaces the dependent
+     * load chain (global exThreads -> +ex_id*sizeof(exThread) -> load .queues) with a single hot
+     * TLS-array load; the NULL fill runs once per (io thread, worker) pair. */
+    exQueue *base = tls_qbase[ex_id];
+    if (__builtin_expect(base == NULL, 0)) base = tls_qbase[ex_id] = server.exThreads[ex_id].queues;
+    return &base[iotid];
 }
 
 static void exDispatchDirect(int ex_id, client *fake) {
@@ -7439,7 +7456,12 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
     if (!b) b = zmalloc(sizeof(*b));
     b->head = pend;
-    int nw = server.num_workers; if (nw > 64) nw = 64;
+    /* ee451 #83: was a HARD 64 clamp (snap[] used to be [64+1]). At cap 128 that silently dropped
+     * workers 64..127 from the QSBR loop_seq snapshot, so flatBatchReady would free a batch without
+     * confirming those workers passed a grace boundary => premature free / UAF. snap[] is now
+     * FLAT_EX_SLOTS (== TOMO_EX_THREADS_MAX+1), and num_workers is boot-capped to TOMO_EX_THREADS_MAX,
+     * so clamp to the array capacity, not a literal. */
+    int nw = server.num_workers; if (nw > TOMO_EX_THREADS_MAX) nw = TOMO_EX_THREADS_MAX;
     b->nworkers = nw;
 
     /* MANDATORY StoreLoad fence. Every value in this batch was unlinked with a RELEASE store
@@ -7459,12 +7481,18 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
      * hold a pointer into this batch, so only they are recorded — an EVEN slot at this instant holds
      * nothing, and anything it enters LATER reads a table these values were already unlinked from. */
     int io_hi = flatIoHi();
-    uint64_t mask = 0;
+    /* Clear the FULL mask, not just the live words: flatBatch headers are recycled from the spare
+     * pool (flatBatchClose reuses *spare), so a stale high-word bit from a prior batch that ran with
+     * more io threads would survive into a batch that ran with fewer. Consume (flatBatchReady) reads
+     * io_snap[t] for EVERY set bit across all TOMO_IO_MASK_WORDS words, so a stale bit reads a stale
+     * io_snap and either wedges the batch (never-ready => leak) or frees it early (UAF). At <=64 io
+     * slots TOMO_IO_MASK_WORDS==1 so this is one store either way; the loop only matters once the cap
+     * rises past 64, which is exactly when few-io-thread configs leave high words unwritten. */
+    for (int wi = 0; wi < TOMO_IO_MASK_WORDS; wi++) b->io_pin_mask[wi] = 0;
     for (int t = 0; t <= io_hi; t++) {
         uint64_t v = atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst);
-        if (v & 1) { b->io_snap[t] = v; mask |= 1ULL << t; }
+        if (v & 1) { b->io_snap[t] = v; b->io_pin_mask[t >> 6] |= 1ULL << (t & 63); }
     }
-    b->io_pin_mask = mask;
 
     b->next = next;
     return b;
@@ -7500,11 +7528,13 @@ static int flatBatchReady(const flatBatch *b) {
      * cache lines on EVERY readiness check of EVERY batch. */
     if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
         return 0;                                   /* unregistered reader inside: fail-safe global pin */
-    uint64_t m = b->io_pin_mask;
-    while (m) {
-        int t = __builtin_ctzll(m); m &= m - 1;
+    for (int wi = 0; wi < TOMO_IO_MASK_WORDS; wi++) {
+      uint64_t m = b->io_pin_mask[wi];
+      while (m) {
+        int t = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
         if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == b->io_snap[t])
             return 0;                               /* still inside the region it was in at close */
+      }
     }
     /* WORKERS: EITHER loop_seq advanced past the snapshot + margin (passed a quiescent point), OR the
      * worker is not inside a flat section right now (holds nothing). The second clause is what makes
@@ -16592,10 +16622,12 @@ void flushExQueues(void) {
      * actually happened. Snapshot-and-clear is race-free because the producer and the flusher are
      * the same thread. */
     int nw = server.num_workers;
-    uint64_t m = ex_dirty_mask;
-    ex_dirty_mask = 0;
-    while (m) {
-        int w = __builtin_ctzll(m);
+    int mw = (nw + 63) >> 6; if (mw > TOMO_EX_MASK_WORDS) mw = TOMO_EX_MASK_WORDS;  /* only live words */
+    for (int wi = 0; wi < mw; wi++) {
+      uint64_t m = ex_dirty_mask[wi];
+      ex_dirty_mask[wi] = 0;
+      while (m) {
+        int w = (wi << 6) + __builtin_ctzll(m);
         m &= m - 1;
         if (__builtin_expect(w >= nw, 0)) continue;   /* slot retired since it was staged */
         exQueue *q = &ex[w].queues[iotid];
@@ -16604,6 +16636,7 @@ void flushExQueues(void) {
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
             exHandoffAdvertise(&ex[w]);   /* AFTER the tail store -- see exThread.q_summary */
         }
+      }
     }
 }
 
@@ -17475,7 +17508,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     uint64_t advertised[TOMO_QS_WORDS] = {0};
     uint64_t residual[TOMO_QS_WORDS] = {0};
 #if TOMO_QS_WORDS > 1
-    {
+    if (server.tm_qs_multiword) {
         uint64_t topw = atomic_exchange_explicit(&worker->q_top, 0, memory_order_acquire);
         if (dense) {
             for (int qw = 0; qw < TOMO_QS_WORDS; qw++)
@@ -17488,11 +17521,21 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                                                           memory_order_acquire);
             }
         }
+    } else {
+        /* ee451 #83: single-word mode — io slots can't reach word 1, so word 0 IS the summary.
+         * One exchange, exactly the cap<=64 path; q_top is never written on this thread. */
+        advertised[0] = atomic_exchange_explicit(&worker->q_summary[0], 0, memory_order_acquire);
     }
 #else
     advertised[0] = atomic_exchange_explicit(&worker->q_summary[0], 0, memory_order_acquire);
 #endif
 
+    /* ee451 #83 heap-FAST: hoist the lane base ONCE. queues is now a heap pointer (see initExThreads);
+     * loading worker->queues per access from the aligned read-only line was the ~1.4% the plain heap
+     * conversion cost. Cached here, the pop loop indexes WQ[i] exactly like the old inline array —
+     * measured heap == inline. WQ covers every worker->queues[] use in this function (the retire
+     * loop below included); worker is never reassigned. */
+    exQueue *const WQ = worker->queues;
     for (int k = 0; k < ctx->nq; k++) {
         int i, n;
         if (__builtin_expect(so != 0, 0)) {
@@ -17504,17 +17547,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             uint64_t best = 0; i = -1;
             for (int q = 0; q < ctx->nq; q++) {
                 uint64_t a;
-                if (exQueuePeekArrival(&worker->queues[q], &a) && (i < 0 || a < best)) { i = q; best = a; }
+                if (exQueuePeekArrival(&WQ[q], &a) && (i < 0 || a < best)) { i = q; best = a; }
             }
             if (i < 0) break;   /* all queues drained this pass */
-            n = exQueuePopOrdered(&worker->queues[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
+            n = exQueuePopOrdered(&WQ[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
         } else {
             i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
             /* was: bit = (i < 64) ? 1<<i : 0 — lanes >= 64 could NEVER be advertised and were
              * probed only on the 1/64 dense sweeps: a silent 64x dispatch-delay cliff, not a cap. */
             uint64_t bit = 1ull << ((unsigned)i & 63);
             if (!dense && !(advertised[(unsigned)i >> 6] & bit)) continue;   /* not advertised */
-            n = exQueuePopBatch(&worker->queues[i], ctx->batch, popmax);
+            n = exQueuePopBatch(&WQ[i], ctx->batch, popmax);
             if (n != 0) {
                 /* Could not be fully drained within popmax, or more arrived: re-advertise. */
                 residual[(unsigned)i >> 6] |= bit;
@@ -17564,8 +17607,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * mode, where the gate left qd_ewma at 0, the sojourn term at 0, and the law
              * computing W=1 = a flush-per-dispatch storm (measured -3% on p32 SET). Cost is two
              * cache-hot atomic loads per non-empty lane per work pass. */
-            unsigned int tm_h = atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed);
-            unsigned int tm_t = atomic_load_explicit(&worker->queues[i].tail, memory_order_acquire);
+            unsigned int tm_h = atomic_load_explicit(&WQ[i].head, memory_order_relaxed);
+            unsigned int tm_t = atomic_load_explicit(&WQ[i].tail, memory_order_acquire);
             tm_pass_depth += (int)((tm_t - tm_h) & server.ex_queue_mask);
         }
         any = 1;
@@ -17743,8 +17786,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * and every job of this batch has now retired, so storing it makes `retired == tail` a true
          * quiescence predicate. ONE relaxed load + one release store per batch (not per command),
          * on head's line, which this thread already owns. */
-        atomic_store_explicit(&worker->queues[i].retired,
-                              atomic_load_explicit(&worker->queues[i].head, memory_order_relaxed),
+        atomic_store_explicit(&WQ[i].retired,
+                              atomic_load_explicit(&WQ[i].head, memory_order_relaxed),
                               memory_order_release);
     }
 
@@ -17757,8 +17800,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         uint64_t oldw = atomic_fetch_or_explicit(&worker->q_summary[qw], residual[qw],
                                                  memory_order_release);
 #if TOMO_QS_WORDS > 1
-        if (oldw == 0)
+        if (server.tm_qs_multiword && oldw == 0)   /* ee451 #83: q_top only in multiword mode */
             atomic_fetch_or_explicit(&worker->q_top, 1ull << qw, memory_order_release);
+        else (void)oldw;
 #else
         (void)oldw;
 #endif
@@ -18300,16 +18344,38 @@ static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
 void initExThreads(void) {
     /* One exThread per worker SLOT. zcalloc (numa): the stat/EWMA scalars must not be
      * uninitialized reads. */
+    /* ee451 #83: latch the q_summary word-mode for the process. io_hi can never exceed
+     * io_threads + num_workers, so < 64 there means word 1 is unreachable and the cheap single-word
+     * harvest is exact — a normal small-thread boot pays nothing for the cap-128 two-level path. */
+    server.tm_qs_multiword = (server.io_threads + server.num_workers >= 64);
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
-    /* ee451 2026-08-05 (owner scalability item 2): per-worker lane arrays, heap-sized to the
-     * RUNTIME pool. nlanes covers slot 0 (main) + boot io slots + every growth slot a converting
-     * worker could occupy, so no flip can index past it. zcalloc through jemalloc returns
-     * page-aligned blocks at these sizes; the assert makes the cacheline assumption loud rather
-     * than silently false-sharing if an allocator change ever breaks it. */
-    /* ee451 2026-08-06: inline lanes (see server.h). nlanes = the compile cap so the exSliceInit
-     * nq guard (nq <= nlanes) always holds; the arrays live in the struct, no heap, no ptr load. */
-    for (int w = 0; w < server.num_workers; w++)
-        server.exThreads[w].nlanes = TOMO_IO_THREADS_MAX + 1;
+    /* ee451 #83 (2026-08-05): per-worker lane arrays, HEAP-sized to the RUNTIME pool (not the
+     * compile cap). nlanes covers slot 0 (main) + boot io slots + every growth slot a converting
+     * worker could occupy (io_threads + num_workers + 1), so no flip can index past it
+     * (tm_ngrow_io <= num_workers by construction; exSliceInit asserts nq <= nlanes). This is what
+     * keeps the raised cap free: cap 128 costs the same as cap 32 at a given thread count, because
+     * the block is sized to the count, not the cap. ONE zcalloc per worker with the freeback rings
+     * directly after the lanes — the same adjacency the inline arrays had (a split alloc measured
+     * p32 GET -3.7%: the reply path recycles through freeback, which wants the lanes' locality).
+     * sizeof(exQueue) is a CACHE_LINE multiple, so the freeback base stays line-aligned; the
+     * asserts make that loud rather than a silent false-share if an allocator change breaks it. */
+    {
+        int nlanes = server.io_threads + server.num_workers + 1;
+        if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
+        for (int w = 0; w < server.num_workers; w++) {
+            exThread *et = &server.exThreads[w];
+            et->nlanes = nlanes;
+            size_t qbytes  = sizeof(exQueue) * (size_t)nlanes;
+            size_t fbbytes = sizeof(freebackRing) * (size_t)nlanes;
+            et->queues   = zcalloc(qbytes + fbbytes);
+            et->freeback = (freebackRing *)((char *)et->queues + qbytes);
+            serverAssert(((uintptr_t)et->queues   & (CACHE_LINE_SIZE - 1)) == 0);
+            serverAssert(((uintptr_t)et->freeback & (CACHE_LINE_SIZE - 1)) == 0);
+#ifdef MADV_HUGEPAGE
+            if (server.os_opts) madvise(et->queues, qbytes + fbbytes, MADV_HUGEPAGE);
+#endif
+        }
+    }
     /* v12 OS opt: the exThread array is large + hot (per-worker queues, freeback rings, predictor
      * tables). Back it with transparent huge pages to cut TLB pressure on the hot path. Best-effort;
      * gated by tomokv-os-opts. */
