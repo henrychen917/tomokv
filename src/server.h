@@ -1475,17 +1475,26 @@ typedef struct {
  * point ops (read/write split because GET/SET dominate), C2 bounded-element container ops, C3
  * range/aggregate (O(n) reply). The class picks the BUCKET; the per-class dynamic svc EWMA
  * supplies the MAGNITUDE (this is what separates 64B from 64KB regimes). */
-#define TOMO_SVC_CLASSES 4
-#define TOMO_CLS_PREAD  0
-#define TOMO_CLS_PWRITE 1
-#define TOMO_CLS_ELEM   2
-#define TOMO_CLS_RANGE  3
-/* ee451 #88: bit 2 of tomo_cls flags "range command whose argv[2],argv[3] are an index window"
- * (ZRANGE/ZREVRANGE/LRANGE/GETRANGE). At dispatch the reorder parses the window and, if bounded and
- * small, treats the command as C2 (ELEM) instead of C3 — so a cheap ZRANGE 0 9 is not deprioritized
- * like a 44ms full scan. The class itself is always (tomo_cls & 0x03); this bit is metadata. */
-#define TOMO_CLS_ARGV_RANGE 0x04
-#define TOMO_RORD_SMALL_RANGE 256   /* bounded range <= this many elements (getrange: /64 bytes) => C2 */
+/* ee451 #89: SIX cost classes (was 4). The reorder SJF sorts by these, so finer tiers isolate the
+ * genuinely-expensive commands (full scans, 16MB GETRANGE) from the merely-medium ones instead of
+ * lumping every range op into one bucket. Class is now 3 bits (tomo_cls & 0x07, values 0..5); the
+ * argv-range flag moved to bit 3 (0x08); head-of-pipe stays bit 7 (0x80). Ordering low->high is
+ * cheapest->dearest, which is exactly the emit order. */
+#define TOMO_SVC_CLASSES 6
+#define TOMO_CLS_PREAD  0   /* very-short read  (GET, EXISTS, TTL, STRLEN)                ~20us */
+#define TOMO_CLS_PWRITE 1   /* very-short write (SET, INCR, DEL, EXPIRE)                  ~20us */
+#define TOMO_CLS_ELEM   2   /* bounded 1-elem container op + tiny bounded range (<=16)    ~20-60us */
+#define TOMO_CLS_SMALL  3   /* small bounded range (<=256 elems)                          ~100-500us */
+#define TOMO_CLS_MED    4   /* medium range (<=4096) + medium whole-collection reads      ~0.5-4ms */
+#define TOMO_CLS_BIG    5   /* large/unbounded range + heavy whole-collection (SORT/SCAN) ~4-44ms */
+#define TOMO_CLS_RANGE  TOMO_CLS_BIG      /* back-compat alias: the default "range" tier is the big one */
+#define TOMO_CLS_MASK   0x07              /* 3 bits of class */
+/* bit 3: this range command's argv[2],argv[3] are an index window (ZRANGE/ZREVRANGE/LRANGE/GETRANGE);
+ * tomoArgvClass parses it and demotes the static C5 to the size-appropriate tier. */
+#define TOMO_CLS_ARGV_RANGE 0x08
+#define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
+#define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
+#define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */

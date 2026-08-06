@@ -2758,7 +2758,7 @@ static __thread struct {
     client  *fk[TOMO_RORD_CAP];
     uint64_t h[TOMO_RORD_CAP];
     uint8_t  ex[TOMO_RORD_CAP];
-    uint8_t  cls[TOMO_RORD_CAP];   /* class 0..3; bit 7 = head-of-pipe */
+    uint8_t  cls[TOMO_RORD_CAP];   /* class 0..5 (TOMO_CLS_MASK); bit 7 = head-of-pipe */
     int      n;
     int      draining;             /* re-entrancy latch: full-ring fallback inside the drain */
 } tomo_rord;
@@ -2772,23 +2772,23 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
     char arr[80], emt[80]; int ai = 0, ei = 0;
     uint8_t used[TOMO_RORD_CAP]; for (int i = 0; i < r && i < TOMO_RORD_CAP; i++) used[i] = 0;
     for (int i = 0; i < r && ai < 78; i++) {
-        int c = tomo_rord.cls[ridx[i]] & 0x03;
+        int c = tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK;
         arr[ai++] = (tomo_rord.cls[ridx[i]] & 0x80) ? ('A' + c) : ('0' + c);
         if (i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
     }
     arr[ai] = 0;
-    #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & 0x03; \
+    #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & TOMO_CLS_MASK; \
         emt[ei++] = (tomo_rord.cls[ridx[K]] & 0x80) ? ('A'+_c) : ('0'+_c); used[K] = 1; } } while(0)
     for (int i = 0; i < fence_at; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
     for (int c0 = 0; c0 < fence_at; c0 += TOMO_RORD_AGE_BOUND) {
         int c1 = c0 + TOMO_RORD_AGE_BOUND; if (c1 > fence_at) c1 = fence_at;
         for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
             for (int i = c0; i < c1; i++) {
-                if (used[i] || (tomo_rord.cls[ridx[i]] & 0x03) != cl) continue;
+                if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
                 EMITC(i);
                 if (lvl >= 2) { uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
                     for (int j = i + 1; j < c1; j++)
-                        if (!used[j] && (tomo_rord.cls[ridx[j]] & 0x03) == cl &&
+                        if (!used[j] && (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
                             (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt) EMITC(j); }
             }
     }
@@ -2982,15 +2982,18 @@ static void exDispatchDirect(int ex_id, client *fake) {
  * gross mis-bucketing (a 23us ZRANGE 0 9 was tiered with a 44ms ZRANGE 0 -1). */
 static inline int tomoArgvClass(client *fake) {
     uint8_t sc = fake->cmd->tomo_cls;
-    if (!(sc & TOMO_CLS_ARGV_RANGE) || fake->argc < 4) return sc & 0x03;
+    if (!(sc & TOMO_CLS_ARGV_RANGE) || fake->argc < 4) return sc & TOMO_CLS_MASK;
     long long lo, hi;
     if (getLongLongFromObject(fake->argv[2], &lo) != C_OK ||
         getLongLongFromObject(fake->argv[3], &hi) != C_OK ||
         lo < 0 || hi < 0 || hi < lo)
-        return TOMO_CLS_RANGE;                       /* unbounded / tail-relative / weird => stay C3 */
+        return TOMO_CLS_BIG;                          /* unbounded / tail-relative / weird => heaviest */
     long long work = hi - lo + 1;
     if (fake->cmd->declared_name[0] == 'g') work >>= 6;   /* getrange: bytes -> ~elements (only 'g' here) */
-    return (work <= TOMO_RORD_SMALL_RANGE) ? TOMO_CLS_ELEM : TOMO_CLS_RANGE;
+    if (work <= TOMO_RORD_TIER_ELEM)  return TOMO_CLS_ELEM;   /* <=16   -> C2 */
+    if (work <= TOMO_RORD_TIER_SMALL) return TOMO_CLS_SMALL;  /* <=256  -> C3 */
+    if (work <= TOMO_RORD_TIER_MED)   return TOMO_CLS_MED;    /* <=4096 -> C4 */
+    return TOMO_CLS_BIG;                                      /* else   -> C5 */
 }
 
 /* ee451 D: admission front. Candidates stage into the reorder scratch (permuted at drain); every
@@ -3008,7 +3011,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
          * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
         uint8_t hd = (fake->parent && fake->parent->dispatchid == fake->parent->flushid + 1) ? 0x80 : 0;
-        tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & 0x03) | hd;
+        tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & TOMO_CLS_MASK) | hd;
         tomo_rord.n = i + 1;
         tm_io_sig[iotid].disp_cnt++;
         int w = atomic_load_explicit(&tomo_disp_window[iotid], memory_order_relaxed);
@@ -5488,16 +5491,20 @@ static void tomoStampCmdClass(struct redisCommand *c) {
         "hset", "hget", "hdel", "hincrby", "hexists", "hlen", "lpush", "rpush", "lpop", "rpop",
         "llen", "lindex", "sadd", "srem", "sismember", "scard", "setrange", "append", "setbit",
         "getbit", "xadd", "geoadd", NULL };
+    /* ee451 #89: whole-collection reads that are MEDIUM (bounded by a typical collection, not a full
+     * O(N log N) sort or unbounded scan) start at C4; everything else in range_pfx is heavy C5. */
+    static const char *med_pfx[] = { "hgetall","hvals","hkeys","hrandfield","smembers","srandmember",
+        "xrange","xrevrange","mget", NULL };
     const char *nm = c->declared_name;
     for (int i = 0; range_pfx[i]; i++)
         if (!strncmp(nm, range_pfx[i], strlen(range_pfx[i]))) {
-            c->tomo_cls = TOMO_CLS_RANGE;
-            /* ee451 #88: flag the range commands whose ARGV carries an explicit index window
-             * (key start stop at argv[2],argv[3]) so the reorder can refine C3 by requested size —
-             * a bounded ZRANGE 0 9 is ~a container op, not a 44ms full scan. Only these four; others
-             * (HGETALL/SMEMBERS/SORT/KEYS/SCAN) have no size in argv and stay flat C3. */
+            c->tomo_cls = TOMO_CLS_BIG;   /* default heavy: sort/keys/scan/set-ops/full-range */
+            /* ee451 #88/#89: index-windowed range commands carry their size in argv[2],argv[3];
+             * flag them so tomoArgvClass demotes C5 to the size-appropriate tier at dispatch. */
             if (!strcmp(nm,"zrange")||!strcmp(nm,"zrevrange")||!strcmp(nm,"lrange")||!strcmp(nm,"getrange"))
                 c->tomo_cls |= TOMO_CLS_ARGV_RANGE;
+            else for (int j = 0; med_pfx[j]; j++)
+                if (!strncmp(nm, med_pfx[j], strlen(med_pfx[j]))) { c->tomo_cls = TOMO_CLS_MED; break; }
             return;
         }
     for (int i = 0; elem_pfx[i]; i++)
@@ -17254,7 +17261,7 @@ static inline void exExecFake(client *fake) {
             /* D svc plane: two adds, duration already in hand. Clamp keeps a pathological
              * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
             if (tm_cur_ex) {
-                unsigned cls = cs_cmd->tomo_cls & (TOMO_SVC_CLASSES - 1);
+                unsigned cls = cs_cmd->tomo_cls & TOMO_CLS_MASK;
                 tm_cur_ex->svc_us[cls] += (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
                 tm_cur_ex->svc_ops[cls]++;
             }
