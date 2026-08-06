@@ -5,7 +5,7 @@
 # result. Part B is what catches the class of bug where a command stashes per-invocation state in a
 # process global (the SORT desc/alpha race: 19 mis-sorts on the buggy build). Exit 0 = pass, 1 = fail.
 # Usage: cmd_gate.py PORT [label]
-import socket, sys, time, threading, random
+import socket, sys, time, threading, random, math
 PORT=int(sys.argv[1]); LABEL=sys.argv[2] if len(sys.argv)>2 else '?'
 HOST='127.0.0.1'
 def conn():
@@ -39,9 +39,24 @@ def eq(got,want,msg): ck(got==want, "%s: got %r want %r"%(msg,got,want))
 def B(x): return x.encode() if isinstance(x,str) else x
 def lst(r): return [x.decode() if isinstance(x,bytes) else x for x in r] if isinstance(r,list) else r
 def rejected(r): return isinstance(r,Exception)  # THredis fail-safe-rejects some cross-shard/txn cmds
+def info_int(s,f,name):
+    p=B(name)+b':'
+    for line in c(s,f,'INFO','stats').splitlines():
+        if line.startswith(p): return int(line[len(p):])
+    raise AssertionError('INFO stats missing '+name)
+def shard_pair(s,f,want_cross,prefix):
+    # cmd_coverage.sh fixes four static workers. The split counter is a live routing oracle:
+    # MGET bumps it iff these two keys currently have different owners.
+    for i in range(128):
+        a,b='%s-src:%d'%(prefix,i),'%s-dst:%d'%(prefix,i)
+        before=info_int(s,f,'tomokv_xshard_multikey_split'); c(s,f,'MGET',a,b)
+        split=info_int(s,f,'tomokv_xshard_multikey_split')>before
+        if split==want_cross: return a,b
+    raise AssertionError('could not find %s-shard key pair'%('cross' if want_cross else 'same'))
 
 def partA():
     s,f=conn(); c(s,f,'FLUSHDB')
+    xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
     # ---- strings ----
     eq(c(s,f,'SET','s','hello'),b'OK','SET'); eq(c(s,f,'GET','s'),b'hello','GET')
     eq(c(s,f,'APPEND','s',' world'),11,'APPEND'); eq(c(s,f,'STRLEN','s'),11,'STRLEN')
@@ -129,6 +144,47 @@ def partA():
     c(s,f,'DEL','geo'); c(s,f,'GEOADD','geo','13.361','38.115','Palermo','15.087','37.502','Catania')
     d=c(s,f,'GEODIST','geo','Palermo','Catania','km'); ck(d and 160<float(d)<170,'GEODIST %r'%d)
     r=c(s,f,'GEOSEARCH','geo','FROMMEMBER','Palermo','BYRADIUS','200','km','ASC'); eq(lst(r),['Palermo','Catania'],'GEOSEARCH')
+    gref=[('Palermo',13.361389,38.115556),('Catania',15.087269,37.502669),('Rome',12.496366,41.902782)]
+    gpos={m:(lo,la) for m,lo,la in gref}
+    def gkm(a,b):
+        lo1,la1=gpos[a]; lo2,la2=gpos[b]
+        u=math.sin(math.radians(la2-la1)/2); v=math.sin(math.radians(lo2-lo1)/2)
+        return 2*6372.797560856*math.asin(math.sqrt(u*u+math.cos(math.radians(la1))*math.cos(math.radians(la2))*v*v))
+    def zraw(k):
+        a=lst(c(s,f,'ZRANGE',k,'0','-1','WITHSCORES')); return [(a[i],a[i+1]) for i in range(0,len(a),2)]
+    def hashcheck(k,members,gh,tag):
+        exp=[x for m in sorted(members,key=lambda m:(float(gh[m]),m)) for x in (m,gh[m])]
+        eq(lst(c(s,f,'ZRANGE',k,'0','-1','WITHSCORES')),exp,tag)
+    def distcheck(k,center,members,tag):
+        a=zraw(k); got={m:float(q) for m,q in a}; exp=sorted(members,key=lambda m:(gkm(center,m),m))
+        eq([m for m,q in a],exp,tag+'-order'); eq(sorted(got),sorted(exp),tag+'-members')
+        for m in exp: ck(abs(got[m]-gkm(center,m))<.01,'%s-%s score got %r want %.6f'%(tag,m,got[m],gkm(center,m)))
+    c(s,f,'DEL',xs,xd); c(s,f,'GEOADD',xs,*[x for m,lo,la in gref for x in (lo,la,m)])
+    gh=dict(zraw(xs)); pnear=[m for m in gpos if gkm('Palermo',m)<=200]; cnear=[m for m in gpos if gkm('Catania',m)<=200]
+    far=max(pnear,key=lambda m:gkm('Palermo',m))
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT',*gpos['Palermo'],'BYRADIUS','200','km','ASC'),len(pnear),'GEOSEARCHSTORE hash/card')
+    hashcheck(xd,pnear,gh,'GEOSEARCHSTORE hash/order+scores+overwrite')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT',*gpos['Palermo'],'BYRADIUS','200','km','DESC','COUNT','1','STOREDIST'),1,'GEOSEARCHSTORE STOREDIST/card')
+    distcheck(xd,'Palermo',[far],'GEOSEARCHSTORE STOREDIST')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT','0','0','BYRADIUS','1','m'),0,'GEOSEARCHSTORE empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEOSEARCHSTORE empty/deletes')
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEORADIUS',xs,*gpos['Palermo'],'200','km','DESC','COUNT','1','STORE',xd),1,'GEORADIUS STORE/card')
+    hashcheck(xd,[far],gh,'GEORADIUS STORE/hash+overwrite')
+    eq(c(s,f,'GEORADIUS',xs,*gpos['Palermo'],'200','km','ASC','STOREDIST',xd),len(pnear),'GEORADIUS STOREDIST/card')
+    distcheck(xd,'Palermo',pnear,'GEORADIUS STOREDIST')
+    eq(c(s,f,'GEORADIUS',xs,'0','0','1','m','STORE',xd),0,'GEORADIUS empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEORADIUS empty/deletes')
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Palermo','200','km','ASC','COUNT','1','STORE',xd),1,'GEORADIUSBYMEMBER STORE/card')
+    hashcheck(xd,['Palermo'],gh,'GEORADIUSBYMEMBER STORE/hash+overwrite')
+    eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Catania','200','km','ASC','STOREDIST',xd),len(cnear),'GEORADIUSBYMEMBER STOREDIST/card')
+    distcheck(xd,'Catania',cnear,'GEORADIUSBYMEMBER STOREDIST')
+    c(s,f,'DEL',xs); eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Palermo','200','km','STORE',xd),0,'GEORADIUSBYMEMBER empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEORADIUSBYMEMBER empty/deletes')
+    # Co-located T1 control: distinct keys on one worker must run each real stock proc.
+    c(s,f,'DEL',ls,ld); c(s,f,'GEOADD',ls,*[x for m,lo,la in gref for x in (lo,la,m)])
+    eq(c(s,f,'GEOSEARCHSTORE',ld,ls,'FROMMEMBER','Palermo','BYRADIUS','200','km'),len(pnear),'GEOSEARCHSTORE same-shard/card'); hashcheck(ld,pnear,gh,'GEOSEARCHSTORE same-shard/data')
+    eq(c(s,f,'GEORADIUS',ls,*gpos['Palermo'],'200','km','STORE',ld),len(pnear),'GEORADIUS same-shard/card'); hashcheck(ld,pnear,gh,'GEORADIUS same-shard/data')
+    eq(c(s,f,'GEORADIUSBYMEMBER',ls,'Catania','200','km','STOREDIST',ld),len(cnear),'GEORADIUSBYMEMBER same-shard/card'); distcheck(ld,'Catania',cnear,'GEORADIUSBYMEMBER same-shard/data')
     # ---- generic / key ----
     c(s,f,'SET','k1','v'); eq(c(s,f,'TYPE','k1'),b'string','TYPE'); eq(c(s,f,'EXISTS','k1'),1,'EXISTS')
     c(s,f,'EXPIRE','k1','100'); t=c(s,f,'TTL','k1'); ck(0<int(t)<=100,'TTL %r'%t); eq(c(s,f,'PERSIST','k1'),1,'PERSIST')
@@ -142,7 +198,17 @@ def partA():
     c(s,f,'DEL','sa'); c(s,f,'RPUSH','sa','banana','apple','cherry')
     eq(lst(c(s,f,'SORT','sa','ALPHA','LIMIT','0','2')),['apple','banana'],'SORT-ALPHA-LIMIT')
     eq(lst(c(s,f,'SORT_RO','so','LIMIT','0','2')),['1','2'],'SORT_RO')
-    # A huge COUNT is still wall-time sliced: follow every cursor and verify no key is lost or repeated.
+    nums=['10','2','7','-1','3']; c(s,f,'DEL',xs,xd); c(s,f,'RPUSH',xs,*nums); c(s,f,'SET',xd,'stale')
+    want=[str(x) for x in sorted(map(int,nums),reverse=True)][1:4]
+    eq(c(s,f,'SORT',xs,'DESC','LIMIT','1','3','STORE',xd),len(want),'SORT STORE numeric/card'); eq(lst(c(s,f,'LRANGE',xd,'0','-1')),want,'SORT STORE numeric/order+overwrite')
+    words=['banana','apple','cherry','apricot']; c(s,f,'DEL',xs); c(s,f,'RPUSH',xs,*words); want=sorted(words)[1:3]
+    eq(c(s,f,'SORT',xs,'ALPHA','ASC','LIMIT','1','2','STORE',xd),len(want),'SORT STORE alpha/card'); eq(lst(c(s,f,'LRANGE',xd,'0','-1')),want,'SORT STORE alpha/order')
+    eq(c(s,f,'SORT',xs,'ALPHA','LIMIT','99','2','STORE',xd),0,'SORT STORE empty/card'); eq(c(s,f,'EXISTS',xd),0,'SORT STORE empty/deletes')
+    c(s,f,'SET',xd,'guard'); ck(rejected(c(s,f,'SORT',xs,'BY','weight:*','STORE',xd)),'SORT BY STORE must remain rejected'); eq(c(s,f,'GET',xd),b'guard','SORT BY STORE no-write')
+    ck(rejected(c(s,f,'SORT',xs,'GET','#','STORE',xd)),'SORT GET STORE must remain rejected'); eq(c(s,f,'GET',xd),b'guard','SORT GET STORE no-write')
+    c(s,f,'DEL',ls,ld); c(s,f,'RPUSH',ls,*nums); c(s,f,'SET',ld,'stale'); want=[str(x) for x in sorted(map(int,nums))[:3]]
+    eq(c(s,f,'SORT',ls,'LIMIT','0','3','STORE',ld),len(want),'SORT STORE same-shard/card'); eq(lst(c(s,f,'LRANGE',ld,'0','-1')),want,'SORT STORE same-shard/data')
+    # SCAN wall-cap: a huge COUNT is wall-time sliced; follow every cursor and verify no key lost/repeated.
     eq(c(s,f,'FLUSHDB'),b'OK','SCAN-cap-FLUSHDB')
     scan_want={'scan-cap:%04d'%i for i in range(4096)}
     scan_args=[x for key in sorted(scan_want) for x in (key,'v')]

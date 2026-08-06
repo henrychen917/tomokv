@@ -7020,9 +7020,10 @@ int processCommand(client *c) {
      * storing empty; COPY -> :0). Reject loudly until each is ported, mirroring the MULTI/WATCH gate.
      * ee451 (xshard registry): INVERTED to an allowlist — TOMO_R_XGUARD is stamped from the
      * registry (UNPORTED row, or no row + multi-key-capable key specs), so future multi-key
-     * commands are denied by default; csGateReject applies the per-row argc hooks. Ported cmds
-     * never carry the bit. The SAFE-GATE is unconditional (tomokv-xshard-guard was hardwired ON
-     * in 77174fa4a: its OFF arm was a reproduced data-loss path, not an optimisation). */
+     * commands are denied by default; csGateReject applies the per-row argc hooks. A ported hybrid
+     * row carries the bit only for its guarded forms. The SAFE-GATE is unconditional
+     * (tomokv-xshard-guard was hardwired ON in 77174fa4a: its OFF arm was a reproduced data-loss
+     * path, not an optimisation). */
     if (server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
         (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
@@ -8326,14 +8327,62 @@ static inline void csAssertBarriered(client *head) {
  * the allowlist; UNPORTED rows carry argc-dependent safety hooks; a multi-key-capable command
  * with NO row is denied whenever it resolves >= 1 key (future commands are safe by default). */
 
-/* SORT/SORT_RO: single-key-safe ONLY without BY/GET/STORE (those deref external keys / write a
- * dest => inline decoy corruption). Nonzero = reject this form. */
-static int csSortUnsafeCheck(client *c) {
-    for (int i = 2; i < c->argc; i++) {
+/* Resolve the optional destination with the stock movable-key extractor. The legacy
+ * GEORADIUS family deliberately uses the LAST complete STORE/STOREDIST option. */
+static int csExtractStoreDstArgi(client *c, redisGetKeysProc *getkeys) {
+    getKeysResult result = GETKEYS_RESULT_INIT;
+    int nkeys = getkeys(c->cmd, c->argv, c->argc, &result);
+    int argi = nkeys > 1 ? result.keys[nkeys-1].pos : 0;
+    getKeysFreeResult(&result);
+    return argi;
+}
+static int csSortStoreDstArgi(client *c) {
+    /* Mirror sortCommandGeneric's option widths exactly. sortGetKeys intentionally scans more
+     * loosely and can mistake a destination literally named "store" for another option. */
+    int store_argi = 0;
+    for (int i = 2; i < c->argc; ) {
         const char *a = c->argv[i]->ptr;
-        if (!strcasecmp(a, "by") || !strcasecmp(a, "get") || !strcasecmp(a, "store")) return 1;
+        int leftargs = c->argc - i - 1;
+        if (!strcasecmp(a, "asc") || !strcasecmp(a, "desc") || !strcasecmp(a, "alpha")) {
+            i++;
+        } else if (!strcasecmp(a, "limit") && leftargs >= 2) {
+            i += 3;
+        } else if (!strcasecmp(a, "store") && leftargs >= 1) {
+            store_argi = i + 1;
+            i += 2;
+        } else if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) {
+            i += 2;
+        } else {
+            break;
+        }
+    }
+    return store_argi;
+}
+static int csGeoStoreDstArgi(client *c) {
+    int argi = csExtractStoreDstArgi(c, georadiusGetKeys);
+    return argi ? argi : 1;  /* no STORE: co-locate with src and run the real stock proc */
+}
+
+/* SORT/SORT_RO BY/GET dereference external keys and stay fail-safe rejected. Parse option
+ * widths so a LIMIT operand or STORE destination literally named "by"/"get" is not mistaken
+ * for an option. Unknown/malformed tails are stock parse errors and touch no external key. */
+static int csSortUnsafeCheck(client *c) {
+    for (int i = 2; i < c->argc; ) {
+        const char *a = c->argv[i]->ptr;
+        int leftargs = c->argc - i - 1;
+        if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) return 1;
+        if (!strcasecmp(a, "limit") && leftargs >= 2) { i += 3; continue; }
+        if (!strcasecmp(a, "store") && leftargs >= 1) { i += 2; continue; }
+        if (!strcasecmp(a, "asc") || !strcasecmp(a, "desc") || !strcasecmp(a, "alpha")) {
+            i++;
+            continue;
+        }
+        return 0;
     }
     return 0;
+}
+static int csSortStoreShapeOk(client *c) {
+    return !csSortUnsafeCheck(c) && csSortStoreDstArgi(c) != 0;
 }
 /* EVAL family: keyless scripts (numkeys==0) touch no shard data — keep them working; parse
  * anomalies fall inline (arity/parse error precedes key access in the stock proc). */
@@ -8601,6 +8650,19 @@ static const csCmdSpec csRegistry[] = {
 { .proc=zrangestoreCommand, .name="zrangestore", .ported=CS_PORT_OK, .ctype=CS_ZRANGESTORE,
   .route=CS_RT_TWOHOP, .min_argc=4, .src_argi=2, .dst_argi=1,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csZrangestoreShapeOk },
+{ .proc=sortCommand, .name="sort", .ported=CS_PORT_OK, .ctype=CS_SORTSTORE,
+  .route=CS_RT_TWOHOP, .min_argc=4, .src_argi=1, .dynamic_dst_argi=csSortStoreDstArgi,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csSortStoreShapeOk,
+  .unsafe_check=csSortUnsafeCheck },
+{ .proc=geosearchstoreCommand, .name="geosearchstore", .ported=CS_PORT_OK, .ctype=CS_GEOSTORE,
+  .route=CS_RT_TWOHOP, .min_argc=8, .src_argi=2, .dst_argi=1,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=georadiusCommand, .name="georadius", .ported=CS_PORT_OK, .ctype=CS_GEOSTORE,
+  .route=CS_RT_TWOHOP, .min_argc=6, .src_argi=1, .dynamic_dst_argi=csGeoStoreDstArgi,
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
+{ .proc=georadiusbymemberCommand, .name="georadiusbymember", .ported=CS_PORT_OK,
+  .ctype=CS_GEOSTORE, .route=CS_RT_TWOHOP, .min_argc=5, .src_argi=1,
+  .dynamic_dst_argi=csGeoStoreDstArgi, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
 /* step 7 — byte/HLL ops over raw string images (mget_vals gather, always coalesced so the
  * value slots exist on every path). PFCOUNT-multi is a pure 1-hop count; BITOP folds bytes
  * on the coordinator and writes/deletes the string dst; PFMERGE gathers its DEST's current
@@ -8670,7 +8732,6 @@ static const csCmdSpec csRegistry[] = {
   .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1, .shape_ok=csBzmpopShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
-{ .proc=sortCommand,     .name="sort",    .unsafe_check=csSortUnsafeCheck },
 { .proc=sortroCommand,   .name="sort_ro", .unsafe_check=csSortUnsafeCheck },
 { .proc=evalCommand,       .name="eval",       .unsafe_check=csEvalUnsafeCheck },
 { .proc=evalShaCommand,    .name="evalsha",    .unsafe_check=csEvalUnsafeCheck },
@@ -8678,11 +8739,6 @@ static const csCmdSpec csRegistry[] = {
 { .proc=evalShaRoCommand,  .name="evalsha_ro", .unsafe_check=csEvalUnsafeCheck },
 { .proc=fcallCommand,      .name="fcall",      .unsafe_check=csEvalUnsafeCheck },
 { .proc=fcallroCommand,    .name="fcall_ro",   .unsafe_check=csEvalUnsafeCheck },
-
-/* ============ UNPORTED — unconditional (old blocklist tail; ported in steps 4-9) ====== */
-{ .proc=georadiusCommand,         .name="georadius"         },
-{ .proc=georadiusbymemberCommand, .name="georadiusbymember" },
-{ .proc=geosearchstoreCommand,    .name="geosearchstore"    },
 
 /* ============ UNPORTED — strays the old blocklist MISSED (silently broken on the decoy
  * DB before the inversion; now loud + greppable instead of implicit-via-predicate) ====== */
@@ -8732,11 +8788,11 @@ static void csStampRoute(struct redisCommand *c) {
     if (tomoScriptFamily(c)) c->tomo_route |= TOMO_R_SCRIPTFAM;   /* fence: stamped once, bit-tested per op */
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
-    /* XGUARD: row presence (UNPORTED) forces the bit even where the key-spec predicate can't
-     * see the hazard (SORT_RO's BY/GET are options, not key specs). Stateful cmds exempt
-     * (WATCH k1 k2 / EXEC take the stateful path; none of the old blocklist is stateful). */
+    /* XGUARD: an UNPORTED row, or a hybrid PORTED row with unsafe forms, forces the bit even
+     * where the key-spec predicate can't see the hazard (SORT's BY/GET options). Stateful cmds
+     * are exempt (WATCH k1 k2 / EXEC take the stateful path). */
     if (!(c->tomo_route & TOMO_R_STATEFUL) &&
-        ((c->cs_spec && c->cs_spec->ported == CS_PORT_UNPORTED) ||
+        ((c->cs_spec && (c->cs_spec->ported == CS_PORT_UNPORTED || c->cs_spec->unsafe_check)) ||
          (!c->cs_spec && cmdIsMultiKeyCapable(c))))
         c->tomo_route |= TOMO_R_XGUARD;
     if (c->subcommands_dict) {
@@ -8748,15 +8804,16 @@ static void csStampRoute(struct redisCommand *c) {
 }
 
 /* xshard SAFE-GATE verdict — cold: only reached when TOMO_R_XGUARD is set. Allowlist semantics:
- *  - UNPORTED row: unsafe_check / safe_max_argc decides this argc-form; else reject.
+ *  - unsafe_check (including hybrid PORTED rows) decides this invocation first.
+ *  - otherwise an UNPORTED row uses safe_max_argc; PORTED rows pass.
  *  - NO row (predicate-flagged future/unknown cmd): deny iff THIS invocation resolves >= 1
  *    actual key via the stock extractor (keyless forms keep working; extraction failure =>
  *    deny, conservative). Runs only on commands about to be rejected — allocation irrelevant. */
 static int csGateReject(client *c) {
     const csCmdSpec *s = c->cmd->cs_spec;
     if (s) {
-        if (s->ported != CS_PORT_UNPORTED) return 0;  /* defensive; XGUARD implies UNPORTED */
         if (s->unsafe_check) return s->unsafe_check(c);
+        if (s->ported != CS_PORT_UNPORTED) return 0;
         if (s->safe_max_argc && c->argc <= s->safe_max_argc) return 0;
         return 1;
     }
@@ -8783,6 +8840,8 @@ static void auditWalk(dict *commands, int *matched, int nrows) {
         serverAssert(!(c->parent && (c->tomo_route & TOMO_R_XGUARD)));
         if (server.num_workers > 0 && (c->tomo_route & TOMO_R_XGUARD))
             serverLog(LL_NOTICE, "xshard-guard: %s %s under sharding", c->fullname,
+                      c->cs_spec && c->cs_spec->ported == CS_PORT_OK ?
+                                     "has guarded forms (hybrid ported row)" :
                       c->cs_spec ? "is argc-gated (unported row)"
                                  : "will be REJECTED (no registry row)");
         if (c->subcommands_dict) auditWalk(c->subcommands_dict, matched, nrows);
@@ -8810,7 +8869,8 @@ static void csRegistryBootAudit(void) {
                 if (s->h2_op == CS_H2_PLAN)
                     serverAssert(s->dst_argi || s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP);
             }
-            if (s->route == CS_RT_TWOHOP) serverAssert(s->src_argi && s->dst_argi && s->h2_op);
+            if (s->route == CS_RT_TWOHOP)
+                serverAssert(s->src_argi && (s->dst_argi || s->dynamic_dst_argi) && s->h2_op);
         }
     }
     int *matched = zcalloc(sizeof(int) * nrows);
@@ -8869,22 +8929,31 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
     }
 }
 
-/* ZRANGESTORE HOP1: run the real ZRANGE parser/selector against src on its owner worker,
- * retain only the selected (member,score) zset, and serialize that result for HOP2. The
- * temporary object never crosses threads. Empty selection deliberately leaves payload NULL
- * so the destination worker deletes dst. */
-static void csH1RangeSelectZ(client *sub, csGroup *g) {
-    robj *res = zrangestoreResultObject(sub);
+static inline int csIsT1ResultStore(csCmdType ctype) {
+    return ctype == CS_ZRANGESTORE || ctype == CS_SORTSTORE || ctype == CS_GEOSTORE;
+}
+
+/* T1 HOP1: run the command's stock parser/selector against src on its owner worker, retain
+ * only the materialized result, and serialize it for HOP2. The temporary object never crosses
+ * threads. A valid empty selection leaves payload NULL so the destination worker deletes dst. */
+static void csH1StoreSelect(client *sub, csGroup *g) {
+    robj *res;
+    if (g->ctype == CS_ZRANGESTORE)
+        res = zrangestoreResultObject(sub);
+    else if (g->ctype == CS_SORTSTORE)
+        res = sortStoreResultObject(sub);
+    else
+        res = geoStoreResultObject(sub);
     if (res == NULL) {
         atomic_store_explicit(&g->err, CS_ERR_SUBREPLY, memory_order_relaxed);
         return;
     }
-    unsigned long card = zsetLength(res);
+    unsigned long card = g->ctype == CS_SORTSTORE ? listTypeLength(res) : zsetLength(res);
     g->cs2_intreply = (long long)card;
     if (card > 0) {
         rio r; rioInitWithBuffer(&r, sdsempty());
         rdbSaveObjectType(&r, res);
-        rdbSaveObject(&r, res, sub->argv[1], sub->db->id);
+        rdbSaveObject(&r, res, sub->argv[g->h2sub[0].key_argi], sub->db->id);
         g->h2_payload = r.io.buffer.ptr;
     }
     decrRefCount(res);
@@ -8893,8 +8962,8 @@ static void csH1RangeSelectZ(client *sub, csGroup *g) {
 /* universal xshard HOP2 dest-side restore (worker, single-writer): rdbLoad the blob FIRST (a
  * load failure then never destroys dst), then overwrite dst + restore TTL + re-register the
  * DB-global HFE-subexpires and stream-IDMP indices (dbAdd does not — stock rename/copy
- * register them explicitly). ZRANGESTORE instead finishes through setKey for stock STORE
- * overwrite/type-change notifications and invalidation. `nclass`+`event` = keyspace
+ * register them explicitly). T1 result stores instead finish through setKey for stock STORE
+ * overwrite/type-change notifications, TTL clearing, and invalidation. `nclass`+`event` = keyspace
  * notification (NOTIFY_GENERIC "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
 static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event) {
     robj *dstkey = sub->argv[1];
@@ -8903,7 +8972,7 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
     int rerr = 0;
     robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
     if (val != NULL) {
-        if (g->ctype == CS_ZRANGESTORE) {
+        if (csIsT1ResultStore(g->ctype)) {
             setKey(sub, sub->db, dstkey, &val, 0);
         } else {
             int vtype = val->type;
@@ -8920,7 +8989,8 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
                 incrRefCount(dstkey);
         }
         notifyKeyspaceEvent(nclass, event, dstkey, sub->db->id);
-        markDirty(1);
+        markDirty((g->ctype == CS_SORTSTORE || g->ctype == CS_GEOSTORE) ?
+                  g->cs2_intreply : 1);
     } else {
         /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
          * rather than a false success; dst is left untouched. */
@@ -9244,11 +9314,13 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_ZRANGESTORE:
+    case CS_SORTSTORE:
+    case CS_GEOSTORE:
         if (!g->has_hop2) {
             /* Same-shard fast path: both keys live here, so preserve the real stock proc. */
-            zrangestoreCommand(sub);
+            sub->cmd->proc(sub);
         } else if (g->phase == CS_PH_HOP1) {
-            csH1RangeSelectZ(sub, g);
+            csH1StoreSelect(sub, g);
         } else if (g->h2_payload == NULL) {
             if (dbSyncDelete(sub->db, sub->argv[1])) {
                 keyModified(sub, sub->db, sub->argv[1], NULL, 1);
@@ -9256,7 +9328,12 @@ static void csSubExec(client *sub) {
                 markDirty(1);
             }
         } else {
-            csH2RestoreKey(sub, g, NOTIFY_ZSET, "zrangestore");
+            int nclass = g->ctype == CS_SORTSTORE ? NOTIFY_LIST : NOTIFY_ZSET;
+            const char *event = g->ctype == CS_ZRANGESTORE ? "zrangestore" :
+                                g->ctype == CS_SORTSTORE ? "sortstore" :
+                                g->spec->proc == geosearchstoreCommand ?
+                                    "geosearchstore" : "georadiusstore";
+            csH2RestoreKey(sub, g, nclass, event);
         }
         break;
     case CS_ZSTORE:
@@ -10717,7 +10794,9 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
 static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     int dbid = head->db->id;
-    robj *src = head->argv[(int)s->src_argi], *dst = head->argv[(int)s->dst_argi];
+    int dst_argi = s->dst_argi ? (int)s->dst_argi : s->dynamic_dst_argi(head);
+    serverAssert(dst_argi > 0 && dst_argi < head->argc);
+    robj *src = head->argv[(int)s->src_argi], *dst = head->argv[dst_argi];
     /* review #1: hash each key ONCE. The bucket is stable across a cutover (only the
      * bucket->worker table flips), so worker = ex_bucket_table[bkt] can be re-read after the
      * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket. */
@@ -10729,7 +10808,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     /* 2-hop: reserve the larger of the same-shard full argv and the cross-shard HOP1+HOP2
      * vectors. At most 2 HOP1 subs (src + optional dst probe), then csLaunchHop2 allocates
      * up to CS_H2_MAX HOP2 subs from the same bump region. */
-    size_t h1_argv = (s->ctype == CS_ZRANGESTORE) ? (size_t)head->argc :
+    size_t h1_argv = csIsT1ResultStore(s->ctype) ? (size_t)head->argc :
                      2 * (size_t)(1 + s->h1_probe_dst) + (s->h1_extra_argi != 0);
     size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
     size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
@@ -10808,7 +10887,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
     head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
     g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
-    g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = s->dst_argi };
+    g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
     if (s->h2_del_src)
         g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
     if (mig) {
@@ -10823,8 +10902,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
         client *sub = csMakeSub(g, i, i == 0 ? src_shard : dst_shard, dbid);
-        if (i == 0 && s->ctype == CS_ZRANGESTORE) {
-            /* Selection needs dst/src/range/options, but touches only argv[2] in this hop. */
+        if (i == 0 && csIsT1ResultStore(s->ctype)) {
+            /* Selection needs the full query, but touches only s->src_argi in this hop. */
             csSubCopyFullArgv(sub, head);
         } else if (i == 0 && s->h1_extra_argi) {
             /* sub 0 carries [CMD src extra] (SMOVE member) — the sub owns its own refs. */
@@ -10873,7 +10952,10 @@ static int csLaunchHop2(csGroup *g) {
      * g->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
     switch (g->ctype) {
     case CS_RENAME: break;
-    case CS_ZRANGESTORE: break;  /* HOP1's source worker already built the result payload */
+    case CS_ZRANGESTORE:
+    case CS_SORTSTORE:
+    case CS_GEOSTORE:
+        break;  /* HOP1's source worker already built the result payload */
     case CS_RENAMENX:
         /* NX verdict from the HOP1 dst probe. NOKEY from the src sub is handled by the
          * generic err screen below (src untouched — nothing was deleted in HOP1). */
@@ -11347,12 +11429,18 @@ static void csReassemble(client *dst, client *head) {
             else addReplyLongLong(dst, g->cs2_intreply);
             break;
         }
-        case CS_ZRANGESTORE: {
+        case CS_ZRANGESTORE:
+        case CS_SORTSTORE:
+        case CS_GEOSTORE: {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (!g->has_hop2 || e == CS_ERR_SUBREPLY)
                 AddReplyFromClient(dst, g->subs[0]);
             else if (e != CS_ERR_NONE)
-                addReplyError(dst, "cross-shard ZRANGESTORE failed");
+                addReplyError(dst, g->ctype == CS_ZRANGESTORE ?
+                                   "cross-shard ZRANGESTORE failed" :
+                                   g->ctype == CS_SORTSTORE ?
+                                   "cross-shard SORT STORE failed" :
+                                   "cross-shard GEO store failed");
             else
                 addReplyLongLong(dst, g->cs2_intreply);
             break;
