@@ -1471,7 +1471,8 @@ struct client *createAOFClient(void) {
 
     /* We set the fake client as a slave waiting for the synchronization
      * so that Redis will not try to send replies to this client. */
-    c->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
+    initClientReplicationData(c);
+    clientReplicationData(c)->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
     return c;
 }
 
@@ -2497,6 +2498,7 @@ int rewriteAppendOnlyFileRio(rio *aof) {
     for (j = 0; j < server.dbnum; j++) {
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
         redisDb *db = server.db + j;
+        if (!dbIsInitialized(db)) continue;
         if (kvstoreSize(db->keys) == 0) continue;
 
         /* SELECT the new DB */

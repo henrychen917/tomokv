@@ -105,6 +105,19 @@ def hscan_all(s,f,key,count=7):
 
 def partA():
     s,f=conn(); c(s,f,'FLUSHDB')
+    # First SELECT of a non-default logical DB constructs its decoy and every
+    # per-node physical DB before the selected pointer becomes visible.
+    lazy_key='cov:lazy-db'
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SELECT','1'),b'OK','SELECT lazy DB')
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SET',lazy_key,'db1'),b'OK','lazy DB SET')
+    eq(c(s,f,'GET',lazy_key),b'db1','lazy DB GET')
+    eq(c(s,f,'SELECT','0'),b'OK','SELECT default DB')
+    eq(c(s,f,'GET',lazy_key),None,'lazy DB isolation')
+    eq(c(s,f,'SELECT','1'),b'OK','reselect initialized DB')
+    eq(c(s,f,'DEL',lazy_key),1,'lazy DB cleanup')
+    eq(c(s,f,'SELECT','0'),b'OK','restore default DB')
     xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
     # ---- strings ----
     eq(c(s,f,'SET','s','hello'),b'OK','SET'); eq(c(s,f,'GET','s'),b'hello','GET')
@@ -564,8 +577,43 @@ def partA():
     eq(set(seen),scan_want,'SCAN-cap-full-keyspace')
     eq(len(seen),len(scan_want),'SCAN-cap-no-duplicates')
     ck(scan_calls>1,'SCAN cap did not split huge COUNT (calls=%d)'%scan_calls)
+    # ---- cold client state ----
+    # CLIENT INFO must report the zero/default view without forcing any of the
+    # lazily allocated tracking, pubsub, WATCH, or MULTI structures to exist.
+    ci=c(s,f,'CLIENT','INFO')
+    ck(isinstance(ci,bytes) and b'id=' in ci and b' sub=0' in ci and
+       b' psub=0' in ci and b' ssub=0' in ci and b' multi=-1' in ci and b' watch=0' in ci,
+       'CLIENT INFO cold defaults: %r'%ci)
+
+    # Tracking shares the cold pubsub component. Exercise allocation, prefix
+    # ownership, reads, and cleanup while leaving the client usable afterward.
+    eq(c(s,f,'CLIENT','TRACKING','ON','BCAST','PREFIX','cov:'),b'OK','CLIENT TRACKING ON')
+    eq(c(s,f,'CLIENT','GETREDIR'),0,'CLIENT TRACKING redirect')
+    eq(c(s,f,'CLIENT','TRACKINGINFO'),
+       [b'flags',[b'on',b'bcast'],b'redirect',0,b'prefixes',[b'cov:']],
+       'CLIENT TRACKINGINFO cold state')
+    eq(c(s,f,'CLIENT','TRACKING','OFF'),b'OK','CLIENT TRACKING OFF')
+    eq(c(s,f,'CLIENT','GETREDIR'),-1,'CLIENT TRACKING cleanup')
+
+    # Pubsub mode is connection state, so use a dedicated connection and prove
+    # both its cold dictionaries and the subscribe-mode command guard.
+    ps,pf=conn()
+    eq(c(ps,pf,'SUBSCRIBE','cov:cold'),[b'subscribe',b'cov:cold',1],'SUBSCRIBE cold state')
+    subcmd=c(ps,pf,'GET','s')
+    ck(rejected(subcmd) and 'subscribe' in str(subcmd).lower(),
+       'subscribed client command guard: %r'%subcmd)
+    eq(c(ps,pf,'UNSUBSCRIBE','cov:cold'),[b'unsubscribe',b'cov:cold',0],'UNSUBSCRIBE cold cleanup')
+    ps.close()
+
     # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
-    ck(rejected(c(s,f,'MULTI')),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
+    exec_err=c(s,f,'EXEC')
+    ck(rejected(exec_err) and 'EXEC without MULTI' in str(exec_err),
+       'EXEC without MULTI must reject cleanly: %r'%exec_err)
+    multi_err=c(s,f,'MULTI')
+    ck(rejected(multi_err),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
+    exec_after_multi_error=c(s,f,'EXEC')
+    ck(rejected(exec_after_multi_error) and 'EXEC without MULTI' in str(exec_after_multi_error),
+       'MULTI rejection must not leave transaction state: %r'%exec_after_multi_error)
     # ---- server/conn ----
     eq(c(s,f,'PING'),b'PONG','PING'); eq(c(s,f,'ECHO','hi'),b'hi','ECHO')
     s.close()

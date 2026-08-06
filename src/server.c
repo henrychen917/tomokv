@@ -1730,9 +1730,10 @@ void databasesCron(void) {
 
         for (j = 0; j < dbs_per_call; j++) {
             redisDb *db = &server.db[resize_db % server.dbnum];
+            resize_db++;
+            if (!dbIsInitialized(db)) continue;
             kvstoreTryResizeDicts(db->keys, CRON_DICTS_PER_DB);
             kvstoreTryResizeDicts(db->expires, CRON_DICTS_PER_DB);
-            resize_db++;
         }
 
         /* Rehash */
@@ -1740,6 +1741,10 @@ void databasesCron(void) {
             uint64_t elapsed_us = 0;
             for (j = 0; j < dbs_per_call; j++) {
                 redisDb *db = &server.db[rehash_db % server.dbnum];
+                if (!dbIsInitialized(db)) {
+                    rehash_db++;
+                    continue;
+                }
                 elapsed_us += kvstoreIncrementallyRehash(db->keys, INCREMENTAL_REHASHING_THRESHOLD_US - elapsed_us);
                 if (elapsed_us >= INCREMENTAL_REHASHING_THRESHOLD_US)
                     break;
@@ -2064,6 +2069,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     if (server.verbosity <= LL_VERBOSE) {
         run_with_period(5000) {
             for (j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.db[j])) continue;
                 long long size, used, vkeys;
 
                 size = kvstoreBuckets(server.db[j].keys);
@@ -4487,6 +4493,64 @@ static int detectL3Domains(void) {
     return nseen > 0 ? nseen : 1;
 }
 
+/* Clients and workers retain pointers into the contiguous database arrays, so
+ * changing those arrays to pointer arrays would invalidate THredis's aliasing
+ * contract. Keep the small redisDb shells stable and construct their expensive
+ * kvstores/dictionaries only when the logical database is first selected.
+ *
+ * A logical DB is a group: its decoy server.db entry plus the same DB id in
+ * every per-node physical array. The decoy initialized bit is published last,
+ * so an acquire load that observes it also observes every physical DB. */
+static pthread_mutex_t logical_db_init_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void initializeDatabase(redisDb *db, int id, int slot_count_bits,
+                               int key_flags, int expires_flags)
+{
+    serverAssert(!dbIsInitialized(db));
+    db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, key_flags);
+    db->expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, expires_flags);
+    db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+    db->expires_cursor = 0;
+    db->blocking_keys = dictCreate(&keylistDictType);
+    db->blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
+    db->stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->ready_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->watched_keys = dictCreate(&keylistDictType);
+    db->id = id;
+    db->avg_ttl = 0;
+    atomicSetWithSync(db->initialized, 1);
+}
+
+void ensureLogicalDbInitialized(int id) {
+    serverAssert(id >= 0 && id < server.dbnum);
+    if (dbIsInitialized(&server.db[id])) return;
+
+    pthread_mutex_lock(&logical_db_init_mutex);
+    if (!dbIsInitialized(&server.db[id])) {
+        const int slot_count_bits = TOMO_BUCKET_BITS;
+        const int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
+        int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
+        if (server.shared_node_dbs) shflags |= KVSTORE_FLAT;
+
+        /* initServer installs every physical array before making DB 0 (or any
+         * client) visible. Later SELECTs use these already-stable arrays. */
+        serverAssert(server.node_dbs != NULL);
+        for (int n = 0; n < server.n_node_dbs; n++) {
+            redisDb *db = &server.node_dbs[n][id];
+            if (!dbIsInitialized(db)) {
+                initializeDatabase(db, id, slot_count_bits, shflags,
+                                   shflags & ~KVSTORE_FLAT);
+            }
+        }
+
+        /* Publish the decoy last: it is the readiness sentinel for the whole
+         * logical-DB group and the pointer SELECT stores in the real client. */
+        initializeDatabase(&server.db[id], id, slot_count_bits, flags, flags);
+    }
+    pthread_mutex_unlock(&logical_db_init_mutex);
+}
+
 void initServer(void) {
     /* ee451 (v14): auto-detect from sysfs. tomokv-l3-kb (the explicit KB pin, for VMs that hide
      * cache topology) was retired at 0 = auto, so detection is the only path; detectL3Bytes has
@@ -4915,7 +4979,6 @@ void initServer(void) {
      * independent set of databases (0..dbnum-1). Keys are partitioned
      * across workers by hash, so worker N only ever touches ex_dbs[N]. */
     int slot_count_bits = TOMO_BUCKET_BITS;
-    int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
      * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
      * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
@@ -4924,22 +4987,12 @@ void initServer(void) {
      * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
      * that benign stale-read race into a use-after-free. Dicts persist once created. */
 
-    /* Keep server.db allocated so legacy code paths don't crash.
-     * These dbs are empty - real data lives in ex_dbs. */
-    server.db = zmalloc(sizeof(redisDb) * server.dbnum);
+    /* Keep stable decoy DB shells so legacy pointers remain valid. The heavy
+     * state is created together with the matching physical DBs on first use. */
+    server.db = zcalloc(sizeof(redisDb) * server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
-        server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
-        server.db[j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
-        server.db[j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-        server.db[j].expires_cursor = 0;
-        server.db[j].blocking_keys = dictCreate(&keylistDictType);
-        server.db[j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].watched_keys = dictCreate(&keylistDictType);
         server.db[j].id = j;
-        server.db[j].avg_ttl = 0;
+        atomicSet(server.db[j].initialized, 0);
     }
 
     server.num_workers = server.ex_threads;
@@ -5027,24 +5080,12 @@ void initServer(void) {
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
-        int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
-        if (server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE: a shared node db IS a flat table */
         server.node_dbs = zmalloc(sizeof(redisDb *) * nnodes);
         for (int n = 0; n < nnodes; n++) {
-            server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
+            server.node_dbs[n] = zcalloc(sizeof(redisDb) * server.dbnum);
             for (j = 0; j < server.dbnum; j++) {
-                server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
-                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags & ~KVSTORE_FLAT);  /* review [crit]: expires stays on the dict path (its insert path AddRaw has no flat branch) */
-                server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-                server.node_dbs[n][j].expires_cursor = 0;
-                server.node_dbs[n][j].blocking_keys = dictCreate(&keylistDictType);
-                server.node_dbs[n][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].watched_keys = dictCreate(&keylistDictType);
                 server.node_dbs[n][j].id = j;
-                server.node_dbs[n][j].avg_ttl = 0;
+                atomicSet(server.node_dbs[n][j].initialized, 0);
             }
         }
         /* One entry per worker SLOT; a grown-front slot keeps its alias so grow-back revives
@@ -5055,6 +5096,10 @@ void initServer(void) {
             if (n >= nnodes) n = nnodes - 1;                         /* defensive clamp */
             server.ex_dbs[w] = server.node_dbs[n];
         }
+
+        /* DB 0 is the default and must be ready before the early scripting and
+         * functions clients call createClient(NULL). All other DBs stay cold. */
+        ensureLogicalDbInitialized(0);
     }
 
     evictionPoolAlloc();
@@ -6730,21 +6775,22 @@ int processCommand(client *c) {
     }
 
     const uint64_t cmd_flags = getCommandFlags(c);
+    multiState *ms = unlikely(c->cmd->proc == execCommand) ? clientMultiState(c) : NULL;
 
     int is_read_command = (cmd_flags & CMD_READONLY) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_READONLY));
+                           (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_READONLY));
     int is_write_command = (cmd_flags & CMD_WRITE) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_WRITE));
+                           (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_WRITE));
     int is_denyoom_command = (cmd_flags & CMD_DENYOOM) ||
-                             (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_DENYOOM));
+                             (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_DENYOOM));
     int is_denystale_command = !(cmd_flags & CMD_STALE) ||
-                               (c->cmd->proc == execCommand && (c->mstate.cmd_inv_flags & CMD_STALE));
+                               (c->cmd->proc == execCommand && ms && (ms->cmd_inv_flags & CMD_STALE));
     int is_denyloading_command = !(cmd_flags & CMD_LOADING) ||
-                                 (c->cmd->proc == execCommand && (c->mstate.cmd_inv_flags & CMD_LOADING));
+                                 (c->cmd->proc == execCommand && ms && (ms->cmd_inv_flags & CMD_LOADING));
     int is_may_replicate_command = (cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)) ||
-                                   (c->cmd->proc == execCommand && (c->mstate.cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)));
+                                   (c->cmd->proc == execCommand && ms && (ms->cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)));
     int is_deny_async_loading_command = (cmd_flags & CMD_NO_ASYNC_LOADING) ||
-                                        (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_NO_ASYNC_LOADING));
+                                        (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_NO_ASYNC_LOADING));
     int obey_client = mustObeyClient(c);
 
     if (authRequired(c)) {
@@ -7816,6 +7862,7 @@ void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t) flatReclaimTable(t);
         }
@@ -7916,6 +7963,7 @@ int flatResizePending(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return 0;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) return 1;
         }
@@ -7929,6 +7977,7 @@ void flatResizeCoordinate(void) {
         flatTable *t = NULL; kvstore *kvs = NULL; int fn = 0, fj = 0;
         for (int n = 0; n < server.n_node_dbs && !t; n++)
             for (int j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
                 flatTable *cand = kvstoreFlatTable(server.node_dbs[n][j].keys);
                 if (cand && atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)) {
                     t = cand; kvs = server.node_dbs[n][j].keys; fn = n; fj = j; break;
@@ -14351,7 +14400,8 @@ int areCommandKeysInSameSlot(client *c, int *hashslot) {
 
     if (c->cmd->proc == execCommand) {
         if (!(c->flags & CLIENT_MULTI)) return 1;
-        else ms = &c->mstate;
+        else ms = clientMultiState(c);
+        serverAssert(ms != NULL);
     }
 
     /* If client is in multi-exec, we need to check the slot of all keys
@@ -14557,7 +14607,7 @@ int isReadyToShutdown(void) {
         client *replica = listNodeValue(ln);
         /* Don't count migration destination replicas. */
         if (replica->flags & CLIENT_ASM_MIGRATING) continue;
-        if (replica->repl_ack_off != server.master_repl_offset) return 0;
+        if (clientReplicationData(replica)->repl_ack_off != server.master_repl_offset) return 0;
     }
     return 1;
 }
@@ -14616,16 +14666,16 @@ int finishShutdown(void) {
             paused = 1;
         }
 
-        if (replica->repl_ack_off != server.master_repl_offset) {
+        if (clientReplicationData(replica)->repl_ack_off != server.master_repl_offset) {
             num_lagging_replicas++;
-            long lag = replica->replstate == SLAVE_STATE_ONLINE ?
-                time(NULL) - replica->repl_ack_time : 0;
+            long lag = clientReplicationData(replica)->replstate == SLAVE_STATE_ONLINE ?
+                time(NULL) - clientReplicationData(replica)->repl_ack_time : 0;
             serverLog(LL_NOTICE,
                       "Lagging replica %s reported offset %lld behind master, lag=%ld, state=%s.",
                       replicationGetSlaveName(replica),
-                      server.master_repl_offset - replica->repl_ack_off,
+                      server.master_repl_offset - clientReplicationData(replica)->repl_ack_off,
                       lag,
-                      replstateToString(replica->replstate));
+                      replstateToString(clientReplicationData(replica)->replstate));
         }
 
         if (paused) resumeIOThread(replica->tid);
@@ -15789,6 +15839,7 @@ dict *genInfoSectionDict(robj **argv, int argc, char **defaults, int *out_all, i
 void totalNumberOfStatefulKeys(unsigned long *blocking_keys, unsigned long *blocking_keys_on_nokey, unsigned long *watched_keys) {
     unsigned long bkeys=0, bkeys_on_nokey=0, wkeys=0;
     for (int j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         bkeys += dictSize(server.db[j].blocking_keys);
         bkeys_on_nokey += dictSize(server.db[j].blocking_keys_unblock_on_nokey);
         wkeys += dictSize(server.db[j].watched_keys);
@@ -16522,11 +16573,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 server.unixtime - server.repl_down_since : 0 ;
 
             if (server.master) {
-                slave_repl_offset = server.master->reploff;
-                slave_read_repl_offset = server.master->read_reploff;
+                slave_repl_offset = clientReplicationData(server.master)->reploff;
+                slave_read_repl_offset = clientReplicationData(server.master)->read_reploff;
             } else if (server.cached_master) {
-                slave_repl_offset = server.cached_master->reploff;
-                slave_read_repl_offset = server.cached_master->read_reploff;
+                slave_repl_offset = clientReplicationData(server.cached_master)->reploff;
+                slave_read_repl_offset = clientReplicationData(server.cached_master)->read_reploff;
             }
 
             info = sdscatprintf(info, FMTARGS(
@@ -16595,7 +16646,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             listRewind(server.slaves,&li);
             while((ln = listNext(&li))) {
                 client *slave = listNodeValue(ln);
-                char ip[NET_IP_STR_LEN], *slaveip = slave->slave_addr;
+                char ip[NET_IP_STR_LEN], *slaveip = clientReplicationData(slave)->slave_addr;
                 int port;
                 long lag = 0;
 
@@ -16616,16 +16667,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                         continue;
                     slaveip = ip;
                 }
-                const char *state = replstateToString(slave->replstate);
+                const char *state = replstateToString(clientReplicationData(slave)->replstate);
                 if (state[0] == '\0') continue;
-                if (slave->replstate == SLAVE_STATE_ONLINE)
-                    lag = time(NULL) - slave->repl_ack_time;
+                if (clientReplicationData(slave)->replstate == SLAVE_STATE_ONLINE)
+                    lag = time(NULL) - clientReplicationData(slave)->repl_ack_time;
 
                 info = sdscatprintf(info,
                     "slave%d:ip=%s,port=%d,state=%s,"
                     "offset=%lld,lag=%ld,io-thread=%d\r\n",
-                    slaveid,slaveip,slave->slave_listening_port,state,
-                    slave->repl_ack_off, lag, slave->tid);
+                    slaveid,slaveip,clientReplicationData(slave)->slave_listening_port,state,
+                    clientReplicationData(slave)->repl_ack_off, lag, slave->tid);
                 slaveid++;
             }
         }
@@ -16744,6 +16795,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscatprintf(info, "# Keyspace\r\n");
         for (j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.db[j])) continue;
             long long keys, vkeys, subexpiry;
 
             keys = kvstoreSize(server.db[j].keys);
@@ -16781,6 +16833,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         serverAssert(sizeof(type_sizes_str)/sizeof(type_sizes_str[0]) == OBJ_TYPE_BASIC_MAX);
 
         for (int dbnum = 0; dbnum < server.dbnum; dbnum++) {
+            if (!dbIsInitialized(&server.db[dbnum])) continue;
             if (kvstoreSize(server.db[dbnum].keys) == 0)
                 continue;
 
@@ -16855,6 +16908,7 @@ void monitorCommand(client *c) {
     /* ignore MONITOR if already slave or in monitor mode */
     if (c->flags & CLIENT_SLAVE) return;
 
+    initClientReplicationData(c);
     c->flags |= (CLIENT_SLAVE|CLIENT_MONITOR);
     listAddNodeTail(server.monitors,c);
     addReply(c,shared.ok);
@@ -19960,7 +20014,8 @@ void *polyThreadMain(void *arg) {
                             serverLog(LL_WARNING, "thread-modes: worker %d leaving EX still owning %lld "
                                                   "buckets — flip invariant violated", ctx->ex->id, resid);
                     } else {
-                        for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
+                        for (int d = 0; d < server.dbnum; d++)
+                            if (dbIsInitialized(&ctx->ex->db[d])) resid += dbSize(&ctx->ex->db[d]);
                         if (resid != 0)
                             serverLog(LL_WARNING, "thread-modes: worker %d leaving EX with %lld keys "
                                                   "still in its shard — flip invariant violated",
@@ -20098,7 +20153,8 @@ void *polyThreadMain(void *arg) {
                      * waits for this checkpoint to publish EX mode before arming the seed. */
                     while (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) ;
                     long long sz = 0;
-                    for (int d = 0; d < server.dbnum; d++) sz += dbSize(&ctx->ex->db[d]);
+                    for (int d = 0; d < server.dbnum; d++)
+                        if (dbIsInitialized(&ctx->ex->db[d])) sz += dbSize(&ctx->ex->db[d]);
                     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK role change complete — io thread %d is now "
                                          "worker %d (iotid=%d), db holds %lld keys, awaiting its seed range",
                               ctx->io_slot, ctx->ex->id, iotid, sz);
@@ -20483,10 +20539,12 @@ static int tmClientMigratable(client *c) {
                     CLIENT_LUA_DEBUG | CLIENT_LUA_DEBUG_SYNC | CLIENT_ASM_MIGRATING |
                     CLIENT_ASM_IMPORTING | CLIENT_INTERNAL))
         return 0;
-    if (c->watched_keys && listLength(c->watched_keys)) return 0;
-    if (c->pubsub_channels && dictSize(c->pubsub_channels)) return 0;
-    if (c->pubsub_patterns && dictSize(c->pubsub_patterns)) return 0;
-    if (c->pubsubshard_channels && dictSize(c->pubsubshard_channels)) return 0;
+    multiState *ms = clientMultiState(c);
+    if (ms && listLength(&ms->watched_keys)) return 0;
+    clientCold *pubsub = clientPubSubData(c);
+    if (pubsub && (dictSize(pubsub->pubsub_channels) ||
+                   dictSize(pubsub->pubsub_patterns) ||
+                   dictSize(pubsub->pubsubshard_channels))) return 0;
     return 1;
 }
 

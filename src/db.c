@@ -1128,6 +1128,7 @@ long long emptyDbStructure(redisDb *dbarray, int dbnum, int async,
     }
 
     for (int j = startdb; j <= enddb; j++) {
+        if (!dbIsInitialized(&dbarray[j])) continue;
         removed += kvstoreSize(dbarray[j].keys);
         if (async) {
             emptyDbAsync(&dbarray[j]);
@@ -1202,8 +1203,9 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
      * save-side fold, which needs the same care.
      *
      * THE BOUND IS `n < server.n_node_dbs` AND NOTHING ELSE. server.node_dbs is
-     * zmalloc(sizeof(redisDb *) * n_node_dbs) with every entry initialised in that same range
-     * (initServer), so n_node_dbs is one PAST the end. The earlier version of this fold used
+     * zmalloc(sizeof(redisDb *) * n_node_dbs) with every pointer and inner shell initialized in
+     * that same range (initServer), so n_node_dbs is one PAST the end. The earlier version of this
+     * fold used
      * `n <= server.n_node_dbs` because the tree it was written against still allocated a +1
      * spare-PRIVATE array for a reserve worker slot; that spare was deleted 2026-07-28 and the
      * fold read one pointer of uninitialised heap, handed it to emptyDbStructure as a redisDb *,
@@ -1244,8 +1246,21 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
     return removed;
 }
 
-/* Initialize temporary db on replica for use during diskless replication. */
+/* Initialize temporary DB shells for diskless replication. */
 redisDb *initTempDb(void) {
+    redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
+    for (int i=0; i<server.dbnum; i++) {
+        tempDb[i].id = i;
+        atomicSet(tempDb[i].initialized, 0);
+    }
+    return tempDb;
+}
+
+/* Temporary RDB databases also retain contiguous shells, but unlike the main
+ * DB group they have no per-node aliases and can be initialized independently. */
+void ensureTempDbInitialized(redisDb *db) {
+    if (dbIsInitialized(db)) return;
+
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
@@ -1256,18 +1271,11 @@ redisDb *initTempDb(void) {
          * indexed out of bounds on the replica diskless-load swapdb path. Same bits as initServer. */
         slot_count_bits = TOMO_BUCKET_BITS;
     }
-    redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
-    for (int i=0; i<server.dbnum; i++) {
-        tempDb[i].id = i;
-        tempDb[i].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits,
-                                       flags);
-        tempDb[i].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType,
-                                          slot_count_bits, flags);
-        tempDb[i].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-        tempDb[i].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-    }
-
-    return tempDb;
+    db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+    db->expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
+    db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+    db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+    atomicSetWithSync(db->initialized, 1);
 }
 
 /* Discard tempDb, this can be slow (similar to FLUSHALL), but it's always async. */
@@ -1277,6 +1285,7 @@ void discardTempDb(redisDb *tempDb) {
     /* Release temp DBs. */
     emptyDbStructure(tempDb, -1, async, NULL);
     for (int i=0; i<server.dbnum; i++) {
+        if (!dbIsInitialized(&tempDb[i])) continue;
         /* Destroy sub-expires before deleting the kv-objects since ebuckets
          * data structure is embedded in the stored kv-objects. */
         estoreRelease(tempDb[i].subexpires);
@@ -1310,6 +1319,7 @@ void streamMoveIdmpKeys(dict *src, dict *dst, int slot) {
 int selectDb(client *c, int id) {
     if (id < 0 || id >= server.dbnum)
         return C_ERR;
+    ensureLogicalDbInitialized(id);
     c->db = &server.db[id];
     return C_OK;
 }
@@ -1318,6 +1328,7 @@ long long dbTotalServerKeyCount(void) {
     long long total = 0;
     int j;
     for (j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         total += kvstoreSize(server.db[j].keys);
     }
     return total;
@@ -1360,6 +1371,7 @@ void signalFlushedDb(int dbid, int async, slotRangeArray *slots) {
     }
 
     for (int j = startdb; j <= enddb; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         scanDatabaseForDeletedKeys(&server.db[j], NULL, slots);
         touchAllWatchedKeysInDb(&server.db[j], NULL, slots);
     }
@@ -1442,7 +1454,7 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     server.current_client[iotid].p = c;
 
     /* Don't update blocked_us since command was processed in bg by lazy_free thread */
-    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(c->bstate.lazyfreeStartTime), 0);
+    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(clientBlockingState(c)->lazyfreeStartTime), 0);
 
     /* Only SFLUSH command pass user data pointer. */
     if (slots)
@@ -1500,10 +1512,11 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
      * worker's queue. To be called and reply with OK only after all preceding pending
      * lazyfree jobs in queue were processed */
     if (blocking_async) {
+        initClientBlockingState(c);
         /* measure bg job till completion as elapsed time of flush command */
-        elapsedStart(&c->bstate.lazyfreeStartTime);
+        elapsedStart(&clientBlockingState(c)->lazyfreeStartTime);
 
-        c->bstate.timeout = 0;
+        clientBlockingState(c)->timeout = 0;
         /* We still need to perform cleanup operations for the command, including
          * updating the replication offset, so mark this command as pending to
          * avoid command from being reset during unblock. */
@@ -2908,8 +2921,14 @@ int dbSwapDatabases(int id1, int id2) {
     if (id1 < 0 || id1 >= server.dbnum ||
         id2 < 0 || id2 >= server.dbnum) return C_ERR;
     if (id1 == id2) return C_OK;
-    redisDb aux = server.db[id1];
+    ensureLogicalDbInitialized(id1);
+    ensureLogicalDbInitialized(id2);
     redisDb *db1 = &server.db[id1], *db2 = &server.db[id2];
+    kvstore *aux_keys = db1->keys, *aux_expires = db1->expires;
+    estore *aux_subexpires = db1->subexpires;
+    dict *aux_stream_idmp_keys = db1->stream_idmp_keys;
+    long long aux_avg_ttl = db1->avg_ttl;
+    unsigned long aux_expires_cursor = db1->expires_cursor;
 
     /* Swapdb should make transaction fail if there is any
      * client watching keys */
@@ -2930,12 +2949,12 @@ int dbSwapDatabases(int id1, int id2) {
     db1->avg_ttl = db2->avg_ttl;
     db1->expires_cursor = db2->expires_cursor;
 
-    db2->keys = aux.keys;
-    db2->expires = aux.expires;
-    db2->subexpires = aux.subexpires;
-    db2->stream_idmp_keys = aux.stream_idmp_keys;
-    db2->avg_ttl = aux.avg_ttl;
-    db2->expires_cursor = aux.expires_cursor;
+    db2->keys = aux_keys;
+    db2->expires = aux_expires;
+    db2->subexpires = aux_subexpires;
+    db2->stream_idmp_keys = aux_stream_idmp_keys;
+    db2->avg_ttl = aux_avg_ttl;
+    db2->expires_cursor = aux_expires_cursor;
 
     /* Now we need to handle clients blocked on lists: as an effect
      * of swapping the two DBs, a client that was waiting for list
@@ -2956,8 +2975,17 @@ int dbSwapDatabases(int id1, int id2) {
  * (which will now be placed in the temp one) is done later. */
 void swapMainDbWithTempDb(redisDb *tempDb) {
     for (int i=0; i<server.dbnum; i++) {
-        redisDb aux = server.db[i];
+        int main_initialized = dbIsInitialized(&server.db[i]);
+        int temp_initialized = dbIsInitialized(&tempDb[i]);
+        if (!main_initialized && !temp_initialized) continue;
+        if (!main_initialized) ensureLogicalDbInitialized(i);
+        if (!temp_initialized) ensureTempDbInitialized(&tempDb[i]);
         redisDb *activedb = &server.db[i], *newdb = &tempDb[i];
+        kvstore *aux_keys = activedb->keys, *aux_expires = activedb->expires;
+        estore *aux_subexpires = activedb->subexpires;
+        dict *aux_stream_idmp_keys = activedb->stream_idmp_keys;
+        long long aux_avg_ttl = activedb->avg_ttl;
+        unsigned long aux_expires_cursor = activedb->expires_cursor;
 
         /* Swapping databases should make transaction fail if there is any
          * client watching keys. */
@@ -2976,12 +3004,12 @@ void swapMainDbWithTempDb(redisDb *tempDb) {
         activedb->avg_ttl = newdb->avg_ttl;
         activedb->expires_cursor = newdb->expires_cursor;
 
-        newdb->keys = aux.keys;
-        newdb->expires = aux.expires;
-        newdb->subexpires = aux.subexpires;
-        newdb->stream_idmp_keys = aux.stream_idmp_keys;
-        newdb->avg_ttl = aux.avg_ttl;
-        newdb->expires_cursor = aux.expires_cursor;
+        newdb->keys = aux_keys;
+        newdb->expires = aux_expires;
+        newdb->subexpires = aux_subexpires;
+        newdb->stream_idmp_keys = aux_stream_idmp_keys;
+        newdb->avg_ttl = aux_avg_ttl;
+        newdb->expires_cursor = aux_expires_cursor;
 
         /* Now we need to handle clients blocked on lists: as an effect
          * of swapping the two DBs, a client that was waiting for list

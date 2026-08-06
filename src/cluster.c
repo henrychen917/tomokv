@@ -1222,7 +1222,8 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
         /* If CLIENT_MULTI flag is not set EXEC is just going to return an
          * error. */
         if (!(c->flags & CLIENT_MULTI)) return myself;
-        ms = &c->mstate;
+        ms = clientMultiState(c);
+        serverAssert(ms != NULL);
     } else {
         /* In order to have a single codepath create a fake Multi State
          * structure if the client is not in MULTI/EXEC state, this way
@@ -1420,8 +1421,9 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
     /* Handle the read-only client case reading from a slave: if this
      * node is a slave and the request is about a hash slot our master
      * is serving, we can reply without redirection. */
+    multiState *client_ms = c->cmd->proc == execCommand ? clientMultiState(c) : NULL;
     int is_write_command = (cmd_flags & CMD_WRITE) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_WRITE));
+                           (c->cmd->proc == execCommand && client_ms && (client_ms->cmd_flags & CMD_WRITE));
     if (((c->flags & CLIENT_READONLY) || pubsubshard_included) &&
         !is_write_command &&
         clusterNodeIsSlave(myself) &&
@@ -1485,10 +1487,10 @@ void clusterRedirectClient(client *c, clusterNode *n, int hashslot, int error_co
 int clusterRedirectBlockedClientIfNeeded(client *c) {
     clusterNode *myself = getMyClusterNode();
     if (c->flags & CLIENT_BLOCKED &&
-        (c->bstate.btype == BLOCKED_LIST ||
-         c->bstate.btype == BLOCKED_ZSET ||
-         c->bstate.btype == BLOCKED_STREAM ||
-         c->bstate.btype == BLOCKED_MODULE))
+        (clientBlockingState(c)->btype == BLOCKED_LIST ||
+         clientBlockingState(c)->btype == BLOCKED_ZSET ||
+         clientBlockingState(c)->btype == BLOCKED_STREAM ||
+         clientBlockingState(c)->btype == BLOCKED_MODULE))
     {
         dictEntry *de;
         dictIterator di;
@@ -1504,11 +1506,11 @@ int clusterRedirectBlockedClientIfNeeded(client *c) {
 
         /* If the client is blocked on module, but not on a specific key,
          * don't unblock it (except for the CLUSTER_FAIL case above). */
-        if (c->bstate.btype == BLOCKED_MODULE && !moduleClientIsBlockedOnKeys(c))
+        if (clientBlockingState(c)->btype == BLOCKED_MODULE && !moduleClientIsBlockedOnKeys(c))
             return 0;
 
         /* All keys must belong to the same slot, so check first key only. */
-        dictInitIterator(&di, c->bstate.keys);
+        dictInitIterator(&di, clientBlockingState(c)->keys);
         if ((de = dictNext(&di)) != NULL) {
             robj *key = dictGetKey(de);
             int slot = keyHashSlot((char*)key->ptr, sdslen(key->ptr));
@@ -2266,6 +2268,7 @@ int verifyClusterConfigWithData(void) {
 
     /* Make sure we only have keys in DB0. */
     for (int i = 1; i < server.dbnum; i++) {
+        if (!dbIsInitialized(&server.db[i])) continue;
         if (kvstoreSize(server.db[i].keys)) return C_ERR;
     }
 
