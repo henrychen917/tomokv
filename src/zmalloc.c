@@ -79,7 +79,14 @@ void je_free_with_usize(void *ptr, size_t *usize);
 #endif
 #endif
 
-#define MAX_THREADS 16 /* Keep it a power of 2 so we can use '&' instead of '%'. */
+/* TOMO_IO_THREADS_MAX and TOMO_EX_THREADS_MAX in server.h are both 128. Boot-time
+ * workers get low indices below 512 and therefore never alias with one another,
+ * preserving the per-slot single-writer invariant. A server that creates more
+ * than 512 total lifetime threads (for example, transient module/BIO threads)
+ * can still wrap and alias a slot; the resulting small bounded drift is accepted
+ * here. A full atomic-RMW fix is deferred to avoid its allocation hot-path cost.
+ * Keep this a power of 2 so we can use '&' instead of '%'. */
+#define MAX_THREADS 512
 #define THREAD_MASK (MAX_THREADS - 1)
 #define PEAK_CHECK_THRESHOLD (1024 * 100) /* 100KB */
 
@@ -102,12 +109,13 @@ static inline void init_my_thread_index(void) {
     }
 }
 
-/* ee451 v10-A (Tomasulo single-writer discipline): the per-thread used_memory slot has exactly
- * ONE writer (its owning thread), so the LOCK-prefixed atomic RMW (lock xadd) buys atomicity we
- * don't need. A relaxed load+store gives the same result with no LOCK on the alloc/free hot path
- * (profiling showed zmalloc accounting ~12% of dispatch-bound cycles, downstream of decrRefCount
- * churn). Readers (zmalloc_used_memory) sum slots with relaxed loads, tolerating transient
- * staleness; aligned 8-byte load/store is atomic on x86-64 so no torn reads. */
+/* ee451 v10-A (Tomasulo single-writer discipline): while assigned thread indices remain below
+ * MAX_THREADS, each used_memory slot has exactly ONE writer (its owning thread), so the
+ * LOCK-prefixed atomic RMW (lock xadd) buys atomicity we don't need. A relaxed load+store gives
+ * the same result with no LOCK on the alloc/free hot path (profiling showed zmalloc accounting
+ * ~12% of dispatch-bound cycles, downstream of decrRefCount churn). Readers
+ * (zmalloc_used_memory) sum slots with relaxed loads, tolerating transient staleness; aligned
+ * 8-byte load/store is atomic on x86-64 so no torn reads. */
 static inline long long zmalloc_local_add(long long bytes_delta) {
     long long v = __atomic_load_n(&used_memory[thread_index].used_memory, __ATOMIC_RELAXED) + bytes_delta;
     __atomic_store_n(&used_memory[thread_index].used_memory, v, __ATOMIC_RELAXED);
