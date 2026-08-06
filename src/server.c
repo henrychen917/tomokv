@@ -2973,6 +2973,26 @@ static void exDispatchDirect(int ex_id, client *fake) {
     exHandoffAdvertise(&server.exThreads[ex_id]);
 }
 
+/* ee451 #88: argv-aware refinement of the static cost class. Only for the argv-index-bounded range
+ * commands (TOMO_CLS_ARGV_RANGE); everything else returns its static class with zero extra work.
+ * Runs ONLY on the reorder path (exDispatchPush, reorder>0), so it costs nothing when reorder is off.
+ * A bounded window [lo,hi] with lo,hi>=0 and (hi-lo+1) small => promote C3->C2; a tail-relative
+ * (negative index, e.g. `0 -1`) or large window stays C3. GETRANGE's window is BYTES, normalized to
+ * ~element cost by /64. The dynamic per-class svc EWMA still tunes magnitudes; this only fixes the
+ * gross mis-bucketing (a 23us ZRANGE 0 9 was tiered with a 44ms ZRANGE 0 -1). */
+static inline int tomoArgvClass(client *fake) {
+    uint8_t sc = fake->cmd->tomo_cls;
+    if (!(sc & TOMO_CLS_ARGV_RANGE) || fake->argc < 4) return sc & 0x03;
+    long long lo, hi;
+    if (getLongLongFromObject(fake->argv[2], &lo) != C_OK ||
+        getLongLongFromObject(fake->argv[3], &hi) != C_OK ||
+        lo < 0 || hi < 0 || hi < lo)
+        return TOMO_CLS_RANGE;                       /* unbounded / tail-relative / weird => stay C3 */
+    long long work = hi - lo + 1;
+    if (fake->cmd->declared_name[0] == 'g') work >>= 6;   /* getrange: bytes -> ~elements (only 'g' here) */
+    return (work <= TOMO_RORD_SMALL_RANGE) ? TOMO_CLS_ELEM : TOMO_CLS_RANGE;
+}
+
 /* ee451 D: admission front. Candidates stage into the reorder scratch (permuted at drain); every
  * exclusion — sentinels, cross-shard subs, flush, strict-order mode, level 0 — takes the direct
  * path BEHIND a drain barrier so cross-boundary arrival order is preserved. */
@@ -2988,7 +3008,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
          * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
         uint8_t hd = (fake->parent && fake->parent->dispatchid == fake->parent->flushid + 1) ? 0x80 : 0;
-        tomo_rord.cls[i] = (uint8_t)(fake->cmd->tomo_cls & 0x03) | hd;
+        tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & 0x03) | hd;
         tomo_rord.n = i + 1;
         tm_io_sig[iotid].disp_cnt++;
         int w = atomic_load_explicit(&tomo_disp_window[iotid], memory_order_relaxed);
@@ -5470,7 +5490,16 @@ static void tomoStampCmdClass(struct redisCommand *c) {
         "getbit", "xadd", "geoadd", NULL };
     const char *nm = c->declared_name;
     for (int i = 0; range_pfx[i]; i++)
-        if (!strncmp(nm, range_pfx[i], strlen(range_pfx[i]))) { c->tomo_cls = TOMO_CLS_RANGE; return; }
+        if (!strncmp(nm, range_pfx[i], strlen(range_pfx[i]))) {
+            c->tomo_cls = TOMO_CLS_RANGE;
+            /* ee451 #88: flag the range commands whose ARGV carries an explicit index window
+             * (key start stop at argv[2],argv[3]) so the reorder can refine C3 by requested size —
+             * a bounded ZRANGE 0 9 is ~a container op, not a 44ms full scan. Only these four; others
+             * (HGETALL/SMEMBERS/SORT/KEYS/SCAN) have no size in argv and stay flat C3. */
+            if (!strcmp(nm,"zrange")||!strcmp(nm,"zrevrange")||!strcmp(nm,"lrange")||!strcmp(nm,"getrange"))
+                c->tomo_cls |= TOMO_CLS_ARGV_RANGE;
+            return;
+        }
     for (int i = 0; elem_pfx[i]; i++)
         if (!strncmp(nm, elem_pfx[i], strlen(elem_pfx[i]))) { c->tomo_cls = TOMO_CLS_ELEM; return; }
     c->tomo_cls = (c->flags & CMD_WRITE) ? TOMO_CLS_PWRITE : TOMO_CLS_PREAD;

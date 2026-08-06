@@ -1480,6 +1480,12 @@ typedef struct {
 #define TOMO_CLS_PWRITE 1
 #define TOMO_CLS_ELEM   2
 #define TOMO_CLS_RANGE  3
+/* ee451 #88: bit 2 of tomo_cls flags "range command whose argv[2],argv[3] are an index window"
+ * (ZRANGE/ZREVRANGE/LRANGE/GETRANGE). At dispatch the reorder parses the window and, if bounded and
+ * small, treats the command as C2 (ELEM) instead of C3 — so a cheap ZRANGE 0 9 is not deprioritized
+ * like a 44ms full scan. The class itself is always (tomo_cls & 0x03); this bit is metadata. */
+#define TOMO_CLS_ARGV_RANGE 0x04
+#define TOMO_RORD_SMALL_RANGE 256   /* bounded range <= this many elements (getrange: /64 bytes) => C2 */
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
