@@ -216,6 +216,7 @@ zskiplist *zslCreate(void) {
     zsl->header = zslCreateHeaderNode(zsl);
     zsl->header->backward = NULL;
     zsl->tail = NULL;
+    memset(zsl->level_tail, 0, sizeof(zsl->level_tail));
     return zsl;
 }
 
@@ -303,6 +304,9 @@ static void zslInsertNode(zskiplist *zsl, zskiplistNode *node) {
         /* update span covered by update[i] as node is inserted here */
         zslSetNodeSpanAtLevel(node, i, zslGetNodeSpanAtLevel(update[i], i) - (rank[0] - rank[i]));
         zslSetNodeSpanAtLevel(update[i], i, (rank[0] - rank[i]) + 1);
+
+        if (node->level[i].forward == NULL)
+            zsl->level_tail[i] = node;
     }
 
     /* increment span for untouched levels */
@@ -317,6 +321,57 @@ static void zslInsertNode(zskiplist *zsl, zskiplistNode *node) {
     else
         zsl->tail = node;
 
+    zsl->length++;
+}
+
+/* Insert a node known to sort after the current tail. The per-level tail
+ * cache supplies update[] directly, so this preserves all span invariants
+ * without doing the normal score/member search. */
+static void zslInsertNodeAtTail(zskiplist *zsl, zskiplistNode *node) {
+    int i;
+    int level = zslGetNodeInfo(node)->levels;
+    int oldlevel = zsl->level;
+    zskiplistNode *oldtail = zsl->tail;
+
+    serverAssert(!isnan(node->score));
+    debugServerAssert(oldtail == NULL ||
+                      zslCompareWithNode(node->score, zslGetNodeElement(node), oldtail) > 0);
+
+    for (i = 0; i < level; i++) {
+        node->level[i].forward = NULL;
+        zslSetNodeSpanAtLevel(node, i, 0);
+    }
+
+    /* Existing levels already have a terminal node (except level 0 in an
+     * empty list). It either points to the new node or has its terminal span
+     * extended by one. */
+    for (i = 0; i < oldlevel; i++) {
+        zskiplistNode *update = zsl->level_tail[i];
+        if (update == NULL) {
+            serverAssert(zsl->length == 0 && i == 0);
+            update = zsl->header;
+        }
+
+        zslIncrNodeSpanAtLevel(update, i, 1);
+        if (i < level) {
+            update->level[i].forward = node;
+            zsl->level_tail[i] = node;
+        }
+    }
+
+    /* New levels jump from the header directly to the new last element. */
+    for (i = oldlevel; i < level; i++) {
+        zsl->header->level[i].forward = node;
+        zslSetNodeSpanAtLevel(zsl->header, i, zsl->length + 1);
+        zsl->level_tail[i] = node;
+    }
+    if (level > oldlevel) {
+        zsl->level = level;
+        zslGetNodeInfo(zsl->header)->levels = level;
+    }
+
+    node->backward = oldtail;
+    zsl->tail = node;
     zsl->length++;
 }
 
@@ -338,6 +393,18 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {
     return node;
 }
 
+/* Insert a new element that is known to sort after the current tail. */
+static zskiplistNode *zslInsertAtTail(zskiplist *zsl, double score, sds ele) {
+    int level;
+
+    serverAssert(!isnan(score));
+
+    level = zslRandomLevel();
+    zskiplistNode *node = zslCreateNode(zsl, level, score, ele);
+    zslInsertNodeAtTail(zsl, node);
+    return node;
+}
+
 /* Internal function used by zslDelete, zslDeleteRangeByScore and
  * zslDeleteRangeByRank.
  * This function only unlinks the node from the skiplist structure but does NOT free it.
@@ -348,6 +415,8 @@ static void zslUnlinkNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **upda
         if (update[i]->level[i].forward == x) {
             zslIncrNodeSpanAtLevel(update[i], i, zslGetNodeSpanAtLevel(x, i) - 1);
             update[i]->level[i].forward = x->level[i].forward;
+            if (zsl->level_tail[i] == x)
+                zsl->level_tail[i] = (update[i] == zsl->header) ? NULL : update[i];
         } else {
             zslDecrNodeSpanAtLevel(update[i], i, 1);
         }
@@ -360,6 +429,7 @@ static void zslUnlinkNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **upda
     /* Decrease skiplist level if top levels are empty, and clear their spans */
     while(zsl->level > 1 && zsl->header->level[zsl->level-1].forward == NULL) {
         zsl->header->level[zsl->level-1].span = 0;
+        zsl->level_tail[zsl->level-1] = NULL;
         zsl->level--;
     }
     zsl->length--;
@@ -1726,7 +1796,14 @@ int zsetAdd(robj *zobj, double score, sds ele, int in_flags, int *out_flags, dou
             return 1;
         } else if (!xx) {
             /* Element doesn't exist - create node with embedded sds and add to skiplist */
-            znode = zslInsert(zs->zsl, score, ele);
+            zskiplistNode *tail = zs->zsl->tail;
+            if (tail == NULL || score > tail->score ||
+                (score == tail->score && sdscmp(ele, zslGetNodeElement(tail)) > 0))
+            {
+                znode = zslInsertAtTail(zs->zsl, score, ele);
+            } else {
+                znode = zslInsert(zs->zsl, score, ele);
+            }
 
             /* Add node pointer to dict using the bucket we already found */
             dictSetKeyAtLink(zs->dict, znode, &bucket, 1);
@@ -4813,6 +4890,7 @@ static void zslDebugVerifyStruct(zskiplist *zsl) {
     for (i = zsl->level; i < ZSKIPLIST_MAXLEVEL; i++) {
         serverAssert(zsl->header->level[i].forward == NULL);
         serverAssert(zsl->header->level[i].span == 0);
+        serverAssert(zsl->level_tail[i] == NULL);
     }
 
     /* Verify that level zsl->level-1 has at least one node (if list is not empty) */
@@ -4881,6 +4959,15 @@ static void zslDebugVerifyStruct(zskiplist *zsl) {
     } else {
         serverAssert(zsl->tail == prev);
         serverAssert(zsl->tail->level[0].forward == NULL);
+    }
+    serverAssert(zsl->level_tail[0] == zsl->tail);
+
+    /* Verify the cached terminal node at every active level. */
+    for (i = 1; i < zsl->level; i++) {
+        x = zsl->header;
+        while (x->level[i].forward)
+            x = x->level[i].forward;
+        serverAssert(zsl->level_tail[i] == x);
     }
 
     /* Verify that the sum of spans at each level is consistent.

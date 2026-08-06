@@ -388,6 +388,8 @@ void zslUpdateNode(zskiplist *zsl, zskiplistNode *oldnode, zskiplistNode *newnod
     for (i = 0; i < zsl->level; i++) {
         if (update[i]->level[i].forward == oldnode)
             update[i]->level[i].forward = newnode;
+        if (zsl->level_tail[i] == oldnode)
+            zsl->level_tail[i] = newnode;
     }
     serverAssert(zsl->header!=oldnode);
     if (newnode->level[0].forward) {

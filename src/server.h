@@ -2692,6 +2692,9 @@ typedef struct zskiplistNode {
 
 typedef struct zskiplist {
     struct zskiplistNode *header, *tail;
+    /* Last node participating at each level. This lets ordered tail inserts
+     * update every terminal span without searching for the predecessors. */
+    struct zskiplistNode *level_tail[ZSKIPLIST_MAXLEVEL];
     unsigned long length;
     int level;
     size_t alloc_size;
