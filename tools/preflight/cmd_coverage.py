@@ -142,6 +142,19 @@ def partA():
     eq(c(s,f,'LINDEX','l','1'),b'a','LINDEX'); eq(c(s,f,'LPOP','l'),b'z','LPOP'); eq(c(s,f,'RPOP','l'),b'c','RPOP')
     c(s,f,'LSET','l','0','A'); eq(c(s,f,'LINDEX','l','0'),b'A','LSET'); eq(c(s,f,'LPOS','l','b'),1,'LPOS')
     c(s,f,'RPUSH','l2','1','2','3'); eq(c(s,f,'LMOVE','l2','l3','LEFT','RIGHT'),b'1','LMOVE')
+    # T4 phase 1: force different owners. A ready key is served in request order with the
+    # stock B[LR]POP reply; a genuinely would-block request is rejected instead of parking.
+    bla,blb=shard_pair(s,f,True,'blpop')
+    c(s,f,'DEL',bla,blb); c(s,f,'RPUSH',blb,'left','right')
+    eq(c(s,f,'BLPOP',bla,blb,'10'),[B(blb),b'left'],'BLPOP cross-shard/skip-empty+reply')
+    eq(c(s,f,'BRPOP',bla,blb,'10'),[B(blb),b'right'],'BRPOP cross-shard/skip-empty+reply')
+    c(s,f,'RPUSH',bla,'first'); c(s,f,'RPUSH',blb,'second')
+    eq(c(s,f,'BLPOP',bla,blb,'10'),[B(bla),b'first'],'BLPOP cross-shard/first-ready precedence')
+    c(s,f,'DEL',bla,blb)
+    for op in ('BLPOP','BRPOP'):
+        r=c(s,f,op,bla,blb,'.05')
+        ck(rejected(r) and 'would block across shards' in str(r),
+           '%s cross-shard/all-empty must fail-safe reject: %r'%(op,r))
     # ---- sets ----
     c(s,f,'DEL','st'); eq(c(s,f,'SADD','st','a','b','c'),3,'SADD'); eq(c(s,f,'SCARD','st'),3,'SCARD')
     eq(c(s,f,'SISMEMBER','st','a'),1,'SISMEMBER'); eq(sorted(lst(c(s,f,'SMEMBERS','st'))),['a','b','c'],'SMEMBERS')
@@ -158,6 +171,21 @@ def partA():
     eq(lst(c(s,f,'ZRANGEBYSCORE','z','2','3')),['b','c'],'ZRANGEBYSCORE'); eq(c(s,f,'ZRANK','z','c'),2,'ZRANK')
     eq(c(s,f,'ZCOUNT','z','1','2'),2,'ZCOUNT'); eq(c(s,f,'ZINCRBY','z','5','a'),b'6','ZINCRBY')
     eq(lst(c(s,f,'ZPOPMIN','z')),['b','2'],'ZPOPMIN')
+    # BZPOP uses the same T4 probe/winner path, but preserves its flat [key,member,score] reply.
+    bza,bzb=shard_pair(s,f,True,'bzpop')
+    c(s,f,'DEL',bza,bzb); c(s,f,'ZADD',bzb,'1','low','9','high')
+    eq(c(s,f,'BZPOPMIN',bza,bzb,'10'),[B(bzb),b'low',b'1'],
+       'BZPOPMIN cross-shard/skip-empty+reply')
+    eq(c(s,f,'BZPOPMAX',bza,bzb,'10'),[B(bzb),b'high',b'9'],
+       'BZPOPMAX cross-shard/skip-empty+reply')
+    c(s,f,'ZADD',bza,'50','first'); c(s,f,'ZADD',bzb,'1','second')
+    eq(c(s,f,'BZPOPMIN',bza,bzb,'10'),[B(bza),b'first',b'50'],
+       'BZPOPMIN cross-shard/first-ready precedence')
+    c(s,f,'DEL',bza,bzb)
+    for op in ('BZPOPMIN','BZPOPMAX'):
+        r=c(s,f,op,bza,bzb,'.05')
+        ck(rejected(r) and 'would block across shards' in str(r),
+           '%s cross-shard/all-empty must fail-safe reject: %r'%(op,r))
     c(s,f,'ZADD','z1','1','a','2','b'); c(s,f,'ZADD','z2','3','b','4','c')
     eq(c(s,f,'ZUNIONSTORE','zu','2','z1','z2'),3,'ZUNIONSTORE'); eq(c(s,f,'ZINTERSTORE','zi','2','z1','z2'),1,'ZINTERSTORE')
     eq(lst(c(s,f,'ZDIFF','2','z1','z2')),['a'],'ZDIFF'); eq(lst(c(s,f,'ZMSCORE','z1','a','x')),['1',None],'ZMSCORE')
