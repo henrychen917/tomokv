@@ -764,14 +764,11 @@ section_A() {
     known_probe multi          "$MULTI_MSG" MULTI
     known_probe watch          "$MULTI_MSG" WATCH somekey
     known_probe eval-keyed     "$GUARD_MSG" EVAL "return 1" 1 k1
-    known_probe lcs            "$GUARD_MSG" LCS ka kb
-    known_probe zrangestore    "$GUARD_MSG" ZRANGESTORE zdst zsrc 0 -1
-    known_probe blpop          "$GUARD_MSG" BLPOP nokey 0.1
-    known_probe brpop          "$GUARD_MSG" BRPOP nokey 0.1
-    known_probe xread          "$GUARD_MSG" XREAD COUNT 1 STREAMS nostream 0
-    known_probe georadius      "$GUARD_MSG" GEORADIUS geo 0 0 1 km
-    known_probe geosearchstore "$GUARD_MSG" GEOSEARCHSTORE gd gs FROMLONLAT 0 0 BYRADIUS 1 km ASC
-    known_probe sort-by        "$GUARD_MSG" SORT li:0 BY w_*
+    # LCS, ZRANGESTORE, BLPOP/BRPOP, XREAD, GEORADIUS, GEOSEARCHSTORE, SORT BY/GET are now PORTED
+    # across shards (validated by cmd_coverage: byte-exact output vs expected). Their old known-reject
+    # probes are removed — the probes only asserted "is it rejected", which is no longer true and never
+    # checked correctness. (The sort-by probe also had a bug: unquoted BY w_* glob-expanded in the shell.)
+    # Add these to the oracle-equivalence stream below for stronger coverage as a follow-up.
     known_probe migrate        "$GUARD_MSG" MIGRATE 127.0.0.1 1 k 0 100
 
     # --- comparator SELF-TEST: injected divergences MUST be caught ---
@@ -1354,10 +1351,8 @@ section_EG() {
     else
         row $sec decoy-blind-inner-eval "$cfg" FAIL "direct=[$direct] inner=[$inner]"
     fi
-    out=$(tcli "$FORK_PORT" LCS ka kb)
-    printf '%s' "$out" | grep -qF "$GUARD_MSG" \
-        && row $sec xshard-guard-message "$cfg" KNOWN "guard message intact (LCS)" \
-        || row $sec xshard-guard-message "$cfg" FAIL "LCS reply changed: $(printf '%s' "$out" | head -c 100)"
+    # LCS is now PORTED across shards (cmd_coverage validates its output); the old "guard message
+    # intact" probe is removed — it asserted rejection, which no longer holds and never checked output.
     row $sec debug-reload-ledger "$cfg" "${D_RELOAD_RESULT:-SUSPECT}" "${D_RELOAD_DETAIL:-section D reload cell did not run}"
 
     local cm; cm=$(crash_scan "$flog")
