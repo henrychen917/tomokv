@@ -19,6 +19,10 @@
 # Arm C re-runs the identical hot-key workload with the window switched OFF on the same binary; it
 # must show the veto NOT engaging, which is what makes arm A attributable to the window.
 set -u
+# PORT-SAFETY: SO_REUSEPORT lets a leaked/foreign server on $PORT silently share this
+# suite's accept group, blending two binaries into one measurement (the split is invisible
+# — a bind never fails). Gate on the PORT before boot and verify pid identity after.
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 OUT=$J/keylb_veto.out; : > $OUT
@@ -26,14 +30,42 @@ PORT=${KEYLB_PORT:-7897}
 SECS=${KEYLB_SECS:-30}
 CLI="$(dirname $BIN)/redis-cli"
 
+# LEAK GUARD: this is a MULTI-BOOT suite (arms A/B/C each boot on $PORT). Without a trap,
+# any early exit — a failed arm, an interrupt, an unset var under `set -u` — leaves the
+# current arm's server alive on $PORT, and the NEXT thing to boot there is silently split
+# with it. Kill our recorded pid on every exit path AND sweep the private name at end-of-run
+# (arm C's server in particular is otherwise only torn down on the happy path).
+VETO_PID=""
+cleanup_veto(){
+  if [ -n "${VETO_PID:-}" ]; then
+    kill -TERM "$VETO_PID" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$VETO_PID" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$VETO_PID" 2>/dev/null; wait "$VETO_PID" 2>/dev/null
+    VETO_PID=""
+  fi
+  pkill -9 -x redis-veto 2>/dev/null   # end-of-run sweep of the private name
+  return 0
+}
+trap cleanup_veto EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
+
 run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread), $3 = extra server args
   local arm=$1 wl=$2 xtra=$3
   pkill -9 -x redis-veto 2>/dev/null; sleep 1
   cp "$BIN" $J/redis-veto; rm -rf $J/vetodata; mkdir -p $J/vetodata; : > $J/veto_$arm.log
+  # PORT-SAFETY: refuse to boot while any listener still holds $PORT — otherwise it joins
+  # this arm's SO_REUSEPORT accept group and the load generator's connections split.
+  wait_port_free "$PORT" || { echo "$arm-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; return 1; }
   taskset -c 0-7 $J/redis-veto --port $PORT --dir $J/vetodata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
     --enable-debug-command yes --logfile $J/veto_$arm.log $xtra >/dev/null 2>&1 &
+  VETO_PID=$!
   sleep 3
+  # IDENTITY: N fresh INFO conns must all land on OUR pid. A second listener on $PORT would
+  # answer a share of them and silently blend its binary into this arm's counters.
+  server_identity_ok "$CLI" "$PORT" "$VETO_PID" || { echo "$arm-port-identity	FAIL	SO_REUSEPORT split on :$PORT" >> $OUT; $CLI -p $PORT shutdown nosave >/dev/null 2>&1; pkill -9 -x redis-veto 2>/dev/null; VETO_PID=""; return 1; }
   python3 - "$PORT" "$wl" "$SECS" "$arm" "$OUT" <<'PY'
 import socket, sys, time, threading, random
 port, wl, secs, arm, out = int(sys.argv[1]), sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
@@ -167,6 +199,7 @@ with open(out, "a") as f:
 PY
   $CLI -p $PORT shutdown nosave >/dev/null 2>&1; sleep 1
   pkill -9 -x redis-veto 2>/dev/null
+  wait "$VETO_PID" 2>/dev/null; VETO_PID=""   # reap + clear so the trap can't touch a recycled pid
   local cm; cm=$(grep -cE 'Guru|crashed by signal|ASSERTION' $J/veto_$arm.log 2>/dev/null); cm=${cm:-0}
   [ "$cm" = 0 ] && echo "$arm-crash-markers	PASS	0" >> $OUT || echo "$arm-crash-markers	FAIL	$cm" >> $OUT
 }

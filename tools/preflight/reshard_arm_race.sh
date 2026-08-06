@@ -17,6 +17,9 @@ set -u
 # and cannot touch anyone else's.
 BIN=${1:?server binary}; TAG=${2:?tag}; SECS=${3:-60}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# PORT-SAFETY: gate on the PORT so a leaked/foreign server on it cannot silently join our
+# SO_REUSEPORT accept group and blend two binaries into one measurement.
+. "$DIR/preflight_lib.sh"
 OUT=${TOMO_HANG_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp/hangw}/armrace_$TAG
 CLI=$(dirname "$BIN")/redis-cli
 [ -x "$CLI" ] || CLI=$(cd "$DIR/../.." && pwd)/src/redis-cli
@@ -30,12 +33,31 @@ rm -rf "$OUT"; mkdir -p "$OUT/data"
 # Lifecycle here is by our own PID, so the rename cannot leak a server either.
 cp "$BIN" "$OUT/redis-armrace"; BIN="$OUT/redis-armrace"
 pkill -9 -x redis-armrace 2>/dev/null; sleep 1
+# LEAK GUARD: tear our server down on EVERY exit path (this suite had none), so a failed
+# probe or an interrupt cannot leave a server on $PORT to split the next boot.
+SRV=""
+cleanup_armrace(){
+  if [ -n "${SRV:-}" ]; then
+    kill -TERM "$SRV" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$SRV" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$SRV" 2>/dev/null; wait "$SRV" 2>/dev/null; SRV=""
+  fi
+  pkill -9 -x redis-armrace 2>/dev/null; return 0
+}
+trap cleanup_armrace EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
+# PORT-SAFETY: refuse to boot while any listener still holds $PORT.
+wait_port_free "$PORT" || { echo "reshard-arm-race[$TAG]	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)"; exit 1; }
 taskset -c 0-7 "$BIN" --port $PORT --dir "$OUT/data" \
   --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile "$OUT/server.log" >"$OUT/stdout.log" 2>&1 &
 SRV=$!
 for i in $(seq 1 40); do [ "$(timeout 2 "$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
+# IDENTITY: after PONG, verify every fresh INFO conn lands on OUR pid — not a co-listener.
+server_identity_ok "$CLI" "$PORT" "$SRV" || { echo "reshard-arm-race[$TAG]	FAIL	SO_REUSEPORT split on :$PORT"; exit 1; }
 
 python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
 rc=$?

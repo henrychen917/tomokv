@@ -31,13 +31,32 @@
 #         (build with:  make SANITIZER=address MALLOC=libc)
 #         Must run under withbox.sh -- it needs the box to itself.
 set -u
+# PORT-SAFETY: a co-listener on $PORT would answer a share of the churn connections, so the
+# ASAN result would be a blend of two binaries. Gate on $PORT + verify pid identity.
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${BIN:?BIN required (an ASAN build)}
 D=$(cd "$(dirname "$0")" && pwd)
 NAME=$(basename "$BIN")                 # keep <=15 chars: pkill -x matches truncated comm
 PORT=${PORT:-7965}
 SECS=${SECS:-90}
 rm -rf "$D/lb1"; mkdir -p "$D/lb1"
+# Cleanup on every exit path (this suite had none): kill OUR recorded pid, then sweep the name.
+SRV=""
+cleanup_lb1(){
+  if [ -n "${SRV:-}" ]; then
+    kill -TERM "$SRV" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$SRV" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$SRV" 2>/dev/null; wait "$SRV" 2>/dev/null; SRV=""
+  fi
+  pkill -9 -x "$NAME" 2>/dev/null; return 0
+}
+trap cleanup_lb1 EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 pkill -9 -x "$NAME" 2>/dev/null; sleep 1
+# PORT-SAFETY: refuse to boot while any listener still holds $PORT.
+wait_port_free "$PORT" || { echo "INVALID: :$PORT still has a listener before boot (SO_REUSEPORT split risk) -- refusing to boot into a blend"; exit 2; }
 
 ASAN_OPTIONS="detect_leaks=0 halt_on_error=0 abort_on_error=0 log_path=$D/lb1/asan" \
 taskset -c 0-7 "$BIN" --port $PORT --dir "$D/lb1" --tomokv-nodes 1 --tomokv-thread-io 4 \
@@ -49,6 +68,13 @@ kill -0 $SRV 2>/dev/null || { echo "SERVER DIED AT BOOT"; tail -30 "$D/lb1/$NAME
 
 CLI=$(dirname "$BIN")/redis-cli
 [ -x "$CLI" ] || CLI=redis-cli
+
+# IDENTITY: every fresh INFO conn must land on OUR pid; a co-listener on $PORT would answer a
+# share of the churn below and the ASAN verdict would be a two-binary blend.
+if ! server_identity_ok "$CLI" "$PORT" "$SRV"; then
+  echo "INVALID: SO_REUSEPORT split on :$PORT -- another listener answered; ASAN result would be a blend"
+  kill -9 $SRV 2>/dev/null; exit 2
+fi
 
 LOG="$D/lb1/$NAME.log"
 

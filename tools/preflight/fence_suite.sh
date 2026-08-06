@@ -3,6 +3,7 @@
 # Checks: crash repro survival, serialization -BUSY, sequential no-leak,
 # foreign SCRIPT KILL + epoch clear, keyed-EVAL reject WITH gate release.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 # LEAK GUARD (2026-08-04): without this, ANY early exit -- a failed assert, a timeout, an
 # unset var under `set -u` -- leaves this suite's server running. That is not cosmetic:
@@ -10,21 +11,44 @@ set -u
 # fail to bind; the kernel silently SPLITS connections between the two and the suite
 # measures a blend of both. preflight caught stress_reclaim leaking exactly this way, and
 # it is the most likely cause of feature_sweep failures that do not reproduce standalone.
-_leak_guard(){ [ -n "${BIN:-}" ] && pkill -9 -x "$(basename "$BIN")" 2>/dev/null; return 0; }
+# The real server is staged as redis-fence (below); the old guard reaped basename BIN
+# (redis-server) instead, so it never actually killed the fence server. Kill OUR recorded
+# pid first, then sweep the real staged name; keep the old name sweep as belt-and-suspenders.
+FSPID=""
+_leak_guard(){
+  if [ -n "${FSPID:-}" ]; then
+    kill -TERM "$FSPID" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$FSPID" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$FSPID" 2>/dev/null; wait "$FSPID" 2>/dev/null
+  fi
+  pkill -9 -x redis-fence 2>/dev/null
+  [ -n "${BIN:-}" ] && pkill -9 -x "$(basename "$BIN")" 2>/dev/null
+  return 0
+}
 trap _leak_guard EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 P=/shared/Projects; PORT=7975; C="$P/redis/src/redis-cli -p $PORT"
+C_BIN="$P/redis/src/redis-cli"   # bare path (no -p) for server_identity_ok
 OUT=$J/fence_suite.out; : > $OUT
 ok(){ echo "PASS $1" >> $OUT; }; bad(){ echo "FAIL $1" >> $OUT; }
 cp "$BIN" $J/redis-fence 2>/dev/null; FB=$J/redis-fence
 pkill -9 -x redis-fence 2>/dev/null; sleep 1; rm -rf $J/fsd; mkdir -p $J/fsd; : > $J/fs.log
+# PORT-SAFETY: refuse to boot while any listener still holds $PORT, else it REUSEPORT-joins.
+wait_port_free "$PORT" || { bad "port-busy (:$PORT still has a listener before boot — SO_REUSEPORT split risk)"; exit 0; }
 taskset -c 0-7 $FB --port $PORT --dir $J/fsd --tomokv-nodes 1 --tomokv-thread-io 4 \
   --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
   --logfile $J/fs.log >/dev/null 2>&1 &
+FSPID=$!
 sleep 3
 timeout 3 $C ping 2>/dev/null | grep -q PONG || { bad "boot"; exit 0; }
+# IDENTITY: every fresh INFO conn must land on OUR pid; a co-listener on $PORT would split
+# the correctness probes (the EVAL, the SCRIPT KILL) across two servers and void the run.
+server_identity_ok "$C_BIN" "$PORT" "$FSPID" || { bad "port-identity (SO_REUSEPORT split on :$PORT)"; exit 0; }
 ITER=$([ "${SMOKE:-0}" = 1 ] && echo 5 || echo 20)
 F=0
 for it in $(seq 1 $ITER); do

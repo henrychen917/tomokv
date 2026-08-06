@@ -39,22 +39,53 @@
 # expired early fails instead of passing; and an UNARMED control must move the sum on the same
 # build, or "the sum did not move" would prove nothing.
 set -u
+# PORT-SAFETY: this probe's io-thread-partition logic is void if a co-listener on $PORT
+# answers some of its connections. Gate on $PORT before boot, verify pid identity after,
+# and tear our server down on every exit path (this suite had no trap).
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 PORT=${TOMO_PORT:-7318}
 NAME=redis-exnest
 OUT=$J/exec_nesting.out; : > "$OUT"
+CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$_PFDIR/../../src/redis-cli"
+SRV=""
+cleanup_exn(){
+  if [ -n "${SRV:-}" ]; then
+    kill -TERM "$SRV" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$SRV" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$SRV" 2>/dev/null; wait "$SRV" 2>/dev/null; SRV=""
+  fi
+  pkill -9 -x $NAME 2>/dev/null; return 0
+}
+trap cleanup_exn EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 cp "$BIN" "$J/$NAME" 2>/dev/null || exit 2
 pkill -9 -x $NAME 2>/dev/null; sleep 1
 rm -rf "$J/exn"; mkdir -p "$J/exn"; : > "$J/exn.log"
 # --enable-debug-command is a TEST facility (DEBUG SLEEP is the only way to hold a thread inside
 # call() on demand), not a behaviour knob for the code under test: nothing else here is non-default.
-taskset -c 0-7 "$J/$NAME" --port $PORT --dir "$J/exn" --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
-  --enable-debug-command yes --logfile "$J/exn.log" >/dev/null 2>&1 &
-sleep 3
-python3 "$(dirname "$0")/exec_nesting.py" "$OUT" "$PORT"
-rc=$?
+rc=1
+if ! wait_port_free "$PORT"; then
+  echo "exec_nesting-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> "$OUT"
+else
+  taskset -c 0-7 "$J/$NAME" --port $PORT --dir "$J/exn" --tomokv-nodes 1 --tomokv-thread-io 4 \
+    --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
+    --enable-debug-command yes --logfile "$J/exn.log" >/dev/null 2>&1 &
+  SRV=$!
+  sleep 3
+  # Identity gate only when a redis-cli is actually available (this suite otherwise drives the
+  # server purely from python); a missing cli must NOT be misread as a split.
+  if [ -x "$CLI" ] && ! server_identity_ok "$CLI" "$PORT" "$SRV"; then
+    echo "exec_nesting-port-identity	FAIL	SO_REUSEPORT split on :$PORT" >> "$OUT"
+    rc=1
+  else
+    python3 "$(dirname "$0")/exec_nesting.py" "$OUT" "$PORT"
+    rc=$?
+  fi
+fi
 pkill -9 -x $NAME 2>/dev/null
 echo "--- $OUT ---"
 cat "$OUT"

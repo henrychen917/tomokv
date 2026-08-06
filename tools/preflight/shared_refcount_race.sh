@@ -10,6 +10,9 @@
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 HERE=$(cd "$(dirname "$0")" && pwd)
+# PORT-SAFETY: gate on the PORT before each trial so a leaked/foreign server cannot join
+# this trial's SO_REUSEPORT accept group and contaminate the crash draw.
+. "$HERE/preflight_lib.sh"
 # ee451 2026-07-29: HAND-WRITTEN FIX -- this suite had no BIN-style variable, so the mechanical
 # `pkill -x "$(basename "$BIN")"` substitution applied to the rest of the tree could not be applied
 # here. The old rule below was: "arm binaries MUST be named exactly redis-server, distinguished by
@@ -57,6 +60,11 @@ run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
   # reach anyone else's. The arms stay distinguished by which binary we copy in.
   local run=$J/rc_arm_$label; mkdir -p "$run"
   cp -f "$bin" "$run/redis-rcrace" 2>/dev/null; chmod +x "$run/redis-rcrace" 2>/dev/null
+  # PORT-SAFETY: refuse to boot this trial while any listener still holds $PORT.
+  if ! wait_port_free "$PORT"; then
+      echo "$label trial $3: SKIP (:$PORT still has a listener before boot — SO_REUSEPORT split risk)" | tee -a "$OUT"
+      return 2
+  fi
   # >1 worker per node is what makes the dbs shared and the verbs concurrently refcounted
   taskset -c 0-7 "$run/redis-rcrace" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
       --save '' --appendonly no --protected-mode no --enable-debug-command yes \
@@ -66,6 +74,13 @@ run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
   sleep 3
   if ! "$HERE/../../src/redis-cli" -p $PORT ping 2>/dev/null | grep -q PONG; then
       echo "$label trial $3: SKIP (server did not boot)" | tee -a "$OUT"
+      cleanup_rc
+      return 2
+  fi
+  # IDENTITY: every fresh INFO conn must land on OUR pid; a co-listener on $PORT would
+  # otherwise take a share of the probe's connections and void this trial's draw.
+  if ! server_identity_ok "$HERE/../../src/redis-cli" "$PORT" "$RCPID"; then
+      echo "$label trial $3: SKIP (SO_REUSEPORT split on :$PORT)" | tee -a "$OUT"
       cleanup_rc
       return 2
   fi

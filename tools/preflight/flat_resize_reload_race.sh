@@ -26,6 +26,9 @@
 # NOT VACUOUS: the run FAILS if no reload ever STARTED while a copy was in flight, because then it
 # proved nothing -- see the reload-inside-live-copy gate at the bottom.
 set -u
+# PORT-SAFETY: a leaked/foreign server on $PORT would REUSEPORT-join this probe and split
+# the DEBUG RELOAD sequence across two binaries. Gate on $PORT + verify pid identity.
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${TOMO_BIN:?TOMO_BIN required}
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
@@ -55,8 +58,21 @@ OUT=${OUT:-$J/flat_resize_reload_race.out}; : > $OUT
 NAME=redis-rzreload
 RUN=$J/rzreload_run
 cp "$BIN" $J/$NAME 2>/dev/null || { echo "cannot stage $BIN" >&2; exit 2; }
-cleanup() { pkill -9 -x $NAME 2>/dev/null; }
+# Kill OUR recorded pid first (set at launch below), then sweep the private staged name, on
+# every exit path — the old trap was EXIT-only and name-based; RZPID makes it precise.
+RZPID=""
+cleanup() {
+  if [ -n "${RZPID:-}" ]; then
+    kill -TERM "$RZPID" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$RZPID" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$RZPID" 2>/dev/null; wait "$RZPID" 2>/dev/null
+  fi
+  pkill -9 -x $NAME 2>/dev/null
+}
 trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 rec() { printf "%s\t%s\t%s\n" "$1" "$2" "${3:-}" >> $OUT; }
 
@@ -80,11 +96,22 @@ pkill -9 -x $NAME 2>/dev/null; sleep 0.5
 rm -rf $RUN; mkdir -p $RUN
 # ex=4 => workers-per-node > 1 => shared_node_dbs => FLATSTORE. ex=1 is dict-backed and has no
 # resize coordinator at all, so this probe is flat-only by construction.
-taskset -c $CPUS $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
-  --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
+# PORT-SAFETY: only boot if $PORT is free; a listener still here would REUSEPORT-join us.
+if wait_port_free "$PORT"; then
+  taskset -c $CPUS $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
+    --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
+    --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
+  RZPID=$!
+else
+  rec boot FAIL "port-busy (:$PORT still has a listener before boot — SO_REUSEPORT split risk)"
+fi
 for i in $(seq 1 100); do timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
 if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec boot FAIL "no PONG"; fi
+# IDENTITY: verify every fresh INFO conn lands on OUR pid. A co-listener on $PORT would split
+# the DEBUG RELOAD/dbsize sequence below across two servers; tear ours down so it is skipped.
+if [ -n "${RZPID:-}" ] && timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
+  server_identity_ok "$CLI" "$PORT" "$RZPID" || { rec identity FAIL "SO_REUSEPORT split on :$PORT"; kill -9 "$RZPID" 2>/dev/null; wait "$RZPID" 2>/dev/null; RZPID=""; }
+fi
 
 if timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
   # small values: the table must be BIG (4M slots) while the RDB stays small, so the save/load legs

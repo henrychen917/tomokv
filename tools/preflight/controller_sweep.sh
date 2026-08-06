@@ -701,7 +701,12 @@ c1_flip() {
     boot flip_oo_set --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
     fill flip_oo_set_fill
     oset=$(mt flip_oo_set_meas $W_P32SET --test-time="$T_MEAS")
-    local ioset; ioset=$(iolive)
+    # iolive scrapes io_threads_live= from the log, which is ONLY written on a FLIP. A controller
+    # that correctly HOLDS for SET (the expected behavior here) never flips, so it logs no such line
+    # and iolive is empty -> the ${ioset:-0} gate below then read 0 and FALSE-FAILED a controller
+    # doing exactly the right thing. Empty <=> no flip <=> still at the boot config (io 4 here); a
+    # wrong flip WOULD log a line, so this default cannot mask a real miss.
+    local ioset; ioset=$(iolive); : "${ioset:=4}"
     stopsrv
     boot flip_oo_get --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
     fill flip_oo_get_fill

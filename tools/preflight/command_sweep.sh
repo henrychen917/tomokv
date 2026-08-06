@@ -149,6 +149,9 @@ set -u
 # ---- paths ------------------------------------------------------------------
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp
 SD="$(cd "$(dirname "$0")" && pwd)"
+# PORT-SAFETY: the pgrep-x-redis-server guards below miss a leaker staged under a private
+# name; the port does not. Gate on $PORT before each class boots and verify pid identity.
+. "$SD/preflight_lib.sh"
 TREE="$(cd "$SD/../.." && pwd)"
 BIN="${1:-${TOMO_BIN:-$TREE/src/redis-server}}"
 CLI=/shared/Projects/redis/src/redis-cli
@@ -254,6 +257,8 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   rm -rf "$DATA"; mkdir -p "$DATA"; : > "$SRVLOG"
   if pgrep -x redis-server >/dev/null 2>&1; then
     row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(foreign-server)"; return 1; fi
+  # PORT-SAFETY: a private-named leaker passes the pgrep check above but still holds $PORT.
+  wait_port_free "$PORT" || { row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(port-busy)"; return 1; }
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
     --tomokv-nodes 1 --tomokv-thread-io "$IO_T" --tomokv-thread-ex "$EX_T" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
@@ -273,6 +278,10 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   local n; n=$(pgrep -x redis-server 2>/dev/null | wc -l)
   if [ "$n" != 1 ]; then
     row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(server-count=$n)"; stopsrv; return 1; fi
+  # IDENTITY: the count check above is comm-based and cannot see a private-named co-listener
+  # on $PORT. Every fresh INFO conn must land on OUR pid or this class measures a blend.
+  server_identity_ok "$CLI" "$PORT" "$SRV_PID" || {
+    row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(port-identity-split)"; stopsrv; return 1; }
   return 0
 }
 
@@ -287,7 +296,7 @@ stopsrv() {
   wait "$SRV_PID" 2>/dev/null
   SRV_PID=
 }
-trap 'stopsrv' EXIT INT TERM
+trap 'stopsrv' EXIT INT TERM HUP
 
 alive_one() { # PONG + exactly one server (assert ONE server pre-measure)
   timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG || return 1

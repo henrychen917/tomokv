@@ -19,6 +19,9 @@ set -u
 J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# PORT-SAFETY: gate on the PORT so a leaked/foreign server cannot silently join our
+# SO_REUSEPORT accept group and blend two binaries across these cutovers.
+. "$DIR/preflight_lib.sh"
 OUT=$J/reshard_suite.out; : > $OUT
 PORT=7899
 # ee451 2026-07-29: RESOLVE redis-cli, do not assume it sits next to the server.
@@ -46,6 +49,9 @@ fi
 cp "$BIN" $J/redis-rs 2>/dev/null; RSBIN=$J/redis-rs
 pkill -9 -x redis-rs 2>/dev/null; sleep 2
 rm -rf $J/rsdata; mkdir -p $J/rsdata
+# PORT-SAFETY: refuse to boot while any listener still holds $PORT (this runs BEFORE the
+# teardown trap is armed, so there is nothing of ours to clean up on this early exit).
+wait_port_free "$PORT" || { echo "reshard-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; cat $OUT; exit 1; }
 taskset -c 0-7 "$RSBIN" --port $PORT --dir $J/rsdata --tomokv-nodes 1 \
   --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
   --protected-mode no --enable-debug-command yes --logfile $J/rs.log >/dev/null 2>&1 &
@@ -56,6 +62,9 @@ SRV=$!
 trap 'kill -9 "$SRV" 2>/dev/null' EXIT TERM INT HUP
 sleep 3
 [ "$(pgrep -x redis-rs | wc -l)" = 1 ] || { echo "FAIL	one-server-assert	not exactly 1 server" >> $OUT; exit 1; }
+# IDENTITY: pgrep-by-name above cannot see a leaker staged under a private name; the port
+# can. Every fresh INFO conn must land on OUR pid or the measurement is a two-binary blend.
+server_identity_ok "$CLI" "$PORT" "$SRV" || { echo "FAIL	port-identity-split	SO_REUSEPORT split on :$PORT" >> $OUT; exit 1; }
 
 python3 "$DIR/reshard_order.py" $PORT 3000 > $J/rs_probe.out 2>&1
 rc=$?

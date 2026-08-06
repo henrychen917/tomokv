@@ -4,7 +4,12 @@
 # per-node reclaim walk (flatReclaimAll iterates n_node_dbs), node-scoped worker ranges in the grace,
 # and the numa>=2 flip/balancer paths — even though the physical coherence topology is still one CCD.
 J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
+# PORT-SAFETY: boot() already re-runs cleanup_n2, but that reaps by pid only — a leaked/foreign
+# server on :7978 would still REUSEPORT-join. Gate on the port before boot + verify pid identity
+# after (boot currently trusts `sleep 1`/`sleep 3`).
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 CLI="$P/redis/src/redis-cli -p 7978"
+CLI_BIN="$P/redis/src/redis-cli"   # bare path (no -p) for server_identity_ok
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p 7978 --hide-histogram"
 OUT=$J/numa2_validate.out; : > $OUT
 PASS=0; FAIL=0
@@ -41,12 +46,23 @@ trap 'exit 129' HUP
 
 boot(){ # $1 = numa nodes
   cleanup_n2; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
+  # PORT-SAFETY: refuse to boot while any listener still holds :7978.
+  wait_port_free 7978 || { echo "  boot: :7978 still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; return 1; }
   taskset -c 0-7 "$N2BIN" --port 7978 --dir $J/n2data --tomokv-nodes $1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
     --save '' --appendonly no --protected-mode no --enable-debug-command yes \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
   N2PID=$!
-  sleep 3; for i in $(seq 1 30); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 1; done; return 1; }
+  sleep 3
+  for i in $(seq 1 30); do
+    if timeout 2 $CLI ping 2>/dev/null | grep -q PONG; then
+      # IDENTITY: every fresh INFO conn must land on OUR pid or every measurement is a blend.
+      server_identity_ok "$CLI_BIN" 7978 "$N2PID" || { echo "  SO_REUSEPORT split on :7978 — measurement void" >> $OUT; return 1; }
+      return 0
+    fi
+    sleep 1
+  done
+  return 1; }
 # rss() read `ps -C redis-server | head -1` -- on a shared box that is whichever server sorts first,
 # i.e. potentially ANOTHER SESSION'S process. Read our own /proc entry instead.
 rss(){ awk '/VmRSS/{print int($2/1024)}' /proc/$N2PID/status 2>/dev/null; }

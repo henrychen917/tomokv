@@ -27,6 +27,10 @@
 # instr/op is polluted by spin instructions that have nothing to do with the change.
 # ABBA rotation per rep; medians reported.
 set -u
+# PORT-SAFETY: SO_REUSEPORT lets a leaked/foreign server on $PORT silently share this
+# suite's accept group, halving measured throughput into a two-binary blend with no bind
+# error. Gate on the PORT before each cell boots and verify pid identity after.
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
 # `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
 # other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
@@ -42,12 +46,31 @@ PORT=${FINE_PORT:-7973}
 REPS=${FINE_REPS:-3}; DUR=${FINE_DUR:-20}
 OUT=$J/keylb_fine_cost.tsv
 CLI="$(dirname $BIN)/redis-cli -p $PORT"
+CLI_BIN="$(dirname "$BIN")/redis-cli"   # bare path (no -p) for server_identity_ok
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 : > $OUT
 printf "rep\tarm\twl\tops\tmigs\n" >> $OUT
 
 # `comm` truncates at 15 chars, so `pkill -x memtier_benchmark` matches NOTHING.
 killsrv(){ pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; pkill -9 -x memtier_benchma 2>/dev/null; sleep 2; }
+
+# LEAK GUARD (this suite had no trap): each cell boots on $PORT, and an early exit — a failed
+# cell, an interrupt, an unset var under `set -u` — otherwise leaves that cell's server alive
+# on $PORT to split the next boot. Kill OUR recorded pid on every exit path. FINE_PID is set
+# WITHOUT `local` in cell() so it is visible here at script scope.
+FINE_PID=""
+cleanup_fine(){
+  if [ -n "${FINE_PID:-}" ]; then
+    kill -TERM "$FINE_PID" 2>/dev/null
+    for _i in $(seq 1 40); do kill -0 "$FINE_PID" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$FINE_PID" 2>/dev/null; wait "$FINE_PID" 2>/dev/null; FINE_PID=""
+  fi
+  return 0
+}
+trap cleanup_fine EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 BASE_BIN=${FINE_BASE_BIN:-}
 
@@ -56,12 +79,19 @@ cell(){ # $1 arm-name  $2 knob-value ("" = base build, knob does not exist)  $3 
   rm -rf $J/finecost; mkdir -p $J/finecost; : > $J/fine_$1.log
   local b="$BIN" knob=(--tomokv-key-lb-fine "$2")
   if [ "$1" = base ]; then b="$BASE_BIN"; knob=(); fi
+  # PORT-SAFETY: refuse to boot while any listener still holds $PORT (killsrv above should
+  # have cleared ours; a listener still here means a foreign/leaked server would REUSEPORT-join).
+  wait_port_free "$PORT" || { printf "%s\t%s\tPORTBUSY\t0\t0\n" "$3" "$1" >> $OUT; return; }
   taskset -c 0-7 "$b" --port $PORT --dir $J/finecost --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
     "${knob[@]}" --enable-debug-command yes \
     --save '' --appendonly no --protected-mode no --logfile $J/fine_$1.log >/dev/null 2>&1 &
+  FINE_PID=$!    # script-scope (no `local`) so the EXIT trap can reap it
   sleep 2; for i in $(seq 1 25); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && break; sleep 0.5; done
   timeout 2 $CLI ping 2>/dev/null | grep -q PONG || { printf "%s\t%s\tBOOTFAIL\t0\t0\n" "$3" "$1" >> $OUT; return; }
+  # IDENTITY: pgrep-by-name below cannot see a private-named leaker; the port can. Every fresh
+  # INFO conn must land on OUR pid or this cell's ops/s is a two-binary blend.
+  server_identity_ok "$CLI_BIN" "$PORT" "$FINE_PID" || { printf "%s\t%s\tSPLIT\t0\t0\n" "$3" "$1" >> $OUT; killsrv; FINE_PID=""; return; }
   # HARD ASSERT exactly one server: a leaked one from a previous cell silently halves throughput.
   local n; n=$(pgrep -x redis-server | wc -l)
   [ "$n" = 1 ] || { printf "%s\t%s\tLEAK(%s)\t0\t0\n" "$3" "$1" "$n" >> $OUT; killsrv; return; }
@@ -77,7 +107,7 @@ cell(){ # $1 arm-name  $2 knob-value ("" = base build, knob does not exist)  $3 
     m1=$($CLI debug reshard trigger 2>/dev/null | tr ' ' '\n' | awk -F= '$1=="fire"{print $2}')
     printf "%s\t%s\t%s\t%s\t%s\n" "$3" "$1" "$wl" "${ops:-0}" "$((${m1:-0}-${m0:-0}))" >> $OUT
   done
-  killsrv
+  killsrv; FINE_PID=""   # reap by name (existing) + clear so the trap can't touch a recycled pid
 }
 
 ARMS="off auto armed"
