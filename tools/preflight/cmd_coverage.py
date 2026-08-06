@@ -189,6 +189,57 @@ def partA():
     c(s,f,'ZADD','z1','1','a','2','b'); c(s,f,'ZADD','z2','3','b','4','c')
     eq(c(s,f,'ZUNIONSTORE','zu','2','z1','z2'),3,'ZUNIONSTORE'); eq(c(s,f,'ZINTERSTORE','zi','2','z1','z2'),1,'ZINTERSTORE')
     eq(lst(c(s,f,'ZDIFF','2','z1','z2')),['a'],'ZDIFF'); eq(lst(c(s,f,'ZMSCORE','z1','a','x')),['1',None],'ZMSCORE')
+    # ---- cross-shard set-op REDUCE path (fpp: shard-local reduce -> coordinator merge -> dest write) ----
+    # Force >=2 sources onto DIFFERENT shards so the merge-execution pipeline (nkeys>=2) runs; compare the
+    # stored/returned result to a Python reference of stock SINTER/UNION/DIFF + ZUNION/INTER/DIFF WEIGHTS/
+    # AGGREGATE. The zset fold is done in KEY ORDER, so a shard-regrouped (a+b)+c != a+(b+c) FP sum is caught.
+    def zsetop_ref(op, srcs, weights=None, agg='SUM'):
+        w=weights or [1.0]*len(srcs)
+        def fold(vs):
+            if agg=='MIN': return min(vs)
+            if agg=='MAX': return max(vs)
+            r=0.0
+            for v in vs: r+=v
+            return r
+        if op=='INTER':
+            ks=set(srcs[0])
+            for d in srcs[1:]: ks&=set(d)
+        elif op=='DIFF':
+            ks=set(srcs[0])
+            for d in srcs[1:]: ks-=set(d)
+            return sorted(((m,srcs[0][m]) for m in ks), key=lambda p:(p[1],p[0]))
+        else:
+            ks=set()
+            for d in srcs: ks|=set(d)
+        out=[(m, fold([w[i]*srcs[i][m] for i in range(len(srcs)) if m in srcs[i]])) for m in ks]
+        return sorted(out, key=lambda p:(p[1],p[0]))
+    def znum(x): return '%d'%x if float(x)==int(x) else repr(x)
+    csa,csb=shard_pair(s,f,True,'csetop')
+    c(s,f,'DEL',csa,csb,'cs-i','cs-u','cs-d')
+    c(s,f,'SADD',csa,'a','b','c','d'); c(s,f,'SADD',csb,'c','d','e')
+    eq(sorted(lst(c(s,f,'SINTER',csa,csb))),['c','d'],'xshard-SINTER-read'); eq(sorted(lst(c(s,f,'SUNION',csa,csb))),['a','b','c','d','e'],'xshard-SUNION-read')
+    eq(c(s,f,'SINTERSTORE','cs-i',csa,csb),2,'xshard-SINTERSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-i'))),['c','d'],'xshard-SINTERSTORE')
+    eq(c(s,f,'SUNIONSTORE','cs-u',csa,csb),5,'xshard-SUNIONSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-u'))),['a','b','c','d','e'],'xshard-SUNIONSTORE')
+    eq(c(s,f,'SDIFFSTORE','cs-d',csa,csb),2,'xshard-SDIFFSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-d'))),['a','b'],'xshard-SDIFFSTORE')
+    c(s,f,'DEL',csa,csb); c(s,f,'SADD',csa,'x','y'); c(s,f,'SADD',csb,'z','w'); c(s,f,'SET','cs-i','stale')
+    eq(c(s,f,'SINTERSTORE','cs-i',csa,csb),0,'xshard-SINTERSTORE-empty-card'); eq(c(s,f,'EXISTS','cs-i'),0,'xshard-SINTERSTORE-empty-deletes')
+    c(s,f,'SET','cs-str','v'); r=c(s,f,'SINTERSTORE','cs-w',csa,'cs-str'); ck(rejected(r) and 'WRONGTYPE' in str(r),'xshard-SINTERSTORE-WRONGTYPE %r'%r)
+    za,zb=shard_pair(s,f,True,'czop'); zA={'a':1,'b':2,'c':3}; zB={'b':10,'c':20,'d':30}
+    c(s,f,'DEL',za,zb); c(s,f,'ZADD',za,*[x for m,sc in zA.items() for x in (znum(sc),m)]); c(s,f,'ZADD',zb,*[x for m,sc in zB.items() for x in (znum(sc),m)])
+    zr=zsetop_ref('UNION',[zA,zB],[2,3],'SUM')
+    eq(lst(c(s,f,'ZUNION','2',za,zb,'WEIGHTS','2','3','WITHSCORES')),[x for m,sc in zr for x in (m,znum(sc))],'xshard-ZUNION-read')
+    def zopchk(storecmd,op,weights,agg):
+        ref=zsetop_ref(op,[zA,zB],weights,agg); args=['2',za,zb]
+        if weights: args+=['WEIGHTS']+[znum(w) for w in weights]
+        if agg!='SUM': args+=['AGGREGATE',agg]
+        exp=[x for m,sc in ref for x in (m,znum(sc))]
+        eq(c(s,f,storecmd,'cz-dst',*args),len(ref),'xshard-%s-%s-card'%(storecmd,agg)); eq(lst(c(s,f,'ZRANGE','cz-dst','0','-1','WITHSCORES')),exp,'xshard-%s-%s'%(storecmd,agg))
+    zopchk('ZUNIONSTORE','UNION',[2,3],'SUM'); zopchk('ZUNIONSTORE','UNION',[1,1],'MIN'); zopchk('ZUNIONSTORE','UNION',[1,1],'MAX')
+    zopchk('ZINTERSTORE','INTER',[2,3],'SUM'); zopchk('ZINTERSTORE','INTER',[1,1],'MAX')
+    eq(c(s,f,'ZDIFFSTORE','cz-dst','2',za,zb),1,'xshard-ZDIFFSTORE-card'); eq(lst(c(s,f,'ZRANGE','cz-dst','0','-1','WITHSCORES')),['a','1'],'xshard-ZDIFFSTORE')
+    c(s,f,'DEL','cz-set'); c(s,f,'SADD','cz-set','c','e')
+    mref=zsetop_ref('UNION',[zA,{'c':1,'e':1}],[1,5],'SUM')
+    eq(c(s,f,'ZUNIONSTORE','cz-mix','2',za,'cz-set','WEIGHTS','1','5'),len(mref),'xshard-ZUNIONSTORE-mixed-card'); eq(lst(c(s,f,'ZRANGE','cz-mix','0','-1','WITHSCORES')),[x for m,sc in mref for x in (m,znum(sc))],'xshard-ZUNIONSTORE-mixed')
     # Monotonic skiplist inserts (including equal-score lexical tails) must retain exact sorted order.
     zmono=[('zm%04d'%i,i//3) for i in range(384)]; zmono_args=[x for name,score in zmono for x in (str(score),name)]
     c(s,f,'DEL','zmono'); eq(c(s,f,'ZADD','zmono',*zmono_args),len(zmono),'ZADD-monotonic-append')
