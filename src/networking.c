@@ -429,6 +429,10 @@ client *createClient(connection *conn) {
         connSetPrivateData(conn, c);
     }
     c->buf = zmalloc_usable(PROTO_REPLY_CHUNK_BYTES, &c->buf_usable_size);
+    c->tomo_local_worker = -1;  /* MUST precede selectDb(): it reads this to pick a per-worker shard
+                                 * DB, and createClient uses uninitialized zmalloc memory — garbage
+                                 * >=0 here indexes server.exThreads[garbage] OOB (boot crash via the
+                                 * scriptingInit script client). The later init is now redundant. */
     selectDb(c,0);
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
