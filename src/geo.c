@@ -521,13 +521,14 @@ void geoaddCommand(client *c) {
  * GEOSEARCHSTORE dest_key src_key [FROMMEMBER member] [FROMLONLAT long lat] [BYRADIUS radius unit]
  *               [BYBOX width height unit] [COUNT count [ANY]] [ASC|DESC] [STOREDIST]
  *  */
-void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
+static robj *georadiusGeneric(client *c, int srcKeyIndex, int flags, int detached) {
     robj *storekey = NULL;
+    robj *detached_result = NULL;
     int storedist = 0; /* 0 for STORE, 1 for STOREDIST. */
 
     /* Look up the requested zset */
     kvobj *zobj = lookupKeyRead(c->db, c->argv[srcKeyIndex]);
-    if (checkType(c, zobj, OBJ_ZSET)) return;
+    if (checkType(c, zobj, OBJ_ZSET)) return NULL;
 
     /* Find long/lat to use for radius or box search based on inquiry type */
     int base_args;
@@ -536,8 +537,8 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
         /* GEORADIUS or GEORADIUS_RO */
         base_args = 6;
         shape.type = CIRCULAR_TYPE;
-        if (extractLongLatOrReply(c, c->argv + 2, shape.xy) == C_ERR) return;
-        if (extractDistanceOrReply(c, c->argv+base_args-2, &shape.conversion, &shape.t.radius) != C_OK) return;
+        if (extractLongLatOrReply(c, c->argv + 2, shape.xy) == C_ERR) return NULL;
+        if (extractDistanceOrReply(c, c->argv+base_args-2, &shape.conversion, &shape.t.radius) != C_OK) return NULL;
     } else if ((flags & RADIUS_MEMBER) && !zobj) {
         /* We don't have a source key, but we need to proceed with argument
          * parsing, so we know which reply to use depending on the STORE flag. */
@@ -549,9 +550,9 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
         robj *member = c->argv[2];
         if (longLatFromMember(zobj, member, shape.xy) == C_ERR) {
             addReplyError(c, "could not decode requested zset member");
-            return;
+            return NULL;
         }
-        if (extractDistanceOrReply(c, c->argv+base_args-2, &shape.conversion, &shape.t.radius) != C_OK) return;
+        if (extractDistanceOrReply(c, c->argv+base_args-2, &shape.conversion, &shape.t.radius) != C_OK) return NULL;
     } else if (flags & GEOSEARCH) {
         /* GEOSEARCH or GEOSEARCHSTORE */
         base_args = 2;
@@ -561,7 +562,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
         }
     } else {
         addReplyError(c, "Unknown georadius search type");
-        return;
+        return NULL;
     }
 
     /* Discover and populate all optional parameters. */
@@ -588,10 +589,10 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
                 sort = SORT_DESC;
             } else if (!strcasecmp(arg, "count") && (i+1) < remaining) {
                 if (getLongLongFromObjectOrReply(c, c->argv[base_args+i+1],
-                                                 &count, NULL) != C_OK) return;
+                                                 &count, NULL) != C_OK) return NULL;
                 if (count <= 0) {
                     addReplyError(c,"COUNT must be > 0");
-                    return;
+                    return NULL;
                 }
                 i++;
             } else if (!strcasecmp(arg, "store") &&
@@ -629,7 +630,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
 
                 if (longLatFromMember(zobj, c->argv[base_args+i+1], shape.xy) == C_ERR) {
                     addReplyError(c, "could not decode requested zset member");
-                    return;
+                    return NULL;
                 }
                 frommember = 1;
                 i++;
@@ -638,7 +639,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
                        flags & GEOSEARCH &&
                        !frommember)
             {
-                if (extractLongLatOrReply(c, c->argv+base_args+i+1, shape.xy) == C_ERR) return;
+                if (extractLongLatOrReply(c, c->argv+base_args+i+1, shape.xy) == C_ERR) return NULL;
                 fromloc = 1;
                 i += 2;
             } else if (!strcasecmp(arg, "byradius") &&
@@ -647,7 +648,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
                        !bybox)
             {
                 if (extractDistanceOrReply(c, c->argv+base_args+i+1, &shape.conversion, &shape.t.radius) != C_OK)
-                    return;
+                    return NULL;
                 shape.type = CIRCULAR_TYPE;
                 byradius = 1;
                 i += 2;
@@ -657,13 +658,13 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
                        !byradius)
             {
                 if (extractBoxOrReply(c, c->argv+base_args+i+1, &shape.conversion, &shape.t.r.width,
-                        &shape.t.r.height) != C_OK) return;
+                        &shape.t.r.height) != C_OK) return NULL;
                 shape.type = RECTANGLE_TYPE;
                 bybox = 1;
                 i += 3;
             } else {
                 addReplyErrorObject(c,shared.syntaxerr);
-                return;
+                return NULL;
             }
         }
     }
@@ -673,31 +674,32 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
         addReplyErrorFormat(c,
             "%s is not compatible with WITHDIST, WITHHASH and WITHCOORD options",
             flags & GEOSEARCHSTORE? "GEOSEARCHSTORE": "STORE option in GEORADIUS");
-        return;
+        return NULL;
     }
 
     if ((flags & GEOSEARCH) && !(frommember || fromloc)) {
         addReplyErrorFormat(c,
             "exactly one of FROMMEMBER or FROMLONLAT can be specified for %s",
             (char *)c->argv[0]->ptr);
-        return;
+        return NULL;
     }
 
     if ((flags & GEOSEARCH) && !(byradius || bybox)) {
         addReplyErrorFormat(c,
             "exactly one of BYRADIUS and BYBOX can be specified for %s",
             (char *)c->argv[0]->ptr);
-        return;
+        return NULL;
     }
 
     if (any && !count) {
         addReplyError(c, "the ANY argument requires COUNT argument");
-        return;
+        return NULL;
     }
 
     /* Return ASAP when src key does not exist. */
     if (zobj == NULL) {
         if (storekey) {
+            if (detached) return createZsetObject();
             /* store key is not NULL, try to delete it and return 0. */
             if (dbDelete(c->db, storekey)) {
                 keyModified(c, c->db, storekey, NULL, 1);
@@ -709,7 +711,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
             /* Otherwise we return an empty array. */
             addReply(c, shared.emptyarray);
         }
-        return;
+        return NULL;
     }
 
     /* COUNT without ordering does not make much sense (we need to
@@ -729,7 +731,7 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
     if (ga->used == 0 && storekey == NULL) {
         addReply(c,shared.emptyarray);
         geoArrayFree(ga);
-        return;
+        return NULL;
     }
 
     long result_length = ga->used;
@@ -830,46 +832,69 @@ void georadiusGeneric(client *c, int srcKeyIndex, int flags) {
 
         if (returned_items) {
             zsetConvertToListpackIfNeeded(zobj,maxelelen,totelelen);
-            setKey(c,c->db,storekey,&zobj,0);
-            notifyKeyspaceEvent(NOTIFY_ZSET,flags & GEOSEARCH ? "geosearchstore" : "georadiusstore",storekey,
-                                c->db->id);
-            markDirty(returned_items);
+            if (detached) {
+                detached_result = zobj;
+            } else {
+                setKey(c,c->db,storekey,&zobj,0);
+                notifyKeyspaceEvent(NOTIFY_ZSET,flags & GEOSEARCH ? "geosearchstore" : "georadiusstore",storekey,
+                                    c->db->id);
+                markDirty(returned_items);
+            }
+        } else if (detached) {
+            detached_result = createZsetObject();
         } else if (dbDelete(c->db,storekey)) {
             keyModified(c,c->db,storekey,NULL,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"del",storekey,c->db->id);
             markDirty(1);
         }
-        addReplyLongLong(c, returned_items);
+        if (!detached) addReplyLongLong(c, returned_items);
     }
     geoArrayFree(ga);
+    return detached_result;
 }
 
 /* GEORADIUS wrapper function. */
 void georadiusCommand(client *c) {
-    georadiusGeneric(c, 1, RADIUS_COORDS);
+    georadiusGeneric(c, 1, RADIUS_COORDS, 0);
 }
 
 /* GEORADIUSBYMEMBER wrapper function. */
 void georadiusbymemberCommand(client *c) {
-    georadiusGeneric(c, 1, RADIUS_MEMBER);
+    georadiusGeneric(c, 1, RADIUS_MEMBER, 0);
 }
 
 /* GEORADIUS_RO wrapper function. */
 void georadiusroCommand(client *c) {
-    georadiusGeneric(c, 1, RADIUS_COORDS|RADIUS_NOSTORE);
+    georadiusGeneric(c, 1, RADIUS_COORDS|RADIUS_NOSTORE, 0);
 }
 
 /* GEORADIUSBYMEMBER_RO wrapper function. */
 void georadiusbymemberroCommand(client *c) {
-    georadiusGeneric(c, 1, RADIUS_MEMBER|RADIUS_NOSTORE);
+    georadiusGeneric(c, 1, RADIUS_MEMBER|RADIUS_NOSTORE, 0);
 }
 
 void geosearchCommand(client *c) {
-    georadiusGeneric(c, 1, GEOSEARCH);
+    georadiusGeneric(c, 1, GEOSEARCH, 0);
 }
 
 void geosearchstoreCommand(client *c) {
-    georadiusGeneric(c, 2, GEOSEARCH|GEOSEARCHSTORE);
+    georadiusGeneric(c, 2, GEOSEARCH|GEOSEARCHSTORE, 0);
+}
+
+/* Cross-shard GEO stores run this exact stock parser/search on the source worker and detach
+ * the materialized zset. The command's STORE/STOREDIST choice is already reflected in its
+ * scores. Valid empty results return an owned empty zset; NULL means an exact stock error was
+ * emitted on c and the destination must remain untouched. */
+robj *geoStoreResultObject(client *c) {
+    redisCommandProc *p = c->cmd->proc;
+    if (p == geosearchstoreCommand)
+        return georadiusGeneric(c, 2, GEOSEARCH|GEOSEARCHSTORE, 1);
+    if (p == georadiusCommand)
+        return georadiusGeneric(c, 1, RADIUS_COORDS, 1);
+    if (p == georadiusbymemberCommand)
+        return georadiusGeneric(c, 1, RADIUS_MEMBER, 1);
+    serverPanic("geoStoreResultObject called for a non-store GEO command");
+    return NULL;
 }
 
 /* GEOHASH key ele1 ele2 ... eleN

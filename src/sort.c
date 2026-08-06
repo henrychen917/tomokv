@@ -177,7 +177,7 @@ int sortCompare(const void *s1, const void *s2) {
 
 /* The SORT command is the most complex command in Redis. Warning: this code
  * is optimized for speed and a bit less for readability */
-void sortCommandGeneric(client *c, int readonly) {
+static robj *sortCommandGeneric(client *c, int readonly, int detached) {
     list *operations;
     unsigned int outputlen = 0;
     int desc = 0, alpha = 0;
@@ -186,7 +186,7 @@ void sortCommandGeneric(client *c, int readonly) {
     int getop = 0; /* GET operation counter */
     int int_conversion_error = 0;
     int syntax_error = 0;
-    robj *sortval, *sortby = NULL, *storekey = NULL;
+    robj *sortval, *sortby = NULL, *storekey = NULL, *detached_result = NULL;
     size_t oldsize = 0;
     redisSortObject *vector; /* Resulting vector to sort */
     int user_has_full_key_access = 0; /* ACL - used in order to verify 'get' and 'by' options can be used */
@@ -302,7 +302,7 @@ void sortCommandGeneric(client *c, int readonly) {
     /* Handle syntax errors set during options parsing. */
     if (syntax_error) {
         listRelease(operations);
-        return;
+        return NULL;
     }
 
     /* Lookup the key to sort. It must be of the right types */
@@ -313,7 +313,7 @@ void sortCommandGeneric(client *c, int readonly) {
     {
         listRelease(operations);
         addReplyErrorObject(c,shared.wrongtypeerr);
-        return;
+        return NULL;
     }
 
     /* Now we need to protect sortval incrementing its count, in the future
@@ -622,7 +622,11 @@ void sortCommandGeneric(client *c, int readonly) {
             }
         }
         
-        if (outputlen) {
+        if (detached) {
+            if (outputlen)
+                listTypeTryConversion(sobj,LIST_CONV_AUTO,NULL,NULL);
+            detached_result = sobj;
+        } else if (outputlen) {
             listTypeTryConversion(sobj,LIST_CONV_AUTO,NULL,NULL);
             setKey(c, c->db, storekey, &sobj, 0);
             /* Ownership of sobj transferred to the db. Set to NULL to prevent
@@ -641,7 +645,7 @@ void sortCommandGeneric(client *c, int readonly) {
             decrRefCount(sobj);
         }
 
-        addReplyLongLong(c,outputlen);
+        if (!detached) addReplyLongLong(c,outputlen);
     }
 
     /* Cleanup */
@@ -655,13 +659,22 @@ void sortCommandGeneric(client *c, int readonly) {
             decrRefCount(vector[j].u.cmpobj);
     }
     zfree(vector);
+    return detached_result;
 }
 
 /* SORT wrapper function for read-only mode. */
 void sortroCommand(client *c) {
-    sortCommandGeneric(c, 1);
+    sortCommandGeneric(c, 1, 0);
 }
 
 void sortCommand(client *c) {
-    sortCommandGeneric(c, 0);
+    sortCommandGeneric(c, 0, 0);
+}
+
+/* Cross-shard SORT STORE uses the stock parser, selection, LIMIT top-k, and list builder on
+ * the source worker, but detaches the result instead of touching the destination there.
+ * A valid empty selection returns an owned empty list; NULL means the stock path already
+ * emitted a parse, WRONGTYPE, or numeric-conversion error on c. */
+robj *sortStoreResultObject(client *c) {
+    return sortCommandGeneric(c, 0, 1);
 }

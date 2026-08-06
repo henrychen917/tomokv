@@ -1947,7 +1947,8 @@ typedef struct client {
  * preserved: each key is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
-               CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
+               CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_SORTSTORE, CS_GEOSTORE,
+               CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
                CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
@@ -4297,8 +4298,9 @@ typedef struct csCmdSpec {
     /* -- HOP2 geometry (CS_RT_TWOHOP, or CS_RT_GATHER with has_hop2) -- */
     uint8_t has_hop2;         /* GATHER route: dest write follows the gather barrier */
     int8_t  src_argi;         /* TWOHOP: argv index of the single gather/src key */
-    int8_t  dst_argi;         /* argv index of the dest key; 0 = none/dynamic (LMPOP
-                               * winner: prep case rewrites g->h2sub[0].key_argi) */
+    int8_t  dst_argi;         /* argv index of the dest key; 0 = none/dynamic */
+    int  (*dynamic_dst_argi)(client *c); /* TWOHOP dynamic destination resolver (SORT STORE,
+                               * GEORADIUS STORE/STOREDIST); NULL for static/MPOP-plan rows */
     uint8_t h1_probe_dst;     /* TWOHOP: add a HOP1 probe sub on the dst shard (step 4+) */
     int8_t  h1_extra_argi;    /* TWOHOP: head->argv index appended to HOP1 sub 0's argv
                                * (SMOVE member — sub owns its own copy; 0 = none) */
@@ -4309,7 +4311,7 @@ typedef struct csCmdSpec {
                                * form from the csReassemble ctype case (step 9) */
     /* -- callbacks (the ONLY code-bearing fields) -- */
     void (*append_extra)(client *head, client *sub, int origpos); /* MSET value ownership */
-    int  (*unsafe_check)(client *c);  /* UNPORTED rows: nonzero => reject THIS form */
+    int  (*unsafe_check)(client *c);  /* UNPORTED or hybrid PORTED rows: nonzero => reject form */
     int16_t safe_max_argc;    /* UNPORTED rows without a hook: argc <= this falls through
                                * (PFCOUNT: 2); 0 = always reject */
 } csCmdSpec;
@@ -5986,6 +5988,7 @@ void flushallCommand(client *c);
 void trimslotsCommand(client *c);
 void sortCommand(client *c);
 void sortroCommand(client *c);
+robj *sortStoreResultObject(client *c);
 void lremCommand(client *c);
 void lposCommand(client *c);
 void rpoplpushCommand(client *c);
@@ -6149,6 +6152,7 @@ void geoposCommand(client *c);
 void geodistCommand(client *c);
 void geosearchCommand(client *c);
 void geosearchstoreCommand(client *c);
+robj *geoStoreResultObject(client *c);
 void pfselftestCommand(client *c);
 void pfaddCommand(client *c);
 void pfcountCommand(client *c);
