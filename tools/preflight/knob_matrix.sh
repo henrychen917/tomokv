@@ -237,6 +237,10 @@ echo "=== boolean levers (default off, restored for experimentation) ===" >> $OU
   try tomokv-mset-move no  "default: cross-shard MSET gives each sub a private value copy"
   try tomokv-mset-move yes "MOVE arm: value robj handed to the worker via argv_released_mask"
 
+echo "=== collection encoding knobs ===" >> $OUT
+  try hash-max-listpack-bytes 0    "OFF: entry-count and per-value limits still govern hashes"
+  try hash-max-listpack-bytes 1024 "default: promote multi-field hashes beyond 1 KiB"
+
 # ── DRIFT GUARD ──────────────────────────────────────────────────────────────────────────────
 # The cells above are hand-written (the VALUE to try needs per-knob judgement) but the SET of
 # knobs must track config.c exactly. It did not: the last retirement left this suite "testing" 44
@@ -250,7 +254,8 @@ drift_guard(){
     --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no --logfile '' >/dev/null 2>&1 &
   local up=0; for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then bad "drift-guard: server would not boot"; return; fi
-  $CLI config get 'tomokv-*' 2>/dev/null | awk 'NR%2==1' | tr -d '\r' | sort -u > $J/knob_live.txt
+  { $CLI config get 'tomokv-*'; $CLI config get hash-max-listpack-bytes; } 2>/dev/null \
+    | awk 'NR%2==1' | tr -d '\r' | sort -u > $J/knob_live.txt
   kb_kill
   # names this suite actually drives (try cells), and names it asserts are gone (reject cells)
   grep -oE '^\s*try [a-z0-9-]+'    "$0" | awk '{print $2}' | sort -u > $J/knob_tried.txt
@@ -281,7 +286,7 @@ drift_guard(){
   local ghost=$(comm -13 $J/knob_live.txt $J/knob_tried.txt | tr '\n' ' ')
   local zombie=$(comm -12 $J/knob_live.txt $J/knob_rejected.txt | tr '\n' ' ')
   local refghost=$(comm -13 $J/knob_live.txt $J/knob_refused.txt | tr '\n' ' ')
-  [ -z "$untested" ] && ok "drift-guard: every live tomokv-* knob has a cell" \
+  [ -z "$untested" ] && ok "drift-guard: every tracked live knob has a cell" \
                      || bad "drift-guard: LIVE BUT UNTESTED -> $untested"
   [ -z "$ghost" ]    && ok "drift-guard: no cell drives a knob that no longer exists" \
                      || bad "drift-guard: CELL FOR MISSING KNOB -> $ghost"

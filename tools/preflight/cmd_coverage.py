@@ -87,6 +87,22 @@ def shard_pair(s,f,want_cross,prefix,keymaker=None):
         if split==want_cross: return a,b
     raise AssertionError('could not find %s-shard key pair'%('cross' if want_cross else 'same'))
 
+def flat_pairs(reply):
+    if not isinstance(reply,list) or len(reply)%2:
+        raise AssertionError('expected a flat field/value array, got %r'%reply)
+    return {reply[i]:reply[i+1] for i in range(0,len(reply),2)}
+
+def hscan_all(s,f,key,count=7):
+    cursor=b'0'; out={}
+    for _ in range(1024):
+        reply=c(s,f,'HSCAN',key,cursor,'COUNT',str(count))
+        if not isinstance(reply,list) or len(reply)!=2:
+            raise AssertionError('malformed HSCAN reply for %s: %r'%(key,reply))
+        out.update(flat_pairs(reply[1]))
+        cursor=reply[0]
+        if cursor==b'0': return out
+    raise AssertionError('HSCAN did not terminate for '+key)
+
 def partA():
     s,f=conn(); c(s,f,'FLUSHDB')
     xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
@@ -125,14 +141,92 @@ def partA():
     eq(c(s,f,'HLEN','h'),2,'HLEN'); eq(c(s,f,'HEXISTS','h','f1'),1,'HEXISTS'); eq(c(s,f,'HDEL','h','f2'),1,'HDEL')
     eq(c(s,f,'HINCRBY','h','cnt','5'),5,'HINCRBY'); eq(sorted(lst(c(s,f,'HKEYS','h'))),['cnt','f1'],'HKEYS')
     eq(lst(c(s,f,'HMGET','h','f1','nope')),['v1',None],'HMGET')
+    # Hash listpack policy: exact total bytes, a large-value singleton carve-out, and HFE-safe conversion.
+    hash_knobs=('hash-max-listpack-entries','hash-max-listpack-value','hash-max-listpack-bytes')
+    hash_config={name:c(s,f,'CONFIG','GET',name)[1] for name in hash_knobs}
+    for name,value in (('hash-max-listpack-entries','512'),('hash-max-listpack-value','64'),
+                       ('hash-max-listpack-bytes','1024')):
+        eq(c(s,f,'CONFIG','SET',name,value),b'OK','hash-listpack-config-'+name)
+
+    large_hash_value=b'X'*200
+    c(s,f,'DEL','hash-singleton')
+    eq(c(s,f,'HSET','hash-singleton','field',large_hash_value),1,'hash-singleton-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hash-singleton'),b'listpack','hash-singleton-large-value-encoding')
+    eq(c(s,f,'HGET','hash-singleton','field'),large_hash_value,'hash-singleton-large-value-data')
+    eq(c(s,f,'HSET','hash-singleton','second','small'),1,'hash-singleton-add-second')
+    eq(c(s,f,'OBJECT','ENCODING','hash-singleton'),b'hashtable','hash-singleton-exception-ends-at-two')
+    eq(c(s,f,'HGET','hash-singleton','field'),large_hash_value,'hash-singleton-conversion-data')
+
+    hb_fields=['b%03d'%i for i in range(80)]
+    hb_values={name:'value%07d'%i for i,name in enumerate(hb_fields)}
+    hb_args=[x for name in hb_fields for x in (name,hb_values[name])]
+    c(s,f,'DEL','hash-byte-promote')
+    eq(c(s,f,'HSET','hash-byte-promote',*hb_args),len(hb_fields),'hash-byte-threshold-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hash-byte-promote'),b'hashtable','hash-byte-threshold-encoding')
+
+    # With the byte cap disabled, the same sub-64-byte fields stay in a listpack.
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes','0'),b'OK','hash-byte-threshold-disable')
+    c(s,f,'DEL','hash-byte-transition')
+    eq(c(s,f,'HSET','hash-byte-transition',*hb_args),len(hb_fields),'hash-byte-disabled-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hash-byte-transition'),b'listpack','hash-byte-disabled-encoding')
+    c(s,f,'DEL','hash-byte-disabled-value-limit')
+    c(s,f,'HSET','hash-byte-disabled-value-limit','small','ok','large',large_hash_value)
+    eq(c(s,f,'OBJECT','ENCODING','hash-byte-disabled-value-limit'),b'hashtable',
+       'hash-byte-disabled-keeps-value-limit')
+
+    hm_probe=[hb_fields[-1],'missing',hb_fields[0],hb_fields[17],hb_fields[17]]
+    before_all=flat_pairs(c(s,f,'HGETALL','hash-byte-transition'))
+    before_hmget=c(s,f,'HMGET','hash-byte-transition',*hm_probe)
+    before_scan=hscan_all(s,f,'hash-byte-transition')
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes','1024'),b'OK','hash-byte-threshold-enable')
+    eq(c(s,f,'HSET','hash-byte-transition',hb_fields[0],hb_values[hb_fields[0]]),0,
+       'hash-byte-transition-no-content-change')
+    eq(c(s,f,'OBJECT','ENCODING','hash-byte-transition'),b'hashtable','hash-byte-transition-encoding')
+    eq(flat_pairs(c(s,f,'HGETALL','hash-byte-transition')),before_all,'hash-byte-transition-HGETALL')
+    eq(c(s,f,'HMGET','hash-byte-transition',*hm_probe),before_hmget,'hash-byte-transition-HMGET')
+    eq(hscan_all(s,f,'hash-byte-transition'),before_scan,'hash-byte-transition-HSCAN')
+
+    # A large singleton remains compact after gaining field TTL metadata.
+    c(s,f,'DEL','hash-hfe-singleton')
+    c(s,f,'HSET','hash-hfe-singleton','field',large_hash_value)
+    eq(c(s,f,'HEXPIRE','hash-hfe-singleton','600','FIELDS','1','field'),[1],
+       'hash-hfe-singleton-HEXPIRE')
+    eq(c(s,f,'OBJECT','ENCODING','hash-hfe-singleton'),b'listpackex',
+       'hash-hfe-singleton-encoding')
+    hfe_single_ttl=c(s,f,'HTTL','hash-hfe-singleton','FIELDS','1','field')
+    ck(isinstance(hfe_single_ttl,list) and 0<hfe_single_ttl[0]<=600,
+       'hash-hfe-singleton-TTL %r'%hfe_single_ttl)
+
+    # LISTPACK_EX adds a TTL slot per field; crossing the cap during that expansion
+    # must produce an HFE-aware hashtable and retain the requested TTL.
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes','0'),b'OK','hash-hfe-byte-disable')
+    hfe_fields=['e%03d'%i for i in range(65)]
+    hfe_values={name:'v%05d'%i for i,name in enumerate(hfe_fields)}
+    hfe_args=[x for name in hfe_fields for x in (name,hfe_values[name])]
+    c(s,f,'DEL','hash-hfe-bytes'); c(s,f,'HSET','hash-hfe-bytes',*hfe_args)
+    eq(c(s,f,'OBJECT','ENCODING','hash-hfe-bytes'),b'listpack','hash-hfe-plain-encoding')
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes','1024'),b'OK','hash-hfe-byte-enable')
+    eq(c(s,f,'HEXPIRE','hash-hfe-bytes','600','FIELDS','1',hfe_fields[0]),[1],
+       'hash-hfe-byte-HEXPIRE')
+    eq(c(s,f,'OBJECT','ENCODING','hash-hfe-bytes'),b'hashtable','hash-hfe-byte-encoding')
+    hfe_ttl=c(s,f,'HTTL','hash-hfe-bytes','FIELDS','1',hfe_fields[0])
+    ck(isinstance(hfe_ttl,list) and 0<hfe_ttl[0]<=600,'hash-hfe-byte-TTL %r'%hfe_ttl)
+    eq(flat_pairs(c(s,f,'HGETALL','hash-hfe-bytes')),
+       {B(name):B(value) for name,value in hfe_values.items()},'hash-hfe-byte-data')
+
+    for name in hash_knobs:
+        eq(c(s,f,'CONFIG','SET',name,hash_config[name]),b'OK','hash-listpack-config-restore-'+name)
     # Large listpack HMGET: reverse-order probes, a miss, and duplicates exercise the one-pass request map.
     hm_fields=['hf%03d'%i for i in range(400)]; hm_values={name:'hv%03d'%i for i,name in enumerate(hm_fields)}
     hm_args=[x for name in hm_fields for x in (name,hm_values[name])]
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes','0'),b'OK','HMGET-listpack-byte-cap-disable')
     c(s,f,'DEL','hmget-lp'); eq(c(s,f,'HSET','hmget-lp',*hm_args),400,'HMGET-listpack-HSET')
     eq(c(s,f,'OBJECT','ENCODING','hmget-lp'),b'listpack','HMGET-listpack-encoding')
     hm_req=hm_fields[::-2]+['hm-missing',hm_fields[17],hm_fields[17]]
     hm_want=[hm_values.get(name) for name in hm_req]
     eq(lst(c(s,f,'HMGET','hmget-lp',*hm_req)),hm_want,'HMGET-listpack-one-pass/order/missing/duplicate')
+    eq(c(s,f,'CONFIG','SET','hash-max-listpack-bytes',hash_config['hash-max-listpack-bytes']),b'OK',
+       'HMGET-listpack-byte-cap-restore')
     # hash field expiry (THredis HFE)
     c(s,f,'HSET','he','x','1'); r=c(s,f,'HEXPIRE','he','100','FIELDS','1','x'); ck(isinstance(r,list) and r[0]==1,'HEXPIRE %r'%r)
     r=c(s,f,'HTTL','he','FIELDS','1','x'); ck(isinstance(r,list) and 0<int(r[0])<=100,'HTTL %r'%r)
