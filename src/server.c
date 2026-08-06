@@ -168,6 +168,7 @@ static void reshardCoordinatorTick(void);   /* zero-thread-churn cutover state m
 static _Atomic int co_state;                /* CO_* above; main-owned, IO threads CAS-arm only */
 static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
                                              * next stage dispatched (head stays in flight) */
+static int csSortAdvance(csGroup *g);       /* T3 SORT BY/GET drain-thread phase driver */
 static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
 static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HOP2 launcher; 1 = HOP2
                                              * pushed (head stays in flight), 0 = fall to reassemble */
@@ -3171,6 +3172,12 @@ void handleWorkerReplies(void) {
                  * to avoid a leak. */
                 if (fake->csgroup) {
                     csGroup *g = fake->csgroup;
+                    if (g->sort_stage) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        if (csSortAdvance(g))
+                            break;
+                        fake->flags &= ~CLIENT_EX_PENDING;
+                    }
                     /* universal xshard: a 2-hop whose mutating HOP1 already committed MUST finish HOP2
                      * even though the client is gone — else the write is half-applied (e.g. cross-shard
                      * RENAME: src deleted in HOP1, dst never written => data LOSS). Mirror the live drain
@@ -3250,6 +3257,9 @@ void handleWorkerReplies(void) {
                  * stays in flight, exactly like the HOP2 launch below) or falls through to
                  * reassemble the final survivors. */
                 if (g->pipe_stage && csPipeAdvance(g)) {
+                    break;
+                }
+                if (g->sort_stage && csSortAdvance(g)) {
                     break;
                 }
                 if (g->phase == CS_PH_HOP1 && g->has_hop2 &&
@@ -7327,9 +7337,9 @@ int canDispatchToWorker(client *c) {
      * Multi-key PFCOUNT needs the merge framework (still TODO). */
     if (p == pfcountCommand) return c->argc == 2;
 
-    /* ee451 v10-B: SORT/SORT_RO is single-key (key@argv[1]) ONLY when it has no BY/GET/STORE —
-     * those reference OTHER keys (cross-shard). Whitelist the single-key form (incl. LIMIT/ASC/
-     * DESC/ALPHA); BY/GET/STORE forms fall through (multishard, TODO). */
+    /* SORT/SORT_RO stays on the single-key worker path only when it has no BY/GET/STORE.
+     * Those option-bearing forms fall through to the registry: STORE uses T1 and BY/GET use
+     * the T3 external-dereference pipeline below. */
     if (p == sortCommand || p == sortroCommand) {
         for (int i = 2; i < c->argc; i++) {
             const char *a = c->argv[i]->ptr;
@@ -8336,10 +8346,12 @@ static int csExtractStoreDstArgi(client *c, redisGetKeysProc *getkeys) {
     getKeysFreeResult(&result);
     return argi;
 }
-static int csSortStoreDstArgi(client *c) {
-    /* Mirror sortCommandGeneric's option widths exactly. sortGetKeys intentionally scans more
-     * loosely and can mistake a destination literally named "store" for another option. */
-    int store_argi = 0;
+/* Mirror sortCommandGeneric's option widths exactly. sortGetKeys intentionally scans more
+ * loosely and can mistake a destination literally named "store" for another option. A complete
+ * scan also tells classification whether this is a T3 BY/GET form; malformed tails are safe to
+ * leave inline because stock reports their parse error before touching the source or a pattern. */
+static int csSortScan(client *c, int *store_argi, int *external) {
+    int dst = 0, ext = 0;
     for (int i = 2; i < c->argc; ) {
         const char *a = c->argv[i]->ptr;
         int leftargs = c->argc - i - 1;
@@ -8348,41 +8360,41 @@ static int csSortStoreDstArgi(client *c) {
         } else if (!strcasecmp(a, "limit") && leftargs >= 2) {
             i += 3;
         } else if (!strcasecmp(a, "store") && leftargs >= 1) {
-            store_argi = i + 1;
+            dst = i + 1;
             i += 2;
         } else if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) {
+            ext = 1;
             i += 2;
         } else {
-            break;
+            return 0;
         }
     }
-    return store_argi;
+    if (store_argi) *store_argi = dst;
+    if (external) *external = ext;
+    return 1;
+}
+static int csSortStoreDstArgi(client *c) {
+    int dst = 0;
+    return csSortScan(c,&dst,NULL) ? dst : 0;
+}
+static int csSortHasExternal(client *c) {
+    int ext = 0;
+    return csSortScan(c,NULL,&ext) && ext;
 }
 static int csGeoStoreDstArgi(client *c) {
     int argi = csExtractStoreDstArgi(c, georadiusGetKeys);
     return argi ? argi : 1;  /* no STORE: co-locate with src and run the real stock proc */
 }
 
-/* SORT/SORT_RO BY/GET dereference external keys and stay fail-safe rejected. Parse option
- * widths so a LIMIT operand or STORE destination literally named "by"/"get" is not mistaken
- * for an option. Unknown/malformed tails are stock parse errors and touch no external key. */
-static int csSortUnsafeCheck(client *c) {
-    for (int i = 2; i < c->argc; ) {
-        const char *a = c->argv[i]->ptr;
-        int leftargs = c->argc - i - 1;
-        if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) return 1;
-        if (!strcasecmp(a, "limit") && leftargs >= 2) { i += 3; continue; }
-        if (!strcasecmp(a, "store") && leftargs >= 1) { i += 2; continue; }
-        if (!strcasecmp(a, "asc") || !strcasecmp(a, "desc") || !strcasecmp(a, "alpha")) {
-            i++;
-            continue;
-        }
-        return 0;
-    }
-    return 0;
+/* All valid SORT BY/GET forms are T3-ported. SORT also enters for STORE-only (the existing T1
+ * path); SORT_RO enters only for BY/GET because STORE is a stock syntax error there. */
+static int csSortShapeOk(client *c) {
+    int dst = 0, ext = 0;
+    return csSortScan(c,&dst,&ext) && (dst || ext);
 }
-static int csSortStoreShapeOk(client *c) {
-    return !csSortUnsafeCheck(c) && csSortStoreDstArgi(c) != 0;
+static int csSortRoShapeOk(client *c) {
+    int dst = 0, ext = 0;
+    return csSortScan(c,&dst,&ext) && ext && !dst;
 }
 /* EVAL family: keyless scripts (numkeys==0) touch no shard data — keep them working; parse
  * anomalies fall inline (arity/parse error precedes key access in the stock proc). */
@@ -8720,8 +8732,10 @@ static const csCmdSpec csRegistry[] = {
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csZrangestoreShapeOk },
 { .proc=sortCommand, .name="sort", .ported=CS_PORT_OK, .ctype=CS_SORTSTORE,
   .route=CS_RT_TWOHOP, .min_argc=4, .src_argi=1, .dynamic_dst_argi=csSortStoreDstArgi,
-  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csSortStoreShapeOk,
-  .unsafe_check=csSortUnsafeCheck },
+  .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csSortShapeOk },
+{ .proc=sortroCommand, .name="sort_ro", .ported=CS_PORT_OK, .ctype=CS_SORTSTORE,
+  .route=CS_RT_TWOHOP, .min_argc=4, .src_argi=1, .dynamic_dst_argi=csSortStoreDstArgi,
+  .h2_op=CS_H2_PLAN, .shape_ok=csSortRoShapeOk },
 { .proc=geosearchstoreCommand, .name="geosearchstore", .ported=CS_PORT_OK, .ctype=CS_GEOSTORE,
   .route=CS_RT_TWOHOP, .min_argc=8, .src_argi=2, .dst_argi=1,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
@@ -8812,7 +8826,6 @@ static const csCmdSpec csRegistry[] = {
   .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1, .shape_ok=csBzmpopShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
-{ .proc=sortroCommand,   .name="sort_ro", .unsafe_check=csSortUnsafeCheck },
 { .proc=evalCommand,       .name="eval",       .unsafe_check=csEvalUnsafeCheck },
 { .proc=evalShaCommand,    .name="evalsha",    .unsafe_check=csEvalUnsafeCheck },
 { .proc=evalRoCommand,     .name="eval_ro",    .unsafe_check=csEvalUnsafeCheck },
@@ -8866,8 +8879,8 @@ static void csStampRoute(struct redisCommand *c) {
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
     /* XGUARD: an UNPORTED row, or a hybrid PORTED row with unsafe forms, forces the bit even
-     * where the key-spec predicate can't see the hazard (SORT's BY/GET options). Stateful cmds
-     * are exempt (WATCH k1 k2 / EXEC take the stateful path). */
+     * where the key-spec predicate can't see the hazard. Stateful commands are exempt
+     * (WATCH k1 k2 / EXEC take the stateful path). */
     if (!(c->tomo_route & TOMO_R_STATEFUL) &&
         ((c->cs_spec && (c->cs_spec->ported == CS_PORT_UNPORTED || c->cs_spec->unsafe_check)) ||
          (!c->cs_spec && cmdIsMultiKeyCapable(c))))
@@ -9112,6 +9125,39 @@ static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
 #define CS_XREAD_EMPTY 0
 #define CS_XREAD_HIT   1
 #define CS_XREAD_ERR   2
+
+#define CS_SORT_SOURCE 1
+#define CS_SORT_BY     2
+#define CS_SORT_GET    3
+#define CS_SORT_DONE   4
+
+/* One T3 external-dereference wave. Positions are the coalesced gather's original positions;
+ * a NULL field means a string key, while a non-NULL field applies stock's hash-only lookup.
+ * Missing keys, wrong external types, and missing fields all remain NULL (nil for GET, zero/NULL
+ * weight for BY), exactly like lookupKeyByPattern. */
+static void csSortDerefExec(client *sub, csGroup *g) {
+    int *pos = g->mget_pos[sub->cssub_idx];
+    for (int a = 1; a < sub->argc; a++) {
+        int idx = pos[a - 1];
+        robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+        robj *val = NULL;
+        if (g->sort_fields[idx]) {
+            if (o && o->type == OBJ_HASH) {
+                int hash_deleted = 0;
+                hashTypeGetValueObject(sub->db,o,g->sort_fields[idx],HFE_LAZY_EXPIRE,
+                                       &val,NULL,&hash_deleted);
+                if (hash_deleted) val = NULL;
+            }
+        } else if (o && o->type == OBJ_STRING) {
+            val = o;
+        }
+        if (val) {
+            g->mget_vals[idx] = sdsEncodedObject(val) ? sdsdup(val->ptr)
+                                                      : sdsfromlonglong((long)val->ptr);
+            if (val != o) decrRefCount(val);
+        }
+    }
+}
 
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
@@ -9411,7 +9457,17 @@ static void csSubExec(client *sub) {
     case CS_ZRANGESTORE:
     case CS_SORTSTORE:
     case CS_GEOSTORE:
-        if (!g->has_hop2) {
+        if (g->ctype == CS_SORTSTORE && g->sort_stage == CS_SORT_SOURCE) {
+            /* Full argv is parsed on the source owner. Copy the head's ACL identity because SORT's
+             * BY/GET parser requires unrestricted key access in addition to normal command ACLs. */
+            sub->user = g->head->user;
+            g->sort_ctx = sortXShardPrepare(sub,g->spec->proc == sortroCommand);
+            if (!g->sort_ctx)
+                atomic_store_explicit(&g->err, CS_ERR_SUBREPLY, memory_order_relaxed);
+        } else if (g->ctype == CS_SORTSTORE &&
+                   (g->sort_stage == CS_SORT_BY || g->sort_stage == CS_SORT_GET)) {
+            csSortDerefExec(sub,g);
+        } else if (!g->has_hop2) {
             /* Same-shard fast path: both keys live here, so preserve the real stock proc. */
             sub->cmd->proc(sub);
         } else if (g->phase == CS_PH_HOP1) {
@@ -10894,6 +10950,171 @@ static void csSetOpCompute(client *dst, csGroup *g) {
     decrRefCount(res);
 }
 
+/* T3 SORT BY/GET stage teardown. Worker-owned value copies and coordinator-owned position maps
+ * are dead after the pending barrier. The inline bump region is intentionally not rewound; later
+ * phases spill safely when the command outgrows its per-group region. */
+static void csSortReleaseStage(csGroup *g) {
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    csgFree(g,g->subs);
+    g->subs = NULL;
+    g->nsub = 0;
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g,g->mget_pos[i]);
+        csgFree(g,g->mget_pos);
+        g->mget_pos = NULL;
+    }
+    g->posmap_nsub = 0;
+    if (g->mget_vals) {
+        for (int i = 0; i < g->nkeys; i++) sdsfree(g->mget_vals[i]);
+        csgFree(g,g->mget_vals);
+        g->mget_vals = NULL;
+    }
+    if (g->sort_fields) {
+        for (int i = 0; i < g->nkeys; i++) sdsfree(g->sort_fields[i]);
+        zfree(g->sort_fields);
+        g->sort_fields = NULL;
+    }
+    g->nkeys = 0;
+}
+
+/* Launch one owner-bucketed external-key wave through the existing coalesced MGET gather. A
+ * short-lived shadow head presents the derived key vector without changing the real group head's
+ * argv; csBuildCoalescedSubs takes its own refs before returning, so all derived originals can be
+ * released immediately after the parallel wave is queued. */
+static int csSortStartDeref(csGroup *g, int stage, robj **keys, sds *fields, int nkeys) {
+    serverAssert(nkeys > 0 && keys != NULL && fields != NULL);
+    client *head = g->head;
+    csSortReleaseStage(g);
+    g->sort_stage = stage;
+    g->nkeys = nkeys;
+    g->sort_fields = fields;
+    g->mget_vals = csgCalloc(g,sizeof(sds) * (size_t)nkeys);
+
+    robj **argv = zmalloc(sizeof(*argv) * (size_t)(nkeys + 1));
+    argv[0] = head->argv[0];
+    for (int i = 0; i < nkeys; i++) argv[i + 1] = keys[i];
+    client shadow = {0};
+    shadow.parent = head->parent;
+    shadow.argv = argv;
+    shadow.argc = nkeys + 1;
+    shadow.cmd = head->cmd;
+    shadow.resp = head->resp;
+    shadow.conn = head->conn;
+    cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+    csCoalesceSpec cs = { .first_argi = 1, .key_stride = 1, .posmap = &g->mget_pos };
+    csBuildCoalescedSubs(&shadow,g,nkeys,g->h2_dbid,&cs,NULL);
+    for (int i = 0; i < nkeys; i++) decrRefCount(keys[i]);
+    zfree(keys);
+    zfree(argv);
+    return 1;
+}
+
+/* Phase 3 terminal: reply-ready for read-only SORT, or serialize the projected list and arm the
+ * existing destination HOP2 for STORE. Missing GET values became empty strings while building the
+ * list, matching stock's STORE representation. */
+static void csSortFinish(csGroup *g) {
+    client *head = g->head;
+    if (!sortXShardHasStore(g->sort_ctx)) {
+        csSortReleaseStage(g);
+        g->sort_stage = CS_SORT_DONE;
+        return;
+    }
+
+    robj *res = sortXShardStoreResultObject(g->sort_ctx);
+    g->cs2_intreply = (long long)sortXShardOutputLen(g->sort_ctx);
+    int dst_argi = csSortStoreDstArgi(head);
+    serverAssert(dst_argi > 0 && dst_argi < head->argc);
+    if (g->cs2_intreply > 0) {
+        rio r;
+        rioInitWithBuffer(&r,sdsempty());
+        rdbSaveObjectType(&r,res);
+        rdbSaveObject(&r,res,head->argv[dst_argi],g->h2_dbid);
+        g->h2_payload = r.io.buffer.ptr;
+    }
+    decrRefCount(res);
+    csSortReleaseStage(g);
+    g->sort_stage = 0;
+    g->has_hop2 = 1;
+    g->phase = CS_PH_HOP1;
+    g->h2_op = CS_H2_PLAN;
+    g->cs2_kind = CS2_INT;
+    g->h2_nsub = 1;
+    g->h2sub[0] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
+}
+
+/* Drain-thread T3 driver:
+ *   SOURCE -> BY dereference wave -> comparator/LIMIT -> GET dereference wave -> reply/HOP2.
+ * GET keys are not even expanded until the selected window exists. Returns 1 only when another
+ * owner wave was queued and the group head must remain in flight. */
+static int csSortAdvance(csGroup *g) {
+    csAssertBarriered(g->head);
+    robj **keys = NULL;
+    sds *fields = NULL;
+    int n;
+
+    if (g->sort_stage == CS_SORT_SOURCE) {
+        if (atomic_load_explicit(&g->err,memory_order_relaxed) != CS_ERR_NONE) return 0;
+        serverAssert(g->sort_ctx != NULL);
+        if (sortXShardNeedsBy(g->sort_ctx)) {
+            n = sortXShardBuildByDeref(g->sort_ctx,&keys,&fields);
+            serverAssert(n > 0);
+            return csSortStartDeref(g,CS_SORT_BY,keys,fields,n);
+        }
+        n = sortXShardBuildGetDeref(g->sort_ctx,&keys,&fields);
+        if (n > 0) return csSortStartDeref(g,CS_SORT_GET,keys,fields,n);
+        csSortFinish(g);
+        return 0;
+    }
+
+    if (g->sort_stage == CS_SORT_BY) {
+        if (sortXShardApplyBy(g->sort_ctx,g->mget_vals) != C_OK) {
+            atomic_store_explicit(&g->err,CS_ERR_SORTNUM,memory_order_relaxed);
+            csSortReleaseStage(g);
+            g->sort_stage = CS_SORT_DONE;
+            return 0;
+        }
+        n = sortXShardBuildGetDeref(g->sort_ctx,&keys,&fields);
+        if (n > 0) return csSortStartDeref(g,CS_SORT_GET,keys,fields,n);
+        csSortFinish(g);
+        return 0;
+    }
+
+    if (g->sort_stage == CS_SORT_GET) {
+        sortXShardApplyGet(g->sort_ctx,g->mget_vals);
+        csSortFinish(g);
+        return 0;
+    }
+    return 0;
+}
+
+static void dispatchSortByGet(client *head, const csCmdSpec *s) {
+    int dbid = head->db->id;
+    robj *src = head->argv[(int)s->src_argi];
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
+        migHoldKeyIfDraining(src);
+    int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
+    csGroup *g = csGroupNew(CS_INLINE_MAX_BYTES);
+    g->ctype = CS_SORTSTORE;
+    g->nkeys = 1;
+    g->nsub = 1;
+    g->head = head;
+    g->spec = s;
+    g->h2_dbid = dbid;
+    g->h2_pexpireat = -1;
+    g->sort_stage = CS_SORT_SOURCE;
+    g->subs = csgAlloc(g,sizeof(client *));
+    atomic_store_explicit(&g->pending,1,memory_order_relaxed);
+    atomic_store_explicit(&g->err,CS_ERR_NONE,memory_order_relaxed);
+    head->csgroup = g;
+    head->cdb = 0;
+    head->parent->cs_barrier = 1;
+    client *sub = csMakeSub(g,0,shard,dbid);
+    csSubCopyFullArgv(sub,head);
+    sub->user = head->user;
+    sub->authenticated = head->authenticated;
+    csPushSpin(shard,sub);
+}
+
 /* Reassemble a completed group's reply onto `dst` (the real client): array header + each
  * sub's serialized element in original key order, then tear the group down. We build onto
  * the real client directly (not the head fake) so addReply* hits the normal, proven reply
@@ -10909,6 +11130,10 @@ static void csSetOpCompute(client *dst, csGroup *g) {
  * RENAME the HOP1 sub reads+serializes+deletes src (or flags NOKEY) and HOP2 RESTOREs on dst;
  * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
 static void dispatchTwoHop(client *head, const csCmdSpec *s) {
+    if (s->ctype == CS_SORTSTORE && csSortHasExternal(head)) {
+        dispatchSortByGet(head,s);
+        return;
+    }
     int dbid = head->db->id;
     int dst_argi = s->dst_argi ? (int)s->dst_argi : s->dynamic_dst_argi(head);
     serverAssert(dst_argi > 0 && dst_argi < head->argc);
@@ -11567,8 +11792,23 @@ static void csReassemble(client *dst, client *head) {
             else addReplyLongLong(dst, g->cs2_intreply);
             break;
         }
-        case CS_ZRANGESTORE:
         case CS_SORTSTORE:
+            if (g->sort_ctx) {
+                int e = atomic_load_explicit(&g->err,memory_order_relaxed);
+                if (e == CS_ERR_SORTNUM)
+                    addReplyError(dst,"One or more scores can't be converted into double");
+                else if (e != CS_ERR_NONE)
+                    addReplyError(dst,"cross-shard SORT failed");
+                else if (g->has_hop2)
+                    addReplyLongLong(dst,g->cs2_intreply);
+                else
+                    sortXShardReply(dst,g->sort_ctx);
+                break;
+            }
+            /* Plain SORT STORE uses the pre-existing T1 reply path below. A T3 source parse /
+             * WRONGTYPE error also has no context and splices its source sub there. */
+            /* fall through */
+        case CS_ZRANGESTORE:
         case CS_GEOSTORE: {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (!g->has_hop2 || e == CS_ERR_SUBREPLY)
@@ -11711,6 +11951,11 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->xread_out);
         csgFree(g, g->xread_status);
     }
+    if (g->sort_fields) {                         /* defensive: normal T3 stages release eagerly */
+        for (int i = 0; i < g->nkeys; i++) sdsfree(g->sort_fields[i]);
+        zfree(g->sort_fields);
+    }
+    sortXShardFree(g->sort_ctx);
     /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);

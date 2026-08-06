@@ -1953,6 +1953,7 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
              } csCmdType;
+struct sortXShardCtx;
 /* CS_SETOP operation kind (carried in csGroup.setop). */
 #define CS_SETOP_INTER     0
 #define CS_SETOP_UNION     1
@@ -1974,6 +1975,7 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
 #define CS_ERR_SAMEOBJ     7   /* COPY same key + same dest-db (stock "source and destination
                                 * objects are the same"); 2-hop path has no raw-proc guard */
 #define CS_ERR_SUBREPLY    8   /* a HOP1 stock helper emitted the final error into its sub */
+#define CS_ERR_SORTNUM     9   /* external SORT BY value failed stock's numeric conversion */
 /* hyperloglog.c — xshard coordinator helpers over gathered HLL objects (step 7). */
 int isHLLObject(robj *o);
 uint64_t hllCountMulti(robj **hlls, int n, int *err);
@@ -2137,6 +2139,13 @@ typedef struct csGroup {
     redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
     long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    /* T3 SORT BY/GET pipeline. The source worker constructs an opaque, refcount-free SORT
+     * context; later owner-bucketed dereference waves fill mget_vals and use sort_fields to
+     * distinguish string lookups from hash-field lookups. All three fields are private to
+     * this command path and are released at its coordinator teardown. */
+    struct sortXShardCtx *sort_ctx;
+    int sort_stage;
+    sds *sort_fields;            /* [nkeys], NULL = external string key, non-NULL = hash field */
     /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
      * Standard inline-then-spill container storage: LLVM SmallVector, folly::small_vector,
      * absl::InlinedVector, std::string SSO. A cross-shard command is SMALL and SHORT-LIVED --
@@ -6001,6 +6010,17 @@ void trimslotsCommand(client *c);
 void sortCommand(client *c);
 void sortroCommand(client *c);
 robj *sortStoreResultObject(client *c);
+struct sortXShardCtx *sortXShardPrepare(client *c, int readonly);
+int sortXShardNeedsBy(const struct sortXShardCtx *ctx);
+int sortXShardBuildByDeref(struct sortXShardCtx *ctx, robj ***keys, sds **fields);
+int sortXShardApplyBy(struct sortXShardCtx *ctx, sds *values);
+int sortXShardBuildGetDeref(struct sortXShardCtx *ctx, robj ***keys, sds **fields);
+void sortXShardApplyGet(struct sortXShardCtx *ctx, sds *values);
+int sortXShardHasStore(const struct sortXShardCtx *ctx);
+unsigned int sortXShardOutputLen(const struct sortXShardCtx *ctx);
+robj *sortXShardStoreResultObject(const struct sortXShardCtx *ctx);
+void sortXShardReply(client *c, const struct sortXShardCtx *ctx);
+void sortXShardFree(struct sortXShardCtx *ctx);
 void lremCommand(client *c);
 void lposCommand(client *c);
 void rpoplpushCommand(client *c);

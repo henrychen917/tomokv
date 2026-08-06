@@ -77,11 +77,11 @@ def info_int(s,f,name):
     for line in c(s,f,'INFO','stats').splitlines():
         if line.startswith(p): return int(line[len(p):])
     raise AssertionError('INFO stats missing '+name)
-def shard_pair(s,f,want_cross,prefix):
+def shard_pair(s,f,want_cross,prefix,keymaker=None):
     # cmd_coverage.sh fixes four static workers. The split counter is a live routing oracle:
     # MGET bumps it iff these two keys currently have different owners.
     for i in range(128):
-        a,b='%s-src:%d'%(prefix,i),'%s-dst:%d'%(prefix,i)
+        a,b=keymaker(i) if keymaker else ('%s-src:%d'%(prefix,i),'%s-dst:%d'%(prefix,i))
         before=info_int(s,f,'tomokv_xshard_multikey_split'); c(s,f,'MGET',a,b)
         split=info_int(s,f,'tomokv_xshard_multikey_split')>before
         if split==want_cross: return a,b
@@ -272,10 +272,55 @@ def partA():
     words=['banana','apple','cherry','apricot']; c(s,f,'DEL',xs); c(s,f,'RPUSH',xs,*words); want=sorted(words)[1:3]
     eq(c(s,f,'SORT',xs,'ALPHA','ASC','LIMIT','1','2','STORE',xd),len(want),'SORT STORE alpha/card'); eq(lst(c(s,f,'LRANGE',xd,'0','-1')),want,'SORT STORE alpha/order')
     eq(c(s,f,'SORT',xs,'ALPHA','LIMIT','99','2','STORE',xd),0,'SORT STORE empty/card'); eq(c(s,f,'EXISTS',xd),0,'SORT STORE empty/deletes')
-    c(s,f,'SET',xd,'guard'); ck(rejected(c(s,f,'SORT',xs,'BY','weight:*','STORE',xd)),'SORT BY STORE must remain rejected'); eq(c(s,f,'GET',xd),b'guard','SORT BY STORE no-write')
-    ck(rejected(c(s,f,'SORT',xs,'GET','#','STORE',xd)),'SORT GET STORE must remain rejected'); eq(c(s,f,'GET',xd),b'guard','SORT GET STORE no-write')
     c(s,f,'DEL',ls,ld); c(s,f,'RPUSH',ls,*nums); c(s,f,'SET',ld,'stale'); want=[str(x) for x in sorted(map(int,nums))[:3]]
     eq(c(s,f,'SORT',ls,'LIMIT','0','3','STORE',ld),len(want),'SORT STORE same-shard/card'); eq(lst(c(s,f,'LRANGE',ld,'0','-1')),want,'SORT STORE same-shard/data')
+    # SORT T3: derived weight keys are proven to span owners. Numeric and ALPHA use the same
+    # Python reference but deliberately disagree for "10" vs "2".
+    wk1,wk2=shard_pair(s,f,True,'sort-t3-weight',
+                       lambda i: ('weight:t3a:%d'%i,'weight:t3b:%d'%i))
+    wm=[wk1[len('weight:'):],wk2[len('weight:'):]]; weights={wm[0]:'10',wm[1]:'2'}
+    bysrc='sort-t3-by-src'; c(s,f,'DEL',bysrc,wk1,wk2); c(s,f,'RPUSH',bysrc,*wm)
+    c(s,f,'MSET',wk1,weights[wm[0]],wk2,weights[wm[1]])
+    by_num=sorted(wm,key=lambda m:(float(weights[m]),m))
+    by_alpha=sorted(wm,key=lambda m:weights[m])
+    eq(lst(c(s,f,'SORT',bysrc,'BY','weight:*')),by_num,'SORT BY weight:* numeric/cross-shard')
+    eq(lst(c(s,f,'SORT',bysrc,'BY','weight:*','ALPHA')),by_alpha,'SORT BY weight:* ALPHA/cross-shard')
+    c(s,f,'SET','sort-t3-wrongtype','not-a-collection')
+    wrong=c(s,f,'SORT','sort-t3-wrongtype','GET','#')
+    ck(rejected(wrong) and 'WRONGTYPE' in str(wrong),'SORT BY/GET source WRONGTYPE: %r'%wrong)
+
+    # GET hash-field dereferences are expanded only after external-BY ordering selects this
+    # window. The two data keys are a proven cross-owner pair; the second is absent and must
+    # project nil, while GET # preserves the selected element beside it. Two GET clauses cover
+    # projection ordering.
+    dk1,dk2=shard_pair(s,f,True,'sort-t3-data',
+                       lambda i: ('data_t3ga:%d'%i,'data_t3gb:%d'%i))
+    dm=[dk1[len('data_'):],dk2[len('data_'):]]
+    getsrc='sort-t3-get-src'; native=['outside']+dm+['tail']
+    c(s,f,'DEL',getsrc,dk1,dk2); c(s,f,'RPUSH',getsrc,*native); c(s,f,'HSET',dk1,'field','value-a')
+    window_weights={'outside':'0',dm[0]:'10',dm[1]:'2','tail':'20'}
+    c(s,f,'MSET',*[x for m in native for x in ('weight:'+m,window_weights[m])])
+    selected=sorted(native,key=lambda m:(float(window_weights[m]),m))[1:3]
+    get_data={dm[0]:'value-a',dm[1]:None}
+    get_ref=[x for m in selected for x in (get_data[m],m)]
+    eq(lst(c(s,f,'SORT',getsrc,'BY','weight:*','LIMIT','1','2',
+             'GET','data_*->field','GET','#')),get_ref,
+       'SORT BY/GET hash+GET #/multiple GET/missing nil/selected window')
+    nosort_ref=list(reversed(native))[1:3]
+    eq(lst(c(s,f,'SORT',getsrc,'BY','nosort','DESC','LIMIT','1','2')),nosort_ref,
+       'SORT BY-nosort DESC/LIMIT native order')
+
+    # Full T3 STORE: source and destination are proven cross-owner; BY weights themselves span
+    # owners, projection is computed in Python, and LRANGE checks the stored flattened list order.
+    t3src,t3dst=shard_pair(s,f,True,'sort-t3-store')
+    data_by={wm[0]:'row-a',wm[1]:'row-b'}
+    c(s,f,'DEL',t3src,t3dst,'data_'+wm[0],'data_'+wm[1]); c(s,f,'RPUSH',t3src,*wm)
+    c(s,f,'HSET','data_'+wm[0],'field',data_by[wm[0]]); c(s,f,'HSET','data_'+wm[1],'field',data_by[wm[1]])
+    store_members=sorted(wm,key=lambda m:(float(weights[m]),m),reverse=True)
+    store_ref=[x for m in store_members for x in (data_by[m],m)]
+    eq(c(s,f,'SORT',t3src,'BY','weight:*','GET','data_*->field','GET','#',
+         'DESC','LIMIT','0','2','STORE',t3dst),len(store_ref),'SORT BY/GET STORE cross-shard/card')
+    eq(lst(c(s,f,'LRANGE',t3dst,'0','-1')),store_ref,'SORT BY/GET STORE cross-shard/order')
     # SCAN wall-cap: a huge COUNT is wall-time sliced; follow every cursor and verify no key lost/repeated.
     eq(c(s,f,'FLUSHDB'),b'OK','SCAN-cap-FLUSHDB')
     scan_want={'scan-cap:%04d'%i for i in range(4096)}
