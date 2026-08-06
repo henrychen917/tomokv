@@ -1939,7 +1939,7 @@ typedef struct client {
                                 * shared node kvstore while the others spin (µs), preserving the
                                 * per-connection FIFO flush semantics without concurrent kvstoreEmpty
                                 * races. NULL = sharing off (private per-worker db): empty directly. */
-    /* Allocated only for an accepted TCP client while tomokv-io-uring=1.
+    /* Allocated only for an accepted TCP client while tomokv-io-uring=1/2.
      * Kept at the cold tail so the default epoll path does not perturb the
      * request/reply cache-line layout. */
     clientCold *cold;       /* Rare state, allocated on first cold-subsystem use. */
@@ -3230,8 +3230,8 @@ struct redisServer {
     int io_threads;
     int ex_threads;
     /* One immutable numeric gate for the complete io_uring network backend.
-     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects one
-     * SINGLE_ISSUER|DEFER_TASKRUN ring per live IO owner. */
+     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects the
+     * existing ring; 2 selects the isolated Helio-style staged backend. */
     int io_uring;
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the

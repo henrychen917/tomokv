@@ -23,6 +23,7 @@
 #include "memory_prefetch.h"
 #include "connection.h"
 #include "uring.h"
+#include "uring2.h"
 #include <sys/socket.h>
 #include <sys/uio.h>
 #include <math.h>
@@ -558,8 +559,8 @@ client *createClient(connection *conn) {
 }
 
 void installClientWriteHandler(client *c) {
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        tomoUringClientQueueWrite(c) == C_OK) {
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        tomoUringBackendClientQueueWrite(c) == C_OK) {
         connSetWriteHandler(c->conn, NULL);
         return;
     }
@@ -2011,7 +2012,7 @@ static inline int _clientHasPendingRepliesSlave(client *c) {
 /* Return true if the specified client has pending reply buffers to write to
  * the socket. */
 int clientHasPendingReplies(client *c) {
-    if (server.io_uring && tomoUringClientSendPending(c)) return 1;
+    if (server.io_uring && tomoUringBackendClientSendPending(c)) return 1;
     if (unlikely(clientTypeIsSlave(c))) {
         return _clientHasPendingRepliesSlave(c);
     }
@@ -2091,14 +2092,14 @@ void clientAcceptHandler(connection *conn) {
     if (server.io_threads_num > 1) assignClientToIOThread(c);
 
     /* Successful ordinary accepted TCP connections switch from epoll reads
-     * to one owner-ring multishot receive here.  createClient() is too early:
+     * to the selected owner-ring receive backend here. createClient() is too early:
      * outgoing replication and ASM callers set their special flags only
      * after creating the client. */
     if (server.io_uring && c->tid == iotid &&
         c->conn->type == connectionTypeTcp() &&
         !(c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
                       CLIENT_REPL_RDB_CHANNEL))) {
-        if (tomoUringClientAttach(c) != C_OK) {
+        if (tomoUringBackendClientAttach(c) != C_OK) {
             serverLog(LL_WARNING,
                       "FATAL: failed to attach accepted TCP client %llu to "
                       "requested io_uring owner %d",
@@ -2620,9 +2621,9 @@ void freeClient(client *c) {
         freeClientAsync(c->parent);
         return;
     }
-    if (server.io_uring && tomoUringClientAttached(c)) {
-        tomoUringClientRequestClose(c);
-        if (!tomoUringClientCloseReady(c)) {
+    if (server.io_uring && tomoUringBackendClientAttached(c)) {
+        tomoUringBackendClientRequestClose(c);
+        if (!tomoUringBackendClientCloseReady(c)) {
             freeClientAsync(c);
             return;
         }
@@ -2759,7 +2760,7 @@ void freeClient(client *c) {
      */
     /* No recv/cancel CQE can still name the sidecar at this point.  Release
      * it before connClose makes the fd reusable. */
-    if (server.io_uring) tomoUringClientRelease(c);
+    if (server.io_uring) tomoUringBackendClientRelease(c);
     unlinkClient(c);
     serverAssert(c->pending_cmds.len == 0);
     /* Master/slave cleanup Case 1:
@@ -2933,9 +2934,9 @@ int freeClientsInAsyncFreeQueue(void) {
     while (budget-- > 0 && (ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
-        if (server.io_uring && tomoUringClientAttached(c)) {
-            tomoUringClientRequestClose(c);
-            if (!tomoUringClientCloseReady(c)) continue;
+        if (server.io_uring && tomoUringBackendClientAttached(c)) {
+            tomoUringBackendClientRequestClose(c);
+            if (!tomoUringBackendClientCloseReady(c)) continue;
         }
         if (c->flags & CLIENT_PROTECTED) continue;
         if (c->flags & CLIENT_EX_PENDING) continue;
@@ -3398,7 +3399,7 @@ int writeToClient(client *c, int handler_installed) {
     if (!(c->io_flags & CLIENT_IO_WRITE_ENABLED)) return C_OK;
     /* A ring-owned prefix is the only writer until its data CQE retires it.
      * A legacy syscall here would overtake that prefix on the same stream. */
-    if (server.io_uring && tomoUringClientSendPending(c)) return C_OK;
+    if (server.io_uring && tomoUringBackendClientSendPending(c)) return C_OK;
     /* Update the number of writes of io threads on server */
     /* CONFIG RESETSTAT is a second writer, so this must remain one atomic
      * RMW; no ordering is carried by the statistic. */
@@ -3498,8 +3499,8 @@ int writeToClient(client *c, int handler_installed) {
 /* Write event handler. Just send data to the client. */
 void sendReplyToClient(connection *conn) {
     client *c = connGetPrivateData(conn);
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        tomoUringClientQueueWrite(c) == C_OK) {
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        tomoUringBackendClientQueueWrite(c) == C_OK) {
         connSetWriteHandler(c->conn, NULL);
         return;
     }
@@ -3536,8 +3537,8 @@ int handleClientsWithPendingWrites(void) {
 
         /* Queue one stable prefix per client; all clients' SEND SQEs are
          * staged together by the owner ring's single enter for this pass. */
-        if (server.io_uring && tomoUringClientAttached(c) &&
-            tomoUringClientQueueWrite(c) == C_OK)
+        if (server.io_uring && tomoUringBackendClientAttached(c) &&
+            tomoUringBackendClientQueueWrite(c) == C_OK)
             continue;
 
         /* Let IO thread handle the client if possible. */
@@ -3674,9 +3675,9 @@ void resetClient(client *c, int num_pcmds_to_free) {
 void protectClient(client *c) {
     c->flags |= CLIENT_PROTECTED;
     int uring_attached =
-        server.io_uring && tomoUringClientAttached(c);
+        server.io_uring && tomoUringBackendClientAttached(c);
     if (uring_attached)
-        tomoUringClientPause(c);
+        tomoUringBackendClientPause(c);
     if (c->conn && c->tid == IOTHREAD_MAIN_THREAD_ID) {
         if (!uring_attached)
             connSetReadHandler(c->conn,NULL);
@@ -3689,8 +3690,8 @@ void unprotectClient(client *c) {
     if (c->flags & CLIENT_PROTECTED) {
         c->flags &= ~CLIENT_PROTECTED;
         if (c->conn) {
-            if (server.io_uring && tomoUringClientAttached(c))
-                tomoUringClientResume(c);
+            if (server.io_uring && tomoUringBackendClientAttached(c))
+                tomoUringBackendClientResume(c);
             else if (c->tid == IOTHREAD_MAIN_THREAD_ID)
                 connSetReadHandler(c->conn,readQueryFromClient);
             if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);

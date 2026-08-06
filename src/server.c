@@ -35,6 +35,7 @@
 #include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
 #include "uring.h"
+#include "uring2.h"
 
 #include <time.h>
 #include <signal.h>
@@ -1451,7 +1452,7 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
      * defer the rare cron reallocation until the data CQE and any promised
      * zero-copy notification end the reference.
      */
-    if (server.io_uring && tomoUringClientSendPending(c)) return 0;
+    if (server.io_uring && tomoUringBackendClientSendPending(c)) return 0;
 
     /* Don't resize encoded buffers. When buf is encoded, we track the last
      * partially written payloadHeader pointer, so we can't
@@ -3321,7 +3322,7 @@ void handleWorkerReplies(void) {
          * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
          * write path byte-for-byte. */
         if (spliced && !close_asap) {
-            if (server.io_uring && tomoUringClientAttached(real)) {
+            if (server.io_uring && tomoUringBackendClientAttached(real)) {
                 putClientInPendingWriteQueue(real);
             } else {
                 (void)writeToClient(real, 0);
@@ -4593,9 +4594,9 @@ void initServer(void) {
      * second ownership protocol and is intentionally not mixed with it. */
     if (server.io_uring && server.io_threads_num != 1) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-io-uring 1 requires the upstream 'io-threads' "
+            "FATAL: tomokv-io-uring %d requires the upstream 'io-threads' "
             "setting to remain 1; size TomoKV IO ownership with "
-            "tomokv-thread-io instead");
+            "tomokv-thread-io instead", server.io_uring);
         exit(1);
     }
 
@@ -4605,8 +4606,9 @@ void initServer(void) {
      * into an epoll run with a misleading label. */
     if (server.io_uring) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-io-uring 1 requires a Linux build with "
-            "liburing >= 2.4 (rebuild with USE_URING=yes)");
+            "FATAL: tomokv-io-uring %d requires a Linux build with "
+            "liburing >= 2.4 (rebuild with USE_URING=yes)",
+            server.io_uring);
         exit(1);
     }
 #endif
@@ -16479,6 +16481,59 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_uring_send_zc_fallbacks:%llu\r\n", (unsigned long long)ust.send_zc_fallbacks,
             "tomokv_uring_send_cancel_queued:%llu\r\n", (unsigned long long)ust.send_cancel_queued,
             "tomokv_uring_send_cancel_cqes:%llu\r\n", (unsigned long long)ust.send_cancel_cqes));
+        /* Keep modes 0/1 INFO byte-for-byte unchanged.  The additive mode-2
+         * instrumentation is emitted only for the selected backend. */
+        if (server.io_uring == 2) {
+            tomoUring2Stats u2st;
+            tomoUring2GetStats(&u2st);
+            long long u2_commands = getNumCommands();
+            double u2_enters_per_command = u2_commands > 0 ?
+                (double)u2st.enter_calls / (double)u2_commands : 0.0;
+            double u2_cqes_per_drain = u2st.cq_drain_passes ?
+                (double)u2st.cqes / (double)u2st.cq_drain_passes : 0.0;
+            double u2_sqes_per_enter = u2st.enter_calls ?
+                (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
+            info = sdscatprintf(info, FMTARGS(
+                "tomokv_uring2_enabled:%d\r\n", server.io_uring == 2,
+                "tomokv_uring2_rings_ready:%llu\r\n", (unsigned long long)u2st.rings_ready,
+                "tomokv_uring2_setup_submit_all:%llu\r\n", (unsigned long long)u2st.setup_submit_all,
+                "tomokv_uring2_setup_defer_taskrun:%llu\r\n", (unsigned long long)u2st.setup_defer_taskrun,
+                "tomokv_uring2_setup_coop_taskrun:%llu\r\n", (unsigned long long)u2st.setup_coop_taskrun,
+                "tomokv_uring2_setup_taskrun_flag:%llu\r\n", (unsigned long long)u2st.setup_taskrun_flag,
+                "tomokv_uring2_setup_single_issuer:%llu\r\n", (unsigned long long)u2st.setup_single_issuer,
+                "tomokv_uring2_init_failures:%llu\r\n", (unsigned long long)u2st.init_failures,
+                "tomokv_uring2_sqes_staged:%llu\r\n", (unsigned long long)u2st.sqes_staged,
+                "tomokv_uring2_sqes_submitted:%llu\r\n", (unsigned long long)u2st.sqes_submitted,
+                "tomokv_uring2_sqes_max_batch:%llu\r\n", (unsigned long long)u2st.sqes_max_batch,
+                "tomokv_uring2_enter_calls:%llu\r\n", (unsigned long long)u2st.enter_calls,
+                "tomokv_uring2_submit_getevents_calls:%llu\r\n", (unsigned long long)u2st.submit_getevents_calls,
+                "tomokv_uring2_taskrun_flag_enters:%llu\r\n", (unsigned long long)u2st.taskrun_flag_enters,
+                "tomokv_uring2_wait_calls:%llu\r\n", (unsigned long long)u2st.wait_calls,
+                "tomokv_uring2_enters_per_command_proxy:%.6f\r\n", u2_enters_per_command,
+                "tomokv_uring2_sqes_per_enter:%.6f\r\n", u2_sqes_per_enter,
+                "tomokv_uring2_sq_full_emergency_submits:%llu\r\n", (unsigned long long)u2st.sq_full_emergency_submits,
+                "tomokv_uring2_cqes:%llu\r\n", (unsigned long long)u2st.cqes,
+                "tomokv_uring2_cq_drain_passes:%llu\r\n", (unsigned long long)u2st.cq_drain_passes,
+                "tomokv_uring2_cq_batches:%llu\r\n", (unsigned long long)u2st.cq_batches,
+                "tomokv_uring2_cqes_per_drain_pass:%.6f\r\n", u2_cqes_per_drain,
+                "tomokv_uring2_epoll_wakes:%llu\r\n", (unsigned long long)u2st.epoll_wakes,
+                "tomokv_uring2_recv_submitted:%llu\r\n", (unsigned long long)u2st.recv_submitted,
+                "tomokv_uring2_recv_cqes:%llu\r\n", (unsigned long long)u2st.recv_cqes,
+                "tomokv_uring2_recv_bytes:%llu\r\n", (unsigned long long)u2st.recv_bytes,
+                "tomokv_uring2_recv_poll_first:%llu\r\n", (unsigned long long)u2st.recv_poll_first,
+                "tomokv_uring2_recv_sock_nonempty:%llu\r\n", (unsigned long long)u2st.recv_sock_nonempty,
+                "tomokv_uring2_recv_cancel_submitted:%llu\r\n", (unsigned long long)u2st.recv_cancel_submitted,
+                "tomokv_uring2_send_queued:%llu\r\n", (unsigned long long)u2st.send_queued,
+                "tomokv_uring2_send_submitted:%llu\r\n", (unsigned long long)u2st.send_submitted,
+                "tomokv_uring2_send_cqes:%llu\r\n", (unsigned long long)u2st.send_cqes,
+                "tomokv_uring2_send_bytes:%llu\r\n", (unsigned long long)u2st.send_bytes,
+                "tomokv_uring2_send_partial:%llu\r\n", (unsigned long long)u2st.send_partial,
+                "tomokv_uring2_send_errors:%llu\r\n", (unsigned long long)u2st.send_errors,
+                "tomokv_uring2_send_scratch_copies:%llu\r\n", (unsigned long long)u2st.send_scratch_copies,
+                "tomokv_uring2_send_scratch_bytes:%llu\r\n", (unsigned long long)u2st.send_scratch_bytes,
+                "tomokv_uring2_send_cancel_submitted:%llu\r\n", (unsigned long long)u2st.send_cancel_submitted,
+                "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
+        }
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
          * separate sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
          * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
@@ -17210,7 +17265,7 @@ void setupChildSignalHandlers(void) {
  * parent restarts it can bind/lock despite the child possibly still running. */
 void closeChildUnusedResourceAfterFork(void) {
     closeListeningSockets(0);
-    tomoUringAfterForkChild();
+    tomoUringBackendAfterForkChild();
     if (server.cluster_enabled && server.cluster_config_file_lock_fd != -1)
         close(server.cluster_config_file_lock_fd);  /* don't care if this fails */
 
@@ -19820,7 +19875,7 @@ void initIOThreads(void) {
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
-    if (tomoUringInitThread(0, server.el) != C_OK) {
+    if (tomoUringBackendInitThread(0, server.el) != C_OK) {
         serverLog(LL_WARNING,
                   "FATAL: failed to initialize requested io_uring owner 0");
         exit(1);
@@ -20030,7 +20085,7 @@ void *polyThreadMain(void *arg) {
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 flatRegisterIoSlot(ctx->io_slot);
-                if (tomoUringInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
+                if (tomoUringBackendInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
                     serverLog(LL_WARNING,
                               "FATAL: failed to initialize requested io_uring owner %d",
                               ctx->io_slot);
@@ -20554,8 +20609,8 @@ static int tmClientQuiesced(client *c) {
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
     if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        !tomoUringClientMigrationReady(c)) return 0;       /* cancel CQE + recv terminal CQE */
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        !tomoUringBackendClientMigrationReady(c)) return 0;       /* cancel CQE + recv terminal CQE */
     /* (v12-K worker_direct_send wds_busy/wds_inflight fence absent on the numa lineage — stripped) */
     return 1;
 }
@@ -20767,8 +20822,8 @@ static int tmPlaceConnDest(int exclude, long *in_flight) {
  * keeps draining) and enroll it in the source's migrating_out set. Runs on the owning thread. */
 static void tmMigStartClient(client *c) {
     c->flags |= CLIENT_MIGRATING;
-    if (server.io_uring && tomoUringClientAttached(c))
-        tomoUringClientStartMigration(c);
+    if (server.io_uring && tomoUringBackendClientAttached(c))
+        tomoUringBackendClientStartMigration(c);
     else
         connSetReadHandler(c->conn, NULL); /* epoll reader; writes stay live so replies flush */
     listAddNodeTail(tm_mig_mbox[iotid].migrating_out, c);
@@ -20779,13 +20834,13 @@ static void tmMigStartClient(client *c) {
  * and MIGRATING until the same cancel+terminal barrier required by handoff
  * has completed. */
 static int tmMigAbortClient(client *c) {
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        !tomoUringClientAbortMigration(c))
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        !tomoUringBackendClientAbortMigration(c))
         return 0;
     c->flags &= ~CLIENT_MIGRATING;
     if (c->conn) {
-        if (server.io_uring && tomoUringClientAttached(c))
-            tomoUringClientResume(c);
+        if (server.io_uring && tomoUringBackendClientAttached(c))
+            tomoUringBackendClientResume(c);
         else
             connSetReadHandler(c->conn, readQueryFromClient);
     }
@@ -20870,11 +20925,11 @@ static void tomoScriptRejoinIfScrammed(void) {
  * in clients_pending_write / _ref_reply; migratable ⇒ not in unblocked_clients). Runs on the
  * owning (source) thread; dest re-registers on its own loop. */
 static void tmMigHandoff(client *c, int dest) {
-    if (server.io_uring && tomoUringClientAttached(c)) {
-        serverAssert(tomoUringClientMigrationReady(c));
+    if (server.io_uring && tomoUringBackendClientAttached(c)) {
+        serverAssert(tomoUringBackendClientMigrationReady(c));
         /* This clears the source-ring ownership only after both CQEs.  The
          * mailbox publication below is the release edge observed by dest. */
-        tomoUringClientPublishTransit(c);
+        tomoUringBackendClientPublishTransit(c);
     }
 
     /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
@@ -21008,8 +21063,8 @@ void tmMigServiceOut(void) {
         client *c = listNodeValue(ln);
         /* Died / closing during drain — drop it; the async-free pass reclaims it. */
         if (!c->conn || (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY))) {
-            if (server.io_uring && tomoUringClientAttached(c))
-                tomoUringClientRequestClose(c);
+            if (server.io_uring && tomoUringBackendClientAttached(c))
+                tomoUringBackendClientRequestClose(c);
             c->flags &= ~CLIENT_MIGRATING;
             listDelNode(mb->migrating_out, ln);
             continue;
@@ -21171,11 +21226,11 @@ void tmMigDrainInbox(void) {
         /* c->conn->el is NULL (source unbound it); rebind to this loop, re-link, resume. */
         connRebindEventLoop(c->conn, my_el);
         linkClient(c); /* into clients[id] + clients_index[id] (uses iotid) */
-        if (server.io_uring && tomoUringClientAttached(c)) {
+        if (server.io_uring && tomoUringBackendClientAttached(c)) {
             /* Acquire from the inbox precedes installing destination
              * ownership.  Process source-copied bytes before queuing the new
-             * multishot arm, so byte order crosses the migration intact. */
-            if (tomoUringClientAdopt(c) != C_OK) {
+             * receive arm, so byte order crosses the migration intact. */
+            if (tomoUringBackendClientAdopt(c) != C_OK) {
                 serverLog(LL_WARNING,
                           "FATAL: io_uring destination %d could not adopt "
                           "migrated client %llu",
@@ -21183,7 +21238,7 @@ void tmMigDrainInbox(void) {
                 exit(1);
             }
             c->flags &= ~CLIENT_MIGRATING;
-            tomoUringClientResume(c);
+            tomoUringBackendClientResume(c);
         } else {
             connSetReadHandler(c->conn, readQueryFromClient);
             c->flags &= ~CLIENT_MIGRATING;
