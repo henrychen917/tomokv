@@ -2268,6 +2268,7 @@ int verifyClusterConfigWithData(void) {
 
     /* Make sure we only have keys in DB0. */
     for (int i = 1; i < server.dbnum; i++) {
+        if (!dbIsInitialized(&server.db[i])) continue;
         if (kvstoreSize(server.db[i].keys)) return C_ERR;
     }
 

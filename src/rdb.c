@@ -1584,6 +1584,7 @@ ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key
     char *pname = (rdbflags & RDBFLAGS_AOF_PREAMBLE) ? "AOF rewrite" :  "RDB";
 
     redisDb *db = db_param;   /* ee451: caller passes server.db[dbid] or a worker shard db */
+    if (!dbIsInitialized(db)) return 0;
     unsigned long long int db_size = kvstoreSize(db->keys);
     if (db_size == 0) return 0;
 
@@ -1694,6 +1695,7 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
     /* save all databases, skip this if we're in functions-only mode */
     if (!(req & SLAVE_REQ_RDB_EXCLUDE_DATA)) {
         for (j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.db[j])) continue;
             /* ee451: save the main logical db (usually empty under sharding) AND every
              * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
             if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
@@ -3685,7 +3687,11 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
     int type, rdbver;
     uint64_t db_size = 0, expires_size = 0;
     int should_expand_db = 0;
+    /* RDB keys are routed into THredis's physical DBs even when a temporary
+     * decoy array is used, so initialize the complete logical DB group first. */
+    ensureLogicalDbInitialized(0);
     redisDb *db = rdb_loading_ctx->dbarray+0;
+    if (rdb_loading_ctx->dbarray != server.db) ensureTempDbInitialized(db);
     char buf[1024];
     int error;
     long long empty_keys_skipped = 0;
@@ -3759,7 +3765,9 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
                     "databases. Exiting\n", server.dbnum);
                 exit(1);
             }
+            ensureLogicalDbInitialized(dbid);
             db = rdb_loading_ctx->dbarray+dbid;
+            if (rdb_loading_ctx->dbarray != server.db) ensureTempDbInitialized(db);
             continue; /* Read next opcode. */
         } else if (type == RDB_OPCODE_RESIZEDB) {
             /* RESIZEDB: Hint about the size of the keys in the currently

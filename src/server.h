@@ -1184,9 +1184,18 @@ typedef struct redisDb {
     dict *ready_keys;           /* Blocked keys that received a PUSH */
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
     int id;                     /* Database ID */
+    redisAtomic int initialized; /* Heavy fields above are ready for use. */
     long long avg_ttl;          /* Average TTL, just for stats */
     unsigned long expires_cursor; /* Cursor of the active expire cycle. */
 } redisDb;
+
+/* Database arrays keep their stable addresses because clients and workers retain
+ * redisDb pointers. Only the expensive contents are initialized lazily. */
+static inline int dbIsInitialized(redisDb *db) {
+    int initialized;
+    atomicGetAcquire(db->initialized, initialized);
+    return initialized;
+}
 
 /* maximum number of bins of keysizes histogram */
 #define MAX_KEYSIZES_BINS 60
@@ -5762,7 +5771,8 @@ void flushAllDataAndResetRDB(int flags);
 long long dbTotalServerKeyCount(void);
 redisDb *initTempDb(void);
 void discardTempDb(redisDb *tempDb);
-
+void ensureLogicalDbInitialized(int id);
+void ensureTempDbInitialized(redisDb *db);
 
 int selectDb(client *c, int id);
 void keyModified(client *c, redisDb *db, robj *key, robj *val, int signal);

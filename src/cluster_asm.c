@@ -2295,6 +2295,7 @@ int slotSnapshotSaveRio(int req, rio *rdb, int *error) {
     for (int i = 0; i < server.dbnum; i++) {
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
         redisDb *db = server.db + i;
+        if (!dbIsInitialized(db)) continue;
         if (kvstoreSize(db->keys) == 0) continue;
 
         /* SELECT the new DB */

@@ -315,7 +315,7 @@ void exActiveExpireCycle(exThread *worker) {
          * sweep took ~60s to come back round to db 0. Measured exactly that: a run stalled at
          * dbsize=83234 for 60s before resuming. Skip the db, don't walk it.
          * kvstoreSize is an O(1) aggregate (atomic under SHARED_MT), not a walk. */
-        if (kvstoreSize(db->expires) == 0) {
+        if (!dbIsInitialized(db) || kvstoreSize(db->expires) == 0) {
             worker->aexp_cursor = 0;
             b = blo;
             if (++dbid >= server.dbnum) dbid = 0;
@@ -523,7 +523,7 @@ static uint64_t exActiveSubexpiresCycle(exThread *worker, int blo, int bhi,
     int dbs = 0;
     while (dbs < server.dbnum) {
         redisDb *db = &worker->db[dbid];
-        if (estoreIsEmpty(db->subexpires)) {
+        if (!dbIsInitialized(db) || estoreIsEmpty(db->subexpires)) {
             b = -1;
         } else if (b < blo || b >= bhi) {
             b = exSubexpiresFirstInRange(db->subexpires, blo, bhi);
@@ -634,8 +634,9 @@ static inline void activeSubexpiresCycle(int type) {
     redisDb *db = server.db + currentDb;
 
     /* If db is empty, move to next db and return */
-    if (estoreIsEmpty(db->subexpires)) {
+    if (!dbIsInitialized(db) || estoreIsEmpty(db->subexpires)) {
         activeExpirySequence = 0;
+        currentSlot = -1;
         currentDb = (currentDb + 1) % server.dbnum;
         return;
     }
@@ -778,6 +779,8 @@ void activeExpireCycle(int type) {
         /* Interleaving sub-expiration with key expiration. Better call it before
          * handling expired keys because ebuckets is optimized for active expiration */
         activeSubexpiresCycle(type);
+
+        if (!dbIsInitialized(db)) continue;
 
         if (kvstoreSize(db->expires))
             dbs_performed++;
@@ -956,7 +959,7 @@ void expireSlaveKeys(void) {
         while(dbids && dbid < server.dbnum) {
             if ((dbids & 1) != 0) {
                 redisDb *db = server.db+dbid;
-                kvobj *kv = dbFindExpires(db, keyname);
+                kvobj *kv = dbIsInitialized(db) ? dbFindExpires(db, keyname) : NULL;
                 int expired = kv && activeExpireCycleTryExpire(server.db+dbid, kv, start);
 
                 /* If the key was not expired in this DB, we need to set the

@@ -89,6 +89,19 @@ def shard_pair(s,f,want_cross,prefix,keymaker=None):
 
 def partA():
     s,f=conn(); c(s,f,'FLUSHDB')
+    # First SELECT of a non-default logical DB constructs its decoy and every
+    # per-node physical DB before the selected pointer becomes visible.
+    lazy_key='cov:lazy-db'
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SELECT','1'),b'OK','SELECT lazy DB')
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SET',lazy_key,'db1'),b'OK','lazy DB SET')
+    eq(c(s,f,'GET',lazy_key),b'db1','lazy DB GET')
+    eq(c(s,f,'SELECT','0'),b'OK','SELECT default DB')
+    eq(c(s,f,'GET',lazy_key),None,'lazy DB isolation')
+    eq(c(s,f,'SELECT','1'),b'OK','reselect initialized DB')
+    eq(c(s,f,'DEL',lazy_key),1,'lazy DB cleanup')
+    eq(c(s,f,'SELECT','0'),b'OK','restore default DB')
     xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
     # ---- strings ----
     eq(c(s,f,'SET','s','hello'),b'OK','SET'); eq(c(s,f,'GET','s'),b'hello','GET')

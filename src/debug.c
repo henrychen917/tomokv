@@ -329,6 +329,7 @@ void computeDatasetDigest(unsigned char *final) {
     memset(final,0,20); /* Start with a clean result */
 
     for (j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         /* ee451: the keyspace lives in the shard/node dbs, not the (empty) decoy server.db — iterating
          * server.db here digested ZERO keys. Digest the physical dbs holding dbid j: under shared_node_dbs
          * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard. */
@@ -1166,12 +1167,16 @@ NULL
             full = 1;
 
         stats = sdscatprintf(stats,"[Dictionary HT]\n");
-        kvstoreGetStats(server.db[dbid].keys, buf, sizeof(buf), full);
-        stats = sdscat(stats,buf);
+        if (dbIsInitialized(&server.db[dbid])) {
+            kvstoreGetStats(server.db[dbid].keys, buf, sizeof(buf), full);
+            stats = sdscat(stats,buf);
+        }
 
         stats = sdscatprintf(stats,"[Expires HT]\n");
-        kvstoreGetStats(server.db[dbid].expires, buf, sizeof(buf), full);
-        stats = sdscat(stats,buf);
+        if (dbIsInitialized(&server.db[dbid])) {
+            kvstoreGetStats(server.db[dbid].expires, buf, sizeof(buf), full);
+            stats = sdscat(stats,buf);
+        }
 
         addReplyVerbatim(c,stats,sdslen(stats),"txt");
         sdsfree(stats);

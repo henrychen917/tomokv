@@ -1891,6 +1891,7 @@ static void beginDefragCycle(void) {
 
     for (int dbid = 0; dbid < server.dbnum; dbid++) {
         redisDb *db = &server.db[dbid];
+        if (!dbIsInitialized(db)) continue;
 
         /* Add stage for keys. */
         defragKeysCtx *defrag_keys_ctx = zcalloc(sizeof(defragKeysCtx));

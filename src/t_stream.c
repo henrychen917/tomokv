@@ -5539,6 +5539,7 @@ void handleClaimableStreamEntries(void) {
         redisDb *db = &server.db[current_db % server.dbnum];
         current_db++;
 
+        if (!dbIsInitialized(db)) continue;
         if (dictIsEmpty(db->stream_claim_pending_keys))
             continue;
 
@@ -5780,6 +5781,7 @@ void handleExpiredIdmpEntries(void) {
         redisDb *db = &server.db[current_db % server.dbnum];
         current_db++;
 
+        if (!dbIsInitialized(db)) continue;
         if (dictIsEmpty(db->stream_idmp_keys))
             continue;
 
