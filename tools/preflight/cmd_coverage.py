@@ -39,6 +39,39 @@ def eq(got,want,msg): ck(got==want, "%s: got %r want %r"%(msg,got,want))
 def B(x): return x.encode() if isinstance(x,str) else x
 def lst(r): return [x.decode() if isinstance(x,bytes) else x for x in r] if isinstance(r,list) else r
 def rejected(r): return isinstance(r,Exception)  # THredis fail-safe-rejects some cross-shard/txn cmds
+def lcs_ref(a,b,minmatchlen=0,withmatchlen=False):
+    # Mirror Redis's DP tie-break (walk left on ties) and reverse-order IDX range emission.
+    alen,blen=len(a),len(b); dp=[[0]*(blen+1) for _ in range(alen+1)]
+    for i in range(1,alen+1):
+        for j in range(1,blen+1):
+            dp[i][j]=dp[i-1][j-1]+1 if a[i-1]==b[j-1] else max(dp[i-1][j],dp[i][j-1])
+    idx=dp[alen][blen]; result=bytearray(idx); ranges=[]
+    arange_start,arange_end,brange_start,brange_end=alen,0,0,0
+    i,j=alen,blen
+    while i>0 and j>0:
+        emit=False
+        if a[i-1]==b[j-1]:
+            result[idx-1]=a[i-1]
+            if arange_start==alen:
+                arange_start=arange_end=i-1; brange_start=brange_end=j-1
+            elif arange_start==i and brange_start==j:
+                arange_start-=1; brange_start-=1
+            else:
+                emit=True
+            if arange_start==0 or brange_start==0: emit=True
+            idx-=1; i-=1; j-=1
+        else:
+            if dp[i-1][j]>dp[i][j-1]: i-=1
+            else: j-=1
+            if arange_start!=alen: emit=True
+        if emit:
+            matchlen=arange_end-arange_start+1
+            if minmatchlen==0 or matchlen>=minmatchlen:
+                item=[[arange_start,arange_end],[brange_start,brange_end]]
+                if withmatchlen: item.append(matchlen)
+                ranges.append(item)
+            arange_start=alen
+    return bytes(result),ranges
 def info_int(s,f,name):
     p=B(name)+b':'
     for line in c(s,f,'INFO','stats').splitlines():
@@ -69,6 +102,19 @@ def partA():
     eq(c(s,f,'SETNX','g','x'),0,'SETNX-exists'); eq(c(s,f,'SETNX','g2','y'),1,'SETNX-new')
     c(s,f,'MSET','a','1','b','2','cc','3'); eq(lst(c(s,f,'MGET','a','b','cc','nope')),['1','2','3',None],'MSET/MGET')
     eq(c(s,f,'GETDEL','g2'),b'y','GETDEL'); eq(c(s,f,'EXISTS','g2'),0,'GETDEL-removed')
+    # LCS T2: xs/xd are proven cross-owner above; compare stock tie/range semantics to Python.
+    la,lb=B('ohmytext'),B('mynewtext'); want,_=lcs_ref(la,lb)
+    c(s,f,'DEL',xs,xd); c(s,f,'SET',xs,la); c(s,f,'SET',xd,lb)
+    eq(c(s,f,'LCS',xs,xd),want,'LCS cross-shard/string')
+    eq(c(s,f,'LCS',xs,xd,'LEN'),len(want),'LCS cross-shard/LEN')
+    _,matches=lcs_ref(la,lb,2,True)
+    eq(c(s,f,'LCS',xs,xd,'IDX','MINMATCHLEN','2','WITHMATCHLEN'),
+       [b'matches',matches,b'len',len(want)],'LCS cross-shard/IDX+MINMATCHLEN+WITHMATCHLEN')
+    c(s,f,'DEL',xd); empty,_=lcs_ref(la,b'')
+    eq(c(s,f,'LCS',xs,xd),empty,'LCS cross-shard/missing-as-empty')
+    eq(c(s,f,'LCS',xs,xd,'LEN'),0,'LCS cross-shard/missing-LEN')
+    c(s,f,'SET',ls,la); c(s,f,'SET',ld,lb)
+    eq(c(s,f,'LCS',ls,ld),want,'LCS same-shard/stock-proc')
     # ---- bitmaps ----
     c(s,f,'DEL','bit'); c(s,f,'SETBIT','bit','7','1'); eq(c(s,f,'GETBIT','bit','7'),1,'SETBIT/GETBIT')
     eq(c(s,f,'BITCOUNT','bit'),1,'BITCOUNT'); c(s,f,'SET','bc','foobar'); eq(c(s,f,'BITCOUNT','bc'),26,'BITCOUNT-str')

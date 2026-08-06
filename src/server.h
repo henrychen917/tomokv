@@ -1948,7 +1948,7 @@ typedef struct client {
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_SORTSTORE, CS_GEOSTORE,
-               CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE,
+               CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE, CS_LCS,
                CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
@@ -4287,6 +4287,7 @@ typedef struct csCmdSpec {
     /* -- gather geometry (CS_RT_GATHER) -- */
     int8_t  firstkey_argi;    /* 0 => 1. (S*STORE:2, ZUNIONSTORE:3, BITOP:3 ...) */
     int8_t  numkeys_argi;     /* 0 => keys run to argc; else argv index of numkeys */
+    int8_t  nkeys_fixed;      /* 0 => derive as above; LCS has exactly 2 keys before options */
     int8_t  key_stride;       /* 1, or 2 for MSET/MSETNX (k v pairs) */
     int8_t  per_key_extra;    /* extra argv slots appended per key (MSET value = 1) */
     uint8_t cs_write;         /* run migHoldKeyIfDraining per key (writes only) */
@@ -6186,6 +6187,7 @@ void lolwutCommand(client *c);
 void aclCommand(client *c);
 void hotkeysCommand(client *c);
 void lcsCommand(client *c);
+void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc);
 void quitCommand(client *c);
 void resetCommand(client *c);
 void failoverCommand(client *c);

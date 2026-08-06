@@ -967,14 +967,12 @@ void strlenCommand(client *c) {
 }
 
 /* LCS key1 key2 [LEN] [IDX] [MINMATCHLEN <len>] [WITHMATCHLEN] */
-void lcsCommand(client *c) {
+void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc) {
     uint32_t i, j;
     long long minmatchlen = 0;
     sds a = NULL, b = NULL;
     int getlen = 0, getidx = 0, withmatchlen = 0;
 
-    kvobj *obja = lookupKeyRead(c->db, c->argv[1]);
-    kvobj *objb = lookupKeyRead(c->db, c->argv[2]);
     if ((obja && obja->type != OBJ_STRING) ||
         (objb && objb->type != OBJ_STRING))
     {
@@ -991,9 +989,9 @@ void lcsCommand(client *c) {
     a = obja->ptr;
     b = objb->ptr;
 
-    for (j = 3; j < (uint32_t)c->argc; j++) {
-        char *opt = c->argv[j]->ptr;
-        int moreargs = (c->argc-1) - j;
+    for (j = 3; j < (uint32_t)argc; j++) {
+        char *opt = argv[j]->ptr;
+        int moreargs = (argc-1) - j;
 
         if (!strcasecmp(opt,"IDX")) {
             getidx = 1;
@@ -1002,7 +1000,7 @@ void lcsCommand(client *c) {
         } else if (!strcasecmp(opt,"WITHMATCHLEN")) {
             withmatchlen = 1;
         } else if (!strcasecmp(opt,"MINMATCHLEN") && moreargs) {
-            if (getLongLongFromObjectOrReply(c,c->argv[j+1],&minmatchlen,NULL)
+            if (getLongLongFromObjectOrReply(c,argv[j+1],&minmatchlen,NULL)
                 != C_OK) goto cleanup;
             if (minmatchlen < 0) minmatchlen = 0;
             j++;
@@ -1181,6 +1179,12 @@ cleanup:
     return;
 }
 
+void lcsCommand(client *c) {
+    kvobj *obja = lookupKeyRead(c->db, c->argv[1]);
+    kvobj *objb = lookupKeyRead(c->db, c->argv[2]);
+    lcsCommandGeneric(c,obja,objb,c->argv,c->argc);
+}
+
 /* Validate that a digest string has the correct length (DIGEST_HEX_LENGTH characters).
  * Note: This only validates length, not whether characters are valid hex digits.
  * Invalid hex characters will simply fail to match during comparison.
@@ -1230,4 +1234,3 @@ void digestCommand(client *c) {
 
     addReplyBulkSds(c, stringDigest(o));
 }
-

@@ -8679,6 +8679,11 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .min_argc=2, .firstkey_argi=1, .dst_argi=1, .key_stride=1,
   .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_OK },
+/* T2 read-gather: LCS has exactly two keys followed by an option tail. Gather their raw
+ * string images, then run the stock LCS parser/DP on the coordinator. Missing => empty. */
+{ .proc=lcsCommand, .name="lcs", .ported=CS_PORT_OK, .ctype=CS_LCS,
+  .route=CS_RT_GATHER, .min_argc=3, .nkeys_fixed=2, .key_stride=1,
+  .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET, .co_gate=CS_CO_ALWAYS },
 /* step 8 — list moves (peek-then-move: HOP1 peeks the element WITHOUT popping + probes dst's
  * type; a failing verdict (empty src => nil, wrong-typed dst => -ERR) never pops, the H3
  * guard; HOP2 = push-dst + pop-src under ONE barrier) and MSETNX (existence probe wave, then
@@ -8742,7 +8747,6 @@ static const csCmdSpec csRegistry[] = {
 
 /* ============ UNPORTED — strays the old blocklist MISSED (silently broken on the decoy
  * DB before the inversion; now loud + greppable instead of implicit-via-predicate) ====== */
-{ .proc=lcsCommand,                 .name="lcs"                  },
 { .proc=georadiusroCommand,         .name="georadius_ro"         },
 { .proc=georadiusbymemberroCommand, .name="georadiusbymember_ro" },
 { .proc=blpopCommand,               .name="blpop"                },
@@ -9437,11 +9441,12 @@ static void csSubExec(client *sub) {
             break;
         }
         /* fall through */
+    case CS_LCS:
     case CS_PFCOUNT: {
-        /* step 7 HOP1: gather each key's raw string image as a private sds copy into its
+        /* String-image HOP1: gather each key's raw value as a private sds copy into its
          * mget_vals slot (rows are CS_CO_ALWAYS => slots exist on every path). Missing =>
-         * NULL slot (empty). Non-string => WRONGTYPE (stock: BITOP checkType; PF checkType
-         * inside isHLLObjectOrReply — same shared.wrongtypeerr). HLL header validation is
+         * NULL slot (empty). Non-string => type error (the reassembler selects LCS's custom
+         * stock text versus BITOP/PF's shared WRONGTYPE). HLL header validation remains
          * coordinator-side (prep/reassemble) with stock's distinct error texts. */
         int *pos = g->mget_pos[sub->cssub_idx];
         for (int a = 1; a < sub->argc; a++) {
@@ -10332,7 +10337,8 @@ static void dispatchLocalReal(client *head, int w, int dbid) {
 static void dispatchGather(client *head, const csCmdSpec *s) {
     int first = csFirstKeyArg(s);
     int nkeys, dbid = head->db->id;
-    if (s->numkeys_argi) { long long nk;                  /* validated by csClassify */
+    if (s->nkeys_fixed) nkeys = s->nkeys_fixed;
+    else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
@@ -11485,6 +11491,20 @@ static void csReassemble(client *dst, client *head) {
             }
             break;
         }
+        case CS_LCS: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) {
+                addReplyError(dst, "The specified keys must contain string values");
+            } else {
+                robj *a = g->mget_vals[0] ? createObject(OBJ_STRING, g->mget_vals[0]) : NULL;
+                robj *b = g->mget_vals[1] ? createObject(OBJ_STRING, g->mget_vals[1]) : NULL;
+                g->mget_vals[0] = g->mget_vals[1] = NULL; /* ownership moved into a/b */
+                lcsCommandGeneric(dst,a,b,head->argv,head->argc);
+                if (a) decrRefCount(a);
+                if (b) decrRefCount(b);
+            }
+            break;
+        }
         case CS_BITOP: {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
@@ -11547,7 +11567,7 @@ static void csReassemble(client *dst, client *head) {
     if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
-     * (MGET + the step-7 string-image gathers BITOP/PFCOUNT/PFMERGE all use these slots.) */
+     * (MGET + the string-image gathers BITOP/PFCOUNT/PFMERGE/LCS all use these slots.) */
     if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
