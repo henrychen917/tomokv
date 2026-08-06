@@ -175,6 +175,11 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-reply-buffer-transfer no
   try tomokv-reply-buffer-transfer yes
 
+  # Lifetime-aware scatter/gather is independently default-OFF. Exercise both bool spellings;
+  # tomokv-zerocopy-min-value above remains its size/disable threshold.
+  try tomokv-reply-iovec no
+  try tomokv-reply-iovec yes
+
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..1; only 0 is driven here on purpose -- 1 arms the uring
   # machinery, which needs a USE_URING=yes build, and a cell that silently hangs on an epoll build
