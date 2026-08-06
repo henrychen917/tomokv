@@ -4308,9 +4308,9 @@ int rdbSaveToSlavesSockets(int req, rdbSaveInfo *rsi) {
     listRewind(server.slaves,&li);
     while((ln = listNext(&li))) {
         client *slave = ln->value;
-        if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
+        if (clientReplicationData(slave)->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
             /* Check slave has the exact requirements */
-            if (slave->slave_req != req)
+            if (clientReplicationData(slave)->slave_req != req)
                 continue;
             replicationSetupSlaveForFullResync(slave, getPsyncInitialOffset());
             conns[numconns++] = slave->conn;
@@ -4390,8 +4390,8 @@ int rdbSaveToSlavesSockets(int req, rdbSaveInfo *rsi) {
             listRewind(server.slaves,&li);
             while((ln = listNext(&li))) {
                 client *slave = ln->value;
-                if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
-                    slave->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
+                if (clientReplicationData(slave)->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
+                    clientReplicationData(slave)->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
                 }
             }
 

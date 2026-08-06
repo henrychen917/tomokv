@@ -1442,7 +1442,7 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     server.current_client[iotid].p = c;
 
     /* Don't update blocked_us since command was processed in bg by lazy_free thread */
-    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(c->bstate.lazyfreeStartTime), 0);
+    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(clientBlockingState(c)->lazyfreeStartTime), 0);
 
     /* Only SFLUSH command pass user data pointer. */
     if (slots)
@@ -1500,10 +1500,11 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
      * worker's queue. To be called and reply with OK only after all preceding pending
      * lazyfree jobs in queue were processed */
     if (blocking_async) {
+        initClientBlockingState(c);
         /* measure bg job till completion as elapsed time of flush command */
-        elapsedStart(&c->bstate.lazyfreeStartTime);
+        elapsedStart(&clientBlockingState(c)->lazyfreeStartTime);
 
-        c->bstate.timeout = 0;
+        clientBlockingState(c)->timeout = 0;
         /* We still need to perform cleanup operations for the command, including
          * updating the replication offset, so mark this command as pending to
          * avoid command from being reset during unblock. */

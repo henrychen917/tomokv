@@ -1059,7 +1059,7 @@ struct RedisModuleDigest {
 } while(0)
 
 /* Macro to check if the client is in the middle of module based authentication. */
-#define clientHasModuleAuthInProgress(c) ((c)->module_auth_ctx != NULL)
+#define clientHasModuleAuthInProgress(c) ((c)->cold && (c)->cold->module_auth_ctx != NULL)
 
 /* The string name for an object's type as listed above
  * Native types are checked against the OBJ_STRING, OBJ_LIST, OBJ_* defines,
@@ -1236,6 +1236,7 @@ typedef struct multiState {
                                certain flag. */
     size_t argv_len_sums;    /* mem used by all commands arguments */
     int alloc_count;         /* total number of pendingCommand struct memory reserved. */
+    list watched_keys;       /* Keys WATCHED for MULTI/EXEC CAS. */
 } multiState;
 
 /* This structure holds the blocking operation state for a client.
@@ -1638,6 +1639,74 @@ _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
 
 struct tomoUringClient;
 typedef struct client client;
+
+/* Rare client state lives behind one nullable sidecar. The regular request,
+ * dispatch and reply paths must not allocate it. Individual subsystems use
+ * the initialized bits so, for example, CLIENT TRACKING does not also create
+ * the blocking-key dictionary. */
+#define CLIENT_COLD_PUBSUB  (1U << 0)
+#define CLIENT_COLD_REPL    (1U << 1)
+#define CLIENT_COLD_BLOCKED (1U << 2)
+
+typedef struct clientCold {
+    unsigned int initialized;
+
+    /* MULTI/EXEC and WATCH. Commands remain NULL until first queued. */
+    multiState mstate;
+
+    /* Blocking commands. bstate.keys is created only when blocking starts. */
+    blockingState bstate;
+
+    /* Pub/Sub and client-side caching/tracking. */
+    dict *pubsub_channels;
+    dict *pubsub_patterns;
+    dict *pubsubshard_channels;
+    uint64_t client_tracking_redirection;
+    rax *client_tracking_prefixes;
+
+    /* Replication-only connection state. reploff_next and woff deliberately
+     * remain inline in client: both are touched by ordinary command handling. */
+    int replstate;
+    int repl_start_cmd_stream_on_ack;
+    int repldbfd;
+    off_t repldboff;
+    off_t repldbsize;
+    sds replpreamble;
+    long long read_reploff;
+    long long io_read_reploff;
+    long long reploff;
+    long long repl_applied;
+    long long repl_ack_off;
+    long long repl_aof_off;
+    long long repl_ack_time;
+    long long io_repl_ack_time;
+    long long repl_last_partial_write;
+    long long psync_initial_offset;
+    char replid[CONFIG_RUN_ID_SIZE+1];
+    int slave_listening_port;
+    char *slave_addr;
+    int slave_capa;
+    int slave_req;
+    uint64_t main_ch_client_id;
+    listNode *ref_repl_buf_node;
+    size_t ref_block_pos;
+    listNode *io_curr_repl_node;
+    size_t io_curr_block_pos;
+    listNode *io_bound_repl_node;
+    size_t io_bound_block_pos;
+    mstime_t io_last_repl_cron;
+
+    /* Module authentication / blocked-client bookkeeping. */
+    void *module_blocked_client;
+    void *module_auth_ctx;
+    RedisModuleUserChangedFunc auth_callback;
+    void *auth_callback_privdata;
+    void *auth_module;
+
+    /* BLOCKED_POSTPONE membership belongs to the blocking subsystem. */
+    listNode *postponed_list_node;
+} clientCold;
+
 typedef struct client {
     int isFake;
     client *parent;
@@ -1794,75 +1863,13 @@ typedef struct client {
     time_t obuf_soft_limit_reached_time;
     mstime_t io_last_client_cron;  /* Timestamp of last invocation of client
                                     * cron if client is running in IO thread */
-    mstime_t io_last_repl_cron;    /* Timestamp of last invocation of replication
-                                    * cron if client is running in IO thread. */
     int authenticated;      /* Needed when the default user requires auth. */
-    int replstate;          /* Replication state if this is a slave. */
-    int repl_start_cmd_stream_on_ack; /* Install slave write handler on first ACK. */
-    int repldbfd;           /* Replication DB file descriptor. */
-    off_t repldboff;        /* Replication DB file offset. */
-    off_t repldbsize;       /* Replication DB file size. */
-    sds replpreamble;       /* Replication DB preamble. */
-    long long read_reploff; /* Read replication offset if this is a master. */
-    long long io_read_reploff; /* Copy of read_reploff but only used when
-                                * master client is in IO thread so we don't
-                                * have contention with IO thread. */
-    long long reploff;      /* Applied replication offset if this is a master. */
     long long reploff_next; /* Next value to set for reploff when a command finishes executing */
-    long long repl_applied; /* Applied replication data count in querybuf, if this is a replica. */
-    long long repl_ack_off; /* Replication ack offset, if this is a slave. */
-    long long repl_aof_off; /* Replication AOF fsync ack offset, if this is a slave. */
-    long long repl_ack_time;/* Replication ack time, if this is a slave. */
-    long long io_repl_ack_time; /* Replication ack time, if this is a replica in
-                                 * IO thread. Keeps track of repl_ack_time while
-                                 * replica is in IO thread to avoid data races
-                                 * with main. repl_ack_time is updated with this
-                                 * value when replica returns to main thread. */
-    long long repl_last_partial_write; /* The last time the server did a partial write from the RDB child pipe to this replica  */
-    long long psync_initial_offset; /* FULLRESYNC reply offset other slaves
-                                       copying this slave output buffer
-                                       should use. */
-    char replid[CONFIG_RUN_ID_SIZE+1]; /* Master replication ID (if master). */
-    int slave_listening_port; /* As configured with: REPLCONF listening-port */
-    char *slave_addr;       /* Optionally given by REPLCONF ip-address */
-    int slave_capa;         /* Slave capabilities: SLAVE_CAPA_* bitwise OR. */
-    int slave_req;          /* Slave requirements: SLAVE_REQ_* */
-    uint64_t main_ch_client_id; /* The client id of this replica's main channel */
-    multiState mstate;      /* MULTI/EXEC state */
-    blockingState bstate;     /* blocking state */
     long long woff;         /* Last write global replication offset. */
-    list *watched_keys;     /* Keys WATCHED for MULTI/EXEC CAS */
-    dict *pubsub_channels;  /* channels a client is interested in (SUBSCRIBE) */
-    dict *pubsub_patterns;  /* patterns a client is interested in (PSUBSCRIBE) */
-    dict *pubsubshard_channels;  /* shard level channels a client is interested in (SSUBSCRIBE) */
     sds peerid;             /* Cached peer ID. */
     sds sockname;           /* Cached connection target address. */
     listNode *client_list_node; /* list node in client list */
     listNode *io_thread_client_list_node; /* list node in io thread client list */
-    listNode *postponed_list_node; /* list node within the postponed list */
-    void *module_blocked_client; /* Pointer to the RedisModuleBlockedClient associated with this
-                                  * client. This is set in case of module authentication before the
-                                  * unblocked client is reprocessed to handle reply callbacks. */
-    void *module_auth_ctx; /* Ongoing / attempted module based auth callback's ctx.
-                            * This is only tracked within the context of the command attempting
-                            * authentication. If not NULL, it means module auth is in progress. */
-    RedisModuleUserChangedFunc auth_callback; /* Module callback to execute
-                                               * when the authenticated user
-                                               * changes. */
-    void *auth_callback_privdata; /* Private data that is passed when the auth
-                                   * changed callback is executed. Opaque for
-                                   * Redis Core. */
-    void *auth_module;      /* The module that owns the callback, which is used
-                             * to disconnect the client if the module is
-                             * unloaded for cleanup. Opaque for Redis Core.*/
-
-    /* If this client is in tracking mode and this field is non zero,
-     * invalidation messages for keys fetched by this client will be sent to
-     * the specified client ID. */
-    uint64_t client_tracking_redirection;
-    rax *client_tracking_prefixes; /* A dictionary of prefixes we are already
-                                      subscribed to in BCAST mode, in the
-                                      context of client side caching. */
     /* In updateClientMemoryUsage() we track the memory usage of
      * each client and add it to the sum of all the clients of a given type,
      * however we need to remember what was the old contribution of each
@@ -1871,18 +1878,7 @@ typedef struct client {
     size_t last_memory_usage;
     int last_memory_type;
 
-    listNode *ref_repl_buf_node; /* Referenced node of replication buffer blocks,
-                                  * see the definition of replBufBlock. */
-    size_t ref_block_pos;        /* Access position of referenced buffer block,
-                                  * i.e. the next offset to send. */
-    listNode *io_curr_repl_node; /* Current node we are sending repl data from in
-                                  * IO thread. */
-    size_t io_curr_block_pos;    /* Current position we are sending repl data from
-                                  * in IO thread. */
-    listNode *io_bound_repl_node;/* Bound node we are sending repl data from in
-                                  * IO thread. */
-    size_t io_bound_block_pos;   /* Bound position we are sending repl data from
-                                  * in IO thread. */
+    /* Replication buffer cursors live in clientCold. */
 
     /* list node in clients_pending_ex list */
     listNode clients_pending_ex_node;
@@ -1937,8 +1933,28 @@ typedef struct client {
     /* Allocated only for an accepted TCP client while tomokv-io-uring=1.
      * Kept at the cold tail so the default epoll path does not perturb the
      * request/reply cache-line layout. */
+    clientCold *cold;       /* Rare state, allocated on first cold-subsystem use. */
     struct tomoUringClient *uring;
 } client;
+
+/* Non-allocating cold-state readers. Call the subsystem initializer before a
+ * write; these helpers deliberately return NULL for never-used state. */
+static inline multiState *clientMultiState(client *c) {
+    return c->cold ? &c->cold->mstate : NULL;
+}
+
+static inline blockingState *clientBlockingState(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_BLOCKED) ?
+           &c->cold->bstate : NULL;
+}
+
+static inline clientCold *clientPubSubData(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_PUBSUB) ? c->cold : NULL;
+}
+
+static inline clientCold *clientReplicationData(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_REPL) ? c->cold : NULL;
+}
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
  * slot that represents one multi-key command). Each sub-fake runs the per-shard
@@ -4850,6 +4866,13 @@ void redisSetCpuAffinity(const char *cpulist);
 /* networking.c -- Networking and Client related operations */
 client *createClient(connection *conn);
 void freeClient(client *c);
+clientCold *getClientCold(client *c);
+void freeClientCold(client *c);
+void initClientPubSubData(client *c);
+void freeClientPubSubData(client *c);
+void initClientReplicationData(client *c);
+void initClientModuleData(client *c);
+void freeClientModuleData(client *c);
 void freeClientAsync(client *c);
 void deauthenticateAndCloseClient(client *c);
 void logInvalidUseAndFreeClientAsync(client *c, const char *fmt, ...);
@@ -5850,6 +5873,7 @@ typedef struct luaScript {
 /* Blocked clients API */
 void processUnblockedClients(void);
 void initClientBlockingState(client *c);
+void freeClientBlockingState(client *c);
 void blockClient(client *c, int btype);
 void unblockClient(client *c, int queue_for_reprocessing);
 void unblockClientOnTimeout(client *c);
