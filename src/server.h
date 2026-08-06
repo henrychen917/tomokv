@@ -1949,7 +1949,7 @@ typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENA
                CS_RENAMENX, CS_COPY, CS_SMOVE, CS_SSTORE, CS_SETCARD,
                CS_ZOP, CS_ZSTORE, CS_ZRANGESTORE, CS_SORTSTORE, CS_GEOSTORE,
                CS_ZCARD, CS_BITOP, CS_PFCOUNT, CS_PFMERGE, CS_LCS, CS_XREAD,
-               CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP,
+               CS_LMOVE, CS_MSETNX, CS_LMPOP, CS_ZMPOP, CS_BLPOP, CS_BZPOP,
                CS_LOCAL /* xshard-localfast: all keys on ONE worker -> single sub runs the
                          * REAL PROC with the full original argv; reply spliced verbatim */
              } csCmdType;
@@ -1976,6 +1976,7 @@ struct sortXShardCtx;
                                 * objects are the same"); 2-hop path has no raw-proc guard */
 #define CS_ERR_SUBREPLY    8   /* a HOP1 stock helper emitted the final error into its sub */
 #define CS_ERR_SORTNUM     9   /* external SORT BY value failed stock's numeric conversion */
+#define CS_ERR_WOULDBLOCK  10  /* blocking multi-key probe found no immediately-ready key */
 /* hyperloglog.c — xshard coordinator helpers over gathered HLL objects (step 7). */
 int isHLLObject(robj *o);
 uint64_t hllCountMulti(robj **hlls, int n, int *err);
@@ -2017,7 +2018,7 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define CS_RES_NONE        0
 #define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
 #define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
-#define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (step 9 LMPOP/ZMPOP probes) */
+#define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (ordered MPOP/BPOP probes) */
 #define CS_RES_ZSETMEM     4   /* setmem/setcnt + parallel zscore[nkeys] (step 6 Z-ops) */
 #define CS_RES_XREAD       5   /* g->xread_out/status[nkeys] — ordered stream reply fragments */
 /* ---- posmap selector for csBuildCoalescedSubs ---- */
@@ -2038,8 +2039,8 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 
 typedef struct csH2Sub {
     uint8_t action;    /* CS_H2A_* — read as g->h2sub[sub->cssub_idx].action from step 4 on */
-    int32_t key_argi;  /* head->argv index of this sub's key. int32 NOT int16 (review #3): the
-                        * LMPOP/ZMPOP prep rewrites it to firstkey+winner, and argc can reach the
+    int32_t key_argi;  /* head->argv index of this sub's key. int32 NOT int16 (review #3): an
+                        * ordered-pop prep rewrites it to firstkey+winner, and argc can reach the
                         * ~1M multibulk limit, so int16 (max 32767) truncated to a negative index
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
@@ -2095,7 +2096,7 @@ typedef struct csGroup {
     const struct csCmdSpec *spec; /* registry row, stamped at dispatch on GATHER/TWOHOP groups
                                 * (NULL on FANALL); COLD reads only (launch/reassemble) */
     csH2Sub h2sub[CS_H2_MAX];  /* HOP2 plan, stamped at dispatch from the row; the csLaunchHop2
-                                * prep case may rewrite it (LMPOP winner) */
+                                * prep case may rewrite it (ordered-pop winner) */
     int h2_nsub;               /* planned HOP2 subs; 0 on all 1-hop groups */
     int h2_dbid;               /* COPY DB option; dispatch inits to head->db->id */
     int h2_flags;              /* CS_H2F_* (COPY REPLACE), parsed at dispatch */
@@ -4328,8 +4329,8 @@ typedef struct csCmdSpec {
     uint8_t h2_del_src;       /* HOP2 plan also gets a CS_H2A_SRCOP sub on src */
     uint8_t h2_op;            /* CS_H2_* launcher shape */
     uint8_t cs2_kind;         /* CS2_* final reply shape tag */
-    uint8_t block_reject;     /* blocking variant: would-block => immediate timeout/nil
-                               * form from the csReassemble ctype case (step 9) */
+    uint8_t block_reject;     /* blocking variant: never run a parking proc on a worker fake;
+                               * the ctype decides whether would-block is nil or a safe error */
     /* -- callbacks (the ONLY code-bearing fields) -- */
     void (*append_extra)(client *head, client *sub, int origpos); /* MSET value ownership */
     int  (*unsafe_check)(client *c);  /* UNPORTED or hybrid PORTED rows: nonzero => reject form */

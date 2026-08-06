@@ -8596,6 +8596,36 @@ static int csZmpopShapeOk(client *c)  { return csMpopTailOk(c, 1); }
 static int csBlmpopShapeOk(client *c) { return csTimeoutOk(c->argv[1]) && csMpopTailOk(c, 0); }
 static int csBzmpopShapeOk(client *c) { return csTimeoutOk(c->argv[1]) && csMpopTailOk(c, 1); }
 
+/* BLPOP/BRPOP/BZPOPMIN/BZPOPMAX key... timeout: the final argument is not a key.
+ * Validate it before dispatch (stock parses it before touching any key), then gather every
+ * preceding argument as a key. */
+static int csBpopShapeOk(client *c) {
+    long double seconds;
+    if (getLongDoubleFromObject(c->argv[c->argc-1], &seconds) != C_OK) return 0;
+    long double millis = seconds * 1000.0L;
+    if (millis < (long double)LLONG_MIN || millis > (long double)LLONG_MAX || isnan(millis))
+        return 0;
+    long long tval = (long long)ceill(millis);
+    if (tval < 0) return 0;
+    mstime_t now = commandTimeSnapshot();
+    return tval == 0 || tval <= LLONG_MAX - now;
+}
+static int csBpopGatherGeom(client *c, int *first, int *nkeys) {
+    *first = 1;
+    *nkeys = c->argc - 2;
+    return *nkeys > 0;
+}
+
+static inline int csIsMpopType(csCmdType ctype) {
+    return ctype == CS_LMPOP || ctype == CS_ZMPOP;
+}
+static inline int csIsBpopType(csCmdType ctype) {
+    return ctype == CS_BLPOP || ctype == CS_BZPOP;
+}
+static inline int csIsListPopType(csCmdType ctype) {
+    return ctype == CS_LMPOP || ctype == CS_BLPOP;
+}
+
 /* BITOP op dst src...: op must be AND/OR/XOR/NOT; NOT takes exactly ONE source. Unknown op /
  * NOT-with-multiple fall INLINE for the stock errors (both precede key access). */
 static int csBitopShapeOk(client *c) {
@@ -8805,9 +8835,8 @@ static const csCmdSpec csRegistry[] = {
  * type errors, first non-empty wins); HOP2 = ONE sub running the REAL single-key proc with a
  * rewritten argv [CMD 1 winner DIR [COUNT n]] — the inner reply is stock-byte-exact by
  * construction and a raced-empty winner yields the proc's own null array (bounded TOCTOU,
- * documented). No winner => null array, which IS the blocking forms' timed-out shape, so
- * reject-when-would-block again needs no special reassembly. This empties the original
- * isCrossShardUnsafe blocklist: every one of its 21 commands is now ported. */
+ * documented). No winner => null array, which IS BLMPOP/BZMPOP's timed-out shape, so those
+ * reject-when-would-block variants need no special reassembly. */
 { .proc=lmpopCommand, .name="lmpop", .ported=CS_PORT_OK, .ctype=CS_LMPOP,
   .route=CS_RT_GATHER, .min_argc=4, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
   .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
@@ -8824,6 +8853,30 @@ static const csCmdSpec csRegistry[] = {
   .route=CS_RT_GATHER, .min_argc=5, .numkeys_argi=2, .firstkey_argi=3, .key_stride=1,
   .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
   .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1, .shape_ok=csBzmpopShapeOk },
+/* T4 phase 1: probe all keys, pop from the first ready key, and fail safe when the command
+ * would have to block. HOP2 runs the stock B*POP proc with exactly one winner key and
+ * CLIENT_DENY_BLOCKING, so its successful reply is byte-for-byte stock while no worker fake
+ * can ever enter blockForKeys. BZPOP had no registry row before this port. */
+{ .proc=blpopCommand, .name="blpop", .ported=CS_PORT_OK, .ctype=CS_BLPOP,
+  .route=CS_RT_GATHER, .min_argc=3, .firstkey_argi=1, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .gather_geom=csBpopGatherGeom, .shape_ok=csBpopShapeOk },
+{ .proc=brpopCommand, .name="brpop", .ported=CS_PORT_OK, .ctype=CS_BLPOP,
+  .route=CS_RT_GATHER, .min_argc=3, .firstkey_argi=1, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .gather_geom=csBpopGatherGeom, .shape_ok=csBpopShapeOk },
+{ .proc=bzpopminCommand, .name="bzpopmin", .ported=CS_PORT_OK, .ctype=CS_BZPOP,
+  .route=CS_RT_GATHER, .min_argc=3, .firstkey_argi=1, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .gather_geom=csBpopGatherGeom, .shape_ok=csBpopShapeOk },
+{ .proc=bzpopmaxCommand, .name="bzpopmax", .ported=CS_PORT_OK, .ctype=CS_BZPOP,
+  .route=CS_RT_GATHER, .min_argc=3, .firstkey_argi=1, .key_stride=1,
+  .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
+  .has_hop2=1, .h2_op=CS_H2_PLAN, .block_reject=1,
+  .gather_geom=csBpopGatherGeom, .shape_ok=csBpopShapeOk },
 
 /* ============ UNPORTED — argc-dependent rows (old blocklist special cases) ============ */
 { .proc=evalCommand,       .name="eval",       .unsafe_check=csEvalUnsafeCheck },
@@ -8837,8 +8890,6 @@ static const csCmdSpec csRegistry[] = {
  * DB before the inversion; now loud + greppable instead of implicit-via-predicate) ====== */
 { .proc=georadiusroCommand,         .name="georadius_ro"         },
 { .proc=georadiusbymemberroCommand, .name="georadiusbymember_ro" },
-{ .proc=blpopCommand,               .name="blpop"                },
-{ .proc=brpopCommand,               .name="brpop"                },
 { .proc=migrateCommand,             .name="migrate"              },
 { .proc=NULL } /* sentinel */
 };
@@ -8944,20 +8995,21 @@ static void csRegistryBootAudit(void) {
         nrows++;
         /* Structural invariants: a PLAN-launching hop2 GATHER row must name its dest key
          * (SCATTER re-derives targets from the argv); TWOHOP rows carry src+dst+launcher;
-         * block_reject rows are TWOHOP (their real procs could park a worker fake). */
+         * block_reject rows must use a path that cannot park a worker fake. */
         if (s->ported == CS_PORT_OK) {
             /* block_reject rows must never reach a raw proc that could park a worker fake:
-             * TWOHOP rows force the two-hop path; MPOP rows are GATHER with a coordinator-
-             * built HOP2 that always runs the NON-blocking proc form. */
+             * TWOHOP rows force the two-hop path; ordered-pop rows are GATHER with a
+             * coordinator-built, single-key HOP2 that cannot park. */
             if (s->block_reject)
-                serverAssert(s->route == CS_RT_TWOHOP ||
-                             s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP);
+                serverAssert(s->route == CS_RT_TWOHOP || csIsMpopType(s->ctype) ||
+                             csIsBpopType(s->ctype));
             if (s->has_hop2) {
                 serverAssert(s->route == CS_RT_GATHER && s->h2_op);
-                /* PLAN rows name a static dest — except MPOP, whose prep rewrites the plan
-                 * to the dynamically-chosen winner key. */
+                /* PLAN rows name a static dest — except ordered pops, whose prep rewrites
+                 * the plan to the dynamically-chosen winner key. */
                 if (s->h2_op == CS_H2_PLAN)
-                    serverAssert(s->dst_argi || s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP);
+                    serverAssert(s->dst_argi || csIsMpopType(s->ctype) ||
+                                 csIsBpopType(s->ctype));
             }
             if (s->route == CS_RT_TWOHOP)
                 serverAssert(s->src_argi && (s->dst_argi || s->dynamic_dst_argi) && s->h2_op);
@@ -9661,11 +9713,12 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_LMPOP:
-        /* fall through — probe/pop shared with the zset form (expected type branches inside) */
-    case CS_ZMPOP: {
-        int exp_type = (g->ctype == CS_LMPOP) ? OBJ_LIST : OBJ_ZSET;
+    case CS_ZMPOP:
+    case CS_BLPOP:
+    case CS_BZPOP: {
+        int exp_type = csIsListPopType(g->ctype) ? OBJ_LIST : OBJ_ZSET;
         if (g->phase == CS_PH_HOP1) {
-            /* step 9 HOP1: per-key type+length report into the ORIGINAL-position lanes.
+            /* Ordered-pop HOP1: per-key type+length report into the ORIGINAL-position lanes.
              * ktype: 0 = missing, 1 = expected type, 2 = wrong type. */
             int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
             for (int a = 1; a < sub->argc; a++) {
@@ -9678,12 +9731,25 @@ static void csSubExec(client *sub) {
                     g->klen[idx] = (long)(exp_type == OBJ_LIST ? listTypeLength(o) : zsetLength(o));
                 }
             }
-        } else {
+        } else if (csIsMpopType(g->ctype)) {
             /* step 9 HOP2 (winner shard): run the REAL single-key NON-blocking proc on the
              * rewritten argv [CMD 1 winner DIR [COUNT n]] — the reply (incl. a raced-empty
              * null array) is stock-byte-exact and spliced at reassemble. */
             if (g->ctype == CS_LMPOP) lmpopCommand(sub);
             else zmpopCommand(sub);
+        } else {
+            /* T4 HOP2: recheck the probed winner under its owner lock. A pop between hops can
+             * empty it; reject that would-block state instead of ever parking this worker fake.
+             * Otherwise run the real B*POP proc on [CMD winner timeout]. DENY_BLOCKING is a
+             * final safety belt, while the real proc preserves stock reply/type/pop semantics. */
+            robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
+            if (o == NULL || (o->type == exp_type &&
+                              (exp_type == OBJ_LIST ? listTypeLength(o) : zsetLength(o)) == 0)) {
+                atomic_store_explicit(&g->err, CS_ERR_WOULDBLOCK, memory_order_relaxed);
+            } else {
+                sub->flags |= CLIENT_DENY_BLOCKING;
+                sub->cmd->proc(sub);
+            }
         }
         break;
     }
@@ -9906,9 +9972,12 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
             /* MSETNX: HOP2 re-runs the builder with [CMD key value] vectors. */
             w += 8 * (size_t)nsub;                       /* replacement subs[] */
             w += 8 * ((size_t)nsub + 2 * (size_t)nkeys); /* replacement sub argv */
-        } else if (s->ctype == CS_LMPOP || s->ctype == CS_ZMPOP) {
+        } else if (csIsMpopType(s->ctype)) {
             w += 8;       /* one replacement sub */
             w += 8 * 6;   /* [CMD 1 key DIR [COUNT n]] */
+        } else if (csIsBpopType(s->ctype)) {
+            w += 8;       /* one replacement sub */
+            w += 8 * 3;   /* [CMD winner timeout] */
         } else {
             int h2_nsub = (s->dst_argi != 0) + (s->h2_del_src != 0);
             w += 8 * (size_t)h2_nsub;       /* replacement subs[] */
@@ -10589,7 +10658,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     }
     if (s->res_kind == CS_RES_MGETVALS && coalesce)
         g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
-    if (s->res_kind == CS_RES_KEYREPORT) {           /* LIVE: the [BLZ]MPOP rows set it */
+    if (s->res_kind == CS_RES_KEYREPORT) {           /* LIVE: ordered MPOP/BPOP rows set it */
         g->klen  = csgCalloc(g, sizeof(long) * nkeys);
         g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
     }
@@ -11322,11 +11391,13 @@ static int csLaunchHop2(csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
     case CS_LMPOP:
-    case CS_ZMPOP: {
-        /* step 9: scan the report lanes in ORIGINAL key order — stock precedence: the first
-         * wrong-typed key errors before any pop; the first non-empty key wins. No winner =>
-         * null array (identical to the blocking forms' timed-out shape). The winner rewrites
-         * the plan to a dynamic {SRCOP, firstkey+winner} single-sub HOP2. */
+    case CS_ZMPOP:
+    case CS_BLPOP:
+    case CS_BZPOP: {
+        /* Scan the report lanes in ORIGINAL key order — stock precedence: the first
+         * wrong-typed key errors before any pop; the first non-empty key wins. The winner
+         * rewrites the plan to a dynamic {SRCOP, firstkey+winner} single-sub HOP2. MPOP's
+         * empty result is nil; T4 BPOP instead fail-safe-rejects because it would block. */
         int winner = -1;
         for (int i = 0; i < g->nkeys; i++) {
             if (g->ktype[i] == 2) {
@@ -11337,7 +11408,9 @@ static int csLaunchHop2(csGroup *g) {
         }
         if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
             if (winner < 0) {
-                atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
+                atomic_store_explicit(&g->err,
+                                      csIsBpopType(g->ctype) ? CS_ERR_WOULDBLOCK : CS_ERR_NOKEY,
+                                      memory_order_relaxed);
             } else {
                 g->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
                                          .key_argi = csFirstKeyArg(g->spec) + winner };
@@ -11511,7 +11584,7 @@ static int csLaunchHop2(csGroup *g) {
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
         shards[i] = exIndexForKey(key->ptr, sdslen(key->ptr));    /* re-route AFTER the hold */
         client *sub = csMakeSub(g, i, shards[i], dbid);
-        if (g->ctype == CS_LMPOP || g->ctype == CS_ZMPOP) {
+        if (csIsMpopType(g->ctype)) {
             /* step 9: rewrite to the single-key NON-blocking form the worker's real proc
              * parses: [CMD 1 winner DIR [COUNT n]]. DIR/COUNT are copied from the head's
              * tail (positions after the keys; B variants share the same tail layout). */
@@ -11531,6 +11604,15 @@ static int csLaunchHop2(csGroup *g) {
                 sub->argv[5] = head->argv[dpos+2]; incrRefCount(head->argv[dpos+2]);
                 sub->argc = 6;
             }
+        } else if (csIsBpopType(g->ctype)) {
+            /* T4: retain the stock blocking command identity/reply shape, but expose only the
+             * selected key and its already-validated timeout to HOP2. csSubExec sets
+             * CLIENT_DENY_BLOCKING before invoking the proc, so this fake cannot park. */
+            sub->argv = csgAlloc(g, sizeof(robj*) * 3);
+            sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
+            sub->argv[1] = key;           incrRefCount(key);
+            sub->argv[2] = head->argv[head->argc-1]; incrRefCount(head->argv[head->argc-1]);
+            sub->argc = 3;
         } else {
             csSubSetKeyArgv(sub, head, key);
         }
@@ -11918,6 +12000,19 @@ static void csReassemble(client *dst, client *head) {
             else if (e == CS_ERR_NOKEY) addReplyNullArray(dst);  /* all empty / timed-out form */
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard MPOP failed");
             else AddReplyFromClient(dst, g->subs[0]);  /* splice the real proc's stock reply */
+            break;
+        }
+        case CS_BLPOP:
+        case CS_BZPOP: {
+            int e = atomic_load_explicit(&g->err, memory_order_relaxed);
+            if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
+            else if (e == CS_ERR_WOULDBLOCK)
+                addReplyErrorFormat(dst,
+                    "%s would block across shards and is not yet supported with tomokv sharding "
+                    "(no cross-shard readiness bus)",
+                    head->cmd->fullname);
+            else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard blocking pop failed");
+            else AddReplyFromClient(dst, g->subs[0]);  /* real one-key B*POP stock reply */
             break;
         }
         default: break;
