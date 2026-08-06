@@ -1040,7 +1040,7 @@ int startAppendOnly(void) {
     if (hasActiveChildProcess() && server.child_type != CHILD_TYPE_AOF) {
         server.aof_rewrite_scheduled = 1;
         serverLog(LL_NOTICE,"AOF was enabled but there is already another background operation. An AOF background was scheduled to start when possible.");
-    } else if (server.in_exec){
+    } else if (tomoAnyExecRunning()){
         server.aof_rewrite_scheduled = 1;
         serverLog(LL_NOTICE,"AOF was enabled during a transaction. An AOF background was scheduled to start when possible.");
     } else {
@@ -2722,7 +2722,7 @@ int rewriteAppendOnlyFileBackground(void) {
 void bgrewriteaofCommand(client *c) {
     if (server.child_type == CHILD_TYPE_AOF) {
         addReplyError(c,"Background append only file rewriting already in progress");
-    } else if (hasActiveChildProcess() || server.in_exec) {
+    } else if (hasActiveChildProcess() || tomoAnyExecRunning()) {
         server.aof_rewrite_scheduled = 1;
         /* When manually triggering AOFRW we reset the count 
          * so that it can be executed immediately. */

@@ -1310,7 +1310,12 @@ void streamMoveIdmpKeys(dict *src, dict *dst, int slot) {
 int selectDb(client *c, int id) {
     if (id < 0 || id >= server.dbnum)
         return C_ERR;
-    c->db = &server.db[id];
+    /* A T6 worker fake must stay on that worker's real shard DB across SELECT commands queued
+     * inside EXEC. Ordinary clients and keyless scripts retain the normal server.db selection. */
+    if (server.num_workers > 0 && c->tomo_local_worker >= 0)
+        c->db = &server.exThreads[c->tomo_local_worker].db[id];
+    else
+        c->db = &server.db[id];
     return C_OK;
 }
 

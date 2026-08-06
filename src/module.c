@@ -3978,7 +3978,7 @@ int RM_GetContextFlags(RedisModuleCtx *ctx) {
     if (scriptIsRunning())
         flags |= REDISMODULE_CTX_FLAGS_LUA;
 
-    if (server.in_exec)
+    if (tomo_in_exec)
         flags |= REDISMODULE_CTX_FLAGS_MULTI;
 
     if (server.cluster_enabled)
@@ -8324,7 +8324,7 @@ RedisModuleBlockedClient *moduleBlockClient(RedisModuleCtx *ctx, RedisModuleCmdF
                                             int flags) {
     client *c = ctx->client;
     int islua = scriptIsRunning();
-    int ismulti = server.in_exec;
+    int ismulti = tomo_in_exec;
 
     c->bstate.module_blocked_handle = zcalloc(sizeof(RedisModuleBlockedClient));
     RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;

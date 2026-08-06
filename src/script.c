@@ -318,6 +318,11 @@ int scriptPrepareForRun(scriptRunCtx *run_ctx, client *engine_client, client *ca
 
     /* Select the right DB in the context of the Lua client */
     selectDb(script_client, curr_client->db->id);
+    /* T6 keyed scripts execute on a worker fake whose db is the real shard/node DB. selectDb()
+     * necessarily chooses server.db (the empty sharding decoy), so restore the caller's routed
+     * DB before any redis.call. Keyless scripts retain their established decoy/global path. */
+    if (server.num_workers > 0 && curr_client->tomo_local_worker >= 0)
+        script_client->db = curr_client->db;
     script_client->resp = 2; /* Default is RESP2, scripts can change it. */
 
     /* If we are in MULTI context, flag Lua client as CLIENT_MULTI. */
@@ -705,6 +710,18 @@ void scriptCall(scriptRunCtx *run_ctx, sds *err) {
 
     if (scriptVerifyOOM(run_ctx, err) != C_OK) {
         goto error;
+    }
+
+    /* A declared-key script is one indivisible single-shard unit. Enforce the same owner for
+     * every nested command too, so an undeclared/dynamically-generated key cannot escape through
+     * the shared node DB while only the declared worker's writer lock is held. */
+    if (server.num_workers > 0 && run_ctx->original_client->tomo_local_worker >= 0) {
+        int target = run_ctx->original_client->tomo_local_worker;
+        int worker = tomoCommandSingleWorker(cmd, c->argv, c->argc, 0);
+        if (worker == TOMO_SW_CROSS || (worker >= 0 && worker != target)) {
+            *err = sdsnew("CROSSSLOT Script attempted to access keys on another worker shard");
+            goto error;
+        }
     }
 
     if (cmd->flags & CMD_WRITE) {

@@ -1934,6 +1934,13 @@ typedef struct client {
                                 * shared node kvstore while the others spin (µs), preserving the
                                 * per-connection FIFO flush semantics without concurrent kvstoreEmpty
                                 * races. NULL = sharing off (private per-worker db): empty directly. */
+    /* T6 single-shard transaction/script routing. Cold tail fields keep the GET/SET
+     * execution/reply cache lines above unchanged. tomo_local_worker >= 0 means this fake
+     * represents one whole EXEC/WATCH/EVAL/FCALL unit routed to that owner worker. */
+    int tomo_local_worker;
+    redisAtomic int tomo_watch_worker; /* sole owner of this client's active WATCH set, or -1 */
+    redisAtomic unsigned int tomo_dirty_cas; /* owner-worker WATCH invalidation handoff */
+    uint8_t tomo_script_gate;       /* fake owns the script fence until its proc returns */
     /* Allocated only for an accepted TCP client while tomokv-io-uring=1.
      * Kept at the cold tail so the default epoll path does not perturb the
      * request/reply cache-line layout. */
@@ -2011,6 +2018,12 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define CS_RT_GATHER       0   /* scatter/gather over the command's own key list */
 #define CS_RT_FANALL       1   /* one sub per worker, full argv (KEYS) */
 #define CS_RT_TWOHOP       2   /* single-src gather (+opt dst probe) -> HOP2 plan (RENAME, moves) */
+
+/* T6 command-to-worker resolution. Ordinary keyless and malformed forms stay on the stock path;
+ * keyspace-wide forms and concrete multi-owner key sets return CROSS. */
+#define TOMO_SW_NONE       (-1)
+#define TOMO_SW_CROSS      (-2)
+#define TOMO_SW_INVALID    (-3)
 /* ---- result slots dispatchGather allocates ---- */
 #define CS_RES_NONE        0
 #define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
@@ -3303,7 +3316,7 @@ struct redisServer {
     int sentinel_mode;          /* True if this instance is a Sentinel. */
     size_t initial_memory_usage; /* Bytes used after initialization. */
     int always_show_logo;       /* Show logo even for non-stdout logging. */
-    int in_exec;                /* Are we inside EXEC? */
+    redisAtomic unsigned int in_exec; /* # of threads currently inside EXEC */
     int busy_module_yield_flags;         /* Are we inside a busy module? (triggered by RM_Yield). see BUSY_MODULE_YIELD_ flags. */
     const char *busy_module_yield_reply; /* When non-null, we are inside RM_Yield. */
     char *ignore_warnings;      /* Config: warnings that should be ignored. */
@@ -3853,7 +3866,7 @@ struct redisServer {
                                    xor of NOTIFY_... flags. */
     kvstore *pubsubshard_channels;  /* Map shard channels in every slot to list of subscribed clients */
     unsigned int pubsub_clients; /* # of clients in Pub/Sub mode */
-    unsigned int watching_clients; /* # of clients are wathcing keys */
+    redisAtomic unsigned int watching_clients; /* # of clients watching keys (workers may dirty/unwatch) */
     /* Cluster */
     int cluster_enabled;      /* Is cluster enabled? */
     int cluster_port;         /* Set the cluster port for a node. */
@@ -5040,6 +5053,8 @@ void listTypeTryConversionAppend(robj *o, robj **argv, int start, int end, befor
 
 /* MULTI/EXEC/WATCH... */
 void unwatchAllKeys(client *c);
+unsigned long tomoTotalWatchedKeys(void);
+void tomoTouchWatchedKeysOnFlush(redisDb *db, int worker);
 void initClientMultiState(client *c);
 void freeClientMultiState(client *c);
 void queueMultiCommand(client *c, uint64_t cmd_flags);
@@ -5374,6 +5389,12 @@ void updateCachedTime(int update_daylight_info);
 /* ee451 (A-F.4): execution nesting depth is PER THREAD, not per process. Every reader means
  * "how deep is the unit *I* am running in"; see the definition in server.c. */
 extern __thread int execution_nesting;
+/* T6: EXEC can run concurrently on independent owner workers. Local semantic checks use
+ * tomo_in_exec; the server counter only answers the process-wide persistence/fork question. */
+extern __thread int tomo_in_exec;
+void tomoExecEnter(void);
+void tomoExecExit(void);
+int tomoAnyExecRunning(void);
 void enterExecutionUnit(int update_cached_time, long long us);
 void exitExecutionUnit(void);
 void resetServerStats(void);
@@ -6257,6 +6278,7 @@ void handleWorkerReplies(void);
 int canDispatchToWorker(client *c);
 int getWorkerForCommand(client *c);
 int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispatch + RDB load) */
+int tomoCommandSingleWorker(struct redisCommand *cmd, robj **argv, int argc, int hold_migration);
 int tomoKeyBucket(const void *keyptr, size_t len);  /* ee451 (S0.2a): key->bucket == kvstore dict index (db.c getKeySlot) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */

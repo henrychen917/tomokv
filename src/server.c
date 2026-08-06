@@ -171,6 +171,8 @@ static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread
 static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
 static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HOP2 launcher; 1 = HOP2
                                              * pushed (head stays in flight), 0 = fall to reassemble */
+static int tomoMultiSingleWorker(client *c, int hold_migration);
+static int tomoExecHasScript(client *c);
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
 static void migHoldKeyIfDraining(robj *key);
@@ -347,17 +349,38 @@ static void tomoScriptRejoinIfScrammed(void);
  * stalls). A nested processCommand (owner's PEWB) has its own guard with acquired=0, so it can
  * never release the outer script's gate — the exact bug the thread-scoped flag had. */
 typedef struct { int acquired; } tomoStwGuard;
-static void tomoStwGuardEnd(tomoStwGuard *g) {
-    if (!g->acquired) return;
+static void tomoScriptGateReleaseCurrent(void) {
     tomoScriptRejoinIfScrammed();   /* listener back in the group before the gate reads free */
     tomo_stw_held = 0;
     tomo_stw_owner_real = NULL;
     uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+    serverAssert((cur & 0xff) == (uint64_t)(iotid + 1));
     /* clear a kill aimed at this epoch so it cannot fire on a later script */
     uint64_t k = atomic_load_explicit(&tomo_script_kill, memory_order_relaxed);
     if (k == (cur >> 16)) atomic_store_explicit(&tomo_script_kill, 0, memory_order_relaxed);
     /* RELEASE orders scriptResetRun's curr_run_ctx clear (inside call()) before the word free. */
     atomic_store_explicit(&tomo_script_stw.word, cur & ~0xffULL, memory_order_release);
+}
+static void tomoStwGuardEnd(tomoStwGuard *g) {
+    if (!g->acquired) return;
+    tomoScriptGateReleaseCurrent();
+}
+
+/* Keep one continuous armed epoch while ownership moves from the dispatching IO identity to the
+ * target worker. No family command can enter in the handoff window, and scriptIsRunning() sees the
+ * worker as the owner once Lua installs curr_run_ctx. The worker releases after the whole proc. */
+static void tomoScriptGateTransferToWorker(tomoStwGuard *g, client *fake, int worker) {
+    serverAssert(g->acquired);
+    uint64_t cur = atomic_load_explicit(&tomo_script_stw.word, memory_order_relaxed);
+    serverAssert((cur & 0xff) == (uint64_t)(iotid + 1));
+    uint64_t worker_owner = (uint64_t)(TOMO_IO_THREADS_MAX + 2 + worker);
+    serverAssert(worker_owner <= 0xff);
+    atomic_store_explicit(&tomo_script_stw.word,
+                          (cur & ~0xffULL) | worker_owner, memory_order_seq_cst);
+    tomo_stw_held = 0;
+    tomo_stw_owner_real = NULL;
+    g->acquired = 0;
+    fake->tomo_script_gate = 1;
 }
 
 /* The script FAMILY: every command whose proc reads or mutates the shared lua/function state.
@@ -377,6 +400,12 @@ static inline int tomoScriptFamily(struct redisCommand *cmd) {
            cmd->proc == functionListCommand || cmd->proc == functionHelpCommand ||
            cmd->proc == functionFlushCommand || cmd->proc == functionRestoreCommand ||
            cmd->proc == functionDumpCommand;
+}
+
+static inline int tomoEvalFcallProc(redisCommandProc *p) {
+    return p == evalCommand || p == evalShaCommand ||
+           p == evalRoCommand || p == evalShaRoCommand ||
+           p == fcallCommand || p == fcallroCommand;
 }
 
 /* §1.2 — fail-safe foreign-reader pin. Threads with NO registered io slot (module thread-safe
@@ -1825,6 +1854,29 @@ void updateCachedTime(int update_daylight_info) {
  * conversion safe. */
 __thread int execution_nesting = 0;
 
+/* Unlike upstream's process-global boolean, a single-shard EXEC may be active on several owner
+ * workers at once. Every semantic reader asks whether its own call stack is in EXEC, while the
+ * RDB/AOF fork gates need to know whether any thread is. Keep those two questions separate. */
+__thread int tomo_in_exec = 0;
+
+void tomoExecEnter(void) {
+    serverAssert(tomo_in_exec == 0);
+    tomo_in_exec = 1;
+    atomicIncr(server.in_exec, 1);
+}
+
+void tomoExecExit(void) {
+    serverAssert(tomo_in_exec == 1);
+    atomicDecr(server.in_exec, 1);
+    tomo_in_exec = 0;
+}
+
+int tomoAnyExecRunning(void) {
+    unsigned int count;
+    atomicGet(server.in_exec, count);
+    return count != 0;
+}
+
 /* Performing required operations in order to enter an execution unit.
  * In general, if we are already inside an execution unit then there is nothing to do,
  * otherwise we need to update cache times so the same cached time will be used all over
@@ -3267,6 +3319,11 @@ void handleWorkerReplies(void) {
             } else {
                 AddReplyFromClient(real, fake);
             }
+            /* SELECT queued inside EXEC changes the connection's selected DB. The worker fake
+             * uses the matching shard DB while executing; publish the final DB id back on the
+             * owning IO thread before any command stalled behind cs_barrier is re-driven. */
+            if (fake->tomo_local_worker >= 0 && fake->cmd && fake->cmd->proc == execCommand)
+                real->db = &server.db[fake->db->id];
             foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) — covers BOTH retire paths below */
             spliced = 1;
 
@@ -5047,9 +5104,9 @@ void initServer(void) {
         &kvstoreBaseType, &objToDictDictType,
         slot_count_bits, KVSTORE_ALLOCATE_DICTS_ON_DEMAND | KVSTORE_FREE_EMPTY_DICTS);
     server.pubsub_clients = 0;
-    server.watching_clients = 0;
+    atomicSet(server.watching_clients, 0);
     server.cronloops = 0;
-    server.in_exec = 0;
+    atomicSet(server.in_exec, 0);
     server.busy_module_yield_flags = BUSY_MODULE_YIELD_NONE;
     server.busy_module_yield_reply = NULL;
     server.client_pause_in_transaction = 0;
@@ -6242,7 +6299,7 @@ void call(client *c, int flags) {
      * only update the duration, since the outer-most call records the whole
      * duration. */
     if (update_command_stats && !(c->flags & CLIENT_BLOCKED) &&
-        (!execution_nesting || server.in_exec))
+        (!execution_nesting || tomo_in_exec))
     {
         /* First we need to prepare the hotkeyStats for updates */
         hotkeyStatsPreCurrentCmd(server.hotkeys, c);
@@ -6343,7 +6400,7 @@ void call(client *c, int flags) {
         /* Just like curr cmd setup we only do the cleanup in case we are not in
          * a nested command. For MULTI/EXEC, we do cleanup for each individual
          * command. */
-        if (!execution_nesting || server.in_exec)
+        if (!execution_nesting || tomo_in_exec)
             hotkeyStatsPostCurrentCmd(server.hotkeys);
     }
 
@@ -6361,7 +6418,7 @@ void call(client *c, int flags) {
 
     /* Client pause takes effect after a transaction has finished. This needs
      * to be located after everything is propagated. */
-    if (!server.in_exec && server.client_pause_in_transaction) {
+    if (!tomoAnyExecRunning() && server.client_pause_in_transaction) {
         server.client_pause_in_transaction = 0;
     }
 
@@ -6506,6 +6563,85 @@ uint64_t getCommandFlags(client *c) {
     return cmd_flags;
 }
 
+/* T6 routing is deliberately separate from the general scatter/gather registry: these commands
+ * are indivisible execution units. A nonnegative result names the ONE worker that must run the
+ * entire unit; TOMO_SW_CROSS is rejected; keyless/malformed forms keep their stock inline path. */
+enum {
+    TOMO_T6_NONE = 0,
+    TOMO_T6_SCRIPT,
+    TOMO_T6_EXEC,
+    TOMO_T6_WATCH,
+    TOMO_T6_DISCARD,
+    TOMO_T6_UNWATCH,
+};
+
+static int tomoExecHasScript(client *c) {
+    if (!c->cmd || c->cmd->proc != execCommand || !(c->flags & CLIENT_MULTI)) return 0;
+    for (int i = 0; i < c->mstate.count; i++) {
+        struct redisCommand *cmd = c->mstate.commands[i]->cmd;
+        if (cmd && (cmd->tomo_route & TOMO_R_SCRIPTFAM)) return 1;
+    }
+    return 0;
+}
+
+static int tomoClientWatchWorker(client *c) {
+    int worker;
+    atomicGet(c->tomo_watch_worker, worker);
+    return worker;
+}
+
+static int tomoMultiSingleWorker(client *c, int hold_migration) {
+    int worker = tomoClientWatchWorker(c);
+    for (int i = 0; i < c->mstate.count; i++) {
+        pendingCommand *pcmd = c->mstate.commands[i];
+        int w = tomoCommandSingleWorker(pcmd->cmd, pcmd->argv, pcmd->argc, hold_migration);
+        if (w == TOMO_SW_INVALID || w == TOMO_SW_NONE) continue;
+        if (w == TOMO_SW_CROSS) return TOMO_SW_CROSS;
+        if (worker == TOMO_SW_NONE) worker = w;
+        else if (worker != w) return TOMO_SW_CROSS;
+    }
+    return worker;
+}
+
+static int tomoT6Route(client *c, int hold_migration, int *kind) {
+    *kind = TOMO_T6_NONE;
+    if (server.num_workers <= 0 || !c->cmd) return TOMO_SW_NONE;
+    redisCommandProc *p = c->cmd->proc;
+
+    if (tomoEvalFcallProc(p)) {
+        /* Inside MULTI this invocation is only queued. EXEC validates and routes its declared
+         * KEYS as part of the whole mstate. */
+        if (c->flags & CLIENT_MULTI) return TOMO_SW_NONE;
+        int w = tomoCommandSingleWorker(c->cmd, c->argv, c->argc, hold_migration);
+        if (w >= 0 || w == TOMO_SW_CROSS) *kind = TOMO_T6_SCRIPT;
+        return w;
+    }
+
+    if (!(c->cmd->tomo_route & TOMO_R_STATEFUL)) return TOMO_SW_NONE;
+    if (p == watchCommand && !(c->flags & CLIENT_MULTI)) {
+        int w = tomoCommandSingleWorker(c->cmd, c->argv, c->argc, hold_migration);
+        if (w >= 0 || w == TOMO_SW_CROSS) *kind = TOMO_T6_WATCH;
+        int watched_worker = tomoClientWatchWorker(c);
+        if (w >= 0 && watched_worker >= 0 && watched_worker != w)
+            return TOMO_SW_CROSS;
+        return w;
+    }
+    if (p == execCommand && (c->flags & CLIENT_MULTI)) {
+        *kind = TOMO_T6_EXEC;
+        return tomoMultiSingleWorker(c, hold_migration);
+    }
+    int watched_worker = tomoClientWatchWorker(c);
+    if (p == discardCommand && (c->flags & CLIENT_MULTI) && watched_worker >= 0) {
+        *kind = TOMO_T6_DISCARD;
+        return watched_worker;
+    }
+    if (p == unwatchCommand && watched_worker >= 0) {
+        *kind = TOMO_T6_UNWATCH;
+        return watched_worker;
+    }
+    return TOMO_SW_NONE;
+}
+
 void preprocessCommand(client *c, pendingCommand *pcmd) {
     pcmd->slot = INVALID_CLUSTER_SLOT;
     if (pcmd->argc == 0)
@@ -6569,6 +6705,9 @@ int processCommand(client *c) {
     /* Script-fence release guard: fires on EVERY return of THIS invocation; no-op unless the
      * family block below acquired the gate. See tomoStwGuardEnd. */
     tomoStwGuard stw_guard __attribute__((cleanup(tomoStwGuardEnd))) = {0};
+    int t6_kind = TOMO_T6_NONE;
+    int t6_worker = TOMO_SW_NONE;
+    int script_fence_invocation = 0;
 
     /* Script-fence entry gate (phase 1). One acquire load of a line that is never written while no
      * script runs. While a script is armed on ANOTHER identity, the stock asserts below MUST NOT
@@ -6584,7 +6723,7 @@ int processCommand(client *c) {
          * no way in_exec or scriptIsRunning() is 1.
          * That is unless lua_timedout, in which case client may run
          * some commands. */
-        serverAssert(!server.in_exec);
+        serverAssert(!tomo_in_exec);
         serverAssert(!scriptIsRunning());
     }
 
@@ -6666,12 +6805,15 @@ int processCommand(client *c) {
         }
     }
 
+    script_fence_invocation = (c->cmd->tomo_route & TOMO_R_SCRIPTFAM) ||
+        ((c->cmd->tomo_route & TOMO_R_STATEFUL) && tomoExecHasScript(c));
+
     /* Script fence: the FAMILY serializes on the gate word, and this block sits BEFORE
      * getCommandFlags because evalGetCommandFlags/fcallGetCommandFlags dictFind the process-global
      * lctx.lua_scripts / functions registry — dictFind advances incremental rehash, so a foreign
      * thread running it while the owner's SCRIPT LOAD/luaCreateFunction dictAdds is a heap race
      * (review findings 2/3/10/11). Only static c->cmd state is read here. */
-    if (__builtin_expect(server.num_workers > 0 && (c->cmd->tomo_route & TOMO_R_SCRIPTFAM), 0)) {
+    if (__builtin_expect(server.num_workers > 0 && script_fence_invocation, 0)) {
         uint64_t w = atomic_load_explicit(&tomo_script_stw.word, memory_order_acquire);
         if ((w & 0xff) != 0) {
             /* ARMED. Admission keys on the OWNING CLIENT, not the thread: a second client on the
@@ -6993,25 +7135,34 @@ int processCommand(client *c) {
      * Everything else routes through a fake. The fake's reply buffer is
      * what ends up on the wire, in dispatch order, via the flush walk. */
 
-    /* ee451 (RP-1 runtime; FLAGGED: user decision pending — option 1 of 3, see
-     * selfimprove/multibug_report.md): transactions are decoy-blind under sharding.
-     * EXEC runs its queued commands inline on the IO thread against the EMPTY decoy
-     * server.db (each inner call() bypasses dispatch classification, so no worker
-     * repoint ever happens): every write inside MULTI is acknowledged then invisible
-     * to sharded reads — silent data loss — and WATCH registers on the decoy's
-     * watched_keys, so shard writes never fire it (broken CAS, verified live).
-     * Until a sharded transaction path exists (multibug_report.md options 2/3),
-     * refuse to OPEN a transaction, loudly — the RP-1 principle at the command
-     * level. EXEC/DISCARD without MULTI already error upstream; UNWATCH is a no-op. */
-    if (server.num_workers > 0 &&
-        (c->cmd->proc == multiCommand || c->cmd->proc == watchCommand))
-    {
-        rejectCommandFormat(c, "%s is not supported with tomokv sharding "
-            "(tomokv-thread-ex=%d): transactions would execute against the empty "
-            "decoy DB and their writes be silently lost; use upstream Redis if you "
-            "need MULTI/EXEC/WATCH", c->cmd->fullname, server.num_workers);
+    /* T6: resolve indivisible state before choosing inline vs worker execution. Stateful commands
+     * retain their old empty-ring checkpoint even when their proc will run on a worker: WATCH and
+     * EXEC mutate durable connection state and must not overtake an older ring command. */
+    t6_worker = tomoT6Route(c, 1, &t6_kind);
+    if (t6_worker == TOMO_SW_INVALID) {
+        t6_worker = TOMO_SW_NONE;
+        t6_kind = TOMO_T6_NONE;
+    }
+    if (isStatefulCommand(c->cmd) && c->dispatchid != c->flushid) {
+        c->flags |= CLIENT_PIPELINE_STALLED;
         return C_OK;
     }
+    if (t6_worker == TOMO_SW_CROSS) {
+        if (t6_kind == TOMO_T6_EXEC) {
+            /* Redis Cluster-style EXEC rejection: the queue is discarded, but the reply itself
+             * stays CROSSSLOT rather than being rewritten to EXECABORT by rejectCommand(). */
+            discardTransaction(c);
+            c->duration = 0;
+            c->cmd->rejected_calls++;
+            addReplyError(c, "-CROSSSLOT Keys in request don't hash to the same worker shard");
+        } else {
+            rejectCommandFormat(c,
+                "-CROSSSLOT Keys in request don't hash to the same worker shard");
+        }
+        return C_OK;
+    }
+    if (t6_kind == TOMO_T6_WATCH && t6_worker >= 0)
+        atomicSet(c->tomo_watch_worker, t6_worker); /* publish before pipelined UNWATCH is parsed */
 
     /* xshard SAFE-GATE (multibug_report.md finding A): cross-shard multi-key commands NOT YET ported
      * to the scatter-gather path would fall to the inline branch and run against the EMPTY decoy
@@ -7025,6 +7176,7 @@ int processCommand(client *c) {
      * (tomokv-xshard-guard was hardwired ON in 77174fa4a: its OFF arm was a reproduced data-loss
      * path, not an optimisation). */
     if (server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
+        !(c->flags & CLIENT_MULTI) && /* queued commands are validated as one T6 unit at EXEC */
         (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
@@ -7052,13 +7204,7 @@ int processCommand(client *c) {
     }
 
     /* Stateful commands — run on real with ring drained. */
-    if (isStatefulCommand(c->cmd)) {
-        if (c->dispatchid != c->flushid) {
-            /* A held gate is released by the invocation guard on this return; the retry
-             * re-acquires (epoch bumps — harmless). */
-            c->flags |= CLIENT_PIPELINE_STALLED;
-            return C_OK;
-        }
+    if (isStatefulCommand(c->cmd) && t6_worker < 0) {
         int flags = CMD_CALL_FULL;
         call(c, flags);
         /* Script-fence release happens in the invocation guard at return (nesting-safe). */
@@ -7191,6 +7337,47 @@ int processCommand(client *c) {
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
+    } else if (t6_worker >= 0) {
+        /* One indivisible unit, one owner queue, one owner lock. The ring head itself is the
+         * worker job (no scatter sub/group), so its stock reply is spliced verbatim. */
+        fake->tomo_local_worker = t6_worker;
+        fake->db = &server.exThreads[t6_worker].db[fake->db->id];
+        fake->cdb = cdbIndexFor(t6_worker);
+        fake->tomo_bkt = t6_worker ? server.ex_bucket_end[t6_worker - 1] : 0;
+        fake->tomo_bkt_ptr = NULL;   /* the outer argv is not necessarily a key (EXEC/EVAL) */
+        fake->tomo_key_h = 0;
+        fake->flags |= CLIENT_EX_PENDING;
+        c->cs_barrier = 1;              /* following client commands wait for the unit to retire */
+
+        if (t6_kind == TOMO_T6_SCRIPT) {
+            /* getCommandFlags cached this entry on the real client under the script fence. */
+            fake->cur_script = c->cur_script;
+            c->cur_script = NULL;
+        }
+        if (t6_kind == TOMO_T6_EXEC || t6_kind == TOMO_T6_DISCARD) {
+            fake->mstate = c->mstate;   /* ownership moves with the queued pendingCommand objects */
+            c->mstate = (multiState){ .executing_cmd = -1 };
+            uint64_t txflags = c->flags;
+            unsigned int dirty_cas;
+            atomicGet(c->tomo_dirty_cas, dirty_cas);
+            fake->flags |= txflags & (CLIENT_MULTI | CLIENT_DIRTY_CAS | CLIENT_DIRTY_EXEC);
+            if (dirty_cas) fake->flags |= CLIENT_DIRTY_CAS;
+            /* The next pipelined command must not join a transaction whose EXEC is in flight;
+             * cs_barrier keeps it from dispatching until worker cleanup completes. */
+            c->flags &= ~(CLIENT_MULTI | CLIENT_DIRTY_CAS | CLIENT_DIRTY_EXEC);
+        }
+        if (stw_guard.acquired)
+            tomoScriptGateTransferToWorker(&stw_guard, fake, t6_worker);
+
+        /* exPrefetchBatch intentionally assumes argv[1] is the routed key. EXEC has none and
+         * EVAL/FCALL carry code/function there, so hide the outer argc until exExecFake restores
+         * it from the pending command. This leaves the ordinary prefetch/express loop unchanged. */
+        fake->argc = 0;
+        replyWorking++;
+        /* T6 carries no single argv[1] hash and cannot enter the cost reorder scratch. Drain any
+         * older staged jobs, then place the indivisible unit directly on the owner FIFO. */
+        if (tomo_rord.n) tomoReorderDrain();
+        exDispatchDirect(t6_worker, fake);
     } else {
     const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
     /* M-READS ARE SCATTER-GATHER ONLY (2026-07-27). Both single-executor routes that used to sit
@@ -7259,7 +7446,7 @@ int processCommand(client *c) {
          * to the drain when it acquire-loads this byte. */
         cdbSlotPublish(fake->parent, fake->cdb, fake->fake_slot);
     }
-    }   /* end express-lane else */
+    }   /* end express/T6/general routing */
 
     c->dispatchid++;
     return C_OK;
@@ -8113,6 +8300,73 @@ int exIndexForKey(const void *keyptr, size_t len) {
     return (int)server.ex_bucket_table[xxh64(keyptr, len) & TOMO_BUCKET_MASK];
 }
 
+/* SORT BY/GET derive additional key names from collection elements, so the stock key extractor
+ * cannot prove a single owner for them. Parse option widths exactly; malformed tails reach the
+ * stock syntax error and STORE itself remains a concrete extracted destination key. */
+static int tomoSortHasExternalKeys(struct redisCommand *cmd, robj **argv, int argc) {
+    if (!cmd || (cmd->proc != sortCommand && cmd->proc != sortroCommand)) return 0;
+    for (int i = 2; i < argc; ) {
+        const char *a = argv[i]->ptr;
+        int leftargs = argc - i - 1;
+        if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) return 1;
+        if (!strcasecmp(a, "limit") && leftargs >= 2) { i += 3; continue; }
+        if (!strcasecmp(a, "store") && leftargs >= 1) { i += 2; continue; }
+        if (!strcasecmp(a, "asc") || !strcasecmp(a, "desc") || !strcasecmp(a, "alpha")) {
+            i++;
+            continue;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+int tomoCommandSingleWorker(struct redisCommand *cmd, robj **argv, int argc, int hold_migration) {
+    if (!cmd || !argv || argc <= 0) return TOMO_SW_INVALID;
+    getKeysResult result = GETKEYS_RESULT_INIT;
+    int nkeys = getKeysFromCommand(cmd, argv, argc, &result);
+    if (nkeys < 0) {
+        getKeysFreeResult(&result);
+        return TOMO_SW_INVALID;
+    }
+    /* These valid zero-key forms inspect or mutate the whole logical keyspace. They cannot be
+     * made single-owner merely because the key extractor has no concrete argv positions. Keep
+     * top-level routing unchanged; this resolver is used only for T6 units and nested scripts. */
+    if (nkeys == 0 &&
+        ((cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS) ||
+         cmd->proc == keysCommand || cmd->proc == dbsizeCommand ||
+         cmd->proc == flushdbCommand || cmd->proc == flushallCommand ||
+         cmd->proc == swapdbCommand))
+    {
+        getKeysFreeResult(&result);
+        return TOMO_SW_CROSS;
+    }
+    if (tomoSortHasExternalKeys(cmd, argv, argc)) {
+        getKeysFreeResult(&result);
+        return TOMO_SW_CROSS;
+    }
+    int worker = TOMO_SW_NONE;
+    for (int i = 0; i < nkeys; i++) {
+        int pos = result.keys[i].pos;
+        if (pos < 0 || pos >= argc || argv[pos] == NULL) {
+            worker = TOMO_SW_INVALID;
+            break;
+        }
+        robj *key = argv[pos];
+        if (hold_migration &&
+            __builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        if (worker == TOMO_SW_NONE) worker = w;
+        else if (worker != w) {
+            worker = TOMO_SW_CROSS;
+            break;
+        }
+    }
+    getKeysFreeResult(&result);
+    return worker;
+}
+
 /* ee451 (shared-kv S0.2a): key -> ownership bucket == kvstore dict index. Exported for db.c's
  * getKeySlot/calculateKeySlot (xxh64 is file-static here). Pure function, any thread. */
 int tomoKeyBucket(const void *keyptr, size_t len) {
@@ -8367,30 +8621,16 @@ static int csGeoStoreDstArgi(client *c) {
  * widths so a LIMIT operand or STORE destination literally named "by"/"get" is not mistaken
  * for an option. Unknown/malformed tails are stock parse errors and touch no external key. */
 static int csSortUnsafeCheck(client *c) {
-    for (int i = 2; i < c->argc; ) {
-        const char *a = c->argv[i]->ptr;
-        int leftargs = c->argc - i - 1;
-        if ((!strcasecmp(a, "by") || !strcasecmp(a, "get")) && leftargs >= 1) return 1;
-        if (!strcasecmp(a, "limit") && leftargs >= 2) { i += 3; continue; }
-        if (!strcasecmp(a, "store") && leftargs >= 1) { i += 2; continue; }
-        if (!strcasecmp(a, "asc") || !strcasecmp(a, "desc") || !strcasecmp(a, "alpha")) {
-            i++;
-            continue;
-        }
-        return 0;
-    }
-    return 0;
+    return tomoSortHasExternalKeys(c->cmd, c->argv, c->argc);
 }
 static int csSortStoreShapeOk(client *c) {
     return !csSortUnsafeCheck(c) && csSortStoreDstArgi(c) != 0;
 }
-/* EVAL family: keyless scripts (numkeys==0) touch no shard data — keep them working; parse
- * anomalies fall inline (arity/parse error precedes key access in the stock proc). */
+/* EVAL family: keyless scripts keep their existing inline path. Keyed forms pass the safe gate
+ * only when every declared key resolves to one owner; processCommand then routes the indivisible
+ * script unit there. Parse anomalies fall inline so the stock proc owns their exact error. */
 static int csEvalUnsafeCheck(client *c) {
-    long long nk;
-    if (c->argc < 3) return 0;
-    if (getLongLongFromObject(c->argv[2], &nk) != C_OK) return 0;
-    return nk != 0;
+    return tomoCommandSingleWorker(c->cmd, c->argv, c->argc, 0) == TOMO_SW_CROSS;
 }
 
 /* XREAD and XREADGROUP share xreadCommand. The WRITE flag identifies the latter even when
@@ -15046,6 +15286,7 @@ void totalNumberOfStatefulKeys(unsigned long *blocking_keys, unsigned long *bloc
         bkeys_on_nokey += dictSize(server.db[j].blocking_keys_unblock_on_nokey);
         wkeys += dictSize(server.db[j].watched_keys);
     }
+    if (server.num_workers > 0) wkeys = tomoTotalWatchedKeys();
     if (blocking_keys)
         *blocking_keys = bkeys;
     if (blocking_keys_on_nokey)
@@ -15209,6 +15450,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     if (all_sections || (dictFind(section_dict,"clients") != NULL)) {
         size_t maxin, maxout;
         unsigned long blocking_keys, blocking_keys_on_nokey, watched_keys;
+        unsigned int watching_clients;
+        atomicGet(server.watching_clients, watching_clients);
         getExpansiveClientsInfo(&maxin,&maxout);
         totalNumberOfStatefulKeys(&blocking_keys, &blocking_keys_on_nokey, &watched_keys);
         if (sections++) info = sdscat(info,"\r\n");
@@ -15221,7 +15464,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "blocked_clients:%d\r\n", server.blocked_clients,
             "tracking_clients:%d\r\n", server.tracking_clients,
             "pubsub_clients:%d\r\n", server.pubsub_clients,
-            "watching_clients:%d\r\n", server.watching_clients,
+            "watching_clients:%d\r\n", watching_clients,
             "clients_in_timeout_table:%llu\r\n", (unsigned long long) raxSize(server.clients_timeout_table),
             "total_watched_keys:%lu\r\n", watched_keys,
             "total_blocking_keys:%lu\r\n", blocking_keys,
@@ -17586,10 +17829,15 @@ static inline void exExecFake(client *fake) {
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
         monotime cs_t0 = tomoCmdClockEnter();
-        /* ee451 (#B1): ...and for the same reason it is where the command is COUNTED. call() is
-         * never entered on a worker, so without this the whole worker-routed majority of the
-         * traffic was invisible to total_commands_processed. Own cache line, no atomic RMW. */
-        numCommandsBump();
+        /* ee451 (#B1): ...and for the same reason it is where ordinary direct-proc commands are
+         * COUNTED. T6 uses full call() below; without either path the worker-routed majority of
+         * traffic is invisible to total_commands_processed. Own cache line, no atomic RMW. */
+        int t6_full_call = fake->tomo_local_worker >= 0;
+        if (t6_full_call && fake->argc == 0) {
+            serverAssert(fake->current_pending_cmd != NULL);
+            fake->argc = fake->current_pending_cmd->argc;
+        }
+        if (!t6_full_call) numCommandsBump();
         /* ee451 (#B2): ...and where its PER-COMMAND stats are taken, for the same reason. Two
          * things are captured up front:
          *   cs_t0    the clock the latch above already read (0 only if nested) — so `usec` costs
@@ -17602,7 +17850,7 @@ static inline void exExecFake(client *fake) {
          *   cs_e0    this thread's error-reply count, for the failed_calls delta below. Single
          *            writer, so the delta is exact — this is call()'s mechanism, de-shared. */
         struct redisCommand *cs_cmd = fake->cmd;
-        long long cs_e0 = tomoErrRepliesLocal();
+        long long cs_e0 = t6_full_call ? 0 : tomoErrRepliesLocal();
         /* ee451 (v13): hash-carry HARDWIRED (knob retired — won in every measurement) +
          * conditional disarm (audit shave): the unconditional disarm was a TLS store per op
          * even when nothing was armed; now only armed ops pay it. */
@@ -17618,7 +17866,36 @@ static inline void exExecFake(client *fake) {
          * exactly ONE bucket and every off-worker path locks in a fixed order.
          * ALWAYS ON (tomokv-mcmd-lock deleted 2026-07-27): the lock IS what makes a shared node db
          * safe against sibling workers, so there is no lock-free arm to fall back to. */
-        if (__builtin_expect(server.shared_node_dbs, 1)  /* TRUE in every supported multi-worker config */ && tomoHfeProc(fake->cmd->proc)) {
+        if (__builtin_expect(t6_full_call, 0)) {
+            int w = fake->tomo_local_worker;
+            serverAssert(iotid == TOMO_IO_THREADS_MAX + 1 + w);
+            tomoWkrLock(w);
+
+            if (fake->tomo_script_gate) {
+                tomo_stw_held = 1;
+                tomo_stw_owner_real = fake->parent;
+            }
+            if (cs_cmd->proc == execCommand) {
+                unsigned int dirty_cas;
+                atomicGet(fake->parent->tomo_dirty_cas, dirty_cas);
+                if (dirty_cas) fake->flags |= CLIENT_DIRTY_CAS;
+            }
+
+            /* EXEC and scripts need an outer execution unit: their nested call() invocations
+             * must defer post-unit work until the whole atomic unit ends. The ordinary worker
+             * fast path deliberately invokes proc directly, but doing that here would flush
+             * script/transaction side effects between queued commands. */
+            call(fake, CMD_CALL_FULL);
+
+            if (cs_cmd->proc == execCommand || cs_cmd->proc == discardCommand) {
+                atomicSet(fake->parent->tomo_dirty_cas, 0);
+            }
+            if (fake->tomo_script_gate) {
+                tomoScriptGateReleaseCurrent();
+                fake->tomo_script_gate = 0;
+            }
+            tomoWkrUnlock(w);
+        } else if (__builtin_expect(server.shared_node_dbs, 1)  /* TRUE in every supported multi-worker config */ && tomoHfeProc(fake->cmd->proc)) {
             /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
              * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
              * them. So: run the proc holding ALL the node's worker locks (ascending, => mutual
@@ -17677,8 +17954,6 @@ static inline void exExecFake(client *fake) {
          * the ring slot, under the release/acquire the completion byte already provides. */
         if (__builtin_expect(cs_t0 != 0, 1)) {
             long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
-            int cs_failed = (tomoErrRepliesLocal() != cs_e0);
-            tomoCmdStatAddCall(cs_cmd, cs_usec, cs_failed);
             /* D svc plane: two adds, duration already in hand. Clamp keeps a pathological
              * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
             if (tm_cur_ex) {
@@ -17686,9 +17961,15 @@ static inline void exExecFake(client *fake) {
                 tm_cur_ex->svc_us[cls] += (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
                 tm_cur_ex->svc_ops[cls]++;
             }
-            if (server.latency_tracking_enabled) tomoCmdLatRecord(cs_cmd, cs_usec);
+            /* call() owns command/error/latency accounting for T6. All other worker commands
+             * retain the direct-proc accounting path established for the express lane. */
+            if (!t6_full_call) {
+                int cs_failed = (tomoErrRepliesLocal() != cs_e0);
+                tomoCmdStatAddCall(cs_cmd, cs_usec, cs_failed);
+                if (server.latency_tracking_enabled) tomoCmdLatRecord(cs_cmd, cs_usec);
+            }
         }
-        fake->commands_processed++;
+        if (!t6_full_call) fake->commands_processed++;
         if (hh_armed) dictDisarmHashHint();
         /* ee451 (hash-carry): the hint MUST NOT outlive this execution — ring fakes recycle without
          * re-init, and a stale ptr could collide with a recycled sds address on a later command that
@@ -18128,6 +18409,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * connection's earlier commands). Empty this worker's OWN shard DBs and free
              * the fake. Fire-and-forget: no reply, no barrier. */
             if (fake->is_flush) {
+                int dblo = fake->flush_dbid < 0 ? 0 : fake->flush_dbid;
+                int dbhi = fake->flush_dbid < 0 ? server.dbnum - 1 : fake->flush_dbid;
+                tomoWkrLock(worker->id);
+                for (int dbid = dblo; dbid <= dbhi; dbid++)
+                    tomoTouchWatchedKeysOnFlush(&worker->db[dbid], worker->id);
+                tomoWkrUnlock(worker->id);
                 if (fake->flush_bar) {
                     /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
                      * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings

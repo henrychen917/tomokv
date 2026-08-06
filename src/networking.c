@@ -155,6 +155,10 @@ static void resetFakeClientState(client *c, client *parent) {
     c->is_flush = 0;
     c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
+    c->tomo_local_worker = -1;
+    atomicSet(c->tomo_watch_worker, -1);
+    atomicSet(c->tomo_dirty_cas, 0);
+    c->tomo_script_gate = 0;
     c->drain_ack = NULL;
     c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
     c->mig_parked_tid = 0;
@@ -537,6 +541,8 @@ client *createClient(connection *conn) {
     c->net_output_bytes_curr_cmd = 0;
     if (conn) linkClient(c);
     initClientMultiState(c);
+    c->tomo_local_worker = -1;
+    c->tomo_script_gate = 0;
     c->net_input_bytes = 0;
     c->net_output_bytes = 0;
     c->commands_processed = 0;
@@ -2552,7 +2558,7 @@ void freeFakeClient(client *c) {
 void freeClient(client *c) {
     //fprintf(stderr, "[%s:%d] freeClient called on %s id=%llu\n",
         // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)c->id);
-    if (c->isFake) {
+    if (c->isFake && unlikely(c->tomo_local_worker >= 0)) {
         freeClientAsync(c->parent);
         return;
     }
@@ -3455,6 +3461,15 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->cur_script = NULL;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
+    /* Ring fakes are reused in place without resetFakeClientState(). T6 ownership is strictly
+     * per-dispatch; letting it survive retirement would make a later express command enter the
+     * full-call transaction path (and possibly assert on the stale worker id). */
+    if (c->isFake) {
+        c->tomo_local_worker = -1;
+        atomicSet(c->tomo_watch_worker, -1);
+        atomicSet(c->tomo_dirty_cas, 0);
+        c->tomo_script_gate = 0;
+    }
     /* ee451 (v14, W3-T3): unconditional clear — the guard bought nothing (the flags line
      * is already dirty from the argc/cmd/slot stores above). */
     c->flags &= ~CLIENT_EXECUTING_COMMAND;
@@ -4703,7 +4718,9 @@ sds catClientInfoString(sds s, client *client) {
     if (client->flags & CLIENT_TRACKING) *p++ = 't';
     if (client->flags & CLIENT_TRACKING_BROKEN_REDIR) *p++ = 'R';
     if (client->flags & CLIENT_TRACKING_BCAST) *p++ = 'B';
-    if (client->flags & CLIENT_DIRTY_CAS) *p++ = 'd';
+    unsigned int tomo_dirty_cas = 0;
+    if (server.num_workers > 0) atomicGet(client->tomo_dirty_cas, tomo_dirty_cas);
+    if ((client->flags & CLIENT_DIRTY_CAS) || tomo_dirty_cas) *p++ = 'd';
     if (client->flags & CLIENT_CLOSE_AFTER_REPLY) *p++ = 'c';
     if (client->flags & CLIENT_UNBLOCKED) *p++ = 'u';
     if (client->flags & CLIENT_CLOSE_ASAP) *p++ = 'A';
@@ -6151,7 +6168,7 @@ void pauseActions(pause_purpose purpose, mstime_t end, uint32_t actions) {
      * up before and after to execute. We need
      * to track this state so that we don't assert
      * in propagateNow(). */
-    if (server.in_exec) {
+    if (tomo_in_exec) {
         server.client_pause_in_transaction = 1;
     }
 
