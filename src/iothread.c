@@ -10,6 +10,7 @@
 
 #include "server.h"
 #include "uring.h"
+#include "uring2.h"
 
 /* IO threads. */
 static IOThread IOThreads[IO_THREADS_MAX_NUM];
@@ -174,10 +175,10 @@ void keepClientInMainThread(client *c) {
      * custom IO owner. Supported uring configurations disable upstream IO
      * threads, and commands that could reach this transition are refused in
      * the sharded runtime. Fail closed if that contract ever changes: a live
-     * source-ring multishot must never be followed by a main-epoll arm.
+     * source-ring receive must never be followed by a main-epoll arm.
      */
     if (server.io_uring)
-        serverAssert(!tomoUringClientAttached(c));
+        serverAssert(!tomoUringBackendClientAttached(c));
     /* IO thread no longer manage it. */
     server.io_threads_clients_num[c->tid]--;
     /* Unbind connection of client from io thread event loop. */
