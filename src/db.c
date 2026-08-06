@@ -2019,6 +2019,13 @@ static unsigned long long dictShardScanCursorFromKv(unsigned long long cursor, i
            ((unsigned long long)worker << TOMO_SCAN_WORKER_SHIFT) | didx;
 }
 
+/* SCAN's COUNT is a hint, so keep a single resumable scan slice from monopolizing an execution
+ * worker even when the client supplies a huge value. This matches Dragonfly's approximately 30 us
+ * per-shard budget. The limit is best-effort: a dict bucket chain and a small FLATSTORE slot chunk
+ * are indivisible so that every returned cursor describes only fully-consumed scan work. */
+#define SCAN_MAX_WORK_US 30
+#define FLAT_SCAN_TIME_CHECK_SLOTS 64
+
 /* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
  * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
  * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
@@ -2035,20 +2042,39 @@ static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, lo
     int node = (int)((cursor >> 52) & 0xFFF);
     unsigned long gen_lo = (unsigned long)((cursor >> 32) & 0xFFFFF);
     uint64_t slot = (uint64_t)(cursor & 0xFFFFFFFFULL);
-    uint64_t budget = (uint64_t)count * 10 + 64;    /* bound total slots scanned this call (sparse-table guard) */
+    uint64_t budget = (uint64_t)count > (UINT64_MAX - 64) / 10 ?
+                      UINT64_MAX : (uint64_t)count * 10 + 64; /* sparse-table guard */
     int nmax = server.n_node_dbs - 1;               /* highest physical node-db index */
+    monotime scan_timer;
+    elapsedStart(&scan_timer);
     while (node <= nmax) {
         flatTable *t = kvstoreFlatTable(server.node_dbs[node][db->id].keys);
-        if (!t) { node++; slot = 0; gen_lo = 0; continue; }
+        if (!t) {
+            node++; slot = 0; gen_lo = 0;
+            if (node <= nmax && elapsedUs(scan_timer) >= SCAN_MAX_WORK_US)
+                return (unsigned long long)node << 52;
+            continue;
+        }
         unsigned long cur_gen = (unsigned long)(t->gen & 0xFFFFF);
         if (slot != 0 && gen_lo != cur_gen) slot = 0;   /* a resize happened between calls -> restart node */
         int hit_end = 0;
-        slot = flatScanSlice(t, slot, &budget, &hit_end, cb, priv, sampled, count);
-        if (!hit_end)                                   /* paused mid-node -> resume here (gen for restart detection) */
-            return ((unsigned long long)node << 52) |
-                   (((unsigned long long)cur_gen & 0xFFFFF) << 32) | (slot & 0xFFFFFFFFULL);
+        while (!hit_end) {
+            uint64_t chunk = budget < FLAT_SCAN_TIME_CHECK_SLOTS ?
+                             budget : FLAT_SCAN_TIME_CHECK_SLOTS;
+            uint64_t chunk_left = chunk;
+            slot = flatScanSlice(t, slot, &chunk_left, &hit_end, cb, priv, sampled, count);
+            budget -= chunk - chunk_left;
+            /* Check time only after flatScanSlice has advanced slot, so an early return always
+             * carries a cursor immediately after all entries emitted by this call. */
+            if (!hit_end && (*sampled >= count || budget == 0 ||
+                             elapsedUs(scan_timer) >= SCAN_MAX_WORK_US))
+                return ((unsigned long long)node << 52) |
+                       (((unsigned long long)cur_gen & 0xFFFFF) << 32) |
+                       (slot & 0xFFFFFFFFULL);
+        }
         node++; slot = 0; gen_lo = 0;                   /* finished this node */
-        if (*sampled >= count || budget == 0)           /* budget spent at a node boundary -> resume next node@0 */
+        if (*sampled >= count || budget == 0 ||
+            elapsedUs(scan_timer) >= SCAN_MAX_WORK_US)  /* resume next node at slot zero */
             return (node <= nmax) ? ((unsigned long long)node << 52) : 0;
     }
     return 0;                                           /* all nodes swept */
@@ -2160,7 +2186,9 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * COUNT, so if the hash table is in a pathological state (very
          * sparsely populated) we avoid to block too much time at the cost
          * of returning no or very few elements. */
-        long maxiterations = count*10;
+        long maxiterations = count > LONG_MAX / 10 ? LONG_MAX : count * 10;
+        monotime scan_timer;
+        elapsedStart(&scan_timer);
 
         /* We pass scanData which have three pointers to the callback:
          * 1. data.keys: the list to which it will add new elements;
@@ -2210,7 +2238,8 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
             do {
                 kv_cursor = kvstoreScan(c->db->keys, kv_cursor, onlydidx,
                                         scanCallback, scanShouldSkipDict, &data);
-            } while (kv_cursor && maxiterations-- && data.sampled < count);
+            } while (kv_cursor && maxiterations-- && data.sampled < count &&
+                     elapsedUs(scan_timer) < SCAN_MAX_WORK_US);
             if (kv_cursor) {
                 cursor = dictShardScanCursorFromKv(kv_cursor, worker);
             } else if (worker + 1 < server.num_workers) {
@@ -2227,7 +2256,8 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
                 } else {
                     cursor = dictScan(ht, cursor, scanCallback, &data);
                 }
-            } while (cursor && maxiterations-- && data.sampled < count);
+            } while (cursor && maxiterations-- && data.sampled < count &&
+                     elapsedUs(scan_timer) < SCAN_MAX_WORK_US);
         }
     } else if (o->type == OBJ_SET) {
         unsigned long array_reply_len = 0;
