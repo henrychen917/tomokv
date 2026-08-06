@@ -577,6 +577,65 @@ unsigned char *hashTypeListpackGetLp(robj *o) {
     serverPanic("Unknown encoding: %d", o->encoding);
 }
 
+/* Return whether setting field would leave this listpack with exactly one
+ * field. The singleton exception applies to values only: large field names
+ * still trigger the normal per-entry limit. */
+static int hashTypeListpackKeepsSingleton(robj *o, sds field) {
+    unsigned long length = hashTypeLength(o, 0);
+
+    if (length == 0)
+        return 1;
+    if (length != 1)
+        return 0;
+
+    unsigned char *lp = hashTypeListpackGetLp(o);
+    unsigned char *fptr = lpFirst(lp);
+    unsigned int skip = o->encoding == OBJ_ENCODING_LISTPACK ? 1 : 2;
+    return fptr && lpFind(lp, fptr, (unsigned char *)field, sdslen(field), skip);
+}
+
+/* Check the exact, post-mutation listpack representation. For listpack-ex the
+ * underlying listpack includes the TTL entry in every field/value/TTL tuple,
+ * so lpBytes() naturally accounts for the HFE encoding overhead. */
+static int hashTypeListpackExceedsLimits(robj *o) {
+    serverAssert(o->encoding == OBJ_ENCODING_LISTPACK ||
+                 o->encoding == OBJ_ENCODING_LISTPACK_EX);
+
+    unsigned long fields = hashTypeLength(o, 0);
+    if (fields > server.hash_max_listpack_entries)
+        return 1;
+
+    unsigned char *lp = hashTypeListpackGetLp(o);
+    int singleton = fields == 1;
+    if (!singleton && fields != 0 && server.hash_max_listpack_bytes != 0 &&
+        lpBytes(lp) > (size_t)server.hash_max_listpack_bytes)
+        return 1;
+
+    int tuple_len = o->encoding == OBJ_ENCODING_LISTPACK ? 2 : 3;
+    unsigned char *p = lpFirst(lp);
+    while (p) {
+        unsigned char intbuf[LP_INTBUF_SIZE];
+        int64_t len;
+
+        serverAssert(lpGet(p, &len, intbuf) != NULL && len >= 0);
+        if ((size_t)len > server.hash_max_listpack_value)
+            return 1;
+
+        p = lpNext(lp, p);
+        serverAssert(p != NULL);
+        serverAssert(lpGet(p, &len, intbuf) != NULL && len >= 0);
+        if (!singleton && (size_t)len > server.hash_max_listpack_value)
+            return 1;
+
+        p = lpNext(lp, p);
+        if (tuple_len == 3) {
+            serverAssert(p != NULL);
+            p = lpNext(lp, p);
+        }
+    }
+    return 0;
+}
+
 /*-----------------------------------------------------------------------------
  * Hash type API
  *----------------------------------------------------------------------------*/
@@ -601,11 +660,15 @@ void hashTypeTryConversion(redisDb *db, kvobj *o, robj **argv, int start, int en
         return;
     }
 
+    int singleton = end == start + 1 && sdsEncodedObject(argv[start]) &&
+                    hashTypeListpackKeepsSingleton(o, argv[start]->ptr);
+
     for (i = start; i <= end; i++) {
         if (!sdsEncodedObject(argv[i]))
             continue;
         size_t len = sdslen(argv[i]->ptr);
-        if (len > server.hash_max_listpack_value) {
+        /* A singleton's value is exempt, but its field name is not. */
+        if (len > server.hash_max_listpack_value && !(singleton && i == start + 1)) {
             hashTypeConvert(db, o, OBJ_ENCODING_HT);
             return;
         }
@@ -898,7 +961,9 @@ int hashTypeSet(redisDb *db, kvobj *o, sds field, sds value, int flags) {
      * hashTypeTryConversion, so this check will be a NOP. */
     if (o->encoding == OBJ_ENCODING_LISTPACK  ||
         o->encoding == OBJ_ENCODING_LISTPACK_EX) {
-        if (sdslen(field) > server.hash_max_listpack_value || sdslen(value) > server.hash_max_listpack_value)
+        int singleton = hashTypeListpackKeepsSingleton(o, field);
+        if (sdslen(field) > server.hash_max_listpack_value ||
+            (!singleton && sdslen(value) > server.hash_max_listpack_value))
             hashTypeConvert(db, o, OBJ_ENCODING_HT);
     }
 
@@ -931,8 +996,9 @@ int hashTypeSet(redisDb *db, kvobj *o, sds field, sds value, int flags) {
         }
         o->ptr = zl;
 
-        /* Check if the listpack needs to be converted to a hash table */
-        if (hashTypeLength(o, 0) > server.hash_max_listpack_entries)
+        /* Check exact bytes after insertion/replacement so listpack encoding
+         * overhead and integer compression are reflected in the decision. */
+        if (hashTypeListpackExceedsLimits(o))
             hashTypeConvert(db, o, OBJ_ENCODING_HT);
     } else if (o->encoding == OBJ_ENCODING_LISTPACK_EX) {
         unsigned char *fptr = NULL, *vptr = NULL, *tptr = NULL;
@@ -970,8 +1036,7 @@ int hashTypeSet(redisDb *db, kvobj *o, sds field, sds value, int flags) {
             listpackExAddNew(o, field, sdslen(field), value, sdslen(value),
                              HASH_LP_NO_TTL);
 
-        /* Check if the listpack needs to be converted to a hash table */
-        if (hashTypeLength(o, 0) > server.hash_max_listpack_entries)
+        if (hashTypeListpackExceedsLimits(o))
             hashTypeConvert(db, o, OBJ_ENCODING_HT);
 
     } else if (o->encoding == OBJ_ENCODING_HT) {
@@ -1157,8 +1222,13 @@ SetExRes hashTypeSetEx(robj *o, sds field, uint64_t expireAt, HashTypeSetEx *exI
         tptr = lpNext(lpt->lp, vptr);
         serverAssert(tptr);
 
-        /* update TTL */
-        return hashTypeSetExpiryListpack(exInfo, field, fptr, vptr, tptr, expireAt);
+        /* Update TTL, then account for the exact listpack-ex bytes. Changing a
+         * zero TTL placeholder to an absolute timestamp can itself cross the
+         * byte threshold. hashTypeConvert() selects the HFE-aware dict type. */
+        SetExRes res = hashTypeSetExpiryListpack(exInfo, field, fptr, vptr, tptr, expireAt);
+        if (hashTypeListpackExceedsLimits(o))
+            hashTypeConvert(exInfo->db, o, OBJ_ENCODING_HT);
+        return res;
     } else if (o->encoding == OBJ_ENCODING_HT) {
         /* If needed to set the field along with expiry */
         return hashTypeSetExpiryHT(exInfo, field, expireAt);
@@ -1181,7 +1251,6 @@ void initDictExpireMetadata(robj *o) {
 int hashTypeSetExInit(robj *key, kvobj *o, client *c, redisDb *db,
                       ExpireSetCond expireSetCond, HashTypeSetEx *ex)
 {
-    dict *ht = o->ptr;
     ex->expireSetCond = expireSetCond;
     ex->minExpire = EB_EXPIRE_TIME_INVALID;
     ex->c = c;
@@ -1193,7 +1262,14 @@ int hashTypeSetExInit(robj *key, kvobj *o, client *c, redisDb *db,
     /* Take care that HASH support expiration */
     if (o->encoding == OBJ_ENCODING_LISTPACK) {
         hashTypeConvert(c->db, o, OBJ_ENCODING_LISTPACK_EX);
-    } else if (o->encoding == OBJ_ENCODING_HT) {
+        /* LISTPACK_EX adds a TTL entry for every field, including fields with
+         * no TTL. Apply the byte limit to that expanded representation. */
+        if (hashTypeListpackExceedsLimits(o))
+            hashTypeConvert(c->db, o, OBJ_ENCODING_HT);
+    }
+
+    if (o->encoding == OBJ_ENCODING_HT) {
+        dict *ht = o->ptr;
         /* Take care dict has HFE metadata */
         if (!isDictWithMetaHFE(ht)) {
             /* Realloc (only header of dict) with metadata for hash-field expiration */
