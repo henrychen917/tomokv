@@ -2851,8 +2851,15 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
         int c = tomo_rord.cls[i] & TOMO_CLS_MASK;
         clspos[c][clen[c]++] = (uint8_t)a;
         succ[a] = -1; blocked[a] = 0;
+        /* fk fix: fence by CONNECTION identity. A real client's own single-key commands have
+         * fk->parent==NULL; its cross-shard sub-fakes have fk->parent = that real client. They MUST
+         * share identity or a client's SET and its own MGET sub-read on the same key never fence,
+         * and the reorder emits the read before the write => read-your-own-writes breaks. parent ?
+         * parent : self gives both the same id; distinct real clients still differ (correctly free
+         * to reorder). Was: ->parent alone (NULL-folds real clients to key-only, mismatching fakes). */
+        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
         uint64_t dep = tomo_rord.h[i] ^
-            ((uint64_t)(uintptr_t)tomo_rord.fk[i]->parent * 0x9E3779B97F4A7C15ull);
+            ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
         unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
         while (rord_hset_gen[slot] == g) {
             if (rord_hset_key[slot] == dep) { succ[rord_dep_pos[slot]] = a; blocked[a] = 1; break; }
@@ -2927,8 +2934,9 @@ void tomoReorderDrain(void) {
                  * that -- on a hot key hammered by many connections the old key-only fence pinned the
                  * whole run to arrival order (killing the SJF); now only each client's own
                  * subsequence fences. (parent==NULL folds to key-only = the safe/strict side.) */
+                client *cida = tomo_rord.fk[ia]->parent ? tomo_rord.fk[ia]->parent : tomo_rord.fk[ia];
                 uint64_t da = tomo_rord.h[ia] ^
-                    ((uint64_t)(uintptr_t)tomo_rord.fk[ia]->parent * 0x9E3779B97F4A7C15ull);
+                    ((uint64_t)(uintptr_t)cida * 0x9E3779B97F4A7C15ull);
                 unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
                 while (rord_hset_gen[slot] == hgen) {
                     if (rord_hset_key[slot] == da) { fence_at = a; break; }
@@ -7284,6 +7292,14 @@ int processCommand(client *c) {
      * by construction in both directions (same key => same owner queue => FIFO), so MGET/MSET/EXISTS
      * route there unconditionally. Do not reintroduce a non-owner read path. */
     if (csp) {
+        /* fk fix (reorder + same-client order): the per-IO reorder scratch may still hold THIS
+         * connection's earlier single-key writes (staged, not yet in the owner queues). A cross-shard
+         * scatter dispatches its sub-ops DIRECTLY into the owner queues, so without draining first a
+         * sub-read lands in the queue BEFORE the staged write => the "same key => same owner queue =>
+         * FIFO" invariant the comment above relies on is broken, and an MGET observes a value older
+         * than this client's own just-issued SET (read-your-own-writes breaks under tomokv-reorder>0).
+         * Drain so every staged write reaches its owner queue before this command's subs enqueue. */
+        if (tomo_rord.n) tomoReorderDrain();
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
