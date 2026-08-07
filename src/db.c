@@ -446,7 +446,8 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq) {
         kv->vmeta = zmalloc(sizeof(*kv->vmeta));
-        kv->vmeta->version_seq = version_seq;
+        atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_relaxed);
+        atomic_store_explicit(&kv->vmeta->refs, 1, memory_order_relaxed);
         kv->vmeta->version_prev = NULL;
     }
     initObjectLRUOrLFU(kv);
@@ -722,7 +723,8 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
         if (version_seq) {
             kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-            kvNew->vmeta->version_seq = version_seq;
+            atomic_store_explicit(&kvNew->vmeta->version_seq, version_seq, memory_order_relaxed);
+            atomic_store_explicit(&kvNew->vmeta->refs, 1, memory_order_relaxed);
             kvNew->vmeta->version_prev = old;
         }
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
@@ -769,9 +771,9 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
     if (kvstoreIsFlat(db->keys)) {
         /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
-        if (version_seq)
+        if (version_seq && version_seq != TOMO_VERSION_UNCOMMITTED)
             tomoRetireVersion(db->keys, old, version_seq);
-        else
+        else if (!version_seq)
             kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
@@ -976,26 +978,27 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
      * MSETs to an owner in a different order. Insert an older ticket into the
      * already-published chain instead of letting it replace a newer head. */
     if (version_seq && exists && oldval->vmeta &&
-        oldval->vmeta->version_seq > version_seq) {
+        kvobjVersionSeq(oldval) > version_seq) {
         serverAssert(kvstoreIsFlat(db->keys));
         robj *val = *valref;
         val->lru = oldval->lru;
         kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
                                   (flags & SETKEY_EMBED_RAW) != 0);
         kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-        kvNew->vmeta->version_seq = version_seq;
+        atomic_store_explicit(&kvNew->vmeta->version_seq, version_seq, memory_order_relaxed);
+        atomic_store_explicit(&kvNew->vmeta->refs, 1, memory_order_relaxed);
 
         kvobj *successor = oldval;
         while (successor->vmeta->version_prev &&
                successor->vmeta->version_prev->vmeta &&
-               successor->vmeta->version_prev->vmeta->version_seq > version_seq)
+               kvobjVersionSeq(successor->vmeta->version_prev) > version_seq)
             successor = successor->vmeta->version_prev;
         kvNew->vmeta->version_prev = successor->vmeta->version_prev;
         successor->vmeta->version_prev = kvNew;
 
         /* kvNew is already superseded by successor. Its ref enters the same
          * retire machinery, but only once successor's epoch is committed. */
-        tomoRetireVersion(db->keys, kvNew, successor->vmeta->version_seq);
+        tomoRetireVersion(db->keys, kvNew, kvobjVersionSeq(successor));
         *valref = kvNew;
 
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);

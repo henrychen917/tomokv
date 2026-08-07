@@ -738,9 +738,18 @@ void decrRefCount(robj *o) {
             }
         }
         if (o->vmeta)
-            zfree(o->vmeta);
+            tomoVerMetaRelease(o->vmeta);
         zfree(alloc);
     }
+}
+
+void tomoVerMetaHold(struct tomoVerMeta *vmeta) {
+    atomic_fetch_add_explicit(&vmeta->refs, 1, memory_order_relaxed);
+}
+
+void tomoVerMetaRelease(struct tomoVerMeta *vmeta) {
+    if (atomic_fetch_sub_explicit(&vmeta->refs, 1, memory_order_acq_rel) == 1)
+        zfree(vmeta);
 }
 
 /* See dismissObject() */

@@ -67,6 +67,9 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include <stdint.h>
+#include <stdatomic.h>
+
 /* forward declarations */
 struct client;
 struct RedisModuleType;
@@ -97,9 +100,12 @@ struct RedisModuleType;
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
 struct tomoVerMeta {
-    uint64_t version_seq;
+    _Atomic uint64_t version_seq;
+    _Atomic uint32_t refs;
     struct redisObject *version_prev;
 };
+
+#define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
 struct redisObject {
     unsigned type:3;
@@ -137,11 +143,20 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
+void tomoVerMetaHold(struct tomoVerMeta *vmeta);
+void tomoVerMetaRelease(struct tomoVerMeta *vmeta);
+
+static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
+    return atomic_load_explicit(&kv->vmeta->version_seq, memory_order_acquire);
+}
 
 /* Select the newest version visible at a cross-shard MGET snapshot. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    while (kv && kv->vmeta && kv->vmeta->version_seq > snapshot)
+    while (kv && kv->vmeta) {
+        uint64_t seq = kvobjVersionSeq(kv);
+        if (seq != TOMO_VERSION_UNCOMMITTED && seq <= snapshot) break;
         kv = kv->vmeta->version_prev;
+    }
     return kv;
 }
 

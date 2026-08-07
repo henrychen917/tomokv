@@ -195,9 +195,9 @@ static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
 
-/* Epoch-versioned MSET visibility. Tickets are appended under commit_lock so
- * the intrusive queue is in exactly next_seq order. Install work is fully
- * concurrent; only the highest-contiguous frontier publication is ordered. */
+/* Epoch-versioned MSET visibility. Completion drains draw tickets under commit_lock and append
+ * already-stamped groups, so the intrusive queue is in exactly next_seq order and its frontier
+ * never waits for installation. */
 static _Atomic uint64_t commit_seq;
 static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
@@ -8449,19 +8449,49 @@ static inline void csCommitUnlock(void) {
     atomic_flag_clear_explicit(&commit_lock, memory_order_release);
 }
 
-/* Register before any owner sub is published. Holding the tiny queue lock
- * across ticket allocation and append makes the intrusive list exactly match
- * ticket order without a bitmap or an unbounded sparse index. */
+static inline void csMsetPendingLock(client *c) {
+    while (atomic_exchange_explicit(&c->mset_pending_lock, 1, memory_order_acquire))
+        exPauseCpu();
+}
+
+static inline void csMsetPendingUnlock(client *c) {
+    atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_release);
+}
+
+/* Dispatch registration is deliberately ticket-free. It only appends the group to its real
+ * client's R1 FIFO before any owner sub can run. */
 static void csMsetRegister(csGroup *g) {
-    csCommitLock();
+    client *real = g->head->parent;
     g->versioned_write = 1;
-    g->version_seq = atomic_fetch_add_explicit(&next_seq, 1,
-                                                memory_order_relaxed) + 1;
-    g->commit_next = NULL;
-    if (commit_tail) commit_tail->commit_next = g;
-    else commit_head = g;
-    commit_tail = g;
-    csCommitUnlock();
+    g->version_seq = TOMO_VERSION_UNCOMMITTED;
+    g->mset_client = real;
+    serverAssert(g->mset_installs != NULL);
+
+    csMsetPendingLock(real);
+    g->mset_pending_prev = real->mset_pending_tail;
+    g->mset_pending_next = NULL;
+    if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
+    else real->mset_pending_head = g;
+    real->mset_pending_tail = g;
+    csMsetPendingUnlock(real);
+}
+
+/* The normal path popped the group before reply publication. The teardown hook is intentionally
+ * defensive: disconnect teardown uses csReassemble(NULL, ...) for in-flight groups, so no FIFO
+ * link is ever allowed to retain a group that is about to be freed. */
+static void csMsetPendingRemove(csGroup *g) {
+    client *real = g->mset_client;
+    if (!real) return;
+    csMsetPendingLock(real);
+    if (g->mset_client == real) {
+        if (g->mset_pending_prev) g->mset_pending_prev->mset_pending_next = g->mset_pending_next;
+        else real->mset_pending_head = g->mset_pending_next;
+        if (g->mset_pending_next) g->mset_pending_next->mset_pending_prev = g->mset_pending_prev;
+        else real->mset_pending_tail = g->mset_pending_prev;
+        g->mset_pending_prev = g->mset_pending_next = NULL;
+        g->mset_client = NULL;
+    }
+    csMsetPendingUnlock(real);
 }
 
 /* Start the ordinary QSBR grace only after the successor is visible. An MGET
@@ -8509,15 +8539,92 @@ static void csReleaseCommittedVersions(uint64_t visible) {
     flat_local_sink = saved_sink;
 }
 
-/* Called by an MSET's last owner after the pending barrier acquired every
- * install. Ready tickets may finish out of order; publish and signal only the
- * highest contiguous prefix, so no IO drain ever waits for a missing ticket. */
+static inline int csMsetHeadComplete(client *real) {
+    csMsetPendingLock(real);
+    csGroup *head = real->mset_pending_head;
+    int complete = head && atomic_load_explicit(&head->mset_complete, memory_order_acquire);
+    csMsetPendingUnlock(real);
+    return complete;
+}
+
+/* Pop only a COMPLETE FIFO head. pending_lock makes dispatch append and worker pop a tiny,
+ * race-free critical section; drain_latch separately gives the FIFO exactly one worker drainer. */
+static csGroup *csMsetPopComplete(client *real) {
+    csMsetPendingLock(real);
+    csGroup *g = real->mset_pending_head;
+    if (!g || !atomic_load_explicit(&g->mset_complete, memory_order_acquire)) {
+        csMsetPendingUnlock(real);
+        return NULL;
+    }
+    real->mset_pending_head = g->mset_pending_next;
+    if (real->mset_pending_head) real->mset_pending_head->mset_pending_prev = NULL;
+    else real->mset_pending_tail = NULL;
+    g->mset_pending_prev = g->mset_pending_next = NULL;
+    g->mset_client = NULL;
+    csMsetPendingUnlock(real);
+    return g;
+}
+
+/* Draw and publish one R1-approved group. commit_lock is held from the draw through the append,
+ * so global queue order remains identical to sequence order. Every pointer needed from the group
+ * is consumed before it becomes publishable. */
+static void csMsetStampAndAppend(csGroup *g) {
+    uint64_t seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
+    g->version_seq = seq;
+    int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
+    serverAssert(ninstalled == g->nkeys);
+    for (int i = 0; i < ninstalled; i++) {
+        csMsetInstall *install = &g->mset_installs[i];
+        serverAssert(install->vmeta != NULL);
+        atomic_store_explicit(&install->vmeta->version_seq, seq, memory_order_release);
+        if (install->version_prev)
+            tomoRetireVersion(install->kvs, install->version_prev, seq);
+        tomoVerMetaRelease(install->vmeta);
+        install->vmeta = NULL;
+        install->kvs = NULL;
+        install->version_prev = NULL;
+    }
+
+    g->commit_next = NULL;
+    if (commit_tail) commit_tail->commit_next = g;
+    else commit_head = g;
+    commit_tail = g;
+}
+
+/* Called by an MSET's last owner after the pending barrier acquired every install. Mark COMPLETE,
+ * then drain this real client's COMPLETE prefix in dispatch order. The release/re-check/CAS loop
+ * is the no-orphan half of R1: a completer that loses the CAS can rely on the current owner to see
+ * its COMPLETE store, while a completion racing the release either wins the latch or is re-seen. */
 static void csMsetInstallDone(csGroup *g) {
-    atomic_store_explicit(&g->commit_ready, 1, memory_order_release);
+    client *real = g->mset_client;
+    serverAssert(real != NULL);
+    atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
+
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+
     uint64_t advanced = 0;   /* highest commit_seq published this pass (0 = published nothing) */
     csCommitLock();
-    while (commit_head &&
-           atomic_load_explicit(&commit_head->commit_ready, memory_order_acquire)) {
+    for (;;) {
+        csGroup *done;
+        while ((done = csMsetPopComplete(real)) != NULL)
+            csMsetStampAndAppend(done);
+
+        atomic_store_explicit(&real->mset_drain_latch, 0, memory_order_release);
+        if (!csMsetHeadComplete(real)) break;
+        expected = 0;
+        if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+                                                      memory_order_acquire,
+                                                      memory_order_relaxed))
+            break;
+    }
+
+    /* No client/group FIFO state is touched after this point: publication is the group's free
+     * path, and a disconnected real client may be freed as soon as its last slot is consumed. */
+    while (commit_head) {
         csGroup *done = commit_head;
         commit_head = done->commit_next;
         if (!commit_head) commit_tail = NULL;
@@ -9452,6 +9559,20 @@ static void csSortDerefExec(client *sub, csGroup *g) {
     }
 }
 
+static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed) {
+    serverAssert(installed->vmeta != NULL &&
+                 kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
+    /* A plain write may replace and raw-retire this object before the group's last owner finishes.
+     * Pin just the metadata that must receive the later release-stamp; ordinary SET stays wholly
+     * outside the commit frontier, while version_prev ownership remains in this install record. */
+    tomoVerMetaHold(installed->vmeta);
+    int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
+    serverAssert(ii < g->nkeys);
+    g->mset_installs[ii].vmeta = installed->vmeta;
+    g->mset_installs[ii].kvs = sub->db->keys;
+    g->mset_installs[ii].version_prev = installed->vmeta->version_prev;
+}
+
 /* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection
  * happens once per sub, so neither arm pays a mode branch per key. */
 static void csMsetSubExecVersioned(client *sub, csGroup *g) {
@@ -9487,6 +9608,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
                 sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
                 setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
                                 g->version_seq);
+                csMsetRecordInstall(sub, g, sub->argv[a+1]);
                 sub->argv[a+1] = NULL;
                 notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
                 markDirty(1);
@@ -9501,6 +9623,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
         sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
         setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
                         g->version_seq);
+        csMsetRecordInstall(sub, g, sub->argv[a+1]);
         sub->argv[a+1] = NULL;
         notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
         markDirty(1);
@@ -11238,7 +11361,9 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
     int posmap  = coalesce && s->pos_kind != CS_POS_NONE;
-    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, posmap));
+    size_t inline_want = csInlineWant(s, nkeys, nsub_hi, posmap);
+    if (atomic_mset) inline_want += sizeof(csMsetInstall) * (size_t)nkeys;
+    csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
@@ -11253,6 +11378,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         g->snapshot_pinned = 1;
         g->version_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
     } else if (atomic_mset) {
+        /* Atomic-only storage: the OFF arm keeps its exact csInlineWant allocation. */
+        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) * (size_t)nkeys);
         csMsetRegister(g);
     }
 
@@ -12369,6 +12496,7 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    if (g->versioned_write) csMsetPendingRemove(g);  /* H-disconnect: never free a linked group */
     /* ee451 (#B1): count the cross-shard command HERE — once, on the drain thread that retires the
      * group head — and NOT in csSubExec. A cross-shard command is fanned into one sub per owning
      * shard (and a 2-hop re-fans for HOP2), so counting subs would report an 8-key MGET as 4 or 5
@@ -12798,6 +12926,10 @@ static void csReassemble(client *dst, client *head) {
     if (g->snapshot_pinned) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
+    }
+    if (g->mset_installs) {
+        for (int i = 0; i < g->nkeys; i++) serverAssert(g->mset_installs[i].vmeta == NULL);
+        csgFree(g, g->mset_installs);
     }
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;

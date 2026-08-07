@@ -1748,6 +1748,13 @@ typedef struct client {
      * Set at dispatch when such a group is armed; the next command from this client stalls
      * until the ring drains (the stateful-drain idiom). Real clients only, IO-thread only. */
     unsigned int cs_barrier;
+    /* Atomic-MSET R1. Dispatch appends to this real-client FIFO under pending_lock; completing
+     * workers serialize the COMPLETE-prefix drain with drain_latch. Both stay cold when
+     * tomokv-atomic is off. */
+    redisAtomic int mset_pending_lock;
+    redisAtomic int mset_drain_latch;
+    struct csGroup *mset_pending_head;
+    struct csGroup *mset_pending_tail;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
     unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
@@ -2071,6 +2078,12 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
+typedef struct csMsetInstall {
+    struct tomoVerMeta *vmeta;  /* held until the completion drain stamps it */
+    kvstore *kvs;               /* predecessor's owning store for deferred retirement */
+    kvobj *version_prev;        /* ownership transfers to tomoRetireVersion at stamp time */
+} csMsetInstall;
+
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2080,7 +2093,12 @@ typedef struct csGroup {
     client *head;              /* the group-head fake (the ring slot) */
     uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
-    redisAtomic int commit_ready; /* every owner installed this ticket */
+    client *mset_client;         /* real-client owner of the R1 pending FIFO */
+    struct csGroup *mset_pending_prev;
+    struct csGroup *mset_pending_next;
+    redisAtomic int mset_complete;      /* every owner installed this group */
+    redisAtomic int mset_install_count;
+    csMsetInstall *mset_installs;       /* [nkeys], allocated only on the atomic-MSET arm */
     int versioned_write;         /* this group is an atomic MSET install */
     int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
