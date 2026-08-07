@@ -194,10 +194,21 @@ static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-i
 static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
+static int exQueuePushStamp(exQueue *q, tomoStampOp *stamp);
 
-/* Epoch-versioned MSET visibility. Completion drains draw tickets under commit_lock and append
- * already-stamped groups, so the intrusive queue is in exactly next_seq order and its frontier
- * never waits for installation. */
+#define TOMO_EX_STAMP_TAG ((uintptr_t)1)
+static inline client *exStampJobEncode(tomoStampOp *stamp) {
+    serverAssert(((uintptr_t)stamp & TOMO_EX_STAMP_TAG) == 0);
+    return (client *)((uintptr_t)stamp | TOMO_EX_STAMP_TAG);
+}
+static inline tomoStampOp *exStampJobDecode(client *job) {
+    serverAssert(((uintptr_t)job & TOMO_EX_STAMP_TAG) != 0);
+    return (tomoStampOp *)((uintptr_t)job & ~TOMO_EX_STAMP_TAG);
+}
+
+/* Epoch-versioned MSET visibility. Completion drains draw tickets under commit_lock, enqueue
+ * per-key stamps to their owners, and append groups in exactly next_seq order. Publication does
+ * not wait for stamp application; the owner queue fence below orders every visible snapshot. */
 static _Atomic uint64_t commit_seq;
 static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
@@ -2721,8 +2732,7 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * `ex`. MUST be called AFTER the release-store of q->tail so the tail is visible to
  * any consumer that sees this bit. Every site that release-stores a tail must call
  * this -- a missed call strands the lane (see exThread.q_summary). */
-static inline void exHandoffAdvertise(exThread *ex) {
-    unsigned t = (unsigned)iotid;
+static inline void exHandoffAdvertiseLane(exThread *ex, unsigned t) {
     uint64_t old = atomic_fetch_or_explicit(&ex->q_summary[t >> 6], 1ull << (t & 63),
                                             memory_order_release);
 #if TOMO_QS_WORDS > 1
@@ -2737,6 +2747,10 @@ static inline void exHandoffAdvertise(exThread *ex) {
 #else
     (void)old;
 #endif
+}
+
+static inline void exHandoffAdvertise(exThread *ex) {
+    exHandoffAdvertiseLane(ex, (unsigned)iotid);
 }
 
 /* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
@@ -8539,6 +8553,84 @@ static void csReleaseCommittedVersions(uint64_t visible) {
     flat_local_sink = saved_sink;
 }
 
+/* One permanently allocated lane after the runtime IO/growth-producer lanes is
+ * reserved for owner stamps. csMsetStampAndAppend runs under commit_lock, so
+ * although successive completion drains may run on different workers, only one
+ * producer can touch these SPSC rings at a time. */
+static inline int csStampLane(void) {
+    return server.io_threads + server.tm_ngrow_io;
+}
+
+/* Consume every stamp currently published to this owner. This is called both
+ * at the start of an owner slice and, critically, after a normal read batch is
+ * popped but before that batch executes. Hence a stamp published before the
+ * reader was dispatched cannot remain behind a different IO producer lane.
+ * The owner mcmd lock gives the re-splice the same exclusion as MSET/MGET subs. */
+static int csStampDrain(exThread *worker) {
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
+        return 0;
+
+    exQueue *q = &worker->queues[csStampLane()];
+    client *jobs[WORKER_POP_BATCH];
+    int total = 0;
+    for (;;) {
+        int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
+        if (n == 0) break;
+        tomoWkrLock(worker->id);
+        for (int i = 0; i < n; i++) {
+            tomoStampOp *stamp = exStampJobDecode(jobs[i]);
+            serverAssert(stamp->kv != NULL && stamp->seq != 0);
+            tomoApplyVersionStamp(stamp->kv, stamp->seq);
+            /* The embedded operation is single-use. Clearing is defensive and
+             * makes a duplicate dequeue fail loudly instead of double-retiring. */
+            stamp->kv = NULL;
+            stamp->seq = 0;
+        }
+        tomoWkrUnlock(worker->id);
+        unsigned int before = atomic_fetch_sub_explicit(&worker->stamp_pending,
+                                                         (unsigned int)n,
+                                                         memory_order_release);
+        serverAssert(before >= (unsigned int)n);
+        total += n;
+    }
+    if (total) {
+        atomic_store_explicit(&q->retired,
+                              atomic_load_explicit(&q->head, memory_order_relaxed),
+                              memory_order_release);
+        /* Stamp application can lag publication. If its retires missed the
+         * publisher's exchange, this acquire/release-side recheck catches them;
+         * if publication is still ahead, the publisher's later release does. */
+        uint64_t visible = atomic_load_explicit(&commit_seq, memory_order_acquire);
+        if (visible) csReleaseCommittedVersions(visible);
+    }
+    return total;
+}
+
+/* Publish one embedded {kvobj,seq} job to the key owner. No csGroup pointer or
+ * separately allocated queue node crosses publication. A local full ring is
+ * drained directly by its owning worker to avoid self-deadlock; a remote full
+ * ring back-pressures until that owner consumes it. */
+static void csStampPush(int owner, tomoStampOp *stamp) {
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+    exQueue *q = &worker->queues[csStampLane()];
+    int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    int spins = 0;
+    while (exQueuePushStamp(q, stamp) != 0) {
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+        if (current_owner == owner)
+            csStampDrain(worker);
+        else {
+            exPauseCpu();
+            if ((++spins & 4095) == 0) tomoPollingYield();
+        }
+    }
+    atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+}
+
 static inline int csMsetHeadComplete(client *real) {
     csMsetPendingLock(real);
     csGroup *head = real->mset_pending_head;
@@ -8566,8 +8658,8 @@ static csGroup *csMsetPopComplete(client *real) {
 }
 
 /* Draw and publish one R1-approved group. commit_lock is held from the draw through the append,
- * so global queue order remains identical to sequence order. Every pointer needed from the group
- * is consumed before it becomes publishable. */
+ * so global queue order and every owner's stamp-lane FIFO remain identical to sequence order.
+ * Every pointer needed from the group is transferred before it becomes publishable. */
 static void csMsetStampAndAppend(csGroup *g) {
     uint64_t seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
     g->version_seq = seq;
@@ -8575,14 +8667,14 @@ static void csMsetStampAndAppend(csGroup *g) {
     serverAssert(ninstalled == g->nkeys);
     for (int i = 0; i < ninstalled; i++) {
         csMsetInstall *install = &g->mset_installs[i];
-        serverAssert(install->vmeta != NULL);
-        atomic_store_explicit(&install->vmeta->version_seq, seq, memory_order_release);
-        if (install->version_prev)
-            tomoRetireVersion(install->kvs, install->version_prev, seq);
-        tomoVerMetaRelease(install->vmeta);
-        install->vmeta = NULL;
-        install->kvs = NULL;
-        install->version_prev = NULL;
+        kvobj *kv = install->kv;
+        serverAssert(kv != NULL && kv->vmeta != NULL);
+        serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+        kv->vmeta->stamp.kv = kv;
+        kv->vmeta->stamp.seq = seq;
+        csStampPush(install->owner, &kv->vmeta->stamp);
+        install->kv = NULL;
+        install->owner = -1;
     }
 
     g->commit_next = NULL;
@@ -9562,15 +9654,13 @@ static void csSortDerefExec(client *sub, csGroup *g) {
 static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed) {
     serverAssert(installed->vmeta != NULL &&
                  kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
-    /* A plain write may replace and raw-retire this object before the group's last owner finishes.
-     * Pin just the metadata that must receive the later release-stamp; ordinary SET stays wholly
-     * outside the commit frontier, while version_prev ownership remains in this install record. */
-    tomoVerMetaHold(installed->vmeta);
     int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
     serverAssert(ii < g->nkeys);
-    g->mset_installs[ii].vmeta = installed->vmeta;
-    g->mset_installs[ii].kvs = sub->db->keys;
-    g->mset_installs[ii].version_prev = installed->vmeta->version_prev;
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    serverAssert(installed->vmeta->version_kvs == sub->db->keys);
+    g->mset_installs[ii].kv = installed;
+    g->mset_installs[ii].owner = owner;
 }
 
 /* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection
@@ -12930,7 +13020,7 @@ static void csReassemble(client *dst, client *head) {
         flatQsbrRegionExit();
     }
     if (g->mset_installs) {
-        for (int i = 0; i < g->nkeys; i++) serverAssert(g->mset_installs[i].vmeta == NULL);
+        for (int i = 0; i < g->nkeys; i++) serverAssert(g->mset_installs[i].kv == NULL);
         csgFree(g, g->mset_installs);
     }
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
@@ -18291,8 +18381,9 @@ static void moveExecutionState(client *real, client *fake) {
  * Lock-free SPSC worker queue.
  *
  * The architecture guarantees single-producer single-consumer per queue:
- *   - Producer: the IO thread whose iotid matches the queue's index.
- *     Only the dispatch path (exQueuePush) in that IO thread's context pushes.
+ *   - Producer: normally the IO thread whose iotid matches the queue's index.
+ *     The one reserved stamp lane is produced by completion workers serialized
+ *     under commit_lock, so it still has only one logical producer at a time.
  *   - Consumer: the worker thread owning the enclosing exThread
  *     struct. Only that worker's EX slice pops.
  *
@@ -18435,6 +18526,21 @@ int exQueuePush(exQueue *q, client *c) {
     q->staged_tail = next_t;
     /* ee451 (v13): batch-push HARDWIRED (knob retired) — publish happens per parse-batch
      * (#E1 eager, end of processInputBuffer) and at beforeSleep's flushExQueues. */
+    return 0;
+}
+
+/* Atomic-MSET-only producer twin. The payload is embedded in tomoVerMeta and
+ * tagged in the existing pointer-sized job slot, so the ordinary client job
+ * layout and push path stay unchanged and stamping allocates no queue node. */
+static int exQueuePushStamp(exQueue *q, tomoStampOp *stamp) {
+    unsigned int t = q->staged_tail;
+    unsigned int next_t = (t + 1) & server.ex_queue_mask;
+    if (next_t == q->cached_head) {
+        q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
+        if (next_t == q->cached_head) return -1;
+    }
+    q->jobs[t] = exStampJobEncode(stamp);
+    q->staged_tail = next_t;
     return 0;
 }
 
@@ -19001,7 +19107,7 @@ typedef struct exSliceCtx {
      * such fake->cdb == wcdb; the worker signals all its completions into this
      * one CDB line, which the drain clears via the same captured fake->cdb. */
     int wcdb;
-    int nq;             /* ee451 (v14): io_threads+1 — loop-invariant (immutable after startup), hoisted */
+    int nq;             /* normal IO/growth producer lanes; owner-stamp lane follows at index nq */
     int scan_start;     /* worker-local producer-scan rotation cursor */
     /* Adaptive-backoff state. At 4-5 Mreq/s a worker sees new work
      * every ~0.5-1 µs, so yielding immediately on an empty poll causes
@@ -19044,11 +19150,11 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + 1 + server.tm_ngrow_io;
+    ctx->nq = csStampLane();
     /* the scan bound may never exceed the allocated lanes (tm_ngrow_io <= num_workers holds by
      * construction of the pool split; this converts a violation into a boot-time scream instead
      * of a heap overrun) */
-    serverAssert(ctx->nq <= worker->nlanes);
+    serverAssert(ctx->nq >= 1 && ctx->nq < worker->nlanes);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -19073,7 +19179,7 @@ static inline int exDormantSliceNeeded(exThread *worker,
                          worker->flat_batches_local != NULL, 0))
         return 1;
 
-    for (int t = 0; t < ctx->nq; t++) {
+    for (int t = 0; t <= ctx->nq; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int fh =
             atomic_load_explicit(&fb->head, memory_order_relaxed);
@@ -19200,6 +19306,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     }
 
     int any = 0;
+    /* Apply fire-and-forget stamps even when no client job is queued. The
+     * pending check is false for the entire atomic-OFF lifetime. */
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
+        ctx->tm_mark = getMonotonicUs();
+        if (csStampDrain(worker)) any = 1;
+    }
     /* ee451: runtime worker pop/execute batch size, capped by the compile-time
      * array max. Decoupled from the per-stage prefetch widths. */
     int popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
@@ -19300,6 +19412,14 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         }
         if (n == 0) continue;
 
+        /* A reader in this just-popped batch was enqueued only after drawing
+         * its snapshot. Drain the owner stamp lane now, before any prefetch or
+         * dereference of the client jobs, to close the cross-producer-lane
+         * ordering edge promised by commit_seq publication. */
+        if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
+            if (!any) ctx->tm_mark = getMonotonicUs();
+            if (csStampDrain(worker)) any = 1;
+        }
 
         /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS
          * START mark (busy time = pop..fold; inter-pass spins/yields implicitly idle — the

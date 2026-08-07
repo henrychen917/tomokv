@@ -2079,9 +2079,8 @@ typedef struct csH2Sub {
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
 typedef struct csMsetInstall {
-    struct tomoVerMeta *vmeta;  /* held until the completion drain stamps it */
-    kvstore *kvs;               /* predecessor's owning store for deferred retirement */
-    kvobj *version_prev;        /* ownership transfers to tomoRetireVersion at stamp time */
+    kvobj *kv;                   /* installed store object; transferred to its owner stamp op */
+    int owner;                   /* owner that installed kv and must apply its stamp */
 } csMsetInstall;
 
 typedef struct csGroup {
@@ -2372,8 +2371,10 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
                                                 * fixed -- see the block above. */
 
 /* Lock-free SPSC ring buffer. The architecture already guarantees that
- * each exQueue has exactly one producer (the IO thread whose index
- * matches queues[]) and exactly one consumer (the owning worker thread),
+ * each normal exQueue has exactly one producer (the IO thread whose index
+ * matches queues[]) and exactly one consumer (the owning worker thread).
+ * The reserved atomic-stamp lane likewise has one logical producer because
+ * commit_lock serializes every completion thread that can push it,
  * so we don't need a mutex — atomic head/tail indices with
  * acquire/release ordering are sufficient and ~60ns cheaper per op.
  *
@@ -2514,6 +2515,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+    _Atomic unsigned int stamp_pending; /* queued owner-applied MVCC stamps */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
@@ -5782,6 +5784,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq);
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
 void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
@@ -6356,6 +6359,7 @@ void initIOThreads(void);
 /* Worker thread functions */
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
+int exQueuePopBatch(exQueue *q, client **out, int max);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */

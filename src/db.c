@@ -435,6 +435,17 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
+static inline struct tomoVerMeta *tomoVerMetaNew(kvstore *kvs, uint64_t version_seq,
+                                                 kvobj *version_prev) {
+    struct tomoVerMeta *vmeta = zmalloc(sizeof(*vmeta));
+    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    vmeta->version_prev = version_prev;
+    vmeta->version_kvs = kvs;
+    vmeta->stamp.kv = NULL;
+    vmeta->stamp.seq = 0;
+    return vmeta;
+}
+
 static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
                      dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
                      uint64_t version_seq)
@@ -444,12 +455,8 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     if (link == NULL) link = &tmp;
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
-    if (version_seq) {
-        kv->vmeta = zmalloc(sizeof(*kv->vmeta));
-        atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_relaxed);
-        atomic_store_explicit(&kv->vmeta->refs, 1, memory_order_relaxed);
-        kv->vmeta->version_prev = NULL;
-    }
+    if (version_seq)
+        kv->vmeta = tomoVerMetaNew(db->keys, version_seq, NULL);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -721,12 +728,8 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         val->lru = old->lru;
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
-        if (version_seq) {
-            kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-            atomic_store_explicit(&kvNew->vmeta->version_seq, version_seq, memory_order_relaxed);
-            atomic_store_explicit(&kvNew->vmeta->refs, 1, memory_order_relaxed);
-            kvNew->vmeta->version_prev = old;
-        }
+        if (version_seq)
+            kvNew->vmeta = tomoVerMetaNew(db->keys, version_seq, old);
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -985,9 +988,7 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
         val->lru = oldval->lru;
         kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
                                   (flags & SETKEY_EMBED_RAW) != 0);
-        kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-        atomic_store_explicit(&kvNew->vmeta->version_seq, version_seq, memory_order_relaxed);
-        atomic_store_explicit(&kvNew->vmeta->refs, 1, memory_order_relaxed);
+        kvNew->vmeta = tomoVerMetaNew(db->keys, version_seq, NULL);
 
         kvobj *successor = oldval;
         while (successor->vmeta->version_prev &&
@@ -1034,6 +1035,70 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
     return installed;
+}
+
+/* Apply a completion-order stamp on the key owner. Atomic MSET installs always
+ * splice at the table head while their seq is UNCOMMITTED, so completion order
+ * can disagree with that install order. Remove this exact store object, insert
+ * it at its real descending-seq position, publish the seq only after the links
+ * are repaired, then retire the predecessor it actually supersedes there.
+ *
+ * The owner is the only chain mutator and its mcmd lock excludes the remaining
+ * shared-db walkers, so neither the unlink nor the reinsert needs a chain lock. */
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
+    serverAssert(kv != NULL && kv->vmeta != NULL);
+    serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+
+    kvstore *kvs = kv->vmeta->version_kvs;
+    serverAssert(kvs != NULL && kvstoreIsFlat(kvs));
+    sds key = kvobjGetKey(kv);
+    int slot = getKeySlot(key);
+    dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
+    serverAssert(link != NULL);
+
+    kvobj *oldhead = dictGetKV(*link);
+    kvobj *head = oldhead;
+    kvobj *successor = NULL;
+    kvobj *cursor = head;
+    while (cursor && cursor != kv) {
+        serverAssert(cursor->vmeta != NULL);
+        successor = cursor;
+        cursor = cursor->vmeta->version_prev;
+    }
+    serverAssert(cursor == kv);
+
+    /* Unlink while the version remains UNCOMMITTED, hence invisible to every
+     * snapshot even if a reader observes an intermediate chain image. */
+    if (successor)
+        successor->vmeta->version_prev = kv->vmeta->version_prev;
+    else
+        head = kv->vmeta->version_prev;
+
+    /* UNCOMMITTED is UINT64_MAX, so later-installed unstamped versions remain
+     * above this committed one. Insert before an equal seq to retain last-write
+     * wins for duplicate keys within one MSET. */
+    if (!head || !head->vmeta || kvobjVersionSeq(head) <= version_seq) {
+        kv->vmeta->version_prev = head;
+        head = kv;
+    } else {
+        successor = head;
+        while (successor->vmeta->version_prev &&
+               successor->vmeta->version_prev->vmeta &&
+               kvobjVersionSeq(successor->vmeta->version_prev) > version_seq)
+            successor = successor->vmeta->version_prev;
+        kv->vmeta->version_prev = successor->vmeta->version_prev;
+        successor->vmeta->version_prev = kv;
+    }
+
+    if (head != oldhead)
+        kvstoreDictSetAtLink(kvs, slot, head, &link, 0);
+    atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_release);
+
+    /* Retirement belongs to the repaired relationship, not the install-time
+     * relationship: this predecessor is now exactly what seq supersedes. */
+    if (kv->vmeta->version_prev)
+        tomoRetireVersion(kvs, kv->vmeta->version_prev, version_seq);
 }
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,

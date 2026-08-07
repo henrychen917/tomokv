@@ -73,6 +73,8 @@
 /* forward declarations */
 struct client;
 struct RedisModuleType;
+struct redisObject;
+struct _kvstore;
 
 /* Object encodings (see header comment below for details). */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
@@ -99,10 +101,19 @@ struct RedisModuleType;
 #define OBJ_STATIC_REFCOUNT ((1 << OBJ_REFCOUNT_BITS) - 2) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
+typedef struct tomoStampOp {
+    struct redisObject *kv;
+    uint64_t seq;
+} tomoStampOp;
+
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
-    _Atomic uint32_t refs;
     struct redisObject *version_prev;
+    struct _kvstore *version_kvs;
+    /* The completion thread fills this embedded queue job and transfers it to
+     * the key owner. It deliberately contains no csGroup pointer: reply
+     * publication may free the group before the owner applies the stamp. */
+    tomoStampOp stamp;
 };
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
@@ -143,9 +154,6 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
-void tomoVerMetaHold(struct tomoVerMeta *vmeta);
-void tomoVerMetaRelease(struct tomoVerMeta *vmeta);
-
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
     return atomic_load_explicit(&kv->vmeta->version_seq, memory_order_acquire);
 }
