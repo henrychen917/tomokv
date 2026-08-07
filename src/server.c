@@ -230,6 +230,10 @@ void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
     /* Keep vmeta owned by kv while it is reachable by snapshot readers. Once
      * this ticket commits, csReleaseCommittedVersions starts the QSBR grace;
      * the final decrRefCount after that grace frees kv and its vmeta together. */
+    serverAssert(kv != NULL);
+    serverAssert(!kv->vmeta ||
+                 (kvobjVersionSeq(kv) != TOMO_VERSION_UNCOMMITTED &&
+                  kv->vmeta->stamp_state == TOMO_STAMP_APPLIED));
     tomoVersionRetire *n = zmalloc(sizeof(*n));
     n->kvs = kvs;
     n->kv = kv;
@@ -8665,11 +8669,17 @@ static void csMsetStampAndAppend(csGroup *g) {
     g->version_seq = seq;
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
     serverAssert(ninstalled == g->nkeys);
+    /* Records are visited by increasing install ordinal. Different owners go
+     * to different rings; records for any one owner therefore enter that one
+     * FIFO in install order. Duplicate keys necessarily share an owner, so the
+     * later duplicate's stamp is always queued after the earlier duplicate's. */
     for (int i = 0; i < ninstalled; i++) {
         csMsetInstall *install = &g->mset_installs[i];
         kvobj *kv = install->kv;
         serverAssert(kv != NULL && kv->vmeta != NULL);
         serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+        serverAssert(install->install_order == (uint32_t)i);
+        serverAssert(kv->vmeta->version_order == install->install_order);
         kv->vmeta->stamp.kv = kv;
         kv->vmeta->stamp.seq = seq;
         csStampPush(install->owner, &kv->vmeta->stamp);
@@ -9654,13 +9664,19 @@ static void csSortDerefExec(client *sub, csGroup *g) {
 static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed) {
     serverAssert(installed->vmeta != NULL &&
                  kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
+    /* This ordinal is allocated immediately after the store install. The same
+     * key can only occur in one owner sub, whose apply loop is sequential, so
+     * duplicate-key ordinals are exactly their installation order even while
+     * unrelated owners interleave their own records. */
     int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
     serverAssert(ii < g->nkeys);
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     serverAssert(installed->vmeta->version_kvs == sub->db->keys);
+    installed->vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
+    g->mset_installs[ii].install_order = (uint32_t)ii;
 }
 
 /* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection

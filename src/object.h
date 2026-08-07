@@ -106,8 +106,16 @@ typedef struct tomoStampOp {
     uint64_t seq;
 } tomoStampOp;
 
+typedef enum tomoStampState {
+    TOMO_STAMP_PENDING = 0,
+    TOMO_STAMP_APPLIED,
+    TOMO_STAMP_UNLINKED,
+} tomoStampState;
+
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
+    uint32_t version_order;
+    tomoStampState stamp_state;
     struct redisObject *version_prev;
     struct _kvstore *version_kvs;
     /* The completion thread fills this embedded queue job and transfers it to

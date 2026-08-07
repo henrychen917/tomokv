@@ -439,11 +439,39 @@ static inline struct tomoVerMeta *tomoVerMetaNew(kvstore *kvs, uint64_t version_
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zmalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    vmeta->version_order = 0;
+    vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
+                         TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
     vmeta->version_prev = version_prev;
     vmeta->version_kvs = kvs;
     vmeta->stamp.kv = NULL;
     vmeta->stamp.seq = 0;
     return vmeta;
+}
+
+/* An ordinary write is outside the atomic frontier and may replace a key while
+ * one or more atomic-MSET versions are still waiting for owner stamps. Once the
+ * ordinary head is installed, that whole UNCOMMITTED prefix is legally absent
+ * from the table chain. Mark every such version so its queued stamp can no-op
+ * safely, and leave each object alive for that stamp to retire individually.
+ * The first committed predecessor is no longer needed by the detached prefix;
+ * retire it now. Older committed nodes were already retired by their successor. */
+static void __attribute__((cold,noinline)) tomoDetachPendingVersionChain(kvstore *kvs,
+                                                                         kvobj *head) {
+    serverAssert(head->vmeta &&
+                 kvobjVersionSeq(head) == TOMO_VERSION_UNCOMMITTED);
+    kvobj *cursor = head;
+    do {
+        serverAssert(cursor->vmeta->stamp_state == TOMO_STAMP_PENDING);
+        cursor->vmeta->stamp_state = TOMO_STAMP_UNLINKED;
+        cursor = cursor->vmeta->version_prev;
+    } while (cursor && cursor->vmeta &&
+             kvobjVersionSeq(cursor) == TOMO_VERSION_UNCOMMITTED);
+
+    if (cursor) {
+        serverAssert(!cursor->vmeta || cursor->vmeta->stamp_state == TOMO_STAMP_APPLIED);
+        kvstoreFlatRetireRaw(kvs, cursor);
+    }
 }
 
 static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
@@ -890,7 +918,11 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     }
 
     if (kvstoreIsFlat(db->keys)) {
-        kvstoreFlatRetireRaw(db->keys, old);
+        if (unlikely(old->vmeta &&
+                     kvobjVersionSeq(old) == TOMO_VERSION_UNCOMMITTED))
+            tomoDetachPendingVersionChain(db->keys, old);
+        else
+            kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW &&
                old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p,
@@ -1037,21 +1069,48 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
     return installed;
 }
 
+/* Return true when candidate is logically newer than the supplied version.
+ * Completion seq is the primary order. Duplicate keys within one MSET share a
+ * seq, so their group install ordinal is the deterministic tie-break: the
+ * later install is newer, matching Redis MSET's left-to-right last-write win. */
+static inline int tomoVersionNewerThan(kvobj *candidate, uint64_t version_seq,
+                                       uint32_t version_order) {
+    if (!candidate->vmeta) return 0;
+    uint64_t candidate_seq = kvobjVersionSeq(candidate);
+    if (candidate_seq != version_seq) return candidate_seq > version_seq;
+    serverAssert(candidate->vmeta->version_order != version_order);
+    return candidate->vmeta->version_order > version_order;
+}
+
 /* Apply a completion-order stamp on the key owner. Atomic MSET installs always
  * splice at the table head while their seq is UNCOMMITTED, so completion order
  * can disagree with that install order. Remove this exact store object, insert
- * it at its real descending-seq position, publish the seq only after the links
- * are repaired, then retire the predecessor it actually supersedes there.
+ * it at its real descending-(seq,install-order) position, publish the seq only
+ * after the links are repaired, then retire the predecessor the stamped version
+ * supersedes there.
  *
  * The owner is the only chain mutator and its mcmd lock excludes the remaining
  * shared-db walkers, so neither the unlink nor the reinsert needs a chain lock. */
 void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     serverAssert(kv != NULL && kv->vmeta != NULL);
     serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
-    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
 
     kvstore *kvs = kv->vmeta->version_kvs;
     serverAssert(kvs != NULL && kvstoreIsFlat(kvs));
+    if (kv->vmeta->stamp_state == TOMO_STAMP_UNLINKED) {
+        /* An ordinary owner write may legally detach an uncommitted version
+         * chain. The detach path keeps each pending object alive and marks it;
+         * its eventual stamp is therefore a lifecycle completion, not a chain
+         * repair. Unmarked absence remains a fail-loud invariant violation. */
+        serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+        atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_release);
+        kv->vmeta->stamp_state = TOMO_STAMP_APPLIED;
+        kvstoreFlatRetireRaw(kvs, kv);
+        return;
+    }
+    serverAssert(kv->vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+
     sds key = kvobjGetKey(kv);
     int slot = getKeySlot(key);
     dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
@@ -1075,30 +1134,43 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     else
         head = kv->vmeta->version_prev;
 
-    /* UNCOMMITTED is UINT64_MAX, so later-installed unstamped versions remain
-     * above this committed one. Insert before an equal seq to retain last-write
-     * wins for duplicate keys within one MSET. */
-    if (!head || !head->vmeta || kvobjVersionSeq(head) <= version_seq) {
+    /* UNCOMMITTED is UINT64_MAX, so unstamped versions remain above this
+     * committed one. Equal seqs use their explicit install ordinal rather than
+     * stamp arrival order. `newer` is the node immediately before kv after the
+     * insertion (NULL when kv becomes the table head). */
+    uint32_t version_order = kv->vmeta->version_order;
+    kvobj *newer = NULL;
+    if (!head || !tomoVersionNewerThan(head, version_seq, version_order)) {
         kv->vmeta->version_prev = head;
         head = kv;
     } else {
-        successor = head;
-        while (successor->vmeta->version_prev &&
-               successor->vmeta->version_prev->vmeta &&
-               kvobjVersionSeq(successor->vmeta->version_prev) > version_seq)
-            successor = successor->vmeta->version_prev;
-        kv->vmeta->version_prev = successor->vmeta->version_prev;
-        successor->vmeta->version_prev = kv;
+        newer = head;
+        while (newer->vmeta->version_prev &&
+               tomoVersionNewerThan(newer->vmeta->version_prev,
+                                    version_seq, version_order))
+            newer = newer->vmeta->version_prev;
+        kv->vmeta->version_prev = newer->vmeta->version_prev;
+        newer->vmeta->version_prev = kv;
     }
 
     if (head != oldhead)
         kvstoreDictSetAtLink(kvs, slot, head, &link, 0);
     atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_release);
+    kv->vmeta->stamp_state = TOMO_STAMP_APPLIED;
 
-    /* Retirement belongs to the repaired relationship, not the install-time
-     * relationship: this predecessor is now exactly what seq supersedes. */
-    if (kv->vmeta->version_prev)
-        tomoRetireVersion(kvs, kv->vmeta->version_prev, version_seq);
+    /* Every owner's stamp lane is FIFO in (seq,install-order), so only an
+     * UNCOMMITTED node may remain before the version just applied. Allowing a
+     * committed newer node here would make an older pending duplicate depend on
+     * an already-retirable chain link. Prevent that at the enqueue source and
+     * keep this assertion loud if the ordering contract is ever broken. */
+    serverAssert(!newer || kvobjVersionSeq(newer) == TOMO_VERSION_UNCOMMITTED);
+    if (kv->vmeta->version_prev) {
+        kvobj *older = kv->vmeta->version_prev;
+        serverAssert(!older->vmeta ||
+                     (kvobjVersionSeq(older) != TOMO_VERSION_UNCOMMITTED &&
+                      older->vmeta->stamp_state == TOMO_STAMP_APPLIED));
+        tomoRetireVersion(kvs, older, version_seq);
+    }
 }
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,

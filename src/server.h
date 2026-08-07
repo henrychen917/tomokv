@@ -2081,6 +2081,7 @@ struct csCmdSpec;      /* fwd — full definition next to struct redisCommand be
 typedef struct csMsetInstall {
     kvobj *kv;                   /* installed store object; transferred to its owner stamp op */
     int owner;                   /* owner that installed kv and must apply its stamp */
+    uint32_t install_order;      /* group install ordinal; larger wins when seqs are equal */
 } csMsetInstall;
 
 typedef struct csGroup {
