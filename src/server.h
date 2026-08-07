@@ -1782,12 +1782,17 @@ typedef struct client {
     int is_flush;
     int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
     int flush_async;
-    /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command.
-     * CONTRACT (corrected 2026-07-28 — the old comment described a barrier that does not exist:
+    /* ee451 (v8d): drain-fence sentinel. When non-NULL the worker handles this fake at the
+     * between-command point in its execute loop instead of through normal command dispatch.
+     * A NULL csparent is the reshard cutover marker; a CS_MSET/CS_MSETNX csparent is the scoped
+     * multi-key rendezvous that parks only the command's distinct owner workers.
+     *
+     * CUTOVER CONTRACT (corrected 2026-07-28 — the old comment described a barrier that does not exist:
      * it claimed worker A "decrements *drain_ack", while the code stores 1 into
      * server.migration.fence_acked[queue index]. There is no counter and nothing is decremented;
      * this field is a NON-NULL MARKER ONLY, deliberately pointing at fence_acked[0] so it is
-     * never a dangling pointer. Do not dereference it.)
+     * never a dangling pointer. The MSET marker points at its live group's pending word. Neither
+     * form is dereferenced.)
      * Worker A reaches the sentinel in its EXECUTE loop in queue order (H2), which proves every
      * command this producer pushed BEFORE it has already executed — not merely been popped —
      * and stores 1 into fence_acked[the slot the sentinel came up]. That store is the ONLY
@@ -2010,7 +2015,6 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
  * ctype switch; this only tells csLaunchHop2 HOW to build the second wave. */
 #define CS_H2_NONE         0
 #define CS_H2_PLAN         1   /* launch the g->h2sub[] plan (dest write +/- src-side op) */
-#define CS_H2_SCATTER      2   /* step 8 (MSETNX): re-run the coalesced write wave */
 /* HOP2 per-sub roles (g->h2sub[cssub_idx].action). */
 #define CS_H2A_WRITE       1   /* dest-side op: RESTORE / SET / SADD / PUSH per ctype */
 #define CS_H2A_SRCOP       2   /* src-side op: DEL / SREM / POP per ctype */
@@ -2072,6 +2076,13 @@ typedef struct csH2Sub {
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
+    /* MSET/MSETNX drain fence. Their coalesced per-owner subs reuse client::drain_ack as the
+     * existing worker-queue drain sentinel. pending is the arrival count; drain_done releases
+     * the parked owners after the last arrival executes the command, and drain_departed keeps
+     * the group alive until every parked worker has left the sentinel handler. Zero/inert for
+     * every other cross-shard command. */
+    redisAtomic int drain_done;
+    redisAtomic int drain_departed;
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
     csCmdType ctype;
     int nkeys;                 /* original key count */

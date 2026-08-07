@@ -7871,7 +7871,7 @@ void flatReclaimAll(void) {
 }
 
 static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
-static _Atomic int tomo_flush_gate;   /* fwd decl (real def below near flush) */
+static _Atomic int tomo_flush_gate;   /* fwd decl: shared flush / MSET drain token */
 /* ee451 FLATSTORE Stage-2 COOPERATIVE resize coordinator (main thread, beforeSleep). A NON-BLOCKING
  * state machine — it never spins the main thread (review fix #6): each beforeSleep pass advances one
  * step and returns to the event loop, so PING / cluster bus / accept keep flowing while workers are
@@ -8863,9 +8863,8 @@ static const csCmdSpec csRegistry[] = {
   .append_extra=csAppendXreadId, .unsafe_check=csXreadUnsafeCheck },
 /* step 8 — list moves (peek-then-move: HOP1 peeks the element WITHOUT popping + probes dst's
  * type; a failing verdict (empty src => nil, wrong-typed dst => -ERR) never pops, the H3
- * guard; HOP2 = push-dst + pop-src under ONE barrier) and MSETNX (existence probe wave, then
- * the CS_H2_SCATTER arm re-runs the MSET write wave; best-effort-NX between phases is the
- * documented plan relaxation). Blocking variants are reject-when-would-block: with data the
+ * guard; HOP2 = push-dst + pop-src under ONE barrier). Blocking variants are
+ * reject-when-would-block: with data the
  * path is identical; would-block replies the timed-out form (nil) immediately — and since
  * empty-src already replies nil, the shapes converge. B rows force the two-hop path even on
  * one shard: their real procs could PARK a worker fake (blockForKeys) which must never run. */
@@ -8885,9 +8884,9 @@ static const csCmdSpec csRegistry[] = {
   .shape_ok=csBrpoplpushShapeOk },
 { .proc=msetnxCommand, .name="msetnx", .ported=CS_PORT_OK, .ctype=CS_MSETNX,
   .route=CS_RT_GATHER, .min_argc=3, .argc_odd=1, .key_stride=2, .cs_write=1,
-  .co_gate=CS_CO_ALWAYS, .has_hop2=1, .h2_op=CS_H2_SCATTER, .cs2_kind=CS2_INT },
-  /* per_key_extra=0: the HOP1 wave carries KEYS ONLY (existence probe); the SCATTER wave
-   * re-runs the k/v build with csAppendMsetValue (values still live in head->argv). */
+  .per_key_extra=1, .co_gate=CS_CO_ALWAYS, .append_extra=csAppendMsetValue },
+  /* MSETNX is a single drain-fenced wave: all k/v vectors are built before the fence; the
+   * last owner to park probes every key, then either applies every vector or none. */
 /* step 9 (final) — ordered pops. HOP1 probes every key's type+length in one wave (klen/ktype
  * report lanes); the coordinator scans in ORIGINAL key order (stock precedence: first wrong
  * type errors, first non-empty wins); HOP2 = ONE sub running the REAL single-key proc with a
@@ -9324,14 +9323,9 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSETNX:
-        if (g->phase == CS_PH_HOP1) {
-            /* step 8 HOP1: existence probe (subs carry KEYS ONLY). Any hit fails the NX. */
-            for (int a = 1; a < sub->argc; a++)
-                if (lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE) != NULL)
-                    atomic_fetch_add_explicit(&g->rcount, 1, memory_order_relaxed);
-            break;
-        }
-        /* HOP2 scatter wave: subs are [CMD k v k v ...] — identical to the MSET writer. */
+        /* The drain-fence executor completed the all-owner existence probe before selecting this
+         * apply body. Its subs are [CMD k v k v ...], identical to MSET's writer. */
+        serverAssert(g->phase == CS_PH_HOP2);
         /* fall through */
     case CS_MSET: {
         /* ee451 (v11): COALESCED — sub->argv is [CMD k v k v ...] for ALL of this shard's pairs.
@@ -9351,11 +9345,12 @@ static void csSubExec(client *sub) {
          * idiom, consumed by getKeySlot's pointer match db.c:534-546): every getKeySlot inside
          * setKey/dbAdd/keysizes-hist/migCapture collapses to the carried bucket, making the
          * wave's own xxh64 NET-FREE (2 hashes/pair before: getKeySlot + FindLink; 2 after: A2 +
-         * FindLink). Ownership is untouched — this sub still applies ONLY its own pairs on its
-         * owner worker; prefetches are reads; the flatInsert CAS discipline is unchanged. Effect:
+         * FindLink). The fenced executor applies each vector only while that vector's owner is
+         * parked and under the owner's existing mcmd lock; prefetches are reads and the flatInsert
+         * CAS discipline is unchanged. Effect:
          * K serial ~100ns write-probe misses overlap up to MLP; a line L1-evicted across the
-         * (heavier) apply wave is still L2-resident. MSETNX HOP2 falls through and gets the same
-         * treatment. Follow-up (not done): teach the flat kvstoreDictFindLink a full-hash hint to
+         * (heavier) apply wave is still L2-resident. MSETNX's fenced apply falls through and gets
+         * the same treatment. Follow-up (not done): teach the flat kvstoreDictFindLink a full-hash hint to
          * drop the second xxh64 — dictArmHashHint's TLS is consumed by the dict path only. */
         if (kvstoreIsFlat(sub->db->keys)) {
             flatTable *t = kvstoreFlatTable(sub->db->keys);
@@ -10026,11 +10021,7 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     }
     w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
     if (s->has_hop2) {
-        if (s->h2_op == CS_H2_SCATTER) {
-            /* MSETNX: HOP2 re-runs the builder with [CMD key value] vectors. */
-            w += 8 * (size_t)nsub;                       /* replacement subs[] */
-            w += 8 * ((size_t)nsub + 2 * (size_t)nkeys); /* replacement sub argv */
-        } else if (csIsMpopType(s->ctype)) {
+        if (csIsMpopType(s->ctype)) {
             w += 8;       /* one replacement sub */
             w += 8 * 6;   /* [CMD 1 key DIR [COUNT n]] */
         } else if (csIsBpopType(s->ctype)) {
@@ -10174,10 +10165,9 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
      *      sub->argv[] on the worker, so csFreeSub's IO-thread decref never touches it. That NULL is
      *      the S8 rule (non-atomic refcounts must not be mutated from two threads) and it is what
      *      makes the move legal at all.
-     *   3. csAppendMsetValue runs exactly ONCE per value: MSET builds its subs once, and MSETNX's
-     *      HOP1 wave carries keys only (per_key_extra=0 in its spec) — only the HOP2 SCATTER wave
-     *      re-runs the k/v build. A second call on a released slot would be a use-after-free, so that
-     *      invariant is load-bearing; see the csCoalesceSpec comment on the msetnx registry row.
+     *   3. csAppendMsetValue runs exactly ONCE per value: MSET and MSETNX each build one fenced
+     *      k/v wave. A second call on a released slot would be a use-after-free, so that invariant
+     *      is load-bearing; see the MSETNX registry row.
      * The bit index is bounded by 64 because argv_released_mask is a uint64_t; beyond that (an MSET
      * with >31 pairs) fall back to NULLing the head slot, which is equally complete. */
     if (server.opt_mset_move) {
@@ -10190,6 +10180,52 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
     } else {
         sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
     }
+}
+
+/* MSET/MSETNX global drain token. tomo_flush_gate is already the cross-worker rendezvous gate:
+ * shared FLUSH takes it before pushing its per-worker sentinels, reshardArm refuses while it is
+ * held, and the flat-resize coordinator performs the matching exclusion check. Reusing it here
+ * prevents two differently ordered worker barriers from overlapping; mig_arm_lock closes the
+ * arm-vs-check race and is held for the short command fence window.
+ *
+ * A wait may run on main (iotid 0), so it must drive every main-owned state machine it can be
+ * waiting on. It must also contribute the current producer's migration sentinel before waiting,
+ * exactly like migHoldKeyIfDraining, or an unrelated MSET encountered during DRAINING could make
+ * the cutover wait on the producer that is waiting on the cutover. */
+static void csMsetDrainProgress(unsigned *spins) {
+    flushExQueues();
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+        migPushFenceIfNeeded();
+    if (iotid == 0) {
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            reshardCoordinatorTick();
+        tmFlipTick();
+        flatResizeCoordinate();
+    } else if (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) {
+        flatResizeWatchdog();
+    }
+    exPauseCpu();
+    if (((*spins)++ & 4095) == 4095) tomoPollingYield();
+}
+
+static void csMsetDrainTokenAcquire(void) {
+    unsigned spins = 0;
+    while (atomic_exchange_explicit(&tomo_flush_gate, 1, memory_order_acq_rel))
+        csMsetDrainProgress(&spins);
+
+    /* Serialize the state check with reshardArm/flatResizeCoordinate. Once held, the flush gate
+     * prevents either from arming behind us; an already-active operation is pumped to completion. */
+    while (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel))
+        csMsetDrainProgress(&spins);
+    while (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+           atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||
+           tmFlipActive())
+        csMsetDrainProgress(&spins);
+}
+
+static void csMsetDrainTokenRelease(void) {
+    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+    atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release);
 }
 
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
@@ -10256,9 +10292,107 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
+    int drain_fenced = g->ctype == CS_MSET || g->ctype == CS_MSETNX;
+    if (drain_fenced) {
+        serverAssert(nsub > 0);
+        atomic_store_explicit(&g->drain_done, 0, memory_order_relaxed);
+        atomic_store_explicit(&g->drain_departed, nsub, memory_order_relaxed);
+        /* Build/duplicate every value before taking the token and before raising the first fence.
+         * cdb is otherwise unused on a sub-fake; carry its owner worker for the last-arrival
+         * executor, which directly runs every already-built per-owner vector. */
+        for (int w = 0; w < nw; w++) if (wsub[w]) {
+            wsub[w]->cdb = w;
+            wsub[w]->drain_ack = &g->pending;  /* existing drain-sentinel marker; never dereferenced */
+        }
+        csMsetDrainTokenAcquire();
+    }
+    /* Raise the scoped fence: exactly one existing drain sentinel per distinct owner worker. */
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
+}
+
+/* Worker-side MSET/MSETNX drain sentinel. This is the same execution-loop safe point used by the
+ * reshard cutover: the fake has already been popped in FIFO order and no later command on this
+ * worker has begun. Non-last arrivals remain here (parking the whole involved worker); the last
+ * arrival is the coordinator and directly executes the prebuilt per-owner vectors while every
+ * owner is stopped. All coordinator allocation and routing is complete before the fence; only the
+ * apply loop's unavoidable value/key insertion work remains inside it.
+ *
+ * drain_departed is distinct from the arrival count: completion cannot be published while another
+ * worker still has a raw g/sub pointer in this handler, or the IO drain could free the group under
+ * it after a disconnect just as readily as after a live reply. */
+static void csMsetDrainFence(client *sentinel) {
+    csGroup *g = sentinel->csparent;
+    serverAssert(g != NULL && (g->ctype == CS_MSET || g->ctype == CS_MSETNX));
+
+    int executor = atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1;
+    if (executor) {
+        client *saved_client = server.current_client[iotid].p;
+        flatRetireNode **saved_sink = flat_local_sink;
+        monotime t0 = tomoCmdClockEnter();
+        long long e0 = tomoErrRepliesLocal();
+        int nx_failed = 0;
+
+        if (g->ctype == CS_MSETNX) {
+            /* Probe phase: no write is issued until every key needed for the NX verdict has been
+             * observed with all owner workers parked. Short-circuit matches stock once a hit is
+             * known; an expired key is cleaned by the same lookupKeyWrite path stock uses. */
+            for (int si = 0; si < g->nsub && !nx_failed; si++) {
+                client *sub = g->subs[si];
+                int w = sub->cdb;
+                tomoWkrLock(w);
+                flat_local_sink = &server.exThreads[w].flat_retire_local;
+                server.current_client[iotid].p = sub;
+                for (int a = 1; a + 1 < sub->argc; a += 2) {
+                    if (lookupKeyWrite(sub->db, sub->argv[a]) != NULL) {
+                        nx_failed = 1;
+                        atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+                        break;
+                    }
+                }
+                server.current_client[iotid].p = saved_client;
+                tomoWkrUnlock(w);
+            }
+            /* csSubExec's MSETNX writer is the former HOP2 body; select it only after the
+             * all-or-nothing verdict is final. */
+            if (!nx_failed) g->phase = CS_PH_HOP2;
+        }
+
+        if (!nx_failed) {
+            for (int si = 0; si < g->nsub; si++) {
+                client *sub = g->subs[si];
+                int w = sub->cdb;
+                tomoWkrLock(w);
+                flat_local_sink = &server.exThreads[w].flat_retire_local;
+                csSubExec(sub);          /* minimal existing coalesced MSET apply loop */
+                tomoWkrUnlock(w);
+            }
+        }
+
+        server.current_client[iotid].p = saved_client;
+        flat_local_sink = saved_sink;
+        if (t0) {
+            atomic_store_explicit(&g->usec, (long long)(getMonotonicUs() - t0),
+                                  memory_order_relaxed);
+            if (tomoErrRepliesLocal() != e0)
+                atomic_store_explicit(&g->had_err, 1, memory_order_relaxed);
+        }
+        tomoCmdClockExit();
+
+        /* Writes/verdict first, release the parked owners second, global token last. */
+        atomic_store_explicit(&g->drain_done, 1, memory_order_release);
+        csMsetDrainTokenRelease();
+    } else {
+        while (!atomic_load_explicit(&g->drain_done, memory_order_acquire)) exPauseCpu();
+    }
+
+    /* The final DEPARTURE, not merely the executor, publishes completion. This is the point at
+     * which the IO-side normal/disconnect teardown may safely reclaim every sentinel and g. */
+    if (atomic_fetch_sub_explicit(&g->drain_departed, 1, memory_order_acq_rel) == 1) {
+        client *hp = g->head->parent;
+        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+    }
 }
 
 /* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
@@ -11858,12 +11992,6 @@ static int csLaunchHop2(csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
         break;
     }
-    case CS_MSETNX:
-        /* step 8: any probed key present => :0, nothing written (the H4-style guard); else
-         * the CS_H2_SCATTER branch below re-runs the MSET write wave. */
-        if (atomic_load_explicit(&g->rcount, memory_order_relaxed) > 0)
-            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
-        break;
     case CS_LMPOP:
     case CS_ZMPOP:
     case CS_BLPOP:
@@ -12036,17 +12164,6 @@ static int csLaunchHop2(csGroup *g) {
     if (g->mget_pos)  { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);  csgFree(g, g->mget_pos);  g->mget_pos  = NULL; }
     g->posmap_nsub = 0;
 
-    if (g->h2_op == CS_H2_SCATTER) {
-        /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
-         * re-runs the MSET write wave — values still live in head->argv (head is in flight;
-         * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
-         * arms pending before its own pushes. */
-        g->phase = CS_PH_HOP2;
-        cdbSlotClear(head->parent, head->cdb, head->fake_slot);
-        csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
-        csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
-        return 1;
-    }
     /* --- generic plan launch: one sub per g->h2sub[] entry; cssub_idx IS the plan index, so
      * csSubExec's ctype HOP2 cases read g->h2sub[sub->cssub_idx].action (step 4+). --- */
     int n = g->h2_nsub, shards[CS_H2_MAX];
@@ -12448,7 +12565,7 @@ static void csReassemble(client *dst, client *head) {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (e == CS_ERR_NX_EXISTS) addReply(dst, shared.czero);  /* something existed */
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard MSETNX failed");
-            else addReply(dst, shared.cone);   /* scatter wave committed */
+            else addReply(dst, shared.cone);   /* drain-fenced write committed */
             break;
         }
         case CS_LMPOP:
@@ -12550,10 +12667,11 @@ typedef struct tomoFlushBar {
     struct tomoFlushBar *base;      /* array head (for refs + free) */
 } tomoFlushBar;
 
-/* review [0][1][2]: ONE shared-mode flush at a time, mutually exclusive with migrations/flips.
- * Acquired by the flusher (spinning flushers pump the coordinator when they ARE the main thread —
- * the [1] deadlock); held across census+push (bucket boundaries frozen: reshardArm refuses while
- * set — the [2] TOCTOU); released by the LAST barrier participant. */
+/* review [0][1][2] + MSET epoch experiment: ONE cross-worker drain rendezvous at a time,
+ * mutually exclusive with migrations/flips. Acquired by a shared-mode flusher or by an
+ * MSET/MSETNX dispatcher (spinning owners pump the coordinator when they ARE the main thread —
+ * the [1] deadlock); held across sentinel execution (bucket boundaries frozen: reshardArm refuses
+ * while set — the [2] TOCTOU); released after the last barrier participant / MSET executor. */
 static _Atomic int tomo_flush_gate = 0;
 
 void flushAllShards(client *c, int dbid, int async) {
@@ -18969,10 +19087,15 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 }
             }
 
-            /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
-             * every range primary this producer dispatched before it has executed on A; decrement
-             * the per-cutover barrier and free. No reply. */
+            /* ee451: DRAIN SENTINEL — processed in queue order at this between-command safe point.
+             * A cross-shard MSET/MSETNX sub parks this distinct owner in the scoped command fence;
+             * the NULL-csparent form remains the reshard cutover's per-producer proof. */
             if (fake->drain_ack) {
+                if (fake->csparent) {
+                    csMsetDrainFence(fake);
+                    j++;
+                    continue;
+                }
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
