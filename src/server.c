@@ -171,7 +171,7 @@ static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread
                                              * next stage dispatched (head stays in flight) */
 static int csSortAdvance(csGroup *g);       /* T3 SORT BY/GET drain-thread phase driver */
 static void csPipeSubExec(client *sub, struct csGroup *g);  /* worker-side pipeline stage ops */
-static int csLaunchHop2(csGroup *g);        /* universal xshard: drain-thread HOP2 launcher; 1 = HOP2
+static int csLaunchHop2(csGroup *g);        /* universal xshard: owning-IO HOP2 launcher; 1 = HOP2
                                              * pushed (head stays in flight), 0 = fall to reassemble */
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
@@ -8242,6 +8242,131 @@ static inline void tomoWkrUnlock(int w) {
 void tomoWkrLockPub(int w) { tomoWkrLock(w); }
 void tomoWkrUnlockPub(int w) { tomoWkrUnlock(w); }
 
+/* ===== MSET/MSETNX writer intents ==========================================================
+ *
+ * This is deliberately NOT tomo_wkr_lock. Every worker command takes tomo_wkr_lock around its
+ * normal execution, including the MSET sub-waves below; making the coordinator hold that byte
+ * while waiting for the same worker to execute a sub would self-deadlock. Writer intents are a
+ * separate, MSET-family-only namespace.
+ *
+ * The table is a per-worker set of 1024 hash stripes. Each slot contains the owning csGroup token
+ * (0 = empty) and occupies its own cache line, so unrelated IO coordinators do not false-share a
+ * lock word. Hash collisions conservatively serialize. Acquisition is sorted by the actual lock
+ * identity (worker,stripe), which is the striped-table form of the spec's (worker,key-hash) order;
+ * this remains deadlock-free even when two different full hashes collide on one stripe. Duplicate
+ * keys and same-operation stripe collisions are coalesced before CAS.
+ *
+ * ex_bucket_table may flip a key to another worker while an operation is reserving. The route gate
+ * is a tiny reader/exclusive latch: a successfully revalidated MSET holds one reader through its
+ * final sub completion, while the reshard coordinator takes the exclusive bit only for the O(1)
+ * ownership flip. Thus routing can change before revalidation (the operation releases/retries), but
+ * cannot change between successful revalidation and commit. Single-key commands never touch the
+ * table or the route gate. */
+#define TOMO_MSET_INTENT_SLOTS 1024U
+#define TOMO_MSET_ROUTE_EXCLUSIVE (UINT64_C(1) << 63)
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoMsetIntentSlot {
+    _Atomic uintptr_t owner;
+    uint8_t pad[CACHE_LINE_SIZE - sizeof(_Atomic uintptr_t)];
+} tomoMsetIntentSlot;
+
+struct csIntentKey {
+    uint64_t hash;       /* full xxh64: routing revalidation uses its TOMO bucket bits */
+    uint16_t worker;     /* owner captured before reservation */
+    uint16_t stripe;     /* actual intent-table lock identity */
+};
+
+static tomoMsetIntentSlot
+    __attribute__((aligned(CACHE_LINE_SIZE)))
+    tomo_mset_intent[TOMO_EX_THREADS_MAX + 1][TOMO_MSET_INTENT_SLOTS];
+static _Atomic uint64_t tomo_mset_route_gate;
+
+static inline unsigned intentStripe(uint64_t keyhash) {
+    /* Fold high hash entropy into the small power-of-two lock table. */
+    return (unsigned)((keyhash ^ (keyhash >> 32)) & (TOMO_MSET_INTENT_SLOTS - 1));
+}
+
+static inline int intentTryReserve(int worker, unsigned stripe, const csGroup *owner) {
+    uintptr_t expected = 0;
+    uintptr_t token = (uintptr_t)owner;
+    if (atomic_compare_exchange_strong_explicit(
+            &tomo_mset_intent[worker][stripe].owner, &expected, token,
+            memory_order_acquire, memory_order_relaxed))
+        return 1;
+    return expected == token;   /* same-operation duplicate reserve is idempotent */
+}
+
+static void intentRoutePin(void) {
+    uint64_t state = atomic_load_explicit(&tomo_mset_route_gate, memory_order_relaxed);
+    unsigned spins = 0;
+    for (;;) {
+        if (state & TOMO_MSET_ROUTE_EXCLUSIVE) {
+            exPauseCpu();
+            /* The exclusive bit is writer-preferred: it may be pending while older MSET readers
+             * drain. If main is the waiter, it is also the only thread that can advance and clear
+             * the reshard flip once those readers reach zero. */
+            if ((++spins & 4095U) == 0) {
+                if (iotid == 0) {
+                    if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+                        reshardCoordinatorTick();
+                    tmFlipTick();
+                    flatResizeCoordinate();
+                }
+                tomoPollingYield();
+            }
+            state = atomic_load_explicit(&tomo_mset_route_gate, memory_order_relaxed);
+            continue;
+        }
+        serverAssert(state + 1 < TOMO_MSET_ROUTE_EXCLUSIVE);
+        if (atomic_compare_exchange_weak_explicit(&tomo_mset_route_gate, &state, state + 1,
+                                                  memory_order_acq_rel, memory_order_relaxed))
+            return;
+    }
+}
+
+static inline void intentRouteUnpin(void) {
+    uint64_t old = atomic_fetch_sub_explicit(&tomo_mset_route_gate, 1, memory_order_release);
+    serverAssert((old & ~TOMO_MSET_ROUTE_EXCLUSIVE) > 0);
+}
+
+/* Called only by the reshard coordinator at the ownership-flip point. A live MSET makes the
+ * coordinator retry its non-blocking tick. Setting the exclusive bit even while readers remain
+ * prevents an unbounded stream of new MSETs from starving the flip; those readers drain on their
+ * workers, and new coordinators wait before revalidation. */
+static inline int intentRouteTryExclusive(void) {
+    uint64_t state = atomic_load_explicit(&tomo_mset_route_gate, memory_order_acquire);
+    for (;;) {
+        if (state & TOMO_MSET_ROUTE_EXCLUSIVE)
+            return state == TOMO_MSET_ROUTE_EXCLUSIVE;  /* all pre-existing readers drained */
+        uint64_t desired = state | TOMO_MSET_ROUTE_EXCLUSIVE;
+        if (atomic_compare_exchange_weak_explicit(&tomo_mset_route_gate, &state, desired,
+                                                  memory_order_acq_rel, memory_order_acquire))
+            return state == 0;
+    }
+}
+
+static inline void intentRouteExclusiveRelease(void) {
+    atomic_store_explicit(&tomo_mset_route_gate, 0, memory_order_release);
+}
+
+static void intentReleaseAll(csGroup *g) {
+    if (!g->intent_held) return;
+    uintptr_t token = (uintptr_t)g;
+    int last_worker = -1, last_stripe = -1;
+    for (int i = 0; i < g->intent_nkeys; i++) {
+        struct csIntentKey *ik = &g->intent_keys[i];
+        if ((int)ik->worker == last_worker && (int)ik->stripe == last_stripe) continue;
+        serverAssert(atomic_load_explicit(&tomo_mset_intent[ik->worker][ik->stripe].owner,
+                                          memory_order_relaxed) == token);
+        atomic_store_explicit(&tomo_mset_intent[ik->worker][ik->stripe].owner, 0,
+                              memory_order_release);
+        last_worker = ik->worker;
+        last_stripe = ik->stripe;
+    }
+    g->intent_held = 0;
+    intentRouteUnpin();
+}
+
 /* review [3]: the hash-field-TTL family (estore writers AND readers — estore internals are
  * single-writer, so racy reads are unsafe too). */
 static inline int tomoHfeProc(redisCommandProc *p) {
@@ -8864,8 +8989,8 @@ static const csCmdSpec csRegistry[] = {
 /* step 8 — list moves (peek-then-move: HOP1 peeks the element WITHOUT popping + probes dst's
  * type; a failing verdict (empty src => nil, wrong-typed dst => -ERR) never pops, the H3
  * guard; HOP2 = push-dst + pop-src under ONE barrier) and MSETNX (existence probe wave, then
- * the CS_H2_SCATTER arm re-runs the MSET write wave; best-effort-NX between phases is the
- * documented plan relaxation). Blocking variants are reject-when-would-block: with data the
+ * the CS_H2_SCATTER arm re-runs the MSET write wave while writer intents exclude every
+ * overlapping MSET/MSETNX across both phases). Blocking variants are reject-when-would-block: with data the
  * path is identical; would-block replies the timed-out form (nil) immediately — and since
  * empty-src already replies nil, the shapes converge. B rows force the two-hop path even on
  * one shard: their real procs could PARK a worker fake (blockForKeys) which must never run. */
@@ -10014,6 +10139,8 @@ static csGroup *csGroupNew(size_t want) {
  * vectors contribute one command pointer per sub plus the row's key/extra pointers. */
 static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) {
     size_t w = 8 * (size_t)nsub;                                   /* subs[] */
+    if (s->ctype == CS_MSET || s->ctype == CS_MSETNX)
+        w += sizeof(struct csIntentKey) * (size_t)nkeys;             /* sorted writer intents */
     if (posmap) w += 8 * (size_t)nsub                              /* posmap pointer array */
                    + 4 * (size_t)nkeys + 4 * (size_t)nsub;         /* per-sub int[], 8-padded */
     switch (s->res_kind) {
@@ -10072,6 +10199,80 @@ static inline void csgFree(csGroup *g, void *p) {
     char *b = (char *)g->inl;
     if ((char *)p >= b && (char *)p < b + g->inl_cap) return;   /* inline: dies with the group */
     zfree(p);
+}
+
+static int csIntentKeyCmp(const void *ap, const void *bp) {
+    const struct csIntentKey *a = ap, *b = bp;
+    if (a->worker != b->worker) return a->worker < b->worker ? -1 : 1;
+    if (a->stripe != b->stripe) return a->stripe < b->stripe ? -1 : 1;
+    if (a->hash != b->hash) return a->hash < b->hash ? -1 : 1;
+    return 0;
+}
+
+/* The IO coordinator may spin while workers finish an earlier overlapping MSET. On the main IO
+ * identity, periodically drive the main-only control planes too: a worker parked for a cooperative
+ * flat resize must not wait forever for the very main thread that is waiting for its intent. */
+static inline void csIntentPause(unsigned *spins) {
+    exPauseCpu();
+    if ((++*spins & 4095U) != 0) return;
+    if (iotid == 0) {
+        if (atomic_load_explicit(&server.migration_active, memory_order_acquire))
+            reshardCoordinatorTick();
+        tmFlipTick();
+        flatResizeCoordinate();
+    }
+    tomoPollingYield();
+}
+
+/* Reserve the MSET-family's complete write set before any predicate/write sub is pushed.
+ * Duplicate keys (and conservative same-stripe collisions within this operation) collapse to one
+ * CAS, while the unmodified head argv remains the commit source and therefore preserves duplicate
+ * overwrite order. A routing flip between the initial owner snapshot and the route pin is detected
+ * under the pin; all reservations are released and the sorted acquisition is retried. */
+static void csIntentReserveMset(client *head, csGroup *g, int nkeys) {
+    serverAssert(g->ctype == CS_MSET || g->ctype == CS_MSETNX);
+    serverAssert(g->intent_keys == NULL && !g->intent_held);
+    g->intent_keys = csgAlloc(g, sizeof(struct csIntentKey) * (size_t)nkeys);
+    g->intent_nkeys = nkeys;
+
+retry:
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[1 + 2*i];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
+        uint64_t h = xxh64(key->ptr, sdslen(key->ptr));
+        g->intent_keys[i] = (struct csIntentKey){
+            .hash = h,
+            .worker = (uint16_t)server.ex_bucket_table[h & TOMO_BUCKET_MASK],
+            .stripe = (uint16_t)intentStripe(h),
+        };
+    }
+    qsort(g->intent_keys, (size_t)nkeys, sizeof(*g->intent_keys), csIntentKeyCmp);
+
+    int last_worker = -1, last_stripe = -1;
+    for (int i = 0; i < nkeys; i++) {
+        struct csIntentKey *ik = &g->intent_keys[i];
+        if ((int)ik->worker == last_worker && (int)ik->stripe == last_stripe) continue;
+        unsigned spins = 0;
+        while (!intentTryReserve(ik->worker, ik->stripe, g)) csIntentPause(&spins);
+        last_worker = ik->worker;
+        last_stripe = ik->stripe;
+    }
+
+    /* Taking the reader pin after reservation deliberately permits a reshard to win while the
+     * coordinator is waiting on a busy intent. Revalidation below is the hand-off: once it passes,
+     * the pin makes this exact owner snapshot stable through commit and release. */
+    intentRoutePin();
+    for (int i = 0; i < nkeys; i++) {
+        struct csIntentKey *ik = &g->intent_keys[i];
+        if (server.ex_bucket_table[ik->hash & TOMO_BUCKET_MASK] != (uint8_t)ik->worker) {
+            g->intent_held = 1;
+            intentReleaseAll(g);
+            goto retry;
+        }
+    }
+    g->intent_held = 1;
 }
 
 static void csFreeSub(client *sub) {
@@ -10218,7 +10419,13 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
          * PARKING here, which would be unsafe -- csLaunchHop2 frees its HOP1 subs before reaching
          * the hold, so returning to the event loop mid-transaction would re-enter against freed
          * state. Spinning in place has no such window. */
-        if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
+        /* MSET/MSETNX already revalidated every key and holds intentRoutePin through its final
+         * wave. Re-entering the DRAINING hold here could deadlock (the flip waits for that pin),
+         * and is unnecessary: the producer has not yet emitted its drain sentinel, so these subs
+         * remain ahead of the fence. Every other gather retains the normal migration hold. */
+        if (!g->intent_held &&
+            __builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
         int w = exIndexForKey(key->ptr, sdslen(key->ptr));
         wof[i] = w; cnt[w]++;
@@ -10985,6 +11192,12 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
+    /* Writer intents precede every MSET/MSETNX predicate or write sub. This is the only
+     * scatter/gather family that enters the intent table; SET/GET/INCR and every other
+     * single-key path remain byte-for-byte outside it. */
+    if (s->ctype == CS_MSET || s->ctype == CS_MSETNX)
+        csIntentReserveMset(head, g, nkeys);
+
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
     if (s->res_kind == CS_RES_SETMEM || s->res_kind == CS_RES_ZSETMEM) {
@@ -11020,7 +11233,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
     if (s->has_hop2) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
-        head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
+        head->parent->cs_barrier = 1;   /* ORDER-2: later subs push from the IO coordinator */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
         if (s->dst_argi)   g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
         if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
@@ -11050,6 +11263,23 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
     csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
+
+    if (s->ctype == CS_MSETNX) {
+        /* Complete the reserved predicate before returning to this IO event loop. If HOP2 were
+         * deferred to the ordinary drain, a later overlapping command on the SAME IO thread
+         * could spin on this intent while the only thread allowed to launch HOP2 was stuck in
+         * that spin. The completion byte (not merely pending==0) is the acquire barrier proving
+         * the last HOP1 publisher is finished before csLaunchHop2 clears and reuses the slot. */
+        unsigned spins = 0;
+        while (!cdbSlotReady(head->parent, head->cdb, head->fake_slot))
+            csIntentPause(&spins);
+        if (!csLaunchHop2(g)) {
+            /* The only normal refusal is the all-owner existence verdict. No write was issued;
+             * release now and leave the ready byte set for ordinary :0 reassembly. */
+            serverAssert(atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE);
+            intentReleaseAll(g);
+        }
+    }
 }
 
 /* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
@@ -11808,7 +12038,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
  * ORDER IS THE PROTOCOL: pending -> phase -> clear stale ready byte -> push.
  *  - pending before push: barrier armed before any worker can decrement.
  *  - phase before push: workers read g->phase in csSubExec.
- *  - slot-clear before FIRST push (this IO drain thread is the sole clearer):
+ *  - slot-clear before FIRST push (this owning IO coordinator is the sole clearer):
  *    the new hop's completion store must never be clobbered. */
 static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
@@ -11818,8 +12048,11 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
     for (int i = 0; i < nsub; i++) csPushSpin(shards[i], g->subs[i]);
 }
 
-/* universal xshard: HOP2 launcher — runs on the IO DRAIN thread after the HOP1 barrier (a worker
- * cannot push to an SPSC queue). Generalized off the registry-stamped g->h2sub[] plan: per-ctype
+/* universal xshard: HOP2 launcher — runs on the owning IO coordinator after the HOP1 barrier (a
+ * worker cannot push to an SPSC queue). MSETNX invokes it directly from dispatch after waiting for
+ * the predicate completion byte, so an overlapping command on the same IO thread cannot strand
+ * the transition behind its own intent wait; all other callers are the ordinary IO drain.
+ * Generalized off the registry-stamped g->h2sub[] plan: per-ctype
  * PREP (may consume probe verdicts / build h2_payload / rewrite the plan), then free the HOP1
  * subs and launch the plan via csHopCommit. Returns 1 iff HOP2 sub(s) were pushed (head stays in
  * flight: no retire / flushid++ / replyWorking--). Returns 0 with HOP1 subs INTACT => the caller
@@ -11827,7 +12060,7 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
  * head keeps its ring slot; replyWorking is untouched so the drain keeps polling. */
 static int csLaunchHop2(csGroup *g) {
     client *head = g->head;
-    csAssertBarriered(head);   /* HOP2 pushes from the drain: barrier MUST still be armed */
+    csAssertBarriered(head);   /* coordinator-launched HOP2 requires the barrier to remain armed */
     int dbid = g->h2_dbid;
 
     /* --- per-ctype HOP2 PREP (deliberately a switch — S8 audit locality). Runs BEFORE HOP1
@@ -12513,6 +12746,10 @@ static void csReassemble(client *dst, client *head) {
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
     csgFree(g, g->klen); csgFree(g, g->ktype);
+    /* Normal MSET commit and MSETNX commit/predicate-failure release earlier. This is the
+     * unconditional abort/disconnect/error backstop: no csGroup can die owning an intent. */
+    intentReleaseAll(g);
+    csgFree(g, g->intent_keys);
     /* ee451 (#B2): ONE commandstats call for the whole group, with the SUMMED sub proc time (see
      * csGroup.usec). Must be read before zfree(g) below. */
     if (cs_cmd) {
@@ -13168,11 +13405,16 @@ static void reshardCoordinatorTick(void) {
          * dispatched to A has executed, which is the whole precondition for the flip. */
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
+    /* A revalidated MSET/MSETNX pins its complete key->owner snapshot through commit. Keep this
+     * tick non-blocking: if any such writer is live, retry C.4 on a later coordinator pass. Once
+     * exclusive, new intent coordinators cannot revalidate until the new table + epoch publish. */
+    if (!intentRouteTryExclusive()) return;
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
     if (dst == src + 1) server.ex_bucket_end[src] = lo;      /* suffix move: A|B boundary -> lo */
     else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
+    intentRouteExclusiveRelease();
     /* ee451 (H2 handover): the range has changed hands — wake every io thread so it runs
      * migReleaseParkedClients. A client parked by the range-hold has an EMPTY ring, so nothing
      * retires on its thread and no reply event will bring that thread back to beforeSleepIO; if it
@@ -19044,6 +19286,15 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                                                      memory_order_acq_rel) == 1;
                 }
                 if (last) {
+                    /* MSET commit/release. tomo_wkr_lock was dropped above, and the pending
+                     * barrier proves every sibling sub has also dropped its own worker lock and
+                     * completed its writes. MSETNX retains intents after its HOP1 predicate and
+                     * releases only after the HOP2 write wave commits. Releasing before ready
+                     * publication also lets this same IO producer make progress if its next
+                     * command overlaps, without ever holding a worker lock across an intent op. */
+                    if (g->ctype == CS_MSET ||
+                        (g->ctype == CS_MSETNX && g->phase == CS_PH_HOP2))
+                        intentReleaseAll(g);
                     client *hp = g->head->parent;
                     cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                 }

@@ -2070,6 +2070,7 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
+struct csIntentKey;    /* MSET/MSETNX-only writer intent, private to server.c */
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2187,6 +2188,13 @@ typedef struct csGroup {
     struct sortXShardCtx *sort_ctx;
     int sort_stage;
     sds *sort_fields;            /* [nkeys], NULL = external string key, non-NULL = hash field */
+    /* Writer-side MSET/MSETNX atomicity. The coordinator reserves the sorted intent_keys before
+     * dispatching either the MSET write wave or the MSETNX predicate wave. The last committing
+     * worker releases them after dropping tomo_wkr_lock; predicate failure releases on the
+     * coordinator. No single-key command reads any of these fields or the intent table. */
+    struct csIntentKey *intent_keys; /* [intent_nkeys], sorted by (worker,intent-table stripe,hash) */
+    int intent_nkeys;
+    int intent_held;             /* reservation set + reshard routing pin are both live */
     /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
      * Standard inline-then-spill container storage: LLVM SmallVector, folly::small_vector,
      * absl::InlinedVector, std::string SSO. A cross-shard command is SMALL and SHORT-LIVED --
