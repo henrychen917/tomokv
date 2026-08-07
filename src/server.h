@@ -1189,6 +1189,12 @@ typedef struct redisDb {
     unsigned long expires_cursor; /* Cursor of the active expire cycle. */
 } redisDb;
 
+/* The per-DB metadata below is declared before the sharding design block that
+ * documents these constants, but its seqlock arrays are indexed by the same
+ * ownership bucket. */
+#define TOMO_BUCKETS 16384
+#define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
+
 /* Database arrays keep their stable addresses because clients and workers retain
  * redisDb pointers. Only the expensive contents are initialized lazily. */
 static inline int dbIsInitialized(redisDb *db) {
@@ -1206,6 +1212,14 @@ typedef int64_t keysizesHist[MAX_KEYSIZES_TYPES][MAX_KEYSIZES_BINS];
 typedef struct {
     keysizesHist keysizes_hist;
     keysizesHist allocsizes_hist;
+    /* Cross-shard MGET seqlock state.  The ownership bucket is the cheapest
+     * stable home for a version: it exists even when the key does not, is
+     * shared by sibling owners of a physical DB, and survives an ownership
+     * flip.  Separate arrays keep the monotonically increasing version a full
+     * 64 bits while writers[] is a nesting count (overlapping MSETs and
+     * duplicate keys cannot make an odd/even bit look spuriously stable). */
+    redisAtomic uint64_t key_versions[TOMO_BUCKETS];
+    redisAtomic uint32_t key_writers[TOMO_BUCKETS];
 } kvstoreMetadata;
 
 /* Like kvstoreMetadata, this one per dict */
@@ -1565,8 +1579,6 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * LENGTH scales with TOMO_BUCKETS. 16384 buckets = 16KB uint8_t table, still small/L2, and
  * 16384 == kvstore's native cluster-slot count so the shared-keyspace kvstore (one dict per
  * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
-#define TOMO_BUCKETS 16384
-#define TOMO_BUCKET_MASK (TOMO_BUCKETS - 1)
 /* ee451 (flatstore lb): coarse per-node load-tracking GROUPS for minimal-perturbation balancing.
  * A group aggregates (TOMO_BUCKETS/TOMO_LB_GROUPS) contiguous buckets. Per-worker relaxed counters
  * per group (single-writer = the owning worker) give the balancer per-GROUP load (sum over workers)
@@ -2101,6 +2113,10 @@ typedef struct csGroup {
      * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
     sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
+    uint64_t *mget_ver;        /* CS_MGET: stable version captured with each position's value */
+    unsigned int mget_retries; /* completed optimistic attempts (quiesced fallback after the cap) */
+    unsigned int mget_coalesced; /* retry builder shape; unlike mget_vals this remains stable */
+    unsigned int mset_seq_armed; /* all MSET target buckets were marked before the first sub push */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
     client **xread_out;        /* CS_XREAD: [nkeys] bare [key,entries] reply fragments */
     uint8_t *xread_status;     /* CS_XREAD: per-position empty / hit / error verdict */
@@ -5783,6 +5799,8 @@ void ensureTempDbInitialized(redisDb *db);
 
 int selectDb(client *c, int id);
 void keyModified(client *c, redisDb *db, robj *key, robj *val, int signal);
+void tomoKeySeqRead(redisDb *db, robj *key, uint64_t *version, uint32_t *writers);
+void tomoKeySeqWriteBegin(redisDb *db, robj *key);
 void signalFlushedDb(int dbid, int async, struct slotRangeArray *slots);
 void scanGenericCommand(client *c, robj *o, unsigned long long cursor);
 int parseScanCursorOrReply(client *c, robj *o, unsigned long long *cursor);

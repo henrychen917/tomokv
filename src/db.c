@@ -1353,7 +1353,48 @@ long long dbTotalServerKeyCount(void) {
  * - val: the value object (if NULL, LRM won't be updated, e.g., for deleted keys)
  * - signal: if true, trigger WATCH and client-side tracking invalidation
  */
+static inline kvstoreMetadata *tomoKeySeqMeta(redisDb *db) {
+    return kvstoreGetMetadata(db->keys);
+}
+
+void tomoKeySeqRead(redisDb *db, robj *key, uint64_t *version, uint32_t *writers) {
+    kvstoreMetadata *meta = tomoKeySeqMeta(db);
+    int bucket = getKeySlot(key->ptr);
+    /* writers is the stability word.  Acquire on both observations lets an
+     * MGET bracket its value copy and pairs with the writer's release clear. */
+    *writers = atomic_load_explicit(&meta->key_writers[bucket], memory_order_acquire);
+    *version = atomic_load_explicit(&meta->key_versions[bucket], memory_order_acquire);
+}
+
+void tomoKeySeqWriteBegin(redisDb *db, robj *key) {
+    kvstoreMetadata *meta = tomoKeySeqMeta(db);
+    int bucket = getKeySlot(key->ptr);
+    /* A count, rather than odd/even parity, keeps overlapping MSETs (and a
+     * duplicate key in one MSET) dirty until the final writer completes. */
+    atomic_fetch_add_explicit(&meta->key_writers[bucket], 1, memory_order_release);
+}
+
+static inline void tomoKeySeqWriteDone(client *c, redisDb *db, robj *key) {
+    kvstoreMetadata *meta = tomoKeySeqMeta(db);
+    int bucket = getKeySlot(key->ptr);
+    csGroup *g = c ? c->csparent : NULL;
+    int armed_mset = g && g->mset_seq_armed &&
+        (g->ctype == CS_MSET || (g->ctype == CS_MSETNX && g->phase == CS_PH_HOP2));
+
+    /* The new value is already installed when keyModified() runs.  Publish its
+     * monotonic version first, then clear this writer's dirty count.  Ordinary
+     * SET/INCR/etc. have no asynchronous cross-owner apply window, so their
+     * owner-serialized mutation needs only the version bump. */
+    atomic_fetch_add_explicit(&meta->key_versions[bucket], 1, memory_order_release);
+    if (armed_mset) {
+        uint32_t before = atomic_fetch_sub_explicit(&meta->key_writers[bucket], 1,
+                                                     memory_order_release);
+        serverAssert(before != 0);
+    }
+}
+
 void keyModified(client *c, redisDb *db, robj *key, robj *val, int signal) {
+    tomoKeySeqWriteDone(c, db, key);
     if (val) updateLRM(val);
     if (signal) {
         touchWatchedKey(db,key);

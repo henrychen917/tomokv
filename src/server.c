@@ -192,8 +192,17 @@ void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning p
 static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
+static int csMgetValidateOrRetry(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
+
+#define TOMO_MGET_RETRY_MAX 16
+#define TOMO_MGET_SEQ_INVALID UINT64_MAX
+
+/* Cold progress fallback handshake.  Normal MSETs only register while publishing their complete
+ * dirty set; the gate is nonzero solely after an MGET exhausts its optimistic retry budget. */
+static _Alignas(CACHE_LINE_SIZE) _Atomic unsigned int tomo_mset_marker_active;
+static _Alignas(CACHE_LINE_SIZE) _Atomic unsigned char tomo_mget_quiesce_gate;
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
@@ -3269,6 +3278,12 @@ void handleWorkerReplies(void) {
              * head ring slot like any other fake. */
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
+                /* A completed MGET read wave is only a candidate snapshot.  Validate every
+                 * captured bucket version here, after the pending barrier published all values;
+                 * a failed attempt re-arms this same head slot and remains in flight. */
+                if (g->ctype == CS_MGET && csMgetValidateOrRetry(g)) {
+                    break;
+                }
                 /* merge-exec pipeline: a completed stage either dispatches the next one (head
                  * stays in flight, exactly like the HOP2 launch below) or falls through to
                  * reassemble the final survivors. */
@@ -9294,7 +9309,10 @@ static void csSubExec(client *sub) {
     switch (g->ctype) {
     case CS_MGET: {
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
-         * not getCommand. */
+         * not getCommand.  Each value copy is bracketed by the bucket's dirty/version state.
+         * A dirty observation is not spun on here: the MSET sub that will clear it may be queued
+         * behind this sub on the same owner, so local spinning would deadlock.  The coordinator
+         * retries the whole read wave after this sub releases its owner lock. */
         if (g->mget_vals) {
             /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
@@ -9310,16 +9328,41 @@ static void csSubExec(client *sub) {
              * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
              * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
             for (int a = 1; a < sub->argc; a++) {
+                int idx = pos[a - 1];
+                uint64_t v0, v1;
+                uint32_t w0, w1;
+                g->mget_ver[idx] = TOMO_MGET_SEQ_INVALID;
+                tomoKeySeqRead(sub->db, sub->argv[a], &v0, &w0);
+                if (w0 != 0) continue;
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                sds val = NULL;
                 if (o != NULL && o->type == OBJ_STRING)
-                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
-                                                                   : sdsfromlonglong((long)o->ptr);
+                    val = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                              : sdsfromlonglong((long)o->ptr);
+                tomoKeySeqRead(sub->db, sub->argv[a], &v1, &w1);
+                if (w1 != 0 || v1 != v0) {
+                    sdsfree(val);
+                    continue;
+                }
+                g->mget_vals[idx] = val;
+                g->mget_ver[idx] = v0;
             }
         } else {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
-            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
-            if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
-            else addReplyBulk(sub, o);
+            uint64_t v0, v1;
+            uint32_t w0, w1;
+            int idx = sub->cssub_idx;
+            g->mget_ver[idx] = TOMO_MGET_SEQ_INVALID;
+            tomoKeySeqRead(sub->db, sub->argv[1], &v0, &w0);
+            if (w0 != 0) {
+                addReplyNull(sub);       /* placeholder; this attempt will be discarded */
+            } else {
+                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+                if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
+                else addReplyBulk(sub, o);
+                tomoKeySeqRead(sub->db, sub->argv[1], &v1, &w1);
+                if (w1 == 0 && v1 == v0) g->mget_ver[idx] = v0;
+            }
         }
         break;
     }
@@ -10024,6 +10067,7 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     case CS_RES_XREAD:     w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* out + status */
     default: break;
     }
+    if (s->ctype == CS_MGET) w += 8 * (size_t)nkeys;               /* captured version vector */
     w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
     if (s->has_hop2) {
         if (s->h2_op == CS_H2_SCATTER) {
@@ -10256,9 +10300,230 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
+    /* Seqlock writer begin is a command-wide publication barrier: mark every target dirty
+     * before ANY owner sub can run.  Per-key marking (including duplicates) plus a count, rather
+     * than parity, means overlapping MSETs remain non-blocking and cannot clear one another's
+     * in-progress state.  keyModified() advances the version and drops exactly one count after
+     * setKey has installed that pair.  MSETNX arms only for its HOP2 apply wave, never its HOP1
+     * existence probe. */
+    int seq_mset = g->ctype == CS_MSET ||
+                   (g->ctype == CS_MSETNX && g->phase == CS_PH_HOP2);
+    if (seq_mset) {
+        unsigned int spins = 0;
+        for (;;) {
+            while (atomic_load_explicit(&tomo_mget_quiesce_gate,
+                                        memory_order_seq_cst)) {
+                if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                           memory_order_relaxed), 0))
+                    migPushFenceIfNeeded();
+                if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }
+                exPauseCpu();
+                if ((++spins & 4095) == 0) tomoPollingYield();
+            }
+            atomic_fetch_add_explicit(&tomo_mset_marker_active, 1,
+                                      memory_order_seq_cst);
+            if (!atomic_load_explicit(&tomo_mget_quiesce_gate,
+                                      memory_order_seq_cst))
+                break;
+            atomic_fetch_sub_explicit(&tomo_mset_marker_active, 1,
+                                      memory_order_seq_cst);
+        }
+        for (int w = 0; w < nw; w++) if (wsub[w]) {
+            client *sub = wsub[w];
+            for (int a = 1; a + 1 < sub->argc; a += 2)
+                tomoKeySeqWriteBegin(sub->db, sub->argv[a]);
+        }
+        g->mset_seq_armed = 1;  /* published with the sub pointers by csPushSpin */
+        atomic_fetch_sub_explicit(&tomo_mset_marker_active, 1, memory_order_seq_cst);
+    }
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
+}
+
+/* Defined with the other pooled-sub construction helpers below. */
+static client *csMakeSub(csGroup *g, int idx, int shard, int dbid);
+static void csSubSetKeyArgv(client *sub, client *head, robj *key);
+
+/* Release one completed optimistic MGET wave while retaining the group's version/result
+ * vectors for the next attempt.  The inline allocator is deliberately monotone, so later
+ * attempts may spill; csgFree handles both shapes and the group still dies in one teardown. */
+static void csMgetFreeAttempt(csGroup *g) {
+    if (g->mget_vals) {
+        for (int i = 0; i < g->nkeys; i++) {
+            sdsfree(g->mget_vals[i]);
+            g->mget_vals[i] = NULL;
+        }
+    }
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    csgFree(g, g->subs);
+    g->subs = NULL;
+    g->nsub = 0;
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
+        g->mget_pos = NULL;
+    }
+    g->posmap_nsub = 0;
+}
+
+static void csMgetLaunchRetry(csGroup *g) {
+    client *head = g->head;
+    int first = csFirstKeyArg(g->spec);
+    int dbid = g->h2_dbid;
+
+    csMgetFreeAttempt(g);
+    memset(g->mget_ver, 0xff, sizeof(uint64_t) * g->nkeys);
+    cdbSlotClear(head->parent, head->cdb, head->fake_slot);
+
+    if (g->mget_coalesced) {
+        csCoalesceSpec cs = {
+            .first_argi = first, .key_stride = g->spec->key_stride,
+            .per_key_extra = 0, .posmap = &g->mget_pos };
+        csBuildCoalescedSubs(head, g, g->nkeys, dbid, &cs, NULL);
+        return;
+    }
+
+    /* Preserve the live two-key legacy shape: one sub/reply buffer per original position. */
+    g->nsub = g->nkeys;
+    g->subs = csgAlloc(g, sizeof(client*) * g->nkeys);
+    atomic_store_explicit(&g->pending, g->nkeys, memory_order_relaxed);
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+    for (int i = 0; i < g->nkeys; i++) {
+        robj *key = head->argv[first + i * g->spec->key_stride];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                   memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        client *sub = csMakeSub(g, i, w, dbid);
+        csSubSetKeyArgv(sub, head, key);
+        csPushSpin(w, sub);
+    }
+}
+
+/* Progress fallback after TOMO_MGET_RETRY_MAX failed optimistic waves.  It is deliberately cold:
+ * close the marker-publication gate, let already-marked target writes drain, acquire the relevant
+ * owner locks in global order, then read every value in one quiesced pass.  The marker handshake
+ * prevents an unannounced MSET from slipping between the dirty check and lock acquisition.
+ * Writers remain lock-free on the normal optimistic path; only this bounded-storm fallback briefly
+ * delays new MSET publication and quiesces the target owners. */
+static void csMgetQuiesced(csGroup *g) {
+    client *head = g->head;
+    int first = csFirstKeyArg(g->spec);
+    int nkeys = g->nkeys;
+    int dbid = g->h2_dbid;
+    int owner_stk[128];
+    int *owner = nkeys <= 128 ? owner_stk : zmalloc(sizeof(int) * nkeys);
+    unsigned int spins = 0;
+    unsigned char expected;
+
+    csMgetFreeAttempt(g);
+    if (!g->mget_vals)
+        g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys);
+
+    /* Serialize the exceptionally rare fallback readers.  Once the gate is ours, the seq_cst
+     * marker-active handshake proves that every writer which observed the old zero either
+     * published its complete dirty set or backed out before this load reaches zero. */
+    do {
+        expected = 0;
+        if (atomic_compare_exchange_weak_explicit(&tomo_mget_quiesce_gate, &expected, 1,
+                                                  memory_order_seq_cst,
+                                                  memory_order_seq_cst))
+            break;
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                   memory_order_relaxed), 0))
+            migPushFenceIfNeeded();
+        if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }
+        exPauseCpu();
+        if ((++spins & 4095) == 0) tomoPollingYield();
+    } while (1);
+    while (atomic_load_explicit(&tomo_mset_marker_active, memory_order_seq_cst) != 0) {
+        exPauseCpu();
+        if ((++spins & 4095) == 0) tomoPollingYield();
+    }
+
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                               memory_order_relaxed), 0))
+        for (int i = 0; i < nkeys; i++)
+            migHoldKeyIfDraining(head->argv[first + i * g->spec->key_stride]);
+
+    unsigned char locked[TOMO_EX_THREADS_MAX + 1] = {0};
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[first + i * g->spec->key_stride];
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        owner[i] = w;
+        locked[w] = 1;
+    }
+
+    /* No new MSET can publish while the gate is held.  Existing target writers clear their
+     * counted markers on their owner workers without coordinator participation. */
+    for (;;) {
+        int dirty = 0;
+        for (int i = 0; i < nkeys; i++) {
+            uint64_t version;
+            uint32_t writers;
+            robj *key = head->argv[first + i * g->spec->key_stride];
+            tomoKeySeqRead(&server.exThreads[owner[i]].db[dbid], key, &version, &writers);
+            UNUSED(version);
+            if (writers != 0) { dirty = 1; break; }
+        }
+        if (!dirty) break;
+        exPauseCpu();
+        if ((++spins & 4095) == 0) tomoPollingYield();
+    }
+
+    for (int w = 0; w < server.num_workers; w++)
+        if (locked[w]) tomoWkrLock(w);
+
+    /* MGET copies raw flat-table values on this IO thread in the fallback, so participate in
+     * the existing QSBR region exactly like every other off-worker keyspace reader. */
+    flatExternEnter();
+    client *saved = server.current_client[iotid].p;
+    server.current_client[iotid].p = head;
+    for (int i = 0; i < nkeys; i++) {
+        robj *key = head->argv[first + i * g->spec->key_stride];
+        robj *o = lookupKeyReadWithFlags(&server.exThreads[owner[i]].db[dbid], key, LOOKUP_NONE);
+        if (o != NULL && o->type == OBJ_STRING)
+            g->mget_vals[i] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                  : sdsfromlonglong((long)o->ptr);
+    }
+    server.current_client[iotid].p = saved;
+    flatExternExit();
+
+    for (int w = server.num_workers - 1; w >= 0; w--)
+        if (locked[w]) tomoWkrUnlock(w);
+    atomic_store_explicit(&tomo_mget_quiesce_gate, 0, memory_order_seq_cst);
+
+    if (owner != owner_stk) zfree(owner);
+}
+
+/* Called by the live drain after the read-wave pending barrier.  Return 1 when the same group head
+ * was re-armed and must remain in flight; return 0 only for a validated (or quiesced) snapshot. */
+static int csMgetValidateOrRetry(csGroup *g) {
+    client *head = g->head;
+    int first = csFirstKeyArg(g->spec);
+    int valid = 1;
+
+    for (int i = 0; i < g->nkeys; i++) {
+        if (g->mget_ver[i] == TOMO_MGET_SEQ_INVALID) { valid = 0; break; }
+        robj *key = head->argv[first + i * g->spec->key_stride];
+        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        uint64_t version;
+        uint32_t writers;
+        tomoKeySeqRead(&server.exThreads[w].db[g->h2_dbid], key, &version, &writers);
+        if (writers != 0 || version != g->mget_ver[i]) { valid = 0; break; }
+    }
+    if (valid) return 0;
+
+    exPauseCpu();
+    if (g->mget_retries < TOMO_MGET_RETRY_MAX) {
+        g->mget_retries++;
+        csMgetLaunchRetry(g);
+        return 1;
+    }
+
+    csMgetQuiesced(g);
+    return 0;
 }
 
 /* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
@@ -10984,6 +11249,15 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
+
+    if (s->ctype == CS_MGET) {
+        g->mget_coalesced = coalesce;
+        g->mget_ver = csgAlloc(g, sizeof(uint64_t) * nkeys);
+        memset(g->mget_ver, 0xff, sizeof(uint64_t) * nkeys);
+        /* A failed validation launches another owner wave from the drain thread.  Hold later
+         * commands from this client so that retry subs cannot be queued behind their successors. */
+        head->parent->cs_barrier = 1;
+    }
 
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
@@ -12499,6 +12773,7 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->mget_vals);
         if (g->mget_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
     }
+    csgFree(g, g->mget_ver);
     if (g->xread_out) {
         for (int i = 0; i < g->nkeys; i++) csFreeSub(g->xread_out[i]);
         csgFree(g, g->xread_out);
