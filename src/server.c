@@ -2998,6 +2998,38 @@ void tomoReorderDrain(void) {
     tomo_rord.draining = 0;
 }
 
+/* fk fix (surgical same-connection drain): flush ONLY `conn`'s staged single-key writes into their
+ * owner queues, ahead of that SAME connection's cross-shard command, and leave every OTHER
+ * connection's staging untouched. Read-your-own-writes and same-key write-order are PER-CONNECTION
+ * guarantees (Redis orders commands only within one connection), so this is all correctness needs --
+ * and unlike a full tomoReorderDrain() it does NOT collapse the SJF staging window of the co-located
+ * connections that merely share this IO thread's scratch (the reason a blanket drain-before-every-
+ * cross-shard-command would kill batching in a mixed write+cross-shard workload). Emits conn's
+ * entries in arrival order (so its own same-key writes keep pipeline order) and compacts the
+ * survivors down in place. O(window); window is small and bounded (TOMO_RORD_CAP). */
+static void tomoReorderDrainConn(client *conn) {
+    int n = tomo_rord.n;
+    if (n == 0) return;
+    tomo_rord.draining = 1;
+    int dst = 0;
+    for (int i = 0; i < n; i++) {
+        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
+        if (cid == conn) {
+            exDispatchDirect(tomo_rord.ex[i], tomo_rord.fk[i]);   /* enqueue to the owning worker */
+            continue;                                             /* consumed; not kept */
+        }
+        if (dst != i) {   /* keep: compact the survivor down (all 4 parallel per-entry arrays) */
+            tomo_rord.fk[dst]  = tomo_rord.fk[i];
+            tomo_rord.h[dst]   = tomo_rord.h[i];
+            tomo_rord.ex[dst]  = tomo_rord.ex[i];
+            tomo_rord.cls[dst] = tomo_rord.cls[i];
+        }
+        dst++;
+    }
+    tomo_rord.n = dst;
+    tomo_rord.draining = 0;
+}
+
 /* Obtain this thread's queue to worker ex_id AND record that it is dirty. Never index
  * exThreads[].queues[] directly on a staging path -- go through here. */
 static inline exQueue *exQueueFor(int ex_id) {
@@ -7279,12 +7311,13 @@ int processCommand(client *c) {
     if (csp) {
         /* fk fix (reorder + same-client order): the per-IO reorder scratch may still hold THIS
          * connection's earlier single-key writes (staged, not yet in the owner queues). A cross-shard
-         * scatter dispatches its sub-ops DIRECTLY into the owner queues, so without draining first a
+         * scatter dispatches its sub-ops DIRECTLY into the owner queues, so without ordering first a
          * sub-read lands in the queue BEFORE the staged write => the "same key => same owner queue =>
          * FIFO" invariant the comment above relies on is broken, and an MGET observes a value older
          * than this client's own just-issued SET (read-your-own-writes breaks under tomokv-reorder>0).
-         * Drain so every staged write reaches its owner queue before this command's subs enqueue. */
-        if (tomo_rord.n) tomoReorderDrain();
+         * Flush THIS connection's staged writes only (surgical) — RYOW/write-order is per-connection,
+         * so co-located connections' staging (and their SJF batching) is left intact. */
+        if (tomo_rord.n) tomoReorderDrainConn(fake->parent ? fake->parent : fake);
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
