@@ -1777,6 +1777,7 @@ typedef struct client {
      * to its group so completion decrements the group counter instead of signaling. */
     struct csGroup *csgroup;
     struct csGroup *csparent;
+    struct client *cs_retry_next; /* owner-local MSETNX reservation wait queue link */
     int cssub_idx;   /* sub-fake: its index (= original key position) within its group */
     /* ee451 (v7): FLUSH SENTINEL fake. FLUSHALL/FLUSHDB queues one of these per worker THROUGH
      * the SPSC ring (so it is FIFO-ordered behind that connection's earlier commands, not
@@ -1803,7 +1804,7 @@ typedef struct client {
      * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
     listNode *mig_parked_node;
     int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
-    /* Atomic-MSET admission wait membership. Disconnect removes this owning-IO list entry before
+    /* Atomic-group admission wait membership. Disconnect removes this owning-IO list entry before
      * freeing the pending command; NULL means the client is not waiting for the global window. */
     listNode *atomic_window_parked_node;
     int atomic_window_parked_tid;
@@ -2078,6 +2079,7 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
+struct tomoVersionRetire;
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2085,11 +2087,16 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
-    uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
-    struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
+    uint64_t version_seq;      /* atomic-group ticket (CS_MGET uses snapshot_seq only) */
+    uint64_t snapshot_seq;     /* commit_seq captured by MGET/EXISTS/TOUCH at dispatch */
+    struct csGroup *commit_next; /* atomic-group global ticket-order queue link */
     redisAtomic int commit_ready; /* every owner installed this ticket */
-    int versioned_write;         /* this group is an atomic MSET install */
-    int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
+    int versioned_write;         /* registered atomic group; owns one admission count */
+    int snapshot_pinned;       /* snapshot reader holds its dispatch IO's QSBR region */
+    int nx_cancel;             /* MSETNX decision: resolution wave cancels, not stamps */
+    kvobj **nx_reservations;   /* [nkeys], exact installed reservation versions */
+    struct tomoVersionRetire **nx_retires; /* [nkeys], cancelable predecessor-retire records */
+    uint8_t *nx_state;         /* [nkeys], reservation lifecycle state (server.c) */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
@@ -2654,6 +2661,8 @@ typedef struct exThread {
      * against the previous build cannot be contaminated by layout. */
     _Atomic uint64_t lb_fine_win;
     uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
+    client *atomic_retry_head;              /* MSETNX subs parked once behind this owner */
+    client *atomic_retry_tail;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -3146,7 +3155,7 @@ struct redisServer {
      * never a worker, so every other client on this thread, and both workers' other buckets, keep
      * running at full rate for the whole window. */
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
-    /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
+    /* Clients refused before atomic-group creation, retried only by their owning IO loop. */
     list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
     /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
      * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
@@ -4051,8 +4060,8 @@ struct redisServer {
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
-    int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
-    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 512. */
+    int tomo_atomic;           /* epoch atomic MSET/MSETNX/DEL/UNLINK/MGET/EXISTS/TOUCH. */
+    int tomo_atomic_window;    /* max admitted ticketed atomic groups; 0 = unlimited. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -4915,7 +4924,7 @@ extern _Atomic unsigned long long tomo_nested_cmd_frames;
 /* ee451 (N): CLOSE_ASAP clients deferred by freeClientsInAsyncFreeQueue because their worker ring
  * was still in flight; defined in networking.c, reported as INFO tomokv_close_deferred_ring. */
 extern _Atomic unsigned long long tomo_close_deferred_ring;
-/* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
+/* Bounded atomic-group admission. This includes every admitted ticketed group until its
  * single csReassemble teardown, including groups whose real connection has disconnected. */
 extern _Atomic int tomo_atomic_inflight;
 void tomoAtomicWindowChanged(void);
@@ -5743,6 +5752,7 @@ kvobj *lookupKeyReadOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags);
 kvobj *lookupKeyWriteWithFlags(redisDb *db, robj *key, int flags);
+void updateLFU(robj *val);
 kvobj *kvobjCommandLookup(client *c, robj *key);
 /* ee451: read-run value forwarding (same-key read chains on a worker). */
 kvobj *kvobjCommandLookupOrReply(client *c, robj *key, robj *reply);
@@ -5779,7 +5789,16 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 void setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                      uint64_t version_seq);
-void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq);
+kvobj *setKeyReservationVersioned(client *c, redisDb *db, robj *key, robj **ioval,
+                                  uint64_t version_seq,
+                                  struct tomoVersionRetire **retire_out);
+void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
+                                   struct tomoVersionRetire *retire);
+struct tomoVersionRetire *tomoRetireVersion(kvstore *kvs, kvobj *kv,
+                                            uint64_t version_seq);
+void tomoCancelVersionRetire(struct tomoVersionRetire *retire);
+uint64_t tomoAtomicCommitSeq(void);
+int dbRemoveTombstoneIfHead(redisDb *db, kvobj *tombstone);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);

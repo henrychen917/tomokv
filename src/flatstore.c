@@ -55,10 +55,28 @@ void flatTableFree(flatTable *t) {
      * which were moved to the new table). Safe to free immediately: called with all workers parked
      * (resize) or at shutdown, so no lock-free reader is active. */
     flatRetireNode *n = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
-    while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
+    while (n) {
+        flatRetireNode *nx = n->next;
+        if (n->tombstone_db) {
+            /* Table teardown already has global quiescence. Drop the cleanup pin; a live
+             * tombstone is freed by flatTableDestroy's slot walk, while a moved one remains
+             * owned by the current table's corresponding owner-local cleanup node. */
+            decrRefCount((robj *)n->masked_kv);
+        } else {
+            decrRefCount((robj *)dictGetKV(n->masked_kv));
+        }
+        zfree(n);
+        n = nx;
+    }
     for (flatBatch *b = t->batches; b; ) {
         flatBatch *bn = b->next;
-        for (flatRetireNode *m = b->head; m; ) { flatRetireNode *mx = m->next; decrRefCount((robj *)dictGetKV(m->masked_kv)); zfree(m); m = mx; }
+        for (flatRetireNode *m = b->head; m; ) {
+            flatRetireNode *mx = m->next;
+            decrRefCount(m->tombstone_db ? (robj *)m->masked_kv
+                                         : (robj *)dictGetKV(m->masked_kv));
+            zfree(m);
+            m = mx;
+        }
         zfree(b); b = bn;
     }
     zfree(t->slots);
@@ -113,6 +131,8 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
         n = zmalloc(sizeof(*n));
     }
     n->masked_kv = masked_kv;
+    n->tombstone_db = NULL;
+    n->tombstone_phase = 0;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
     if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
@@ -120,6 +140,73 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
              memory_order_release, memory_order_relaxed));
+}
+
+/* A committed tombstone cannot leave the table immediately: a snapshot that captured S below
+ * its ticket may still need the predecessor chain. Install-time enrollment below takes a pin and
+ * uses two passes through the existing QSBR batches. The first pass observes commit and starts a
+ * fresh grace; the second removes the slot iff this tombstone is still the physical head. Removal
+ * itself enters the ordinary retire path, giving readers that saw the tombstone after commit their
+ * own final object-lifetime grace. */
+void flatRetireTombstone(redisDb *db, kvobj *tombstone) {
+    serverAssert(db && tombstone && tombstone->vmeta);
+    flatTable *t = kvstoreFlatTable(db->keys);
+    serverAssert(t != NULL);
+    flatRetireNode *n = flat_node_pool;
+    if (n) {
+        flat_node_pool = n->next;
+        if (--flat_node_pool_n < flat_node_pool_lowat) flat_node_pool_lowat = flat_node_pool_n;
+    } else {
+        n = zmalloc(sizeof(*n));
+    }
+    incrRefCount(tombstone); /* cleanup pin: successor retirement may otherwise free it first */
+    n->masked_kv = (dictEntry *)tombstone;
+    n->tombstone_db = db;
+    n->tombstone_phase = 0;
+    if (flat_local_sink) {
+        n->next = *flat_local_sink;
+        *flat_local_sink = n;
+        return;
+    }
+    flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
+    do { n->next = head; }
+    while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
+             memory_order_release, memory_order_relaxed));
+}
+
+/* Release one graced node. Return 1 when the caller may recycle it; return 0 when a tombstone
+ * cleanup was re-enrolled for its next grace. This normally runs on the installing owner worker,
+ * preserving the single-writer table rule. */
+int flatRetireNodeRelease(flatRetireNode *n) {
+    if (!n->tombstone_db) {
+        decrRefCount((robj *)dictGetKV(n->masked_kv));
+        return 1;
+    }
+
+    kvobj *tombstone = (kvobj *)n->masked_kv;
+    if (n->tombstone_phase == 0) {
+        if (tomoAtomicCommitSeq() < tombstone->vmeta->version_seq) {
+            /* Still uncommitted: keep the single queue node parked through another grace. */
+        } else {
+            n->tombstone_phase = 1;
+        }
+        flatTable *t = kvstoreFlatTable(n->tombstone_db->keys);
+        if (flat_local_sink) {
+            n->next = *flat_local_sink;
+            *flat_local_sink = n;
+        } else {
+            flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
+            do { n->next = head; }
+            while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
+                     memory_order_release, memory_order_relaxed));
+        }
+        return 0;
+    }
+
+    dbRemoveTombstoneIfHead(n->tombstone_db, tombstone);
+    decrRefCount(tombstone); /* cleanup pin; table/retire machinery owns any remaining ref */
+    n->tombstone_db = NULL;
+    return 1;
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

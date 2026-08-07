@@ -98,8 +98,12 @@ struct RedisModuleType;
 
 struct tomoVerMeta {
     uint64_t version_seq;
-    struct redisObject *version_prev;
+    _Atomic(struct redisObject *) version_prev;
+    _Atomic uint8_t flags;
 };
+
+#define TOMO_VERSION_TOMBSTONE   (1u<<0)
+#define TOMO_VERSION_RESERVATION (1u<<1)
 
 struct redisObject {
     unsigned type:3;
@@ -138,11 +142,32 @@ sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
-/* Select the newest version visible at a cross-shard MGET snapshot. */
+/* Select the newest version visible at an atomic-command snapshot. Version links are atomic
+ * because MSETNX cancellation splices an uncommitted reservation out while already-pinned
+ * snapshot readers may still be walking past it. The removed node itself remains QSBR-retired. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
     while (kv && kv->vmeta && kv->vmeta->version_seq > snapshot)
-        kv = kv->vmeta->version_prev;
+        kv = atomic_load_explicit(&kv->vmeta->version_prev, memory_order_acquire);
     return kv;
+}
+
+
+static inline int kvobjVersionHasFlag(const kvobj *kv, uint8_t flag) {
+    return kv && kv->vmeta &&
+           (atomic_load_explicit(&kv->vmeta->flags, memory_order_acquire) & flag) != 0;
+}
+
+static inline int kvobjIsTombstone(const kvobj *kv) {
+    return kvobjVersionHasFlag(kv, TOMO_VERSION_TOMBSTONE);
+}
+
+static inline int kvobjIsReservation(const kvobj *kv) {
+    return kvobjVersionHasFlag(kv, TOMO_VERSION_RESERVATION);
+}
+
+static inline kvobj *kvobjLiveVersionAt(kvobj *kv, uint64_t snapshot) {
+    kv = kvobjVersionAt(kv, snapshot);
+    return kvobjIsTombstone(kv) ? NULL : kv;
 }
 
 /* Redis object implementation */

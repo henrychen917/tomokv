@@ -203,9 +203,9 @@ static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
 static csGroup *commit_head, *commit_tail;
 
-/* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
+/* Atomic-group admission. With a finite window, `inflight` is also the reservation word: a
  * successful increment is immediately followed, on the same non-yielding processCommand stack,
- * by construction and registration of exactly one versioned-write group. Using the counter itself
+ * by construction and registration of exactly one ticketed group. Using the counter itself
  * as the CAS word makes the bound strict across concurrent IO producers (a load-then-increment
  * would overshoot by up to the IO-thread count). There is no recoverable allocation/dispatch
  * failure between reservation and csMsetRegister; allocation failure terminates the process.
@@ -304,19 +304,29 @@ static void tomoAtomicReleaseStalledClients(void) {
     }
 }
 
+static inline int csAtomicTicketed(const csCmdSpec *s) {
+    return s && (s->ctype == CS_MSET || s->ctype == CS_MSETNX ||
+                 s->ctype == CS_DEL || s->ctype == CS_EXISTS);
+}
+
 /* Version predecessors wait here until their successor's ticket is visible,
  * then enter the unchanged FLATSTORE QSBR retire path. Keeping this queue
- * entirely on the atomic-MSET path leaves ordinary SET retirement identical
+ * entirely on the atomic path leaves ordinary SET retirement identical
  * to the pre-versioning implementation. */
 typedef struct tomoVersionRetire {
     kvstore *kvs;
     kvobj *kv;
     uint64_t version_seq;
+    _Atomic int canceled;       /* MSETNX cancel keeps/restores the predecessor */
     struct tomoVersionRetire *next;
 } tomoVersionRetire;
 static _Atomic(tomoVersionRetire *) version_retire_pending;
 
-void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
+uint64_t tomoAtomicCommitSeq(void) {
+    return atomic_load_explicit(&commit_seq, memory_order_acquire);
+}
+
+tomoVersionRetire *tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
     /* Keep vmeta owned by kv while it is reachable by snapshot readers. Once
      * this ticket commits, csReleaseCommittedVersions starts the QSBR grace;
      * the final decrRefCount after that grace frees kv and its vmeta together. */
@@ -324,6 +334,7 @@ void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
     n->kvs = kvs;
     n->kv = kv;
     n->version_seq = version_seq;
+    atomic_store_explicit(&n->canceled, 0, memory_order_relaxed);
     tomoVersionRetire *head = atomic_load_explicit(&version_retire_pending,
                                                     memory_order_relaxed);
     do { n->next = head; }
@@ -331,6 +342,12 @@ void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
                                                    &head, n,
                                                    memory_order_release,
                                                    memory_order_relaxed));
+    return n;
+}
+
+void tomoCancelVersionRetire(tomoVersionRetire *retire) {
+    if (retire)
+        atomic_store_explicit(&retire->canceled, 1, memory_order_release);
 }
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
@@ -7386,7 +7403,7 @@ int processCommand(client *c) {
      * pendingCommand objects for already-decoded bytes; its equivalent of "qb_pos unadvanced" is
      * precisely that the pending head is not popped/consumed by prepareForNextCommand. */
     const csCmdSpec *atomic_csp = NULL;
-    int atomic_mset_admission = 0;   /* 0=not atomic MSET, 1=finite slot reserved, 2=unlimited */
+    int atomic_mset_admission = 0;   /* 0=not ticketed, 1=finite slot reserved, 2=unlimited */
     if (__builtin_expect(server.tomo_atomic != 0, 0)) {
         /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
          * command cannot change route between reserving the counter and creating its group. */
@@ -7397,11 +7414,11 @@ int processCommand(client *c) {
                  * unlimited mode. A malformed/non-ported form will still get csp==NULL there and
                  * never consume this marker. */
                 const csCmdSpec *candidate = c->cmd->cs_spec;
-                if (candidate && candidate->ctype == CS_MSET)
+                if (csAtomicTicketed(candidate))
                     atomic_mset_admission = 2;
             } else {
                 const csCmdSpec *candidate = csClassify(c);
-                if (candidate && candidate->ctype == CS_MSET) {
+                if (csAtomicTicketed(candidate)) {
                     if (!tomoAtomicMsetTryReserve(window)) {
                         tomoAtomicParkClient(c);
                         return C_OK;
@@ -7982,7 +7999,10 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     flatRetireNode *n = b->head;
     while (n) {
         flatRetireNode *nx = n->next;
-        decrRefCount((robj *)dictGetKV(n->masked_kv));
+        if (!flatRetireNodeRelease(n)) {
+            n = nx;
+            continue;
+        }
         /* Recycle instead of zfree: this is the flat-only malloc/free pair per overwrite. */
         if (flat_node_pool_n < FLAT_NODE_POOL_CAP) {
             n->next = flat_node_pool; flat_node_pool = n;
@@ -8623,7 +8643,9 @@ static void csReleaseCommittedVersions(uint64_t visible) {
     tomoVersionRetire *ready = NULL, *deferred = NULL;
     while (list) {
         tomoVersionRetire *next = list->next;
-        if (list->version_seq <= visible) {
+        if (atomic_load_explicit(&list->canceled, memory_order_acquire)) {
+            zfree(list);
+        } else if (list->version_seq <= visible) {
             list->next = ready;
             ready = list;
         } else {
@@ -9045,6 +9067,8 @@ static int csCopyShapeOk(client *c) {
 }
 
 static const csCmdSpec csRegistry[] = {
+/* TODO atomic epoch broadening: store-op families, RENAME/COPY/SMOVE/LMOPE/LMOVE, BITOP and
+ * PFMERGE remain outside BROADEN_SPEC.md and retain their existing cross-shard protocols. */
 /* ================= PORTED (byte-exact vs the pre-registry dispatchers — the hard gate) ===== */
 { .proc=mgetCommand,   .name="mget",   .ported=CS_PORT_OK, .ctype=CS_MGET,   .route=CS_RT_GATHER,
   .min_argc=2, .key_stride=1, .res_kind=CS_RES_MGETVALS, .pos_kind=CS_POS_MGET,
@@ -9218,8 +9242,8 @@ static const csCmdSpec csRegistry[] = {
 { .proc=msetnxCommand, .name="msetnx", .ported=CS_PORT_OK, .ctype=CS_MSETNX,
   .route=CS_RT_GATHER, .min_argc=3, .argc_odd=1, .key_stride=2, .cs_write=1,
   .co_gate=CS_CO_ALWAYS, .has_hop2=1, .h2_op=CS_H2_SCATTER, .cs2_kind=CS2_INT },
-  /* per_key_extra=0: the HOP1 wave carries KEYS ONLY (existence probe); the SCATTER wave
-   * re-runs the k/v build with csAppendMsetValue (values still live in head->argv). */
+  /* per_key_extra=0 preserves the OFF path: HOP1 carries keys and HOP2 builds k/v. Atomic mode
+   * overrides the builder locally: HOP1 carries k/v reservations and HOP2 carries resolution keys. */
 /* step 9 (final) — ordered pops. HOP1 probes every key's type+length in one wave (klen/ktype
  * report lanes); the coordinator scans in ORIGINAL key order (stock precedence: first wrong
  * type errors, first non-empty wins); HOP2 = ONE sub running the REAL single-key proc with a
@@ -9656,9 +9680,144 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
     }
 }
 
-static void csSubExec(client *sub) {
+enum {
+    CS_NX_UNSEEN = 0,
+    CS_NX_INSTALLED,
+    CS_NX_PRESENT,
+    CS_NX_COMMITTED,
+    CS_NX_CANCELED
+};
+
+/* Run the stock read lookup once for expiry/stats, then recover the physical version head from the
+ * owner table. The ordinary lookup intentionally returns the current committed live version, which
+ * is insufficient when this group captured an older snapshot below a now-committed tombstone. */
+static kvobj *csSnapshotVersion(client *sub, robj *key, uint64_t snapshot, int touch) {
+    (void)lookupKeyReadWithFlags(sub->db, key, LOOKUP_NOTOUCH);
+    int slot = getKeySlot(key->ptr);
+    dictEntryLink link = kvstoreDictFindLink(sub->db->keys, slot, key->ptr, NULL);
+    kvobj *visible = link ? kvobjLiveVersionAt(dictGetKV(*link), snapshot) : NULL;
+    if (visible && touch && !hasActiveChildProcess()) {
+        if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU)
+            updateLFU(visible);
+        else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM))
+            visible->lru = LRU_CLOCK();
+    }
+    return visible;
+}
+
+/* Physical head after applying write-side lazy expiry. Version writers need this instead of the
+ * committed view returned by lookupKeyWriteWithLink. */
+static kvobj *csVersionHead(client *sub, robj *key) {
+    dictEntryLink link = NULL;
+    (void)lookupKeyWriteWithLink(sub->db, key, &link);
+    return link ? dictGetKV(*link) : NULL;
+}
+
+static int csMsetnxAtFrontier(csGroup *g) {
+    int at_frontier;
+    csCommitLock();
+    at_frontier = commit_head == g;
+    csCommitUnlock();
+    return at_frontier;
+}
+
+/* Return 1 when this sub must remain pending on its owner's single retry list. Frontier gating
+ * serializes reservation acquisition by ticket and eliminates distributed reservation cycles;
+ * the explicit pending-reservation check remains the defensive linearizability rule for a version
+ * already installed on this key. Each sub is linked into the retry list at most once. */
+static int csMsetnxReserveExec(client *sub, csGroup *g) {
+    if (!csMsetnxAtFrontier(g)) return 1;
+    int *pos = g->setop_pos[sub->cssub_idx];
+    for (int a = 1; a + 1 < sub->argc; a += 2) {
+        int p = pos[(a - 1) / 2];
+        if (g->nx_state[p] != CS_NX_UNSEEN) continue;
+        robj *key = sub->argv[a];
+        kvobj *head = csVersionHead(sub, key);
+        uint64_t visible_seq = tomoAtomicCommitSeq();
+        for (kvobj *v = head;
+             v && v->vmeta && v->vmeta->version_seq > visible_seq;
+             v = atomic_load_explicit(&v->vmeta->version_prev, memory_order_acquire)) {
+            if (kvobjIsReservation(v) && v->vmeta->version_seq != g->version_seq &&
+                v->vmeta->version_seq > visible_seq)
+                return 1;
+        }
+
+        kvobj *present = kvobjLiveVersionAt(head, visible_seq);
+        if (present) {
+            g->nx_state[p] = CS_NX_PRESENT;
+            atomic_fetch_add_explicit(&g->rcount, 1, memory_order_relaxed);
+            continue;
+        }
+
+        sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+        kvobj *reservation = setKeyReservationVersioned(
+            sub, sub->db, key, &sub->argv[a+1], g->version_seq, &g->nx_retires[p]);
+        g->nx_reservations[p] = reservation;
+        g->nx_state[p] = CS_NX_INSTALLED;
+        sub->argv[a+1] = NULL; /* reservation owns the value on its owner worker */
+    }
+    return 0;
+}
+
+static void csMsetnxResolveExec(client *sub, csGroup *g) {
+    int *pos = g->setop_pos[sub->cssub_idx];
+    int first = g->nx_cancel ? sub->argc - 1 : 1;
+    int step = g->nx_cancel ? -1 : 1;
+    for (int a = first; a > 0 && a < sub->argc; a += step) {
+        int p = pos[a - 1];
+        if (g->nx_state[p] != CS_NX_INSTALLED) continue;
+        kvobj *reservation = g->nx_reservations[p];
+        if (g->nx_cancel) {
+            cancelKeyReservationVersioned(sub->db, sub->argv[a], reservation,
+                                           g->nx_retires[p]);
+            g->nx_state[p] = CS_NX_CANCELED;
+        } else {
+            atomic_fetch_and_explicit(&reservation->vmeta->flags,
+                                      (uint8_t)~TOMO_VERSION_RESERVATION,
+                                      memory_order_release);
+            g->nx_state[p] = CS_NX_COMMITTED;
+            keyModified(sub, sub->db, sub->argv[a], reservation, 1);
+            notifyKeyspaceEvent(NOTIFY_STRING, "set", sub->argv[a], sub->db->id);
+            markDirty(1);
+        }
+    }
+}
+
+static long csInstallTombstones(client *sub, csGroup *g) {
+    long deleted = 0;
+    for (int a = 1; a < sub->argc; a++) {
+        robj *key = sub->argv[a];
+        kvobj *head = csVersionHead(sub, key);
+        int already_deleted = 0;
+        for (kvobj *v = head;
+             v && v->vmeta && v->vmeta->version_seq >= g->version_seq;
+             v = atomic_load_explicit(&v->vmeta->version_prev, memory_order_acquire)) {
+            if (v->vmeta->version_seq == g->version_seq && kvobjIsTombstone(v)) {
+                already_deleted = 1;
+                break;
+            }
+        }
+        if (already_deleted) continue; /* DEL k k counts the key once, like stock */
+        kvobj *prior = kvobjVersionAt(head, g->version_seq - 1);
+        if (!prior || kvobjIsTombstone(prior)) continue;
+
+        robj *marker = createStringObject("", 0);
+        setKeyVersioned(sub, sub->db, key, &marker, 0, g->version_seq);
+        kvobj *tombstone = marker;
+        serverAssert(tombstone->vmeta && tombstone->vmeta->version_seq == g->version_seq);
+        atomic_fetch_or_explicit(&tombstone->vmeta->flags, TOMO_VERSION_TOMBSTONE,
+                                 memory_order_release);
+        flatRetireTombstone(sub->db, tombstone);
+        notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, sub->db->id);
+        markDirty(1);
+        deleted++;
+    }
+    return deleted;
+}
+
+static int csSubExec(client *sub) {
     csGroup *g = sub->csparent;
-    if (!sub->argv || !sub->argv[1]) return;
+    if (!sub->argv || !sub->argv[1]) return 0;
     client *saved = server.current_client[iotid].p;
     server.current_client[iotid].p = sub;
     /* ee451 (F-clock): the scatter subs are the OTHER worker execution entry point — they run
@@ -9676,7 +9835,7 @@ static void csSubExec(client *sub) {
         server.current_client[iotid].p = saved;
         csSubStatAccum(g, cs_t0, cs_e0);
         tomoCmdClockExit();
-        return;
+        return 0;
     }
     switch (g->ctype) {
     case CS_MGET: {
@@ -9697,18 +9856,14 @@ static void csSubExec(client *sub) {
              * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
              * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
             for (int a = 1; a < sub->argc; a++) {
-                robj *o = kvobjVersionAt(
-                    lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE),
-                    g->version_seq);
+                robj *o = csSnapshotVersion(sub, sub->argv[a], g->snapshot_seq, 1);
                 if (o != NULL && o->type == OBJ_STRING)
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
                                                                    : sdsfromlonglong((long)o->ptr);
             }
         } else if (g->snapshot_pinned) {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
-            robj *o = kvobjVersionAt(
-                lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE),
-                g->version_seq);
+            robj *o = csSnapshotVersion(sub, sub->argv[1], g->snapshot_seq, 1);
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
         } else if (g->mget_vals) {
@@ -9727,6 +9882,19 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSETNX:
+        if (g->versioned_write) {
+            if (g->phase == CS_PH_HOP1) {
+                if (csMsetnxReserveExec(sub, g)) {
+                    server.current_client[iotid].p = saved;
+                    csSubStatAccum(g, cs_t0, cs_e0);
+                    tomoCmdClockExit();
+                    return 1;
+                }
+            } else {
+                csMsetnxResolveExec(sub, g);
+            }
+            break;
+        }
         if (g->phase == CS_PH_HOP1) {
             /* step 8 HOP1: existence probe (subs carry KEYS ONLY). Any hit fails the NX. */
             for (int a = 1; a < sub->argc; a++)
@@ -9816,6 +9984,11 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_DEL: {
+        if (g->versioned_write) {
+            atomic_fetch_add_explicit(&g->rcount, csInstallTombstones(sub, g),
+                                      memory_order_relaxed);
+            break;
+        }
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
          * lookupKeyWrite handles lazy expiry. Per-key migration capture. */
         long deleted = 0;
@@ -9838,8 +10011,15 @@ static void csSubExec(client *sub) {
          * LRU/LFU where stock would not. */
         int lkflags = (g->spec && g->spec->notouch) ? LOOKUP_NOTOUCH : LOOKUP_NONE;
         long present = 0;
-        for (int a = 1; a < sub->argc; a++)
-            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) present++;
+        for (int a = 1; a < sub->argc; a++) {
+            if (g->snapshot_pinned) {
+                if (csSnapshotVersion(sub, sub->argv[a], g->snapshot_seq,
+                                      lkflags != LOOKUP_NOTOUCH))
+                    present++;
+            } else if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) {
+                present++;
+            }
+        }
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
@@ -10353,6 +10533,7 @@ static void csSubExec(client *sub) {
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
      * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
      * no single argv[1] to capture here. Reads (MGET/EXISTS/TOUCH/SETOP) mutate nothing -> no capture. */
+    return 0;
 }
 
 /* ==== xshard INLINE (small-size) storage for a group's coordinator-owned arrays ====
@@ -10581,10 +10762,9 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
      *      sub->argv[] on the worker, so csFreeSub's IO-thread decref never touches it. That NULL is
      *      the S8 rule (non-atomic refcounts must not be mutated from two threads) and it is what
      *      makes the move legal at all.
-     *   3. csAppendMsetValue runs exactly ONCE per value: MSET builds its subs once, and MSETNX's
-     *      HOP1 wave carries keys only (per_key_extra=0 in its spec) — only the HOP2 SCATTER wave
-     *      re-runs the k/v build. A second call on a released slot would be a use-after-free, so that
-     *      invariant is load-bearing; see the csCoalesceSpec comment on the msetnx registry row.
+     *   3. csAppendMsetValue runs exactly ONCE per value: MSET builds once; OFF-mode MSETNX appends
+     *      in its HOP2 write wave; atomic MSETNX appends in its HOP1 reservation wave and its HOP2
+     *      resolution carries keys only. A second call on a released slot would be a use-after-free.
      * The bit index is bounded by 64 because argv_released_mask is a uint64_t; beyond that (an MSET
      * with >31 pairs) fall back to NULLing the head slot, which is equally complete. */
     if (server.opt_mset_move) {
@@ -10646,7 +10826,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) {
         if (!cnt[w]) continue;
         client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->csparent = g; sub->cs_retry_next = NULL; sub->cssub_idx = si; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
@@ -10672,7 +10852,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
 static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     client *head = g->head;
     client *sub = createPooledFakeClient(head->parent);
-    sub->csparent = g; sub->cssub_idx = idx; sub->cmd = head->cmd;
+    sub->csparent = g; sub->cs_retry_next = NULL; sub->cssub_idx = idx; sub->cmd = head->cmd;
     sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
     /* The sub serializes its reply into its OWN buffer on the worker; spliced at
      * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
@@ -11299,10 +11479,11 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     int atomic_mget = s->ctype == CS_MGET && server.tomo_atomic;
-    /* MSET uses the atomic-mode snapshot taken at the pre-ring gate. That closes the live CONFIG
+    int atomic_group = csAtomicTicketed(s) && atomic_admission != 0;
+    int atomic_msetnx = atomic_group && s->ctype == CS_MSETNX;
+    /* Ticketed commands use the atomic-mode snapshot taken at the pre-ring gate. That closes the live CONFIG
      * SET race: a finite reservation cannot leak if tomokv-atomic flips before group creation, and
      * a command admitted while OFF cannot suddenly bypass a newly-enabled finite window. */
-    int atomic_mset = s->ctype == CS_MSET && atomic_admission != 0;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
      * read, no borrowing, no extra locks. This path SURVIVES.
@@ -11324,7 +11505,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && !atomic_mget && nkeys >= 1) {
+    if (!s->cs_write && !s->has_hop2 && !atomic_mget && !atomic_group && nkeys >= 1) {
         /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
          * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
          * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
@@ -11389,7 +11570,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * sized for THIS command rather than for the worst command. */
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
-    int posmap  = coalesce && s->pos_kind != CS_POS_NONE;
+    int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, posmap));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
@@ -11404,13 +11585,18 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
          * sees this reader in its fresh grace or this reader sees that commit. */
         flatQsbrRegionEnter();
         g->snapshot_pinned = 1;
-        g->version_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
-    } else if (atomic_mset) {
+        g->snapshot_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
+    } else if (atomic_group) {
         /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
          * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
          * exactly one reservation before any owner sub is published. Unlimited mode deliberately
          * retains today's route and increments here, at actual group creation. */
         serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (s->ctype == CS_EXISTS) {
+            flatQsbrRegionEnter();
+            g->snapshot_pinned = 1;
+            g->snapshot_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
+        }
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         csMsetRegister(g);
     } else {
@@ -11447,6 +11633,11 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
             g->xread_out[i] = out;
         }
     }
+    if (atomic_msetnx) {
+        g->nx_reservations = csgCalloc(g, sizeof(*g->nx_reservations) * nkeys);
+        g->nx_retires = csgCalloc(g, sizeof(*g->nx_retires) * nkeys);
+        g->nx_state = csgCalloc(g, sizeof(*g->nx_state) * nkeys);
+    }
     /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
      * comment that used to sit here: the STORE / BITOP / PFMERGE / MSETNX / COPY / MPOP rows
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
@@ -11477,11 +11668,13 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     /* Coalesced path: one sub per DISTINCT shard via the shared builder. */
     csCoalesceSpec cs = {
         .first_argi = first, .key_stride = s->key_stride,
-        .per_key_extra = s->per_key_extra,
-        .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
+        .per_key_extra = atomic_msetnx ? 1 : s->per_key_extra,
+        .posmap = atomic_msetnx ? &g->setop_pos :
+                  (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs,
+                         atomic_msetnx ? csAppendMsetValue : s->append_extra);
 }
 
 /* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
@@ -12469,14 +12662,22 @@ static int csLaunchHop2(csGroup *g) {
     g->posmap_nsub = 0;
 
     if (g->h2_op == CS_H2_SCATTER) {
-        /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
-         * re-runs the MSET write wave — values still live in head->argv (head is in flight;
-         * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
-         * arms pending before its own pushes. */
+        /* MSETNX: atomic mode's HOP1 already installed invisible reservations, so HOP2 is the
+         * owner-queued group decision (stamp all or cancel all). OFF mode retains the established
+         * probe-then-MSET write wave byte-for-byte. */
         g->phase = CS_PH_HOP2;
         cdbSlotClear(head->parent, head->cdb, head->fake_slot);
-        csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
-        csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
+        if (g->versioned_write) {
+            csCoalesceSpec cs = {
+                .first_argi = 1, .key_stride = 2, .per_key_extra = 0,
+                .posmap = &g->setop_pos
+            };
+            csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, NULL);
+        } else {
+            csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
+            csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs,
+                                 csAppendMsetValue);
+        }
         return 1;
     }
     /* --- generic plan launch: one sub per g->h2sub[] entry; cssub_idx IS the plan index, so
@@ -12945,6 +13146,9 @@ static void csReassemble(client *dst, client *head) {
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
     csgFree(g, g->klen); csgFree(g, g->ktype);
+    csgFree(g, g->nx_reservations);
+    csgFree(g, g->nx_retires);
+    csgFree(g, g->nx_state);
     /* ee451 (#B2): ONE commandstats call for the whole group, with the SUMMED sub proc time (see
      * csGroup.usec). Must be read before zfree(g) below. */
     if (cs_cmd) {
@@ -19128,6 +19332,75 @@ static inline int exDormantSliceNeeded(exThread *worker,
     return 0;
 }
 
+static int csRunOwnerSub(exThread *worker, client *sub) {
+    tomoWkrLock(worker->id);
+    int retry = csSubExec(sub);
+    tomoWkrUnlock(worker->id);
+    return retry;
+}
+
+/* Single terminal decrement for a sub. MSETNX has a reservation barrier followed by an owner-queue
+ * resolution barrier: HOP1 publishes only to its coordinator, while HOP2 stamps or cancels every
+ * installed reservation before the ticket is allowed to advance the global frontier. */
+static void csFinishOwnerSub(csGroup *g) {
+    int last;
+    if (g->nsub == 1) {
+        atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
+        last = 1;
+    } else {
+        last = atomic_fetch_sub_explicit(&g->pending, 1, memory_order_acq_rel) == 1;
+    }
+    if (!last) return;
+
+    if (g->versioned_write && g->ctype == CS_MSETNX && g->phase == CS_PH_HOP1) {
+        g->nx_cancel = atomic_load_explicit(&g->rcount, memory_order_relaxed) != 0;
+        client *hp = g->head->parent;
+        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+    } else if (g->versioned_write) {
+        if (g->ctype == CS_MSETNX && g->nx_cancel)
+            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+        csMsetInstallDone(g);
+    } else {
+        client *hp = g->head->parent;
+        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+    }
+}
+
+/* One owner-local wait-list link per conflicting sub. It is retried only after the pass has drained
+ * all currently published producer queues, so a competing reservation's stamp/cancel op on this
+ * owner executes first. A sub stays linked while blocked rather than being repeatedly re-enqueued. */
+static void csParkReservationSub(exThread *worker, client *sub) {
+    serverAssert(sub->cs_retry_next == NULL);
+    if (worker->atomic_retry_tail)
+        worker->atomic_retry_tail->cs_retry_next = sub;
+    else
+        worker->atomic_retry_head = sub;
+    worker->atomic_retry_tail = sub;
+}
+
+static int csRetryReservationSubs(exThread *worker) {
+    client *prev = NULL, *sub = worker->atomic_retry_head;
+    int did_work = 0;
+    while (sub) {
+        client *next = sub->cs_retry_next;
+        did_work = 1;
+        if (csRunOwnerSub(worker, sub)) {
+            prev = sub;
+            sub = next;
+            continue;
+        }
+
+        if (prev) prev->cs_retry_next = next;
+        else worker->atomic_retry_head = next;
+        if (worker->atomic_retry_tail == sub) worker->atomic_retry_tail = prev;
+        sub->cs_retry_next = NULL;
+        csGroup *g = sub->csparent;
+        csFinishOwnerSub(g); /* may publish and let the coordinator free sub/g immediately */
+        sub = next;
+    }
+    return did_work;
+}
+
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
@@ -19480,25 +19753,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
                  * mutates/reads. (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the
                  * design, so this is unconditional.) */
-                tomoWkrLock(worker->id);
-                csSubExec(fake);
-                tomoWkrUnlock(worker->id);
-                int last;
-                if (g->nsub == 1) {
-                    atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
-                    last = 1;
-                } else {
-                    last = atomic_fetch_sub_explicit(&g->pending, 1,
-                                                     memory_order_acq_rel) == 1;
-                }
-                if (last) {
-                    if (g->versioned_write) {
-                        csMsetInstallDone(g);
-                    } else {
-                        client *hp = g->head->parent;
-                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
-                    }
-                }
+                if (csRunOwnerSub(worker, fake))
+                    csParkReservationSub(worker, fake);
+                else
+                    csFinishOwnerSub(g);
                 j++;
                 continue;
             }
@@ -19557,6 +19815,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                               atomic_load_explicit(&WQ[i].head, memory_order_relaxed),
                               memory_order_release);
     }
+
+    /* Reservation waiters run after every currently advertised producer lane. Their single linked
+     * position is retained while still blocked, so the requeue bound is one per sub. */
+    if (worker->atomic_retry_head && csRetryReservationSubs(worker)) any = 1;
 
     /* ee451 (sparse handoff): re-advertise every lane that still holds work, so the
      * next pass visits it without a dense sweep. Producers only ever OR into this
