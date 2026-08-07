@@ -446,6 +446,9 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
  * destination io thread re-registers it. Only ever set/read by the client's owning
  * io thread and by the source thread during the drain window. */
 #define CLIENT_MIGRATING (1ULL << 57)
+/* Atomic MSET admission parked this client before taking a fake-ring slot. The
+ * command remains at pending_cmds.head until its owning event loop retries it. */
+#define CLIENT_ATOMIC_WINDOW_STALLED (1ULL << 58)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1800,6 +1803,10 @@ typedef struct client {
      * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
     listNode *mig_parked_node;
     int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
+    /* Atomic-MSET admission wait membership. Disconnect removes this owning-IO list entry before
+     * freeing the pending command; NULL means the client is not waiting for the global window. */
+    listNode *atomic_window_parked_node;
+    int atomic_window_parked_tid;
     uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
                                 * tomokv-strict-order != 0). Within a queue it is monotonic
                                 * (single producer), so the head is that queue's oldest; the
@@ -3139,6 +3146,8 @@ struct redisServer {
      * never a worker, so every other client on this thread, and both workers' other buckets, keep
      * running at full rate for the whole window. */
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
+    /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
+    list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
     /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
      * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
      * <= io_threads + num_workers (tm_ngrow_io <= num_workers by construction), so if that sum < 64
@@ -4043,6 +4052,7 @@ struct redisServer {
                                 * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
+    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 512. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -4905,6 +4915,11 @@ extern _Atomic unsigned long long tomo_nested_cmd_frames;
 /* ee451 (N): CLOSE_ASAP clients deferred by freeClientsInAsyncFreeQueue because their worker ring
  * was still in flight; defined in networking.c, reported as INFO tomokv_close_deferred_ring. */
 extern _Atomic unsigned long long tomo_close_deferred_ring;
+/* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
+ * single csReassemble teardown, including groups whose real connection has disconnected. */
+extern _Atomic int tomo_atomic_inflight;
+void tomoAtomicWindowChanged(void);
+void tomoAtomicUnstallClient(client *c);
 void freeClientOriginalArgv(client *c);
 void freeClientArgv(client *c);
 void freeClientPendingCommands(client *c, int num_pcmds_to_free);

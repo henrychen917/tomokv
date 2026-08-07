@@ -151,7 +151,7 @@ void fakeRingAutoTune(void);       /* 2s-auto T3 1Hz global express-slim EWMA (m
 void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-reset (owning thread) */
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
-static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
+static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission);  /* registry-driven dispatch fork */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
@@ -202,6 +202,107 @@ static _Atomic uint64_t commit_seq;
 static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
 static csGroup *commit_head, *commit_tail;
+
+/* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
+ * successful increment is immediately followed, on the same non-yielding processCommand stack,
+ * by construction and registration of exactly one versioned-write group. Using the counter itself
+ * as the CAS word makes the bound strict across concurrent IO producers (a load-then-increment
+ * would overshoot by up to the IO-thread count). There is no recoverable allocation/dispatch
+ * failure between reservation and csMsetRegister; allocation failure terminates the process.
+ * Window 0 increments at csMsetRegister instead, preserving today's dispatch/classification path. */
+_Atomic int tomo_atomic_inflight;
+static _Atomic int tomo_atomic_waiters;
+
+/* Every io-capable slot owns a notifier registered on its event loop. Triggering it never runs
+ * input processing here; its handler only drains the fd, and the normal beforeSleep pass performs
+ * retries after the admission frame has returned. */
+static void tomoAtomicWakeProducer(int t) {
+    if (t < 0 || t > TOMO_IO_THREADS_MAX) return;
+    eventNotifier *n = tm_mig_mbox[t].notifier;
+    if (n) triggerEventNotifier(n);
+}
+
+static void tomoAtomicWakeAll(void) {
+    int hi = server.io_threads + server.tm_ngrow_io - 1;
+    if (hi > TOMO_IO_THREADS_MAX) hi = TOMO_IO_THREADS_MAX;
+    for (int t = 0; t <= hi; t++) tomoAtomicWakeProducer(t);
+}
+
+void tomoAtomicWindowChanged(void) {
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+        tomoAtomicWakeAll();
+}
+
+/* Called only after the caller has established server.tomo_atomic. Consequently the admission
+ * path never reads tomokv-atomic-window while atomic visibility is disabled. Window 0 still
+ * counts groups for observability/exactly-once auditing, but never refuses one. */
+static int tomoAtomicMsetTryReserve(int window) {
+    if (window == 0) {
+        atomic_fetch_add_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+        return 1;
+    }
+    int cur = atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed);
+    while (cur < window) {
+        if (atomic_compare_exchange_weak_explicit(&tomo_atomic_inflight, &cur, cur + 1,
+                                                  memory_order_relaxed,
+                                                  memory_order_relaxed))
+            return 1;
+        /* Failed CAS refreshed cur; do not race past the bound. */
+    }
+    return 0;
+}
+
+static void tomoAtomicDropWaiter(client *c) {
+    serverAssert(c->atomic_window_parked_node != NULL);
+    int tid = c->atomic_window_parked_tid;
+    serverAssert(tid >= 0 && tid <= TOMO_IO_THREADS_MAX);
+    listDelNode(server.clients_atomic_window_parked[tid], c->atomic_window_parked_node);
+    c->atomic_window_parked_node = NULL;
+    int old = atomic_fetch_sub_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
+    serverAssert(old > 0);
+}
+
+void tomoAtomicUnstallClient(client *c) {
+    if (!c->atomic_window_parked_node) return;
+    tomoAtomicDropWaiter(c);
+    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
+}
+
+static void tomoAtomicParkClient(client *c) {
+    if (!c->atomic_window_parked_node) {
+        c->atomic_window_parked_tid = iotid;
+        listAddNodeTail(server.clients_atomic_window_parked[iotid], c);
+        c->atomic_window_parked_node =
+            listLast(server.clients_atomic_window_parked[iotid]);
+        atomic_fetch_add_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
+    }
+    c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
+    /* Closes the retire-vs-park missed-wakeup race: if a group retired just before waiter
+     * publication and therefore saw zero waiters, this event makes the owner recheck the now-open
+     * counter. If the window remains full the handler simply drains once and sleeps again. */
+    tomoAtomicWakeProducer(iotid);
+}
+
+/* Owning-event-loop retry. No worker or IO thread parks: a full-window command remains the head
+ * pending command and this sweep admits only while the global CAS reservation succeeds. A retry
+ * may consume the last slot (or race another producer and park again), so recheck every client. */
+static void tomoAtomicReleaseStalledClients(void) {
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
+    list *l = server.clients_atomic_window_parked[iotid];
+    while (l && listLength(l) != 0) {
+        int window = 0;
+        if (server.tomo_atomic) window = server.tomo_atomic_window;
+        if (window > 0 &&
+            atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) >= window)
+            return;
+        client *c = listNodeValue(listFirst(l));
+        tomoAtomicDropWaiter(c);
+        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
+        /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
+         * have returned. processInputBuffer may free c, so do not touch it after this call. */
+        processInputBuffer(c);
+    }
+}
 
 /* Version predecessors wait here until their successor's ticket is visible,
  * then enter the unchanged FLATSTORE QSBR retire path. Keeping this queue
@@ -3423,8 +3524,11 @@ void handleWorkerReplies(void) {
          * by cs_barrier is only released when the ring goes fully EMPTY
          * (dispatchid == flushid — see processInputBuffer). Waking it on every retiring
          * slot made it re-enter processInputBuffer, re-fail the barrier test and re-stall
-         * once per slot: O(ring depth) pointless entries per barrier. */
+         * once per slot: O(ring depth) pointless entries per barrier. Atomic-window stalls are
+         * global rather than ring predicates and stay owned by tomoAtomicReleaseStalledClients;
+         * clearing their shared PIPELINE_STALLED bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
+            !(real->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
             (real->cs_barrier ? (real->dispatchid == real->flushid)
                               : ((real->dispatchid - real->flushid) < real->ring_size)))
         {
@@ -3458,6 +3562,7 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
@@ -3609,6 +3714,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* Check for completed worker replies and feed them into
      * the pending write queue for flushing. */
     handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
 
     /* If workers still have commands in flight, don't sleep —
      * we need to check reply_ready again ASAP. */
@@ -5033,6 +5139,7 @@ void initServer(void) {
         server.clients_with_pending_ref_reply[t] = listCreate();
         server.clients_pending_ex[t]         = listCreate();
         server.clients_mig_parked[t]         = listCreate();   /* ee451 (H2 handover range-hold) */
+        server.clients_atomic_window_parked[t] = listCreate();
         server.current_client[t].p                 = NULL;
         server.executing_client[t].p               = NULL;
     }
@@ -5269,6 +5376,11 @@ void initServer(void) {
             serverPanic(
                 "Error registering the readable event for the module pipe.");
     }
+
+    /* Slot 0 (main) needs the same harmless event-loop wake fd as the auxiliary IO slots. It was
+     * previously unused by connection migration; atomic-window retirement can now wake a main-
+     * owned stalled client promptly instead of waiting for the next serverCron timer. */
+    tmMigInitSlot(0, server.el);
 
     aeSetBeforeSleepProc(server.el, beforeSleep);
     aeSetAfterSleepProc(server.el, afterSleep);
@@ -7267,6 +7379,42 @@ int processCommand(client *c) {
         migHoldClientIfDraining(c))
         return C_OK;
 
+    /* Bounded atomic-write admission: this is the last gate before a fake-ring slot is taken and
+     * execution state is moved off the real client. On refusal, no group/sub exists, dispatchid is
+     * unchanged, and commandProcessed is suppressed by CLIENT_PIPELINE_STALLED, so the current
+     * pending_cmd remains the executable input head for a later event-loop retry. This parser uses
+     * pendingCommand objects for already-decoded bytes; its equivalent of "qb_pos unadvanced" is
+     * precisely that the pending head is not popped/consumed by prepareForNextCommand. */
+    const csCmdSpec *atomic_csp = NULL;
+    int atomic_mset_admission = 0;   /* 0=not atomic MSET, 1=finite slot reserved, 2=unlimited */
+    if (__builtin_expect(server.tomo_atomic != 0, 0)) {
+        /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
+         * command cannot change route between reserving the counter and creating its group. */
+        int window = server.tomo_atomic_window;
+        if (c->cmd->tomo_route & TOMO_R_CROSS) {
+            if (window == 0) {
+                /* Do not move classification out of its established fake-client dispatch site in
+                 * unlimited mode. A malformed/non-ported form will still get csp==NULL there and
+                 * never consume this marker. */
+                const csCmdSpec *candidate = c->cmd->cs_spec;
+                if (candidate && candidate->ctype == CS_MSET)
+                    atomic_mset_admission = 2;
+            } else {
+                const csCmdSpec *candidate = csClassify(c);
+                if (candidate && candidate->ctype == CS_MSET) {
+                    if (!tomoAtomicMsetTryReserve(window)) {
+                        tomoAtomicParkClient(c);
+                        return C_OK;
+                    }
+                    /* Reuse the classified row only on the bounded arm. Window 0 deliberately
+                     * retains today's later fake-client classification/dispatch sequence. */
+                    atomic_csp = candidate;
+                    atomic_mset_admission = 1;
+                }
+            }
+        }
+    }
+
     /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
      * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
      * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
@@ -7336,7 +7484,8 @@ int processCommand(client *c) {
         replyWorking++;
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else {
-    const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
+    const csCmdSpec *csp = atomic_csp ? atomic_csp :
+        ((fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL);
     /* M-READS ARE SCATTER-GATHER ONLY (2026-07-27). Both single-executor routes that used to sit
      * here — the per-node worker-borrow and the flat-native whole-MGET — had ONE executor read keys
      * it does NOT own, bypassing the owner's queue and therefore the per-key FIFO that makes
@@ -7360,7 +7509,7 @@ int processCommand(client *c) {
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
-        csDispatch(fake, csp);   /* xshard registry: route kind from the row */
+        csDispatch(fake, csp, atomic_mset_admission);   /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
@@ -11141,7 +11290,7 @@ static void dispatchLocalReal(client *head, int w, int dbid) {
     csPushSpin(w, sub);
 }
 
-static void dispatchGather(client *head, const csCmdSpec *s) {
+static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admission) {
     int first = csFirstKeyArg(s);
     int nkeys, dbid = head->db->id;
     if (s->gather_geom) serverAssert(s->gather_geom(head,&first,&nkeys));
@@ -11150,7 +11299,10 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     int atomic_mget = s->ctype == CS_MGET && server.tomo_atomic;
-    int atomic_mset = s->ctype == CS_MSET && server.tomo_atomic;
+    /* MSET uses the atomic-mode snapshot taken at the pre-ring gate. That closes the live CONFIG
+     * SET race: a finite reservation cannot leak if tomokv-atomic flips before group creation, and
+     * a command admitted while OFF cannot suddenly bypass a newly-enabled finite window. */
+    int atomic_mset = s->ctype == CS_MSET && atomic_admission != 0;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
      * read, no borrowing, no extra locks. This path SURVIVES.
@@ -11246,6 +11398,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
     if (atomic_mget) {
+        serverAssert(!atomic_admission);
         /* Publish the existing QSBR region before reading the frontier. A
          * predecessor made reclaimable by a later commit therefore either
          * sees this reader in its fresh grace or this reader sees that commit. */
@@ -11253,7 +11406,15 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         g->snapshot_pinned = 1;
         g->version_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
     } else if (atomic_mset) {
+        /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
+         * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
+         * exactly one reservation before any owner sub is published. Unlimited mode deliberately
+         * retains today's route and increments here, at actual group creation. */
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         csMsetRegister(g);
+    } else {
+        serverAssert(!atomic_admission);
     }
 
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
@@ -11324,11 +11485,11 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
 }
 
 /* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
-static void csDispatch(client *head, const csCmdSpec *s) {
+static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission) {
     switch (s->route) {
-    case CS_RT_FANALL: dispatchFanAll(head); return;   /* verbatim, untouched */
-    case CS_RT_TWOHOP: dispatchTwoHop(head, s); return;
-    default:           dispatchGather(head, s); return;
+    case CS_RT_FANALL: serverAssert(!atomic_admission); dispatchFanAll(head); return;   /* verbatim, untouched */
+    case CS_RT_TWOHOP: serverAssert(!atomic_admission); dispatchTwoHop(head, s); return;
+    default:           dispatchGather(head, s, atomic_admission); return;
     }
 }
 
@@ -12799,6 +12960,17 @@ static void csReassemble(client *dst, client *head) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
     }
+    /* Exactly-once atomic admission retirement. csReassemble is the group's single terminal
+     * point: stage/HOP2 advances return before it, while both live reply publication and the
+     * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
+     * only by csMsetRegister after the pre-ring reservation, so every increment has this one
+     * decrement and no non-atomic group can decrement it. */
+    if (g->versioned_write) {
+        int old = atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+        serverAssert(old > 0);
+        if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+            tomoAtomicWakeAll();
+    }
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
 }
@@ -13302,9 +13474,8 @@ static int migProducerLive(int t) {
  * Slot 0 is the main thread: it pushes its sentinel from beforeSleep and from the hold spin, and
  * it is the thread running this code, so there is nothing to wake. */
 static void migWakeProducer(int t) {
-    if (t <= 0 || t > TOMO_IO_THREADS_MAX) return;
-    eventNotifier *n = tm_mig_mbox[t].notifier;
-    if (n) triggerEventNotifier(n);
+    if (t <= 0) return;
+    tomoAtomicWakeProducer(t);
 }
 
 static void reshardCoordinatorTick(void) {
@@ -16668,6 +16839,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
             "tomokv_xshard_mset_moved:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
+            "tomokv_atomic_inflight:%d\r\n",
+                atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
@@ -20866,6 +21039,7 @@ static int tmClientMigratable(client *c) {
      * the quiesce fence below would otherwise consider it migratable precisely BECAUSE its ring is
      * empty — which is exactly what parking guarantees. */
     if (c->mig_parked_node) return 0;
+    if (c->atomic_window_parked_node) return 0;
     if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
     if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
                     CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |

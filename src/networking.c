@@ -194,6 +194,8 @@ static void resetFakeClientState(client *c, client *parent) {
     c->drain_ack = NULL;
     c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
     c->mig_parked_tid = 0;
+    c->atomic_window_parked_node = NULL;
+    c->atomic_window_parked_tid = 0;
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
     c->bufpos = 0;
@@ -550,6 +552,8 @@ client *createClient(connection *conn) {
      * 21013fded, which is what got it reverted). Initialize both, here, like cs_barrier above. */
     c->mig_parked_node = NULL;
     c->mig_parked_tid  = 0;
+    c->atomic_window_parked_node = NULL;
+    c->atomic_window_parked_tid  = 0;
     c->fake_ring_cur_depth  = 0;
     c->fake_ring_decay_skip = 0;
     c->fake_ring_hwm_ewma   = 0.0;
@@ -2354,6 +2358,10 @@ void unlinkClient(client *c) {
      * reference it — the park list would be the only holder of the pointer, and a stale entry there
      * is a use-after-free the next time the range changes hands. Cheap: one NULL test. */
     if (__builtin_expect(c->mig_parked_node != NULL, 0)) migUnparkClient(c);
+    /* An admission-stalled command owns no fake-ring slot, so its wait-list entry is the only
+     * out-of-client reference. Remove it before pending_cmds is reclaimed. */
+    if (__builtin_expect(c->atomic_window_parked_node != NULL, 0))
+        tomoAtomicUnstallClient(c);
 
     /* If this is marked as current client unset it. */
     if (c->conn && server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;
