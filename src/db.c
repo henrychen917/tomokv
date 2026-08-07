@@ -1082,6 +1082,23 @@ static inline int tomoVersionNewerThan(kvobj *candidate, uint64_t version_seq,
     return candidate->vmeta->version_order > version_order;
 }
 
+/* A repaired chain has one UNCOMMITTED prefix followed by committed versions
+ * in descending completion order. Equal committed seqs are duplicate keys from
+ * one MSET and retain the explicit last-install-wins order. */
+static void tomoAssertVersionChainMonotone(kvobj *head) {
+    while (head && head->vmeta && head->vmeta->version_prev) {
+        kvobj *older = head->vmeta->version_prev;
+        if (!older->vmeta) break; /* The pre-versioning value is the tail. */
+
+        uint64_t head_seq = kvobjVersionSeq(head);
+        uint64_t older_seq = kvobjVersionSeq(older);
+        serverAssert(head_seq >= older_seq);
+        if (head_seq == older_seq && head_seq != TOMO_VERSION_UNCOMMITTED)
+            serverAssert(head->vmeta->version_order > older->vmeta->version_order);
+        head = older;
+    }
+}
+
 /* Apply a completion-order stamp on the key owner. Atomic MSET installs always
  * splice at the table head while their seq is UNCOMMITTED, so completion order
  * can disagree with that install order. Remove this exact store object, insert
@@ -1153,18 +1170,26 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
         newer->vmeta->version_prev = kv;
     }
 
+    /* The dict entry is the plain-GET head. If relocation changes the maximum
+     * (seq,install-order) node, publish the repaired head as part of the same
+     * owner-local pointer surgery. */
     if (head != oldhead)
         kvstoreDictSetAtLink(kvs, slot, head, &link, 0);
     atomic_store_explicit(&kv->vmeta->version_seq, version_seq, memory_order_release);
     kv->vmeta->stamp_state = TOMO_STAMP_APPLIED;
 
-    /* Every owner's stamp lane is FIFO in (seq,install-order), so only an
-     * UNCOMMITTED node may remain before the version just applied. Allowing a
-     * committed newer node here would make an older pending duplicate depend on
-     * an already-retirable chain link. Prevent that at the enqueue source and
-     * keep this assertion loud if the ordering contract is ever broken. */
-    serverAssert(!newer || kvobjVersionSeq(newer) == TOMO_VERSION_UNCOMMITTED);
-    if (kv->vmeta->version_prev) {
+    tomoAssertVersionChainMonotone(head);
+
+    /* Retirement follows the repaired edges. If an already-committed node is
+     * immediately newer, it had previously queued the lower neighbor that kv
+     * has just displaced; queueing that neighbor again would double-retire it.
+     * Instead, the newer node supersedes kv at its own seq. With no committed
+     * node above kv, kv owns retirement of its new lower predecessor. */
+    uint64_t newer_seq = newer ? kvobjVersionSeq(newer) : TOMO_VERSION_UNCOMMITTED;
+    if (newer && newer_seq != TOMO_VERSION_UNCOMMITTED) {
+        serverAssert(newer->vmeta->stamp_state == TOMO_STAMP_APPLIED);
+        tomoRetireVersion(kvs, kv, newer_seq);
+    } else if (kv->vmeta->version_prev) {
         kvobj *older = kv->vmeta->version_prev;
         serverAssert(!older->vmeta ||
                      (kvobjVersionSeq(older) != TOMO_VERSION_UNCOMMITTED &&
