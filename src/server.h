@@ -1751,6 +1751,15 @@ typedef struct client {
      * Set at dispatch when such a group is armed; the next command from this client stalls
      * until the ring drains (the stateful-drain idiom). Real clients only, IO-thread only. */
     unsigned int cs_barrier;
+    /* CURE2 R1 + I7. Only real clients use the completion FIFO/latch. A
+     * command-scoped read pin belongs to a ring fake until a cross-shard group
+     * takes it over; the snapshot is drawn before its owner jobs are queued. */
+    redisAtomic int mset_pending_lock;
+    redisAtomic int mset_drain_latch;
+    struct csGroup *mset_pending_head;
+    struct csGroup *mset_pending_tail;
+    uint64_t tomo_read_snapshot;
+    unsigned int tomo_read_snapshot_pinned;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
     unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
@@ -2078,6 +2087,12 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
+typedef struct csMsetInstall {
+    kvobj *kv;                   /* exact store object returned by setKeyVersioned */
+    int owner;                   /* sole owner that applies both embedded operations */
+    uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
+} csMsetInstall;
+
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2087,7 +2102,12 @@ typedef struct csGroup {
     client *head;              /* the group-head fake (the ring slot) */
     uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
-    redisAtomic int commit_ready; /* every owner installed this ticket */
+    client *mset_client;         /* real-client owner of the R1 pending FIFO */
+    struct csGroup *mset_pending_prev;
+    struct csGroup *mset_pending_next;
+    redisAtomic int mset_complete;      /* every owner installed this group */
+    redisAtomic int mset_install_count;
+    csMsetInstall *mset_installs;       /* [nkeys], atomic-MSET arm only */
     int versioned_write;         /* this group is an atomic MSET install */
     int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
@@ -2503,6 +2523,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
@@ -4918,6 +4939,7 @@ extern _Atomic unsigned long long tomo_close_deferred_ring;
 /* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
  * single csReassemble teardown, including groups whose real connection has disconnected. */
 extern _Atomic int tomo_atomic_inflight;
+extern _Atomic unsigned long long tomo_atomic_promotions;
 void tomoAtomicWindowChanged(void);
 void tomoAtomicUnstallClient(client *c);
 void freeClientOriginalArgv(client *c);
@@ -5777,9 +5799,14 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 #define SETKEY_EMBED_RAW 16
 
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
-void setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
-                     uint64_t version_seq);
-void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq);
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
+                       uint64_t version_seq);
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
+void tomoVersionPruneAfterGrace(kvobj *anchor);
+void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
+uint64_t tomoCurrentReadSnapshot(void);
+uint64_t tomoCommittedSeq(void);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);
@@ -6353,6 +6380,7 @@ void initIOThreads(void);
 /* Worker thread functions */
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
+int exQueuePopBatch(exQueue *q, client **out, int max);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */

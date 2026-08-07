@@ -19,8 +19,10 @@
  * below server.h in the layering. kvobj = struct redisObject; the stored slot ptr is tag-masked
  * (ENTRY_PTR_MASK low 3 bits), decoded by masking them off. */
 typedef struct redisObject kvobj;
+struct _kvstore;
 sds kvobjGetKey(const kvobj *kv);
 uint64_t tomoKeyHash(const void *key, size_t len);
+void tomoRetireDetachedBag(struct _kvstore *kvs, kvobj *head);
 #define flatDecodeKV(de) ((kvobj *)((uintptr_t)(void *)(de) & ~(uintptr_t)7))
 
 #include <string.h>
@@ -85,6 +87,14 @@ void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw) {
 void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (unmasked) kvobj */
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetire(t, flatKvMask(kvs, rawkv));
+}
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv) {
+    flatTable *t = flatCurrent(kvs);
+    if (t && rawkv) flatRetireVersionPrune(t, rawkv);
+}
+void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta) {
+    flatTable *t = flatCurrent(kvs);
+    if (t && vmeta) flatRetireVmeta(t, vmeta);
 }
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
     flatTable *t = flatCurrent(kvs);
@@ -359,7 +369,10 @@ void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
         flatTable *t = flatCurrent(kvs);
         if (t) for (uint64_t i = 0; i < t->size; i++) {
             uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
-            if (FLAT_IS_LIVE(w)) flatRetire(t, flatDelete(t, i));
+            if (FLAT_IS_LIVE(w)) {
+                dictEntry *old = flatDelete(t, i);
+                if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+            }
         }
         UNUSED(callback);
         /* fall through: the dict loop is a no-op (dicts NULL under flat); the tail resets counts. */
@@ -1145,7 +1158,8 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, int table_index) {
     if (kvs->flags & KVSTORE_FLAT) {
         flatTable *t = flatCurrent(kvs);
-        flatRetire(t, flatDelete(t, flatSlotOf(t, link)));   /* QSBR: defer free past a reader grace */
+        dictEntry *old = flatDelete(t, flatSlotOf(t, link));
+        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         (void)table_index;
         return;
@@ -1161,7 +1175,8 @@ int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
         flatTable *t = flatCurrent(kvs);
         size_t len = sdslen((sds)key);
         uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
-        flatRetire(t, flatDelete(t, slot));              /* QSBR: defer free past a reader grace */
+        dictEntry *old = flatDelete(t, slot);
+        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         return DICT_OK;
     }

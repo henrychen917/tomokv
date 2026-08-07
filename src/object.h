@@ -67,9 +67,14 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include <stdint.h>
+#include <stdatomic.h>
+
 /* forward declarations */
 struct client;
 struct RedisModuleType;
+struct redisObject;
+struct _kvstore;
 
 /* Object encodings (see header comment below for details). */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
@@ -96,10 +101,42 @@ struct RedisModuleType;
 #define OBJ_STATIC_REFCOUNT ((1 << OBJ_REFCOUNT_BITS) - 2) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
+typedef enum tomoOwnerOpKind {
+    TOMO_OWNER_OP_STAMP = 1,
+    TOMO_OWNER_OP_PRUNE = 2,
+} tomoOwnerOpKind;
+
+typedef struct tomoOwnerOp {
+    struct redisObject *kv;
+    uint64_t seq;
+    tomoOwnerOpKind kind;
+} tomoOwnerOp;
+
+typedef enum tomoStampState {
+    TOMO_STAMP_PENDING = 0,
+    TOMO_STAMP_APPLIED,
+} tomoStampState;
+
+typedef enum tomoRetireState {
+    TOMO_RETIRE_ACTIVE = 0,
+    TOMO_RETIRE_PRUNE_GRACE,
+    TOMO_RETIRE_PHYSICAL,
+} tomoRetireState;
+
 struct tomoVerMeta {
-    uint64_t version_seq;
+    _Atomic uint64_t version_seq;
+    uint32_t version_order;
+    uint8_t version_tombstone;
+    uint8_t stamp_state;
+    uint8_t retire_state;
+    uint8_t detached;
+    _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
+    struct _kvstore *version_kvs;
+    tomoOwnerOp owner_op[2];
 };
+
+#define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
 struct redisObject {
     unsigned type:3;
@@ -138,11 +175,59 @@ sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
-/* Select the newest version visible at a cross-shard MGET snapshot. */
+static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
+    return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
+    __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+}
+
+static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return atomic_load_explicit(&vmeta->version_seq, memory_order_acquire);
+}
+
+static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
+}
+
+/* I2: the physical chain is an install-ordered bag. Resolve it without making
+ * any assumption about chain order: among committed versions visible at S,
+ * the greatest (seq,install_order) wins. A vmeta-free tail is the pre-epoch
+ * value (implicit seq 0); no winner, or a tombstone winner, means absent. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    while (kv && kv->vmeta && kv->vmeta->version_seq > snapshot)
-        kv = kv->vmeta->version_prev;
-    return kv;
+    kvobj *best = NULL;
+    uint64_t best_seq = 0;
+    uint32_t best_order = 0;
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) {
+            if (!best) best = kv;
+            break;
+        }
+        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
+                                             memory_order_acquire);
+        if (seq != TOMO_VERSION_UNCOMMITTED && seq <= snapshot &&
+            (!best || seq > best_seq ||
+             (seq == best_seq && vmeta->version_order > best_order))) {
+            best = kv;
+            best_seq = seq;
+            best_order = vmeta->version_order;
+        }
+        kv = __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+    }
+    if (best) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(best);
+        if (vmeta && vmeta->version_tombstone) return NULL;
+    }
+    return best;
 }
 
 /* Redis object implementation */
