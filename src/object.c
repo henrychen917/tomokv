@@ -84,9 +84,9 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
     char *alloc = zmalloc(min_size);
     kvobj *kv = (kvobj *) (alloc + sizeMetas);
     kv->type = type;
-    kv->tomo_versioned = 0;
     kv->encoding = OBJ_ENCODING_RAW;
     kv->ptr = ptr;
+    kv->vmeta = NULL;
     kv->refcount = 1;
     kv->lru = 0;
     kv->iskvobj = 1;
@@ -108,9 +108,9 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
 robj *createObject(int type, void *ptr) {
     robj *o = zmalloc(sizeof(*o));
     o->type = type;
-    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_RAW;
     o->ptr = ptr;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->iskvobj = 0;
@@ -188,8 +188,8 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
     o = (kvobj *) (alloc + sizeMetas);
 
     o->type = OBJ_STRING;
-    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_EMBSTR;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = keyMetaBits;
@@ -229,8 +229,8 @@ robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     size_t bufsize = 0;
     robj *o = zmalloc_usable(sizeof(robj) + val_sds_size, &bufsize);
     o->type = OBJ_STRING;
-    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_EMBSTR;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = 0;
@@ -737,6 +737,8 @@ void decrRefCount(robj *o) {
             default: serverPanic("Unknown object type"); break;
             }
         }
+        if (o->vmeta)
+            zfree(o->vmeta);
         zfree(alloc);
     }
 }
@@ -1344,6 +1346,8 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
 size_t kvobjAllocSize(kvobj *o) {
     /* All kv-objects has at least kvobj header and embedded key */
     size_t asize = zmalloc_size(kvobjGetAllocPtr(o));
+    if (o->vmeta)
+        asize += zmalloc_size(o->vmeta);
 
     if (o->type == OBJ_STRING) {
         asize += stringObjectAllocSize(o);

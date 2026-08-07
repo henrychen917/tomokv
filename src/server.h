@@ -1073,11 +1073,11 @@ char *getObjectTypeName(robj*);
 #define initStaticStringObject(_var,_ptr) do { \
     _var.refcount = OBJ_STATIC_REFCOUNT; \
     _var.type = OBJ_STRING; \
-    _var.tomo_versioned = 0; \
     _var.encoding = OBJ_ENCODING_RAW; \
     _var.metabits = 0; \
     _var.iskvobj = 0; \
     _var.ptr = _ptr; \
+    _var.vmeta = NULL; \
 } while(0)
 
 struct evictionPoolEntry; /* Defined in evict.c */

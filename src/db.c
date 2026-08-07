@@ -445,9 +445,9 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq) {
-        kv->tomo_versioned = 1;
-        kv->version_seq = version_seq;
-        kv->version_prev = NULL;
+        kv->vmeta = zmalloc(sizeof(*kv->vmeta));
+        kv->vmeta->version_seq = version_seq;
+        kv->vmeta->version_prev = NULL;
     }
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
@@ -701,10 +701,11 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
          * encoding with the content of val. */
         robj tmp = *old;
         old->type = val->type;
-        old->tomo_versioned = 0;
+        old->vmeta = val->vmeta;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
+        val->vmeta = tmp.vmeta;
         val->encoding = tmp.encoding;
         val->ptr = tmp.ptr;
         /* Set new to old to keep the old object. Set old to val to be freed below. */
@@ -720,9 +721,9 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
         if (version_seq) {
-            kvNew->tomo_versioned = 1;
-            kvNew->version_seq = version_seq;
-            kvNew->version_prev = old;
+            kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
+            kvNew->vmeta->version_seq = version_seq;
+            kvNew->vmeta->version_prev = old;
         }
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
@@ -832,10 +833,11 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     {
         robj tmp = *old;
         old->type = val->type;
-        old->tomo_versioned = 0;
+        old->vmeta = val->vmeta;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
+        val->vmeta = tmp.vmeta;
         val->encoding = tmp.encoding;
         val->ptr = tmp.ptr;
         kvNew = old;
@@ -973,26 +975,27 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
     /* Tickets are global, but different IO producers can enqueue overlapping
      * MSETs to an owner in a different order. Insert an older ticket into the
      * already-published chain instead of letting it replace a newer head. */
-    if (version_seq && exists && oldval->tomo_versioned &&
-        oldval->version_seq > version_seq) {
+    if (version_seq && exists && oldval->vmeta &&
+        oldval->vmeta->version_seq > version_seq) {
         serverAssert(kvstoreIsFlat(db->keys));
         robj *val = *valref;
         val->lru = oldval->lru;
         kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
                                   (flags & SETKEY_EMBED_RAW) != 0);
-        kvNew->tomo_versioned = 1;
-        kvNew->version_seq = version_seq;
+        kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
+        kvNew->vmeta->version_seq = version_seq;
 
         kvobj *successor = oldval;
-        while (successor->version_prev && successor->version_prev->tomo_versioned &&
-               successor->version_prev->version_seq > version_seq)
-            successor = successor->version_prev;
-        kvNew->version_prev = successor->version_prev;
-        successor->version_prev = kvNew;
+        while (successor->vmeta->version_prev &&
+               successor->vmeta->version_prev->vmeta &&
+               successor->vmeta->version_prev->vmeta->version_seq > version_seq)
+            successor = successor->vmeta->version_prev;
+        kvNew->vmeta->version_prev = successor->vmeta->version_prev;
+        successor->vmeta->version_prev = kvNew;
 
         /* kvNew is already superseded by successor. Its ref enters the same
          * retire machinery, but only once successor's epoch is committed. */
-        tomoRetireVersion(db->keys, kvNew, successor->version_seq);
+        tomoRetireVersion(db->keys, kvNew, successor->vmeta->version_seq);
         *valref = kvNew;
 
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);

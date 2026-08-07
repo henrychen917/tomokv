@@ -202,8 +202,6 @@ static _Atomic uint64_t commit_seq;
 static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
 static csGroup *commit_head, *commit_tail;
-_Static_assert(OBJ_STREAM < 8,
-               "tomo_versioned shares the formerly-unused high object-type bit");
 
 /* Version predecessors wait here until their successor's ticket is visible,
  * then enter the unchanged FLATSTORE QSBR retire path. Keeping this queue
@@ -218,6 +216,9 @@ typedef struct tomoVersionRetire {
 static _Atomic(tomoVersionRetire *) version_retire_pending;
 
 void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
+    /* Keep vmeta owned by kv while it is reachable by snapshot readers. Once
+     * this ticket commits, csReleaseCommittedVersions starts the QSBR grace;
+     * the final decrRefCount after that grace frees kv and its vmeta together. */
     tomoVersionRetire *n = zmalloc(sizeof(*n));
     n->kvs = kvs;
     n->kv = kv;
