@@ -8514,6 +8514,7 @@ static void csReleaseCommittedVersions(uint64_t visible) {
  * highest contiguous prefix, so no IO drain ever waits for a missing ticket. */
 static void csMsetInstallDone(csGroup *g) {
     atomic_store_explicit(&g->commit_ready, 1, memory_order_release);
+    uint64_t advanced = 0;   /* highest commit_seq published this pass (0 = published nothing) */
     csCommitLock();
     while (commit_head &&
            atomic_load_explicit(&commit_head->commit_ready, memory_order_acquire)) {
@@ -8521,13 +8522,20 @@ static void csMsetInstallDone(csGroup *g) {
         commit_head = done->commit_next;
         if (!commit_head) commit_tail = NULL;
         atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
-        csReleaseCommittedVersions(done->version_seq);
+        advanced = done->version_seq;                 /* read BEFORE cdbSlotPublish frees `done` */
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* cdbSlotPublish is the final access to done: its owning IO may now
          * reassemble and free the group concurrently. */
     }
     csCommitUnlock();
+    /* Reclamation is OUTSIDE the commit spinlock: it is O(retire-list) walk+free work, already
+     * internally atomic (version_retire_pending is CAS-managed) and bounded by QSBR grace, so it
+     * needs no ordering lock. Holding it inside made every saturating writer busy-spin on the flag
+     * while one holder freed nodes => pure-MSET throughput collapsed ~250x. One call with the final
+     * published watermark reclaims everything now <= commit_seq (concurrent callers race safely via
+     * the atomic_exchange of the pending list). */
+    if (advanced) csReleaseCommittedVersions(advanced);
 }
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
