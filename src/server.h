@@ -1076,6 +1076,8 @@ char *getObjectTypeName(robj*);
     _var.encoding = OBJ_ENCODING_RAW; \
     _var.metabits = 0; \
     _var.iskvobj = 0; \
+    _var.version_seq = 0; \
+    _var.version_prev = NULL; \
     _var.ptr = _ptr; \
 } while(0)
 
@@ -2077,6 +2079,10 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
+    uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
+    struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
+    redisAtomic int commit_ready; /* every owner installed this ticket */
+    int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
@@ -5755,6 +5761,8 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 #define SETKEY_EMBED_RAW 16
 
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
+void setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
+                     uint64_t version_seq);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);

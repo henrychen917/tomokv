@@ -108,6 +108,12 @@ struct redisObject {
                             * LFU data (least significant 8 bits frequency
                             * and most significant 16 bits access time). */
     void *ptr;
+
+    /* Cross-shard MSET MVCC-lite state. Only meaningful for kvobjs. A zero
+     * sequence is the always-committed baseline used by ordinary writes;
+     * version_prev links older MSET versions until the FLATSTORE QSBR grace. */
+    uint64_t version_seq;
+    struct redisObject *version_prev;
 };
 
 /* robj - General purpose redis object */
@@ -128,6 +134,12 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
+
+/* Select the newest version visible at a cross-shard MGET snapshot. */
+static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+    while (kv && kv->version_seq > snapshot) kv = kv->version_prev;
+    return kv;
+}
 
 /* Redis object implementation */
 void decrRefCount(robj *o);

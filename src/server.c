@@ -195,6 +195,14 @@ static void csReassemble(client *dst, client *head);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
 
+/* Epoch-versioned MSET visibility. Tickets are appended under commit_lock so
+ * the intrusive queue is in exactly next_seq order. Install work is fully
+ * concurrent; only the highest-contiguous frontier publication is ordered. */
+static _Atomic uint64_t commit_seq;
+static _Atomic uint64_t next_seq;
+static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
+static csGroup *commit_head, *commit_tail;
+
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
  * io_threads..io_threads+ngrow = flip growth slots). Each field is written ONLY by the owning
@@ -7776,6 +7784,34 @@ static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_
     }
 }
 
+/* Version predecessors cannot start their ordinary QSBR grace until their
+ * successor is visible. Splitting here (rather than merely delaying a batch's
+ * free) takes the reader census after commit, so an MGET that acquired the old
+ * frontier between install and commit is included in the existing grace. */
+static flatRetireNode *flatTakeCommittedRetires(flatRetireNode **list) {
+    uint64_t visible = atomic_load_explicit(&commit_seq, memory_order_acquire);
+    flatRetireNode *ready = NULL, *deferred = NULL;
+    for (flatRetireNode *n = *list; n; ) {
+        flatRetireNode *next = n->next;
+        if (n->version_seq <= visible) { n->next = ready; ready = n; }
+        else { n->next = deferred; deferred = n; }
+        n = next;
+    }
+    *list = deferred;
+    return ready;
+}
+
+static void flatPushRetireList(flatTable *t, flatRetireNode *list) {
+    if (!list) return;
+    flatRetireNode *tail = list;
+    while (tail->next) tail = tail->next;
+    flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
+    do { tail->next = head; }
+    while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, list,
+                                                   memory_order_release,
+                                                   memory_order_relaxed));
+}
+
 /* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
  * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
@@ -7788,11 +7824,13 @@ static void flatWorkerReclaim(exThread *worker) {
          * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
          * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
          * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
-        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
-        worker->flat_retire_local = NULL;
-        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
-        else worker->flat_batches_local = b;
-        worker->flat_batches_tail = b;
+        flatRetireNode *ready = flatTakeCommittedRetires(&worker->flat_retire_local);
+        if (ready) {
+            flatBatch *b = flatBatchClose(ready, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+            if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+            else worker->flat_batches_local = b;
+            worker->flat_batches_tail = b;
+        }
     }
     /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
     while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
@@ -7856,7 +7894,11 @@ static void flatReclaimTable(flatTable *t) {
      * threads land here), so an unconditional `lock xchg` would dirty the line for nothing. */
     if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
         flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
-        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL, NULL);
+        if (pend) {
+            flatRetireNode *ready = flatTakeCommittedRetires(&pend);
+            flatPushRetireList(t, pend);
+            if (ready) t->batches = flatBatchClose(ready, t->batches, NULL, NULL);
+        }
     }
     if (t->batches) flatDrainReadyBatches(&t->batches, NULL, NULL);
 }
@@ -8354,6 +8396,48 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *                and means nothing. This counter must be NONZERO for such a run to count as
  *                evidence, and reads 0 with the knob off. */
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
+
+static inline void csCommitLock(void) {
+    while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
+        exPauseCpu();
+}
+static inline void csCommitUnlock(void) {
+    atomic_flag_clear_explicit(&commit_lock, memory_order_release);
+}
+
+/* Register before any owner sub is published. Holding the tiny queue lock
+ * across ticket allocation and append makes the intrusive list exactly match
+ * ticket order without a bitmap or an unbounded sparse index. */
+static void csMsetRegister(csGroup *g) {
+    csCommitLock();
+    g->version_seq = atomic_fetch_add_explicit(&next_seq, 1,
+                                                memory_order_relaxed) + 1;
+    g->commit_next = NULL;
+    if (commit_tail) commit_tail->commit_next = g;
+    else commit_head = g;
+    commit_tail = g;
+    csCommitUnlock();
+}
+
+/* Called by an MSET's last owner after the pending barrier acquired every
+ * install. Ready tickets may finish out of order; publish and signal only the
+ * highest contiguous prefix, so no IO drain ever waits for a missing ticket. */
+static void csMsetInstallDone(csGroup *g) {
+    atomic_store_explicit(&g->commit_ready, 1, memory_order_release);
+    csCommitLock();
+    while (commit_head &&
+           atomic_load_explicit(&commit_head->commit_ready, memory_order_acquire)) {
+        csGroup *done = commit_head;
+        commit_head = done->commit_next;
+        if (!commit_head) commit_tail = NULL;
+        atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
+        client *hp = done->head->parent;
+        cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
+        /* cdbSlotPublish is the final access to done: its owning IO may now
+         * reassemble and free the group concurrently. */
+    }
+    csCommitUnlock();
+}
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
@@ -9310,14 +9394,18 @@ static void csSubExec(client *sub) {
              * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
              * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
             for (int a = 1; a < sub->argc; a++) {
-                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                robj *o = kvobjVersionAt(
+                    lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE),
+                    g->version_seq);
                 if (o != NULL && o->type == OBJ_STRING)
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
                                                                    : sdsfromlonglong((long)o->ptr);
             }
         } else {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
-            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+            robj *o = kvobjVersionAt(
+                lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE),
+                g->version_seq);
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
         }
@@ -9387,7 +9475,11 @@ static void csSubExec(client *sub) {
                     sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);   /* hash-carry: reuse A2 */
                     sub->tomo_bkt_ptr = keyo->ptr;
                     sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-                    setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+                    if (g->ctype == CS_MSET)
+                        setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
+                                        g->version_seq);
+                    else
+                        setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
                     sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
                     notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
                     markDirty(1);
@@ -9401,7 +9493,11 @@ static void csSubExec(client *sub) {
         for (int a = 1; a + 1 < sub->argc; a += 2) {
             robj *keyo = sub->argv[a];
             sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-            setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+            if (g->ctype == CS_MSET)
+                setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
+                                g->version_seq);
+            else
+                setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
             sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
             notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
             markDirty(1);
@@ -10912,7 +11008,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && nkeys >= 1) {
+    if (!s->cs_write && !s->has_hop2 && s->ctype != CS_MGET && nkeys >= 1) {
         /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
          * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
          * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
@@ -10984,6 +11080,17 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
+
+    if (s->ctype == CS_MGET) {
+        /* Publish the existing QSBR region before reading the frontier. A
+         * predecessor made reclaimable by a later commit therefore either
+         * sees this reader in its fresh grace or this reader sees that commit. */
+        flatQsbrRegionEnter();
+        g->snapshot_pinned = 1;
+        g->version_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
+    } else if (s->ctype == CS_MSET) {
+        csMsetRegister(g);
+    }
 
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
@@ -12524,6 +12631,10 @@ static void csReassemble(client *dst, client *head) {
     }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs);
+    if (g->snapshot_pinned) {
+        g->snapshot_pinned = 0;
+        flatQsbrRegionExit();
+    }
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
 }
@@ -19044,8 +19155,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                                                      memory_order_acq_rel) == 1;
                 }
                 if (last) {
-                    client *hp = g->head->parent;
-                    cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                    if (g->ctype == CS_MSET) {
+                        csMsetInstallDone(g);
+                    } else {
+                        client *hp = g->head->parent;
+                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                    }
                 }
                 j++;
                 continue;

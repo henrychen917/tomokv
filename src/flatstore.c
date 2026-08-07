@@ -103,7 +103,7 @@ void flatNodePoolTrim(void) {
     flat_node_pool_lowat = flat_node_pool_n;
 }
 
-void flatRetire(flatTable *t, dictEntry *masked_kv) {
+void flatRetireVersion(flatTable *t, dictEntry *masked_kv, uint64_t version_seq) {
     if (!masked_kv) return;
     flatRetireNode *n = flat_node_pool;
     if (n) {
@@ -113,6 +113,7 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
         n = zmalloc(sizeof(*n));
     }
     n->masked_kv = masked_kv;
+    n->version_seq = version_seq;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
     if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
@@ -120,6 +121,10 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
              memory_order_release, memory_order_relaxed));
+}
+
+void flatRetire(flatTable *t, dictEntry *masked_kv) {
+    flatRetireVersion(t, masked_kv, 0);
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

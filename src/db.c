@@ -435,14 +435,17 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
-kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
-                     const KeyMetaSpec *keymeta, int flags)
+static kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
+                     dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
+                     uint64_t version_seq)
 {
     int slot = getKeySlot(key->ptr);
     dictEntryLink tmp = NULL;
     if (link == NULL) link = &tmp;
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
+    kv->version_seq = version_seq;
+    kv->version_prev = NULL;
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -470,6 +473,12 @@ kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
         updateSlotAllocSize(db, slot, kv, -1, kvobjAllocSize(kv));
     *valref = kv;
     return kv;
+}
+
+kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
+                     const KeyMetaSpec *keymeta, int flags)
+{
+    return dbAddInternalVersion(db, key, valref, link, keymeta, flags, 0);
 }
 
 /* Read dbAddInternal() comment. No RAW-embed: callers of the generic add path
@@ -621,7 +630,8 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
 static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
-                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk) {
+                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
+                       uint64_t version_seq) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -680,6 +690,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
 
     if ((old->refcount == 1 && old->encoding != OBJ_ENCODING_EMBSTR) &&
         (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) && (!freeModuleMeta) &&
+        version_seq == 0 &&
         !kvstoreIsFlat(db->keys))   /* FLATSTORE: in-place mutates a LIVE table object a cross-shard
                                      * reader may be reading (data race) -- force the copy path. */
     {
@@ -704,6 +715,8 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         val->lru = old->lru;
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        kvNew->version_seq = version_seq;
+        kvNew->version_prev = version_seq ? old : NULL;
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -748,7 +761,10 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     if (kvstoreIsFlat(db->keys)) {
         /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
-        kvstoreFlatRetireRaw(db->keys, old);
+        if (version_seq)
+            kvstoreFlatRetireVersionRaw(db->keys, old, version_seq);
+        else
+            kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
     } else if (server.lazyfree_lazy_server_del) {
@@ -762,7 +778,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
 /* Replace an existing key with a new value, we just replace value and don't
  * emit any events */
 void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
-    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0);
+    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0, 0);
 }
 
 /* Replace an existing key with a new value (don't emit any events)
@@ -776,7 +792,7 @@ void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
  * callers an sds living inside the kvobj allocation -- heap corruption on the
  * first sdscatlen/sdsgrowzero/sdsResize. */
 void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink link) {
-    dbSetValue(db, key, val, link, 0, 1, 1, 0);
+    dbSetValue(db, key, val, link, 0, 1, 1, 0, 0);
 }
 
 /* High level Set operation. This function can be used in order to set
@@ -794,8 +810,16 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * All the new keys in the database should be created via this interface.
  * The client 'c' argument may be set to NULL if the operation is performed
  * in a context where there is no clear client performing the operation. */
+static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
+                                int flags, dictEntryLink *plink, uint64_t version_seq);
+
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
+}
+
+void setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                     uint64_t version_seq) {
+    setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
 }
 
 /* Like setKey(), but accepts an optional link
@@ -806,7 +830,8 @@ void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
  * - If flag is not set (0) then add or update key, and `link` must be NULL
  * On return, link get updated, by need, to the inserted kvobj.
  */
-void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *plink) {
+static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
+                                int flags, dictEntryLink *plink, uint64_t version_seq) {
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -824,13 +849,43 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
         exists = oldval != NULL;
     }
 
+    /* Tickets are global, but different IO producers can enqueue overlapping
+     * MSETs to an owner in a different order. Insert an older ticket into the
+     * already-published chain instead of letting it replace a newer head. */
+    if (version_seq && exists && oldval->version_seq > version_seq) {
+        serverAssert(kvstoreIsFlat(db->keys));
+        robj *val = *valref;
+        val->lru = oldval->lru;
+        kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
+                                  (flags & SETKEY_EMBED_RAW) != 0);
+        kvNew->version_seq = version_seq;
+
+        kvobj *successor = oldval;
+        while (successor->version_prev &&
+               successor->version_prev->version_seq > version_seq)
+            successor = successor->version_prev;
+        kvNew->version_prev = successor->version_prev;
+        successor->version_prev = kvNew;
+
+        /* kvNew is already superseded by successor. Its ref enters the same
+         * retire machinery, but only once successor's epoch is committed. */
+        kvstoreFlatRetireVersionRaw(db->keys, kvNew, successor->version_seq);
+        *valref = kvNew;
+
+        notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
+        if (oldval->type != kvNew->type)
+            notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
+        keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+        return;
+    }
+
     if (exists) {
         int oldtype = oldval->type;
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
         dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL,
-                   (flags & SETKEY_EMBED_RAW) != 0);
+                   (flags & SETKEY_EMBED_RAW) != 0, version_seq);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -840,12 +895,17 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
         /* Add the new key to the database */
         KeyMetaSpec keyMetaEmpty; /* No metadata added */
         keyMetaSpecInit(&keyMetaEmpty);
-        dbAddInternal(db, key, valref, link, &keyMetaEmpty,
-                      (flags & SETKEY_EMBED_RAW) != 0);
+        dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
+                             (flags & SETKEY_EMBED_RAW) != 0, version_seq);
     }
 
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+}
+
+void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                  dictEntryLink *plink) {
+    setKeyByLinkVersion(c, db, key, valref, flags, plink, 0);
 }
 
 /* During atomic slot migration, keys that are being imported are in an
