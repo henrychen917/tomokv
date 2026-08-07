@@ -363,7 +363,12 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
      * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
      * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
-    return lookupKey(db, key, flags, NULL);
+    kvobj *kv = lookupKey(db, key, flags, NULL);
+    /* I7: the table slot is only the entry point while a transient bag is
+     * present. Raw heads retain the exact base return path. */
+    if (unlikely(kv && kvobjVmeta(kv)))
+        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+    return kv;
 }
 
 /* Like lookupKeyReadWithFlags(), but does not use any flag, which is the
@@ -435,6 +440,18 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
+static inline struct tomoVerMeta *tomoVerMetaNew(kvstore *kvs, uint64_t version_seq,
+                                                 kvobj *version_prev) {
+    struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
+    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
+                         TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
+    vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+    vmeta->version_prev = version_prev;
+    vmeta->version_kvs = kvs;
+    return vmeta;
+}
+
 static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
                      dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
                      uint64_t version_seq)
@@ -444,11 +461,8 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     if (link == NULL) link = &tmp;
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
-    if (version_seq) {
-        kv->vmeta = zmalloc(sizeof(*kv->vmeta));
-        kv->vmeta->version_seq = version_seq;
-        kv->vmeta->version_prev = NULL;
-    }
+    if (version_seq)
+        kvobjSetVmeta(kv, tomoVerMetaNew(db->keys, version_seq, NULL));
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -632,9 +646,9 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   dbUnshareStringValue() path, which depends on the replacement staying
  *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
-static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
-                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
-                       uint64_t version_seq) {
+static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                                  int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
+                                  uint64_t version_seq) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -720,11 +734,8 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         val->lru = old->lru;
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
-        if (version_seq) {
-            kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-            kvNew->vmeta->version_seq = version_seq;
-            kvNew->vmeta->version_prev = old;
-        }
+        if (version_seq)
+            kvobjSetVmeta(kvNew, tomoVerMetaNew(db->keys, version_seq, old));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -769,9 +780,9 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
     if (kvstoreIsFlat(db->keys)) {
         /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
-        if (version_seq)
-            tomoRetireVersion(db->keys, old, version_seq);
-        else
+        /* I1: an atomic install only prepends the old head. It never retires,
+         * inspects, sorts, or rewrites any existing version link. */
+        if (!version_seq)
             kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
@@ -781,6 +792,194 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         decrRefCount(old);
     }
     *valref = kvNew;
+    return kvNew;
+}
+
+/* CURE2 retirement is deliberately not a chain repair. A committed version
+ * first waits a full grace while it is still reachable. The owner then removes
+ * only versions below the committed maximum, preserving the relative install
+ * order of every survivor, and puts removed objects through the ordinary flat
+ * retire path for the post-unlink grace. */
+static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (vmeta) {
+        serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
+        serverAssert(kvobjVersionSeq(kv) != TOMO_VERSION_UNCOMMITTED);
+        serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                          memory_order_acquire) == 0);
+        if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
+        vmeta->retire_state = TOMO_RETIRE_PHYSICAL;
+    }
+    kvstoreFlatRetireRaw(kvs, kv);
+}
+
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL);
+    serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
+    vmeta->stamp_state = TOMO_STAMP_APPLIED;
+}
+
+void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
+    serverAssert(kvobjVersionSeq(kv) == version_seq);
+    serverAssert(version_seq <= tomoCommittedSeq());
+    serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+    if (vmeta->detached) {
+        if (vmeta->retire_state == TOMO_RETIRE_ACTIVE)
+            tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
+        return;
+    }
+    serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
+    vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+}
+
+/* A non-versioned overwrite/delete removes the whole bag from the table in
+ * one ordinary owner store. Committed members with no queued owner operation
+ * can enter their post-unlink grace now; uncommitted members remain pinned by
+ * their install records and retire only when their stamp+prune operations run. */
+void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
+    serverAssert(kvstoreIsFlat(kvs));
+    kvobj *kv = head;
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) {
+            kvstoreFlatRetireRaw(kvs, kv);
+            break;
+        }
+        kvobj *next = kvobjVersionPrev(kv);
+        vmeta->detached = 1;
+        uint64_t seq = kvobjVersionSeq(kv);
+        if (seq != TOMO_VERSION_UNCOMMITTED &&
+            atomic_load_explicit(&vmeta->owner_ops_pending,
+                                 memory_order_acquire) == 0 &&
+            vmeta->retire_state == TOMO_RETIRE_ACTIVE)
+            tomoSchedulePhysicalRetire(kvs, kv);
+        kv = next;
+    }
+}
+
+void tomoVersionPruneAfterGrace(kvobj *anchor) {
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+
+    /* The ordinary reclaim pass runs outside a flat section, preserving the
+     * shipped OFF path. Only this CURE2 callback needs to re-enter: it walks
+     * and may update a live bag after its first grace. The seq_cst
+     * publish/check is the same exclusion handshake used by exSlice. */
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    while (atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) {
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoFlatResizeQuiesce();
+        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    }
+    tomoWkrLockPub(owner);
+
+    struct tomoVerMeta *anchor_meta = kvobjVmeta(anchor);
+    if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
+        tomoWkrUnlockPub(owner);
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        return;
+    }
+    kvstore *kvs = anchor_meta->version_kvs;
+    serverAssert(kvs != NULL && kvstoreIsFlat(kvs));
+    if (anchor_meta->detached) {
+        serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+        tomoSchedulePhysicalRetire(kvs, anchor);
+        tomoWkrUnlockPub(owner);
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        return;
+    }
+
+    sds key = kvobjGetKey(anchor);
+    int slot = getKeySlot(key);
+    dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
+    serverAssert(link != NULL);
+    kvobj *head = dictGetKV(*link);
+    uint64_t visible = tomoCommittedSeq();
+    /* This callback proves a grace only for its own committed frontier. A
+     * newer version may have committed while that grace was running; using
+     * the current global maximum would unlink a value still needed by a
+     * reader pinned between the two commits. */
+    uint64_t retire_max = kvobjVersionSeq(anchor);
+    serverAssert(retire_max != TOMO_VERSION_UNCOMMITTED && retire_max <= visible);
+    serverAssert(anchor_meta->stamp_state == TOMO_STAMP_APPLIED);
+    serverAssert(atomic_load_explicit(&anchor_meta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+
+    kvobj *newhead = head, *previous = NULL, *kv = head;
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
+        uint64_t seq = vmeta ? kvobjVersionSeq(kv) : 0;
+        int eligible = seq < retire_max;
+        if (vmeta && (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
+                      vmeta->stamp_state != TOMO_STAMP_APPLIED ||
+                      atomic_load_explicit(&vmeta->owner_ops_pending,
+                                           memory_order_acquire) != 0))
+            eligible = 0;
+
+        if (eligible) {
+            /* Retirement-only deletion: survivors retain their original
+             * install order; no node is inserted, relocated, or re-spliced. */
+            if (previous) kvobjSetVersionPrev(previous, next);
+            else newhead = next;
+            tomoSchedulePhysicalRetire(kvs, kv);
+        } else {
+            previous = kv;
+        }
+        kv = next;
+    }
+    if (newhead != head)
+        kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
+
+    int committed = 0, uncommitted = 0, total = 0;
+    for (kv = newhead; kv; ) {
+        total++;
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) {
+            committed++;
+            break;
+        }
+        uint64_t seq = kvobjVersionSeq(kv);
+        if (seq == TOMO_VERSION_UNCOMMITTED || seq > visible)
+            uncommitted++;
+        else
+            committed++;
+        kv = kvobjVersionPrev(kv);
+    }
+
+    /* I6: after obsolete siblings are unlinked, publish the sole committed
+     * value as a raw head. Readers that already acquired its vmeta are covered
+     * by the metadata retire grace; later readers take the base fast path. */
+    if (total == 1 && committed == 1 && uncommitted == 0) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(newhead);
+        if (vmeta) {
+            serverAssert(kvobjVersionPrev(newhead) == NULL);
+            serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
+            serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                              memory_order_acquire) == 0);
+            vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            kvobjSetVmeta(newhead, NULL);
+            kvstoreFlatRetireVmeta(kvs, vmeta);
+            atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
+                                      memory_order_relaxed);
+            anchor_meta = NULL;
+        }
+    }
+    if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+    tomoWkrUnlockPub(owner);
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned
@@ -884,7 +1083,10 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     }
 
     if (kvstoreIsFlat(db->keys)) {
-        kvstoreFlatRetireRaw(db->keys, old);
+        if (kvobjVmeta(old))
+            tomoRetireDetachedBag(db->keys, old);
+        else
+            kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW &&
                old->refcount == 1) {
         tryDeferFreeClientObject(server.current_client[iotid].p,
@@ -932,17 +1134,17 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * All the new keys in the database should be created via this interface.
  * The client 'c' argument may be set to NULL if the operation is performed
  * in a context where there is no clear client performing the operation. */
-static void setKeyByLinkVersion(client *c, redisDb *db, robj *key,
-                                robj **valref, int flags,
-                                dictEntryLink *plink, uint64_t version_seq);
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key,
+                                  robj **valref, int flags,
+                                  dictEntryLink *plink, uint64_t version_seq);
 
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
 }
 
-void setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
-                     uint64_t version_seq) {
-    setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                       uint64_t version_seq) {
+    return setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
 }
 
 /* Like setKey(), but accepts an optional link
@@ -953,8 +1155,8 @@ void setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags
  * - If flag is not set (0) then add or update key, and `link` must be NULL
  * On return, link get updated, by need, to the inserted kvobj.
  */
-static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
-                                int flags, dictEntryLink *plink, uint64_t version_seq) {
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
+                                  int flags, dictEntryLink *plink, uint64_t version_seq) {
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -972,47 +1174,15 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
         exists = oldval != NULL;
     }
 
-    /* Tickets are global, but different IO producers can enqueue overlapping
-     * MSETs to an owner in a different order. Insert an older ticket into the
-     * already-published chain instead of letting it replace a newer head. */
-    if (version_seq && exists && oldval->vmeta &&
-        oldval->vmeta->version_seq > version_seq) {
-        serverAssert(kvstoreIsFlat(db->keys));
-        robj *val = *valref;
-        val->lru = oldval->lru;
-        kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
-                                  (flags & SETKEY_EMBED_RAW) != 0);
-        kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
-        kvNew->vmeta->version_seq = version_seq;
-
-        kvobj *successor = oldval;
-        while (successor->vmeta->version_prev &&
-               successor->vmeta->version_prev->vmeta &&
-               successor->vmeta->version_prev->vmeta->version_seq > version_seq)
-            successor = successor->vmeta->version_prev;
-        kvNew->vmeta->version_prev = successor->vmeta->version_prev;
-        successor->vmeta->version_prev = kvNew;
-
-        /* kvNew is already superseded by successor. Its ref enters the same
-         * retire machinery, but only once successor's epoch is committed. */
-        tomoRetireVersion(db->keys, kvNew, successor->vmeta->version_seq);
-        *valref = kvNew;
-
-        notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
-        if (oldval->type != kvNew->type)
-            notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
-        keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
-        return;
-    }
-
+    kvobj *installed;
     if (exists) {
         int oldtype = oldval->type;
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
-        dbSetValueVersioned(db, key, valref, *link, 1, 1,
-                            flags & SETKEY_KEEPTTL,
-                            (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+        installed = dbSetValueVersioned(db, key, valref, *link, 1, 1,
+                                        flags & SETKEY_KEEPTTL,
+                                        (flags & SETKEY_EMBED_RAW) != 0, version_seq);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -1022,12 +1192,13 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
         /* Add the new key to the database */
         KeyMetaSpec keyMetaEmpty; /* No metadata added */
         keyMetaSpecInit(&keyMetaEmpty);
-        dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
-                             (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+        installed = dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
+                                         (flags & SETKEY_EMBED_RAW) != 0, version_seq);
     }
 
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+    return installed;
 }
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,

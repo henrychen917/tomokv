@@ -102,6 +102,8 @@ void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *
 void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
 struct flatTable *kvstoreFlatTable(kvstore *kvs);
 void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta);
 void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw);
 int kvstoreIsSharedMT(kvstore *kvs);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);

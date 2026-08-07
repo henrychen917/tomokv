@@ -196,6 +196,8 @@ static void resetFakeClientState(client *c, client *parent) {
     c->mig_parked_tid = 0;
     c->atomic_window_parked_node = NULL;
     c->atomic_window_parked_tid = 0;
+    c->tomo_read_snapshot = 0;
+    c->tomo_read_snapshot_pinned = 0;
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
     c->bufpos = 0;
@@ -542,6 +544,12 @@ client *createClient(connection *conn) {
         c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
     }
     c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
+    atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_relaxed);
+    atomic_store_explicit(&c->mset_drain_latch, 0, memory_order_relaxed);
+    c->mset_pending_head = NULL;
+    c->mset_pending_tail = NULL;
+    c->tomo_read_snapshot = 0;
+    c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
      * carries whatever was in that heap word. unlinkClient tests mig_parked_node on EVERY client
      * teardown and, when it is non-NULL, does listDelNode(clients_mig_parked[mig_parked_tid], ...).
