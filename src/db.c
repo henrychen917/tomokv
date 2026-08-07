@@ -308,7 +308,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
     /* Versioned heads are installed before their ticket reaches the frontier. Ordinary commands
      * must observe the newest committed version, and a committed tombstone is a miss. Writers that
      * need the physical head retain it through `link` and re-read dictGetKV(*link) at install. */
-    if (val && val->vmeta)
+    if (server.tomo_atomic && val && val->vmeta)
         val = kvobjLiveVersionAt(val, tomoAtomicCommitSeq());
 
     if (val) {
@@ -651,6 +651,8 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         serverAssertWithInfo(NULL, key, link != NULL); /* expected to exist */
     }
     kvobj *old = dictGetKV(*link);
+    int same_version = version_seq && old->vmeta &&
+                       old->vmeta->version_seq == version_seq;
     kvobj *kvNew;
 
     int64_t oldlen = (int64_t) getObjectLength(old);
@@ -730,7 +732,9 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         if (version_seq) {
             kvNew->vmeta = zmalloc(sizeof(*kvNew->vmeta));
             kvNew->vmeta->version_seq = version_seq;
-            atomic_store_explicit(&kvNew->vmeta->version_prev, old, memory_order_relaxed);
+            kvobj *prev = same_version ?
+                atomic_load_explicit(&old->vmeta->version_prev, memory_order_acquire) : old;
+            atomic_store_explicit(&kvNew->vmeta->version_prev, prev, memory_order_relaxed);
             atomic_store_explicit(&kvNew->vmeta->flags, 0, memory_order_relaxed);
         }
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
@@ -777,7 +781,12 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
     if (kvstoreIsFlat(db->keys)) {
         /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
-        if (version_seq) {
+        if (same_version) {
+            /* Duplicate keys in one atomic MSET replace their earlier, never-visible version.
+             * Preserve its predecessor link, but retire the superseded same-ticket object through
+             * ordinary QSBR immediately; no snapshot can select one same-ticket intermediate. */
+            kvstoreFlatRetireRaw(db->keys, old);
+        } else if (version_seq) {
             struct tomoVersionRetire *retire = tomoRetireVersion(db->keys, old, version_seq);
             if (retire_out) *retire_out = retire;
         }
@@ -1086,9 +1095,8 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
         exists = 0;
     } else {
         oldval = lookupKeyWriteWithLink(db, key, link);
-        /* SET after a logical delete replaces the physical tombstone/version chain instead of
-         * trying to insert a duplicate key into its occupied slot. */
-        if (*link) oldval = dictGetKV(**link);
+        /* In atomic mode a logical tombstone miss can still occupy the physical slot. */
+        if (server.tomo_atomic && *link) oldval = dictGetKV(**link);
         exists = oldval != NULL;
     }
 
@@ -1158,8 +1166,7 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
                                   memory_order_release);
             /* successor's existing retirement record owns this now-unlinked reservation. It
              * retires it when successor commits; enrolling it again here would double-retire.
-             * Same-ticket duplicate reservations are canceled newest-first, so they reach the
-             * head arm above rather than this case. */
+             * Duplicate input keys are canonicalized before reservation install. */
             return;
         }
         successor = candidate;
@@ -1167,13 +1174,13 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
     serverPanic("MSETNX reservation disappeared before cancel");
 }
 
-/* Second-stage tombstone cleanup, called by the installing owner's graced retire batch. A later
- * value version wins simply by no longer matching `tombstone` as the physical head. */
-int dbRemoveTombstoneIfHead(redisDb *db, kvobj *tombstone) {
+/* Atomic DEL's post-commit owner phase removes only its exact tombstone head. A later value
+ * version wins simply by no longer matching `tombstone`; ordinary flat QSBR owns the removed
+ * table reference after kvstoreDictDelete. */
+int dbRemoveTombstoneIfHead(redisDb *db, robj *key, kvobj *tombstone) {
     serverAssert(kvstoreIsFlat(db->keys));
-    sds key = kvobjGetKey(tombstone);
-    int slot = getKeySlot(key);
-    dictEntryLink link = kvstoreDictFindLink(db->keys, slot, key, NULL);
+    int slot = getKeySlot(key->ptr);
+    dictEntryLink link = kvstoreDictFindLink(db->keys, slot, key->ptr, NULL);
     if (!link || dictGetKV(*link) != tombstone) return 0;
     serverAssert(kvobjIsTombstone(tombstone));
     int64_t oldlen = (int64_t)getObjectLength(tombstone);
@@ -1181,7 +1188,7 @@ int dbRemoveTombstoneIfHead(redisDb *db, kvobj *tombstone) {
     updateKeysizesHist(db, slot, tombstone->type, oldlen, -1);
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(db, slot, tombstone, oldsize, -1);
-    serverAssert(kvstoreDictDelete(db->keys, slot, key) == DICT_OK);
+    serverAssert(kvstoreDictDelete(db->keys, slot, key->ptr) == DICT_OK);
     return 1;
 }
 

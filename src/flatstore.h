@@ -19,9 +19,6 @@
 #include <stdatomic.h>
 #include "dict.h"      /* dictEntry (a no_value slot stores the tag-masked kvobj pointer directly) */
 
-struct redisDb;
-struct redisObject;
-
 /* 8B SINGLE-WORD slot (memory: half the old 16B two-word slot). The tag and flags live in the unused
  * high bits of the masked kv pointer — x86-64 user pointers are canonical 48-bit, so [47:0] holds the
  * pointer losslessly and [63:48] are ours. Layout:
@@ -60,12 +57,7 @@ typedef struct flatSlot {
  * every io identity's flat_epoch (only the identities inside a region at close — io_pin_mask). A
  * batch frees once every stamped constituency has either advanced past its stamp or left the region
  * it was in at close. One stamp per batch amortizes the snapshot over many deletes. */
-typedef struct flatRetireNode {
-    dictEntry *masked_kv;
-    struct flatRetireNode *next;
-    struct redisDb *tombstone_db;  /* non-NULL => post-commit physical-removal grace */
-    uint8_t tombstone_phase; /* 0 waits for commit, 1 waits for a grace begun after commit */
-} flatRetireNode;
+typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
 #define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
                               * snapshot. The io clause needs no margin — the epoch publish is a
@@ -84,8 +76,6 @@ extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (s
 extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
 void flatNodePoolTrim(void);
-void flatRetireTombstone(struct redisDb *db, struct redisObject *tombstone);
-int flatRetireNodeRelease(flatRetireNode *node);
 
 /* ee451 #83: the QSBR snapshot (worker loop_seq + io region-epoch + io pin bitmap) is ONE trailing
  * block sized to the RUNTIME thread pool, not the 128 compile cap. The batch header is heap-allocated

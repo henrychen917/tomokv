@@ -7999,10 +7999,7 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     flatRetireNode *n = b->head;
     while (n) {
         flatRetireNode *nx = n->next;
-        if (!flatRetireNodeRelease(n)) {
-            n = nx;
-            continue;
-        }
+        decrRefCount((robj *)dictGetKV(n->masked_kv));
         /* Recycle instead of zfree: this is the flat-only malloc/free pair per overwrite. */
         if (flat_node_pool_n < FLAT_NODE_POOL_CAP) {
             n->next = flat_node_pool; flat_node_pool = n;
@@ -8680,7 +8677,26 @@ static void csReleaseCommittedVersions(uint64_t visible) {
     flat_local_sink = saved_sink;
 }
 
-/* Called by an MSET's last owner after the pending barrier acquired every
+/* Capture exactly the atomic readers that could still ask owners to walk through this DEL's
+ * tombstone to a pre-commit predecessor. Readers publish an odd IO epoch before loading the
+ * frontier; the fence gives the same StoreLoad edge as flatBatchClose. A reader not captured here
+ * necessarily loads the already-published delete ticket and never needs the predecessor chain. */
+static void csDeleteCaptureGrace(csGroup *g) {
+    serverAssert(g->ctype == CS_DEL && g->del_io_snap && g->del_io_pin);
+    atomic_thread_fence(memory_order_seq_cst);
+    int hi = flatIoHi();
+    g->del_io_hi = hi;
+    for (int t = 0; t <= hi; t++) {
+        uint64_t epoch = atomic_load_explicit(&tm_io_sig[t].flat_epoch,
+                                              memory_order_seq_cst);
+        if (epoch & 1) {
+            g->del_io_snap[t] = epoch;
+            g->del_io_pin[t >> 6] |= 1ULL << (t & 63);
+        }
+    }
+}
+
+/* Called by an atomic write's last owner after the pending barrier acquired every
  * install. Ready tickets may finish out of order; publish and signal only the
  * highest contiguous prefix, so no IO drain ever waits for a missing ticket. */
 static void csMsetInstallDone(csGroup *g) {
@@ -8694,6 +8710,7 @@ static void csMsetInstallDone(csGroup *g) {
         if (!commit_head) commit_tail = NULL;
         atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
         advanced = done->version_seq;                 /* read BEFORE cdbSlotPublish frees `done` */
+        if (done->ctype == CS_DEL) csDeleteCaptureGrace(done);
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* cdbSlotPublish is the final access to done: its owning IO may now
@@ -9685,7 +9702,8 @@ enum {
     CS_NX_INSTALLED,
     CS_NX_PRESENT,
     CS_NX_COMMITTED,
-    CS_NX_CANCELED
+    CS_NX_CANCELED,
+    CS_NX_DUPLICATE
 };
 
 /* Run the stock read lookup once for expiry/stats, then recover the physical version head from the
@@ -9713,6 +9731,22 @@ static kvobj *csVersionHead(client *sub, robj *key) {
     return link ? dictGetKV(*link) : NULL;
 }
 
+static int csDeleteGracePassed(const csGroup *g) {
+    if (atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst)) return 0;
+    for (int wi = 0; wi < flat_batch_mask_words; wi++) {
+        uint64_t mask = g->del_io_pin[wi];
+        while (mask) {
+            int t = (wi << 6) + __builtin_ctzll(mask);
+            mask &= mask - 1;
+            if (t <= g->del_io_hi &&
+                atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) ==
+                    g->del_io_snap[t])
+                return 0;
+        }
+    }
+    return 1;
+}
+
 static int csMsetnxAtFrontier(csGroup *g) {
     int at_frontier;
     csCommitLock();
@@ -9731,6 +9765,20 @@ static int csMsetnxReserveExec(client *sub, csGroup *g) {
     for (int a = 1; a + 1 < sub->argc; a += 2) {
         int p = pos[(a - 1) / 2];
         if (g->nx_state[p] != CS_NX_UNSEEN) continue;
+        /* Stock applies duplicate keys left-to-right after one existence probe, so the final
+         * occurrence wins. Reserve only that final occurrence: otherwise multiple exact-ticket
+         * reservations make cancellation retain pointers to already-superseded versions. */
+        int shadowed = 0;
+        for (int b = a + 2; b + 1 < sub->argc; b += 2) {
+            if (equalStringObjects(sub->argv[a], sub->argv[b])) {
+                shadowed = 1;
+                break;
+            }
+        }
+        if (shadowed) {
+            g->nx_state[p] = CS_NX_DUPLICATE;
+            continue;
+        }
         robj *key = sub->argv[a];
         kvobj *head = csVersionHead(sub, key);
         uint64_t visible_seq = tomoAtomicCommitSeq();
@@ -9785,7 +9833,9 @@ static void csMsetnxResolveExec(client *sub, csGroup *g) {
 
 static long csInstallTombstones(client *sub, csGroup *g) {
     long deleted = 0;
+    int *pos = g->setop_pos[sub->cssub_idx];
     for (int a = 1; a < sub->argc; a++) {
+        int p = pos[a - 1];
         robj *key = sub->argv[a];
         kvobj *head = csVersionHead(sub, key);
         int already_deleted = 0;
@@ -9807,7 +9857,8 @@ static long csInstallTombstones(client *sub, csGroup *g) {
         serverAssert(tombstone->vmeta && tombstone->vmeta->version_seq == g->version_seq);
         atomic_fetch_or_explicit(&tombstone->vmeta->flags, TOMO_VERSION_TOMBSTONE,
                                  memory_order_release);
-        flatRetireTombstone(sub->db, tombstone);
+        incrRefCount(tombstone); /* exact-head cleanup pin; released by the post-commit owner hop */
+        g->del_tombstones[p] = tombstone;
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, sub->db->id);
         markDirty(1);
         deleted++;
@@ -9985,8 +10036,26 @@ static int csSubExec(client *sub) {
     }
     case CS_DEL: {
         if (g->versioned_write) {
-            atomic_fetch_add_explicit(&g->rcount, csInstallTombstones(sub, g),
-                                      memory_order_relaxed);
+            if (g->phase == CS_PH_HOP1) {
+                atomic_fetch_add_explicit(&g->rcount, csInstallTombstones(sub, g),
+                                          memory_order_relaxed);
+            } else {
+                if (!csDeleteGracePassed(g)) {
+                    server.current_client[iotid].p = saved;
+                    csSubStatAccum(g, cs_t0, cs_e0);
+                    tomoCmdClockExit();
+                    return 1;
+                }
+                int *pos = g->setop_pos[sub->cssub_idx];
+                for (int a = 1; a < sub->argc; a++) {
+                    int p = pos[a - 1];
+                    kvobj *tombstone = g->del_tombstones[p];
+                    if (!tombstone) continue; /* duplicate or already-cleaned position */
+                    dbRemoveTombstoneIfHead(sub->db, sub->argv[a], tombstone);
+                    g->del_tombstones[p] = NULL;
+                    decrRefCount(tombstone); /* drop exact-head cleanup pin on its owner */
+                }
+            }
             break;
         }
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
@@ -10011,13 +10080,15 @@ static int csSubExec(client *sub) {
          * LRU/LFU where stock would not. */
         int lkflags = (g->spec && g->spec->notouch) ? LOOKUP_NOTOUCH : LOOKUP_NONE;
         long present = 0;
-        for (int a = 1; a < sub->argc; a++) {
-            if (g->snapshot_pinned) {
+        if (!g->versioned_write) {
+            /* OFF path: the original scatter lookup loop, with no snapshot machinery. */
+            for (int a = 1; a < sub->argc; a++)
+                if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) present++;
+        } else {
+            for (int a = 1; a < sub->argc; a++) {
                 if (csSnapshotVersion(sub, sub->argv[a], g->snapshot_seq,
                                       lkflags != LOOKUP_NOTOUCH))
                     present++;
-            } else if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) {
-                present++;
             }
         }
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
@@ -10826,7 +10897,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) {
         if (!cnt[w]) continue;
         client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cs_retry_next = NULL; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
@@ -10852,7 +10923,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
 static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     client *head = g->head;
     client *sub = createPooledFakeClient(head->parent);
-    sub->csparent = g; sub->cs_retry_next = NULL; sub->cssub_idx = idx; sub->cmd = head->cmd;
+    sub->csparent = g; sub->cssub_idx = idx; sub->cmd = head->cmd;
     sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
     /* The sub serializes its reply into its OWN buffer on the worker; spliced at
      * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
@@ -11479,8 +11550,9 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
     int atomic_mget = s->ctype == CS_MGET && server.tomo_atomic;
-    int atomic_group = csAtomicTicketed(s) && atomic_admission != 0;
+    int atomic_group = atomic_admission != 0 && csAtomicTicketed(s);
     int atomic_msetnx = atomic_group && s->ctype == CS_MSETNX;
+    int atomic_del = atomic_group && s->ctype == CS_DEL;
     /* Ticketed commands use the atomic-mode snapshot taken at the pre-ring gate. That closes the live CONFIG
      * SET race: a finite reservation cannot leak if tomokv-atomic flips before group creation, and
      * a command admitted while OFF cannot suddenly bypass a newly-enabled finite window. */
@@ -11570,7 +11642,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * sized for THIS command rather than for the worst command. */
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
-    int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
+    int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx || atomic_del);
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, posmap));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
@@ -11599,6 +11671,16 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         }
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         csMsetRegister(g);
+        if (atomic_del) {
+            /* Cleanup is an atomic-only post-commit owner hop. It waits out every reader that
+             * pinned a pre-delete snapshot, then removes only this group's exact tombstone head. */
+            g->has_hop2 = 1;
+            g->phase = CS_PH_HOP1;
+            head->parent->cs_barrier = 1;
+            g->del_tombstones = csgCalloc(g, sizeof(*g->del_tombstones) * nkeys);
+            g->del_io_snap = csgAlloc(g, sizeof(*g->del_io_snap) * flat_batch_slots);
+            g->del_io_pin = csgCalloc(g, sizeof(*g->del_io_pin) * flat_batch_mask_words);
+        }
     } else {
         serverAssert(!atomic_admission);
     }
@@ -11669,7 +11751,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     csCoalesceSpec cs = {
         .first_argi = first, .key_stride = s->key_stride,
         .per_key_extra = atomic_msetnx ? 1 : s->per_key_extra,
-        .posmap = atomic_msetnx ? &g->setop_pos :
+        .posmap = (atomic_msetnx || atomic_del) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
@@ -12455,6 +12537,28 @@ static int csLaunchHop2(csGroup *g) {
     csAssertBarriered(head);   /* HOP2 pushes from the drain: barrier MUST still be armed */
     int dbid = g->h2_dbid;
 
+    if (g->versioned_write && g->ctype == CS_DEL) {
+        /* The ticket is visible now. Rebuild owner-local key subs for physical cleanup; each sub
+         * waits until csDeleteCaptureGrace's pre-commit readers have left, then deletes only its
+         * exact pinned tombstone. This path is unreachable when tomokv-atomic was off at dispatch. */
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        csgFree(g, g->subs);
+        if (g->setop_pos) {
+            for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]);
+            csgFree(g, g->setop_pos);
+            g->setop_pos = NULL;
+        }
+        g->posmap_nsub = 0;
+        g->phase = CS_PH_HOP2;
+        cdbSlotClear(head->parent, head->cdb, head->fake_slot);
+        csCoalesceSpec cs = {
+            .first_argi = 1, .key_stride = 1, .per_key_extra = 0,
+            .posmap = &g->setop_pos
+        };
+        csBuildCoalescedSubs(head, g, head->argc - 1, dbid, &cs, NULL);
+        return 1;
+    }
+
     /* --- per-ctype HOP2 PREP (deliberately a switch — S8 audit locality). Runs BEFORE HOP1
      * subs are freed so it may read probe results. May set g->err (=> return 0), rewrite
      * g->h2sub[] (step 9 MPOP winner), or serialize a coordinator-computed payload into
@@ -13146,9 +13250,17 @@ static void csReassemble(client *dst, client *head) {
      * probe-report lanes (zfree(NULL) is a no-op). */
     if (g->h2_payload) sdsfree(g->h2_payload);
     csgFree(g, g->klen); csgFree(g, g->ktype);
-    csgFree(g, g->nx_reservations);
-    csgFree(g, g->nx_retires);
-    csgFree(g, g->nx_state);
+    if (g->versioned_write) {
+        csgFree(g, g->nx_reservations);
+        csgFree(g, g->nx_retires);
+        csgFree(g, g->nx_state);
+        if (g->del_tombstones) {
+            for (int i = 0; i < g->nkeys; i++) serverAssert(g->del_tombstones[i] == NULL);
+            csgFree(g, g->del_tombstones);
+            csgFree(g, g->del_io_snap);
+            csgFree(g, g->del_io_pin);
+        }
+    }
     /* ee451 (#B2): ONE commandstats call for the whole group, with the SUMMED sub proc time (see
      * csGroup.usec). Must be read before zfree(g) below. */
     if (cs_cmd) {
@@ -19356,6 +19468,9 @@ static void csFinishOwnerSub(csGroup *g) {
         g->nx_cancel = atomic_load_explicit(&g->rcount, memory_order_relaxed) != 0;
         client *hp = g->head->parent;
         cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+    } else if (g->versioned_write && g->ctype == CS_DEL && g->phase == CS_PH_HOP2) {
+        client *hp = g->head->parent;
+        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
     } else if (g->versioned_write) {
         if (g->ctype == CS_MSETNX && g->nx_cancel)
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
@@ -19366,37 +19481,38 @@ static void csFinishOwnerSub(csGroup *g) {
     }
 }
 
-/* One owner-local wait-list link per conflicting sub. It is retried only after the pass has drained
- * all currently published producer queues, so a competing reservation's stamp/cancel op on this
- * owner executes first. A sub stays linked while blocked rather than being repeatedly re-enqueued. */
+/* Atomic-only owner retry storage is lazy TLS: OFF creates no list, adds no client fields, and runs
+ * the original worker completion path. A blocked reservation/delete cleanup sub has exactly one
+ * list node until it can complete after the currently published producer queues drain. */
+static __thread list *cs_atomic_retry;
+
 static void csParkReservationSub(exThread *worker, client *sub) {
-    serverAssert(sub->cs_retry_next == NULL);
-    if (worker->atomic_retry_tail)
-        worker->atomic_retry_tail->cs_retry_next = sub;
-    else
-        worker->atomic_retry_head = sub;
-    worker->atomic_retry_tail = sub;
+    (void)worker;
+    if (!cs_atomic_retry) cs_atomic_retry = listCreate();
+    listAddNodeTail(cs_atomic_retry, sub);
 }
 
 static int csRetryReservationSubs(exThread *worker) {
-    client *prev = NULL, *sub = worker->atomic_retry_head;
+    if (!cs_atomic_retry) return 0;
     int did_work = 0;
-    while (sub) {
-        client *next = sub->cs_retry_next;
+    listNode *ln = listFirst(cs_atomic_retry);
+    while (ln) {
+        listNode *next = listNextNode(ln);
+        client *sub = listNodeValue(ln);
         did_work = 1;
         if (csRunOwnerSub(worker, sub)) {
-            prev = sub;
-            sub = next;
+            ln = next;
             continue;
         }
 
-        if (prev) prev->cs_retry_next = next;
-        else worker->atomic_retry_head = next;
-        if (worker->atomic_retry_tail == sub) worker->atomic_retry_tail = prev;
-        sub->cs_retry_next = NULL;
+        listDelNode(cs_atomic_retry, ln);
         csGroup *g = sub->csparent;
         csFinishOwnerSub(g); /* may publish and let the coordinator free sub/g immediately */
-        sub = next;
+        ln = next;
+    }
+    if (listLength(cs_atomic_retry) == 0) {
+        listRelease(cs_atomic_retry);
+        cs_atomic_retry = NULL;
     }
     return did_work;
 }
@@ -19753,10 +19869,28 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
                  * mutates/reads. (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the
                  * design, so this is unconditional.) */
-                if (csRunOwnerSub(worker, fake))
+                if (!g->versioned_write) {
+                    /* OFF path: retain the pre-broadening execute/decrement/publish sequence. */
+                    tomoWkrLock(worker->id);
+                    (void)csSubExec(fake);
+                    tomoWkrUnlock(worker->id);
+                    int last;
+                    if (g->nsub == 1) {
+                        atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
+                        last = 1;
+                    } else {
+                        last = atomic_fetch_sub_explicit(&g->pending, 1,
+                                                         memory_order_acq_rel) == 1;
+                    }
+                    if (last) {
+                        client *hp = g->head->parent;
+                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                    }
+                } else if (csRunOwnerSub(worker, fake)) {
                     csParkReservationSub(worker, fake);
-                else
+                } else {
                     csFinishOwnerSub(g);
+                }
                 j++;
                 continue;
             }
@@ -19816,9 +19950,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                               memory_order_release);
     }
 
-    /* Reservation waiters run after every currently advertised producer lane. Their single linked
-     * position is retained while still blocked, so the requeue bound is one per sub. */
-    if (worker->atomic_retry_head && csRetryReservationSubs(worker)) any = 1;
+    /* Atomic waiters run after every currently advertised producer lane. Their single list
+     * position is retained while still blocked, so the queue-membership bound is one per sub. */
+    if (cs_atomic_retry && csRetryReservationSubs(worker)) any = 1;
 
     /* ee451 (sparse handoff): re-advertise every lane that still holds work, so the
      * next pass visits it without a dense sweep. Producers only ever OR into this

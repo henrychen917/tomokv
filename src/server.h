@@ -1777,7 +1777,6 @@ typedef struct client {
      * to its group so completion decrements the group counter instead of signaling. */
     struct csGroup *csgroup;
     struct csGroup *csparent;
-    struct client *cs_retry_next; /* owner-local MSETNX reservation wait queue link */
     int cssub_idx;   /* sub-fake: its index (= original key position) within its group */
     /* ee451 (v7): FLUSH SENTINEL fake. FLUSHALL/FLUSHDB queues one of these per worker THROUGH
      * the SPSC ring (so it is FIFO-ordered behind that connection's earlier commands, not
@@ -2097,6 +2096,10 @@ typedef struct csGroup {
     kvobj **nx_reservations;   /* [nkeys], exact installed reservation versions */
     struct tomoVersionRetire **nx_retires; /* [nkeys], cancelable predecessor-retire records */
     uint8_t *nx_state;         /* [nkeys], reservation lifecycle state (server.c) */
+    kvobj **del_tombstones;    /* [nkeys], pinned exact tombstones awaiting owner cleanup */
+    uint64_t *del_io_snap;     /* pre-cleanup atomic-reader epoch snapshot */
+    uint64_t *del_io_pin;      /* bitmap: IO identities pinned when DEL committed */
+    int del_io_hi;             /* inclusive high IO identity captured at commit */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
@@ -2661,8 +2664,6 @@ typedef struct exThread {
      * against the previous build cannot be contaminated by layout. */
     _Atomic uint64_t lb_fine_win;
     uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
-    client *atomic_retry_head;              /* MSETNX subs parked once behind this owner */
-    client *atomic_retry_tail;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -5798,7 +5799,7 @@ struct tomoVersionRetire *tomoRetireVersion(kvstore *kvs, kvobj *kv,
                                             uint64_t version_seq);
 void tomoCancelVersionRetire(struct tomoVersionRetire *retire);
 uint64_t tomoAtomicCommitSeq(void);
-int dbRemoveTombstoneIfHead(redisDb *db, kvobj *tombstone);
+int dbRemoveTombstoneIfHead(redisDb *db, robj *key, kvobj *tombstone);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);
