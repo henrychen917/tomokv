@@ -202,6 +202,34 @@ static _Atomic uint64_t commit_seq;
 static _Atomic uint64_t next_seq;
 static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
 static csGroup *commit_head, *commit_tail;
+_Static_assert(OBJ_STREAM < 8,
+               "tomo_versioned shares the formerly-unused high object-type bit");
+
+/* Version predecessors wait here until their successor's ticket is visible,
+ * then enter the unchanged FLATSTORE QSBR retire path. Keeping this queue
+ * entirely on the atomic-MSET path leaves ordinary SET retirement identical
+ * to the pre-versioning implementation. */
+typedef struct tomoVersionRetire {
+    kvstore *kvs;
+    kvobj *kv;
+    uint64_t version_seq;
+    struct tomoVersionRetire *next;
+} tomoVersionRetire;
+static _Atomic(tomoVersionRetire *) version_retire_pending;
+
+void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
+    tomoVersionRetire *n = zmalloc(sizeof(*n));
+    n->kvs = kvs;
+    n->kv = kv;
+    n->version_seq = version_seq;
+    tomoVersionRetire *head = atomic_load_explicit(&version_retire_pending,
+                                                    memory_order_relaxed);
+    do { n->next = head; }
+    while (!atomic_compare_exchange_weak_explicit(&version_retire_pending,
+                                                   &head, n,
+                                                   memory_order_release,
+                                                   memory_order_relaxed));
+}
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
@@ -7833,34 +7861,6 @@ static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_
     }
 }
 
-/* Version predecessors cannot start their ordinary QSBR grace until their
- * successor is visible. Splitting here (rather than merely delaying a batch's
- * free) takes the reader census after commit, so an MGET that acquired the old
- * frontier between install and commit is included in the existing grace. */
-static flatRetireNode *flatTakeCommittedRetires(flatRetireNode **list) {
-    uint64_t visible = atomic_load_explicit(&commit_seq, memory_order_acquire);
-    flatRetireNode *ready = NULL, *deferred = NULL;
-    for (flatRetireNode *n = *list; n; ) {
-        flatRetireNode *next = n->next;
-        if (n->version_seq <= visible) { n->next = ready; ready = n; }
-        else { n->next = deferred; deferred = n; }
-        n = next;
-    }
-    *list = deferred;
-    return ready;
-}
-
-static void flatPushRetireList(flatTable *t, flatRetireNode *list) {
-    if (!list) return;
-    flatRetireNode *tail = list;
-    while (tail->next) tail = tail->next;
-    flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
-    do { tail->next = head; }
-    while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, list,
-                                                   memory_order_release,
-                                                   memory_order_relaxed));
-}
-
 /* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
  * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
@@ -7873,13 +7873,11 @@ static void flatWorkerReclaim(exThread *worker) {
          * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
          * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
          * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
-        flatRetireNode *ready = flatTakeCommittedRetires(&worker->flat_retire_local);
-        if (ready) {
-            flatBatch *b = flatBatchClose(ready, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
-            if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
-            else worker->flat_batches_local = b;
-            worker->flat_batches_tail = b;
-        }
+        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+        worker->flat_retire_local = NULL;
+        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+        else worker->flat_batches_local = b;
+        worker->flat_batches_tail = b;
     }
     /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
     while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
@@ -7943,11 +7941,7 @@ static void flatReclaimTable(flatTable *t) {
      * threads land here), so an unconditional `lock xchg` would dirty the line for nothing. */
     if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
         flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
-        if (pend) {
-            flatRetireNode *ready = flatTakeCommittedRetires(&pend);
-            flatPushRetireList(t, pend);
-            if (ready) t->batches = flatBatchClose(ready, t->batches, NULL, NULL);
-        }
+        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL, NULL);
     }
     if (t->batches) flatDrainReadyBatches(&t->batches, NULL, NULL);
 }
@@ -8459,6 +8453,7 @@ static inline void csCommitUnlock(void) {
  * ticket order without a bitmap or an unbounded sparse index. */
 static void csMsetRegister(csGroup *g) {
     csCommitLock();
+    g->versioned_write = 1;
     g->version_seq = atomic_fetch_add_explicit(&next_seq, 1,
                                                 memory_order_relaxed) + 1;
     g->commit_next = NULL;
@@ -8466,6 +8461,51 @@ static void csMsetRegister(csGroup *g) {
     else commit_head = g;
     commit_tail = g;
     csCommitUnlock();
+}
+
+/* Start the ordinary QSBR grace only after the successor is visible. An MGET
+ * that acquired the preceding frontier has already entered its IO QSBR region,
+ * so the unchanged batch-close census includes it. */
+static void csReleaseCommittedVersions(uint64_t visible) {
+    tomoVersionRetire *list = atomic_exchange_explicit(&version_retire_pending,
+                                                        NULL,
+                                                        memory_order_acquire);
+    tomoVersionRetire *ready = NULL, *deferred = NULL;
+    while (list) {
+        tomoVersionRetire *next = list->next;
+        if (list->version_seq <= visible) {
+            list->next = ready;
+            ready = list;
+        } else {
+            list->next = deferred;
+            deferred = list;
+        }
+        list = next;
+    }
+    if (deferred) {
+        tomoVersionRetire *tail = deferred;
+        while (tail->next) tail = tail->next;
+        tomoVersionRetire *head = atomic_load_explicit(&version_retire_pending,
+                                                        memory_order_relaxed);
+        do { tail->next = head; }
+        while (!atomic_compare_exchange_weak_explicit(&version_retire_pending,
+                                                       &head, deferred,
+                                                       memory_order_release,
+                                                       memory_order_relaxed));
+    }
+
+    /* A commit may run on any one of the MSET's owners. Route these cross-owner
+     * predecessors through their table stacks, not that last owner's TLS list. */
+    flatRetireNode **saved_sink = flat_local_sink;
+    flat_local_sink = NULL;
+    while (ready) {
+        tomoVersionRetire *next = ready->next;
+        serverAssert(kvstoreIsFlat(ready->kvs));
+        kvstoreFlatRetireRaw(ready->kvs, ready->kv);
+        zfree(ready);
+        ready = next;
+    }
+    flat_local_sink = saved_sink;
 }
 
 /* Called by an MSET's last owner after the pending barrier acquired every
@@ -8480,6 +8520,7 @@ static void csMsetInstallDone(csGroup *g) {
         commit_head = done->commit_next;
         if (!commit_head) commit_tail = NULL;
         atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
+        csReleaseCommittedVersions(done->version_seq);
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* cdbSlotPublish is the final access to done: its owning IO may now
@@ -9402,6 +9443,61 @@ static void csSortDerefExec(client *sub, csGroup *g) {
     }
 }
 
+/* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection
+ * happens once per sub, so neither arm pays a mode branch per key. */
+static void csMsetSubExecVersioned(client *sub, csGroup *g) {
+    if (kvstoreIsFlat(sub->db->keys)) {
+        flatTable *t = kvstoreFlatTable(sub->db->keys);
+        int npairs = (sub->argc - 1) / 2;
+        for (int base = 0; base < npairs; base += TOMO_MSUBWAVE) {
+            int nw = npairs - base;
+            if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;
+            uint64_t h[TOMO_MWAVE];
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                redis_prefetch_read(sub->argv[a]);
+                redis_prefetch_read(sub->argv[a + 1]);
+            }
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                robj *k = sub->argv[a], *v = sub->argv[a + 1];
+                if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) redis_prefetch_read(k->ptr);
+                if (v->encoding != OBJ_ENCODING_EMBSTR && v->ptr) redis_prefetch_read(v->ptr);
+            }
+            for (int i = 0; i < nw; i++) {
+                robj *k = sub->argv[1 + 2 * (base + i)];
+                h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
+            }
+            for (int i = 0; i < nw; i++)
+                redis_prefetch_read(&t->slots[h[i] & t->mask]);
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                robj *keyo = sub->argv[a];
+                sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);
+                sub->tomo_bkt_ptr = keyo->ptr;
+                sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+                setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
+                                g->version_seq);
+                sub->argv[a+1] = NULL;
+                notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+                markDirty(1);
+            }
+        }
+        sub->tomo_bkt_ptr = NULL;
+        return;
+    }
+
+    for (int a = 1; a + 1 < sub->argc; a += 2) {
+        robj *keyo = sub->argv[a];
+        sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+        setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
+                        g->version_seq);
+        sub->argv[a+1] = NULL;
+        notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+        markDirty(1);
+    }
+}
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -9428,7 +9524,7 @@ static void csSubExec(client *sub) {
     case CS_MGET: {
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
          * not getCommand. */
-        if (g->mget_vals) {
+        if (g->snapshot_pinned && g->mget_vals) {
             /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
@@ -9450,11 +9546,23 @@ static void csSubExec(client *sub) {
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
                                                                    : sdsfromlonglong((long)o->ptr);
             }
-        } else {
+        } else if (g->snapshot_pinned) {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
             robj *o = kvobjVersionAt(
                 lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE),
                 g->version_seq);
+            if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
+            else addReplyBulk(sub, o);
+        } else if (g->mget_vals) {
+            int *pos = g->mget_pos[sub->cssub_idx];
+            for (int a = 1; a < sub->argc; a++) {
+                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                if (o != NULL && o->type == OBJ_STRING)
+                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                   : sdsfromlonglong((long)o->ptr);
+            }
+        } else {
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
         }
@@ -9494,6 +9602,10 @@ static void csSubExec(client *sub) {
          * (heavier) apply wave is still L2-resident. MSETNX HOP2 falls through and gets the same
          * treatment. Follow-up (not done): teach the flat kvstoreDictFindLink a full-hash hint to
          * drop the second xxh64 — dictArmHashHint's TLS is consumed by the dict path only. */
+        if (g->versioned_write) {
+            csMsetSubExecVersioned(sub, g);
+            break;
+        }
         if (kvstoreIsFlat(sub->db->keys)) {
             flatTable *t = kvstoreFlatTable(sub->db->keys);
             int npairs = (sub->argc - 1) / 2;
@@ -9524,11 +9636,7 @@ static void csSubExec(client *sub) {
                     sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);   /* hash-carry: reuse A2 */
                     sub->tomo_bkt_ptr = keyo->ptr;
                     sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-                    if (g->ctype == CS_MSET)
-                        setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
-                                        g->version_seq);
-                    else
-                        setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+                    setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
                     sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
                     notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
                     markDirty(1);
@@ -9542,11 +9650,7 @@ static void csSubExec(client *sub) {
         for (int a = 1; a + 1 < sub->argc; a += 2) {
             robj *keyo = sub->argv[a];
             sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-            if (g->ctype == CS_MSET)
-                setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
-                                g->version_seq);
-            else
-                setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
+            setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
             sub->argv[a+1] = NULL;   /* released to the dict on the worker; no cross-thread decref */
             notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
             markDirty(1);
@@ -11036,6 +11140,8 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
+    int atomic_mget = s->ctype == CS_MGET && server.tomo_atomic;
+    int atomic_mset = s->ctype == CS_MSET && server.tomo_atomic;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
      * read, no borrowing, no extra locks. This path SURVIVES.
@@ -11057,7 +11163,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && s->ctype != CS_MGET && nkeys >= 1) {
+    if (!s->cs_write && !s->has_hop2 && !atomic_mget && nkeys >= 1) {
         /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
          * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
          * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
@@ -11130,14 +11236,14 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
-    if (s->ctype == CS_MGET) {
+    if (atomic_mget) {
         /* Publish the existing QSBR region before reading the frontier. A
          * predecessor made reclaimable by a later commit therefore either
          * sees this reader in its fresh grace or this reader sees that commit. */
         flatQsbrRegionEnter();
         g->snapshot_pinned = 1;
         g->version_seq = atomic_load_explicit(&commit_seq, memory_order_acquire);
-    } else if (s->ctype == CS_MSET) {
+    } else if (atomic_mset) {
         csMsetRegister(g);
     }
 
@@ -19204,7 +19310,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                                                      memory_order_acq_rel) == 1;
                 }
                 if (last) {
-                    if (g->ctype == CS_MSET) {
+                    if (g->versioned_write) {
                         csMsetInstallDone(g);
                     } else {
                         client *hp = g->head->parent;

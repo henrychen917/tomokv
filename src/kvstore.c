@@ -86,10 +86,6 @@ void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (u
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetire(t, flatKvMask(kvs, rawkv));
 }
-void kvstoreFlatRetireVersionRaw(kvstore *kvs, void *rawkv, uint64_t version_seq) {
-    flatTable *t = flatCurrent(kvs);
-    if (t && rawkv) flatRetireVersion(t, flatKvMask(kvs, rawkv), version_seq);
-}
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
     flatTable *t = flatCurrent(kvs);
     if (t) flatIterRange(t, blo, bhi, cb, priv);

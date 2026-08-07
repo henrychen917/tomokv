@@ -97,7 +97,8 @@ struct RedisModuleType;
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
 struct redisObject {
-    unsigned type:4;
+    unsigned type:3;
+    unsigned tomo_versioned:1; /* version_seq/version_prev are valid (object types use 0..6) */
     unsigned encoding:4;
     unsigned refcount : OBJ_REFCOUNT_BITS;
     unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
@@ -109,9 +110,9 @@ struct redisObject {
                             * and most significant 16 bits access time). */
     void *ptr;
 
-    /* Cross-shard MSET MVCC-lite state. Only meaningful for kvobjs. A zero
-     * sequence is the always-committed baseline used by ordinary writes;
-     * version_prev links older MSET versions until the FLATSTORE QSBR grace. */
+    /* Cross-shard MSET MVCC-lite state. Valid only when tomo_versioned is set;
+     * ordinary objects leave both fields untouched. version_prev links older
+     * MSET versions until the FLATSTORE QSBR grace. */
     uint64_t version_seq;
     struct redisObject *version_prev;
 };
@@ -137,7 +138,8 @@ uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
 /* Select the newest version visible at a cross-shard MGET snapshot. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    while (kv && kv->version_seq > snapshot) kv = kv->version_prev;
+    while (kv && kv->tomo_versioned && kv->version_seq > snapshot)
+        kv = kv->version_prev;
     return kv;
 }
 

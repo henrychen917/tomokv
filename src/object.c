@@ -84,14 +84,13 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
     char *alloc = zmalloc(min_size);
     kvobj *kv = (kvobj *) (alloc + sizeMetas);
     kv->type = type;
+    kv->tomo_versioned = 0;
     kv->encoding = OBJ_ENCODING_RAW;
     kv->ptr = ptr;
     kv->refcount = 1;
     kv->lru = 0;
     kv->iskvobj = 1;
     kv->metabits = keyMetaBits;
-    kv->version_seq = 0;
-    kv->version_prev = NULL;
 
     /* The memory after the struct where we embedded data. */
     char *data = (void *)(kv + 1);
@@ -109,14 +108,13 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
 robj *createObject(int type, void *ptr) {
     robj *o = zmalloc(sizeof(*o));
     o->type = type;
+    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_RAW;
     o->ptr = ptr;
     o->refcount = 1;
     o->lru = 0;
     o->iskvobj = 0;
     o->metabits = 0;
-    o->version_seq = 0;
-    o->version_prev = NULL;
     return o;
 }
 
@@ -190,13 +188,12 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
     o = (kvobj *) (alloc + sizeMetas);
 
     o->type = OBJ_STRING;
+    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_EMBSTR;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = keyMetaBits;
     o->iskvobj = 1;
-    o->version_seq = 0;
-    o->version_prev = NULL;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);
@@ -232,13 +229,12 @@ robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     size_t bufsize = 0;
     robj *o = zmalloc_usable(sizeof(robj) + val_sds_size, &bufsize);
     o->type = OBJ_STRING;
+    o->tomo_versioned = 0;
     o->encoding = OBJ_ENCODING_EMBSTR;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = 0;
     o->iskvobj = 0;
-    o->version_seq = 0;
-    o->version_prev = NULL;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);

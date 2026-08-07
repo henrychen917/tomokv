@@ -435,7 +435,7 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
-static kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
+static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
                      dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
                      uint64_t version_seq)
 {
@@ -444,8 +444,11 @@ static kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
     if (link == NULL) link = &tmp;
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
-    kv->version_seq = version_seq;
-    kv->version_prev = NULL;
+    if (version_seq) {
+        kv->tomo_versioned = 1;
+        kv->version_seq = version_seq;
+        kv->version_prev = NULL;
+    }
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -629,7 +632,7 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   dbUnshareStringValue() path, which depends on the replacement staying
  *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
-static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
                        int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
                        uint64_t version_seq) {
     int freeModuleMeta = 0;
@@ -698,6 +701,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
          * encoding with the content of val. */
         robj tmp = *old;
         old->type = val->type;
+        old->tomo_versioned = 0;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
@@ -715,8 +719,11 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         val->lru = old->lru;
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
-        kvNew->version_seq = version_seq;
-        kvNew->version_prev = version_seq ? old : NULL;
+        if (version_seq) {
+            kvNew->tomo_versioned = 1;
+            kvNew->version_seq = version_seq;
+            kvNew->version_prev = old;
+        }
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -762,7 +769,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
         if (version_seq)
-            kvstoreFlatRetireVersionRaw(db->keys, old, version_seq);
+            tomoRetireVersion(db->keys, old, version_seq);
         else
             kvstoreFlatRetireRaw(db->keys, old);
     } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
@@ -775,10 +782,123 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     *valref = kvNew;
 }
 
+/* The ordinary write path is deliberately kept separate from the versioned
+ * MSET twin above: with tomokv-atomic off it has the base implementation's
+ * stores, branches and retirement behavior. */
+static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk) {
+    int freeModuleMeta = 0;
+    robj *val = *valref;
+    int slot = getKeySlot(key->ptr);
+    size_t oldsize = 0;
+    if (!link) {
+        link = kvstoreDictFindLink(db->keys, slot, key->ptr, NULL);
+        serverAssertWithInfo(NULL, key, link != NULL);
+    }
+    kvobj *old = dictGetKV(*link);
+    kvobj *kvNew;
+
+    int64_t oldlen = (int64_t)getObjectLength(old);
+    int oldtype = old->type;
+
+    if (old->type == OBJ_HASH)
+        estoreRemove(db->subexpires, slot, old);
+    if (old->type == OBJ_STREAM)
+        dictDelete(db->stream_idmp_keys, key);
+
+    long long oldExpire = getExpire(db, key->ptr, old);
+    uint32_t newKeyMetaBits = old->metabits;
+    if ((!keepTTL) || (oldExpire == -1))
+        newKeyMetaBits &= ~KEY_META_MASK_EXPIRE;
+
+    if (overwrite) {
+        newKeyMetaBits &= KEY_META_MASK_EXPIRE;
+        incrRefCount(old);
+        if (getModuleMetaBits(old->metabits)) {
+            keyMetaOnUnlink(db, key, old);
+            freeModuleMeta = 1;
+        }
+        moduleNotifyKeyUnlink(key, old, db->id, DB_FLAG_KEY_OVERWRITE);
+        signalDeletedKeyAsReady(db, key, old->type);
+        decrRefCount(old);
+        old = dictGetKV(*link);
+    }
+    if (server.memory_tracking_enabled)
+        oldsize = kvobjAllocSize(old);
+
+    if ((old->refcount == 1 && old->encoding != OBJ_ENCODING_EMBSTR) &&
+        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) &&
+        (!freeModuleMeta) && !kvstoreIsFlat(db->keys))
+    {
+        robj tmp = *old;
+        old->type = val->type;
+        old->tomo_versioned = 0;
+        old->encoding = val->encoding;
+        old->ptr = val->ptr;
+        val->type = tmp.type;
+        val->encoding = tmp.encoding;
+        val->ptr = tmp.ptr;
+        kvNew = old;
+        old = val;
+        if ((!keepTTL) && (oldExpire >= 0))
+            removeExpire(db, key);
+    } else {
+        val->lru = old->lru;
+        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
+
+        if (oldExpire != -1) {
+            if (keepTTL) {
+                kvobjSetExpire(kvNew, oldExpire);
+                dictEntryLink exLink = kvstoreDictFindLink(db->expires, slot,
+                                                           key->ptr, NULL);
+                serverAssertWithInfo(NULL, key, exLink != NULL);
+                kvstoreDictSetAtLink(db->expires, slot, kvNew, &exLink, 0);
+            } else {
+                kvstoreDictDelete(db->expires, slot, key->ptr);
+            }
+        }
+        if (newKeyMetaBits & KEY_META_MASK_MODULES)
+            keyMetaTransition(old, kvNew);
+    }
+
+    int64_t newlen = (int64_t)getObjectLength(kvNew);
+    if (updateKeySizes) {
+        if (oldtype == kvNew->type) {
+            updateKeysizesHist(db, slot, oldtype, oldlen, newlen);
+        } else {
+            updateKeysizesHist(db, slot, oldtype, oldlen, -1);
+            updateKeysizesHist(db, slot, kvNew->type, -1, newlen);
+        }
+    }
+
+    if (server.memory_tracking_enabled) {
+        if (oldtype == kvNew->type) {
+            updateSlotAllocSize(db, slot, kvNew, oldsize, kvobjAllocSize(kvNew));
+        } else {
+            updateSlotAllocSize(db, slot, old, oldsize, -1);
+            updateSlotAllocSize(db, slot, kvNew, -1, kvobjAllocSize(kvNew));
+        }
+    }
+
+    if (kvstoreIsFlat(db->keys)) {
+        kvstoreFlatRetireRaw(db->keys, old);
+    } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW &&
+               old->refcount == 1) {
+        tryDeferFreeClientObject(server.current_client[iotid].p,
+                                 DEFERRED_OBJECT_TYPE_ROBJ, old);
+    } else if (server.lazyfree_lazy_server_del) {
+        freeObjAsync(key, old, db->id);
+    } else {
+        decrRefCount(old);
+    }
+    *valref = kvNew;
+}
+
 /* Replace an existing key with a new value, we just replace value and don't
  * emit any events */
 void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
-    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0, 0);
+    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0);
 }
 
 /* Replace an existing key with a new value (don't emit any events)
@@ -792,7 +912,7 @@ void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
  * callers an sds living inside the kvobj allocation -- heap corruption on the
  * first sdscatlen/sdsgrowzero/sdsResize. */
 void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink link) {
-    dbSetValue(db, key, val, link, 0, 1, 1, 0, 0);
+    dbSetValue(db, key, val, link, 0, 1, 1, 0);
 }
 
 /* High level Set operation. This function can be used in order to set
@@ -810,8 +930,9 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * All the new keys in the database should be created via this interface.
  * The client 'c' argument may be set to NULL if the operation is performed
  * in a context where there is no clear client performing the operation. */
-static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
-                                int flags, dictEntryLink *plink, uint64_t version_seq);
+static void setKeyByLinkVersion(client *c, redisDb *db, robj *key,
+                                robj **valref, int flags,
+                                dictEntryLink *plink, uint64_t version_seq);
 
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
@@ -852,16 +973,18 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
     /* Tickets are global, but different IO producers can enqueue overlapping
      * MSETs to an owner in a different order. Insert an older ticket into the
      * already-published chain instead of letting it replace a newer head. */
-    if (version_seq && exists && oldval->version_seq > version_seq) {
+    if (version_seq && exists && oldval->tomo_versioned &&
+        oldval->version_seq > version_seq) {
         serverAssert(kvstoreIsFlat(db->keys));
         robj *val = *valref;
         val->lru = oldval->lru;
         kvobj *kvNew = kvobjSetEx(key->ptr, val, 0,
                                   (flags & SETKEY_EMBED_RAW) != 0);
+        kvNew->tomo_versioned = 1;
         kvNew->version_seq = version_seq;
 
         kvobj *successor = oldval;
-        while (successor->version_prev &&
+        while (successor->version_prev && successor->version_prev->tomo_versioned &&
                successor->version_prev->version_seq > version_seq)
             successor = successor->version_prev;
         kvNew->version_prev = successor->version_prev;
@@ -869,7 +992,7 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
 
         /* kvNew is already superseded by successor. Its ref enters the same
          * retire machinery, but only once successor's epoch is committed. */
-        kvstoreFlatRetireVersionRaw(db->keys, kvNew, successor->version_seq);
+        tomoRetireVersion(db->keys, kvNew, successor->version_seq);
         *valref = kvNew;
 
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -884,8 +1007,9 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
-        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL,
-                   (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+        dbSetValueVersioned(db, key, valref, *link, 1, 1,
+                            flags & SETKEY_KEEPTTL,
+                            (flags & SETKEY_EMBED_RAW) != 0, version_seq);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -905,7 +1029,39 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
                   dictEntryLink *plink) {
-    setKeyByLinkVersion(c, db, key, valref, flags, plink, 0);
+    dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
+    int exists;
+    kvobj *oldval = NULL;
+
+    if (flags & SETKEY_ALREADY_EXIST) {
+        debugServerAssert((*link) != NULL);
+        oldval = dictGetKV(**link);
+        exists = 1;
+    } else if (flags & SETKEY_DOESNT_EXIST) {
+        exists = 0;
+    } else {
+        oldval = lookupKeyWriteWithLink(db, key, link);
+        exists = oldval != NULL;
+    }
+
+    if (exists) {
+        int oldtype = oldval->type;
+        int newtype = (*valref)->type;
+
+        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL,
+                   (flags & SETKEY_EMBED_RAW) != 0);
+
+        notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
+        if (oldtype != newtype)
+            notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
+    } else {
+        KeyMetaSpec keyMetaEmpty;
+        keyMetaSpecInit(&keyMetaEmpty);
+        dbAddInternal(db, key, valref, link, &keyMetaEmpty,
+                      (flags & SETKEY_EMBED_RAW) != 0);
+    }
+
+    keyModified(c, db, key, *valref, !(flags & SETKEY_NO_SIGNAL));
 }
 
 /* During atomic slot migration, keys that are being imported are in an

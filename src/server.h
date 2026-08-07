@@ -1073,11 +1073,10 @@ char *getObjectTypeName(robj*);
 #define initStaticStringObject(_var,_ptr) do { \
     _var.refcount = OBJ_STATIC_REFCOUNT; \
     _var.type = OBJ_STRING; \
+    _var.tomo_versioned = 0; \
     _var.encoding = OBJ_ENCODING_RAW; \
     _var.metabits = 0; \
     _var.iskvobj = 0; \
-    _var.version_seq = 0; \
-    _var.version_prev = NULL; \
     _var.ptr = _ptr; \
 } while(0)
 
@@ -2082,6 +2081,7 @@ typedef struct csGroup {
     uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
     redisAtomic int commit_ready; /* every owner installed this ticket */
+    int versioned_write;         /* this group is an atomic MSET install */
     int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
@@ -4042,6 +4042,7 @@ struct redisServer {
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
+    int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -5763,6 +5764,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 void setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                      uint64_t version_seq);
+void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);

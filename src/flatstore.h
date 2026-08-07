@@ -57,11 +57,7 @@ typedef struct flatSlot {
  * every io identity's flat_epoch (only the identities inside a region at close — io_pin_mask). A
  * batch frees once every stamped constituency has either advanced past its stamp or left the region
  * it was in at close. One stamp per batch amortizes the snapshot over many deletes. */
-typedef struct flatRetireNode {
-    dictEntry *masked_kv;
-    uint64_t version_seq;       /* 0, or frontier required before starting its grace */
-    struct flatRetireNode *next;
-} flatRetireNode;
+typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
 #define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
                               * snapshot. The io clause needs no margin — the epoch publish is a
@@ -136,7 +132,6 @@ dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new);
  * slot was already cleared) for the caller to QSBR-retire. Owner-exclusive single store. */
 dictEntry *flatDelete(flatTable *t, uint64_t slot);
 void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free until grace */
-void       flatRetireVersion(flatTable *t, dictEntry *masked_kv, uint64_t version_seq);
 
 /* iteration helpers (whole-table walk; Stage 4 adds a resumable cursor) */
 typedef void (*flatIterCB)(dictEntry *masked_kv, void *priv);
