@@ -3869,7 +3869,6 @@ struct redisServer {
     list *tracking_pending_keys; /* tracking invalidation keys pending to flush */
     list *pending_push_messages; /* pending publish or other push messages to flush */
     /* Zip structure config, see redis.conf for more information  */
-    int hash_max_listpack_bytes;
     size_t hash_max_listpack_entries;
     size_t hash_max_listpack_value;
     size_t set_max_intset_entries;
