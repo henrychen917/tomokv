@@ -5797,6 +5797,7 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
                                    struct tomoVersionRetire *retire);
 struct tomoVersionRetire *tomoRetireVersion(kvstore *kvs, kvobj *kv,
                                             uint64_t version_seq);
+void tomoRetireVersionCommitted(kvstore *kvs, kvobj *kv, uint64_t version_seq);
 void tomoCancelVersionRetire(struct tomoVersionRetire *retire);
 uint64_t tomoAtomicCommitSeq(void);
 int dbRemoveTombstoneIfHead(redisDb *db, robj *key, kvobj *tombstone);

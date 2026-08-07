@@ -783,9 +783,9 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
          * reader may still hold it). Transfers old's ref to the QSBR retire list. */
         if (same_version) {
             /* Duplicate keys in one atomic MSET replace their earlier, never-visible version.
-             * Preserve its predecessor link, but retire the superseded same-ticket object through
-             * ordinary QSBR immediately; no snapshot can select one same-ticket intermediate. */
-            kvstoreFlatRetireRaw(db->keys, old);
+             * Preserve its predecessor link and transfer the raw intermediate to the same
+             * committed-watermark queue as every other atomic version predecessor. */
+            (void)tomoRetireVersion(db->keys, old, version_seq);
         } else if (version_seq) {
             struct tomoVersionRetire *retire = tomoRetireVersion(db->keys, old, version_seq);
             if (retire_out) *retire_out = retire;
@@ -1124,7 +1124,7 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
  * record belongs to this install and is canceled before the pointer splice, so a restored
  * predecessor can never later enter reclamation merely because the canceled ticket advanced.
  * Atomic version_prev links let a pinned snapshot reader race the splice safely; the removed
- * reservation itself starts the ordinary QSBR grace before its dict-owned reference is dropped. */
+ * reservation transfers its raw reference to the committed-watermark version queue. */
 void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
                                    struct tomoVersionRetire *retire) {
     serverAssert(kvstoreIsFlat(db->keys));
@@ -1147,13 +1147,18 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
                 updateSlotAllocSize(db, slot, reservation, oldsize, -1);
                 updateSlotAllocSize(db, slot, prev, -1, kvobjAllocSize(prev));
             }
-            kvstoreFlatRetireRaw(db->keys, reservation);
         } else {
             updateKeysizesHist(db, slot, reservation->type, oldlen, -1);
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(db, slot, reservation, oldsize, -1);
-            serverAssert(kvstoreDictDelete(db->keys, slot, key->ptr) == DICT_OK);
+            int table;
+            dictEntryLink unlink = kvstoreDictTwoPhaseUnlinkFind(db->keys, slot,
+                                                                 key->ptr, &table);
+            serverAssert(unlink != NULL && dictGetKV(*unlink) == reservation);
+            kvobj *removed = kvstoreDictTwoPhaseUnlinkTake(db->keys, slot, unlink, table);
+            serverAssert(removed == reservation);
         }
+        (void)tomoRetireVersion(db->keys, reservation, reservation->vmeta->version_seq);
         return;
     }
 
@@ -1164,9 +1169,11 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
         if (candidate == reservation) {
             atomic_store_explicit(&successor->vmeta->version_prev, prev,
                                   memory_order_release);
-            /* successor's existing retirement record owns this now-unlinked reservation. It
-             * retires it when successor commits; enrolling it again here would double-retire.
-             * Duplicate input keys are canonicalized before reservation install. */
+            /* The canceled install record may describe either the restored predecessor or this
+             * already-superseded reservation. In both cases it is canceled above; transfer the
+             * now-unlinked raw reservation to one fresh record keyed by its own commit ticket. */
+            (void)tomoRetireVersion(db->keys, reservation,
+                                    reservation->vmeta->version_seq);
             return;
         }
         successor = candidate;
@@ -1175,12 +1182,13 @@ void cancelKeyReservationVersioned(redisDb *db, robj *key, kvobj *reservation,
 }
 
 /* Atomic DEL's post-commit owner phase removes only its exact tombstone head. A later value
- * version wins simply by no longer matching `tombstone`; ordinary flat QSBR owns the removed
- * table reference after kvstoreDictDelete. */
+ * version wins simply by no longer matching `tombstone`. The shared two-phase unlink decodes its
+ * encoded result once; the raw table reference then enters the atomic version-retire queue. */
 int dbRemoveTombstoneIfHead(redisDb *db, robj *key, kvobj *tombstone) {
     serverAssert(kvstoreIsFlat(db->keys));
     int slot = getKeySlot(key->ptr);
-    dictEntryLink link = kvstoreDictFindLink(db->keys, slot, key->ptr, NULL);
+    int table;
+    dictEntryLink link = kvstoreDictTwoPhaseUnlinkFind(db->keys, slot, key->ptr, &table);
     if (!link || dictGetKV(*link) != tombstone) return 0;
     serverAssert(kvobjIsTombstone(tombstone));
     int64_t oldlen = (int64_t)getObjectLength(tombstone);
@@ -1188,7 +1196,9 @@ int dbRemoveTombstoneIfHead(redisDb *db, robj *key, kvobj *tombstone) {
     updateKeysizesHist(db, slot, tombstone->type, oldlen, -1);
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(db, slot, tombstone, oldsize, -1);
-    serverAssert(kvstoreDictDelete(db->keys, slot, key->ptr) == DICT_OK);
+    kvobj *removed = kvstoreDictTwoPhaseUnlinkTake(db->keys, slot, link, table);
+    serverAssert(removed == tombstone);
+    tomoRetireVersionCommitted(db->keys, removed, tombstone->vmeta->version_seq);
     return 1;
 }
 

@@ -159,6 +159,7 @@ dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key);
 dictEntry *kvstoreDictAddRaw(kvstore *kvs, int didx, void *key, dictEntry **existing);
 dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *key, int *table_index);
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink plink, int table_index);
+void *kvstoreDictTwoPhaseUnlinkTake(kvstore *kvs, int didx, dictEntryLink plink, int table_index);
 int kvstoreDictDelete(kvstore *kvs, int didx, const void *key);
 dict *kvstoreGetDict(kvstore *kvs, int didx);
 void kvstoreFreeDictIfNeeded(kvstore *kvs, int didx);

@@ -1142,18 +1142,40 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
     return dictTwoPhaseUnlinkFind(kvstoreGetDict(kvs, didx), key, table_index);
 }
 
+/* The single flat-store unlink primitive shared by stock dbGenericDelete and atomic DEL. Its
+ * return value is still the ENCODED dictEntry * produced by flatDelete; callers must either pass
+ * that exact value to flatRetire or decode it exactly once before entering a raw-kvobj API. */
+static dictEntry *kvstoreFlatTwoPhaseUnlink(kvstore *kvs, flatTable *t,
+                                           dictEntryLink link, int table_index) {
+    dictEntry *encoded = flatDelete(t, flatSlotOf(t, link));
+    __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+    (void)table_index;
+    return encoded;
+}
+
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, int table_index) {
     if (kvs->flags & KVSTORE_FLAT) {
         flatTable *t = flatCurrent(kvs);
-        flatRetire(t, flatDelete(t, flatSlotOf(t, link)));   /* QSBR: defer free past a reader grace */
-        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
-        (void)table_index;
+        flatRetire(t, kvstoreFlatTwoPhaseUnlink(kvs, t, link, table_index));
         return;
     }
     dict *d = kvstoreGetDict(kvs, didx);
     dictTwoPhaseUnlinkFree(d, link, table_index);
     cumulativeKeyCountAdd(kvs, didx, -1);
     freeDictIfNeeded(kvs, didx);
+}
+
+/* Atomic version retirement needs the table-owned RAW kvobj rather than a direct flat-retire
+ * enqueue. This is flat-only by construction: decode the shared unlink primitive's encoded entry
+ * exactly once and transfer that reference to the caller. */
+void *kvstoreDictTwoPhaseUnlinkTake(kvstore *kvs, int didx, dictEntryLink link,
+                                    int table_index) {
+    assert(kvs->flags & KVSTORE_FLAT);
+    (void)didx;
+    flatTable *t = flatCurrent(kvs);
+    dictEntry *encoded = kvstoreFlatTwoPhaseUnlink(kvs, t, link, table_index);
+    assert(encoded != NULL && dictEntryIsKey(encoded));
+    return dictGetKey(encoded);
 }
 
 int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {

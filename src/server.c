@@ -330,6 +330,9 @@ tomoVersionRetire *tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_s
     /* Keep vmeta owned by kv while it is reachable by snapshot readers. Once
      * this ticket commits, csReleaseCommittedVersions starts the QSBR grace;
      * the final decrRefCount after that grace frees kv and its vmeta together. */
+    serverAssert(kvstoreIsFlat(kvs));
+    serverAssert(kv != NULL && !dictEntryIsKey((dictEntry *)kv));
+    serverAssert(version_seq != 0);
     tomoVersionRetire *n = zmalloc(sizeof(*n));
     n->kvs = kvs;
     n->kv = kv;
@@ -8670,11 +8673,22 @@ static void csReleaseCommittedVersions(uint64_t visible) {
     while (ready) {
         tomoVersionRetire *next = ready->next;
         serverAssert(kvstoreIsFlat(ready->kvs));
+        serverAssert(ready->kv != NULL && !dictEntryIsKey((dictEntry *)ready->kv));
         kvstoreFlatRetireRaw(ready->kvs, ready->kv);
         zfree(ready);
         ready = next;
     }
     flat_local_sink = saved_sink;
+}
+
+/* Atomic DEL unlinks its tombstone after the ticket is already visible. Enqueue through the same
+ * raw-kvobj version feed, then run the same watermark drain so a workload's final DEL does not
+ * leave the tombstone parked until some later atomic commit. */
+void tomoRetireVersionCommitted(kvstore *kvs, kvobj *kv, uint64_t version_seq) {
+    uint64_t visible = tomoAtomicCommitSeq();
+    serverAssert(version_seq <= visible);
+    (void)tomoRetireVersion(kvs, kv, version_seq);
+    csReleaseCommittedVersions(visible);
 }
 
 /* Capture exactly the atomic readers that could still ask owners to walk through this DEL's
