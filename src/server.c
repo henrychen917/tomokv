@@ -9606,9 +9606,10 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
                 sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);
                 sub->tomo_bkt_ptr = keyo->ptr;
                 sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-                setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
-                                g->version_seq);
-                csMsetRecordInstall(sub, g, sub->argv[a+1]);
+                kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                                   &sub->argv[a+1], 0,
+                                                   g->version_seq);
+                csMsetRecordInstall(sub, g, installed);
                 sub->argv[a+1] = NULL;
                 notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
                 markDirty(1);
@@ -9621,9 +9622,10 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
     for (int a = 1; a + 1 < sub->argc; a += 2) {
         robj *keyo = sub->argv[a];
         sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
-        setKeyVersioned(sub, sub->db, keyo, &sub->argv[a+1], 0,
-                        g->version_seq);
-        csMsetRecordInstall(sub, g, sub->argv[a+1]);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                           &sub->argv[a+1], 0,
+                                           g->version_seq);
+        csMsetRecordInstall(sub, g, installed);
         sub->argv[a+1] = NULL;
         notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
         markDirty(1);

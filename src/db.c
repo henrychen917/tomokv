@@ -633,9 +633,9 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   dbUnshareStringValue() path, which depends on the replacement staying
  *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
-static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
-                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
-                       uint64_t version_seq) {
+static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                                  int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
+                                  uint64_t version_seq) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -783,6 +783,7 @@ static void dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntry
         decrRefCount(old);
     }
     *valref = kvNew;
+    return kvNew;
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned
@@ -934,17 +935,17 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * All the new keys in the database should be created via this interface.
  * The client 'c' argument may be set to NULL if the operation is performed
  * in a context where there is no clear client performing the operation. */
-static void setKeyByLinkVersion(client *c, redisDb *db, robj *key,
-                                robj **valref, int flags,
-                                dictEntryLink *plink, uint64_t version_seq);
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key,
+                                  robj **valref, int flags,
+                                  dictEntryLink *plink, uint64_t version_seq);
 
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
 }
 
-void setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
-                     uint64_t version_seq) {
-    setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                       uint64_t version_seq) {
+    return setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
 }
 
 /* Like setKey(), but accepts an optional link
@@ -955,8 +956,8 @@ void setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags
  * - If flag is not set (0) then add or update key, and `link` must be NULL
  * On return, link get updated, by need, to the inserted kvobj.
  */
-static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
-                                int flags, dictEntryLink *plink, uint64_t version_seq) {
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
+                                  int flags, dictEntryLink *plink, uint64_t version_seq) {
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -1005,17 +1006,18 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
         if (oldval->type != kvNew->type)
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
         keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
-        return;
+        return kvNew;
     }
 
+    kvobj *installed;
     if (exists) {
         int oldtype = oldval->type;
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
-        dbSetValueVersioned(db, key, valref, *link, 1, 1,
-                            flags & SETKEY_KEEPTTL,
-                            (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+        installed = dbSetValueVersioned(db, key, valref, *link, 1, 1,
+                                        flags & SETKEY_KEEPTTL,
+                                        (flags & SETKEY_EMBED_RAW) != 0, version_seq);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -1025,12 +1027,13 @@ static void setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref
         /* Add the new key to the database */
         KeyMetaSpec keyMetaEmpty; /* No metadata added */
         keyMetaSpecInit(&keyMetaEmpty);
-        dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
-                             (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+        installed = dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
+                                         (flags & SETKEY_EMBED_RAW) != 0, version_seq);
     }
 
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+    return installed;
 }
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,

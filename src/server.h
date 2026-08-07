@@ -5780,8 +5780,8 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 #define SETKEY_EMBED_RAW 16
 
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
-void setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
-                     uint64_t version_seq);
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
+                       uint64_t version_seq);
 void tomoRetireVersion(kvstore *kvs, kvobj *kv, uint64_t version_seq);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
