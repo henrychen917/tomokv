@@ -557,6 +557,23 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
+    /* Atomic-mode RYOW overlap census (csMsetHoldOwnRead). The read hold's cost is set by how
+     * often a read ACTUALLY collides with its own uncommitted writes, and that rate is a property
+     * of the WORKLOAD's key distribution, not of the code — so it can only be measured, never
+     * reasoned about. Appended at the tail deliberately: every offset above is already covered by
+     * a false-sharing argument (and two _Static_asserts), and inserting here would move them.
+     * Owner-written plainly on the dispatching io identity, racy read by INFO — same contract as
+     * rord_runs; nothing here is on the zero-pending fast path except `ownread_reads`.
+     *   reads    = every read that reached the gate       (denominator)
+     *   pending  = ...that arrived with own writes in flight (the bloom's decision set)
+     *   held     = ...that the bloom could not clear, so it parked
+     *   conserv  = held WITHOUT a key-bit match: unknown keyspace (all-ones signature) or the
+     *              detached-head arm. These are false positives; counted apart so a measured
+     *              overlap rate can be separated from the gate's own imprecision. */
+    unsigned long long ownread_reads;
+    unsigned long long ownread_pending;
+    unsigned long long ownread_held;
+    unsigned long long ownread_conserv;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -9024,8 +9041,12 @@ static uint64_t csOwnReadSignature(client *real) {
 /* Walk the connection-local R1 FIFO under its existing lock. A completed head is briefly
  * detached before commit_seq publication while pending_count intentionally stays nonzero; if
  * such a group exists its signature is no longer reachable, so conservatively hold until that
- * publication finishes. This preserves the no-false-negative rule without widening the FIFO. */
-static int csMsetReadIntersects(client *real, uint64_t read_sig) {
+ * publication finishes. This preserves the no-false-negative rule without widening the FIFO.
+ *
+ * `detached` reports WHICH arm answered: set only when the walk found no key-bit match and the
+ * hold comes from the unreachable-signature case above. It is measurement out-param only — the
+ * return value, and therefore every decision, is unchanged. */
+static int csMsetReadIntersects(client *real, uint64_t read_sig, int *detached) {
     unsigned int linked = 0;
     int intersects = 0;
     csMsetPendingLock(real);
@@ -9039,25 +9060,40 @@ static int csMsetReadIntersects(client *real, uint64_t read_sig) {
     unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
                                                  memory_order_acquire);
     csMsetPendingUnlock(real);
-    return intersects || pending > linked;
+    *detached = !intersects && pending > linked;
+    return intersects || *detached;
 }
 
 /* Dispatch-side RYOW gate. Hash only after the zero-pending fast path, then hold iff this read's
  * key signature intersects a group in its own short R1 FIFO. Publish the waiter marker before the
- * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race. */
+ * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race.
+ *
+ * The tm_io_sig counters are the overlap census (see the field block). Plain increments on this
+ * thread's own line, no atomics: the identity is the same one the dispatch a few frames below
+ * charges disp_cnt/rord_runs to, so a caller that could corrupt a neighbour's slot here would
+ * already be corrupting it there. */
 static int csMsetHoldOwnRead(client *real) {
+    tm_io_sig[iotid].ownread_reads++;
     if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
         return 0;
+    tm_io_sig[iotid].ownread_pending++;
     uint64_t read_sig = csOwnReadSignature(real);
-    if (!csMsetReadIntersects(real, read_sig)) return 0;
+    int detached = 0;
+    if (!csMsetReadIntersects(real, read_sig, &detached)) return 0;
 
     atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
-    if (!csMsetReadIntersects(real, read_sig)) {
+    if (!csMsetReadIntersects(real, read_sig, &detached)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         return 0;
     }
+    /* Classify against the scan that DECIDED the park (the confirming one), before the third scan
+     * overwrites `detached`. An all-ones signature intersects every group, so it must be tested by
+     * value rather than inferred from the walk: without that, a KEYS/SORT read is indistinguishable
+     * from a genuine key collision and the measured overlap rate is inflated by the gate itself. */
+    tm_io_sig[iotid].ownread_held++;
+    if (read_sig == UINT64_MAX || detached) tm_io_sig[iotid].ownread_conserv++;
     tomoAtomicParkPendingRead(real);
-    if (!csMsetReadIntersects(real, read_sig)) {
+    if (!csMsetReadIntersects(real, read_sig, &detached)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         tomoAtomicWakeProducer(real->tid);
     }
@@ -17869,6 +17905,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             csg_inl += csg_alloc_ctr[_t].inline_hits;
             csg_heap += csg_alloc_ctr[_t].heap_fallbacks;
         }
+        /* Atomic-mode RYOW overlap census. held/pending is the rate at which a read that COULD
+         * conflict with its own uncommitted writes actually does — the workload property the read
+         * hold's cost is set by. Subtract conserv from held for the rate the KEYS overlapped,
+         * rather than the rate the gate could not prove they did not. */
+        unsigned long long orr = 0, orp = 0, orh = 0, orc = 0;
+        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
+            orr += tm_io_sig[_t].ownread_reads;   orp += tm_io_sig[_t].ownread_pending;
+            orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -17928,6 +17973,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_atomic_promotions:%llu\r\n",
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+            "tomokv_atomic_ownread_reads:%llu\r\n", orr,
+            "tomokv_atomic_ownread_pending:%llu\r\n", orp,
+            "tomokv_atomic_ownread_held:%llu\r\n", orh,
+            "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
