@@ -132,7 +132,10 @@ struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
     uint64_t install_order;
-    uint64_t origin_client_id;
+    uint64_t origin_client_id; /* installing (real) connection id; written once
+                                * at install, IMMUTABLE until physical retire:
+                                * the RYOW resolver keys off it after the stamp
+                                * (kvobjVersionAt own-widening) */
     uint32_t version_order;
     uint8_t version_tombstone;
     uint8_t version_reservation;

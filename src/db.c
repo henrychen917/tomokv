@@ -910,7 +910,17 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
     }
-    vmeta->origin_client_id = 0;
+    /* origin_client_id is deliberately NOT cleared: it is written once at
+     * install and must survive the stamp. This lane runs BEFORE commit_seq
+     * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
+     * csMsetInstallDone publishes), so the installing connection's own read
+     * can meet this version already stamped while still holding a snapshot
+     * below it — a cross-shard read pins S at dispatch, and even a lazily
+     * resolved GET can draw commit_seq inside that window. kvobjVersionAt
+     * then recognizes the version as the reader's own by this identity and
+     * widens the snapshot upward to it; clearing the id here made the own
+     * branch miss and the strict cursor step past the connection's own
+     * atomic write (the torn-own-read P0). */
 }
 
 /* Canceled atomic-group versions use the same owner lane as stamping. A canceled
@@ -927,7 +937,10 @@ void tomoCancelVersion(kvobj *kv) {
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
-    vmeta->origin_client_id = 0;
+    /* origin_client_id stays: the field is write-once at install (see
+     * tomoApplyVersionStamp). A canceled version is excluded from the own
+     * branch by version_canceled and never enters the committed chain, so
+     * the surviving identity is inert here. */
     if (vmeta->detached) {
         tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
         return;

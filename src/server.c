@@ -7573,7 +7573,14 @@ int processCommand(client *c) {
      * owner: lookupKeyReadWithFlags checks vmeta lazily, and the worker's live
      * flat section already protects the uncommon bag walk. Avoiding an IO pin
      * for the vmeta-free single-key fast path lets retirement grace advance
-     * under GET-heavy traffic. */
+     * under GET-heavy traffic.
+     * The pin may sit BELOW this connection's own in-flight atomic groups
+     * (their seqs are drawn only at commit), and needs no overlap guard here:
+     * the resolver widens the snapshot upward for versions this connection
+     * installed (kvobjVersionAt own-widening), which keeps a pipelined
+     * MGET-after-MSET consistent through every stamp/publication interleaving.
+     * Do not "fix" that by holding overlapping reads at dispatch — that
+     * reinstates the 1:1 MGET:MSET serialization this branch removed. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
         fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
         ((fake->cmd->flags & CMD_READONLY) ||
@@ -8886,11 +8893,12 @@ static inline uint64_t csHashSignature(uint64_t h) {
 }
 
 /* Resolve C's owner-local uncommitted version before consulting the committed
- * cursor. origin_client_id identifies the installing connection until this
- * owner stamps or cancels the version, so the physical-bag walk confirms
- * ownership directly without taking C's R1-FIFO spinlock. The physical chain
- * is newest-install-first; same connection + same key reaches this owner
- * through one FIFO, so the first live own candidate is C's maximum
+ * cursor. origin_client_id identifies the installing connection for the whole
+ * life of the version (written once at install, never cleared — the committed
+ * walk's own-widening below depends on that), so the physical-bag walk
+ * confirms ownership directly without taking C's R1-FIFO spinlock. The
+ * physical chain is newest-install-first; same connection + same key reaches
+ * this owner through one FIFO, so the first live own candidate is C's maximum
  * install_order for this key. A group is briefly outside the linked FIFO after
  * sequence draw and can remain locally UNCOMMITTED until this owner's stamp
  * lane runs; the owner-local identity also covers that gap.
@@ -8899,17 +8907,17 @@ static inline uint64_t csHashSignature(uint64_t h) {
  *  1. The maximum own install_order is C's latest installed write to this key.
  *  2. Only a locally UNCOMMITTED version qualifies, so its eventual monotone
  *     sequence is above the committed cut being read now.
- *  3. Stamp changes version_seq and cancel sets version_canceled, so the
- *     ordinary committed cursor wins after either terminal decision.
+ *  3. Stamp changes version_seq and cancel sets version_canceled, so this
+ *     branch stands down after either terminal decision; a stamped own
+ *     version is then accepted by the committed walk's own-widening in
+ *     kvobjVersionAt, never silently lost to an older snapshot.
  *  4. This executes independently on each key owner; non-own keys retain S.
  *  5. Same-connection/same-key FIFO makes physical/install order program-order
  *     exact; other readers fail the immutable connection identity check.
  * A canceled reservation is skipped, a live reservation is its group's own
  * installed state, and a selected tombstone is reported as an own absence. */
-static kvobj *csMsetOwnVersionAt(kvobj *head, client *reader, int *found) {
+static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
     *found = 0;
-    if (!reader) return NULL;
-    client *real = reader->isFake ? reader->parent : reader;
     if (!real) return NULL;
 
     for (kvobj *kv = head; kv; kv = kvobjVersionPrev(kv)) {
@@ -8928,16 +8936,73 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *reader, int *found) {
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
  * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order). After the reader-aware own branch,
- * the committed-head cursor path is byte-for-byte the previous resolver. */
+ * ordered by descending (seq,install_order).
+ *
+ * Committed walk with OWN-WIDENING: after the own-uncommitted branch, the
+ * cursor accepts the first version with seq <= snapshot — OR the first
+ * version installed by the reader's own connection even though its seq is
+ * above the snapshot. Without the widening, this torn read exists (verified):
+ * C pipelines MSET k1 k2 (group G) then MGET k1 k2. The MGET pins S at
+ * dispatch while G is uncommitted, so S < S_G forever. k1's owner runs its
+ * sub before G commits: the own branch returns C's uncommitted k1. k2's
+ * owner drains its stamp lane first: k2 becomes seq S_G, the own branch no
+ * longer matches, and a strict cursor at S < S_G steps PAST C's k2 to the
+ * pre-MSET value — [own v1, stale v2], a torn view of C's own atomic group.
+ * Plain GET reaches the same door with no pin at all: stamp ops are pushed
+ * BEFORE commit_seq advances (csMsetStampAndAppend runs, csMsetInstallDone
+ * publishes after), so this owner can stamp k and then execute C's GET k
+ * while commit_seq still reads below S_G.
+ *
+ * Correctness of the widening:
+ *  1. RYOW-necessity: a version with origin_client_id == C present in this
+ *     bag when C's read executes here was installed by a C-group dispatched
+ *     BEFORE this read. Same connection => commands dispatch serially from
+ *     one IO thread; same key => same owner SPSC FIFO; so that group's
+ *     install op precedes this read op in this owner's queue. The write is
+ *     program-order-before the read: returning anything older violates
+ *     read-your-own-writes. Accepting it is required, not optional.
+ *  2. Linearizability: the version's seq S_G was drawn at its group's
+ *     R1-ordered commit, and per-connection commit order equals R1
+ *     registration order, so the first own hit on this descending-seq chain
+ *     is C's program-order-latest committed write to the key. Accepting it
+ *     moves this read's per-key serialization point up from S to S_G — own
+ *     groups' seqs are above S precisely because they were still pending at
+ *     dispatch, and committing them before the read is consistent with R1
+ *     program order: the read was issued after those writes on the same
+ *     connection, and the group had committed (witnessed by the stamp)
+ *     before this resolve, i.e. inside the read's invocation-response
+ *     window. This is exactly the visibility the deleted read-hold produced
+ *     by waiting for pending==0 before drawing S, without the wait. Non-own
+ *     versions above the snapshot stay invisible — the standard snapshot
+ *     allowance — and the mix is not new: the own-uncommitted branch already
+ *     returns own values whose eventual seq exceeds every committed cut.
+ *  3. Exactness (why no recorded group set): the id is written once at
+ *     install, immutable afterwards, unique for the connection's lifetime
+ *     (monotone next_client_id, real clients only), and compared against the
+ *     live reader's real id — no bloom false positives, no group pointers
+ *     that dangle after reassembly frees the group, and no dispatch-time
+ *     recording (impossible for lazily resolved GET, whose snapshot is drawn
+ *     right here). A version from a C-group dispatched AFTER this read can
+ *     never be accepted: its install op sits behind this read in the same
+ *     owner FIFO, so it is not in the chain yet. "Own committed present"
+ *     therefore coincides exactly with "group pending at or before this
+ *     read's dispatch" — the recorded-set semantics, computed exactly.
+ *  4. An own tombstone is C's own committed DEL: report absence. NULL-reader
+ *     (write-side) resolves keep the strict committed-only cut. */
 kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
     struct tomoVerMeta *head_meta = kvobjVmeta(kv);
     if (!head_meta) return kv;
 
+    client *real = NULL;
+    if (reader_connection)
+        real = reader_connection->isFake ? reader_connection->parent
+                                         : reader_connection;
+
     int own_found;
-    kvobj *own = csMsetOwnVersionAt(kv, reader_connection, &own_found);
+    kvobj *own = csMsetOwnVersionAt(kv, real, &own_found);
     if (own_found) return own;
 
+    uint64_t reader_id = real ? real->id : 0;
     kv = atomic_load_explicit(&head_meta->committed_head,
                               memory_order_acquire);
     struct tomoVerMeta *vmeta = NULL;
@@ -8947,6 +9012,7 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
         uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
                                             memory_order_acquire);
         if (seq <= snapshot) break;
+        if (reader_id != 0 && vmeta->origin_client_id == reader_id) break;
         kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
     }
     if (kv && vmeta && vmeta->version_tombstone) return NULL;
