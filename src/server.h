@@ -449,6 +449,10 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 /* Atomic MSET admission parked this client before taking a fake-ring slot. The
  * command remains at pending_cmds.head until its owning event loop retries it. */
 #define CLIENT_ATOMIC_WINDOW_STALLED (1ULL << 58)
+/* A plain GET/MGET is waiting for this connection's already-dispatched atomic
+ * MSET FIFO to commit. Like the admission stall, the command stays at the
+ * pending-command head and is retried by its owning event loop. */
+#define CLIENT_ATOMIC_PENDING_STALLED (1ULL << 59)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1756,6 +1760,8 @@ typedef struct client {
      * takes it over; the snapshot is drawn before its owner jobs are queued. */
     redisAtomic int mset_pending_lock;
     redisAtomic int mset_drain_latch;
+    redisAtomic unsigned int mset_pending_count; /* registered groups not yet commit-published */
+    redisAtomic int mset_read_waiting;           /* worker-to-owner-event-loop wake handshake */
     struct csGroup *mset_pending_head;
     struct csGroup *mset_pending_tail;
     uint64_t tomo_read_snapshot;
