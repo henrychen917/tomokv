@@ -2114,7 +2114,9 @@ typedef struct csGroup {
     redisAtomic int mset_complete;      /* every owner installed this group */
     redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [nkeys], atomic-MSET arm only */
-    int versioned_write;         /* this group is an atomic MSET install */
+    int versioned_write;         /* this group is an atomic version-bag write */
+    redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
+    uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
     int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
@@ -5766,6 +5768,7 @@ int checkAlreadyExpired(long long when);
 int parseExtendedExpireArgumentsOrReply(client *c, int *flags);
 kvobj *lookupKeyRead(redisDb *db, robj *key);
 kvobj *lookupKeyWrite(redisDb *db, robj *key);
+void updateLFU(robj *val);
 kvobj *lookupKeyWriteWithLink(redisDb *db, robj *key, dictEntryLink *link);
 kvobj *lookupKeyReadOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply);
@@ -5808,6 +5811,7 @@ void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq);
 void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);

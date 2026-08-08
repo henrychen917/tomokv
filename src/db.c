@@ -440,7 +440,7 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
-static inline struct tomoVerMeta *tomoVerMetaNew(kvstore *kvs, uint64_t version_seq,
+static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
@@ -448,7 +448,8 @@ static inline struct tomoVerMeta *tomoVerMetaNew(kvstore *kvs, uint64_t version_
                          TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
     vmeta->retire_state = TOMO_RETIRE_ACTIVE;
     vmeta->version_prev = version_prev;
-    vmeta->version_kvs = kvs;
+    vmeta->version_kvs = db->keys;
+    vmeta->version_db = db;
     return vmeta;
 }
 
@@ -462,7 +463,7 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq)
-        kvobjSetVmeta(kv, tomoVerMetaNew(db->keys, version_seq, NULL));
+        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -735,7 +736,7 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
         if (version_seq)
-            kvobjSetVmeta(kvNew, tomoVerMetaNew(db->keys, version_seq, old));
+            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -803,8 +804,12 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
 static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     if (vmeta) {
-        serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
-        serverAssert(kvobjVersionSeq(kv) != TOMO_VERSION_UNCOMMITTED);
+        serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED ||
+                     vmeta->stamp_state == TOMO_STAMP_CANCELED);
+        if (vmeta->stamp_state == TOMO_STAMP_APPLIED)
+            serverAssert(kvobjVersionSeq(kv) != TOMO_VERSION_UNCOMMITTED);
+        else
+            serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
         serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                           memory_order_acquire) == 0);
         if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
@@ -821,6 +826,31 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
+    vmeta->version_reservation = 0;
+    vmeta->reservation_owner = NULL;
+}
+
+/* MSETNX cancellation uses the same owner lane as stamping. A canceled
+ * reservation never receives a sequence, so it remains invisible forever.
+ * Live-bag cancellation arms the existing prune grace; a version whose bag
+ * was already detached can enter the ordinary post-unlink retire grace. */
+void tomoCancelVersion(kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(vmeta->version_reservation);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+    serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+    vmeta->stamp_state = TOMO_STAMP_CANCELED;
+    vmeta->reservation_owner = NULL;
+    if (vmeta->detached) {
+        tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
+        return;
+    }
+    serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
+    vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
 }
 
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
@@ -857,7 +887,8 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
         kvobj *next = kvobjVersionPrev(kv);
         vmeta->detached = 1;
         uint64_t seq = kvobjVersionSeq(kv);
-        if (seq != TOMO_VERSION_UNCOMMITTED &&
+        if ((vmeta->stamp_state == TOMO_STAMP_CANCELED ||
+             seq != TOMO_VERSION_UNCOMMITTED) &&
             atomic_load_explicit(&vmeta->owner_ops_pending,
                                  memory_order_acquire) == 0 &&
             vmeta->retire_state == TOMO_RETIRE_ACTIVE)
@@ -906,13 +937,21 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     serverAssert(link != NULL);
     kvobj *head = dictGetKV(*link);
     uint64_t visible = tomoCommittedSeq();
-    /* This callback proves a grace only for its own committed frontier. A
-     * newer version may have committed while that grace was running; using
-     * the current global maximum would unlink a value still needed by a
-     * reader pinned between the two commits. */
-    uint64_t retire_max = kvobjVersionSeq(anchor);
-    serverAssert(retire_max != TOMO_VERSION_UNCOMMITTED && retire_max <= visible);
-    serverAssert(anchor_meta->stamp_state == TOMO_STAMP_APPLIED);
+    int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
+    /* A committed callback proves a grace only for its own frontier. A newer
+     * version may have committed while that grace was running; using the
+     * current global maximum would unlink a value still needed by a reader
+     * pinned between the two commits. A canceled anchor has no frontier: its
+     * grace licenses only canceled nodes whose own grace has completed. */
+    uint64_t retire_max = cancel_anchor ? 0 : kvobjVersionSeq(anchor);
+    if (cancel_anchor) {
+        serverAssert(kvobjVersionSeq(anchor) == TOMO_VERSION_UNCOMMITTED);
+        serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+    } else {
+        serverAssert(retire_max != TOMO_VERSION_UNCOMMITTED && retire_max <= visible);
+        serverAssert(anchor_meta->stamp_state == TOMO_STAMP_APPLIED);
+    }
     serverAssert(atomic_load_explicit(&anchor_meta->owner_ops_pending,
                                       memory_order_acquire) == 0);
 
@@ -921,12 +960,21 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
         uint64_t seq = vmeta ? kvobjVersionSeq(kv) : 0;
-        int eligible = seq < retire_max;
-        if (vmeta && (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
-                      vmeta->stamp_state != TOMO_STAMP_APPLIED ||
-                      atomic_load_explicit(&vmeta->owner_ops_pending,
-                                           memory_order_acquire) != 0))
-            eligible = 0;
+        int eligible = 0;
+        if (vmeta && vmeta->stamp_state == TOMO_STAMP_CANCELED) {
+            /* CANCELED is retire-eligible independent of every committed
+             * frontier, but never before its own pre-unlink grace. */
+            eligible = vmeta->retire_state == TOMO_RETIRE_ACTIVE &&
+                       atomic_load_explicit(&vmeta->owner_ops_pending,
+                                            memory_order_acquire) == 0;
+        } else if (!cancel_anchor) {
+            eligible = seq < retire_max;
+            if (vmeta && (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
+                          vmeta->stamp_state != TOMO_STAMP_APPLIED ||
+                          atomic_load_explicit(&vmeta->owner_ops_pending,
+                                               memory_order_acquire) != 0))
+                eligible = 0;
+        }
 
         if (eligible) {
             /* Retirement-only deletion: survivors retain their original
@@ -942,38 +990,68 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     if (newhead != head)
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
 
-    int committed = 0, uncommitted = 0, total = 0;
+    int committed = 0, uncommitted = 0;
+    kvobj *sole_committed = NULL;
     for (kv = newhead; kv; ) {
-        total++;
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         if (!vmeta) {
             committed++;
+            sole_committed = kv;
             break;
         }
         uint64_t seq = kvobjVersionSeq(kv);
-        if (seq == TOMO_VERSION_UNCOMMITTED || seq > visible)
+        if (vmeta->stamp_state == TOMO_STAMP_CANCELED) {
+            /* A canceled sibling is semantically retired immediately. It is
+             * still linked only until its own grace callback can reclaim it. */
+        } else if (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
+                   vmeta->stamp_state != TOMO_STAMP_APPLIED) {
             uncommitted++;
-        else
+        } else {
             committed++;
+            sole_committed = kv;
+        }
         kv = kvobjVersionPrev(kv);
     }
 
-    /* I6: after obsolete siblings are unlinked, publish the sole committed
-     * value as a raw head. Readers that already acquired its vmeta are covered
-     * by the metadata retire grace; later readers take the base fast path. */
-    if (total == 1 && committed == 1 && uncommitted == 0) {
-        struct tomoVerMeta *vmeta = kvobjVmeta(newhead);
+    /* I6 tombstone case: physical key removal happens here and nowhere in the
+     * atomic command path. Use dbSyncDelete, the same owner-side deletion path
+     * stock DEL uses. Canceled siblings are detached with the bag and retain
+     * their own grace protection in tomoRetireDetachedBag. */
+    if (committed == 1 && uncommitted == 0 && sole_committed) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
+        if (vmeta && vmeta->version_tombstone &&
+            (sole_committed == anchor || vmeta->retire_state == TOMO_RETIRE_ACTIVE)) {
+            redisDb *db = vmeta->version_db;
+            serverAssert(db != NULL && db->keys == kvs);
+            if (vmeta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
+                vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            robj *keyobj = createStringObject(kvobjGetKey(sole_committed),
+                                               sdslen(kvobjGetKey(sole_committed)));
+            serverAssert(dbSyncDelete(db, keyobj) == 1);
+            decrRefCount(keyobj);
+            tomoWkrUnlockPub(owner);
+            atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+            return;
+        }
+    }
+
+    /* I6 live-value case: canceled nodes above the sole committed value do
+     * not block promotion. Nodes below it must already be gone so stripping
+     * the metadata cannot orphan their links. Readers that acquired the
+     * metadata are covered by the existing metadata retire grace. */
+    if (committed == 1 && uncommitted == 0 && sole_committed &&
+        kvobjVersionPrev(sole_committed) == NULL) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
         if (vmeta) {
-            serverAssert(kvobjVersionPrev(newhead) == NULL);
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
-            kvobjSetVmeta(newhead, NULL);
+            kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);
             atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
                                       memory_order_relaxed);
-            anchor_meta = NULL;
+            if (sole_committed == anchor) anchor_meta = NULL;
         }
     }
     if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)

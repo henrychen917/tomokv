@@ -104,6 +104,7 @@ struct _kvstore;
 typedef enum tomoOwnerOpKind {
     TOMO_OWNER_OP_STAMP = 1,
     TOMO_OWNER_OP_PRUNE = 2,
+    TOMO_OWNER_OP_CANCEL = 3,
 } tomoOwnerOpKind;
 
 typedef struct tomoOwnerOp {
@@ -115,6 +116,7 @@ typedef struct tomoOwnerOp {
 typedef enum tomoStampState {
     TOMO_STAMP_PENDING = 0,
     TOMO_STAMP_APPLIED,
+    TOMO_STAMP_CANCELED,
 } tomoStampState;
 
 typedef enum tomoRetireState {
@@ -127,12 +129,15 @@ struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     uint32_t version_order;
     uint8_t version_tombstone;
+    uint8_t version_reservation;
     uint8_t stamp_state;
     uint8_t retire_state;
     uint8_t detached;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct _kvstore *version_kvs;
+    struct redisDb *version_db;
+    void *reservation_owner;
     tomoOwnerOp owner_op[2];
 };
 
