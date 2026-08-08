@@ -153,11 +153,15 @@ void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-r
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
 static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission);  /* registry-driven dispatch fork */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
+static int csMsetnxAdvanceReservations(csGroup *g);        /* ordered owner acquisition/requeue */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
 static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
+#define CS_MSETNX_PENDING  0
+#define CS_MSETNX_RESERVED 1
+#define CS_MSETNX_PRESENT  2
 #define CO_IDLE          0
 #define CO_WAIT_CONVERGE 1
 #define CO_DRAINING      2
@@ -3403,6 +3407,11 @@ void handleWorkerReplies(void) {
                  * to avoid a leak. */
                 if (fake->csgroup) {
                     csGroup *g = fake->csgroup;
+                    if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
+                        csMsetnxAdvanceReservations(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
                     if (g->sort_stage) {
                         fake->flags |= CLIENT_EX_PENDING;
                         if (csSortAdvance(g))
@@ -3493,6 +3502,10 @@ void handleWorkerReplies(void) {
              * head ring slot like any other fake. */
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
+                if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
+                    csMsetnxAdvanceReservations(g)) {
+                    break;
+                }
                 /* merge-exec pipeline: a completed stage either dispatches the next one (head
                  * stays in flight, exactly like the HOP2 launch below) or falls through to
                  * reassemble the final survivors. */
@@ -7373,13 +7386,14 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
-    /* I7 RYOW: an atomic MSET is installed concurrently and becomes visible
-     * only when its connection-ordered completion FIFO commits. Do not let a
-     * following plain GET or MGET draw an older snapshot. Leave the read at
-     * pending_cmds.head and let the owning event loop retry it after the FIFO's
-     * post-publication count reaches zero. */
+    /* I7 RYOW: atomic bag writes are installed concurrently and become visible
+     * only when their connection-ordered completion FIFO commits (or cancels).
+     * Do not let a following bag-resolving read draw an older snapshot. Leave
+     * it at pending_cmds.head and retry after the FIFO's publication count
+     * reaches zero. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
-        (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand) &&
+        (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand ||
+         c->cmd->proc == existsCommand || c->cmd->proc == touchCommand) &&
         csMsetHoldOwnRead(c))
         return C_OK;
 
@@ -7445,31 +7459,33 @@ int processCommand(client *c) {
      * pendingCommand objects for already-decoded bytes; its equivalent of "qb_pos unadvanced" is
      * precisely that the pending head is not popped/consumed by prepareForNextCommand. */
     const csCmdSpec *atomic_csp = NULL;
-    int atomic_mset_admission = 0;   /* 0=not atomic MSET, 1=finite slot reserved, 2=unlimited */
+    int atomic_write_admission = 0;  /* 0=stock, 1=finite slot reserved, 2=unlimited */
     if (__builtin_expect(server.tomo_atomic != 0, 0)) {
         /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
          * command cannot change route between reserving the counter and creating its group. */
         int window = server.tomo_atomic_window;
         if (c->cmd->tomo_route & TOMO_R_CROSS) {
+            const csCmdSpec *candidate = csClassify(c);
+            /* Stock keeps one-key DEL on its direct worker path. Atomic mode
+             * deliberately enrolls that valid form in the same group/FIFO. */
+            if (!candidate && c->cmd->proc == delCommand && c->argc == 2)
+                candidate = c->cmd->cs_spec;
+            int atomic_write = candidate &&
+                               (candidate->ctype == CS_MSET ||
+                                candidate->ctype == CS_DEL ||
+                                candidate->ctype == CS_MSETNX);
             if (window == 0) {
-                /* Do not move classification out of its established fake-client dispatch site in
-                 * unlimited mode. A malformed/non-ported form will still get csp==NULL there and
-                 * never consume this marker. */
-                const csCmdSpec *candidate = c->cmd->cs_spec;
-                if (candidate && candidate->ctype == CS_MSET)
-                    atomic_mset_admission = 2;
-            } else {
-                const csCmdSpec *candidate = csClassify(c);
-                if (candidate && candidate->ctype == CS_MSET) {
-                    if (!tomoAtomicMsetTryReserve(window)) {
-                        tomoAtomicParkWindowClient(c);
-                        return C_OK;
-                    }
-                    /* Reuse the classified row only on the bounded arm. Window 0 deliberately
-                     * retains today's later fake-client classification/dispatch sequence. */
+                if (atomic_write) {
                     atomic_csp = candidate;
-                    atomic_mset_admission = 1;
+                    atomic_write_admission = 2;
                 }
+            } else if (atomic_write) {
+                if (!tomoAtomicMsetTryReserve(window)) {
+                    tomoAtomicParkWindowClient(c);
+                    return C_OK;
+                }
+                atomic_csp = candidate;
+                atomic_write_admission = 1;
             }
         }
     }
@@ -7582,7 +7598,7 @@ int processCommand(client *c) {
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
-        csDispatch(fake, csp, atomic_mset_admission);   /* xshard registry: route kind from the row */
+        csDispatch(fake, csp, atomic_write_admission);  /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
@@ -8720,9 +8736,9 @@ static inline int csStampLane(void) {
     return server.io_threads + server.tm_ngrow_io;
 }
 
-/* Owner-op consumption is the only place a version's seq changes. Both op
- * kinds are embedded in vmeta, so group reply publication cannot invalidate a
- * queued job. */
+/* Owner-op consumption is the only place a version is stamped or canceled.
+ * All op kinds are embedded in vmeta, so group reply publication cannot
+ * invalidate a queued job. */
 static int csStampDrain(exThread *worker) {
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
         return 0;
@@ -8737,18 +8753,35 @@ static int csStampDrain(exThread *worker) {
             tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
             kvobj *kv = op->kv;
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-            serverAssert(vmeta != NULL && op->seq != 0);
+            serverAssert(vmeta != NULL);
             if (op->kind == TOMO_OWNER_OP_STAMP) {
+                serverAssert(op->seq != 0);
+                int reservation = vmeta->version_reservation;
                 tomoApplyVersionStamp(kv, op->seq);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
                 serverAssert(before == 2);
-            } else {
+                if (reservation) {
+                    redisDb *db = vmeta->version_db;
+                    robj *key = createStringObject(kvobjGetKey(kv), sdslen(kvobjGetKey(kv)));
+                    keyModified(NULL, db, key, kv, 1);
+                    notifyKeyspaceEvent(NOTIFY_STRING, "set", key, db->id);
+                    markDirty(1);
+                    decrRefCount(key);
+                }
+            } else if (op->kind == TOMO_OWNER_OP_PRUNE) {
+                serverAssert(op->seq != 0);
                 serverAssert(op->kind == TOMO_OWNER_OP_PRUNE);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
                 serverAssert(before == 1);
                 tomoArmVersionRetire(kv, op->seq);
+            } else {
+                serverAssert(op->kind == TOMO_OWNER_OP_CANCEL && op->seq == 0);
+                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                                 memory_order_acq_rel);
+                serverAssert(before == 1);
+                tomoCancelVersion(kv);
             }
             op->kv = NULL;
             op->seq = 0;
@@ -8833,10 +8866,23 @@ static csGroup *csMsetPopComplete(client *real) {
  * before the group is allowed to advance commit_seq. Records are traversed in
  * install-order so same-key duplicates reach their one owner in that order. */
 static void csMsetStampAndAppend(csGroup *g) {
-    uint64_t seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
-    g->version_seq = seq;
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
-    serverAssert(ninstalled == g->nkeys);
+    int cancel = 0;
+    if (g->ctype == CS_MSETNX) {
+        for (int i = 0; i < g->nkeys; i++)
+            if (g->msetnx_state[i] == CS_MSETNX_PRESENT) {
+                cancel = 1;
+                break;
+            }
+    }
+    uint64_t seq = 0;
+    if (cancel) {
+        atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+    } else {
+        serverAssert(ninstalled == g->nkeys);
+        seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
+    }
+    g->version_seq = seq;
     for (int i = 0; i < ninstalled; i++) {
         csMsetInstall *install = &g->mset_installs[i];
         kvobj *kv = install->kv;
@@ -8845,9 +8891,12 @@ static void csMsetStampAndAppend(csGroup *g) {
         serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
         serverAssert(install->install_order == (uint32_t)i);
         serverAssert(vmeta->version_order == install->install_order);
-        atomic_store_explicit(&vmeta->owner_ops_pending, 2, memory_order_release);
-        vmeta->owner_op[0] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_STAMP};
-        vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
+        atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
+                              memory_order_release);
+        vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
+                                           cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
+        if (!cancel)
+            vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
         csStampPush(install->owner, &vmeta->owner_op[0]);
     }
     g->commit_next = NULL;
@@ -8886,14 +8935,21 @@ static void csMsetInstallDone(csGroup *g) {
         commit_head = done->commit_next;
         if (!commit_head) commit_tail = NULL;
 
+        int canceled = done->ctype == CS_MSETNX && done->version_seq == 0;
+        int ninstalled = atomic_load_explicit(&done->mset_install_count,
+                                               memory_order_relaxed);
         /* I3 publication edge: all STAMP tail release-stores above happen
-         * before this release-store. Only after publication do prune jobs arm
-         * the pre-unlink grace. */
-        atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
-        for (int i = 0; i < done->nkeys; i++) {
+         * before this release-store. A canceled MSETNX has no sequence to
+         * publish; its cancel jobs were nevertheless all queued before reply
+         * publication and before the R1 read hold is released. */
+        if (!canceled)
+            atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
+        for (int i = 0; i < ninstalled; i++) {
             csMsetInstall *install = &done->mset_installs[i];
-            struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
-            csStampPush(install->owner, &vmeta->owner_op[1]);
+            if (!canceled) {
+                struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
+                csStampPush(install->owner, &vmeta->owner_op[1]);
+            }
             install->kv = NULL;
             install->owner = -1;
         }
@@ -9841,6 +9897,94 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     g->mset_installs[ii].install_order = (uint32_t)ii;
 }
 
+/* Reservations are visible to owner-side conflict detection while they remain
+ * uncommitted, but never to the ordinary version resolver. A reservation from
+ * this same group is allowed so duplicate MSETNX keys retain stock's
+ * last-pair-wins behavior. */
+static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g) {
+    for (kvobj *kv = head; kv; ) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
+        if (vmeta->version_reservation &&
+            vmeta->stamp_state == TOMO_STAMP_PENDING &&
+            vmeta->reservation_owner != g)
+            return 1;
+        kv = kvobjVersionPrev(kv);
+    }
+    return 0;
+}
+
+static int csMsetnxHasPendingPosition(csGroup *g) {
+    for (int i = 0; i < g->nkeys; i++)
+        if (g->msetnx_state[i] == CS_MSETNX_PENDING) return 1;
+    return 0;
+}
+
+static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
+    int *pos = g->mget_pos[sub->cssub_idx];
+    int pair = 0;
+    for (int a = 1; a + 1 < sub->argc; a += 2, pair++) {
+        int orig = pos[pair];
+        if (g->msetnx_state[orig] != CS_MSETNX_PENDING) continue;
+        robj *keyo = sub->argv[a];
+        kvobj *head = lookupKeyWrite(sub->db, keyo);
+        if (head && csMsetnxHasOtherReservation(head, g)) {
+            atomic_fetch_add_explicit(&g->msetnx_retry, 1, memory_order_relaxed);
+            continue;
+        }
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        if (live) {
+            g->msetnx_state[orig] = CS_MSETNX_PRESENT;
+            continue;
+        }
+
+        sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                           &sub->argv[a+1], SETKEY_NO_SIGNAL,
+                                           g->version_seq);
+        struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        vmeta->version_reservation = 1;
+        vmeta->reservation_owner = g;
+        csMsetRecordInstall(sub, g, installed);
+        g->msetnx_state[orig] = CS_MSETNX_RESERVED;
+        sub->argv[a+1] = NULL;
+    }
+}
+
+static void csDelSubExecVersioned(client *sub, csGroup *g) {
+    long deleted = 0;
+    for (int a = 1; a < sub->argc; a++) {
+        robj *keyo = sub->argv[a];
+        kvobj *head = lookupKeyWrite(sub->db, keyo);
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        int duplicate = 0;
+        for (int prior = 1; prior < a; prior++) {
+            if (equalStringObjects(sub->argv[prior], keyo)) {
+                duplicate = 1;
+                break;
+            }
+        }
+
+        robj *placeholder = createStringObject("", 0);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo, &placeholder,
+                                           SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
+                                           g->version_seq);
+        struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        vmeta->version_tombstone = 1;
+        csMsetRecordInstall(sub, g, installed);
+
+        if (live && !duplicate) {
+            deleted++;
+            keyModified(sub, sub->db, keyo, NULL, 1);
+            notifyKeyspaceEvent(NOTIFY_GENERIC, "del", keyo, sub->db->id);
+            markDirty(1);
+        }
+    }
+    atomic_fetch_add_explicit(&g->rcount, deleted, memory_order_relaxed);
+}
+
 /* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection
  * happens once per sub, so neither arm pays a mode branch per key. */
 static void csMsetSubExecVersioned(client *sub, csGroup *g) {
@@ -9967,6 +10111,10 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSETNX:
+        if (g->versioned_write) {
+            csMsetnxSubExecVersioned(sub, g);
+            break;
+        }
         if (g->phase == CS_PH_HOP1) {
             /* step 8 HOP1: existence probe (subs carry KEYS ONLY). Any hit fails the NX. */
             for (int a = 1; a < sub->argc; a++)
@@ -10056,6 +10204,10 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_DEL: {
+        if (g->versioned_write) {
+            csDelSubExecVersioned(sub, g);
+            break;
+        }
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
          * lookupKeyWrite handles lazy expiry. Per-key migration capture. */
         long deleted = 0;
@@ -10076,10 +10228,24 @@ static void csSubExec(client *sub) {
          * LOOKUP_NOTOUCH, stock touchCommand touches on purpose. Take the flag from the registry ROW
          * (g->spec) — hardcoding LOOKUP_NONE here made every pipelining/cross-node EXISTS bump
          * LRU/LFU where stock would not. */
-        int lkflags = (g->spec && g->spec->notouch) ? LOOKUP_NOTOUCH : LOOKUP_NONE;
+        int explicit_touch = g->snapshot_pinned && g->spec && !g->spec->notouch;
+        int lkflags = (g->spec && g->spec->notouch) || explicit_touch ?
+                      LOOKUP_NOTOUCH : LOOKUP_NONE;
         long present = 0;
-        for (int a = 1; a < sub->argc; a++)
-            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) present++;
+        for (int a = 1; a < sub->argc; a++) {
+            kvobj *resolved = lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags);
+            if (resolved) {
+                present++;
+                /* Atomic TOUCH must update the resolved snapshot version, not
+                 * an uncommitted/tombstone physical bag head. */
+                if (explicit_touch && !hasActiveChildProcess()) {
+                    if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU)
+                        updateLFU(resolved);
+                    else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM))
+                        resolved->lru = LRU_CLOCK();
+                }
+            }
+        }
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
@@ -10839,6 +11005,14 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
     }
 }
 
+/* An atomic MSETNX value may have to be rebuilt after an owner reports a
+ * pending reservation. Keep the head argv authoritative across retries; each
+ * wave gets a private value copy and transfers only that copy to the bag. */
+static void csAppendMsetnxReservationValue(client *head, client *sub, int origpos) {
+    robj *val = head->argv[2 + 2 * origpos];
+    sub->argv[sub->argc++] = dupStringObject(val);
+}
+
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
                                 const csCoalesceSpec *spec,
                                 void (*append_extra)(client *head, client *sub, int origpos)) {
@@ -10906,6 +11080,83 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
+}
+
+/* Reservations acquire owners in ascending worker order. That removes
+ * cross-owner hold-and-wait cycles while preserving parallelism within every
+ * normal owner queue. A conflict wave is rebuilt here on the original IO
+ * producer, so its retry lands behind the owner's FIFO; the winning group's
+ * stamp/cancel arrives on the already-existing owner lane and is drained
+ * before the retried normal job. */
+static int csMsetnxAdvanceReservations(csGroup *g) {
+    if (!g->versioned_write || g->ctype != CS_MSETNX ||
+        !csMsetnxHasPendingPosition(g))
+        return 0;
+
+    if (g->subs) {
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        csgFree(g, g->subs);
+        g->subs = NULL;
+    }
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
+        g->mget_pos = NULL;
+    }
+    g->posmap_nsub = 0;
+    atomic_store_explicit(&g->msetnx_retry, 0, memory_order_relaxed);
+    if (cdbSlotReady(g->head->parent, g->head->cdb, g->head->fake_slot))
+        cdbSlotClear(g->head->parent, g->head->cdb, g->head->fake_slot);
+
+    int owner_stk[128];
+    int *owners = g->nkeys <= 128 ? owner_stk : zmalloc(sizeof(int) * (size_t)g->nkeys);
+    int target = server.num_workers;
+    for (int i = 0; i < g->nkeys; i++) {
+        owners[i] = -1;
+        if (g->msetnx_state[i] != CS_MSETNX_PENDING) continue;
+        robj *key = g->head->argv[1 + 2*i];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
+        owners[i] = exIndexForKey(key->ptr, sdslen(key->ptr));
+        if (owners[i] < target) target = owners[i];
+    }
+    serverAssert(target >= 0 && target < server.num_workers);
+    int count = 0;
+    for (int i = 0; i < g->nkeys; i++) if (owners[i] == target) count++;
+
+    g->nsub = 1;
+    g->subs = csgAlloc(g, sizeof(client *));
+    g->mget_pos = csgCalloc(g, sizeof(int *));
+    g->mget_pos[0] = csgAlloc(g, sizeof(int) * (size_t)count);
+    g->posmap_nsub = 1;
+    client *sub = createPooledFakeClient(g->head->parent);
+    sub->csparent = g;
+    sub->cssub_idx = 0;
+    sub->cmd = g->head->cmd;
+    sub->resp = g->head->resp;
+    sub->conn = g->head->conn;
+    sub->flags |= CLIENT_EX_PENDING;
+    sub->db = &server.exThreads[target].db[g->h2_dbid];
+    sub->argv = csgAlloc(g, sizeof(robj *) * (size_t)(1 + 2*count));
+    sub->argv[0] = g->head->argv[0];
+    incrRefCount(sub->argv[0]);
+    sub->argc = 1;
+    int fill = 0;
+    for (int i = 0; i < g->nkeys; i++) {
+        if (owners[i] != target) continue;
+        robj *key = g->head->argv[1 + 2*i];
+        sub->argv[sub->argc++] = key;
+        incrRefCount(key);
+        csAppendMsetnxReservationValue(g->head, sub, i);
+        g->mget_pos[0][fill++] = i;
+    }
+    serverAssert(fill == count);
+    g->subs[0] = sub;
+    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+    csPushSpin(target, sub);
+    if (owners != owner_stk) zfree(owners);
+    return 1;
 }
 
 /* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
@@ -11538,11 +11789,16 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
-    int atomic_mget = s->ctype == CS_MGET && head->tomo_read_snapshot_pinned;
-    /* MSET uses the atomic-mode snapshot taken at the pre-ring gate. That closes the live CONFIG
-     * SET race: a finite reservation cannot leak if tomokv-atomic flips before group creation, and
-     * a command admitted while OFF cannot suddenly bypass a newly-enabled finite window. */
-    int atomic_mset = s->ctype == CS_MSET && atomic_admission != 0;
+    int atomic_snapshot = head->tomo_read_snapshot_pinned &&
+                          (s->ctype == CS_MGET || s->ctype == CS_EXISTS);
+    /* Atomic writes use the admission marker captured at the pre-ring gate.
+     * This closes the live CONFIG SET race: a finite reservation cannot leak
+     * if tomokv-atomic flips before group creation, and a command admitted
+     * while OFF cannot bypass a newly-enabled finite window. */
+    int atomic_write = atomic_admission != 0 &&
+                       (s->ctype == CS_MSET || s->ctype == CS_DEL ||
+                        s->ctype == CS_MSETNX);
+    int atomic_msetnx = atomic_write && s->ctype == CS_MSETNX;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
      * read, no borrowing, no extra locks. This path SURVIVES.
@@ -11564,7 +11820,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && !atomic_mget && nkeys >= 1) {
+    if (!s->cs_write && !s->has_hop2 && !atomic_snapshot && nkeys >= 1) {
         /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
          * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
          * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
@@ -11629,9 +11885,10 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * sized for THIS command rather than for the worst command. */
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
-    int posmap  = coalesce && s->pos_kind != CS_POS_NONE;
+    int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
     size_t inline_want = csInlineWant(s, nkeys, nsub_hi, posmap);
-    if (atomic_mset) inline_want += sizeof(csMsetInstall) * (size_t)nkeys;
+    if (atomic_write) inline_want += sizeof(csMsetInstall) * (size_t)nkeys;
+    if (atomic_msetnx) inline_want += (size_t)nkeys;
     csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
@@ -11639,14 +11896,14 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
-    if (atomic_mget) {
+    if (atomic_snapshot) {
         serverAssert(!atomic_admission);
         /* processCommand pinned and drew S before any owner sub was queued. */
         serverAssert(head->tomo_read_snapshot_pinned);
         g->snapshot_pinned = 1;
         g->version_seq = head->tomo_read_snapshot;
         head->tomo_read_snapshot_pinned = 0; /* group owns the matching exit */
-    } else if (atomic_mset) {
+    } else if (atomic_write) {
         /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
          * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
          * exactly one reservation before any owner sub is published. Unlimited mode deliberately
@@ -11654,6 +11911,8 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         serverAssert(atomic_admission == 1 || atomic_admission == 2);
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) * (size_t)nkeys);
+        if (atomic_msetnx)
+            g->msetnx_state = csgCalloc(g, (size_t)nkeys);
         csMsetRegister(g);
     } else {
         serverAssert(!atomic_admission);
@@ -11692,7 +11951,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
      * comment that used to sit here: the STORE / BITOP / PFMERGE / MSETNX / COPY / MPOP rows
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
-    if (s->has_hop2) {
+    if (s->has_hop2 && !atomic_msetnx) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
         head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
@@ -11700,6 +11959,8 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
         atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     }
+    if (atomic_msetnx)
+        head->parent->cs_barrier = 1;   /* later owner waves also launch from the drain thread */
     if (!coalesce) {
         /* THE one copy of the legacy per-key loop (was duplicated verbatim in
          * dispatchCrossShard and dispatchSetOp). */
@@ -11716,14 +11977,22 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         }
         return;
     }
+    if (atomic_msetnx) {
+        /* Reservation acquisition is an owner-ordered sequence of normal
+         * queue waves. The group was registered in R1 before this first push. */
+        serverAssert(csMsetnxAdvanceReservations(g));
+        return;
+    }
     /* Coalesced path: one sub per DISTINCT shard via the shared builder. */
     csCoalesceSpec cs = {
         .first_argi = first, .key_stride = s->key_stride,
-        .per_key_extra = s->per_key_extra,
-        .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
+        .per_key_extra = atomic_msetnx ? 1 : s->per_key_extra,
+        .posmap = atomic_msetnx ? &g->mget_pos :
+                  (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs,
+                         atomic_msetnx ? csAppendMsetnxReservationValue : s->append_extra);
 }
 
 /* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
@@ -13172,7 +13441,10 @@ static void csReassemble(client *dst, client *head) {
     if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
-        if (g->mget_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
+    }
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
     }
     if (g->xread_out) {
         for (int i = 0; i < g->nkeys; i++) csFreeSub(g->xread_out[i]);
@@ -13204,6 +13476,7 @@ static void csReassemble(client *dst, client *head) {
             serverAssert(g->mset_installs[i].kv == NULL);
         csgFree(g, g->mset_installs);
     }
+    csgFree(g, g->msetnx_state);
     if (g->snapshot_pinned) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
@@ -19775,7 +20048,14 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 }
                 if (last) {
                     if (g->versioned_write) {
-                        csMsetInstallDone(g);
+                        if (g->ctype == CS_MSETNX &&
+                            (atomic_load_explicit(&g->msetnx_retry, memory_order_acquire) != 0 ||
+                             csMsetnxHasPendingPosition(g))) {
+                            client *hp = g->head->parent;
+                            cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                        } else {
+                            csMsetInstallDone(g);
+                        }
                     } else {
                         client *hp = g->head->parent;
                         cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
