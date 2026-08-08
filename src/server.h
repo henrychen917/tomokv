@@ -4954,7 +4954,6 @@ extern _Atomic unsigned long long tomo_nested_cmd_frames;
 extern _Atomic unsigned long long tomo_close_deferred_ring;
 /* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
  * single csReassemble teardown, including groups whose real connection has disconnected. */
-extern _Atomic int tomo_atomic_inflight;
 extern _Atomic unsigned long long tomo_atomic_promotions;
 void tomoAtomicWindowChanged(void);
 void tomoAtomicUnstallClient(client *c);

@@ -214,11 +214,27 @@ static inline tomoOwnerOp *exOwnerOpDecode(client *job) {
 }
 
 /* CURE2 completion order. The lock serializes the R1-approved draw, owner-op
- * enqueue, and frontier publication; installs themselves remain concurrent. */
-static _Atomic uint64_t commit_seq;
-static _Atomic uint64_t next_seq;
-static atomic_flag commit_lock = ATOMIC_FLAG_INIT;
-static csGroup *commit_head, *commit_tail;
+ * enqueue, and frontier publication; installs themselves remain concurrent.
+ * LAYOUT (perf audit 2026-08-08): commit_seq is acquire-loaded by EVERY snapshot draw (each
+ * read sub — ~8M loads/s at the 9:1 cell) while commit_lock is spun on by every committing
+ * worker and the queue pointers churn under it. Sharing one line made every lock handoff
+ * invalidate the line every reader needs (HITM storm). The frontier gets a line of its own;
+ * the lock deliberately shares a line with the state it protects (same writer). Padded-struct
+ * + define keeps every use site untouched and stops the linker packing strangers into the
+ * line (bare aligned() on the object would not). */
+static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]; }
+    commit_seq_line __attribute__((aligned(CACHE_LINE_SIZE)));
+#define commit_seq (commit_seq_line.v)
+static struct {
+    _Atomic uint64_t next_seq;
+    atomic_flag lock;
+    csGroup *head, *tail;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) - sizeof(atomic_flag) - 2*sizeof(void*)];
+} commit_ctl __attribute__((aligned(CACHE_LINE_SIZE)));
+#define next_seq (commit_ctl.next_seq)
+#define commit_lock (commit_ctl.lock)
+#define commit_head (commit_ctl.head)
+#define commit_tail (commit_ctl.tail)
 
 /* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
  * successful increment is immediately followed, on the same non-yielding processCommand stack,
@@ -227,7 +243,11 @@ static csGroup *commit_head, *commit_tail;
  * would overshoot by up to the IO-thread count). There is no recoverable allocation/dispatch
  * failure between reservation and csMsetRegister; allocation failure terminates the process.
  * Window 0 increments at csMsetRegister instead, preserving today's dispatch/classification path. */
-_Atomic int tomo_atomic_inflight;
+/* The admission counter is CAS'd by every IO thread per group (1.26M RMW/s at the write
+ * ceiling); anything sharing its line pays. Own line, same padded-struct idiom as above. */
+static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
+    tomo_atomic_inflight_line __attribute__((aligned(CACHE_LINE_SIZE)));
+#define tomo_atomic_inflight (tomo_atomic_inflight_line.v)
 _Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
 
