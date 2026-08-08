@@ -843,6 +843,7 @@ void tomoCancelVersion(kvobj *kv) {
     serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                       memory_order_acquire) == 0);
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
+    vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
     if (vmeta->detached) {
         tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
@@ -955,6 +956,10 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     serverAssert(atomic_load_explicit(&anchor_meta->owner_ops_pending,
                                       memory_order_acquire) == 0);
 
+    /* This one maintenance walk owns every live-bag cancellation mutation:
+     * unlink a buried canceled node, replace a canceled head with a survivor,
+     * or remove the whole key when cancellation leaves no survivor. The
+     * cancel owner-op itself only marks and arms this grace callback. */
     kvobj *newhead = head, *previous = NULL, *kv = head;
     while (kv) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
@@ -986,6 +991,22 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             previous = kv;
         }
         kv = next;
+    }
+    /* A reservation that created an absent key can be the bag's last member.
+     * SetAtLink(NULL) is not a delete operation for FLAT stores: it would
+     * expose a reusable tomb before the follow-up unlink. Route the empty-bag
+     * case through the same stock owner-side single-store delete used for a
+     * committed tombstone. Every removed node above has already completed its
+     * pre-unlink grace and entered the ordinary post-unlink retire grace. */
+    if (!newhead) {
+        redisDb *db = anchor_meta->version_db;
+        serverAssert(db != NULL && db->keys == kvs);
+        robj *keyobj = createStringObject(key, sdslen(key));
+        serverAssert(dbSyncDelete(db, keyobj) == 1);
+        decrRefCount(keyobj);
+        tomoWkrUnlockPub(owner);
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        return;
     }
     if (newhead != head)
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
