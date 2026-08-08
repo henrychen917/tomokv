@@ -365,9 +365,21 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
     kvobj *kv = lookupKey(db, key, flags, NULL);
     /* I7: the table slot is only the entry point while a transient bag is
-     * present. Raw heads retain the exact base return path. */
-    if (unlikely(kv && kvobjVmeta(kv)))
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+     * present. Raw heads retain the exact base return path. The three owner-local counters are a
+     * partition of read-key lookups and a resolver depth census; they do not infer cost from bag
+     * presence. In particular, a versioned lookup that races a promotion can legitimately report
+     * zero walked candidates: it still paid the resolver call selected by the first vmeta load. */
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    if (unlikely(kv && kvobjVmeta(kv))) {
+        uint64_t walked = 0;
+        cost->read_versioned++;
+        kv = kvobjVersionAtCounted(kv, tomoCurrentReadSnapshot(), &walked);
+        cost->read_walk += walked;
+    } else {
+        /* Missing keys also take the vmeta-free fast path, so raw+versioned remains the exact
+         * denominator even outside the warm-hit benchmark. */
+        cost->read_raw++;
+    }
     return kv;
 }
 
@@ -411,6 +423,47 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
     kvobj *kv = lookupKeyWrite(c->db, key);
     if (!kv) addReplyOrErrorObject(c, reply);
     return kv;
+}
+
+/* Record the allocator's ACTUAL usable size, not sizeof(request). The compact class array names
+ * exact default-jemalloc bins through 512 B; min/max/bytes plus `other` preserve the evidence when
+ * another allocator or a larger object does not fit those bins. */
+typedef enum tomoCostAllocKind {
+    TOMO_COST_ALLOC_VERSION_KVOBJ,
+    TOMO_COST_ALLOC_VMETA,
+    TOMO_COST_ALLOC_RAW_KVOBJ,
+} tomoCostAllocKind;
+
+static inline void tomoAtomicWriteAlloc(void *allocation, tomoCostAllocKind kind) {
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    size_t usable = zmalloc_size(allocation);
+    int ci = tomoAtomicAllocClassIndex(usable);
+    if (kind == TOMO_COST_ALLOC_VMETA) {
+        cost->write_vmeta_allocs++;
+        cost->write_vmeta_usable_bytes += usable;
+        if (!cost->write_vmeta_usable_min || usable < cost->write_vmeta_usable_min)
+            cost->write_vmeta_usable_min = usable;
+        if (usable > cost->write_vmeta_usable_max) cost->write_vmeta_usable_max = usable;
+        if (ci >= 0) cost->write_vmeta_class[ci]++;
+        else cost->write_vmeta_class_other++;
+    } else if (kind == TOMO_COST_ALLOC_VERSION_KVOBJ) {
+        cost->write_kvobj_allocs++;
+        cost->write_kvobj_usable_bytes += usable;
+        if (!cost->write_kvobj_usable_min || usable < cost->write_kvobj_usable_min)
+            cost->write_kvobj_usable_min = usable;
+        if (usable > cost->write_kvobj_usable_max) cost->write_kvobj_usable_max = usable;
+        if (ci >= 0) cost->write_kvobj_class[ci]++;
+        else cost->write_kvobj_class_other++;
+    } else {
+        cost->write_raw_kvobj_allocs++;
+        cost->write_raw_kvobj_usable_bytes += usable;
+        if (!cost->write_raw_kvobj_usable_min || usable < cost->write_raw_kvobj_usable_min)
+            cost->write_raw_kvobj_usable_min = usable;
+        if (usable > cost->write_raw_kvobj_usable_max)
+            cost->write_raw_kvobj_usable_max = usable;
+        if (ci >= 0) cost->write_raw_kvobj_class[ci]++;
+        else cost->write_raw_kvobj_class_other++;
+    }
 }
 
 /* Add a key-value entry to the DB.
@@ -838,10 +891,11 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
         if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
         vmeta->retire_state = TOMO_RETIRE_PHYSICAL;
     }
+    tomoAtomicCostLocal()->retire_physical++;
     kvstoreFlatRetireRaw(kvs, kv);
 }
 
-void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
+uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL);
     serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
@@ -874,7 +928,9 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
      * stops immediately and advances the cursor; an older arrival is linked
      * into history without moving the cursor backward. */
     kvobj *committed_previous = NULL, *committed_next = committed_head;
+    uint64_t apply_walk = 0;
     while (committed_next) {
+        apply_walk++;
         struct tomoVerMeta *committed_meta = kvobjVmeta(committed_next);
         uint64_t committed_seq = committed_meta ?
             atomic_load_explicit(&committed_meta->version_seq,
@@ -892,7 +948,6 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
         committed_previous = committed_next;
         committed_next = committed_meta ? kvobjCommittedPrev(committed_next) : NULL;
     }
-
     kvobjSetCommittedPrev(kv, committed_next);
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
@@ -908,6 +963,7 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
     }
+    return apply_walk;
 }
 
 /* Canceled atomic-group versions use the same owner lane as stamping. A canceled
@@ -977,10 +1033,21 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     }
 }
 
+static inline void tomoAtomicPruneWalksAdd(tomoAtomicCostStat *cost,
+                                           uint64_t bag, uint64_t committed,
+                                           uint64_t census) {
+    cost->prune_bag_walk += bag;
+    cost->prune_commit_walk += committed;
+    cost->prune_census_walk += census;
+}
+
 void tomoVersionPruneAfterGrace(kvobj *anchor) {
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    cost->prune_callbacks++;
+    uint64_t prune_bag_walk = 0, prune_commit_walk = 0, prune_census_walk = 0;
 
     /* The ordinary reclaim pass runs outside a flat section, preserving the
      * shipped OFF path. Only this CURE2 callback needs to re-enter: it walks
@@ -1045,6 +1112,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * cancel owner-op itself only marks and arms this grace callback. */
     kvobj *newhead = head, *previous = NULL, *kv = head;
     while (kv) {
+        prune_bag_walk++;
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
         uint64_t seq = vmeta ? kvobjVersionSeq(kv) : 0;
@@ -1085,6 +1153,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     if (!cancel_anchor) {
         kvobj *new_committed_head = NULL, *committed_previous = NULL;
         for (kv = committed_head; kv; ) {
+            prune_commit_walk++;
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             kvobj *next = vmeta ? kvobjCommittedPrev(kv) : NULL;
             int survives = vmeta && vmeta->retire_state != TOMO_RETIRE_PHYSICAL;
@@ -1112,6 +1181,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         robj *keyobj = createStringObject(key, sdslen(key));
         serverAssert(dbSyncDelete(db, keyobj) == 1);
         decrRefCount(keyobj);
+        tomoAtomicPruneWalksAdd(cost, prune_bag_walk, prune_commit_walk,
+                               prune_census_walk);
         tomoWkrUnlockPub(owner);
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
         return;
@@ -1128,6 +1199,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     int committed = 0, uncommitted = 0;
     kvobj *sole_committed = NULL;
     for (kv = newhead; kv; ) {
+        prune_census_walk++;
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         if (!vmeta) {
             committed++;
@@ -1164,6 +1236,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                                                sdslen(kvobjGetKey(sole_committed)));
             serverAssert(dbSyncDelete(db, keyobj) == 1);
             decrRefCount(keyobj);
+            tomoAtomicPruneWalksAdd(cost, prune_bag_walk, prune_commit_walk,
+                                   prune_census_walk);
             tomoWkrUnlockPub(owner);
             atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
             return;
@@ -1196,6 +1270,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+    tomoAtomicPruneWalksAdd(cost, prune_bag_walk, prune_commit_walk,
+                           prune_census_walk);
     tomoWkrUnlockPub(owner);
     atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
 }
@@ -1378,6 +1454,13 @@ kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int fla
 static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
                                   int flags, dictEntryLink *plink, uint64_t version_seq,
                                   long long version_expire) {
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    cost->write_installs++;
+    uint64_t cost_start_ns = 0;
+    int cost_sample = tomoAtomicCostSampleStart(cost->write_installs,
+                                                &cost->write_install_samples,
+                                                &cost->write_install_clock_ns,
+                                                &cost_start_ns);
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -1423,11 +1506,27 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
 
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+    if (cost_sample)
+        cost->write_install_cpu_ns += tomoAtomicCostThreadCpuNs() - cost_start_ns;
+    /* Keep allocator diagnostics OUTSIDE the timed install region. Every versioned set above
+     * necessarily built one fresh kvobj and one fresh vmeta; recording them here avoids charging
+     * zmalloc_size and histogram maintenance to the very delta being measured. */
+    struct tomoVerMeta *installed_vmeta = kvobjVmeta(installed);
+    serverAssert(installed_vmeta != NULL);
+    tomoAtomicWriteAlloc(kvobjGetAllocPtr(installed), TOMO_COST_ALLOC_VERSION_KVOBJ);
+    tomoAtomicWriteAlloc(installed_vmeta, TOMO_COST_ALLOC_VMETA);
     return installed;
 }
 
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
                   dictEntryLink *plink) {
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    cost->write_raw_installs++;
+    uint64_t cost_start_ns = 0;
+    int cost_sample = tomoAtomicCostSampleStart(cost->write_raw_installs,
+                                                &cost->write_raw_samples,
+                                                &cost->write_raw_clock_ns,
+                                                &cost_start_ns);
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -1442,6 +1541,7 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
         oldval = lookupKeyWriteWithLink(db, key, link);
         exists = oldval != NULL;
     }
+    uintptr_t oldval_addr = (uintptr_t)oldval;
 
     if (exists) {
         int oldtype = oldval->type;
@@ -1461,6 +1561,12 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
     }
 
     keyModified(c, db, key, *valref, !(flags & SETKEY_NO_SIGNAL));
+    if (cost_sample)
+        cost->write_raw_cpu_ns += tomoAtomicCostThreadCpuNs() - cost_start_ns;
+    /* FLAT overwrites (the target workload) always allocate; the non-FLAT in-place branch keeps
+     * oldval and is deliberately not reported as an allocation. As above, classify after timing. */
+    if (!exists || (uintptr_t)*valref != oldval_addr)
+        tomoAtomicWriteAlloc(kvobjGetAllocPtr((kvobj *)*valref), TOMO_COST_ALLOC_RAW_KVOBJ);
 }
 
 /* During atomic slot migration, keys that are being imported are in an

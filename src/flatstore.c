@@ -167,10 +167,12 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {
+    tomoAtomicCostLocal()->retire_prune++;
     flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
 }
 
 void flatRetireVmeta(flatTable *t, void *vmeta) {
+    tomoAtomicCostLocal()->retire_vmeta++;
     flatRetirePayload(t, flatRetireSpecial(vmeta, 1));
 }
 

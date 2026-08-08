@@ -227,7 +227,8 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
  * the uncommitted physical prefix. Only an old snapshot walks down the
  * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
  * seq 0); no winner, or a tombstone winner, means absent. */
-static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
+                                           uint64_t *walked) {
     struct tomoVerMeta *head_meta = kvobjVmeta(kv);
     if (!head_meta) return kv;
 
@@ -235,6 +236,7 @@ static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
                               memory_order_acquire);
     struct tomoVerMeta *vmeta = NULL;
     while (kv) {
+        if (walked) (*walked)++;
         vmeta = kvobjVmeta(kv);
         if (!vmeta) break;
         uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
@@ -244,6 +246,10 @@ static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
     }
     if (kv && vmeta && vmeta->version_tombstone) return NULL;
     return kv;
+}
+
+static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+    return kvobjVersionAtCounted(kv, snapshot, NULL);
 }
 
 /* Redis object implementation */

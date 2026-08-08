@@ -1521,6 +1521,124 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
 #define TOMO_STAT_SLOTS (TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX)
+
+/* Atomic remaining-cost census. One cache-line-aligned slot per iotid identity; every field has
+ * one plain owner writer and INFO is the only (racy) reader. This is deliberately separate from
+ * redisServer: putting hot measurement fields there would turn them into shared cache lines and
+ * make the instrument alter the effect it is trying to locate.
+ *
+ * Allocation classes are the default jemalloc small classes through 512 bytes. Exact usable-size
+ * totals/min/max and the `other` bucket keep the census honest under another allocator or a larger
+ * object. Timing is sampled once per 1024 phase entries with CLOCK_THREAD_CPUTIME_ID. Each sample
+ * first takes an adjacent empty clock interval; subtract *_clock_ns from *_cpu_ns before scaling
+ * the sample mean. Thus the syscall clock's own cost cannot masquerade as phase work. */
+#define TOMO_ATOMIC_ALLOC_CLASSES 16
+#define TOMO_ATOMIC_COST_SAMPLE_MASK 1023ULL
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    unsigned long long read_raw;
+    unsigned long long read_versioned;
+    unsigned long long read_walk;
+
+    unsigned long long write_raw_installs;
+    unsigned long long write_raw_samples;
+    unsigned long long write_raw_cpu_ns;
+    unsigned long long write_raw_clock_ns;
+    unsigned long long write_raw_kvobj_allocs;
+    unsigned long long write_raw_kvobj_usable_bytes;
+    unsigned long long write_raw_kvobj_usable_min;
+    unsigned long long write_raw_kvobj_usable_max;
+    unsigned long long write_raw_kvobj_class[TOMO_ATOMIC_ALLOC_CLASSES];
+    unsigned long long write_raw_kvobj_class_other;
+    unsigned long long write_installs;
+    unsigned long long write_install_samples;
+    unsigned long long write_install_cpu_ns;
+    unsigned long long write_install_clock_ns;
+    unsigned long long write_kvobj_allocs;
+    unsigned long long write_kvobj_usable_bytes;
+    unsigned long long write_kvobj_usable_min;
+    unsigned long long write_kvobj_usable_max;
+    unsigned long long write_kvobj_class[TOMO_ATOMIC_ALLOC_CLASSES];
+    unsigned long long write_kvobj_class_other;
+    unsigned long long write_vmeta_allocs;
+    unsigned long long write_vmeta_usable_bytes;
+    unsigned long long write_vmeta_usable_min;
+    unsigned long long write_vmeta_usable_max;
+    unsigned long long write_vmeta_class[TOMO_ATOMIC_ALLOC_CLASSES];
+    unsigned long long write_vmeta_class_other;
+
+    unsigned long long retire_prune;
+    unsigned long long retire_physical;
+    unsigned long long retire_vmeta;
+    unsigned long long prune_callbacks;
+    unsigned long long prune_bag_walk;
+    unsigned long long prune_commit_walk;
+    unsigned long long prune_census_walk;
+    unsigned long long qsbr_passes;
+    unsigned long long qsbr_batches;
+    unsigned long long qsbr_grace_checks;
+    unsigned long long qsbr_grace_ready;
+    unsigned long long qsbr_grace_wait_foreign;
+    unsigned long long qsbr_grace_wait_io;
+    unsigned long long qsbr_grace_wait_worker;
+    unsigned long long qsbr_samples;
+    unsigned long long qsbr_cpu_ns;
+    unsigned long long qsbr_clock_ns;
+
+    unsigned long long stamp_drain_calls;
+    unsigned long long stamp_drain_empty;
+    unsigned long long stamp_drain_batches;
+    unsigned long long stamp_drain_entries;
+    unsigned long long stamp_drain_stamps;
+    unsigned long long stamp_drain_prunes;
+    unsigned long long stamp_drain_cancels;
+    unsigned long long stamp_apply_walk;
+    unsigned long long stamp_drain_samples;
+    unsigned long long stamp_drain_sample_entries;
+    unsigned long long stamp_drain_cpu_ns;
+    unsigned long long stamp_drain_clock_ns;
+} tomoAtomicCostStat;
+_Static_assert(sizeof(tomoAtomicCostStat) % CACHE_LINE_SIZE == 0,
+               "atomic cost stat slots must not share cache lines");
+extern tomoAtomicCostStat tomo_atomic_cost_stat[TOMO_STAT_SLOTS];
+
+static inline tomoAtomicCostStat *tomoAtomicCostLocal(void) {
+    return &tomo_atomic_cost_stat[iotid];
+}
+
+static inline uint64_t tomoAtomicCostThreadCpuNs(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    return (uint64_t)ts.tv_sec * UINT64_C(1000000000) + (uint64_t)ts.tv_nsec;
+}
+
+/* Return 1 and a phase start stamp for every 1024th entry. The first adjacent interval is the
+ * clock-only baseline for the same sample, so callers can expose measurement overhead rather than
+ * silently charging it to the phase. */
+static inline int tomoAtomicCostSampleStart(unsigned long long ordinal,
+                                            unsigned long long *samples,
+                                            unsigned long long *clock_ns,
+                                            uint64_t *start_ns) {
+    if ((ordinal & TOMO_ATOMIC_COST_SAMPLE_MASK) != 0) return 0;
+    uint64_t before = tomoAtomicCostThreadCpuNs();
+    uint64_t start = tomoAtomicCostThreadCpuNs();
+    (*samples)++;
+    *clock_ns += start - before;
+    *start_ns = start;
+    return 1;
+}
+
+/* Map the default jemalloc small size classes through 512 B to a compact exact counter. A caller
+ * must still record usable bytes/min/max; -1 means this allocator returned some other class. */
+static inline int tomoAtomicAllocClassIndex(size_t usable) {
+    if (usable == 16) return 0;
+    if (usable >= 32 && usable <= 128 && (usable & 15) == 0)
+        return (int)(usable / 16) - 1;
+    if (usable >= 160 && usable <= 256 && (usable & 31) == 0)
+        return 8 + (int)((usable - 160) / 32);
+    if (usable >= 320 && usable <= 512 && (usable & 63) == 0)
+        return 12 + (int)((usable - 320) / 64);
+    return -1;
+}
 /* Max value of tomokv-nodes. The per-node liveness arrays (tm_node_wlive/tm_node_iolive) are
  * [16], so this is a hard array bound, not a policy. */
 #define TOMO_NODES_MAX 16
@@ -5886,7 +6004,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
-void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);

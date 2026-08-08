@@ -127,6 +127,97 @@ static inline void tmFlipRelease(void) {
 }
 /* thread vars */
 __thread int iotid = 0;
+/* Atomic remaining-cost counters: one plain-writer slot per iotid. Definition lives here rather
+ * than in redisServer so no hot measurement increment dirties a shared server cache line. */
+tomoAtomicCostStat tomo_atomic_cost_stat[TOMO_STAT_SLOTS];
+
+static const unsigned int tomo_atomic_alloc_class_bytes[TOMO_ATOMIC_ALLOC_CLASSES] = {
+    16, 32, 48, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512
+};
+
+/* Cold INFO fold of the owner-written slots. Minima need a nonzero merge; every other scalar is
+ * monotone and additive. A torn/stale sample is acceptable for the same reason it is for the
+ * established tm_io_sig and commit-group counters: INFO is observation, never synchronization. */
+static void tomoAtomicCostAggregate(tomoAtomicCostStat *out) {
+    memset(out, 0, sizeof(*out));
+#define TOMO_COST_ADD(field) out->field += in->field
+    for (int t = 0; t < TOMO_STAT_SLOTS; t++) {
+        const tomoAtomicCostStat *in = &tomo_atomic_cost_stat[t];
+        TOMO_COST_ADD(read_raw);
+        TOMO_COST_ADD(read_versioned);
+        TOMO_COST_ADD(read_walk);
+        TOMO_COST_ADD(write_raw_installs);
+        TOMO_COST_ADD(write_raw_samples);
+        TOMO_COST_ADD(write_raw_cpu_ns);
+        TOMO_COST_ADD(write_raw_clock_ns);
+        TOMO_COST_ADD(write_raw_kvobj_allocs);
+        TOMO_COST_ADD(write_raw_kvobj_usable_bytes);
+        if (in->write_raw_kvobj_usable_min &&
+            (!out->write_raw_kvobj_usable_min ||
+             in->write_raw_kvobj_usable_min < out->write_raw_kvobj_usable_min))
+            out->write_raw_kvobj_usable_min = in->write_raw_kvobj_usable_min;
+        if (in->write_raw_kvobj_usable_max > out->write_raw_kvobj_usable_max)
+            out->write_raw_kvobj_usable_max = in->write_raw_kvobj_usable_max;
+        TOMO_COST_ADD(write_raw_kvobj_class_other);
+        TOMO_COST_ADD(write_installs);
+        TOMO_COST_ADD(write_install_samples);
+        TOMO_COST_ADD(write_install_cpu_ns);
+        TOMO_COST_ADD(write_install_clock_ns);
+        TOMO_COST_ADD(write_kvobj_allocs);
+        TOMO_COST_ADD(write_kvobj_usable_bytes);
+        if (in->write_kvobj_usable_min &&
+            (!out->write_kvobj_usable_min ||
+             in->write_kvobj_usable_min < out->write_kvobj_usable_min))
+            out->write_kvobj_usable_min = in->write_kvobj_usable_min;
+        if (in->write_kvobj_usable_max > out->write_kvobj_usable_max)
+            out->write_kvobj_usable_max = in->write_kvobj_usable_max;
+        TOMO_COST_ADD(write_kvobj_class_other);
+        TOMO_COST_ADD(write_vmeta_allocs);
+        TOMO_COST_ADD(write_vmeta_usable_bytes);
+        if (in->write_vmeta_usable_min &&
+            (!out->write_vmeta_usable_min ||
+             in->write_vmeta_usable_min < out->write_vmeta_usable_min))
+            out->write_vmeta_usable_min = in->write_vmeta_usable_min;
+        if (in->write_vmeta_usable_max > out->write_vmeta_usable_max)
+            out->write_vmeta_usable_max = in->write_vmeta_usable_max;
+        TOMO_COST_ADD(write_vmeta_class_other);
+        for (int c = 0; c < TOMO_ATOMIC_ALLOC_CLASSES; c++) {
+            out->write_raw_kvobj_class[c] += in->write_raw_kvobj_class[c];
+            out->write_kvobj_class[c] += in->write_kvobj_class[c];
+            out->write_vmeta_class[c] += in->write_vmeta_class[c];
+        }
+        TOMO_COST_ADD(retire_prune);
+        TOMO_COST_ADD(retire_physical);
+        TOMO_COST_ADD(retire_vmeta);
+        TOMO_COST_ADD(prune_callbacks);
+        TOMO_COST_ADD(prune_bag_walk);
+        TOMO_COST_ADD(prune_commit_walk);
+        TOMO_COST_ADD(prune_census_walk);
+        TOMO_COST_ADD(qsbr_passes);
+        TOMO_COST_ADD(qsbr_batches);
+        TOMO_COST_ADD(qsbr_grace_checks);
+        TOMO_COST_ADD(qsbr_grace_ready);
+        TOMO_COST_ADD(qsbr_grace_wait_foreign);
+        TOMO_COST_ADD(qsbr_grace_wait_io);
+        TOMO_COST_ADD(qsbr_grace_wait_worker);
+        TOMO_COST_ADD(qsbr_samples);
+        TOMO_COST_ADD(qsbr_cpu_ns);
+        TOMO_COST_ADD(qsbr_clock_ns);
+        TOMO_COST_ADD(stamp_drain_calls);
+        TOMO_COST_ADD(stamp_drain_empty);
+        TOMO_COST_ADD(stamp_drain_batches);
+        TOMO_COST_ADD(stamp_drain_entries);
+        TOMO_COST_ADD(stamp_drain_stamps);
+        TOMO_COST_ADD(stamp_drain_prunes);
+        TOMO_COST_ADD(stamp_drain_cancels);
+        TOMO_COST_ADD(stamp_apply_walk);
+        TOMO_COST_ADD(stamp_drain_samples);
+        TOMO_COST_ADD(stamp_drain_sample_entries);
+        TOMO_COST_ADD(stamp_drain_cpu_ns);
+        TOMO_COST_ADD(stamp_drain_clock_ns);
+    }
+#undef TOMO_COST_ADD
+}
 /* ee451 (F-clock family): per-execution-context "read expired/trimmed keys" guards. See the
  * comment on their declaration in server.h — these were globals that every worker raced. */
 __thread int tomo_access_expired = 0;
@@ -8207,7 +8298,7 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
  * actively reading => UAF. in_flat_section is the honest signal (it is exactly "inside an exSlice
  * batch that may touch a flat table") and it still lets a worker that has genuinely stopped slicing
  * be skipped, so the grace never stalls. Non-worker threads are covered by their own region flags. */
-static int flatBatchReady(const flatBatch *b) {
+static int flatBatchReady(const flatBatch *b, tomoAtomicCostStat *cost) {
     /* NON-WORKER identities. Slot t blocks this batch iff BOTH:
      *   (i)  it was INSIDE a region when the batch closed (bit t set in io_pin_mask), AND
      *   (ii) it is STILL inside that same region (its epoch is unchanged).
@@ -8222,15 +8313,19 @@ static int flatBatchReady(const flatBatch *b) {
      * CS_KEYS/fan-all and runs as worker subs, not inline). Steady state: io_pin_mask == 0 and this
      * is ONE predictable test, versus the old unconditional 33 seq_cst loads across 33 distinct
      * cache lines on EVERY readiness check of EVERY batch. */
-    if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
+    if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0)) {
+        if (cost) cost->qsbr_grace_wait_foreign++;
         return 0;                                   /* unregistered reader inside: fail-safe global pin */
+    }
     const uint64_t *io_pin = FB_IOPIN(b), *io_snap = FB_IOSNAP(b), *snap = FB_SNAP(b);
     for (int wi = 0; wi < flat_batch_mask_words; wi++) {
       uint64_t m = io_pin[wi];
       while (m) {
         int t = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
-        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == io_snap[t])
+        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == io_snap[t]) {
+            if (cost) cost->qsbr_grace_wait_io++;
             return 0;                               /* still inside the region it was in at close */
+        }
       }
     }
     /* WORKERS: EITHER loop_seq advanced past the snapshot + margin (passed a quiescent point), OR the
@@ -8244,6 +8339,7 @@ static int flatBatchReady(const flatBatch *b) {
             continue;
         if (!atomic_load_explicit(&et->in_flat_section, memory_order_seq_cst))
             continue;
+        if (cost) cost->qsbr_grace_wait_worker++;
         return 0;
     }
     return 1;
@@ -8277,7 +8373,7 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
 static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_n) {
     while (*pp) {
         flatBatch *b = *pp;
-        if (!flatBatchReady(b)) { pp = &b->next; continue; }
+        if (!flatBatchReady(b, NULL)) { pp = &b->next; continue; }
         *pp = b->next;
         flatBatchFree(b, spare, spare_n);
     }
@@ -8289,6 +8385,17 @@ static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
  * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
 static void flatWorkerReclaim(exThread *worker) {
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    int active = worker->flat_retire_local != NULL || worker->flat_batches_local != NULL;
+    uint64_t cost_start_ns = 0;
+    int cost_sample = 0;
+    if (active) {
+        cost->qsbr_passes++;
+        cost_sample = tomoAtomicCostSampleStart(cost->qsbr_passes,
+                                                &cost->qsbr_samples,
+                                                &cost->qsbr_clock_ns,
+                                                &cost_start_ns);
+    }
     if (worker->flat_retire_local) {
         /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
          * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
@@ -8296,18 +8403,23 @@ static void flatWorkerReclaim(exThread *worker) {
          * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
          * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
         flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+        cost->qsbr_batches++;
         worker->flat_retire_local = NULL;
         if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
         else worker->flat_batches_local = b;
         worker->flat_batches_tail = b;
     }
     /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
-    while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
+    while (worker->flat_batches_local) {
+        cost->qsbr_grace_checks++;
+        if (!flatBatchReady(worker->flat_batches_local, cost)) break;
+        cost->qsbr_grace_ready++;
         flatBatch *b = worker->flat_batches_local;
         worker->flat_batches_local = b->next;
         if (!worker->flat_batches_local) worker->flat_batches_tail = NULL;
         flatBatchFree(b, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
     }
+    if (cost_sample) cost->qsbr_cpu_ns += tomoAtomicCostThreadCpuNs() - cost_start_ns;
 }
 
 /* NOTE (deliberate non-feature): main does NOT adopt a non-live worker's pending local retires.
@@ -9023,12 +9135,22 @@ static inline int csStampLane(void) {
 static int csStampDrain(exThread *worker) {
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
         return 0;
+    tomoAtomicCostStat *cost = tomoAtomicCostLocal();
+    cost->stamp_drain_calls++;
+    uint64_t cost_start_ns = 0;
+    int cost_sample = tomoAtomicCostSampleStart(cost->stamp_drain_calls,
+                                                &cost->stamp_drain_samples,
+                                                &cost->stamp_drain_clock_ns,
+                                                &cost_start_ns);
     exQueue *q = &worker->queues[csStampLane()];
     client *jobs[WORKER_POP_BATCH];
     int total = 0;
+    unsigned long long drain_batches = 0, drain_stamps = 0, drain_apply_walk = 0;
+    unsigned long long drain_prunes = 0, drain_cancels = 0;
     for (;;) {
         int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
         if (!n) break;
+        drain_batches++;
         tomoWkrLock(worker->id);
         for (int i = 0; i < n; i++) {
             tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
@@ -9036,10 +9158,11 @@ static int csStampDrain(exThread *worker) {
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             serverAssert(vmeta != NULL);
             if (op->kind == TOMO_OWNER_OP_STAMP) {
+                drain_stamps++;
                 serverAssert(op->seq != 0);
                 int reservation_signal =
                     vmeta->version_reservation == TOMO_RESERVATION_SIGNAL_SET;
-                tomoApplyVersionStamp(kv, op->seq);
+                drain_apply_walk += tomoApplyVersionStamp(kv, op->seq);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
                 serverAssert(before == 2);
@@ -9052,6 +9175,7 @@ static int csStampDrain(exThread *worker) {
                     decrRefCount(key);
                 }
             } else if (op->kind == TOMO_OWNER_OP_PRUNE) {
+                drain_prunes++;
                 serverAssert(op->seq != 0);
                 serverAssert(op->kind == TOMO_OWNER_OP_PRUNE);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
@@ -9059,6 +9183,7 @@ static int csStampDrain(exThread *worker) {
                 serverAssert(before == 1);
                 tomoArmVersionRetire(kv, op->seq);
             } else {
+                drain_cancels++;
                 serverAssert(op->kind == TOMO_OWNER_OP_CANCEL && op->seq == 0);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
@@ -9079,6 +9204,21 @@ static int csStampDrain(exThread *worker) {
         atomic_store_explicit(&q->retired,
                               atomic_load_explicit(&q->head, memory_order_relaxed),
                               memory_order_release);
+    uint64_t cost_elapsed_ns = cost_sample ?
+        tomoAtomicCostThreadCpuNs() - cost_start_ns : 0;
+    /* Flush measurement counters only after the sampled phase ends, so their cache-hot stores do
+     * not get misreported as consumer work. The loop-local tallies remain register arithmetic. */
+    cost->stamp_drain_batches += drain_batches;
+    cost->stamp_drain_entries += (unsigned int)total;
+    cost->stamp_drain_stamps += drain_stamps;
+    cost->stamp_drain_prunes += drain_prunes;
+    cost->stamp_drain_cancels += drain_cancels;
+    cost->stamp_apply_walk += drain_apply_walk;
+    if (!total) cost->stamp_drain_empty++;
+    if (cost_sample) {
+        cost->stamp_drain_sample_entries += (unsigned int)total;
+        cost->stamp_drain_cpu_ns += cost_elapsed_ns;
+    }
     return total;
 }
 
@@ -18236,6 +18376,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
             ord += tm_io_sig[_t].ownread_detach;
         }
+        tomoAtomicCostStat acost;
+        tomoAtomicCostAggregate(&acost);
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -18300,8 +18442,83 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
             "tomokv_atomic_ownread_detach:%llu\r\n", ord,
+            "tomokv_atomic_read_raw:%llu\r\n", acost.read_raw,
+            "tomokv_atomic_read_versioned:%llu\r\n", acost.read_versioned,
+            "tomokv_atomic_read_walk:%llu\r\n", acost.read_walk,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* Atomic remaining-cost breakdown. For each sampled phase, net measured CPU is
+         * cpu_ns-clock_ns; scale it by phase_entries/samples for an estimated total. The raw and
+         * versioned install streams use the same sampler, making their per-install delta direct.
+         * Allocation counts/classes remain diagnostic evidence, never a timing inference. */
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_atomic_write_raw_installs:%llu\r\n", acost.write_raw_installs,
+            "tomokv_atomic_write_raw_samples:%llu\r\n", acost.write_raw_samples,
+            "tomokv_atomic_write_raw_cpu_ns:%llu\r\n", acost.write_raw_cpu_ns,
+            "tomokv_atomic_write_raw_clock_ns:%llu\r\n", acost.write_raw_clock_ns,
+            "tomokv_atomic_write_raw_kvobj_allocs:%llu\r\n", acost.write_raw_kvobj_allocs,
+            "tomokv_atomic_write_raw_kvobj_usable_bytes:%llu\r\n", acost.write_raw_kvobj_usable_bytes,
+            "tomokv_atomic_write_raw_kvobj_usable_min:%llu\r\n", acost.write_raw_kvobj_usable_min,
+            "tomokv_atomic_write_raw_kvobj_usable_max:%llu\r\n", acost.write_raw_kvobj_usable_max,
+            "tomokv_atomic_write_raw_kvobj_class_other:%llu\r\n", acost.write_raw_kvobj_class_other,
+            "tomokv_atomic_write_installs:%llu\r\n", acost.write_installs,
+            "tomokv_atomic_write_install_samples:%llu\r\n", acost.write_install_samples,
+            "tomokv_atomic_write_install_cpu_ns:%llu\r\n", acost.write_install_cpu_ns,
+            "tomokv_atomic_write_install_clock_ns:%llu\r\n", acost.write_install_clock_ns,
+            "tomokv_atomic_write_kvobj_allocs:%llu\r\n", acost.write_kvobj_allocs,
+            "tomokv_atomic_write_kvobj_usable_bytes:%llu\r\n", acost.write_kvobj_usable_bytes,
+            "tomokv_atomic_write_kvobj_usable_min:%llu\r\n", acost.write_kvobj_usable_min,
+            "tomokv_atomic_write_kvobj_usable_max:%llu\r\n", acost.write_kvobj_usable_max,
+            "tomokv_atomic_write_kvobj_class_other:%llu\r\n", acost.write_kvobj_class_other,
+            "tomokv_atomic_write_vmeta_allocs:%llu\r\n", acost.write_vmeta_allocs,
+            "tomokv_atomic_write_vmeta_usable_bytes:%llu\r\n", acost.write_vmeta_usable_bytes,
+            "tomokv_atomic_write_vmeta_usable_min:%llu\r\n", acost.write_vmeta_usable_min,
+            "tomokv_atomic_write_vmeta_usable_max:%llu\r\n", acost.write_vmeta_usable_max,
+            "tomokv_atomic_write_vmeta_class_other:%llu\r\n", acost.write_vmeta_class_other,
+            "tomokv_atomic_retires:%llu\r\n",
+                acost.retire_prune + acost.retire_physical + acost.retire_vmeta,
+            "tomokv_atomic_retire_prune:%llu\r\n", acost.retire_prune,
+            "tomokv_atomic_retire_physical:%llu\r\n", acost.retire_physical,
+            "tomokv_atomic_retire_vmeta:%llu\r\n", acost.retire_vmeta,
+            "tomokv_atomic_prune_callbacks:%llu\r\n", acost.prune_callbacks,
+            "tomokv_atomic_prune_bag_walk:%llu\r\n", acost.prune_bag_walk,
+            "tomokv_atomic_prune_commit_walk:%llu\r\n", acost.prune_commit_walk,
+            "tomokv_atomic_prune_census_walk:%llu\r\n", acost.prune_census_walk));
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_atomic_qsbr_passes:%llu\r\n", acost.qsbr_passes,
+            "tomokv_atomic_qsbr_batches:%llu\r\n", acost.qsbr_batches,
+            "tomokv_atomic_qsbr_grace_checks:%llu\r\n", acost.qsbr_grace_checks,
+            "tomokv_atomic_qsbr_grace_ready:%llu\r\n", acost.qsbr_grace_ready,
+            "tomokv_atomic_qsbr_grace_waits:%llu\r\n",
+                acost.qsbr_grace_wait_foreign + acost.qsbr_grace_wait_io +
+                acost.qsbr_grace_wait_worker,
+            "tomokv_atomic_qsbr_grace_wait_foreign:%llu\r\n", acost.qsbr_grace_wait_foreign,
+            "tomokv_atomic_qsbr_grace_wait_io:%llu\r\n", acost.qsbr_grace_wait_io,
+            "tomokv_atomic_qsbr_grace_wait_worker:%llu\r\n", acost.qsbr_grace_wait_worker,
+            "tomokv_atomic_qsbr_samples:%llu\r\n", acost.qsbr_samples,
+            "tomokv_atomic_qsbr_cpu_ns:%llu\r\n", acost.qsbr_cpu_ns,
+            "tomokv_atomic_qsbr_clock_ns:%llu\r\n", acost.qsbr_clock_ns,
+            "tomokv_atomic_stamp_drain_calls:%llu\r\n", acost.stamp_drain_calls,
+            "tomokv_atomic_stamp_drain_empty:%llu\r\n", acost.stamp_drain_empty,
+            "tomokv_atomic_stamp_drain_batches:%llu\r\n", acost.stamp_drain_batches,
+            "tomokv_atomic_stamp_drain_entries:%llu\r\n", acost.stamp_drain_entries,
+            "tomokv_atomic_stamp_drain_stamps:%llu\r\n", acost.stamp_drain_stamps,
+            "tomokv_atomic_stamp_drain_prunes:%llu\r\n", acost.stamp_drain_prunes,
+            "tomokv_atomic_stamp_drain_cancels:%llu\r\n", acost.stamp_drain_cancels,
+            "tomokv_atomic_stamp_apply_walk:%llu\r\n", acost.stamp_apply_walk,
+            "tomokv_atomic_stamp_drain_samples:%llu\r\n", acost.stamp_drain_samples,
+            "tomokv_atomic_stamp_drain_sample_entries:%llu\r\n", acost.stamp_drain_sample_entries,
+            "tomokv_atomic_stamp_drain_cpu_ns:%llu\r\n", acost.stamp_drain_cpu_ns,
+            "tomokv_atomic_stamp_drain_clock_ns:%llu\r\n", acost.stamp_drain_clock_ns));
+        for (int c = 0; c < TOMO_ATOMIC_ALLOC_CLASSES; c++) {
+            info = sdscatprintf(info,
+                "tomokv_atomic_write_raw_kvobj_class_%u:%llu\r\n"
+                "tomokv_atomic_write_kvobj_class_%u:%llu\r\n"
+                "tomokv_atomic_write_vmeta_class_%u:%llu\r\n",
+                tomo_atomic_alloc_class_bytes[c], acost.write_raw_kvobj_class[c],
+                tomo_atomic_alloc_class_bytes[c], acost.write_kvobj_class[c],
+                tomo_atomic_alloc_class_bytes[c], acost.write_vmeta_class[c]);
+        }
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
          * can be derived EXTERNALLY and in STATIC mode. Until now these existed only inside
          * tomoFlipController, which returns early when thread-mode=static — so the signal that
