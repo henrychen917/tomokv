@@ -367,7 +367,8 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     /* I7: the table slot is only the entry point while a transient bag is
      * present. Raw heads retain the exact base return path. */
     if (unlikely(kv && kvobjVmeta(kv)))
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
+                            server.current_client[iotid].p);
     return kv;
 }
 
@@ -444,6 +445,7 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    atomic_store_explicit(&vmeta->version_canceled, 0, memory_order_relaxed);
     kvobj *committed_head = NULL;
     if (version_prev) {
         struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
@@ -908,6 +910,8 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
     }
+    vmeta->origin_group = NULL;
+    vmeta->origin_client_id = 0;
 }
 
 /* Canceled atomic-group versions use the same owner lane as stamping. A canceled
@@ -924,6 +928,8 @@ void tomoCancelVersion(kvobj *kv) {
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
+    vmeta->origin_group = NULL;
+    vmeta->origin_client_id = 0;
     if (vmeta->detached) {
         tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
         return;

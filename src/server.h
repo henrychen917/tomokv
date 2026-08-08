@@ -449,10 +449,6 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 /* Atomic MSET admission parked this client before taking a fake-ring slot. The
  * command remains at pending_cmds.head until its owning event loop retries it. */
 #define CLIENT_ATOMIC_WINDOW_STALLED (1ULL << 58)
-/* A plain GET/MGET is waiting for this connection's already-dispatched atomic
- * MSET FIFO to commit. Like the admission stall, the command stays at the
- * pending-command head and is retried by its owning event loop. */
-#define CLIENT_ATOMIC_PENDING_STALLED (1ULL << 59)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1761,9 +1757,9 @@ typedef struct client {
     redisAtomic int mset_pending_lock;
     redisAtomic int mset_drain_latch;
     redisAtomic unsigned int mset_pending_count; /* registered groups not yet commit-published */
-    redisAtomic int mset_read_waiting;           /* worker-to-owner-event-loop wake handshake */
     struct csGroup *mset_pending_head;
     struct csGroup *mset_pending_tail;
+    uint64_t mset_next_install_order; /* connection-global order reserved at R1 registration */
     uint64_t tomo_read_snapshot;
     unsigned int tomo_read_snapshot_pinned;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
@@ -2116,6 +2112,7 @@ typedef struct csGroup {
     redisAtomic int mset_complete;      /* every owner installed this group */
     redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
+    uint64_t mset_install_order_base; /* first connection-global install order reserved by this group */
     int versioned_write;         /* this group is an atomic version-bag write */
     int version_install_expected; /* successful group's exact whole-value install count */
     int version_commit_ready;    /* current worker wave is the final install wave */
@@ -4539,7 +4536,7 @@ typedef struct csCmdSpec {
 #define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (derived: registry row with ported==CS_PORT_OK) */
 #define TOMO_R_XGUARD   8u   /* multi-key-capable AND not table-PORTED => SAFE-GATE checks it */
 #define TOMO_R_SCRIPTFAM 16u /* eval/fcall/script/function-subcommand — serializes on the script fence */
-#define TOMO_R_ATOMIC_READ 32u /* atomic mode: command needs the own-write read hold */
+#define TOMO_R_ATOMIC_READ 32u /* atomic mode: command needs a pinned version-bag snapshot */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.

@@ -72,6 +72,7 @@
 
 /* forward declarations */
 struct client;
+struct csGroup;
 struct RedisModuleType;
 struct redisObject;
 struct _kvstore;
@@ -131,9 +132,13 @@ typedef enum tomoRetireState {
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
+    uint64_t install_order;
+    uint64_t origin_client_id;
+    struct csGroup *origin_group;
     uint32_t version_order;
     uint8_t version_tombstone;
     uint8_t version_reservation;
+    _Atomic uint8_t version_canceled;
     uint8_t stamp_state;
     uint8_t retire_state;
     uint8_t detached;
@@ -218,33 +223,11 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
     __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
 }
 
-/* I2: the physical chain remains an install-ordered bag. Its head metadata
- * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order). Stamp arrival order is irrelevant:
- * a newer stamp advances this cursor and an older stamp is inserted into the
- * history chain. The cursor's acquire pairs with the owner's release after
- * stamp application, so a current snapshot returns its winner without visiting
- * the uncommitted physical prefix. Only an old snapshot walks down the
- * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
- * seq 0); no winner, or a tombstone winner, means absent. */
-static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
-    if (!head_meta) return kv;
-
-    kv = atomic_load_explicit(&head_meta->committed_head,
-                              memory_order_acquire);
-    struct tomoVerMeta *vmeta = NULL;
-    while (kv) {
-        vmeta = kvobjVmeta(kv);
-        if (!vmeta) break;
-        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
-                                            memory_order_acquire);
-        if (seq <= snapshot) break;
-        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
-    }
-    if (kv && vmeta && vmeta->version_tombstone) return NULL;
-    return kv;
-}
+/* Resolve a version bag for reader_connection at snapshot. The implementation
+ * lives beside the connection's pending R1 FIFO in server.c. Passing NULL is
+ * the write-side/internal committed-only resolver. */
+kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot,
+                      struct client *reader_connection);
 
 /* Redis object implementation */
 void decrRefCount(robj *o);

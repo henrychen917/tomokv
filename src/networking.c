@@ -547,9 +547,9 @@ client *createClient(connection *conn) {
     atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_relaxed);
     atomic_store_explicit(&c->mset_drain_latch, 0, memory_order_relaxed);
     atomic_store_explicit(&c->mset_pending_count, 0, memory_order_relaxed);
-    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_relaxed);
     c->mset_pending_head = NULL;
     c->mset_pending_tail = NULL;
+    c->mset_next_install_order = 0;
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name

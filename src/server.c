@@ -197,7 +197,6 @@ void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning p
 static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
-static int csMsetHoldOwnRead(client *c);
 static int csAtomicAbortIncomplete(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
@@ -301,9 +300,7 @@ static void tomoAtomicDropWaiter(client *c) {
 void tomoAtomicUnstallClient(client *c) {
     if (!c->atomic_window_parked_node) return;
     tomoAtomicDropWaiter(c);
-    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
-    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
-                  CLIENT_PIPELINE_STALLED);
+    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
 }
 
 static void tomoAtomicEnrollWaiter(client *c) {
@@ -325,20 +322,8 @@ static void tomoAtomicParkWindowClient(client *c) {
     tomoAtomicWakeProducer(iotid);
 }
 
-static void tomoAtomicParkPendingRead(client *c) {
-    tomoAtomicEnrollWaiter(c);
-    c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
-    /* The hold-side post-enrollment overlap check closes the selective-wait missed-wakeup race.
-     * Keep the original zero-count self-wake too: it is a cheap fast confirmation when the last
-     * pending group retired between the pre-park check and waiter enrollment. */
-    if (atomic_load_explicit(&c->mset_pending_count, memory_order_acquire) == 0)
-        tomoAtomicWakeProducer(iotid);
-}
-
-/* Owning-event-loop retry. No worker or IO thread parks: the refused command remains the head
- * pending command. Admission waits recheck the global CAS window; own-write read waits recheck
- * their post-publication per-client count. A retry may immediately park again, so re-evaluate the
- * shared list after every client. */
+/* Owning-event-loop retry for the write-admission window. No worker or IO
+ * thread parks: the refused write remains the head pending command. */
 static void tomoAtomicReleaseStalledClients(void) {
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
     list *l = server.clients_atomic_window_parked[iotid];
@@ -348,25 +333,13 @@ static void tomoAtomicReleaseStalledClients(void) {
         int window_open = window <= 0 ||
             atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) < window;
 
-        /* The list is shared by the two leave-at-pending-head stalls. Admission
-         * may still be full while an own-write read later in the list is ready,
-         * so find one eligible client instead of stopping at the list head. */
         client *c = NULL;
         listIter li;
         listNode *ln;
         listRewind(l, &li);
         while ((ln = listNext(&li)) != NULL) {
             client *candidate = listNodeValue(ln);
-            if (candidate->flags & CLIENT_ATOMIC_PENDING_STALLED) {
-                /* A publishing group clears this marker and wakes the producer. Re-drive the
-                 * command even if disjoint groups remain: the overlap filter, not total FIFO
-                 * emptiness, decides whether this particular read must park again. */
-                if (atomic_load_explicit(&candidate->mset_read_waiting,
-                                         memory_order_acquire) == 0) {
-                    c = candidate;
-                    break;
-                }
-            } else if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) && window_open) {
+            if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) && window_open) {
                 c = candidate;
                 break;
             }
@@ -374,9 +347,7 @@ static void tomoAtomicReleaseStalledClients(void) {
         if (!c) return;
 
         tomoAtomicDropWaiter(c);
-        atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
-        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
-                      CLIENT_PIPELINE_STALLED);
+        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
         /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
          * have returned. processInputBuffer may free c, so do not touch it after this call. */
         processInputBuffer(c);
@@ -430,21 +401,6 @@ static int csAtomicReadsSources(const csCmdSpec *s) {
     default:
         return 0;
     }
-}
-
-/* I7's existing read hold applies to every PORTALL source reader as well as the original
- * GET/MGET/EXISTS/TOUCH set. This includes read-then-write commands: drawing S before this
- * connection's previous atomic group publishes would otherwise compute a destination from an
- * older source cut even though the groups themselves commit in R1 order. */
-static int csAtomicNeedsOwnReadHold(client *c) {
-    if (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand ||
-        c->cmd->proc == existsCommand || c->cmd->proc == touchCommand)
-        return 1;
-    /* All registry read-only shapes resolve bags and draw a snapshot, including the non-store
-     * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
-    if (c->cmd->flags & CMD_READONLY) return 1;
-    const csCmdSpec *s = csClassify(c);
-    return csAtomicPortallVersionedWrite(c, s) && csAtomicReadsSources(s);
 }
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
@@ -3675,12 +3631,12 @@ void handleWorkerReplies(void) {
          * by cs_barrier is only released when the ring goes fully EMPTY
          * (dispatchid == flushid — see processInputBuffer). Waking it on every retiring
          * slot made it re-enter processInputBuffer, re-fail the barrier test and re-stall
-         * once per slot: O(ring depth) pointless entries per barrier. Atomic-window stalls are
-         * global rather than ring predicates and stay owned by tomoAtomicReleaseStalledClients;
-         * clearing their shared PIPELINE_STALLED bit here would leave a stale wait-list entry. */
+         * once per slot: O(ring depth) pointless entries per barrier. The atomic-window stall is
+         * global rather than a ring predicate and stays owned by
+         * tomoAtomicReleaseStalledClients; clearing its shared PIPELINE_STALLED
+         * bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            !(real->flags & (CLIENT_ATOMIC_WINDOW_STALLED |
-                             CLIENT_ATOMIC_PENDING_STALLED)) &&
+            !(real->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
             (real->cs_barrier ? (real->dispatchid == real->flushid)
                               : ((real->dispatchid - real->flushid) < real->ring_size)))
         {
@@ -7475,17 +7431,8 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    /* Non-stateful — route through a fake. Stall if ring is full. */
-    /* I7 RYOW: atomic bag writes are installed concurrently and become visible
-     * only when their connection-ordered completion FIFO commits (or cancels).
-     * Do not let a following bag-resolving read draw an older snapshot. Leave
-     * it at pending_cmds.head and retry after the FIFO's publication count
-     * reaches zero. */
-    if (__builtin_expect(server.tomo_atomic != 0, 0) &&
-        (c->cmd->tomo_route & TOMO_R_ATOMIC_READ) &&
-        csAtomicNeedsOwnReadHold(c) &&
-        csMsetHoldOwnRead(c))
-        return C_OK;
+    /* Non-stateful — route through a fake. Stall if ring is full. Atomic RYOW
+     * is resolved owner-locally in kvobjVersionAt; reads never wait for commit. */
 
     /* ORDER-2 (multi-hop pipeline barrier). Same-client pipelined ordering is guaranteed by
      * "same key => same owner queue => FIFO", which holds only because every sub is pushed
@@ -8800,6 +8747,10 @@ static void csMsetRegister(csGroup *g) {
                  g->key_sig != 0);
 
     csMsetPendingLock(real);
+    serverAssert(UINT64_MAX - real->mset_next_install_order >=
+                 (uint64_t)g->version_install_expected);
+    g->mset_install_order_base = real->mset_next_install_order;
+    real->mset_next_install_order += (uint64_t)g->version_install_expected;
     g->mset_pending_prev = real->mset_pending_tail;
     g->mset_pending_next = NULL;
     if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
@@ -8930,8 +8881,107 @@ static inline uint64_t csHashSignature(uint64_t h) {
     return 1ULL << (h & 63);
 }
 
-static inline uint64_t csKeySignature(robj *key) {
-    return csHashSignature(tomoKeyHash(key->ptr, sdslen(key->ptr)));
+/* Resolve C's owner-local uncommitted version before consulting the committed
+ * cursor. The key-signature bloom cheaply identifies candidate groups in C's
+ * locked R1 FIFO; the physical-bag walk confirms group identity and compares
+ * the connection-global install order. A group is briefly outside the linked
+ * FIFO after sequence draw and can remain locally UNCOMMITTED until this
+ * owner's stamp lane runs, so origin_client_id closes only that handoff gap.
+ *
+ * Correctness map:
+ *  1. The maximum own install_order is C's latest installed write to this key.
+ *  2. Only a locally UNCOMMITTED version qualifies, so its eventual monotone
+ *     sequence is above the committed cut being read now.
+ *  3. Stamp/cancel changes stamp_state and the ordinary committed cursor wins.
+ *  4. This executes independently on each key owner; non-own keys retain S.
+ *  5. Same-connection/same-key FIFO makes install_order program-order exact;
+ *     other readers fail both group and immutable connection identity checks.
+ * A canceled reservation is skipped, a live reservation is its group's own
+ * installed state, and a selected tombstone is reported as an own absence. */
+static kvobj *csMsetOwnVersionAt(kvobj *head, client *reader, int *found) {
+    *found = 0;
+    if (!reader) return NULL;
+    client *real = reader->isFake ? reader->parent : reader;
+    if (!real) return NULL;
+
+    sds key = kvobjGetKey(head);
+    uint64_t key_sig = csHashSignature(tomoKeyHash(key, sdslen(key)));
+    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
+                                                 memory_order_acquire);
+    int locked = pending != 0;
+    int bloom_hit = 0;
+    if (locked) {
+        csMsetPendingLock(real);
+        for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+            if (g->key_sig & key_sig) {
+                bloom_hit = 1;
+                break;
+            }
+        }
+    }
+
+    kvobj *newest = NULL;
+    uint64_t newest_order = 0;
+    for (kvobj *kv = head; kv; kv = kvobjVersionPrev(kv)) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
+        if (atomic_load_explicit(&vmeta->version_seq, memory_order_acquire) !=
+                TOMO_VERSION_UNCOMMITTED ||
+            vmeta->stamp_state != TOMO_STAMP_PENDING ||
+            atomic_load_explicit(&vmeta->version_canceled, memory_order_acquire))
+            continue;
+
+        int own = 0;
+        if (bloom_hit && vmeta->origin_group) {
+            for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+                if ((g->key_sig & key_sig) && g == vmeta->origin_group) {
+                    own = 1;
+                    break;
+                }
+            }
+        }
+        /* csMsetPopComplete detaches before commit publication, and commit
+         * publication can precede this owner's stamp-lane turn. The immutable
+         * ID preserves RYOW across exactly that locally-uncommitted interval. */
+        if (!own && vmeta->origin_client_id == real->id) own = 1;
+        if (!own) continue;
+        if (!newest || vmeta->install_order > newest_order) {
+            newest = kv;
+            newest_order = vmeta->install_order;
+        }
+    }
+    if (locked) csMsetPendingUnlock(real);
+
+    if (!newest) return NULL;
+    *found = 1;
+    return kvobjVmeta(newest)->version_tombstone ? NULL : newest;
+}
+
+/* I2: the physical chain remains an install-ordered bag. Its head metadata
+ * carries the per-key committed maximum, whose separate predecessor links are
+ * ordered by descending (seq,install_order). After the reader-aware own branch,
+ * the committed-head cursor path is byte-for-byte the previous resolver. */
+kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
+    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
+    if (!head_meta) return kv;
+
+    int own_found;
+    kvobj *own = csMsetOwnVersionAt(kv, reader_connection, &own_found);
+    if (own_found) return own;
+
+    kv = atomic_load_explicit(&head_meta->committed_head,
+                              memory_order_acquire);
+    struct tomoVerMeta *vmeta = NULL;
+    while (kv) {
+        vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
+        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
+                                            memory_order_acquire);
+        if (seq <= snapshot) break;
+        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+    }
+    if (kv && vmeta && vmeta->version_tombstone) return NULL;
+    return kv;
 }
 
 /* Destination-only atomic shapes hash their one written key at registration and carry the
@@ -8943,70 +8993,6 @@ static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
     g->head->tomo_key_h = h;
     g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
     g->head->tomo_bkt_ptr = dst->ptr;
-}
-
-/* The pending command's key result is already prepared by dispatch preprocessing. Unknown
- * keyspace/dynamic-key reads conservatively select every bit: false positives only retain the
- * old hold, while a missing read bit could violate RYOW. */
-static uint64_t csOwnReadSignature(client *real) {
-    if (real->cmd->proc == keysCommand || real->cmd->proc == sortCommand ||
-        real->cmd->proc == sortroCommand)
-        return UINT64_MAX;
-
-    getKeysResult *keys = getClientCachedKeyResult(real);
-    if (!keys || keys->numkeys <= 0) return UINT64_MAX;
-    uint64_t sig = 0;
-    for (int i = 0; i < keys->numkeys; i++) {
-        int pos = keys->keys[i].pos;
-        if (pos <= 0 || pos >= real->argc || !real->argv[pos] ||
-            !sdsEncodedObject(real->argv[pos]))
-            return UINT64_MAX;
-        sig |= csKeySignature(real->argv[pos]);
-    }
-    return sig;
-}
-
-/* Walk the connection-local R1 FIFO under its existing lock. A completed head is briefly
- * detached before commit_seq publication while pending_count intentionally stays nonzero; if
- * such a group exists its signature is no longer reachable, so conservatively hold until that
- * publication finishes. This preserves the no-false-negative rule without widening the FIFO. */
-static int csMsetReadIntersects(client *real, uint64_t read_sig) {
-    unsigned int linked = 0;
-    int intersects = 0;
-    csMsetPendingLock(real);
-    for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
-        linked++;
-        if (read_sig & g->key_sig) {
-            intersects = 1;
-            break;
-        }
-    }
-    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
-                                                 memory_order_acquire);
-    csMsetPendingUnlock(real);
-    return intersects || pending > linked;
-}
-
-/* Dispatch-side RYOW gate. Hash only after the zero-pending fast path, then hold iff this read's
- * key signature intersects a group in its own short R1 FIFO. Publish the waiter marker before the
- * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race. */
-static int csMsetHoldOwnRead(client *real) {
-    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
-        return 0;
-    uint64_t read_sig = csOwnReadSignature(real);
-    if (!csMsetReadIntersects(real, read_sig)) return 0;
-
-    atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
-    if (!csMsetReadIntersects(real, read_sig)) {
-        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
-        return 0;
-    }
-    tomoAtomicParkPendingRead(real);
-    if (!csMsetReadIntersects(real, read_sig)) {
-        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
-        tomoAtomicWakeProducer(real->tid);
-    }
-    return 1;
 }
 
 static csGroup *csMsetPopComplete(client *real) {
@@ -9055,6 +9041,8 @@ static void csMsetStampAndAppend(csGroup *g) {
         serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
         serverAssert(install->install_order == (uint32_t)i);
         serverAssert(vmeta->version_order == install->install_order);
+        atomic_store_explicit(&vmeta->version_canceled, cancel != 0,
+                              memory_order_release);
         atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
                               memory_order_release);
         vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
@@ -9105,7 +9093,7 @@ static void csMsetInstallDone(csGroup *g) {
         /* I3 publication edge: all STAMP tail release-stores above happen
          * before this release-store. A canceled MSETNX has no sequence to
          * publish; its cancel jobs were nevertheless all queued before reply
-         * publication and before the R1 read hold is released. */
+         * publication. */
         if (!canceled)
             atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
         for (int i = 0; i < ninstalled; i++) {
@@ -9119,17 +9107,11 @@ static void csMsetInstallDone(csGroup *g) {
         }
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
-        /* This is the FIFO's semantic drain point, not csMsetPopComplete:
-         * the release decrement follows commit_seq publication and therefore
-         * licenses a held read to draw a snapshot containing this group. */
+        /* This is the FIFO's semantic drain point, not csMsetPopComplete: the
+         * release decrement follows commit_seq publication. */
         unsigned int before = atomic_fetch_sub_explicit(&hp->mset_pending_count, 1,
                                                         memory_order_release);
         serverAssert(before > 0);
-        /* A selective read may become runnable while unrelated groups remain. Wake on every
-         * publication; processCommand's FIFO signature scan decides whether it must park again. */
-        if (atomic_exchange_explicit(&hp->mset_read_waiting, 0,
-                                     memory_order_acq_rel))
-            tomoAtomicWakeProducer(hp->tid);
     }
     csCommitUnlock();
 }
@@ -10071,7 +10053,7 @@ static void csNxDestReserveVersioned(client *sub, csGroup *g, int nclass,
         atomic_fetch_add_explicit(&g->msetnx_retry,1,memory_order_relaxed);
         return;
     }
-    if (head && kvobjVersionAt(head,tomoCommittedSeq())) {
+    if (head && kvobjVersionAt(head,tomoCommittedSeq(),NULL)) {
         g->msetnx_state[0] = CS_MSETNX_PRESENT;
         return;
     }
@@ -10161,6 +10143,11 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     serverAssert(vmeta->version_kvs == sub->db->keys);
+    client *real = g->head->parent;
+    serverAssert(real != NULL && g->mset_client == real);
+    vmeta->install_order = g->mset_install_order_base + (uint64_t)ii;
+    vmeta->origin_client_id = real->id;
+    vmeta->origin_group = g;
     vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
@@ -10202,7 +10189,7 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
             atomic_fetch_add_explicit(&g->msetnx_retry, 1, memory_order_relaxed);
             continue;
         }
-        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq(), NULL) : NULL;
         if (live) {
             g->msetnx_state[orig] = CS_MSETNX_PRESENT;
             continue;
@@ -10227,7 +10214,7 @@ static void csDelSubExecVersioned(client *sub, csGroup *g) {
     for (int a = 1; a < sub->argc; a++) {
         robj *keyo = sub->argv[a];
         kvobj *head = lookupKeyWrite(sub->db, keyo);
-        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq(), NULL) : NULL;
         int duplicate = 0;
         for (int prior = 1; prior < a; prior++) {
             if (equalStringObjects(sub->argv[prior], keyo)) {
