@@ -8845,6 +8845,45 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *                evidence, and reads 0 with the knob off. */
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
+/* ---- CURE2 commit-section census (INFO Stats) --------------------------------------------
+ * The atomic write ceiling is set by ONE global serial section (commit_lock in
+ * csMsetInstallDone). Everything that section does per GROUP is mandatory — draw the sequence
+ * in completion order, link the group into the commit FIFO, release-store commit_seq, publish
+ * the reply slot. Everything it did per KEY was not: each install pushed its STAMP and then its
+ * PRUNE onto the owning worker's reserved lane INDIVIDUALLY, and every individual push pays
+ * three cross-core publish operations (stamp_pending RMW, tail release-store, q_summary
+ * fetch_or) on lines the owning worker is concurrently consuming. An 8-key MSET across 4 owners
+ * therefore held the global lock across 16 of those triples where 8 (one per owner per wave)
+ * carry the identical information.
+ *
+ * These four counters make that claim falsifiable rather than plausible:
+ *   commit_groups  — groups that entered the commit FIFO. The denominator.
+ *   stamp_entries  — owner-op lane ENTRIES enqueued. Two per install (STAMP|CANCEL + PRUNE),
+ *                    so entries/groups must be UNCHANGED by any pure coalescing change. If this
+ *                    moves, work was deleted, not batched, and that is a different claim needing
+ *                    a different proof.
+ *   stamp_visits   — lane PUBLISH operations actually performed (the fetch_add/tail/fetch_or
+ *                    triple). This is the serial-cost term: visits/groups is what the batching
+ *                    is supposed to drop from 2*keys to ~2*distinct_owners. A speedup with this
+ *                    ratio unchanged is not this change's speedup.
+ *   stamp_full     — pushes that found the owner's lane FULL and therefore spun (or inline-
+ *                    drained) WHILE HOLDING commit_lock, i.e. one lagging worker stalling every
+ *                    committer in the process. Nothing in the tree could observe that; it is
+ *                    recorded rather than designed around because its rate, not its existence,
+ *                    decides whether the unbounded wait needs restructuring.
+ * Indexed by iotid over the full identity space (main + io + workers) because the committer is
+ * normally a WORKER but the abort/NX continuations run on an IO drain thread — tm_io_sig[] is
+ * sized for io identities only and indexing it from a worker would run off the end. Plain
+ * non-atomic increments to the writing thread's own cache-line-aligned slot; INFO sums them
+ * racily, the same contract as tm_io_sig's rord_ and ownread_ fields. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    unsigned long long commit_groups;
+    unsigned long long stamp_entries;
+    unsigned long long stamp_visits;
+    unsigned long long stamp_full;
+} csCommitStat;
+static csCommitStat cs_commit_stat[TOMO_STAT_SLOTS];
+
 static inline void csCommitLock(void) {
     while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
         exPauseCpu();
@@ -8969,15 +9008,56 @@ static int csStampDrain(exThread *worker) {
     return total;
 }
 
-static void csStampPush(int owner, tomoOwnerOp *op) {
+/* Publish everything staged into ONE owner's reserved lane. The two stores are ordered:
+ * stamp_pending must be raised BEFORE the tail release-store, because the consumer gates its
+ * whole drain on `stamp_pending != 0` (csStampDrain, and the two call sites in the worker loop).
+ * Publishing the tail first would let the consumer pop entries it had never been charged for —
+ * the fetch_sub's `before >= n` assert — and, worse, would let it decline to drain a lane that
+ * already holds our jobs while we spin on that same lane under commit_lock. The reverse order is
+ * merely a spurious empty pop: pending>0 with the tail not yet moved, which the drain already
+ * tolerates (it breaks out of the pop loop and the count stands for the next pass).
+ * Advertising AFTER the tail store is the sparse-handoff protocol's own requirement. */
+static inline void csStampPublish(exThread *worker, exQueue *q, unsigned int *staged) {
+    if (*staged) {
+        atomic_fetch_add_explicit(&worker->stamp_pending, *staged, memory_order_release);
+        *staged = 0;
+    }
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+}
+
+/* Push a RUN of owner-ops belonging to ONE owner as a single lane visit. Staging is
+ * producer-private (jobs[]/staged_tail/cached_head are protected by commit_lock, which is what
+ * keeps this multi-writer lane a logical SPSC producer), so n entries can be staged and then
+ * published with one stamp_pending RMW, one tail release-store and one q_summary fetch_or
+ * instead of n of each. Entry count, entry order and entry contents are byte-identical to n
+ * separate csStampPush calls; only the number of publish operations changes.
+ *
+ * ORDERING (I3): the caller's contract is unchanged. Coalescing delays an entry's tail
+ * release-store from push time to end-of-run, but every run of every group is still published
+ * before that group's commit_seq release-store, which is the whole edge — a reader that observes
+ * commit_seq >= S has, transitively through the normal job it then publishes, established the
+ * stamp lane's tail, so the owner's pre-batch drain applies every stamp <= S before the read can
+ * dereference its head. Within a lane the relative order of entries is unchanged, and the drain
+ * documents intra-lane order as irrelevant anyway (the committed chain is rebuilt from the
+ * (seq, version_order) tuple in the vmeta, not from arrival order).
+ *
+ * FULL LANE: publish first, then wait. The publish before the wait is not an optimisation, it is
+ * the only reason the wait terminates — the consumer cannot drain what we have not charged to
+ * stamp_pending and not published. */
+#define CS_STAMP_BATCH_MAX 32
+static void csStampPushBatch(int owner, tomoOwnerOp **ops, int n) {
     serverAssert(owner >= 0 && owner < server.num_workers);
+    if (n <= 0) return;
     exThread *worker = &server.exThreads[owner];
     exQueue *q = &worker->queues[csStampLane()];
     int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    unsigned int staged = 0;
     int spins = 0;
-    while (exQueuePushOwnerOp(q, op) != 0) {
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+    for (int i = 0; i < n; ) {
+        if (exQueuePushOwnerOp(q, ops[i]) == 0) { staged++; i++; continue; }
+        csStampPublish(worker, q, &staged);
+        cs_commit_stat[iotid].stamp_full++;
         if (current_owner == owner)
             csStampDrain(worker);
         else {
@@ -8985,9 +9065,11 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
             if ((++spins & 4095) == 0) tomoPollingYield();
         }
     }
-    atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+    csStampPublish(worker, q, &staged);
+    /* One VISIT per batch, plus one extra publish per full-lane round (counted as stamp_full,
+     * not folded in here, so visits stays a clean per-owner-segment count). */
+    cs_commit_stat[iotid].stamp_visits++;
+    cs_commit_stat[iotid].stamp_entries += (unsigned long long)n;
 }
 
 static inline int csMsetHeadComplete(client *real) {
@@ -9116,6 +9198,51 @@ static csGroup *csMsetPopComplete(client *real) {
     return g;
 }
 
+/* Cluster this group's install records by OWNER so the commit section can push each owner's
+ * whole segment as one lane visit. Runs on the completing thread BEFORE mset_complete is
+ * release-stored, i.e. before any committer can pop the group: the array is exclusively ours
+ * here (the group's `pending` acq_rel decrement to zero already ordered every install against
+ * this thread), and the mset_complete release/acquire pair publishes the arrangement to whatever
+ * thread later drains the FIFO. Doing it here rather than under commit_lock is the point — the
+ * global lock should not be paying for a scan of a purely local array.
+ *
+ * A stable sort is required, not merely a grouping: duplicate keys within one command hash to
+ * one owner and must keep their argv order inside the segment. (The version resolver does not
+ * actually depend on it — tomoApplyVersionStamp orders the committed chain by the (seq,
+ * version_order) tuple carried in the VMETA, which this never touches, which is also why
+ * out-of-order arrival across workers is already tolerated — but preserving it costs nothing and
+ * keeps the physical order the own-read walk sees identical to today's.)
+ *
+ * The dense-fill check that used to live inside the commit section moves here and gets stronger:
+ * it now proves install_order is a PERMUTATION of [0,n) rather than that index==order, an
+ * assertion that survives reordering. Above the sort cap the array is left alone and the commit
+ * section coalesces whatever adjacent runs the concurrent installs happened to produce; the sort
+ * is O(n^2) and a 64-pair MSET is already far past the regime this is defending. */
+#define CS_STAMP_SORT_MAX 64
+static void csMsetGroupInstallsByOwner(csGroup *g) {
+    if (!g->versioned_write || !g->mset_installs) return;
+    int n = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
+    csMsetInstall *a = g->mset_installs;
+    if (n > CS_STAMP_SORT_MAX) {
+        for (int i = 0; i < n; i++)
+            serverAssert(a[i].install_order < (uint32_t)n);
+        return;
+    }
+    uint64_t seen = 0;
+    for (int i = 0; i < n; i++) {
+        uint32_t o = a[i].install_order;
+        serverAssert(o < (uint32_t)n && !(seen & (1ULL << o)));
+        seen |= 1ULL << o;
+    }
+    if (n < 2) return;
+    for (int i = 1; i < n; i++) {          /* insertion sort: stable, in place, no scratch */
+        csMsetInstall t = a[i];
+        int j = i - 1;
+        while (j >= 0 && a[j].owner > t.owner) { a[j + 1] = a[j]; j--; }
+        a[j + 1] = t;
+    }
+}
+
 /* I1/I3/I5: draw at R1-approved completion, then enqueue every owner stamp
  * before the group is allowed to advance commit_seq. Records are traversed in
  * install-order so same-key duplicates reach their one owner in that order. */
@@ -9138,22 +9265,35 @@ static void csMsetStampAndAppend(csGroup *g) {
         seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
     }
     g->version_seq = seq;
-    for (int i = 0; i < ninstalled; i++) {
-        csMsetInstall *install = &g->mset_installs[i];
-        kvobj *kv = install->kv;
-        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-        serverAssert(kv != NULL && vmeta != NULL);
-        serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
-        serverAssert(install->install_order == (uint32_t)i);
-        serverAssert(vmeta->version_order == install->install_order);
-        atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
-                              memory_order_release);
-        vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
-                                           cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
-        if (!cancel)
-            vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
-        csStampPush(install->owner, &vmeta->owner_op[0]);
+    /* One lane visit per owner SEGMENT instead of one per install. csMsetGroupInstallsByOwner
+     * made the segments contiguous outside this lock, so a segment is just a maximal run of
+     * equal `owner` — no scratch map, no second pass. Everything a run's vmetas need is written
+     * before that run is published, and the run's single tail release-store still precedes this
+     * group's commit_seq store in the publication loop below, so the I3 edge is untouched. */
+    for (int i = 0; i < ninstalled; ) {
+        int owner = g->mset_installs[i].owner;
+        tomoOwnerOp *ops[CS_STAMP_BATCH_MAX];
+        int n = 0;
+        while (i < ninstalled && g->mset_installs[i].owner == owner &&
+               n < CS_STAMP_BATCH_MAX) {
+            csMsetInstall *install = &g->mset_installs[i];
+            kvobj *kv = install->kv;
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            serverAssert(kv != NULL && vmeta != NULL);
+            serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+            serverAssert(vmeta->version_order == install->install_order);
+            atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
+                                  memory_order_release);
+            vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
+                                               cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
+            if (!cancel)
+                vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
+            ops[n++] = &vmeta->owner_op[0];
+            i++;
+        }
+        csStampPushBatch(owner, ops, n);
     }
+    cs_commit_stat[iotid].commit_groups++;
     g->commit_next = NULL;
     if (commit_tail) commit_tail->commit_next = g;
     else commit_head = g;
@@ -9163,6 +9303,10 @@ static void csMsetStampAndAppend(csGroup *g) {
 static void csMsetInstallDone(csGroup *g) {
     client *real = g->mset_client;
     serverAssert(real != NULL);
+    /* Last chance to touch this group's installs privately: after the release-store below any
+     * committer may pop it. Arranging them by owner HERE is what lets the commit section push
+     * one lane entry-run per owner without doing the grouping itself. */
+    csMsetGroupInstallsByOwner(g);
     atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
 
     int expected = 0;
@@ -9199,14 +9343,29 @@ static void csMsetInstallDone(csGroup *g) {
          * publication and before the R1 read hold is released. */
         if (!canceled)
             atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
-        for (int i = 0; i < ninstalled; i++) {
-            csMsetInstall *install = &done->mset_installs[i];
-            if (!canceled) {
-                struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
-                csStampPush(install->owner, &vmeta->owner_op[1]);
+        /* PRUNE wave, batched over the same owner segments. It must stay AFTER the commit_seq
+         * store: tomoArmVersionRetire asserts seq <= tomoCommittedSeq(), and the owner may drain
+         * this entry the instant its tail is published. Per-key STAMP-before-PRUNE order is
+         * preserved because both waves walk the same segments in the same direction and a lane
+         * is FIFO — the STAMP for a kv was published in an earlier visit to that same lane. */
+        if (!canceled) {
+            for (int i = 0; i < ninstalled; ) {
+                int owner = done->mset_installs[i].owner;
+                tomoOwnerOp *ops[CS_STAMP_BATCH_MAX];
+                int n = 0;
+                while (i < ninstalled && done->mset_installs[i].owner == owner &&
+                       n < CS_STAMP_BATCH_MAX) {
+                    struct tomoVerMeta *vmeta = kvobjVmeta(done->mset_installs[i].kv);
+                    serverAssert(vmeta != NULL);
+                    ops[n++] = &vmeta->owner_op[1];
+                    i++;
+                }
+                csStampPushBatch(owner, ops, n);
             }
-            install->kv = NULL;
-            install->owner = -1;
+        }
+        for (int i = 0; i < ninstalled; i++) {
+            done->mset_installs[i].kv = NULL;
+            done->mset_installs[i].owner = -1;
         }
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
@@ -17914,6 +18073,20 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             orr += tm_io_sig[_t].ownread_reads;   orp += tm_io_sig[_t].ownread_pending;
             orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
         }
+        /* CURE2 commit-section census (see csCommitStat). The verdict pair is
+         * stamp_visits/commit_groups against stamp_entries/commit_groups: entries per group is
+         * the WORK (2 per install, invariant under coalescing) and visits per group is the
+         * SERIAL COST (cross-core publish triples taken under commit_lock). A write speedup that
+         * does not show up as visits/group falling toward 2*distinct_owners came from somewhere
+         * else. stamp_full counts waits taken while holding the global lock: it is expected to
+         * be 0 and any sustained rate means one lagging worker is stalling every committer. */
+        unsigned long long csg_n = 0, cse_n = 0, csv_n = 0, csf_n = 0;
+        for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
+            csg_n += cs_commit_stat[_t].commit_groups;
+            cse_n += cs_commit_stat[_t].stamp_entries;
+            csv_n += cs_commit_stat[_t].stamp_visits;
+            csf_n += cs_commit_stat[_t].stamp_full;
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -17977,6 +18150,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
+            "tomokv_atomic_commit_groups:%llu\r\n", csg_n,
+            "tomokv_atomic_stamp_entries:%llu\r\n", cse_n,
+            "tomokv_atomic_stamp_visits:%llu\r\n", csv_n,
+            "tomokv_atomic_stamp_full:%llu\r\n", csf_n,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
