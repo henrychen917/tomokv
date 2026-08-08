@@ -3272,11 +3272,11 @@ struct redisServer {
      * num_workers_live = the CONSUMING worker set: read by the reshard autotuner, KEYS fan-all,
      * FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand work to a thread
      * that must be running exSlice to ever pop it. A grown-front slot is still allocated but
-     * not live. Writers: the flip actuators (main thread; decrement BEFORE arming the
-     * grow-front migration) and the reshard coordinator (increment at the grow-back seed FLIP
-     * — the bucket remap IS the go-live). Producer-side coverage must stay keyed off
-     * num_workers, never num_workers_live: the FLIP can route to a slot before its liveness
-     * signal is published. */
+     * not live. Writers: only the flip accounting transaction on main — grow-front claims EX
+     * before arming its outbound migration and publishes IO (or rolls EX back); grow-back publishes
+     * the complete IO->EX move after the thread adopts EX and before its optional bucket seed.
+     * Producer-side coverage stays keyed off num_workers, never num_workers_live, so every allocated
+     * slot remains covered through either transition. */
     _Atomic int num_workers_live;
     /* ee451 (per-node flip): per-NODE live prefixes. Node n's live workers are the prefix
      * [n*ex_per_node, n*ex_per_node + tm_node_wlive[n]) — grow-front converts the node's HIGHEST
@@ -3297,7 +3297,10 @@ struct redisServer {
                                     * main reads after acquire-loading it. TOMO_MODE_UNSET when idle
                                     * — NOT 0, which is not a mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
-                                    * seed migration, 2=await seed FLIP */
+                                    * seed migration, 2=await seed FLIP, 3=await IO-EXIT rollback ack */
+    _Atomic int tm_flip_gb_state;  /* grow-back commit arbitration: IDLE -> DRAINING -> exactly one
+                                    * of COMMITTED/CANCEL_REQUESTED; the latter ends at ROLLED_BACK.
+                                    * Prevents the watchdog cancel from racing the IO owner's EX commit. */
     mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the conn drain;
                                     * abort past it. TIME, not ticks: tmFlipTick runs per event-loop
                                     * iteration, so a tick count is load-dependent (40 iterations ~ 1ms
@@ -3308,9 +3311,9 @@ struct redisServer {
                                     * post-revert backoff) would consume the flag and re-issue its own
                                     * already-landed revert = uncommanded cross-node flip. Consumers
                                     * gate on node==this. topo_nodes==1 => always 0 => no behaviour change. */
-    int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
-                                    * CANCEL the in-flight probe (config never left baseline: nothing to
-                                    * measure, nothing to revert). */
+    int tm_flip_aborted;           /* set after the phase-0 timeout's owner-acknowledged IO rollback;
+                                    * the flip controller consumes it to CANCEL the in-flight probe
+                                    * (config never left baseline: nothing to measure or revert). */
     int tm_relevel_pending;        /* a completed role-flip left a deterministically skewed bucket
                                     * layout (grow-back seeds by halving ONE neighbour; grow-front
                                     * dumps a whole range on one worker). While set, the balancer
@@ -3329,7 +3332,7 @@ struct redisServer {
     _Atomic uint64_t reshard_fence_aborts;
     int reshard_fence_timeout_ms;  /* 0 = wait forever; N = abort a cutover whose drain fence has
                                     * not completed within N ms (never flips: pure anti-hang net) */
-    int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
+    int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being seeded */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
      * STARTING POINT, not the reachable range — every non-main thread is provisioned as a worker with
@@ -3399,9 +3402,9 @@ struct redisServer {
     /* ee451 (thread-modes): coordinator side-channel for FLIP-driven migrations.
      * 0 = ordinary migration (no flip tail);
      * 2 = GROW-FRONT: the converting worker's whole range has been moved out and torn down,
-     *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO);
-     * 3 = GROW-BACK seed: the coordinator publishes num_workers_live++ at the FLIP.
-     * (Value 1 was the reserve-thread activation tail, deleted 2026-07-28 with the reserve.)
+     *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO).
+     * (Values 1/3 were the deleted reserve activation and the old grow-back live-count publication.
+     * Grow-back now publishes its complete IO->EX accounting move at EX adoption, outside reshard.)
      * Written by the successful flip claimer (main or DEBUG's io thread) strictly before
      * reshardArm, read + cleared by the single coordinator of that migration. The atomic flip
      * claim plus one-migration-at-a-time makes this race-free. */

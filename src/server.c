@@ -92,6 +92,27 @@ struct redisServer server; /* Server global state */
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
 static polyThreadCtx tm_flip_claim_marker;
+/* P0 pool conservation: grow-front must delist its EX source before the bucket migration, so the
+ * source half of that move necessarily spans asynchronous work. Keep that claim explicit until
+ * tmFlipTick either publishes the IO destination or rolls the EX source back. tmFlipRelease calls
+ * the rollback hook as a last line of defence, so no release path can strand a half-move. These are
+ * owned by the successful claimer and then main, ordered by tm_flip_ctx's release/acquire edge. */
+static polyThreadCtx *tm_flip_account_ctx;
+static int tm_flip_account_from = TOMO_MODE_UNSET;
+static void tmFlipAccountingRollback(const char *reason);
+/* Read by INFO from IO threads while the actuator/coordinator increments it, hence atomic even
+ * though it is deliberately a plain file-global rather than hot server state. */
+static _Atomic unsigned long long tomo_flip_recoveries;
+
+/* Grow-back's IO owner and the main-thread watchdog arbitrate the commit edge with this state.
+ * In particular, DRAINING may become COMMITTED or CANCEL_REQUESTED, never both. */
+enum {
+    TM_FLIP_GB_IDLE = 0,
+    TM_FLIP_GB_DRAINING,
+    TM_FLIP_GB_COMMITTED,
+    TM_FLIP_GB_CANCEL_REQUESTED,
+    TM_FLIP_GB_ROLLED_BACK
+};
 
 static inline int tmFlipActive(void) {
     return atomic_load_explicit(&server.tm_flip_ctx, memory_order_acquire) != NULL;
@@ -119,6 +140,10 @@ static inline void tmFlipPublish(polyThreadCtx *ctx) {
 }
 
 static inline void tmFlipRelease(void) {
+    /* A flip gate may never reopen with one side of its accounting transaction outstanding. Known
+     * failure paths normally roll back with a specific reason; this catches every future/early
+     * release too. The POOL BROKEN check remains a warning, but release is conservative by design. */
+    tmFlipAccountingRollback("flip released before its destination role was published");
     /* Reset winner-owned state before reopening the gate: a new claimer may start
      * writing it as soon as its acquire-CAS observes the NULL release. */
     server.tm_flip_target = TOMO_MODE_UNSET;
@@ -5431,6 +5456,7 @@ void initServer(void) {
     server.tm_mig_flip_action = 0;
     atomic_store_explicit(&server.tm_flip_ctx, NULL, memory_order_relaxed);
     server.tm_flip_target = TOMO_MODE_UNSET;   /* no flip in progress; 0 is not a mode */
+    atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_relaxed);
     /* (The old "tomokv-thread-balance requires tomokv-thread-modes" boot check is GONE by
      * construction: tomokv-thread-mode is a single enum, so the half-configured state that used
      * to silently disable the controller is now unrepresentable.)
@@ -12831,10 +12857,10 @@ static void dispatchFanAll(client *head) {
      * thread has flipped to IO would never be popped and the group's pending barrier would hang
      * the client forever. A grow-fronting worker keeps consuming until its role change (which
      * happens strictly after live--, one whole migration later), so subs racing the decrement are
-     * still served. Consistency note: between live-- and the grow-front FLIP (and symmetrically
-     * between the grow-back seed FLIP and live++ — sub-second windows), that slot's keys are
+     * still served. Consistency note: between live-- and the grow-front FLIP that slot's keys are
      * invisible to KEYS — the same weak-consistency class KEYS already has under any migration
-     * (dictScan dup/miss). */
+     * (dictScan dup/miss). Grow-back publishes the empty consuming worker before its seed, so there
+     * is no corresponding seed-FLIP-to-live publication gap. */
     /* ee451 (per-node flip): the live set is per-node prefixes — enumerate via tmWorkerLive
      * (numa==1: bit-identical to the old [0, live) walk). cssub_idx stays the WORKER id, not the
      * sub index — the shared-kv CS_KEYS range iteration derives the bucket range from it. */
@@ -15022,9 +15048,9 @@ static void reshardCoordinatorTick(void) {
                           "ee451 reshard ABORT: drain fence did not complete within %d ms; "
                           "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
                 /* The flip tail must NOT run: action 2 would ask a thread that still owns its
-                 * range for the IO role (its checkpoint asserts zero owned buckets), and action
-                 * 3 publishes a liveness the un-taken FLIP never granted. The flip controller
-                 * has its own watchdog for a conversion that does not land. */
+                 * range for the IO role (its checkpoint asserts zero owned buckets). Grow-back
+                 * accounting is already a complete IO->EX move before its seed is armed, so an
+                 * abandoned seed needs no counter action here; tmFlipTick finishes it empty-live. */
                 co_aborted = 1;
                 server.tm_mig_flip_action = 0;
                 atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
@@ -15061,22 +15087,6 @@ static void reshardCoordinatorTick(void) {
     for (int t = 1; t < nprod; t++) migWakeProducer(t);
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d", lo, hi, dst);
 
-    /* ee451 (thread-modes): the table remap above IS the go-live — dispatch now routes [lo,hi)
-     * to `dst`, so a flip that grew a worker back publishes it to the live-worker set HERE: the
-     * autotuner starts balancing it, KEYS/FLUSH fan-outs and RANDOMKEY cover it. Producer-side
-     * coverage (flushExQueues, cross-shard scratch) is slot-sized and needs no liveness signal.
-     * The revived worker has been running exSlice since before ARM (it drained this very effect
-     * log as dst), so everything routed from this instant is consumed. */
-    if (server.tm_mig_flip_action == 3) {
-        /* flip GROW-BACK: the revived worker `dst` just had its seed range routed in — publish it
-         * to the live set (num_workers_live++). dst == the current live count (workers 0..live-1
-         * plus this new index), so the increment lands it at dst+1. */
-        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
-        tmNodeWliveAdd(dst, +1);                             /* per-node flip accounting */
-        serverLog(LL_NOTICE, "ee451 flip: GROW-BACK worker %d LIVE (num_workers_live=%d)",
-                  dst, atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
-    }
-
         atomic_store_explicit(&co_state, CO_WAIT_REFS, memory_order_release);
         return;
     }
@@ -15107,11 +15117,11 @@ static void reshardCoordinatorTick(void) {
      * engine; the heartbeat wait stays — it is what makes active=0 safe to publish.) */
     if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_QUIESCE) return;
     if (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < co_hb0 + 3) return;
-    /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the flip-action flag
+    /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the grow-front tail flag
      * strictly BEFORE the active=0 release-store. The instant active drops, the main thread
      * may arm a NEW migration and write a NEW action; a late clear here could overwrite it
-     * (lost flip tail: a grown-back worker never published, or a role change never
-     * requested). Before the release-store this coordinator is still the sole owner. */
+     * (lost flip tail: the EX->IO role change is never requested). Before the release-store
+     * this coordinator is still the sole owner. */
     int flip_act = server.tm_mig_flip_action;
     server.tm_mig_flip_action = 0;
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
@@ -18279,6 +18289,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
             "tomokv_reshard_fence_aborts:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
+            /* Flip actuator recoveries are never normal control decisions: each increment names one
+             * conversion that was abandoned/rolled back, or whose seed cutover was abandoned after
+             * the role move had safely completed. This makes the recovery visible without inferring
+             * it from a later pool-conservation warning. */
+            "tomokv_flip_recoveries:%llu\r\n",
+                atomic_load_explicit(&tomo_flip_recoveries, memory_order_relaxed),
             "tomokv_xshard_multikey_split:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
             "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,
@@ -19832,17 +19848,14 @@ void flushExQueues(void) {
     if (!ex) return;
     /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop.
      * SLOT-sized, unconditionally — exQueuePush only STAGES; this publish is what makes a job
-     * visible to its worker. A grow-back seed FLIP can route to a revived slot before its
-     * liveness signal propagates, so EVERY slot's queues must be covered (a job staged there
-     * but never published = a hung client). For a slot with no traffic the extra iteration is
-     * a no-op compare (staged_tail == tail, no store). */
+     * visible to its worker. Every allocated slot's queues must be covered through role changes
+     * (a job staged there but never published = a hung client). For a slot with no traffic the
+     * extra iteration is a no-op compare (staged_tail == tail, no store). */
     /* ee451 (A2): visit only the workers THIS thread actually staged into, via ctz over the
      * dirty mask, instead of sweeping every slot. The mask is a precise record of where a job was
-     * staged, which is strictly better than the old "cover every slot" rule it replaces: that rule
-     * existed because a grow-back seed FLIP can route to a revived slot before its liveness signal
-     * propagates, and the mask is independent of liveness entirely -- it records the store that
-     * actually happened. Snapshot-and-clear is race-free because the producer and the flusher are
-     * the same thread. */
+     * staged, which is strictly better than the old "cover every slot" rule it replaces: the mask
+     * is independent of role liveness entirely -- it records the store that actually happened.
+     * Snapshot-and-clear is race-free because the producer and the flusher are the same thread. */
     int nw = server.num_workers;
     int mw = (nw + 63) >> 6; if (mw > TOMO_EX_MASK_WORDS) mw = TOMO_EX_MASK_WORDS;  /* only live words */
     for (int wi = 0; wi < mw; wi++) {
@@ -22274,6 +22287,75 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inheri
     atomic_fetch_add_explicit(&server.tm_node_iolive[w_of_ctx / server.ex_per_node], delta, memory_order_release);
 }
 
+/* One cumulative incident counter for every non-normal flip terminal path. It is intentionally a
+ * file-global: the actuator is control-plane-only, while atomicity keeps concurrent INFO readers
+ * data-race-free without putting another field in the already-large server struct. */
+static unsigned long long tmFlipRecoveryBump(void) {
+    return atomic_fetch_add_explicit(&tomo_flip_recoveries, 1, memory_order_relaxed) + 1;
+}
+
+/* GROW-FRONT is the one move whose source must be removed before the physical role changes: fan-out
+ * producers must stop targeting the worker before its entire bucket range can drain. Record that
+ * removal as an outstanding transaction. tmFlipRelease cannot reopen the gate until it is either
+ * published to IO or restored here, including every early/error path. */
+static void tmFlipAccountingRollback(const char *reason) {
+    if (tm_flip_account_from == TOMO_MODE_UNSET) return;
+    polyThreadCtx *ctx = tm_flip_account_ctx;
+    int from = tm_flip_account_from;
+    tm_flip_account_ctx = NULL;
+    tm_flip_account_from = TOMO_MODE_UNSET;
+    if (from == TOMO_MODE_EX) {
+        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+    } else if (from == TOMO_MODE_IO) {
+        atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    }
+    unsigned long long n = tmFlipRecoveryBump();
+    serverLog(LL_WARNING, "ee451 flip: accounting ROLLBACK to %s for worker %d/io %d: %s "
+                          "(tomokv_flip_recoveries=%llu)",
+              from == TOMO_MODE_EX ? "EX" : "IO", ctx && ctx->ex ? ctx->ex->id : -1,
+              ctx ? ctx->io_slot : -1, reason, n);
+}
+
+static void tmFlipAccountingClaimEx(polyThreadCtx *ctx) {
+    /* A stale claim cannot be silently overwritten: restore it first, then start this move. The
+     * flip gate makes this unreachable in healthy operation, but the recovery keeps the pool whole. */
+    tmFlipAccountingRollback("stale source claim found before a new grow-front");
+    tm_flip_account_ctx = ctx;
+    tm_flip_account_from = TOMO_MODE_EX;
+    atomic_fetch_sub_explicit(&server.num_workers_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, -1);
+}
+
+static void tmFlipAccountingPublishIo(polyThreadCtx *ctx) {
+    if (tm_flip_account_from != TOMO_MODE_EX || tm_flip_account_ctx != ctx) {
+        /* Preserve conservation even if a future edit loses the claim: normalize any stale claim,
+         * then express this already-landed EX->IO conversion as one complete move. */
+        tmFlipAccountingRollback("mismatched source claim at grow-front publication");
+        tmFlipAccountingClaimEx(ctx);
+        tmFlipRecoveryBump();
+        serverLog(LL_WARNING, "ee451 flip: reconstructed missing grow-front accounting claim for "
+                              "worker %d/io %d", ctx && ctx->ex ? ctx->ex->id : -1,
+                  ctx ? ctx->io_slot : -1);
+    }
+    atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    tm_flip_account_ctx = NULL;
+    tm_flip_account_from = TOMO_MODE_UNSET;
+}
+
+/* GROW-BACK does not need an asynchronous source claim. The thread has already release-published
+ * mode==EX when main reaches this call, so publish both sides of the logical IO->EX MOVE together;
+ * the subsequent bucket seed is ordinary placement work and owns no liveness counter. */
+static void tmFlipAccountingPublishEx(polyThreadCtx *ctx) {
+    tmFlipAccountingRollback("stale source claim found before grow-back publication");
+    atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);
+    atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+}
+
 /* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. The caller
  * holds the atomic flip claim and has validated liveness order; this does the ctx/migration
  * mechanics + BOTH global and node counts. Every refusal releases the claim. */
@@ -22284,7 +22366,6 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
     if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; tmFlipRelease(); return 0; }
     if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; tmFlipRelease(); return 0; }
-    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     /* Migrate w's WHOLE range to its neighbor w-1 (prefix move, dst=src-1 — the FLIP bookkeeping
      * handles it; validated by reshardRangeValid's boundary+ownership checks). Same-node by
      * construction: w is its node's highest LIVE worker and live_n >= 2, so w-1 is node-internal. */
@@ -22296,8 +22377,7 @@ static int tomoGrowFrontWorker(int w, const char **err) {
          * core short forever. No range to migrate: hand it the IO role right away — its checkpoint's
          * drain + zero-buckets assertion holds trivially — and let tmFlipTick publish the result. */
         server.tm_flip_target = TOMO_MODE_IO;
-        atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
-        tmNodeWliveAdd(w, -1);
+        tmFlipAccountingClaimEx(ctx);
         tmFlipPublish(ctx);
         atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);
         serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, EX->IO directly (io_slot %d)",
@@ -22307,13 +22387,11 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     server.tm_flip_target = TOMO_MODE_IO;
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
      * while it keeps draining. */
-    atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
-    tmNodeWliveAdd(w, -1);
+    tmFlipAccountingClaimEx(ctx);
     server.tm_mig_flip_action = 2;                     /* coordinator tail retargets tm_flip_ctx */
     if (!reshardArm(lo, hi, w, w - 1)) {
         server.tm_mig_flip_action = 0;
-        atomic_store_explicit(&server.num_workers_live, live, memory_order_release);
-        tmNodeWliveAdd(w, +1);
+        tmFlipAccountingRollback("reshardArm rejected the grow-front migration");
         tmFlipRelease();
         *err = "reshardArm rejected the grow-front migration"; return 0;
     }
@@ -22370,6 +22448,9 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
      * the cross-thread pointer chase. */
     if (atomic_load_explicit(&tm_io_sig[io_slot].pinned_nonmig, memory_order_relaxed))
         { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; tmFlipRelease(); return 0; }
+    /* The owner commits the IO->EX edge with a CAS from DRAINING. The watchdog competes with a CAS
+     * to CANCEL_REQUESTED, so it cannot issue a stale cancel after the owner has committed. */
+    atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_DRAINING, memory_order_release);
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT + EX adoption */
     server.tm_flip_abort_ms = mstime() + 10000;         /* phase-0 watchdog deadline (review [3] abort) */
@@ -22395,9 +22476,10 @@ int tomoGrowBack(const char **err) {
 /* Drive a flip to completion (main thread, from beforeSleep). Non-blocking: each call advances one
  * edge. GROW-FRONT (target IO): the coordinator tail hands the flipping worker the IO role; when
  * its checkpoint publishes mode==IO, account for it and publish io_threads_live. GROW-BACK (target
- * EX): a 3-phase machine — phase 0 awaits the thread's own IO-EXIT + EX adoption (with a watchdog
- * that can still cancel while the exit is uncommitted), phase 1 arms the seed migration, phase 2
- * awaits the seed FLIP where the coordinator publishes num_workers_live. */
+ * EX): phase 0 awaits the thread's own IO-EXIT + EX adoption (with an atomic commit-vs-cancel
+ * handshake), phase 1 arms the seed migration, phase 2 awaits that seed, and phase 3 awaits an
+ * owner-acknowledged pre-commit rollback. Live-count publication belongs to the role move, never
+ * to the optional seed migration. */
 void tmFlipTick(void) {
     polyThreadCtx *ctx = tmFlipCtxPublished();
     if (!ctx) return;
@@ -22408,8 +22490,7 @@ void tmFlipTick(void) {
          * do until then: still EX means the migration/teardown is in flight or the checkpoint
          * refused and will retry. */
         if (m == TOMO_MODE_IO) {                        /* conversion complete */
-            atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
-            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);   /* per-node flip accounting */
+            tmFlipAccountingPublishIo(ctx);
             serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT complete — io_threads_live=%d num_workers_live=%d "
                                  "(io_slot %d now accepting)",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
@@ -22422,66 +22503,105 @@ void tmFlipTick(void) {
             reshardKickAfterFlip(ctx->ex ? ctx->ex->id : -1, ctx->ex ? ctx->ex->id - 1 : -1);
             server.tm_relevel_pending = 1;             /* even out the merged range across the live set */
             tmFlipRelease();
+        } else if (!atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
+                   atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_IO) {
+            /* Two recoverable failures land here: a drain-fence abort cleared action 2 before the
+             * coordinator could request IO, or IO-entry rolled target_mode back to EX after a
+             * bind/listen/accept-handler failure. The worker is still EX; restore its claimed live
+             * count before releasing the gate. If its buckets were already moved it is empty-live,
+             * which is the same supported state as grow-back's no-seed completion. */
+            const char *why = co_aborted ? "grow-front outbound migration aborted before role change"
+                                         : "grow-front IO role entry rolled back";
+            co_aborted = 0;
+            tmFlipAccountingRollback(why);
+            server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
+            server.tm_flip_aborted = 1;                 /* controller must cancel this unapplied probe */
+            tmFlipRelease();
         }
         return;
     }
     if (server.tm_flip_target == TOMO_MODE_EX) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
+        if (server.tm_flip_phase == 3) {               /* watchdog won; await owner rollback ack */
+            if (atomic_load_explicit(&server.tm_flip_gb_state, memory_order_acquire) !=
+                TM_FLIP_GB_ROLLED_BACK)
+                return;
+            /* CANCEL_REQUESTED won against COMMITTED, so the thread could never request/adopt EX.
+             * The owner has now rejoined the accept group and acknowledged that it remains IO. */
+            if (m != TOMO_MODE_IO) return;
+            atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_release);
+            server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
+            server.tm_flip_aborted = 1;                 /* owning controller cancels the unapplied probe */
+            unsigned long long n = tmFlipRecoveryBump();
+            serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d rollback acknowledged; "
+                                  "listener live, staying IO (tomokv_flip_recoveries=%llu)",
+                      ctx->io_slot, n);
+            tmFlipRelease();
+            return;
+        }
         if (server.tm_flip_phase == 0) {               /* awaiting IO-EXIT + EX adoption */
             if (m != TOMO_MODE_EX) {                   /* still draining conns out */
                 /* review [3] watchdog: if a conn became non-migratable mid-drain (ran SUBSCRIBE/
                  * MULTI/BLPOP) the thread can never reach clients==0 and would wait forever, wedging
                  * the controller (tm_flip_ctx stuck => no more flips). Bound the wait: on timeout,
-                 * ABORT — tell the thread to re-join the accept group (stay IO) and clear the flip.
-                 * io_threads_live was NOT decremented yet (that happens below), so the pool
-                 * accounting is already correct. 10s wall clock >> a normal drain.
+                 * ABORT — claim CANCEL_REQUESTED, tell the thread to re-join the accept group, then
+                 * hold the flip gate until that owner acknowledges ROLLED_BACK. Live accounting has
+                 * not moved yet, so the pool remains correct. 10s wall clock >> a normal drain.
                  *
-                 * COMMIT POINT: the exiting thread stores target_mode=EX itself the moment its last
-                 * conn leaves, and from then on the role change WILL land at its next checkpoint —
-                 * it no longer runs beforeSleepIO, so it would never see the CANCEL. Cancelling
-                 * past that point would strand the thread as an EX worker that the pool still
-                 * counts as IO. So the watchdog only fires while the exit is UNCOMMITTED; once
-                 * committed we wait it out (bounded: the checkpoint runs between io slices).
+                 * COMMIT POINT: the exiting thread CASes DRAINING->COMMITTED before it stores
+                 * target_mode=EX. The watchdog CASes DRAINING->CANCEL_REQUESTED. Exactly one wins,
+                 * closing the old load-target-then-cancel race: after COMMITTED main waits; after
+                 * CANCEL_REQUESTED the owner is forbidden to request EX and must acknowledge IO.
                  * RESIDUAL: if the checkpoint kept REFUSING after the commit, this waits forever
                  * with tm_flip_ctx set (no further flips). Unreachable as built — the only refusal
                  * left at that point is "stranded inbox and no live io thread to expel to", and
                  * grow-back already refused to arm without another live dest, one flip runs at a
                  * time, and step 4 re-fires + self-wakes each pass. If that ever changes, this
                  * needs a second, longer deadline — not a shorter first one. */
-                if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) == TOMO_MODE_EX)
-                    return;
                 if (mstime() >= server.tm_flip_abort_ms) {
-                    tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
-                    tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
-                    triggerEventNotifier(mb->notifier);
-                    serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d could not drain "
-                                          "(pinned non-migratable conn); re-joining accept group, staying IO",
-                              ctx->io_slot);
-                    server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
-                    server.tm_flip_aborted = 1;         /* tell the OWNING node's controller its probe never applied */
-                    tmFlipRelease();
+                    int gb = TM_FLIP_GB_DRAINING;
+                    if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
+                                                                TM_FLIP_GB_CANCEL_REQUESTED,
+                                                                memory_order_acq_rel,
+                                                                memory_order_acquire)) {
+                        tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
+                        tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                        triggerEventNotifier(mb->notifier);
+                        server.tm_flip_phase = 3;
+                        serverLog(LL_WARNING, "ee451 flip: GROW-BACK cancel requested — io thread %d "
+                                              "could not drain; awaiting owner rollback acknowledgement",
+                                  ctx->io_slot);
+                    }
                 }
                 return;
             }
-            atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
-            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);   /* per-node flip accounting */
-            serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread left the IO role (io_threads_live=%d); "
-                                 "seeding it as an EX worker",
-                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
+            /* mode==EX is release-published only after the owner's COMMITTED edge. Account the
+             * conversion as one IO->EX move now; the seed below no longer owns either half. */
+            tmFlipAccountingPublishEx(ctx);
+            atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — role MOVE published: io_threads_live=%d "
+                                 "num_workers_live=%d; seeding worker %d",
+                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
+                      atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
+                      ctx->ex ? ctx->ex->id : -1);
             server.tm_flip_phase = 1;
             /* fall through on the NEXT tick: the seed arm below wants a settled live count */
             return;
         }
         if (server.tm_flip_phase == 1) {               /* thread is EX and slicing its (empty) shard */
             if (m != TOMO_MODE_EX) return;
-            int w = server.tm_flip_wslot;              /* revived worker index (== current num_workers_live) */
+            int w = server.tm_flip_wslot;              /* revived worker index (already published live) */
             int src = w - 1;                           /* neighbor whose range we split (suffix move dst=src+1) */
-            if (src < 0) { tmFlipRelease(); return; }
+            if (src < 0) {
+                unsigned long long n = tmFlipRecoveryBump();
+                serverLog(LL_WARNING, "ee451 flip: GROW-BACK complete — worker %d LIVE without a seed "
+                                      "(no source; tomokv_flip_recoveries=%llu)", w, n);
+                tmFlipRelease();
+                return;
+            }
             int lo_src = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
             int hi_src = server.ex_bucket_end[src];
             if (hi_src - lo_src < 2) {                  /* neighbor too small to split — leave worker empty-but-live */
-                atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
-                tmNodeWliveAdd(w, +1);                       /* per-node flip accounting */
                 serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — worker %d LIVE (no seed; neighbor too small) "
                                      "num_workers_live=%d", w,
                           atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
@@ -22493,9 +22613,7 @@ void tmFlipTick(void) {
             server.exThreads[w].tm_qdepth_ewma_q4 = 0;
             mig_load_ewma[w] = mig_load_ewma_fast[w] = 0;
             mig_last_ops[w] = server.exThreads[w].ops_total;
-            server.tm_mig_flip_action = 3;            /* coordinator publishes num_workers_live++ at FLIP */
             if (!reshardArm(lo, hi, src, w)) {
-                server.tm_mig_flip_action = 0;
                 serverLog(LL_WARNING, "ee451 flip: GROW-BACK reshardArm rejected — retrying next tick");
                 return;                                /* leave phase 1; retry on the next tick */
             }
@@ -22507,6 +22625,13 @@ void tmFlipTick(void) {
         }
         if (server.tm_flip_phase == 2) {               /* awaiting seed migration to finish */
             if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
+            if (co_aborted) {
+                unsigned long long n = tmFlipRecoveryBump();
+                serverLog(LL_WARNING, "ee451 flip: GROW-BACK seed cutover ABANDONED — worker %d remains "
+                                      "empty-but-LIVE (tomokv_flip_recoveries=%llu)",
+                          server.tm_flip_wslot, n);
+                co_aborted = 0;
+            }
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — num_workers_live=%d io_threads_live=%d",
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
@@ -22998,8 +23123,30 @@ void tmMigServiceOut(void) {
              * never let the thread drain). Stop exiting and resume as a normal IO thread: clear the
              * exit flags and re-join the accept group. Any conns already migrated out stay put (they
              * were just rebalanced); the stuck conn keeps being served here. */
-            atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
-            if (mb->accept_left) { tmMigRejoinAcceptGroup(id); mb->accept_left = 0; }
+            int restored = 1;
+            if (mb->accept_left) {
+                restored = tmMigRejoinAcceptGroup(id);
+                if (restored) mb->accept_left = 0;
+            }
+            if (restored) {
+                atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+            } else {
+                /* A rollback is not complete with its listener still outside the accept group.
+                 * Keep io_exiting/accept_left asserted, retry on this owner, and do not acknowledge
+                 * main — the flip claim remains closed until the full IO role is restored. */
+                tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                triggerEventNotifier(mb->notifier);
+                serverLog(LL_WARNING, "ee451 flip: io thread %d could not rejoin accept group during "
+                                      "GROW-BACK rollback; retrying", id);
+            }
+            /* Acknowledgement for the main-thread watchdog. It does not release the flip claim
+             * until this owner has actually restored the listener/IO state. The commit CAS below
+             * cannot have won if main reached CANCEL_REQUESTED. */
+            if (restored &&
+                atomic_load_explicit(&server.tm_flip_gb_state, memory_order_acquire) ==
+                    TM_FLIP_GB_CANCEL_REQUESTED)
+                atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_ROLLED_BACK,
+                                      memory_order_release);
         }
     }
 
@@ -23095,7 +23242,17 @@ void tmMigServiceOut(void) {
         }
         polyThreadCtx *ctx = tmCtxForIotid(id);
         if (ctx && ctx->ex && mb->exit_then_ex) {
-            if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_EX) {
+            /* Linearization point for grow-back. The main-thread timeout may change DRAINING to
+             * CANCEL_REQUESTED; this owner may change it to COMMITTED. Exactly one CAS wins, so a
+             * cancel can never be published from a stale pre-commit observation. */
+            int gb = TM_FLIP_GB_DRAINING;
+            if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
+                                                        TM_FLIP_GB_COMMITTED,
+                                                        memory_order_acq_rel,
+                                                        memory_order_acquire))
+                gb = TM_FLIP_GB_COMMITTED;
+            if (gb == TM_FLIP_GB_COMMITTED &&
+                atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_EX) {
                 serverLog(LL_NOTICE, "ee451 flip: io thread %d exit tail — requesting the EX role "
                                      "(worker %d)", id, ctx->ex->id);
                 atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_release);
@@ -23111,7 +23268,7 @@ void tmMigServiceOut(void) {
              * guard on purpose: a REFUSED role change (e.g. stranded inbox, no live dest)
              * must also re-wake after the strays are re-drained, when this block re-fires
              * with target already EX. */
-            triggerEventNotifier(mb->notifier);
+            if (gb == TM_FLIP_GB_COMMITTED) triggerEventNotifier(mb->notifier);
         }
     }
 
@@ -23566,9 +23723,9 @@ static void tomoFlipController(void) {
      *
      *     io_threads_live + num_workers_live == server.io_threads + server.num_workers
      *
-     * Every actuation is a paired -1/+1 across that boundary (grow-front: num_workers_live-- at ARM,
-     * io_threads_live++ at completion; grow-back: io_threads_live-- at park, num_workers_live++ at the
-     * seed FLIP), so a missing half shows up here on the FIRST tick after it, not as a slow drift in
+     * Every actuation is a paired -1/+1 across that boundary (grow-front: an explicit EX claim at ARM,
+     * followed by IO publication or EX rollback; grow-back: the complete IO->EX move when mode==EX is
+     * observed). A missing half therefore shows up here on the FIRST tick after it, not as a slow drift in
      * the throughput numbers. WHY IT IS HERE: an unpaired decrement would leave the controller doing
      * gradient ascent over a pool one thread short — it would converge CORRECTLY, to the optimum of a
      * budget that does not exist, and every symptom would look like a tuning problem. This check names
