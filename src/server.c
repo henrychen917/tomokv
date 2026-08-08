@@ -388,12 +388,9 @@ static void tomoAtomicReleaseStalledClients(void) {
  * below either already constructs a fresh destination value or is RENAME/COPY's whole-value
  * move/copy. SORT is eligible only when this invocation actually has STORE, and the legacy
  * GEORADIUS optional stores remain outside PORTALL_SPEC (GEOSEARCHSTORE is the scoped form). */
-static int csAtomicVersionedWrite(client *c, const csCmdSpec *s) {
+static int csAtomicPortallVersionedWrite(client *c, const csCmdSpec *s) {
     if (!s) return 0;
     switch (s->ctype) {
-    case CS_MSET:
-    case CS_DEL:
-    case CS_MSETNX:
     case CS_SSTORE:
     case CS_ZSTORE:
     case CS_ZRANGESTORE:
@@ -413,22 +410,13 @@ static int csAtomicVersionedWrite(client *c, const csCmdSpec *s) {
     }
 }
 
-/* I7's existing read hold applies to every PORTALL source reader as well as the original
- * GET/MGET/EXISTS/TOUCH set. This includes read-then-write commands: drawing S before this
- * connection's previous atomic group publishes would otherwise compute a destination from an
- * older source cut even though the groups themselves commit in R1 order. */
-static int csAtomicNeedsOwnReadHold(client *c) {
-    if (c->cmd->proc == getCommand) return 1;
-    if (!(c->cmd->tomo_route & TOMO_R_CROSS)) return 0;
-    /* All registry read-only shapes resolve bags and draw a snapshot, including the non-store
-     * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
-    if (c->cmd->flags & CMD_READONLY) return 1;
-    const csCmdSpec *s = csClassify(c);
+/* Only the PORTALL read-then-write shapes need a command-lifetime source snapshot. The original
+ * MSET/DEL/MSETNX bag writers either install caller values/tombstones or make their reservation
+ * decision from the owner-local committed cursor; pinning them here recreates the command-wide
+ * pin/walk collapse that the lazy-pin fix removed from the existing atomic-command path. */
+static int csAtomicReadsSources(const csCmdSpec *s) {
     if (!s) return 0;
     switch (s->ctype) {
-    case CS_MGET:
-    case CS_EXISTS:
-    case CS_PFCOUNT:
     case CS_SSTORE:
     case CS_ZSTORE:
     case CS_ZRANGESTORE:
@@ -437,15 +425,27 @@ static int csAtomicNeedsOwnReadHold(client *c) {
     case CS_RENAME:
     case CS_RENAMENX:
     case CS_COPY:
-        return 1;
     case CS_SORTSTORE:
-        return c->cmd->proc == sortCommand && s->dynamic_dst_argi &&
-               s->dynamic_dst_argi(c) > 0;
     case CS_GEOSTORE:
-        return c->cmd->proc == geosearchstoreCommand;
+        return 1;
     default:
         return 0;
     }
+}
+
+/* I7's existing read hold applies to every PORTALL source reader as well as the original
+ * GET/MGET/EXISTS/TOUCH set. This includes read-then-write commands: drawing S before this
+ * connection's previous atomic group publishes would otherwise compute a destination from an
+ * older source cut even though the groups themselves commit in R1 order. */
+static int csAtomicNeedsOwnReadHold(client *c) {
+    if (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand ||
+        c->cmd->proc == existsCommand || c->cmd->proc == touchCommand)
+        return 1;
+    /* All registry read-only shapes resolve bags and draw a snapshot, including the non-store
+     * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
+    if (c->cmd->flags & CMD_READONLY) return 1;
+    const csCmdSpec *s = csClassify(c);
+    return csAtomicPortallVersionedWrite(c, s) && csAtomicReadsSources(s);
 }
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
@@ -7483,6 +7483,7 @@ int processCommand(client *c) {
      * it at pending_cmds.head and retry after the FIFO's publication count
      * reaches zero. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
+        (c->cmd->tomo_route & TOMO_R_ATOMIC_READ) &&
         csAtomicNeedsOwnReadHold(c) &&
         csMsetHoldOwnRead(c))
         return C_OK;
@@ -7560,7 +7561,13 @@ int processCommand(client *c) {
              * deliberately enrolls that valid form in the same group/FIFO. */
             if (!candidate && c->cmd->proc == delCommand && c->argc == 2)
                 candidate = c->cmd->cs_spec;
-            int atomic_write = csAtomicVersionedWrite(c, candidate);
+            /* Keep the shipped MSET/DEL/MSETNX admission comparisons first and unchanged.
+             * Only commands outside that original set pay PORTALL's shape selection. */
+            int atomic_write = candidate &&
+                               (candidate->ctype == CS_MSET ||
+                                candidate->ctype == CS_DEL ||
+                                candidate->ctype == CS_MSETNX ||
+                                csAtomicPortallVersionedWrite(c, candidate));
             if (window == 0) {
                 if (atomic_write) {
                     atomic_csp = candidate;
@@ -7619,7 +7626,8 @@ int processCommand(client *c) {
      * under GET-heavy traffic. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
         fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
-        ((fake->cmd->flags & CMD_READONLY) || atomic_write_admission)) {
+        ((fake->cmd->flags & CMD_READONLY) ||
+         (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
         flatQsbrRegionEnter();
         fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
         fake->tomo_read_snapshot_pinned = 1;
@@ -9708,6 +9716,11 @@ static void csStampRoute(struct redisCommand *c) {
     if (tomoScriptFamily(c)) c->tomo_route |= TOMO_R_SCRIPTFAM;   /* fence: stamped once, bit-tested per op */
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
+    if (c->proc == getCommand || c->proc == mgetCommand ||
+        c->proc == existsCommand || c->proc == touchCommand ||
+        csAtomicReadsSources(c->cs_spec) ||
+        ((c->tomo_route & TOMO_R_CROSS) && (c->flags & CMD_READONLY)))
+        c->tomo_route |= TOMO_R_ATOMIC_READ;
     /* XGUARD: an UNPORTED row, or a hybrid PORTED row with unsafe forms, forces the bit even
      * where the key-spec predicate can't see the hazard. Stateful commands are exempt
      * (WATCH k1 k2 / EXEC take the stateful path). */

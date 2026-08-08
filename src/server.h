@@ -4538,6 +4538,7 @@ typedef struct csCmdSpec {
 #define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (derived: registry row with ported==CS_PORT_OK) */
 #define TOMO_R_XGUARD   8u   /* multi-key-capable AND not table-PORTED => SAFE-GATE checks it */
 #define TOMO_R_SCRIPTFAM 16u /* eval/fcall/script/function-subcommand — serializes on the script fence */
+#define TOMO_R_ATOMIC_READ 32u /* atomic mode: command needs the own-write read hold */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
