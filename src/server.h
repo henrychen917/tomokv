@@ -2106,18 +2106,24 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
-    uint64_t version_seq;      /* CS_MSET ticket, or CS_MGET snapshot */
+    uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
+    uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
     client *mset_client;         /* real-client owner of the R1 pending FIFO */
     struct csGroup *mset_pending_prev;
     struct csGroup *mset_pending_next;
     redisAtomic int mset_complete;      /* every owner installed this group */
     redisAtomic int mset_install_count;
-    csMsetInstall *mset_installs;       /* [nkeys], atomic-MSET arm only */
+    csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
     int versioned_write;         /* this group is an atomic version-bag write */
+    int version_install_expected; /* successful group's exact whole-value install count */
+    int version_commit_ready;    /* current worker wave is the final install wave */
+    int version_abort;           /* semantic no-op/error: cancel reservations, publish no ticket */
+    int version_nx;              /* RENAMENX/COPY NX destination reservation */
+    int version_nx_reserving;    /* current wave is acquiring that destination reservation */
     redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
     uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
-    int snapshot_pinned;       /* CS_MGET holds its dispatch IO's QSBR region */
+    int snapshot_pinned;       /* snapshot-reading group owns its dispatch IO QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
@@ -5809,7 +5815,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
-                       uint64_t version_seq);
+                       uint64_t version_seq, long long version_expire);
 void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);

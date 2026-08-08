@@ -660,7 +660,7 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  */
 static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
                                   int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
-                                  uint64_t version_seq) {
+                                  uint64_t version_seq, long long version_expire) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -714,6 +714,14 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         /* Because of RM_StringDMA, old may be changed, so we need get old again */
         old = dictGetKV(*link);
     }
+    /* Atomic whole-value installs carry their final TTL in the allocation that is published.
+     * Adding it later with setExpire() can reallocate a FLAT kvobj, losing the version metadata
+     * and feeding the ordinary raw-retire lane. Pre-sizing the metadata keeps this one physical
+     * install and leaves all version retirement on the existing version/prune queue. */
+    if (version_expire >= 0)
+        newKeyMetaBits |= KEY_META_MASK_EXPIRE;
+    else
+        newKeyMetaBits &= ~KEY_META_MASK_EXPIRE;
     if (server.memory_tracking_enabled)
         oldsize = kvobjAllocSize(old);
 
@@ -746,21 +754,25 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         val->lru = old->lru;
 
         kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        if (version_expire >= 0)
+            serverAssert(kvobjSetExpire(kvNew, version_expire) == kvNew);
         if (version_seq)
             kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
-        if (oldExpire != -1) {
-            if (keepTTL) {
-                kvobjSetExpire(kvNew, oldExpire); /* kvNew not reallocated here */
+        if (version_expire >= 0) {
+            if (oldExpire != -1) {
                 dictEntryLink exLink = kvstoreDictFindLink(db->expires, slot,
                                                            key->ptr, NULL);
                 serverAssertWithInfo(NULL, key, exLink != NULL);
                 kvstoreDictSetAtLink(db->expires, slot, kvNew, &exLink, 0);
             } else {
-                kvstoreDictDelete(db->expires, slot, key->ptr);
+                dictEntry *de = kvstoreDictAddRaw(db->expires, slot, kvNew, NULL);
+                serverAssert(de != NULL);
             }
+        } else if (oldExpire != -1) {
+            kvstoreDictDelete(db->expires, slot, key->ptr);
         }
 
         if (newKeyMetaBits & KEY_META_MASK_MODULES)
@@ -898,15 +910,14 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     }
 }
 
-/* MSETNX cancellation uses the same owner lane as stamping. A canceled
- * reservation never receives a sequence, so it remains invisible forever.
+/* Canceled atomic-group versions use the same owner lane as stamping. A canceled
+ * version never receives a sequence, so it remains invisible forever.
  * Live-bag cancellation arms the existing prune grace; a version whose bag
  * was already detached can enter the ordinary post-unlink retire grace. */
 void tomoCancelVersion(kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
     serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
-    serverAssert(vmeta->version_reservation);
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
     serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                       memory_order_acquire) == 0);
@@ -1190,7 +1201,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned
- * MSET twin above: with tomokv-atomic off it has the base implementation's
+ * whole-value twin above: with tomokv-atomic off it has the base implementation's
  * stores, branches and retirement behavior. */
 static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
                        int overwrite, int updateKeySizes, int keepTTL, int embedRawOk) {
@@ -1343,15 +1354,17 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * in a context where there is no clear client performing the operation. */
 static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key,
                                   robj **valref, int flags,
-                                  dictEntryLink *plink, uint64_t version_seq);
+                                  dictEntryLink *plink, uint64_t version_seq,
+                                  long long version_expire);
 
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
 }
 
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
-                       uint64_t version_seq) {
-    return setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq);
+                       uint64_t version_seq, long long version_expire) {
+    return setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq,
+                               version_expire);
 }
 
 /* Like setKey(), but accepts an optional link
@@ -1363,7 +1376,8 @@ kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int fla
  * On return, link get updated, by need, to the inserted kvobj.
  */
 static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
-                                  int flags, dictEntryLink *plink, uint64_t version_seq) {
+                                  int flags, dictEntryLink *plink, uint64_t version_seq,
+                                  long long version_expire) {
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -1389,7 +1403,8 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
         /* Update the value of an existing key */
         installed = dbSetValueVersioned(db, key, valref, *link, 1, 1,
                                         flags & SETKEY_KEEPTTL,
-                                        (flags & SETKEY_EMBED_RAW) != 0, version_seq);
+                                        (flags & SETKEY_EMBED_RAW) != 0, version_seq,
+                                        version_expire);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -1397,9 +1412,12 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
     } else {
         /* Add the new key to the database */
-        KeyMetaSpec keyMetaEmpty; /* No metadata added */
-        keyMetaSpecInit(&keyMetaEmpty);
-        installed = dbAddInternalVersion(db, key, valref, link, &keyMetaEmpty,
+        KeyMetaSpec keyMeta;
+        keyMetaSpecInit(&keyMeta);
+        if (version_expire >= 0)
+            keyMetaSpecAdd(&keyMeta, KEY_META_ID_EXPIRE,
+                           (uint64_t)version_expire);
+        installed = dbAddInternalVersion(db, key, valref, link, &keyMeta,
                                          (flags & SETKEY_EMBED_RAW) != 0, version_seq);
     }
 

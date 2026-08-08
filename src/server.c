@@ -154,6 +154,7 @@ static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS
 static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission);  /* registry-driven dispatch fork */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
 static int csMsetnxAdvanceReservations(csGroup *g);        /* ordered owner acquisition/requeue */
+static int csAtomicNxAdvance(csGroup *g);                   /* RENAMENX/COPY destination reserve */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
@@ -197,6 +198,7 @@ static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its co
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
 static int csMsetHoldOwnRead(client *c);
+static int csAtomicAbortIncomplete(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op);
@@ -239,7 +241,7 @@ uint64_t tomoCurrentReadSnapshot(void) {
         if (c->tomo_read_snapshot_pinned) return c->tomo_read_snapshot;
         if (c->csparent) {
             csGroup *g = c->csparent;
-            if (g->snapshot_pinned) return g->version_seq;
+            if (g->snapshot_pinned) return g->read_seq;
             if (g->head && g->head->tomo_read_snapshot_pinned)
                 return g->head->tomo_read_snapshot;
         }
@@ -379,6 +381,70 @@ static void tomoAtomicReleaseStalledClients(void) {
         /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
          * have returned. processInputBuffer may free c, so do not touch it after this call. */
         processInputBuffer(c);
+    }
+}
+
+/* The atomic knob deliberately selects whole command shapes, not generic writes: every row
+ * below either already constructs a fresh destination value or is RENAME/COPY's whole-value
+ * move/copy. SORT is eligible only when this invocation actually has STORE, and the legacy
+ * GEORADIUS optional stores remain outside PORTALL_SPEC (GEOSEARCHSTORE is the scoped form). */
+static int csAtomicVersionedWrite(client *c, const csCmdSpec *s) {
+    if (!s) return 0;
+    switch (s->ctype) {
+    case CS_MSET:
+    case CS_DEL:
+    case CS_MSETNX:
+    case CS_SSTORE:
+    case CS_ZSTORE:
+    case CS_ZRANGESTORE:
+    case CS_BITOP:
+    case CS_PFMERGE:
+    case CS_RENAME:
+    case CS_RENAMENX:
+    case CS_COPY:
+        return 1;
+    case CS_SORTSTORE:
+        return c->cmd->proc == sortCommand && s->dynamic_dst_argi &&
+               s->dynamic_dst_argi(c) > 0;
+    case CS_GEOSTORE:
+        return c->cmd->proc == geosearchstoreCommand;
+    default:
+        return 0;
+    }
+}
+
+/* I7's existing read hold applies to every PORTALL source reader as well as the original
+ * GET/MGET/EXISTS/TOUCH set. This includes read-then-write commands: drawing S before this
+ * connection's previous atomic group publishes would otherwise compute a destination from an
+ * older source cut even though the groups themselves commit in R1 order. */
+static int csAtomicNeedsOwnReadHold(client *c) {
+    if (c->cmd->proc == getCommand) return 1;
+    if (!(c->cmd->tomo_route & TOMO_R_CROSS)) return 0;
+    /* All registry read-only shapes resolve bags and draw a snapshot, including the non-store
+     * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
+    if (c->cmd->flags & CMD_READONLY) return 1;
+    const csCmdSpec *s = csClassify(c);
+    if (!s) return 0;
+    switch (s->ctype) {
+    case CS_MGET:
+    case CS_EXISTS:
+    case CS_PFCOUNT:
+    case CS_SSTORE:
+    case CS_ZSTORE:
+    case CS_ZRANGESTORE:
+    case CS_BITOP:
+    case CS_PFMERGE:
+    case CS_RENAME:
+    case CS_RENAMENX:
+    case CS_COPY:
+        return 1;
+    case CS_SORTSTORE:
+        return c->cmd->proc == sortCommand && s->dynamic_dst_argi &&
+               s->dynamic_dst_argi(c) > 0;
+    case CS_GEOSTORE:
+        return c->cmd->proc == geosearchstoreCommand;
+    default:
+        return 0;
     }
 }
 
@@ -3416,6 +3482,11 @@ void handleWorkerReplies(void) {
                  * to avoid a leak. */
                 if (fake->csgroup) {
                     csGroup *g = fake->csgroup;
+                    if (__builtin_expect(g->versioned_write && g->version_nx,0) &&
+                        csAtomicNxAdvance(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
                     if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
                         csMsetnxAdvanceReservations(g)) {
                         fake->flags |= CLIENT_EX_PENDING;
@@ -3445,6 +3516,10 @@ void handleWorkerReplies(void) {
                         if (csLaunchHop2(g))
                             break;   /* stop draining; HOP2 completes + retires on a later pass */
                         fake->flags &= ~CLIENT_EX_PENDING;  /* prep refused (err) — retire this pass */
+                    }
+                    if (csAtomicAbortIncomplete(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
                     }
                     csReassemble(NULL, fake);
                 }
@@ -3511,6 +3586,10 @@ void handleWorkerReplies(void) {
              * head ring slot like any other fake. */
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
+                if (__builtin_expect(g->versioned_write && g->version_nx,0) &&
+                    csAtomicNxAdvance(g)) {
+                    break;
+                }
                 if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
                     csMsetnxAdvanceReservations(g)) {
                     break;
@@ -3533,6 +3612,9 @@ void handleWorkerReplies(void) {
                      * before any later ring slot, and it isn't retiring this pass. Returns 0 (prep
                      * refused, HOP1 subs intact) => fall through to reassemble in THIS pass. */
                     csLaunchHop2(g)) {
+                    break;
+                }
+                if (csAtomicAbortIncomplete(g)) {
                     break;
                 }
                 csReassemble(real, fake);
@@ -7401,8 +7483,7 @@ int processCommand(client *c) {
      * it at pending_cmds.head and retry after the FIFO's publication count
      * reaches zero. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
-        (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand ||
-         c->cmd->proc == existsCommand || c->cmd->proc == touchCommand) &&
+        csAtomicNeedsOwnReadHold(c) &&
         csMsetHoldOwnRead(c))
         return C_OK;
 
@@ -7479,10 +7560,7 @@ int processCommand(client *c) {
              * deliberately enrolls that valid form in the same group/FIFO. */
             if (!candidate && c->cmd->proc == delCommand && c->argc == 2)
                 candidate = c->cmd->cs_spec;
-            int atomic_write = candidate &&
-                               (candidate->ctype == CS_MSET ||
-                                candidate->ctype == CS_DEL ||
-                                candidate->ctype == CS_MSETNX);
+            int atomic_write = csAtomicVersionedWrite(c, candidate);
             if (window == 0) {
                 if (atomic_write) {
                     atomic_csp = candidate;
@@ -7540,8 +7618,8 @@ int processCommand(client *c) {
      * for the vmeta-free single-key fast path lets retirement grace advance
      * under GET-heavy traffic. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
-        fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
-        (fake->cmd->tomo_route & TOMO_R_CROSS)) {
+        fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
+        ((fake->cmd->flags & CMD_READONLY) || atomic_write_admission)) {
         flatQsbrRegionEnter();
         fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
         fake->tomo_read_snapshot_pinned = 1;
@@ -8711,7 +8789,7 @@ static void csMsetRegister(csGroup *g) {
     g->versioned_write = 1;
     g->version_seq = TOMO_VERSION_UNCOMMITTED;
     g->mset_client = real;
-    serverAssert(g->mset_installs != NULL);
+    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0);
 
     csMsetPendingLock(real);
     g->mset_pending_prev = real->mset_pending_tail;
@@ -8766,12 +8844,13 @@ static int csStampDrain(exThread *worker) {
             serverAssert(vmeta != NULL);
             if (op->kind == TOMO_OWNER_OP_STAMP) {
                 serverAssert(op->seq != 0);
-                int reservation = vmeta->version_reservation;
+                int reservation_signal =
+                    vmeta->version_reservation == TOMO_RESERVATION_SIGNAL_SET;
                 tomoApplyVersionStamp(kv, op->seq);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
                 serverAssert(before == 2);
-                if (reservation) {
+                if (reservation_signal) {
                     redisDb *db = vmeta->version_db;
                     robj *key = createStringObject(kvobjGetKey(kv), sdslen(kvobjGetKey(kv)));
                     keyModified(NULL, db, key, kv, 1);
@@ -8877,7 +8956,7 @@ static csGroup *csMsetPopComplete(client *real) {
  * install-order so same-key duplicates reach their one owner in that order. */
 static void csMsetStampAndAppend(csGroup *g) {
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
-    int cancel = 0;
+    int cancel = g->version_abort;
     if (g->ctype == CS_MSETNX) {
         for (int i = 0; i < g->nkeys; i++)
             if (g->msetnx_state[i] == CS_MSETNX_PRESENT) {
@@ -8887,9 +8966,10 @@ static void csMsetStampAndAppend(csGroup *g) {
     }
     uint64_t seq = 0;
     if (cancel) {
-        atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+        if (g->ctype == CS_MSETNX)
+            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
     } else {
-        serverAssert(ninstalled == g->nkeys);
+        serverAssert(ninstalled == g->version_install_expected);
         seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
     }
     g->version_seq = seq;
@@ -8945,7 +9025,7 @@ static void csMsetInstallDone(csGroup *g) {
         commit_head = done->commit_next;
         if (!commit_head) commit_tail = NULL;
 
-        int canceled = done->ctype == CS_MSETNX && done->version_seq == 0;
+        int canceled = done->version_seq == 0;
         int ninstalled = atomic_load_explicit(&done->mset_install_count,
                                                memory_order_relaxed);
         /* I3 publication edge: all STAMP tail release-stores above happen
@@ -8977,6 +9057,20 @@ static void csMsetInstallDone(csGroup *g) {
             tomoAtomicWakeProducer(hp->tid);
     }
     csCommitUnlock();
+}
+
+/* A source parse/type/missing-key verdict may terminate a registered read-then-write group
+ * before it installs anything. Remove the stale stage-ready byte, enter that no-op in the same
+ * R1 completion FIFO, and let the FIFO republish the head only after earlier groups retire. */
+static int csAtomicAbortIncomplete(csGroup *g) {
+    if (!g->versioned_write ||
+        atomic_load_explicit(&g->mset_complete,memory_order_acquire))
+        return 0;
+    g->version_abort = 1;
+    if (cdbSlotReady(g->head->parent,g->head->cdb,g->head->fake_slot))
+        cdbSlotClear(g->head->parent,g->head->cdb,g->head->fake_slot);
+    csMsetInstallDone(g);
+    return 1;
 }
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
@@ -9379,6 +9473,7 @@ static const csCmdSpec csRegistry[] = {
 { .proc=copyCommand, .name="copy", .ported=CS_PORT_OK, .ctype=CS_COPY,
   .route=CS_RT_TWOHOP, .min_argc=3, .max_argc=6, .src_argi=1, .dst_argi=2,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csCopyShapeOk },
+/* TODO(PORTALL): SMOVE needs an owner decision on whole-collection COW cost. */
 { .proc=smoveCommand, .name="smove", .ported=CS_PORT_OK, .ctype=CS_SMOVE,
   .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h1_extra_argi=3, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
@@ -9493,6 +9588,7 @@ static const csCmdSpec csRegistry[] = {
  * path is identical; would-block replies the timed-out form (nil) immediately — and since
  * empty-src already replies nil, the shapes converge. B rows force the two-hop path even on
  * one shard: their real procs could PARK a worker fake (blockForKeys) which must never run. */
+/* TODO(PORTALL): LMOVE/RPOPLPUSH and blocking variants need an owner COW-cost decision. */
 { .proc=lmoveCommand, .name="lmove", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
   .route=CS_RT_TWOHOP, .min_argc=5, .max_argc=5, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .shape_ok=csLmoveShapeOk },
@@ -9519,6 +9615,7 @@ static const csCmdSpec csRegistry[] = {
  * construction and a raced-empty winner yields the proc's own null array (bounded TOCTOU,
  * documented). No winner => null array, which IS BLMPOP/BZMPOP's timed-out shape, so those
  * reject-when-would-block variants need no special reassembly. */
+/* TODO(PORTALL): LMPOP/ZMPOP and the BLPOP/BZPOP family await the same COW-cost decision. */
 { .proc=lmpopCommand, .name="lmpop", .ported=CS_PORT_OK, .ctype=CS_LMPOP,
   .route=CS_RT_GATHER, .min_argc=4, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
   .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
@@ -9744,7 +9841,8 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
     rdbSaveObjectType(&r, o);
     rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
     g->h2_payload = r.io.buffer.ptr;
-    long long ex = getExpire(sub->db, sub->argv[1]->ptr, NULL);
+    long long ex = g->versioned_write ? getExpire(sub->db, sub->argv[1]->ptr, o) :
+                                       getExpire(sub->db, sub->argv[1]->ptr, NULL);
     g->h2_pexpireat = (ex == -1) ? -1 : ex;
     if (del > 0) {
         dbSyncDelete(sub->db, sub->argv[1]);
@@ -9756,6 +9854,9 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
 static inline int csIsT1ResultStore(csCmdType ctype) {
     return ctype == CS_ZRANGESTORE || ctype == CS_SORTSTORE || ctype == CS_GEOSTORE;
 }
+
+static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed);
+static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g);
 
 /* T1 HOP1: run the command's stock parser/selector against src on its owner worker, retain
  * only the materialized result, and serialize it for HOP2. The temporary object never crosses
@@ -9820,6 +9921,85 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
          * rather than a false success; dst is left untouched. */
         atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
     }
+}
+
+/* PORTALL atomic destination install. The coordinator payload is decoded into a fresh robj and
+ * that whole value is prepended as exactly one UNCOMMITTED bag version. Nothing is unlinked here:
+ * old versions leave only through the existing stamp -> version-prune queue -> promotion path. */
+static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
+                                   const char *event, int reservation) {
+    robj *dstkey = sub->argv[1];
+    rio r; rioInitWithBuffer(&r, g->h2_payload);
+    int type = rdbLoadObjectType(&r);
+    int rerr = 0;
+    robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
+    if (!val) {
+        atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
+        g->version_abort = 1;
+        return 0;
+    }
+
+    int vtype = val->type;
+    uint64_t hmn = vtype == OBJ_HASH ? hashTypeGetMinExpire(val,1) : EB_EXPIRE_TIME_INVALID;
+    int has_idmp = vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL;
+    kvobj *installed = setKeyVersioned(sub,sub->db,dstkey,&val,0,g->version_seq,
+                                       g->h2_pexpireat);
+    struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    if (reservation) {
+        /* Still blocks competing NX owners, but this command emitted its own event already. */
+        vmeta->version_reservation = TOMO_RESERVATION_SILENT;
+        vmeta->reservation_owner = g;
+    }
+    csMsetRecordInstall(sub,g,installed);
+    if (hmn != EB_EXPIRE_TIME_INVALID)
+        estoreAdd(sub->db->subexpires,getKeySlot(dstkey->ptr),installed,hmn);
+    if (has_idmp && dictAdd(sub->db->stream_idmp_keys,dstkey,NULL) == DICT_OK)
+        incrRefCount(dstkey);
+    notifyKeyspaceEvent(nclass,event,dstkey,sub->db->id);
+    markDirty((g->ctype == CS_SORTSTORE || g->ctype == CS_GEOSTORE) ?
+              g->cs2_intreply : 1);
+    return 1;
+}
+
+/* Empty stores and RENAME's source half are logical deletes, represented by an ordinary
+ * UNCOMMITTED version whose payload is ignored by the resolver. Physical key removal remains
+ * exclusively in tomoVersionPruneAfterGrace after this tombstone is the sole committed value. */
+static void csInstallVersionTombstone(client *sub, csGroup *g, int nclass,
+                                      const char *event) {
+    robj *key = sub->argv[1];
+    robj *placeholder = createStringObject("",0);
+    kvobj *installed = setKeyVersioned(sub,sub->db,key,&placeholder,
+                                       SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,g->version_seq,-1);
+    struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    vmeta->version_tombstone = 1;
+    csMsetRecordInstall(sub,g,installed);
+    keyModified(sub,sub->db,key,NULL,1);
+    notifyKeyspaceEvent(nclass,event,key,sub->db->id);
+    markDirty(1);
+}
+
+/* RENAMENX and COPY without REPLACE reserve the destination with the final whole-value version.
+ * An earlier group's reservation is never bypassed: report retry so the IO owner requeues this
+ * one-key wave behind the normal owner FIFO, exactly like MSETNX. */
+static void csNxDestReserveVersioned(client *sub, csGroup *g, int nclass,
+                                     const char *event) {
+    robj *key = sub->argv[1];
+    kvobj *head = lookupKeyWrite(sub->db,key);
+    if (head && csMsetnxHasOtherReservation(head,g)) {
+        atomic_fetch_add_explicit(&g->msetnx_retry,1,memory_order_relaxed);
+        return;
+    }
+    if (head && kvobjVersionAt(head,tomoCommittedSeq())) {
+        g->msetnx_state[0] = CS_MSETNX_PRESENT;
+        return;
+    }
+    if (!csH2RestoreKeyVersioned(sub,g,nclass,event,1)) {
+        g->msetnx_state[0] = CS_MSETNX_PRESENT; /* terminal error, not a retry */
+        return;
+    }
+    g->msetnx_state[0] = CS_MSETNX_RESERVED;
 }
 
 /* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
@@ -9897,7 +10077,7 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     struct tomoVerMeta *vmeta = kvobjVmeta(installed);
     serverAssert(vmeta != NULL && kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
     int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
-    serverAssert(ii < g->nkeys);
+    serverAssert(ii < g->version_install_expected);
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     serverAssert(vmeta->version_kvs == sub->db->keys);
@@ -9951,10 +10131,10 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
         sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
         kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
                                            &sub->argv[a+1], SETKEY_NO_SIGNAL,
-                                           g->version_seq);
+                                           g->version_seq, -1);
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
         serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
-        vmeta->version_reservation = 1;
+        vmeta->version_reservation = TOMO_RESERVATION_SIGNAL_SET;
         vmeta->reservation_owner = g;
         csMsetRecordInstall(sub, g, installed);
         g->msetnx_state[orig] = CS_MSETNX_RESERVED;
@@ -9979,7 +10159,7 @@ static void csDelSubExecVersioned(client *sub, csGroup *g) {
         robj *placeholder = createStringObject("", 0);
         kvobj *installed = setKeyVersioned(sub, sub->db, keyo, &placeholder,
                                            SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
-                                           g->version_seq);
+                                           g->version_seq, -1);
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
         serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
         vmeta->version_tombstone = 1;
@@ -10030,7 +10210,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
                 sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
                 kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
                                                    &sub->argv[a+1], 0,
-                                                   g->version_seq);
+                                                   g->version_seq, -1);
                 csMsetRecordInstall(sub, g, installed);
                 sub->argv[a+1] = NULL;
                 notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
@@ -10046,7 +10226,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
         sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
         kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
                                            &sub->argv[a+1], 0,
-                                           g->version_seq);
+                                           g->version_seq, -1);
         csMsetRecordInstall(sub, g, installed);
         sub->argv[a+1] = NULL;
         notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
@@ -10344,7 +10524,14 @@ static void csSubExec(client *sub) {
             /* step 5 WRITE sub (dst shard, single-writer): h2_payload == NULL means the computed
              * result was EMPTY => stock deletes dst and replies 0; else restore the serialized
              * result set over dst. Sources were read-only — this is the only write. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "sunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "sdiffstore"  : "sinterstore";
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_SET,ev,0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -10405,6 +10592,14 @@ static void csSubExec(client *sub) {
             sub->cmd->proc(sub);
         } else if (g->phase == CS_PH_HOP1) {
             csH1StoreSelect(sub, g);
+        } else if (g->versioned_write) {
+            int nclass = g->ctype == CS_SORTSTORE ? NOTIFY_LIST : NOTIFY_ZSET;
+            const char *event = g->ctype == CS_ZRANGESTORE ? "zrangestore" :
+                                g->ctype == CS_SORTSTORE ? "sortstore" : "geosearchstore";
+            if (g->h2_payload == NULL)
+                csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+            else
+                csH2RestoreKeyVersioned(sub,g,nclass,event,0);
         } else if (g->h2_payload == NULL) {
             if (dbSyncDelete(sub->db, sub->argv[1])) {
                 keyModified(sub, sub->db, sub->argv[1], NULL, 1);
@@ -10424,7 +10619,14 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 6 WRITE sub: empty result => delete dst + 0 (stock); else restore the
              * serialized (listpack-converted-if-small) result zset over dst. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "zunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "zdiffstore"  : "zinterstore";
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_ZSET,ev,0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -10501,7 +10703,12 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: payload NULL => all sources empty/missing => delete dst + :0
              * (stock); else the coordinator-folded string overwrites dst. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_STRING,"set",0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -10517,7 +10724,10 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: PFMERGE always writes (an all-empty merge stores an empty HLL,
              * stock creates the dest even with no data). Stock notifies "pfadd". */
-            csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd");
+            if (g->versioned_write)
+                csH2RestoreKeyVersioned(sub,g,NOTIFY_STRING,"pfadd",0);
+            else
+                csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd");
             break;
         }
         /* fall through */
@@ -10546,24 +10756,38 @@ static void csSubExec(client *sub) {
             /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
             renameGenericCommand(sub, 0);
         } else if (g->phase == CS_PH_HOP1) {
-            csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */);
+            /* Atomic RENAME snapshots the source at S and defers BOTH whole-value installs
+             * (source tombstone + destination value) to HOP2. OFF retains the shipped
+             * delete-in-HOP1 path byte-for-byte. */
+            csH1DumpKey(sub, g, g->versioned_write ? -1 : 1);
         } else {
-            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
+            if (g->versioned_write &&
+                g->h2sub[sub->cssub_idx].action == CS_H2A_SRCOP) {
+                csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
+            } else if (g->versioned_write) {
+                csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"rename_to",0);
+            } else {
+                csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
+            }
         }
         break;
     }
     case CS_RENAMENX: {
         if (!g->has_hop2) {
             renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
+        } else if (g->versioned_write && g->version_nx_reserving) {
+            csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"rename_to");
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
-                csH1DumpKey(sub, g, 0);
+                csH1DumpKey(sub, g, g->versioned_write ? -1 : 0);
             } else {
                 /* dst probe: NX verdict for the coordinator. */
                 if (lookupKeyRead(sub->db, sub->argv[1]) != NULL)
                     atomic_fetch_or_explicit(&g->probe, CS_PR_DST_EXISTS, memory_order_relaxed);
             }
+        } else if (g->versioned_write) {
+            csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
         } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
@@ -10580,9 +10804,13 @@ static void csSubExec(client *sub) {
     case CS_COPY: {
         if (!g->has_hop2) {
             copyCommand(sub);               /* same-shard, no DB option: real proc */
+        } else if (g->versioned_write && g->version_nx_reserving) {
+            csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"copy_to");
         } else if (g->phase == CS_PH_HOP1) {
             /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
             csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */);
+        } else if (g->versioned_write) {
+            csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"copy_to",0);
         } else {
             /* dst shard/db: NX decided HERE atomically (single-writer) — no probe, no TOCTOU. */
             if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
@@ -11195,7 +11423,75 @@ static void csSubCopyFullArgv(client *sub, client *head) {           /* same-sha
     sub->argc = head->argc;
 }
 
-static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined below FanAll) */
+/* Drain-side continuation for the one-destination NX reservation used by RENAMENX and COPY
+ * without REPLACE. Conflict retries stay on the normal owner FIFO. Once RENAMENX owns the
+ * destination, a final source-tombstone wave completes its two-install group; COPY's reserved
+ * destination is already its only final install. */
+static int csAtomicNxAdvance(csGroup *g) {
+    if (!g->versioned_write || !g->version_nx || !g->version_nx_reserving)
+        return 0;
+
+    client *head = g->head;
+    if (g->msetnx_state[0] == CS_MSETNX_PRESENT) {
+        if (atomic_load_explicit(&g->err,memory_order_relaxed) == CS_ERR_NONE)
+            atomic_store_explicit(&g->err,CS_ERR_NX_EXISTS,memory_order_relaxed);
+        g->version_abort = 1;
+        g->version_nx_reserving = 0;
+        cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+        csMsetInstallDone(g);
+        return 1;
+    }
+
+    if (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+        g->msetnx_state[0] == CS_MSETNX_PENDING) {
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        csgFree(g,g->subs);
+        atomic_store_explicit(&g->msetnx_retry,0,memory_order_relaxed);
+        cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+
+        int wi = -1;
+        for (int i = 0; i < g->h2_nsub; i++)
+            if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+        serverAssert(wi >= 0);
+        robj *key = head->argv[g->h2sub[wi].key_argi];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed),0))
+            migHoldKeyIfDraining(key);
+        int shard = exIndexForKey(key->ptr,sdslen(key->ptr));
+        g->nsub = 1;
+        g->subs = csgAlloc(g,sizeof(client *));
+        atomic_store_explicit(&g->pending,1,memory_order_relaxed);
+        client *sub = csMakeSub(g,0,shard,g->h2_dbid);
+        csSubSetKeyArgv(sub,head,key);
+        csPushSpin(shard,sub);
+        return 1;
+    }
+
+    serverAssert(g->msetnx_state[0] == CS_MSETNX_RESERVED);
+    g->version_nx_reserving = 0;
+    if (g->ctype == CS_COPY) return 0;       /* R1 already published COPY's one install. */
+
+    serverAssert(g->ctype == CS_RENAMENX);
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    csgFree(g,g->subs);
+    cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+    robj *src = head->argv[(int)g->spec->src_argi];
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
+        migHoldKeyIfDraining(src);
+    int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
+    g->h2_nsub = 1;
+    g->h2sub[0] = (csH2Sub){CS_H2A_SRCOP,g->spec->src_argi};
+    g->nsub = 1;
+    g->subs = csgAlloc(g,sizeof(client *));
+    atomic_store_explicit(&g->pending,1,memory_order_relaxed);
+    g->version_commit_ready = 1;
+    client *sub = csMakeSub(g,0,shard,g->h2_dbid);
+    csSubSetKeyArgv(sub,head,src);
+    csPushSpin(shard,sub);
+    return 1;
+}
+
+static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admission);  /* fwd */
 
 /* xshard registry: the ONE gather dispatcher — replaces dispatchMgetCoalesced /
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
@@ -11232,7 +11528,8 @@ static void csPipeFreeStageSubs(csGroup *g) {
     csgFree(g, g->subs); g->subs = NULL; g->nsub = 0;
 }
 
-static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
+static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid,
+                             int atomic_admission) {
     int nw = server.num_workers;
     int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one initial sub per distinct shard */
     /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], plus the later GATHER1/PROBE subs and
@@ -11240,11 +11537,24 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
      * selected smallest key. */
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
-                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2));
+                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
+                            (atomic_admission ? sizeof(csMsetInstall) : 0));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
     head->cdb = 0;
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected = 1;
+        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
+        csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
+    }
     g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
     g->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
     g->pipe_stage = s->setop == CS_SETOP_INTER ? CS_PIPE_SIZES :
@@ -11799,15 +12109,14 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
-    int atomic_snapshot = head->tomo_read_snapshot_pinned &&
-                          (s->ctype == CS_MGET || s->ctype == CS_EXISTS);
     /* Atomic writes use the admission marker captured at the pre-ring gate.
      * This closes the live CONFIG SET race: a finite reservation cannot leak
      * if tomokv-atomic flips before group creation, and a command admitted
      * while OFF cannot bypass a newly-enabled finite window. */
-    int atomic_write = atomic_admission != 0 &&
-                       (s->ctype == CS_MSET || s->ctype == CS_DEL ||
-                        s->ctype == CS_MSETNX);
+    int atomic_write = atomic_admission != 0;
+    int atomic_snapshot = head->tomo_read_snapshot_pinned &&
+                          (atomic_write || s->ctype == CS_MGET ||
+                           s->ctype == CS_EXISTS || s->ctype == CS_PFCOUNT);
     int atomic_msetnx = atomic_write && s->ctype == CS_MSETNX;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
@@ -11876,7 +12185,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
          s->ctype == CS_ZOP   || s->ctype == CS_ZSTORE || s->ctype == CS_ZCARD) &&
         (s->setop == CS_SETOP_INTER ||
          (s->ctype != CS_SETCARD && s->ctype != CS_ZCARD))) {
-        dispatchPipeline(head, s, nkeys, first, dbid);
+        dispatchPipeline(head, s, nkeys, first, dbid, atomic_admission);
         return;
     }
     int coalesce = 1;
@@ -11897,7 +12206,10 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
     int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
     size_t inline_want = csInlineWant(s, nkeys, nsub_hi, posmap);
-    if (atomic_write) inline_want += sizeof(csMsetInstall) * (size_t)nkeys;
+    int version_expected = (s->ctype == CS_MSET || s->ctype == CS_DEL ||
+                            s->ctype == CS_MSETNX) ? nkeys : 1;
+    if (atomic_write)
+        inline_want += sizeof(csMsetInstall) * (size_t)version_expected;
     if (atomic_msetnx) inline_want += (size_t)nkeys;
     csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
@@ -11907,20 +12219,23 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
     if (atomic_snapshot) {
-        serverAssert(!atomic_admission);
         /* processCommand pinned and drew S before any owner sub was queued. */
         serverAssert(head->tomo_read_snapshot_pinned);
         g->snapshot_pinned = 1;
-        g->version_seq = head->tomo_read_snapshot;
+        g->read_seq = head->tomo_read_snapshot;
         head->tomo_read_snapshot_pinned = 0; /* group owns the matching exit */
-    } else if (atomic_write) {
+    }
+    if (atomic_write) {
         /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
          * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
          * exactly one reservation before any owner sub is published. Unlimited mode deliberately
          * retains today's route and increments here, at actual group creation. */
         serverAssert(atomic_admission == 1 || atomic_admission == 2);
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
-        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) * (size_t)nkeys);
+        g->version_install_expected = version_expected;
+        g->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
+        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) *
+                                       (size_t)version_expected);
         if (atomic_msetnx)
             g->msetnx_state = csgCalloc(g, (size_t)nkeys);
         csMsetRegister(g);
@@ -12009,7 +12324,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
 static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission) {
     switch (s->route) {
     case CS_RT_FANALL: serverAssert(!atomic_admission); dispatchFanAll(head); return;   /* verbatim, untouched */
-    case CS_RT_TWOHOP: serverAssert(!atomic_admission); dispatchTwoHop(head, s); return;
+    case CS_RT_TWOHOP: dispatchTwoHop(head, s, atomic_admission); return;
     default:           dispatchGather(head, s, atomic_admission); return;
     }
 }
@@ -12583,7 +12898,7 @@ static int csSortAdvance(csGroup *g) {
     return 0;
 }
 
-static void dispatchSortByGet(client *head, const csCmdSpec *s) {
+static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admission) {
     int dbid = head->db->id;
     robj *src = head->argv[(int)s->src_argi];
     if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
@@ -12603,6 +12918,18 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s) {
     atomic_store_explicit(&g->err,CS_ERR_NONE,memory_order_relaxed);
     head->csgroup = g;
     head->cdb = 0;
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected = 1;
+        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
+        csMsetRegister(g);
+    }
     head->parent->cs_barrier = 1;
     client *sub = csMakeSub(g,0,shard,dbid);
     csSubCopyFullArgv(sub,head);
@@ -12625,9 +12952,9 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s) {
  * plan stamped HERE from the row — csLaunchHop2 never reads head->argv positions directly. For
  * RENAME the HOP1 sub reads+serializes+deletes src (or flags NOKEY) and HOP2 RESTOREs on dst;
  * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
-static void dispatchTwoHop(client *head, const csCmdSpec *s) {
+static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admission) {
     if (s->ctype == CS_SORTSTORE && csSortHasExternal(head)) {
-        dispatchSortByGet(head,s);
+        dispatchSortByGet(head,s,atomic_admission);
         return;
     }
     int dbid = head->db->id;
@@ -12655,6 +12982,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
 
     if (s->ctype == CS_COPY) {
         /* Parse DB n / REPLACE once here (shape_ok already validated form + range). The dest
@@ -12682,6 +13014,19 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
     }
 
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected =
+            (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
+        g->version_nx = s->ctype == CS_RENAMENX ||
+                        (s->ctype == CS_COPY && !(g->h2_flags & CS_H2F_REPLACE));
+        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
+                                       (size_t)g->version_install_expected);
+        if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
+        csMsetRegister(g);       /* before source snapshot reads or destination reservation */
+    }
+
     int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
     /* Migration fate of each key: a same-shard pair with the SAME fate (both in the migrating
      * range or both out) stays co-located through the cutover, so the real proc still finds both
@@ -12697,7 +13042,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
      * same-object case ("COPY k k DB <cur>") is caught in the 2-hop COPY prep (re-review). Every
      * other same-shard pair runs the real proc, which handles all stock semantics INCLUDING the
      * samekey no-op (#0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
-    if (src_shard == dst_shard && !s->block_reject && !copy_has_db && !(src_in ^ dst_in)) {
+    if (!atomic_admission && src_shard == dst_shard && !s->block_reject &&
+        !copy_has_db && !(src_in ^ dst_in)) {
         /* ee451 (migration-safety, review 2026-07-17 v2): the real proc via csSubExec bypasses
          * the DRAINING fence. Make THIS path migration-safe like every other write path: when the
          * co-located pair is IN the range, hold both keys during DRAINING and re-read the shard
@@ -12724,8 +13070,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
     head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
     g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
+    if (atomic_admission && s->ctype == CS_RENAME)
+        g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP,
+                                            .key_argi = s->src_argi };
     g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
-    if (s->h2_del_src)
+    if ((!atomic_admission && s->h2_del_src))
         g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
     if (mig) {
         /* hold BOTH keys THEN re-read shards (finding #1: HOP1 subs were routed with pre-hold
@@ -12734,7 +13083,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (buckets stable) */
         dst_shard = server.ex_bucket_table[dst_bkt];
     }
-    int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
+    int nh1 = 1 + ((!atomic_admission && s->h1_probe_dst) ? 1 : 0);
     g->nsub = nh1; g->subs = csgAlloc(g, sizeof(client*) * nh1);
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
@@ -12796,7 +13145,8 @@ static int csLaunchHop2(csGroup *g) {
     case CS_RENAMENX:
         /* NX verdict from the HOP1 dst probe. NOKEY from the src sub is handled by the
          * generic err screen below (src untouched — nothing was deleted in HOP1). */
-        if (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS)
+        if (!g->versioned_write &&
+            (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS))
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
     case CS_COPY: break;   /* same-object caught at dispatch; NX decided at the dst write (no probe) */
@@ -12980,6 +13330,23 @@ static int csLaunchHop2(csGroup *g) {
     default: break;
     }
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
+
+    if (g->versioned_write) {
+        if (g->version_nx) {
+            /* The final destination value itself is the reservation. RENAMENX still needs a
+             * later source-tombstone wave; COPY is complete as soon as this reservation lands. */
+            g->version_nx_reserving = 1;
+            g->version_commit_ready = g->ctype == CS_COPY;
+            int wi = -1;
+            for (int i = 0; i < g->h2_nsub; i++)
+                if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+            serverAssert(wi >= 0);
+            g->h2sub[0] = g->h2sub[wi];
+            g->h2_nsub = 1;
+        } else {
+            g->version_commit_ready = 1;
+        }
+    }
 
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs); g->subs = NULL;
@@ -13482,7 +13849,7 @@ static void csReassemble(client *dst, client *head) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs);
     if (g->mset_installs) {
-        for (int i = 0; i < g->nkeys; i++)
+        for (int i = 0; i < g->version_install_expected; i++)
             serverAssert(g->mset_installs[i].kv == NULL);
         csgFree(g, g->mset_installs);
     }
@@ -20060,9 +20427,16 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 }
                 if (last) {
                     if (g->versioned_write) {
-                        if (g->ctype == CS_MSETNX &&
-                            (atomic_load_explicit(&g->msetnx_retry, memory_order_acquire) != 0 ||
-                             csMsetnxHasPendingPosition(g))) {
+                        int stage_only = !g->version_commit_ready;
+                        if (g->ctype == CS_MSETNX)
+                            stage_only =
+                                atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+                                csMsetnxHasPendingPosition(g);
+                        if (g->version_nx && g->version_nx_reserving &&
+                            (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+                             g->msetnx_state[0] != CS_MSETNX_RESERVED))
+                            stage_only = 1;
+                        if (stage_only) {
                             client *hp = g->head->parent;
                             cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                         } else {

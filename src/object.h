@@ -125,6 +125,9 @@ typedef enum tomoRetireState {
     TOMO_RETIRE_PHYSICAL,
 } tomoRetireState;
 
+#define TOMO_RESERVATION_SIGNAL_SET 1
+#define TOMO_RESERVATION_SILENT     2
+
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
@@ -158,8 +161,8 @@ struct redisObject {
                             * and most significant 16 bits access time). */
     void *ptr;
 
-    /* Cross-shard MSET MVCC-lite state. NULL for ordinary objects; allocated
-     * lazily for atomic-MSET versions. */
+    /* Cross-shard whole-value MVCC-lite state. NULL for ordinary objects;
+     * allocated lazily for atomic version-bag writes. */
     struct tomoVerMeta *vmeta;
 };
 
