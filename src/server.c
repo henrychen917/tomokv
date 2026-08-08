@@ -7603,6 +7603,19 @@ int processCommand(client *c) {
         }
     }
 
+    /* AUDIT P0 (2026-08-08, 3/3 confirmed): a window-parked client can be re-admitted OUTSIDE the
+     * release walker — readQueryFromClient calls processInputBuffer unconditionally on new bytes
+     * (chunked delivery), which re-runs this admission on the parked head; if the reserve now
+     * succeeds, the command dispatches while the client is STILL enrolled on the parked list with
+     * CLIENT_ATOMIC_WINDOW_STALLED|CLIENT_PIPELINE_STALLED set. The stale PIPELINE_STALLED then
+     * suppresses commandProcessed for a later INLINE command (MULTI et al), leaving its executed
+     * pcmd at the pending head — the walker or next readable re-executes it: duplicate replies /
+     * double-queued MULTI writes. Invariant restored here: reaching this point means every gate
+     * above admitted the command, so "parked" is over — drop the enrollment and flags exactly as
+     * the walker would have. */
+    if (__builtin_expect(c->atomic_window_parked_node != NULL, 0))
+        tomoAtomicUnstallClient(c);
+
     /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
      * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
      * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
@@ -14010,6 +14023,13 @@ static void csReassemble(client *dst, client *head) {
     if (g->versioned_write) {
         int old = atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
         serverAssert(old > 0);
+        /* AUDIT P2 (2026-08-08): decrement-then-check-waiters vs enroll-then-check-inflight is a
+         * Dekker pair on two different atomics; both sides relaxed lets the compiler hoist the
+         * waiters load above the fetch_sub, legalizing a lost wakeup (last-group retire skips the
+         * wake while the parker's release pass saw the pre-decrement count => parked forever on an
+         * idle thread). x86's locked RMW happened to save it; the fence makes it a guarantee. The
+         * park side needs none — it self-wakes unconditionally after enrolling. */
+        atomic_thread_fence(memory_order_seq_cst);
         if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
             tomoAtomicWakeAll();
     }
