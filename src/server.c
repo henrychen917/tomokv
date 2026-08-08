@@ -325,6 +325,10 @@ static void tomoAtomicParkWindowClient(client *c) {
 /* Owning-event-loop retry for the write-admission window. No worker or IO
  * thread parks: the refused write remains the head pending command. */
 static void tomoAtomicReleaseStalledClients(void) {
+    /* beforeSleep/beforeSleepIO call this unconditionally after reply drain.
+     * Thus a pure WINDOW_STALLED population needs no pending-read state to be
+     * discoverable: completion wakes its owning producer, retirement WakeAlls
+     * the parked producers, and each owner consumes only its own list here. */
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
     list *l = server.clients_atomic_window_parked[iotid];
     while (l && listLength(l) != 0) {
@@ -8882,20 +8886,24 @@ static inline uint64_t csHashSignature(uint64_t h) {
 }
 
 /* Resolve C's owner-local uncommitted version before consulting the committed
- * cursor. The key-signature bloom cheaply identifies candidate groups in C's
- * locked R1 FIFO; the physical-bag walk confirms group identity and compares
- * the connection-global install order. A group is briefly outside the linked
- * FIFO after sequence draw and can remain locally UNCOMMITTED until this
- * owner's stamp lane runs, so origin_client_id closes only that handoff gap.
+ * cursor. origin_client_id identifies the installing connection until this
+ * owner stamps or cancels the version, so the physical-bag walk confirms
+ * ownership directly without taking C's R1-FIFO spinlock. The physical chain
+ * is newest-install-first; same connection + same key reaches this owner
+ * through one FIFO, so the first live own candidate is C's maximum
+ * install_order for this key. A group is briefly outside the linked FIFO after
+ * sequence draw and can remain locally UNCOMMITTED until this owner's stamp
+ * lane runs; the owner-local identity also covers that gap.
  *
  * Correctness map:
  *  1. The maximum own install_order is C's latest installed write to this key.
  *  2. Only a locally UNCOMMITTED version qualifies, so its eventual monotone
  *     sequence is above the committed cut being read now.
- *  3. Stamp/cancel changes stamp_state and the ordinary committed cursor wins.
+ *  3. Stamp changes version_seq and cancel sets version_canceled, so the
+ *     ordinary committed cursor wins after either terminal decision.
  *  4. This executes independently on each key owner; non-own keys retain S.
- *  5. Same-connection/same-key FIFO makes install_order program-order exact;
- *     other readers fail both group and immutable connection identity checks.
+ *  5. Same-connection/same-key FIFO makes physical/install order program-order
+ *     exact; other readers fail the immutable connection identity check.
  * A canceled reservation is skipped, a live reservation is its group's own
  * installed state, and a selected tombstone is reported as an own absence. */
 static kvobj *csMsetOwnVersionAt(kvobj *head, client *reader, int *found) {
@@ -8904,57 +8912,18 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *reader, int *found) {
     client *real = reader->isFake ? reader->parent : reader;
     if (!real) return NULL;
 
-    sds key = kvobjGetKey(head);
-    uint64_t key_sig = csHashSignature(tomoKeyHash(key, sdslen(key)));
-    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
-                                                 memory_order_acquire);
-    int locked = pending != 0;
-    int bloom_hit = 0;
-    if (locked) {
-        csMsetPendingLock(real);
-        for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
-            if (g->key_sig & key_sig) {
-                bloom_hit = 1;
-                break;
-            }
-        }
-    }
-
-    kvobj *newest = NULL;
-    uint64_t newest_order = 0;
     for (kvobj *kv = head; kv; kv = kvobjVersionPrev(kv)) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         if (!vmeta) break;
         if (atomic_load_explicit(&vmeta->version_seq, memory_order_acquire) !=
                 TOMO_VERSION_UNCOMMITTED ||
-            vmeta->stamp_state != TOMO_STAMP_PENDING ||
             atomic_load_explicit(&vmeta->version_canceled, memory_order_acquire))
             continue;
-
-        int own = 0;
-        if (bloom_hit && vmeta->origin_group) {
-            for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
-                if ((g->key_sig & key_sig) && g == vmeta->origin_group) {
-                    own = 1;
-                    break;
-                }
-            }
-        }
-        /* csMsetPopComplete detaches before commit publication, and commit
-         * publication can precede this owner's stamp-lane turn. The immutable
-         * ID preserves RYOW across exactly that locally-uncommitted interval. */
-        if (!own && vmeta->origin_client_id == real->id) own = 1;
-        if (!own) continue;
-        if (!newest || vmeta->install_order > newest_order) {
-            newest = kv;
-            newest_order = vmeta->install_order;
-        }
+        if (vmeta->origin_client_id != real->id) continue;
+        *found = 1;
+        return vmeta->version_tombstone ? NULL : kv;
     }
-    if (locked) csMsetPendingUnlock(real);
-
-    if (!newest) return NULL;
-    *found = 1;
-    return kvobjVmeta(newest)->version_tombstone ? NULL : newest;
+    return NULL;
 }
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
@@ -9060,6 +9029,7 @@ static void csMsetStampAndAppend(csGroup *g) {
 static void csMsetInstallDone(csGroup *g) {
     client *real = g->mset_client;
     serverAssert(real != NULL);
+    int producer_tid = real->tid;
     atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
 
     int expected = 0;
@@ -9082,6 +9052,7 @@ static void csMsetInstallDone(csGroup *g) {
             break;
     }
 
+    int published = 0;
     while (commit_head) {
         csGroup *done = commit_head;
         commit_head = done->commit_next;
@@ -9112,8 +9083,18 @@ static void csMsetInstallDone(csGroup *g) {
         unsigned int before = atomic_fetch_sub_explicit(&hp->mset_pending_count, 1,
                                                         memory_order_release);
         serverAssert(before > 0);
+        published = 1;
     }
     csCommitUnlock();
+
+    /* Atomic R1 completion publishes the group-head CDB byte directly from a
+     * worker, bypassing the ordinary fake-completion notification path. The
+     * deleted own-read hold used to wake this producer incidentally through
+     * mset_read_waiting; without an explicit completion wake, an otherwise-idle
+     * producer sees the byte only on the 100us reply-poll fallback. Wake once
+     * for the whole R1 batch, after dropping commit_lock, so its event loop runs
+     * handleWorkerReplies -> csReassemble and retires admission promptly. */
+    if (published) tomoAtomicWakeProducer(producer_tid);
 }
 
 /* A source parse/type/missing-key verdict may terminate a registered read-then-write group
@@ -10147,7 +10128,6 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     serverAssert(real != NULL && g->mset_client == real);
     vmeta->install_order = g->mset_install_order_base + (uint64_t)ii;
     vmeta->origin_client_id = real->id;
-    vmeta->origin_group = g;
     vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
@@ -13973,7 +13953,9 @@ static void csReassemble(client *dst, client *head) {
      * point: stage/HOP2 advances return before it, while both live reply publication and the
      * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
      * only by csMsetRegister after the pre-ring reservation, so every increment has this one
-     * decrement and no non-atomic group can decrement it. */
+     * decrement and no non-atomic group can decrement it. The completion wake in
+     * csMsetInstallDone gets the owning loop to this decrement; once it opens the
+     * window, WakeAll gets every parked producer to its before-sleep release walk. */
     if (g->versioned_write) {
         int old = atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
         serverAssert(old > 0);

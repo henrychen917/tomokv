@@ -72,7 +72,6 @@
 
 /* forward declarations */
 struct client;
-struct csGroup;
 struct RedisModuleType;
 struct redisObject;
 struct _kvstore;
@@ -134,7 +133,6 @@ struct tomoVerMeta {
     _Atomic(struct redisObject *) committed_head;
     uint64_t install_order;
     uint64_t origin_client_id;
-    struct csGroup *origin_group;
     uint32_t version_order;
     uint8_t version_tombstone;
     uint8_t version_reservation;

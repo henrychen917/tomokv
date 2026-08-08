@@ -910,7 +910,6 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
     }
-    vmeta->origin_group = NULL;
     vmeta->origin_client_id = 0;
 }
 
@@ -928,7 +927,6 @@ void tomoCancelVersion(kvobj *kv) {
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
-    vmeta->origin_group = NULL;
     vmeta->origin_client_id = 0;
     if (vmeta->detached) {
         tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
