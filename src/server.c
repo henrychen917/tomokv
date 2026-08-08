@@ -436,6 +436,18 @@ static int csAtomicPortallVersionedWrite(client *c, const csCmdSpec *s) {
 static int csAtomicReadsSources(const csCmdSpec *s) {
     if (!s) return 0;
     switch (s->ctype) {
+    /* MSETNX and DEL are read-then-write too: both consult existing state before writing
+     * (MSETNX's per-key presence probe decides reserve-vs-cancel; DEL's live lookup produces
+     * the reply count), and both probe COMMITTED state only. Without the hold, a connection
+     * that pipelines `MSET k v` then `MSETNX k w` had the MSETNX probe miss its own still-
+     * uncommitted write and answer as if k were absent: measured 77% wrong replies AND wrong
+     * final state (k=w, reply 1, where serial order demands k=v, reply 0), with DEL likewise
+     * reporting 0 for a key it does delete. Both are correct with the knob OFF, so atomic mode
+     * was breaking a guarantee the stock path keeps. They were omitted here because the list
+     * was written for the PORTALL store family; the predicate — "consults state before
+     * writing" — always covered them. The bloom overlap filter keeps disjoint traffic free. */
+    case CS_MSETNX:
+    case CS_DEL:
     case CS_SSTORE:
     case CS_ZSTORE:
     case CS_ZRANGESTORE:
@@ -464,7 +476,17 @@ static int csAtomicNeedsOwnReadHold(client *c) {
      * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
     if (c->cmd->flags & CMD_READONLY) return 1;
     const csCmdSpec *s = csClassify(c);
-    return csAtomicPortallVersionedWrite(c, s) && csAtomicReadsSources(s);
+    /* Stock keeps one-key DEL on its direct worker path; atomic mode enrolls it in the group/FIFO,
+     * so mirror the admission path's fallback or single-key DEL never reaches the hold. */
+    if (!s && c->cmd->proc == delCommand && c->argc == 2) s = c->cmd->cs_spec;
+    if (!csAtomicReadsSources(s)) return 0;
+    /* MSETNX and DEL are the ORIGINAL bag set, not PORTALL rows — csAtomicPortallVersionedWrite
+     * excludes them by construction (the admission path likewise spells the three original ctypes
+     * out by hand beside it). Gating them behind it left both probes unheld: the registry flag was
+     * set but this predicate short-circuited to 0, so the first version of this fix moved nothing
+     * (3065 -> 2750 of 4000 = noise). They are versioned writes whenever they classify. */
+    if (s->ctype == CS_MSETNX || s->ctype == CS_DEL) return 1;
+    return csAtomicPortallVersionedWrite(c, s);
 }
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
