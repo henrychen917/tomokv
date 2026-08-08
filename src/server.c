@@ -8805,6 +8805,12 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *                and means nothing. This counter must be NONZERO for such a run to count as
  *                evidence, and reads 0 with the knob off. */
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
+/*   retire_deferred — GATE-OPENED PROOF for the R1a early-drain deferral arm. The deferral
+ *                path only runs when an owner consumes a STAMP before the publisher's
+ *                commit_seq store covers it; a soak that never took the branch proves
+ *                nothing about it (vacuous-validation rule). Bumped relaxed on the rare
+ *                deferral only — the steady-state piggyback arm never touches it. */
+static _Atomic unsigned long long tomo_atomic_retire_deferred_n;
 
 static inline void csCommitLock(void) {
     while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
@@ -8864,13 +8870,64 @@ static inline int csStampLane(void) {
     return server.io_threads + server.tm_ngrow_io;
 }
 
-/* Owner-op consumption is the only place a version is stamped or canceled.
+/* R1a PIGGYBACK RULE. The lane no longer carries PRUNE ops: the owner arms a
+ * version's retirement itself, immediately after applying that version's STAMP,
+ * gated on `seq <= tomoCommittedSeq()`. The gate is required, not paranoia:
+ * stamps tail-publish inside commit_lock BEFORE the publisher's commit_seq
+ * release-store (the I3 edge), so an owner can legally consume a stamp whose
+ * seq is still above commit_seq — arming there would break the retire
+ * invariant `version_seq <= committed max` (db.c tomoArmVersionRetire). In that
+ * early-drain window the version parks on the OWNER-LOCAL deferred list
+ * (worker->stamp_retire_deferred, threaded through vmeta->retire_deferred_next,
+ * no atomics), keeping owner_ops_pending at 1 so the parked version stays
+ * pinned against detached-bag/prune-walk physical retire exactly as a queued
+ * PRUNE op used to pin it. The list is re-checked at the top of every drain
+ * pass; commit_seq covering the seq is guaranteed before the publisher releases
+ * commit_lock, so a parked arm is picked up on the owner's next pass — the list
+ * is empty in steady state. Arming later is always safe (GC delay only), and
+ * arming stays owner-only. */
+static int csStampArmDeferred(exThread *worker) {
+    if (worker->stamp_retire_deferred == NULL) return 0;
+    uint64_t committed = tomoCommittedSeq();
+    kvobj *kv = worker->stamp_retire_deferred;
+    kvobj *keep = NULL;
+    int armed = 0;
+    tomoWkrLock(worker->id);
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        serverAssert(vmeta != NULL);
+        kvobj *next = vmeta->retire_deferred_next;
+        uint64_t seq = kvobjVersionSeq(kv);
+        serverAssert(seq != 0 && seq != TOMO_VERSION_UNCOMMITTED);
+        if (seq <= committed) {
+            vmeta->retire_deferred_next = NULL;
+            unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                             memory_order_acq_rel);
+            serverAssert(before == 1);
+            tomoArmVersionRetire(kv, seq);
+            armed++;
+        } else {
+            /* Lane order was never specified, so LIFO re-linking of the
+             * survivors preserves no promise a consumer relies on. */
+            vmeta->retire_deferred_next = keep;
+            keep = kv;
+        }
+        kv = next;
+    }
+    worker->stamp_retire_deferred = keep;
+    tomoWkrUnlock(worker->id);
+    return armed;
+}
+
+/* Owner-op consumption is the only place a version is stamped, canceled, or
+ * armed for retirement (the arm piggybacks on STAMP — see csStampArmDeferred).
  * All op kinds are embedded in vmeta, so group reply publication cannot
  * invalidate a queued job. The drain runs to empty: stamp order within this
  * multi-producer lane is unspecified and correctness does not depend on it. */
 static int csStampDrain(exThread *worker) {
+    int armed = csStampArmDeferred(worker);
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
-        return 0;
+        return armed;
     exQueue *q = &worker->queues[csStampLane()];
     client *jobs[WORKER_POP_BATCH];
     int total = 0;
@@ -8885,12 +8942,10 @@ static int csStampDrain(exThread *worker) {
             serverAssert(vmeta != NULL);
             if (op->kind == TOMO_OWNER_OP_STAMP) {
                 serverAssert(op->seq != 0);
+                uint64_t seq = op->seq;
                 int reservation_signal =
                     vmeta->version_reservation == TOMO_RESERVATION_SIGNAL_SET;
-                tomoApplyVersionStamp(kv, op->seq);
-                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
-                                                                 memory_order_acq_rel);
-                serverAssert(before == 2);
+                tomoApplyVersionStamp(kv, seq);
                 if (reservation_signal) {
                     redisDb *db = vmeta->version_db;
                     robj *key = createStringObject(kvobjGetKey(kv), sdslen(kvobjGetKey(kv)));
@@ -8899,13 +8954,25 @@ static int csStampDrain(exThread *worker) {
                     markDirty(1);
                     decrRefCount(key);
                 }
-            } else if (op->kind == TOMO_OWNER_OP_PRUNE) {
-                serverAssert(op->seq != 0);
-                serverAssert(op->kind == TOMO_OWNER_OP_PRUNE);
-                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
-                                                                 memory_order_acq_rel);
-                serverAssert(before == 1);
-                tomoArmVersionRetire(kv, op->seq);
+                /* R1a piggyback: this consumption also owns the retire arm the
+                 * deleted PRUNE op used to carry. Immediate when commit_seq
+                 * already covers the stamped seq (commit_seq is monotone, so
+                 * once true it stays true); otherwise park on the owner-local
+                 * deferred list WITHOUT decrementing owner_ops_pending — the
+                 * remaining count of 1 is the pin that keeps detached-bag and
+                 * prune-walk teardown off this version until its arm runs, and
+                 * it keeps this kv pointer valid while parked. */
+                if (seq <= tomoCommittedSeq()) {
+                    unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                                     memory_order_acq_rel);
+                    serverAssert(before == 1);
+                    tomoArmVersionRetire(kv, seq);
+                } else {
+                    vmeta->retire_deferred_next = worker->stamp_retire_deferred;
+                    worker->stamp_retire_deferred = kv;
+                    atomic_fetch_add_explicit(&tomo_atomic_retire_deferred_n, 1,
+                                              memory_order_relaxed);
+                }
             } else {
                 serverAssert(op->kind == TOMO_OWNER_OP_CANCEL && op->seq == 0);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
@@ -8927,7 +8994,7 @@ static int csStampDrain(exThread *worker) {
         atomic_store_explicit(&q->retired,
                               atomic_load_explicit(&q->head, memory_order_relaxed),
                               memory_order_release);
-    return total;
+    return total + armed;
 }
 
 static void csStampPush(int owner, tomoOwnerOp *op) {
@@ -9088,13 +9155,20 @@ static void csMsetStampAndAppend(csGroup *g) {
         serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
         serverAssert(install->install_order == (uint32_t)i);
         serverAssert(vmeta->version_order == install->install_order);
-        atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
+        /* R1a: ONE owner op per install — STAMP consumption arms retirement
+         * itself (csStampDrain), so no PRUNE op and no second push wave. */
+        atomic_store_explicit(&vmeta->owner_ops_pending, 1,
                               memory_order_release);
-        vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
-                                           cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
-        if (!cancel)
-            vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
-        csStampPush(install->owner, &vmeta->owner_op[0]);
+        vmeta->owner_op = (tomoOwnerOp){kv, seq,
+                                        cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
+        csStampPush(install->owner, &vmeta->owner_op);
+        /* R1a: the record is fully consumed by the push above, and the
+         * publication loop no longer walks it (its only remaining reader is
+         * csReassemble's exactly-once teardown assert). Clear it here, still
+         * under commit_lock — the publisher must not touch g after
+         * cdbSlotPublish, so this is the last legal point. */
+        install->kv = NULL;
+        install->owner = -1;
     }
     g->commit_next = NULL;
     if (commit_tail) commit_tail->commit_next = g;
@@ -9133,23 +9207,19 @@ static void csMsetInstallDone(csGroup *g) {
         if (!commit_head) commit_tail = NULL;
 
         int canceled = done->version_seq == 0;
-        int ninstalled = atomic_load_explicit(&done->mset_install_count,
-                                               memory_order_relaxed);
         /* I3 publication edge: all STAMP tail release-stores above happen
          * before this release-store. A canceled MSETNX has no sequence to
          * publish; its cancel jobs were nevertheless all queued before reply
-         * publication and before the R1 read hold is released. */
+         * publication and before the R1 read hold is released.
+         * R1a: this store is also what opens the owners' retire-arm gate
+         * (`seq <= commit_seq` in csStampDrain) — the deleted per-install
+         * PRUNE push wave used to ride here. An owner that consumed its stamp
+         * before this store parks the arm on its own deferred list; because
+         * this store precedes csCommitUnlock, that owner's next drain pass is
+         * guaranteed to find the gate open. Install records were already
+         * consumed and cleared in the STAMP phase under this same lock. */
         if (!canceled)
             atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
-        for (int i = 0; i < ninstalled; i++) {
-            csMsetInstall *install = &done->mset_installs[i];
-            if (!canceled) {
-                struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
-                csStampPush(install->owner, &vmeta->owner_op[1]);
-            }
-            install->kv = NULL;
-            install->owner = -1;
-        }
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* This is the FIFO's semantic drain point, not csMsetPopComplete:
@@ -17906,6 +17976,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_atomic_promotions:%llu\r\n",
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+            "tomokv_atomic_retire_deferred:%llu\r\n",
+                atomic_load_explicit(&tomo_atomic_retire_deferred_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
@@ -20192,7 +20264,11 @@ static inline int exDormantSliceNeeded(exThread *worker,
                          worker->flat_batches_local != NULL, 0))
         return 1;
 
-    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire))
+    /* R1a: a parked deferred retire-arm is owner work too (stamp_pending does
+     * not cover it — the lane op was already consumed). Same plain owner-only
+     * field discipline as the reclaim pointers above. */
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) ||
+        worker->stamp_retire_deferred != NULL)
         return 1;
 
     for (int t = 0; t <= ctx->nq; t++) {
@@ -20322,7 +20398,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     }
 
     int any = 0;
-    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
+    /* R1a: also enter the drain for a parked deferred retire-arm (owner-local
+     * plain field; commit_seq has typically advanced by now, so this pass arms
+     * it). The mid-pass I3 fence below stays gated on stamp_pending alone —
+     * deferred arms are GC, not reader-visible ordering. */
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) ||
+        worker->stamp_retire_deferred != NULL) {
         ctx->tm_mark = getMonotonicUs();
         if (csStampDrain(worker)) any = 1;
     }

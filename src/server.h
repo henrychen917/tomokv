@@ -2538,7 +2538,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
-    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
+    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/cancel jobs (R1a: prune rides STAMP) */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
@@ -2690,6 +2690,16 @@ typedef struct exThread {
      * against the previous build cannot be contaminated by layout. */
     _Atomic uint64_t lb_fine_win;
     uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
+    /* R1a: owner-local deferred retire-arm list (LIFO, threaded through
+     * vmeta->retire_deferred_next). Holds versions whose STAMP the owner
+     * consumed before the publisher's commit_seq store covered their seq (the
+     * legal early-drain window); re-checked at the top of every csStampDrain
+     * pass and empty in steady state. Owner-thread plain field — the only
+     * writers/readers are this worker's own drain and its work predicates
+     * (exSlice gate / exDormantSliceNeeded), which run on the same OS thread —
+     * so it needs no atomics. PLACEMENT: appended at the very END, per the
+     * layout rule documented above lb_fine_win. */
+    struct redisObject *stamp_retire_deferred;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {

@@ -103,7 +103,10 @@ struct _kvstore;
 
 typedef enum tomoOwnerOpKind {
     TOMO_OWNER_OP_STAMP = 1,
-    TOMO_OWNER_OP_PRUNE = 2,
+    /* TOMO_OWNER_OP_PRUNE (=2) DELETED (R1a): retirement arming piggybacks on
+     * STAMP consumption — the owner arms it itself once the stamped seq is
+     * covered by commit_seq (or defers on an owner-local list until it is).
+     * CANCEL keeps its historical value; nothing persists these. */
     TOMO_OWNER_OP_CANCEL = 3,
 } tomoOwnerOpKind;
 
@@ -143,7 +146,18 @@ struct tomoVerMeta {
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
-    tomoOwnerOp owner_op[2];
+    /* R1a: ONE embedded owner op (STAMP or CANCEL). The former owner_op[1]
+     * PRUNE slot is deleted: the retire arm no longer travels the lane, it is
+     * performed by the owner at STAMP consumption (or from the owner-local
+     * deferred list below). */
+    tomoOwnerOp owner_op;
+    /* R1a early-drain deferral link. Stamps tail-publish inside commit_lock
+     * BEFORE the commit_seq store, so the owner can legally consume a STAMP
+     * whose seq is still above commit_seq. Such a version parks on the owner's
+     * stamp_retire_deferred list, threaded through this pointer. Owner-thread
+     * plain field (written/read only under that owner's drain); non-NULL only
+     * while parked. */
+    struct redisObject *retire_deferred_next;
 };
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX

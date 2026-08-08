@@ -933,6 +933,11 @@ void tomoCancelVersion(kvobj *kv) {
     kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
 }
 
+/* R1a: called only from the owner's stamp drain — immediately after this kv's
+ * STAMP was applied when commit_seq already covers version_seq, or from the
+ * owner-local deferred list once it does. The `<= tomoCommittedSeq()` bound is
+ * therefore CHECKED by the caller's gate (csStampDrain/csStampArmDeferred),
+ * not assumed from lane ordering as the old post-publication PRUNE push was. */
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
@@ -954,7 +959,9 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
 /* A non-versioned overwrite/delete removes the whole bag from the table in
  * one ordinary owner store. Committed members with no queued owner operation
  * can enter their post-unlink grace now; uncommitted members remain pinned by
- * their install records and retire only when their stamp+prune operations run. */
+ * their install records and retire only when their queued stamp/cancel op runs
+ * (R1a: a stamped member whose retire arm is parked on the owner's deferred
+ * list keeps owner_ops_pending at 1 and is pinned here the same way). */
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     serverAssert(kvstoreIsFlat(kvs));
     kvobj *kv = head;
