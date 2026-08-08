@@ -569,10 +569,19 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      *   pending  = ...that arrived with own writes in flight (the gate's decision set)
      *   held     = ...that the gate could not clear, so it parked
      *   conserv  = held WITHOUT a proven key collision: unknown/dynamic read keyspace (all-ones
-     *              signature), a pending group carrying no exact key vector (more written keys
-     *              than the exact test retains), or the detached-head arm. These are the holds
-     *              the gate could not prove, counted apart so the measured overlap rate stays
-     *              separable from the gate's own imprecision.
+     *              signature), a pending writer carrying no exact key vector (more written keys
+     *              than the exact test retains), or a publishing-record ring with no room (which
+     *              its derived sizing should make unreachable). These are the holds the gate could
+     *              not prove, counted apart so the measured overlap rate stays separable from the
+     *              gate's own imprecision. On a plain MGET/MSET cell the first two arms cannot
+     *              fire at all, so there conserv IS the ring-overflow rate, directly.
+     *   detach   = ...that arrived while one of this connection's completed groups was DETACHED
+     *              from the FIFO awaiting its commit publication. NOT a hold count: it is the
+     *              population that used to hold unconditionally (98% of all holds, measured) and
+     *              is now settled exactly against the group's copied key set. It exists so the
+     *              closing of that window is falsifiable rather than inferred from `conserv`
+     *              alone: detach must stay large while conserv collapses. detach == 0 means the
+     *              records were never consulted and nothing was closed.
      * Since the exact arm landed, held-minus-conserv is a real key-overlap rate: a filter alias
      * no longer parks anything, so it can no longer inflate `held`. Any future widening of what
      * the gate can prove must land in `conserv` the same way — a gate that reports "no false
@@ -581,6 +590,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long ownread_pending;
     unsigned long long ownread_held;
     unsigned long long ownread_conserv;
+    unsigned long long ownread_detach;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -8869,6 +8879,80 @@ static inline void csMsetPendingUnlock(client *c) {
     atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_release);
 }
 
+/* ---- R1 own-read gate: the DETACHED-HEAD (publishing) window ----------------------------
+ *
+ * A completed group leaves the connection's R1 FIFO at csMsetPopComplete, but it stays PENDING:
+ * mset_pending_count is decremented much later, only after that group's commit_seq publication
+ * (csMsetInstallDone's second loop). In between it is unreachable from the walk while it still
+ * counts, so csMsetReadIntersects saw `pending > linked` and could only HOLD. Measured with the
+ * ownread census once the exact arm landed (8-key MGET:MSET 1:1, 200 conns, io4/ex4, 2M keys):
+ * 52,166 of the 53,392 remaining holds — 98% — came from that one arm, against ~1,200 genuine
+ * key overlaps in 5.8M pending reads.
+ *
+ * Closing it means the walk must still be able to test the departing group's keys, and it must
+ * NOT do that by keeping a pointer to the group. csReassemble frees the group — zfree(g), and
+ * csgFree(g, g->key_h) immediately above it — as soon as the head's reply slot is published, and
+ * that publication happens INSIDE this window (cdbSlotPublish precedes the count decrement by
+ * design: the decrement is what licenses a held read to draw a snapshot containing the group).
+ * So the group's key set is COPIED, at the pop, into a connection-owned record, and nothing on
+ * this path ever dereferences the group again. That is the same reasoning that kept the exact
+ * arm off g->subs[i], one step further: there, a live group's arrays were freed underneath the
+ * walk; here, the whole group is.
+ *
+ * The records are a FIFO ring, which is exactly the discipline the producer already has:
+ * csMsetInstallDone holds the GLOBAL commit lock across BOTH of its loops and drains the commit
+ * queue to empty before releasing it, and csMsetStampAndAppend is only ever called from inside
+ * that hold. So for one connection every pop of a critical section precedes every publish of
+ * that section, the ring is empty at every csCommitUnlock, and the record at the ring head
+ * always belongs to the group now publishing — asserted at the retire.
+ *
+ * A group that finds the ring FULL simply gets no record. That is self-healing rather than a
+ * hole: `pending` then exceeds linked+recorded, the walk takes the same conservative hold it
+ * took before any of this existed, and says so in ownread_conserv. The ring is sized from the
+ * structural bound on concurrently-detached groups (csMsetPub) rather than guessed, so that arm
+ * should be unreachable; it is kept because a hold is the safe answer to "my bound was wrong"
+ * and conserv is where that would be reported. */
+
+/* Copy the departing group's key set into real's publishing ring. Called with the pending lock
+ * held, in the same hold as the FIFO unlink, so (linked + recorded) never dips below `pending`
+ * as far as any walk can observe. */
+static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
+    csMsetPub *pub = real->mset_pub;
+    if (!pub || (unsigned int)(pub->tail - pub->head) > pub->mask)
+        return;                        /* no record => the conservative arm holds; see above */
+    csPubRec *r = &pub->rec[pub->tail & pub->mask];
+    r->tag = (uintptr_t)g;
+    r->key_sig = g->key_sig;
+    int n = g->key_h_n;
+    for (int i = 0; i < n; i++) r->key_h[i] = g->key_h[i];
+    r->key_h_n = n;                    /* after the slots, mirroring the group's own commit rule */
+    pub->tail++;
+}
+
+/* The group's commit_seq is published and its reply slot is out: drop its record and its pending
+ * count in ONE lock hold, so no walk can observe the count without the record that explains it.
+ * `tag` is the group's ADDRESS, captured before the slot publication and compared as a value —
+ * by now the group may already have been freed by its IO thread and must not be dereferenced.
+ *
+ * The ring itself is connection-owned and outlives every group: freeClient defers a teardown
+ * while the fake ring is in flight (dispatchid != flushid), which is the same guarantee that
+ * lets the caller dereference hp->reply_cdb one line earlier. */
+static void csMsetPubRetire(client *real, uintptr_t tag) {
+    csMsetPendingLock(real);
+    csMsetPub *pub = real->mset_pub;
+    if (pub && pub->head != pub->tail) {
+        /* FIFO discipline (see the block comment). A mismatch would mean pops and publishes had
+         * interleaved, i.e. this record belongs to another group — retiring it would then clear
+         * a key set that is still pending and could licence a stale read. Trip, do not guess. */
+        serverAssert(pub->rec[pub->head & pub->mask].tag == tag);
+        pub->head++;
+    }
+    unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+                                                    memory_order_release);
+    csMsetPendingUnlock(real);
+    serverAssert(before > 0);
+}
+
 /* I5/R1 registration is ticket-free and precedes every owner publish. */
 static void csMsetRegister(csGroup *g) {
     client *real = g->head->parent;
@@ -8877,6 +8961,28 @@ static void csMsetRegister(csGroup *g) {
     g->mset_client = real;
     serverAssert(g->mset_installs != NULL && g->version_install_expected > 0 &&
                  g->key_sig != 0);
+
+    /* Lazily arm the publishing ring: only a connection that actually registers an atomic group
+     * pays for one, so a server with tomokv-atomic off allocates nothing. Every registration for
+     * this connection runs on its own IO thread (dispatch, and the drain-side MSETNX/NX advances
+     * are that same thread), so this is the single writer of the pointer; it is published under
+     * the pending lock, which is the lock both readers — the walk and csMsetPubRetire — take.
+     *
+     * Capacity is the structural bound on concurrently-detached groups (see csMsetPub): this
+     * connection can never have more registered-and-unpublished groups than it has in-flight ring
+     * slots, and that is capped for the life of the process by tomokv-pipeline-depth, which is
+     * IMMUTABLE_CONFIG. Rounded UP to a power of two so the cursors can mask, and derived rather
+     * than picked, so no traffic shape can overflow it and the conservative arm below becomes
+     * unreachable instead of merely unlikely. */
+    if (__builtin_expect(real->mset_pub == NULL, 0)) {
+        unsigned int cap = 1;
+        while (cap < (unsigned int)server.pipeline_ring_depth) cap <<= 1;
+        csMsetPub *pub = zcalloc(sizeof(*pub) + (size_t)cap * sizeof(csPubRec));
+        pub->mask = cap - 1;
+        csMsetPendingLock(real);
+        real->mset_pub = pub;
+        csMsetPendingUnlock(real);
+    }
 
     csMsetPendingLock(real);
     g->mset_pending_prev = real->mset_pending_tail;
@@ -9026,7 +9132,8 @@ static inline uint64_t csHashSignature(uint64_t h) {
  * PROVES the keys differ (no false negative is possible), while a hash collision merely costs a
  * hold — the safe direction. It also keeps the walk off the pending group's argv/sub-fakes,
  * which are not the walker's to dereference (see csGroupKeyHashReserve). */
-#define CS_EXACT_KEYS_MAX 16   /* per-group / per-read key hashes retained for the exact test */
+/* CS_EXACT_KEYS_MAX (the per-group / per-read retained hash count) lives in server.h, beside the
+ * csPubRec that copies one of these vectors out of a departing group. */
 
 /* Region demand of a group's written-key hash vector, so the callers that size the inline bump
  * region account for it exactly (an unaccounted vector would push another array to the heap and
@@ -9084,59 +9191,92 @@ static void csOwnReadSignature(client *real, csReadKeys *rk) {
     rk->n = n;
 }
 
-/* Settle one filter "maybe" exactly. `hit` is read_sig & g->key_sig: only a read key whose own
+/* Settle one filter "maybe" exactly. `hit` is read_sig & written_sig: only a read key whose own
  * bit is in that mask can be the cause, so the usual single-bit alias costs a handful of 64-bit
- * compares rather than n*m. Returns 1 only on an actual key-hash match. */
-static int csKeysCollide(const csReadKeys *rk, const csGroup *g, uint64_t hit) {
+ * compares rather than n*m. Returns 1 only on an actual key-hash match.
+ *
+ * Takes the written-key vector rather than a csGroup, because it serves two callers with the
+ * same key set and different lifetimes: a group still linked in the FIFO, and the csPubRec copy
+ * of one that has left it. */
+static int csKeysCollide(const csReadKeys *rk, const uint64_t *kh, int kh_n, uint64_t hit) {
     for (int i = 0; i < rk->n; i++) {
         if (!(csHashSignature(rk->h[i]) & hit)) continue;
-        for (int j = 0; j < g->key_h_n; j++)
-            if (rk->h[i] == g->key_h[j]) return 1;
+        for (int j = 0; j < kh_n; j++)
+            if (rk->h[i] == kh[j]) return 1;
     }
     return 0;
 }
 
-/* Walk the connection-local R1 FIFO under its existing lock. A completed head is briefly
- * detached before commit_seq publication while pending_count intentionally stays nonzero; if
- * such a group exists its signature is no longer reachable, so conservatively hold until that
- * publication finishes. This preserves the no-false-negative rule without widening the FIFO.
+/* Walk this connection's uncommitted write set under its existing lock: first the R1 FIFO, then
+ * the publishing records of groups that have left the FIFO but not yet decremented the pending
+ * count (see csMsetPubRecordLocked). Both carry the same thing — a written-key signature and the
+ * exact hashes behind it — so both are tested the same way.
  *
- * Per group, in order: (1) filter miss => PROVEN disjoint, skip it; (2) filter hit that neither
- * side can settle exactly (unknown read keyspace, or a group with no hash vector) => HOLD;
+ * Per entry, in order: (1) filter miss => PROVEN disjoint, skip it; (2) filter hit that neither
+ * side can settle exactly (unknown read keyspace, or a writer with no hash vector) => HOLD;
  * (3) filter hit with both vectors present => the exact key-hash test decides.
  *
- * LIFETIME of what (3) dereferences: g->key_h lives in g's OWN allocation (the inline bump
- * region, or a csgFree()d spill), is written once on the head's IO thread before csMsetRegister
- * publishes g into this FIFO, and is never rewritten. csReassemble — the group's single terminal
- * point and the only caller of zfree(g) — calls csMsetPendingRemove(g) as its FIRST statement,
- * before any csgFree/zfree. So g->key_h is reachable exactly as long as g->key_sig is, which is
- * the lifetime this walk already depends on; the exact arm adds no new one. That is precisely
- * what g->subs[] would NOT give: csPipeFreeStageSubs() frees and NULLs g->subs between pipeline
- * stages, and csMsetnxAdvanceReservations() frees every sub before rebuilding the wave, both
- * while the group is still linked here with pending_count > 0.
+ * LIFETIME of what (3) dereferences.
+ *   - FIFO entries: g->key_h lives in g's OWN allocation (the inline bump region, or a csgFree()d
+ *     spill), is written once on the head's IO thread before csMsetRegister publishes g into this
+ *     FIFO, and is never rewritten. csReassemble — the group's single terminal point and the only
+ *     caller of zfree(g) — calls csMsetPendingRemove(g) as its FIRST statement, before any
+ *     csgFree/zfree. So g->key_h is reachable exactly as long as g->key_sig is, which is the
+ *     lifetime this walk already depended on. That is precisely what g->subs[] would NOT give:
+ *     csPipeFreeStageSubs() frees and NULLs g->subs between pipeline stages, and
+ *     csMsetnxAdvanceReservations() frees every sub before rebuilding the wave, both while the
+ *     group is still linked here with pending_count > 0.
+ *   - Publishing records: a COPY, in memory owned by `real`, precisely because a detached group
+ *     has no such guarantee — its reply slot is published inside that window and csReassemble may
+ *     free it at any moment after. This walk never dereferences a group it cannot see in the FIFO.
+ * Both are read under the pending lock, which is the lock the producers (csMsetRegister,
+ * csMsetPopComplete, csMsetPendingRemove, csMsetPubRetire) hold while changing links, records and
+ * the count together — so `pending`, the FIFO and the ring are always one consistent snapshot.
  *
- * `conserv` reports WHICH arm answered: set when the hold came from (2) or from the detached-head
- * case, i.e. when the gate could not prove overlap rather than measured it. Measurement out-param
- * only — the return value, and therefore every decision, is unchanged. */
-static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *conserv) {
-    unsigned int linked = 0;
-    int intersects = 0, cons = 0;
+ * `flags` reports WHICH arm answered. Measurement out-param only — the return value, and
+ * therefore every decision, is unchanged. */
+#define CS_WALK_CONSERV (1<<0)   /* the hold could not be proven: charge it to ownread_conserv */
+#define CS_WALK_PUBREC  (1<<1)   /* the walk reached at least one publishing record, i.e. the
+                                  * detached-head window was open when this read arrived */
+static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) {
+    unsigned int accounted = 0;
+    int intersects = 0, f = 0;
     csMsetPendingLock(real);
     for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
-        linked++;
+        accounted++;
         uint64_t hit = rk->sig & g->key_sig;
         if (!hit) continue;                          /* filter miss: definitively disjoint */
         if (rk->n < 0 || g->key_h_n == 0) {          /* cannot prove either way: hold */
-            intersects = 1; cons = 1;
+            intersects = 1; f |= CS_WALK_CONSERV;
             break;
         }
-        if (csKeysCollide(rk, g, hit)) { intersects = 1; break; }
+        if (csKeysCollide(rk, g->key_h, g->key_h_n, hit)) { intersects = 1; break; }
+    }
+    csMsetPub *pub = real->mset_pub;
+    if (!intersects && pub && pub->head != pub->tail) {
+        f |= CS_WALK_PUBREC;
+        for (unsigned int i = pub->head; i != pub->tail; i++) {
+            const csPubRec *r = &pub->rec[i & pub->mask];
+            accounted++;
+            uint64_t hit = rk->sig & r->key_sig;
+            if (!hit) continue;
+            if (rk->n < 0 || r->key_h_n == 0) {
+                intersects = 1; f |= CS_WALK_CONSERV;
+                break;
+            }
+            if (csKeysCollide(rk, r->key_h, r->key_h_n, hit)) { intersects = 1; break; }
+        }
     }
     unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
                                                  memory_order_acquire);
     csMsetPendingUnlock(real);
-    if (!intersects && pending > linked) { intersects = 1; cons = 1; }
-    *conserv = cons;
+    /* Backstop, and the one place a write this walk could not see is caught: every registered
+     * group is either linked above or holds a record, and the record ring is sized from the
+     * bound that makes "no room" impossible — so this should now be unreachable. It stays
+     * because the no-false-negative rule must not rest on that bound being right: if it is
+     * wrong, this HOLDS and ownread_conserv says so. */
+    if (!intersects && pending > accounted) { intersects = 1; f |= CS_WALK_CONSERV; }
+    *flags = f;
     return intersects;
 }
 
@@ -9157,23 +9297,32 @@ static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
     tm_io_sig[iotid].ownread_pending++;
     csReadKeys rk;
     csOwnReadSignature(real, &rk);
-    int conserv = 0;
-    if (!csMsetReadIntersects(real, &rk, &conserv)) return 0;
+    int flags = 0;
+    int hold = csMsetReadIntersects(real, &rk, &flags);
+    /* Census: this read arrived while one of its connection's completed groups was DETACHED —
+     * the window that used to force an unconditional hold. Counted on the FIRST scan, so it is
+     * once per pending read and covers exactly the population the old detached arm charged to
+     * ownread_conserv. It is the falsifier for closing that window: `detach` must stay about as
+     * large as the arm was while `conserv` collapses. A `detach` of 0 means the records are never
+     * consulted and any throughput move belongs to something else. */
+    if (flags & CS_WALK_PUBREC) tm_io_sig[iotid].ownread_detach++;
+    if (!hold) return 0;
 
     atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
-    if (!csMsetReadIntersects(real, &rk, &conserv)) {
+    if (!csMsetReadIntersects(real, &rk, &flags)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         return 0;
     }
     /* Classify against the scan that DECIDED the park (the confirming one), before the third scan
-     * overwrites `conserv`. held-minus-conserv is the rate at which the read's keys REALLY hit a
-     * pending write; every hold the gate could not prove — unknown keyspace, a group with no hash
-     * vector (too many written keys), the detached head — lands in conserv instead, so widening
-     * what the gate can prove never launders a false positive into the measured overlap rate. */
+     * overwrites `flags`. held-minus-conserv is the rate at which the read's keys REALLY hit a
+     * pending write; every hold the gate could not prove — unknown keyspace, a writer with no hash
+     * vector (too many written keys), a record ring that had no room — lands in conserv instead,
+     * so widening what the gate can prove never launders a false positive into the measured
+     * overlap rate. */
     tm_io_sig[iotid].ownread_held++;
-    if (conserv) tm_io_sig[iotid].ownread_conserv++;
+    if (flags & CS_WALK_CONSERV) tm_io_sig[iotid].ownread_conserv++;
     tomoAtomicParkPendingRead(real);
-    if (!csMsetReadIntersects(real, &rk, &conserv)) {
+    if (!csMsetReadIntersects(real, &rk, &flags)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         tomoAtomicWakeProducer(real->tid);
     }
@@ -9187,6 +9336,10 @@ static int csMsetHoldOwnRead(client *real) {
     return csMsetHoldOwnReadPending(real);
 }
 
+/* The group leaves the FIFO here but stays counted in mset_pending_count until its commit_seq is
+ * published, so its key set has to leave WITH it — copied, under this same lock hold, into the
+ * connection's publishing ring. Without that copy the walk cannot see this group at all and can
+ * only hold, which the census measured as 98% of every remaining hold. */
 static csGroup *csMsetPopComplete(client *real) {
     csMsetPendingLock(real);
     csGroup *g = real->mset_pending_head;
@@ -9199,6 +9352,7 @@ static csGroup *csMsetPopComplete(client *real) {
     else real->mset_pending_tail = NULL;
     g->mset_pending_prev = g->mset_pending_next = NULL;
     g->mset_client = NULL;
+    csMsetPubRecordLocked(real, g);
     csMsetPendingUnlock(real);
     return g;
 }
@@ -9296,13 +9450,18 @@ static void csMsetInstallDone(csGroup *g) {
             install->owner = -1;
         }
         client *hp = done->head->parent;
+        /* Identity for this group's publishing record, taken while the group is still certainly
+         * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
+         * (and zfree) it immediately. Everything after that store touches hp only. */
+        uintptr_t gtag = (uintptr_t)done;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* This is the FIFO's semantic drain point, not csMsetPopComplete:
          * the release decrement follows commit_seq publication and therefore
-         * licenses a held read to draw a snapshot containing this group. */
-        unsigned int before = atomic_fetch_sub_explicit(&hp->mset_pending_count, 1,
-                                                        memory_order_release);
-        serverAssert(before > 0);
+         * licenses a held read to draw a snapshot containing this group. The
+         * record that stood in for this group between the pop and here is
+         * dropped in the SAME lock hold as the decrement, so a walk can never
+         * see the count fall without the key set falling with it. */
+        csMsetPubRetire(hp, gtag);
         /* A selective read may become runnable while unrelated groups remain. Wake on every
          * publication; processCommand's FIFO signature scan decides whether it must park again. */
         if (atomic_exchange_explicit(&hp->mset_read_waiting, 0,
@@ -18065,11 +18224,17 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * large keyspace, (held-conserv)/pending should now track the TRUE collision probability
          * (~0.01% for 8-key reads vs 8-key writes over 2M keys) and should FALL as the keyspace
          * grows. A rate that is flat in the keyspace is bit aliasing, which is what the 64-bit
-         * signature alone reported (74.9% at 2M keys) before the exact arm existed. */
-        unsigned long long orr = 0, orp = 0, orh = 0, orc = 0;
+         * signature alone reported (74.9% at 2M keys) before the exact arm existed.
+         *
+         * detach is the detached-head window's population, not a hold: it should be LARGE (it was
+         * 98% of all holds when that window forced one) while conserv stays near zero. detach ~ 0
+         * with a healthy conserv means the window simply did not open on this run and says nothing
+         * about the records; conserv tracking detach means they are consulted but never settle. */
+        unsigned long long orr = 0, orp = 0, orh = 0, orc = 0, ord = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
             orr += tm_io_sig[_t].ownread_reads;   orp += tm_io_sig[_t].ownread_pending;
             orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
+            ord += tm_io_sig[_t].ownread_detach;
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -18134,6 +18299,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
+            "tomokv_atomic_ownread_detach:%llu\r\n", ord,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on

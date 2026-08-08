@@ -1654,6 +1654,54 @@ _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
 
+/* ---- R1 own-read gate: exact key sets ---------------------------------------------------
+ * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
+ * Past this many written keys a group's own 64-bit signature is >= 16 of 64 bits, i.e. the
+ * filter is >= 91% false-positive anyway and the group's inline region is already spilling, so
+ * it stays filter-only and every filter hit against it HOLDS (charged to ownread_conserv). */
+#define CS_EXACT_KEYS_MAX 16
+
+/* One completed-but-not-yet-published group's key set, COPIED off the group at the moment it
+ * leaves the connection's R1 FIFO (csMsetPopComplete) and dropped when its pending count is
+ * decremented (csMsetPubRetire). Between those two points the group is invisible to the FIFO
+ * walk while it still counts as pending, and the walk used to have no choice but to hold; this
+ * record is what lets it answer exactly instead. It is a COPY, not a pointer: csReassemble
+ * frees the group (and csgFree()s g->key_h) as soon as the head's reply slot is published,
+ * which happens INSIDE that window.
+ *
+ * `tag` is the group's address, kept for identity only — the record is retired in FIFO order
+ * and the tag asserts that discipline. It is NEVER dereferenced: by then the group may be gone. */
+typedef struct csPubRec {
+    uintptr_t tag;                    /* the csGroup this record stands for; compare, never deref */
+    uint64_t key_sig;                 /* copy of csGroup.key_sig */
+    int key_h_n;                      /* copy of csGroup.key_h_n; 0 => filter-only (conservative) */
+    uint64_t key_h[CS_EXACT_KEYS_MAX];/* copy of csGroup.key_h[0..key_h_n) */
+} csPubRec;
+
+/* FIFO ring of the above, one per connection that has ever registered an atomic group (lazily
+ * allocated in csMsetRegister, so a server with tomokv-atomic off never allocates one).
+ *
+ * SIZED FROM THE STRUCTURAL BOUND, not from a guess. Every registered group owns a fake-ring
+ * slot from dispatch until csReassemble, and the pending-count decrement happens BEFORE that
+ * reassembly, so
+ *     concurrently detached <= mset_pending_count <= dispatchid - flushid
+ *                           <= c->ring_size <= server.pipeline_ring_depth <= 32,
+ * where tomokv-pipeline-depth is IMMUTABLE_CONFIG and therefore fixed boot->shutdown. Rounding
+ * that up to a power of two makes the ring provably impossible to overflow, at a cost of
+ * (depth * 152) bytes for a connection whose fake ring already holds `depth` fakes with a 16KB
+ * reply buffer each — i.e. ~1% of the ring it is sized from.
+ *
+ * Overflow nevertheless remains SAFE and self-healing, and the check stays: a group that finds
+ * the ring full gets no record, the walk then sees pending > (linked + recorded) and takes the
+ * same conservative hold it always took, counted in ownread_conserv. That arm is now unreachable
+ * by the argument above, which makes any non-zero conserv on a plain MGET/MSET cell a report
+ * that the argument is wrong — the cheap insurance, same as the retire's tag assert. */
+typedef struct csMsetPub {
+    unsigned int head, tail;          /* FIFO cursors; (tail - head) records live, wrap is fine */
+    unsigned int mask;                /* capacity - 1; capacity is a power of two >= pipeline depth */
+    csPubRec rec[];                   /* [mask + 1] */
+} csMsetPub;
+
 struct tomoUringClient;
 typedef struct client client;
 
@@ -1764,6 +1812,10 @@ typedef struct client {
     redisAtomic int mset_read_waiting;           /* worker-to-owner-event-loop wake handshake */
     struct csGroup *mset_pending_head;
     struct csGroup *mset_pending_tail;
+    /* Key sets of this connection's groups that have left the FIFO but not yet decremented
+     * mset_pending_count (see csMsetPub). NULL until this connection registers its first atomic
+     * group; freed with reply_cdb in freeClient, and protected by the same in-flight deferral. */
+    struct csMsetPub *mset_pub;
     uint64_t tomo_read_snapshot;
     unsigned int tomo_read_snapshot_pinned;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
@@ -2118,7 +2170,10 @@ typedef struct csGroup {
      *                     the commit point; it is written only after every slot is filled, so a
      *                     half-built vector reads as "no vector" (hold) and never as "disjoint".
      * Storage lives in this group's own allocation (inline bump region, heap only if it spilled)
-     * and is written once, on the head's IO thread, before csMsetRegister publishes g. */
+     * and is written once, on the head's IO thread, before csMsetRegister publishes g. It is
+     * therefore reachable exactly as long as the group is LINKED in the FIFO: csMsetPopComplete
+     * copies key_sig/key_h into a connection-owned csPubRec on the way out, because past that
+     * point csReassemble may free this whole allocation at any moment. */
     uint64_t *key_h;           /* [key_h_n] full tomo key hashes of the written keys */
     int key_h_n;               /* 0 => filter-only (conservative); see above */
     uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */

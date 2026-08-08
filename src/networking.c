@@ -187,6 +187,7 @@ static void resetFakeClientState(client *c, client *parent) {
      * per-key sub (csparent) until dispatchCrossShard sets it. */
     c->csgroup = NULL;
     c->csparent = NULL;
+    c->mset_pub = NULL;   /* R1 FIFO state is real-client-only; never leave a fake a stale pointer */
     c->cssub_idx = 0;
     c->is_flush = 0;
     c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
@@ -550,6 +551,7 @@ client *createClient(connection *conn) {
     atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_relaxed);
     c->mset_pending_head = NULL;
     c->mset_pending_tail = NULL;
+    c->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
@@ -2691,6 +2693,10 @@ void freeClient(client *c) {
             }
         }
         if (c->reply_cdb) { zfree(((void **)c->reply_cdb)[-1]); c->reply_cdb = NULL; }   /* #75: free heap reply buses */
+        /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
+         * reply buses: a worker retiring a group touches both (csMsetPubRetire, cdbSlotPublish),
+         * and the ring-in-flight deferral above is what guarantees no worker still can. */
+        if (c->mset_pub) { zfree(c->mset_pub); c->mset_pub = NULL; }
     }
 
     /* We need to unbind connection of client from io thread event loop first. */
