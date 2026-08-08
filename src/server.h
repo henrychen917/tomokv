@@ -2106,6 +2106,7 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
+    uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
     uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
     uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */

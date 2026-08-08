@@ -328,13 +328,9 @@ static void tomoAtomicParkWindowClient(client *c) {
 static void tomoAtomicParkPendingRead(client *c) {
     tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
-    /* Missed-wakeup closure, same hazard the window park documents: the commit that zeroes this
-     * client's pending count fires its wake ONLY if it observes mset_read_waiting — and that wake
-     * can land BEFORE we are enrolled here, finding an empty parked list and being consumed for
-     * nothing. If the count is already zero by the time we are enrolled, that commit (and its wake)
-     * may already be behind us, so self-wake to force a release pass; it finds us listed and ready.
-     * When the count is still nonzero the future commit's wake will find us enrolled — no self-wake
-     * needed, so the common path stays syscall-free. */
+    /* The hold-side post-enrollment overlap check closes the selective-wait missed-wakeup race.
+     * Keep the original zero-count self-wake too: it is a cheap fast confirmation when the last
+     * pending group retired between the pre-park check and waiter enrollment. */
     if (atomic_load_explicit(&c->mset_pending_count, memory_order_acquire) == 0)
         tomoAtomicWakeProducer(iotid);
 }
@@ -362,7 +358,10 @@ static void tomoAtomicReleaseStalledClients(void) {
         while ((ln = listNext(&li)) != NULL) {
             client *candidate = listNodeValue(ln);
             if (candidate->flags & CLIENT_ATOMIC_PENDING_STALLED) {
-                if (atomic_load_explicit(&candidate->mset_pending_count,
+                /* A publishing group clears this marker and wakes the producer. Re-drive the
+                 * command even if disjoint groups remain: the overlap filter, not total FIFO
+                 * emptiness, decides whether this particular read must park again. */
+                if (atomic_load_explicit(&candidate->mset_read_waiting,
                                          memory_order_acquire) == 0) {
                     c = candidate;
                     break;
@@ -8797,7 +8796,8 @@ static void csMsetRegister(csGroup *g) {
     g->versioned_write = 1;
     g->version_seq = TOMO_VERSION_UNCOMMITTED;
     g->mset_client = real;
-    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0);
+    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0 &&
+                 g->key_sig != 0);
 
     csMsetPendingLock(real);
     g->mset_pending_prev = real->mset_pending_tail;
@@ -8926,20 +8926,86 @@ static inline int csMsetHeadComplete(client *real) {
     return complete;
 }
 
-/* Dispatch-side RYOW gate. pending_count deliberately remains nonzero after
- * the linked FIFO entry is popped and until commit_seq is release-published.
- * Publish the waiter marker before the confirming load: if the last commit
- * wins that race it observes the marker and notifies us; if it won earlier the
- * acquire load observes zero and this read can continue without parking. */
+static inline uint64_t csHashSignature(uint64_t h) {
+    return 1ULL << (h & 63);
+}
+
+static inline uint64_t csKeySignature(robj *key) {
+    return csHashSignature(tomoKeyHash(key->ptr, sdslen(key->ptr)));
+}
+
+/* Destination-only atomic shapes hash their one written key at registration and carry the
+ * resulting bucket on the existing group-head hash cache. HOP2 re-reads only the mutable
+ * bucket->owner table after a migration hold; it does not hash the destination bytes again. */
+static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
+    uint64_t h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
+    g->key_sig = csHashSignature(h);
+    g->head->tomo_key_h = h;
+    g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
+    g->head->tomo_bkt_ptr = dst->ptr;
+}
+
+/* The pending command's key result is already prepared by dispatch preprocessing. Unknown
+ * keyspace/dynamic-key reads conservatively select every bit: false positives only retain the
+ * old hold, while a missing read bit could violate RYOW. */
+static uint64_t csOwnReadSignature(client *real) {
+    if (real->cmd->proc == keysCommand || real->cmd->proc == sortCommand ||
+        real->cmd->proc == sortroCommand)
+        return UINT64_MAX;
+
+    getKeysResult *keys = getClientCachedKeyResult(real);
+    if (!keys || keys->numkeys <= 0) return UINT64_MAX;
+    uint64_t sig = 0;
+    for (int i = 0; i < keys->numkeys; i++) {
+        int pos = keys->keys[i].pos;
+        if (pos <= 0 || pos >= real->argc || !real->argv[pos] ||
+            !sdsEncodedObject(real->argv[pos]))
+            return UINT64_MAX;
+        sig |= csKeySignature(real->argv[pos]);
+    }
+    return sig;
+}
+
+/* Walk the connection-local R1 FIFO under its existing lock. A completed head is briefly
+ * detached before commit_seq publication while pending_count intentionally stays nonzero; if
+ * such a group exists its signature is no longer reachable, so conservatively hold until that
+ * publication finishes. This preserves the no-false-negative rule without widening the FIFO. */
+static int csMsetReadIntersects(client *real, uint64_t read_sig) {
+    unsigned int linked = 0;
+    int intersects = 0;
+    csMsetPendingLock(real);
+    for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+        linked++;
+        if (read_sig & g->key_sig) {
+            intersects = 1;
+            break;
+        }
+    }
+    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
+                                                 memory_order_acquire);
+    csMsetPendingUnlock(real);
+    return intersects || pending > linked;
+}
+
+/* Dispatch-side RYOW gate. Hash only after the zero-pending fast path, then hold iff this read's
+ * key signature intersects a group in its own short R1 FIFO. Publish the waiter marker before the
+ * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race. */
 static int csMsetHoldOwnRead(client *real) {
     if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
         return 0;
+    uint64_t read_sig = csOwnReadSignature(real);
+    if (!csMsetReadIntersects(real, read_sig)) return 0;
+
     atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
-    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0) {
+    if (!csMsetReadIntersects(real, read_sig)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         return 0;
     }
     tomoAtomicParkPendingRead(real);
+    if (!csMsetReadIntersects(real, read_sig)) {
+        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        tomoAtomicWakeProducer(real->tid);
+    }
     return 1;
 }
 
@@ -9059,8 +9125,9 @@ static void csMsetInstallDone(csGroup *g) {
         unsigned int before = atomic_fetch_sub_explicit(&hp->mset_pending_count, 1,
                                                         memory_order_release);
         serverAssert(before > 0);
-        if (before == 1 &&
-            atomic_exchange_explicit(&hp->mset_read_waiting, 0,
+        /* A selective read may become runnable while unrelated groups remain. Wake on every
+         * publication; processCommand's FIFO signature scan decides whether it must park again. */
+        if (atomic_exchange_explicit(&hp->mset_read_waiting, 0,
                                      memory_order_acq_rel))
             tomoAtomicWakeProducer(hp->tid);
     }
@@ -11280,6 +11347,9 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     memset(cnt, 0, sizeof(int) * nw);
     int wof_stk[128];
     int *wof = (nkeys <= 128) ? wof_stk : zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
+    int register_bag = g->mset_installs && !g->versioned_write &&
+                       (g->ctype == CS_MSET || g->ctype == CS_DEL ||
+                        g->ctype == CS_MSETNX);
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
         /* FIX (task #48): the `spec->cs_write &&` conjunct used to let cross-shard multi-key READS
@@ -11292,7 +11362,9 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
          * state. Spinning in place has no such window. */
         if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
-        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
+        int w = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
+        if (register_bag) g->key_sig |= csHashSignature(h);
         wof[i] = w; cnt[w]++;
     }
     int nsub = 0;
@@ -11328,6 +11400,9 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
+    /* Registration remains before every owner publication, but now follows the routing pass so
+     * MSET values and DEL tombstones reuse that pass's full hashes for their complete signature. */
+    if (register_bag) csMsetRegister(g);
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
@@ -11340,9 +11415,11 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
  * stamp/cancel arrives on the already-existing owner lane and is drained
  * before the retried normal job. */
 static int csMsetnxAdvanceReservations(csGroup *g) {
-    if (!g->versioned_write || g->ctype != CS_MSETNX ||
+    if (!g->mset_installs || g->ctype != CS_MSETNX ||
         !csMsetnxHasPendingPosition(g))
         return 0;
+
+    int register_group = !g->versioned_write;
 
     if (g->subs) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
@@ -11369,7 +11446,9 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
                                                   memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
-        owners[i] = exIndexForKey(key->ptr, sdslen(key->ptr));
+        uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
+        owners[i] = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
+        if (register_group) g->key_sig |= csHashSignature(h);
         if (owners[i] < target) target = owners[i];
     }
     serverAssert(target >= 0 && target < server.num_workers);
@@ -11405,6 +11484,9 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     serverAssert(fill == count);
     g->subs[0] = sub;
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+    /* The first reservation routing pass covers every MSETNX position (including duplicate
+     * keys), registers the completed signature, then publishes its first owner wave. */
+    if (register_group) csMsetRegister(g);
     csPushSpin(target, sub);
     if (owners != owner_stk) zfree(owners);
     return 1;
@@ -11470,7 +11552,8 @@ static int csAtomicNxAdvance(csGroup *g) {
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
                                                   memory_order_relaxed),0))
             migHoldKeyIfDraining(key);
-        int shard = exIndexForKey(key->ptr,sdslen(key->ptr));
+        serverAssert(head->tomo_bkt_ptr == (const void *)key->ptr);
+        int shard = (int)server.ex_bucket_table[head->tomo_bkt];
         g->nsub = 1;
         g->subs = csgAlloc(g,sizeof(client *));
         atomic_store_explicit(&g->pending,1,memory_order_relaxed);
@@ -11566,6 +11649,8 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->version_install_expected = 1;
         g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
+        serverAssert(s->dst_argi > 0);
+        csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
         csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
     }
     g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
@@ -12127,6 +12212,9 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * if tomokv-atomic flips before group creation, and a command admitted
      * while OFF cannot bypass a newly-enabled finite window. */
     int atomic_write = atomic_admission != 0;
+    int atomic_bag = atomic_write &&
+                     (s->ctype == CS_MSET || s->ctype == CS_DEL ||
+                      s->ctype == CS_MSETNX);
     int atomic_snapshot = head->tomo_read_snapshot_pinned &&
                           (atomic_write || s->ctype == CS_MGET ||
                            s->ctype == CS_EXISTS || s->ctype == CS_PFCOUNT);
@@ -12251,7 +12339,14 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
                                        (size_t)version_expected);
         if (atomic_msetnx)
             g->msetnx_state = csgCalloc(g, (size_t)nkeys);
-        csMsetRegister(g);
+        /* MSET/DEL/MSETNX accumulate their signature in the same routing-hash pass that builds
+         * the first owner wave, then register immediately before its first push. Every other
+         * atomic GATHER shape writes only the declared store destination. */
+        if (!atomic_bag) {
+            serverAssert(s->dst_argi > 0);
+            csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
+            csMsetRegister(g);
+        }
     } else {
         serverAssert(!atomic_admission);
     }
@@ -12300,6 +12395,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     if (atomic_msetnx)
         head->parent->cs_barrier = 1;   /* later owner waves also launch from the drain thread */
     if (!coalesce) {
+        serverAssert(!atomic_bag);  /* all three bag rows are CS_CO_ALWAYS */
         /* THE one copy of the legacy per-key loop (was duplicated verbatim in
          * dispatchCrossShard and dispatchSetOp). */
         g->nsub = nkeys;
@@ -12317,7 +12413,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     }
     if (atomic_msetnx) {
         /* Reservation acquisition is an owner-ordered sequence of normal
-         * queue waves. The group was registered in R1 before this first push. */
+         * queue waves. The first routing pass registers R1 before its push. */
         serverAssert(csMsetnxAdvanceReservations(g));
         return;
     }
@@ -12941,6 +13037,9 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->version_install_expected = 1;
         g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
+        int dst_argi = s->dynamic_dst_argi(head);
+        serverAssert(dst_argi > 0 && dst_argi < head->argc);
+        csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
         csMsetRegister(g);
     }
     head->parent->cs_barrier = 1;
@@ -13037,6 +13136,13 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
         g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
                                        (size_t)g->version_install_expected);
         if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
+        /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
+         * source tombstone. Reuse the two routing buckets already computed above. */
+        g->key_sig = csHashSignature((uint64_t)dst_bkt);
+        if (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX)
+            g->key_sig |= csHashSignature((uint64_t)src_bkt);
+        head->tomo_bkt = dst_bkt;
+        head->tomo_bkt_ptr = dst->ptr;
         csMsetRegister(g);       /* before source snapshot reads or destination reservation */
     }
 
@@ -13390,7 +13496,12 @@ static int csLaunchHop2(csGroup *g) {
     for (int i = 0; i < n; i++) {
         robj *key = head->argv[g->h2sub[i].key_argi];
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
-        shards[i] = exIndexForKey(key->ptr, sdslen(key->ptr));    /* re-route AFTER the hold */
+        /* Destination-only atomic registrations already hashed their written key to build
+         * key_sig. Reuse the carried bucket and only re-read its owner after the hold. */
+        shards[i] = g->versioned_write &&
+                    head->tomo_bkt_ptr == (const void *)key->ptr
+                    ? (int)server.ex_bucket_table[head->tomo_bkt]
+                    : exIndexForKey(key->ptr, sdslen(key->ptr));  /* re-route AFTER the hold */
         client *sub = csMakeSub(g, i, shards[i], dbid);
         if (csIsMpopType(g->ctype)) {
             /* step 9: rewrite to the single-key NON-blocking form the worker's real proc
@@ -13882,6 +13993,7 @@ static void csReassemble(client *dst, client *head) {
         if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
             tomoAtomicWakeAll();
     }
+    head->tomo_bkt_ptr = NULL;  /* group heads do not pass through exExecFake's stale-hint clear */
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
 }
