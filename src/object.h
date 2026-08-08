@@ -127,6 +127,7 @@ typedef enum tomoRetireState {
 
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
+    _Atomic(struct redisObject *) committed_head;
     uint32_t version_order;
     uint8_t version_tombstone;
     uint8_t version_reservation;
@@ -135,6 +136,7 @@ struct tomoVerMeta {
     uint8_t detached;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
+    struct redisObject *committed_prev;
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
@@ -203,36 +205,40 @@ static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
     __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
 }
 
-/* I2: the physical chain is an install-ordered bag. Resolve it without making
- * any assumption about chain order: among committed versions visible at S,
- * the greatest (seq,install_order) wins. A vmeta-free tail is the pre-epoch
+static inline kvobj *kvobjCommittedPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
+}
+
+/* I2: the physical chain remains an install-ordered bag. Its head metadata
+ * carries the per-key committed cursor, whose separate predecessor links are
+ * ordered by (seq,install_order). The cursor's acquire pairs with the owner's
+ * release after stamp application, so a current snapshot returns its winner
+ * without visiting the uncommitted physical prefix. Only an old snapshot
+ * walks down the committed-order chain. A vmeta-free member is the pre-epoch
  * value (implicit seq 0); no winner, or a tombstone winner, means absent. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    kvobj *best = NULL;
-    uint64_t best_seq = 0;
-    uint32_t best_order = 0;
+    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
+    if (!head_meta) return kv;
+
+    kv = atomic_load_explicit(&head_meta->committed_head,
+                              memory_order_acquire);
+    struct tomoVerMeta *vmeta = NULL;
     while (kv) {
-        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-        if (!vmeta) {
-            if (!best) best = kv;
-            break;
-        }
+        vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
         uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
-                                             memory_order_acquire);
-        if (seq != TOMO_VERSION_UNCOMMITTED && seq <= snapshot &&
-            (!best || seq > best_seq ||
-             (seq == best_seq && vmeta->version_order > best_order))) {
-            best = kv;
-            best_seq = seq;
-            best_order = vmeta->version_order;
-        }
-        kv = __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+                                            memory_order_acquire);
+        if (seq <= snapshot) break;
+        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
     }
-    if (best) {
-        struct tomoVerMeta *vmeta = kvobjVmeta(best);
-        if (vmeta && vmeta->version_tombstone) return NULL;
-    }
-    return best;
+    if (kv && vmeta && vmeta->version_tombstone) return NULL;
+    return kv;
 }
 
 /* Redis object implementation */

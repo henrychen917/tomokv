@@ -444,6 +444,17 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    kvobj *committed_head = NULL;
+    if (version_prev) {
+        struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
+        committed_head = prev_meta ?
+            atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
+            version_prev;
+    }
+    /* The new physical head inherits the per-key cursor before its vmeta/table
+     * publication. Cursor movement remains confined to owner stamp/retire. */
+    atomic_store_explicit(&vmeta->committed_head, committed_head,
+                          memory_order_release);
     vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
                          TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
     vmeta->retire_state = TOMO_RETIRE_ACTIVE;
@@ -824,10 +835,49 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
     serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+
+    /* The owner lane is the sole cursor mutator. Locate the current physical
+     * head so installs need only inherit its authoritative per-key cursor. A
+     * detached bag is no longer reader-resolvable and needs no cursor move. */
+    kvobj *head = NULL;
+    struct tomoVerMeta *head_meta = NULL;
+    if (!vmeta->detached) {
+        sds key = kvobjGetKey(kv);
+        int slot = getKeySlot(key);
+        dictEntryLink link = kvstoreDictFindLink(vmeta->version_kvs, slot,
+                                                  key, NULL);
+        serverAssert(link != NULL);
+        head = dictGetKV(*link);
+        head_meta = kvobjVmeta(head);
+        serverAssert(head_meta != NULL);
+    }
+
+    kvobj *committed_head = head_meta ?
+        atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
+        NULL;
+    if (committed_head) {
+        struct tomoVerMeta *committed_meta = kvobjVmeta(committed_head);
+        uint64_t committed_seq = committed_meta ?
+            atomic_load_explicit(&committed_meta->version_seq,
+                                 memory_order_acquire) : 0;
+        uint32_t committed_order = committed_meta ? committed_meta->version_order : 0;
+        /* Completion sequence is monotonic on an owner's stamp lane; equal
+         * sequences are duplicate-key installs arriving in install order. */
+        serverAssert(version_seq > committed_seq ||
+                     (version_seq == committed_seq &&
+                      vmeta->version_order > committed_order));
+    }
+    kvobjSetCommittedPrev(kv, committed_head);
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
+
+    if (head_meta) {
+        /* Publish the cursor only after the predecessor and stamp release. */
+        atomic_store_explicit(&head_meta->committed_head, kv,
+                              memory_order_release);
+    }
 }
 
 /* MSETNX cancellation uses the same owner lane as stamping. A canceled
@@ -937,6 +987,10 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
     serverAssert(link != NULL);
     kvobj *head = dictGetKV(*link);
+    struct tomoVerMeta *head_meta = kvobjVmeta(head);
+    serverAssert(head_meta != NULL);
+    kvobj *committed_head = atomic_load_explicit(&head_meta->committed_head,
+                                                  memory_order_acquire);
     uint64_t visible = tomoCommittedSeq();
     int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
     /* A committed callback proves a grace only for its own frontier. A newer
@@ -992,6 +1046,29 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         }
         kv = next;
     }
+
+    /* Remove reclaimed members from the committed-order chain. Physical
+     * retirement marks versioned members before this pass; a committed prune
+     * also always retires the implicit-seq-0 raw tail. Stores to survivor
+     * links precede the release publication of the repaired cursor. */
+    if (!cancel_anchor) {
+        kvobj *new_committed_head = NULL, *committed_previous = NULL;
+        for (kv = committed_head; kv; ) {
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            kvobj *next = vmeta ? kvobjCommittedPrev(kv) : NULL;
+            int survives = vmeta && vmeta->retire_state != TOMO_RETIRE_PHYSICAL;
+            if (survives) {
+                if (!new_committed_head) new_committed_head = kv;
+                if (committed_previous)
+                    kvobjSetCommittedPrev(committed_previous, kv);
+                committed_previous = kv;
+            }
+            kv = next;
+        }
+        if (committed_previous)
+            kvobjSetCommittedPrev(committed_previous, NULL);
+        committed_head = new_committed_head;
+    }
     /* A reservation that created an absent key can be the bag's last member.
      * SetAtLink(NULL) is not a delete operation for FLAT stores: it would
      * expose a reusable tomb before the follow-up unlink. Route the empty-bag
@@ -1008,6 +1085,12 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
         return;
     }
+    struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
+    if (newhead_meta)
+        atomic_store_explicit(&newhead_meta->committed_head, committed_head,
+                              memory_order_release);
+    else
+        serverAssert(committed_head == newhead);
     if (newhead != head)
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
 
@@ -1067,6 +1150,11 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
+            /* The cursor follows the sole committed value into the raw-head
+             * fast path; stale metadata readers retain a valid self cursor
+             * until its existing retire grace completes. */
+            atomic_store_explicit(&vmeta->committed_head, sole_committed,
+                                  memory_order_release);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
             kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);
