@@ -251,6 +251,35 @@ static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; 
 _Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
 
+/* wakecoal: retire-side wake coalescing state, one line per io-capable slot.
+ *
+ * The retire hot path (csReassemble, ~629k/s with the window binding) used to do one
+ * unconditional eventfd write(2) PER SLOT PER RETIRE whenever any waiter existed anywhere —
+ * ~2.5-3M syscalls/s of pure IO-thread waste. Retires now (a) skip slots with no parked
+ * clients (`waiters`, mirrored from the per-tid parked list at enroll/drop) and (b) post at
+ * most one wake per slot per release pass (`wake_armed` edge trigger: CAS 0->1, write the
+ * eventfd only on the winning CAS; the slot owner re-arms by clearing at the TOP of its
+ * release pass, before it scans).
+ *
+ * Placement: NOT in tm_mig_mbox — its leading line carries inbox_n/notifier, which the owner
+ * reads every beforeSleepIO pass, and a producer-CAS'd byte there would ping-pong that line.
+ * Instead one dedicated line per slot holding exactly the two words the retire path touches:
+ * `waiters` (owner-written at enroll/drop, retirer-read) and `wake_armed` (retirer-CAS'd,
+ * owner-cleared) share the line deliberately — a retirer's gate is one line fetch, and the
+ * owner's enroll/drop invalidations are precisely the events that change the gate's answer.
+ * The TTAS shape below (load-then-CAS) keeps the already-armed common case a shared read, so
+ * concurrent retirers do not bounce the line while a wake is pending. */
+typedef struct tomoAtomicWakeSlot {
+    _Atomic int waiters;      /* clients enrolled on this slot's parked list (owner thread
+                               * writes at enroll/drop; retiring threads read, fenced) */
+    _Atomic char wake_armed;  /* 1 = a retire-side eventfd wake is posted and no release pass
+                               * has consumed it yet (every 1-store is followed, same call
+                               * stack, by triggerEventNotifier on this slot) */
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic int) - sizeof(_Atomic char)];
+} tomoAtomicWakeSlot;
+static tomoAtomicWakeSlot tomo_atomic_wake[TOMO_IO_THREADS_MAX + 1]
+    __attribute__((aligned(CACHE_LINE_SIZE)));
+
 uint64_t tomoCommittedSeq(void) {
     return atomic_load_explicit(&commit_seq, memory_order_acquire);
 }
@@ -282,6 +311,71 @@ static void tomoAtomicWakeAll(void) {
     int hi = server.io_threads + server.tm_ngrow_io - 1;
     if (hi > TOMO_IO_THREADS_MAX) hi = TOMO_IO_THREADS_MAX;
     for (int t = 0; t <= hi; t++) tomoAtomicWakeProducer(t);
+}
+
+/* wakecoal: the RETIRE-path replacement for tomoAtomicWakeAll. Only csReassemble's versioned-
+ * group retirement goes through here; the control-plane caller (tomoAtomicWindowChanged, knob
+ * writes) keeps the unconditional fan-out — it is rare and must never depend on dedup state.
+ * Per slot: skip if no client is parked there, then edge-trigger — CAS wake_armed 0->1 and pay
+ * the eventfd write(2) only on the winning CAS. The slot owner clears wake_armed at the top of
+ * tomoAtomicReleaseStalledClients, BEFORE it scans (clear-before-scan), which is the whole
+ * protocol: at least one wake is posted after the last drain began its scan.
+ *
+ * LIVENESS ("a parked client must never sleep forever") — the three races:
+ *
+ *  [1] RETIRE-BEFORE-ENROLL. A retire's fenced reads run before the parker's enrollment is
+ *      visible (global waiters stale-0, or waiters[t] stale-0, so the slot is skipped). Covered
+ *      OUTSIDE this function by tomoAtomicParkWindowClient's unconditional self-wake (kept, do
+ *      not remove): the self-posted eventfd forces a release pass on the owner that starts
+ *      strictly after enrollment (same thread), so that pass re-reads the window. If THAT pass
+ *      still finds the window full, some group had not retired yet from its viewpoint, and the
+ *      race reduces to [3] against whichever retire comes after: the pass's clear+fence pairs
+ *      with the retire's fetch_sub+fence, so the later retire cannot ALSO miss the (by now
+ *      fence-ordered) waiters/waiters[t] increments it needs to see.
+ *
+ *  [2] RETIRE-DURING-SCAN. The owner cleared wake_armed and is mid-pass; its window_open
+ *      evaluation already read a pre-decrement inflight, so the current pass may legitimately
+ *      conclude "still full" and park everyone again. The racing retire then reads
+ *      wake_armed==0 — the owner cleared it BEFORE scanning — so its CAS 0->1 succeeds and a
+ *      FRESH eventfd wake follows the current pass, which re-reads the now-open window. This is
+ *      exactly why the clear must be at the top: clearing AFTER the scan would let this
+ *      retire's CAS fail against the stale armed=1 that triggered the current pass, and the
+ *      pass would then wipe that armed bit on its way out — wake lost, client parked forever.
+ *
+ *  [3] LAST-GROUP-RETIRE (Dekker/store-buffer pair on {inflight, wake_armed}). Producer order:
+ *      fetch_sub(inflight); seq_cst fence; load waiters / waiters[t] / wake_armed. Consumer
+ *      order: store wake_armed=0; seq_cst fence; load inflight (first loop iteration). The two
+ *      seq_cst fences forbid the both-stale outcome: the retire missing the consumer's clear
+ *      (reading armed==1 and skipping the wake) WHILE the consumer misses the decrement
+ *      (reading the window as still full and returning). So either the CAS succeeds and a wake
+ *      is in flight, or the concurrent pass itself observes the open window and releases.
+ *      Induction closing the loop: wake_armed[t]=1 is ONLY ever stored by a CAS winner that
+ *      posts the eventfd on the same call stack, so once a parked client's post-enroll pass has
+ *      run, armed==1 always implies another release pass is coming, and every pass re-arms the
+ *      edge before scanning.
+ *
+ * Stale-armed footnote: a pass that early-returns on global waiters==0 leaves wake_armed
+ * possibly 1 with no wake pending. Harmless: waiters==0 on the owner implies waiters[t]==0
+ * (enroll/drop are owner-thread-only, so its own count is exact), retires gate off the slot by
+ * the count, and the next enroll's self-wake pass (waiters!=0 then) clears armed before its
+ * scan — the [1]/[2] protocol re-establishes the invariant. */
+static void tomoAtomicWakeRetire(void) {
+    int hi = server.io_threads + server.tm_ngrow_io - 1;
+    if (hi > TOMO_IO_THREADS_MAX) hi = TOMO_IO_THREADS_MAX;
+    for (int t = 0; t <= hi; t++) {
+        tomoAtomicWakeSlot *s = &tomo_atomic_wake[t];
+        if (atomic_load_explicit(&s->waiters, memory_order_relaxed) == 0)
+            continue;   /* nothing parked on this slot's list */
+        if (atomic_load_explicit(&s->wake_armed, memory_order_relaxed) != 0)
+            continue;   /* wake already in flight; owner has not re-armed yet (TTAS: keep the
+                         * line shared instead of CAS-bouncing it on every retire) */
+        char expected = 0;
+        if (atomic_compare_exchange_strong_explicit(&s->wake_armed, &expected, 1,
+                                                    memory_order_relaxed,
+                                                    memory_order_relaxed))
+            tomoAtomicWakeProducer(t);
+        /* Lost CAS: a concurrent retire armed it and is posting the wake — coalesced. */
+    }
 }
 
 void tomoAtomicWindowChanged(void) {
@@ -316,6 +410,11 @@ static void tomoAtomicDropWaiter(client *c) {
     c->atomic_window_parked_node = NULL;
     int old = atomic_fetch_sub_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
     serverAssert(old > 0);
+    /* wakecoal: per-slot mirror of the list length, read by retiring threads to skip slots
+     * with nothing parked. Same sites as the global count, so they can never disagree. */
+    int told = atomic_fetch_sub_explicit(&tomo_atomic_wake[tid].waiters, 1,
+                                         memory_order_relaxed);
+    serverAssert(told > 0);
 }
 
 void tomoAtomicUnstallClient(client *c) {
@@ -333,6 +432,13 @@ static void tomoAtomicEnrollWaiter(client *c) {
         c->atomic_window_parked_node =
             listLast(server.clients_atomic_window_parked[iotid]);
         atomic_fetch_add_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
+        /* wakecoal: publish presence for the retire-side per-slot skip. Relaxed is enough on
+         * this side: the parker's unconditional self-wake (below) covers a retire that misses
+         * this increment, and after the self-woken pass the release scan's seq_cst fence
+         * Dekker-pairs this store against the retire-side fenced load (race [1] -> [3] in the
+         * tomoAtomicWakeRetire liveness block). */
+        atomic_fetch_add_explicit(&tomo_atomic_wake[iotid].waiters, 1,
+                                  memory_order_relaxed);
     }
 }
 
@@ -361,6 +467,28 @@ static void tomoAtomicParkPendingRead(client *c) {
  * shared list after every client. */
 static void tomoAtomicReleaseStalledClients(void) {
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
+    /* wakecoal consumer side, clear-BEFORE-scan: re-arm the retire-wake edge FIRST, so a
+     * retire racing this pass either lands its decrement where the scan below sees it, or
+     * finds armed==0 and posts a fresh wake that runs a fresh pass (races [2]/[3] in the
+     * tomoAtomicWakeRetire block; clearing after the scan would eat wakes posted mid-pass).
+     * The TTAS-shaped clear keeps the waiters-elsewhere-only case a shared read on this line
+     * (retirers poll waiters[t]/armed[t] on it every retire; an unconditional store here would
+     * force them to re-fetch it every pass). Skipping the store on a stale-0 read cannot
+     * strand armed=1 without a wake in flight: armed goes 0->1 only via a CAS sequenced before
+     * that winner's eventfd write(2), and the pass which that wake triggers runs after the
+     * consumer's eventfd read — the syscall pair's acquire/release chain makes the CAS visible
+     * to it, so the wake-consuming pass always reads armed==1 and clears; earlier racing
+     * passes that read 0 leave that wake in flight. The fence
+     * is unconditional: it is the consumer half of BOTH Dekker pairs — {wake_armed vs inflight}
+     * here, and {waiters[t] enroll (earlier, same thread) vs inflight} for the post-enroll
+     * self-woken pass — and must sit before the loop's first inflight load. The waiters==0
+     * early-return above never skips a needed clear: enroll/drop run only on the owning
+     * thread, so a zero global count on this thread proves this slot's list is empty. */
+    if (atomic_load_explicit(&tomo_atomic_wake[iotid].wake_armed,
+                             memory_order_relaxed) != 0)
+        atomic_store_explicit(&tomo_atomic_wake[iotid].wake_armed, 0,
+                              memory_order_relaxed);
+    atomic_thread_fence(memory_order_seq_cst);
     list *l = server.clients_atomic_window_parked[iotid];
     while (l && listLength(l) != 0) {
         int window = 0;
@@ -14028,10 +14156,17 @@ static void csReassemble(client *dst, client *head) {
          * waiters load above the fetch_sub, legalizing a lost wakeup (last-group retire skips the
          * wake while the parker's release pass saw the pre-decrement count => parked forever on an
          * idle thread). x86's locked RMW happened to save it; the fence makes it a guarantee. The
-         * park side needs none — it self-wakes unconditionally after enrolling. */
+         * park side needs none — it self-wakes unconditionally after enrolling.
+         * wakecoal: the fence now also orders the per-slot waiters[t]/wake_armed loads inside
+         * tomoAtomicWakeRetire after this fetch_sub — it is the producer half of the second
+         * Dekker pair ({wake_armed, inflight} vs the release pass's clear-then-fence-then-scan),
+         * so it MUST stay between the decrement and the wake fan-out. The coalesced fan-out
+         * replaces the old unconditional per-slot eventfd write (one write(2) per io slot per
+         * retire, ~2.5-3M syscalls/s with the window binding); the knob path
+         * (tomoAtomicWindowChanged) keeps the unconditional tomoAtomicWakeAll. */
         atomic_thread_fence(memory_order_seq_cst);
         if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
-            tomoAtomicWakeAll();
+            tomoAtomicWakeRetire();
     }
     head->tomo_bkt_ptr = NULL;  /* group heads do not pass through exExecFake's stale-hint clear */
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
