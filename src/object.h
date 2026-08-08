@@ -216,12 +216,14 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
 }
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
- * carries the per-key committed cursor, whose separate predecessor links are
- * ordered by (seq,install_order). The cursor's acquire pairs with the owner's
- * release after stamp application, so a current snapshot returns its winner
- * without visiting the uncommitted physical prefix. Only an old snapshot
- * walks down the committed-order chain. A vmeta-free member is the pre-epoch
- * value (implicit seq 0); no winner, or a tombstone winner, means absent. */
+ * carries the per-key committed maximum, whose separate predecessor links are
+ * ordered by descending (seq,install_order). Stamp arrival order is irrelevant:
+ * a newer stamp advances this cursor and an older stamp is inserted into the
+ * history chain. The cursor's acquire pairs with the owner's release after
+ * stamp application, so a current snapshot returns its winner without visiting
+ * the uncommitted physical prefix. Only an old snapshot walks down the
+ * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
+ * seq 0); no winner, or a tombstone winner, means absent. */
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
     struct tomoVerMeta *head_meta = kvobjVmeta(kv);
     if (!head_meta) return kv;

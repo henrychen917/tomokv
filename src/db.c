@@ -855,28 +855,46 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     kvobj *committed_head = head_meta ?
         atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
         NULL;
-    if (committed_head) {
-        struct tomoVerMeta *committed_meta = kvobjVmeta(committed_head);
+
+    /* Sequence draw and publication are ordered, but pushes from completing
+     * workers into this owner's lane need not arrive in that order. Find the
+     * descending (seq,install_order) insertion point. The common monotone case
+     * stops immediately and advances the cursor; an older arrival is linked
+     * into history without moving the cursor backward. */
+    kvobj *committed_previous = NULL, *committed_next = committed_head;
+    while (committed_next) {
+        struct tomoVerMeta *committed_meta = kvobjVmeta(committed_next);
         uint64_t committed_seq = committed_meta ?
             atomic_load_explicit(&committed_meta->version_seq,
                                  memory_order_acquire) : 0;
         uint32_t committed_order = committed_meta ? committed_meta->version_order : 0;
-        /* Completion sequence is monotonic on an owner's stamp lane; equal
-         * sequences are duplicate-key installs arriving in install order. */
-        serverAssert(version_seq > committed_seq ||
-                     (version_seq == committed_seq &&
-                      vmeta->version_order > committed_order));
+        if (version_seq > committed_seq ||
+            (version_seq == committed_seq &&
+             vmeta->version_order > committed_order))
+            break;
+
+        /* A group has one object per install_order, and different groups have
+         * different sequences, so distinct committed objects cannot tie. */
+        serverAssert(version_seq != committed_seq ||
+                     vmeta->version_order != committed_order);
+        committed_previous = committed_next;
+        committed_next = committed_meta ? kvobjCommittedPrev(committed_next) : NULL;
     }
-    kvobjSetCommittedPrev(kv, committed_head);
+
+    kvobjSetCommittedPrev(kv, committed_next);
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
 
     if (head_meta) {
-        /* Publish the cursor only after the predecessor and stamp release. */
-        atomic_store_explicit(&head_meta->committed_head, kv,
-                              memory_order_release);
+        /* Publish only after the new node's predecessor and stamp. MAX
+         * semantics leave an older arrival's committed-head unchanged. */
+        if (committed_previous)
+            kvobjSetCommittedPrev(committed_previous, kv);
+        else
+            atomic_store_explicit(&head_meta->committed_head, kv,
+                                  memory_order_release);
     }
 }
 
@@ -1047,10 +1065,12 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         kv = next;
     }
 
-    /* Remove reclaimed members from the committed-order chain. Physical
-     * retirement marks versioned members before this pass; a committed prune
-     * also always retires the implicit-seq-0 raw tail. Stores to survivor
-     * links precede the release publication of the repaired cursor. */
+    /* Remove reclaimed members from the committed-order chain. This is a
+     * stable filter of the already sorted chain: it neither assumes that the
+     * anchor was the cursor nor that stamps arrived in sequence order.
+     * Physical retirement marks versioned members before this pass; a
+     * committed prune also always retires the implicit-seq-0 raw tail. Stores
+     * to survivor links precede release publication of the repaired maximum. */
     if (!cancel_anchor) {
         kvobj *new_committed_head = NULL, *committed_previous = NULL;
         for (kv = committed_head; kv; ) {

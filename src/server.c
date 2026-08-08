@@ -8747,7 +8747,8 @@ static inline int csStampLane(void) {
 
 /* Owner-op consumption is the only place a version is stamped or canceled.
  * All op kinds are embedded in vmeta, so group reply publication cannot
- * invalidate a queued job. */
+ * invalidate a queued job. The drain runs to empty: stamp order within this
+ * multi-producer lane is unspecified and correctness does not depend on it. */
 static int csStampDrain(exThread *worker) {
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
         return 0;
@@ -19893,11 +19894,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         }
         if (n == 0) continue;
 
-        /* I3 cross-lane fence. A reader's snapshot is acquired before its
-         * normal owner job is published. Every stamp at or below that snapshot
-         * was already published to the reserved lane, so drain it before this
-         * popped batch dereferences a raw head. Coalesced MGET subs arrive on
-         * these same normal owner queues. */
+        /* I3 cross-lane fence. A reader acquires snapshot S before publishing
+         * its normal owner job, while every stamp <= S was published to the
+         * reserved lane before S became visible. The owner drains that whole
+         * lane before executing any popped normal batch, so all such stamps are
+         * applied before the reader can dereference its head. Their intra-lane
+         * order is irrelevant; cursor insertion restores per-key tuple order.
+         * Coalesced MGET subs arrive on these same normal owner queues. */
         if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
             if (!any) ctx->tm_mark = getMonotonicUs();
             if (csStampDrain(worker)) any = 1;
