@@ -192,6 +192,7 @@ void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning p
 static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
+static int csMsetHoldOwnRead(client *c);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op);
@@ -294,10 +295,12 @@ static void tomoAtomicDropWaiter(client *c) {
 void tomoAtomicUnstallClient(client *c) {
     if (!c->atomic_window_parked_node) return;
     tomoAtomicDropWaiter(c);
-    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
+    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
+                  CLIENT_PIPELINE_STALLED);
 }
 
-static void tomoAtomicParkClient(client *c) {
+static void tomoAtomicEnrollWaiter(client *c) {
     if (!c->atomic_window_parked_node) {
         c->atomic_window_parked_tid = iotid;
         listAddNodeTail(server.clients_atomic_window_parked[iotid], c);
@@ -305,6 +308,10 @@ static void tomoAtomicParkClient(client *c) {
             listLast(server.clients_atomic_window_parked[iotid]);
         atomic_fetch_add_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
     }
+}
+
+static void tomoAtomicParkWindowClient(client *c) {
+    tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
     /* Closes the retire-vs-park missed-wakeup race: if a group retired just before waiter
      * publication and therefore saw zero waiters, this event makes the owner recheck the now-open
@@ -312,21 +319,50 @@ static void tomoAtomicParkClient(client *c) {
     tomoAtomicWakeProducer(iotid);
 }
 
-/* Owning-event-loop retry. No worker or IO thread parks: a full-window command remains the head
- * pending command and this sweep admits only while the global CAS reservation succeeds. A retry
- * may consume the last slot (or race another producer and park again), so recheck every client. */
+static void tomoAtomicParkPendingRead(client *c) {
+    tomoAtomicEnrollWaiter(c);
+    c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
+}
+
+/* Owning-event-loop retry. No worker or IO thread parks: the refused command remains the head
+ * pending command. Admission waits recheck the global CAS window; own-write read waits recheck
+ * their post-publication per-client count. A retry may immediately park again, so re-evaluate the
+ * shared list after every client. */
 static void tomoAtomicReleaseStalledClients(void) {
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
     list *l = server.clients_atomic_window_parked[iotid];
     while (l && listLength(l) != 0) {
         int window = 0;
         if (server.tomo_atomic) window = server.tomo_atomic_window;
-        if (window > 0 &&
-            atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) >= window)
-            return;
-        client *c = listNodeValue(listFirst(l));
+        int window_open = window <= 0 ||
+            atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) < window;
+
+        /* The list is shared by the two leave-at-pending-head stalls. Admission
+         * may still be full while an own-write read later in the list is ready,
+         * so find one eligible client instead of stopping at the list head. */
+        client *c = NULL;
+        listIter li;
+        listNode *ln;
+        listRewind(l, &li);
+        while ((ln = listNext(&li)) != NULL) {
+            client *candidate = listNodeValue(ln);
+            if (candidate->flags & CLIENT_ATOMIC_PENDING_STALLED) {
+                if (atomic_load_explicit(&candidate->mset_pending_count,
+                                         memory_order_acquire) == 0) {
+                    c = candidate;
+                    break;
+                }
+            } else if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) && window_open) {
+                c = candidate;
+                break;
+            }
+        }
+        if (!c) return;
+
         tomoAtomicDropWaiter(c);
-        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
+        atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
+                      CLIENT_PIPELINE_STALLED);
         /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
          * have returned. processInputBuffer may free c, so do not touch it after this call. */
         processInputBuffer(c);
@@ -3540,7 +3576,8 @@ void handleWorkerReplies(void) {
          * global rather than ring predicates and stay owned by tomoAtomicReleaseStalledClients;
          * clearing their shared PIPELINE_STALLED bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
-            !(real->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
+            !(real->flags & (CLIENT_ATOMIC_WINDOW_STALLED |
+                             CLIENT_ATOMIC_PENDING_STALLED)) &&
             (real->cs_barrier ? (real->dispatchid == real->flushid)
                               : ((real->dispatchid - real->flushid) < real->ring_size)))
         {
@@ -7336,6 +7373,16 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
+    /* I7 RYOW: an atomic MSET is installed concurrently and becomes visible
+     * only when its connection-ordered completion FIFO commits. Do not let a
+     * following plain GET or MGET draw an older snapshot. Leave the read at
+     * pending_cmds.head and let the owning event loop retry it after the FIFO's
+     * post-publication count reaches zero. */
+    if (__builtin_expect(server.tomo_atomic != 0, 0) &&
+        (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand) &&
+        csMsetHoldOwnRead(c))
+        return C_OK;
+
     /* ORDER-2 (multi-hop pipeline barrier). Same-client pipelined ordering is guaranteed by
      * "same key => same owner queue => FIFO", which holds only because every sub is pushed
      * from THIS loop in client order. A multi-stage cross-shard group (HOP2 plan/scatter, or
@@ -7415,7 +7462,7 @@ int processCommand(client *c) {
                 const csCmdSpec *candidate = csClassify(c);
                 if (candidate && candidate->ctype == CS_MSET) {
                     if (!tomoAtomicMsetTryReserve(window)) {
-                        tomoAtomicParkClient(c);
+                        tomoAtomicParkWindowClient(c);
                         return C_OK;
                     }
                     /* Reuse the classified row only on the bounded arm. Window 0 deliberately
@@ -7461,11 +7508,15 @@ int processCommand(client *c) {
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
-    /* I7 snapshot for every ordinary read path. Publish the IO QSBR pin before
-     * acquiring the frontier, then enqueue the fake/subs below. Retirement's
-     * first grace therefore cannot unlink a version this command may select. */
+    /* I7: only a cross-shard read needs a dispatch-to-reassembly pin so all of
+     * its owner subs retain one snapshot. Single-owner reads linearize on their
+     * owner: lookupKeyReadWithFlags checks vmeta lazily, and the worker's live
+     * flat section already protects the uncommon bag walk. Avoiding an IO pin
+     * for the vmeta-free single-key fast path lets retirement grace advance
+     * under GET-heavy traffic. */
     if (__builtin_expect(server.tomo_atomic != 0, 0) &&
-        fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+        fake->cmd && (fake->cmd->flags & CMD_READONLY) &&
+        (fake->cmd->tomo_route & TOMO_R_CROSS)) {
         flatQsbrRegionEnter();
         fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
         fake->tomo_read_snapshot_pinned = 1;
@@ -8643,6 +8694,7 @@ static void csMsetRegister(csGroup *g) {
     if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
     else real->mset_pending_head = g;
     real->mset_pending_tail = g;
+    atomic_fetch_add_explicit(&real->mset_pending_count, 1, memory_order_release);
     csMsetPendingUnlock(real);
 }
 
@@ -8657,6 +8709,9 @@ static void csMsetPendingRemove(csGroup *g) {
         else real->mset_pending_tail = g->mset_pending_prev;
         g->mset_pending_prev = g->mset_pending_next = NULL;
         g->mset_client = NULL;
+        unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+                                                        memory_order_release);
+        serverAssert(before > 0);
     }
     csMsetPendingUnlock(real);
 }
@@ -8739,6 +8794,23 @@ static inline int csMsetHeadComplete(client *real) {
     int complete = head && atomic_load_explicit(&head->mset_complete, memory_order_acquire);
     csMsetPendingUnlock(real);
     return complete;
+}
+
+/* Dispatch-side RYOW gate. pending_count deliberately remains nonzero after
+ * the linked FIFO entry is popped and until commit_seq is release-published.
+ * Publish the waiter marker before the confirming load: if the last commit
+ * wins that race it observes the marker and notifies us; if it won earlier the
+ * acquire load observes zero and this read can continue without parking. */
+static int csMsetHoldOwnRead(client *real) {
+    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
+        return 0;
+    atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
+    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0) {
+        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        return 0;
+    }
+    tomoAtomicParkPendingRead(real);
+    return 1;
 }
 
 static csGroup *csMsetPopComplete(client *real) {
@@ -8827,6 +8899,16 @@ static void csMsetInstallDone(csGroup *g) {
         }
         client *hp = done->head->parent;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
+        /* This is the FIFO's semantic drain point, not csMsetPopComplete:
+         * the release decrement follows commit_seq publication and therefore
+         * licenses a held read to draw a snapshot containing this group. */
+        unsigned int before = atomic_fetch_sub_explicit(&hp->mset_pending_count, 1,
+                                                        memory_order_release);
+        serverAssert(before > 0);
+        if (before == 1 &&
+            atomic_exchange_explicit(&hp->mset_read_waiting, 0,
+                                     memory_order_acq_rel))
+            tomoAtomicWakeProducer(hp->tid);
     }
     csCommitUnlock();
 }

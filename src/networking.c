@@ -546,6 +546,8 @@ client *createClient(connection *conn) {
     c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
     atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_relaxed);
     atomic_store_explicit(&c->mset_drain_latch, 0, memory_order_relaxed);
+    atomic_store_explicit(&c->mset_pending_count, 0, memory_order_relaxed);
+    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_relaxed);
     c->mset_pending_head = NULL;
     c->mset_pending_tail = NULL;
     c->tomo_read_snapshot = 0;
