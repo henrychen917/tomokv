@@ -3310,6 +3310,15 @@ struct redisServer {
      * the hot path pays one predicted branch) and the boot split from tomokv-thread-io/-ex is
      * held for the life of the process. Not a user knob. */
     int thread_auto;
+    /* tomokv-flip-signal: WHICH quantity the flip controller's TRIGGER reads (see the FLIP_SIG_*
+     * block in server.c for the full derivation).
+     *   0 = the io/ex saturation RATIO (today's controller; the A/B control arm, bit-identical)
+     *   1 = WORKER-ONLY direction (idleness + standing queue), server_bound gate retained
+     *   2 = PURE worker-only: no IO-side MEASUREMENT enters any decision, gate included
+     *   3 = mode 2 + the clip repair (the granularity floor does not veto a grow-back once worker
+     *       occupancy has clipped and its magnitude is unmeasurable)
+     * Read only by the 4Hz controller, so 0 costs nothing anywhere. */
+    int flip_signal;
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS
      * fully active (no reserve thread). io_per_node + ex_per_node <= cores_per_node. io_threads /
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
