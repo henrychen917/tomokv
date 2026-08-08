@@ -326,6 +326,15 @@ static void tomoAtomicParkWindowClient(client *c) {
 static void tomoAtomicParkPendingRead(client *c) {
     tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
+    /* Missed-wakeup closure, same hazard the window park documents: the commit that zeroes this
+     * client's pending count fires its wake ONLY if it observes mset_read_waiting — and that wake
+     * can land BEFORE we are enrolled here, finding an empty parked list and being consumed for
+     * nothing. If the count is already zero by the time we are enrolled, that commit (and its wake)
+     * may already be behind us, so self-wake to force a release pass; it finds us listed and ready.
+     * When the count is still nonzero the future commit's wake will find us enrolled — no self-wake
+     * needed, so the common path stays syscall-free. */
+    if (atomic_load_explicit(&c->mset_pending_count, memory_order_acquire) == 0)
+        tomoAtomicWakeProducer(iotid);
 }
 
 /* Owning-event-loop retry. No worker or IO thread parks: the refused command remains the head
