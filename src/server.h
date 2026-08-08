@@ -2107,6 +2107,20 @@ typedef struct csGroup {
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
     uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
+    /* R1 own-read gate, EXACT arm. key_sig is one bit per key, so at 8 written keys two
+     * disjoint 8-key sets already alias ~66% of the time and the filter almost never proves
+     * disjointness. key_h carries the FULL hash of every key that contributed to key_sig, so a
+     * filter "maybe" can be settled exactly. Deliberately adjacent to key_sig: the FIFO walk
+     * reads all three from one cache line.
+     *   key_h_n == 0  =>  no vector (too many keys, or a shape that never built one): the walk
+     *                     cannot prove disjointness and must HOLD (charged to ownread_conserv).
+     *   key_h_n  > 0  =>  key_h[0..key_h_n) is COMPLETE w.r.t. key_sig. Publishing key_h_n is
+     *                     the commit point; it is written only after every slot is filled, so a
+     *                     half-built vector reads as "no vector" (hold) and never as "disjoint".
+     * Storage lives in this group's own allocation (inline bump region, heap only if it spilled)
+     * and is written once, on the head's IO thread, before csMsetRegister publishes g. */
+    uint64_t *key_h;           /* [key_h_n] full tomo key hashes of the written keys */
+    int key_h_n;               /* 0 => filter-only (conservative); see above */
     uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
     uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */

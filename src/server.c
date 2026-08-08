@@ -198,6 +198,7 @@ static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its co
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
 static int csMsetHoldOwnRead(client *c);
+static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys);  /* defined with the bump region */
 static int csAtomicAbortIncomplete(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
@@ -565,11 +566,17 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * Owner-written plainly on the dispatching io identity, racy read by INFO — same contract as
      * rord_runs; nothing here is on the zero-pending fast path except `ownread_reads`.
      *   reads    = every read that reached the gate       (denominator)
-     *   pending  = ...that arrived with own writes in flight (the bloom's decision set)
-     *   held     = ...that the bloom could not clear, so it parked
-     *   conserv  = held WITHOUT a key-bit match: unknown keyspace (all-ones signature) or the
-     *              detached-head arm. These are false positives; counted apart so a measured
-     *              overlap rate can be separated from the gate's own imprecision. */
+     *   pending  = ...that arrived with own writes in flight (the gate's decision set)
+     *   held     = ...that the gate could not clear, so it parked
+     *   conserv  = held WITHOUT a proven key collision: unknown/dynamic read keyspace (all-ones
+     *              signature), a pending group carrying no exact key vector (more written keys
+     *              than the exact test retains), or the detached-head arm. These are the holds
+     *              the gate could not prove, counted apart so the measured overlap rate stays
+     *              separable from the gate's own imprecision.
+     * Since the exact arm landed, held-minus-conserv is a real key-overlap rate: a filter alias
+     * no longer parks anything, so it can no longer inflate `held`. Any future widening of what
+     * the gate can prove must land in `conserv` the same way — a gate that reports "no false
+     * positives" because its own counter stopped moving would be worse than no counter. */
     unsigned long long ownread_reads;
     unsigned long long ownread_pending;
     unsigned long long ownread_held;
@@ -9002,8 +9009,30 @@ static inline uint64_t csHashSignature(uint64_t h) {
     return 1ULL << (h & 63);
 }
 
-static inline uint64_t csKeySignature(robj *key) {
-    return csHashSignature(tomoKeyHash(key->ptr, sdslen(key->ptr)));
+/* ---- R1 own-read overlap: filter first, then the exact key test ----
+ * key_sig is a Bloom filter with ONE bit per key in a 64-bit word. An 8-key MSET sets 8 bits, so
+ * an 8-key read that shares NO key with it still aliases with probability 1 - C(56,8)/C(64,8)
+ * ~= 66% per pending group. Measured on this tree (8-key MGET:MSET 1:1, 200 conns, io4/ex4):
+ * held/pending was 88.3% / 72.4% / 74.9% at keyspaces of 64 / 10k / 2M keys. The TRUE collision
+ * probability at 2M keys is ~0.01%, and a rate that does not move with the keyspace is bit
+ * aliasing, not key overlap: ~75 points of that parking was pure false positive, each costing a
+ * park plus a wake.
+ *
+ * So the filter stays FIRST and unchanged — it is one AND, and a filter MISS is a definitive
+ * proof of disjointness (a genuine key match implies a bit match). Only the "maybe" answer gets
+ * more expensive, and it is settled against the actual key hashes.
+ *
+ * Compare HASHES, never key bytes. The hash is a pure function of the bytes, so hash inequality
+ * PROVES the keys differ (no false negative is possible), while a hash collision merely costs a
+ * hold — the safe direction. It also keeps the walk off the pending group's argv/sub-fakes,
+ * which are not the walker's to dereference (see csGroupKeyHashReserve). */
+#define CS_EXACT_KEYS_MAX 16   /* per-group / per-read key hashes retained for the exact test */
+
+/* Region demand of a group's written-key hash vector, so the callers that size the inline bump
+ * region account for it exactly (an unaccounted vector would push another array to the heap and
+ * trade a park for an allocation). 0 = no vector: the group stays filter-only. */
+static inline size_t csKeyHashWant(int nkeys) {
+    return (nkeys > 0 && nkeys <= CS_EXACT_KEYS_MAX) ? sizeof(uint64_t) * (size_t)nkeys : 0;
 }
 
 /* Destination-only atomic shapes hash their one written key at registration and carry the
@@ -9012,30 +9041,59 @@ static inline uint64_t csKeySignature(robj *key) {
 static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
     uint64_t h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
     g->key_sig = csHashSignature(h);
+    uint64_t *kh = csGroupKeyHashReserve(g, 1);
+    if (kh) { kh[0] = h; g->key_h_n = 1; }   /* publish only once the slot is written */
     g->head->tomo_key_h = h;
     g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
     g->head->tomo_bkt_ptr = dst->ptr;
 }
 
-/* The pending command's key result is already prepared by dispatch preprocessing. Unknown
- * keyspace/dynamic-key reads conservatively select every bit: false positives only retain the
- * old hold, while a missing read bit could violate RYOW. */
-static uint64_t csOwnReadSignature(client *real) {
+/* This read's key set: the signature, plus the full hashes when they can settle a filter hit.
+ * n < 0 means the exact test is UNAVAILABLE for this read — unknown/dynamic keyspace (KEYS,
+ * SORT, or any command whose cached key result is missing or not a plain sds argv position), or
+ * more keys than h[] holds — and then every filter hit must hold. `sig` stays COMPLETE in that
+ * case (all-ones for an unknown keyspace, the true OR when only the vector overflowed), which is
+ * what keeps the filter itself free of false negatives. */
+typedef struct csReadKeys {
+    uint64_t sig;
+    int n;                          /* hashes in h[]; < 0 => conservative, hold on any filter hit */
+    uint64_t h[CS_EXACT_KEYS_MAX];
+} csReadKeys;
+
+static void csOwnReadSignature(client *real, csReadKeys *rk) {
+    rk->sig = UINT64_MAX;                     /* every arm below that gives up leaves this pair */
+    rk->n = -1;
     if (real->cmd->proc == keysCommand || real->cmd->proc == sortCommand ||
         real->cmd->proc == sortroCommand)
-        return UINT64_MAX;
+        return;
 
     getKeysResult *keys = getClientCachedKeyResult(real);
-    if (!keys || keys->numkeys <= 0) return UINT64_MAX;
+    if (!keys || keys->numkeys <= 0) return;
     uint64_t sig = 0;
+    int n = keys->numkeys <= CS_EXACT_KEYS_MAX ? keys->numkeys : -1;
     for (int i = 0; i < keys->numkeys; i++) {
         int pos = keys->keys[i].pos;
         if (pos <= 0 || pos >= real->argc || !real->argv[pos] ||
             !sdsEncodedObject(real->argv[pos]))
-            return UINT64_MAX;
-        sig |= csKeySignature(real->argv[pos]);
+            return;
+        uint64_t h = tomoKeyHash(real->argv[pos]->ptr, sdslen(real->argv[pos]->ptr));
+        sig |= csHashSignature(h);
+        if (n > 0) rk->h[i] = h;
     }
-    return sig;
+    rk->sig = sig;
+    rk->n = n;
+}
+
+/* Settle one filter "maybe" exactly. `hit` is read_sig & g->key_sig: only a read key whose own
+ * bit is in that mask can be the cause, so the usual single-bit alias costs a handful of 64-bit
+ * compares rather than n*m. Returns 1 only on an actual key-hash match. */
+static int csKeysCollide(const csReadKeys *rk, const csGroup *g, uint64_t hit) {
+    for (int i = 0; i < rk->n; i++) {
+        if (!(csHashSignature(rk->h[i]) & hit)) continue;
+        for (int j = 0; j < g->key_h_n; j++)
+            if (rk->h[i] == g->key_h[j]) return 1;
+    }
+    return 0;
 }
 
 /* Walk the connection-local R1 FIFO under its existing lock. A completed head is briefly
@@ -9043,61 +9101,90 @@ static uint64_t csOwnReadSignature(client *real) {
  * such a group exists its signature is no longer reachable, so conservatively hold until that
  * publication finishes. This preserves the no-false-negative rule without widening the FIFO.
  *
- * `detached` reports WHICH arm answered: set only when the walk found no key-bit match and the
- * hold comes from the unreachable-signature case above. It is measurement out-param only — the
- * return value, and therefore every decision, is unchanged. */
-static int csMsetReadIntersects(client *real, uint64_t read_sig, int *detached) {
+ * Per group, in order: (1) filter miss => PROVEN disjoint, skip it; (2) filter hit that neither
+ * side can settle exactly (unknown read keyspace, or a group with no hash vector) => HOLD;
+ * (3) filter hit with both vectors present => the exact key-hash test decides.
+ *
+ * LIFETIME of what (3) dereferences: g->key_h lives in g's OWN allocation (the inline bump
+ * region, or a csgFree()d spill), is written once on the head's IO thread before csMsetRegister
+ * publishes g into this FIFO, and is never rewritten. csReassemble — the group's single terminal
+ * point and the only caller of zfree(g) — calls csMsetPendingRemove(g) as its FIRST statement,
+ * before any csgFree/zfree. So g->key_h is reachable exactly as long as g->key_sig is, which is
+ * the lifetime this walk already depends on; the exact arm adds no new one. That is precisely
+ * what g->subs[] would NOT give: csPipeFreeStageSubs() frees and NULLs g->subs between pipeline
+ * stages, and csMsetnxAdvanceReservations() frees every sub before rebuilding the wave, both
+ * while the group is still linked here with pending_count > 0.
+ *
+ * `conserv` reports WHICH arm answered: set when the hold came from (2) or from the detached-head
+ * case, i.e. when the gate could not prove overlap rather than measured it. Measurement out-param
+ * only — the return value, and therefore every decision, is unchanged. */
+static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *conserv) {
     unsigned int linked = 0;
-    int intersects = 0;
+    int intersects = 0, cons = 0;
     csMsetPendingLock(real);
     for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
         linked++;
-        if (read_sig & g->key_sig) {
-            intersects = 1;
+        uint64_t hit = rk->sig & g->key_sig;
+        if (!hit) continue;                          /* filter miss: definitively disjoint */
+        if (rk->n < 0 || g->key_h_n == 0) {          /* cannot prove either way: hold */
+            intersects = 1; cons = 1;
             break;
         }
+        if (csKeysCollide(rk, g, hit)) { intersects = 1; break; }
     }
     unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
                                                  memory_order_acquire);
     csMsetPendingUnlock(real);
-    *detached = !intersects && pending > linked;
-    return intersects || *detached;
+    if (!intersects && pending > linked) { intersects = 1; cons = 1; }
+    *conserv = cons;
+    return intersects;
 }
 
-/* Dispatch-side RYOW gate. Hash only after the zero-pending fast path, then hold iff this read's
- * key signature intersects a group in its own short R1 FIFO. Publish the waiter marker before the
+/* Dispatch-side RYOW gate, slow half: this connection HAS uncommitted writes in flight. Hash the
+ * read's keys (never before — the zero-pending path below must stay free), then hold iff the read
+ * actually touches a key one of those groups writes. Publish the waiter marker before the
  * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race.
+ *
+ * noinline and separate from the fast path on purpose: csReadKeys is ~144 bytes of frame, and
+ * csMsetHoldOwnRead is small enough to be inlined into processCommand, which would put that frame
+ * on EVERY command.
  *
  * The tm_io_sig counters are the overlap census (see the field block). Plain increments on this
  * thread's own line, no atomics: the identity is the same one the dispatch a few frames below
  * charges disp_cnt/rord_runs to, so a caller that could corrupt a neighbour's slot here would
  * already be corrupting it there. */
-static int csMsetHoldOwnRead(client *real) {
-    tm_io_sig[iotid].ownread_reads++;
-    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
-        return 0;
+static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
     tm_io_sig[iotid].ownread_pending++;
-    uint64_t read_sig = csOwnReadSignature(real);
-    int detached = 0;
-    if (!csMsetReadIntersects(real, read_sig, &detached)) return 0;
+    csReadKeys rk;
+    csOwnReadSignature(real, &rk);
+    int conserv = 0;
+    if (!csMsetReadIntersects(real, &rk, &conserv)) return 0;
 
     atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
-    if (!csMsetReadIntersects(real, read_sig, &detached)) {
+    if (!csMsetReadIntersects(real, &rk, &conserv)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         return 0;
     }
     /* Classify against the scan that DECIDED the park (the confirming one), before the third scan
-     * overwrites `detached`. An all-ones signature intersects every group, so it must be tested by
-     * value rather than inferred from the walk: without that, a KEYS/SORT read is indistinguishable
-     * from a genuine key collision and the measured overlap rate is inflated by the gate itself. */
+     * overwrites `conserv`. held-minus-conserv is the rate at which the read's keys REALLY hit a
+     * pending write; every hold the gate could not prove — unknown keyspace, a group with no hash
+     * vector (too many written keys), the detached head — lands in conserv instead, so widening
+     * what the gate can prove never launders a false positive into the measured overlap rate. */
     tm_io_sig[iotid].ownread_held++;
-    if (read_sig == UINT64_MAX || detached) tm_io_sig[iotid].ownread_conserv++;
+    if (conserv) tm_io_sig[iotid].ownread_conserv++;
     tomoAtomicParkPendingRead(real);
-    if (!csMsetReadIntersects(real, read_sig, &detached)) {
+    if (!csMsetReadIntersects(real, &rk, &conserv)) {
         atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
         tomoAtomicWakeProducer(real->tid);
     }
     return 1;
+}
+
+static int csMsetHoldOwnRead(client *real) {
+    tm_io_sig[iotid].ownread_reads++;
+    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
+        return 0;
+    return csMsetHoldOwnReadPending(real);
 }
 
 static csGroup *csMsetPopComplete(client *real) {
@@ -11296,6 +11383,26 @@ static inline void csgFree(csGroup *g, void *p) {
     zfree(p);
 }
 
+/* Reserve this group's written-key hash vector (see csGroup.key_h and csMsetReadIntersects).
+ * From the group's OWN region, deliberately: that is what makes its lifetime identical to
+ * key_sig's, which is the only lifetime the R1 walk may assume. Every caller sizes the region
+ * with csKeyHashWant(), so the common shapes are served inline and this adds no allocation.
+ *
+ * Returns the vector, or NULL for a group with more written keys than the exact test retains —
+ * that group stays FILTER-ONLY and every filter hit against it holds (charged to ownread_conserv).
+ * The cap is not a tuning choice: past it the group's own signature is >=16 of 64 bits, so the
+ * filter is >=91% false-positive and the region is already spilling arrays to the heap — exactness
+ * there would buy an allocation instead of saving a park.
+ *
+ * key_h_n stays 0 until the CALLER has written every slot; a half-built vector must read as "no
+ * vector" (hold), never as "disjoint". */
+static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys) {
+    size_t want = csKeyHashWant(nkeys);
+    if (!want) return NULL;
+    g->key_h = csgAlloc(g, want);
+    return g->key_h;
+}
+
 static void csFreeSub(client *sub) {
     if (sub->argv) {
         csGroup *g = sub->csparent;
@@ -11441,6 +11548,12 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     int register_bag = g->mset_installs && !g->versioned_write &&
                        (g->ctype == CS_MSET || g->ctype == CS_DEL ||
                         g->ctype == CS_MSETNX);
+    /* Reserved BEFORE the routing pass so the pass that computes each key's hash for routing also
+     * fills the exact-test vector — same hashes, no second pass, no second hash. Published (below,
+     * with key_h_n) only once every slot is written. A HOP2 re-run of this builder has
+     * register_bag == 0 (versioned_write is already set), so the HOP1 vector is neither rebuilt
+     * nor re-reserved: it is written exactly once, before the group is ever published. */
+    uint64_t *key_h = register_bag ? csGroupKeyHashReserve(g, nkeys) : NULL;
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
         /* FIX (task #48): the `spec->cs_write &&` conjunct used to let cross-shard multi-key READS
@@ -11455,9 +11568,13 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
             migHoldKeyIfDraining(key);
         uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
         int w = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
-        if (register_bag) g->key_sig |= csHashSignature(h);
+        if (register_bag) {
+            g->key_sig |= csHashSignature(h);
+            if (key_h) key_h[i] = h;
+        }
         wof[i] = w; cnt[w]++;
     }
+    if (key_h) g->key_h_n = nkeys;   /* commit: every slot above is now written */
     int nsub = 0;
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
@@ -11510,8 +11627,16 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
         !csMsetnxHasPendingPosition(g))
         return 0;
 
+    /* An atomic MSETNX registered on HOP1, so this is 0 there and the group keeps the COMPLETE
+     * key_h vector built then — a superset of the still-pending positions re-hashed below, which
+     * is the conservative direction (it can only hold more). If a caller ever reaches here
+     * unregistered, key_h stays NULL and the group is filter-only: it holds, and says so in
+     * ownread_conserv. */
     int register_group = !g->versioned_write;
 
+    /* NOTE for the R1 walk's lifetime argument: these subs are freed while the group is still
+     * linked in the pending FIFO. That is why the exact test reads g->key_h (inside g) and never
+     * g->subs[i]. */
     if (g->subs) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
         csgFree(g, g->subs);
@@ -11710,6 +11835,10 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
 #define CS_PIPE_LOCAL_UNION 4
 #define CS_PIPE_LOCAL_DIFF  5
 
+/* NOTE for the R1 walk's lifetime argument (csMsetReadIntersects): a registered pipeline group
+ * drops and reallocates its whole sub array BETWEEN stages, while it is still linked in the
+ * connection's pending FIFO. Sub-fakes are therefore unusable as the exact test's key source;
+ * the hashes live in the group itself. */
 static void csPipeFreeStageSubs(csGroup *g) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs); g->subs = NULL; g->nsub = 0;
@@ -11725,7 +11854,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
                             8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
-                            (atomic_admission ? sizeof(csMsetInstall) : 0));
+                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
@@ -12401,7 +12530,12 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     int version_expected = (s->ctype == CS_MSET || s->ctype == CS_DEL ||
                             s->ctype == CS_MSETNX) ? nkeys : 1;
     if (atomic_write)
-        inline_want += sizeof(csMsetInstall) * (size_t)version_expected;
+        inline_want += sizeof(csMsetInstall) * (size_t)version_expected +
+                       /* R1 exact-overlap vector: nkeys hashes for a bag, one destination hash
+                        * otherwise. Accounted here for the same reason as mset_installs — an
+                        * unbudgeted array pushes a LATER array to the heap, i.e. trades the park
+                        * this is meant to remove for an allocation. */
+                       csKeyHashWant(atomic_bag ? nkeys : 1);
     if (atomic_msetnx) inline_want += (size_t)nkeys;
     csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
@@ -13166,9 +13300,14 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     robj *src = head->argv[(int)s->src_argi], *dst = head->argv[dst_argi];
     /* review #1: hash each key ONCE. The bucket is stable across a cutover (only the
      * bucket->worker table flips), so worker = ex_bucket_table[bkt] can be re-read after the
-     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket. */
-    int src_bkt = migKeyBucket(src->ptr, sdslen(src->ptr));
-    int dst_bkt = migKeyBucket(dst->ptr, sdslen(dst->ptr));
+     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket.
+     * Keep the FULL hash of that one hashing, not just its bucket: the atomic arm below needs it
+     * for the R1 exact-overlap vector, and re-deriving it would hash the same bytes twice.
+     * (migKeyBucket is exactly xxh64(k) & TOMO_BUCKET_MASK, so the buckets are unchanged.) */
+    uint64_t src_h = tomoKeyHash(src->ptr, sdslen(src->ptr));
+    uint64_t dst_h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
+    int src_bkt = (int)(src_h & TOMO_BUCKET_MASK);
+    int dst_bkt = (int)(dst_h & TOMO_BUCKET_MASK);
     int src_shard = server.ex_bucket_table[src_bkt];
     int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
@@ -13180,7 +13319,9 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
     size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
                         (size_t)head->argc : h1_argv + h2_argv;
-    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots));
+    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots) +
+                            /* R1 exact-overlap vector: dst, plus src on the two-write shapes. */
+                            (atomic_admission ? csKeyHashWant(2) : 0));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -13228,10 +13369,18 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
                                        (size_t)g->version_install_expected);
         if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
         /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
-         * source tombstone. Reuse the two routing buckets already computed above. */
-        g->key_sig = csHashSignature((uint64_t)dst_bkt);
-        if (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX)
-            g->key_sig |= csHashSignature((uint64_t)src_bkt);
+         * source tombstone. Reuse the two routing hashes already computed above — the signature
+         * is unchanged (csHashSignature reads the low 6 bits, which the bucket mask preserves),
+         * and the same hashes fill the exact-overlap vector. */
+        int nwrite = (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
+        g->key_sig = csHashSignature(dst_h);
+        if (nwrite == 2) g->key_sig |= csHashSignature(src_h);
+        uint64_t *kh = csGroupKeyHashReserve(g, nwrite);
+        if (kh) {
+            kh[0] = dst_h;
+            if (nwrite == 2) kh[1] = src_h;
+            g->key_h_n = nwrite;      /* publish only once every slot is written */
+        }
         head->tomo_bkt = dst_bkt;
         head->tomo_bkt_ptr = dst->ptr;
         csMsetRegister(g);       /* before source snapshot reads or destination reservation */
@@ -14069,6 +14218,10 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->mset_installs);
     }
     csgFree(g, g->msetnx_state);
+    /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
+     * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
+     * unlinked the group, so no R1 walk can still reach it. */
+    csgFree(g, g->key_h);
     if (g->snapshot_pinned) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
@@ -17908,7 +18061,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         /* Atomic-mode RYOW overlap census. held/pending is the rate at which a read that COULD
          * conflict with its own uncommitted writes actually does — the workload property the read
          * hold's cost is set by. Subtract conserv from held for the rate the KEYS overlapped,
-         * rather than the rate the gate could not prove they did not. */
+         * rather than the rate the gate could not prove they did not. Sanity check on a run: at a
+         * large keyspace, (held-conserv)/pending should now track the TRUE collision probability
+         * (~0.01% for 8-key reads vs 8-key writes over 2M keys) and should FALL as the keyspace
+         * grows. A rate that is flat in the keyspace is bit aliasing, which is what the 64-bit
+         * signature alone reported (74.9% at 2M keys) before the exact arm existed. */
         unsigned long long orr = 0, orp = 0, orh = 0, orc = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
             orr += tm_io_sig[_t].ownread_reads;   orp += tm_io_sig[_t].ownread_pending;
