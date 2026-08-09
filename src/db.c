@@ -501,13 +501,14 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
     if (version_prev) {
         struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
         committed_head = prev_meta ?
-            atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
+            tomoCommittedHeadLoadAcquireOrUnsafeRelaxed(
+                &prev_meta->committed_head) :
             version_prev;
     }
     /* The new physical head inherits the per-key cursor before its vmeta/table
      * publication. Cursor movement remains confined to owner stamp/retire. */
-    atomic_store_explicit(&vmeta->committed_head, committed_head,
-                          memory_order_release);
+    tomoCommittedHeadStoreReleaseOrUnsafeRelaxed(&vmeta->committed_head,
+                                                 committed_head);
     vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
                          TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
     vmeta->retire_state = TOMO_RETIRE_ACTIVE;
@@ -919,7 +920,8 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     }
 
     kvobj *committed_head = head_meta ?
-        atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
+        tomoCommittedHeadLoadAcquireOrUnsafeRelaxed(
+            &head_meta->committed_head) :
         NULL;
 
     /* Sequence draw and publication are ordered, but pushes from completing
@@ -933,8 +935,8 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
         apply_walk++;
         struct tomoVerMeta *committed_meta = kvobjVmeta(committed_next);
         uint64_t committed_seq = committed_meta ?
-            atomic_load_explicit(&committed_meta->version_seq,
-                                 memory_order_acquire) : 0;
+            tomoVersionSeqLoadAcquireOrUnsafeRelaxed(
+                &committed_meta->version_seq) : 0;
         uint32_t committed_order = committed_meta ? committed_meta->version_order : 0;
         if (version_seq > committed_seq ||
             (version_seq == committed_seq &&
@@ -949,7 +951,8 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
         committed_next = committed_meta ? kvobjCommittedPrev(committed_next) : NULL;
     }
     kvobjSetCommittedPrev(kv, committed_next);
-    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
+    tomoVersionSeqStoreReleaseOrUnsafeRelaxed(&vmeta->version_seq,
+                                              version_seq);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
@@ -960,8 +963,8 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
         if (committed_previous)
             kvobjSetCommittedPrev(committed_previous, kv);
         else
-            atomic_store_explicit(&head_meta->committed_head, kv,
-                                  memory_order_release);
+            tomoCommittedHeadStoreReleaseOrUnsafeRelaxed(
+                &head_meta->committed_head, kv);
     }
     return apply_walk;
 }
@@ -1085,8 +1088,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     kvobj *head = dictGetKV(*link);
     struct tomoVerMeta *head_meta = kvobjVmeta(head);
     serverAssert(head_meta != NULL);
-    kvobj *committed_head = atomic_load_explicit(&head_meta->committed_head,
-                                                  memory_order_acquire);
+    kvobj *committed_head = tomoCommittedHeadLoadAcquireOrUnsafeRelaxed(
+        &head_meta->committed_head);
     uint64_t visible = tomoCommittedSeq();
     int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
     /* A committed callback proves a grace only for its own frontier. A newer
@@ -1189,8 +1192,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
     if (newhead_meta)
-        atomic_store_explicit(&newhead_meta->committed_head, committed_head,
-                              memory_order_release);
+        tomoCommittedHeadStoreReleaseOrUnsafeRelaxed(
+            &newhead_meta->committed_head, committed_head);
     else
         serverAssert(committed_head == newhead);
     if (newhead != head)
@@ -1258,8 +1261,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             /* The cursor follows the sole committed value into the raw-head
              * fast path; stale metadata readers retain a valid self cursor
              * until its existing retire grace completes. */
-            atomic_store_explicit(&vmeta->committed_head, sole_committed,
-                                  memory_order_release);
+            tomoCommittedHeadStoreReleaseOrUnsafeRelaxed(
+                &vmeta->committed_head, sole_committed);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
             kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);

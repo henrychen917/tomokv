@@ -76,6 +76,18 @@ struct RedisModuleType;
 struct redisObject;
 struct _kvstore;
 
+/* MEASUREMENT-ONLY CORRECTNESS ABLATIONS. Every nonzero mode is deliberately
+ * incorrect and must never ship. The long enum names are intentional: an
+ * unsafe mode must remain obvious at every branch that consumes it. */
+typedef enum tomoAtomicAblateMode {
+    TOMO_ATOMIC_ABLATE_CONTROL_CORRECT = 0,
+    TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE = 1,
+    TOMO_ATOMIC_ABLATE_NO_GRACE_USE_AFTER_FREE_UNSAFE = 2,
+    TOMO_ATOMIC_ABLATE_NO_COMMIT_ORDER_UNSAFE = 3,
+} tomoAtomicAblateMode;
+
+extern int tomokv_atomic_ablate;
+
 /* Object encodings (see header comment below for details). */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
 #define OBJ_ENCODING_INT 1     /* Encoded as integer */
@@ -186,35 +198,98 @@ long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
 static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return __atomic_load_n(&kv->vmeta, __ATOMIC_RELAXED);
     return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
 }
 
 static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELAXED);
+        return;
+    }
     __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+}
+
+/* Mode 1 changes only the ordering argument of version-metadata accesses. The
+ * load/store count, accessed words, allocations, and object graph are kept.
+ * Mode 0 takes the original acquire/release operations verbatim. */
+static inline uint64_t tomoVersionSeqLoadAcquireOrUnsafeRelaxed(
+        const _Atomic uint64_t *seq) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return atomic_load_explicit(seq, memory_order_relaxed);
+    return atomic_load_explicit(seq, memory_order_acquire);
+}
+
+static inline void tomoVersionSeqStoreReleaseOrUnsafeRelaxed(
+        _Atomic uint64_t *seq, uint64_t value) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        atomic_store_explicit(seq, value, memory_order_relaxed);
+        return;
+    }
+    atomic_store_explicit(seq, value, memory_order_release);
+}
+
+static inline kvobj *tomoCommittedHeadLoadAcquireOrUnsafeRelaxed(
+        const _Atomic(struct redisObject *) *head) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return atomic_load_explicit(head, memory_order_relaxed);
+    return atomic_load_explicit(head, memory_order_acquire);
+}
+
+static inline void tomoCommittedHeadStoreReleaseOrUnsafeRelaxed(
+        _Atomic(struct redisObject *) *head, kvobj *value) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        atomic_store_explicit(head, value, memory_order_relaxed);
+        return;
+    }
+    atomic_store_explicit(head, value, memory_order_release);
 }
 
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return atomic_load_explicit(&vmeta->version_seq, memory_order_acquire);
+    return tomoVersionSeqLoadAcquireOrUnsafeRelaxed(&vmeta->version_seq);
 }
 
 static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return __atomic_load_n(&vmeta->version_prev, __ATOMIC_RELAXED);
     return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
 }
 
 static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELAXED);
+        return;
+    }
     __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
 }
 
 static inline kvobj *kvobjCommittedPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_RELAXED);
     return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
 }
 
 static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELAXED);
+        return;
+    }
     __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
 }
 
@@ -232,17 +307,21 @@ static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
     struct tomoVerMeta *head_meta = kvobjVmeta(kv);
     if (!head_meta) return kv;
 
-    kv = atomic_load_explicit(&head_meta->committed_head,
-                              memory_order_acquire);
+    kv = tomoCommittedHeadLoadAcquireOrUnsafeRelaxed(
+        &head_meta->committed_head);
     struct tomoVerMeta *vmeta = NULL;
     while (kv) {
         if (walked) (*walked)++;
         vmeta = kvobjVmeta(kv);
         if (!vmeta) break;
-        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
-                                            memory_order_acquire);
+        uint64_t seq = tomoVersionSeqLoadAcquireOrUnsafeRelaxed(
+            &vmeta->version_seq);
         if (seq <= snapshot) break;
-        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+        if (__builtin_expect(tomokv_atomic_ablate ==
+                             TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+            kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_RELAXED);
+        else
+            kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
     }
     if (kv && vmeta && vmeta->version_tombstone) return NULL;
     return kv;

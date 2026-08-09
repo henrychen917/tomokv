@@ -1,164 +1,187 @@
-# Atomic remaining-cost measurement
+# WARNING: DELIBERATELY INCORRECT, UNSHIPPABLE ATOMIC ABLATION BRANCH
 
-Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/wcost`
+**This branch is a measurement instrument. Every nonzero
+`tomokv-atomic-ablate` mode deliberately removes a correctness guarantee and
+can cause torn reads, stale reads, data loss, use-after-free, or crashes. It
+must never be merged, released, deployed, or treated as production code.**
 
-Baseline: branch `2s-atomic-wcost`, commit `01941c452cedb67de15cacd445fa3772b0107bfb`
+## Experiment and control
 
-## Counter hypotheses and falsifiers (written before instrumentation)
+The observed atomic-ON tax includes about 7,656 extra stall cycles/op after the
+instruction-count component is removed. The purpose of this build is to ask
+whether those stalls come from:
 
-All counters below are owner-written in an `iotid`-indexed, cache-line-aligned
-slot and are only summed racily by `INFO`. No counter uses a shared atomic.
+- **(a) memory/commit ordering:** acquire/release publication and resolution,
+  plus global cross-group commit serialization;
+- **(b) waiting for readers:** QSBR grace checks that cannot reclaim yet; or
+- **(c) cache footprint/indirection:** the unchanged
+  `kvobj -> vmeta -> committed_head` graph and its larger live set.
 
-### Read-side version resolution
+`tomokv-atomic-ablate` is an `IntConfig` with range 0..3. It is immutable after
+startup, and combinations are impossible. Every nonzero value emits an
+`LL_WARNING` containing `DELIBERATELY INCORRECT MEASUREMENT-ONLY BUILD`, the
+disabled mechanism, and the expected data-loss/UAF/crash consequences. The
+preflight knob matrix explicitly exempts this knob and never supplies it a
+nonzero value.
 
-Counters:
+Mode 0 is the correct control. The original acquire/release operations, QSBR
+readiness body, and global commit-locked path remain the mode-0 arms. The only
+control-path additions are predictable checks selecting an unsafe mode; no
+existing version data structure, allocation, retire record, or group layout
+changes.
 
-- `tomokv_atomic_read_raw`: read-key lookups whose table result was missing or
-  had no `vmeta`, and therefore did not call the version resolver.
-- `tomokv_atomic_read_versioned`: read-key lookups that observed `vmeta` and
-  called the resolver.
-- `tomokv_atomic_read_walk`: committed-chain candidates inspected by those
-  resolver calls. A raw pre-epoch tail counts as one inspected version.
+## Validity rule before performance interpretation
 
-Hypothesis: continuous writes leave version bags on nearly every key, making
-mixed-workload reads pay the `vmeta`/committed-head resolver and sometimes walk
-past versions newer than their pinned snapshot.
+Run the concurrent multi-key probes on every arm. Mode 0 should retain zero
+torn reads, while atomic OFF supplies the known large positive control
+(previously 18–43% torn reads). Modes 1 and 3 are usable performance ablations
+only if their targeted correctness loss produces torn and/or non-monotonic
+reads. If either remains clean, report **invalid ablation**, not speedup. Mode 2
+has a different validity limit: absence of a crash or visible corruption cannot
+validate a use-after-free.
 
-Falsifier: pure MGET should have `read_versioned` near zero, while the 1:1 mix
-should have `read_versioned / (read_raw + read_versioned)` near one and
-`read_walk / read_versioned` above one. If the mixed run also has
-`read_versioned` near zero, the version-resolution hypothesis is dead. If it is
-near one but mean walk is about one, chain depth is not the explanation; the
-remaining read candidate is the fixed `kvobj` cache-line invalidation plus the
-`vmeta` and committed-head pointer loads.
+## Mode 1: RELAXED ORDERING (incorrect)
 
-### Version-install / allocation cost
+`tomokv-atomic-ablate 1` changes the acquire/release ordering arguments on the
+version visibility path to relaxed while preserving the same atomic loads and
+stores and the same words:
 
-Counters:
+- the global `commit_seq` snapshot load and frontier publication store;
+- `kvobj.vmeta`, `version_seq`, and `committed_head` publication/resolution;
+- the physical and committed predecessor links used by the resolver and owner
+  stamp/prune path.
 
-- ordinary install baseline:
-  `tomokv_atomic_write_raw_{installs,samples,cpu_ns,clock_ns}`;
-- versioned install:
-  `tomokv_atomic_write_{installs,install_samples,install_cpu_ns,install_clock_ns}`;
-- ordinary and versioned `kvobj`, plus versioned `vmeta`, allocation counts,
-  allocator-usable byte totals/min/max, and exact class fields. The class fields
-  are `tomokv_atomic_write_{raw_kvobj,kvobj,vmeta}_class_<bytes>` for the default
-  jemalloc classes 16 through 512, plus `class_other`.
+It does not remove the global commit lock, QSBR, allocations, metadata, links,
+or resolver walks. This isolates category **(a), memory-ordering edges**, not
+category (c): the pointer chasing and cache footprint remain present.
 
-Hypothesis: the atomic-only version install, particularly its new `kvobj` and
-`vmeta` allocations, accounts for most of the pure-MSET loss.
+Expected correctness break: a reader may observe a published frontier without
+the corresponding per-key stamp/link state. Concurrent multi-key probes should
+therefore report **torn reads** in `atomicity_test.py` and/or
+`monotonic_vis.py`. A zero-torn result does not validate this mode; it makes the
+ablation invalid for attributing a speedup because the removed guarantee was
+not demonstrated to be load-bearing in that run.
 
-Falsifier: subtract `clock_ns` from `cpu_ns`, divide by `samples`, and compare
-the versioned and ordinary per-install samples. If the versioned-minus-ordinary
-CPU delta is far below the missing per-key CPU budget, the whole install path
-cannot explain the tax, regardless of the fact that allocation counters are
-nonzero. Allocation counts/classes are diagnostic only after that timing test;
-they are not treated as proof of cost.
+Architecture caveat: on x86/TSO, acquire loads, release stores, and their
+relaxed forms commonly lower to the same load/store instructions. Compiler and
+hardware ordering may therefore keep this mode from tearing. If so, mode 1 is
+an invalid ablation on that target, exactly as the validity rule requires; an
+IPC change must not be called a correctness-cost result.
 
-### QSBR / retirement cost
+IPC interpretation, only after a nonzero-torn validity signal:
 
-Counters:
+- IPC recovery estimates stalls attributable to version publication/resolution
+  ordering semantics.
+- No IPC recovery says those edges are not the material stall source on that
+  target; it does not eliminate category (a)'s global commit serialization,
+  which mode 3 isolates separately.
 
-- `tomokv_atomic_retires` and its
-  `tomokv_atomic_retire_{prune,physical,vmeta}` split;
-- active worker reclaim passes, batches closed, grace checks/readies, and waits
-  (`tomokv_atomic_qsbr_grace_waits`) split by foreign, IO, or worker blocker;
-- `tomokv_atomic_prune_callbacks` and the three independent walk totals
-  (`prune_bag_walk`, `prune_commit_walk`, and `prune_census_walk`);
-- 1/1024 sampled active-reclaim thread-CPU nanoseconds in
-  `tomokv_atomic_qsbr_{samples,cpu_ns,clock_ns}`.
+## Mode 2: NO GRACE (incorrect; use-after-free by construction)
 
-Hypothesis: atomic versions amplify retire traffic and/or repeatedly fail a
-grace, or the post-grace callback repeatedly walks a deep live bag.
+`tomokv-atomic-ablate 2` makes every closed FLAT/QSBR retire batch immediately
+ready. Retire-node creation, list insertion, batch allocation/recycling,
+snapshot collection and its fence, readiness call sites and counters, payload
+callbacks, and object/metadata frees all remain. Only the wait for the reader
+grace is removed. Mixed retire batches are treated uniformly, so this is the
+QSBR mechanism ablation, not a special second reclamation implementation.
 
-Falsifier: the hypothesis is false if sampled net reclaim CPU, scaled by active
-passes/samples, is too small to cover the missing budget, grace waits and
-pending batches remain negligible, and each callback's walk ratios stay small
-and bounded. A large retire count alone does not establish cost.
+This isolates category **(b), waiting for readers**. It deliberately does not
+remove version metadata, indirection, allocation, retire bookkeeping, the batch
+close fence, or commit ordering.
 
-### Worker-side stamp drain
+Expected correctness break: immediate reclamation can free a version, raw
+value, or metadata while a reader still holds it. This is a **use-after-free**.
+It may corrupt data, assert, crash, or happen not to manifest during a probe.
+It does not have to produce a torn read. In particular, a clean
+`atomicity_test.py` or `monotonic_vis.py` run does **not** validate mode 2 and
+must not be described as proof of safety; memory-safety instrumentation or a
+crash/corruption signal is more direct, but even their absence is not proof.
 
-Counters:
+IPC interpretation:
 
-- nonempty drain calls, empty drains, queue-pop batches, entries, and the
-  STAMP/PRUNE/CANCEL split under `tomokv_atomic_stamp_drain_*`;
-- committed-chain candidates inspected in `tomokv_atomic_stamp_apply_walk`;
-- 1/1024 sampled drain thread-CPU nanoseconds, paired clock baseline, and
-  sampled entry count under `tomokv_atomic_stamp_drain_*`.
+- IPC recovery estimates the cost of repeated not-ready grace checks and the
+  cache stalls induced by polling reader state.
+- Little or no recovery says grace waiting is not the dominant stall source in
+  this workload. The batch-close snapshots/fence and all retire/free work are
+  intentionally still paid, so this result is specifically about waiting, not
+  total reclamation CPU.
 
-Hypothesis: the consumer-side drain (not the already-refuted producer pushes)
-accounts for a material part of the write tax.
+## Mode 3: NO COMMIT ORDER (incorrect)
 
-Falsifier: it is false if sampled net drain CPU, scaled by calls/samples, is too
-small to cover the missing budget and the structural ratios remain ordinary:
-about two entries per committed install, well-filled pop batches, no empty
-drains, and a shallow apply walk. No commit-section push counter is added here;
-that path was already falsified by the commit-diet experiment.
+`tomokv-atomic-ablate 3` bypasses the global commit-lock section. Each
+invocation still:
 
-## Code-inspection findings
+- draws a unique ticket with the same atomic `next_seq` fetch-add;
+- performs the same per-install stamp/prune preparation and owner pushes;
+- appends and pops every group through its existing `commit_next` link;
+- publishes `commit_seq`, replies, publishing records, pending counts, and
+  reader wakeups.
 
-Code inspection only; no runtime conclusion is claimed here.
+The lock/unlock helpers become no-ops only in this mode. The original shared
+`commit_head`/`commit_tail` queue, owner-op pushes, per-connection latch timing,
+and publication loop are unchanged. Concurrent groups can therefore draw
+tickets in one order and publish the global frontier in another, including
+moving `commit_seq` backward. There is no cross-group serialization and no
+per-group work diet.
 
-- The read hypothesis is worth measuring. `lookupKeyReadWithFlags()` has an
-  exact raw fast path, but any observed head `vmeta` calls `kvobjVersionAt()`,
-  which acquire-loads the head metadata again, acquire-loads `committed_head`,
-  and then loads metadata/sequence/predecessor state for each candidate.
-- The write candidates are disjoint measurement regions: version installation
-  runs in the command worker, stamp drain runs from the worker loop before
-  normal jobs, and QSBR reclaim runs at the top of each worker slice.
-- The replacement `kvobj` allocation is **not atomic-only** in the target FLAT
-  workload. The ordinary overwrite also takes `dbSetValue()`'s copy branch and
-  calls `kvobjSetEx()`; its in-place branch is explicitly disabled for FLAT.
-  Atomic mode adds the separate `tomoVerMeta` allocation and retains prior
-  objects in a bag. This is why the instrumentation records raw and versioned
-  `kvobj` classes separately instead of calling both atomic overhead.
-- Retirement has a potentially stronger amplification mechanism than its
-  enqueue count suggests: every prune callback can walk the physical bag, walk
-  the committed-order chain, and then walk the physical bag again for the
-  promotion/tombstone census. Atomic retirement also has two grace stages for a
-  removed version (pre-unlink prune grace, then ordinary post-unlink physical
-  grace), whereas an ordinary FLAT overwrite only needs the physical grace.
-  The walk and sampled reclaim counters are needed before assigning that work
-  the tax.
-- `flatWorkerReclaim()` closes at most one retire list per active worker slice;
-  each close executes a seq-cst fence and snapshots every worker, even when the
-  oldest batch becomes ready immediately. Therefore `grace_waits == 0` would
-  falsify stalled grace, but would not by itself falsify QSBR CPU cost; the
-  sampled CPU and batches/install ratios make that distinction.
-- Promotion cannot be assumed to restore the raw read path under continuous
-  writes: it requires a sole committed survivor with no uncommitted member.
+This is deliberately unsafe beyond a neat frontier regression: the correct
+global lock also makes the shared commit queue single-writer and makes the
+reserved owner-op ring one logical SPSC lane. With the lock absent those exact
+unchanged structures may lose/corrupt entries, assert, or crash. A crash-only
+run yields no interpretable IPC result; a completed performance run still must
+show the required torn/non-monotonic visibility signal before its speedup is
+attributed to commit-order correctness.
 
-## Reading the sampled CPU fields
+This isolates the **global commit-order serialization part of category (a)**.
+It does not relax atomic memory orders, skip QSBR, or remove category (c)'s
+metadata and indirection. Its IPC delta necessarily includes the lock/cache-line
+handoff and shared queue ownership that implement global commit ordering; those
+are the mechanism being ablated, while every original per-group operation
+remains.
 
-Sampling is once per 1024 owner-local phase entries. `CLOCK_THREAD_CPUTIME_ID`
-avoids charging descheduling to a phase. Each sample first measures an adjacent
-empty clock interval, accumulated in `clock_ns`; use:
+Expected correctness break: concurrent writers can expose a later group before
+an earlier group has completed its per-key visibility path, or regress the
+published frontier. `atomicity_test.py` should observe **torn multi-key reads**,
+and `monotonic_vis.py` should observe torn and/or non-monotonic visibility. As
+with mode 1, zero torn/non-monotonic observations make mode 3 an invalid
+ablation; any IPC gain from such a run cannot be attributed to the correctness
+guarantee.
 
-```text
-net_sample_ns = max(0, cpu_ns - clock_ns)
-mean_ns_per_sampled_call = net_sample_ns / samples
-estimated_total_phase_ns = mean_ns_per_sampled_call * total_calls
-```
+IPC interpretation, only after that validity signal:
 
-`total_calls` is `write_*_installs`, `qsbr_passes`, or `stamp_drain_calls` for
-the corresponding stream. For stamp work, dividing `net_sample_ns` by
-`stamp_drain_sample_entries` also gives directly sampled nanoseconds per entry.
-Allocation size/class bookkeeping runs after the install end timestamp, so it
-does not inflate the ordinary-versus-versioned install delta. Use before/after
-INFO deltas for every field; preload/warm-up work is intentionally not guessed
-away inside the server.
+- IPC recovery estimates stalls caused by cross-group commit serialization and
+  its cache-line handoff.
+- No recovery says the global ordered commit section is not the material stall
+  source under this workload.
 
-## Measurement result
+## What isolates category (c)
 
-Not measured in this task. The user will build and run the existing campaign;
-the hard constraint forbids compiling, starting a server, testing, or
-benchmarking in this worktree during instrumentation.
+No unsafe mode removes layout or indirection, intentionally. All three keep the
+version objects, `vmeta`, committed-head cursor, predecessor links, allocations,
+and live-set shape. Category (c) is therefore the residual hypothesis: if valid
+modes 1 and 3 do not recover ordering-related IPC and mode 2 does not recover
+grace-wait IPC, unchanged pointer chasing/cache footprint is the leading
+remaining explanation. The three deltas are not assumed additive; interactions
+must be reported rather than forced into a 100% decomposition.
 
-## Verification performed here
+## Measurement status and verification scope
 
-- Confirmed the worktree, branch, and baseline commit before editing.
-- `git diff --check` passes, including the new `FINDINGS.md`.
-- Audited that all new hot-path fields are plain owner-local counters and that
-  every `flatBatchReady()` / `tomoApplyVersionStamp()` signature change has a
-  matching call site.
-- Deliberately did not compile, start a server, run tests, or run benchmarks.
+No runtime result is claimed here. The owner will build and run the performance
+campaign plus `atomicity_test.py` and `monotonic_vis.py` for every mode. This
+task performed source-only implementation and review. Per the hard constraint,
+no compiler, server, benchmark, or test was run in this worktree.
+
+Source-only verification performed here:
+
+- `git diff --check` reports no whitespace errors.
+- All direct `commit_seq` publication/snapshot sites and the version-visibility
+  fields (`vmeta`, `version_seq`, `committed_head`, and predecessor links) were
+  audited into the mode-1 selectors; initialization stores that were already
+  relaxed remain relaxed. Owner-operation queue synchronization is intentionally
+  unchanged.
+- Mode 0 reaches the original commit-lock body, full QSBR readiness predicate,
+  and acquire/release arms. Mode 3 reaches the same group loops with only the
+  commit lock/unlock operations suppressed.
+- `tools/preflight/knob_matrix.sh` contains no `try`, `must_refuse`, or `reject`
+  cell for `tomokv-atomic-ablate`; the knob is accounted only as a deliberately
+  unsafe exemption.

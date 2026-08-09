@@ -88,6 +88,9 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 
 /* Global vars */
 struct redisServer server; /* Server global state */
+/* MEASUREMENT-ONLY and deliberately unsafe for every nonzero value. Kept out
+ * of redisServer so the control arm does not perturb any server-struct layout. */
+int tomokv_atomic_ablate;
 /* LB-3: tm_flip_ctx is both the flip-in-progress gate and the publication edge for
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
@@ -328,6 +331,49 @@ static struct {
 #define commit_head (commit_ctl.head)
 #define commit_tail (commit_ctl.tail)
 
+static inline uint64_t csCommitSeqLoadAcquireOrUnsafeRelaxed(void) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0))
+        return atomic_load_explicit(&commit_seq, memory_order_relaxed);
+    return atomic_load_explicit(&commit_seq, memory_order_acquire);
+}
+
+static inline void csCommitSeqStoreReleaseOrUnsafeRelaxed(uint64_t seq) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE, 0)) {
+        atomic_store_explicit(&commit_seq, seq, memory_order_relaxed);
+        return;
+    }
+    atomic_store_explicit(&commit_seq, seq, memory_order_release);
+}
+
+static void tomoAtomicAblateWarnAtStartup(void) {
+    const char *disabled = NULL;
+    switch (tomokv_atomic_ablate) {
+    case TOMO_ATOMIC_ABLATE_CONTROL_CORRECT:
+        return;
+    case TOMO_ATOMIC_ABLATE_RELAXED_ORDERING_UNSAFE:
+        disabled = "VERSION PUBLICATION/RESOLVE ACQUIRE-RELEASE ORDERING "
+                   "(RELAXED ORDERING ABLATION)";
+        break;
+    case TOMO_ATOMIC_ABLATE_NO_GRACE_USE_AFTER_FREE_UNSAFE:
+        disabled = "QSBR GRACE WAITING (NO-GRACE USE-AFTER-FREE ABLATION)";
+        break;
+    case TOMO_ATOMIC_ABLATE_NO_COMMIT_ORDER_UNSAFE:
+        disabled = "GLOBAL COMMIT-LOCK ORDERING "
+                   "(OUT-OF-ORDER COMMIT ABLATION)";
+        break;
+    default:
+        serverPanic("invalid tomokv-atomic-ablate mode");
+    }
+    serverLog(LL_WARNING,
+        "!!!!!!!!!!!!!!!! TOMOKV-ATOMIC-ABLATE=%d: DELIBERATELY INCORRECT "
+        "MEASUREMENT-ONLY BUILD; %s IS DISABLED. DATA LOSS, TORN READS, "
+        "USE-AFTER-FREE, AND CRASHES ARE EXPECTED. NEVER USE THIS BUILD "
+        "IN PRODUCTION. !!!!!!!!!!!!!!!!",
+        tomokv_atomic_ablate, disabled);
+}
+
 /* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
  * successful increment is immediately followed, on the same non-yielding processCommand stack,
  * by construction and registration of exactly one versioned-write group. Using the counter itself
@@ -344,7 +390,7 @@ _Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
 
 uint64_t tomoCommittedSeq(void) {
-    return atomic_load_explicit(&commit_seq, memory_order_acquire);
+    return csCommitSeqLoadAcquireOrUnsafeRelaxed();
 }
 
 uint64_t tomoCurrentReadSnapshot(void) {
@@ -7808,7 +7854,7 @@ int processCommand(client *c) {
         ((fake->cmd->flags & CMD_READONLY) ||
          (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
         flatQsbrRegionEnter();
-        fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
+        fake->tomo_read_snapshot = csCommitSeqLoadAcquireOrUnsafeRelaxed();
         fake->tomo_read_snapshot_pinned = 1;
     }
 
@@ -8299,6 +8345,16 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
  * batch that may touch a flat table") and it still lets a worker that has genuinely stopped slicing
  * be skipped, so the grace never stalls. Non-worker threads are covered by their own region flags. */
 static int flatBatchReady(const flatBatch *b, tomoAtomicCostStat *cost) {
+    /* DELIBERATELY INCORRECT ABLATION MODE 2: preserve retire-list creation,
+     * batch close/snapshots, readiness call sites, callback/free processing,
+     * and counters, but declare every closed batch ready without waiting for
+     * any reader. This creates use-after-free by construction. */
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_NO_GRACE_USE_AFTER_FREE_UNSAFE, 0)) {
+        (void)b;
+        (void)cost;
+        return 1;
+    }
     /* NON-WORKER identities. Slot t blocks this batch iff BOTH:
      *   (i)  it was INSIDE a region when the batch closed (bit t set in io_pin_mask), AND
      *   (ii) it is STILL inside that same region (its epoch is unchanged).
@@ -8975,10 +9031,19 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
 static inline void csCommitLock(void) {
+    /* DELIBERATELY INCORRECT ABLATION MODE 3: one predictable gate removes
+     * only the global serialization; the caller's group/queue work is left
+     * byte-for-byte in place and is intentionally unsafe without this lock. */
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_NO_COMMIT_ORDER_UNSAFE, 0))
+        return;
     while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
         exPauseCpu();
 }
 static inline void csCommitUnlock(void) {
+    if (__builtin_expect(tomokv_atomic_ablate ==
+                         TOMO_ATOMIC_ABLATE_NO_COMMIT_ORDER_UNSAFE, 0))
+        return;
     atomic_flag_clear_explicit(&commit_lock, memory_order_release);
 }
 
@@ -9016,7 +9081,8 @@ static inline void csMsetPendingUnlock(client *c) {
  * queue to empty before releasing it, and csMsetStampAndAppend is only ever called from inside
  * that hold. So for one connection every pop of a critical section precedes every publish of
  * that section, the ring is empty at every csCommitUnlock, and the record at the ring head
- * always belongs to the group now publishing — asserted at the retire.
+ * always belongs to the group now publishing — asserted at the retire. Deliberately incorrect
+ * ablation mode 3 removes this lock guarantee and may trip that assertion; that is not safety.
  *
  * A group that finds the ring FULL simply gets no record. That is self-healing rather than a
  * hole: `pending` then exceeds linked+recorded, the walk takes the same conservative hold it
@@ -9579,7 +9645,7 @@ static void csMsetInstallDone(csGroup *g) {
          * publish; its cancel jobs were nevertheless all queued before reply
          * publication and before the R1 read hold is released. */
         if (!canceled)
-            atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
+            csCommitSeqStoreReleaseOrUnsafeRelaxed(done->version_seq);
         for (int i = 0; i < ninstalled; i++) {
             csMsetInstall *install = &done->mset_installs[i];
             if (!canceled) {
@@ -20153,9 +20219,11 @@ int exQueuePush(exQueue *q, client *c) {
     return 0;
 }
 
-/* Reserved CURE2 lane producer. Completion workers are serialized by
- * commit_lock, so this remains one logical SPSC producer even when the worker
- * that completes successive groups changes. */
+/* Reserved CURE2 lane producer. Correct-mode completion workers are serialized
+ * by commit_lock, so this remains one logical SPSC producer even when the
+ * worker that completes successive groups changes. Deliberately incorrect
+ * ablation mode 3 removes that serialization too: queue loss/corruption or a
+ * crash is possible, in addition to the intended out-of-order frontier. */
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op) {
     unsigned int t = q->staged_tail;
     unsigned int next_t = (t + 1) & server.ex_queue_mask;
@@ -25204,6 +25272,9 @@ int main(int argc, char **argv) {
     } else {
         serverLog(LL_NOTICE, "Configuration loaded");
     }
+
+    /* Never let a measurement accidentally look like a production run. */
+    tomoAtomicAblateWarnAtStartup();
 
     zmalloc_thread_stats_register("main");   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     initServer();

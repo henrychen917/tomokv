@@ -277,12 +277,16 @@ drift_guard(){
   #   tomokv-thread-mode                      -> controller_sweep.sh + flip_updown.sh (auto/static)
   #   tomokv-pin-mode                         -> feature_sweep.sh
   #   tomokv-cores-per-node / -pin-io / -pin-ex -> NOT COVERED ANYWHERE (see the NOTE emitted below)
+  #   tomokv-atomic-ablate                    -> DELIBERATELY INCORRECT; NEVER an automated cell
   printf '%s\n' tomokv-nodes tomokv-thread-io tomokv-thread-ex tomokv-thread-mode \
                 tomokv-pin-mode tomokv-cores-per-node tomokv-pin-io tomokv-pin-ex \
+                tomokv-atomic-ablate \
     | sort -u > $J/knob_exempt.txt
   sort -u -m $J/knob_tried.txt $J/knob_exempt.txt > $J/knob_accounted.txt
   echo "  NOTE no preflight suite varies tomokv-cores-per-node / -pin-io / -pin-ex (pinning" >> $OUT
   echo "       specs are boot-FATAL when mismatched with pin-mode and nothing asserts that)." >> $OUT
+  echo "  NOTE tomokv-atomic-ablate is measurement-only and deliberately incorrect; preflight" >> $OUT
+  echo "       MUST NEVER enable a nonzero mode, so it is exempt rather than given a valid cell." >> $OUT
   local untested=$(comm -23 $J/knob_live.txt $J/knob_accounted.txt | tr '\n' ' ')
   local ghost=$(comm -13 $J/knob_live.txt $J/knob_tried.txt | tr '\n' ' ')
   local zombie=$(comm -12 $J/knob_live.txt $J/knob_rejected.txt | tr '\n' ' ')
