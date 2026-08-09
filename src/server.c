@@ -610,6 +610,16 @@ static inline void tmIoWaitEnd(void) {
 int tm_flip_trace = 0;
 int tm_rord_trace = 0;   /* ee451 D: dump one run's arrival->emit class sequence */
 
+/* Flip-anchor proof counters. These are process totals (the controller itself is main-threaded,
+ * but INFO may read them from another IO owner), hence relaxed atomics are sufficient. */
+static _Atomic unsigned long tomo_flip_anchor_captures;
+static _Atomic unsigned long tomo_flip_anchor_drop_floor;
+static _Atomic unsigned long tomo_flip_anchor_drop_sat;
+static _Atomic unsigned long tomo_flip_best_rate_resets;
+static _Atomic unsigned long tomo_flip_in_floor_probes;
+static _Atomic unsigned long tomo_flip_in_floor_probe_keeps;
+static _Atomic unsigned long tomo_flip_in_floor_probe_reverts;
+
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
  * curr_run_ctx from EVERY io thread, while a script runs inline on ONE of them => any concurrent
@@ -18001,6 +18011,21 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_flip_anchor_captures:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_anchor_captures, memory_order_relaxed),
+            "tomokv_flip_anchor_drop_floor:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_anchor_drop_floor, memory_order_relaxed),
+            "tomokv_flip_anchor_drop_sat:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_anchor_drop_sat, memory_order_relaxed),
+            "tomokv_flip_best_rate_resets:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_best_rate_resets, memory_order_relaxed),
+            "tomokv_flip_in_floor_probes:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probes, memory_order_relaxed),
+            "tomokv_flip_in_floor_probe_keeps:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probe_keeps, memory_order_relaxed),
+            "tomokv_flip_in_floor_probe_reverts:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed)));
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
          * candidate utilization estimator can be checked against a measured throughput curve.
          * Take two samples and divide each delta by (threads * wall * 1000) to derive its fraction.
@@ -23115,7 +23140,12 @@ typedef struct {
     int      ex_occ_smooth;
     double   io_wait_u_smooth; /* EWMA of 1 - epoll-wait/wall, kept in double so the legacy
                                 * integer-EWMA truncation cannot pin a near-one signal. */
-    int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
+    /* Per-role saturation-magnitude noise. This is the same EWMA mean+variance estimator shape as
+     * throughput's mean/var pair, applied to the selected U_IO and U_EX fractions. */
+    double   u_io_mean, u_io_var;
+    double   u_ex_mean, u_ex_var;
+    int      u_noise_primed;
+    int      just_settled;   /* a climb just ended => finish bookkeeping, then seek a legal anchor */
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     /* ONE VARIABLE CARRIES WHICHEVER SIGNAL tomokv-flip-signal SELECTS (see FLIP_SIG_*), and that
      * is deliberate rather than incidental. The anchor, the deadzone, the per-tick quiet test that
@@ -23131,15 +23161,21 @@ typedef struct {
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
     double   lr_prev_tick;   /* lr_ewma at the previous tick — feeds lr_quiet_run */
     int      lr_quiet_run;   /* consecutive ticks the RATIO has held still; gates climb START */
-    double   lr_settle_prev; /* previous lr while waiting for the RATIO to settle post-climb */
-    int      lr_settle_run;  /* consecutive ticks the ratio has held still */
-    double   lr_settle_sum;  /* sum of lr over that quiet window -> the anchor is its MEAN */
-    int      lr_settle_wait; /* ticks spent waiting for the ratio to go quiet (bounded) */
     int      anchor_n;       /* settled ticks folded into lr_anchor — 1/n IS the re-centring rate */
     double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
                               * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
                               * stops a failed direction from being retried immediately. */
+    double   anchor_u_io;    /* selected U_IO snapshot at capture; magnitude-shift invalidator */
+    double   anchor_u_ex;    /* U_EX snapshot at capture; catches common-mode workload shifts */
+    int      anchor_io_live; /* split at capture; distinguishes a probe's own saturation move */
+    double   anchor_rate_prev; /* prior throughput EWMA for the idle rate-plateau estimator */
+    int      anchor_rate_run;  /* consecutive rate-plateau ticks; same law as warmup settle_run */
+
+    int      floor_probe_used; /* one in-floor probe consumed in this settled/workload episode */
+    int      floor_probe_active; /* the one-shot probe is in the existing warmup/judge path */
+    int      floor_probe_revert_pending; /* count REVERT only after its walk-back actually lands */
+    int      floor_probe_await_settle; /* self-induced drops cannot re-arm before final re-settle */
 
     int      lr_out_dir;     /* direction of the current out-of-band run (+1 front / -1 back) */
     int      lr_out_run;     /* consecutive ticks outside the band in that direction (Schmitt) */
@@ -23168,8 +23204,8 @@ static flipCtlState fctl[TM_MAXNODE];
 /* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
  * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
  * from the io-vs-ex saturation RATIO; THROUGHPUT only VETOES (revert a measured regress).
- * Balanced-within-band => HOLD (no probe, no measurement churn) — the common case on a stable
- * workload, which is what makes steady-state overhead ~free.
+ * A fully settled inside-floor episode gets one adjacent-config probe; after its existing judge
+ * keeps or reverts that probe, the episode latch restores the zero-churn steady-state hold.
  *
  * RATIO, NOT DIFFERENCE (owner design 2026-08-03). The old signal was io_sat - ex_sat. A
  * difference is not scale-free and it assumes the two roles are symmetric. They are not: at the
@@ -23231,9 +23267,9 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * becomes [1.13,1.25], and r=1.19 is inside => hold. Centred on 1
                                 * instead, r=1.19 stays out of band and the identical climb
                                 * restarts for ever -- measured as 103 flips and -24% throughput
-                                * on p32 SET. Gross imbalance is the exception: FLIP_R_FAR keeps
-                                * an anchor from certifying a >=2x error, while veto_run and the
-                                * same-wave latch quench a move that throughput rejects there.
+                                * on p32 SET. An anchor now exists only strictly inside the derived
+                                * half-step floor; on floor exit it becomes UNSET before the band is
+                                * consulted, so no outside-floor magnitude can certify itself.
                                 * r=1 remains the GOAL the climb moves toward; this is only the
                                 * hysteresis around where it actually came to rest. */
 #define FLIP_SUSTAIN     8     /* consecutive out-of-band ticks (~2s = 2 EWMA time constants) before
@@ -23244,8 +23280,6 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * window). This is what "settled" means operationally. */
 #define FLIP_WAIT_KEEP   4     /* settle ticks after a KEPT flip before the next directed step (~1s) */
 #define FLIP_R_QUIET     0.02  /* |d log r| per tick below this counts as the ratio holding still */
-#define FLIP_R_QUIET_LOUD 120  /* ticks (~30s) after which an unquiet ratio is WARNED about. Not a
-                                * cap -- the wait is deliberately unbounded, see the anchor site. */
 #define FLIP_R_QUIET_N   8     /* ticks (~2s) of a quiet ratio before the anchor is captured */
 #define FLIP_COAST       1     /* look-ahead: coast up to this many NON-improving steps past the best
                                 * before giving up and walking back to it. Crosses a single-config dip
@@ -23354,6 +23388,36 @@ static flipCtlState fctl[TM_MAXNODE];
 static int tmFlipDo(int node, int dir, const char **err) {
     if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
     return dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err);
+}
+
+/* One definition of "rate plateau" for both post-flip warmup and anchor capture. The estimate is
+ * scale-free because sigma comes from the throughput EWMA variance; FESC_SETTLE_N supplies the
+ * existing persistence requirement. */
+static void tmFlipRatePlateauUpdate(double mean, double sigma, double *prev, int *run) {
+    double drift = fabs(mean - *prev);
+    *prev = mean;
+    if (drift < sigma) {
+        if (*run < INT_MAX) (*run)++;
+    } else {
+        *run = 0;
+    }
+}
+
+/* An armed role transfer starts a new split sample. Clear only estimators whose history must not
+ * straddle configurations; the old rate reference remains available to the existing judge. */
+static void tmFlipPrepareConfigSample(flipCtlState *fc) {
+    fc->anchor_rate_prev = fc->mean;
+    fc->anchor_rate_run = 0;
+    fc->lr_quiet_run = 0;
+    fc->u_noise_primed = 0;
+}
+
+/* The existing judge has accepted the measured split. Its rate is now the only comparable
+ * best-rate baseline for the next accepted configuration. */
+static void tmFlipAcceptBestRate(flipCtlState *fc, double rate) {
+    fc->best_rate = rate;
+    fc->best_dist = 0;
+    atomic_fetch_add_explicit(&tomo_flip_best_rate_resets, 1, memory_order_relaxed);
 }
 
 static void tomoFlipController(void) {
@@ -23709,6 +23773,10 @@ static void tomoFlipController(void) {
         if (u_io > 1.0) u_io = 1.0;
         if (u_io_wait > 1.0) u_io_wait = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
+        /* Use the PRE-SAMPLE variance for invalidation, so the workload step being detected cannot
+         * inflate its own threshold. Capture below snapshots the post-update settled estimate. */
+        double u_sigma_io_prior = sqrt(fc->u_io_var > 0.0 ? fc->u_io_var : 0.0);
+        double u_sigma_ex_prior = sqrt(fc->u_ex_var > 0.0 ? fc->u_ex_var : 0.0);
         /* THE CLIP IS WHY THE BACKLOG TERM IS LOAD-BEARING RATHER THAN DECORATIVE (2026-08-08).
          * u_ex is hard-bounded above by 1.0 — occupancy is a fraction of wall time and cannot
          * exceed it — so the UTILISATION half of ex_sat can only ever say "grow-front or hold": it
@@ -23852,19 +23920,19 @@ static void tomoFlipController(void) {
         }
         if (!node_idle) {
             if (!fc->lr_init) {
-                /* Seed the signal from the first loaded sample, but leave the anchor at log(1):
-                 * "assume balanced until a settle proves otherwise". That prior is what lets a
-                 * COLD front-heavy boot climb at all — seeding the anchor here instead would
-                 * anchor on a ramp-up transient, which is exactly how the old 0.65 pin happened. */
+                /* Seed the signal from the first loaded sample, but leave anchor_n==0 (UNSET).
+                 * That is what lets a cold outside-floor boot climb; capturing here instead would
+                 * anchor a ramp-up transient, which is exactly how the old 0.65 pin happened. */
                 fc->lr_ewma = lr; fc->lr_init = 1;
             } else if (!isfinite(fc->lr_ewma) || !isfinite(fc->lr_anchor)) {
                 /* Self-heal instead of staying dead: a single poisoned sample must not disable the
                  * actuator for the life of the process. */
-                /* anchor_n = 0 DISARMS self-centring, matching boot: the anchor is pinned at
-                 * r=1 (the initial belief) until a climb actually settles somewhere. Arming it
-                 * here would let the anchor drift off 1 with no evidence, and the very first
-                 * workload shift would then find the band already centred on the status quo. */
+                /* anchor_n = 0 is UNSET, matching boot: no hysteresis centre gets a vote until all
+                 * three legal-capture conditions settle. Arming it here would let a poisoned
+                 * sample turn the current status quo into a band centre with no evidence. */
                 fc->lr_ewma = lr; fc->lr_anchor = 0.0; fc->anchor_n = 0;
+                fc->lr_quiet_run = 0;
+                fc->anchor_rate_prev = fc->mean; fc->anchor_rate_run = 0;
             } else {
                 /* ee451 2026-08-05: track how long the RATIO has been holding still, always — not
                  * only post-climb. This is the START gate below; see it for why.
@@ -23879,6 +23947,74 @@ static void tomoFlipController(void) {
                     if (fc->lr_quiet_run < 1000) fc->lr_quiet_run++;
                 } else fc->lr_quiet_run = 0;
             }
+        }
+
+        /* GRANULARITY OF ONE LIVE THREAD MOVE, in the units selected for lr_ewma. This is also the
+         * exact magnitude of the one-shot in-floor probe: one call to the one-thread actuator, not
+         * a chosen machine-size step. Ratio modes 0/5 include both role-capacity terms; worker
+         * modes 1/2/3 use the signal-matched worker term. */
+        int ni = io_live_node > 0 ? io_live_node : 1;
+        int ne = w_live > 0 ? w_live : 1;
+        double gstep = log((double)(ni + 1) / (double)ni);
+        gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
+                          : 1.0;                          /* last worker: grow-back unavailable */
+        if (wsig)
+            gstep = (fc->lr_ewma > 0.0)
+                  ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)  /* grow-front: ne-1 */
+                  : log((double)(ne + 1) / (double)ne);                    /* grow-back:  ne+1 */
+        double gfloor = gstep / 2.0;
+
+        /* ANCHOR INVALIDATION IS EAGER AND REPRESENTATIONAL. An anchor cannot coexist with a
+         * signal on/outside the half-step floor. Independently, a >2-sigma movement of either
+         * captured role magnitude invalidates it even when both roles moved together and lr did
+         * not. The sigma comes from the pre-sample EWMA variance, so the step under examination
+         * cannot widen its own allowance. */
+        if (fc->anchor_n > 0) {
+            int drop_floor = fabs(fc->lr_ewma) >= gfloor;
+            int drop_sat = fabs(u_io - fc->anchor_u_io) > 2.0 * u_sigma_io_prior ||
+                           fabs(u_ex - fc->anchor_u_ex) > 2.0 * u_sigma_ex_prior;
+            if (drop_floor || drop_sat) {
+                int same_split = (io_live_node == fc->anchor_io_live);
+                fc->anchor_n = 0;
+                fc->lr_anchor = 0.0;                    /* UNSET: no stale centre remains usable */
+                fc->anchor_rate_prev = fc->mean;
+                fc->anchor_rate_run = 0;
+                fc->lr_quiet_run = 0;
+                fc->lr_out_dir = 0;
+                fc->lr_out_run = 0;
+                fc->u_noise_primed = 0;
+                /* A workload/saturation change at the captured split starts a new settled
+                 * episode. A probe's own move, walk-back and cache re-settle must NOT re-arm it. */
+                if (same_split && !fc->floor_probe_await_settle) fc->floor_probe_used = 0;
+                if (drop_floor)
+                    atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
+                else
+                    atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1, memory_order_relaxed);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f floor=%.3f "
+                          "u_io=%.3f/%.3f sigma=%.4f u_ex=%.3f/%.3f sigma=%.4f -> UNSET",
+                          node, drop_floor ? "floor-exit" : "sat-magnitude",
+                          fc->lr_ewma, gfloor, u_io, fc->anchor_u_io, u_sigma_io_prior,
+                          u_ex, fc->anchor_u_ex, u_sigma_ex_prior);
+            }
+        }
+
+        /* Per-role noise is EWMA(mean, squared deviation) at FESC_ALPHA, exactly the throughput
+         * estimator shape. Idle samples carry no configuration information and are excluded. */
+        if (!node_idle) {
+            if (!fc->u_noise_primed) {
+                fc->u_io_mean = u_io; fc->u_io_var = 0.0;
+                fc->u_ex_mean = u_ex; fc->u_ex_var = 0.0;
+                fc->u_noise_primed = 1;
+            } else {
+                double d_io = u_io - fc->u_io_mean;
+                double d_ex = u_ex - fc->u_ex_mean;
+                fc->u_io_mean += FESC_ALPHA * d_io;
+                fc->u_io_var += FESC_ALPHA * (d_io*d_io - fc->u_io_var);
+                fc->u_ex_mean += FESC_ALPHA * d_ex;
+                fc->u_ex_var += FESC_ALPHA * (d_ex*d_ex - fc->u_ex_var);
+            }
+            tmFlipRatePlateauUpdate(fc->mean, sigma, &fc->anchor_rate_prev,
+                                    &fc->anchor_rate_run);
         }
 
         /* THE TRIGGER'S INPUTS, ON THE EXISTING [flip-ctl] LINES. A conformance run that lands on
@@ -23932,9 +24068,7 @@ static void tomoFlipController(void) {
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->mean, fc->best_rate);
                 continue;
             }
-            double drift = fabs(fc->mean - fc->warm_prev);
-            fc->warm_prev = fc->mean;
-            if (drift < sigma) fc->settle_run++; else fc->settle_run = 0;
+            tmFlipRatePlateauUpdate(fc->mean, sigma, &fc->warm_prev, &fc->settle_run);
             /* reshard quiescence: a flip triggers a bucket-range move plus EWMA-balancer follow-ups,
              * and the moved buckets are cache-cold for their new worker. Measuring during that
              * transient under-reads the config (observed: 4io/4ex probed at 4.56M mid-rebalance vs
@@ -23984,6 +24118,20 @@ static void tomoFlipController(void) {
             server.tm_flip_aborted = 0;
             serverLog(LL_WARNING, "[flip-ctl n%d] step %s ABORTED at actuation -> end climb, pin, pause",
                       node, fc->last_dir > 0 ? "grow-front" : "grow-back");
+            if (fc->floor_probe_active) {
+                unsigned long reverts = atomic_fetch_add_explicit(
+                    &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=REVERT #%lu "
+                          "(actuation aborted; split unchanged)", node, reverts);
+                fc->floor_probe_active = 0;
+                fc->floor_probe_revert_pending = 0;
+            }
+            /* A prior coast step may now be retained because the NEXT attempted transfer aborted.
+             * Its old best belongs to another split; adopt this unchanged pre-attempt config. */
+            if (fc->best_dist > 0) {
+                tmFlipAcceptBestRate(fc, fc->before > 0.0 ? fc->before : fc->mean);
+                fc->coast_used = 0;
+            }
             fc->dir = 0;
             fc->just_settled = 1;        /* review [5]: PIN the deadzones at this (pre-step) config so
                                           * the next idle tick can't immediately re-fire the same flip */
@@ -24058,15 +24206,22 @@ static void tomoFlipController(void) {
                 /* END the climb rather than continuing it. The DIRECTION was chosen from the
                  * departing load's pressure as well, so that premise is stale too — continuing
                  * would march further in a direction the new load never asked for. Ending sets
-                 * just_settled, which re-anchors the ratio band at the new operating point, and
-                 * the band then picks the direction afresh. */
+                 * just_settled, which re-seeks a legal inside-floor anchor at the new operating
+                 * point, and the unset band otherwise picks the direction afresh. */
                 fc->dir = 0; fc->just_settled = 1;
                 fc->veto_run = 0;                     /* the offered load changed: fresh reactivity */
-                fc->best_rate = after;
-                fc->best_dist = 0;
+                tmFlipAcceptBestRate(fc, after);       /* moved split is retained under the new load */
                 fc->coast_used = 0;
                 fc->revert_steps = 0;       /* never walk back to a config only ever measured under
                                              * the OLD load — the band will re-decide from here */
+                if (fc->floor_probe_active) {
+                    unsigned long keeps = atomic_fetch_add_explicit(
+                        &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=KEEP #%lu "
+                              "(load re-baselined at %.0f ops/s)", node, keeps, after);
+                    fc->floor_probe_active = 0;
+                    fc->floor_probe_revert_pending = 0;
+                }
                 fc->wait = FLIP_WAIT_REVERT;
                 fc->phase = 0;
                 continue;
@@ -24074,7 +24229,11 @@ static void tomoFlipController(void) {
             double band = fmax(2.0 * sigma, 0.02 * fc->best_rate);
             int significant = (after > fc->best_rate + band);   /* worth spending another step on */
             int improved    = (after > fc->best_rate);          /* the best config measured so far */
-            if (improved) { fc->best_rate = after; fc->best_dist = 0; }
+            int best_rate_reset = 0;
+            if (improved) {
+                tmFlipAcceptBestRate(fc, after);
+                best_rate_reset = 1;
+            }
             else fc->best_dist++;
             if (significant) {
                 fc->coast_used = 0;
@@ -24123,6 +24282,29 @@ static void tomoFlipController(void) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] AT-BEST %s (%.0f, coast spent) -> hold here",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->best_rate);
             }
+            /* The in-floor probe deliberately enters this SAME judge with the SAME FLIP_COAST
+             * allowance, but it is a one-step episode rather than a momentum climb. A decision
+             * that did not arm walk-back is KEEP; make its measured rate the split-local baseline
+             * even when the coast allowance accepted a within-noise shortfall. A decision that
+             * armed walk-back is counted only when the existing revert path confirms it landed. */
+            if (fc->floor_probe_active) {
+                if (fc->revert_steps > 0) {
+                    fc->floor_probe_revert_pending = 1;
+                } else {
+                    if (!best_rate_reset) tmFlipAcceptBestRate(fc, after);
+                    fc->best_dist = 0;
+                    fc->coast_used = 0;
+                    fc->dir = 0;
+                    fc->just_settled = 1;
+                    fc->wait = FLIP_WAIT_REVERT;
+                    unsigned long keeps = atomic_fetch_add_explicit(
+                        &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=KEEP #%lu "
+                              "rate=%.0f ops/s", node, keeps, after);
+                    fc->floor_probe_active = 0;
+                    fc->floor_probe_revert_pending = 0;
+                }
+            }
             fc->phase = 0;
             continue;
         }
@@ -24136,6 +24318,10 @@ static void tomoFlipController(void) {
         if (node_idle || fc->mean < 1000.0) {              /* no offered load — nothing to optimize */
             fc->wait = FESC_WAIT_BASE; fc->just_settled = 0;
             fc->idle_stable = 0; fc->veto_run = 0;         /* workload boundary: fresh reactivity */
+            fc->floor_probe_used = 0;                      /* the next loaded settle is a new episode */
+            fc->floor_probe_await_settle = 0;
+            fc->anchor_rate_prev = fc->mean; fc->anchor_rate_run = 0;
+            fc->lr_quiet_run = 0; fc->u_noise_primed = 0;
             continue;
         }
         /* mean-CAUGHT-UP tracker: a climb may only START once the EWMA mean has caught up to the live
@@ -24171,78 +24357,29 @@ static void tomoFlipController(void) {
             continue;
         }
 
-        /* Finalize a just-ended climb: pin BOTH deadzones at this settled operating point from the
-         * FRESH imbalance (any step-back has landed during the wait). The side we were NOT pressured
-         * toward gets base; the pressured side gets |imbalance|*RAISE so a mere fluctuation cannot
-         * re-open the search, but a genuine workload shift (pressure well past this) still will. */
-        if (fc->just_settled && fc->idle_stable < FESC_SETTLE_N) {
-            /* climb over, but throughput has not settled yet -- do NOT capture the band centre
-             * from a transient. Hold; the anchor is set on a later tick. */
+        /* A settled anchor requires ALL THREE facts at once:
+         *   (1) the selected signal is strictly inside this split's derived half-step floor;
+         *   (2) lr_quiet_run has satisfied the existing FLIP_R_QUIET window;
+         *   (3) throughput has satisfied the SAME sigma-relative rate-plateau estimator and
+         *       FESC_SETTLE_N used by post-flip warmup.
+         * `idle_stable` remains the normal START baseline gate; it is deliberately not substituted
+         * for (3), because mean~=inst can hold while both are still climbing during cache/connection
+         * warmup. With anchor_n==0 as UNSET, an outside-floor anchor is unrepresentable. */
+        int signal_settled = (fc->lr_quiet_run >= FLIP_R_QUIET_N);
+        int rate_settled = (fc->anchor_rate_run >= FESC_SETTLE_N);
+        int anchor_idle = (fc->dir == 0 && fc->phase == 0 && fc->revert_steps == 0);
+        int inside_floor = fabs(fc->lr_ewma) < gfloor;
+        int settled_in_floor = anchor_idle && inside_floor && signal_settled && rate_settled;
+
+        if (fc->just_settled && (!signal_settled || !rate_settled)) {
             if (now - last_log >= 5000) {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: awaiting throughput settle (%d/%d) r=%.2f%s",
-                          node, fc->idle_stable, FESC_SETTLE_N, exp(fc->lr_ewma), wsig_log);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: awaiting full settle "
+                          "(%s quiet %d/%d, rate plateau %d/%d, lr=%+.3f floor=%.3f)%s",
+                          node, sig_lc, fc->lr_quiet_run, FLIP_R_QUIET_N,
+                          fc->anchor_rate_run, FESC_SETTLE_N, fc->lr_ewma, gfloor, wsig_log);
                 last_log = now;
             }
             continue;
-        }
-        /* ANCHOR ONLY ONCE THE RATIO ITSELF HAS SETTLED (owner 2026-08-04).
-         * Capturing it the instant the walk-back lands is what caused the thrash: lr_ewma is still
-         * recovering from the excursion (the rejected config read r=0.46), so the anchor came out
-         * BELOW where the ratio actually lives. Measured at p32 SET/io4ex4: settled r ~1.15
-         * (1.08-1.22), anchor captured at 1.11-1.13, band top 1.17 -- so the ratio sat
-         * PERSISTENTLY above the edge. That is a standing offset, not a spike, so FLIP_SUSTAIN
-         * could not absorb it and the identical climb re-fired every few seconds.
-         * Waiting on throughput (idle_stable) does NOT work here and was tried: it tracks the mean
-         * catching up to the live rate and is long satisfied by the time FLIP_WAIT_REVERT elapses.
-         * The RATIO has its own recovery horizon and is the thing being anchored, so it is the
-         * thing that must be quiet.
-         *
-         * flip-signal 1/2/3 (2026-08-08): THE SAME RULE, ON THE SAME VARIABLE, AND THAT IS THE POINT.
-         * The owner's warning about this change was precise -- "not pinning values before they
-         * settle was a huge issue that kept causing thrashing" -- and the trap it names is pinning
-         * the WORKER anchor while testing the RATIO for quietness, which would reproduce the exact
-         * failure above and, at mode 2, would gate on a signal otherwise deleted. It cannot happen
-         * here because the worker signal is not a second variable: it IS lr_ewma (see the FLIP_SIG_*
-         * block), so the quantity that goes quiet, the quantity that is captured into lr_anchor, the
-         * quantity the deadzone brackets and the quantity veto_lr records are one and the same in
-         * every mode. UNITS: both signals are logs of a dimensionless saturation, so FLIP_R_QUIET's
-         * 0.02 keeps its meaning -- "the smoothed signal moved less than ~2% relative this tick" --
-         * rather than becoming an unexamined constant in idle-fraction or queue-item units. That is
-         * why the signal is defined as -log(ex_sat) and not as a raw idle percentage. The wait stays
-         * unbounded and only the log escalates, unchanged, for the reason recorded above. */
-        if (fc->just_settled) {
-            double d = fabs(fc->lr_ewma - fc->lr_settle_prev);
-            fc->lr_settle_prev = fc->lr_ewma;
-            if (d < FLIP_R_QUIET) { fc->lr_settle_run++; fc->lr_settle_sum += fc->lr_ewma; }
-            else { fc->lr_settle_run = 0; fc->lr_settle_sum = 0.0; }
-            /* UNBOUNDED ON PURPOSE (owner, 2026-08-04): "what's scary is if it anchors at the
-             * WRONG spot, not if it ever anchors -- the ratio will settle no matter what."
-             *
-             * Correct, and it reverses an earlier attempt here that anchored on the running mean
-             * after a timeout. A mis-placed anchor mis-places the deadzone, which is the failure
-             * this whole design has been fighting; not having anchored yet merely means not having
-             * ACTED yet, which is the right thing to do while the signal is not anchorable. And
-             * the premise holds in measurement: at steady state |d log r| per tick runs 0.005-0.014
-             * against a 0.02 gate, so the quiet window closes comfortably.
-             *
-             * Waiting long is therefore not a bug -- but a wait that never ends WOULD mean the
-             * ratio is permanently unquiet, which is a real pathology and must not be silent. So
-             * the wait is uncapped and only the LOG escalates. */
-            fc->lr_settle_wait++;
-            if (fc->lr_settle_wait == FLIP_R_QUIET_LOUD)
-                serverLog(LL_WARNING, "[flip-ctl n%d] post-climb: %s still unquiet after %d ticks "
-                          "(r=%.2f d=%.3f) -- holding rather than anchoring badly; if this persists "
-                          "the %s signal is never settling and THAT is the defect%s",
-                          node, sig_lc, FLIP_R_QUIET_LOUD, exp(fc->lr_ewma), d, sig_lc, wsig_log);
-            if (fc->lr_settle_run < FLIP_R_QUIET_N) {
-                if (now - last_log >= 5000) {
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] post-climb: %s settling %d/%d (r=%.2f, d=%.3f)%s",
-                              node, sig_lc, fc->lr_settle_run, FLIP_R_QUIET_N, exp(fc->lr_ewma), d, wsig_log);
-                    last_log = now;
-                }
-                continue;                       /* do NOT anchor on a moving ratio */
-            }
-            fc->lr_settle_run = 0;
         }
         if (fc->just_settled) {
             /* VETO BACKOFF bookkeeping: ending back at the start config = a net-zero probe. */
@@ -24255,18 +24392,31 @@ static void tomoFlipController(void) {
             } else {
                 fc->veto_run = 0;                     /* productive climb: normal reactivity */
             }
-            /* Owner: "if not, go back, THEN set deadzone". After a REJECTED climb the level worth
-             * blocking is the one that TRIGGERED it -- that is the ratio we now have evidence
-             * about ("at r=0.76, growing back is worse"). Anchoring instead at the ratio measured
-             * AFTER the walk-back put the proven-bad level right at the band edge, so ~6% signal
-             * noise re-crossed it immediately: measured as four consecutive GROW-BACK climbs, each
-             * correctly rejected by throughput and each retried within seconds.
-             * A climb that ended WITHOUT being rejected (plateau / at-best) has no such evidence,
-             * so it anchors at where it actually settled. */
-            fc->lr_anchor = fc->lr_ewma;
-            fc->anchor_n = 1;               /* fresh anchor: the running mean restarts from here */
             fc->just_settled = 0;
         }
+
+        if (settled_in_floor && fc->anchor_n == 0) {
+            fc->lr_anchor = fc->lr_ewma;
+            fc->anchor_n = 1;
+            fc->anchor_u_io = u_io;
+            fc->anchor_u_ex = u_ex;
+            fc->anchor_io_live = io_live_node;
+            unsigned long captures = atomic_fetch_add_explicit(
+                &tomo_flip_anchor_captures, 1, memory_order_relaxed) + 1;
+            serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-CAPTURE #%lu lr=%+.3f floor=%.3f "
+                      "%s_quiet=%d rate_plateau=%d u_io=%.3f u_ex=%.3f io=%d",
+                      node, captures, fc->lr_ewma, gfloor, sig_lc, fc->lr_quiet_run,
+                      fc->anchor_rate_run, u_io, u_ex, io_live_node);
+        } else if (settled_in_floor && fc->anchor_n > 0 &&
+                   isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
+            /* Every fold obeys the same three capture gates. Thus the running mean cannot smuggle
+             * an illegal sample into an otherwise legal anchor. */
+            if (fc->anchor_n < INT_MAX) fc->anchor_n++;
+            fc->lr_anchor += (fc->lr_ewma - fc->lr_anchor) / (double)fc->anchor_n;
+        }
+        if (settled_in_floor && fc->floor_probe_used && !fc->floor_probe_active &&
+            !fc->floor_probe_revert_pending)
+            fc->floor_probe_await_settle = 0;
 
         /* WALK-BACK: after an exhausted coast (or a coasted climb that hit a pool edge/refusal), step
          * back toward the best config — reverse of the climb direction, best_dist steps.
@@ -24279,11 +24429,26 @@ static void tomoFlipController(void) {
                 fc->walkback_armed = 0; fc->wait = FLIP_WAIT_REVERT;   /* re-issue it after a pause */
             } else if (fc->walkback_armed) {
                 fc->walkback_armed = 0;                      /* previous step landed => count it */
-                if (--fc->revert_steps == 0) { fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT; continue; }
+                if (--fc->revert_steps == 0) {
+                    if (fc->floor_probe_revert_pending) {
+                        unsigned long reverts = atomic_fetch_add_explicit(
+                            &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
+                        serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=REVERT #%lu "
+                                  "landed back at io=%d", node, reverts, io_live_node);
+                        fc->floor_probe_revert_pending = 0;
+                        fc->floor_probe_active = 0;
+                    }
+                    fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT;
+                    continue;
+                }
             }
             if (fc->wait > 0) { fc->wait--; continue; }
             const char *err = NULL;
-            if (tmFlipDo(node, -fc->last_dir, &err)) { fc->walkback_armed = 1; break; }  /* one flip/tick */
+            if (tmFlipDo(node, -fc->last_dir, &err)) {
+                tmFlipPrepareConfigSample(fc);
+                fc->walkback_armed = 1;
+                break;
+            }  /* one flip/tick */
             fc->wait = FESC_WAIT_BASE;                        /* refused (transient) — retry next tick */
             continue;
         }
@@ -24317,6 +24482,7 @@ static void tomoFlipController(void) {
             const char *err = NULL;
             if (tmFlipDo(node, d, &err)) {
                 if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped */
+                tmFlipPrepareConfigSample(fc);
                 fc->revert_dir = 0; fc->revert_retry = 0; fc->refuse_run = 0;
                 fc->last_dir = d;
                 fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
@@ -24353,6 +24519,12 @@ static void tomoFlipController(void) {
                               exp(fc->lr_ewma), pressure > 0 ? "grow-front" : "grow-back");
                     fc->refuse_run = 0;
                     fc->dir = 0;
+                    /* A coasted config retained by structural refusal is now accepted even though
+                     * no new judgement ran; its split-local rate must replace the old best. */
+                    if (fc->best_dist > 0) {
+                        tmFlipAcceptBestRate(fc, fc->mean);
+                        fc->coast_used = 0;
+                    }
                     /* Anchor ONLY if the pressure still agrees with the climb we were running. A
                      * climb refused while the pressure has REVERSED means the world changed under
                      * us, and pinning the band on this point would centre the deadzone on the very
@@ -24365,6 +24537,7 @@ static void tomoFlipController(void) {
 
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
+        int in_floor_probe = 0;
         /* TARGET IS 1 (owner, 2026-08-03): sat<1 means the role outputs faster than input, sat>1
          * means input outruns output, and the whole job of the flip is to bring the two sides
          * together. So the reference is the FIXED point r=1, not a learned one.
@@ -24405,14 +24578,7 @@ static void tomoFlipController(void) {
          * NOT an objective: io5ex3 (|log r| 0.068) and io6ex2 (0.010) are CLOSER to 1 and
          * measurably WORSE (6.58M, 4.26M vs 7.28M). Nearness to 1 does not make a config good; it
          * only means no flip can make it more balanced. Throughput still picks among them. */
-        double gstep;
-        {
-            int ni = io_live_node > 0 ? io_live_node : 1;     /* THIS node's live IO threads */
-            int ne = w_live > 0 ? w_live : 1;                 /* THIS node's live workers */
-            gstep = log((double)(ni + 1) / (double)ni);
-            gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
-                              : 1.0;                          /* last worker: grow-back unavailable */
-            /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3). Same derivation, different signal.
+        /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3). Same derivation, different signal.
              * lr_worker = -log(ex_sat) is built from the WORKER side alone, so one thread-move
              * moves it only through the worker capacity: grow-front takes ne -> ne-1 (capacity
              * x (ne-1)/ne, signal -log(ne/(ne-1))), grow-back takes ne -> ne+1 (+log((ne+1)/ne)).
@@ -24426,17 +24592,11 @@ static void tomoFlipController(void) {
              * a lower-bound step gives a lower-bound floor, so the controller can still SEE an
              * imbalance one move could fix, and throughput remains the thing that decides whether
              * the move is worth taking. CONSEQUENCE, stated so it is not a surprise in the
-             * conformance table: at p32 SET/io4ex4 the ratio's floor (0.288) holds without probing
-             * while the worker floor at ne=4 is ln(4/3)/2 = 0.144 against a signal of about
-             * -log(0.85) = 0.16, so a cold boot AT that config will probe once, be rejected by
-             * throughput, walk back and anchor there. One excursion, then held -- not a re-climb,
-             * because the anchor is captured at the settled point. */
-            if (wsig)
-                gstep = (fc->lr_ewma > 0.0)
-                      ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)  /* grow-front: ne-1 */
-                      : log((double)(ne + 1) / (double)ne);                    /* grow-back:  ne+1 */
-        }
-        double gfloor = gstep / 2.0;
+             * conformance table: at p32 SET/io4ex4 the ratio floor is 0.288, while the worker floor
+             * at ne=4 is ln(4/3)/2 = 0.144 against a signal of about -log(0.85) = 0.16. The ratio
+             * mode now takes its one owner-approved in-floor probe too; throughput rejects it and
+             * the episode latch holds after the walk-back. The shared gstep/gfloor above implements
+             * both forms before any phase can return, so anchor invalidation sees them too. */
 
         if (tm_flip_trace) {
             serverLog(LL_NOTICE,
@@ -24491,54 +24651,16 @@ static void tomoFlipController(void) {
          * is a difference — but it is worth knowing before anyone reads u_ex as ground truth.) */
         const int occ_clip = 100 - ((int)(1.0 / FESC_ALPHA) - 1);   /* = 97 at alpha 0.25 */
         int floor_blind = (wclip && fc->lr_ewma < 0.0 && fc->ex_occ_smooth >= occ_clip);
-        int beyond_floor = (fabs(fc->lr_ewma) > gfloor || floor_blind);
-        int beyond_band = fabs(fc->lr_ewma - fc->lr_anchor) > band;
-        /* GROSS IMBALANCE CANNOT BE RATIFIED BY A SELF-CENTRING ANCHOR. The band is hysteresis
-         * around a throughput-settled point, not a second opinion on the target. Letting its
-         * running mean override the granularity floor made every stable configuration certify
-         * itself: once lr stopped moving, anchor converged to lr and beyond_band became false even
-         * while the floor said a thread move could still improve balance.
-         *
-         * Keep that hysteresis for the normal settled regime, including the asymmetric optima for
-         * which it was introduced, but bypass it once the SAME smoothed decision signal used by
-         * every mode is beyond FLIP_R_FAR. That is the existing scale-free definition of a gross
-         * (>=2x) imbalance, not a new machine-dependent threshold. The floor still has to pass, so
-         * an unrepresentable move remains suppressed.
-         *
-         * This cannot create an unbounded optimum oscillation. If throughput rejects the move, the
-         * unchanged judge walks back; each net-zero excursion raises veto_run, and after two the
-         * same-wave latch below suppresses this stable lr until it moves by a full live-thread
-         * gstep. Below FLIP_R_FAR the band is completely unchanged, and at a pool edge can_front /
-         * can_back still prevents a move. */
-        int gross_imbalance = fabs(fc->lr_ewma) > FLIP_R_FAR;
-        if (beyond_floor && (beyond_band || gross_imbalance))
+        int beyond_floor = (fabs(fc->lr_ewma) >= gfloor || floor_blind);
+        /* Direction (a): floor exit has already made anchor_n=0/UNSET above. An unset anchor has
+         * no hysteresis vote, so EVERY actionable outside-floor magnitude reaches sustain —
+         * including zrange_p1's |lr|=0.520 between its 0.255 floor and FLIP_R_FAR=0.69. The old
+         * gross bypass is removed: once an outside-floor anchor is impossible it would be dead
+         * code, and retaining it would obscure the invariant that closes the entire interval. */
+        int beyond_band = (fc->anchor_n == 0) ||
+                          fabs(fc->lr_ewma - fc->lr_anchor) > band;
+        if (beyond_floor && beyond_band)
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
-        else {
-            /* ee451 2026-08-04: SELF-CENTRING ANCHOR — the anchor is the RUNNING MEAN of the
-             * settled ticks, not the single tick that closed the quiet window.
-             *
-             * lr_ewma approaches its plateau FROM ABOVE (a climb leaves IO transiently hot) and the
-             * quiet test only asks that it has stopped moving fast, so the captured value sits
-             * systematically above the true centre. Measured over 130s/120s of dead-still steady
-             * state (zero flips in both):
-             *     p32 SET  anchor 1.1562  vs settled mean r 1.1058   +4.6%
-             *     p1  GET  anchor 2.3662  vs settled mean r 2.3176   +2.1%
-             * while r itself is stable to CV 2.36% / 1.85%. So the MEDIAN deviation from the
-             * anchor was 4.4% against a 5% band — nearly the whole budget spent on capture bias
-             * rather than noise, which is precisely what makes a 1-3% band impossible: at dz=3%,
-             * 91% of steady ticks would read out-of-band on a controller that is perfectly still.
-             *
-             * A running mean needs NO rate constant: 1/n IS the rate, and it slows as evidence
-             * accumulates, so a well-established anchor stops chasing and a genuine drift crosses
-             * the band instead of being absorbed. Only non-triggering ticks contribute. In
-             * particular, a floor-actionable gross imbalance never contributes even when the
-             * anchor has already slid onto it, so it cannot erase its own trigger. */
-            if (fc->dir == 0 && fc->phase == 0 && fc->lr_init && fc->anchor_n > 0 &&
-                isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
-                if (fc->anchor_n < INT_MAX) fc->anchor_n++;
-                fc->lr_anchor += (fc->lr_ewma - fc->lr_anchor) / (double)fc->anchor_n;
-            }
-        }
 
         /* SUSTAIN (Schmitt). THE ACTUATOR MOVES THE SIGNAL: a flip changes the config, which changes
          * io_sat/ex_sat, which changes r. Acting on the FIRST out-of-band tick therefore lets the
@@ -24603,23 +24725,26 @@ static void tomoFlipController(void) {
             }
         }
 
+        /* ONE PROBE INSIDE THE FLOOR. The signal sign selects the adjacent split and one
+         * tmFlipDo moves exactly one live thread (one derived gstep). It enters the existing
+         * warmup, measure, FLIP_COAST judge and walk-back; only its momentum direction is cleared
+         * so that judge's KEEP cannot turn this bounded probe into a second step. The episode latch
+         * is consumed only after the actuator accepts the attempt, and a probe-induced anchor drop
+         * at a different split does not re-arm it. At a role edge there is no legal sign-directed
+         * neighbor, so the optimum edge remains change-free. */
+        if (want == 0 && settled_in_floor && fc->anchor_n > 0 &&
+            !fc->floor_probe_used && fc->lr_ewma != 0.0) {
+            int probe_dir = fc->lr_ewma > 0.0 ? +1 : -1;
+            if ((probe_dir > 0 && can_front) || (probe_dir < 0 && can_back)) {
+                want = probe_dir;
+                in_floor_probe = 1;
+            }
+        }
+
         if (want == 0) {
-            /* NO periodic re-anchor. It was added as anti-lockout insurance and is actively
-             * harmful: re-centring the band on wherever we currently sit means a workload change
-             * can never read as out-of-band, so the controller stops adapting — the same
-             * "whatever I have now is normal" failure the learned anchor had. Lockout is already
-             * impossible without it, because a workload change moves the ratio out of the band,
-             * which starts a climb, which re-anchors at its settle. The anchor is refreshed at
-             * SETTLE only, exactly as specified. */
-            /* Inside the band: the stable, low-cost HOLD. A genuine workload shift moves the ratio
-             * clear of anchor*(1±BAND) and re-arms a climb immediately, while a fluctuation never
-             * does, so a steady workload sits here with ZERO flips.
-             *
-             * RE-ANCHOR after a spell of stable holding. This is the anti-lockout property: the
-             * band centre follows the operating point WITHOUT a climb having to happen, so the
-             * controller can never wall itself off from its own actuator. Gated on idle_stable so
-             * the anchor is only ever taken at a genuine plateau — anchoring mid-transient is
-             * exactly how the old deadzone got pinned at 0.65 against a steady 0.28. */
+            /* Stable low-cost HOLD. Capture/folding above has already required inside-floor,
+             * signal-quiet and rate-plateau simultaneously; the episode probe has either been
+             * consumed or has no legal sign-directed neighbor. */
             if (now - last_log >= 5000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% floor=%.2f tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d%s",
                           node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, exp(gfloor), fc->sat_smooth,
@@ -24651,7 +24776,7 @@ static void tomoFlipController(void) {
          * guards the wrong signal.) The ratio is the signal the decision is made from, so the ratio
          * is what must be stationary before the decision is taken. FLIP_R_QUIET / FLIP_R_QUIET_N
          * are the same constants the post-climb anchor already uses for this identical question. */
-        if (fc->lr_quiet_run < FLIP_R_QUIET_N) {
+        if (!in_floor_probe && fc->lr_quiet_run < FLIP_R_QUIET_N) {
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: %s still moving (r=%.2f, quiet %d/%d) io_sat=%.2f ex_sat=%.2f%s",
                           node, want > 0 ? "grow-front" : "grow-back", sig_uc, exp(fc->lr_ewma),
@@ -24660,7 +24785,7 @@ static void tomoFlipController(void) {
             }
             continue;
         }
-        if (fc->idle_stable < FESC_SETTLE_N) {
+        if (!in_floor_probe && fc->idle_stable < FESC_SETTLE_N) {
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f%s",
                           node, want > 0 ? "grow-front" : "grow-back", fc->mean, fc->idle_stable, FESC_SETTLE_N, io_sat, ex_sat, wsig_log);
@@ -24673,19 +24798,33 @@ static void tomoFlipController(void) {
         const char *err = NULL;
         if (tmFlipDo(node, want, &err)) {
             if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped clear */
+            tmFlipPrepareConfigSample(fc);
             fc->revert_dir = 0; fc->revert_retry = 0;    /* new climb anchors on the ACTUAL config */
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
-            fc->last_dir = want; fc->dir = want;
+            fc->last_dir = want; fc->dir = in_floor_probe ? 0 : want;
             fc->start_io = io_live_node;              /* net-zero detector: where this climb began */
             fc->veto_lr = fc->lr_ewma;                /* same-wave latch: the lr that pulled this trigger */
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
-            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm%s",
-                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
-                      exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before, wsig_log);
+            if (in_floor_probe) {
+                fc->floor_probe_used = 1;
+                fc->floor_probe_active = 1;
+                fc->floor_probe_revert_pending = 0;
+                fc->floor_probe_await_settle = 1;
+                unsigned long probes = atomic_fetch_add_explicit(
+                    &tomo_flip_in_floor_probes, 1, memory_order_relaxed) + 1;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE #%lu %s one-gstep=%.3f "
+                          "lr=%+.3f floor=%.3f baseline=%.0f -> existing settle+judge%s",
+                          node, probes, want > 0 ? "GROW-FRONT" : "GROW-BACK", gstep,
+                          fc->lr_ewma, gfloor, fc->before, wsig_log);
+            } else {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm%s",
+                          node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
+                          exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before, wsig_log);
+            }
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
             serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);
