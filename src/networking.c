@@ -4727,6 +4727,9 @@ void readQueryFromClient(connection *conn) {
     }
 
     sdsIncrLen(c->querybuf,nread);
+    /* Owner demand signal: this read drained what QUEUED since the last service of this conn. */
+    tm_io_sig[iotid].tm_drain_bytes += (unsigned long long)nread;
+    tm_io_sig[iotid].tm_read_events++;
     qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
 

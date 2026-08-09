@@ -566,6 +566,19 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * fired read/write callbacks. Appended into pend_write's existing owner-written cache line so
      * no preceding field moves and the struct gains no cache line. Wrap-safe cumulative counter. */
     unsigned int tm_work_us;
+    /* ee451 (owner 2026-08-09, "let sat go above 1"): three demand observations, all owner-written
+     * on existing paths, racy-read like their neighbours.
+     * tm_ring_stall_us: wall us this IO thread spent SPINNING ON A FULL WORKER RING
+     * (exDispatchDirect/csPushSpin). This span is currently billed as WAIT, which actively LOWERS
+     * u_io exactly when the downstream is jammed. It is EX demand observed from the producer side
+     * and is composed into ex_sat, never io_sat.
+     * tm_drain_bytes/tm_read_events: the owner's read-batch queue signal -- each read drains what
+     * accumulated since the connection was last serviced, so bytes-per-event measures the queue
+     * that existed at service time ("it is reading the queue after all"). Published for
+     * calibration; composed once the measured magnitude at the known optima is in hand. */
+    unsigned int tm_ring_stall_us;
+    unsigned long long tm_drain_bytes;
+    unsigned int tm_read_events;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -3435,6 +3448,7 @@ static void exDispatchDirect(int ex_id, client *fake) {
      * path by construction (we are already about to spin). */
     tm_io_sig[iotid].q_full_events++;
     int spins = 0;
+    uint64_t _stall0 = getMonotonicUs();   /* ring-stall = EX backlog seen from IO; see tmIoSignal */
     tmIoWaitBegin();
     do {
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
@@ -3453,6 +3467,7 @@ static void exDispatchDirect(int ex_id, client *fake) {
         if ((++spins & 4095) == 0) tomoPollingYield();
     } while (exQueuePush(q, fake) != 0);
     tmIoWaitEnd();
+    tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
     exHandoffAdvertise(&server.exThreads[ex_id]);
 }
@@ -11366,8 +11381,9 @@ static void csPushSpin(int w, client *sub) {
     int spins = 0;
     int counted = 0;
     int waiting = 0;
+    uint64_t _stall0 = 0;
     while (exQueuePush(q, sub) != 0) {
-        if (!waiting) { tmIoWaitBegin(); waiting = 1; }
+        if (!waiting) { tmIoWaitBegin(); waiting = 1; _stall0 = getMonotonicUs(); }
         if (!counted) {   /* see exDispatchPush; _cs_ is the scatter's own tally, see tmIoSignal */
             tm_io_sig[iotid].q_full_events++;
             tm_io_sig[iotid].q_full_cs_events++;
@@ -11389,7 +11405,10 @@ static void csPushSpin(int w, client *sub) {
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
     }
-    if (waiting) tmIoWaitEnd();
+    if (waiting) {
+        tmIoWaitEnd();
+        tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
+    }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
     exHandoffAdvertise(&server.exThreads[w]);
@@ -18061,6 +18080,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * compare all three observations. Wait is explicitly unsupported under uring because
          * DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
         {
+            unsigned long long io_stall_total = 0, io_drain_total = 0, io_revents_total = 0;
             unsigned long long io_work = 0, io_busy = 0, ex_busy = 0;
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
@@ -18077,6 +18097,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 io_busy += tm_io_sig[t].tm_busy_us;
                 io_idle += tm_io_sig[t].tm_idle_us;
                 io_wait += tm_io_sig[t].tm_wait_us;
+                io_stall_total += tm_io_sig[t].tm_ring_stall_us;
+                io_drain_total += tm_io_sig[t].tm_drain_bytes;
+                io_revents_total += tm_io_sig[t].tm_read_events;
                 nio++;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
@@ -18090,6 +18113,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_io_idle_us:%llu\r\n", io_idle,
                 "tomokv_io_wait_us:%llu\r\n", io_wait,
                 "tomokv_io_wait_supported:%d\r\n", server.io_uring == 0,
+            "tomokv_io_ring_stall_us:%llu\r\n", io_stall_total,
+            "tomokv_io_drain_bytes:%llu\r\n", io_drain_total,
+            "tomokv_io_read_events:%llu\r\n", io_revents_total,
                 "tomokv_ex_idle_us:%llu\r\n", ex_idle,
                 "tomokv_svc_us_c0:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[0], memory_order_relaxed) / 256.0,
                 "tomokv_svc_us_c1:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[1], memory_order_relaxed) / 256.0,
@@ -23807,6 +23833,7 @@ static void tomoFlipController(void) {
     static mstime_t prev_wall = 0, last_log = 0;
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_wait_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_io_stall_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
@@ -23936,6 +23963,7 @@ static void tomoFlipController(void) {
         }
         long io_occ_sum = 0; double io_wait_u_sum = 0.0;
         uint64_t io_wait_delta_sum = 0, io_work_delta_sum = 0;
+        uint64_t io_stall_delta_sum = 0;
         int io_occ_cnt = 0, io_live_node = 0, grown_io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
@@ -23949,6 +23977,10 @@ static void tomoFlipController(void) {
             uint32_t cw = tm_io_sig[t].tm_wait_us;
             uint32_t dw = cw - fc_prev_io_wait_us[node][t];
             fc_prev_io_wait_us[node][t] = cw;
+            uint32_t cs_ = tm_io_sig[t].tm_ring_stall_us;
+            uint32_t ds_ = cs_ - fc_prev_io_stall_us[node][t];
+            fc_prev_io_stall_us[node][t] = cs_;
+            io_stall_delta_sum += ds_;
             uint32_t cwork = tm_io_sig[t].tm_work_us;
             uint32_t dwork = cwork - fc_prev_io_work_us[node][t];
             fc_prev_io_work_us[node][t] = cwork;
