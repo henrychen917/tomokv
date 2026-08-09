@@ -566,6 +566,19 @@ _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
 /* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+/* Latest 4Hz controller snapshot of the raw live-worker occupancy distribution. The worker-side
+ * tm_idle_us counters already carry every needed sample, so this is published entirely on the
+ * control plane: no worker-path counter or write is added. Like the established tm_* signals,
+ * these are plain approximate observability fields; INFO may read across one controller update.
+ * `sum_pct` preserves the exact arithmetic mean when INFO combines multiple nodes. Keep the bound
+ * in sync with TM_MAXNODE below and redisServer.tm_node_wlive. */
+typedef struct {
+    int min_pct;
+    int max_pct;
+    int sum_pct;
+    int live;
+} tmExOccTick;
+static tmExOccTick tm_ex_occ_tick[16];
 /* DEBUG TOMO-FLIPTRACE 1 -- dense per-TICK dump of the flip controller's inputs. The normal HOLD
  * line is rate limited to one per 5s, i.e. 0.2Hz sampling of a 4Hz controller, which is how a whole
  * day of diagnosis ended up guessing between "converges slowly" and "thrashes at rest". Off by
@@ -17979,6 +17992,33 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
+        /* Raw distribution from the latest 4Hz controller tick, combined over every node's live
+         * workers. Fractions (0..1), matching u_ex in [flip-ctl], make `max - mean` directly usable
+         * as the skew falsifier. These are controller-published snapshots of existing tm_idle_us
+         * counters; INFO does no sampling and workers do no additional accounting. */
+        {
+            int occ_live = 0, occ_min_pct = 101, occ_max_pct = 0;
+            long long occ_sum_pct = 0;
+            int occ_nodes = tmNumNodes();
+            if (occ_nodes > 16) occ_nodes = 16;
+            for (int n = 0; n < occ_nodes; n++) {
+                tmExOccTick *tick = &tm_ex_occ_tick[n];
+                if (tick->live <= 0) continue;
+                occ_live += tick->live;
+                occ_sum_pct += tick->sum_pct;
+                if (tick->min_pct < occ_min_pct) occ_min_pct = tick->min_pct;
+                if (tick->max_pct > occ_max_pct) occ_max_pct = tick->max_pct;
+            }
+            info = sdscatprintf(info,
+                "tomokv_ex_occupancy_min:%.3f\r\n"
+                "tomokv_ex_occupancy_mean:%.3f\r\n"
+                "tomokv_ex_occupancy_max:%.3f\r\n"
+                "tomokv_ex_occupancy_workers:%d\r\n",
+                occ_live ? (double)occ_min_pct / 100.0 : 0.0,
+                occ_live ? (double)occ_sum_pct / (100.0 * (double)occ_live) : 0.0,
+                occ_live ? (double)occ_max_pct / 100.0 : 0.0,
+                occ_live);
+        }
         tomoUringStats ust;
         tomoUringGetStats(&ust);
         info = sdscatprintf(info, FMTARGS(
@@ -23031,6 +23071,8 @@ typedef struct {
      * The raw tm_busy_us counters survive for INFO only — nothing decides on them. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
+    int      ex_occ_max_smooth; /* read by mode 4 only: EWMA of max live-worker occupancy; the
+                                 * existing mean EWMA remains the sole input for modes 0-3 */
     int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     /* ONE VARIABLE CARRIES WHICHEVER SIGNAL tomokv-flip-signal SELECTS (see FLIP_SIG_*), and that
@@ -23043,7 +23085,7 @@ typedef struct {
      * A DIMENSIONLESS SATURATION, so FLIP_R_BAND / FLIP_R_QUIET / FLIP_R_FAR keep their meaning
      * (relative change of the smoothed signal) unchanged across modes. */
     double   lr_ewma;        /* EWMA of the DECISION signal: log(io_sat/ex_sat) at flip-signal 0,
-                              * -log(ex_sat) at 1/2. Positive => grow-front in both. */
+                              * -log(ex_sat) at 1/2/3/4. Positive => grow-front in both. */
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
     double   lr_prev_tick;   /* lr_ewma at the previous tick — feeds lr_quiet_run */
     int      lr_quiet_run;   /* consecutive ticks the RATIO has held still; gates climb START */
@@ -23181,8 +23223,8 @@ static flipCtlState fctl[TM_MAXNODE];
  *
  * ONLY THE TRIGGER'S INPUT CHANGES. The momentum hill-climb, the throughput judge and its
  * max(2*sigma, 0.02*best) band, the walk-back, the look-ahead/coast budget, the settle sequencing,
- * the load-change re-baseline and the client-bound terminal condition are byte-identical across all
- * three modes — this knob answers "which way is the imbalance", nothing else.
+ * the load-change re-baseline and the client-bound terminal condition are identical across all
+ * modes — this knob answers "which way is the imbalance", nothing else.
  *
  * WHY THE IO SIDE IS THE OPERAND WORTH REMOVING. Every defect this controller has had was a gate
  * comparing MISMATCHED KINDS, and the io term is the one that cannot be trusted to mean what it
@@ -23228,6 +23270,9 @@ static flipCtlState fctl[TM_MAXNODE];
  *                       and what damps it.
  *   FLIP_SIG_WORKER_CLIP (3) = mode 2 PLUS the clip repair at the granularity floor. See the
  *                       floor site; the reason it exists is below.
+ *   FLIP_SIG_WORKER_MAX (4) = mode 3, except the occupancy operand is the MAX live-worker
+ *                       occupancy instead of the mean. The queue operand deliberately remains the
+ *                       mean; see the ex_sat construction for why this test changes one statistic.
  *
  * THE WORKER SIGNAL'S ONE STRUCTURAL BLIND SPOT, and why mode 3 exists. u_ex is hard-clipped at
  * 1.0, so once the workers are saturated the ONLY thing that can still express "and how far
@@ -23255,6 +23300,7 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FLIP_SIG_WORKER       1
 #define FLIP_SIG_WORKER_PURE  2
 #define FLIP_SIG_WORKER_CLIP  3
+#define FLIP_SIG_WORKER_MAX   4
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -23323,12 +23369,15 @@ static void tomoFlipController(void) {
     int nnodes = tmNumNodes();
     /* tomokv-flip-signal, read ONCE per tick so every node in this tick decides on the same signal
      * definition (the knob is MODIFIABLE and could otherwise change between node bodies). `wsig`
-     * selects the worker-only trigger; `wpure` additionally drops the io-side don't-bother gate.
+     * selects the worker-only trigger; `wpure` additionally drops the io-side don't-bother gate;
+     * `wmax` selects mode 4's hottest-live-worker occupancy operand.
      * At FLIP_SIG_RATIO both are 0 and every site below is the pre-existing code path. */
     const int wsig  = (server.flip_signal != FLIP_SIG_RATIO);
-    const int wpure = (server.flip_signal >= FLIP_SIG_WORKER_PURE);   /* 2 and 3 both drop the gate */
-    const int wclip = (server.flip_signal == FLIP_SIG_WORKER_CLIP);
-    /* Names for the log lines, so a mode-1/2 run does not call the worker signal "the ratio".
+    const int wpure = (server.flip_signal >= FLIP_SIG_WORKER_PURE);   /* modes 2-4 drop the gate */
+    const int wclip = (server.flip_signal == FLIP_SIG_WORKER_CLIP ||
+                       server.flip_signal == FLIP_SIG_WORKER_MAX);
+    const int wmax  = (server.flip_signal == FLIP_SIG_WORKER_MAX);
+    /* Names for the log lines, so a mode-1/2/3/4 run does not call the worker signal "the ratio".
      * At mode 0 these expand to exactly the words already in the format strings. */
     const char *sig_lc = wsig ? "worker-signal" : "ratio";
     const char *sig_uc = wsig ? "WORKER-SIGNAL" : "RATIO";
@@ -23457,6 +23506,10 @@ static void tomoFlipController(void) {
          * quiet window, so the suite scored it unsettled and measured 17.6% below static WHILE THE
          * CONFIG WAS CORRECT.
          *
+         * That rejection applies to the RATIO: it compared an EX max with an IO mean. It does NOT
+         * reject a max inside a worker-only signal, where there is no IO statistic to mismatch.
+         * Mode 4 is the isolated test of that distinction; modes 0-3 keep this mean unchanged.
+         *
          * "Hottest worker" is the right question only when one worker is a bottleneck, i.e. a hot
          * key -- and that is key-lb's job, not the flip's. For "is this ROLE the constraint" with
          * work spread across workers, the role's utilization is the mean.
@@ -23464,6 +23517,7 @@ static void tomoFlipController(void) {
          * Smoothing also slowed from alpha 0.5 to FESC_ALPHA (0.25), matching the horizon every
          * other decision input already uses. --- */
         int occ_sum = 0, occ_n = 0;
+        int live_occ_sum = 0, live_occ_n = 0, live_occ_min = 101, live_occ_max = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
             uint32_t ci = et->tm_idle_us, di = ci - fc_prev_ex_idle_us[node][w];
@@ -23471,9 +23525,27 @@ static void tomoFlipController(void) {
             int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;  /* us/(ms*1000)*100 */
             if (oi > 100) oi = 100;
             occ_sum += (100 - oi); occ_n++;
+            /* Observability and mode 4 are explicitly over LIVE workers. Keep the legacy mean fold
+             * immediately above byte-for-byte for modes 0-3; multi-node converted slots have
+             * historically remained in that fold and changing it here would alter the controls. */
+            if (tmWorkerLive(w)) {
+                int occ = 100 - oi;
+                live_occ_sum += occ; live_occ_n++;
+                if (occ < live_occ_min) live_occ_min = occ;
+                if (occ > live_occ_max) live_occ_max = occ;
+            }
         }
         int occ_mean = occ_n ? (occ_sum / occ_n) : 0;
         fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
+        /* Mode 4 uses the same filter, in the same order, with MAX replacing MEAN as its one input.
+         * Updating this shadow EWMA in every mode makes a runtime switch to 4 start from a real
+         * control-plane history; it is not read by modes 0-3. */
+        int occ_max = live_occ_n ? live_occ_max : 0;
+        fc->ex_occ_max_smooth += (int)(FESC_ALPHA * (occ_max - fc->ex_occ_max_smooth));
+        tm_ex_occ_tick[node].min_pct = live_occ_n ? live_occ_min : 0;
+        tm_ex_occ_tick[node].max_pct = occ_max;
+        tm_ex_occ_tick[node].sum_pct = live_occ_sum;
+        tm_ex_occ_tick[node].live = live_occ_n;
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
          * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
          * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
@@ -23593,6 +23665,7 @@ static void tomoFlipController(void) {
          * ~1.0 and destroying the discrimination that makes p32 SET correctly HOLD. */
         double u_io = (double)fc->io_occ_smooth / 100.0;
         double u_ex = (double)fc->ex_occ_smooth / 100.0;
+        if (wmax) u_ex = (double)fc->ex_occ_max_smooth / 100.0;
         if (u_io > 1.0) u_io = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
         /* THE CLIP IS WHY THE BACKLOG TERM IS LOAD-BEARING RATHER THAN DECORATIVE (2026-08-08).
@@ -23663,12 +23736,18 @@ static void tomoFlipController(void) {
          * WORKER_POP_BATCH instead was tried and is a REJECTED design (it pushed ex_sat to 1.21
          * against io_sat 0.927 at the p32 SET optimum and ran the config to io=2 with 203 flips).
          * Consequences are recorded at the u_ex clip above and in the FLIP_SIG_* blind-spot
-         * paragraph; flip-signal 3 is the repair for the trigger side of it. */
+         * paragraph; flip-signal 3/4 carry the repair for the trigger side of it. */
         const double QCAP = (server.ex_queue_size > 0) ? (double)server.ex_queue_size : 4096.0;
         double io_sat = u_io, ex_sat = u_ex;
         if (c_ex >= 8.0) {
             io_sat += (double)q_io / QCAP;
-            /* the MEAN depth, matching the mean used for utilisation on both sides. Leaving this
+            /* KEEP THE MEAN DEPTH IN MODE 4. That mode tests one hypothesis: mean OCCUPANCY may
+             * average away the hottest worker. Turning queue depth into a max at the same time
+             * would make the result uninterpretable, and qd_max has its own independently measured
+             * instability below. For modes 0-3 this remains the exact existing expression.
+             *
+             * The MEAN depth matches the mean used for utilisation on both sides in modes 0-3.
+             * Leaving this
              * as qd_max while busy moved to a mean stabilised only HALF of ex_sat: measured at the
              * p32 optimum, io_sat held 0.96-0.98 while ex_sat still swung 0.67-1.13 (a 68% range)
              * purely from whichever worker queue was deepest that tick, and every one of those
@@ -23724,7 +23803,7 @@ static void tomoFlipController(void) {
         double ratio = fmax(io_sat, 1e-3) / fmax(ex_sat, 1e-3);
         double lr = log(ratio);
         if (!isfinite(lr)) lr = 0.0;                       /* belt and braces: never poison the EWMA */
-        /* WORKER-ONLY TRIGGER INPUT (tomokv-flip-signal 1/2/3; see the FLIP_SIG_* block). The io side
+        /* WORKER-ONLY TRIGGER INPUT (tomokv-flip-signal 1/2/3/4; see the FLIP_SIG_* block). The io side
          * leaves the DIRECTION decision here and nowhere else: same log space, same sign
          * convention, same variable, so every downstream gate keeps its calibration and — the part
          * that matters — the quantity that is ANCHORED is by construction the same quantity the
@@ -23769,7 +23848,7 @@ static void tomoFlipController(void) {
 
         /* THE TRIGGER'S INPUTS, ON THE EXISTING [flip-ctl] LINES. A conformance run that lands on
          * the wrong config has to be diagnosable from the server log alone, and under flip-signal
-         * 1/2/3 the io_sat/ex_sat/r fields those lines already carry are no longer what the decision
+         * 1/2/3/4 the io_sat/ex_sat/r fields those lines already carry are no longer what the decision
          * was made from. This suffix carries the decision's actual operands: raw idleness and the
          * queue depth that produced ex_sat, the combined worker saturation, this tick's signal, its
          * EWMA, and the anchor it is being compared against.
@@ -23778,9 +23857,12 @@ static void tomoFlipController(void) {
         char wsig_log[256]; wsig_log[0] = '\0';
         if (wsig)
             snprintf(wsig_log, sizeof(wsig_log),
-                     " | W(sig=%d idle=%.3f u_ex=%.3f qd=%.2f/%.0f s_ex=%.3f lrw=%+.3f ewma=%+.3f anchor=%+.3f quiet=%d)",
-                     server.flip_signal, 1.0 - u_ex, u_ex, qd_mean, QCAP, ex_sat, lr, fc->lr_ewma,
-                     fc->lr_anchor, fc->lr_quiet_run);
+                     " | W(sig=%d idle=%.3f u_ex=%.3f occ(min=%.3f mean=%.3f max=%.3f) qd=%.2f/%.0f s_ex=%.3f lrw=%+.3f ewma=%+.3f anchor=%+.3f quiet=%d)",
+                     server.flip_signal, 1.0 - u_ex, u_ex,
+                     live_occ_n ? (double)live_occ_min / 100.0 : 0.0,
+                     live_occ_n ? (double)live_occ_sum / (100.0 * (double)live_occ_n) : 0.0,
+                     live_occ_n ? (double)live_occ_max / 100.0 : 0.0,
+                     qd_mean, QCAP, ex_sat, lr, fc->lr_ewma, fc->lr_anchor, fc->lr_quiet_run);
 
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
@@ -24071,7 +24153,7 @@ static void tomoFlipController(void) {
          * The RATIO has its own recovery horizon and is the thing being anchored, so it is the
          * thing that must be quiet.
          *
-         * flip-signal 1/2/3 (2026-08-08): THE SAME RULE, ON THE SAME VARIABLE, AND THAT IS THE POINT.
+         * flip-signal 1/2/3/4 (2026-08-08): THE SAME RULE, ON THE SAME VARIABLE, AND THAT IS THE POINT.
          * The owner's warning about this change was precise -- "not pinning values before they
          * settle was a huge issue that kept causing thrashing" -- and the trap it names is pinning
          * the WORKER anchor while testing the RATIO for quietness, which would reproduce the exact
@@ -24286,7 +24368,7 @@ static void tomoFlipController(void) {
             gstep = log((double)(ni + 1) / (double)ni);
             gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
                               : 1.0;                          /* last worker: grow-back unavailable */
-            /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3). Same derivation, different signal.
+            /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3/4). Same derivation, different signal.
              * lr_worker = -log(ex_sat) is built from the WORKER side alone, so one thread-move
              * moves it only through the worker capacity: grow-front takes ne -> ne-1 (capacity
              * x (ne-1)/ne, signal -log(ne/(ne-1))), grow-back takes ne -> ne+1 (+log((ne+1)/ne)).
@@ -24332,12 +24414,12 @@ static void tomoFlipController(void) {
          * io_sat 0.98 vs ex_sat 0.48 — IO twice as saturated — and the controller grew BACK,
          * because 2.04 sits below 4.02. It walked the config to io=2 and lost ~25%.
          *
-         * SAME LINE, SAME FIXED POINT, AT flip-signal 1/2/3. There the signal is -log(ex_sat) and the
+         * SAME LINE, SAME FIXED POINT, AT flip-signal 1/2/3/4. There the signal is -log(ex_sat) and the
          * target is still 1 — ex_sat=1 is the owner's "output == input" for the worker station, so
          * lr>0 reads "workers have slack, the constraint is upstream => grow-front" and lr<0 reads
          * "a queue stands on the workers => grow-back". The anchor still only decides WHETHER, never
          * WHICH WAY, for exactly the reason recorded above. */
-        /* CLIP REPAIR (flip-signal 3 only). See the blind-spot paragraph in the FLIP_SIG_* block:
+        /* CLIP REPAIR (flip-signal 3/4 only). See the blind-spot paragraph in the FLIP_SIG_* block:
          * when the worker occupancy has CLIPPED, ex_sat stops being a measure of how far behind the
          * workers are and becomes a lower bound, so the granularity floor is being asked a question
          * its input can no longer answer. Bypass the FLOOR — and only the floor, and only in the
@@ -24353,7 +24435,8 @@ static void tomoFlipController(void) {
          * through the backlog term — so no separate queue test is needed or wanted.
          *
          * THE CLIP POINT IS NOT 100, AND THIS IS A REAL PROPERTY OF THE FILTER, NOT A FUDGE.
-         * ex_occ_smooth is an INTEGER EWMA:  s += (int)(FESC_ALPHA * (occ - s)). With alpha 0.25
+         * The selected occupancy field (ex_occ_smooth in mode 3, ex_occ_max_smooth in mode 4) is
+         * an INTEGER EWMA:  s += (int)(FESC_ALPHA * (occ - s)). With alpha 0.25
          * the increment truncates to zero once |occ - s| < 4, so the filter STALLS 3 units short:
          * a worker at a true 100% occupancy converges to 97 and stops (96 -> +1 -> 97 -> +0).
          * u_ex therefore reads at most 0.97 no matter how saturated the role is, and testing for
@@ -24364,7 +24447,8 @@ static void tomoFlipController(void) {
          * triggering because the ANCHOR is captured from the same biased signal and the band test
          * is a difference — but it is worth knowing before anyone reads u_ex as ground truth.) */
         const int occ_clip = 100 - ((int)(1.0 / FESC_ALPHA) - 1);   /* = 97 at alpha 0.25 */
-        int floor_blind = (wclip && fc->lr_ewma < 0.0 && fc->ex_occ_smooth >= occ_clip);
+        int ex_occ_signal_smooth = wmax ? fc->ex_occ_max_smooth : fc->ex_occ_smooth;
+        int floor_blind = (wclip && fc->lr_ewma < 0.0 && ex_occ_signal_smooth >= occ_clip);
         if ((fabs(fc->lr_ewma) > gfloor || floor_blind) && fabs(fc->lr_ewma - fc->lr_anchor) > band)
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
         else {

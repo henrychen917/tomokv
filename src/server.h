@@ -3317,6 +3317,7 @@ struct redisServer {
      *   2 = PURE worker-only: no IO-side MEASUREMENT enters any decision, gate included
      *   3 = mode 2 + the clip repair (the granularity floor does not veto a grow-back once worker
      *       occupancy has clipped and its magnitude is unmeasurable)
+     *   4 = mode 3 with MAX live-worker occupancy replacing mean occupancy; queue remains mean
      * Read only by the 4Hz controller, so 0 costs nothing anywhere. */
     int flip_signal;
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS

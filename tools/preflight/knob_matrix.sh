@@ -184,12 +184,13 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   # WHICH arm converges best is the conformance suite's question, not this one. These cells run
   # with thread-mode auto (the default), so the controller is live and each arm's trigger path is
   # actually entered rather than compiled-and-skipped.
-  must_refuse tomokv-flip-signal -1 "range is [0,3]; this knob spells its default as 0 (today's io/ex ratio), not -1"
-  must_refuse tomokv-flip-signal 4 "above the declared maximum; 3 is the highest defined level"
+  must_refuse tomokv-flip-signal -1 "range is [0,4]; this knob spells its default as 0 (today's io/ex ratio), not -1"
+  must_refuse tomokv-flip-signal 5 "above the declared maximum; 4 is the highest defined level"
   try tomokv-flip-signal 0 "default: io/ex saturation ratio — must be bit-identical to pre-knob behaviour"
   try tomokv-flip-signal 1 "worker idle+qdepth picks direction; server_bound gate retained"
   try tomokv-flip-signal 2 "pure worker-only: the io-side don't-bother gate is dropped too"
   try tomokv-flip-signal 3 "pure worker-only + clip repair (floor does not veto grow-back once u_ex clips)"
+  try tomokv-flip-signal 4 "mode 3 with hottest-live-worker occupancy; queue term stays mean"
 
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..2; only 0 is driven here on purpose -- modes 1/2 both need a

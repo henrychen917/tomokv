@@ -3226,7 +3226,7 @@ standardConfig static_configs[] = {
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
     /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;
      * everything downstream of the trigger (momentum hill-climb, throughput judge, walk-back,
-     * settle sequencing) is identical across all three.
+     * settle sequencing) is identical across all modes.
      *   0 = io/ex saturation RATIO — today's controller, BIT-IDENTICAL. The A/B control arm.
      *   1 = WORKER-ONLY direction: worker idleness + standing queue decide grow-front/grow-back;
      *       the io side is dropped from the DIRECTION but the server/client-bound "is anything
@@ -3239,10 +3239,13 @@ standardConfig static_configs[] = {
      *       grow-back. This is the repair for the p1 blind spot documented in server.c — modes 1/2
      *       can hold at io7/ex1 under ZRANGE at pipeline 1 because the backlog term's range is
      *       bounded by conns x pipeline, not by the server.
+     *   4 = mode 3 with MAX live-worker occupancy in place of the mean occupancy. The standing
+     *       queue term remains the mean, deliberately, so this arm isolates worker-occupancy skew;
+     *       see the ex_sat construction in server.c for the independently rejected qd_max result.
      * Default 0 until the conformance table decides. If 2 matches 1 everywhere, the IO-side
-     * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
-     * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 3, server.flip_signal, 0, INTEGER_CONFIG, NULL, NULL),
+     * saturation signal can be deleted outright; if only the clip-bearing modes clear ZRANGE p1
+     * entered from a settled io7/ex1, that repair is load-bearing in whichever worker mode ships. */
+    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 4, server.flip_signal, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; 1=existing unified SI|DTR ring; 2=Helio-style staged/taskrun-aware ring */
