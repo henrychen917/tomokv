@@ -2551,7 +2551,7 @@ static int isValidTomokvPinSpec(char *val, const char **err) {
 
 /* Signal 4 is owned by the adjacent worker-skew experiment. This branch predates that commit, so
  * preserve its current rejection rather than silently assigning it a different meaning; the two
- * branches combine by admitting 4 (worker-max) and 5 (IO wait) together. */
+ * branches combine by admitting 4 (worker-max) beside productive-ratio mode 5. */
 static int isValidTomokvFlipSignal(long long val, const char **err) {
     if (val >= 0 && val <= 3) return 1;
     if (val == 5) return 1;
@@ -3237,7 +3237,8 @@ standardConfig static_configs[] = {
     /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;
      * everything downstream of the trigger (momentum hill-climb, throughput judge, walk-back,
      * settle sequencing) is shared across all modes.
-     *   0 = io/ex saturation RATIO — today's controller, BIT-IDENTICAL. The A/B control arm.
+     *   0 = deprecated alias for 5. Accepted for compatibility, but selects the identical
+     *       productive-work IO/EX ratio path and is no longer the legacy zero-event control.
      *   1 = WORKER-ONLY direction: worker idleness + standing queue decide grow-front/grow-back;
      *       the io side is dropped from the DIRECTION but the server/client-bound "is anything
      *       saturated at all" gate is retained as a don't-bother filter.
@@ -3250,13 +3251,13 @@ standardConfig static_configs[] = {
      *       can hold at io7/ex1 under ZRANGE at pipeline 1 because the backlog term's range is
      *       bounded by conns x pipeline, not by the server.
      *   4 = reserved for the adjacent worker-max experiment; this branch leaves it rejected.
-     *   5 = mode-0 IO/EX ratio with U_IO derived from epoll WAIT time instead of zero-event
-     *       episodes. Under io_uring this safely retains mode-0 decisions because DEFER_TASKRUN
-     *       makes the waiting part of io_uring_enter inseparable from completion work.
-     * Default 0 until the conformance table decides. If 2 matches 1 everywhere, the IO-side
+     *   5 = PRODUCTIVE-WORK ratio: U_IO=io_work/(wall*n_io),
+     *       U_EX=ex_work/(wall*n_ex), and r=U_IO/U_EX. This is the default ratio mode.
+     * Default 5; 0 remains only as its deprecated compatibility spelling. If 2 matches 1
+     * everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 5, server.flip_signal, 0, INTEGER_CONFIG, isValidTomokvFlipSignal, NULL),
+    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 5, server.flip_signal, 5, INTEGER_CONFIG, isValidTomokvFlipSignal, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; 1=existing unified SI|DTR ring; 2=Helio-style staged/taskrun-aware ring */
