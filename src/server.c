@@ -195,6 +195,7 @@ void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs t
 #define CO_WAIT_REFS     4
 #define CO_WAIT_DONE     5
 #define CO_QUIESCE       6
+#define CO_WAIT_ATOMIC   7
 static void reshardCoordinatorTick(void);   /* zero-thread-churn cutover state machine (main) */
 static _Atomic int co_state;                /* CO_* above; main-owned, IO threads CAS-arm only */
 static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
@@ -263,13 +264,14 @@ static struct {
 #define commit_head (commit_ctl.head)
 #define commit_tail (commit_ctl.tail)
 
-/* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
- * successful increment is immediately followed, on the same non-yielding processCommand stack,
- * by construction and registration of exactly one versioned-write group. Using the counter itself
- * as the CAS word makes the bound strict across concurrent IO producers (a load-then-increment
- * would overshoot by up to the IO-thread count). There is no recoverable allocation/dispatch
- * failure between reservation and csMsetRegister; allocation failure terminates the process.
- * Window 0 increments at csMsetRegister instead, preserving today's dispatch/classification path. */
+/* Atomic-MSET admission. `inflight` is the reservation word for both finite and unlimited
+ * windows: a successful increment is immediately followed, on the same non-yielding
+ * processCommand stack, by construction and registration of exactly one versioned-write group.
+ * With a finite window, using the counter itself as the CAS word makes the bound strict across
+ * concurrent IO producers (a load-then-increment would overshoot by up to the IO-thread count).
+ * There is no recoverable allocation/dispatch failure between reservation and csMsetRegister;
+ * allocation failure terminates the process. Reserving window 0 here too is what lets the cutover
+ * gate establish a final admitted-group census before it consults install lifecycle refs. */
 /* The admission counter is CAS'd by every IO thread per group (1.26M RMW/s at the write
  * ceiling); anything sharing its line pays. Own line, same padded-struct idiom as above. */
 static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
@@ -283,6 +285,108 @@ static _Atomic int tomo_atomic_waiters;
  * so global relaxed counters do not add work to an ordinary atomic completion. */
 static _Atomic unsigned long long tomo_atomic_stamp_full;
 static _Atomic unsigned long long tomo_atomic_commit_wait_drains;
+
+/* Atomic cutover lifecycle fence. One reference belongs to one installed version and is indexed by
+ * the owner/bucket recorded at INSTALL. It survives the group's delayed completion, both embedded
+ * owner operations, and (when armed) the version-prune QSBR callback. The allocation is lazy so a
+ * server which keeps tomokv-atomic off neither allocates nor touches this table. */
+typedef _Atomic unsigned int tomoAtomicLifecycleRef;
+static _Atomic(tomoAtomicLifecycleRef *) tomo_atomic_lifecycle_refs;
+static atomic_flag tomo_atomic_lifecycle_init_lock = ATOMIC_FLAG_INIT;
+static _Atomic int tomo_atomic_cutover_gate;
+static _Atomic unsigned long long tomo_atomic_cutover_fence_waits;
+static _Atomic unsigned long long tomo_atomic_cutover_ref_waits;
+static _Atomic unsigned long long tomo_atomic_cutover_fence_wait_us;
+static _Atomic unsigned long long tomo_atomic_stale_owner_ops;
+static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
+/* Reserved beside tomo_atomic_inflight at admission, but retired earlier: once the commit path has
+ * materialized every owner op. Cutover waits on this word, never on client reply reassembly. */
+static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
+    tomo_atomic_unsealed_line __attribute__((aligned(CACHE_LINE_SIZE)));
+#define tomo_atomic_unsealed (tomo_atomic_unsealed_line.v)
+
+void tomoAtomicLifecycleEnsure(void) {
+    if (server.num_workers <= 0 ||
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire) != NULL)
+        return;
+    while (atomic_flag_test_and_set_explicit(&tomo_atomic_lifecycle_init_lock,
+                                             memory_order_acquire))
+        exPauseCpu();
+    if (atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_relaxed) == NULL) {
+        size_t nref = (size_t)server.num_workers * TOMO_BUCKETS;
+        tomoAtomicLifecycleRef *refs = zcalloc(sizeof(*refs) * nref);
+        for (size_t i = 0; i < nref; i++) atomic_init(&refs[i], 0);
+        atomic_store_explicit(&tomo_atomic_lifecycle_refs, refs, memory_order_release);
+    }
+    atomic_flag_clear_explicit(&tomo_atomic_lifecycle_init_lock, memory_order_release);
+}
+
+static inline tomoAtomicLifecycleRef *tomoAtomicLifecycleSlot(
+        tomoAtomicLifecycleRef *refs, int owner, int bucket) {
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    serverAssert(bucket >= 0 && bucket < TOMO_BUCKETS);
+    return &refs[(size_t)owner * TOMO_BUCKETS + (size_t)bucket];
+}
+
+static void tomoAtomicLifecycleAcquire(kvobj *kv, int owner) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && !vmeta->lifecycle_ref_held);
+    serverAssert(owner >= 0 && owner < server.num_workers && owner <= INT16_MAX);
+    sds key = kvobjGetKey(kv);
+    int bucket = tomoKeyBucket(key, sdslen(key));
+    serverAssert(server.ex_bucket_table[bucket] == (uint8_t)owner);
+
+    tomoAtomicLifecycleEnsure();
+    tomoAtomicLifecycleRef *refs =
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire);
+    serverAssert(refs != NULL);
+    vmeta->install_owner = (int16_t)owner;
+    vmeta->install_bucket = (uint16_t)bucket;
+    vmeta->lifecycle_ref_held = 1;
+    unsigned int before = atomic_fetch_add_explicit(
+        tomoAtomicLifecycleSlot(refs, owner, bucket), 1, memory_order_release);
+    serverAssert(before != UINT_MAX);
+}
+
+void tomoAtomicLifecycleRelease(struct tomoVerMeta *vmeta) {
+    if (!vmeta || !vmeta->lifecycle_ref_held) return;
+    int owner = vmeta->install_owner;
+    int bucket = vmeta->install_bucket;
+    tomoAtomicLifecycleRef *refs =
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire);
+    serverAssert(refs != NULL);
+    vmeta->lifecycle_ref_held = 0;
+    unsigned int before = atomic_fetch_sub_explicit(
+        tomoAtomicLifecycleSlot(refs, owner, bucket), 1, memory_order_acq_rel);
+    serverAssert(before > 0);
+}
+
+static uint64_t tomoAtomicLifecycleRangeRefs(int owner, int lo, int hi) {
+    tomoAtomicLifecycleRef *refs =
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire);
+    if (!refs) return 0;
+    uint64_t total = 0;
+    for (int bucket = lo; bucket < hi; bucket++)
+        total += atomic_load_explicit(tomoAtomicLifecycleSlot(refs, owner, bucket),
+                                      memory_order_acquire);
+    return total;
+}
+
+/* Audit tripwire, deliberately non-fatal so an unfixed stress run can expose the mismatch in INFO.
+ * The lifecycle fence makes both comparisons stable: current ownership cannot change while the
+ * version's reference remains held. */
+void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
+                          int prune_callback) {
+    if (!vmeta) return;
+    int install_owner = vmeta->install_owner;
+    int current_owner = server.ex_bucket_table[vmeta->install_bucket];
+    if (__builtin_expect(install_owner != current_owner ||
+                         executing_owner != install_owner, 0)) {
+        _Atomic unsigned long long *counter = prune_callback ?
+            &tomo_atomic_stale_owner_prunes : &tomo_atomic_stale_owner_ops;
+        atomic_fetch_add_explicit(counter, 1, memory_order_relaxed);
+    }
+}
 
 uint64_t tomoCommittedSeq(void) {
     return atomic_load_explicit(&commit_seq, memory_order_acquire);
@@ -328,14 +432,17 @@ void tomoAtomicWindowChanged(void) {
 static int tomoAtomicMsetTryReserve(int window) {
     if (window == 0) {
         atomic_fetch_add_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+        atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
         return 1;
     }
     int cur = atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed);
     while (cur < window) {
         if (atomic_compare_exchange_weak_explicit(&tomo_atomic_inflight, &cur, cur + 1,
                                                   memory_order_relaxed,
-                                                  memory_order_relaxed))
+                                                  memory_order_relaxed)) {
+            atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
             return 1;
+        }
         /* Failed CAS refreshed cur; do not race past the bound. */
     }
     return 0;
@@ -378,6 +485,35 @@ static void tomoAtomicParkWindowClient(client *c) {
     tomoAtomicWakeProducer(iotid);
 }
 
+static void tomoAtomicParkCutoverClient(client *c) {
+    tomoAtomicEnrollWaiter(c);
+    c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
+    /* Close clear-before-enroll: the coordinator wakes after its release store, while a waiter
+     * which lost that broadcast observes the open gate here and wakes itself exactly once. */
+    if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
+        tomoAtomicWakeProducer(iotid);
+}
+
+/* Reservation/recheck half of the cutover admission handshake. With seq_cst ordering, either the
+ * coordinator observes this reservation after closing the gate, or this recheck observes the closed
+ * gate and removes it; the cutover cannot observe zero while an admitted group appears afterward. */
+static int tomoAtomicCutoverRaceAfterReserve(client *c) {
+    if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
+        return 0;
+    int old_unsealed =
+        atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+    int old_inflight =
+        atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+    serverAssert(old_unsealed > 0 && old_inflight > 0);
+    tomoAtomicParkCutoverClient(c);
+    return 1;
+}
+
+static void tomoAtomicLifecycleGroupSealed(void) {
+    int old = atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_acq_rel);
+    serverAssert(old > 0);
+}
+
 static void tomoAtomicParkPendingRead(client *c) {
     tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
@@ -400,6 +536,8 @@ static void tomoAtomicReleaseStalledClients(void) {
         if (server.tomo_atomic) window = server.tomo_atomic_window;
         int window_open = window <= 0 ||
             atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) < window;
+        int cutover_open =
+            atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0;
 
         /* The list is shared by the two leave-at-pending-head stalls. Admission
          * may still be full while an own-write read later in the list is ready,
@@ -419,7 +557,8 @@ static void tomoAtomicReleaseStalledClients(void) {
                     c = candidate;
                     break;
                 }
-            } else if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) && window_open) {
+            } else if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
+                       window_open && cutover_open) {
                 c = candidate;
                 break;
             }
@@ -7658,7 +7797,7 @@ int processCommand(client *c) {
      * pendingCommand objects for already-decoded bytes; its equivalent of "qb_pos unadvanced" is
      * precisely that the pending head is not popped/consumed by prepareForNextCommand. */
     const csCmdSpec *atomic_csp = NULL;
-    int atomic_write_admission = 0;  /* 0=stock, 1=finite slot reserved, 2=unlimited */
+    int atomic_write_admission = 0;  /* 0=stock, 1=atomic inflight slot reserved */
     if (__builtin_expect(server.tomo_atomic != 0, 0)) {
         /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
          * command cannot change route between reserving the counter and creating its group. */
@@ -7676,16 +7815,26 @@ int processCommand(client *c) {
                                 candidate->ctype == CS_DEL ||
                                 candidate->ctype == CS_MSETNX ||
                                 csAtomicPortallVersionedWrite(c, candidate));
+            /* A cutover closes global atomic-write admission so the already-admitted group census
+             * can become final. This branch is nested under tomokv-atomic: OFF pays no load. */
+            if (atomic_write &&
+                atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst)) {
+                tomoAtomicParkCutoverClient(c);
+                return C_OK;
+            }
             if (window == 0) {
                 if (atomic_write) {
+                    tomoAtomicMsetTryReserve(0);
+                    if (tomoAtomicCutoverRaceAfterReserve(c)) return C_OK;
                     atomic_csp = candidate;
-                    atomic_write_admission = 2;
+                    atomic_write_admission = 1;
                 }
             } else if (atomic_write) {
                 if (!tomoAtomicMsetTryReserve(window)) {
                     tomoAtomicParkWindowClient(c);
                     return C_OK;
                 }
+                if (tomoAtomicCutoverRaceAfterReserve(c)) return C_OK;
                 atomic_csp = candidate;
                 atomic_write_admission = 1;
             }
@@ -9086,12 +9235,16 @@ static int csStampDrain(exThread *worker) {
     for (;;) {
         int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
         if (!n) break;
+        struct tomoVerMeta *release_after_unlock[WORKER_POP_BATCH] = {0};
         tomoWkrLock(worker->id);
         for (int i = 0; i < n; i++) {
             tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
             kvobj *kv = op->kv;
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             serverAssert(vmeta != NULL);
+            /* Consumption-time check is load-bearing observability: enqueue-time ownership can be
+             * correct and become stale while the op waits in this lane. */
+            tomoAtomicOwnerCheck(vmeta, worker->id, 0);
             if (op->kind == TOMO_OWNER_OP_STAMP) {
                 serverAssert(op->seq != 0);
                 int reservation_signal =
@@ -9115,17 +9268,24 @@ static int csStampDrain(exThread *worker) {
                                                                  memory_order_acq_rel);
                 serverAssert(before == 1);
                 tomoArmVersionRetire(kv, op->seq);
+                if (vmeta->detached) release_after_unlock[i] = vmeta;
             } else {
                 serverAssert(op->kind == TOMO_OWNER_OP_CANCEL && op->seq == 0);
                 unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
                                                                  memory_order_acq_rel);
                 serverAssert(before == 1);
                 tomoCancelVersion(kv);
+                if (vmeta->detached) release_after_unlock[i] = vmeta;
             }
             op->kv = NULL;
             op->seq = 0;
         }
         tomoWkrUnlock(worker->id);
+        /* A detached bag arms no prune callback. Its owner-op return is therefore the final
+         * owner-affine step, and the reference drops only after the worker lock is out. */
+        for (int i = 0; i < n; i++)
+            if (release_after_unlock[i])
+                tomoAtomicLifecycleRelease(release_after_unlock[i]);
         unsigned int before = atomic_fetch_sub_explicit(&worker->stamp_pending,
                                                          (unsigned int)n,
                                                          memory_order_release);
@@ -9511,6 +9671,9 @@ static void csMsetInstallDone(csGroup *g) {
             install->kv = NULL;
             install->owner = -1;
         }
+        /* No install or owner-affine job can be created for this group after this point. Installed
+         * versions retain their owner/bucket refs until the jobs and prune callbacks retire. */
+        tomoAtomicLifecycleGroupSealed();
         client *hp = done->head->parent;
         /* Identity for this group's publishing record, taken while the group is still certainly
          * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
@@ -10560,6 +10723,10 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     serverAssert(vmeta->version_kvs == sub->db->keys);
+    /* Acquire before this normal owner job can retire. A later source sentinel therefore either
+     * observes this reference or executes before the install; there is no invisible interval in
+     * which the version exists but the cutover can regard its owner-affine lifecycle as drained. */
+    tomoAtomicLifecycleAcquire(installed, owner);
     vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
@@ -12086,8 +12253,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
         head->tomo_read_snapshot_pinned = 0;
     }
     if (atomic_admission) {
-        serverAssert(atomic_admission == 1 || atomic_admission == 2);
-        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        serverAssert(atomic_admission == 1);
         g->version_install_expected = 1;
         g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
         serverAssert(s->dst_argi > 0);
@@ -12773,12 +12939,9 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         head->tomo_read_snapshot_pinned = 0; /* group owns the matching exit */
     }
     if (atomic_write) {
-        /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
-         * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
-         * exactly one reservation before any owner sub is published. Unlimited mode deliberately
-         * retains today's route and increments here, at actual group creation. */
-        serverAssert(atomic_admission == 1 || atomic_admission == 2);
-        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        /* The pre-ring admission gate reserved exactly one inflight slot and rechecked the cutover
+         * gate before this group could be constructed or publish an owner sub. */
+        serverAssert(atomic_admission == 1);
         g->version_install_expected = version_expected;
         g->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
         g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) *
@@ -13479,8 +13642,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
         head->tomo_read_snapshot_pinned = 0;
     }
     if (atomic_admission) {
-        serverAssert(atomic_admission == 1 || atomic_admission == 2);
-        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        serverAssert(atomic_admission == 1);
         g->version_install_expected = 1;
         g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
         int dst_argi = s->dynamic_dst_argi(head);
@@ -13580,8 +13742,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     }
 
     if (atomic_admission) {
-        serverAssert(atomic_admission == 1 || atomic_admission == 2);
-        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        serverAssert(atomic_admission == 1);
         g->version_install_expected =
             (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
         g->version_nx = s->ctype == CS_RENAMENX ||
@@ -14881,7 +15042,9 @@ void migUnparkClient(client *c) {
  * fire in the sub-microsecond window where `phase` became DRAINING between the park gate and this
  * call — and in that window this producer has provably not pushed its sentinel yet (both read the
  * same monotone phase), so the sub lands ahead of it and is covered by the fence anyway. Kept as
- * defence in depth; it is a thread spin, so it must stay unreachable in practice. */
+ * defence in depth; it is a thread spin, so it must stay unreachable in practice. The atomic
+ * lifecycle coordinator cannot wait on this spin: it stays in COPYING until its admitted count and
+ * source/range refs are both zero, and only then publishes DRAINING. */
 static void migHoldKeyIfDraining(robj *key) {
     if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) != MIG_DRAINING) return;
     if (!migBucketInRange(migKeyBucket(key->ptr, sdslen(key->ptr)))) return;
@@ -14934,6 +15097,8 @@ int migSuppressLazyExpire(redisDb *db, sds keyname) {
  * from server.migration under the active flag. Ordering and log lines are IDENTICAL to the
  * retired thread version. */
 static monotime co_fence_t0;      /* ee451 (H2): monotonic us at which THIS cutover's fence opened */
+static monotime co_atomic_fence_t0; /* first tick the atomic lifecycle fence added a wait */
+static int co_atomic_ref_counted;   /* this cutover already proved a post-group ref wait */
 static monotime co_last_wake;     /* ee451 (H2): last producer-wake broadcast (rate limit) */
 static int co_aborted;            /* ee451 (H2): this cutover ended without flipping */
 static uint64_t co_hb0;           /* (co_s_final went with the copy engine's issued_seq) */
@@ -14987,27 +15152,87 @@ static void reshardCoordinatorTick(void) {
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: the cold-copy convergence wait (scan_done, applied_seq >= issued_seq) was
          * the copy engine's; src and dst share one physical kvstore, so the range is "already
-         * copied" the instant it is armed and this state falls straight through to the fence. */
+         * copied" the instant it is armed. Close atomic admission while phase is still COPYING, so
+         * every admitted group and QSBR pin can finish without meeting the DRAINING range hold. */
+        atomic_store_explicit(&tomo_atomic_cutover_gate, 1, memory_order_seq_cst);
+        co_fence_t0 = getMonotonicUs();
+        co_atomic_fence_t0 = 0;
+        co_atomic_ref_counted = 0;
+        co_aborted = 0;
+        atomic_store_explicit(&co_state, CO_WAIT_ATOMIC, memory_order_release);
+        return;
+    }
 
-    /* Phase C.1: raise the drain fence, THEN open DRAINING. Order matters: fence_acked/fence_gen are
-     * published BEFORE phase, so any producer that acquire-observes phase==DRAINING is guaranteed to
-     * also see the new fence_gen (release/acquire on phase carries the prior stores) — otherwise a
-     * producer could start holding before fence_gen is visible and never push its sentinel (deadlock). */
-    /* flip (review [1] data-loss fix): reset EVERY producer slot the C.2 drain check spans (nprod =
-     * io_threads + tm_ngrow_io), not just [0, io_threads]. A grown io slot (converted worker acting as
-     * an IO producer) that acked (fence_acked==1) in an EARLIER migration would otherwise keep
-     * that stale 1 into THIS cutover; C.2 then treats it as already-drained and the FLIP proceeds while
-     * an in-flight range write is still queued from that live producer => silent lost write.
-     * (This reset is still exactly right after the H2 rewrite — more so, since an ack is now a real
-     * proof about ONE cutover's traffic and carrying one forward would forge that proof.) */
-    for (int t = 0; t < nprod; t++)
-        atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
-    atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed); /* monotonic */
-    atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
-    atomic_store_explicit(&server.migration.phase, MIG_DRAINING, memory_order_release);
+    if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_ATOMIC) {
+        /* ATOMIC LIFECYCLE PRE-DRAIN. The seq_cst gate/reservation/recheck handshake makes the
+         * admitted census final. unsealed==0 proves every possible INSTALL has happened and every
+         * STAMP/CANCEL/PRUNE has been scheduled; unlike tomo_atomic_inflight it does not wait for
+         * client reply reassembly. A zero source/range ref sum then proves all of those owner ops
+         * and every armed prune callback have retired their owner-affine work. This happens before
+         * DRAINING:
+         * no group continuation or IO QSBR pin can be waiting for FLIPPED, the coordinator holds no
+         * lock and returns on every miss, and workers/IO loops keep advancing completion and grace.
+         * reshardArm also excluded flat resize, so no counted callback needs this coordinator. */
+        monotime now = getMonotonicUs();
+        int atomic_unsealed =
+            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_seq_cst);
+        uint64_t lifecycle_refs = atomic_unsealed == 0 ?
+            tomoAtomicLifecycleRangeRefs(src, lo, hi) : 0;
+        if (atomic_unsealed != 0 || lifecycle_refs != 0) {
+            if (co_atomic_fence_t0 == 0) {
+                co_atomic_fence_t0 = now;
+                atomic_fetch_add_explicit(&tomo_atomic_cutover_fence_waits, 1,
+                                          memory_order_relaxed);
+            }
+            if (lifecycle_refs != 0 && !co_atomic_ref_counted) {
+                co_atomic_ref_counted = 1;
+                atomic_fetch_add_explicit(&tomo_atomic_cutover_ref_waits, 1,
+                                          memory_order_relaxed);
+            }
+            int tmo = server.reshard_fence_timeout_ms;
+            if (tmo > 0 && now - co_fence_t0 >= (monotime)tmo * 1000) {
+                atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1,
+                                          memory_order_relaxed);
+                serverLog(LL_WARNING,
+                          "ee451 reshard ABORT: atomic lifecycle pre-drain exceeded %d ms "
+                          "(atomic_unsealed=%d lifecycle_refs=%llu); ownership NOT flipped, "
+                          "[%d,%d) stays on worker %d", tmo, atomic_unsealed,
+                          (unsigned long long)lifecycle_refs, lo, hi, src);
+                co_aborted = 1;
+                server.tm_mig_flip_action = 0;
+                atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+                atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                atomic_store_explicit(&tomo_atomic_cutover_gate, 0, memory_order_seq_cst);
+                if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+                    tomoAtomicWakeAll();
+                if (co_atomic_fence_t0 != 0)
+                    atomic_fetch_add_explicit(&tomo_atomic_cutover_fence_wait_us,
+                                              (unsigned long long)(now - co_atomic_fence_t0),
+                                              memory_order_relaxed);
+                co_atomic_fence_t0 = 0;
+                atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
+            }
+            return;
+        }
+        if (co_atomic_fence_t0 != 0)
+            atomic_fetch_add_explicit(&tomo_atomic_cutover_fence_wait_us,
+                                      (unsigned long long)(now - co_atomic_fence_t0),
+                                      memory_order_relaxed);
+        co_atomic_fence_t0 = 0;
 
-        serverLog(LL_NOTICE, "ee451 reshard DRAINING: fence raised, nprod=%d", nprod);
-        co_fence_t0 = 0; co_last_wake = 0; co_aborted = 0;   /* ee451 (H2): fresh fence clocks */
+        /* Phase C.1: only now raise the producer drain fence and open DRAINING. Reset EVERY producer
+         * slot the C.2 check spans: a stale ack from an earlier migration would forge retirement for
+         * a grown IO producer and permit an in-flight range write across the flip. fence state is
+         * published before the phase release, so a producer which observes DRAINING sees this gen. */
+        for (int t = 0; t < nprod; t++)
+            atomic_store_explicit(&server.migration.fence_acked[t], 0, memory_order_relaxed);
+        atomic_fetch_add_explicit(&server.migration.fence_gen, 1, memory_order_relaxed);
+        atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_relaxed);
+        atomic_store_explicit(&server.migration.phase, MIG_DRAINING, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 reshard DRAINING: atomic lifecycle drained, producer fence raised, nprod=%d",
+                  nprod);
+        co_fence_t0 = 0;
+        co_last_wake = 0;
         atomic_store_explicit(&co_state, CO_DRAINING, memory_order_release);
         return;
     }
@@ -15081,7 +15306,7 @@ static void reshardCoordinatorTick(void) {
                  * later. */
                 atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
                 serverLog(LL_WARNING,
-                          "ee451 reshard ABORT: drain fence did not complete within %d ms; "
+                          "ee451 reshard ABORT: producer drain fence did not complete within %d ms; "
                           "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
                 /* The flip tail must NOT run: action 2 would ask a thread that still owns its
                  * range for the IO role (its checkpoint asserts zero owned buckets). Grow-back
@@ -15091,6 +15316,9 @@ static void reshardCoordinatorTick(void) {
                 server.tm_mig_flip_action = 0;
                 atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
                 atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                atomic_store_explicit(&tomo_atomic_cutover_gate, 0, memory_order_seq_cst);
+                if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+                    tomoAtomicWakeAll();
                 /* Same wake as the FLIP path: an abandoned cutover must release its parked
                  * clients too, or the abort trades a stalled range for a stalled client. */
                 for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
@@ -15098,7 +15326,7 @@ static void reshardCoordinatorTick(void) {
             }
             return;
         }
-        serverLog(LL_NOTICE, "ee451 reshard fence drained");
+        serverLog(LL_NOTICE, "ee451 reshard producer fence drained");
         atomic_store_explicit(&co_state, CO_WAIT_APPLIED, memory_order_release);
         return;
     }
@@ -15114,6 +15342,11 @@ static void reshardCoordinatorTick(void) {
     else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
+    /* Ownership is now published and no old-owner lifecycle remains. Re-open unrelated atomic
+     * admission only after that publication; range-parked commands re-route under the new table. */
+    atomic_store_explicit(&tomo_atomic_cutover_gate, 0, memory_order_seq_cst);
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+        tomoAtomicWakeAll();
     /* ee451 (H2 handover): the range has changed hands — wake every io thread so it runs
      * migReleaseParkedClients. A client parked by the range-hold has an EMPTY ring, so nothing
      * retires on its thread and no reply event will bring that thread back to beforeSleepIO; if it
@@ -18361,6 +18594,25 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
+         * non-vacuous proof: it increments only when group completion reached zero but old-owner
+         * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
+         * counters are invariant tripwires and must remain zero. */
+        info = sdscatprintf(info,
+            "tomokv_atomic_cutover_gate:%d\r\n"
+            "tomokv_atomic_cutover_unsealed:%d\r\n"
+            "tomokv_atomic_cutover_fence_waits:%llu\r\n"
+            "tomokv_atomic_cutover_ref_waits:%llu\r\n"
+            "tomokv_atomic_cutover_fence_wait_usec:%llu\r\n"
+            "tomokv_atomic_stale_owner_ops:%llu\r\n"
+            "tomokv_atomic_stale_owner_prunes:%llu\r\n",
+            atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_cutover_fence_waits, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_cutover_ref_waits, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_cutover_fence_wait_us, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_stale_owner_ops, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_stale_owner_prunes, memory_order_relaxed));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
          * can be derived EXTERNALLY and in STATIC mode. Until now these existed only inside
          * tomoFlipController, which returns early when thread-mode=static — so the signal that
@@ -21683,6 +21935,7 @@ void initExThreads(void) {
     flat_batch_slots = server.io_threads + server.num_workers + 1;
     flat_batch_mask_words = (flat_batch_slots + 63) / 64;
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
+    if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
     /* ee451 #83 (2026-08-05): per-worker lane arrays, HEAP-sized to the RUNTIME pool (not the
      * compile cap). nlanes covers slot 0 (main) + boot io slots + every growth slot a converting
      * worker could occupy (io_threads + num_workers + 1), so no flip can index past it
