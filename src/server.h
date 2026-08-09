@@ -1533,14 +1533,12 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 #define TOMO_THREAD_MODE_AUTO   0
 #define TOMO_THREAD_MODE_STATIC 1
 
-/* ---- IO-utilisation numerator (thread-mode=auto only; NOT a knob) -----------
- * Sampled scheduled thread CPU (CLOCK_THREAD_CPUTIME_ID on a ~16ms gate), in
- * ioSlice(). The former `tomokv-io-busy-clock` enum offered a monotonic-active
- * alternative (CLOCK_MONOTONIC wall spans minus potentially-blocking poll time);
- * that mode is GONE, not merely unselected. It cannot be made correct under
- * io_uring: DEFER_TASKRUN runs completion work inside io_uring_enter, so the
- * interval it must treat as sleep is exactly where the CPU goes -- threads at
- * 99.5% CPU published 17% busy and the flip controller never actuated. */
+/* ---- IO-utilisation observations -------------------------------------------
+ * tm_busy_us retains sampled scheduled CPU for INFO only; CPU over-reports useful IO work when
+ * drain spin and short polls burn cycles. Controller modes 0-4 retain zero-event occupancy.
+ * flip-signal 5 uses bracketed WAIT time on epoll only. It must not bracket io_uring_enter:
+ * DEFER_TASKRUN runs completion work inside that syscall (the recorded naive bracket published
+ * 17% busy on a 99.5%-CPU thread), so mode 5 safely falls back to mode 0 under uring. */
 
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
@@ -2608,10 +2606,11 @@ typedef struct exThread {
      * worker-private (written only by the owning worker), so they share a line only with
      * other worker-private fields — the property that matters is that they are NOT next to
      * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
-    /* ee451 2026-08-04 (OBSERVATION ONLY — not a decision input yet). Wall µs this worker spent
-     * with an EMPTY QUEUE, measured as whole idle EPISODES (2 clock reads per episode, never per
-     * spin round). Pairs with tmIoSignal.tm_idle_us, which measures the same physical question on
-     * the IO side. Together with tm_busy_us they decompose wall time three ways:
+    /* ee451 2026-08-04: wall µs this worker spent with an EMPTY QUEUE, measured as whole idle
+     * EPISODES (2 clock reads per episode, never per spin round). This drives legacy worker
+     * occupancy. tmIoSignal.tm_idle_us was intended as its IO analogue, but a single event marks an
+     * entire IO pass busy; mode 5 instead uses the separately bracketed IO wait counter. Together
+     * with tm_busy_us these observations decompose wall time three ways:
      *     busy (work) | idle (no work available) | residual (work available, NOT SCHEDULED)
      * The residual is the one that matters for balance: it means the role is starved of CPU, not
      * of threads, so growing that role cannot help. Neither u_io nor u_ex can currently tell the
@@ -2625,12 +2624,10 @@ typedef struct exThread {
     unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
     unsigned int tm_busy_us;         /* µs spent in work intervals (interval = last accounting
                                       * event -> work-pass end; yields reset the mark without
-                                      * accumulating). The balancer's BUSY vote uses this TIME
-                                      * ratio: calibration showed the episode ratio saturates
-                                      * at 100% for any op rate whose gaps fit the spin window
-                                      * (a 10%-duty worker under a 64B storm never yields), so
-                                      * it cannot drive a grow-front. Wraps at ~71min; controller
-                                      * deltas are wrap-safe. */
+                                      * accumulating). Retained as an INFO diagnostic; the
+                                      * controller uses empty-queue occupancy because scheduled
+                                      * CPU includes the adaptive idle spin window. Wraps at
+                                      * ~71min; external deltas are wrap-safe. */
     /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
      * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
      * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any
@@ -3317,6 +3314,9 @@ struct redisServer {
      *   2 = PURE worker-only: no IO-side MEASUREMENT enters any decision, gate included
      *   3 = mode 2 + the clip repair (the granularity floor does not veto a grow-back once worker
      *       occupancy has clipped and its magnitude is unmeasurable)
+     *   4 = reserved for the adjacent worker-max experiment (rejected until that branch combines)
+     *   5 = mode-0 ratio with epoll WAIT-time IO utilization; safely falls back to mode 0 under
+     *       io_uring, whose DEFER_TASKRUN completion work cannot be separated from kernel wait
      * Read only by the 4Hz controller, so 0 costs nothing anywhere. */
     int flip_signal;
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS

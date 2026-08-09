@@ -127,7 +127,8 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeEventFinalizerProc *finalizerProc);
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us);
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
+                      uint64_t *wait_us);
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);

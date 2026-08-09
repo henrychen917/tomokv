@@ -541,8 +541,11 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
+                      uint64_t *wait_us_out) {
     int processed = 0, numevents;
+    uint64_t wait_us = 0;
+    if (wait_us_out) *wait_us_out = 0;
     if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) return 0;
 
     int uring_ready = 0;
@@ -599,6 +602,14 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
      * wedged worker (replyWorking stuck) makes no progress => the loop exits => syscall poll. */
     if (replyWorking > 0 && eventLoop->beforesleep != NULL && drain_mode == 1) {
         int rw0 = replyWorking;
+        /* The PAUSE prefix is waiting for a worker reply, but beforesleep performs useful reply
+         * completion work and must not be charged as wait. Accumulate the whole prefix span and
+         * subtract the individually bracketed work calls so sub-microsecond PAUSE batches are not
+         * lost independently to getMonotonicUs() resolution. This is deliberately epoll-only:
+         * under DEFER_TASKRUN an io_uring enter can execute completion work inside the syscall,
+         * so that backend has no clean wall-clock wait boundary (see the enter site below). */
+        uint64_t spin_start = 0, work_us = 0;
+        if (eventLoop->uring_enter == NULL) spin_start = getMonotonicUs();
         for (int u = 0; u < AE_IO_DRAIN_USERPOLL_MAX; u++) {
             for (int p = 0; p < 16; p++) {
 #if defined(__i386__) || defined(__x86_64__)
@@ -607,8 +618,15 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
                 __asm__ __volatile__("" ::: "memory");
 #endif
             }
+            uint64_t work_start = 0;
+            if (spin_start) work_start = getMonotonicUs();
             eventLoop->beforesleep(eventLoop);
+            if (spin_start) work_us += getMonotonicUs() - work_start;
             if (replyWorking < rw0) break;
+        }
+        if (spin_start) {
+            uint64_t spin_us = getMonotonicUs() - spin_start;
+            if (spin_us > work_us) wait_us += spin_us - work_us;
         }
     }
     struct timeval tv, *tvp = NULL;
@@ -637,12 +655,10 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
         tvp = &tv;
     }
 
-    /* No busy accounting here. It used to live in this function as CLOCK_MONOTONIC active-wall
-     * spans with "potentially blocking" poll time subtracted, which io_uring makes unfixable:
-     * DEFER_TASKRUN runs completion work INSIDE io_uring_enter, so the interval this model must
-     * treat as sleep is exactly where the CPU goes. The IO utilization numerator is now sampled
-     * scheduled thread CPU, published by ioSlice() in server.c -- correct under both backends,
-     * and it costs a gated syscall per 16ms instead of 2-3 vDSO clock reads per pass. */
+    /* WAIT accounting is intentionally NOT wrapped around this call. DEFER_TASKRUN runs useful
+     * completion taskwork inside io_uring_enter, so elapsed wall time cannot distinguish sleeping
+     * from working (the recorded failure read io_sat=0.17 on a 99.5%-CPU thread). The new wait
+     * counter is therefore explicitly epoll-only rather than publishing a partial uring signal. */
     if (eventLoop->uring_enter) {
         (void)eventLoop->uring_enter(eventLoop, tvp);
         int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;
@@ -657,7 +673,12 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
             numevents = 0;
         }
     } else {
+        /* epoll/select/kqueue callbacks run only after aeApiPoll returns. The syscall boundary is
+         * consequently a clean measure of time spent waiting/polling, including zero-timeout
+         * drain passes, without charging event handling as wait. */
+        uint64_t wait_start = getMonotonicUs();
         numevents = aeApiPoll(eventLoop, tvp);
+        wait_us += getMonotonicUs() - wait_start;
     }
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
@@ -683,8 +704,7 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
 
         processed++;
     }
-
-
+    if (wait_us_out) *wait_us_out = wait_us;
     return processed;
 }
 
