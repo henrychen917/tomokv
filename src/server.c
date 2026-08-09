@@ -23241,6 +23241,10 @@ typedef struct {
                               * stops a failed direction from being retried immediately. */
     double   anchor_u_io;    /* selected U_IO snapshot at capture; magnitude-shift invalidator */
     double   anchor_u_ex;    /* U_EX snapshot at capture; catches common-mode workload shifts */
+    double   anchor_rate_cap;/* smoothed rate at the same capture; the magnitude DROP judges
+                              * against this with the sweep's own 2-sigma/2% band — capped u has
+                              * cap-compressed tick jitter, so 2*sigma_u reads ordinary drift as
+                              * workload change (measured: sigma_io 0.0014 at u_io 0.985) */
     int      anchor_io_live, anchor_ex_live; /* exact role split at magnitude capture */
     int      anchor_sat_rebase; /* an actuation crossed splits: wait for a full local sample, then
                                  * replace the magnitude snapshot before comparing it again */
@@ -23269,6 +23273,7 @@ typedef struct {
     int      floor_probe_check_io, floor_probe_check_ex, floor_probe_check_valid;
     double   floor_probe_entry_lr, floor_probe_entry_gfloor;
     double   floor_probe_check_u_io, floor_probe_check_u_ex;
+    double   floor_probe_check_rate; /* rate at the split-local re-base; same rate-band rule */
     /* 0=not in the once-enumerated set, 1=unvisited, 2=measured, 3=structurally blocked. The
      * bound is the existing compiled role-slot capacity, not a controller constant or a
      * machine-size probe budget. */
@@ -23276,6 +23281,9 @@ typedef struct {
 
     int      lr_out_dir;     /* direction of the current out-of-band run (+1 front / -1 back) */
     int      lr_out_run;     /* consecutive ticks outside the band in that direction (Schmitt) */
+    int      floor_out_dir;  /* direction of the current out-of-FLOOR run, settled ticks only */
+    int      floor_out_run;  /* its Schmitt counter — feeds the anchor/episode DROPS, which the
+                              * trigger's lr_out_run cannot (floor_probe_used forces that to 0) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
     int      best_dist;      /* thread moves since best_rate was set (0 = standing on the best) */
@@ -23545,7 +23553,7 @@ static double tmFlipPredictedLr(double entry_lr, int entry_io, int entry_ex,
  * see the caller's comment). Per-role magnitudes re-base per split via floor_probe_check_*. */
 static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
                                       double u_io, double u_ex,
-                                      double sigma_io, double sigma_ex,
+                                      double rate_sigma,
                                       int check_sat,
                                       int *drop_floor, double *lr_equiv_out) {
     double predicted = tmFlipPredictedLr(fc->floor_probe_entry_lr,
@@ -23556,8 +23564,11 @@ static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
     double equiv_floor = tmFlipGstepAt(fc->floor_probe_entry_io,
                                        fc->floor_probe_entry_ex,
                                        lr_equiv, fc->floor_probe_wsig) / 2.0;
-    int floor = !isfinite(lr_equiv) ||
-                !isfinite(equiv_floor) || fabs(lr_equiv) >= equiv_floor;
+    int floor = !isfinite(lr_equiv) || !isfinite(equiv_floor) ||
+                (fabs(lr_equiv) >= equiv_floor &&
+                 fc->floor_out_run >= FLIP_SUSTAIN);   /* same persistence as the anchor drop:
+                                                        * one boundary-jitter sample must not
+                                                        * re-arm a 12s enumeration */
     int sat = 0;
     /* A role conversion changes both magnitude operands by construction. While enumeration or a
      * final walk is active there is no split-local snapshot against which they are comparable, so
@@ -23573,13 +23584,15 @@ static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
         fc->floor_probe_check_ex = ne;
         fc->floor_probe_check_u_io = u_io;
         fc->floor_probe_check_u_ex = u_ex;
+        fc->floor_probe_check_rate = fc->mean;
         fc->floor_probe_check_valid = 1;
     } else {
+        /* Rate-band judgement, same reasoning as the anchor drop above: capped u compresses
+         * sigma_u below the box's ordinary drift, and a magnitude shift matters exactly when
+         * the measured optimum might differ — which the sweeps measure in rate. */
+        double band = fmax(2.0 * rate_sigma, 0.02 * fc->floor_probe_check_rate);
         sat = !isfinite(u_io) || !isfinite(u_ex) ||
-              fabs(u_io - fc->floor_probe_check_u_io) >
-                  2.0 * sigma_io ||
-              fabs(u_ex - fc->floor_probe_check_u_ex) >
-                  2.0 * sigma_ex;
+              fabs(fc->mean - fc->floor_probe_check_rate) > band;
     }
     if (drop_floor) *drop_floor = floor;
     if (lr_equiv_out) *lr_equiv_out = lr_equiv;
@@ -23663,6 +23676,7 @@ static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int bas
     fc->floor_probe_check_ex = ne;
     fc->floor_probe_check_u_io = u_io;
     fc->floor_probe_check_u_ex = u_ex;
+    fc->floor_probe_check_rate = fc->mean;
     fc->floor_probe_check_valid = 1;
     fc->best_rate = fc->mean;
     fc->best_dist = 0;
@@ -24323,8 +24337,8 @@ static void tomoFlipController(void) {
         if (u_ex > 1.0) u_ex = 1.0;
         /* Use the PRE-SAMPLE variance for invalidation, so the workload step being detected cannot
          * inflate its own threshold. Capture below snapshots the post-update settled estimate. */
-        double u_sigma_io_prior = sqrt(fc->u_io_var > 0.0 ? fc->u_io_var : 0.0);
-        double u_sigma_ex_prior = sqrt(fc->u_ex_var > 0.0 ? fc->u_ex_var : 0.0);
+        /* u_io_var/u_ex_var stay maintained for observability; their sigmas no longer gate any
+         * drop — capped u compresses them below box drift (see the rate-band comments below). */
         /* THE CLIP IS WHY THE BACKLOG TERM IS LOAD-BEARING RATHER THAN DECORATIVE (2026-08-08).
          * u_ex is hard-bounded above by 1.0 — occupancy is a fraction of wall time and cannot
          * exceed it — so the UTILISATION half of ex_sat can only ever say "grow-front or hold": it
@@ -24541,6 +24555,29 @@ static void tomoFlipController(void) {
          * captured role magnitude invalidates it even when both roles moved together and lr did
          * not. The sigma comes from the pre-sample EWMA variance, so the step under examination
          * cannot widen its own allowance. */
+        /* FLOOR-DROP PERSISTENCE (2026-08-09). The drops below re-arm the once-per-episode sweep,
+         * and a single-sample |lr|>=gfloor test flickers at a boundary-adjacent optimum: get_p32's
+         * io4 operating point sits at ~94% of floor (entry lr +0.22..0.24 vs 0.255), EWMA jitter
+         * crossed it once per ~14s, and each crossing re-armed a full 12s enumeration — three
+         * sweeps inside one 60s HOLD window, landing sampled mid-transit (post-livelock-fix
+         * battery, r1 HOLD FAIL at -10.5%). The trigger already demands FLIP_SUSTAIN consecutive
+         * out-of-band ticks; the drops get the same evidence bar via their own counter because
+         * the completed-episode latch forces lr_out_run to 0 exactly where the drops are the only
+         * remaining actor. Counted on settled ticks only: sweep/climb transits move lr by
+         * construction, and counting them would hand the counter back to the actuator. A real
+         * workload change parks lr outside the floor STEADILY and fires in ~2s; boundary jitter
+         * alternates and never accumulates. */
+        {
+            int fo = (isfinite(fc->lr_ewma) && fabs(fc->lr_ewma) >= gfloor)
+                         ? (fc->lr_ewma > 0 ? 1 : -1) : 0;
+            int fo_ticking = !fc->floor_probe_active && !fc->floor_probe_await_settle &&
+                             fc->dir == 0 && fc->phase == 0 && fc->revert_steps == 0 &&
+                             !fc->walkback_armed && !fc->step_armed && !node_idle;
+            if (!fo_ticking || fo == 0 || fo != fc->floor_out_dir) {
+                fc->floor_out_dir = fo_ticking ? fo : 0;
+                fc->floor_out_run = (fo_ticking && fo) ? 1 : 0;
+            } else if (fc->floor_out_run < INT_MAX) fc->floor_out_run++;
+        }
         if (fc->anchor_n > 0) {
             int same_split = (ni == fc->anchor_io_live && ne == fc->anchor_ex_live);
             int sat_sample_ready = same_split &&
@@ -24551,19 +24588,29 @@ static void tomoFlipController(void) {
                                    !fc->step_armed &&
                                    fc->lr_quiet_run >= FLIP_R_QUIET_N &&
                                    fc->anchor_rate_run >= FESC_SETTLE_N;
-            int drop_floor = fabs(fc->lr_ewma) >= gfloor;
+            int drop_floor = !isfinite(fc->lr_ewma) ||
+                             fc->floor_out_run >= FLIP_SUSTAIN;
             /* A return to the anchor split still carries EWMA history from the split it crossed.
              * The same quiet/rate window used for capture first re-bases the magnitude snapshot;
              * only a later sample at this exact split may invalidate it. */
             if (!drop_floor && sat_sample_ready && fc->anchor_sat_rebase) {
                 fc->anchor_u_io = u_io;
                 fc->anchor_u_ex = u_ex;
+                fc->anchor_rate_cap = fc->mean;
                 fc->anchor_sat_rebase = 0;
             }
+            /* MAGNITUDE DROP JUDGES IN RATE (2026-08-09), not in 2*sigma_u. The owner-equation
+             * cap pins a saturated side (u_io 0.985) whose EWMA tick jitter is then microscopic
+             * (sigma 0.0009-0.0014), so the 2-sigma-u allowance shrank to +/-0.3% and ordinary
+             * warmup drift re-armed a full sweep every ~15s — with rate ON its plateau and lr
+             * quiet, i.e. with nothing actionable changed (single-cell probe, 3 sweeps/60s, all
+             * REVERT). A magnitude shift matters exactly when the measured optimum might differ,
+             * and the sweep judges optima in rate with fmax(2 sigma, 2%) — so the drop uses the
+             * SAME band against the rate snapshotted at capture. The u operands stay in the log. */
+            double drop_band = fmax(2.0 * sigma, 0.02 * fc->anchor_rate_cap);
             int drop_sat = sat_sample_ready && !fc->anchor_sat_rebase &&
                            (!isfinite(u_io) || !isfinite(u_ex) ||
-                            fabs(u_io - fc->anchor_u_io) > 2.0 * u_sigma_io_prior ||
-                            fabs(u_ex - fc->anchor_u_ex) > 2.0 * u_sigma_ex_prior);
+                            fabs(fc->mean - fc->anchor_rate_cap) > drop_band);
             if (drop_floor || drop_sat) {
                 fc->anchor_n = 0;
                 fc->lr_anchor = 0.0;                    /* UNSET: no stale centre remains usable */
@@ -24573,6 +24620,8 @@ static void tomoFlipController(void) {
                 fc->lr_quiet_run = 0;
                 fc->lr_out_dir = 0;
                 fc->lr_out_run = 0;
+                fc->floor_out_dir = 0;
+                fc->floor_out_run = 0;
                 fc->u_noise_primed = 0;
                 /* A workload/saturation change at the captured split starts a new settled
                  * episode. A sweep move, final walk-back and cache re-settle must NOT re-arm it. */
@@ -24586,10 +24635,10 @@ static void tomoFlipController(void) {
                 else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1, memory_order_relaxed);
                 serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f floor=%.3f "
-                          "u_io=%.3f/%.3f sigma=%.4f u_ex=%.3f/%.3f sigma=%.4f -> UNSET",
+                          "rate=%.0f/%.0f band=%.0f u_io=%.3f/%.3f u_ex=%.3f/%.3f -> UNSET",
                           node, drop_floor ? "floor-exit" : "sat-magnitude",
-                          fc->lr_ewma, gfloor, u_io, fc->anchor_u_io, u_sigma_io_prior,
-                          u_ex, fc->anchor_u_ex, u_sigma_ex_prior);
+                          fc->lr_ewma, gfloor, fc->mean, fc->anchor_rate_cap, drop_band,
+                          u_io, fc->anchor_u_io, u_ex, fc->anchor_u_ex);
             }
         }
 
@@ -24653,7 +24702,7 @@ static void tomoFlipController(void) {
             int sweep_drop_floor = 0;
             double sweep_lr_equiv = 0.0;
             if (tmFlipSweepWorkloadChanged(fc, ni, ne, u_io, u_ex,
-                                           u_sigma_io_prior, u_sigma_ex_prior,
+                                           sigma,
                                            1 /* sat arm live: sweep inactive by gate above */,
                                            &sweep_drop_floor, &sweep_lr_equiv)) {
                 if (sweep_drop_floor)
@@ -24679,6 +24728,8 @@ static void tomoFlipController(void) {
                     fc->lr_quiet_run = 0;
                     fc->lr_out_dir = 0;
                     fc->lr_out_run = 0;
+                    fc->floor_out_dir = 0;
+                    fc->floor_out_run = 0;
                     fc->u_noise_primed = 0;
                 }
                 continue;
@@ -25224,6 +25275,7 @@ static void tomoFlipController(void) {
             fc->anchor_n = 1;
             fc->anchor_u_io = u_io;
             fc->anchor_u_ex = u_ex;
+            fc->anchor_rate_cap = fc->mean;
             fc->anchor_io_live = ni;
             fc->anchor_ex_live = ne;
             fc->anchor_sat_rebase = 0;
