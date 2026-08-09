@@ -180,16 +180,19 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-reply-iovec no
   try tomokv-reply-iovec yes
 
-  # ee451 2026-08-08: flip controller TRIGGER INPUT, as levels. Every arm must boot and serve;
-  # WHICH arm converges best is the conformance suite's question, not this one. These cells run
-  # with thread-mode auto (the default), so the controller is live and each arm's trigger path is
-  # actually entered rather than compiled-and-skipped.
-  must_refuse tomokv-flip-signal -1 "range is [0,3]; this knob spells its default as 0 (today's io/ex ratio), not -1"
-  must_refuse tomokv-flip-signal 4 "above the declared maximum; 3 is the highest defined level"
+  # ee451 2026-08-09: two-mechanism WIP. Historical mode numbers stay sparse; deleted experiments
+  # must remain refused rather than being silently renumbered or reassigned.
+  must_refuse tomokv-flip-signal -1 "valid values are exactly 0 and 3; default is 0, not -1"
+  must_refuse tomokv-flip-signal 1 "deleted worker-gated experiment"
+  must_refuse tomokv-flip-signal 2 "deleted pure-worker experiment without the clip repair"
+  must_refuse tomokv-flip-signal 4 "deleted max-occupancy experiment"
+  must_refuse tomokv-flip-signal 5 "IO wait is an orthogonal input knob, not a flip mechanism"
   try tomokv-flip-signal 0 "default: io/ex saturation ratio — must be bit-identical to pre-knob behaviour"
-  try tomokv-flip-signal 1 "worker idle+qdepth picks direction; server_bound gate retained"
-  try tomokv-flip-signal 2 "pure worker-only: the io-side don't-bother gate is dropped too"
   try tomokv-flip-signal 3 "pure worker-only + clip repair (floor does not veto grow-back once u_ex clips)"
+  must_refuse tomokv-flip-io-wait -1 "below the declared minimum; default legacy input is 0"
+  must_refuse tomokv-flip-io-wait 2 "above the declared maximum; valid values are 0 and 1"
+  try tomokv-flip-io-wait 0 "legacy zero-event-pass u_io control"
+  try tomokv-flip-io-wait 1 "epoll wait-derived u_io, selected independently of flip mechanism"
 
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..2; only 0 is driven here on purpose -- modes 1/2 both need a
