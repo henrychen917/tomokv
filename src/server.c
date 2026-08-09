@@ -619,6 +619,9 @@ static _Atomic unsigned long tomo_flip_best_rate_resets;
 static _Atomic unsigned long tomo_flip_in_floor_probes;
 static _Atomic unsigned long tomo_flip_in_floor_probe_keeps;
 static _Atomic unsigned long tomo_flip_in_floor_probe_reverts;
+static _Atomic unsigned long tomo_flip_in_floor_configs_visited;
+static _Atomic unsigned long tomo_flip_in_floor_last_configs_visited;
+static _Atomic unsigned long tomo_flip_in_floor_sweeps_abandoned;
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
@@ -18025,6 +18028,21 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flip_in_floor_probe_keeps:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_in_floor_probe_keeps, memory_order_relaxed),
             "tomokv_flip_in_floor_probe_reverts:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed),
+            /* Compatibility: probes/keeps/reverts above now mean sweeps/final-changed/final-same.
+             * Spell out the exhaustive-sweep proof counters as well. `configs_visited` is the
+             * cumulative numerator; `last` makes every individual sweep's breadth observable. */
+            "tomokv_flip_in_floor_sweeps_started:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probes, memory_order_relaxed),
+            "tomokv_flip_in_floor_configs_visited:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_configs_visited, memory_order_relaxed),
+            "tomokv_flip_in_floor_last_configs_visited:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_last_configs_visited, memory_order_relaxed),
+            "tomokv_flip_in_floor_sweeps_abandoned:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_sweeps_abandoned, memory_order_relaxed),
+            "tomokv_flip_in_floor_final_changed:%lu\r\n",
+                atomic_load_explicit(&tomo_flip_in_floor_probe_keeps, memory_order_relaxed),
+            "tomokv_flip_in_floor_final_unchanged:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed)));
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
          * candidate utilization estimator can be checked against a measured throughput curve.
@@ -23121,7 +23139,7 @@ typedef struct {
      * PRODUCTIVE climb (ends at a different config), a RE-BASELINE, or an idle/load change
      * resets it, so a genuine persistent shift still probes with bounded delay. */
     int      veto_run;       /* consecutive net-zero (vetoed) climbs from the same operating point */
-    int      start_io;       /* io_live_node when the current climb STARTED (net-zero detector) */
+    int      start_io;       /* total IO-role count when the current climb STARTED */
     double   veto_lr;        /* lr_ewma at the last vetoed climb's TRIGGER — the same-wave latch:
                               * after 2 net-zero probes, only a MATERIALLY different signal state
                               * (|lr - veto_lr| > gstep, one whole thread-move) may trigger again.
@@ -23168,14 +23186,32 @@ typedef struct {
                               * stops a failed direction from being retried immediately. */
     double   anchor_u_io;    /* selected U_IO snapshot at capture; magnitude-shift invalidator */
     double   anchor_u_ex;    /* U_EX snapshot at capture; catches common-mode workload shifts */
-    int      anchor_io_live; /* split at capture; distinguishes a probe's own saturation move */
+    int      anchor_io_live; /* total IO-role count at capture; distinguishes a sweep move */
     double   anchor_rate_prev; /* prior throughput EWMA for the idle rate-plateau estimator */
     int      anchor_rate_run;  /* consecutive rate-plateau ticks; same law as warmup settle_run */
 
-    int      floor_probe_used; /* one in-floor probe consumed in this settled/workload episode */
-    int      floor_probe_active; /* the one-shot probe is in the existing warmup/judge path */
-    int      floor_probe_revert_pending; /* count REVERT only after its walk-back actually lands */
-    int      floor_probe_await_settle; /* self-induced drops cannot re-arm before final re-settle */
+    /* The b9884f70c one-shot latches now own one exhaustive floor sweep. `used` is the episode
+     * latch, `active` covers enumeration through final positioning, `revert_pending` identifies
+     * that final positioning, and `await_settle` keeps self-induced signal moves from re-arming the
+     * episode. There is deliberately no parallel episode mechanism. */
+    int      floor_probe_used;
+    int      floor_probe_active;
+    int      floor_probe_revert_pending;
+    int      floor_probe_await_settle;
+    int      floor_probe_entry_io, floor_probe_entry_ex;
+    int      floor_probe_legal_lo, floor_probe_legal_hi;
+    int      floor_probe_target_io, floor_probe_best_io;
+    int      floor_probe_planned, floor_probe_visited;
+    int      floor_probe_scan_dir, floor_probe_idle_run;
+    int      floor_probe_move_from_io, floor_probe_move_from_ex;
+    int      floor_probe_wsig;
+    int      floor_probe_check_io, floor_probe_check_ex, floor_probe_check_valid;
+    double   floor_probe_entry_lr, floor_probe_entry_gfloor;
+    double   floor_probe_check_u_io, floor_probe_check_u_ex;
+    /* 0=not in the once-enumerated set, 1=unvisited, 2=measured, 3=structurally blocked. The
+     * bound is the existing compiled role-slot capacity, not a controller constant or a
+     * machine-size probe budget. */
+    unsigned char floor_probe_candidates[TOMO_IO_THREADS_MAX + 1];
 
     int      lr_out_dir;     /* direction of the current out-of-band run (+1 front / -1 back) */
     int      lr_out_run;     /* consecutive ticks outside the band in that direction (Schmitt) */
@@ -23185,8 +23221,8 @@ typedef struct {
     int      coast_used;     /* consecutive steps that did not beat the best SIGNIFICANTLY (momentum
                               * budget). Split from best_dist 2026-07-29: they answer different
                               * questions and conflating them walked the climb off its own optimum. */
-    int      revert_steps;   /* walk-back-to-best counter after an exhausted coast (>0 => repositioning) */
-    int      walkback_armed; /* a walk-back step is in flight; confirm it landed (no abort) before counting */
+    int      revert_steps;   /* existing finite reposition counter; also drives sweep transit/final return */
+    int      walkback_armed; /* one reposition step is in flight; confirm landing before counting it */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
 
@@ -23204,8 +23240,9 @@ static flipCtlState fctl[TM_MAXNODE];
 /* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
  * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
  * from the io-vs-ex saturation RATIO; THROUGHPUT only VETOES (revert a measured regress).
- * A fully settled inside-floor episode gets one adjacent-config probe; after its existing judge
- * keeps or reverts that probe, the episode latch restores the zero-churn steady-state hold.
+ * A fully settled inside-floor episode enumerates its capacity-predicted floor configs plus one
+ * legal neighbour on each side, measures each once, returns to the measured argmax, then restores
+ * the zero-churn episode hold.
  *
  * RATIO, NOT DIFFERENCE (owner design 2026-08-03). The old signal was io_sat - ex_sat. A
  * difference is not scale-free and it assumes the two roles are symmetric. They are not: at the
@@ -23410,6 +23447,10 @@ static void tmFlipPrepareConfigSample(flipCtlState *fc) {
     fc->anchor_rate_run = 0;
     fc->lr_quiet_run = 0;
     fc->u_noise_primed = 0;
+    if (fc->floor_probe_used) {
+        fc->floor_probe_check_valid = 0;
+        fc->floor_probe_idle_run = 0;
+    }
 }
 
 /* The existing judge has accepted the measured split. Its rate is now the only comparable
@@ -23418,6 +23459,297 @@ static void tmFlipAcceptBestRate(flipCtlState *fc, double rate) {
     fc->best_rate = rate;
     fc->best_dist = 0;
     atomic_fetch_add_explicit(&tomo_flip_best_rate_resets, 1, memory_order_relaxed);
+}
+
+/* One live-thread capacity quantum at an arbitrary split. Ratio modes use both roles; worker-only
+ * modes use exactly the worker term their lr signal contains. Every operand is a live count. */
+static double tmFlipGstepAt(int ni, int ne, double lr, int wsig) {
+    if (ni < 1) ni = 1;
+    if (ne < 1) ne = 1;
+    if (wsig) {
+        return lr > 0.0
+             ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)
+             : log((double)(ne + 1) / (double)ne);
+    }
+    return log((double)(ni + 1) / (double)ni) +
+           ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0);
+}
+
+/* Capacity-only prediction at (ni,ne), telescoped from the cumulative gsteps along the path.
+ * Ratio lr changes by ln(ne/entry_ne)-ln(ni/entry_ni); worker lr retains only the EX term. */
+static double tmFlipPredictedLr(double entry_lr, int entry_io, int entry_ex,
+                                int ni, int ne, int wsig) {
+    if (entry_io < 1 || entry_ex < 1 || ni < 1 || ne < 1) return entry_lr;
+    double ex_term = log((double)ne / (double)entry_ex);
+    return entry_lr + ex_term - (wsig ? 0.0 : log((double)ni / (double)entry_io));
+}
+
+/* Translate lr back into the entry split's capacity coordinates before applying b9884f70c's floor
+ * invalidator. Per-role magnitudes cannot be capacity-normalized reliably (throughput itself varies
+ * across candidates), so their SAME two-sigma rule is made split-local: the first fully-settled
+ * sample at a new config captures its baseline, and later samples at that config can abandon
+ * the sweep. Thus a role conversion is not mistaken for a workload change and no tolerance is
+ * introduced: the floor and the existing rolling pre-sample sigmas remain the complete predicates. */
+static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
+                                      double u_io, double u_ex,
+                                      double sigma_io, double sigma_ex,
+                                      int *drop_floor, double *lr_equiv_out) {
+    double predicted = tmFlipPredictedLr(fc->floor_probe_entry_lr,
+                                         fc->floor_probe_entry_io,
+                                         fc->floor_probe_entry_ex,
+                                         ni, ne, fc->floor_probe_wsig);
+    double lr_equiv = fc->floor_probe_entry_lr + (fc->lr_ewma - predicted);
+    double equiv_floor = tmFlipGstepAt(fc->floor_probe_entry_io,
+                                       fc->floor_probe_entry_ex,
+                                       lr_equiv, fc->floor_probe_wsig) / 2.0;
+    int floor = !isfinite(lr_equiv) ||
+                !isfinite(equiv_floor) || fabs(lr_equiv) >= equiv_floor;
+    int sat = 0;
+    if (!fc->floor_probe_check_valid ||
+        fc->floor_probe_check_io != ni || fc->floor_probe_check_ex != ne) {
+        fc->floor_probe_check_io = ni;
+        fc->floor_probe_check_ex = ne;
+        fc->floor_probe_check_u_io = u_io;
+        fc->floor_probe_check_u_ex = u_ex;
+        fc->floor_probe_check_valid = 1;
+    } else {
+        sat = !isfinite(u_io) || !isfinite(u_ex) ||
+              fabs(u_io - fc->floor_probe_check_u_io) >
+                  2.0 * sigma_io ||
+              fabs(u_ex - fc->floor_probe_check_u_ex) >
+                  2.0 * sigma_ex;
+    }
+    if (drop_floor) *drop_floor = floor;
+    if (lr_equiv_out) *lr_equiv_out = lr_equiv;
+    return floor || sat;
+}
+
+/* Enumerate the episode ONCE. A candidate is admitted when its capacity-predicted lr is strictly
+ * inside its own derived half-gstep floor; then exactly one legal neighbour on either side of the
+ * admitted set is added. The byte set stores that closed result, so later signal samples cannot
+ * grow it and every status-1 config reaches exactly one terminal state: measured or blocked. This
+ * is core-count independent in the control sense: ln((i+1)/i)+ln(e/(e-1)) shrinks as counts grow,
+ * so its half-step floor admits fewer lattice points rather than turning a larger machine into a
+ * longer sweep. */
+static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int base_io,
+                             int wsig, double u_io, double u_ex) {
+    int cap = (int)sizeof(fc->floor_probe_candidates);
+    int pool = ni + ne;
+    int legal_lo = base_io > 0 ? base_io : 1;
+    int legal_hi = pool - 1;                              /* preserve at least one EX worker */
+
+    /* Node 0's iotid 0 is main and never receives an exiting poly thread's connections. With a
+     * one-IO base, io1 -> io2 is not reversible, so do not enter a sweep that could strand its
+     * best at io1. Other nodes' sole base IO thread is a real migration destination. */
+    if (node == 0 && legal_lo == 1) {
+        if (ni == 1) legal_hi = 1;
+        else legal_lo = 2;
+    }
+    if (legal_lo < 1) legal_lo = 1;
+    if (legal_hi >= cap) legal_hi = cap - 1;
+    if (ni < legal_lo || ni > legal_hi) legal_lo = legal_hi = ni;
+
+    memset(fc->floor_probe_candidates, 0, sizeof(fc->floor_probe_candidates));
+    int admitted_lo = 0, admitted_hi = 0;
+    for (int io = legal_lo; io <= legal_hi; io++) {
+        int ex = pool - io;
+        if (ex < 1) continue;
+        double predicted = tmFlipPredictedLr(fc->lr_ewma, ni, ne, io, ex, wsig);
+        double floor = tmFlipGstepAt(io, ex, predicted, wsig) / 2.0;
+        if (isfinite(predicted) && isfinite(floor) && fabs(predicted) < floor) {
+            fc->floor_probe_candidates[io] = 1;
+            if (admitted_lo == 0 || io < admitted_lo) admitted_lo = io;
+            if (io > admitted_hi) admitted_hi = io;
+        }
+    }
+    /* The entry passed the identical strict floor gate. Keep the invariant explicit even if a
+     * poisoned arithmetic result above self-heals to the only safe one-config sweep. */
+    if (ni > 0 && ni < cap) {
+        fc->floor_probe_candidates[ni] = 1;
+        if (admitted_lo == 0 || ni < admitted_lo) admitted_lo = ni;
+        if (ni > admitted_hi) admitted_hi = ni;
+    }
+    if (admitted_lo > legal_lo) fc->floor_probe_candidates[admitted_lo - 1] = 1;
+    if (admitted_hi < legal_hi) fc->floor_probe_candidates[admitted_hi + 1] = 1;
+
+    int planned = 0;
+    for (int io = legal_lo; io <= legal_hi; io++)
+        if (fc->floor_probe_candidates[io]) planned++;
+    fc->floor_probe_candidates[ni] = 2;                 /* settled entry is measurement number one */
+
+    fc->floor_probe_used = 1;
+    fc->floor_probe_active = 1;
+    fc->floor_probe_revert_pending = 0;
+    fc->floor_probe_await_settle = 1;
+    fc->floor_probe_entry_io = ni;
+    fc->floor_probe_entry_ex = ne;
+    fc->floor_probe_legal_lo = legal_lo;
+    fc->floor_probe_legal_hi = legal_hi;
+    fc->floor_probe_target_io = 0;
+    fc->floor_probe_best_io = ni;
+    fc->floor_probe_planned = planned;
+    fc->floor_probe_visited = 1;
+    fc->floor_probe_scan_dir = -1;                      /* measure the lower side first */
+    fc->floor_probe_idle_run = 0;
+    fc->floor_probe_wsig = wsig;
+    fc->floor_probe_entry_lr = fc->lr_ewma;
+    fc->floor_probe_entry_gfloor = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig) / 2.0;
+    fc->floor_probe_check_io = ni;
+    fc->floor_probe_check_ex = ne;
+    fc->floor_probe_check_u_io = u_io;
+    fc->floor_probe_check_u_ex = u_ex;
+    fc->floor_probe_check_valid = 1;
+    fc->best_rate = fc->mean;
+    fc->best_dist = 0;
+    fc->coast_used = 0;
+    fc->revert_steps = 0;
+    fc->walkback_armed = 0;
+    fc->refuse_run = 0;
+
+    unsigned long sweeps = atomic_fetch_add_explicit(
+        &tomo_flip_in_floor_probes, 1, memory_order_relaxed) + 1;
+    atomic_fetch_add_explicit(&tomo_flip_in_floor_configs_visited, 1,
+                              memory_order_relaxed);
+    atomic_store_explicit(&tomo_flip_in_floor_last_configs_visited, 1,
+                          memory_order_relaxed);
+    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP #%lu START io=%d/ex=%d "
+              "lr=%+.3f floor=%.3f admitted=%d..%d plus-neighbours planned=%d "
+              "legal=%d..%d derive=%s-cumulative-gstep baseline=%.0f",
+              node, sweeps, ni, ne, fc->lr_ewma, fc->floor_probe_entry_gfloor,
+              admitted_lo, admitted_hi, planned, legal_lo, legal_hi,
+              wsig ? "worker" : "ratio", fc->best_rate);
+}
+
+/* Deterministic no-repeat order: walk outward below entry, then cross already-measured configs
+ * and walk upward. A candidate byte changes 1->2 only after PHASE 2 (or 1->3 after a bounded
+ * structural refusal), so transit and transient refusal never consume a visit. */
+static int tmFlipSweepNextCandidate(flipCtlState *fc, int current_io) {
+    if (fc->floor_probe_scan_dir < 0) {
+        for (int io = current_io - 1; io >= fc->floor_probe_legal_lo; io--)
+            if (fc->floor_probe_candidates[io] == 1) return io;
+        fc->floor_probe_scan_dir = 1;
+    }
+    int start = current_io < fc->floor_probe_entry_io
+              ? fc->floor_probe_entry_io + 1 : current_io + 1;
+    for (int io = start; io <= fc->floor_probe_legal_hi; io++)
+        if (fc->floor_probe_candidates[io] == 1) return io;
+    /* Defensive completeness for a sparse/non-contiguous admitted set. */
+    for (int io = fc->floor_probe_legal_lo; io <= fc->floor_probe_legal_hi; io++)
+        if (fc->floor_probe_candidates[io] == 1) return io;
+    return 0;
+}
+
+static void tmFlipSweepTarget(flipCtlState *fc, int current_io, int target_io, int final) {
+    fc->floor_probe_target_io = target_io;
+    fc->floor_probe_revert_pending = final;
+    fc->revert_steps = abs(target_io - current_io);
+    fc->walkback_armed = 0;
+    fc->refuse_run = 0;
+    fc->floor_probe_idle_run = 0;
+    fc->dir = 0;
+}
+
+static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io, int reached_best) {
+    int intended_best = fc->floor_probe_best_io;
+    int blocked = 0;
+    for (int io = fc->floor_probe_legal_lo; io <= fc->floor_probe_legal_hi; io++)
+        if (fc->floor_probe_candidates[io] == 3) blocked++;
+    if (!reached_best) {
+        fc->floor_probe_best_io = current_io;
+        fc->best_rate = fc->mean;
+    }
+    tmFlipAcceptBestRate(fc, fc->best_rate);
+    int changed = current_io != fc->floor_probe_entry_io;
+    unsigned long outcomes = atomic_fetch_add_explicit(
+        changed ? &tomo_flip_in_floor_probe_keeps : &tomo_flip_in_floor_probe_reverts,
+        1, memory_order_relaxed) + 1;
+    atomic_store_explicit(&tomo_flip_in_floor_last_configs_visited,
+                          (unsigned long)fc->floor_probe_visited, memory_order_relaxed);
+    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP FINISH visited=%d/%d blocked=%d "
+              "entry=io%d best=io%d final=io%d rate=%.0f changed=%d outcome#=%lu%s",
+              node, fc->floor_probe_visited, fc->floor_probe_planned, blocked,
+              fc->floor_probe_entry_io, intended_best, current_io, fc->best_rate,
+              changed, outcomes, reached_best ? "" : " (best structurally unreachable)");
+    fc->floor_probe_active = 0;
+    fc->floor_probe_revert_pending = 0;
+    fc->floor_probe_await_settle = 1;
+    fc->floor_probe_target_io = 0;
+    fc->revert_steps = 0;
+    fc->walkback_armed = 0;
+    fc->refuse_run = 0;
+    fc->floor_probe_idle_run = 0;
+    fc->dir = 0;
+    fc->phase = 0;
+    fc->just_settled = 0;
+    fc->wait = FLIP_WAIT_REVERT;
+    if (changed) fc->veto_run = 0;
+}
+
+/* A transient refusal is retried by the existing persistence window. Once that window proves the
+ * target structural, leave it unvisited (status 3) and continue with the rest of the frozen set.
+ * A final return is different: its target was already measured, so if it becomes unreachable the
+ * only conservation-safe result is to stop at the current split. */
+static void tmFlipSweepSkipBlocked(flipCtlState *fc, int node, int current_io) {
+    if (fc->floor_probe_revert_pending) {
+        tmFlipSweepFinish(fc, node, current_io, 0);
+        return;
+    }
+    int blocked_io = fc->floor_probe_target_io;
+    if (blocked_io < fc->floor_probe_legal_lo || blocked_io > fc->floor_probe_legal_hi ||
+        fc->floor_probe_candidates[blocked_io] != 1) {
+        serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP structural target io%d "
+                  "has invalid candidate state; stopping", node, blocked_io);
+        tmFlipSweepFinish(fc, node, current_io,
+                          current_io == fc->floor_probe_best_io);
+        return;
+    }
+    fc->floor_probe_candidates[blocked_io] = 3;
+
+    int next = tmFlipSweepNextCandidate(fc, current_io);
+    if (next != 0) {
+        tmFlipSweepTarget(fc, current_io, next, 0);
+    } else {
+        tmFlipSweepTarget(fc, current_io, fc->floor_probe_best_io, 1);
+        if (fc->revert_steps == 0) tmFlipSweepFinish(fc, node, current_io, 1);
+    }
+}
+
+/* A changed workload invalidates the episode rather than choosing among rates measured for the
+ * departed workload. Stay at the current split, clear the generalized b9884f70c latch, and require
+ * a fresh legal settle before a newly enumerated sweep can start. */
+static void tmFlipSweepAbandon(flipCtlState *fc, int node, const char *why,
+                               int current_io, double lr_equiv) {
+    unsigned long abandoned = atomic_fetch_add_explicit(
+        &tomo_flip_in_floor_sweeps_abandoned, 1, memory_order_relaxed) + 1;
+    atomic_store_explicit(&tomo_flip_in_floor_last_configs_visited,
+                          (unsigned long)fc->floor_probe_visited, memory_order_relaxed);
+    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP ABANDON #%lu %s "
+              "visited=%d/%d entry=io%d current=io%d entry-equivalent-lr=%+.3f",
+              node, abandoned, why, fc->floor_probe_visited, fc->floor_probe_planned,
+              fc->floor_probe_entry_io, current_io, lr_equiv);
+    fc->floor_probe_used = 0;
+    fc->floor_probe_active = 0;
+    fc->floor_probe_revert_pending = 0;
+    fc->floor_probe_await_settle = 0;
+    fc->floor_probe_target_io = 0;
+    fc->revert_steps = 0;
+    fc->walkback_armed = 0;
+    fc->refuse_run = 0;
+    fc->floor_probe_idle_run = 0;
+    fc->dir = 0;
+    fc->phase = 0;
+    fc->just_settled = 0;
+    fc->wait = FLIP_WAIT_REVERT;
+    fc->veto_run = 0;
+    fc->anchor_n = 0;
+    fc->lr_anchor = 0.0;
+    fc->anchor_rate_prev = fc->mean;
+    fc->anchor_rate_run = 0;
+    fc->lr_quiet_run = 0;
+    fc->lr_out_dir = 0;
+    fc->lr_out_run = 0;
+    fc->u_noise_primed = 0;
+    tmFlipAcceptBestRate(fc, fc->mean);
 }
 
 static void tomoFlipController(void) {
@@ -23949,20 +24281,31 @@ static void tomoFlipController(void) {
             }
         }
 
-        /* GRANULARITY OF ONE LIVE THREAD MOVE, in the units selected for lr_ewma. This is also the
-         * exact magnitude of the one-shot in-floor probe: one call to the one-thread actuator, not
-         * a chosen machine-size step. Ratio modes 0/5 include both role-capacity terms; worker
-         * modes 1/2/3 use the signal-matched worker term. */
-        int ni = io_live_node > 0 ? io_live_node : 1;
+        /* GRANULARITY OF ONE LIVE THREAD MOVE, in the units selected for lr_ewma. iotid 0 belongs
+         * to node 0 even though the IO signal loop excludes it (main never runs ioSlice), so add it
+         * back to the ROLE count: io4/ex4 must price ln(5/4)+ln(4/3), floor 0.255, not the
+         * poly-slot-only ln(4/3)+ln(4/3). */
+        int ni = io_live_node + (node == 0 ? 1 : 0);
+        if (ni < 1) ni = 1;
         int ne = w_live > 0 ? w_live : 1;
-        double gstep = log((double)(ni + 1) / (double)ni);
-        gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
-                          : 1.0;                          /* last worker: grow-back unavailable */
-        if (wsig)
-            gstep = (fc->lr_ewma > 0.0)
-                  ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)  /* grow-front: ne-1 */
-                  : log((double)(ne + 1) / (double)ne);                    /* grow-back:  ne+1 */
+        double gstep = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig);
         double gfloor = gstep / 2.0;
+
+        /* A sweep never issues another conversion after a quiescent conservation failure. The
+         * process-wide guard above diagnoses loss/gain anywhere; the entry-sum comparison makes
+         * the same proof node-local. In-flight half-moves cannot appear here because both
+         * controller-entry guards returned until migration and flip completion. */
+        if (fc->floor_probe_active &&
+            (pool_live != pool_want ||
+             ni + w_live != fc->floor_probe_entry_io + fc->floor_probe_entry_ex)) {
+            serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP CONSERVATION-STOP "
+                      "entry io%d/ex%d, quiesced io%d/ex%d, global pool=%d/%d; "
+                      "refusing another move",
+                      node, fc->floor_probe_entry_io, fc->floor_probe_entry_ex,
+                      ni, w_live, pool_live, pool_want);
+            tmFlipSweepFinish(fc, node, ni, 0);
+            continue;
+        }
 
         /* ANCHOR INVALIDATION IS EAGER AND REPRESENTATIONAL. An anchor cannot coexist with a
          * signal on/outside the half-step floor. Independently, a >2-sigma movement of either
@@ -23974,7 +24317,7 @@ static void tomoFlipController(void) {
             int drop_sat = fabs(u_io - fc->anchor_u_io) > 2.0 * u_sigma_io_prior ||
                            fabs(u_ex - fc->anchor_u_ex) > 2.0 * u_sigma_ex_prior;
             if (drop_floor || drop_sat) {
-                int same_split = (io_live_node == fc->anchor_io_live);
+                int same_split = (ni == fc->anchor_io_live);
                 fc->anchor_n = 0;
                 fc->lr_anchor = 0.0;                    /* UNSET: no stale centre remains usable */
                 fc->anchor_rate_prev = fc->mean;
@@ -23984,7 +24327,7 @@ static void tomoFlipController(void) {
                 fc->lr_out_run = 0;
                 fc->u_noise_primed = 0;
                 /* A workload/saturation change at the captured split starts a new settled
-                 * episode. A probe's own move, walk-back and cache re-settle must NOT re-arm it. */
+                 * episode. A sweep move, final walk-back and cache re-settle must NOT re-arm it. */
                 if (same_split && !fc->floor_probe_await_settle) fc->floor_probe_used = 0;
                 if (drop_floor)
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
@@ -24015,6 +24358,68 @@ static void tomoFlipController(void) {
             }
             tmFlipRatePlateauUpdate(fc->mean, sigma, &fc->anchor_rate_prev,
                                     &fc->anchor_rate_run);
+        }
+
+        /* The sweep's own role conversions move both raw invalidation operands. Once this config
+         * has settled, subtract that derived capacity move and apply the unchanged floor/2-sigma
+         * predicates in entry coordinates. During a sweep, either predicate abandons all old-load
+         * rates. After a completed sweep it is the only re-arm path when the chosen best lies one
+         * neighbour outside the literal floor (mget8_p32's io4): no illegal anchor is created and
+         * no ordinary climb is allowed to undo the measured argmax meanwhile. */
+        if (fc->floor_probe_active) {
+            if (node_idle || fc->mean < 1000.0) {
+                if (fc->floor_probe_idle_run < INT_MAX) fc->floor_probe_idle_run++;
+            } else {
+                fc->floor_probe_idle_run = 0;
+            }
+            if (fc->floor_probe_idle_run >= FESC_SETTLE_N) {
+                double predicted = tmFlipPredictedLr(fc->floor_probe_entry_lr,
+                                                      fc->floor_probe_entry_io,
+                                                      fc->floor_probe_entry_ex,
+                                                      ni, ne, fc->floor_probe_wsig);
+                double lr_equiv = fc->floor_probe_entry_lr + (fc->lr_ewma - predicted);
+                tmFlipSweepAbandon(fc, node, "workload became idle/too small", ni, lr_equiv);
+                continue;
+            }
+        }
+        int sweep_observable = !node_idle &&
+                               fc->lr_quiet_run >= FLIP_R_QUIET_N &&
+                               fc->anchor_rate_run >= FESC_SETTLE_N;
+        if (fc->floor_probe_used && sweep_observable &&
+            (fc->floor_probe_active || !fc->floor_probe_await_settle)) {
+            int sweep_drop_floor = 0;
+            double sweep_lr_equiv = 0.0;
+            if (tmFlipSweepWorkloadChanged(fc, ni, ne, u_io, u_ex,
+                                           u_sigma_io_prior, u_sigma_ex_prior,
+                                           &sweep_drop_floor, &sweep_lr_equiv)) {
+                if (sweep_drop_floor)
+                    atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1,
+                                              memory_order_relaxed);
+                else
+                    atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1,
+                                              memory_order_relaxed);
+                if (fc->floor_probe_active) {
+                    tmFlipSweepAbandon(fc, node,
+                                       sweep_drop_floor ? "floor-exit" : "sat-magnitude",
+                                       ni, sweep_lr_equiv);
+                } else {
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP EPISODE-DROP %s "
+                              "entry=io%d current=io%d entry-equivalent-lr=%+.3f -> re-arm",
+                              node, sweep_drop_floor ? "floor-exit" : "sat-magnitude",
+                              fc->floor_probe_entry_io, ni, sweep_lr_equiv);
+                    fc->floor_probe_used = 0;
+                    fc->floor_probe_await_settle = 0;
+                    fc->anchor_n = 0;
+                    fc->lr_anchor = 0.0;
+                    fc->anchor_rate_prev = fc->mean;
+                    fc->anchor_rate_run = 0;
+                    fc->lr_quiet_run = 0;
+                    fc->lr_out_dir = 0;
+                    fc->lr_out_run = 0;
+                    fc->u_noise_primed = 0;
+                }
+                continue;
+            }
         }
 
         /* THE TRIGGER'S INPUTS, ON THE EXISTING [flip-ctl] LINES. A conformance run that lands on
@@ -24119,12 +24524,11 @@ static void tomoFlipController(void) {
             serverLog(LL_WARNING, "[flip-ctl n%d] step %s ABORTED at actuation -> end climb, pin, pause",
                       node, fc->last_dir > 0 ? "grow-front" : "grow-back");
             if (fc->floor_probe_active) {
-                unsigned long reverts = atomic_fetch_add_explicit(
-                    &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=REVERT #%lu "
-                          "(actuation aborted; split unchanged)", node, reverts);
-                fc->floor_probe_active = 0;
-                fc->floor_probe_revert_pending = 0;
+                serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP STOP: actuation "
+                          "aborted; candidate io%d remains unvisited", node,
+                          fc->floor_probe_target_io);
+                tmFlipSweepFinish(fc, node, ni, ni == fc->floor_probe_best_io);
+                continue;
             }
             /* A prior coast step may now be retained because the NEXT attempted transfer aborted.
              * Its old best belongs to another split; adopt this unchanged pre-attempt config. */
@@ -24144,6 +24548,15 @@ static void tomoFlipController(void) {
             if (++fc->meas_ticks < FESC_MEAS_N) continue;
             double dt = (double)(now - fc->ref_ms);
             double after = dt > 0 ? (double)(node_ops - fc->ref_ops) * 1000.0 / dt : fc->before;
+            if (fc->floor_probe_active && after <= 0.0) {
+                double predicted = tmFlipPredictedLr(fc->floor_probe_entry_lr,
+                                                      fc->floor_probe_entry_io,
+                                                      fc->floor_probe_entry_ex,
+                                                      ni, ne, fc->floor_probe_wsig);
+                double lr_equiv = fc->floor_probe_entry_lr + (fc->lr_ewma - predicted);
+                tmFlipSweepAbandon(fc, node, "workload became idle", ni, lr_equiv);
+                continue;
+            }
             /* MOMENTUM HILL-CLIMB with 1-step LOOK-AHEAD (user design 2026-07-24: "if throughput
              * increases keep going till you overshoot, go back, set deadzone"). Pressure picked the
              * INITIAL direction; the THROUGHPUT gradient drives continuation, judged against the BEST
@@ -24203,6 +24616,15 @@ static void tomoFlipController(void) {
                           "anchor %.2f) -> offered load changed mid-climb, not the config; end and re-decide",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
                           exp(fc->lr_ewma), exp(fc->lr_anchor));
+                if (fc->floor_probe_active) {
+                    double predicted = tmFlipPredictedLr(fc->floor_probe_entry_lr,
+                                                          fc->floor_probe_entry_io,
+                                                          fc->floor_probe_entry_ex,
+                                                          ni, ne, fc->floor_probe_wsig);
+                    double lr_equiv = fc->floor_probe_entry_lr + (fc->lr_ewma - predicted);
+                    tmFlipSweepAbandon(fc, node, "throughput load-shift", ni, lr_equiv);
+                    continue;
+                }
                 /* END the climb rather than continuing it. The DIRECTION was chosen from the
                  * departing load's pressure as well, so that premise is stale too — continuing
                  * would march further in a direction the new load never asked for. Ending sets
@@ -24214,25 +24636,79 @@ static void tomoFlipController(void) {
                 fc->coast_used = 0;
                 fc->revert_steps = 0;       /* never walk back to a config only ever measured under
                                              * the OLD load — the band will re-decide from here */
-                if (fc->floor_probe_active) {
-                    unsigned long keeps = atomic_fetch_add_explicit(
-                        &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=KEEP #%lu "
-                              "(load re-baselined at %.0f ops/s)", node, keeps, after);
-                    fc->floor_probe_active = 0;
-                    fc->floor_probe_revert_pending = 0;
-                }
                 fc->wait = FLIP_WAIT_REVERT;
                 fc->phase = 0;
+                continue;
+            }
+            if (fc->floor_probe_active) {
+                if (ni != fc->floor_probe_target_io ||
+                    ni < fc->floor_probe_legal_lo || ni > fc->floor_probe_legal_hi ||
+                    fc->floor_probe_candidates[ni] != 1) {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP STOP: candidate "
+                              "target mismatch expected io%d, observed io%d",
+                              node, fc->floor_probe_target_io, ni);
+                    tmFlipSweepFinish(fc, node, ni, ni == fc->floor_probe_best_io);
+                    continue;
+                }
+
+                /* SAME throughput judge as the momentum climb: 2-sigma/2% significance, plain
+                 * measured argmax, and the existing FLIP_COAST allowance. Exhaustiveness means an
+                 * exhausted coast cannot truncate the once-enumerated set; it changes the verdict
+                 * logged for this visit, while the finite candidate bytes supply the hard bound. */
+                double prior_best = fc->best_rate;
+                double sweep_band = fmax(2.0 * sigma, 0.02 * prior_best);
+                int significant = after > prior_best + sweep_band;
+                int improved = after > prior_best;
+                if (improved) {
+                    fc->floor_probe_best_io = ni;
+                    tmFlipAcceptBestRate(fc, after);
+                } else {
+                    fc->best_dist = abs(ni - fc->floor_probe_best_io);
+                }
+                const char *verdict;
+                if (significant) {
+                    fc->coast_used = 0;
+                    verdict = "GAIN";
+                } else if (prior_best - after <= sweep_band &&
+                           ++fc->coast_used <= FLIP_COAST) {
+                    verdict = "COAST";
+                } else {
+                    fc->coast_used = FLIP_COAST + 1;
+                    verdict = "OVERSHOOT";
+                }
+
+                fc->floor_probe_candidates[ni] = 2;
+                fc->floor_probe_visited++;
+                atomic_fetch_add_explicit(&tomo_flip_in_floor_configs_visited, 1,
+                                          memory_order_relaxed);
+                atomic_store_explicit(&tomo_flip_in_floor_last_configs_visited,
+                                      (unsigned long)fc->floor_probe_visited,
+                                      memory_order_relaxed);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP VISIT io=%d/ex=%d "
+                          "rate=%.0f best=%.0f@io%d band=%.0f verdict=%s coast=%d/%d "
+                          "visited=%d/%d",
+                          node, ni, ne, after, fc->best_rate, fc->floor_probe_best_io,
+                          sweep_band, verdict, fc->coast_used, FLIP_COAST,
+                          fc->floor_probe_visited, fc->floor_probe_planned);
+                fc->phase = 0;
+                fc->dir = 0;
+                fc->wait = FLIP_WAIT_KEEP;
+
+                int next = tmFlipSweepNextCandidate(fc, ni);
+                if (next != 0) {
+                    tmFlipSweepTarget(fc, ni, next, 0);
+                } else {
+                    tmFlipSweepTarget(fc, ni, fc->floor_probe_best_io, 1);
+                    if (fc->revert_steps == 0)
+                        tmFlipSweepFinish(fc, node, ni, 1);  /* start/best already here: zero moves */
+                }
                 continue;
             }
             double band = fmax(2.0 * sigma, 0.02 * fc->best_rate);
             int significant = (after > fc->best_rate + band);   /* worth spending another step on */
             int improved    = (after > fc->best_rate);          /* the best config measured so far */
-            int best_rate_reset = 0;
             if (improved) {
                 tmFlipAcceptBestRate(fc, after);
-                best_rate_reset = 1;
             }
             else fc->best_dist++;
             if (significant) {
@@ -24282,29 +24758,6 @@ static void tomoFlipController(void) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] AT-BEST %s (%.0f, coast spent) -> hold here",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->best_rate);
             }
-            /* The in-floor probe deliberately enters this SAME judge with the SAME FLIP_COAST
-             * allowance, but it is a one-step episode rather than a momentum climb. A decision
-             * that did not arm walk-back is KEEP; make its measured rate the split-local baseline
-             * even when the coast allowance accepted a within-noise shortfall. A decision that
-             * armed walk-back is counted only when the existing revert path confirms it landed. */
-            if (fc->floor_probe_active) {
-                if (fc->revert_steps > 0) {
-                    fc->floor_probe_revert_pending = 1;
-                } else {
-                    if (!best_rate_reset) tmFlipAcceptBestRate(fc, after);
-                    fc->best_dist = 0;
-                    fc->coast_used = 0;
-                    fc->dir = 0;
-                    fc->just_settled = 1;
-                    fc->wait = FLIP_WAIT_REVERT;
-                    unsigned long keeps = atomic_fetch_add_explicit(
-                        &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=KEEP #%lu "
-                              "rate=%.0f ops/s", node, keeps, after);
-                    fc->floor_probe_active = 0;
-                    fc->floor_probe_revert_pending = 0;
-                }
-            }
             fc->phase = 0;
             continue;
         }
@@ -24316,10 +24769,17 @@ static void tomoFlipController(void) {
          * steady state cheap AND stops edge oscillation without any absolute floor. ===== */
         if (w_live < 1) continue;
         if (node_idle || fc->mean < 1000.0) {              /* no offered load — nothing to optimize */
+            if (fc->floor_probe_active) {
+                fc->wait = FESC_WAIT_BASE;                /* let the existing settle persistence decide */
+                continue;
+            }
             fc->wait = FESC_WAIT_BASE; fc->just_settled = 0;
             fc->idle_stable = 0; fc->veto_run = 0;         /* workload boundary: fresh reactivity */
             fc->floor_probe_used = 0;                      /* the next loaded settle is a new episode */
+            fc->floor_probe_active = 0;
+            fc->floor_probe_revert_pending = 0;
             fc->floor_probe_await_settle = 0;
+            fc->floor_probe_target_io = 0;
             fc->anchor_rate_prev = fc->mean; fc->anchor_rate_run = 0;
             fc->lr_quiet_run = 0; fc->u_noise_primed = 0;
             continue;
@@ -24383,11 +24843,11 @@ static void tomoFlipController(void) {
         }
         if (fc->just_settled) {
             /* VETO BACKOFF bookkeeping: ending back at the start config = a net-zero probe. */
-            if (io_live_node == fc->start_io) {
+            if (ni == fc->start_io) {
                 if (fc->veto_run < 8) fc->veto_run++;
                 if (fc->veto_run > 1)
                     serverLog(LL_NOTICE, "[flip-ctl n%d] net-zero probe #%d from io=%d — next trigger "
-                              "needs %dx sustain", node, fc->veto_run, io_live_node,
+                              "needs %dx sustain", node, fc->veto_run, ni,
                               1 << (fc->veto_run > 3 ? 3 : fc->veto_run));
             } else {
                 fc->veto_run = 0;                     /* productive climb: normal reactivity */
@@ -24400,13 +24860,13 @@ static void tomoFlipController(void) {
             fc->anchor_n = 1;
             fc->anchor_u_io = u_io;
             fc->anchor_u_ex = u_ex;
-            fc->anchor_io_live = io_live_node;
+            fc->anchor_io_live = ni;
             unsigned long captures = atomic_fetch_add_explicit(
                 &tomo_flip_anchor_captures, 1, memory_order_relaxed) + 1;
             serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-CAPTURE #%lu lr=%+.3f floor=%.3f "
                       "%s_quiet=%d rate_plateau=%d u_io=%.3f u_ex=%.3f io=%d",
                       node, captures, fc->lr_ewma, gfloor, sig_lc, fc->lr_quiet_run,
-                      fc->anchor_rate_run, u_io, u_ex, io_live_node);
+                      fc->anchor_rate_run, u_io, u_ex, ni);
         } else if (settled_in_floor && fc->anchor_n > 0 &&
                    isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
             /* Every fold obeys the same three capture gates. Thus the running mean cannot smuggle
@@ -24414,12 +24874,25 @@ static void tomoFlipController(void) {
             if (fc->anchor_n < INT_MAX) fc->anchor_n++;
             fc->lr_anchor += (fc->lr_ewma - fc->lr_anchor) / (double)fc->anchor_n;
         }
-        if (settled_in_floor && fc->floor_probe_used && !fc->floor_probe_active &&
+        int fully_settled = anchor_idle && signal_settled && rate_settled;
+        if (fully_settled && fc->floor_probe_used && !fc->floor_probe_active &&
             !fc->floor_probe_revert_pending)
             fc->floor_probe_await_settle = 0;
 
-        /* WALK-BACK: after an exhausted coast (or a coasted climb that hit a pool edge/refusal), step
-         * back toward the best config — reverse of the climb direction, best_dist steps.
+        if (settled_in_floor && fc->anchor_n > 0 && !fc->floor_probe_used) {
+            int base_io = (nnodes == 1) ? server.io_threads : server.io_per_node;
+            tmFlipSweepBegin(fc, node, ni, ne, base_io, wsig, u_io, u_ex);
+            int next = tmFlipSweepNextCandidate(fc, ni);
+            if (next != 0) {
+                tmFlipSweepTarget(fc, ni, next, 0);
+            } else {
+                tmFlipSweepFinish(fc, node, ni, 1);     /* structural one-config edge */
+                continue;
+            }
+        }
+
+        /* REPOSITION/WALK-BACK: a sweep targets its next frozen candidate (and finally its measured
+         * best); an ordinary exhausted coast steps back opposite the climb, best_dist steps.
          * review [2,10]: ABORT-SAFE. tmFlipDo returns on ARM, not completion, and the step can abort
          * later; so confirm the previous step LANDED (no abort for this node) before counting it — never
          * decrement on a step that didn't physically happen. review [7]: only consume THIS node's abort. */
@@ -24427,29 +24900,104 @@ static void tomoFlipController(void) {
             if (server.tm_flip_aborted && node == server.tm_flip_aborted_node) {
                 server.tm_flip_aborted = 0;                  /* previous step aborted: config unchanged */
                 fc->walkback_armed = 0; fc->wait = FLIP_WAIT_REVERT;   /* re-issue it after a pause */
+                if (fc->floor_probe_active &&
+                    (ni != fc->floor_probe_move_from_io ||
+                     ne != fc->floor_probe_move_from_ex)) {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP CONSERVATION-STOP "
+                              "aborted move began io%d/ex%d but quiesced io%d/ex%d; "
+                              "refusing another move",
+                              node, fc->floor_probe_move_from_io, fc->floor_probe_move_from_ex,
+                              ni, ne);
+                    tmFlipSweepFinish(fc, node, ni, ni == fc->floor_probe_best_io);
+                    continue;
+                }
+                if (fc->floor_probe_active && ++fc->refuse_run >= FLIP_SUSTAIN) {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP step aborted %d "
+                              "times — structural; target io%d stays unvisited",
+                              node, fc->refuse_run, fc->floor_probe_target_io);
+                    fc->refuse_run = 0;
+                    tmFlipSweepSkipBlocked(fc, node, ni);
+                }
             } else if (fc->walkback_armed) {
+                /* A sweep counts a transfer only after BOTH role counts show the exact paired
+                 * -1/+1 move. The controller-entry guards made this tick quiescent; therefore an
+                 * unchanged or two-thread jump is an accounting failure, not an in-flight view. */
+                if (fc->floor_probe_active &&
+                    (ni != fc->floor_probe_move_from_io + fc->last_dir ||
+                     ne != fc->floor_probe_move_from_ex - fc->last_dir)) {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP CONSERVATION-STOP "
+                              "armed io%d/ex%d dir=%+d, landed io%d/ex%d; refusing another move",
+                              node, fc->floor_probe_move_from_io, fc->floor_probe_move_from_ex,
+                              fc->last_dir, ni, ne);
+                    fc->walkback_armed = 0;
+                    tmFlipSweepFinish(fc, node, ni, ni == fc->floor_probe_best_io);
+                    continue;
+                }
                 fc->walkback_armed = 0;                      /* previous step landed => count it */
+                if (fc->floor_probe_active) fc->refuse_run = 0;
                 if (--fc->revert_steps == 0) {
-                    if (fc->floor_probe_revert_pending) {
-                        unsigned long reverts = atomic_fetch_add_explicit(
-                            &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE outcome=REVERT #%lu "
-                                  "landed back at io=%d", node, reverts, io_live_node);
-                        fc->floor_probe_revert_pending = 0;
-                        fc->floor_probe_active = 0;
+                    if (fc->floor_probe_active) {
+                        if (ni != fc->floor_probe_target_io) {
+                            serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP TARGET-STOP "
+                                      "expected io%d, landed io%d; refusing another move",
+                                      node, fc->floor_probe_target_io, ni);
+                            tmFlipSweepFinish(fc, node, ni, ni == fc->floor_probe_best_io);
+                        } else if (fc->floor_probe_revert_pending) {
+                            tmFlipSweepFinish(fc, node, ni, 1);
+                        } else {
+                            /* The target landed. Only now enter the unchanged warmup/measure path;
+                             * intermediate transit configs were already measured and are skipped. */
+                            fc->before = fc->mean;
+                            fc->phase = 1;
+                            fc->warm_ticks = 0;
+                            fc->settle_run = 0;
+                            fc->warm_prev = fc->mean;
+                            fc->rs_prev = atomic_load_explicit(
+                                &server.reshard_done_seq, memory_order_relaxed);
+                            fc->rs_quiet = 0;
+                            fc->wait = 0;
+                            serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP TARGET "
+                                      "io=%d/ex=%d -> existing settle+measure",
+                                      node, ni, ne);
+                        }
+                    } else {
+                        fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT;
                     }
-                    fc->dir = 0; fc->just_settled = 1; fc->wait = FLIP_WAIT_REVERT;
                     continue;
                 }
             }
             if (fc->wait > 0) { fc->wait--; continue; }
+            int walk_dir = fc->floor_probe_active
+                         ? (fc->floor_probe_target_io > ni ? +1 : -1)
+                         : -fc->last_dir;
+            int can_walk = walk_dir > 0 ? can_front : can_back;
+            if (fc->floor_probe_active && !can_walk) {
+                serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP structural pool edge "
+                          "blocks io%d -> io%d; target remains unvisited",
+                          node, ni, fc->floor_probe_target_io);
+                tmFlipSweepSkipBlocked(fc, node, ni);
+                continue;
+            }
             const char *err = NULL;
-            if (tmFlipDo(node, -fc->last_dir, &err)) {
+            if (tmFlipDo(node, walk_dir, &err)) {
                 tmFlipPrepareConfigSample(fc);
                 fc->walkback_armed = 1;
+                if (fc->floor_probe_active) {
+                    fc->floor_probe_move_from_io = ni;
+                    fc->floor_probe_move_from_ex = ne;
+                    fc->last_dir = walk_dir;
+                }
                 break;
             }  /* one flip/tick */
-            fc->wait = FESC_WAIT_BASE;                        /* refused (transient) — retry next tick */
+            fc->wait = FESC_WAIT_BASE;                        /* refused (transient) — retry target */
+            if (fc->floor_probe_active && ++fc->refuse_run >= FLIP_SUSTAIN) {
+                serverLog(LL_WARNING, "[flip-ctl n%d] IN-FLOOR-SWEEP step %s refused %d times "
+                          "(%s) — structural; target io%d stays unvisited",
+                          node, walk_dir > 0 ? "grow-front" : "grow-back", fc->refuse_run,
+                          err ? err : "unspecified refusal", fc->floor_probe_target_io);
+                fc->refuse_run = 0;
+                tmFlipSweepSkipBlocked(fc, node, ni);
+            }
             continue;
         }
 
@@ -24537,7 +25085,6 @@ static void tomoFlipController(void) {
 
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
-        int in_floor_probe = 0;
         /* TARGET IS 1 (owner, 2026-08-03): sat<1 means the role outputs faster than input, sat>1
          * means input outruns output, and the whole job of the flip is to bring the two sides
          * together. So the reference is the FIXED point r=1, not a learned one.
@@ -24592,11 +25139,12 @@ static void tomoFlipController(void) {
              * a lower-bound step gives a lower-bound floor, so the controller can still SEE an
              * imbalance one move could fix, and throughput remains the thing that decides whether
              * the move is worth taking. CONSEQUENCE, stated so it is not a surprise in the
-             * conformance table: at p32 SET/io4ex4 the ratio floor is 0.288, while the worker floor
-             * at ne=4 is ln(4/3)/2 = 0.144 against a signal of about -log(0.85) = 0.16. The ratio
-             * mode now takes its one owner-approved in-floor probe too; throughput rejects it and
-             * the episode latch holds after the walk-back. The shared gstep/gfloor above implements
-             * both forms before any phase can return, so anchor invalidation sees them too. */
+             * conformance table: at p32 SET/io4ex4 the ratio floor is 0.255, while the worker floor
+             * at ne=4 is ln(4/3)/2 = 0.144 against a signal of about -log(0.85) = 0.16. Both modes
+             * now enumerate their predicted floor set plus its legal neighbours; throughput picks
+             * the winner and the episode latch holds after final positioning. The shared
+             * gstep/gfloor above implements both forms before any phase can return, so anchor
+             * invalidation sees them too. */
 
         if (tm_flip_trace) {
             serverLog(LL_NOTICE,
@@ -24710,6 +25258,15 @@ static void tomoFlipController(void) {
          * sat_smooth also stay COMPUTED and LOGGED at mode 2 so an A/B can see what the gate would
          * have said; they simply decide nothing. */
         if (!server_bound && !wpure) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
+        /* A completed exhaustive episode owns this workload even when throughput selected a +/-1
+         * neighbour outside the literal floor. The normalized episode invalidator above is the
+         * sole re-arm; allowing the ordinary pressure climb here would immediately undo mget8_p32's
+         * measured io4 choice and recreate post-settle oscillation. */
+        if (fc->floor_probe_used && !fc->floor_probe_active) {
+            out = 0;
+            fc->lr_out_dir = 0;
+            fc->lr_out_run = 0;
+        }
         {
             int need = FLIP_SUSTAIN << (fc->veto_run > 3 ? 3 : fc->veto_run);
             /* SAME-WAVE LATCH: two net-zero probes prove throughput rejects THIS signal level in
@@ -24725,26 +25282,10 @@ static void tomoFlipController(void) {
             }
         }
 
-        /* ONE PROBE INSIDE THE FLOOR. The signal sign selects the adjacent split and one
-         * tmFlipDo moves exactly one live thread (one derived gstep). It enters the existing
-         * warmup, measure, FLIP_COAST judge and walk-back; only its momentum direction is cleared
-         * so that judge's KEEP cannot turn this bounded probe into a second step. The episode latch
-         * is consumed only after the actuator accepts the attempt, and a probe-induced anchor drop
-         * at a different split does not re-arm it. At a role edge there is no legal sign-directed
-         * neighbor, so the optimum edge remains change-free. */
-        if (want == 0 && settled_in_floor && fc->anchor_n > 0 &&
-            !fc->floor_probe_used && fc->lr_ewma != 0.0) {
-            int probe_dir = fc->lr_ewma > 0.0 ? +1 : -1;
-            if ((probe_dir > 0 && can_front) || (probe_dir < 0 && can_back)) {
-                want = probe_dir;
-                in_floor_probe = 1;
-            }
-        }
-
         if (want == 0) {
             /* Stable low-cost HOLD. Capture/folding above has already required inside-floor,
-             * signal-quiet and rate-plateau simultaneously; the episode probe has either been
-             * consumed or has no legal sign-directed neighbor. */
+             * signal-quiet and rate-plateau simultaneously; the once-enumerated episode sweep has
+             * either completed or no ordinary pressure trigger is actionable. */
             if (now - last_log >= 5000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] HOLD %.0f ops/s io_sat=%.2f ex_sat=%.2f r=%.2f anchor=%.2f band=%.0f%% floor=%.2f tot=%.2f %s | S(c_ex=%.0f q_io=%ld q_ex=%.2f u_io=%.2f u_ex=%.2f) | w_live=%d io=%d pool=%d/%d%s",
                           node, fc->mean, io_sat, ex_sat, ratio, exp(fc->lr_anchor), (exp(band) - 1.0) * 100.0, exp(gfloor), fc->sat_smooth,
@@ -24776,7 +25317,7 @@ static void tomoFlipController(void) {
          * guards the wrong signal.) The ratio is the signal the decision is made from, so the ratio
          * is what must be stationary before the decision is taken. FLIP_R_QUIET / FLIP_R_QUIET_N
          * are the same constants the post-climb anchor already uses for this identical question. */
-        if (!in_floor_probe && fc->lr_quiet_run < FLIP_R_QUIET_N) {
+        if (fc->lr_quiet_run < FLIP_R_QUIET_N) {
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: %s still moving (r=%.2f, quiet %d/%d) io_sat=%.2f ex_sat=%.2f%s",
                           node, want > 0 ? "grow-front" : "grow-back", sig_uc, exp(fc->lr_ewma),
@@ -24785,7 +25326,7 @@ static void tomoFlipController(void) {
             }
             continue;
         }
-        if (!in_floor_probe && fc->idle_stable < FESC_SETTLE_N) {
+        if (fc->idle_stable < FESC_SETTLE_N) {
             if (now - last_log >= 3000) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] START %s pending: mean settling (%.0f ops/s, stable %d/%d) io_sat=%.2f ex_sat=%.2f%s",
                           node, want > 0 ? "grow-front" : "grow-back", fc->mean, fc->idle_stable, FESC_SETTLE_N, io_sat, ex_sat, wsig_log);
@@ -24802,29 +25343,16 @@ static void tomoFlipController(void) {
             fc->revert_dir = 0; fc->revert_retry = 0;    /* new climb anchors on the ACTUAL config */
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
-            fc->last_dir = want; fc->dir = in_floor_probe ? 0 : want;
-            fc->start_io = io_live_node;              /* net-zero detector: where this climb began */
+            fc->last_dir = want; fc->dir = want;
+            fc->start_io = ni;                        /* net-zero detector: where this climb began */
             fc->veto_lr = fc->lr_ewma;                /* same-wave latch: the lr that pulled this trigger */
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
             fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
             fc->rs_quiet = 0;
-            if (in_floor_probe) {
-                fc->floor_probe_used = 1;
-                fc->floor_probe_active = 1;
-                fc->floor_probe_revert_pending = 0;
-                fc->floor_probe_await_settle = 1;
-                unsigned long probes = atomic_fetch_add_explicit(
-                    &tomo_flip_in_floor_probes, 1, memory_order_relaxed) + 1;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-PROBE #%lu %s one-gstep=%.3f "
-                          "lr=%+.3f floor=%.3f baseline=%.0f -> existing settle+judge%s",
-                          node, probes, want > 0 ? "GROW-FRONT" : "GROW-BACK", gstep,
-                          fc->lr_ewma, gfloor, fc->before, wsig_log);
-            } else {
-                serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm%s",
-                          node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
-                          exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before, wsig_log);
-            }
+            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm%s",
+                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
+                      exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before, wsig_log);
             break;                                           /* one flip per tick (single migration gate) */
         } else if (err) {
             serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);
