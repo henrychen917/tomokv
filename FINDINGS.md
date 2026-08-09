@@ -1,164 +1,144 @@
-# Atomic remaining-cost measurement
+# Atomic retirement diet
 
-Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/wcost`
+Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/retdiet`
 
-Baseline: branch `2s-atomic-wcost`, commit `01941c452cedb67de15cacd445fa3772b0107bfb`
+Baseline: branch `2s-atomic-retdiet`, commit
+`81eaf79b1de954886f57b23dfdc6464b8983340d`
 
-## Counter hypotheses and falsifiers (written before instrumentation)
+## Result
 
-All counters below are owner-written in an `iotid`-indexed, cache-line-aligned
-slot and are only summed racily by `INFO`. No counter uses a shared atomic.
+The pre-unlink grace is required, but the ordinary post-unlink grace is not
+required for lower bag members. The patch keeps one grace for the common
+committed-overwrite case and keeps two only when the removed object was the
+table head (or when an unrelated ordinary overwrite/delete detached the bag).
 
-### Read-side version resolution
+The prune callback also now performs one physical-bag walk. Committed-order
+repair is O(1) per removed version through an owner-only reverse link, and the
+promotion/tombstone census is accumulated while that same bag walk is already
+visiting each survivor. The old full committed-chain walk and second physical
+census walk are gone.
 
-Counters:
+## QSBR proof and invariant
 
-- `tomokv_atomic_read_raw`: read-key lookups whose table result was missing or
-  had no `vmeta`, and therefore did not call the version resolver.
-- `tomokv_atomic_read_versioned`: read-key lookups that observed `vmeta` and
-  called the resolver.
-- `tomokv_atomic_read_walk`: committed-chain candidates inspected by those
-  resolver calls. A raw pre-epoch tail counts as one inspected version.
+The first grace cannot be removed. A cross-shard reader can pin snapshot `S`,
+then look up this key later. If `S < retire_max`, unlinking the lower winner when
+the prune operation is armed would make that still-live reader miss the version
+selected by its snapshot. The reader has no per-key pointer cached that could
+replace the linked history. Its worker section or dispatch-side IO region is
+therefore part of the prune batch's QSBR snapshot and must quiesce first.
 
-Hypothesis: continuous writes leave version bags on nearly every key, making
-mixed-workload reads pay the `vmeta`/committed-head resolver and sometimes walk
-past versions newer than their pinned snapshot.
+After that grace completes, a lower member can be unlinked and its table
+reference can be dropped without a second epoch:
 
-Falsifier: pure MGET should have `read_versioned` near zero, while the 1:1 mix
-should have `read_versioned / (read_raw + read_versioned)` near one and
-`read_walk / read_versioned` above one. If the mixed run also has
-`read_versioned` near zero, the version-resolution hypothesis is dead. If it is
-near one but mean walk is about one, chain depth is not the explanation; the
-remaining read candidate is the fixed `kvobj` cache-line invalidation plus the
-`vmeta` and committed-head pointer loads.
+- every reader which could select a sequence below `retire_max` was pinned
+  before `retire_max` was published and is covered by the completed grace;
+- a later reader pins the monotone `commit_seq` at or above `retire_max` and
+  stops at the surviving anchor (or a newer committed version);
+- readers traverse only `committed_prev`; `version_prev` is owner-only, and the
+  owner repairs both physical and committed reachability before dropping the
+  removed member's table reference.
 
-### Version-install / allocation cost
+The invariant relied on is: **an object reference is released only after no
+current reader can still hold the object and no future reader can reach it from
+a published table slot or reader-facing committed link.**
 
-Counters:
+A removed table head is the exception. A reader entering after the first batch
+closed can acquire the old slot immediately before the replacement store. That
+head is unlinked first and still uses the ordinary physical QSBR grace. A bag
+detached by an unrelated overwrite/delete keeps the same conservative second
+grace because its prune batch may have closed before the table unlink.
 
-- ordinary install baseline:
-  `tomokv_atomic_write_raw_{installs,samples,cpu_ns,clock_ns}`;
-- versioned install:
-  `tomokv_atomic_write_{installs,install_samples,install_cpu_ns,install_clock_ns}`;
-- ordinary and versioned `kvobj`, plus versioned `vmeta`, allocation counts,
-  allocator-usable byte totals/min/max, and exact class fields. The class fields
-  are `tomokv_atomic_write_{raw_kvobj,kvobj,vmeta}_class_<bytes>` for the default
-  jemalloc classes 16 through 512, plus `class_other`.
+## What changed
 
-Hypothesis: the atomic-only version install, particularly its new `kvobj` and
-`vmeta` allocations, accounts for most of the pure-MSET loss.
+- `tomoVerMeta` gained owner-only `committed_next`. Stamp insertion maintains
+  it alongside the reader-facing `committed_prev`. The structure grows from
+  120 to 128 bytes on the target ABI, so it is expected to remain in the same
+  128-byte allocator class; the existing class counter is the runtime check.
+- A prune retire record now owns an explicit reference to its anchor. Ready and
+  table-discard paths release it exactly once. This covers LIFO retire batches
+  where a newer callback unlinks an older anchor before the older callback is
+  dispatched.
+- `TOMO_RETIRE_PRUNE_UNLINKED` records that the table reference is gone and the
+  already-queued prune record preserves callback lifetime. Such a callback
+  returns without touching the live table and drops its pin in the dispatcher.
+- The prune callback now visits the physical bag once. It computes eligibility,
+  unlinks each applied member from committed order through `committed_next`,
+  repairs the physical bag, and counts committed/uncommitted survivors in the
+  same iteration.
+- Lower members drop their table references after that repair. Only a removed
+  old table head is submitted to `tomoEnqueuePhysicalRetire()`.
+- Same-command duplicates retain the existing strict `seq < retire_max` test.
+  No equal-sequence member is newly reclaimed, so the known duplicate-key leak
+  is neither fixed nor enlarged by this change.
 
-Falsifier: subtract `clock_ns` from `cpu_ns`, divide by `samples`, and compare
-the versioned and ordinary per-install samples. If the versioned-minus-ordinary
-CPU delta is far below the missing per-key CPU budget, the whole install path
-cannot explain the tax, regardless of the fact that allocation counters are
-nonzero. Allocation counts/classes are diagnostic only after that timing test;
-they are not treated as proof of cost.
+No QSBR batching threshold, close policy, readiness rule, or polling policy was
+changed.
 
-### QSBR / retirement cost
+## Falsifiers
 
-Counters:
+Use before/after INFO deltas from the pure unique-key MSET workload.
 
-- `tomokv_atomic_retires` and its
-  `tomokv_atomic_retire_{prune,physical,vmeta}` split;
-- active worker reclaim passes, batches closed, grace checks/readies, and waits
-  (`tomokv_atomic_qsbr_grace_waits`) split by foreign, IO, or worker blocker;
-- `tomokv_atomic_prune_callbacks` and the three independent walk totals
-  (`prune_bag_walk`, `prune_commit_walk`, and `prune_census_walk`);
-- 1/1024 sampled active-reclaim thread-CPU nanoseconds in
-  `tomokv_atomic_qsbr_{samples,cpu_ns,clock_ns}`.
+Engagement falsifiers:
 
-Hypothesis: atomic versions amplify retire traffic and/or repeatedly fail a
-grace, or the post-grace callback repeatedly walks a deep live bag.
+- `tomokv_atomic_retires / installs` must fall from about `3.0` to about `2.0`.
+  In the steady overwrite/promotion path, `retire_prune / installs` should stay
+  near `1`, `retire_vmeta / installs` should stay near the promotion rate, and
+  `retire_physical / installs` should fall from near `1` to near `0`.
+- `tomokv_atomic_prune_commit_walk` and
+  `tomokv_atomic_prune_census_walk` deltas must be zero. Total prune walk steps
+  per callback should fall from `5.1` to approximately the one remaining
+  physical-bag depth (about `2.0` in the measured warm overwrite shape).
+- `tomokv_atomic_write_vmeta_class_128` should continue to account for the
+  vmeta allocations; movement to a larger class would disprove the expected
+  no-class-growth property.
 
-Falsifier: the hypothesis is false if sampled net reclaim CPU, scaled by active
-passes/samples, is too small to cover the missing budget, grace waits and
-pending batches remain negligible, and each callback's walk ratios stay small
-and bounded. A large retire count alone does not establish cost.
+Help falsifier:
 
-### Worker-side stamp drain
+- If those structural counters move as above but instructions per operation do
+  not fall reproducibly, the change engaged but did not remove enough work to
+  matter. Throughput within the box's stated noise is not the verdict.
 
-Counters:
+## Instruction estimate
 
-- nonempty drain calls, empty drains, queue-pop batches, entries, and the
-  STAMP/PRUNE/CANCEL split under `tomokv_atomic_stamp_drain_*`;
-- committed-chain candidates inspected in `tomokv_atomic_stamp_apply_walk`;
-- 1/1024 sampled drain thread-CPU nanoseconds, paired clock baseline, and
-  sampled entry count under `tomokv_atomic_stamp_drain_*`.
+Estimated net saving: roughly **80-150 instructions per written key** in the
+measured unique-key MSET shape.
 
-Hypothesis: the consumer-side drain (not the already-refuted producer pushes)
-accounts for a material part of the write tax.
+That estimate comes from eliminating one retire-node enqueue/dispatch/recycle
+lifecycle and about 3.1 pointer-walk iterations per callback, less the new
+prune-pin increment/decrement and reverse-link maintenance. It intentionally
+does not claim savings from object destruction itself: `decrRefCount()` and the
+underlying value free still happen, only directly after the first grace.
 
-Falsifier: it is false if sampled net drain CPU, scaled by calls/samples, is too
-small to cover the missing budget and the structural ratios remain ordinary:
-about two entries per committed install, well-filled pop batches, no empty
-drains, and a shallow apply walk. No commit-section push counter is added here;
-that path was already falsified by the commit-diet experiment.
+## Considered and rejected
 
-## Code-inspection findings
+- **Remove the pre-unlink grace.** Rejected: a reader pinned below the new
+  frontier can perform this key lookup later and still needs the linked lower
+  winner. This would be a semantic miss before it became a UAF question.
+- **Directly free every removed node after the first grace.** Rejected for the
+  table head: a post-close reader can acquire that head before the replacement
+  slot store. It still needs a post-unlink physical grace.
+- **Assume physical install order equals committed order.** Rejected: stamps
+  explicitly arrive out of order, and same-sequence duplicates are ordered by
+  install order. The reverse committed link preserves both orderings exactly.
+- **Truncate committed history at the callback anchor.** Rejected: equal-seq
+  duplicates and lower applied members with pending owner operations can remain
+  between the anchor and the tail. Truncation would change the known leak and
+  could strand owner-operation state.
+- **Keep the old full committed filter and only fold the census.** Correct but
+  rejected as incomplete: it would leave about two of the measured five walk
+  steps per callback. The owner-only reverse link removes that traversal
+  without adding a reader-side load.
+- **Change QSBR batching.** Rejected by scope and by the supplied measurement;
+  the patch changes work per retirement, not batch closure policy.
+- **Fix duplicate-key reclamation here.** Rejected as a separate correctness
+  project. The strict lower-than frontier remains unchanged.
 
-Code inspection only; no runtime conclusion is claimed here.
+## Static verification only
 
-- The read hypothesis is worth measuring. `lookupKeyReadWithFlags()` has an
-  exact raw fast path, but any observed head `vmeta` calls `kvobjVersionAt()`,
-  which acquire-loads the head metadata again, acquire-loads `committed_head`,
-  and then loads metadata/sequence/predecessor state for each candidate.
-- The write candidates are disjoint measurement regions: version installation
-  runs in the command worker, stamp drain runs from the worker loop before
-  normal jobs, and QSBR reclaim runs at the top of each worker slice.
-- The replacement `kvobj` allocation is **not atomic-only** in the target FLAT
-  workload. The ordinary overwrite also takes `dbSetValue()`'s copy branch and
-  calls `kvobjSetEx()`; its in-place branch is explicitly disabled for FLAT.
-  Atomic mode adds the separate `tomoVerMeta` allocation and retains prior
-  objects in a bag. This is why the instrumentation records raw and versioned
-  `kvobj` classes separately instead of calling both atomic overhead.
-- Retirement has a potentially stronger amplification mechanism than its
-  enqueue count suggests: every prune callback can walk the physical bag, walk
-  the committed-order chain, and then walk the physical bag again for the
-  promotion/tombstone census. Atomic retirement also has two grace stages for a
-  removed version (pre-unlink prune grace, then ordinary post-unlink physical
-  grace), whereas an ordinary FLAT overwrite only needs the physical grace.
-  The walk and sampled reclaim counters are needed before assigning that work
-  the tax.
-- `flatWorkerReclaim()` closes at most one retire list per active worker slice;
-  each close executes a seq-cst fence and snapshots every worker, even when the
-  oldest batch becomes ready immediately. Therefore `grace_waits == 0` would
-  falsify stalled grace, but would not by itself falsify QSBR CPU cost; the
-  sampled CPU and batches/install ratios make that distinction.
-- Promotion cannot be assumed to restore the raw read path under continuous
-  writes: it requires a sole committed survivor with no uncommitted member.
-
-## Reading the sampled CPU fields
-
-Sampling is once per 1024 owner-local phase entries. `CLOCK_THREAD_CPUTIME_ID`
-avoids charging descheduling to a phase. Each sample first measures an adjacent
-empty clock interval, accumulated in `clock_ns`; use:
-
-```text
-net_sample_ns = max(0, cpu_ns - clock_ns)
-mean_ns_per_sampled_call = net_sample_ns / samples
-estimated_total_phase_ns = mean_ns_per_sampled_call * total_calls
-```
-
-`total_calls` is `write_*_installs`, `qsbr_passes`, or `stamp_drain_calls` for
-the corresponding stream. For stamp work, dividing `net_sample_ns` by
-`stamp_drain_sample_entries` also gives directly sampled nanoseconds per entry.
-Allocation size/class bookkeeping runs after the install end timestamp, so it
-does not inflate the ordinary-versus-versioned install delta. Use before/after
-INFO deltas for every field; preload/warm-up work is intentionally not guessed
-away inside the server.
-
-## Measurement result
-
-Not measured in this task. The user will build and run the existing campaign;
-the hard constraint forbids compiling, starting a server, testing, or
-benchmarking in this worktree during instrumentation.
-
-## Verification performed here
-
-- Confirmed the worktree, branch, and baseline commit before editing.
-- `git diff --check` passes, including the new `FINDINGS.md`.
-- Audited that all new hot-path fields are plain owner-local counters and that
-  every `flatBatchReady()` / `tomoApplyVersionStamp()` signature change has a
-  matching call site.
-- Deliberately did not compile, start a server, run tests, or run benchmarks.
+- Audited every `committed_prev` mutation and every prune/physical/vmeta retire
+  call site; stamp insertion and prune unlink are the only committed-chain
+  mutators.
+- Audited the prune pin across ready, resize/teardown discard, direct unlink,
+  detached-bag, tombstone, and promotion paths.
+- `git diff --check` passes.
+- Per the hard constraint, no compiler, server, benchmark, or test was run.

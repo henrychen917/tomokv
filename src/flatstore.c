@@ -47,19 +47,26 @@ void flatRetirePayloadReady(dictEntry *payload) {
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
         zfree(flatRetireSpecialPayload(payload));
     } else {
-        tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
+        kvobj *anchor = (kvobj *)flatRetireSpecialPayload(payload);
+        tomoVersionPruneAfterGrace(anchor);
+        /* Every prune record owns one lifetime pin. A newer frontier may have
+         * unlinked and dropped the table ref before this callback ran. */
+        decrRefCount(anchor);
     }
 }
 
 /* Table teardown/resize is already quiescent. A prune anchor is still a live
- * value in the table copied/destroyed by the caller, so discard that callback;
- * a detached metadata block still belongs to this retire record. */
+ * value in the table copied/destroyed by the caller, or was unlinked by a newer
+ * prune and is kept alive solely by this record. In either case discard drops
+ * the record's pin; a detached metadata block still belongs to its record. */
 void flatRetirePayloadDiscard(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
         decrRefCount((robj *)dictGetKV(payload));
     else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
         zfree(flatRetireSpecialPayload(payload));
+    else
+        decrRefCount((robj *)flatRetireSpecialPayload(payload));
 }
 
 flatTable *flatTableNew(uint64_t want_size) {
@@ -167,6 +174,10 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {
+    /* The callback may be overtaken by a newer frontier which unlinks rawkv.
+     * Own a real reference so both ready and teardown/discard paths can still
+     * inspect the anchor, then release it exactly once in their dispatcher. */
+    incrRefCount((robj *)rawkv);
     tomoAtomicCostLocal()->retire_prune++;
     flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
 }
