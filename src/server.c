@@ -228,6 +228,7 @@ static int csAtomicAbortIncomplete(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op);
+static int csStampDrain(exThread *worker);
 
 #define TOMO_EX_OWNER_OP_TAG ((uintptr_t)1)
 static inline client *exOwnerOpEncode(tomoOwnerOp *op) {
@@ -276,6 +277,12 @@ static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; 
 #define tomo_atomic_inflight (tomo_atomic_inflight_line.v)
 _Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
+/* Liveness witnesses for the bounded owner-op lane. `stamp_full` is the necessary condition for
+ * the commit-lock cycle described at csCommitLock; `commit_wait_drains` proves a lock waiter had
+ * to consume its own lane to let the lock holder advance. Both paths are cold/error-pressure paths,
+ * so global relaxed counters do not add work to an ordinary atomic completion. */
+static _Atomic unsigned long long tomo_atomic_stamp_full;
+static _Atomic unsigned long long tomo_atomic_commit_wait_drains;
 
 uint64_t tomoCommittedSeq(void) {
     return atomic_load_explicit(&commit_seq, memory_order_acquire);
@@ -8888,9 +8895,33 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *                evidence, and reads 0 with the knob off. */
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
+/* The commit lane is bounded, while the worker that consumes it can itself be a commit-lock
+ * waiter. A plain spin here creates a closed cycle:
+ *
+ *   worker A: owns commit_lock -> csStampPush(B) -> B's full owner-op lane
+ *   worker B: csCommitLock() -> waits for A -> never returns to exSlice to drain that lane
+ *
+ * Make lock waiting work-conserving for worker callers. csMsetInstallDone reaches this point only
+ * after exSlice released the worker's tomoWkrLock, so consuming the same worker's owner-op lane is
+ * legal here; IO-thread callers have no worker identity and retain the old PAUSE loop. Applying a
+ * STAMP before its commit_seq publication was already allowed (the owner normally drains as soon
+ * as csStampPush publishes it), and PRUNE is only enqueued after commit_seq, so helping preserves
+ * the atomic visibility ordering. */
 static inline void csCommitLock(void) {
-    while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
-        exPauseCpu();
+    if (!atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
+        return;
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    exThread *self = (owner >= 0 && owner < server.num_workers) ?
+                     &server.exThreads[owner] : NULL;
+    do {
+        if (self && atomic_load_explicit(&self->stamp_pending, memory_order_acquire) != 0 &&
+            csStampDrain(self) != 0) {
+            atomic_fetch_add_explicit(&tomo_atomic_commit_wait_drains, 1,
+                                      memory_order_relaxed);
+        } else {
+            exPauseCpu();
+        }
+    } while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire));
 }
 static inline void csCommitUnlock(void) {
     atomic_flag_clear_explicit(&commit_lock, memory_order_release);
@@ -9114,7 +9145,12 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
     exQueue *q = &worker->queues[csStampLane()];
     int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     int spins = 0;
+    int full_counted = 0;
     while (exQueuePushOwnerOp(q, op) != 0) {
+        if (!full_counted) {
+            atomic_fetch_add_explicit(&tomo_atomic_stamp_full, 1, memory_order_relaxed);
+            full_counted = 1;
+        }
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
         if (current_owner == owner)
@@ -18316,6 +18352,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
             "tomokv_atomic_ownread_detach:%llu\r\n", ord,
+            /* Atomic completion liveness witnesses. A non-zero stamp_full proves a committer met
+             * the bounded owner-op back-pressure required by the old circular wait;
+             * commit_wait_drains proves a waiting worker cooperatively broke that dependency. */
+            "tomokv_atomic_stamp_full:%llu\r\n",
+                atomic_load_explicit(&tomo_atomic_stamp_full, memory_order_relaxed),
+            "tomokv_atomic_commit_wait_drains:%llu\r\n",
+                atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
