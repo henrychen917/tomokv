@@ -18118,10 +18118,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
      * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
      * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
     unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
+    unsigned long long tomo_pf_perkey_hits = 0, tomo_pf_perkey_miss = 0;
     for (int _w = 0; _w < server.num_workers; _w++) {
         tomo_pf_batches += server.exThreads[_w].pf_batches;
         tomo_pf_gated   += server.exThreads[_w].pf_gated;
         tomo_pf_issued  += server.exThreads[_w].pf_issued;
+        tomo_pf_perkey_hits += server.exThreads[_w].pf_perkey_hits;
+        tomo_pf_perkey_miss += server.exThreads[_w].pf_perkey_miss;
     }
     if (all_sections || (dictFind(section_dict,"threads") != NULL)) {
         if (sections++) info = sdscat(info,"\r\n");
@@ -18516,6 +18519,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
             "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
             "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
+            "tomokv_prefetch_perkey_hits:%llu\r\n", tomo_pf_perkey_hits,
+            "tomokv_prefetch_perkey_miss:%llu\r\n", tomo_pf_perkey_miss,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
             "total_writes_processed:%lld\r\n", stat_total_writes_processed,
             "io_threaded_reads_processed:%lld\r\n", stat_io_reads_processed,
@@ -20173,9 +20178,10 @@ static inline void exPrefetchBatch(client **batch, int n) {
         }
     }
 
-    /* The retired group-stage widths all resolved to the current batch occupancy, so these
-     * stages cover the entire popped batch. The hash COMPUTE still runs for all n (it is
-     * functional, not a prefetch), while VALUE retains its adaptive width below. */
+    /* The retired group-stage widths all resolved to the current batch occupancy, so absent the
+     * optional per-key filter these stages cover the entire popped batch. The filter's misses keep
+     * that exact path; hits bypass it wholesale and let execution do its normal lookup. VALUE
+     * retains its adaptive width below. */
 
     /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
@@ -20215,7 +20221,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * The group stages issue across the full batch; only the adaptive VALUE width can
      * stop the entry-to-value chase early. The FUNCTIONAL work (SipHash +
      * hash/dict/bucket stash, consumed by hash-carry, #3 nextop, and the predictors)
-     * always runs for all n.
+     * runs for every key admitted to the scoreboard (all n when the optional filter is off).
      * pf-cmd stays deleted (command table is permanently L1-hot). */
     enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
     uint8_t st[WORKER_POP_BATCH];
@@ -20226,6 +20232,41 @@ static inline void exPrefetchBatch(client **batch, int n) {
         batch[j]->prefetch_key_hash_valid = 0;
     }
     int remaining = n;
+
+    /* Optional per-key refinement of the already-open GLOBAL gate. Normal keyed dispatch has
+     * already computed tomo_key_h (xxh64) for routing, so the residency check hashes nothing:
+     * one private tag-table load, compare, and store per eligible key. Ignore the low routing
+     * bits when indexing because a worker owns only a subset of them. Each 32-bit table word has a
+     * valid bit plus a 31-bit lossy tag; a false hit can only suppress a performance hint.
+     *
+     * A hit starts DONE, removing that key from the existing scoreboard without adding a state or
+     * changing its round-robin schedule. Its normal lookup runs straight through and computes any
+     * functional dict hash on demand. A miss retains PFS_STRUCT and therefore follows the byte-for-
+     * byte prefetch path below. Sentinels and pooled subs without a carried routing hash retain the
+     * old path and do not contaminate the per-key validation counters. With the default zero knob,
+     * this is one batch-level not-taken branch and no per-key work or tail-state read. */
+    if (__builtin_expect(server.prefetch_perkey_entries != 0, 0)) {
+        unsigned int hits = 0, miss = 0;
+        for (int j = 0; j < n; j++) {
+            client *fake = batch[j];
+            if (fake->tomo_bkt_ptr == NULL) continue;
+            uint64_t h = fake->tomo_key_h;
+            unsigned int ti = (unsigned int)(h >> TOMO_BUCKET_BITS) & pfw->pf_perkey_mask;
+            uint32_t tag = (uint32_t)(h >> 33) | 0x80000000u;
+            uint32_t prior = pfw->pf_perkey_tags[ti];
+            pfw->pf_perkey_tags[ti] = tag;
+            if (prior == tag) {
+                st[j] = PFS_DONE;
+                remaining--;
+                hits++;
+            } else {
+                miss++;
+            }
+        }
+        pfw->pf_perkey_hits += hits;
+        pfw->pf_perkey_miss += miss;
+    }
+
     int cur = 0;
     while (remaining > 0) {
         int j = cur;
@@ -20267,8 +20308,8 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 break;
             }
             case PFS_HASH: {
-                /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
-                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
+                /* FUNCTIONAL stage — always runs for keys admitted to the scoreboard (feeds
+                 * hash-carry, #3 nextop, and the predictors); key bytes are warm from KEYBYTES/KEYOBJ.
                  * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
                  * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
                 dict *d = kvstoreGetDict(fake->db->keys,
@@ -21655,6 +21696,17 @@ void initExThreads(void) {
         if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
         for (int w = 0; w < server.num_workers; w++) {
             exThread *et = &server.exThreads[w];
+            /* Optional recent-key tags are wholly worker-private. Over-align the separately
+             * allocated table so no two workers can share a tag cache line; the raw pointer is
+             * retained for eventual teardown. Default 0 reaches none of this allocation path. */
+            if (server.prefetch_perkey_entries != 0) {
+                size_t tag_bytes = sizeof(uint32_t) * (size_t)server.prefetch_perkey_entries;
+                et->pf_perkey_alloc = zcalloc(tag_bytes + CACHE_LINE_SIZE - 1);
+                et->pf_perkey_tags = (uint32_t *)
+                    (((uintptr_t)et->pf_perkey_alloc + CACHE_LINE_SIZE - 1) &
+                     ~((uintptr_t)CACHE_LINE_SIZE - 1));
+                et->pf_perkey_mask = (unsigned int)server.prefetch_perkey_entries - 1;
+            }
             et->nlanes = nlanes;
             size_t qbytes  = sizeof(exQueue) * (size_t)nlanes;
             size_t fbbytes = sizeof(freebackRing) * (size_t)nlanes;

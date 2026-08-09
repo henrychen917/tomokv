@@ -3143,6 +3143,12 @@ static int applyTomoAtomicAdmission(const char **err) {
     return 1;
 }
 
+static int isValidTomokvPrefetchPerkey(long long val, const char **err) {
+    if (val == 0 || (val > 0 && (val & (val - 1)) == 0)) return 1;
+    *err = "tomokv-prefetch-perkey must be 0 or a power-of-two entry count";
+    return 0;
+}
+
 standardConfig static_configs[] = {
     /* Bool configs */
     createBoolConfig("rdbchecksum", NULL, IMMUTABLE_CONFIG, server.rdb_checksum, 1, NULL, NULL),
@@ -3212,6 +3218,11 @@ standardConfig static_configs[] = {
      * reserved for the staged flat probe and the KVOBJ/VALDATA split. Default 1 preserves
      * current behaviour exactly -- this knob exists so the feature can finally be MEASURED. */
     createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
+    /* Startup-only because the entry count fixes one separately aligned private allocation per
+     * worker. 0 is a true off arm: no allocation and no per-key loop. Power-of-two sizing makes
+     * the direct-map index a mask; 4096 x 4B = 16 KiB per enabled worker. */
+    createIntConfig("tomokv-prefetch-perkey", NULL, IMMUTABLE_CONFIG, 0, TOMO_PF_PERKEY_MAX_ENTRIES,
+                    server.prefetch_perkey_entries, 0, INTEGER_CONFIG, isValidTomokvPrefetchPerkey, NULL),
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
 
@@ -3244,8 +3255,8 @@ standardConfig static_configs[] = {
      * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
      * lever is separately switchable and separately measurable. */
 
-    /* ================= PREFETCH — no knobs, by design (2026-07-28) =========================
-     * There is deliberately no tomokv-pf-* / tomokv-prefetch-* knob. The ten that used to live
+    /* ================= PREFETCH — no manual stage-width knobs (2026-07-28) =================
+     * There is deliberately no manual tomokv-pf-* stage-width/gate knob. The ten that used to live
      * here (pf-w-struct/-argv/-keyobj/-keybytes/-hash/-nextop/-entry/-value, pf-value-budget-kb,
      * prefetch-min-keys) were retired as a CONFIG SURFACE only: every prefetch stage, the batch
      * scoreboard, the #3 next-op look-ahead and the value chase are all still there in
@@ -3257,9 +3268,11 @@ standardConfig static_configs[] = {
      * standard software-pipelining form), the residency gate follows the detected L3 divided by
      * the workers that share it, and the value-chase budget follows a measured value-size EWMA.
      * A number typed into a config file could only restate what the server already measures, and
-     * would then be wrong on the next machine. See the constants beside WORKER_POP_BATCH in
-     * server.h for what is left, and the note there for why AMAC's per-slot state machine is not
-     * the right shape for a CONSTANT-depth probe chain.
+     * would then be wrong on the next machine. tomokv-prefetch-perkey is separate: an off-by-default
+     * experiment whose number is the capacity of a private recent-key table, not a replacement for
+     * any derived width or gate. See the constants beside WORKER_POP_BATCH in server.h for what is
+     * left, and the note there for why AMAC's per-slot state machine is not the right shape for a
+     * CONSTANT-depth probe chain.
      *
      * NOT a re-run of the earlier deletion: that one removed the STAGES on a false "unreachable
      * under FLATSTORE" premise (false at tomokv-thread-ex 1, where shared_node_dbs is 0 and the

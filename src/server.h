@@ -2420,6 +2420,10 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
  * the handoff an IO-side issuer would fill in and an EX-side consumer would read. */
 #define TOMO_PF_W_VALUE_MIN 4     /* value chase cannot cover a scoreboard rotation below this */
 #define TOMO_PF_W_VALUE_MAX 256   /* ceiling only; must merely exceed any reachable batch size */
+/* tomokv-prefetch-perkey is an explicitly sized experiment, not another stage-width knob.
+ * Entries are 32-bit tags, so the largest allowed per-worker table is 16 KiB and remains a
+ * private L1/L2-sized structure. A power-of-two entry count keeps the hot index to one mask. */
+#define TOMO_PF_PERKEY_MAX_ENTRIES 4096
 /* #3 exec-loop next-op look-ahead distance.
  *
  * ⚠ SELECTING AUTO HERE IS CURRENTLY A NO-OP — THE LOOK-AHEAD STILL NEVER FIRES. This was meant
@@ -2753,12 +2757,21 @@ typedef struct exThread {
      * the counters are written ONLY by the owning worker and read (never written) by the balancer,
      * which diffs them against its own snapshot — the same single-writer discipline lb_grp_ops
      * uses, so no atomic RMW appears on the data path. len == 0 => disarmed => never touched.
-     * PLACEMENT: at the very END, for the reason the reclaim block above documents — inserting
-     * fields mid-struct shifts the tuned hot block and has measured -16% on p32 SET here. Appending
-     * leaves every pre-existing field's offset unchanged, which also means an A/B of this feature
-     * against the previous build cannot be contaminated by layout. */
+     * PLACEMENT: appended after every field that existed when this was added, for the reason the
+     * reclaim block above documents — inserting fields mid-struct shifts the tuned hot block and
+     * has measured -16% on p32 SET here. Later additions likewise append after this array, leaving
+     * every pre-existing field's offset unchanged. */
     _Atomic uint64_t lb_fine_win;
     uint32_t lb_fine_ops[TOMO_LB_GROUP_BUCKETS];
+    /* Optional direct-mapped recent-key filter. Appended so disabled mode does not shift any
+     * pre-existing tuned worker field. The owning worker is the only hot-path accessor; INFO's
+     * racy counter reads are observability-only. alloc retains the raw over-allocation that makes
+     * tags cache-line aligned and prevents two workers' tables from sharing a line. */
+    void *pf_perkey_alloc __attribute__((aligned(CACHE_LINE_SIZE)));
+    uint32_t *pf_perkey_tags;
+    unsigned int pf_perkey_mask;
+    unsigned long long pf_perkey_hits;
+    unsigned long long pf_perkey_miss;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -3387,6 +3400,7 @@ struct redisServer {
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
      * controller flip the io/ex boundary WITHIN each node's core budget. */
     int prefetch_ex_level;   /* ee451 (B1): 0 = EX prefetch machinery not entered; levels monotonic */
+    int prefetch_perkey_entries; /* 0 = no table/work; otherwise power-of-two private tags/worker */
     int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
                                 * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
                                 * node when it is `numa`. Hence topo_ (topology), not numa_. */
