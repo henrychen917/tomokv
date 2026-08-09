@@ -1537,7 +1537,7 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * tmIoSignal.tm_work_us is explicitly bracketed productive IO work and is the ratio
  * controller's numerator. tm_busy_us retains sampled scheduled CPU for INFO only because drain
  * spin and short polls burn CPU without producing work. tm_wait_us and tm_idle_us remain separate
- * INFO/legacy-worker-mode observations; neither is a ratio-mode controller input. */
+ * INFO/idle observations; neither is a controller input. */
 
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
@@ -2587,10 +2587,9 @@ typedef struct exThread {
     unsigned pf_gate_tick;
     int pf_cached_w4;                   /* ee451 (v14): cached value-chase width (avoids budget/ev idiv per batch, gate-open path) */              /* recompute the divide every 64 batches; EWMA moves slowly */
     /* ee451 (v13): forward-predictor / bakeoff state removed with the VF apparatus. */
-    /* ee451 (thread-modes step 4, balancer signals): owner-written plain fields, sampled
-     * racily by the 4Hz balancer on the main thread (control plane tolerates torn/stale
-     * reads — EWMAs/monotonic counters only). All gated on tomokv-thread-mode auto so the
-     * balance-off hot path pays one predicted branch. */
+    /* ee451 (thread-modes step 4, balancer observations): owner-written plain fields, sampled
+     * racily by the 4Hz control plane (it tolerates torn/stale EWMA or monotonic reads). Productive
+     * timing remains live in static mode so INFO can expose the controller operands there too. */
     unsigned int tm_qdepth_ewma_q4;  /* leaky EWMA (Q4, alpha 1/8) of STANDING queue backlog:
                                       * items still waiting after a full pop pass (summed over
                                       * producers). Folded on work passes; 0-folded on idle
@@ -2606,9 +2605,9 @@ typedef struct exThread {
      * other worker-private fields — the property that matters is that they are NOT next to
      * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
     /* ee451 2026-08-04: wall µs this worker spent with an EMPTY QUEUE, measured as whole idle
-     * EPISODES (2 clock reads per episode, never per spin round). This drives the retained
-     * worker-only modes. The ratio modes instead pair exThread.tm_busy_us productive work with
-     * tmIoSignal.tm_work_us productive work. Together the worker observations decompose wall:
+     * EPISODES (2 clock reads per episode, never per spin round). Worker-only flip paths are gone;
+     * this remains an INFO observation. The controller pairs exThread.tm_busy_us productive work
+     * with tmIoSignal.tm_work_us productive work. Together the worker observations decompose wall:
      *     busy (work) | idle (no work available) | residual (work available, NOT SCHEDULED)
      * The residual is the one that matters for balance: it means the role is starved of CPU, not
      * of threads, so growing that role cannot help. */
@@ -2621,9 +2620,8 @@ typedef struct exThread {
     unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
     unsigned int tm_busy_us;         /* µs spent in productive work intervals (first pop ->
                                       * work-pass end; yields reset the mark without accumulating).
-                                      * Ratio modes use wrap-safe deltas as U_EX's numerator;
-                                      * worker-only modes retain empty-queue occupancy. Wraps at
-                                      * ~71min. */
+                                      * The controller uses wrap-safe deltas as U_EX's numerator;
+                                      * empty-queue occupancy remains INFO-only. Wraps at ~71min. */
     /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
      * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
      * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any
@@ -3242,8 +3240,8 @@ struct redisServer {
                                     * range-flip per tick) instead of EWMA balancing. */
     _Atomic uint64_t reshard_done_seq;  /* bumped on every completed bucket-range move; the flip
                                     * controller's settle gate waits for this to go QUIET before
-                                    * judging a probe (a mid-rebalance measurement under-reads the
-                                    * new config and wedges the hill-climb in a worse one). */
+                                    * judging a move (a mid-rebalance measurement under-reads the
+                                    * new config and stops the range walk at the wrong split). */
     /* ee451 (H2): drain-fence observability. Both are cumulative and exported in INFO, because a
      * fence whose window is never entered proves nothing about the fence (§G vacuous validation).
      * midbatch = how many times the coordinator saw a producer's queue EMPTY while worker A still
@@ -3303,16 +3301,9 @@ struct redisServer {
      * the hot path pays one predicted branch) and the boot split from tomokv-thread-io/-ex is
      * held for the life of the process. Not a user knob. */
     int thread_auto;
-    /* tomokv-flip-signal: WHICH quantity the flip controller's TRIGGER reads (see the FLIP_SIG_*
-     * block in server.c for the full derivation).
-     *   0 = deprecated alias of 5 (accepted, identical productive-work ratio path)
-     *   1 = WORKER-ONLY direction (idleness + standing queue), server_bound gate retained
-     *   2 = PURE worker-only: no IO-side MEASUREMENT enters any decision, gate included
-     *   3 = mode 2 + the clip repair (the granularity floor does not veto a grow-back once worker
-     *       occupancy has clipped and its magnitude is unmeasurable)
-     *   4 = reserved for the adjacent worker-max experiment (rejected until that branch combines)
-     *   5 = productive-work ratio, U_IO/U_EX; the default ratio spelling
-     * Read only by the 4Hz controller. */
+    /* tomokv-flip-signal: compatibility spelling only. Every value 0..5 selects the same
+     * productive-work U_IO/U_EX mechanism; 5 is the default. Historical worker-only values 1/2/3
+     * remain accepted and produce one boot-time deprecation notice. Read only for diagnostics. */
     int flip_signal;
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS
      * fully active (no reserve thread). io_per_node + ex_per_node <= cores_per_node. io_threads /
