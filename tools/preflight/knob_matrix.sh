@@ -169,12 +169,24 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-zerocopy-min-value 0
 
+  # ee451 2026-08-06: reply-buffer-transfer (reply fork) — bool (createBoolConfig), default OFF ships
+  # inert. Drive off + on so the drift guard accounts it and a broken transfer surfaces here, not in a
+  # bench. (Bool config takes yes/no, not 0/1.)
+  try tomokv-reply-buffer-transfer no
+  try tomokv-reply-buffer-transfer yes
+
+  # Lifetime-aware scatter/gather is independently default-OFF. Exercise both bool spellings;
+  # tomokv-zerocopy-min-value above remains its size/disable threshold.
+  try tomokv-reply-iovec no
+  try tomokv-reply-iovec yes
+
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
-  # tomokv-io-uring is IMMUTABLE 0..1; only 0 is driven here on purpose -- 1 arms the uring
-  # machinery, which needs a USE_URING=yes build, and a cell that silently hangs on an epoll build
-  # is exactly the harness trap this suite exists to prevent.
+  # tomokv-io-uring is IMMUTABLE 0..2; only 0 is driven here on purpose -- modes 1/2 both need a
+  # USE_URING=yes build. A drift-guard cell that silently falls back or hangs on an epoll-only build
+  # is exactly the "certified a binary it never ran" trap this suite exists to prevent.
   try tomokv-io-uring 0
   must_refuse tomokv-io-uring -1 "below the declared minimum -- this knob spells auto as 0"
+  must_refuse tomokv-io-uring 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-prefetch-ex 0
   try tomokv-prefetch-ex 3

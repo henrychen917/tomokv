@@ -10,6 +10,7 @@
 
 #include "server.h"
 #include "uring.h"
+#include "uring2.h"
 
 /* IO threads. */
 static IOThread IOThreads[IO_THREADS_MAX_NUM];
@@ -53,28 +54,28 @@ void updateClientDataFromIOThread(client *c) {
     serverAssert(c->tid != IOTHREAD_MAIN_THREAD_ID &&
                  c->running_tid == IOTHREAD_MAIN_THREAD_ID);
 
-    if (c->io_repl_ack_time > c->repl_ack_time) {
+    if (clientReplicationData(c)->io_repl_ack_time > clientReplicationData(c)->repl_ack_time) {
         serverAssert(c->flags & CLIENT_SLAVE);
-        c->repl_ack_time = c->io_repl_ack_time;
+        clientReplicationData(c)->repl_ack_time = clientReplicationData(c)->io_repl_ack_time;
     }
     if (c->io_lastinteraction > c->lastinteraction) {
         serverAssert(c->flags & CLIENT_MASTER);
         c->lastinteraction = c->io_lastinteraction;
     }
-    if (c->io_read_reploff > c->read_reploff) {
+    if (clientReplicationData(c)->io_read_reploff > clientReplicationData(c)->read_reploff) {
         serverAssert(c->flags & CLIENT_MASTER);
-        c->read_reploff = c->io_read_reploff;
+        clientReplicationData(c)->read_reploff = clientReplicationData(c)->io_read_reploff;
     }
 
     /* Update replication buffer referenced node if IO thread has sent some data. */
-    if (c->flags & CLIENT_SLAVE && c->ref_repl_buf_node != NULL &&
-        (c->io_curr_repl_node != c->ref_repl_buf_node ||
-         c->io_curr_block_pos != c->ref_block_pos))
+    if (c->flags & CLIENT_SLAVE && clientReplicationData(c)->ref_repl_buf_node != NULL &&
+        (clientReplicationData(c)->io_curr_repl_node != clientReplicationData(c)->ref_repl_buf_node ||
+         clientReplicationData(c)->io_curr_block_pos != clientReplicationData(c)->ref_block_pos))
     {
-        ((replBufBlock*)listNodeValue(c->ref_repl_buf_node))->refcount--;
-        ((replBufBlock*)listNodeValue(c->io_curr_repl_node))->refcount++;
-        c->ref_block_pos = c->io_curr_block_pos;
-        c->ref_repl_buf_node = c->io_curr_repl_node;
+        ((replBufBlock*)listNodeValue(clientReplicationData(c)->ref_repl_buf_node))->refcount--;
+        ((replBufBlock*)listNodeValue(clientReplicationData(c)->io_curr_repl_node))->refcount++;
+        clientReplicationData(c)->ref_block_pos = clientReplicationData(c)->io_curr_block_pos;
+        clientReplicationData(c)->ref_repl_buf_node = clientReplicationData(c)->io_curr_repl_node;
         incrementalTrimReplicationBacklog(REPL_BACKLOG_TRIM_BLOCKS_PER_CALL);
     }
 }
@@ -83,9 +84,9 @@ void updateClientDataFromIOThread(client *c) {
  * client should be terminated */
 int runClientCronFromIOThread(client *c) {
     if (c->flags & CLIENT_MASTER &&
-        c->io_last_repl_cron + 1000 <= server.mstime)
+        clientReplicationData(c)->io_last_repl_cron + 1000 <= server.mstime)
     {
-        c->io_last_repl_cron = server.mstime;
+        clientReplicationData(c)->io_last_repl_cron = server.mstime;
         if (replicationCronRunMasterClient()) return 1;
     }
 
@@ -133,16 +134,16 @@ void enqueuePendingClienstToIOThreads(client *c) {
         listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
     }
     if (c->flags & CLIENT_SLAVE) {
-        serverAssert(c->ref_repl_buf_node != NULL);
+        serverAssert(clientReplicationData(c)->ref_repl_buf_node != NULL);
 
-        c->io_repl_ack_time = c->repl_ack_time;
-        c->io_curr_repl_node = c->ref_repl_buf_node;
-        c->io_curr_block_pos = c->ref_block_pos;
-        c->io_bound_repl_node = listLast(server.repl_buffer_blocks);
-        c->io_bound_block_pos = ((replBufBlock*)listNodeValue(c->io_bound_repl_node))->used;
+        clientReplicationData(c)->io_repl_ack_time = clientReplicationData(c)->repl_ack_time;
+        clientReplicationData(c)->io_curr_repl_node = clientReplicationData(c)->ref_repl_buf_node;
+        clientReplicationData(c)->io_curr_block_pos = clientReplicationData(c)->ref_block_pos;
+        clientReplicationData(c)->io_bound_repl_node = listLast(server.repl_buffer_blocks);
+        clientReplicationData(c)->io_bound_block_pos = ((replBufBlock*)listNodeValue(clientReplicationData(c)->io_bound_repl_node))->used;
     }
     if (c->flags & CLIENT_MASTER) {
-        c->io_read_reploff = c->read_reploff;
+        clientReplicationData(c)->io_read_reploff = clientReplicationData(c)->read_reploff;
         c->io_lastinteraction = c->lastinteraction;
     }
 
@@ -174,10 +175,10 @@ void keepClientInMainThread(client *c) {
      * custom IO owner. Supported uring configurations disable upstream IO
      * threads, and commands that could reach this transition are refused in
      * the sharded runtime. Fail closed if that contract ever changes: a live
-     * source-ring multishot must never be followed by a main-epoll arm.
+     * source-ring receive must never be followed by a main-epoll arm.
      */
     if (server.io_uring)
-        serverAssert(!tomoUringClientAttached(c));
+        serverAssert(!tomoUringBackendClientAttached(c));
     /* IO thread no longer manage it. */
     server.io_threads_clients_num[c->tid]--;
     /* Unbind connection of client from io thread event loop. */
@@ -272,10 +273,10 @@ int isClientMustHandledByMainThread(client *c) {
      * to prevent race conditions with main thread when it feeds the replication
      * buffer. */
     if (c->flags & CLIENT_SLAVE &&
-        (c->replstate == SLAVE_STATE_ONLINE ||
-         c->replstate == SLAVE_STATE_SEND_BULK_AND_STREAM) &&
-        c->repl_start_cmd_stream_on_ack == 0 &&
-        c->ref_repl_buf_node != NULL)
+        (clientReplicationData(c)->replstate == SLAVE_STATE_ONLINE ||
+         clientReplicationData(c)->replstate == SLAVE_STATE_SEND_BULK_AND_STREAM) &&
+        clientReplicationData(c)->repl_start_cmd_stream_on_ack == 0 &&
+        clientReplicationData(c)->ref_repl_buf_node != NULL)
     {
         return 0;
     }

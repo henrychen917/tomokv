@@ -204,20 +204,24 @@ int serverPubsubShardSubscriptionCount(void) {
 
 /* Return the number of channels + patterns a client is subscribed to. */
 int clientSubscriptionsCount(client *c) {
-    return dictSize(c->pubsub_channels) + dictSize(c->pubsub_patterns);
+    clientCold *cold = clientPubSubData(c);
+    return cold ? dictSize(cold->pubsub_channels) + dictSize(cold->pubsub_patterns) : 0;
 }
 
 /* Return the number of shard level channels a client is subscribed to. */
 int clientShardSubscriptionsCount(client *c) {
-    return dictSize(c->pubsubshard_channels);
+    clientCold *cold = clientPubSubData(c);
+    return cold ? dictSize(cold->pubsubshard_channels) : 0;
 }
 
 dict* getClientPubSubChannels(client *c) {
-    return c->pubsub_channels;
+    clientCold *cold = clientPubSubData(c);
+    return cold ? cold->pubsub_channels : NULL;
 }
 
 dict* getClientPubSubShardChannels(client *c) {
-    return c->pubsubshard_channels;
+    clientCold *cold = clientPubSubData(c);
+    return cold ? cold->pubsubshard_channels : NULL;
 }
 
 /* Return the number of pubsub + pubsub shard level channels
@@ -240,6 +244,36 @@ void unmarkClientAsPubSub(client *c) {
     }
 }
 
+void initClientPubSubData(client *c) {
+    clientCold *cold = getClientCold(c);
+    if (cold->initialized & CLIENT_COLD_PUBSUB) return;
+    cold->pubsub_channels = dictCreate(&objectKeyPointerValueDictType);
+    cold->pubsub_patterns = dictCreate(&objectKeyPointerValueDictType);
+    cold->pubsubshard_channels = dictCreate(&objectKeyPointerValueDictType);
+    cold->client_tracking_redirection = 0;
+    cold->client_tracking_prefixes = NULL;
+    cold->initialized |= CLIENT_COLD_PUBSUB;
+}
+
+void freeClientPubSubData(client *c) {
+    clientCold *cold = clientPubSubData(c);
+    if (!cold) return;
+    pubsubUnsubscribeAllChannels(c, 0);
+    pubsubUnsubscribeShardAllChannels(c, 0);
+    pubsubUnsubscribeAllPatterns(c, 0);
+    unmarkClientAsPubSub(c);
+    if (cold->client_tracking_prefixes || (c->flags & CLIENT_TRACKING))
+        disableTracking(c);
+    dictRelease(cold->pubsub_channels);
+    dictRelease(cold->pubsub_patterns);
+    dictRelease(cold->pubsubshard_channels);
+    cold->pubsub_channels = NULL;
+    cold->pubsub_patterns = NULL;
+    cold->pubsubshard_channels = NULL;
+    cold->client_tracking_prefixes = NULL;
+    cold->initialized &= ~CLIENT_COLD_PUBSUB;
+}
+
 /* Subscribe a client to a channel. Returns 1 if the operation succeeded, or
  * 0 if the client was already subscribed to that channel. */
 int pubsubSubscribeChannel(client *c, robj *channel, pubsubtype type) {
@@ -247,6 +281,8 @@ int pubsubSubscribeChannel(client *c, robj *channel, pubsubtype type) {
     dict *clients = NULL;
     int retval = 0;
     unsigned int slot = 0;
+
+    initClientPubSubData(c);
 
     /* Add the channel to the client -> channels hash table */
     dictEntryLink bucket;
@@ -285,6 +321,8 @@ int pubsubUnsubscribeChannel(client *c, robj *channel, int notify, pubsubtype ty
     dict *clients;
     int retval = 0;
     int slot = 0;
+
+    initClientPubSubData(c);
 
     /* Remove the channel from the client -> channels hash table */
     incrRefCount(channel); /* channel may be just a pointer to the same object
@@ -332,7 +370,7 @@ void pubsubShardUnsubscribeAllChannelsInSlot(unsigned int slot) {
         dictInitIterator(&iter, clients);
         while ((entry = dictNext(&iter)) != NULL) {
             client *c = dictGetKey(entry);
-            int retval = dictDelete(c->pubsubshard_channels, channel);
+            int retval = dictDelete(clientPubSubData(c)->pubsubshard_channels, channel);
             serverAssertWithInfo(c,channel,retval == DICT_OK);
             addReplyPubsubUnsubscribed(c, channel, pubSubShardType);
             /* If the client has no other pubsub subscription,
@@ -353,7 +391,9 @@ int pubsubSubscribePattern(client *c, robj *pattern) {
     dict *clients;
     int retval = 0;
 
-    if (dictAdd(c->pubsub_patterns, pattern, NULL) == DICT_OK) {
+    initClientPubSubData(c);
+
+    if (dictAdd(clientPubSubData(c)->pubsub_patterns, pattern, NULL) == DICT_OK) {
         retval = 1;
         incrRefCount(pattern);
         /* Add the client to the pattern -> list of clients hash table */
@@ -379,8 +419,10 @@ int pubsubUnsubscribePattern(client *c, robj *pattern, int notify) {
     dict *clients;
     int retval = 0;
 
+    initClientPubSubData(c);
+
     incrRefCount(pattern); /* Protect the object. May be the same we remove */
-    if (dictDelete(c->pubsub_patterns, pattern) == DICT_OK) {
+    if (dictDelete(clientPubSubData(c)->pubsub_patterns, pattern) == DICT_OK) {
         retval = 1;
         /* Remove the client from the pattern -> clients list hash table */
         de = dictFind(server.pubsub_patterns,pattern);
@@ -403,6 +445,7 @@ int pubsubUnsubscribePattern(client *c, robj *pattern, int notify) {
  * client was subscribed to. */
 int pubsubUnsubscribeAllChannelsInternal(client *c, int notify, pubsubtype type) {
     int count = 0;
+    initClientPubSubData(c);
     if (dictSize(type.clientPubSubChannels(c)) > 0) {
         dictIterator di;
         dictEntry *de;
@@ -442,12 +485,13 @@ int pubsubUnsubscribeShardAllChannels(client *c, int notify) {
  * client was subscribed from. */
 int pubsubUnsubscribeAllPatterns(client *c, int notify) {
     int count = 0;
+    initClientPubSubData(c);
 
-    if (dictSize(c->pubsub_patterns) > 0) {
+    if (dictSize(clientPubSubData(c)->pubsub_patterns) > 0) {
         dictIterator di;
         dictEntry *de;
 
-        dictInitSafeIterator(&di, c->pubsub_patterns);
+        dictInitSafeIterator(&di, clientPubSubData(c)->pubsub_patterns);
         while ((de = dictNext(&di)) != NULL) {
             robj *pattern = dictGetKey(de);
             count += pubsubUnsubscribePattern(c, pattern, notify);
@@ -752,12 +796,14 @@ void sunsubscribeCommand(client *c) {
 }
 
 size_t pubsubMemOverhead(client *c) {
+    clientCold *cold = clientPubSubData(c);
+    if (!cold) return 0;
     /* PubSub patterns */
-    size_t mem = dictMemUsage(c->pubsub_patterns);
+    size_t mem = dictMemUsage(cold->pubsub_patterns);
     /* Global PubSub channels */
-    mem += dictMemUsage(c->pubsub_channels);
+    mem += dictMemUsage(cold->pubsub_channels);
     /* Sharded PubSub channels */
-    mem += dictMemUsage(c->pubsubshard_channels);
+    mem += dictMemUsage(cold->pubsubshard_channels);
     return mem;
 }
 

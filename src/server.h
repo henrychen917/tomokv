@@ -446,6 +446,13 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
  * destination io thread re-registers it. Only ever set/read by the client's owning
  * io thread and by the source thread during the drain window. */
 #define CLIENT_MIGRATING (1ULL << 57)
+/* Atomic MSET admission parked this client before taking a fake-ring slot. The
+ * command remains at pending_cmds.head until its owning event loop retries it. */
+#define CLIENT_ATOMIC_WINDOW_STALLED (1ULL << 58)
+/* A plain GET/MGET is waiting for this connection's already-dispatched atomic
+ * MSET FIFO to commit. Like the admission stall, the command stays at the
+ * pending-command head and is retried by its owning event loop. */
+#define CLIENT_ATOMIC_PENDING_STALLED (1ULL << 59)
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1059,7 +1066,7 @@ struct RedisModuleDigest {
 } while(0)
 
 /* Macro to check if the client is in the middle of module based authentication. */
-#define clientHasModuleAuthInProgress(c) ((c)->module_auth_ctx != NULL)
+#define clientHasModuleAuthInProgress(c) ((c)->cold && (c)->cold->module_auth_ctx != NULL)
 
 /* The string name for an object's type as listed above
  * Native types are checked against the OBJ_STRING, OBJ_LIST, OBJ_* defines,
@@ -1077,6 +1084,7 @@ char *getObjectTypeName(robj*);
     _var.metabits = 0; \
     _var.iskvobj = 0; \
     _var.ptr = _ptr; \
+    _var.vmeta = NULL; \
 } while(0)
 
 struct evictionPoolEntry; /* Defined in evict.c */
@@ -1184,9 +1192,18 @@ typedef struct redisDb {
     dict *ready_keys;           /* Blocked keys that received a PUSH */
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
     int id;                     /* Database ID */
+    redisAtomic int initialized; /* Heavy fields above are ready for use. */
     long long avg_ttl;          /* Average TTL, just for stats */
     unsigned long expires_cursor; /* Cursor of the active expire cycle. */
 } redisDb;
+
+/* Database arrays keep their stable addresses because clients and workers retain
+ * redisDb pointers. Only the expensive contents are initialized lazily. */
+static inline int dbIsInitialized(redisDb *db) {
+    int initialized;
+    atomicGetAcquire(db->initialized, initialized);
+    return initialized;
+}
 
 /* maximum number of bins of keysizes histogram */
 #define MAX_KEYSIZES_BINS 60
@@ -1236,6 +1253,7 @@ typedef struct multiState {
                                certain flag. */
     size_t argv_len_sums;    /* mem used by all commands arguments */
     int alloc_count;         /* total number of pendingCommand struct memory reserved. */
+    list watched_keys;       /* Keys WATCHED for MULTI/EXEC CAS. */
 } multiState;
 
 /* This structure holds the blocking operation state for a client.
@@ -1636,8 +1654,124 @@ _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
 
+/* ---- R1 own-read gate: exact key sets ---------------------------------------------------
+ * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
+ * Past this many written keys a group's own 64-bit signature is >= 16 of 64 bits, i.e. the
+ * filter is >= 91% false-positive anyway and the group's inline region is already spilling, so
+ * it stays filter-only and every filter hit against it HOLDS (charged to ownread_conserv). */
+#define CS_EXACT_KEYS_MAX 16
+
+/* One completed-but-not-yet-published group's key set, COPIED off the group at the moment it
+ * leaves the connection's R1 FIFO (csMsetPopComplete) and dropped when its pending count is
+ * decremented (csMsetPubRetire). Between those two points the group is invisible to the FIFO
+ * walk while it still counts as pending, and the walk used to have no choice but to hold; this
+ * record is what lets it answer exactly instead. It is a COPY, not a pointer: csReassemble
+ * frees the group (and csgFree()s g->key_h) as soon as the head's reply slot is published,
+ * which happens INSIDE that window.
+ *
+ * `tag` is the group's address, kept for identity only — the record is retired in FIFO order
+ * and the tag asserts that discipline. It is NEVER dereferenced: by then the group may be gone. */
+typedef struct csPubRec {
+    uintptr_t tag;                    /* the csGroup this record stands for; compare, never deref */
+    uint64_t key_sig;                 /* copy of csGroup.key_sig */
+    int key_h_n;                      /* copy of csGroup.key_h_n; 0 => filter-only (conservative) */
+    uint64_t key_h[CS_EXACT_KEYS_MAX];/* copy of csGroup.key_h[0..key_h_n) */
+} csPubRec;
+
+/* FIFO ring of the above, one per connection that has ever registered an atomic group (lazily
+ * allocated in csMsetRegister, so a server with tomokv-atomic off never allocates one).
+ *
+ * SIZED FROM THE STRUCTURAL BOUND, not from a guess. Every registered group owns a fake-ring
+ * slot from dispatch until csReassemble, and the pending-count decrement happens BEFORE that
+ * reassembly, so
+ *     concurrently detached <= mset_pending_count <= dispatchid - flushid
+ *                           <= c->ring_size <= server.pipeline_ring_depth <= 32,
+ * where tomokv-pipeline-depth is IMMUTABLE_CONFIG and therefore fixed boot->shutdown. Rounding
+ * that up to a power of two makes the ring provably impossible to overflow, at a cost of
+ * (depth * 152) bytes for a connection whose fake ring already holds `depth` fakes with a 16KB
+ * reply buffer each — i.e. ~1% of the ring it is sized from.
+ *
+ * Overflow nevertheless remains SAFE and self-healing, and the check stays: a group that finds
+ * the ring full gets no record, the walk then sees pending > (linked + recorded) and takes the
+ * same conservative hold it always took, counted in ownread_conserv. That arm is now unreachable
+ * by the argument above, which makes any non-zero conserv on a plain MGET/MSET cell a report
+ * that the argument is wrong — the cheap insurance, same as the retire's tag assert. */
+typedef struct csMsetPub {
+    unsigned int head, tail;          /* FIFO cursors; (tail - head) records live, wrap is fine */
+    unsigned int mask;                /* capacity - 1; capacity is a power of two >= pipeline depth */
+    csPubRec rec[];                   /* [mask + 1] */
+} csMsetPub;
+
 struct tomoUringClient;
 typedef struct client client;
+
+/* Rare client state lives behind one nullable sidecar. The regular request,
+ * dispatch and reply paths must not allocate it. Individual subsystems use
+ * the initialized bits so, for example, CLIENT TRACKING does not also create
+ * the blocking-key dictionary. */
+#define CLIENT_COLD_PUBSUB  (1U << 0)
+#define CLIENT_COLD_REPL    (1U << 1)
+#define CLIENT_COLD_BLOCKED (1U << 2)
+
+typedef struct clientCold {
+    unsigned int initialized;
+
+    /* MULTI/EXEC and WATCH. Commands remain NULL until first queued. */
+    multiState mstate;
+
+    /* Blocking commands. bstate.keys is created only when blocking starts. */
+    blockingState bstate;
+
+    /* Pub/Sub and client-side caching/tracking. */
+    dict *pubsub_channels;
+    dict *pubsub_patterns;
+    dict *pubsubshard_channels;
+    uint64_t client_tracking_redirection;
+    rax *client_tracking_prefixes;
+
+    /* Replication-only connection state. reploff_next and woff deliberately
+     * remain inline in client: both are touched by ordinary command handling. */
+    int replstate;
+    int repl_start_cmd_stream_on_ack;
+    int repldbfd;
+    off_t repldboff;
+    off_t repldbsize;
+    sds replpreamble;
+    long long read_reploff;
+    long long io_read_reploff;
+    long long reploff;
+    long long repl_applied;
+    long long repl_ack_off;
+    long long repl_aof_off;
+    long long repl_ack_time;
+    long long io_repl_ack_time;
+    long long repl_last_partial_write;
+    long long psync_initial_offset;
+    char replid[CONFIG_RUN_ID_SIZE+1];
+    int slave_listening_port;
+    char *slave_addr;
+    int slave_capa;
+    int slave_req;
+    uint64_t main_ch_client_id;
+    listNode *ref_repl_buf_node;
+    size_t ref_block_pos;
+    listNode *io_curr_repl_node;
+    size_t io_curr_block_pos;
+    listNode *io_bound_repl_node;
+    size_t io_bound_block_pos;
+    mstime_t io_last_repl_cron;
+
+    /* Module authentication / blocked-client bookkeeping. */
+    void *module_blocked_client;
+    void *module_auth_ctx;
+    RedisModuleUserChangedFunc auth_callback;
+    void *auth_callback_privdata;
+    void *auth_module;
+
+    /* BLOCKED_POSTPONE membership belongs to the blocking subsystem. */
+    listNode *postponed_list_node;
+} clientCold;
+
 typedef struct client {
     int isFake;
     client *parent;
@@ -1669,6 +1803,21 @@ typedef struct client {
      * Set at dispatch when such a group is armed; the next command from this client stalls
      * until the ring drains (the stateful-drain idiom). Real clients only, IO-thread only. */
     unsigned int cs_barrier;
+    /* CURE2 R1 + I7. Only real clients use the completion FIFO/latch. A
+     * command-scoped read pin belongs to a ring fake until a cross-shard group
+     * takes it over; the snapshot is drawn before its owner jobs are queued. */
+    redisAtomic int mset_pending_lock;
+    redisAtomic int mset_drain_latch;
+    redisAtomic unsigned int mset_pending_count; /* registered groups not yet commit-published */
+    redisAtomic int mset_read_waiting;           /* worker-to-owner-event-loop wake handshake */
+    struct csGroup *mset_pending_head;
+    struct csGroup *mset_pending_tail;
+    /* Key sets of this connection's groups that have left the FIFO but not yet decremented
+     * mset_pending_count (see csMsetPub). NULL until this connection registers its first atomic
+     * group; freed with reply_cdb in freeClient, and protected by the same in-flight deferral. */
+    struct csMsetPub *mset_pub;
+    uint64_t tomo_read_snapshot;
+    unsigned int tomo_read_snapshot_pinned;
     unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
     double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
     unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
@@ -1721,6 +1870,10 @@ typedef struct client {
      * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
     listNode *mig_parked_node;
     int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
+    /* Atomic-MSET admission wait membership. Disconnect removes this owning-IO list entry before
+     * freeing the pending command; NULL means the client is not waiting for the global window. */
+    listNode *atomic_window_parked_node;
+    int atomic_window_parked_tid;
     uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
                                 * tomokv-strict-order != 0). Within a queue it is monotonic
                                 * (single producer), so the head is that queue's oldest; the
@@ -1794,75 +1947,13 @@ typedef struct client {
     time_t obuf_soft_limit_reached_time;
     mstime_t io_last_client_cron;  /* Timestamp of last invocation of client
                                     * cron if client is running in IO thread */
-    mstime_t io_last_repl_cron;    /* Timestamp of last invocation of replication
-                                    * cron if client is running in IO thread. */
     int authenticated;      /* Needed when the default user requires auth. */
-    int replstate;          /* Replication state if this is a slave. */
-    int repl_start_cmd_stream_on_ack; /* Install slave write handler on first ACK. */
-    int repldbfd;           /* Replication DB file descriptor. */
-    off_t repldboff;        /* Replication DB file offset. */
-    off_t repldbsize;       /* Replication DB file size. */
-    sds replpreamble;       /* Replication DB preamble. */
-    long long read_reploff; /* Read replication offset if this is a master. */
-    long long io_read_reploff; /* Copy of read_reploff but only used when
-                                * master client is in IO thread so we don't
-                                * have contention with IO thread. */
-    long long reploff;      /* Applied replication offset if this is a master. */
     long long reploff_next; /* Next value to set for reploff when a command finishes executing */
-    long long repl_applied; /* Applied replication data count in querybuf, if this is a replica. */
-    long long repl_ack_off; /* Replication ack offset, if this is a slave. */
-    long long repl_aof_off; /* Replication AOF fsync ack offset, if this is a slave. */
-    long long repl_ack_time;/* Replication ack time, if this is a slave. */
-    long long io_repl_ack_time; /* Replication ack time, if this is a replica in
-                                 * IO thread. Keeps track of repl_ack_time while
-                                 * replica is in IO thread to avoid data races
-                                 * with main. repl_ack_time is updated with this
-                                 * value when replica returns to main thread. */
-    long long repl_last_partial_write; /* The last time the server did a partial write from the RDB child pipe to this replica  */
-    long long psync_initial_offset; /* FULLRESYNC reply offset other slaves
-                                       copying this slave output buffer
-                                       should use. */
-    char replid[CONFIG_RUN_ID_SIZE+1]; /* Master replication ID (if master). */
-    int slave_listening_port; /* As configured with: REPLCONF listening-port */
-    char *slave_addr;       /* Optionally given by REPLCONF ip-address */
-    int slave_capa;         /* Slave capabilities: SLAVE_CAPA_* bitwise OR. */
-    int slave_req;          /* Slave requirements: SLAVE_REQ_* */
-    uint64_t main_ch_client_id; /* The client id of this replica's main channel */
-    multiState mstate;      /* MULTI/EXEC state */
-    blockingState bstate;     /* blocking state */
     long long woff;         /* Last write global replication offset. */
-    list *watched_keys;     /* Keys WATCHED for MULTI/EXEC CAS */
-    dict *pubsub_channels;  /* channels a client is interested in (SUBSCRIBE) */
-    dict *pubsub_patterns;  /* patterns a client is interested in (PSUBSCRIBE) */
-    dict *pubsubshard_channels;  /* shard level channels a client is interested in (SSUBSCRIBE) */
     sds peerid;             /* Cached peer ID. */
     sds sockname;           /* Cached connection target address. */
     listNode *client_list_node; /* list node in client list */
     listNode *io_thread_client_list_node; /* list node in io thread client list */
-    listNode *postponed_list_node; /* list node within the postponed list */
-    void *module_blocked_client; /* Pointer to the RedisModuleBlockedClient associated with this
-                                  * client. This is set in case of module authentication before the
-                                  * unblocked client is reprocessed to handle reply callbacks. */
-    void *module_auth_ctx; /* Ongoing / attempted module based auth callback's ctx.
-                            * This is only tracked within the context of the command attempting
-                            * authentication. If not NULL, it means module auth is in progress. */
-    RedisModuleUserChangedFunc auth_callback; /* Module callback to execute
-                                               * when the authenticated user
-                                               * changes. */
-    void *auth_callback_privdata; /* Private data that is passed when the auth
-                                   * changed callback is executed. Opaque for
-                                   * Redis Core. */
-    void *auth_module;      /* The module that owns the callback, which is used
-                             * to disconnect the client if the module is
-                             * unloaded for cleanup. Opaque for Redis Core.*/
-
-    /* If this client is in tracking mode and this field is non zero,
-     * invalidation messages for keys fetched by this client will be sent to
-     * the specified client ID. */
-    uint64_t client_tracking_redirection;
-    rax *client_tracking_prefixes; /* A dictionary of prefixes we are already
-                                      subscribed to in BCAST mode, in the
-                                      context of client side caching. */
     /* In updateClientMemoryUsage() we track the memory usage of
      * each client and add it to the sum of all the clients of a given type,
      * however we need to remember what was the old contribution of each
@@ -1871,18 +1962,7 @@ typedef struct client {
     size_t last_memory_usage;
     int last_memory_type;
 
-    listNode *ref_repl_buf_node; /* Referenced node of replication buffer blocks,
-                                  * see the definition of replBufBlock. */
-    size_t ref_block_pos;        /* Access position of referenced buffer block,
-                                  * i.e. the next offset to send. */
-    listNode *io_curr_repl_node; /* Current node we are sending repl data from in
-                                  * IO thread. */
-    size_t io_curr_block_pos;    /* Current position we are sending repl data from
-                                  * in IO thread. */
-    listNode *io_bound_repl_node;/* Bound node we are sending repl data from in
-                                  * IO thread. */
-    size_t io_bound_block_pos;   /* Bound position we are sending repl data from
-                                  * in IO thread. */
+    /* Replication buffer cursors live in clientCold. */
 
     /* list node in clients_pending_ex list */
     listNode clients_pending_ex_node;
@@ -1941,11 +2021,31 @@ typedef struct client {
     redisAtomic int tomo_watch_worker; /* sole owner of this client's active WATCH set, or -1 */
     redisAtomic unsigned int tomo_dirty_cas; /* owner-worker WATCH invalidation handoff */
     uint8_t tomo_script_gate;       /* fake owns the script fence until its proc returns */
-    /* Allocated only for an accepted TCP client while tomokv-io-uring=1.
+    /* Allocated only for an accepted TCP client while tomokv-io-uring=1/2.
      * Kept at the cold tail so the default epoll path does not perturb the
      * request/reply cache-line layout. */
+    clientCold *cold;       /* Rare state, allocated on first cold-subsystem use. */
     struct tomoUringClient *uring;
 } client;
+
+/* Non-allocating cold-state readers. Call the subsystem initializer before a
+ * write; these helpers deliberately return NULL for never-used state. */
+static inline multiState *clientMultiState(client *c) {
+    return c->cold ? &c->cold->mstate : NULL;
+}
+
+static inline blockingState *clientBlockingState(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_BLOCKED) ?
+           &c->cold->bstate : NULL;
+}
+
+static inline clientCold *clientPubSubData(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_PUBSUB) ? c->cold : NULL;
+}
+
+static inline clientCold *clientReplicationData(client *c) {
+    return c->cold && (c->cold->initialized & CLIENT_COLD_REPL) ? c->cold : NULL;
+}
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
  * slot that represents one multi-key command). Each sub-fake runs the per-shard
@@ -2058,6 +2158,12 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
+typedef struct csMsetInstall {
+    kvobj *kv;                   /* exact store object returned by setKeyVersioned */
+    int owner;                   /* sole owner that applies both embedded operations */
+    uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
+} csMsetInstall;
+
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
@@ -2065,6 +2171,42 @@ typedef struct csGroup {
     int nkeys;                 /* original key count */
     client **subs;             /* [nsub] sub-fakes (freed at drain) */
     client *head;              /* the group-head fake (the ring slot) */
+    uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
+    /* R1 own-read gate, EXACT arm. key_sig is one bit per key, so at 8 written keys two
+     * disjoint 8-key sets already alias ~66% of the time and the filter almost never proves
+     * disjointness. key_h carries the FULL hash of every key that contributed to key_sig, so a
+     * filter "maybe" can be settled exactly. Deliberately adjacent to key_sig: the FIFO walk
+     * reads all three from one cache line.
+     *   key_h_n == 0  =>  no vector (too many keys, or a shape that never built one): the walk
+     *                     cannot prove disjointness and must HOLD (charged to ownread_conserv).
+     *   key_h_n  > 0  =>  key_h[0..key_h_n) is COMPLETE w.r.t. key_sig. Publishing key_h_n is
+     *                     the commit point; it is written only after every slot is filled, so a
+     *                     half-built vector reads as "no vector" (hold) and never as "disjoint".
+     * Storage lives in this group's own allocation (inline bump region, heap only if it spilled)
+     * and is written once, on the head's IO thread, before csMsetRegister publishes g. It is
+     * therefore reachable exactly as long as the group is LINKED in the FIFO: csMsetPopComplete
+     * copies key_sig/key_h into a connection-owned csPubRec on the way out, because past that
+     * point csReassemble may free this whole allocation at any moment. */
+    uint64_t *key_h;           /* [key_h_n] full tomo key hashes of the written keys */
+    int key_h_n;               /* 0 => filter-only (conservative); see above */
+    uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
+    uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
+    struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
+    client *mset_client;         /* real-client owner of the R1 pending FIFO */
+    struct csGroup *mset_pending_prev;
+    struct csGroup *mset_pending_next;
+    redisAtomic int mset_complete;      /* every owner installed this group */
+    redisAtomic int mset_install_count;
+    csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
+    int versioned_write;         /* this group is an atomic version-bag write */
+    int version_install_expected; /* successful group's exact whole-value install count */
+    int version_commit_ready;    /* current worker wave is the final install wave */
+    int version_abort;           /* semantic no-op/error: cancel reservations, publish no ticket */
+    int version_nx;              /* RENAMENX/COPY NX destination reservation */
+    int version_nx_reserving;    /* current wave is acquiring that destination reservation */
+    redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
+    uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
+    int snapshot_pinned;       /* snapshot-reading group owns its dispatch IO QSBR region */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
@@ -2478,6 +2620,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
@@ -3121,6 +3264,8 @@ struct redisServer {
      * never a worker, so every other client on this thread, and both workers' other buckets, keep
      * running at full rate for the whole window. */
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
+    /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
+    list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
     /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
      * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
      * <= io_threads + num_workers (tm_ngrow_io <= num_workers by construction), so if that sum < 64
@@ -3140,11 +3285,11 @@ struct redisServer {
      * num_workers_live = the CONSUMING worker set: read by the reshard autotuner, KEYS fan-all,
      * FLUSHALL sentinels and RANDOMKEY weighting — anything that would hand work to a thread
      * that must be running exSlice to ever pop it. A grown-front slot is still allocated but
-     * not live. Writers: the flip actuators (main thread; decrement BEFORE arming the
-     * grow-front migration) and the reshard coordinator (increment at the grow-back seed FLIP
-     * — the bucket remap IS the go-live). Producer-side coverage must stay keyed off
-     * num_workers, never num_workers_live: the FLIP can route to a slot before its liveness
-     * signal is published. */
+     * not live. Writers: only the flip accounting transaction on main — grow-front claims EX
+     * before arming its outbound migration and publishes IO (or rolls EX back); grow-back publishes
+     * the complete IO->EX move after the thread adopts EX and before its optional bucket seed.
+     * Producer-side coverage stays keyed off num_workers, never num_workers_live, so every allocated
+     * slot remains covered through either transition. */
     _Atomic int num_workers_live;
     /* ee451 (per-node flip): per-NODE live prefixes. Node n's live workers are the prefix
      * [n*ex_per_node, n*ex_per_node + tm_node_wlive[n]) — grow-front converts the node's HIGHEST
@@ -3165,7 +3310,10 @@ struct redisServer {
                                     * main reads after acquire-loading it. TOMO_MODE_UNSET when idle
                                     * — NOT 0, which is not a mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
-                                    * seed migration, 2=await seed FLIP */
+                                    * seed migration, 2=await seed FLIP, 3=await IO-EXIT rollback ack */
+    _Atomic int tm_flip_gb_state;  /* grow-back commit arbitration: IDLE -> DRAINING -> exactly one
+                                    * of COMMITTED/CANCEL_REQUESTED; the latter ends at ROLLED_BACK.
+                                    * Prevents the watchdog cancel from racing the IO owner's EX commit. */
     mstime_t tm_flip_abort_ms;     /* grow-back phase-0 watchdog: wall-clock deadline for the conn drain;
                                     * abort past it. TIME, not ticks: tmFlipTick runs per event-loop
                                     * iteration, so a tick count is load-dependent (40 iterations ~ 1ms
@@ -3176,9 +3324,9 @@ struct redisServer {
                                     * post-revert backoff) would consume the flag and re-issue its own
                                     * already-landed revert = uncommanded cross-node flip. Consumers
                                     * gate on node==this. topo_nodes==1 => always 0 => no behaviour change. */
-    int tm_flip_aborted;           /* set by the phase-0 timeout-abort; the flip controller consumes it to
-                                    * CANCEL the in-flight probe (config never left baseline: nothing to
-                                    * measure, nothing to revert). */
+    int tm_flip_aborted;           /* set after the phase-0 timeout's owner-acknowledged IO rollback;
+                                    * the flip controller consumes it to CANCEL the in-flight probe
+                                    * (config never left baseline: nothing to measure or revert). */
     int tm_relevel_pending;        /* a completed role-flip left a deterministically skewed bucket
                                     * layout (grow-back seeds by halving ONE neighbour; grow-front
                                     * dumps a whole range on one worker). While set, the balancer
@@ -3197,7 +3345,7 @@ struct redisServer {
     _Atomic uint64_t reshard_fence_aborts;
     int reshard_fence_timeout_ms;  /* 0 = wait forever; N = abort a cutover whose drain fence has
                                     * not completed within N ms (never flips: pure anti-hang net) */
-    int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being brought live */
+    int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being seeded */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
      * STARTING POINT, not the reachable range — every non-main thread is provisioned as a worker with
@@ -3218,8 +3366,8 @@ struct redisServer {
     int io_threads;
     int ex_threads;
     /* One immutable numeric gate for the complete io_uring network backend.
-     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects one
-     * SINGLE_ISSUER|DEFER_TASKRUN ring per live IO owner. */
+     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects the
+     * existing ring; 2 selects the isolated Helio-style staged backend. */
     int io_uring;
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
@@ -3267,9 +3415,9 @@ struct redisServer {
     /* ee451 (thread-modes): coordinator side-channel for FLIP-driven migrations.
      * 0 = ordinary migration (no flip tail);
      * 2 = GROW-FRONT: the converting worker's whole range has been moved out and torn down,
-     *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO);
-     * 3 = GROW-BACK seed: the coordinator publishes num_workers_live++ at the FLIP.
-     * (Value 1 was the reserve-thread activation tail, deleted 2026-07-28 with the reserve.)
+     *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO).
+     * (Values 1/3 were the deleted reserve activation and the old grow-back live-count publication.
+     * Grow-back now publishes its complete IO->EX accounting move at EX adoption, outside reshard.)
      * Written by the successful flip claimer (main or DEBUG's io thread) strictly before
      * reshardArm, read + cleared by the single coordinator of that migration. The atomic flip
      * claim plus one-migration-at-a-time makes this race-free. */
@@ -3992,6 +4140,9 @@ struct redisServer {
     int reply_buffer_transfer_enabled; /* Transfer a completed fake's large plain reply buffer to
                                         * its IO-owned real client when equal-capacity scratch can
                                         * be exchanged. Gated independently for hot-path A/B. */
+    int reply_iovec_enabled; /* Lifetime-aware reply scatter/gather. Large owned values may be
+                              * retained by reference and io_uring keeps every iovec/object pinned
+                              * through its terminal data/notification CQE. Default OFF. */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
@@ -4021,6 +4172,8 @@ struct redisServer {
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
+    int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
+    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 512. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -4471,6 +4624,7 @@ typedef struct csCmdSpec {
 #define TOMO_R_CROSS    4u   /* proc CAN be cross-shard (derived: registry row with ported==CS_PORT_OK) */
 #define TOMO_R_XGUARD   8u   /* multi-key-capable AND not table-PORTED => SAFE-GATE checks it */
 #define TOMO_R_SCRIPTFAM 16u /* eval/fcall/script/function-subcommand — serializes on the script fence */
+#define TOMO_R_ATOMIC_READ 32u /* atomic mode: command needs the own-write read hold */
 struct redisCommand {
     /* Declarative data */
     const char *declared_name; /* A string representing the command declared_name.
@@ -4863,6 +5017,13 @@ void redisSetCpuAffinity(const char *cpulist);
 /* networking.c -- Networking and Client related operations */
 client *createClient(connection *conn);
 void freeClient(client *c);
+clientCold *getClientCold(client *c);
+void freeClientCold(client *c);
+void initClientPubSubData(client *c);
+void freeClientPubSubData(client *c);
+void initClientReplicationData(client *c);
+void initClientModuleData(client *c);
+void freeClientModuleData(client *c);
 void freeClientAsync(client *c);
 void deauthenticateAndCloseClient(client *c);
 void logInvalidUseAndFreeClientAsync(client *c, const char *fmt, ...);
@@ -4876,6 +5037,11 @@ extern _Atomic unsigned long long tomo_nested_cmd_frames;
 /* ee451 (N): CLOSE_ASAP clients deferred by freeClientsInAsyncFreeQueue because their worker ring
  * was still in flight; defined in networking.c, reported as INFO tomokv_close_deferred_ring. */
 extern _Atomic unsigned long long tomo_close_deferred_ring;
+/* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
+ * single csReassemble teardown, including groups whose real connection has disconnected. */
+extern _Atomic unsigned long long tomo_atomic_promotions;
+void tomoAtomicWindowChanged(void);
+void tomoAtomicUnstallClient(client *c);
 void freeClientOriginalArgv(client *c);
 void freeClientArgv(client *c);
 void freeClientPendingCommands(client *c, int num_pcmds_to_free);
@@ -4896,6 +5062,10 @@ int processClientInputFromUring(client *c);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
 int prepareClientToWrite(client *c);
+int clientPrepareReplyIOV(client *c, struct iovec *iov, int iovmax,
+                          size_t byte_limit, size_t *iov_bytes_len);
+int clientReplyIOVCanAsync(client *c);
+void clientConsumeReplyBytes(client *c, size_t nwritten);
 void addReplyNull(client *c);
 void addReplyNullArray(client *c);
 void addReplyBool(client *c, int b);
@@ -5698,6 +5868,7 @@ int checkAlreadyExpired(long long when);
 int parseExtendedExpireArgumentsOrReply(client *c, int *flags);
 kvobj *lookupKeyRead(redisDb *db, robj *key);
 kvobj *lookupKeyWrite(redisDb *db, robj *key);
+void updateLFU(robj *val);
 kvobj *lookupKeyWriteWithLink(redisDb *db, robj *key, dictEntryLink *link);
 kvobj *lookupKeyReadOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply);
@@ -5737,6 +5908,15 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 #define SETKEY_EMBED_RAW 16
 
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
+                       uint64_t version_seq, long long version_expire);
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+void tomoCancelVersion(kvobj *kv);
+void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
+void tomoVersionPruneAfterGrace(kvobj *anchor);
+void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
+uint64_t tomoCurrentReadSnapshot(void);
+uint64_t tomoCommittedSeq(void);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);
@@ -5760,7 +5940,8 @@ void flushAllDataAndResetRDB(int flags);
 long long dbTotalServerKeyCount(void);
 redisDb *initTempDb(void);
 void discardTempDb(redisDb *tempDb);
-
+void ensureLogicalDbInitialized(int id);
+void ensureTempDbInitialized(redisDb *db);
 
 int selectDb(client *c, int id);
 void keyModified(client *c, redisDb *db, robj *key, robj *val, int signal);
@@ -5871,6 +6052,7 @@ typedef struct luaScript {
 /* Blocked clients API */
 void processUnblockedClients(void);
 void initClientBlockingState(client *c);
+void freeClientBlockingState(client *c);
 void blockClient(client *c, int btype);
 void unblockClient(client *c, int queue_for_reprocessing);
 void unblockClientOnTimeout(client *c);
@@ -6308,6 +6490,7 @@ void initIOThreads(void);
 /* Worker thread functions */
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
+int exQueuePopBatch(exQueue *q, client **out, int max);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */

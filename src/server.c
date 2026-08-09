@@ -35,6 +35,7 @@
 #include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
 #include "uring.h"
+#include "uring2.h"
 
 #include <time.h>
 #include <signal.h>
@@ -91,6 +92,27 @@ struct redisServer server; /* Server global state */
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
 static polyThreadCtx tm_flip_claim_marker;
+/* P0 pool conservation: grow-front must delist its EX source before the bucket migration, so the
+ * source half of that move necessarily spans asynchronous work. Keep that claim explicit until
+ * tmFlipTick either publishes the IO destination or rolls the EX source back. tmFlipRelease calls
+ * the rollback hook as a last line of defence, so no release path can strand a half-move. These are
+ * owned by the successful claimer and then main, ordered by tm_flip_ctx's release/acquire edge. */
+static polyThreadCtx *tm_flip_account_ctx;
+static int tm_flip_account_from = TOMO_MODE_UNSET;
+static void tmFlipAccountingRollback(const char *reason);
+/* Read by INFO from IO threads while the actuator/coordinator increments it, hence atomic even
+ * though it is deliberately a plain file-global rather than hot server state. */
+static _Atomic unsigned long long tomo_flip_recoveries;
+
+/* Grow-back's IO owner and the main-thread watchdog arbitrate the commit edge with this state.
+ * In particular, DRAINING may become COMMITTED or CANCEL_REQUESTED, never both. */
+enum {
+    TM_FLIP_GB_IDLE = 0,
+    TM_FLIP_GB_DRAINING,
+    TM_FLIP_GB_COMMITTED,
+    TM_FLIP_GB_CANCEL_REQUESTED,
+    TM_FLIP_GB_ROLLED_BACK
+};
 
 static inline int tmFlipActive(void) {
     return atomic_load_explicit(&server.tm_flip_ctx, memory_order_acquire) != NULL;
@@ -118,6 +140,10 @@ static inline void tmFlipPublish(polyThreadCtx *ctx) {
 }
 
 static inline void tmFlipRelease(void) {
+    /* A flip gate may never reopen with one side of its accounting transaction outstanding. Known
+     * failure paths normally roll back with a specific reason; this catches every future/early
+     * release too. The POOL BROKEN check remains a warning, but release is conservative by design. */
+    tmFlipAccountingRollback("flip released before its destination role was published");
     /* Reset winner-owned state before reopening the gate: a new claimer may start
      * writing it as soon as its acquire-CAS observes the NULL release. */
     server.tm_flip_target = TOMO_MODE_UNSET;
@@ -150,13 +176,18 @@ void fakeRingAutoTune(void);       /* 2s-auto T3 1Hz global express-slim EWMA (m
 void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-reset (owning thread) */
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
 static const csCmdSpec *csClassify(client *c);  /* xshard registry: row iff THIS form crosses shards */
-static void csDispatch(client *head, const csCmdSpec *s);  /* registry-driven dispatch fork */
+static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission);  /* registry-driven dispatch fork */
 static void csPushSpin(int w, client *sub);               /* fwd: push a cross-shard sub to worker w's queue */
+static int csMsetnxAdvanceReservations(csGroup *g);        /* ordered owner acquisition/requeue */
+static int csAtomicNxAdvance(csGroup *g);                   /* RENAMENX/COPY destination reserve */
 static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all worker shards */
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
 static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
+#define CS_MSETNX_PENDING  0
+#define CS_MSETNX_RESERVED 1
+#define CS_MSETNX_PRESENT  2
 #define CO_IDLE          0
 #define CO_WAIT_CONVERGE 1
 #define CO_DRAINING      2
@@ -193,8 +224,298 @@ void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning p
 static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
 static void csReassemble(client *dst, client *head);
+static int csMsetHoldOwnRead(client *c);
+static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys);  /* defined with the bump region */
+static int csAtomicAbortIncomplete(csGroup *g);
 static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it early */
 static inline void tomoPollingYield(void);
+static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op);
+
+#define TOMO_EX_OWNER_OP_TAG ((uintptr_t)1)
+static inline client *exOwnerOpEncode(tomoOwnerOp *op) {
+    serverAssert(((uintptr_t)op & TOMO_EX_OWNER_OP_TAG) == 0);
+    return (client *)((uintptr_t)op | TOMO_EX_OWNER_OP_TAG);
+}
+static inline tomoOwnerOp *exOwnerOpDecode(client *job) {
+    serverAssert(((uintptr_t)job & TOMO_EX_OWNER_OP_TAG) != 0);
+    return (tomoOwnerOp *)((uintptr_t)job & ~TOMO_EX_OWNER_OP_TAG);
+}
+
+/* CURE2 completion order. The lock serializes the R1-approved draw, owner-op
+ * enqueue, and frontier publication; installs themselves remain concurrent.
+ * LAYOUT (perf audit 2026-08-08): commit_seq is acquire-loaded by EVERY snapshot draw (each
+ * read sub — ~8M loads/s at the 9:1 cell) while commit_lock is spun on by every committing
+ * worker and the queue pointers churn under it. Sharing one line made every lock handoff
+ * invalidate the line every reader needs (HITM storm). The frontier gets a line of its own;
+ * the lock deliberately shares a line with the state it protects (same writer). Padded-struct
+ * + define keeps every use site untouched and stops the linker packing strangers into the
+ * line (bare aligned() on the object would not). */
+static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]; }
+    commit_seq_line __attribute__((aligned(CACHE_LINE_SIZE)));
+#define commit_seq (commit_seq_line.v)
+static struct {
+    _Atomic uint64_t next_seq;
+    atomic_flag lock;
+    csGroup *head, *tail;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) - sizeof(atomic_flag) - 2*sizeof(void*)];
+} commit_ctl __attribute__((aligned(CACHE_LINE_SIZE)));
+#define next_seq (commit_ctl.next_seq)
+#define commit_lock (commit_ctl.lock)
+#define commit_head (commit_ctl.head)
+#define commit_tail (commit_ctl.tail)
+
+/* Atomic-MSET admission. With a finite window, `inflight` is also the reservation word: a
+ * successful increment is immediately followed, on the same non-yielding processCommand stack,
+ * by construction and registration of exactly one versioned-write group. Using the counter itself
+ * as the CAS word makes the bound strict across concurrent IO producers (a load-then-increment
+ * would overshoot by up to the IO-thread count). There is no recoverable allocation/dispatch
+ * failure between reservation and csMsetRegister; allocation failure terminates the process.
+ * Window 0 increments at csMsetRegister instead, preserving today's dispatch/classification path. */
+/* The admission counter is CAS'd by every IO thread per group (1.26M RMW/s at the write
+ * ceiling); anything sharing its line pays. Own line, same padded-struct idiom as above. */
+static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
+    tomo_atomic_inflight_line __attribute__((aligned(CACHE_LINE_SIZE)));
+#define tomo_atomic_inflight (tomo_atomic_inflight_line.v)
+_Atomic unsigned long long tomo_atomic_promotions;
+static _Atomic int tomo_atomic_waiters;
+
+uint64_t tomoCommittedSeq(void) {
+    return atomic_load_explicit(&commit_seq, memory_order_acquire);
+}
+
+uint64_t tomoCurrentReadSnapshot(void) {
+    client *c = server.current_client[iotid].p;
+    if (c) {
+        if (c->tomo_read_snapshot_pinned) return c->tomo_read_snapshot;
+        if (c->csparent) {
+            csGroup *g = c->csparent;
+            if (g->snapshot_pinned) return g->read_seq;
+            if (g->head && g->head->tomo_read_snapshot_pinned)
+                return g->head->tomo_read_snapshot;
+        }
+    }
+    return tomoCommittedSeq();
+}
+
+/* Every io-capable slot owns a notifier registered on its event loop. Triggering it never runs
+ * input processing here; its handler only drains the fd, and the normal beforeSleep pass performs
+ * retries after the admission frame has returned. */
+static void tomoAtomicWakeProducer(int t) {
+    if (t < 0 || t > TOMO_IO_THREADS_MAX) return;
+    eventNotifier *n = tm_mig_mbox[t].notifier;
+    if (n) triggerEventNotifier(n);
+}
+
+static void tomoAtomicWakeAll(void) {
+    int hi = server.io_threads + server.tm_ngrow_io - 1;
+    if (hi > TOMO_IO_THREADS_MAX) hi = TOMO_IO_THREADS_MAX;
+    for (int t = 0; t <= hi; t++) tomoAtomicWakeProducer(t);
+}
+
+void tomoAtomicWindowChanged(void) {
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+        tomoAtomicWakeAll();
+}
+
+/* Called only after the caller has established server.tomo_atomic. Consequently the admission
+ * path never reads tomokv-atomic-window while atomic visibility is disabled. Window 0 still
+ * counts groups for observability/exactly-once auditing, but never refuses one. */
+static int tomoAtomicMsetTryReserve(int window) {
+    if (window == 0) {
+        atomic_fetch_add_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+        return 1;
+    }
+    int cur = atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed);
+    while (cur < window) {
+        if (atomic_compare_exchange_weak_explicit(&tomo_atomic_inflight, &cur, cur + 1,
+                                                  memory_order_relaxed,
+                                                  memory_order_relaxed))
+            return 1;
+        /* Failed CAS refreshed cur; do not race past the bound. */
+    }
+    return 0;
+}
+
+static void tomoAtomicDropWaiter(client *c) {
+    serverAssert(c->atomic_window_parked_node != NULL);
+    int tid = c->atomic_window_parked_tid;
+    serverAssert(tid >= 0 && tid <= TOMO_IO_THREADS_MAX);
+    listDelNode(server.clients_atomic_window_parked[tid], c->atomic_window_parked_node);
+    c->atomic_window_parked_node = NULL;
+    int old = atomic_fetch_sub_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
+    serverAssert(old > 0);
+}
+
+void tomoAtomicUnstallClient(client *c) {
+    if (!c->atomic_window_parked_node) return;
+    tomoAtomicDropWaiter(c);
+    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+    c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
+                  CLIENT_PIPELINE_STALLED);
+}
+
+static void tomoAtomicEnrollWaiter(client *c) {
+    if (!c->atomic_window_parked_node) {
+        c->atomic_window_parked_tid = iotid;
+        listAddNodeTail(server.clients_atomic_window_parked[iotid], c);
+        c->atomic_window_parked_node =
+            listLast(server.clients_atomic_window_parked[iotid]);
+        atomic_fetch_add_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
+    }
+}
+
+static void tomoAtomicParkWindowClient(client *c) {
+    tomoAtomicEnrollWaiter(c);
+    c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
+    /* Closes the retire-vs-park missed-wakeup race: if a group retired just before waiter
+     * publication and therefore saw zero waiters, this event makes the owner recheck the now-open
+     * counter. If the window remains full the handler simply drains once and sleeps again. */
+    tomoAtomicWakeProducer(iotid);
+}
+
+static void tomoAtomicParkPendingRead(client *c) {
+    tomoAtomicEnrollWaiter(c);
+    c->flags |= CLIENT_ATOMIC_PENDING_STALLED | CLIENT_PIPELINE_STALLED;
+    /* The hold-side post-enrollment overlap check closes the selective-wait missed-wakeup race.
+     * Keep the original zero-count self-wake too: it is a cheap fast confirmation when the last
+     * pending group retired between the pre-park check and waiter enrollment. */
+    if (atomic_load_explicit(&c->mset_pending_count, memory_order_acquire) == 0)
+        tomoAtomicWakeProducer(iotid);
+}
+
+/* Owning-event-loop retry. No worker or IO thread parks: the refused command remains the head
+ * pending command. Admission waits recheck the global CAS window; own-write read waits recheck
+ * their post-publication per-client count. A retry may immediately park again, so re-evaluate the
+ * shared list after every client. */
+static void tomoAtomicReleaseStalledClients(void) {
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
+    list *l = server.clients_atomic_window_parked[iotid];
+    while (l && listLength(l) != 0) {
+        int window = 0;
+        if (server.tomo_atomic) window = server.tomo_atomic_window;
+        int window_open = window <= 0 ||
+            atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) < window;
+
+        /* The list is shared by the two leave-at-pending-head stalls. Admission
+         * may still be full while an own-write read later in the list is ready,
+         * so find one eligible client instead of stopping at the list head. */
+        client *c = NULL;
+        listIter li;
+        listNode *ln;
+        listRewind(l, &li);
+        while ((ln = listNext(&li)) != NULL) {
+            client *candidate = listNodeValue(ln);
+            if (candidate->flags & CLIENT_ATOMIC_PENDING_STALLED) {
+                /* A publishing group clears this marker and wakes the producer. Re-drive the
+                 * command even if disjoint groups remain: the overlap filter, not total FIFO
+                 * emptiness, decides whether this particular read must park again. */
+                if (atomic_load_explicit(&candidate->mset_read_waiting,
+                                         memory_order_acquire) == 0) {
+                    c = candidate;
+                    break;
+                }
+            } else if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) && window_open) {
+                c = candidate;
+                break;
+            }
+        }
+        if (!c) return;
+
+        tomoAtomicDropWaiter(c);
+        atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+        c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
+                      CLIENT_PIPELINE_STALLED);
+        /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
+         * have returned. processInputBuffer may free c, so do not touch it after this call. */
+        processInputBuffer(c);
+    }
+}
+
+/* The atomic knob deliberately selects whole command shapes, not generic writes: every row
+ * below either already constructs a fresh destination value or is RENAME/COPY's whole-value
+ * move/copy. SORT is eligible only when this invocation actually has STORE, and the legacy
+ * GEORADIUS optional stores remain outside PORTALL_SPEC (GEOSEARCHSTORE is the scoped form). */
+static int csAtomicPortallVersionedWrite(client *c, const csCmdSpec *s) {
+    if (!s) return 0;
+    switch (s->ctype) {
+    case CS_SSTORE:
+    case CS_ZSTORE:
+    case CS_ZRANGESTORE:
+    case CS_BITOP:
+    case CS_PFMERGE:
+    case CS_RENAME:
+    case CS_RENAMENX:
+    case CS_COPY:
+        return 1;
+    case CS_SORTSTORE:
+        return c->cmd->proc == sortCommand && s->dynamic_dst_argi &&
+               s->dynamic_dst_argi(c) > 0;
+    case CS_GEOSTORE:
+        return c->cmd->proc == geosearchstoreCommand;
+    default:
+        return 0;
+    }
+}
+
+/* Only the PORTALL read-then-write shapes need a command-lifetime source snapshot. The original
+ * MSET/DEL/MSETNX bag writers either install caller values/tombstones or make their reservation
+ * decision from the owner-local committed cursor; pinning them here recreates the command-wide
+ * pin/walk collapse that the lazy-pin fix removed from the existing atomic-command path. */
+static int csAtomicReadsSources(const csCmdSpec *s) {
+    if (!s) return 0;
+    switch (s->ctype) {
+    /* MSETNX and DEL are read-then-write too: both consult existing state before writing
+     * (MSETNX's per-key presence probe decides reserve-vs-cancel; DEL's live lookup produces
+     * the reply count), and both probe COMMITTED state only. Without the hold, a connection
+     * that pipelines `MSET k v` then `MSETNX k w` had the MSETNX probe miss its own still-
+     * uncommitted write and answer as if k were absent: measured 77% wrong replies AND wrong
+     * final state (k=w, reply 1, where serial order demands k=v, reply 0), with DEL likewise
+     * reporting 0 for a key it does delete. Both are correct with the knob OFF, so atomic mode
+     * was breaking a guarantee the stock path keeps. They were omitted here because the list
+     * was written for the PORTALL store family; the predicate — "consults state before
+     * writing" — always covered them. The bloom overlap filter keeps disjoint traffic free. */
+    case CS_MSETNX:
+    case CS_DEL:
+    case CS_SSTORE:
+    case CS_ZSTORE:
+    case CS_ZRANGESTORE:
+    case CS_BITOP:
+    case CS_PFMERGE:
+    case CS_RENAME:
+    case CS_RENAMENX:
+    case CS_COPY:
+    case CS_SORTSTORE:
+    case CS_GEOSTORE:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+/* I7's existing read hold applies to every PORTALL source reader as well as the original
+ * GET/MGET/EXISTS/TOUCH set. This includes read-then-write commands: drawing S before this
+ * connection's previous atomic group publishes would otherwise compute a destination from an
+ * older source cut even though the groups themselves commit in R1 order. */
+static int csAtomicNeedsOwnReadHold(client *c) {
+    if (c->cmd->proc == getCommand || c->cmd->proc == mgetCommand ||
+        c->cmd->proc == existsCommand || c->cmd->proc == touchCommand)
+        return 1;
+    /* All registry read-only shapes resolve bags and draw a snapshot, including the non-store
+     * set/zset algebra commands that can immediately follow one of their STORE counterparts. */
+    if (c->cmd->flags & CMD_READONLY) return 1;
+    const csCmdSpec *s = csClassify(c);
+    /* Stock keeps one-key DEL on its direct worker path; atomic mode enrolls it in the group/FIFO,
+     * so mirror the admission path's fallback or single-key DEL never reaches the hold. */
+    if (!s && c->cmd->proc == delCommand && c->argc == 2) s = c->cmd->cs_spec;
+    if (!csAtomicReadsSources(s)) return 0;
+    /* MSETNX and DEL are the ORIGINAL bag set, not PORTALL rows — csAtomicPortallVersionedWrite
+     * excludes them by construction (the admission path likewise spells the three original ctypes
+     * out by hand beside it). Gating them behind it left both probes unheld: the registry flag was
+     * set but this predicate short-circuited to 0, so the first version of this fix moved nothing
+     * (3065 -> 2750 of 4000 = noise). They are versioned writes whenever they classify. */
+    if (s->ctype == CS_MSETNX || s->ctype == CS_DEL) return 1;
+    return csAtomicPortallVersionedWrite(c, s);
+}
 
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
@@ -264,6 +585,39 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
+    /* Atomic-mode RYOW overlap census (csMsetHoldOwnRead). The read hold's cost is set by how
+     * often a read ACTUALLY collides with its own uncommitted writes, and that rate is a property
+     * of the WORKLOAD's key distribution, not of the code — so it can only be measured, never
+     * reasoned about. Appended at the tail deliberately: every offset above is already covered by
+     * a false-sharing argument (and two _Static_asserts), and inserting here would move them.
+     * Owner-written plainly on the dispatching io identity, racy read by INFO — same contract as
+     * rord_runs; nothing here is on the zero-pending fast path except `ownread_reads`.
+     *   reads    = every read that reached the gate       (denominator)
+     *   pending  = ...that arrived with own writes in flight (the gate's decision set)
+     *   held     = ...that the gate could not clear, so it parked
+     *   conserv  = held WITHOUT a proven key collision: unknown/dynamic read keyspace (all-ones
+     *              signature), a pending writer carrying no exact key vector (more written keys
+     *              than the exact test retains), or a publishing-record ring with no room (which
+     *              its derived sizing should make unreachable). These are the holds the gate could
+     *              not prove, counted apart so the measured overlap rate stays separable from the
+     *              gate's own imprecision. On a plain MGET/MSET cell the first two arms cannot
+     *              fire at all, so there conserv IS the ring-overflow rate, directly.
+     *   detach   = ...that arrived while one of this connection's completed groups was DETACHED
+     *              from the FIFO awaiting its commit publication. NOT a hold count: it is the
+     *              population that used to hold unconditionally (98% of all holds, measured) and
+     *              is now settled exactly against the group's copied key set. It exists so the
+     *              closing of that window is falsifiable rather than inferred from `conserv`
+     *              alone: detach must stay large while conserv collapses. detach == 0 means the
+     *              records were never consulted and nothing was closed.
+     * Since the exact arm landed, held-minus-conserv is a real key-overlap rate: a filter alias
+     * no longer parks anything, so it can no longer inflate `held`. Any future widening of what
+     * the gate can prove must land in `conserv` the same way — a gate that reports "no false
+     * positives" because its own counter stopped moving would be worse than no counter. */
+    unsigned long long ownread_reads;
+    unsigned long long ownread_pending;
+    unsigned long long ownread_held;
+    unsigned long long ownread_conserv;
+    unsigned long long ownread_detach;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
@@ -1475,11 +1829,12 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
         return 0;
 
     /*
-     * An ordinary io_uring SEND may reference the immutable unsent prefix of
+     * An io_uring SEND/SENDMSG may reference the immutable unsent prefix of
      * c->buf directly. Reply construction only appends behind that prefix;
-     * defer the rare cron reallocation until its data CQE ends the reference.
+     * defer the rare cron reallocation until the data CQE and any promised
+     * zero-copy notification end the reference.
      */
-    if (server.io_uring && tomoUringClientSendPending(c)) return 0;
+    if (server.io_uring && tomoUringBackendClientSendPending(c)) return 0;
 
     /* Don't resize encoded buffers. When buf is encoded, we track the last
      * partially written payloadHeader pointer, so we can't
@@ -1758,9 +2113,10 @@ void databasesCron(void) {
 
         for (j = 0; j < dbs_per_call; j++) {
             redisDb *db = &server.db[resize_db % server.dbnum];
+            resize_db++;
+            if (!dbIsInitialized(db)) continue;
             kvstoreTryResizeDicts(db->keys, CRON_DICTS_PER_DB);
             kvstoreTryResizeDicts(db->expires, CRON_DICTS_PER_DB);
-            resize_db++;
         }
 
         /* Rehash */
@@ -1768,6 +2124,10 @@ void databasesCron(void) {
             uint64_t elapsed_us = 0;
             for (j = 0; j < dbs_per_call; j++) {
                 redisDb *db = &server.db[rehash_db % server.dbnum];
+                if (!dbIsInitialized(db)) {
+                    rehash_db++;
+                    continue;
+                }
                 elapsed_us += kvstoreIncrementallyRehash(db->keys, INCREMENTAL_REHASHING_THRESHOLD_US - elapsed_us);
                 if (elapsed_us >= INCREMENTAL_REHASHING_THRESHOLD_US)
                     break;
@@ -2115,6 +2475,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     if (server.verbosity <= LL_VERBOSE) {
         run_with_period(5000) {
             for (j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.db[j])) continue;
                 long long size, used, vkeys;
 
                 size = kvstoreBuckets(server.db[j].keys);
@@ -2728,8 +3089,7 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * `ex`. MUST be called AFTER the release-store of q->tail so the tail is visible to
  * any consumer that sees this bit. Every site that release-stores a tail must call
  * this -- a missed call strands the lane (see exThread.q_summary). */
-static inline void exHandoffAdvertise(exThread *ex) {
-    unsigned t = (unsigned)iotid;
+static inline void exHandoffAdvertiseLane(exThread *ex, unsigned t) {
     uint64_t old = atomic_fetch_or_explicit(&ex->q_summary[t >> 6], 1ull << (t & 63),
                                             memory_order_release);
 #if TOMO_QS_WORDS > 1
@@ -2744,6 +3104,10 @@ static inline void exHandoffAdvertise(exThread *ex) {
 #else
     (void)old;
 #endif
+}
+
+static inline void exHandoffAdvertise(exThread *ex) {
+    exHandoffAdvertiseLane(ex, (unsigned)iotid);
 }
 
 /* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
@@ -2886,8 +3250,15 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
         int c = tomo_rord.cls[i] & TOMO_CLS_MASK;
         clspos[c][clen[c]++] = (uint8_t)a;
         succ[a] = -1; blocked[a] = 0;
+        /* fk fix: fence by CONNECTION identity. A real client's own single-key commands have
+         * fk->parent==NULL; its cross-shard sub-fakes have fk->parent = that real client. They MUST
+         * share identity or a client's SET and its own MGET sub-read on the same key never fence,
+         * and the reorder emits the read before the write => read-your-own-writes breaks. parent ?
+         * parent : self gives both the same id; distinct real clients still differ (correctly free
+         * to reorder). Was: ->parent alone (NULL-folds real clients to key-only, mismatching fakes). */
+        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
         uint64_t dep = tomo_rord.h[i] ^
-            ((uint64_t)(uintptr_t)tomo_rord.fk[i]->parent * 0x9E3779B97F4A7C15ull);
+            ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
         unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
         while (rord_hset_gen[slot] == g) {
             if (rord_hset_key[slot] == dep) { succ[rord_dep_pos[slot]] = a; blocked[a] = 1; break; }
@@ -2962,8 +3333,9 @@ void tomoReorderDrain(void) {
                  * that -- on a hot key hammered by many connections the old key-only fence pinned the
                  * whole run to arrival order (killing the SJF); now only each client's own
                  * subsequence fences. (parent==NULL folds to key-only = the safe/strict side.) */
+                client *cida = tomo_rord.fk[ia]->parent ? tomo_rord.fk[ia]->parent : tomo_rord.fk[ia];
                 uint64_t da = tomo_rord.h[ia] ^
-                    ((uint64_t)(uintptr_t)tomo_rord.fk[ia]->parent * 0x9E3779B97F4A7C15ull);
+                    ((uint64_t)(uintptr_t)cida * 0x9E3779B97F4A7C15ull);
                 unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
                 while (rord_hset_gen[slot] == hgen) {
                     if (rord_hset_key[slot] == da) { fence_at = a; break; }
@@ -3031,6 +3403,38 @@ void tomoReorderDrain(void) {
         s0 = s1;
     }
     tomo_rord.n = 0;
+    tomo_rord.draining = 0;
+}
+
+/* fk fix (surgical same-connection drain): flush ONLY `conn`'s staged single-key writes into their
+ * owner queues, ahead of that SAME connection's cross-shard command, and leave every OTHER
+ * connection's staging untouched. Read-your-own-writes and same-key write-order are PER-CONNECTION
+ * guarantees (Redis orders commands only within one connection), so this is all correctness needs --
+ * and unlike a full tomoReorderDrain() it does NOT collapse the SJF staging window of the co-located
+ * connections that merely share this IO thread's scratch (the reason a blanket drain-before-every-
+ * cross-shard-command would kill batching in a mixed write+cross-shard workload). Emits conn's
+ * entries in arrival order (so its own same-key writes keep pipeline order) and compacts the
+ * survivors down in place. O(window); window is small and bounded (TOMO_RORD_CAP). */
+static void tomoReorderDrainConn(client *conn) {
+    int n = tomo_rord.n;
+    if (n == 0) return;
+    tomo_rord.draining = 1;
+    int dst = 0;
+    for (int i = 0; i < n; i++) {
+        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
+        if (cid == conn) {
+            exDispatchDirect(tomo_rord.ex[i], tomo_rord.fk[i]);   /* enqueue to the owning worker */
+            continue;                                             /* consumed; not kept */
+        }
+        if (dst != i) {   /* keep: compact the survivor down (all 4 parallel per-entry arrays) */
+            tomo_rord.fk[dst]  = tomo_rord.fk[i];
+            tomo_rord.h[dst]   = tomo_rord.h[i];
+            tomo_rord.ex[dst]  = tomo_rord.ex[i];
+            tomo_rord.cls[dst] = tomo_rord.cls[i];
+        }
+        dst++;
+    }
+    tomo_rord.n = dst;
     tomo_rord.draining = 0;
 }
 
@@ -3184,6 +3588,12 @@ static inline void foldClientCommandsProcessed(client *real, client *fake) {
     }
 }
 
+static inline void tomoReleaseReadSnapshot(client *fake) {
+    if (!fake->tomo_read_snapshot_pinned) return;
+    fake->tomo_read_snapshot_pinned = 0;
+    flatQsbrRegionExit();
+}
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -3224,6 +3634,16 @@ void handleWorkerReplies(void) {
                  * to avoid a leak. */
                 if (fake->csgroup) {
                     csGroup *g = fake->csgroup;
+                    if (__builtin_expect(g->versioned_write && g->version_nx,0) &&
+                        csAtomicNxAdvance(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
+                    if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
+                        csMsetnxAdvanceReservations(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
                     if (g->sort_stage) {
                         fake->flags |= CLIENT_EX_PENDING;
                         if (csSortAdvance(g))
@@ -3249,10 +3669,15 @@ void handleWorkerReplies(void) {
                             break;   /* stop draining; HOP2 completes + retires on a later pass */
                         fake->flags &= ~CLIENT_EX_PENDING;  /* prep refused (err) — retire this pass */
                     }
+                    if (csAtomicAbortIncomplete(g)) {
+                        fake->flags |= CLIENT_EX_PENDING;
+                        break;
+                    }
                     csReassemble(NULL, fake);
                 }
                 foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
                 cdbSlotClear(real, fake->cdb, slot);
+                tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
@@ -3313,6 +3738,14 @@ void handleWorkerReplies(void) {
              * head ring slot like any other fake. */
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
+                if (__builtin_expect(g->versioned_write && g->version_nx,0) &&
+                    csAtomicNxAdvance(g)) {
+                    break;
+                }
+                if (__builtin_expect(g->versioned_write && g->ctype == CS_MSETNX, 0) &&
+                    csMsetnxAdvanceReservations(g)) {
+                    break;
+                }
                 /* merge-exec pipeline: a completed stage either dispatches the next one (head
                  * stays in flight, exactly like the HOP2 launch below) or falls through to
                  * reassemble the final survivors. */
@@ -3333,6 +3766,9 @@ void handleWorkerReplies(void) {
                     csLaunchHop2(g)) {
                     break;
                 }
+                if (csAtomicAbortIncomplete(g)) {
+                    break;
+                }
                 csReassemble(real, fake);
             } else {
                 AddReplyFromClient(real, fake);
@@ -3351,6 +3787,7 @@ void handleWorkerReplies(void) {
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
                 cdbSlotClear(real, fake->cdb, slot);
+                tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
                 real->flushid++;
@@ -3361,6 +3798,7 @@ void handleWorkerReplies(void) {
             /* Fake is fully drained into real's output. Clear its independent
              * ready byte before retiring/reusing this fake-ring slot. */
             cdbSlotClear(real, fake->cdb, slot);
+            tomoReleaseReadSnapshot(fake);
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
@@ -3371,7 +3809,7 @@ void handleWorkerReplies(void) {
          * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
          * write path byte-for-byte. */
         if (spliced && !close_asap) {
-            if (server.io_uring && tomoUringClientAttached(real)) {
+            if (server.io_uring && tomoUringBackendClientAttached(real)) {
                 putClientInPendingWriteQueue(real);
             } else {
                 (void)writeToClient(real, 0);
@@ -3395,8 +3833,12 @@ void handleWorkerReplies(void) {
          * by cs_barrier is only released when the ring goes fully EMPTY
          * (dispatchid == flushid — see processInputBuffer). Waking it on every retiring
          * slot made it re-enter processInputBuffer, re-fail the barrier test and re-stall
-         * once per slot: O(ring depth) pointless entries per barrier. */
+         * once per slot: O(ring depth) pointless entries per barrier. Atomic-window stalls are
+         * global rather than ring predicates and stay owned by tomoAtomicReleaseStalledClients;
+         * clearing their shared PIPELINE_STALLED bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
+            !(real->flags & (CLIENT_ATOMIC_WINDOW_STALLED |
+                             CLIENT_ATOMIC_PENDING_STALLED)) &&
             (real->cs_barrier ? (real->dispatchid == real->flushid)
                               : ((real->dispatchid - real->flushid) < real->ring_size)))
         {
@@ -3430,6 +3872,7 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
@@ -3581,6 +4024,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* Check for completed worker replies and feed them into
      * the pending write queue for flushing. */
     handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
 
     /* If workers still have commands in flight, don't sleep —
      * we need to check reply_ready again ASAP. */
@@ -4543,6 +4987,64 @@ static int detectL3Domains(void) {
     return nseen > 0 ? nseen : 1;
 }
 
+/* Clients and workers retain pointers into the contiguous database arrays, so
+ * changing those arrays to pointer arrays would invalidate THredis's aliasing
+ * contract. Keep the small redisDb shells stable and construct their expensive
+ * kvstores/dictionaries only when the logical database is first selected.
+ *
+ * A logical DB is a group: its decoy server.db entry plus the same DB id in
+ * every per-node physical array. The decoy initialized bit is published last,
+ * so an acquire load that observes it also observes every physical DB. */
+static pthread_mutex_t logical_db_init_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void initializeDatabase(redisDb *db, int id, int slot_count_bits,
+                               int key_flags, int expires_flags)
+{
+    serverAssert(!dbIsInitialized(db));
+    db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, key_flags);
+    db->expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, expires_flags);
+    db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+    db->expires_cursor = 0;
+    db->blocking_keys = dictCreate(&keylistDictType);
+    db->blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
+    db->stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->ready_keys = dictCreate(&objectKeyPointerValueDictType);
+    db->watched_keys = dictCreate(&keylistDictType);
+    db->id = id;
+    db->avg_ttl = 0;
+    atomicSetWithSync(db->initialized, 1);
+}
+
+void ensureLogicalDbInitialized(int id) {
+    serverAssert(id >= 0 && id < server.dbnum);
+    if (dbIsInitialized(&server.db[id])) return;
+
+    pthread_mutex_lock(&logical_db_init_mutex);
+    if (!dbIsInitialized(&server.db[id])) {
+        const int slot_count_bits = TOMO_BUCKET_BITS;
+        const int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
+        int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
+        if (server.shared_node_dbs) shflags |= KVSTORE_FLAT;
+
+        /* initServer installs every physical array before making DB 0 (or any
+         * client) visible. Later SELECTs use these already-stable arrays. */
+        serverAssert(server.node_dbs != NULL);
+        for (int n = 0; n < server.n_node_dbs; n++) {
+            redisDb *db = &server.node_dbs[n][id];
+            if (!dbIsInitialized(db)) {
+                initializeDatabase(db, id, slot_count_bits, shflags,
+                                   shflags & ~KVSTORE_FLAT);
+            }
+        }
+
+        /* Publish the decoy last: it is the readiness sentinel for the whole
+         * logical-DB group and the pointer SELECT stores in the real client. */
+        initializeDatabase(&server.db[id], id, slot_count_bits, flags, flags);
+    }
+    pthread_mutex_unlock(&logical_db_init_mutex);
+}
+
 void initServer(void) {
     /* ee451 (v14): auto-detect from sysfs. tomokv-l3-kb (the explicit KB pin, for VMs that hide
      * cache topology) was retired at 0 = auto, so detection is the only path; detectL3Bytes has
@@ -4585,9 +5087,9 @@ void initServer(void) {
      * second ownership protocol and is intentionally not mixed with it. */
     if (server.io_uring && server.io_threads_num != 1) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-io-uring 1 requires the upstream 'io-threads' "
+            "FATAL: tomokv-io-uring %d requires the upstream 'io-threads' "
             "setting to remain 1; size TomoKV IO ownership with "
-            "tomokv-thread-io instead");
+            "tomokv-thread-io instead", server.io_uring);
         exit(1);
     }
 
@@ -4597,8 +5099,9 @@ void initServer(void) {
      * into an epoll run with a misleading label. */
     if (server.io_uring) {
         serverLog(LL_WARNING,
-            "FATAL: tomokv-io-uring 1 requires a Linux build with "
-            "liburing >= 2.4 (rebuild with USE_URING=yes)");
+            "FATAL: tomokv-io-uring %d requires a Linux build with "
+            "liburing >= 2.4 (rebuild with USE_URING=yes)",
+            server.io_uring);
         exit(1);
     }
 #endif
@@ -4946,6 +5449,7 @@ void initServer(void) {
         server.clients_with_pending_ref_reply[t] = listCreate();
         server.clients_pending_ex[t]         = listCreate();
         server.clients_mig_parked[t]         = listCreate();   /* ee451 (H2 handover range-hold) */
+        server.clients_atomic_window_parked[t] = listCreate();
         server.current_client[t].p                 = NULL;
         server.executing_client[t].p               = NULL;
     }
@@ -4971,7 +5475,6 @@ void initServer(void) {
      * independent set of databases (0..dbnum-1). Keys are partitioned
      * across workers by hash, so worker N only ever touches ex_dbs[N]. */
     int slot_count_bits = TOMO_BUCKET_BITS;
-    int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket (16384 dicts,
      * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
      * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
@@ -4980,22 +5483,12 @@ void initServer(void) {
      * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
      * that benign stale-read race into a use-after-free. Dicts persist once created. */
 
-    /* Keep server.db allocated so legacy code paths don't crash.
-     * These dbs are empty - real data lives in ex_dbs. */
-    server.db = zmalloc(sizeof(redisDb) * server.dbnum);
+    /* Keep stable decoy DB shells so legacy pointers remain valid. The heavy
+     * state is created together with the matching physical DBs on first use. */
+    server.db = zcalloc(sizeof(redisDb) * server.dbnum);
     for (j = 0; j < server.dbnum; j++) {
-        server.db[j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
-        server.db[j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
-        server.db[j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-        server.db[j].expires_cursor = 0;
-        server.db[j].blocking_keys = dictCreate(&keylistDictType);
-        server.db[j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-        server.db[j].watched_keys = dictCreate(&keylistDictType);
         server.db[j].id = j;
-        server.db[j].avg_ttl = 0;
+        atomicSet(server.db[j].initialized, 0);
     }
 
     server.num_workers = server.ex_threads;
@@ -5020,6 +5513,7 @@ void initServer(void) {
     server.tm_mig_flip_action = 0;
     atomic_store_explicit(&server.tm_flip_ctx, NULL, memory_order_relaxed);
     server.tm_flip_target = TOMO_MODE_UNSET;   /* no flip in progress; 0 is not a mode */
+    atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_relaxed);
     /* (The old "tomokv-thread-balance requires tomokv-thread-modes" boot check is GONE by
      * construction: tomokv-thread-mode is a single enum, so the half-configured state that used
      * to silently disable the controller is now unrepresentable.)
@@ -5083,24 +5577,12 @@ void initServer(void) {
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         server.shared_node_dbs = (wpn > 1);
         server.n_node_dbs = nnodes;
-        int shflags = flags | (server.shared_node_dbs ? KVSTORE_SHARED_MT : 0);
-        if (server.shared_node_dbs) shflags |= KVSTORE_FLAT;  /* FLATSTORE: a shared node db IS a flat table */
         server.node_dbs = zmalloc(sizeof(redisDb *) * nnodes);
         for (int n = 0; n < nnodes; n++) {
-            server.node_dbs[n] = zmalloc(sizeof(redisDb) * server.dbnum);
+            server.node_dbs[n] = zcalloc(sizeof(redisDb) * server.dbnum);
             for (j = 0; j < server.dbnum; j++) {
-                server.node_dbs[n][j].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, shflags);
-                server.node_dbs[n][j].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, shflags & ~KVSTORE_FLAT);  /* review [crit]: expires stays on the dict path (its insert path AddRaw has no flat branch) */
-                server.node_dbs[n][j].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-                server.node_dbs[n][j].expires_cursor = 0;
-                server.node_dbs[n][j].blocking_keys = dictCreate(&keylistDictType);
-                server.node_dbs[n][j].blocking_keys_unblock_on_nokey = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].stream_claim_pending_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].ready_keys = dictCreate(&objectKeyPointerValueDictType);
-                server.node_dbs[n][j].watched_keys = dictCreate(&keylistDictType);
                 server.node_dbs[n][j].id = j;
-                server.node_dbs[n][j].avg_ttl = 0;
+                atomicSet(server.node_dbs[n][j].initialized, 0);
             }
         }
         /* One entry per worker SLOT; a grown-front slot keeps its alias so grow-back revives
@@ -5111,6 +5593,10 @@ void initServer(void) {
             if (n >= nnodes) n = nnodes - 1;                         /* defensive clamp */
             server.ex_dbs[w] = server.node_dbs[n];
         }
+
+        /* DB 0 is the default and must be ready before the early scripting and
+         * functions clients call createClient(NULL). All other DBs stay cold. */
+        ensureLogicalDbInitialized(0);
     }
 
     evictionPoolAlloc();
@@ -5201,6 +5687,11 @@ void initServer(void) {
             serverPanic(
                 "Error registering the readable event for the module pipe.");
     }
+
+    /* Slot 0 (main) needs the same harmless event-loop wake fd as the auxiliary IO slots. It was
+     * previously unused by connection migration; atomic-window retirement can now wake a main-
+     * owned stalled client promptly instead of waiting for the next serverCron timer. */
+    tmMigInitSlot(0, server.el);
 
     aeSetBeforeSleepProc(server.el, beforeSleep);
     aeSetAfterSleepProc(server.el, afterSleep);
@@ -6595,8 +7086,10 @@ enum {
 
 static int tomoExecHasScript(client *c) {
     if (!c->cmd || c->cmd->proc != execCommand || !(c->flags & CLIENT_MULTI)) return 0;
-    for (int i = 0; i < c->mstate.count; i++) {
-        struct redisCommand *cmd = c->mstate.commands[i]->cmd;
+    multiState *ms = clientMultiState(c);   /* MERGE: sidecar storage; CLIENT_MULTI implies it exists */
+    if (!ms) return 0;
+    for (int i = 0; i < ms->count; i++) {
+        struct redisCommand *cmd = ms->commands[i]->cmd;
         if (cmd && (cmd->tomo_route & TOMO_R_SCRIPTFAM)) return 1;
     }
     return 0;
@@ -6610,8 +7103,9 @@ static int tomoClientWatchWorker(client *c) {
 
 static int tomoMultiSingleWorker(client *c, int hold_migration) {
     int worker = tomoClientWatchWorker(c);
-    for (int i = 0; i < c->mstate.count; i++) {
-        pendingCommand *pcmd = c->mstate.commands[i];
+    multiState *ms = clientMultiState(c);   /* MERGE: sidecar storage; NULL => no queued commands */
+    for (int i = 0; ms && i < ms->count; i++) {
+        pendingCommand *pcmd = ms->commands[i];
         int w = tomoCommandSingleWorker(pcmd->cmd, pcmd->argv, pcmd->argc, hold_migration);
         if (w == TOMO_SW_INVALID || w == TOMO_SW_NONE) continue;
         if (w == TOMO_SW_CROSS) return TOMO_SW_CROSS;
@@ -6871,21 +7365,22 @@ int processCommand(client *c) {
     }
 
     const uint64_t cmd_flags = getCommandFlags(c);
+    multiState *ms = unlikely(c->cmd->proc == execCommand) ? clientMultiState(c) : NULL;
 
     int is_read_command = (cmd_flags & CMD_READONLY) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_READONLY));
+                           (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_READONLY));
     int is_write_command = (cmd_flags & CMD_WRITE) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_WRITE));
+                           (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_WRITE));
     int is_denyoom_command = (cmd_flags & CMD_DENYOOM) ||
-                             (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_DENYOOM));
+                             (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_DENYOOM));
     int is_denystale_command = !(cmd_flags & CMD_STALE) ||
-                               (c->cmd->proc == execCommand && (c->mstate.cmd_inv_flags & CMD_STALE));
+                               (c->cmd->proc == execCommand && ms && (ms->cmd_inv_flags & CMD_STALE));
     int is_denyloading_command = !(cmd_flags & CMD_LOADING) ||
-                                 (c->cmd->proc == execCommand && (c->mstate.cmd_inv_flags & CMD_LOADING));
+                                 (c->cmd->proc == execCommand && ms && (ms->cmd_inv_flags & CMD_LOADING));
     int is_may_replicate_command = (cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)) ||
-                                   (c->cmd->proc == execCommand && (c->mstate.cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)));
+                                   (c->cmd->proc == execCommand && ms && (ms->cmd_flags & (CMD_WRITE | CMD_MAY_REPLICATE)));
     int is_deny_async_loading_command = (cmd_flags & CMD_NO_ASYNC_LOADING) ||
-                                        (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_NO_ASYNC_LOADING));
+                                        (c->cmd->proc == execCommand && ms && (ms->cmd_flags & CMD_NO_ASYNC_LOADING));
     int obey_client = mustObeyClient(c);
 
     if (authRequired(c)) {
@@ -7232,6 +7727,17 @@ int processCommand(client *c) {
     }
 
     /* Non-stateful — route through a fake. Stall if ring is full. */
+    /* I7 RYOW: atomic bag writes are installed concurrently and become visible
+     * only when their connection-ordered completion FIFO commits (or cancels).
+     * Do not let a following bag-resolving read draw an older snapshot. Leave
+     * it at pending_cmds.head and retry after the FIFO's publication count
+     * reaches zero. */
+    if (__builtin_expect(server.tomo_atomic != 0, 0) &&
+        (c->cmd->tomo_route & TOMO_R_ATOMIC_READ) &&
+        csAtomicNeedsOwnReadHold(c) &&
+        csMsetHoldOwnRead(c))
+        return C_OK;
+
     /* ORDER-2 (multi-hop pipeline barrier). Same-client pipelined ordering is guaranteed by
      * "same key => same owner queue => FIFO", which holds only because every sub is pushed
      * from THIS loop in client order. A multi-stage cross-shard group (HOP2 plan/scatter, or
@@ -7287,6 +7793,60 @@ int processCommand(client *c) {
         migHoldClientIfDraining(c))
         return C_OK;
 
+    /* Bounded atomic-write admission: this is the last gate before a fake-ring slot is taken and
+     * execution state is moved off the real client. On refusal, no group/sub exists, dispatchid is
+     * unchanged, and commandProcessed is suppressed by CLIENT_PIPELINE_STALLED, so the current
+     * pending_cmd remains the executable input head for a later event-loop retry. This parser uses
+     * pendingCommand objects for already-decoded bytes; its equivalent of "qb_pos unadvanced" is
+     * precisely that the pending head is not popped/consumed by prepareForNextCommand. */
+    const csCmdSpec *atomic_csp = NULL;
+    int atomic_write_admission = 0;  /* 0=stock, 1=finite slot reserved, 2=unlimited */
+    if (__builtin_expect(server.tomo_atomic != 0, 0)) {
+        /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
+         * command cannot change route between reserving the counter and creating its group. */
+        int window = server.tomo_atomic_window;
+        if (c->cmd->tomo_route & TOMO_R_CROSS) {
+            const csCmdSpec *candidate = csClassify(c);
+            /* Stock keeps one-key DEL on its direct worker path. Atomic mode
+             * deliberately enrolls that valid form in the same group/FIFO. */
+            if (!candidate && c->cmd->proc == delCommand && c->argc == 2)
+                candidate = c->cmd->cs_spec;
+            /* Keep the shipped MSET/DEL/MSETNX admission comparisons first and unchanged.
+             * Only commands outside that original set pay PORTALL's shape selection. */
+            int atomic_write = candidate &&
+                               (candidate->ctype == CS_MSET ||
+                                candidate->ctype == CS_DEL ||
+                                candidate->ctype == CS_MSETNX ||
+                                csAtomicPortallVersionedWrite(c, candidate));
+            if (window == 0) {
+                if (atomic_write) {
+                    atomic_csp = candidate;
+                    atomic_write_admission = 2;
+                }
+            } else if (atomic_write) {
+                if (!tomoAtomicMsetTryReserve(window)) {
+                    tomoAtomicParkWindowClient(c);
+                    return C_OK;
+                }
+                atomic_csp = candidate;
+                atomic_write_admission = 1;
+            }
+        }
+    }
+
+    /* AUDIT P0 (2026-08-08, 3/3 confirmed): a window-parked client can be re-admitted OUTSIDE the
+     * release walker — readQueryFromClient calls processInputBuffer unconditionally on new bytes
+     * (chunked delivery), which re-runs this admission on the parked head; if the reserve now
+     * succeeds, the command dispatches while the client is STILL enrolled on the parked list with
+     * CLIENT_ATOMIC_WINDOW_STALLED|CLIENT_PIPELINE_STALLED set. The stale PIPELINE_STALLED then
+     * suppresses commandProcessed for a later INLINE command (MULTI et al), leaving its executed
+     * pcmd at the pending head — the walker or next readable re-executes it: duplicate replies /
+     * double-queued MULTI writes. Invariant restored here: reaching this point means every gate
+     * above admitted the command, so "parked" is over — drop the enrollment and flags exactly as
+     * the walker would have. */
+    if (__builtin_expect(c->atomic_window_parked_node != NULL, 0))
+        tomoAtomicUnstallClient(c);
+
     /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
      * controller. The cron's 1Hz point sample reads 0 for any client whose bursts drain in
      * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
@@ -7320,6 +7880,21 @@ int processCommand(client *c) {
         use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
     }
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
+
+    /* I7: only a cross-shard read needs a dispatch-to-reassembly pin so all of
+     * its owner subs retain one snapshot. Single-owner reads linearize on their
+     * owner: lookupKeyReadWithFlags checks vmeta lazily, and the worker's live
+     * flat section already protects the uncommon bag walk. Avoiding an IO pin
+     * for the vmeta-free single-key fast path lets retirement grace advance
+     * under GET-heavy traffic. */
+    if (__builtin_expect(server.tomo_atomic != 0, 0) &&
+        fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
+        ((fake->cmd->flags & CMD_READONLY) ||
+         (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
+        flatQsbrRegionEnter();
+        fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
+        fake->tomo_read_snapshot_pinned = 1;
+    }
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
     if (c->dispatchid == c->flushid) {
@@ -7397,7 +7972,8 @@ int processCommand(client *c) {
         if (tomo_rord.n) tomoReorderDrain();
         exDispatchDirect(t6_worker, fake);
     } else {
-    const csCmdSpec *csp = (fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL;
+    const csCmdSpec *csp = atomic_csp ? atomic_csp :
+        ((fake->cmd->tomo_route & TOMO_R_CROSS) ? csClassify(fake) : NULL);
     /* M-READS ARE SCATTER-GATHER ONLY (2026-07-27). Both single-executor routes that used to sit
      * here — the per-node worker-borrow and the flat-native whole-MGET — had ONE executor read keys
      * it does NOT own, bypassing the owner's queue and therefore the per-key FIFO that makes
@@ -7407,12 +7983,21 @@ int processCommand(client *c) {
      * by construction in both directions (same key => same owner queue => FIFO), so MGET/MSET/EXISTS
      * route there unconditionally. Do not reintroduce a non-owner read path. */
     if (csp) {
+        /* fk fix (reorder + same-client order): the per-IO reorder scratch may still hold THIS
+         * connection's earlier single-key writes (staged, not yet in the owner queues). A cross-shard
+         * scatter dispatches its sub-ops DIRECTLY into the owner queues, so without ordering first a
+         * sub-read lands in the queue BEFORE the staged write => the "same key => same owner queue =>
+         * FIFO" invariant the comment above relies on is broken, and an MGET observes a value older
+         * than this client's own just-issued SET (read-your-own-writes breaks under tomokv-reorder>0).
+         * Flush THIS connection's staged writes only (surgical) — RYOW/write-order is per-connection,
+         * so co-located connections' staging (and their SJF batching) is left intact. */
+        if (tomo_rord.n) tomoReorderDrainConn(fake->parent ? fake->parent : fake);
         /* The group's subs are now in flight on worker threads. Bump replyWorking so the
          * IO event loop (aeProcessEventsIO) polls with a 100us timeout instead of blocking
          * in epoll_wait forever — otherwise it sleeps and never drains the completed group
          * (the head carries no socket event of its own). Decremented when the group drains. */
         replyWorking++;
-        csDispatch(fake, csp);   /* xshard registry: route kind from the row */
+        csDispatch(fake, csp, atomic_write_admission);  /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
@@ -7885,7 +8470,7 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     flatRetireNode *n = b->head;
     while (n) {
         flatRetireNode *nx = n->next;
-        decrRefCount((robj *)dictGetKV(n->masked_kv));
+        flatRetirePayloadReady(n->masked_kv);
         /* Recycle instead of zfree: this is the flat-only malloc/free pair per overwrite. */
         if (flat_node_pool_n < FLAT_NODE_POOL_CAP) {
             n->next = flat_node_pool; flat_node_pool = n;
@@ -8002,6 +8587,7 @@ void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t) flatReclaimTable(t);
         }
@@ -8102,6 +8688,7 @@ int flatResizePending(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return 0;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) return 1;
         }
@@ -8115,6 +8702,7 @@ void flatResizeCoordinate(void) {
         flatTable *t = NULL; kvstore *kvs = NULL; int fn = 0, fj = 0;
         for (int n = 0; n < server.n_node_dbs && !t; n++)
             for (int j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
                 flatTable *cand = kvstoreFlatTable(server.node_dbs[n][j].keys);
                 if (cand && atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)) {
                     t = cand; kvs = server.node_dbs[n][j].keys; fn = n; fj = j; break;
@@ -8557,6 +9145,629 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *                evidence, and reads 0 with the knob off. */
 static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
+static inline void csCommitLock(void) {
+    while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
+        exPauseCpu();
+}
+static inline void csCommitUnlock(void) {
+    atomic_flag_clear_explicit(&commit_lock, memory_order_release);
+}
+
+static inline void csMsetPendingLock(client *c) {
+    while (atomic_exchange_explicit(&c->mset_pending_lock, 1, memory_order_acquire))
+        exPauseCpu();
+}
+
+static inline void csMsetPendingUnlock(client *c) {
+    atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_release);
+}
+
+/* ---- R1 own-read gate: the DETACHED-HEAD (publishing) window ----------------------------
+ *
+ * A completed group leaves the connection's R1 FIFO at csMsetPopComplete, but it stays PENDING:
+ * mset_pending_count is decremented much later, only after that group's commit_seq publication
+ * (csMsetInstallDone's second loop). In between it is unreachable from the walk while it still
+ * counts, so csMsetReadIntersects saw `pending > linked` and could only HOLD. Measured with the
+ * ownread census once the exact arm landed (8-key MGET:MSET 1:1, 200 conns, io4/ex4, 2M keys):
+ * 52,166 of the 53,392 remaining holds — 98% — came from that one arm, against ~1,200 genuine
+ * key overlaps in 5.8M pending reads.
+ *
+ * Closing it means the walk must still be able to test the departing group's keys, and it must
+ * NOT do that by keeping a pointer to the group. csReassemble frees the group — zfree(g), and
+ * csgFree(g, g->key_h) immediately above it — as soon as the head's reply slot is published, and
+ * that publication happens INSIDE this window (cdbSlotPublish precedes the count decrement by
+ * design: the decrement is what licenses a held read to draw a snapshot containing the group).
+ * So the group's key set is COPIED, at the pop, into a connection-owned record, and nothing on
+ * this path ever dereferences the group again. That is the same reasoning that kept the exact
+ * arm off g->subs[i], one step further: there, a live group's arrays were freed underneath the
+ * walk; here, the whole group is.
+ *
+ * The records are a FIFO ring, which is exactly the discipline the producer already has:
+ * csMsetInstallDone holds the GLOBAL commit lock across BOTH of its loops and drains the commit
+ * queue to empty before releasing it, and csMsetStampAndAppend is only ever called from inside
+ * that hold. So for one connection every pop of a critical section precedes every publish of
+ * that section, the ring is empty at every csCommitUnlock, and the record at the ring head
+ * always belongs to the group now publishing — asserted at the retire.
+ *
+ * A group that finds the ring FULL simply gets no record. That is self-healing rather than a
+ * hole: `pending` then exceeds linked+recorded, the walk takes the same conservative hold it
+ * took before any of this existed, and says so in ownread_conserv. The ring is sized from the
+ * structural bound on concurrently-detached groups (csMsetPub) rather than guessed, so that arm
+ * should be unreachable; it is kept because a hold is the safe answer to "my bound was wrong"
+ * and conserv is where that would be reported. */
+
+/* Copy the departing group's key set into real's publishing ring. Called with the pending lock
+ * held, in the same hold as the FIFO unlink, so (linked + recorded) never dips below `pending`
+ * as far as any walk can observe. */
+static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
+    csMsetPub *pub = real->mset_pub;
+    if (!pub || (unsigned int)(pub->tail - pub->head) > pub->mask)
+        return;                        /* no record => the conservative arm holds; see above */
+    csPubRec *r = &pub->rec[pub->tail & pub->mask];
+    r->tag = (uintptr_t)g;
+    r->key_sig = g->key_sig;
+    int n = g->key_h_n;
+    for (int i = 0; i < n; i++) r->key_h[i] = g->key_h[i];
+    r->key_h_n = n;                    /* after the slots, mirroring the group's own commit rule */
+    pub->tail++;
+}
+
+/* The group's commit_seq is published and its reply slot is out: drop its record and its pending
+ * count in ONE lock hold, so no walk can observe the count without the record that explains it.
+ * `tag` is the group's ADDRESS, captured before the slot publication and compared as a value —
+ * by now the group may already have been freed by its IO thread and must not be dereferenced.
+ *
+ * The ring itself is connection-owned and outlives every group: freeClient defers a teardown
+ * while the fake ring is in flight (dispatchid != flushid), which is the same guarantee that
+ * lets the caller dereference hp->reply_cdb one line earlier. */
+static void csMsetPubRetire(client *real, uintptr_t tag) {
+    csMsetPendingLock(real);
+    csMsetPub *pub = real->mset_pub;
+    if (pub && pub->head != pub->tail) {
+        /* FIFO discipline (see the block comment). A mismatch would mean pops and publishes had
+         * interleaved, i.e. this record belongs to another group — retiring it would then clear
+         * a key set that is still pending and could licence a stale read. Trip, do not guess. */
+        serverAssert(pub->rec[pub->head & pub->mask].tag == tag);
+        pub->head++;
+    }
+    unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+                                                    memory_order_release);
+    csMsetPendingUnlock(real);
+    serverAssert(before > 0);
+}
+
+/* I5/R1 registration is ticket-free and precedes every owner publish. */
+static void csMsetRegister(csGroup *g) {
+    client *real = g->head->parent;
+    g->versioned_write = 1;
+    g->version_seq = TOMO_VERSION_UNCOMMITTED;
+    g->mset_client = real;
+    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0 &&
+                 g->key_sig != 0);
+
+    /* Lazily arm the publishing ring: only a connection that actually registers an atomic group
+     * pays for one, so a server with tomokv-atomic off allocates nothing. Every registration for
+     * this connection runs on its own IO thread (dispatch, and the drain-side MSETNX/NX advances
+     * are that same thread), so this is the single writer of the pointer; it is published under
+     * the pending lock, which is the lock both readers — the walk and csMsetPubRetire — take.
+     *
+     * Capacity is the structural bound on concurrently-detached groups (see csMsetPub): this
+     * connection can never have more registered-and-unpublished groups than it has in-flight ring
+     * slots, and that is capped for the life of the process by tomokv-pipeline-depth, which is
+     * IMMUTABLE_CONFIG. Rounded UP to a power of two so the cursors can mask, and derived rather
+     * than picked, so no traffic shape can overflow it and the conservative arm below becomes
+     * unreachable instead of merely unlikely. */
+    if (__builtin_expect(real->mset_pub == NULL, 0)) {
+        unsigned int cap = 1;
+        while (cap < (unsigned int)server.pipeline_ring_depth) cap <<= 1;
+        csMsetPub *pub = zcalloc(sizeof(*pub) + (size_t)cap * sizeof(csPubRec));
+        pub->mask = cap - 1;
+        csMsetPendingLock(real);
+        real->mset_pub = pub;
+        csMsetPendingUnlock(real);
+    }
+
+    csMsetPendingLock(real);
+    g->mset_pending_prev = real->mset_pending_tail;
+    g->mset_pending_next = NULL;
+    if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
+    else real->mset_pending_head = g;
+    real->mset_pending_tail = g;
+    atomic_fetch_add_explicit(&real->mset_pending_count, 1, memory_order_release);
+    csMsetPendingUnlock(real);
+}
+
+static void csMsetPendingRemove(csGroup *g) {
+    client *real = g->mset_client;
+    if (!real) return;
+    csMsetPendingLock(real);
+    if (g->mset_client == real) {
+        if (g->mset_pending_prev) g->mset_pending_prev->mset_pending_next = g->mset_pending_next;
+        else real->mset_pending_head = g->mset_pending_next;
+        if (g->mset_pending_next) g->mset_pending_next->mset_pending_prev = g->mset_pending_prev;
+        else real->mset_pending_tail = g->mset_pending_prev;
+        g->mset_pending_prev = g->mset_pending_next = NULL;
+        g->mset_client = NULL;
+        unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+                                                        memory_order_release);
+        serverAssert(before > 0);
+    }
+    csMsetPendingUnlock(real);
+}
+
+static inline int csStampLane(void) {
+    return server.io_threads + server.tm_ngrow_io;
+}
+
+/* Owner-op consumption is the only place a version is stamped or canceled.
+ * All op kinds are embedded in vmeta, so group reply publication cannot
+ * invalidate a queued job. The drain runs to empty: stamp order within this
+ * multi-producer lane is unspecified and correctness does not depend on it. */
+static int csStampDrain(exThread *worker) {
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
+        return 0;
+    exQueue *q = &worker->queues[csStampLane()];
+    client *jobs[WORKER_POP_BATCH];
+    int total = 0;
+    for (;;) {
+        int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
+        if (!n) break;
+        tomoWkrLock(worker->id);
+        for (int i = 0; i < n; i++) {
+            tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
+            kvobj *kv = op->kv;
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            serverAssert(vmeta != NULL);
+            if (op->kind == TOMO_OWNER_OP_STAMP) {
+                serverAssert(op->seq != 0);
+                int reservation_signal =
+                    vmeta->version_reservation == TOMO_RESERVATION_SIGNAL_SET;
+                tomoApplyVersionStamp(kv, op->seq);
+                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                                 memory_order_acq_rel);
+                serverAssert(before == 2);
+                if (reservation_signal) {
+                    redisDb *db = vmeta->version_db;
+                    robj *key = createStringObject(kvobjGetKey(kv), sdslen(kvobjGetKey(kv)));
+                    keyModified(NULL, db, key, kv, 1);
+                    notifyKeyspaceEvent(NOTIFY_STRING, "set", key, db->id);
+                    markDirty(1);
+                    decrRefCount(key);
+                }
+            } else if (op->kind == TOMO_OWNER_OP_PRUNE) {
+                serverAssert(op->seq != 0);
+                serverAssert(op->kind == TOMO_OWNER_OP_PRUNE);
+                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                                 memory_order_acq_rel);
+                serverAssert(before == 1);
+                tomoArmVersionRetire(kv, op->seq);
+            } else {
+                serverAssert(op->kind == TOMO_OWNER_OP_CANCEL && op->seq == 0);
+                unsigned int before = atomic_fetch_sub_explicit(&vmeta->owner_ops_pending, 1,
+                                                                 memory_order_acq_rel);
+                serverAssert(before == 1);
+                tomoCancelVersion(kv);
+            }
+            op->kv = NULL;
+            op->seq = 0;
+        }
+        tomoWkrUnlock(worker->id);
+        unsigned int before = atomic_fetch_sub_explicit(&worker->stamp_pending,
+                                                         (unsigned int)n,
+                                                         memory_order_release);
+        serverAssert(before >= (unsigned int)n);
+        total += n;
+    }
+    if (total)
+        atomic_store_explicit(&q->retired,
+                              atomic_load_explicit(&q->head, memory_order_relaxed),
+                              memory_order_release);
+    return total;
+}
+
+static void csStampPush(int owner, tomoOwnerOp *op) {
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+    exQueue *q = &worker->queues[csStampLane()];
+    int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    int spins = 0;
+    while (exQueuePushOwnerOp(q, op) != 0) {
+        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+        exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+        if (current_owner == owner)
+            csStampDrain(worker);
+        else {
+            exPauseCpu();
+            if ((++spins & 4095) == 0) tomoPollingYield();
+        }
+    }
+    atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+}
+
+static inline int csMsetHeadComplete(client *real) {
+    csMsetPendingLock(real);
+    csGroup *head = real->mset_pending_head;
+    int complete = head && atomic_load_explicit(&head->mset_complete, memory_order_acquire);
+    csMsetPendingUnlock(real);
+    return complete;
+}
+
+static inline uint64_t csHashSignature(uint64_t h) {
+    return 1ULL << (h & 63);
+}
+
+/* ---- R1 own-read overlap: filter first, then the exact key test ----
+ * key_sig is a Bloom filter with ONE bit per key in a 64-bit word. An 8-key MSET sets 8 bits, so
+ * an 8-key read that shares NO key with it still aliases with probability 1 - C(56,8)/C(64,8)
+ * ~= 66% per pending group. Measured on this tree (8-key MGET:MSET 1:1, 200 conns, io4/ex4):
+ * held/pending was 88.3% / 72.4% / 74.9% at keyspaces of 64 / 10k / 2M keys. The TRUE collision
+ * probability at 2M keys is ~0.01%, and a rate that does not move with the keyspace is bit
+ * aliasing, not key overlap: ~75 points of that parking was pure false positive, each costing a
+ * park plus a wake.
+ *
+ * So the filter stays FIRST and unchanged — it is one AND, and a filter MISS is a definitive
+ * proof of disjointness (a genuine key match implies a bit match). Only the "maybe" answer gets
+ * more expensive, and it is settled against the actual key hashes.
+ *
+ * Compare HASHES, never key bytes. The hash is a pure function of the bytes, so hash inequality
+ * PROVES the keys differ (no false negative is possible), while a hash collision merely costs a
+ * hold — the safe direction. It also keeps the walk off the pending group's argv/sub-fakes,
+ * which are not the walker's to dereference (see csGroupKeyHashReserve). */
+/* CS_EXACT_KEYS_MAX (the per-group / per-read retained hash count) lives in server.h, beside the
+ * csPubRec that copies one of these vectors out of a departing group. */
+
+/* Region demand of a group's written-key hash vector, so the callers that size the inline bump
+ * region account for it exactly (an unaccounted vector would push another array to the heap and
+ * trade a park for an allocation). 0 = no vector: the group stays filter-only. */
+static inline size_t csKeyHashWant(int nkeys) {
+    return (nkeys > 0 && nkeys <= CS_EXACT_KEYS_MAX) ? sizeof(uint64_t) * (size_t)nkeys : 0;
+}
+
+/* Destination-only atomic shapes hash their one written key at registration and carry the
+ * resulting bucket on the existing group-head hash cache. HOP2 re-reads only the mutable
+ * bucket->owner table after a migration hold; it does not hash the destination bytes again. */
+static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
+    uint64_t h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
+    g->key_sig = csHashSignature(h);
+    uint64_t *kh = csGroupKeyHashReserve(g, 1);
+    if (kh) { kh[0] = h; g->key_h_n = 1; }   /* publish only once the slot is written */
+    g->head->tomo_key_h = h;
+    g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
+    g->head->tomo_bkt_ptr = dst->ptr;
+}
+
+/* This read's key set: the signature, plus the full hashes when they can settle a filter hit.
+ * n < 0 means the exact test is UNAVAILABLE for this read — unknown/dynamic keyspace (KEYS,
+ * SORT, or any command whose cached key result is missing or not a plain sds argv position), or
+ * more keys than h[] holds — and then every filter hit must hold. `sig` stays COMPLETE in that
+ * case (all-ones for an unknown keyspace, the true OR when only the vector overflowed), which is
+ * what keeps the filter itself free of false negatives. */
+typedef struct csReadKeys {
+    uint64_t sig;
+    int n;                          /* hashes in h[]; < 0 => conservative, hold on any filter hit */
+    uint64_t h[CS_EXACT_KEYS_MAX];
+} csReadKeys;
+
+static void csOwnReadSignature(client *real, csReadKeys *rk) {
+    rk->sig = UINT64_MAX;                     /* every arm below that gives up leaves this pair */
+    rk->n = -1;
+    if (real->cmd->proc == keysCommand || real->cmd->proc == sortCommand ||
+        real->cmd->proc == sortroCommand)
+        return;
+
+    getKeysResult *keys = getClientCachedKeyResult(real);
+    if (!keys || keys->numkeys <= 0) return;
+    uint64_t sig = 0;
+    int n = keys->numkeys <= CS_EXACT_KEYS_MAX ? keys->numkeys : -1;
+    for (int i = 0; i < keys->numkeys; i++) {
+        int pos = keys->keys[i].pos;
+        if (pos <= 0 || pos >= real->argc || !real->argv[pos] ||
+            !sdsEncodedObject(real->argv[pos]))
+            return;
+        uint64_t h = tomoKeyHash(real->argv[pos]->ptr, sdslen(real->argv[pos]->ptr));
+        sig |= csHashSignature(h);
+        if (n > 0) rk->h[i] = h;
+    }
+    rk->sig = sig;
+    rk->n = n;
+}
+
+/* Settle one filter "maybe" exactly. `hit` is read_sig & written_sig: only a read key whose own
+ * bit is in that mask can be the cause, so the usual single-bit alias costs a handful of 64-bit
+ * compares rather than n*m. Returns 1 only on an actual key-hash match.
+ *
+ * Takes the written-key vector rather than a csGroup, because it serves two callers with the
+ * same key set and different lifetimes: a group still linked in the FIFO, and the csPubRec copy
+ * of one that has left it. */
+static int csKeysCollide(const csReadKeys *rk, const uint64_t *kh, int kh_n, uint64_t hit) {
+    for (int i = 0; i < rk->n; i++) {
+        if (!(csHashSignature(rk->h[i]) & hit)) continue;
+        for (int j = 0; j < kh_n; j++)
+            if (rk->h[i] == kh[j]) return 1;
+    }
+    return 0;
+}
+
+/* Walk this connection's uncommitted write set under its existing lock: first the R1 FIFO, then
+ * the publishing records of groups that have left the FIFO but not yet decremented the pending
+ * count (see csMsetPubRecordLocked). Both carry the same thing — a written-key signature and the
+ * exact hashes behind it — so both are tested the same way.
+ *
+ * Per entry, in order: (1) filter miss => PROVEN disjoint, skip it; (2) filter hit that neither
+ * side can settle exactly (unknown read keyspace, or a writer with no hash vector) => HOLD;
+ * (3) filter hit with both vectors present => the exact key-hash test decides.
+ *
+ * LIFETIME of what (3) dereferences.
+ *   - FIFO entries: g->key_h lives in g's OWN allocation (the inline bump region, or a csgFree()d
+ *     spill), is written once on the head's IO thread before csMsetRegister publishes g into this
+ *     FIFO, and is never rewritten. csReassemble — the group's single terminal point and the only
+ *     caller of zfree(g) — calls csMsetPendingRemove(g) as its FIRST statement, before any
+ *     csgFree/zfree. So g->key_h is reachable exactly as long as g->key_sig is, which is the
+ *     lifetime this walk already depended on. That is precisely what g->subs[] would NOT give:
+ *     csPipeFreeStageSubs() frees and NULLs g->subs between pipeline stages, and
+ *     csMsetnxAdvanceReservations() frees every sub before rebuilding the wave, both while the
+ *     group is still linked here with pending_count > 0.
+ *   - Publishing records: a COPY, in memory owned by `real`, precisely because a detached group
+ *     has no such guarantee — its reply slot is published inside that window and csReassemble may
+ *     free it at any moment after. This walk never dereferences a group it cannot see in the FIFO.
+ * Both are read under the pending lock, which is the lock the producers (csMsetRegister,
+ * csMsetPopComplete, csMsetPendingRemove, csMsetPubRetire) hold while changing links, records and
+ * the count together — so `pending`, the FIFO and the ring are always one consistent snapshot.
+ *
+ * `flags` reports WHICH arm answered. Measurement out-param only — the return value, and
+ * therefore every decision, is unchanged. */
+#define CS_WALK_CONSERV (1<<0)   /* the hold could not be proven: charge it to ownread_conserv */
+#define CS_WALK_PUBREC  (1<<1)   /* the walk reached at least one publishing record, i.e. the
+                                  * detached-head window was open when this read arrived */
+static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) {
+    unsigned int accounted = 0;
+    int intersects = 0, f = 0;
+    csMsetPendingLock(real);
+    for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+        accounted++;
+        uint64_t hit = rk->sig & g->key_sig;
+        if (!hit) continue;                          /* filter miss: definitively disjoint */
+        if (rk->n < 0 || g->key_h_n == 0) {          /* cannot prove either way: hold */
+            intersects = 1; f |= CS_WALK_CONSERV;
+            break;
+        }
+        if (csKeysCollide(rk, g->key_h, g->key_h_n, hit)) { intersects = 1; break; }
+    }
+    csMsetPub *pub = real->mset_pub;
+    if (!intersects && pub && pub->head != pub->tail) {
+        f |= CS_WALK_PUBREC;
+        for (unsigned int i = pub->head; i != pub->tail; i++) {
+            const csPubRec *r = &pub->rec[i & pub->mask];
+            accounted++;
+            uint64_t hit = rk->sig & r->key_sig;
+            if (!hit) continue;
+            if (rk->n < 0 || r->key_h_n == 0) {
+                intersects = 1; f |= CS_WALK_CONSERV;
+                break;
+            }
+            if (csKeysCollide(rk, r->key_h, r->key_h_n, hit)) { intersects = 1; break; }
+        }
+    }
+    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
+                                                 memory_order_acquire);
+    csMsetPendingUnlock(real);
+    /* Backstop, and the one place a write this walk could not see is caught: every registered
+     * group is either linked above or holds a record, and the record ring is sized from the
+     * bound that makes "no room" impossible — so this should now be unreachable. It stays
+     * because the no-false-negative rule must not rest on that bound being right: if it is
+     * wrong, this HOLDS and ownread_conserv says so. */
+    if (!intersects && pending > accounted) { intersects = 1; f |= CS_WALK_CONSERV; }
+    *flags = f;
+    return intersects;
+}
+
+/* Dispatch-side RYOW gate, slow half: this connection HAS uncommitted writes in flight. Hash the
+ * read's keys (never before — the zero-pending path below must stay free), then hold iff the read
+ * actually touches a key one of those groups writes. Publish the waiter marker before the
+ * confirming scan; after enrollment, scan once more to close a publication-vs-enrollment race.
+ *
+ * noinline and separate from the fast path on purpose: csReadKeys is ~144 bytes of frame, and
+ * csMsetHoldOwnRead is small enough to be inlined into processCommand, which would put that frame
+ * on EVERY command.
+ *
+ * The tm_io_sig counters are the overlap census (see the field block). Plain increments on this
+ * thread's own line, no atomics: the identity is the same one the dispatch a few frames below
+ * charges disp_cnt/rord_runs to, so a caller that could corrupt a neighbour's slot here would
+ * already be corrupting it there. */
+static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
+    tm_io_sig[iotid].ownread_pending++;
+    csReadKeys rk;
+    csOwnReadSignature(real, &rk);
+    int flags = 0;
+    int hold = csMsetReadIntersects(real, &rk, &flags);
+    /* Census: this read arrived while one of its connection's completed groups was DETACHED —
+     * the window that used to force an unconditional hold. Counted on the FIRST scan, so it is
+     * once per pending read and covers exactly the population the old detached arm charged to
+     * ownread_conserv. It is the falsifier for closing that window: `detach` must stay about as
+     * large as the arm was while `conserv` collapses. A `detach` of 0 means the records are never
+     * consulted and any throughput move belongs to something else. */
+    if (flags & CS_WALK_PUBREC) tm_io_sig[iotid].ownread_detach++;
+    if (!hold) return 0;
+
+    atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
+    if (!csMsetReadIntersects(real, &rk, &flags)) {
+        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        return 0;
+    }
+    /* Classify against the scan that DECIDED the park (the confirming one), before the third scan
+     * overwrites `flags`. held-minus-conserv is the rate at which the read's keys REALLY hit a
+     * pending write; every hold the gate could not prove — unknown keyspace, a writer with no hash
+     * vector (too many written keys), a record ring that had no room — lands in conserv instead,
+     * so widening what the gate can prove never launders a false positive into the measured
+     * overlap rate. */
+    tm_io_sig[iotid].ownread_held++;
+    if (flags & CS_WALK_CONSERV) tm_io_sig[iotid].ownread_conserv++;
+    tomoAtomicParkPendingRead(real);
+    if (!csMsetReadIntersects(real, &rk, &flags)) {
+        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        tomoAtomicWakeProducer(real->tid);
+    }
+    return 1;
+}
+
+static int csMsetHoldOwnRead(client *real) {
+    tm_io_sig[iotid].ownread_reads++;
+    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
+        return 0;
+    return csMsetHoldOwnReadPending(real);
+}
+
+/* The group leaves the FIFO here but stays counted in mset_pending_count until its commit_seq is
+ * published, so its key set has to leave WITH it — copied, under this same lock hold, into the
+ * connection's publishing ring. Without that copy the walk cannot see this group at all and can
+ * only hold, which the census measured as 98% of every remaining hold. */
+static csGroup *csMsetPopComplete(client *real) {
+    csMsetPendingLock(real);
+    csGroup *g = real->mset_pending_head;
+    if (!g || !atomic_load_explicit(&g->mset_complete, memory_order_acquire)) {
+        csMsetPendingUnlock(real);
+        return NULL;
+    }
+    real->mset_pending_head = g->mset_pending_next;
+    if (real->mset_pending_head) real->mset_pending_head->mset_pending_prev = NULL;
+    else real->mset_pending_tail = NULL;
+    g->mset_pending_prev = g->mset_pending_next = NULL;
+    g->mset_client = NULL;
+    csMsetPubRecordLocked(real, g);
+    csMsetPendingUnlock(real);
+    return g;
+}
+
+/* I1/I3/I5: draw at R1-approved completion, then enqueue every owner stamp
+ * before the group is allowed to advance commit_seq. Records are traversed in
+ * install-order so same-key duplicates reach their one owner in that order. */
+static void csMsetStampAndAppend(csGroup *g) {
+    int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
+    int cancel = g->version_abort;
+    if (g->ctype == CS_MSETNX) {
+        for (int i = 0; i < g->nkeys; i++)
+            if (g->msetnx_state[i] == CS_MSETNX_PRESENT) {
+                cancel = 1;
+                break;
+            }
+    }
+    uint64_t seq = 0;
+    if (cancel) {
+        if (g->ctype == CS_MSETNX)
+            atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
+    } else {
+        serverAssert(ninstalled == g->version_install_expected);
+        seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
+    }
+    g->version_seq = seq;
+    for (int i = 0; i < ninstalled; i++) {
+        csMsetInstall *install = &g->mset_installs[i];
+        kvobj *kv = install->kv;
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        serverAssert(kv != NULL && vmeta != NULL);
+        serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+        serverAssert(install->install_order == (uint32_t)i);
+        serverAssert(vmeta->version_order == install->install_order);
+        atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
+                              memory_order_release);
+        vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
+                                           cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
+        if (!cancel)
+            vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
+        csStampPush(install->owner, &vmeta->owner_op[0]);
+    }
+    g->commit_next = NULL;
+    if (commit_tail) commit_tail->commit_next = g;
+    else commit_head = g;
+    commit_tail = g;
+}
+
+static void csMsetInstallDone(csGroup *g) {
+    client *real = g->mset_client;
+    serverAssert(real != NULL);
+    atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
+
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+
+    csCommitLock();
+    for (;;) {
+        csGroup *done;
+        while ((done = csMsetPopComplete(real)) != NULL)
+            csMsetStampAndAppend(done);
+        atomic_store_explicit(&real->mset_drain_latch, 0, memory_order_release);
+        if (!csMsetHeadComplete(real)) break;
+        expected = 0;
+        if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+                                                      memory_order_acquire,
+                                                      memory_order_relaxed))
+            break;
+    }
+
+    while (commit_head) {
+        csGroup *done = commit_head;
+        commit_head = done->commit_next;
+        if (!commit_head) commit_tail = NULL;
+
+        int canceled = done->version_seq == 0;
+        int ninstalled = atomic_load_explicit(&done->mset_install_count,
+                                               memory_order_relaxed);
+        /* I3 publication edge: all STAMP tail release-stores above happen
+         * before this release-store. A canceled MSETNX has no sequence to
+         * publish; its cancel jobs were nevertheless all queued before reply
+         * publication and before the R1 read hold is released. */
+        if (!canceled)
+            atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
+        for (int i = 0; i < ninstalled; i++) {
+            csMsetInstall *install = &done->mset_installs[i];
+            if (!canceled) {
+                struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
+                csStampPush(install->owner, &vmeta->owner_op[1]);
+            }
+            install->kv = NULL;
+            install->owner = -1;
+        }
+        client *hp = done->head->parent;
+        /* Identity for this group's publishing record, taken while the group is still certainly
+         * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
+         * (and zfree) it immediately. Everything after that store touches hp only. */
+        uintptr_t gtag = (uintptr_t)done;
+        cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
+        /* This is the FIFO's semantic drain point, not csMsetPopComplete:
+         * the release decrement follows commit_seq publication and therefore
+         * licenses a held read to draw a snapshot containing this group. The
+         * record that stood in for this group between the pop and here is
+         * dropped in the SAME lock hold as the decrement, so a walk can never
+         * see the count fall without the key set falling with it. */
+        csMsetPubRetire(hp, gtag);
+        /* A selective read may become runnable while unrelated groups remain. Wake on every
+         * publication; processCommand's FIFO signature scan decides whether it must park again. */
+        if (atomic_exchange_explicit(&hp->mset_read_waiting, 0,
+                                     memory_order_acq_rel))
+            tomoAtomicWakeProducer(hp->tid);
+    }
+    csCommitUnlock();
+}
+
+/* A source parse/type/missing-key verdict may terminate a registered read-then-write group
+ * before it installs anything. Remove the stale stage-ready byte, enter that no-op in the same
+ * R1 completion FIFO, and let the FIFO republish the head only after earlier groups retire. */
+static int csAtomicAbortIncomplete(csGroup *g) {
+    if (!g->versioned_write ||
+        atomic_load_explicit(&g->mset_complete,memory_order_acquire))
+        return 0;
+    g->version_abort = 1;
+    if (cdbSlotReady(g->head->parent,g->head->cdb,g->head->fake_slot))
+        cdbSlotClear(g->head->parent,g->head->cdb,g->head->fake_slot);
+    csMsetInstallDone(g);
+    return 1;
+}
+
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
 static inline void csAssertBarriered(client *head) {
@@ -8955,6 +10166,7 @@ static const csCmdSpec csRegistry[] = {
 { .proc=copyCommand, .name="copy", .ported=CS_PORT_OK, .ctype=CS_COPY,
   .route=CS_RT_TWOHOP, .min_argc=3, .max_argc=6, .src_argi=1, .dst_argi=2,
   .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT, .shape_ok=csCopyShapeOk },
+/* TODO(PORTALL): SMOVE needs an owner decision on whole-collection COW cost. */
 { .proc=smoveCommand, .name="smove", .ported=CS_PORT_OK, .ctype=CS_SMOVE,
   .route=CS_RT_TWOHOP, .min_argc=4, .max_argc=4, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h1_extra_argi=3, .h2_del_src=1, .h2_op=CS_H2_PLAN, .cs2_kind=CS2_INT },
@@ -9069,6 +10281,7 @@ static const csCmdSpec csRegistry[] = {
  * path is identical; would-block replies the timed-out form (nil) immediately — and since
  * empty-src already replies nil, the shapes converge. B rows force the two-hop path even on
  * one shard: their real procs could PARK a worker fake (blockForKeys) which must never run. */
+/* TODO(PORTALL): LMOVE/RPOPLPUSH and blocking variants need an owner COW-cost decision. */
 { .proc=lmoveCommand, .name="lmove", .ported=CS_PORT_OK, .ctype=CS_LMOVE,
   .route=CS_RT_TWOHOP, .min_argc=5, .max_argc=5, .src_argi=1, .dst_argi=2,
   .h1_probe_dst=1, .h2_del_src=1, .h2_op=CS_H2_PLAN, .shape_ok=csLmoveShapeOk },
@@ -9095,6 +10308,7 @@ static const csCmdSpec csRegistry[] = {
  * construction and a raced-empty winner yields the proc's own null array (bounded TOCTOU,
  * documented). No winner => null array, which IS BLMPOP/BZMPOP's timed-out shape, so those
  * reject-when-would-block variants need no special reassembly. */
+/* TODO(PORTALL): LMPOP/ZMPOP and the BLPOP/BZPOP family await the same COW-cost decision. */
 { .proc=lmpopCommand, .name="lmpop", .ported=CS_PORT_OK, .ctype=CS_LMPOP,
   .route=CS_RT_GATHER, .min_argc=4, .numkeys_argi=1, .firstkey_argi=2, .key_stride=1,
   .cs_write=1, .res_kind=CS_RES_KEYREPORT, .pos_kind=CS_POS_SETOP, .co_gate=CS_CO_ALWAYS,
@@ -9187,6 +10401,11 @@ static void csStampRoute(struct redisCommand *c) {
     if (tomoScriptFamily(c)) c->tomo_route |= TOMO_R_SCRIPTFAM;   /* fence: stamped once, bit-tested per op */
     /* TOMO_R_CROSS is DERIVED from the table — one list, never two: */
     if (c->cs_spec && c->cs_spec->ported == CS_PORT_OK) c->tomo_route |= TOMO_R_CROSS;
+    if (c->proc == getCommand || c->proc == mgetCommand ||
+        c->proc == existsCommand || c->proc == touchCommand ||
+        csAtomicReadsSources(c->cs_spec) ||
+        ((c->tomo_route & TOMO_R_CROSS) && (c->flags & CMD_READONLY)))
+        c->tomo_route |= TOMO_R_ATOMIC_READ;
     /* XGUARD: an UNPORTED row, or a hybrid PORTED row with unsafe forms, forces the bit even
      * where the key-spec predicate can't see the hazard. Stateful commands are exempt
      * (WATCH k1 k2 / EXEC take the stateful path). */
@@ -9320,7 +10539,8 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
     rdbSaveObjectType(&r, o);
     rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
     g->h2_payload = r.io.buffer.ptr;
-    long long ex = getExpire(sub->db, sub->argv[1]->ptr, NULL);
+    long long ex = g->versioned_write ? getExpire(sub->db, sub->argv[1]->ptr, o) :
+                                       getExpire(sub->db, sub->argv[1]->ptr, NULL);
     g->h2_pexpireat = (ex == -1) ? -1 : ex;
     if (del > 0) {
         dbSyncDelete(sub->db, sub->argv[1]);
@@ -9332,6 +10552,9 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
 static inline int csIsT1ResultStore(csCmdType ctype) {
     return ctype == CS_ZRANGESTORE || ctype == CS_SORTSTORE || ctype == CS_GEOSTORE;
 }
+
+static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed);
+static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g);
 
 /* T1 HOP1: run the command's stock parser/selector against src on its owner worker, retain
  * only the materialized result, and serialize it for HOP2. The temporary object never crosses
@@ -9396,6 +10619,85 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
          * rather than a false success; dst is left untouched. */
         atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
     }
+}
+
+/* PORTALL atomic destination install. The coordinator payload is decoded into a fresh robj and
+ * that whole value is prepended as exactly one UNCOMMITTED bag version. Nothing is unlinked here:
+ * old versions leave only through the existing stamp -> version-prune queue -> promotion path. */
+static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
+                                   const char *event, int reservation) {
+    robj *dstkey = sub->argv[1];
+    rio r; rioInitWithBuffer(&r, g->h2_payload);
+    int type = rdbLoadObjectType(&r);
+    int rerr = 0;
+    robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
+    if (!val) {
+        atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
+        g->version_abort = 1;
+        return 0;
+    }
+
+    int vtype = val->type;
+    uint64_t hmn = vtype == OBJ_HASH ? hashTypeGetMinExpire(val,1) : EB_EXPIRE_TIME_INVALID;
+    int has_idmp = vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL;
+    kvobj *installed = setKeyVersioned(sub,sub->db,dstkey,&val,0,g->version_seq,
+                                       g->h2_pexpireat);
+    struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    if (reservation) {
+        /* Still blocks competing NX owners, but this command emitted its own event already. */
+        vmeta->version_reservation = TOMO_RESERVATION_SILENT;
+        vmeta->reservation_owner = g;
+    }
+    csMsetRecordInstall(sub,g,installed);
+    if (hmn != EB_EXPIRE_TIME_INVALID)
+        estoreAdd(sub->db->subexpires,getKeySlot(dstkey->ptr),installed,hmn);
+    if (has_idmp && dictAdd(sub->db->stream_idmp_keys,dstkey,NULL) == DICT_OK)
+        incrRefCount(dstkey);
+    notifyKeyspaceEvent(nclass,event,dstkey,sub->db->id);
+    markDirty((g->ctype == CS_SORTSTORE || g->ctype == CS_GEOSTORE) ?
+              g->cs2_intreply : 1);
+    return 1;
+}
+
+/* Empty stores and RENAME's source half are logical deletes, represented by an ordinary
+ * UNCOMMITTED version whose payload is ignored by the resolver. Physical key removal remains
+ * exclusively in tomoVersionPruneAfterGrace after this tombstone is the sole committed value. */
+static void csInstallVersionTombstone(client *sub, csGroup *g, int nclass,
+                                      const char *event) {
+    robj *key = sub->argv[1];
+    robj *placeholder = createStringObject("",0);
+    kvobj *installed = setKeyVersioned(sub,sub->db,key,&placeholder,
+                                       SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,g->version_seq,-1);
+    struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    vmeta->version_tombstone = 1;
+    csMsetRecordInstall(sub,g,installed);
+    keyModified(sub,sub->db,key,NULL,1);
+    notifyKeyspaceEvent(nclass,event,key,sub->db->id);
+    markDirty(1);
+}
+
+/* RENAMENX and COPY without REPLACE reserve the destination with the final whole-value version.
+ * An earlier group's reservation is never bypassed: report retry so the IO owner requeues this
+ * one-key wave behind the normal owner FIFO, exactly like MSETNX. */
+static void csNxDestReserveVersioned(client *sub, csGroup *g, int nclass,
+                                     const char *event) {
+    robj *key = sub->argv[1];
+    kvobj *head = lookupKeyWrite(sub->db,key);
+    if (head && csMsetnxHasOtherReservation(head,g)) {
+        atomic_fetch_add_explicit(&g->msetnx_retry,1,memory_order_relaxed);
+        return;
+    }
+    if (head && kvobjVersionAt(head,tomoCommittedSeq())) {
+        g->msetnx_state[0] = CS_MSETNX_PRESENT;
+        return;
+    }
+    if (!csH2RestoreKeyVersioned(sub,g,nclass,event,1)) {
+        g->msetnx_state[0] = CS_MSETNX_PRESENT; /* terminal error, not a retry */
+        return;
+    }
+    g->msetnx_state[0] = CS_MSETNX_RESERVED;
 }
 
 /* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
@@ -9469,6 +10771,167 @@ static void csSortDerefExec(client *sub, csGroup *g) {
     }
 }
 
+static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+    serverAssert(vmeta != NULL && kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
+    int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
+    serverAssert(ii < g->version_install_expected);
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    serverAssert(vmeta->version_kvs == sub->db->keys);
+    vmeta->version_order = (uint32_t)ii;
+    g->mset_installs[ii].kv = installed;
+    g->mset_installs[ii].owner = owner;
+    g->mset_installs[ii].install_order = (uint32_t)ii;
+}
+
+/* Reservations are visible to owner-side conflict detection while they remain
+ * uncommitted, but never to the ordinary version resolver. A reservation from
+ * this same group is allowed so duplicate MSETNX keys retain stock's
+ * last-pair-wins behavior. */
+static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g) {
+    for (kvobj *kv = head; kv; ) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
+        if (vmeta->version_reservation &&
+            vmeta->stamp_state == TOMO_STAMP_PENDING &&
+            vmeta->reservation_owner != g)
+            return 1;
+        kv = kvobjVersionPrev(kv);
+    }
+    return 0;
+}
+
+static int csMsetnxHasPendingPosition(csGroup *g) {
+    for (int i = 0; i < g->nkeys; i++)
+        if (g->msetnx_state[i] == CS_MSETNX_PENDING) return 1;
+    return 0;
+}
+
+static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
+    int *pos = g->mget_pos[sub->cssub_idx];
+    int pair = 0;
+    for (int a = 1; a + 1 < sub->argc; a += 2, pair++) {
+        int orig = pos[pair];
+        if (g->msetnx_state[orig] != CS_MSETNX_PENDING) continue;
+        robj *keyo = sub->argv[a];
+        kvobj *head = lookupKeyWrite(sub->db, keyo);
+        if (head && csMsetnxHasOtherReservation(head, g)) {
+            atomic_fetch_add_explicit(&g->msetnx_retry, 1, memory_order_relaxed);
+            continue;
+        }
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        if (live) {
+            g->msetnx_state[orig] = CS_MSETNX_PRESENT;
+            continue;
+        }
+
+        sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                           &sub->argv[a+1], SETKEY_NO_SIGNAL,
+                                           g->version_seq, -1);
+        struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        vmeta->version_reservation = TOMO_RESERVATION_SIGNAL_SET;
+        vmeta->reservation_owner = g;
+        csMsetRecordInstall(sub, g, installed);
+        g->msetnx_state[orig] = CS_MSETNX_RESERVED;
+        sub->argv[a+1] = NULL;
+    }
+}
+
+static void csDelSubExecVersioned(client *sub, csGroup *g) {
+    long deleted = 0;
+    for (int a = 1; a < sub->argc; a++) {
+        robj *keyo = sub->argv[a];
+        kvobj *head = lookupKeyWrite(sub->db, keyo);
+        kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
+        int duplicate = 0;
+        for (int prior = 1; prior < a; prior++) {
+            if (equalStringObjects(sub->argv[prior], keyo)) {
+                duplicate = 1;
+                break;
+            }
+        }
+
+        robj *placeholder = createStringObject("", 0);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo, &placeholder,
+                                           SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
+                                           g->version_seq, -1);
+        struct tomoVerMeta *vmeta = kvobjVmeta(installed);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        vmeta->version_tombstone = 1;
+        csMsetRecordInstall(sub, g, installed);
+
+        if (live && !duplicate) {
+            deleted++;
+            keyModified(sub, sub->db, keyo, NULL, 1);
+            notifyKeyspaceEvent(NOTIFY_GENERIC, "del", keyo, sub->db->id);
+            markDirty(1);
+        }
+    }
+    atomic_fetch_add_explicit(&g->rcount, deleted, memory_order_relaxed);
+}
+
+/* Atomic MSET's versioned twin of the ordinary coalesced apply loop. Selection
+ * happens once per sub, so neither arm pays a mode branch per key. */
+static void csMsetSubExecVersioned(client *sub, csGroup *g) {
+    if (kvstoreIsFlat(sub->db->keys)) {
+        flatTable *t = kvstoreFlatTable(sub->db->keys);
+        int npairs = (sub->argc - 1) / 2;
+        for (int base = 0; base < npairs; base += TOMO_MSUBWAVE) {
+            int nw = npairs - base;
+            if (nw > TOMO_MSUBWAVE) nw = TOMO_MSUBWAVE;
+            uint64_t h[TOMO_MWAVE];
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                redis_prefetch_read(sub->argv[a]);
+                redis_prefetch_read(sub->argv[a + 1]);
+            }
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                robj *k = sub->argv[a], *v = sub->argv[a + 1];
+                if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) redis_prefetch_read(k->ptr);
+                if (v->encoding != OBJ_ENCODING_EMBSTR && v->ptr) redis_prefetch_read(v->ptr);
+            }
+            for (int i = 0; i < nw; i++) {
+                robj *k = sub->argv[1 + 2 * (base + i)];
+                h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
+            }
+            for (int i = 0; i < nw; i++)
+                redis_prefetch_read(&t->slots[h[i] & t->mask]);
+            for (int i = 0; i < nw; i++) {
+                int a = 1 + 2 * (base + i);
+                robj *keyo = sub->argv[a];
+                sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);
+                sub->tomo_bkt_ptr = keyo->ptr;
+                sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+                kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                                   &sub->argv[a+1], 0,
+                                                   g->version_seq, -1);
+                csMsetRecordInstall(sub, g, installed);
+                sub->argv[a+1] = NULL;
+                notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+                markDirty(1);
+            }
+        }
+        sub->tomo_bkt_ptr = NULL;
+        return;
+    }
+
+    for (int a = 1; a + 1 < sub->argc; a += 2) {
+        robj *keyo = sub->argv[a];
+        sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
+        kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
+                                           &sub->argv[a+1], 0,
+                                           g->version_seq, -1);
+        csMsetRecordInstall(sub, g, installed);
+        sub->argv[a+1] = NULL;
+        notifyKeyspaceEvent(NOTIFY_STRING, "set", keyo, sub->db->id);
+        markDirty(1);
+    }
+}
+
 static void csSubExec(client *sub) {
     csGroup *g = sub->csparent;
     if (!sub->argv || !sub->argv[1]) return;
@@ -9495,7 +10958,7 @@ static void csSubExec(client *sub) {
     case CS_MGET: {
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
          * not getCommand. */
-        if (g->mget_vals) {
+        if (g->snapshot_pinned && g->mget_vals) {
             /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
@@ -9515,8 +10978,20 @@ static void csSubExec(client *sub) {
                     g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
                                                                    : sdsfromlonglong((long)o->ptr);
             }
-        } else {
+        } else if (g->snapshot_pinned) {
             /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
+            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
+            if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
+            else addReplyBulk(sub, o);
+        } else if (g->mget_vals) {
+            int *pos = g->mget_pos[sub->cssub_idx];
+            for (int a = 1; a < sub->argc; a++) {
+                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
+                if (o != NULL && o->type == OBJ_STRING)
+                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
+                                                                   : sdsfromlonglong((long)o->ptr);
+            }
+        } else {
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
@@ -9524,6 +10999,10 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_MSETNX:
+        if (g->versioned_write) {
+            csMsetnxSubExecVersioned(sub, g);
+            break;
+        }
         if (g->phase == CS_PH_HOP1) {
             /* step 8 HOP1: existence probe (subs carry KEYS ONLY). Any hit fails the NX. */
             for (int a = 1; a < sub->argc; a++)
@@ -9557,6 +11036,10 @@ static void csSubExec(client *sub) {
          * (heavier) apply wave is still L2-resident. MSETNX HOP2 falls through and gets the same
          * treatment. Follow-up (not done): teach the flat kvstoreDictFindLink a full-hash hint to
          * drop the second xxh64 — dictArmHashHint's TLS is consumed by the dict path only. */
+        if (g->versioned_write) {
+            csMsetSubExecVersioned(sub, g);
+            break;
+        }
         if (kvstoreIsFlat(sub->db->keys)) {
             flatTable *t = kvstoreFlatTable(sub->db->keys);
             int npairs = (sub->argc - 1) / 2;
@@ -9609,6 +11092,10 @@ static void csSubExec(client *sub) {
         break;
     }
     case CS_DEL: {
+        if (g->versioned_write) {
+            csDelSubExecVersioned(sub, g);
+            break;
+        }
         /* ee451 (v11): COALESCED — argv is [CMD k k ...]; delete each present key, sum into rcount.
          * lookupKeyWrite handles lazy expiry. Per-key migration capture. */
         long deleted = 0;
@@ -9629,10 +11116,24 @@ static void csSubExec(client *sub) {
          * LOOKUP_NOTOUCH, stock touchCommand touches on purpose. Take the flag from the registry ROW
          * (g->spec) — hardcoding LOOKUP_NONE here made every pipelining/cross-node EXISTS bump
          * LRU/LFU where stock would not. */
-        int lkflags = (g->spec && g->spec->notouch) ? LOOKUP_NOTOUCH : LOOKUP_NONE;
+        int explicit_touch = g->snapshot_pinned && g->spec && !g->spec->notouch;
+        int lkflags = (g->spec && g->spec->notouch) || explicit_touch ?
+                      LOOKUP_NOTOUCH : LOOKUP_NONE;
         long present = 0;
-        for (int a = 1; a < sub->argc; a++)
-            if (lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags)) present++;
+        for (int a = 1; a < sub->argc; a++) {
+            kvobj *resolved = lookupKeyReadWithFlags(sub->db, sub->argv[a], lkflags);
+            if (resolved) {
+                present++;
+                /* Atomic TOUCH must update the resolved snapshot version, not
+                 * an uncommitted/tombstone physical bag head. */
+                if (explicit_touch && !hasActiveChildProcess()) {
+                    if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU)
+                        updateLFU(resolved);
+                    else if (!(server.maxmemory_policy & MAXMEMORY_FLAG_LRM))
+                        resolved->lru = LRU_CLOCK();
+                }
+            }
+        }
         atomic_fetch_add_explicit(&g->rcount, present, memory_order_relaxed);
         break;
     }
@@ -9721,7 +11222,14 @@ static void csSubExec(client *sub) {
             /* step 5 WRITE sub (dst shard, single-writer): h2_payload == NULL means the computed
              * result was EMPTY => stock deletes dst and replies 0; else restore the serialized
              * result set over dst. Sources were read-only — this is the only write. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "sunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "sdiffstore"  : "sinterstore";
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_SET,ev,0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -9782,6 +11290,14 @@ static void csSubExec(client *sub) {
             sub->cmd->proc(sub);
         } else if (g->phase == CS_PH_HOP1) {
             csH1StoreSelect(sub, g);
+        } else if (g->versioned_write) {
+            int nclass = g->ctype == CS_SORTSTORE ? NOTIFY_LIST : NOTIFY_ZSET;
+            const char *event = g->ctype == CS_ZRANGESTORE ? "zrangestore" :
+                                g->ctype == CS_SORTSTORE ? "sortstore" : "geosearchstore";
+            if (g->h2_payload == NULL)
+                csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+            else
+                csH2RestoreKeyVersioned(sub,g,nclass,event,0);
         } else if (g->h2_payload == NULL) {
             if (dbSyncDelete(sub->db, sub->argv[1])) {
                 keyModified(sub, sub->db, sub->argv[1], NULL, 1);
@@ -9801,7 +11317,14 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 6 WRITE sub: empty result => delete dst + 0 (stock); else restore the
              * serialized (listpack-converted-if-small) result zset over dst. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                const char *ev = (g->setop == CS_SETOP_UNION) ? "zunionstore" :
+                                 (g->setop == CS_SETOP_DIFF)  ? "zdiffstore"  : "zinterstore";
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_ZSET,ev,0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -9878,7 +11401,12 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: payload NULL => all sources empty/missing => delete dst + :0
              * (stock); else the coordinator-folded string overwrites dst. */
-            if (g->h2_payload == NULL) {
+            if (g->versioned_write) {
+                if (g->h2_payload == NULL)
+                    csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
+                else
+                    csH2RestoreKeyVersioned(sub,g,NOTIFY_STRING,"set",0);
+            } else if (g->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -9894,7 +11422,10 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP2) {
             /* step 7 WRITE: PFMERGE always writes (an all-empty merge stores an empty HLL,
              * stock creates the dest even with no data). Stock notifies "pfadd". */
-            csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd");
+            if (g->versioned_write)
+                csH2RestoreKeyVersioned(sub,g,NOTIFY_STRING,"pfadd",0);
+            else
+                csH2RestoreKey(sub, g, NOTIFY_STRING, "pfadd");
             break;
         }
         /* fall through */
@@ -9923,24 +11454,38 @@ static void csSubExec(client *sub) {
             /* same-shard: both keys live on this worker — run the real proc (typed/normal). */
             renameGenericCommand(sub, 0);
         } else if (g->phase == CS_PH_HOP1) {
-            csH1DumpKey(sub, g, 1 /* delete src (RENAME overwrites => transient MISSING) */);
+            /* Atomic RENAME snapshots the source at S and defers BOTH whole-value installs
+             * (source tombstone + destination value) to HOP2. OFF retains the shipped
+             * delete-in-HOP1 path byte-for-byte. */
+            csH1DumpKey(sub, g, g->versioned_write ? -1 : 1);
         } else {
-            csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
+            if (g->versioned_write &&
+                g->h2sub[sub->cssub_idx].action == CS_H2A_SRCOP) {
+                csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
+            } else if (g->versioned_write) {
+                csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"rename_to",0);
+            } else {
+                csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
+            }
         }
         break;
     }
     case CS_RENAMENX: {
         if (!g->has_hop2) {
             renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
+        } else if (g->versioned_write && g->version_nx_reserving) {
+            csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"rename_to");
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
                 /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
-                csH1DumpKey(sub, g, 0);
+                csH1DumpKey(sub, g, g->versioned_write ? -1 : 0);
             } else {
                 /* dst probe: NX verdict for the coordinator. */
                 if (lookupKeyRead(sub->db, sub->argv[1]) != NULL)
                     atomic_fetch_or_explicit(&g->probe, CS_PR_DST_EXISTS, memory_order_relaxed);
             }
+        } else if (g->versioned_write) {
+            csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
         } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
@@ -9957,9 +11502,13 @@ static void csSubExec(client *sub) {
     case CS_COPY: {
         if (!g->has_hop2) {
             copyCommand(sub);               /* same-shard, no DB option: real proc */
+        } else if (g->versioned_write && g->version_nx_reserving) {
+            csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"copy_to");
         } else if (g->phase == CS_PH_HOP1) {
             /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
             csH1DumpKey(sub, g, -1 /* read-only lookup, no delete */);
+        } else if (g->versioned_write) {
+            csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"copy_to",0);
         } else {
             /* dst shard/db: NX decided HERE atomically (single-writer) — no probe, no TOCTOU. */
             if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
@@ -10274,6 +11823,26 @@ static inline void csgFree(csGroup *g, void *p) {
     zfree(p);
 }
 
+/* Reserve this group's written-key hash vector (see csGroup.key_h and csMsetReadIntersects).
+ * From the group's OWN region, deliberately: that is what makes its lifetime identical to
+ * key_sig's, which is the only lifetime the R1 walk may assume. Every caller sizes the region
+ * with csKeyHashWant(), so the common shapes are served inline and this adds no allocation.
+ *
+ * Returns the vector, or NULL for a group with more written keys than the exact test retains —
+ * that group stays FILTER-ONLY and every filter hit against it holds (charged to ownread_conserv).
+ * The cap is not a tuning choice: past it the group's own signature is >=16 of 64 bits, so the
+ * filter is >=91% false-positive and the region is already spilling arrays to the heap — exactness
+ * there would buy an allocation instead of saving a park.
+ *
+ * key_h_n stays 0 until the CALLER has written every slot; a half-built vector must read as "no
+ * vector" (hold), never as "disjoint". */
+static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys) {
+    size_t want = csKeyHashWant(nkeys);
+    if (!want) return NULL;
+    g->key_h = csgAlloc(g, want);
+    return g->key_h;
+}
+
 static void csFreeSub(client *sub) {
     if (sub->argv) {
         csGroup *g = sub->csparent;
@@ -10392,6 +11961,14 @@ static void csAppendMsetValue(client *head, client *sub, int origpos) {
     }
 }
 
+/* An atomic MSETNX value may have to be rebuilt after an owner reports a
+ * pending reservation. Keep the head argv authoritative across retries; each
+ * wave gets a private value copy and transfers only that copy to the bag. */
+static void csAppendMsetnxReservationValue(client *head, client *sub, int origpos) {
+    robj *val = head->argv[2 + 2 * origpos];
+    sub->argv[sub->argc++] = dupStringObject(val);
+}
+
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
                                 const csCoalesceSpec *spec,
                                 void (*append_extra)(client *head, client *sub, int origpos)) {
@@ -10408,6 +11985,15 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     memset(cnt, 0, sizeof(int) * nw);
     int wof_stk[128];
     int *wof = (nkeys <= 128) ? wof_stk : zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
+    int register_bag = g->mset_installs && !g->versioned_write &&
+                       (g->ctype == CS_MSET || g->ctype == CS_DEL ||
+                        g->ctype == CS_MSETNX);
+    /* Reserved BEFORE the routing pass so the pass that computes each key's hash for routing also
+     * fills the exact-test vector — same hashes, no second pass, no second hash. Published (below,
+     * with key_h_n) only once every slot is written. A HOP2 re-run of this builder has
+     * register_bag == 0 (versioned_write is already set), so the HOP1 vector is neither rebuilt
+     * nor re-reserved: it is written exactly once, before the group is ever published. */
+    uint64_t *key_h = register_bag ? csGroupKeyHashReserve(g, nkeys) : NULL;
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
         /* FIX (task #48): the `spec->cs_write &&` conjunct used to let cross-shard multi-key READS
@@ -10420,9 +12006,15 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
          * state. Spinning in place has no such window. */
         if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
             migHoldKeyIfDraining(key);
-        int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+        uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
+        int w = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
+        if (register_bag) {
+            g->key_sig |= csHashSignature(h);
+            if (key_h) key_h[i] = h;
+        }
         wof[i] = w; cnt[w]++;
     }
+    if (key_h) g->key_h_n = nkeys;   /* commit: every slot above is now written */
     int nsub = 0;
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
@@ -10456,9 +12048,104 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
+    /* Registration remains before every owner publication, but now follows the routing pass so
+     * MSET values and DEL tombstones reuse that pass's full hashes for their complete signature. */
+    if (register_bag) csMsetRegister(g);
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
     return nsub;
+}
+
+/* Reservations acquire owners in ascending worker order. That removes
+ * cross-owner hold-and-wait cycles while preserving parallelism within every
+ * normal owner queue. A conflict wave is rebuilt here on the original IO
+ * producer, so its retry lands behind the owner's FIFO; the winning group's
+ * stamp/cancel arrives on the already-existing owner lane and is drained
+ * before the retried normal job. */
+static int csMsetnxAdvanceReservations(csGroup *g) {
+    if (!g->mset_installs || g->ctype != CS_MSETNX ||
+        !csMsetnxHasPendingPosition(g))
+        return 0;
+
+    /* An atomic MSETNX registered on HOP1, so this is 0 there and the group keeps the COMPLETE
+     * key_h vector built then — a superset of the still-pending positions re-hashed below, which
+     * is the conservative direction (it can only hold more). If a caller ever reaches here
+     * unregistered, key_h stays NULL and the group is filter-only: it holds, and says so in
+     * ownread_conserv. */
+    int register_group = !g->versioned_write;
+
+    /* NOTE for the R1 walk's lifetime argument: these subs are freed while the group is still
+     * linked in the pending FIFO. That is why the exact test reads g->key_h (inside g) and never
+     * g->subs[i]. */
+    if (g->subs) {
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        csgFree(g, g->subs);
+        g->subs = NULL;
+    }
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
+        g->mget_pos = NULL;
+    }
+    g->posmap_nsub = 0;
+    atomic_store_explicit(&g->msetnx_retry, 0, memory_order_relaxed);
+    if (cdbSlotReady(g->head->parent, g->head->cdb, g->head->fake_slot))
+        cdbSlotClear(g->head->parent, g->head->cdb, g->head->fake_slot);
+
+    int owner_stk[128];
+    int *owners = g->nkeys <= 128 ? owner_stk : zmalloc(sizeof(int) * (size_t)g->nkeys);
+    int target = server.num_workers;
+    for (int i = 0; i < g->nkeys; i++) {
+        owners[i] = -1;
+        if (g->msetnx_state[i] != CS_MSETNX_PENDING) continue;
+        robj *key = g->head->argv[1 + 2*i];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed), 0))
+            migHoldKeyIfDraining(key);
+        uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
+        owners[i] = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
+        if (register_group) g->key_sig |= csHashSignature(h);
+        if (owners[i] < target) target = owners[i];
+    }
+    serverAssert(target >= 0 && target < server.num_workers);
+    int count = 0;
+    for (int i = 0; i < g->nkeys; i++) if (owners[i] == target) count++;
+
+    g->nsub = 1;
+    g->subs = csgAlloc(g, sizeof(client *));
+    g->mget_pos = csgCalloc(g, sizeof(int *));
+    g->mget_pos[0] = csgAlloc(g, sizeof(int) * (size_t)count);
+    g->posmap_nsub = 1;
+    client *sub = createPooledFakeClient(g->head->parent);
+    sub->csparent = g;
+    sub->cssub_idx = 0;
+    sub->cmd = g->head->cmd;
+    sub->resp = g->head->resp;
+    sub->conn = g->head->conn;
+    sub->flags |= CLIENT_EX_PENDING;
+    sub->db = &server.exThreads[target].db[g->h2_dbid];
+    sub->argv = csgAlloc(g, sizeof(robj *) * (size_t)(1 + 2*count));
+    sub->argv[0] = g->head->argv[0];
+    incrRefCount(sub->argv[0]);
+    sub->argc = 1;
+    int fill = 0;
+    for (int i = 0; i < g->nkeys; i++) {
+        if (owners[i] != target) continue;
+        robj *key = g->head->argv[1 + 2*i];
+        sub->argv[sub->argc++] = key;
+        incrRefCount(key);
+        csAppendMsetnxReservationValue(g->head, sub, i);
+        g->mget_pos[0][fill++] = i;
+    }
+    serverAssert(fill == count);
+    g->subs[0] = sub;
+    atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
+    /* The first reservation routing pass covers every MSETNX position (including duplicate
+     * keys), registers the completed signature, then publishes its first owner wave. */
+    if (register_group) csMsetRegister(g);
+    csPushSpin(target, sub);
+    if (owners != owner_stk) zfree(owners);
+    return 1;
 }
 
 /* ---- pooled-sub construction helpers (factored from their ~6 duplications; do NOT push) ---- */
@@ -10487,7 +12174,76 @@ static void csSubCopyFullArgv(client *sub, client *head) {           /* same-sha
     sub->argc = head->argc;
 }
 
-static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined below FanAll) */
+/* Drain-side continuation for the one-destination NX reservation used by RENAMENX and COPY
+ * without REPLACE. Conflict retries stay on the normal owner FIFO. Once RENAMENX owns the
+ * destination, a final source-tombstone wave completes its two-install group; COPY's reserved
+ * destination is already its only final install. */
+static int csAtomicNxAdvance(csGroup *g) {
+    if (!g->versioned_write || !g->version_nx || !g->version_nx_reserving)
+        return 0;
+
+    client *head = g->head;
+    if (g->msetnx_state[0] == CS_MSETNX_PRESENT) {
+        if (atomic_load_explicit(&g->err,memory_order_relaxed) == CS_ERR_NONE)
+            atomic_store_explicit(&g->err,CS_ERR_NX_EXISTS,memory_order_relaxed);
+        g->version_abort = 1;
+        g->version_nx_reserving = 0;
+        cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+        csMsetInstallDone(g);
+        return 1;
+    }
+
+    if (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+        g->msetnx_state[0] == CS_MSETNX_PENDING) {
+        for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+        csgFree(g,g->subs);
+        atomic_store_explicit(&g->msetnx_retry,0,memory_order_relaxed);
+        cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+
+        int wi = -1;
+        for (int i = 0; i < g->h2_nsub; i++)
+            if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+        serverAssert(wi >= 0);
+        robj *key = head->argv[g->h2sub[wi].key_argi];
+        if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                  memory_order_relaxed),0))
+            migHoldKeyIfDraining(key);
+        serverAssert(head->tomo_bkt_ptr == (const void *)key->ptr);
+        int shard = (int)server.ex_bucket_table[head->tomo_bkt];
+        g->nsub = 1;
+        g->subs = csgAlloc(g,sizeof(client *));
+        atomic_store_explicit(&g->pending,1,memory_order_relaxed);
+        client *sub = csMakeSub(g,0,shard,g->h2_dbid);
+        csSubSetKeyArgv(sub,head,key);
+        csPushSpin(shard,sub);
+        return 1;
+    }
+
+    serverAssert(g->msetnx_state[0] == CS_MSETNX_RESERVED);
+    g->version_nx_reserving = 0;
+    if (g->ctype == CS_COPY) return 0;       /* R1 already published COPY's one install. */
+
+    serverAssert(g->ctype == CS_RENAMENX);
+    for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
+    csgFree(g,g->subs);
+    cdbSlotClear(head->parent,head->cdb,head->fake_slot);
+    robj *src = head->argv[(int)g->spec->src_argi];
+    if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
+        migHoldKeyIfDraining(src);
+    int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
+    g->h2_nsub = 1;
+    g->h2sub[0] = (csH2Sub){CS_H2A_SRCOP,g->spec->src_argi};
+    g->nsub = 1;
+    g->subs = csgAlloc(g,sizeof(client *));
+    atomic_store_explicit(&g->pending,1,memory_order_relaxed);
+    g->version_commit_ready = 1;
+    client *sub = csMakeSub(g,0,shard,g->h2_dbid);
+    csSubSetKeyArgv(sub,head,src);
+    csPushSpin(shard,sub);
+    return 1;
+}
+
+static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admission);  /* fwd */
 
 /* xshard registry: the ONE gather dispatcher — replaces dispatchMgetCoalesced /
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
@@ -10519,12 +12275,17 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
 #define CS_PIPE_LOCAL_UNION 4
 #define CS_PIPE_LOCAL_DIFF  5
 
+/* NOTE for the R1 walk's lifetime argument (csMsetReadIntersects): a registered pipeline group
+ * drops and reallocates its whole sub array BETWEEN stages, while it is still linked in the
+ * connection's pending FIFO. Sub-fakes are therefore unusable as the exact test's key source;
+ * the hashes live in the group itself. */
 static void csPipeFreeStageSubs(csGroup *g) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs); g->subs = NULL; g->nsub = 0;
 }
 
-static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid) {
+static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int first, int dbid,
+                             int atomic_admission) {
     int nw = server.num_workers;
     int nsub_hi = (nkeys < nw) ? nkeys : nw;          /* one initial sub per distinct shard */
     /* + pipe_scard[nkeys] and pipe_shard_of[nkeys], plus the later GATHER1/PROBE subs and
@@ -10532,11 +12293,26 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
      * selected smallest key. */
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
-                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2));
+                            8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
+                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
     head->cdb = 0;
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected = 1;
+        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
+        serverAssert(s->dst_argi > 0);
+        csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
+        csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
+    }
     g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
     g->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
     g->pipe_stage = s->setop == CS_SETOP_INTER ? CS_PIPE_SIZES :
@@ -11083,7 +12859,7 @@ static void dispatchLocalReal(client *head, int w, int dbid) {
     csPushSpin(w, sub);
 }
 
-static void dispatchGather(client *head, const csCmdSpec *s) {
+static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admission) {
     int first = csFirstKeyArg(s);
     int nkeys, dbid = head->db->id;
     if (s->gather_geom) serverAssert(s->gather_geom(head,&first,&nkeys));
@@ -11091,6 +12867,18 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     else if (s->numkeys_argi) { long long nk;             /* validated by csClassify */
         getLongLongFromObject(head->argv[s->numkeys_argi], &nk); nkeys = (int)nk; }
     else nkeys = (head->argc - first) / s->key_stride;    /* MSET: (argc-1)/2 */
+    /* Atomic writes use the admission marker captured at the pre-ring gate.
+     * This closes the live CONFIG SET race: a finite reservation cannot leak
+     * if tomokv-atomic flips before group creation, and a command admitted
+     * while OFF cannot bypass a newly-enabled finite window. */
+    int atomic_write = atomic_admission != 0;
+    int atomic_bag = atomic_write &&
+                     (s->ctype == CS_MSET || s->ctype == CS_DEL ||
+                      s->ctype == CS_MSETNX);
+    int atomic_snapshot = head->tomo_read_snapshot_pinned &&
+                          (atomic_write || s->ctype == CS_MGET ||
+                           s->ctype == CS_EXISTS || s->ctype == CS_PFCOUNT);
+    int atomic_msetnx = atomic_write && s->ctype == CS_MSETNX;
     /* xshard-localfast: SINGLE-OWNER read-only fast path (see dispatchLocalReal). Every key of
      * this read lives on ONE worker, so the stock proc runs on its true owner — an owner-only
      * read, no borrowing, no extra locks. This path SURVIVES.
@@ -11112,7 +12900,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * single-threaded cross-key atomicity. Multi-key reads are gather/pipeline only, and those
      * are per-key atomic but not atomic ACROSS keys. */
     /* xshard-localfast: always on (measured win; knob retired 2026-07-28) */
-    if (!s->cs_write && !s->has_hop2 && nkeys >= 1) {
+    if (!s->cs_write && !s->has_hop2 && !atomic_snapshot && nkeys >= 1) {
         /* FIX (task #48, SIBLING ROUTE). #48 widened the DRAINING hold to READS on the two routes
          * it knew about — the single-key path (migHoldIfDraining, dispatchLocalReal's caller never
          * reaches it for keys past argv[1]) and the coalesced path (migHoldKeyIfDraining inside
@@ -11158,7 +12946,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
          s->ctype == CS_ZOP   || s->ctype == CS_ZSTORE || s->ctype == CS_ZCARD) &&
         (s->setop == CS_SETOP_INTER ||
          (s->ctype != CS_SETCARD && s->ctype != CS_ZCARD))) {
-        dispatchPipeline(head, s, nkeys, first, dbid);
+        dispatchPipeline(head, s, nkeys, first, dbid, atomic_admission);
         return;
     }
     int coalesce = 1;
@@ -11177,13 +12965,56 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
      * sized for THIS command rather than for the worst command. */
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
-    int posmap  = coalesce && s->pos_kind != CS_POS_NONE;
-    csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, posmap));
+    int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
+    size_t inline_want = csInlineWant(s, nkeys, nsub_hi, posmap);
+    int version_expected = (s->ctype == CS_MSET || s->ctype == CS_DEL ||
+                            s->ctype == CS_MSETNX) ? nkeys : 1;
+    if (atomic_write)
+        inline_want += sizeof(csMsetInstall) * (size_t)version_expected +
+                       /* R1 exact-overlap vector: nkeys hashes for a bag, one destination hash
+                        * otherwise. Accounted here for the same reason as mset_installs — an
+                        * unbudgeted array pushes a LATER array to the heap, i.e. trades the park
+                        * this is meant to remove for an allocation. */
+                       csKeyHashWant(atomic_bag ? nkeys : 1);
+    if (atomic_msetnx) inline_want += (size_t)nkeys;
+    csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
+
+    if (atomic_snapshot) {
+        /* processCommand pinned and drew S before any owner sub was queued. */
+        serverAssert(head->tomo_read_snapshot_pinned);
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0; /* group owns the matching exit */
+    }
+    if (atomic_write) {
+        /* The strict-bound CAS happened at the pre-ring admission gate. From there to here the
+         * processCommand stack cannot yield or fail recoverably, so this group takes ownership of
+         * exactly one reservation before any owner sub is published. Unlimited mode deliberately
+         * retains today's route and increments here, at actual group creation. */
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected = version_expected;
+        g->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
+        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) *
+                                       (size_t)version_expected);
+        if (atomic_msetnx)
+            g->msetnx_state = csgCalloc(g, (size_t)nkeys);
+        /* MSET/DEL/MSETNX accumulate their signature in the same routing-hash pass that builds
+         * the first owner wave, then register immediately before its first push. Every other
+         * atomic GATHER shape writes only the declared store destination. */
+        if (!atomic_bag) {
+            serverAssert(s->dst_argi > 0);
+            csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
+            csMsetRegister(g);
+        }
+    } else {
+        serverAssert(!atomic_admission);
+    }
 
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
@@ -11218,7 +13049,7 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
     /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
      * comment that used to sit here: the STORE / BITOP / PFMERGE / MSETNX / COPY / MPOP rows
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
-    if (s->has_hop2) {
+    if (s->has_hop2 && !atomic_msetnx) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
         head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
@@ -11226,7 +13057,10 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
         atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     }
+    if (atomic_msetnx)
+        head->parent->cs_barrier = 1;   /* later owner waves also launch from the drain thread */
     if (!coalesce) {
+        serverAssert(!atomic_bag);  /* all three bag rows are CS_CO_ALWAYS */
         /* THE one copy of the legacy per-key loop (was duplicated verbatim in
          * dispatchCrossShard and dispatchSetOp). */
         g->nsub = nkeys;
@@ -11242,22 +13076,30 @@ static void dispatchGather(client *head, const csCmdSpec *s) {
         }
         return;
     }
+    if (atomic_msetnx) {
+        /* Reservation acquisition is an owner-ordered sequence of normal
+         * queue waves. The first routing pass registers R1 before its push. */
+        serverAssert(csMsetnxAdvanceReservations(g));
+        return;
+    }
     /* Coalesced path: one sub per DISTINCT shard via the shared builder. */
     csCoalesceSpec cs = {
         .first_argi = first, .key_stride = s->key_stride,
-        .per_key_extra = s->per_key_extra,
-        .posmap = (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
+        .per_key_extra = atomic_msetnx ? 1 : s->per_key_extra,
+        .posmap = atomic_msetnx ? &g->mget_pos :
+                  (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
                   (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
                   (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
-    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, s->append_extra);
+    csBuildCoalescedSubs(head, g, nkeys, dbid, &cs,
+                         atomic_msetnx ? csAppendMsetnxReservationValue : s->append_extra);
 }
 
 /* xshard registry: route-kind fork (replaces the per-ctype if/else chain in the dispatch fork). */
-static void csDispatch(client *head, const csCmdSpec *s) {
+static void csDispatch(client *head, const csCmdSpec *s, int atomic_admission) {
     switch (s->route) {
-    case CS_RT_FANALL: dispatchFanAll(head); return;   /* verbatim, untouched */
-    case CS_RT_TWOHOP: dispatchTwoHop(head, s); return;
-    default:           dispatchGather(head, s); return;
+    case CS_RT_FANALL: serverAssert(!atomic_admission); dispatchFanAll(head); return;   /* verbatim, untouched */
+    case CS_RT_TWOHOP: dispatchTwoHop(head, s, atomic_admission); return;
+    default:           dispatchGather(head, s, atomic_admission); return;
     }
 }
 
@@ -11270,10 +13112,10 @@ static void dispatchFanAll(client *head) {
      * thread has flipped to IO would never be popped and the group's pending barrier would hang
      * the client forever. A grow-fronting worker keeps consuming until its role change (which
      * happens strictly after live--, one whole migration later), so subs racing the decrement are
-     * still served. Consistency note: between live-- and the grow-front FLIP (and symmetrically
-     * between the grow-back seed FLIP and live++ — sub-second windows), that slot's keys are
+     * still served. Consistency note: between live-- and the grow-front FLIP that slot's keys are
      * invisible to KEYS — the same weak-consistency class KEYS already has under any migration
-     * (dictScan dup/miss). */
+     * (dictScan dup/miss). Grow-back publishes the empty consuming worker before its seed, so there
+     * is no corresponding seed-FLIP-to-live publication gap. */
     /* ee451 (per-node flip): the live set is per-node prefixes — enumerate via tmWorkerLive
      * (numa==1: bit-identical to the old [0, live) walk). cssub_idx stays the WORKER id, not the
      * sub index — the shared-kv CS_KEYS range iteration derives the bucket range from it. */
@@ -11830,7 +13672,7 @@ static int csSortAdvance(csGroup *g) {
     return 0;
 }
 
-static void dispatchSortByGet(client *head, const csCmdSpec *s) {
+static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admission) {
     int dbid = head->db->id;
     robj *src = head->argv[(int)s->src_argi];
     if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
@@ -11850,6 +13692,21 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s) {
     atomic_store_explicit(&g->err,CS_ERR_NONE,memory_order_relaxed);
     head->csgroup = g;
     head->cdb = 0;
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected = 1;
+        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
+        int dst_argi = s->dynamic_dst_argi(head);
+        serverAssert(dst_argi > 0 && dst_argi < head->argc);
+        csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
+        csMsetRegister(g);
+    }
     head->parent->cs_barrier = 1;
     client *sub = csMakeSub(g,0,shard,dbid);
     csSubCopyFullArgv(sub,head);
@@ -11872,9 +13729,9 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s) {
  * plan stamped HERE from the row — csLaunchHop2 never reads head->argv positions directly. For
  * RENAME the HOP1 sub reads+serializes+deletes src (or flags NOKEY) and HOP2 RESTOREs on dst;
  * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
-static void dispatchTwoHop(client *head, const csCmdSpec *s) {
+static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admission) {
     if (s->ctype == CS_SORTSTORE && csSortHasExternal(head)) {
-        dispatchSortByGet(head,s);
+        dispatchSortByGet(head,s,atomic_admission);
         return;
     }
     int dbid = head->db->id;
@@ -11883,9 +13740,14 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     robj *src = head->argv[(int)s->src_argi], *dst = head->argv[dst_argi];
     /* review #1: hash each key ONCE. The bucket is stable across a cutover (only the
      * bucket->worker table flips), so worker = ex_bucket_table[bkt] can be re-read after the
-     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket. */
-    int src_bkt = migKeyBucket(src->ptr, sdslen(src->ptr));
-    int dst_bkt = migKeyBucket(dst->ptr, sdslen(dst->ptr));
+     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket.
+     * Keep the FULL hash of that one hashing, not just its bucket: the atomic arm below needs it
+     * for the R1 exact-overlap vector, and re-deriving it would hash the same bytes twice.
+     * (migKeyBucket is exactly xxh64(k) & TOMO_BUCKET_MASK, so the buckets are unchanged.) */
+    uint64_t src_h = tomoKeyHash(src->ptr, sdslen(src->ptr));
+    uint64_t dst_h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
+    int src_bkt = (int)(src_h & TOMO_BUCKET_MASK);
+    int dst_bkt = (int)(dst_h & TOMO_BUCKET_MASK);
     int src_shard = server.ex_bucket_table[src_bkt];
     int dst_shard = server.ex_bucket_table[dst_bkt];
     int copy_has_db = 0;   /* COPY ... DB n present (any value) => never the raw-proc fast path */
@@ -11897,11 +13759,18 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
     size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
                         (size_t)head->argc : h1_argv + h2_argv;
-    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots));
+    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots) +
+                            /* R1 exact-overlap vector: dst, plus src on the two-write shapes. */
+                            (atomic_admission ? csKeyHashWant(2) : 0));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
+    if (head->tomo_read_snapshot_pinned) {
+        g->snapshot_pinned = 1;
+        g->read_seq = head->tomo_read_snapshot;
+        head->tomo_read_snapshot_pinned = 0;
+    }
 
     if (s->ctype == CS_COPY) {
         /* Parse DB n / REPLACE once here (shape_ok already validated form + range). The dest
@@ -11929,6 +13798,34 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
     }
 
+    if (atomic_admission) {
+        serverAssert(atomic_admission == 1 || atomic_admission == 2);
+        if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
+        g->version_install_expected =
+            (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
+        g->version_nx = s->ctype == CS_RENAMENX ||
+                        (s->ctype == CS_COPY && !(g->h2_flags & CS_H2F_REPLACE));
+        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
+                                       (size_t)g->version_install_expected);
+        if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
+        /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
+         * source tombstone. Reuse the two routing hashes already computed above — the signature
+         * is unchanged (csHashSignature reads the low 6 bits, which the bucket mask preserves),
+         * and the same hashes fill the exact-overlap vector. */
+        int nwrite = (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
+        g->key_sig = csHashSignature(dst_h);
+        if (nwrite == 2) g->key_sig |= csHashSignature(src_h);
+        uint64_t *kh = csGroupKeyHashReserve(g, nwrite);
+        if (kh) {
+            kh[0] = dst_h;
+            if (nwrite == 2) kh[1] = src_h;
+            g->key_h_n = nwrite;      /* publish only once every slot is written */
+        }
+        head->tomo_bkt = dst_bkt;
+        head->tomo_bkt_ptr = dst->ptr;
+        csMsetRegister(g);       /* before source snapshot reads or destination reservation */
+    }
+
     int mig = __builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
     /* Migration fate of each key: a same-shard pair with the SAME fate (both in the migrating
      * range or both out) stays co-located through the cutover, so the real proc still finds both
@@ -11944,7 +13841,8 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
      * same-object case ("COPY k k DB <cur>") is caught in the 2-hop COPY prep (re-review). Every
      * other same-shard pair runs the real proc, which handles all stock semantics INCLUDING the
      * samekey no-op (#0/#4: forcing samekey SMOVE/COPY onto the 2-hop path corrupted them). */
-    if (src_shard == dst_shard && !s->block_reject && !copy_has_db && !(src_in ^ dst_in)) {
+    if (!atomic_admission && src_shard == dst_shard && !s->block_reject &&
+        !copy_has_db && !(src_in ^ dst_in)) {
         /* ee451 (migration-safety, review 2026-07-17 v2): the real proc via csSubExec bypasses
          * the DRAINING fence. Make THIS path migration-safe like every other write path: when the
          * co-located pair is IN the range, hold both keys during DRAINING and re-read the shard
@@ -11971,8 +13869,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
     head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
     g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
+    if (atomic_admission && s->ctype == CS_RENAME)
+        g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP,
+                                            .key_argi = s->src_argi };
     g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
-    if (s->h2_del_src)
+    if ((!atomic_admission && s->h2_del_src))
         g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
     if (mig) {
         /* hold BOTH keys THEN re-read shards (finding #1: HOP1 subs were routed with pre-hold
@@ -11981,7 +13882,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s) {
         src_shard = server.ex_bucket_table[src_bkt];   /* re-read table post-flip (buckets stable) */
         dst_shard = server.ex_bucket_table[dst_bkt];
     }
-    int nh1 = 1 + (s->h1_probe_dst ? 1 : 0);
+    int nh1 = 1 + ((!atomic_admission && s->h1_probe_dst) ? 1 : 0);
     g->nsub = nh1; g->subs = csgAlloc(g, sizeof(client*) * nh1);
     atomic_store_explicit(&g->pending, nh1, memory_order_relaxed);
     for (int i = 0; i < nh1; i++) {
@@ -12043,7 +13944,8 @@ static int csLaunchHop2(csGroup *g) {
     case CS_RENAMENX:
         /* NX verdict from the HOP1 dst probe. NOKEY from the src sub is handled by the
          * generic err screen below (src untouched — nothing was deleted in HOP1). */
-        if (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS)
+        if (!g->versioned_write &&
+            (atomic_load_explicit(&g->probe, memory_order_relaxed) & CS_PR_DST_EXISTS))
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
         break;
     case CS_COPY: break;   /* same-object caught at dispatch; NX decided at the dst write (no probe) */
@@ -12228,6 +14130,23 @@ static int csLaunchHop2(csGroup *g) {
     }
     if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE) return 0;
 
+    if (g->versioned_write) {
+        if (g->version_nx) {
+            /* The final destination value itself is the reservation. RENAMENX still needs a
+             * later source-tombstone wave; COPY is complete as soon as this reservation lands. */
+            g->version_nx_reserving = 1;
+            g->version_commit_ready = g->ctype == CS_COPY;
+            int wi = -1;
+            for (int i = 0; i < g->h2_nsub; i++)
+                if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+            serverAssert(wi >= 0);
+            g->h2sub[0] = g->h2sub[wi];
+            g->h2_nsub = 1;
+        } else {
+            g->version_commit_ready = 1;
+        }
+    }
+
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs); g->subs = NULL;
     /* posmaps are sized by the HOP1 sub count — free them NOW, before nsub is repurposed for
@@ -12257,7 +14176,12 @@ static int csLaunchHop2(csGroup *g) {
     for (int i = 0; i < n; i++) {
         robj *key = head->argv[g->h2sub[i].key_argi];
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
-        shards[i] = exIndexForKey(key->ptr, sdslen(key->ptr));    /* re-route AFTER the hold */
+        /* Destination-only atomic registrations already hashed their written key to build
+         * key_sig. Reuse the carried bucket and only re-read its owner after the hold. */
+        shards[i] = g->versioned_write &&
+                    head->tomo_bkt_ptr == (const void *)key->ptr
+                    ? (int)server.ex_bucket_table[head->tomo_bkt]
+                    : exIndexForKey(key->ptr, sdslen(key->ptr));  /* re-route AFTER the hold */
         client *sub = csMakeSub(g, i, shards[i], dbid);
         if (csIsMpopType(g->ctype)) {
             /* step 9: rewrite to the single-key NON-blocking form the worker's real proc
@@ -12298,6 +14222,7 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    if (g->versioned_write) csMsetPendingRemove(g);
     /* ee451 (#B1): count the cross-shard command HERE — once, on the drain thread that retires the
      * group head — and NOT in csSubExec. A cross-shard command is fanned into one sub per owning
      * shard (and a 2-hop re-fans for HOP2), so counting subs would report an 8-key MGET as 4 or 5
@@ -12697,7 +14622,10 @@ static void csReassemble(client *dst, client *head) {
     if (g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
-        if (g->mget_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]); csgFree(g, g->mget_pos); }
+    }
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
     }
     if (g->xread_out) {
         for (int i = 0; i < g->nkeys; i++) csFreeSub(g->xread_out[i]);
@@ -12724,6 +14652,39 @@ static void csReassemble(client *dst, client *head) {
     }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs);
+    if (g->mset_installs) {
+        for (int i = 0; i < g->version_install_expected; i++)
+            serverAssert(g->mset_installs[i].kv == NULL);
+        csgFree(g, g->mset_installs);
+    }
+    csgFree(g, g->msetnx_state);
+    /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
+     * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
+     * unlinked the group, so no R1 walk can still reach it. */
+    csgFree(g, g->key_h);
+    if (g->snapshot_pinned) {
+        g->snapshot_pinned = 0;
+        flatQsbrRegionExit();
+    }
+    /* Exactly-once atomic admission retirement. csReassemble is the group's single terminal
+     * point: stage/HOP2 advances return before it, while both live reply publication and the
+     * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
+     * only by csMsetRegister after the pre-ring reservation, so every increment has this one
+     * decrement and no non-atomic group can decrement it. */
+    if (g->versioned_write) {
+        int old = atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
+        serverAssert(old > 0);
+        /* AUDIT P2 (2026-08-08): decrement-then-check-waiters vs enroll-then-check-inflight is a
+         * Dekker pair on two different atomics; both sides relaxed lets the compiler hoist the
+         * waiters load above the fetch_sub, legalizing a lost wakeup (last-group retire skips the
+         * wake while the parker's release pass saw the pre-decrement count => parked forever on an
+         * idle thread). x86's locked RMW happened to save it; the fence makes it a guarantee. The
+         * park side needs none — it self-wakes unconditionally after enrolling. */
+        atomic_thread_fence(memory_order_seq_cst);
+        if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+            tomoAtomicWakeAll();
+    }
+    head->tomo_bkt_ptr = NULL;  /* group heads do not pass through exExecFake's stale-hint clear */
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
 }
@@ -13227,9 +15188,8 @@ static int migProducerLive(int t) {
  * Slot 0 is the main thread: it pushes its sentinel from beforeSleep and from the hold spin, and
  * it is the thread running this code, so there is nothing to wake. */
 static void migWakeProducer(int t) {
-    if (t <= 0 || t > TOMO_IO_THREADS_MAX) return;
-    eventNotifier *n = tm_mig_mbox[t].notifier;
-    if (n) triggerEventNotifier(n);
+    if (t <= 0) return;
+    tomoAtomicWakeProducer(t);
 }
 
 static void reshardCoordinatorTick(void) {
@@ -13343,9 +15303,9 @@ static void reshardCoordinatorTick(void) {
                           "ee451 reshard ABORT: drain fence did not complete within %d ms; "
                           "ownership NOT flipped, [%d,%d) stays on worker %d", tmo, lo, hi, src);
                 /* The flip tail must NOT run: action 2 would ask a thread that still owns its
-                 * range for the IO role (its checkpoint asserts zero owned buckets), and action
-                 * 3 publishes a liveness the un-taken FLIP never granted. The flip controller
-                 * has its own watchdog for a conversion that does not land. */
+                 * range for the IO role (its checkpoint asserts zero owned buckets). Grow-back
+                 * accounting is already a complete IO->EX move before its seed is armed, so an
+                 * abandoned seed needs no counter action here; tmFlipTick finishes it empty-live. */
                 co_aborted = 1;
                 server.tm_mig_flip_action = 0;
                 atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
@@ -13382,22 +15342,6 @@ static void reshardCoordinatorTick(void) {
     for (int t = 1; t < nprod; t++) migWakeProducer(t);
     serverLog(LL_NOTICE, "ee451 reshard FLIP: buckets [%d,%d) now served by worker %d", lo, hi, dst);
 
-    /* ee451 (thread-modes): the table remap above IS the go-live — dispatch now routes [lo,hi)
-     * to `dst`, so a flip that grew a worker back publishes it to the live-worker set HERE: the
-     * autotuner starts balancing it, KEYS/FLUSH fan-outs and RANDOMKEY cover it. Producer-side
-     * coverage (flushExQueues, cross-shard scratch) is slot-sized and needs no liveness signal.
-     * The revived worker has been running exSlice since before ARM (it drained this very effect
-     * log as dst), so everything routed from this instant is consumed. */
-    if (server.tm_mig_flip_action == 3) {
-        /* flip GROW-BACK: the revived worker `dst` just had its seed range routed in — publish it
-         * to the live set (num_workers_live++). dst == the current live count (workers 0..live-1
-         * plus this new index), so the increment lands it at dst+1. */
-        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
-        tmNodeWliveAdd(dst, +1);                             /* per-node flip accounting */
-        serverLog(LL_NOTICE, "ee451 flip: GROW-BACK worker %d LIVE (num_workers_live=%d)",
-                  dst, atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
-    }
-
         atomic_store_explicit(&co_state, CO_WAIT_REFS, memory_order_release);
         return;
     }
@@ -13428,11 +15372,11 @@ static void reshardCoordinatorTick(void) {
      * engine; the heartbeat wait stays — it is what makes active=0 safe to publish.) */
     if (atomic_load_explicit(&co_state, memory_order_relaxed) != CO_QUIESCE) return;
     if (atomic_load_explicit(&server.exThreads[dst].loop_seq, memory_order_acquire) < co_hb0 + 3) return;
-    /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the flip-action flag
+    /* ee451 (thread-modes step 4, hardening 3.1b): capture + clear the grow-front tail flag
      * strictly BEFORE the active=0 release-store. The instant active drops, the main thread
      * may arm a NEW migration and write a NEW action; a late clear here could overwrite it
-     * (lost flip tail: a grown-back worker never published, or a role change never
-     * requested). Before the release-store this coordinator is still the sole owner. */
+     * (lost flip tail: the EX->IO role change is never requested). Before the release-store
+     * this coordinator is still the sole owner. */
     int flip_act = server.tm_mig_flip_action;
     server.tm_mig_flip_action = 0;
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
@@ -14602,7 +16546,8 @@ int areCommandKeysInSameSlot(client *c, int *hashslot) {
 
     if (c->cmd->proc == execCommand) {
         if (!(c->flags & CLIENT_MULTI)) return 1;
-        else ms = &c->mstate;
+        else ms = clientMultiState(c);
+        serverAssert(ms != NULL);
     }
 
     /* If client is in multi-exec, we need to check the slot of all keys
@@ -14808,7 +16753,7 @@ int isReadyToShutdown(void) {
         client *replica = listNodeValue(ln);
         /* Don't count migration destination replicas. */
         if (replica->flags & CLIENT_ASM_MIGRATING) continue;
-        if (replica->repl_ack_off != server.master_repl_offset) return 0;
+        if (clientReplicationData(replica)->repl_ack_off != server.master_repl_offset) return 0;
     }
     return 1;
 }
@@ -14867,16 +16812,16 @@ int finishShutdown(void) {
             paused = 1;
         }
 
-        if (replica->repl_ack_off != server.master_repl_offset) {
+        if (clientReplicationData(replica)->repl_ack_off != server.master_repl_offset) {
             num_lagging_replicas++;
-            long lag = replica->replstate == SLAVE_STATE_ONLINE ?
-                time(NULL) - replica->repl_ack_time : 0;
+            long lag = clientReplicationData(replica)->replstate == SLAVE_STATE_ONLINE ?
+                time(NULL) - clientReplicationData(replica)->repl_ack_time : 0;
             serverLog(LL_NOTICE,
                       "Lagging replica %s reported offset %lld behind master, lag=%ld, state=%s.",
                       replicationGetSlaveName(replica),
-                      server.master_repl_offset - replica->repl_ack_off,
+                      server.master_repl_offset - clientReplicationData(replica)->repl_ack_off,
                       lag,
-                      replstateToString(replica->replstate));
+                      replstateToString(clientReplicationData(replica)->replstate));
         }
 
         if (paused) resumeIOThread(replica->tid);
@@ -16040,6 +17985,7 @@ dict *genInfoSectionDict(robj **argv, int argc, char **defaults, int *out_all, i
 void totalNumberOfStatefulKeys(unsigned long *blocking_keys, unsigned long *blocking_keys_on_nokey, unsigned long *watched_keys) {
     unsigned long bkeys=0, bkeys_on_nokey=0, wkeys=0;
     for (int j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         bkeys += dictSize(server.db[j].blocking_keys);
         bkeys_on_nokey += dictSize(server.db[j].blocking_keys_unblock_on_nokey);
         wkeys += dictSize(server.db[j].watched_keys);
@@ -16539,6 +18485,25 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             csg_inl += csg_alloc_ctr[_t].inline_hits;
             csg_heap += csg_alloc_ctr[_t].heap_fallbacks;
         }
+        /* Atomic-mode RYOW overlap census. held/pending is the rate at which a read that COULD
+         * conflict with its own uncommitted writes actually does — the workload property the read
+         * hold's cost is set by. Subtract conserv from held for the rate the KEYS overlapped,
+         * rather than the rate the gate could not prove they did not. Sanity check on a run: at a
+         * large keyspace, (held-conserv)/pending should now track the TRUE collision probability
+         * (~0.01% for 8-key reads vs 8-key writes over 2M keys) and should FALL as the keyspace
+         * grows. A rate that is flat in the keyspace is bit aliasing, which is what the 64-bit
+         * signature alone reported (74.9% at 2M keys) before the exact arm existed.
+         *
+         * detach is the detached-head window's population, not a hold: it should be LARGE (it was
+         * 98% of all holds when that window forced one) while conserv stays near zero. detach ~ 0
+         * with a healthy conserv means the window simply did not open on this run and says nothing
+         * about the records; conserv tracking detach means they are consulted but never settle. */
+        unsigned long long orr = 0, orp = 0, orh = 0, orc = 0, ord = 0;
+        for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
+            orr += tm_io_sig[_t].ownread_reads;   orp += tm_io_sig[_t].ownread_pending;
+            orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
+            ord += tm_io_sig[_t].ownread_detach;
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -16582,6 +18547,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
             "tomokv_reshard_fence_aborts:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
+            /* Flip actuator recoveries are never normal control decisions: each increment names one
+             * conversion that was abandoned/rolled back, or whose seed cutover was abandoned after
+             * the role move had safely completed. This makes the recovery visible without inferring
+             * it from a later pool-conservation warning. */
+            "tomokv_flip_recoveries:%llu\r\n",
+                atomic_load_explicit(&tomo_flip_recoveries, memory_order_relaxed),
             "tomokv_xshard_multikey_split:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
             "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,
@@ -16594,6 +18565,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
             "tomokv_xshard_mset_moved:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
+            "tomokv_atomic_inflight:%d\r\n",
+                atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
+            "tomokv_atomic_promotions:%llu\r\n",
+                atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+            "tomokv_atomic_ownread_reads:%llu\r\n", orr,
+            "tomokv_atomic_ownread_pending:%llu\r\n", orp,
+            "tomokv_atomic_ownread_held:%llu\r\n", orh,
+            "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
+            "tomokv_atomic_ownread_detach:%llu\r\n", ord,
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
@@ -16682,6 +18662,59 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_uring_send_zc_fallbacks:%llu\r\n", (unsigned long long)ust.send_zc_fallbacks,
             "tomokv_uring_send_cancel_queued:%llu\r\n", (unsigned long long)ust.send_cancel_queued,
             "tomokv_uring_send_cancel_cqes:%llu\r\n", (unsigned long long)ust.send_cancel_cqes));
+        /* Keep modes 0/1 INFO byte-for-byte unchanged.  The additive mode-2
+         * instrumentation is emitted only for the selected backend. */
+        if (server.io_uring == 2) {
+            tomoUring2Stats u2st;
+            tomoUring2GetStats(&u2st);
+            long long u2_commands = getNumCommands();
+            double u2_enters_per_command = u2_commands > 0 ?
+                (double)u2st.enter_calls / (double)u2_commands : 0.0;
+            double u2_cqes_per_drain = u2st.cq_drain_passes ?
+                (double)u2st.cqes / (double)u2st.cq_drain_passes : 0.0;
+            double u2_sqes_per_enter = u2st.enter_calls ?
+                (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
+            info = sdscatprintf(info, FMTARGS(
+                "tomokv_uring2_enabled:%d\r\n", server.io_uring == 2,
+                "tomokv_uring2_rings_ready:%llu\r\n", (unsigned long long)u2st.rings_ready,
+                "tomokv_uring2_setup_submit_all:%llu\r\n", (unsigned long long)u2st.setup_submit_all,
+                "tomokv_uring2_setup_defer_taskrun:%llu\r\n", (unsigned long long)u2st.setup_defer_taskrun,
+                "tomokv_uring2_setup_coop_taskrun:%llu\r\n", (unsigned long long)u2st.setup_coop_taskrun,
+                "tomokv_uring2_setup_taskrun_flag:%llu\r\n", (unsigned long long)u2st.setup_taskrun_flag,
+                "tomokv_uring2_setup_single_issuer:%llu\r\n", (unsigned long long)u2st.setup_single_issuer,
+                "tomokv_uring2_init_failures:%llu\r\n", (unsigned long long)u2st.init_failures,
+                "tomokv_uring2_sqes_staged:%llu\r\n", (unsigned long long)u2st.sqes_staged,
+                "tomokv_uring2_sqes_submitted:%llu\r\n", (unsigned long long)u2st.sqes_submitted,
+                "tomokv_uring2_sqes_max_batch:%llu\r\n", (unsigned long long)u2st.sqes_max_batch,
+                "tomokv_uring2_enter_calls:%llu\r\n", (unsigned long long)u2st.enter_calls,
+                "tomokv_uring2_submit_getevents_calls:%llu\r\n", (unsigned long long)u2st.submit_getevents_calls,
+                "tomokv_uring2_taskrun_flag_enters:%llu\r\n", (unsigned long long)u2st.taskrun_flag_enters,
+                "tomokv_uring2_wait_calls:%llu\r\n", (unsigned long long)u2st.wait_calls,
+                "tomokv_uring2_enters_per_command_proxy:%.6f\r\n", u2_enters_per_command,
+                "tomokv_uring2_sqes_per_enter:%.6f\r\n", u2_sqes_per_enter,
+                "tomokv_uring2_sq_full_emergency_submits:%llu\r\n", (unsigned long long)u2st.sq_full_emergency_submits,
+                "tomokv_uring2_cqes:%llu\r\n", (unsigned long long)u2st.cqes,
+                "tomokv_uring2_cq_drain_passes:%llu\r\n", (unsigned long long)u2st.cq_drain_passes,
+                "tomokv_uring2_cq_batches:%llu\r\n", (unsigned long long)u2st.cq_batches,
+                "tomokv_uring2_cqes_per_drain_pass:%.6f\r\n", u2_cqes_per_drain,
+                "tomokv_uring2_epoll_wakes:%llu\r\n", (unsigned long long)u2st.epoll_wakes,
+                "tomokv_uring2_recv_submitted:%llu\r\n", (unsigned long long)u2st.recv_submitted,
+                "tomokv_uring2_recv_cqes:%llu\r\n", (unsigned long long)u2st.recv_cqes,
+                "tomokv_uring2_recv_bytes:%llu\r\n", (unsigned long long)u2st.recv_bytes,
+                "tomokv_uring2_recv_poll_first:%llu\r\n", (unsigned long long)u2st.recv_poll_first,
+                "tomokv_uring2_recv_sock_nonempty:%llu\r\n", (unsigned long long)u2st.recv_sock_nonempty,
+                "tomokv_uring2_recv_cancel_submitted:%llu\r\n", (unsigned long long)u2st.recv_cancel_submitted,
+                "tomokv_uring2_send_queued:%llu\r\n", (unsigned long long)u2st.send_queued,
+                "tomokv_uring2_send_submitted:%llu\r\n", (unsigned long long)u2st.send_submitted,
+                "tomokv_uring2_send_cqes:%llu\r\n", (unsigned long long)u2st.send_cqes,
+                "tomokv_uring2_send_bytes:%llu\r\n", (unsigned long long)u2st.send_bytes,
+                "tomokv_uring2_send_partial:%llu\r\n", (unsigned long long)u2st.send_partial,
+                "tomokv_uring2_send_errors:%llu\r\n", (unsigned long long)u2st.send_errors,
+                "tomokv_uring2_send_scratch_copies:%llu\r\n", (unsigned long long)u2st.send_scratch_copies,
+                "tomokv_uring2_send_scratch_bytes:%llu\r\n", (unsigned long long)u2st.send_scratch_bytes,
+                "tomokv_uring2_send_cancel_submitted:%llu\r\n", (unsigned long long)u2st.send_cancel_submitted,
+                "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
+        }
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
          * separate sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
          * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
@@ -16776,11 +18809,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 server.unixtime - server.repl_down_since : 0 ;
 
             if (server.master) {
-                slave_repl_offset = server.master->reploff;
-                slave_read_repl_offset = server.master->read_reploff;
+                slave_repl_offset = clientReplicationData(server.master)->reploff;
+                slave_read_repl_offset = clientReplicationData(server.master)->read_reploff;
             } else if (server.cached_master) {
-                slave_repl_offset = server.cached_master->reploff;
-                slave_read_repl_offset = server.cached_master->read_reploff;
+                slave_repl_offset = clientReplicationData(server.cached_master)->reploff;
+                slave_read_repl_offset = clientReplicationData(server.cached_master)->read_reploff;
             }
 
             info = sdscatprintf(info, FMTARGS(
@@ -16849,7 +18882,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             listRewind(server.slaves,&li);
             while((ln = listNext(&li))) {
                 client *slave = listNodeValue(ln);
-                char ip[NET_IP_STR_LEN], *slaveip = slave->slave_addr;
+                char ip[NET_IP_STR_LEN], *slaveip = clientReplicationData(slave)->slave_addr;
                 int port;
                 long lag = 0;
 
@@ -16870,16 +18903,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                         continue;
                     slaveip = ip;
                 }
-                const char *state = replstateToString(slave->replstate);
+                const char *state = replstateToString(clientReplicationData(slave)->replstate);
                 if (state[0] == '\0') continue;
-                if (slave->replstate == SLAVE_STATE_ONLINE)
-                    lag = time(NULL) - slave->repl_ack_time;
+                if (clientReplicationData(slave)->replstate == SLAVE_STATE_ONLINE)
+                    lag = time(NULL) - clientReplicationData(slave)->repl_ack_time;
 
                 info = sdscatprintf(info,
                     "slave%d:ip=%s,port=%d,state=%s,"
                     "offset=%lld,lag=%ld,io-thread=%d\r\n",
-                    slaveid,slaveip,slave->slave_listening_port,state,
-                    slave->repl_ack_off, lag, slave->tid);
+                    slaveid,slaveip,clientReplicationData(slave)->slave_listening_port,state,
+                    clientReplicationData(slave)->repl_ack_off, lag, slave->tid);
                 slaveid++;
             }
         }
@@ -16998,6 +19031,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         if (sections++) info = sdscat(info,"\r\n");
         info = sdscatprintf(info, "# Keyspace\r\n");
         for (j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.db[j])) continue;
             long long keys, vkeys, subexpiry;
 
             keys = kvstoreSize(server.db[j].keys);
@@ -17035,6 +19069,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         serverAssert(sizeof(type_sizes_str)/sizeof(type_sizes_str[0]) == OBJ_TYPE_BASIC_MAX);
 
         for (int dbnum = 0; dbnum < server.dbnum; dbnum++) {
+            if (!dbIsInitialized(&server.db[dbnum])) continue;
             if (kvstoreSize(server.db[dbnum].keys) == 0)
                 continue;
 
@@ -17109,6 +19144,7 @@ void monitorCommand(client *c) {
     /* ignore MONITOR if already slave or in monitor mode */
     if (c->flags & CLIENT_SLAVE) return;
 
+    initClientReplicationData(c);
     c->flags |= (CLIENT_SLAVE|CLIENT_MONITOR);
     listAddNodeTail(server.monitors,c);
     addReply(c,shared.ok);
@@ -17410,7 +19446,7 @@ void setupChildSignalHandlers(void) {
  * parent restarts it can bind/lock despite the child possibly still running. */
 void closeChildUnusedResourceAfterFork(void) {
     closeListeningSockets(0);
-    tomoUringAfterForkChild();
+    tomoUringBackendAfterForkChild();
     if (server.cluster_enabled && server.cluster_config_file_lock_fd != -1)
         close(server.cluster_config_file_lock_fd);  /* don't care if this fails */
 
@@ -18070,17 +20106,14 @@ void flushExQueues(void) {
     if (!ex) return;
     /* ee451 (v14 cleanup): hoist per-batch invariants out of the loop.
      * SLOT-sized, unconditionally — exQueuePush only STAGES; this publish is what makes a job
-     * visible to its worker. A grow-back seed FLIP can route to a revived slot before its
-     * liveness signal propagates, so EVERY slot's queues must be covered (a job staged there
-     * but never published = a hung client). For a slot with no traffic the extra iteration is
-     * a no-op compare (staged_tail == tail, no store). */
+     * visible to its worker. Every allocated slot's queues must be covered through role changes
+     * (a job staged there but never published = a hung client). For a slot with no traffic the
+     * extra iteration is a no-op compare (staged_tail == tail, no store). */
     /* ee451 (A2): visit only the workers THIS thread actually staged into, via ctz over the
      * dirty mask, instead of sweeping every slot. The mask is a precise record of where a job was
-     * staged, which is strictly better than the old "cover every slot" rule it replaces: that rule
-     * existed because a grow-back seed FLIP can route to a revived slot before its liveness signal
-     * propagates, and the mask is independent of liveness entirely -- it records the store that
-     * actually happened. Snapshot-and-clear is race-free because the producer and the flusher are
-     * the same thread. */
+     * staged, which is strictly better than the old "cover every slot" rule it replaces: the mask
+     * is independent of role liveness entirely -- it records the store that actually happened.
+     * Snapshot-and-clear is race-free because the producer and the flusher are the same thread. */
     int nw = server.num_workers;
     int mw = (nw + 63) >> 6; if (mw > TOMO_EX_MASK_WORDS) mw = TOMO_EX_MASK_WORDS;  /* only live words */
     for (int wi = 0; wi < mw; wi++) {
@@ -18171,6 +20204,21 @@ int exQueuePush(exQueue *q, client *c) {
     q->staged_tail = next_t;
     /* ee451 (v13): batch-push HARDWIRED (knob retired) — publish happens per parse-batch
      * (#E1 eager, end of processInputBuffer) and at beforeSleep's flushExQueues. */
+    return 0;
+}
+
+/* Reserved CURE2 lane producer. Completion workers are serialized by
+ * commit_lock, so this remains one logical SPSC producer even when the worker
+ * that completes successive groups changes. */
+static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op) {
+    unsigned int t = q->staged_tail;
+    unsigned int next_t = (t + 1) & server.ex_queue_mask;
+    if (next_t == q->cached_head) {
+        q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
+        if (next_t == q->cached_head) return -1;
+    }
+    q->jobs[t] = exOwnerOpEncode(op);
+    q->staged_tail = next_t;
     return 0;
 }
 
@@ -18818,11 +20866,11 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
      * this the worker never drains a grown io thread's dispatch queue and its replies never return
      * (replyWorking pins, the grown io thread's conns wedge). */
-    ctx->nq = server.io_threads + 1 + server.tm_ngrow_io;
+    ctx->nq = csStampLane();
     /* the scan bound may never exceed the allocated lanes (tm_ngrow_io <= num_workers holds by
      * construction of the pool split; this converts a violation into a boot-time scream instead
      * of a heap overrun) */
-    serverAssert(ctx->nq <= worker->nlanes);
+    serverAssert(ctx->nq >= 1 && ctx->nq < worker->nlanes);
     ctx->scan_start = 0;
     ctx->empty_rounds = 0;
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
@@ -18847,7 +20895,10 @@ static inline int exDormantSliceNeeded(exThread *worker,
                          worker->flat_batches_local != NULL, 0))
         return 1;
 
-    for (int t = 0; t < ctx->nq; t++) {
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire))
+        return 1;
+
+    for (int t = 0; t <= ctx->nq; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int fh =
             atomic_load_explicit(&fb->head, memory_order_relaxed);
@@ -18974,6 +21025,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     }
 
     int any = 0;
+    if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
+        ctx->tm_mark = getMonotonicUs();
+        if (csStampDrain(worker)) any = 1;
+    }
     /* ee451: runtime worker pop/execute batch size, capped by the compile-time
      * array max. Decoupled from the per-stage prefetch widths. */
     int popmax = WORKER_POP_BATCH;   /* tomokv-worker-pop-batch retired at AUTO == the compile-time max */
@@ -19073,6 +21128,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             }
         }
         if (n == 0) continue;
+
+        /* I3 cross-lane fence. A reader acquires snapshot S before publishing
+         * its normal owner job, while every stamp <= S was published to the
+         * reserved lane before S became visible. The owner drains that whole
+         * lane before executing any popped normal batch, so all such stamps are
+         * applied before the reader can dereference its head. Their intra-lane
+         * order is irrelevant; cursor insertion restores per-key tuple order.
+         * Coalesced MGET subs arrive on these same normal owner queues. */
+        if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
+            if (!any) ctx->tm_mark = getMonotonicUs();
+            if (csStampDrain(worker)) any = 1;
+        }
 
 
         /* ee451 (thread-modes step 4, signals a+e): first pop of this pass = the WORK-PASS
@@ -19233,8 +21300,26 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                                                      memory_order_acq_rel) == 1;
                 }
                 if (last) {
-                    client *hp = g->head->parent;
-                    cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                    if (g->versioned_write) {
+                        int stage_only = !g->version_commit_ready;
+                        if (g->ctype == CS_MSETNX)
+                            stage_only =
+                                atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+                                csMsetnxHasPendingPosition(g);
+                        if (g->version_nx && g->version_nx_reserving &&
+                            (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
+                             g->msetnx_state[0] != CS_MSETNX_RESERVED))
+                            stage_only = 1;
+                        if (stage_only) {
+                            client *hp = g->head->parent;
+                            cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                        } else {
+                            csMsetInstallDone(g);
+                        }
+                    } else {
+                        client *hp = g->head->parent;
+                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                    }
                 }
                 j++;
                 continue;
@@ -20064,7 +22149,7 @@ void initIOThreads(void) {
     /* ee451 (S2): the main thread is IO thread 0 (runs its own event loop);
      * pin it to its dedicated core too. */
     pinIOThreadToCore(pthread_self(), 0);
-    if (tomoUringInitThread(0, server.el) != C_OK) {
+    if (tomoUringBackendInitThread(0, server.el) != C_OK) {
         serverLog(LL_WARNING,
                   "FATAL: failed to initialize requested io_uring owner 0");
         exit(1);
@@ -20258,7 +22343,8 @@ void *polyThreadMain(void *arg) {
                             serverLog(LL_WARNING, "thread-modes: worker %d leaving EX still owning %lld "
                                                   "buckets — flip invariant violated", ctx->ex->id, resid);
                     } else {
-                        for (int d = 0; d < server.dbnum; d++) resid += dbSize(&ctx->ex->db[d]);
+                        for (int d = 0; d < server.dbnum; d++)
+                            if (dbIsInitialized(&ctx->ex->db[d])) resid += dbSize(&ctx->ex->db[d]);
                         if (resid != 0)
                             serverLog(LL_WARNING, "thread-modes: worker %d leaving EX with %lld keys "
                                                   "still in its shard — flip invariant violated",
@@ -20273,7 +22359,7 @@ void *polyThreadMain(void *arg) {
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
                 flatRegisterIoSlot(ctx->io_slot);
-                if (tomoUringInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
+                if (tomoUringBackendInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
                     serverLog(LL_WARNING,
                               "FATAL: failed to initialize requested io_uring owner %d",
                               ctx->io_slot);
@@ -20396,7 +22482,8 @@ void *polyThreadMain(void *arg) {
                      * waits for this checkpoint to publish EX mode before arming the seed. */
                     while (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) ;
                     long long sz = 0;
-                    for (int d = 0; d < server.dbnum; d++) sz += dbSize(&ctx->ex->db[d]);
+                    for (int d = 0; d < server.dbnum; d++)
+                        if (dbIsInitialized(&ctx->ex->db[d])) sz += dbSize(&ctx->ex->db[d]);
                     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK role change complete — io thread %d is now "
                                          "worker %d (iotid=%d), db holds %lld keys, awaiting its seed range",
                               ctx->io_slot, ctx->ex->id, iotid, sz);
@@ -20502,6 +22589,75 @@ static void tmNodeIoliveAdd(int w_of_ctx, int delta) {   /* grown io slot inheri
     atomic_fetch_add_explicit(&server.tm_node_iolive[w_of_ctx / server.ex_per_node], delta, memory_order_release);
 }
 
+/* One cumulative incident counter for every non-normal flip terminal path. It is intentionally a
+ * file-global: the actuator is control-plane-only, while atomicity keeps concurrent INFO readers
+ * data-race-free without putting another field in the already-large server struct. */
+static unsigned long long tmFlipRecoveryBump(void) {
+    return atomic_fetch_add_explicit(&tomo_flip_recoveries, 1, memory_order_relaxed) + 1;
+}
+
+/* GROW-FRONT is the one move whose source must be removed before the physical role changes: fan-out
+ * producers must stop targeting the worker before its entire bucket range can drain. Record that
+ * removal as an outstanding transaction. tmFlipRelease cannot reopen the gate until it is either
+ * published to IO or restored here, including every early/error path. */
+static void tmFlipAccountingRollback(const char *reason) {
+    if (tm_flip_account_from == TOMO_MODE_UNSET) return;
+    polyThreadCtx *ctx = tm_flip_account_ctx;
+    int from = tm_flip_account_from;
+    tm_flip_account_ctx = NULL;
+    tm_flip_account_from = TOMO_MODE_UNSET;
+    if (from == TOMO_MODE_EX) {
+        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+    } else if (from == TOMO_MODE_IO) {
+        atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    }
+    unsigned long long n = tmFlipRecoveryBump();
+    serverLog(LL_WARNING, "ee451 flip: accounting ROLLBACK to %s for worker %d/io %d: %s "
+                          "(tomokv_flip_recoveries=%llu)",
+              from == TOMO_MODE_EX ? "EX" : "IO", ctx && ctx->ex ? ctx->ex->id : -1,
+              ctx ? ctx->io_slot : -1, reason, n);
+}
+
+static void tmFlipAccountingClaimEx(polyThreadCtx *ctx) {
+    /* A stale claim cannot be silently overwritten: restore it first, then start this move. The
+     * flip gate makes this unreachable in healthy operation, but the recovery keeps the pool whole. */
+    tmFlipAccountingRollback("stale source claim found before a new grow-front");
+    tm_flip_account_ctx = ctx;
+    tm_flip_account_from = TOMO_MODE_EX;
+    atomic_fetch_sub_explicit(&server.num_workers_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, -1);
+}
+
+static void tmFlipAccountingPublishIo(polyThreadCtx *ctx) {
+    if (tm_flip_account_from != TOMO_MODE_EX || tm_flip_account_ctx != ctx) {
+        /* Preserve conservation even if a future edit loses the claim: normalize any stale claim,
+         * then express this already-landed EX->IO conversion as one complete move. */
+        tmFlipAccountingRollback("mismatched source claim at grow-front publication");
+        tmFlipAccountingClaimEx(ctx);
+        tmFlipRecoveryBump();
+        serverLog(LL_WARNING, "ee451 flip: reconstructed missing grow-front accounting claim for "
+                              "worker %d/io %d", ctx && ctx->ex ? ctx->ex->id : -1,
+                  ctx ? ctx->io_slot : -1);
+    }
+    atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    tm_flip_account_ctx = NULL;
+    tm_flip_account_from = TOMO_MODE_UNSET;
+}
+
+/* GROW-BACK does not need an asynchronous source claim. The thread has already release-published
+ * mode==EX when main reaches this call, so publish both sides of the logical IO->EX MOVE together;
+ * the subsequent bucket seed is ordinary placement work and owns no liveness counter. */
+static void tmFlipAccountingPublishEx(polyThreadCtx *ctx) {
+    tmFlipAccountingRollback("stale source claim found before grow-back publication");
+    atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);
+    atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+    if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+}
+
 /* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. The caller
  * holds the atomic flip claim and has validated liveness order; this does the ctx/migration
  * mechanics + BOTH global and node counts. Every refusal releases the claim. */
@@ -20512,7 +22668,6 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
     if (!ctx || !ctx->io) { *err = "converting worker has no dormant io binding"; tmFlipRelease(); return 0; }
     if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_EX) { *err = "worker not in EX mode"; tmFlipRelease(); return 0; }
-    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
     /* Migrate w's WHOLE range to its neighbor w-1 (prefix move, dst=src-1 — the FLIP bookkeeping
      * handles it; validated by reshardRangeValid's boundary+ownership checks). Same-node by
      * construction: w is its node's highest LIVE worker and live_n >= 2, so w-1 is node-internal. */
@@ -20524,8 +22679,7 @@ static int tomoGrowFrontWorker(int w, const char **err) {
          * core short forever. No range to migrate: hand it the IO role right away — its checkpoint's
          * drain + zero-buckets assertion holds trivially — and let tmFlipTick publish the result. */
         server.tm_flip_target = TOMO_MODE_IO;
-        atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
-        tmNodeWliveAdd(w, -1);
+        tmFlipAccountingClaimEx(ctx);
         tmFlipPublish(ctx);
         atomic_store_explicit(&ctx->target_mode, TOMO_MODE_IO, memory_order_release);
         serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT — worker %d owns no buckets, EX->IO directly (io_slot %d)",
@@ -20535,13 +22689,11 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     server.tm_flip_target = TOMO_MODE_IO;
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
      * while it keeps draining. */
-    atomic_store_explicit(&server.num_workers_live, live - 1, memory_order_release);
-    tmNodeWliveAdd(w, -1);
+    tmFlipAccountingClaimEx(ctx);
     server.tm_mig_flip_action = 2;                     /* coordinator tail retargets tm_flip_ctx */
     if (!reshardArm(lo, hi, w, w - 1)) {
         server.tm_mig_flip_action = 0;
-        atomic_store_explicit(&server.num_workers_live, live, memory_order_release);
-        tmNodeWliveAdd(w, +1);
+        tmFlipAccountingRollback("reshardArm rejected the grow-front migration");
         tmFlipRelease();
         *err = "reshardArm rejected the grow-front migration"; return 0;
     }
@@ -20598,6 +22750,9 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
      * the cross-thread pointer chase. */
     if (atomic_load_explicit(&tm_io_sig[io_slot].pinned_nonmig, memory_order_relaxed))
         { *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now"; tmFlipRelease(); return 0; }
+    /* The owner commits the IO->EX edge with a CAS from DRAINING. The watchdog competes with a CAS
+     * to CANCEL_REQUESTED, so it cannot issue a stale cancel after the owner has committed. */
+    atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_DRAINING, memory_order_release);
     server.tm_flip_target = TOMO_MODE_EX;
     server.tm_flip_phase = 0;                           /* await IO-EXIT + EX adoption */
     server.tm_flip_abort_ms = mstime() + 10000;         /* phase-0 watchdog deadline (review [3] abort) */
@@ -20623,9 +22778,10 @@ int tomoGrowBack(const char **err) {
 /* Drive a flip to completion (main thread, from beforeSleep). Non-blocking: each call advances one
  * edge. GROW-FRONT (target IO): the coordinator tail hands the flipping worker the IO role; when
  * its checkpoint publishes mode==IO, account for it and publish io_threads_live. GROW-BACK (target
- * EX): a 3-phase machine — phase 0 awaits the thread's own IO-EXIT + EX adoption (with a watchdog
- * that can still cancel while the exit is uncommitted), phase 1 arms the seed migration, phase 2
- * awaits the seed FLIP where the coordinator publishes num_workers_live. */
+ * EX): phase 0 awaits the thread's own IO-EXIT + EX adoption (with an atomic commit-vs-cancel
+ * handshake), phase 1 arms the seed migration, phase 2 awaits that seed, and phase 3 awaits an
+ * owner-acknowledged pre-commit rollback. Live-count publication belongs to the role move, never
+ * to the optional seed migration. */
 void tmFlipTick(void) {
     polyThreadCtx *ctx = tmFlipCtxPublished();
     if (!ctx) return;
@@ -20636,8 +22792,7 @@ void tmFlipTick(void) {
          * do until then: still EX means the migration/teardown is in flight or the checkpoint
          * refused and will retry. */
         if (m == TOMO_MODE_IO) {                        /* conversion complete */
-            atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
-            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);   /* per-node flip accounting */
+            tmFlipAccountingPublishIo(ctx);
             serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT complete — io_threads_live=%d num_workers_live=%d "
                                  "(io_slot %d now accepting)",
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
@@ -20650,66 +22805,105 @@ void tmFlipTick(void) {
             reshardKickAfterFlip(ctx->ex ? ctx->ex->id : -1, ctx->ex ? ctx->ex->id - 1 : -1);
             server.tm_relevel_pending = 1;             /* even out the merged range across the live set */
             tmFlipRelease();
+        } else if (!atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
+                   atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_IO) {
+            /* Two recoverable failures land here: a drain-fence abort cleared action 2 before the
+             * coordinator could request IO, or IO-entry rolled target_mode back to EX after a
+             * bind/listen/accept-handler failure. The worker is still EX; restore its claimed live
+             * count before releasing the gate. If its buckets were already moved it is empty-live,
+             * which is the same supported state as grow-back's no-seed completion. */
+            const char *why = co_aborted ? "grow-front outbound migration aborted before role change"
+                                         : "grow-front IO role entry rolled back";
+            co_aborted = 0;
+            tmFlipAccountingRollback(why);
+            server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
+            server.tm_flip_aborted = 1;                 /* controller must cancel this unapplied probe */
+            tmFlipRelease();
         }
         return;
     }
     if (server.tm_flip_target == TOMO_MODE_EX) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
+        if (server.tm_flip_phase == 3) {               /* watchdog won; await owner rollback ack */
+            if (atomic_load_explicit(&server.tm_flip_gb_state, memory_order_acquire) !=
+                TM_FLIP_GB_ROLLED_BACK)
+                return;
+            /* CANCEL_REQUESTED won against COMMITTED, so the thread could never request/adopt EX.
+             * The owner has now rejoined the accept group and acknowledged that it remains IO. */
+            if (m != TOMO_MODE_IO) return;
+            atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_release);
+            server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
+            server.tm_flip_aborted = 1;                 /* owning controller cancels the unapplied probe */
+            unsigned long long n = tmFlipRecoveryBump();
+            serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d rollback acknowledged; "
+                                  "listener live, staying IO (tomokv_flip_recoveries=%llu)",
+                      ctx->io_slot, n);
+            tmFlipRelease();
+            return;
+        }
         if (server.tm_flip_phase == 0) {               /* awaiting IO-EXIT + EX adoption */
             if (m != TOMO_MODE_EX) {                   /* still draining conns out */
                 /* review [3] watchdog: if a conn became non-migratable mid-drain (ran SUBSCRIBE/
                  * MULTI/BLPOP) the thread can never reach clients==0 and would wait forever, wedging
                  * the controller (tm_flip_ctx stuck => no more flips). Bound the wait: on timeout,
-                 * ABORT — tell the thread to re-join the accept group (stay IO) and clear the flip.
-                 * io_threads_live was NOT decremented yet (that happens below), so the pool
-                 * accounting is already correct. 10s wall clock >> a normal drain.
+                 * ABORT — claim CANCEL_REQUESTED, tell the thread to re-join the accept group, then
+                 * hold the flip gate until that owner acknowledges ROLLED_BACK. Live accounting has
+                 * not moved yet, so the pool remains correct. 10s wall clock >> a normal drain.
                  *
-                 * COMMIT POINT: the exiting thread stores target_mode=EX itself the moment its last
-                 * conn leaves, and from then on the role change WILL land at its next checkpoint —
-                 * it no longer runs beforeSleepIO, so it would never see the CANCEL. Cancelling
-                 * past that point would strand the thread as an EX worker that the pool still
-                 * counts as IO. So the watchdog only fires while the exit is UNCOMMITTED; once
-                 * committed we wait it out (bounded: the checkpoint runs between io slices).
+                 * COMMIT POINT: the exiting thread CASes DRAINING->COMMITTED before it stores
+                 * target_mode=EX. The watchdog CASes DRAINING->CANCEL_REQUESTED. Exactly one wins,
+                 * closing the old load-target-then-cancel race: after COMMITTED main waits; after
+                 * CANCEL_REQUESTED the owner is forbidden to request EX and must acknowledge IO.
                  * RESIDUAL: if the checkpoint kept REFUSING after the commit, this waits forever
                  * with tm_flip_ctx set (no further flips). Unreachable as built — the only refusal
                  * left at that point is "stranded inbox and no live io thread to expel to", and
                  * grow-back already refused to arm without another live dest, one flip runs at a
                  * time, and step 4 re-fires + self-wakes each pass. If that ever changes, this
                  * needs a second, longer deadline — not a shorter first one. */
-                if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) == TOMO_MODE_EX)
-                    return;
                 if (mstime() >= server.tm_flip_abort_ms) {
-                    tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
-                    tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
-                    triggerEventNotifier(mb->notifier);
-                    serverLog(LL_WARNING, "ee451 flip: GROW-BACK ABORTED — io thread %d could not drain "
-                                          "(pinned non-migratable conn); re-joining accept group, staying IO",
-                              ctx->io_slot);
-                    server.tm_flip_aborted_node = ctx->ex ? tmNodeOfWorker(ctx->ex->id) : 0;
-                    server.tm_flip_aborted = 1;         /* tell the OWNING node's controller its probe never applied */
-                    tmFlipRelease();
+                    int gb = TM_FLIP_GB_DRAINING;
+                    if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
+                                                                TM_FLIP_GB_CANCEL_REQUESTED,
+                                                                memory_order_acq_rel,
+                                                                memory_order_acquire)) {
+                        tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
+                        tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                        triggerEventNotifier(mb->notifier);
+                        server.tm_flip_phase = 3;
+                        serverLog(LL_WARNING, "ee451 flip: GROW-BACK cancel requested — io thread %d "
+                                              "could not drain; awaiting owner rollback acknowledgement",
+                                  ctx->io_slot);
+                    }
                 }
                 return;
             }
-            atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
-            if (ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);   /* per-node flip accounting */
-            serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread left the IO role (io_threads_live=%d); "
-                                 "seeding it as an EX worker",
-                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
+            /* mode==EX is release-published only after the owner's COMMITTED edge. Account the
+             * conversion as one IO->EX move now; the seed below no longer owns either half. */
+            tmFlipAccountingPublishEx(ctx);
+            atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_IDLE, memory_order_release);
+            serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — role MOVE published: io_threads_live=%d "
+                                 "num_workers_live=%d; seeding worker %d",
+                      atomic_load_explicit(&server.io_threads_live, memory_order_relaxed),
+                      atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
+                      ctx->ex ? ctx->ex->id : -1);
             server.tm_flip_phase = 1;
             /* fall through on the NEXT tick: the seed arm below wants a settled live count */
             return;
         }
         if (server.tm_flip_phase == 1) {               /* thread is EX and slicing its (empty) shard */
             if (m != TOMO_MODE_EX) return;
-            int w = server.tm_flip_wslot;              /* revived worker index (== current num_workers_live) */
+            int w = server.tm_flip_wslot;              /* revived worker index (already published live) */
             int src = w - 1;                           /* neighbor whose range we split (suffix move dst=src+1) */
-            if (src < 0) { tmFlipRelease(); return; }
+            if (src < 0) {
+                unsigned long long n = tmFlipRecoveryBump();
+                serverLog(LL_WARNING, "ee451 flip: GROW-BACK complete — worker %d LIVE without a seed "
+                                      "(no source; tomokv_flip_recoveries=%llu)", w, n);
+                tmFlipRelease();
+                return;
+            }
             int lo_src = (src == 0) ? 0 : server.ex_bucket_end[src - 1];
             int hi_src = server.ex_bucket_end[src];
             if (hi_src - lo_src < 2) {                  /* neighbor too small to split — leave worker empty-but-live */
-                atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
-                tmNodeWliveAdd(w, +1);                       /* per-node flip accounting */
                 serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — worker %d LIVE (no seed; neighbor too small) "
                                      "num_workers_live=%d", w,
                           atomic_load_explicit(&server.num_workers_live, memory_order_relaxed));
@@ -20721,9 +22915,7 @@ void tmFlipTick(void) {
             server.exThreads[w].tm_qdepth_ewma_q4 = 0;
             mig_load_ewma[w] = mig_load_ewma_fast[w] = 0;
             mig_last_ops[w] = server.exThreads[w].ops_total;
-            server.tm_mig_flip_action = 3;            /* coordinator publishes num_workers_live++ at FLIP */
             if (!reshardArm(lo, hi, src, w)) {
-                server.tm_mig_flip_action = 0;
                 serverLog(LL_WARNING, "ee451 flip: GROW-BACK reshardArm rejected — retrying next tick");
                 return;                                /* leave phase 1; retry on the next tick */
             }
@@ -20735,6 +22927,13 @@ void tmFlipTick(void) {
         }
         if (server.tm_flip_phase == 2) {               /* awaiting seed migration to finish */
             if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
+            if (co_aborted) {
+                unsigned long long n = tmFlipRecoveryBump();
+                serverLog(LL_WARNING, "ee451 flip: GROW-BACK seed cutover ABANDONED — worker %d remains "
+                                      "empty-but-LIVE (tomokv_flip_recoveries=%llu)",
+                          server.tm_flip_wslot, n);
+                co_aborted = 0;
+            }
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — num_workers_live=%d io_threads_live=%d",
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
@@ -20774,6 +22973,7 @@ static int tmClientMigratable(client *c) {
      * the quiesce fence below would otherwise consider it migratable precisely BECAUSE its ring is
      * empty — which is exactly what parking guarantees. */
     if (c->mig_parked_node) return 0;
+    if (c->atomic_window_parked_node) return 0;
     if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
     if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
                     CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
@@ -20781,10 +22981,12 @@ static int tmClientMigratable(client *c) {
                     CLIENT_LUA_DEBUG | CLIENT_LUA_DEBUG_SYNC | CLIENT_ASM_MIGRATING |
                     CLIENT_ASM_IMPORTING | CLIENT_INTERNAL))
         return 0;
-    if (c->watched_keys && listLength(c->watched_keys)) return 0;
-    if (c->pubsub_channels && dictSize(c->pubsub_channels)) return 0;
-    if (c->pubsub_patterns && dictSize(c->pubsub_patterns)) return 0;
-    if (c->pubsubshard_channels && dictSize(c->pubsubshard_channels)) return 0;
+    multiState *ms = clientMultiState(c);
+    if (ms && listLength(&ms->watched_keys)) return 0;
+    clientCold *pubsub = clientPubSubData(c);
+    if (pubsub && (dictSize(pubsub->pubsub_channels) ||
+                   dictSize(pubsub->pubsub_patterns) ||
+                   dictSize(pubsub->pubsubshard_channels))) return 0;
     return 1;
 }
 
@@ -20794,8 +22996,8 @@ static int tmClientQuiesced(client *c) {
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
     if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        !tomoUringClientMigrationReady(c)) return 0;       /* cancel CQE + recv terminal CQE */
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        !tomoUringBackendClientMigrationReady(c)) return 0;       /* cancel CQE + recv terminal CQE */
     /* (v12-K worker_direct_send wds_busy/wds_inflight fence absent on the numa lineage — stripped) */
     return 1;
 }
@@ -21007,8 +23209,8 @@ static int tmPlaceConnDest(int exclude, long *in_flight) {
  * keeps draining) and enroll it in the source's migrating_out set. Runs on the owning thread. */
 static void tmMigStartClient(client *c) {
     c->flags |= CLIENT_MIGRATING;
-    if (server.io_uring && tomoUringClientAttached(c))
-        tomoUringClientStartMigration(c);
+    if (server.io_uring && tomoUringBackendClientAttached(c))
+        tomoUringBackendClientStartMigration(c);
     else
         connSetReadHandler(c->conn, NULL); /* epoll reader; writes stay live so replies flush */
     listAddNodeTail(tm_mig_mbox[iotid].migrating_out, c);
@@ -21019,13 +23221,13 @@ static void tmMigStartClient(client *c) {
  * and MIGRATING until the same cancel+terminal barrier required by handoff
  * has completed. */
 static int tmMigAbortClient(client *c) {
-    if (server.io_uring && tomoUringClientAttached(c) &&
-        !tomoUringClientAbortMigration(c))
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        !tomoUringBackendClientAbortMigration(c))
         return 0;
     c->flags &= ~CLIENT_MIGRATING;
     if (c->conn) {
-        if (server.io_uring && tomoUringClientAttached(c))
-            tomoUringClientResume(c);
+        if (server.io_uring && tomoUringBackendClientAttached(c))
+            tomoUringBackendClientResume(c);
         else
             connSetReadHandler(c->conn, readQueryFromClient);
     }
@@ -21110,11 +23312,11 @@ static void tomoScriptRejoinIfScrammed(void) {
  * in clients_pending_write / _ref_reply; migratable ⇒ not in unblocked_clients). Runs on the
  * owning (source) thread; dest re-registers on its own loop. */
 static void tmMigHandoff(client *c, int dest) {
-    if (server.io_uring && tomoUringClientAttached(c)) {
-        serverAssert(tomoUringClientMigrationReady(c));
+    if (server.io_uring && tomoUringBackendClientAttached(c)) {
+        serverAssert(tomoUringBackendClientMigrationReady(c));
         /* This clears the source-ring ownership only after both CQEs.  The
          * mailbox publication below is the release edge observed by dest. */
-        tomoUringClientPublishTransit(c);
+        tomoUringBackendClientPublishTransit(c);
     }
 
     /* 1. Drop out of the source epoll entirely (read already paused; also clears any write
@@ -21223,8 +23425,30 @@ void tmMigServiceOut(void) {
              * never let the thread drain). Stop exiting and resume as a normal IO thread: clear the
              * exit flags and re-join the accept group. Any conns already migrated out stay put (they
              * were just rebalanced); the stuck conn keeps being served here. */
-            atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
-            if (mb->accept_left) { tmMigRejoinAcceptGroup(id); mb->accept_left = 0; }
+            int restored = 1;
+            if (mb->accept_left) {
+                restored = tmMigRejoinAcceptGroup(id);
+                if (restored) mb->accept_left = 0;
+            }
+            if (restored) {
+                atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+            } else {
+                /* A rollback is not complete with its listener still outside the accept group.
+                 * Keep io_exiting/accept_left asserted, retry on this owner, and do not acknowledge
+                 * main — the flip claim remains closed until the full IO role is restored. */
+                tmMigPublishReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                triggerEventNotifier(mb->notifier);
+                serverLog(LL_WARNING, "ee451 flip: io thread %d could not rejoin accept group during "
+                                      "GROW-BACK rollback; retrying", id);
+            }
+            /* Acknowledgement for the main-thread watchdog. It does not release the flip claim
+             * until this owner has actually restored the listener/IO state. The commit CAS below
+             * cannot have won if main reached CANCEL_REQUESTED. */
+            if (restored &&
+                atomic_load_explicit(&server.tm_flip_gb_state, memory_order_acquire) ==
+                    TM_FLIP_GB_CANCEL_REQUESTED)
+                atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_ROLLED_BACK,
+                                      memory_order_release);
         }
     }
 
@@ -21248,8 +23472,8 @@ void tmMigServiceOut(void) {
         client *c = listNodeValue(ln);
         /* Died / closing during drain — drop it; the async-free pass reclaims it. */
         if (!c->conn || (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY))) {
-            if (server.io_uring && tomoUringClientAttached(c))
-                tomoUringClientRequestClose(c);
+            if (server.io_uring && tomoUringBackendClientAttached(c))
+                tomoUringBackendClientRequestClose(c);
             c->flags &= ~CLIENT_MIGRATING;
             listDelNode(mb->migrating_out, ln);
             continue;
@@ -21320,7 +23544,17 @@ void tmMigServiceOut(void) {
         }
         polyThreadCtx *ctx = tmCtxForIotid(id);
         if (ctx && ctx->ex && mb->exit_then_ex) {
-            if (atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_EX) {
+            /* Linearization point for grow-back. The main-thread timeout may change DRAINING to
+             * CANCEL_REQUESTED; this owner may change it to COMMITTED. Exactly one CAS wins, so a
+             * cancel can never be published from a stale pre-commit observation. */
+            int gb = TM_FLIP_GB_DRAINING;
+            if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
+                                                        TM_FLIP_GB_COMMITTED,
+                                                        memory_order_acq_rel,
+                                                        memory_order_acquire))
+                gb = TM_FLIP_GB_COMMITTED;
+            if (gb == TM_FLIP_GB_COMMITTED &&
+                atomic_load_explicit(&ctx->target_mode, memory_order_acquire) != TOMO_MODE_EX) {
                 serverLog(LL_NOTICE, "ee451 flip: io thread %d exit tail — requesting the EX role "
                                      "(worker %d)", id, ctx->ex->id);
                 atomic_store_explicit(&ctx->target_mode, TOMO_MODE_EX, memory_order_release);
@@ -21336,7 +23570,7 @@ void tmMigServiceOut(void) {
              * guard on purpose: a REFUSED role change (e.g. stranded inbox, no live dest)
              * must also re-wake after the strays are re-drained, when this block re-fires
              * with target already EX. */
-            triggerEventNotifier(mb->notifier);
+            if (gb == TM_FLIP_GB_COMMITTED) triggerEventNotifier(mb->notifier);
         }
     }
 
@@ -21411,11 +23645,11 @@ void tmMigDrainInbox(void) {
         /* c->conn->el is NULL (source unbound it); rebind to this loop, re-link, resume. */
         connRebindEventLoop(c->conn, my_el);
         linkClient(c); /* into clients[id] + clients_index[id] (uses iotid) */
-        if (server.io_uring && tomoUringClientAttached(c)) {
+        if (server.io_uring && tomoUringBackendClientAttached(c)) {
             /* Acquire from the inbox precedes installing destination
              * ownership.  Process source-copied bytes before queuing the new
-             * multishot arm, so byte order crosses the migration intact. */
-            if (tomoUringClientAdopt(c) != C_OK) {
+             * receive arm, so byte order crosses the migration intact. */
+            if (tomoUringBackendClientAdopt(c) != C_OK) {
                 serverLog(LL_WARNING,
                           "FATAL: io_uring destination %d could not adopt "
                           "migrated client %llu",
@@ -21423,7 +23657,7 @@ void tmMigDrainInbox(void) {
                 exit(1);
             }
             c->flags &= ~CLIENT_MIGRATING;
-            tomoUringClientResume(c);
+            tomoUringBackendClientResume(c);
         } else {
             connSetReadHandler(c->conn, readQueryFromClient);
             c->flags &= ~CLIENT_MIGRATING;
@@ -21791,9 +24025,9 @@ static void tomoFlipController(void) {
      *
      *     io_threads_live + num_workers_live == server.io_threads + server.num_workers
      *
-     * Every actuation is a paired -1/+1 across that boundary (grow-front: num_workers_live-- at ARM,
-     * io_threads_live++ at completion; grow-back: io_threads_live-- at park, num_workers_live++ at the
-     * seed FLIP), so a missing half shows up here on the FIRST tick after it, not as a slow drift in
+     * Every actuation is a paired -1/+1 across that boundary (grow-front: an explicit EX claim at ARM,
+     * followed by IO publication or EX rollback; grow-back: the complete IO->EX move when mode==EX is
+     * observed). A missing half therefore shows up here on the FIRST tick after it, not as a slow drift in
      * the throughput numbers. WHY IT IS HERE: an unpaired decrement would leave the controller doing
      * gradient ascent over a pool one thread short — it would converge CORRECTLY, to the optimum of a
      * budget that does not exist, and every symptom would look like a tuning problem. This check names

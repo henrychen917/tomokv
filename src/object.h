@@ -67,9 +67,14 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include <stdint.h>
+#include <stdatomic.h>
+
 /* forward declarations */
 struct client;
 struct RedisModuleType;
+struct redisObject;
+struct _kvstore;
 
 /* Object encodings (see header comment below for details). */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
@@ -96,8 +101,55 @@ struct RedisModuleType;
 #define OBJ_STATIC_REFCOUNT ((1 << OBJ_REFCOUNT_BITS) - 2) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
+typedef enum tomoOwnerOpKind {
+    TOMO_OWNER_OP_STAMP = 1,
+    TOMO_OWNER_OP_PRUNE = 2,
+    TOMO_OWNER_OP_CANCEL = 3,
+} tomoOwnerOpKind;
+
+typedef struct tomoOwnerOp {
+    struct redisObject *kv;
+    uint64_t seq;
+    tomoOwnerOpKind kind;
+} tomoOwnerOp;
+
+typedef enum tomoStampState {
+    TOMO_STAMP_PENDING = 0,
+    TOMO_STAMP_APPLIED,
+    TOMO_STAMP_CANCELED,
+} tomoStampState;
+
+typedef enum tomoRetireState {
+    TOMO_RETIRE_ACTIVE = 0,
+    TOMO_RETIRE_PRUNE_GRACE,
+    TOMO_RETIRE_PHYSICAL,
+} tomoRetireState;
+
+#define TOMO_RESERVATION_SIGNAL_SET 1
+#define TOMO_RESERVATION_SILENT     2
+
+struct tomoVerMeta {
+    _Atomic uint64_t version_seq;
+    _Atomic(struct redisObject *) committed_head;
+    uint32_t version_order;
+    uint8_t version_tombstone;
+    uint8_t version_reservation;
+    uint8_t stamp_state;
+    uint8_t retire_state;
+    uint8_t detached;
+    _Atomic unsigned int owner_ops_pending;
+    struct redisObject *version_prev;
+    struct redisObject *committed_prev;
+    struct _kvstore *version_kvs;
+    struct redisDb *version_db;
+    void *reservation_owner;
+    tomoOwnerOp owner_op[2];
+};
+
+#define TOMO_VERSION_UNCOMMITTED UINT64_MAX
+
 struct redisObject {
-    unsigned type:4;
+    unsigned type:3;
     unsigned encoding:4;
     unsigned refcount : OBJ_REFCOUNT_BITS;
     unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
@@ -108,6 +160,10 @@ struct redisObject {
                             * LFU data (least significant 8 bits frequency
                             * and most significant 16 bits access time). */
     void *ptr;
+
+    /* Cross-shard whole-value MVCC-lite state. NULL for ordinary objects;
+     * allocated lazily for atomic version-bag writes. */
+    struct tomoVerMeta *vmeta;
 };
 
 /* robj - General purpose redis object */
@@ -128,6 +184,67 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
+
+static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
+    return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
+    __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+}
+
+static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return atomic_load_explicit(&vmeta->version_seq, memory_order_acquire);
+}
+
+static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
+}
+
+static inline kvobj *kvobjCommittedPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
+}
+
+/* I2: the physical chain remains an install-ordered bag. Its head metadata
+ * carries the per-key committed maximum, whose separate predecessor links are
+ * ordered by descending (seq,install_order). Stamp arrival order is irrelevant:
+ * a newer stamp advances this cursor and an older stamp is inserted into the
+ * history chain. The cursor's acquire pairs with the owner's release after
+ * stamp application, so a current snapshot returns its winner without visiting
+ * the uncommitted physical prefix. Only an old snapshot walks down the
+ * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
+ * seq 0); no winner, or a tombstone winner, means absent. */
+static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
+    if (!head_meta) return kv;
+
+    kv = atomic_load_explicit(&head_meta->committed_head,
+                              memory_order_acquire);
+    struct tomoVerMeta *vmeta = NULL;
+    while (kv) {
+        vmeta = kvobjVmeta(kv);
+        if (!vmeta) break;
+        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
+                                            memory_order_acquire);
+        if (seq <= snapshot) break;
+        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+    }
+    if (kv && vmeta && vmeta->version_tombstone) return NULL;
+    return kv;
+}
 
 /* Redis object implementation */
 void decrRefCount(robj *o);

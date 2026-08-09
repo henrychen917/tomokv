@@ -52,6 +52,10 @@
 #include "sha256.h"
 #include "config.h"
 
+#ifdef HAVE_AVX512
+#include <immintrin.h>
+#endif
+
 #define UNUSED(x) ((void)(x))
 
 /* Selectively define static_assert. Attempt to avoid include server.h in this file. */
@@ -469,6 +473,101 @@ err:
     return 0;
 }
 
+#ifdef HAVE_AVX512
+
+#define MULTIPLIER_10E8 100000000
+#define MULTIPLIER_10E16 10000000000000000ULL
+
+/* Convert a string into a signed 64-bit integer using AVX-512 instructions.
+ * The digits are right-aligned in four 8-digit groups, validated in parallel,
+ * and then reduced with multiply-add operations. */
+ATTRIBUTE_TARGET_AVX512
+static int string2llAVX512(const char *s, size_t slen, long long *value) {
+    const char *p = s;
+    size_t plen = 0;
+    int negative = 0;
+
+    /* A string of zero length or excessive length is not a valid number. */
+    if (slen == 0 || slen >= LONG_STR_SIZE)
+        return 0;
+
+    /* Handle all unsigned single-digit values directly. */
+    if (slen == 1 && p[0] >= '0' && p[0] <= '9') {
+        if (value != NULL) *value = p[0]-'0';
+        return 1;
+    }
+
+    if (p[0] == '-') {
+        negative = 1;
+        p++;
+        plen++;
+
+        /* Abort on only a negative sign. */
+        if (plen == slen)
+            return 0;
+    }
+
+    /* If the first digit is 0, the string should just be 0. */
+    if (unlikely(p[0] == '0'))
+        return 0;
+
+    const __m256i ascii0 = _mm256_set1_epi8('0');
+    const __m256i nine = _mm256_set1_epi8(9);
+    uint32_t mask = UINT32_MAX << (32-slen+plen);
+    __m256i input = _mm256_maskz_loadu_epi8(mask,s+slen-32);
+
+    /* Convert ASCII to digits and reject every byte outside 0-9. */
+    __m256i ascii_digits = _mm256_maskz_sub_epi8(mask,input,ascii0);
+    uint32_t nondigits = _mm256_mask_cmpgt_epu8_mask(mask,ascii_digits,nine);
+    if (nondigits)
+        return 0;
+
+    const __m256i mul_1_10 = _mm256_set_epi8(
+        1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,
+        1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10);
+    __m256i multiplied_by_10 = _mm256_maddubs_epi16(ascii_digits,mul_1_10);
+    __m128i reduced_to_16bit = _mm256_cvtepi16_epi8(multiplied_by_10);
+
+    const __m128i mul_1_100 = _mm_set_epi8(
+        1,100,1,100,1,100,1,100,1,100,1,100,1,100,1,100);
+    __m128i multiplied_by_100 = _mm_maddubs_epi16(reduced_to_16bit,mul_1_100);
+
+    const __m128i mul_1_10000 = _mm_set_epi16(1,10000,1,10000,1,10000,1,10000);
+    __m128i multiplied_by_10000 = _mm_madd_epi16(multiplied_by_100,mul_1_10000);
+
+    uint64_t low = (uint64_t)_mm_extract_epi32(multiplied_by_10000,3);
+    if ((mask & 0xFFFFFF) == 0) {
+        if (value != NULL) *value = negative ? -low : low;
+        return 1;
+    }
+
+    uint64_t middle = (uint64_t)_mm_extract_epi32(multiplied_by_10000,2);
+    uint64_t middle_low = low + MULTIPLIER_10E8*middle;
+    if ((mask & 0xFFFF) == 0) {
+        if (value != NULL) *value = negative ? -middle_low : middle_low;
+        return 1;
+    }
+
+    uint64_t high = (uint64_t)_mm_extract_epi32(multiplied_by_10000,1);
+    uint64_t result = middle_low + MULTIPLIER_10E16*high;
+
+    /* ULLONG_MAX is 18446744073709551615. */
+    if (high > 1844 || result < middle_low)
+        return 0;
+
+    if (negative) {
+        if (result > ((unsigned long long)(-(LLONG_MIN+1))+1))
+            return 0;
+        if (value != NULL) *value = -result;
+    } else {
+        if (result > LLONG_MAX)
+            return 0;
+        if (value != NULL) *value = result;
+    }
+    return 1;
+}
+#endif
+
 /* Convert a string into a long long. Returns 1 if the string could be parsed
  * into a (non-overflowing) long long, 0 otherwise. The value will be set to
  * the parsed value when appropriate.
@@ -481,7 +580,7 @@ err:
  * Because of its strictness, it is safe to use this function to check if
  * you can convert a string into a long long, and obtain back the string
  * from the number without any loss in the string representation. */
-int string2ll(const char *s, size_t slen, long long *value) {
+static int string2llScalar(const char *s, size_t slen, long long *value) {
     const char *p = s;
     size_t plen = 0;
     int negative = 0;
@@ -545,6 +644,16 @@ int string2ll(const char *s, size_t slen, long long *value) {
         if (value != NULL) *value = v;
     }
     return 1;
+}
+
+int string2ll(const char *s, size_t slen, long long *value) {
+#ifdef HAVE_AVX512
+    if (__builtin_cpu_supports("avx512f") &&
+        __builtin_cpu_supports("avx512bw") &&
+        __builtin_cpu_supports("avx512vl"))
+        return string2llAVX512(s,slen,value);
+#endif
+    return string2llScalar(s,slen,value);
 }
 
 /* Helper function to convert a string to an unsigned long long value.

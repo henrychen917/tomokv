@@ -30,6 +30,7 @@
 #define TOMO_URING_SEND_BUFSZ     PROTO_REPLY_CHUNK_BYTES
 #define TOMO_URING_SEND_ZC_MIN    1024
 #define TOMO_URING_SEND_BATCH_MAX 512
+#define TOMO_URING_SEND_IOV_MAX   16
 
 typedef enum tomoUringOpType {
     TOMO_URING_OP_POLL = 1,
@@ -98,6 +99,11 @@ typedef struct tomoUringAtomicStats {
 
 typedef struct tomoUringThread tomoUringThread;
 
+typedef struct tomoUringSendSG {
+    struct msghdr msg;
+    struct iovec iov[TOMO_URING_SEND_IOV_MAX];
+} tomoUringSendSG;
+
 struct tomoUringClient {
     client *c;
     tomoUringThread *owner;
@@ -121,6 +127,7 @@ struct tomoUringClient {
     unsigned send_active : 1;
     unsigned send_submitted : 1;
     unsigned send_registered : 1;
+    unsigned send_scatter : 1;
     unsigned send_zc : 1;
     unsigned send_force_copy : 1;
     unsigned send_main_seen : 1;
@@ -135,6 +142,14 @@ struct tomoUringClient {
     size_t send_len;
     size_t send_off;
     int send_result;
+    int send_iovcnt;
+    /* SENDMSG reads this metadata asynchronously. It therefore lives in the
+     * completion-owned sidecar, never on tomoUringStageSends()'s stack. The
+     * ranges themselves remain pinned by c's reply blocks/BULK_STR_REF objects
+     * until the data CQE (and a SENDMSG_ZC notification, when promised). It is
+     * allocated lazily so the default-OFF knob does not inflate every uring
+     * connection's sidecar. */
+    tomoUringSendSG *send_sg;
 
     unsigned arm_queued : 1;
     struct tomoUringClient *arm_prev;
@@ -160,6 +175,8 @@ struct tomoUringThread {
     int epoll_fd;
     int state;                    /* 0 uninitialized, 1 ready, -1 failed */
     int ring_fd_registered;
+    int sendmsg_supported;
+    int sendmsg_zc_supported;
 
     tomoUringOp poll_op;
     int poll_armed;               /* staged or submitted */
@@ -453,16 +470,24 @@ static int tomoUringStageCancels(tomoUringThread *st) {
 }
 
 static int tomoUringSendCanPromote(const struct tomoUringClient *uc) {
-    const client *c = uc->c;
+    client *c = uc->c;
     if (!c->conn || c->conn->fd != uc->fd ||
         c->conn->type != connectionTypeTcp() ||
         !(c->io_flags & CLIENT_IO_WRITE_ENABLED) ||
-        c->buf_encoded || c->bufpos <= c->sentlen ||
         c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
                     CLIENT_REPL_RDB_CHANNEL | CLIENT_MONITOR |
                     CLIENT_CLOSE_ASAP | CLIENT_PROTECTED))
         return 0;
-    return 1;
+
+    /* Knob OFF is the pre-existing contiguous-buffer predicate byte for
+     * byte. An owner without SENDMSG support also stays on that path, leaving
+     * encoded/list replies to the synchronous writev fallback. */
+    if (!server.reply_iovec_enabled || !uc->owner ||
+        !uc->owner->sendmsg_supported)
+        return !c->buf_encoded && c->bufpos > c->sentlen;
+
+    return (c->bufpos > c->sentlen || listLength(c->reply) > 0) &&
+           clientReplyIOVCanAsync(c);
 }
 
 static int tomoUringSendPromote(tomoUringThread *st,
@@ -471,28 +496,47 @@ static int tomoUringSendPromote(tomoUringThread *st,
     serverAssert(!uc->send_active);
     if (!tomoUringSendCanPromote(uc)) return C_ERR;
 
-    size_t available = c->bufpos - c->sentlen;
-    size_t take = min(available, (size_t)TOMO_URING_SEND_BUFSZ);
-    uc->send_registered =
-        available >= TOMO_URING_SEND_ZC_MIN &&
-        tomoUringSendBufferAcquire(st, uc) == C_OK;
-    if (uc->send_registered) {
-        char *dst = tomoUringSendBuffer(st, uc->send_bid);
-        memcpy(dst, c->buf + c->sentlen, take);
+    size_t take;
+    uc->send_scatter = server.reply_iovec_enabled && st->sendmsg_supported;
+    if (uc->send_scatter) {
+        /* Snapshot at most one fairness window. The iovec count/byte frontier
+         * is immutable for this operation even if later EX completions append
+         * more blocks to the same client. */
+        if (!uc->send_sg)
+            uc->send_sg = zcalloc(sizeof(*uc->send_sg));
+        uc->send_iovcnt = clientPrepareReplyIOV(
+            c, uc->send_sg->iov, TOMO_URING_SEND_IOV_MAX,
+            NET_MAX_WRITES_PER_EVENT, &take);
+        if (uc->send_iovcnt == 0 || take == 0) {
+            uc->send_scatter = 0;
+            return C_ERR;
+        }
+        uc->send_registered = 0;
+    } else {
+        size_t available = c->bufpos - c->sentlen;
+        take = min(available, (size_t)TOMO_URING_SEND_BUFSZ);
+        uc->send_registered =
+            available >= TOMO_URING_SEND_ZC_MIN &&
+            tomoUringSendBufferAcquire(st, uc) == C_OK;
+        if (uc->send_registered) {
+            char *dst = tomoUringSendBuffer(st, uc->send_bid);
+            memcpy(dst, c->buf + c->sentlen, take);
+        }
     }
 
-    /*
-     * Snapshot the oldest contiguous bytes into stable registered storage,
-     * but keep them logically present in c->buf until positive data CQEs say
-     * how many bytes the socket accepted. New command replies append behind
-     * that prefix. Cancellation or a send error therefore loses no reply
-     * bytes, and exactly one active send prevents a legacy write overtaking
-     * the immutable snapshot.
-     */
+    /* Keep the snapshot logically present in c until a terminal completion
+     * says how many bytes the socket accepted. The legacy path copies one
+     * contiguous prefix into registered storage; scatter mode instead retains
+     * c's immutable reply blocks and referenced objects. New replies append
+     * behind the byte frontier. Cancellation/error therefore loses no bytes,
+     * and one active send prevents a legacy writer overtaking the prefix. */
     uc->send_active = 1;
     uc->send_submitted = 0;
     uc->send_zc = 0;
-    uc->send_force_copy = !uc->send_registered;
+    /* A scatter send intentionally references client/reply memory. ZC is
+     * permitted without a registered pool buffer because the sidecar retains
+     * all user ranges through the notification CQE. */
+    uc->send_force_copy = !uc->send_scatter && !uc->send_registered;
     uc->send_main_seen = 0;
     uc->send_notif_expected = 0;
     uc->send_notif_seen = 0;
@@ -515,6 +559,7 @@ static void tomoUringSendClearActive(tomoUringThread *st,
         tomoUringSendBufferRelease(st, uc);
     uc->send_active = 0;
     uc->send_registered = 0;
+    uc->send_scatter = 0;
     uc->send_zc = 0;
     uc->send_force_copy = 0;
     uc->send_main_seen = 0;
@@ -526,6 +571,7 @@ static void tomoUringSendClearActive(tomoUringThread *st,
     uc->send_failed = 0;
     uc->send_len = 0;
     uc->send_off = 0;
+    uc->send_iovcnt = 0;
 }
 
 static void tomoUringRequestSendCancel(struct tomoUringClient *uc) {
@@ -604,23 +650,65 @@ static int tomoUringStageSends(tomoUringThread *st) {
         tomoUringSendRemove(st, uc);
         serverAssert(uc->send_active && !uc->send_submitted);
         size_t remaining = uc->send_len - uc->send_off;
-        char *buf = uc->send_registered ?
-            tomoUringSendBuffer(st, uc->send_bid) + uc->send_off :
-            uc->c->buf + uc->c->sentlen;
         unsigned zc_flags = IORING_RECVSEND_POLL_FIRST |
                             IORING_SEND_ZC_REPORT_USAGE;
-        uc->send_zc = uc->send_registered && !uc->send_force_copy &&
-                      remaining >= TOMO_URING_SEND_ZC_MIN;
-        if (uc->send_zc) {
-            io_uring_prep_send_zc_fixed(
-                sqe, uc->fd, buf, remaining, MSG_NOSIGNAL,
-                zc_flags, uc->send_bid);
-            URING_STAT_BUMP(st, send_zc_submitted, 1);
+        if (uc->send_scatter) {
+            /* A short completion advanced c's logical cursor. Rebuild the
+             * persistent metadata from that cursor, but cap it at the original
+             * operation's remaining byte frontier so later appended replies
+             * cannot overtake it. */
+            size_t prepared = 0;
+            uc->send_iovcnt = clientPrepareReplyIOV(
+                uc->c, uc->send_sg->iov, TOMO_URING_SEND_IOV_MAX,
+                remaining, &prepared);
+            if (uc->send_iovcnt == 0 || prepared != remaining)
+                tomoUringFatal(st, "scatter reply frontier changed", EPROTO);
+
+            memset(&uc->send_sg->msg, 0, sizeof(uc->send_sg->msg));
+            uc->send_sg->msg.msg_iov = uc->send_sg->iov;
+            uc->send_sg->msg.msg_iovlen = (size_t)uc->send_iovcnt;
+            uc->send_zc = !uc->send_force_copy &&
+                          remaining >= TOMO_URING_SEND_ZC_MIN &&
+                          (uc->send_iovcnt == 1 || st->sendmsg_zc_supported);
+
+            if (uc->send_iovcnt == 1) {
+                void *buf = uc->send_sg->iov[0].iov_base;
+                if (uc->send_zc) {
+                    io_uring_prep_send_zc(
+                        sqe, uc->fd, buf, remaining, MSG_NOSIGNAL, zc_flags);
+                } else {
+                    io_uring_prep_send(
+                        sqe, uc->fd, buf, remaining, MSG_NOSIGNAL);
+                    sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
+                }
+            } else if (uc->send_zc) {
+                io_uring_prep_sendmsg_zc(
+                    sqe, uc->fd, &uc->send_sg->msg, MSG_NOSIGNAL);
+                sqe->ioprio |= IORING_RECVSEND_POLL_FIRST |
+                               IORING_SEND_ZC_REPORT_USAGE;
+            } else {
+                io_uring_prep_sendmsg(
+                    sqe, uc->fd, &uc->send_sg->msg, MSG_NOSIGNAL);
+                sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
+            }
         } else {
-            io_uring_prep_send(
-                sqe, uc->fd, buf, remaining, MSG_NOSIGNAL);
-            sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
+            char *buf = uc->send_registered ?
+                tomoUringSendBuffer(st, uc->send_bid) + uc->send_off :
+                uc->c->buf + uc->c->sentlen;
+            uc->send_zc = uc->send_registered && !uc->send_force_copy &&
+                          remaining >= TOMO_URING_SEND_ZC_MIN;
+            if (uc->send_zc) {
+                io_uring_prep_send_zc_fixed(
+                    sqe, uc->fd, buf, remaining, MSG_NOSIGNAL,
+                    zc_flags, uc->send_bid);
+            } else {
+                io_uring_prep_send(
+                    sqe, uc->fd, buf, remaining, MSG_NOSIGNAL);
+                sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
+            }
         }
+        if (uc->send_zc)
+            URING_STAT_BUMP(st, send_zc_submitted, 1);
         io_uring_sqe_set_data(sqe, &uc->send_op);
         uc->send_submitted = 1;
         uc->send_main_seen = 0;
@@ -864,14 +952,21 @@ static void tomoUringAccountSendBytes(tomoUringThread *st,
                                       struct tomoUringClient *uc,
                                       size_t n) {
     client *c = uc->c;
-    if (n > uc->send_len - uc->send_off ||
-        c->sentlen + n > c->bufpos)
+    if (n > uc->send_len - uc->send_off)
         tomoUringFatal(st, "send completion exceeds logical output", EPROTO);
     uc->send_off += n;
-    c->sentlen += n;
-    if (c->sentlen == c->bufpos) {
-        c->sentlen = 0;
-        c->bufpos = 0;
+    if (uc->send_scatter) {
+        /* This can release BULK_STR_REF pins, so the caller must have observed
+         * the ZC notification (when one was promised), not merely the data CQE. */
+        clientConsumeReplyBytes(c, n);
+    } else {
+        if (c->sentlen + n > c->bufpos)
+            tomoUringFatal(st, "send completion exceeds contiguous output", EPROTO);
+        c->sentlen += n;
+        if (c->sentlen == c->bufpos) {
+            c->sentlen = 0;
+            c->bufpos = 0;
+        }
     }
     URING_STAT_BUMP(st, send_bytes, n);
     server.stat_io_writes_processed[iotid] += 1;
@@ -893,7 +988,8 @@ static void tomoUringApplySendResult(tomoUringThread *st,
             URING_STAT_BUMP(st, send_partial, 1);
     } else if (res == -EOPNOTSUPP && uc->send_zc) {
         /* Opcode support is probed at boot, but a particular protocol/device
-         * may still decline ZC. Retry this stable registered buffer as SEND. */
+         * may still decline ZC. Retry the same stable registered buffer or
+         * retained scatter ranges with ordinary SEND/SENDMSG. */
         uc->send_force_copy = 1;
         URING_STAT_BUMP(st, send_zc_fallbacks, 1);
     } else if (res == -EAGAIN || res == -EINTR ||
@@ -944,7 +1040,12 @@ static void tomoUringHandleSendCqe(tomoUringThread *st,
         tomoUringFatal(st, "ordinary send promised notification", EPROTO);
     uc->send_result = cqe->res;
     uc->send_result_pending = 1;
-    if (!(uc->c->flags & CLIENT_PROTECTED))
+    /* A SEND[_MSG]_ZC data CQE can precede the kernel's final buffer-release
+     * notification. Do not advance c or drop its object refs until that
+     * notification; ordinary sends (and copied ZC results with no F_MORE)
+     * are terminal at the data CQE. */
+    if (!(uc->c->flags & CLIENT_PROTECTED) &&
+        !uc->send_notif_expected)
         tomoUringApplySendResult(st, uc);
     tomoUringTryFinishSend(uc);
 }
@@ -1175,6 +1276,10 @@ static int tomoUringEnterAe(aeEventLoop *el, struct timeval *tvp) {
 static int tomoUringProbeRequiredOps(tomoUringThread *st) {
     struct io_uring_probe *probe = io_uring_get_probe_ring(&st->ring);
     if (!probe) return C_ERR;
+    st->sendmsg_supported =
+        io_uring_opcode_supported(probe, IORING_OP_SENDMSG);
+    st->sendmsg_zc_supported =
+        io_uring_opcode_supported(probe, IORING_OP_SENDMSG_ZC);
     const unsigned required[] = {
         IORING_OP_POLL_ADD,
         IORING_OP_RECV,
@@ -1191,6 +1296,17 @@ static int tomoUringProbeRequiredOps(tomoUringThread *st) {
                       st->tid, required[i]);
             ok = 0;
         }
+    }
+    if (!st->sendmsg_supported) {
+        serverLog(LL_NOTICE,
+                  "tomokv io_uring owner %d: SENDMSG unavailable; "
+                  "tomokv-reply-iovec will use synchronous writev fallback",
+                  st->tid);
+    } else if (!st->sendmsg_zc_supported) {
+        serverLog(LL_NOTICE,
+                  "tomokv io_uring owner %d: SENDMSG_ZC unavailable; "
+                  "scatter replies remain pinned through ordinary SENDMSG CQEs",
+                  st->tid);
     }
     io_uring_free_probe(probe);
     return ok ? C_OK : C_ERR;
@@ -1534,7 +1650,8 @@ void tomoUringClientResume(client *c) {
         return;
     }
     if (uc->send_active) {
-        if (uc->send_result_pending)
+        if (uc->send_result_pending &&
+            (!uc->send_notif_expected || uc->send_notif_seen))
             tomoUringApplySendResult(uc->owner, uc);
         /*
          * Main/notif/cancel CQEs may all have arrived while protected.  The
@@ -1599,6 +1716,7 @@ void tomoUringClientRelease(client *c) {
     tomoUringAssertOwner(uc);
     serverAssert(tomoUringClientCloseReady(c));
     c->uring = NULL;
+    zfree(uc->send_sg);
     zfree(uc);
 }
 

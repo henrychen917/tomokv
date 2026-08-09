@@ -89,6 +89,19 @@ def shard_pair(s,f,want_cross,prefix,keymaker=None):
 
 def partA():
     s,f=conn(); c(s,f,'FLUSHDB')
+    # First SELECT of a non-default logical DB constructs its decoy and every
+    # per-node physical DB before the selected pointer becomes visible.
+    lazy_key='cov:lazy-db'
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SELECT','1'),b'OK','SELECT lazy DB')
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SET',lazy_key,'db1'),b'OK','lazy DB SET')
+    eq(c(s,f,'GET',lazy_key),b'db1','lazy DB GET')
+    eq(c(s,f,'SELECT','0'),b'OK','SELECT default DB')
+    eq(c(s,f,'GET',lazy_key),None,'lazy DB isolation')
+    eq(c(s,f,'SELECT','1'),b'OK','reselect initialized DB')
+    eq(c(s,f,'DEL',lazy_key),1,'lazy DB cleanup')
+    eq(c(s,f,'SELECT','0'),b'OK','restore default DB')
     xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
     # ---- strings ----
     eq(c(s,f,'SET','s','hello'),b'OK','SET'); eq(c(s,f,'GET','s'),b'hello','GET')
@@ -125,6 +138,17 @@ def partA():
     eq(c(s,f,'HLEN','h'),2,'HLEN'); eq(c(s,f,'HEXISTS','h','f1'),1,'HEXISTS'); eq(c(s,f,'HDEL','h','f2'),1,'HDEL')
     eq(c(s,f,'HINCRBY','h','cnt','5'),5,'HINCRBY'); eq(sorted(lst(c(s,f,'HKEYS','h'))),['cnt','f1'],'HKEYS')
     eq(lst(c(s,f,'HMGET','h','f1','nope')),['v1',None],'HMGET')
+    # Batched collection deletes must keep the surviving dict contents and encoding intact.
+    delete_batch_n,delete_batch_keep=1024,64
+    hdel_fields=['hdel%04d'%i for i in range(delete_batch_n)]
+    hdel_args=[x for i,name in enumerate(hdel_fields) for x in (name,'v%04d'%i)]
+    hdel_survivors=hdel_fields[-delete_batch_keep:]
+    c(s,f,'DEL','hdel-batch'); eq(c(s,f,'HSET','hdel-batch',*hdel_args),delete_batch_n,'HDEL-batch-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-before')
+    eq(c(s,f,'HDEL','hdel-batch',*hdel_fields[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'HDEL-batch-delete')
+    eq(c(s,f,'HLEN','hdel-batch'),delete_batch_keep,'HDEL-batch-HLEN')
+    eq(sorted(lst(c(s,f,'HKEYS','hdel-batch'))),hdel_survivors,'HDEL-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-after')
     # Large listpack HMGET: reverse-order probes, a miss, and duplicates exercise the one-pass request map.
     hm_fields=['hf%03d'%i for i in range(400)]; hm_values={name:'hv%03d'%i for i,name in enumerate(hm_fields)}
     hm_args=[x for name in hm_fields for x in (name,hm_values[name])]
@@ -159,6 +183,13 @@ def partA():
     c(s,f,'DEL','st'); eq(c(s,f,'SADD','st','a','b','c'),3,'SADD'); eq(c(s,f,'SCARD','st'),3,'SCARD')
     eq(c(s,f,'SISMEMBER','st','a'),1,'SISMEMBER'); eq(sorted(lst(c(s,f,'SMEMBERS','st'))),['a','b','c'],'SMEMBERS')
     eq(lst(c(s,f,'SMISMEMBER','st','a','z')),[1,0],'SMISMEMBER'); eq(c(s,f,'SREM','st','c'),1,'SREM')
+    srem_members=['srem%04d'%i for i in range(delete_batch_n)]; srem_survivors=srem_members[-delete_batch_keep:]
+    c(s,f,'DEL','srem-batch'); eq(c(s,f,'SADD','srem-batch',*srem_members),delete_batch_n,'SREM-batch-SADD')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-before')
+    eq(c(s,f,'SREM','srem-batch',*srem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'SREM-batch-delete')
+    eq(c(s,f,'SCARD','srem-batch'),delete_batch_keep,'SREM-batch-SCARD')
+    eq(sorted(lst(c(s,f,'SMEMBERS','srem-batch'))),srem_survivors,'SREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-after')
     c(s,f,'SADD','s1','a','b','c','d'); c(s,f,'SADD','s2','c','d','e')
     eq(sorted(lst(c(s,f,'SINTER','s1','s2'))),['c','d'],'SINTER'); eq(sorted(lst(c(s,f,'SUNION','s1','s2'))),['a','b','c','d','e'],'SUNION')
     eq(sorted(lst(c(s,f,'SDIFF','s1','s2'))),['a','b'],'SDIFF'); eq(c(s,f,'SINTERCARD','2','s1','s2'),2,'SINTERCARD')
@@ -171,6 +202,44 @@ def partA():
     eq(lst(c(s,f,'ZRANGEBYSCORE','z','2','3')),['b','c'],'ZRANGEBYSCORE'); eq(c(s,f,'ZRANK','z','c'),2,'ZRANK')
     eq(c(s,f,'ZCOUNT','z','1','2'),2,'ZCOUNT'); eq(c(s,f,'ZINCRBY','z','5','a'),b'6','ZINCRBY')
     eq(lst(c(s,f,'ZPOPMIN','z')),['b','2'],'ZPOPMIN')
+    zrem_members=['zrem%04d'%i for i in range(delete_batch_n)]
+    zrem_args=[x for i,name in enumerate(zrem_members) for x in (i,name)]
+    zrem_survivors=zrem_members[-delete_batch_keep:]
+    c(s,f,'DEL','zrem-batch'); eq(c(s,f,'ZADD','zrem-batch',*zrem_args),delete_batch_n,'ZREM-batch-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-before')
+    eq(c(s,f,'ZREM','zrem-batch',*zrem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'ZREM-batch-delete')
+    eq(c(s,f,'ZCARD','zrem-batch'),delete_batch_keep,'ZREM-batch-ZCARD')
+    eq(lst(c(s,f,'ZRANGE','zrem-batch','0','-1')),zrem_survivors,'ZREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-after')
+    # Shared string2ll/listpack edge corpus. Canonical integers must round-trip, while raw spellings
+    # (including values that would collide if normalized) must remain byte-exact in every listpack user.
+    lp_int_values=[
+        b'0',b'5',b'7',b'-7',b'12',b'99999999',b'100000000',
+        b'9999999999999999',b'10000000000000000',
+        b'9223372036854775807',b'-9223372036854775808',
+    ]
+    lp_raw_values=[
+        b'007',b' 12',b'12 ',b'+5',b'-0',
+        b'9223372036854775808',b'-9223372036854775809',
+        b'18446744073709551615',b'12x',b'',
+    ]
+    lp_values=lp_int_values+lp_raw_values
+    c(s,f,'DEL','str2ll-list')
+    eq(c(s,f,'RPUSH','str2ll-list',*lp_values),len(lp_values),'string2ll-list-RPUSH')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-list'),b'listpack','string2ll-list-encoding')
+    eq(c(s,f,'LRANGE','str2ll-list','0','-1'),lp_values,'string2ll-list-roundtrip')
+    c(s,f,'DEL','str2ll-hash')
+    lp_hash_args=[x for value in lp_values for x in (value,value)]
+    eq(c(s,f,'HSET','str2ll-hash',*lp_hash_args),len(lp_values),'string2ll-hash-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-hash'),b'listpack','string2ll-hash-encoding')
+    eq(c(s,f,'HLEN','str2ll-hash'),len(lp_values),'string2ll-hash-distinct-fields')
+    eq(c(s,f,'HMGET','str2ll-hash',*lp_values),lp_values,'string2ll-hash-roundtrip')
+    c(s,f,'DEL','str2ll-zset')
+    lp_zset_args=[x for i,value in enumerate(lp_values) for x in (i,value)]
+    eq(c(s,f,'ZADD','str2ll-zset',*lp_zset_args),len(lp_values),'string2ll-zset-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-zset'),b'listpack','string2ll-zset-encoding')
+    eq(c(s,f,'ZCARD','str2ll-zset'),len(lp_values),'string2ll-zset-distinct-members')
+    eq(c(s,f,'ZRANGE','str2ll-zset','0','-1'),lp_values,'string2ll-zset-roundtrip')
     # BZPOP uses the same T4 probe/winner path, but preserves its flat [key,member,score] reply.
     bza,bzb=shard_pair(s,f,True,'bzpop')
     c(s,f,'DEL',bza,bzb); c(s,f,'ZADD',bzb,'1','low','9','high')
@@ -477,6 +546,43 @@ def partA():
        ['fun-a','fun-b'],'FCALL keyed same-shard')
     xfcall=c(s,f,'FCALL','t6pair','2',txa,txb,'bad-a','bad-b')
     ck(rejected(xfcall) and 'CROSSSLOT' in str(xfcall),'FCALL keyed cross-shard must CROSSSLOT: %r'%xfcall)
+    # ---- cold client state ----
+    # CLIENT INFO must report the zero/default view without forcing any of the
+    # lazily allocated tracking, pubsub, WATCH, or MULTI structures to exist.
+    ci=c(s,f,'CLIENT','INFO')
+    ck(isinstance(ci,bytes) and b'id=' in ci and b' sub=0' in ci and
+       b' psub=0' in ci and b' ssub=0' in ci and b' multi=-1' in ci and b' watch=0' in ci,
+       'CLIENT INFO cold defaults: %r'%ci)
+
+    # Tracking shares the cold pubsub component. Exercise allocation, prefix
+    # ownership, reads, and cleanup while leaving the client usable afterward.
+    eq(c(s,f,'CLIENT','TRACKING','ON','BCAST','PREFIX','cov:'),b'OK','CLIENT TRACKING ON')
+    eq(c(s,f,'CLIENT','GETREDIR'),0,'CLIENT TRACKING redirect')
+    eq(c(s,f,'CLIENT','TRACKINGINFO'),
+       [b'flags',[b'on',b'bcast'],b'redirect',0,b'prefixes',[b'cov:']],
+       'CLIENT TRACKINGINFO cold state')
+    eq(c(s,f,'CLIENT','TRACKING','OFF'),b'OK','CLIENT TRACKING OFF')
+    eq(c(s,f,'CLIENT','GETREDIR'),-1,'CLIENT TRACKING cleanup')
+
+    # Pubsub mode is connection state, so use a dedicated connection and prove
+    # both its cold dictionaries and the subscribe-mode command guard.
+    ps,pf=conn()
+    eq(c(ps,pf,'SUBSCRIBE','cov:cold'),[b'subscribe',b'cov:cold',1],'SUBSCRIBE cold state')
+    subcmd=c(ps,pf,'GET','s')
+    ck(rejected(subcmd) and 'subscribe' in str(subcmd).lower(),
+       'subscribed client command guard: %r'%subcmd)
+    eq(c(ps,pf,'UNSUBSCRIBE','cov:cold'),[b'unsubscribe',b'cov:cold',0],'UNSUBSCRIBE cold cleanup')
+    ps.close()
+
+    # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
+    exec_err=c(s,f,'EXEC')
+    ck(rejected(exec_err) and 'EXEC without MULTI' in str(exec_err),
+       'EXEC without MULTI must reject cleanly: %r'%exec_err)
+    multi_err=c(s,f,'MULTI')
+    ck(rejected(multi_err),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
+    exec_after_multi_error=c(s,f,'EXEC')
+    ck(rejected(exec_after_multi_error) and 'EXEC without MULTI' in str(exec_after_multi_error),
+       'MULTI rejection must not leave transaction state: %r'%exec_after_multi_error)
     # ---- server/conn ----
     eq(c(s,f,'PING'),b'PONG','PING'); eq(c(s,f,'ECHO','hi'),b'hi','ECHO')
     s.close()

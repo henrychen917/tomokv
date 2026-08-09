@@ -585,6 +585,7 @@ int performEvictions(void) {
                  * every DB. */
                 for (i = 0; i < server.dbnum; i++) {
                     db = server.db+i;
+                    if (!dbIsInitialized(db)) continue;
                     kvstore *kvs;
                     if (server.maxmemory_policy & MAXMEMORY_FLAG_ALLKEYS) {
                         kvs = db->keys;
@@ -658,6 +659,7 @@ int performEvictions(void) {
             for (i = 0; i < server.dbnum; i++) {
                 j = (++next_db) % server.dbnum;
                 db = server.db+j;
+                if (!dbIsInitialized(db)) continue;
                 kvstore *kvs;
                 if (server.maxmemory_policy == MAXMEMORY_ALLKEYS_RANDOM) {
                     kvs = db->keys;

@@ -10,7 +10,7 @@ BIN=${TOMO_BIN:?TOMO_BIN required}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$J/mergew/src/redis-cli"
 PORT=7959
 WORK=$J/d_reorder_work; rm -rf "$WORK"; mkdir -p "$WORK"
-OUT=$WORK/d_reorder.out; : > "$OUT"
+OUT=${TOMO_RESULT_FILE:-$WORK/d_reorder.out}; : > "$OUT"  # honor preflight's result file (was local-only => preflight saw "no result file")
 ok(){  printf 'PASS\t%s\t%s\n' "$1" "$2" >> "$OUT"; }
 bad(){ printf 'FALSE\t%s\t%s\n' "$1" "$2" | sed 's/FALSE/FAIL/' >> "$OUT"; }
 SP=""

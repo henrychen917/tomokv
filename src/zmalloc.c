@@ -545,6 +545,23 @@ void zfree(void *ptr) {
 #endif
 }
 
+/* Like zfree(), but doesn't call zmalloc_size(). */
+void zfree_with_size(void *ptr, size_t size) {
+    if (ptr == NULL) return;
+
+#ifndef HAVE_MALLOC_SIZE
+    ptr = (char *)ptr - PREFIX_SIZE;
+    size += PREFIX_SIZE;
+#endif
+
+    update_zmalloc_stat_free(size);
+#ifdef USE_JEMALLOC
+    je_sdallocx(ptr, size, 0);
+#else
+    free(ptr);
+#endif
+}
+
 /* Similar to zfree, '*usable' is set to the usable size being freed. */
 void zfree_usable(void *ptr, size_t *usable) {
     size_t oldsize;

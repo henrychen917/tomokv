@@ -3135,6 +3135,14 @@ static int applyClientMaxMemoryUsage(const char **err) {
     return 1;
 }
 
+static int applyTomoAtomicAdmission(const char **err) {
+    UNUSED(err);
+    /* A live increase, window=0, or tomokv-atomic=off may make parked commands admissible without
+     * any group retiring. Wake their event loops; each owner rechecks the current settings. */
+    tomoAtomicWindowChanged();
+    return 1;
+}
+
 standardConfig static_configs[] = {
     /* Bool configs */
     createBoolConfig("rdbchecksum", NULL, IMMUTABLE_CONFIG, server.rdb_checksum, 1, NULL, NULL),
@@ -3175,6 +3183,8 @@ standardConfig static_configs[] = {
      * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
      * that keeps exactly one owner of the value at every instant. */
     createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
+    createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
+    createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 512, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
      * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
      * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed
@@ -3216,7 +3226,7 @@ standardConfig static_configs[] = {
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
-    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 1, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll/no uring machinery; 1=unified per-IO-owner SI|DTR ring */
+    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; 1=existing unified SI|DTR ring; 2=Helio-style staged/taskrun-aware ring */
 
     /* ================= PINNING =============================================================
      * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting
@@ -3329,6 +3339,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
     createBoolConfig("tomokv-reply-buffer-transfer", NULL, MODIFIABLE_CONFIG, server.reply_buffer_transfer_enabled, 0, NULL, NULL), /* exchange equal-capacity EX/IO reply scratch for completed plain replies >= 8KB. Default OFF: reviewed-correct but large-reply win unmeasured on this HW; opt-in knob, A/B before default-on. */
+    createBoolConfig("tomokv-reply-iovec",           NULL, MODIFIABLE_CONFIG, server.reply_iovec_enabled, 0, NULL, NULL), /* retain large owned reply values and submit stable scatter/gather sends; zerocopy-min-value is the byte threshold. Default OFF: completion-lifetime experiment. */
 
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),

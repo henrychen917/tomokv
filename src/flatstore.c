@@ -22,6 +22,46 @@
 #include "flatstore.h"
 #include <string.h>
 
+/* Retire nodes stay pointer-sized on the ordinary overwrite path. CURE2 uses
+ * the otherwise-clear high bits only inside retire lists (flat slot pointers
+ * are already constrained to the low 48 bits) to request a grace callback. */
+#define FLAT_RETIRE_SPECIAL_BIT (UINT64_C(1) << 63)
+#define FLAT_RETIRE_VMETA_BIT   (UINT64_C(1) << 62)
+#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT)
+
+static inline dictEntry *flatRetireSpecial(void *payload, int vmeta) {
+    uintptr_t p = (uintptr_t)payload;
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
+                         (vmeta ? (uintptr_t)FLAT_RETIRE_VMETA_BIT : 0));
+}
+
+static inline void *flatRetireSpecialPayload(dictEntry *payload) {
+    return (void *)((uintptr_t)payload & ~(uintptr_t)FLAT_RETIRE_SPECIAL_MASK);
+}
+
+void flatRetirePayloadReady(dictEntry *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT)) {
+        decrRefCount((robj *)dictGetKV(payload));
+    } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
+        zfree(flatRetireSpecialPayload(payload));
+    } else {
+        tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
+    }
+}
+
+/* Table teardown/resize is already quiescent. A prune anchor is still a live
+ * value in the table copied/destroyed by the caller, so discard that callback;
+ * a detached metadata block still belongs to this retire record. */
+void flatRetirePayloadDiscard(dictEntry *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
+        decrRefCount((robj *)dictGetKV(payload));
+    else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
+        zfree(flatRetireSpecialPayload(payload));
+}
+
 flatTable *flatTableNew(uint64_t want_size) {
     uint64_t sz = 1024;
     while (sz < want_size) sz <<= 1;               /* power of two >= want_size */
@@ -55,10 +95,10 @@ void flatTableFree(flatTable *t) {
      * which were moved to the new table). Safe to free immediately: called with all workers parked
      * (resize) or at shutdown, so no lock-free reader is active. */
     flatRetireNode *n = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
-    while (n) { flatRetireNode *nx = n->next; decrRefCount((robj *)dictGetKV(n->masked_kv)); zfree(n); n = nx; }
+    while (n) { flatRetireNode *nx = n->next; flatRetirePayloadDiscard(n->masked_kv); zfree(n); n = nx; }
     for (flatBatch *b = t->batches; b; ) {
         flatBatch *bn = b->next;
-        for (flatRetireNode *m = b->head; m; ) { flatRetireNode *mx = m->next; decrRefCount((robj *)dictGetKV(m->masked_kv)); zfree(m); m = mx; }
+        for (flatRetireNode *m = b->head; m; ) { flatRetireNode *mx = m->next; flatRetirePayloadDiscard(m->masked_kv); zfree(m); m = mx; }
         zfree(b); b = bn;
     }
     zfree(t->slots);
@@ -103,8 +143,8 @@ void flatNodePoolTrim(void) {
     flat_node_pool_lowat = flat_node_pool_n;
 }
 
-void flatRetire(flatTable *t, dictEntry *masked_kv) {
-    if (!masked_kv) return;
+static void flatRetirePayload(flatTable *t, dictEntry *payload) {
+    if (!payload) return;
     flatRetireNode *n = flat_node_pool;
     if (n) {
         flat_node_pool = n->next;
@@ -112,7 +152,7 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
     } else {
         n = zmalloc(sizeof(*n));
     }
-    n->masked_kv = masked_kv;
+    n->masked_kv = payload;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
     if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
@@ -120,6 +160,18 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
              memory_order_release, memory_order_relaxed));
+}
+
+void flatRetire(flatTable *t, dictEntry *masked_kv) {
+    flatRetirePayload(t, masked_kv);
+}
+
+void flatRetireVersionPrune(flatTable *t, void *rawkv) {
+    flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
+}
+
+void flatRetireVmeta(flatTable *t, void *vmeta) {
+    flatRetirePayload(t, flatRetireSpecial(vmeta, 1));
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

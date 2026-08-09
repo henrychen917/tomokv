@@ -51,27 +51,36 @@ unsigned long tomoTotalWatchedKeys(void) {
 
 /* Client state initialization for MULTI/EXEC */
 void initClientMultiState(client *c) {
-    c->mstate.commands = NULL;
-    c->mstate.count = 0;
-    c->mstate.cmd_flags = 0;
-    c->mstate.cmd_inv_flags = 0;
-    c->mstate.argv_len_sums = 0;
-    c->mstate.alloc_count = 0;
-    c->mstate.executing_cmd = -1;
+    /* MERGE(T6 x sidecar): mstate lives in the lazily-allocated cold sidecar (getClientCold
+     * zeroes it and sets executing_cmd = -1); the T6 watch-ownership atomics are (re)armed here so
+     * a recycled or first-touch client can never expose garbage to another worker's WATCH scan. */
+    if (clientMultiState(c)) return;
+    (void)getClientCold(c);
     atomicSet(c->tomo_watch_worker, -1);
     atomicSet(c->tomo_dirty_cas, 0);
 }
 
 /* Release all the resources associated with MULTI/EXEC state */
 void freeClientMultiState(client *c) {
-    for (int i = 0; i < c->mstate.count; i++) {
-        freePendingCommand(c, c->mstate.commands[i]);
+    multiState *ms = clientMultiState(c);
+    if (!ms) return;
+    for (int i = 0; i < ms->count; i++) {
+        freePendingCommand(c, ms->commands[i]);
     }
-    zfree(c->mstate.commands);
+    zfree(ms->commands);
+    ms->commands = NULL;
+    ms->count = 0;
+    ms->cmd_flags = 0;
+    ms->cmd_inv_flags = 0;
+    ms->argv_len_sums = 0;
+    ms->alloc_count = 0;
+    ms->executing_cmd = -1;
 }
 
 /* Add a new command into the MULTI commands queue */
 void queueMultiCommand(client *c, uint64_t cmd_flags) {
+    initClientMultiState(c);
+    multiState *ms = clientMultiState(c);
     /* No sense to waste memory if the transaction is already aborted.
      * this is useful in case client sends these in a pipeline, or doesn't
      * bother to read previous responses and didn't notice the multi was already
@@ -80,15 +89,15 @@ void queueMultiCommand(client *c, uint64_t cmd_flags) {
     if (server.num_workers > 0) atomicGet(c->tomo_dirty_cas, tomo_dirty);
     if ((c->flags & (CLIENT_DIRTY_CAS|CLIENT_DIRTY_EXEC)) || tomo_dirty)
         return;
-    if (c->mstate.count == 0) {
+    if (ms->count == 0) {
         /* If a client is using multi/exec, assuming it is used to execute at least
          * two commands. Hence, creating by default size of 2. */
-        c->mstate.commands = zmalloc(sizeof(pendingCommand*)*2);
-        c->mstate.alloc_count = 2;
+        ms->commands = zmalloc(sizeof(pendingCommand*)*2);
+        ms->alloc_count = 2;
     }
-    if (c->mstate.count == c->mstate.alloc_count) {
-        c->mstate.alloc_count = c->mstate.alloc_count < INT_MAX/2 ? c->mstate.alloc_count*2 : INT_MAX;
-        c->mstate.commands = zrealloc(c->mstate.commands, sizeof(pendingCommand*)*(c->mstate.alloc_count));
+    if (ms->count == ms->alloc_count) {
+        ms->alloc_count = ms->alloc_count < INT_MAX/2 ? ms->alloc_count*2 : INT_MAX;
+        ms->commands = zrealloc(ms->commands, sizeof(pendingCommand*)*(ms->alloc_count));
     }
 
     /* Move the pending command into the multi-state.
@@ -96,13 +105,13 @@ void queueMultiCommand(client *c, uint64_t cmd_flags) {
      * later, but set the value to NULL to indicate it has been moved out and should not be freed. */
     pendingCommand *pcmd = popPendingCommandFromHead(&c->pending_cmds);
     c->current_pending_cmd = NULL;
-    pendingCommand **mc = c->mstate.commands + c->mstate.count;
+    pendingCommand **mc = ms->commands + ms->count;
     *mc = pcmd;
 
-    c->mstate.count++;
-    c->mstate.cmd_flags |= cmd_flags;
-    c->mstate.cmd_inv_flags |= ~cmd_flags;
-    c->mstate.argv_len_sums += (*mc)->argv_len_sum;
+    ms->count++;
+    ms->cmd_flags |= cmd_flags;
+    ms->cmd_inv_flags |= ~cmd_flags;
+    ms->argv_len_sums += (*mc)->argv_len_sum;
     c->all_argv_len_sum -= (*mc)->argv_len_sum;
 
     (*mc)->argv_len_sum = 0; /* This is no longer tracked through all_argv_len_sum, so we don't want */
@@ -118,7 +127,6 @@ void queueMultiCommand(client *c, uint64_t cmd_flags) {
 void discardTransaction(client *c) {
     client *owner = tomoWatchOwner(c);
     freeClientMultiState(c);
-    initClientMultiState(c);
     c->flags &= ~(CLIENT_MULTI|CLIENT_DIRTY_CAS|CLIENT_DIRTY_EXEC);
     unwatchAllKeys(c);
     if (server.num_workers > 0) atomicSet(owner->tomo_dirty_cas, 0);
@@ -136,6 +144,7 @@ void multiCommand(client *c) {
         addReplyError(c,"MULTI calls can not be nested");
         return;
     }
+    initClientMultiState(c);
     c->flags |= CLIENT_MULTI;
 
     addReply(c,shared.ok);
@@ -178,6 +187,8 @@ void execCommand(client *c) {
         addReplyError(c,"EXEC without MULTI");
         return;
     }
+    multiState *ms = clientMultiState(c);
+    serverAssert(ms != NULL);
 
     if (server.num_workers > 0) {
         client *owner = tomoWatchOwner(c);
@@ -227,17 +238,17 @@ void execCommand(client *c) {
      * Otherwise, we get inconsistencies and all_argv_len_sum doesn't go back to exactly 0 when the client is finished */
     orig_all_argv_len_sum = c->all_argv_len_sum;
 
-    c->all_argv_len_sum = c->mstate.argv_len_sums;
+    c->all_argv_len_sum = ms->argv_len_sums;
 
     /* Skip ACL check for the AOF client while server loading. */
     int skip_acl_check = server.loading && c->id == CLIENT_ID_AOF;
 
-    addReplyArrayLen(c,c->mstate.count);
-    for (j = 0; j < c->mstate.count; j++) {
-        c->argc = c->mstate.commands[j]->argc;
-        c->argv = c->mstate.commands[j]->argv;
-        c->argv_len = c->mstate.commands[j]->argv_len;
-        c->cmd = c->realcmd = c->mstate.commands[j]->cmd;
+    addReplyArrayLen(c,ms->count);
+    for (j = 0; j < ms->count; j++) {
+        c->argc = ms->commands[j]->argc;
+        c->argv = ms->commands[j]->argv;
+        c->argv_len = ms->commands[j]->argv_len;
+        c->cmd = c->realcmd = ms->commands[j]->cmd;
 
         /* ACL permissions are also checked at the time of execution in case
          * they were changed after the commands were queued. */
@@ -270,7 +281,7 @@ void execCommand(client *c) {
                 "This command is no longer allowed for the "
                 "following reason: %s", reason);
         } else {
-            c->mstate.executing_cmd = j;
+            ms->executing_cmd = j;
             if (c->id == CLIENT_ID_AOF)
                 call(c,CMD_CALL_NONE);
             else
@@ -280,10 +291,10 @@ void execCommand(client *c) {
         }
 
         /* Commands may alter argc/argv, restore mstate. */
-        c->mstate.commands[j]->argc = c->argc;
-        c->mstate.commands[j]->argv = c->argv;
-        c->mstate.commands[j]->argv_len = c->argv_len;
-        c->mstate.commands[j]->cmd = c->cmd;
+        ms->commands[j]->argc = c->argc;
+        ms->commands[j]->argv = c->argv;
+        ms->commands[j]->argv_len = c->argv_len;
+        ms->commands[j]->cmd = c->cmd;
     }
 
     // restore old DENY_BLOCKING value
@@ -379,12 +390,16 @@ void watchForKey(client *c, robj *key) {
     listIter li;
     listNode *ln;
     watchedKey *wk;
-
+    /* MERGE(T6 x sidecar): WATCH state belongs to the OWNER (a fake resolves to its parent), and
+     * its storage is the owner's sidecar multiState. */
     client *owner = tomoWatchOwner(c);
-    if (listLength(owner->watched_keys) == 0) atomicIncr(server.watching_clients, 1);
+    initClientMultiState(owner);
+    list *watched_keys = &clientMultiState(owner)->watched_keys;
+
+    if (listLength(watched_keys) == 0) atomicIncr(server.watching_clients, 1);
 
     /* Check if we are already watching for this key */
-    listRewind(owner->watched_keys,&li);
+    listRewind(watched_keys,&li);
     while((ln = listNext(&li))) {
         wk = listNodeValue(ln);
         if (wk->db == c->db && equalStringObjects(key,wk->key))
@@ -414,7 +429,7 @@ void watchForKey(client *c, robj *key) {
     wk->worker = worker;
     wk->expired = keyIsExpired(c->db, key->ptr, NULL);
     incrRefCount(key);
-    listAddNodeTail(owner->watched_keys, wk);
+    listAddNodeTail(watched_keys, wk);
     watchedKeyLinkToClients(clients, wk);
     if (server.num_workers > 0) atomicSet(owner->tomo_watch_worker, worker);
 }
@@ -424,11 +439,12 @@ static void unwatchAllKeysLocked(client *owner, int worker) {
     listIter li;
     listNode *ln;
 
-    if (listLength(owner->watched_keys) == 0) {
+    multiState *ms = clientMultiState(owner);
+    if (!ms || listLength(&ms->watched_keys) == 0) {
         atomicSet(owner->tomo_watch_worker, -1);
         return;
     }
-    listRewind(owner->watched_keys,&li);
+    listRewind(&ms->watched_keys,&li);
     while((ln = listNext(&li))) {
         list *clients;
         watchedKey *wk;
@@ -445,7 +461,7 @@ static void unwatchAllKeysLocked(client *owner, int worker) {
             if (wk->index) atomicDecr(tomo_watched_key_count, 1);
         }
         /* Remove this watched key from the client->watched list */
-        listDelNode(owner->watched_keys,ln);
+        listDelNode(&ms->watched_keys,ln);
         decrRefCount(wk->key);
         zfree(wk);
     }
@@ -457,11 +473,12 @@ static void unwatchAllKeysLocked(client *owner, int worker) {
  * flag is up to the caller. */
 void unwatchAllKeys(client *c) {
     client *owner = tomoWatchOwner(c);
-    if (listLength(owner->watched_keys) == 0) {
+    multiState *ms = clientMultiState(owner);   /* MERGE: sidecar storage, owner semantics */
+    if (!ms || listLength(&ms->watched_keys) == 0) {
         atomicSet(owner->tomo_watch_worker, -1);
         return;
     }
-    watchedKey *first = listNodeValue(listFirst(owner->watched_keys));
+    watchedKey *first = listNodeValue(listFirst(&ms->watched_keys));
     int worker = first->worker;
     int locked = 0;
     if (server.num_workers > 0 && tomoCurrentWorker() != worker) {
@@ -479,8 +496,9 @@ int isWatchedKeyExpired(client *c) {
     listNode *ln;
     watchedKey *wk;
     client *owner = tomoWatchOwner(c);
-    if (listLength(owner->watched_keys) == 0) return 0;
-    listRewind(owner->watched_keys,&li);
+    multiState *ms = clientMultiState(owner);
+    if (!ms || listLength(&ms->watched_keys) == 0) return 0;
+    listRewind(&ms->watched_keys,&li);
     while ((ln = listNext(&li))) {
         wk = listNodeValue(ln);
         if (wk->expired) continue; /* was expired when WATCH was called */
@@ -617,11 +635,13 @@ void watchCommand(client *c) {
     unsigned int tomo_dirty = 0;
     if (server.num_workers > 0) atomicGet(owner->tomo_dirty_cas, tomo_dirty);
     if ((owner->flags & CLIENT_DIRTY_CAS) || tomo_dirty) {
-        if (listLength(owner->watched_keys) == 0)
+        multiState *wms = clientMultiState(owner);
+        if (!wms || listLength(&wms->watched_keys) == 0)
             atomicSet(owner->tomo_watch_worker, -1);
         addReply(c,shared.ok);
         return;
     }
+    initClientMultiState(c);
     for (j = 1; j < c->argc; j++)
         watchForKey(c,c->argv[j]);
     addReply(c,shared.ok);
@@ -636,10 +656,12 @@ void unwatchCommand(client *c) {
 }
 
 size_t multiStateMemOverhead(client *c) {
-    size_t mem = c->mstate.argv_len_sums;
+    multiState *ms = clientMultiState(c);
+    if (!ms) return 0;
+    size_t mem = ms->argv_len_sums;
     /* Add watched keys overhead, Note: this doesn't take into account the watched keys themselves, because they aren't managed per-client. */
-    mem += listLength(c->watched_keys) * (sizeof(listNode) + sizeof(watchedKey));
+    mem += listLength(&ms->watched_keys) * (sizeof(listNode) + sizeof(watchedKey));
     /* Reserved memory for queued multi commands. */
-    mem += c->mstate.alloc_count * sizeof(pendingCommand);
+    mem += ms->alloc_count * sizeof(pendingCommand);
     return mem;
 }

@@ -216,6 +216,118 @@ start_server {tags {"protocol network"}} {
         assert_equal $disabled $enabled
     }
 
+    test {reply iovec preserves large, aggregate, and pipelined RESP bytes} {
+        # Encode requests and expected bulk replies ourselves so this test
+        # compares the complete byte stream, including every length/header and
+        # CRLF, rather than trusting the client library's RESP decoder.
+        proc reply_iovec_command {args} {
+            set out "*[llength $args]\r\n"
+            foreach arg $args {
+                append out "\$[string length $arg]\r\n$arg\r\n"
+            }
+            return $out
+        }
+        proc reply_iovec_bulk {value} {
+            return "\$[string length $value]\r\n$value\r\n"
+        }
+
+        set v1k  [string repeat a 1024]
+        set v16k [string repeat b 16384]
+        set v64k [string repeat c 65536]
+        set small tiny
+        set k1     reply-iovec:{8}:1k
+        set k16    reply-iovec:{8}:16k
+        set k64    reply-iovec:{8}:64k
+        set ksmall reply-iovec:{8}:small
+        set kl     reply-iovec:{8}:list
+        set kh     reply-iovec:{8}:hash
+        set ks     reply-iovec:{8}:set
+        set kspop  reply-iovec:{8}:set-pop
+        set kzrand reply-iovec:{8}:zset-rand
+
+        r set $k1 $v1k
+        r set $k16 $v16k
+        r set $k64 $v64k
+        r set $ksmall $small
+        r del $kl $kh $ks $kspop $kzrand
+        r rpush $kl $small $v16k $v64k
+        r hset $kh $v16k $v64k
+        r sadd $ks $v16k
+        r sadd $kspop $v16k
+        # Count > cardinality takes ZRANDMEMBER's deterministic full-scan
+        # branch. For a skiplist-encoded large member that branch hands a new,
+        # owned SDS to addReplyBulkSds, directly exercising the new adoption.
+        r zadd $kzrand 1 $v16k
+
+        set old_iovec [lindex [r config get tomokv-reply-iovec] 1]
+        set old_zc [lindex [r config get tomokv-zerocopy-min-value] 1]
+        set old_transfer [lindex [r config get tomokv-reply-buffer-transfer] 1]
+        r config set tomokv-zerocopy-min-value 1024
+        r config set tomokv-reply-buffer-transfer yes
+        r config set tomokv-reply-iovec yes
+
+        set rc [redis_client]
+
+        # Exact GET replies at the threshold and across several send sizes.
+        set request ""
+        set expected ""
+        foreach {key value} [list $k1 $v1k $k16 $v16k $k64 $v64k] {
+            append request [reply_iovec_command GET $key]
+            append expected [reply_iovec_bulk $value]
+        }
+        $rc write $request
+        $rc flush
+        set actual [$rc rawread [string length $expected]]
+        assert {[string equal $actual $expected]}
+
+        # Large multi-bulk list/hash/set elements. One-element hash/set replies
+        # make their otherwise-unspecified iteration order byte-deterministic.
+        set list_reply "*3\r\n[reply_iovec_bulk $small][reply_iovec_bulk $v16k][reply_iovec_bulk $v64k]"
+        set hash_reply "*2\r\n[reply_iovec_bulk $v16k][reply_iovec_bulk $v64k]"
+        set set_reply "*1\r\n[reply_iovec_bulk $v16k]"
+        set request "[reply_iovec_command LRANGE $kl 0 -1][reply_iovec_command HGETALL $kh][reply_iovec_command SMEMBERS $ks]"
+        set expected "$list_reply$hash_reply$set_reply"
+        $rc write $request
+        $rc flush
+        set actual [$rc rawread [string length $expected]]
+        assert {[string equal $actual $expected]}
+
+        # Interleave tiny and large replies, a detached SPOP object, the owned
+        # ZRANDMEMBER SDS, and same-key mutations in one pipeline. APPEND must
+        # COW the pinned 16 KiB value, so the earlier GET cannot tear/change.
+        set appended "${v16k}tail"
+        set request ""
+        append request [reply_iovec_command GET $ksmall]
+        append request [reply_iovec_command GET $k64]
+        append request [reply_iovec_command PING]
+        append request [reply_iovec_command SPOP $kspop]
+        append request [reply_iovec_command ZRANDMEMBER $kzrand 2]
+        append request [reply_iovec_command GET $k16]
+        append request [reply_iovec_command APPEND $k16 tail]
+        append request [reply_iovec_command GET $k16]
+        append request [reply_iovec_command GET $k1]
+
+        set expected "[reply_iovec_bulk $small][reply_iovec_bulk $v64k]+PONG\r\n"
+        append expected [reply_iovec_bulk $v16k]
+        append expected "*1\r\n[reply_iovec_bulk $v16k]"
+        append expected [reply_iovec_bulk $v16k]
+        append expected ":[string length $appended]\r\n"
+        append expected [reply_iovec_bulk $appended]
+        append expected [reply_iovec_bulk $v1k]
+
+        $rc write $request
+        $rc flush
+        set actual [$rc rawread [string length $expected]]
+        assert {[string equal $actual $expected]}
+        $rc close
+
+        r config set tomokv-reply-iovec $old_iovec
+        r config set tomokv-reply-buffer-transfer $old_transfer
+        r config set tomokv-zerocopy-min-value $old_zc
+        rename reply_iovec_command {}
+        rename reply_iovec_bulk {}
+    }
+
     # check the connection still works
     assert_equal [r ping] {PONG}
 
