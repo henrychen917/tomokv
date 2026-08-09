@@ -77,8 +77,9 @@ explicitly NOT guaranteed** — that is an owner ruling, not a bug.
 - **AMAC was rejected for the flat table**: its refill only pays on variable-depth chains, and the
   flat probe chain is constant-depth (~2 steps via a 15-bit tag). Group prefetching with distance =
   group size is the right shape.
-- **The prefetch gate had never opened** for a long period due to a units bug (32x L3, not 8x); the
-  flat-table prefetch stages were dead code. Prefetch knobs are now auto-derived.
+- **The prefetch gate had never opened** for a long period due to a units bug (32x L3, not 8x).
+  Later gate-open FLAT measurements still exercised operands only because the null per-bucket dict
+  retired before storage; levels 2/3 now provide the explicit FLAT SLOT/KVOBJ experiment.
 - **Value forwarding is permanently dead** (three physics walls, proven neutral everywhere).
 - **io_uring was deleted entirely** after measuring: no win at io7/ex1 p1, plus a livelock under
   client LB. To be reimplemented from scratch later.

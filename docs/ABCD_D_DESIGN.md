@@ -300,29 +300,18 @@ Only gate-open regimes, 15 s per arm, interleaved off/on x3:
 ENGAGED, proven per arm: `issued_delta` was **0 on every OFF arm** and 352–356 M (8M×32B) /
 173–175 M (2M×512B) **on every ON arm**.
 
-**Verdict: a wash.** With the gate open and hundreds of millions of prefetches actually issued, the
-effect is smaller than the noise between consecutive pairs. Note this also contradicts the recorded
-"operand stages cost 0.3–1.2%" — that figure cannot have come from an engaged run at this
-apparatus, for the same reason the "neutral" verdicts could not.
+**Correction 2026-08-09:** this proves only that the OPERAND pipeline ran. Under KVSTORE_FLAT the
+per-bucket dict is unused, so `PFS_HASH` retired at its null-dict guard before any slot, entry, or
+kvobj hint. The 352–356 M count is consistent with the request-operand stages and cannot support a
+storage-residency verdict. Operand prefetch was a wash; storage prefetch was untested.
 
 ### What follows for B2/B3/B4
 
-**Do not build more prefetch stages on the strength of this.** B2 (DICT KVOBJ/VALDATA split), B3
-(the staged flat probe) and B4 (shared multi-key probe) all add stages to a pipeline that, fully
-engaged, moves throughput by less than the measurement noise. Adding stages to a wash is
-speculative work, and this project has already retired ten `tomokv-pf-*` knobs built that way.
+The next discriminating experiment is therefore B3: level 2 must issue one FLAT home-slot hint per
+admitted GET, and level 3 must additionally issue tag-gated kvobj hints. Only an A/B with those
+stage-specific counters nonzero can accept or refute storage prefetch.
 
-B3's stated premise also looks wrong: it claims prefetch is inert in the flat regime because it
-retires at `kvstoreGetDict() == NULL`. But these runs are FLATSTORE (ex=4 ⇒ shared node db) and
-issued 352 M prefetches — it is not retiring early.
-
-**Recommendation:** keep the knob (it is the measurement instrument, and the brief mandates levels),
-default 1 — flat here and theoretically better where a miss costs a cross-complex hop, which is the
-owner's stated hard-code-on criterion — and **re-run this exact A/B on the multi-CCD 24-core before
-building any further stage.** If prefetch cannot beat noise there either, B is finished and should
-be recorded as a negative result rather than extended.
-
-### B1b — why prefetch is a wash: the worker is OVERHEAD-bound, not memory-bound
+### B1b — historical operand-only interpretation (superseded for storage)
 
 Two sweeps, both with engagement proven per arm (`issued` 0 on every off arm, 180–355 M on every
 on arm).
@@ -352,17 +341,9 @@ bottleneck at 4/4 — the earlier "dispatch-bound" reading was wrong. Starving t
 throughput exactly as intended, but cannot change the prefetch verdict, because the constraint was
 never on the IO side.
 
-**Conclusion, and it is the useful one:** per-worker throughput is pinned regardless of config,
-while a 21x dataset increase costs 3.5%. Therefore the worker is limited by **fixed per-command
-work** — fake-client setup, dispatch bookkeeping, reply construction — and **not** by cache misses.
-Prefetch hides memory latency, which is not the constraint here. That is why it is a wash at every
-dataset size and every thread config with hundreds of millions of prefetches actually issued.
-
-**Therefore B2/B3/B4 are the wrong target.** They add stages to hide a latency that is not costing
-us. The lever for EX throughput is reducing per-command WORK — the allocation-reduction campaign
-(tasks #36/#50/#51) — not prefetching. Re-test prefetch only where a miss is genuinely expensive:
-multi-CCD, cross-NUMA, or a command mix whose per-command work is small relative to its footprint
-(large values, HGETALL, BITCOUNT).
+This scaling result remains evidence that fixed per-command work is important, but it does not
+falsify storage latency: the compared prefetch arm never issued a storage hint. The storage-stage
+A/B and its stage-specific counters now decide that question.
 
 **Adopt io5/ex3 p32 as a standing EX-side cell.** It concentrates load onto fewer workers and drops
 throughput ~20%, so a real EX regression shows up proportionally larger there than at io4/ex4. It
@@ -381,6 +362,6 @@ does not manufacture a memory bottleneck the workload lacks.
 | **median** | **6,322,718** | **6,307,965** | **−0.23%** | |
 
 OFF spread 1.43%, ON spread 0.43%. Engagement proven per arm (0 vs ~284 M). **Median −0.23%, inside
-the OFF spread — a wash**, matching io4/ex4 and io6/ex2. Concentrating load on fewer workers lowers
-absolute throughput ~20% as intended, but does not change the verdict, because the workers were
-already the ceiling and that ceiling is per-command WORK, not memory latency.
+the OFF spread — an operand-only wash**, matching io4/ex4 and io6/ex2. Concentrating load on fewer
+workers lowers absolute throughput ~20% as intended, but the aggregate issue counter still cannot
+turn this into a storage-latency verdict.
