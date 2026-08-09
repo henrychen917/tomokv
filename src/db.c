@@ -364,10 +364,24 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
      * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
     kvobj *kv = lookupKey(db, key, flags, NULL);
-    /* I7: the table slot is only the entry point while a transient bag is
-     * present. Raw heads retain the exact base return path. */
-    if (unlikely(kv && kvobjVmeta(kv)))
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+    /* The raw-value hint is in the first word of the kvobj whose adjacent key
+     * flatKeyMatch just inspected.  A true hint therefore avoids both the
+     * vmeta acquire and its dependent committed-head load.  False is allowed
+     * to be stale: test vmeta and resolve exactly as before. */
+    if (likely(kv && kvobjRawValueHint(kv))) {
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_raw, 1);
+        return kv;
+    }
+
+    if (unlikely(kv && kvobjVmeta(kv))) {
+        uint64_t walked = 0;
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_versioned, 1);
+        kv = kvobjVersionAtCounted(kv, tomoCurrentReadSnapshot(), &walked);
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_walk, walked);
+    } else {
+        /* Missing keys and promotion races belong to the raw denominator too. */
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_raw, 1);
+    }
     return kv;
 }
 
@@ -904,9 +918,14 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
          * semantics leave an older arrival's committed-head unchanged. */
         if (committed_previous)
             kvobjSetCommittedPrev(committed_previous, kv);
-        else
+        else {
+            /* An out-of-install-order stamp can make a buried member the new
+             * winner without replacing the physical table head.  Withdraw a
+             * possibly-true raw hint before publishing that different winner. */
+            kvobjClearRawValueHint(head);
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
+        }
     }
 }
 
@@ -1117,13 +1136,37 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         return;
     }
     struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
-    if (newhead_meta)
+    if (newhead_meta) {
+        /* A previously-physical object can retain a true hint while hidden
+         * below a later install.  If pruning exposes it after a buried stamp
+         * selected some other winner, make it pessimistic before either the
+         * cursor or replacement table pointer is published. */
+        if (newhead != committed_head) kvobjClearRawValueHint(newhead);
         atomic_store_explicit(&newhead_meta->committed_head, committed_head,
                               memory_order_release);
-    else
+    } else {
         serverAssert(committed_head == newhead);
+    }
     if (newhead != head)
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
+
+    /* Incremental promotion.  This completed prune grace proves that every
+     * reader pinned below retire_max has quiesced.  If the physical head is
+     * the non-tombstone committed winner and its sequence is covered by that
+     * frontier, every still-live and future snapshot selects the head itself.
+     * Mark it raw even when older committed history or uncommitted physical
+     * members remain below it; those states prevent full metadata promotion
+     * under continuous writes but do not require a current reader to resolve.
+     * A buried member that later becomes the winner clears this hint before
+     * its committed-head publication in tomoApplyVersionStamp(). */
+    if (!cancel_anchor && newhead_meta && newhead == committed_head &&
+        newhead_meta->stamp_state == TOMO_STAMP_APPLIED &&
+        !newhead_meta->version_tombstone) {
+        uint64_t head_seq = atomic_load_explicit(&newhead_meta->version_seq,
+                                                 memory_order_acquire);
+        if (head_seq != TOMO_VERSION_UNCOMMITTED && head_seq <= retire_max)
+            kvobjSetRawValueHint(newhead);
+    }
 
     int committed = 0, uncommitted = 0;
     kvobj *sole_committed = NULL;
@@ -1188,6 +1231,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                                   memory_order_release);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
             kvobjSetVmeta(sole_committed, NULL);
+            kvobjSetRawValueHint(sole_committed);
             kvstoreFlatRetireVmeta(kvs, vmeta);
             atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
                                       memory_order_relaxed);

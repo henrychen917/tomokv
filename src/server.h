@@ -1083,6 +1083,7 @@ char *getObjectTypeName(robj*);
     _var.encoding = OBJ_ENCODING_RAW; \
     _var.metabits = 0; \
     _var.iskvobj = 0; \
+    _var.tomo_raw_hint = 0; \
     _var.ptr = _ptr; \
     _var.vmeta = NULL; \
 } while(0)
@@ -3591,7 +3592,13 @@ struct redisServer {
     struct {
         _Atomic long long hits;     /* single-writer per slot; tomoRelaxedBump/Read/Set */
         _Atomic long long misses;
-        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
+        /* Atomic-version read census shares the already-hot owner-local line.
+         * raw+versioned partitions lookupKeyReadWithFlags calls; walk counts
+         * committed candidates inspected by actual resolver calls. */
+        _Atomic unsigned long long atomic_read_raw;
+        _Atomic unsigned long long atomic_read_versioned;
+        _Atomic unsigned long long atomic_read_walk;
+        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the

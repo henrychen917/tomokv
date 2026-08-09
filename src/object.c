@@ -90,6 +90,7 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
     kv->refcount = 1;
     kv->lru = 0;
     kv->iskvobj = 1;
+    kv->tomo_raw_hint = 1;
     kv->metabits = keyMetaBits;
 
     /* The memory after the struct where we embedded data. */
@@ -114,6 +115,7 @@ robj *createObject(int type, void *ptr) {
     o->refcount = 1;
     o->lru = 0;
     o->iskvobj = 0;
+    o->tomo_raw_hint = 0;
     o->metabits = 0;
     return o;
 }
@@ -194,6 +196,7 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
     o->lru = 0;
     o->metabits = keyMetaBits;
     o->iskvobj = 1;
+    o->tomo_raw_hint = 1;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);
@@ -235,6 +238,7 @@ robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     o->lru = 0;
     o->metabits = 0;
     o->iskvobj = 0;
+    o->tomo_raw_hint = 0;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);

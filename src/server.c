@@ -4818,6 +4818,9 @@ void resetServerStats(void) {
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
         tomoRelaxedSet(server.kstat[i].hits, 0);
         tomoRelaxedSet(server.kstat[i].misses, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_raw, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_versioned, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_walk, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -18246,6 +18249,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
             ord += tm_io_sig[_t].ownread_detach;
         }
+        unsigned long long arr = 0, arv = 0, arw = 0;
+        for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
+            arr += tomoRelaxedRead(server.kstat[_t].atomic_read_raw);
+            arv += tomoRelaxedRead(server.kstat[_t].atomic_read_versioned);
+            arw += tomoRelaxedRead(server.kstat[_t].atomic_read_walk);
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -18311,6 +18320,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_atomic_promotions:%llu\r\n",
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+            "tomokv_atomic_read_raw:%llu\r\n", arr,
+            "tomokv_atomic_read_versioned:%llu\r\n", arv,
+            "tomokv_atomic_read_walk:%llu\r\n", arw,
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,

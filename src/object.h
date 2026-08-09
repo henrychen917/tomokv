@@ -149,10 +149,19 @@ struct tomoVerMeta {
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
 struct redisObject {
-    unsigned type:3;
-    unsigned encoding:4;
-    unsigned refcount : OBJ_REFCOUNT_BITS;
-    unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
+    /* The four historical fields consume 31 bits on the target ABI.  Name the
+     * previously-padding bit without widening this word; tomo_header exists so
+     * the hint can be loaded atomically while preserving the bitfield API. */
+    union {
+        struct {
+            unsigned type:3;
+            unsigned encoding:4;
+            unsigned refcount : OBJ_REFCOUNT_BITS;
+            unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
+            unsigned tomo_raw_hint : 1; /* physical head is safe for every live snapshot */
+        };
+        uint32_t tomo_header;
+    };
     
     /* metabits and lru are Relevant only when iskvobj is set: */     
     unsigned metabits :8;  /* Bitmap of metadata (+expiry) attached to this kvobj */
@@ -165,6 +174,11 @@ struct redisObject {
      * allocated lazily for atomic version-bag writes. */
     struct tomoVerMeta *vmeta;
 };
+
+_Static_assert(3 + 4 + OBJ_REFCOUNT_BITS + 1 + 1 == 32,
+               "the raw-value hint must consume only the spare header bit");
+_Static_assert(sizeof(struct redisObject) == 24,
+               "the raw-value hint must not grow the object header");
 
 /* robj - General purpose redis object */
 typedef struct redisObject robj;
@@ -185,11 +199,42 @@ sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
+/* GCC's x86 bitfield ABI allocates the fields above from the low bit upward:
+ * 3 + 4 + 23 + 1 leaves bit 31, which was padding before tomo_raw_hint named
+ * it.  Loads are acquire because a true observation consumes the owner's
+ * release publication.  The key owner is the sole header writer, so dynamic
+ * transitions can use a whole-word release store rather than a locked RMW;
+ * the load/store retains every neighbouring header bit. */
+#define TOMO_RAW_HINT_MASK (UINT32_C(1) << 31)
+
+static inline int kvobjRawValueHint(const kvobj *kv) {
+    return (__atomic_load_n(&kv->tomo_header, __ATOMIC_ACQUIRE) &
+            TOMO_RAW_HINT_MASK) != 0;
+}
+
+static inline void kvobjClearRawValueHint(kvobj *kv) {
+    uint32_t header = __atomic_load_n(&kv->tomo_header, __ATOMIC_RELAXED);
+    if (header & TOMO_RAW_HINT_MASK)
+        __atomic_store_n(&kv->tomo_header, header & ~TOMO_RAW_HINT_MASK,
+                         __ATOMIC_RELEASE);
+}
+
+static inline void kvobjSetRawValueHint(kvobj *kv) {
+    uint32_t header = __atomic_load_n(&kv->tomo_header, __ATOMIC_RELAXED);
+    if (!(header & TOMO_RAW_HINT_MASK))
+        __atomic_store_n(&kv->tomo_header, header | TOMO_RAW_HINT_MASK,
+                         __ATOMIC_RELEASE);
+}
+
 static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
     return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
 }
 
 static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
+    /* Attachments are made only to a fresh, unpublished kvobj.  This ordinary
+     * clear is sequenced before the release vmeta store and the later release
+     * table-slot publication, avoiding a locked RMW on every install. */
+    if (vmeta) kv->tomo_raw_hint = 0;
     __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
 }
 
@@ -227,7 +272,8 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
  * the uncommitted physical prefix. Only an old snapshot walks down the
  * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
  * seq 0); no winner, or a tombstone winner, means absent. */
-static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
+                                           uint64_t *walked) {
     struct tomoVerMeta *head_meta = kvobjVmeta(kv);
     if (!head_meta) return kv;
 
@@ -235,6 +281,7 @@ static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
                               memory_order_acquire);
     struct tomoVerMeta *vmeta = NULL;
     while (kv) {
+        if (walked) (*walked)++;
         vmeta = kvobjVmeta(kv);
         if (!vmeta) break;
         uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
@@ -244,6 +291,10 @@ static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
     }
     if (kv && vmeta && vmeta->version_tombstone) return NULL;
     return kv;
+}
+
+static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
+    return kvobjVersionAtCounted(kv, snapshot, NULL);
 }
 
 /* Redis object implementation */
