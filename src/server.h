@@ -5915,6 +5915,10 @@ void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
+void tomoAtomicLifecycleEnsure(void);
+void tomoAtomicLifecycleRelease(struct tomoVerMeta *vmeta);
+void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
+                          int prune_callback);
 uint64_t tomoCurrentReadSnapshot(void);
 uint64_t tomoCommittedSeq(void);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);

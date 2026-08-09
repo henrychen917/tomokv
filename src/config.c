@@ -3137,6 +3137,9 @@ static int applyClientMaxMemoryUsage(const char **err) {
 
 static int applyTomoAtomicAdmission(const char **err) {
     UNUSED(err);
+    /* A live enable must publish the lifecycle table before its first version can install. Boot
+     * configuration reaches this callback before workers exist; initExThreads covers that case. */
+    if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
     /* A live increase, window=0, or tomokv-atomic=off may make parked commands admissible without
      * any group retiring. Wake their event loops; each owner rechecks the current settings. */
     tomoAtomicWindowChanged();

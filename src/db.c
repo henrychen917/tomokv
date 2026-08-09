@@ -977,8 +977,22 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     }
 }
 
+static void tomoVersionPruneFinish(int owner, exThread *worker,
+                                   struct tomoVerMeta *callback_meta) {
+    tomoWkrUnlockPub(owner);
+    /* Drop only after every live-bag mutation and the executing worker's lock are finished, but
+     * before leaving the flat section: promotion may already have QSBR-retired this metadata
+     * block, and this pin keeps it valid through the counter update. */
+    tomoAtomicLifecycleRelease(callback_meta);
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+}
+
 void tomoVersionPruneAfterGrace(kvobj *anchor) {
+    /* Check at callback ENTRY, before taking any lock or touching the bag. Checking only when the
+     * callback was armed misses exactly an old-owner callback which matures after a cutover. */
+    struct tomoVerMeta *callback_meta = kvobjVmeta(anchor);
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    tomoAtomicOwnerCheck(callback_meta, owner, 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
 
@@ -994,10 +1008,9 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     tomoWkrLockPub(owner);
 
-    struct tomoVerMeta *anchor_meta = kvobjVmeta(anchor);
+    struct tomoVerMeta *anchor_meta = callback_meta;
     if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
-        tomoWkrUnlockPub(owner);
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoVersionPruneFinish(owner, worker, callback_meta);
         return;
     }
     kvstore *kvs = anchor_meta->version_kvs;
@@ -1006,8 +1019,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
         tomoSchedulePhysicalRetire(kvs, anchor);
-        tomoWkrUnlockPub(owner);
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoVersionPruneFinish(owner, worker, callback_meta);
         return;
     }
 
@@ -1112,8 +1124,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         robj *keyobj = createStringObject(key, sdslen(key));
         serverAssert(dbSyncDelete(db, keyobj) == 1);
         decrRefCount(keyobj);
-        tomoWkrUnlockPub(owner);
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoVersionPruneFinish(owner, worker, callback_meta);
         return;
     }
     struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
@@ -1164,8 +1175,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                                                sdslen(kvobjGetKey(sole_committed)));
             serverAssert(dbSyncDelete(db, keyobj) == 1);
             decrRefCount(keyobj);
-            tomoWkrUnlockPub(owner);
-            atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+            tomoVersionPruneFinish(owner, worker, callback_meta);
             return;
         }
     }
@@ -1177,7 +1187,10 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     if (committed == 1 && uncommitted == 0 && sole_committed &&
         kvobjVersionPrev(sole_committed) == NULL) {
         struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
-        if (vmeta) {
+        /* Do not detach another version's install-owner identity while its own prune callback is
+         * still queued. That callback must retain metadata for its entry-time stale-owner check and
+         * must itself retire the lifecycle reference. Its own callback may promote it normally. */
+        if (vmeta && (sole_committed == anchor || !vmeta->lifecycle_ref_held)) {
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
@@ -1196,8 +1209,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
-    tomoWkrUnlockPub(owner);
-    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    tomoVersionPruneFinish(owner, worker, callback_meta);
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned

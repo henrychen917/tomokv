@@ -132,11 +132,14 @@ struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
     uint32_t version_order;
+    int16_t install_owner;
+    uint16_t install_bucket;
     uint8_t version_tombstone;
     uint8_t version_reservation;
     uint8_t stamp_state;
     uint8_t retire_state;
     uint8_t detached;
+    uint8_t lifecycle_ref_held;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *committed_prev;

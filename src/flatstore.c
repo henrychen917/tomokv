@@ -60,6 +60,12 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
         decrRefCount((robj *)dictGetKV(payload));
     else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
         zfree(flatRetireSpecialPayload(payload));
+    else {
+        /* Teardown/resize suppresses the prune callback entirely. Retire the install-owner
+         * reference here, at the point which proves no callback can later mutate the bag. */
+        kvobj *anchor = flatRetireSpecialPayload(payload);
+        tomoAtomicLifecycleRelease(kvobjVmeta(anchor));
+    }
 }
 
 flatTable *flatTableNew(uint64_t want_size) {
@@ -78,19 +84,7 @@ flatTable *flatTableNew(uint64_t want_size) {
     return t;
 }
 
-/* teardown-only: free the LIVE kvobjs (which flatTableFree deliberately does NOT, since at resize
- * they migrate to the new table) then release the table. Single-threaded shutdown/release, no readers. */
-void flatTableDestroy(flatTable *t) {
-    if (!t) return;
-    for (uint64_t i = 0; i < t->size; i++) {
-        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
-        if (FLAT_IS_LIVE(w)) decrRefCount((robj *)dictGetKV(flat_word_ptr(w)));
-    }
-    flatTableFree(t);
-}
-
-void flatTableFree(flatTable *t) {
-    if (!t) return;
+static void flatTableDiscardRetires(flatTable *t) {
     /* drain any still-pending retired garbage (values DELETED from this table, not the live keys
      * which were moved to the new table). Safe to free immediately: called with all workers parked
      * (resize) or at shutdown, so no lock-free reader is active. */
@@ -101,6 +95,25 @@ void flatTableFree(flatTable *t) {
         for (flatRetireNode *m = b->head; m; ) { flatRetireNode *mx = m->next; flatRetirePayloadDiscard(m->masked_kv); zfree(m); m = mx; }
         zfree(b); b = bn;
     }
+}
+
+/* teardown-only: discard callbacks while their live anchors are still valid, then free the LIVE
+ * kvobjs (which flatTableFree deliberately does NOT, since at resize they migrate to the new
+ * table). Single-threaded shutdown/release, no readers. */
+void flatTableDestroy(flatTable *t) {
+    if (!t) return;
+    flatTableDiscardRetires(t);
+    for (uint64_t i = 0; i < t->size; i++) {
+        uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
+        if (FLAT_IS_LIVE(w)) decrRefCount((robj *)dictGetKV(flat_word_ptr(w)));
+    }
+    zfree(t->slots);
+    zfree(t);
+}
+
+void flatTableFree(flatTable *t) {
+    if (!t) return;
+    flatTableDiscardRetires(t);
     zfree(t->slots);
     zfree(t);
 }
