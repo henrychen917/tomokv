@@ -8221,13 +8221,17 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 /* Close a retire list into a grace batch: snapshot every worker's loop_seq AND every io identity's
  * region epoch right now (the old close never stamped io identities at all — the flag was probed
  * repeatedly at check time instead, which is what made one long region block everything).
- * `spare` (optional) is a recycle list of spent headers — a batch is ~816B and the worker closes one
- * per pass under write load, so recycling keeps the steady state allocation-free. */
+ * `spare` (optional) is a recycle list of spent headers — a batch is ~816B, so recycling keeps the
+ * worker's now-size-amortised close path allocation-free in steady state. */
 /* QSBR reclaim observability. Incremented once per BATCH (not per retire), so this is off the hot
  * path entirely. pending = closed - freed is the direct measure of whether the grace is making
  * progress; RSS is a poor proxy because jemalloc retains freed spans. Exposed as
  * INFO tomokv_flat_batches_{closed,freed,pending} per this tree's "expose the state" rule. */
 static _Atomic unsigned long flat_batches_closed_n, flat_batches_freed_n;
+/* One OS thread owns one exThread binding for its lifetime, including while that binding is dormant
+ * in the IO role, so the underfull open batch's age can stay TLS beside flat_local_retire_n without
+ * shifting exThread's tuned layout. */
+static __thread unsigned flat_local_retire_age;
 
 /* ee451 #83: runtime size of a flatBatch's QSBR snapshot block. slots = io_threads + num_workers + 1
  * = the largest io_hi a flip can reach (tm_ngrow_io <= num_workers) + 1, which is also >= num_workers
@@ -8383,7 +8387,34 @@ static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
  * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
- * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
+ * saturated main thread doing cross-arena frees. Cheap when nothing is pending.
+ *
+ * BATCH POLICY: snapshot/fence only after 64 retires, not after every nonempty pass. The measured
+ * atomic stream had only 8.9 objects per batch, so this targets about a 7x reduction in closes while
+ * choosing the low end of the requested 64-256 range to limit allocator-retention latency. An
+ * underfull list is force-closed after 64 active reclaim passes so sparse traffic cannot strand it.
+ * The size test happens at a slice boundary, hence the hard open-list bound is target-1 plus the
+ * finite retire production of one command slice; callback-generated pressure is closed again below
+ * before reclaim returns. It is never an unbounded batch.
+ *
+ * Do NOT turn this back into the historical single-outstanding-batch design: even while the oldest
+ * grace is blocked, target-sized new lists must close behind it. Keeping the FIFO and probing its
+ * ready prefix on every active pass preserves reclaim capacity; once the blocker quiesces, all ready
+ * batches drain immediately. Closing later is safe because flatBatchClose's fence/snapshot and the
+ * unchanged flatBatchReady test can only license a free later than the old per-pass close did. */
+static void flatWorkerCloseRetires(exThread *worker, tomoAtomicCostStat *cost) {
+    flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL,
+                                  &worker->flat_batch_spare,
+                                  &worker->flat_batch_spare_n);
+    cost->qsbr_batches++;
+    worker->flat_retire_local = NULL;
+    flat_local_retire_n = 0;
+    flat_local_retire_age = 0;
+    if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+    else worker->flat_batches_local = b;
+    worker->flat_batches_tail = b;
+}
+
 static void flatWorkerReclaim(exThread *worker) {
     tomoAtomicCostStat *cost = tomoAtomicCostLocal();
     int active = worker->flat_retire_local != NULL || worker->flat_batches_local != NULL;
@@ -8396,18 +8427,13 @@ static void flatWorkerReclaim(exThread *worker) {
                                                 &cost->qsbr_clock_ns,
                                                 &cost_start_ns);
     }
-    if (worker->flat_retire_local) {
+    if (worker->flat_retire_local &&
+        (flat_local_retire_n >= FLAT_RETIRE_BATCH_TARGET ||
+         ++flat_local_retire_age >= FLAT_RETIRE_BATCH_MAX_AGE)) {
         /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
          * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
-         * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
-         * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
-         * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
-        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
-        cost->qsbr_batches++;
-        worker->flat_retire_local = NULL;
-        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
-        else worker->flat_batches_local = b;
-        worker->flat_batches_tail = b;
+         * drain below stop at the first non-ready head. */
+        flatWorkerCloseRetires(worker, cost);
     }
     /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
     while (worker->flat_batches_local) {
@@ -8419,6 +8445,11 @@ static void flatWorkerReclaim(exThread *worker) {
         if (!worker->flat_batches_local) worker->flat_batches_tail = NULL;
         flatBatchFree(b, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
     }
+    /* Prune callbacks run from flatBatchFree() and can themselves enqueue the ordinary physical
+     * grace (and metadata grace). Do not carry a threshold-sized callback wave through another
+     * command slice: close it now, still with at least 64 retirements amortising the snapshot. */
+    if (worker->flat_retire_local && flat_local_retire_n >= FLAT_RETIRE_BATCH_TARGET)
+        flatWorkerCloseRetires(worker, cost);
     if (cost_sample) cost->qsbr_cpu_ns += tomoAtomicCostThreadCpuNs() - cost_start_ns;
 }
 
@@ -8428,11 +8459,13 @@ static void flatWorkerReclaim(exThread *worker) {
  *     creates no new retires;
  *   - a converted EX->IO worker still reaches exSlice to drain stragglers, so it keeps running
  *     flatWorkerReclaim and frees its own list;
- * so a stopped worker holds at most the retires of its final pass (plus <=2 un-graced batches),
- * all freed the moment it runs again. It would also be UNSAFE: main cannot steal the list race-free
- * while a non-live worker can still enter exSlice and push (the steal and the push interleave into a
- * lost node whose ->next dangles onto a freed one => double free). Keeping the list strictly
- * worker-private is what makes the hot path atomic-free. */
+ * so a stopped worker holds at most one underfull target-sized list plus its final slice's bounded
+ * overshoot and already-closed batches. The dormant-work predicate sees both kinds of state; once
+ * the owner runs, the age ceiling closes a sparse list and every pass drains the ready FIFO prefix.
+ * It would also be UNSAFE for main to steal the list race-free while a non-live worker can still
+ * enter exSlice and push (the steal and the push interleave into a lost node whose ->next dangles
+ * onto a freed one => double free). Keeping the list strictly worker-private is what makes the hot
+ * path atomic-free. */
 
 
 /* ---- RCU retirement of a REPLACED table -------------------------------------------------------

@@ -59,6 +59,8 @@ typedef struct flatSlot {
  * it was in at close. One stamp per batch amortizes the snapshot over many deletes. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
+#define FLAT_RETIRE_BATCH_TARGET 64u  /* close after this many worker-local retires */
+#define FLAT_RETIRE_BATCH_MAX_AGE 64u /* or after this many active owner reclaim passes */
 #define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
                               * snapshot. The io clause needs no margin — the epoch publish is a
                               * full barrier before any table access. */
@@ -72,6 +74,7 @@ typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *nex
  * retires outrun reclaim, RSS 233MB -> 38GB in 180s -> OOM/wedge). NULL on non-worker threads (main,
  * bio), which keep using the shared lock-free stack + main-thread reclaim. */
 extern __thread flatRetireNode **flat_local_sink;
+extern __thread unsigned flat_local_retire_n;        /* exact open-list count */
 extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (see flatstore.c) */
 extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */

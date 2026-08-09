@@ -1,164 +1,145 @@
-# Atomic remaining-cost measurement
+# Atomic QSBR batch amortization
 
-Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/wcost`
+Baseline: `81eaf79b1de954886f57b23dfdc6464b8983340d`
 
-Baseline: branch `2s-atomic-wcost`, commit `01941c452cedb67de15cacd445fa3772b0107bfb`
+Scope: stage 1 only. The version-retirement and prune-walk follow-ons were not
+changed; this patch is intentionally ready for the requested QSBR falsifier
+before either follow-on can confound it.
 
-## Counter hypotheses and falsifiers (written before instrumentation)
+## Measured reason for the change
 
-All counters below are owner-written in an `iotid`-indexed, cache-line-aligned
-slot and are only summed racily by `INFO`. No counter uses a shared atomic.
+The supplied pure eight-key MSET run reported:
 
-### Read-side version resolution
+- 367,519,480 retires but 41,394,742 worker QSBR batches: 8.9 objects/batch;
+- 107,902,697 active reclaim passes at 303 ns sampled net CPU/pass with atomic
+  mode on, versus 26.3 ns/pass with it off;
+- 147,161,361 grace checks, of which 105,766,619 (72%) blocked, essentially all
+  on a worker.
 
-Counters:
+`flatWorkerReclaim()` closed every nonempty worker-local retire list at the next
+slice boundary. Every such close pays `flatBatchClose()`'s mandatory seq-cst
+StoreLoad fence and snapshots all workers plus the currently pinned IO
+identities. The measured 8.9 objects/batch therefore paid that fixed machinery
+far too often.
 
-- `tomokv_atomic_read_raw`: read-key lookups whose table result was missing or
-  had no `vmeta`, and therefore did not call the version resolver.
-- `tomokv_atomic_read_versioned`: read-key lookups that observed `vmeta` and
-  called the resolver.
-- `tomokv_atomic_read_walk`: committed-chain candidates inspected by those
-  resolver calls. A raw pre-epoch tail counts as one inspected version.
+## What changed
 
-Hypothesis: continuous writes leave version bags on nearly every key, making
-mixed-workload reads pay the `vmeta`/committed-head resolver and sometimes walk
-past versions newer than their pinned snapshot.
+- Each worker-local retirement increments an exact TLS count beside the
+  existing TLS retire sink. No shared atomic was added to the retire path and
+  `exThread`'s tuned layout did not move.
+- A worker now closes its open list when it reaches
+  `FLAT_RETIRE_BATCH_TARGET` (64 objects), or when an underfull list reaches
+  `FLAT_RETIRE_BATCH_MAX_AGE` (64 active owner-reclaim passes).
+- Grace readiness is still checked on every active reclaim pass. Closed batches
+  remain a FIFO, and new batches may close behind a blocked oldest batch. Once
+  the blocker quiesces, the ready prefix drains immediately on the owner worker.
+- A ready prune batch can enqueue its post-unlink physical/metadata retirements
+  from the reclaim callback itself. If that callback wave reaches 64, it is
+  closed before reclaim returns rather than being carried through another
+  command slice.
+- The read path, batch-ready predicate, close fence/snapshot, physical free,
+  commit section, install path, and main/non-worker retire stack are unchanged.
 
-Falsifier: pure MGET should have `read_versioned` near zero, while the 1:1 mix
-should have `read_versioned / (read_raw + read_versioned)` near one and
-`read_walk / read_versioned` above one. If the mixed run also has
-`read_versioned` near zero, the version-resolution hypothesis is dead. If it is
-near one but mean walk is about one, chain depth is not the explanation; the
-remaining read candidate is the fixed `kvobj` cache-line invalidation plus the
-`vmeta` and committed-head pointer loads.
+The age limit is pass-count based, not wall-clock based, so the hot reclaim path
+does not acquire a clock merely to decide whether to close. A dormant EX binding
+already treats either an open retire list or a closed batch as work, so it keeps
+getting bounded probes after a role conversion.
 
-### Version-install / allocation cost
+## Expected objects per batch and falsifier
 
-Counters:
+The target is approximately **64-128 objects per worker batch**: command-side
+lists close at 64 with a small slice-boundary overshoot, while a 64-object prune
+batch commonly releases a second-stage physical/metadata wave in the same
+reclaim pass and that wave can close nearer 128. On the supplied stream,
+retires/active-pass was about 3.4, so the size trigger should fire well before
+the 64-pass age fallback. Even the conservative exact-64 mean would be about
+5.74 million batches instead of 41.39 million, a roughly 7.2x reduction. Sparse
+workloads can intentionally produce smaller age-closed batches.
 
-- ordinary install baseline:
-  `tomokv_atomic_write_raw_{installs,samples,cpu_ns,clock_ns}`;
-- versioned install:
-  `tomokv_atomic_write_{installs,install_samples,install_cpu_ns,install_clock_ns}`;
-- ordinary and versioned `kvobj`, plus versioned `vmeta`, allocation counts,
-  allocator-usable byte totals/min/max, and exact class fields. The class fields
-  are `tomokv_atomic_write_{raw_kvobj,kvobj,vmeta}_class_<bytes>` for the default
-  jemalloc classes 16 through 512, plus `class_other`.
+The first verdict is structural, before throughput:
 
-Hypothesis: the atomic-only version install, particularly its new `kvobj` and
-`vmeta` allocations, accounts for most of the pure-MSET loss.
+1. Compute `retires / qsbr_batches` from matched INFO deltas. It must rise
+   sharply from 8.9 toward 64. If it does not, the policy did not engage.
+2. Compute sampled reclaim cost as
+   `(qsbr_cpu_ns - qsbr_clock_ns) / qsbr_samples`. Mean net ns/pass must fall.
+3. Only if both move should throughput be interpreted. If they move but
+   throughput does not, this is another refutation and should be reported as
+   such; stages 2 and 3 should not be folded into that result.
 
-Falsifier: subtract `clock_ns` from `cpu_ns`, divide by `samples`, and compare
-the versioned and ordinary per-install samples. If the versioned-minus-ordinary
-CPU delta is far below the missing per-key CPU budget, the whole install path
-cannot explain the tax, regardless of the fact that allocation counters are
-nonzero. Allocation counts/classes are diagnostic only after that timing test;
-they are not treated as proof of cost.
+The interval can end with one underfull open list per worker, so exact
+retires/batches has a negligible boundary residual in a long run.
 
-### QSBR / retirement cost
+## Safety invariant
 
-Counters:
+A retired payload is freed only after every reader that could have reached it
+before unlink has passed a quiescent point or left the flat region that held the
+pointer. Concretely:
 
-- `tomokv_atomic_retires` and its
-  `tomokv_atomic_retire_{prune,physical,vmeta}` split;
-- active worker reclaim passes, batches closed, grace checks/readies, and waits
-  (`tomokv_atomic_qsbr_grace_waits`) split by foreign, IO, or worker blocker;
-- `tomokv_atomic_prune_callbacks` and the three independent walk totals
-  (`prune_bag_walk`, `prune_commit_walk`, and `prune_census_walk`);
-- 1/1024 sampled active-reclaim thread-CPU nanoseconds in
-  `tomokv_atomic_qsbr_{samples,cpu_ns,clock_ns}`.
+1. The slot unlink is a release operation and precedes retirement.
+2. `flatBatchClose()` executes the mandatory seq-cst StoreLoad fence, then
+   snapshots worker loop epochs and pinned IO-region epochs.
+3. `flatBatchReady()` is unchanged and licenses the physical free only after all
+   identities represented by that snapshot are safe.
 
-Hypothesis: atomic versions amplify retire traffic and/or repeatedly fail a
-grace, or the post-grace callback repeatedly walks a deep live bag.
+This patch only moves step 2 later. A reader entering after unlink cannot reach
+the retired value; a pre-unlink reader still holding it must still be in its
+region at the later snapshot. Therefore a later close may retain an object or
+pin an extra reader unnecessarily, but it cannot free earlier. That is the sole
+correctness argument relied on here: reclaim-later is safe, reclaim-earlier is
+not.
 
-Falsifier: the hypothesis is false if sampled net reclaim CPU, scaled by active
-passes/samples, is too small to cover the missing budget, grace waits and
-pending batches remain negligible, and each callback's walk ratios stay small
-and bounded. A large retire count alone does not establish cost.
+## Memory bound and reclaim capacity
 
-### Worker-side stamp drain
+The new open-list retention has two ceilings:
 
-Counters:
+- the size trigger closes at 64 objects at the next slice boundary;
+- the age trigger closes an underfull list after 64 active reclaim passes.
 
-- nonempty drain calls, empty drains, queue-pop batches, entries, and the
-  STAMP/PRUNE/CANCEL split under `tomokv_atomic_stamp_drain_*`;
-- committed-chain candidates inspected in `tomokv_atomic_stamp_apply_walk`;
-- 1/1024 sampled drain thread-CPU nanoseconds, paired clock baseline, and
-  sampled entry count under `tomokv_atomic_stamp_drain_*`.
+Because command-side threshold crossing is observed between slices, its strict
+transient bound is 63 objects plus the finite retirement production of one
+worker command slice. Callback-generated retirements are checked again and
+closed before reclaim returns. This is an object-count bound; payload byte sizes
+remain workload-dependent. Compared with closing every pass, the policy can
+retain at most that bounded open-list increment per worker before starting its
+grace.
 
-Hypothesis: the consumer-side drain (not the already-refuted producer pushes)
-accounts for a material part of the write tax.
+Pressure still has a drain path. The patch deliberately preserves multiple
+FIFO closed batches and checks the oldest grace on every active pass. Thus a
+blocked grace does not turn the open list into the unbounded accumulator used
+by the rejected single-outstanding-batch design; target-sized lists continue to
+close, and all safe prefixes drain as soon as the blocker exits. Existing
+allocation caches remain separately capped at eight spare batch headers and
+4,096 retire nodes per worker.
 
-Falsifier: it is false if sampled net drain CPU, scaled by calls/samples, is too
-small to cover the missing budget and the structural ratios remain ordinary:
-about two entries per committed install, well-filled pop batches, no empty
-drains, and a shallow apply walk. No commit-section push counter is added here;
-that path was already falsified by the commit-diet experiment.
+As with every grace-based scheme, a reader that never quiesces makes freeing its
+reachable retirements unsafe. The patch does not bypass that invariant or claim
+that a permanent pin can be reclaimed; it bounds only the additional batching
+delay and retains the existing capacity/drain behavior for a finite grace.
 
-## Code-inspection findings
+## Looked at and rejected
 
-Code inspection only; no runtime conclusion is claimed here.
+- Repository history contains `9e7e563ea`, which checked grace every eight
+  passes and allowed only one outstanding batch. It was reverted by
+  `fbb3b673c` after a measured 17% p32 SET regression: delayed same-arena frees
+  drained jemalloc's tcache, and new retires accumulated behind the one blocked
+  batch. This patch does not restore either mechanism. It checks existing
+  batches every pass, allows FIFO batches behind a blocker, and uses the lowest
+  requested size target (64) to limit free latency.
+- Targets of 128 or 256 were rejected for this first falsifier because they add
+  more allocator-retention latency than necessary to prove whether fixed batch
+  machinery is the measured tax. If 64 engages, it is already a sharp expected
+  reduction from 8.9 objects/batch.
+- The second retirement, three prune walks, version install, commit critical
+  section, and read path were not modified. The supplied measurements already
+  refute install and commit-section work, and stages 2/3 must wait for this
+  stage's isolated result.
 
-- The read hypothesis is worth measuring. `lookupKeyReadWithFlags()` has an
-  exact raw fast path, but any observed head `vmeta` calls `kvobjVersionAt()`,
-  which acquire-loads the head metadata again, acquire-loads `committed_head`,
-  and then loads metadata/sequence/predecessor state for each candidate.
-- The write candidates are disjoint measurement regions: version installation
-  runs in the command worker, stamp drain runs from the worker loop before
-  normal jobs, and QSBR reclaim runs at the top of each worker slice.
-- The replacement `kvobj` allocation is **not atomic-only** in the target FLAT
-  workload. The ordinary overwrite also takes `dbSetValue()`'s copy branch and
-  calls `kvobjSetEx()`; its in-place branch is explicitly disabled for FLAT.
-  Atomic mode adds the separate `tomoVerMeta` allocation and retains prior
-  objects in a bag. This is why the instrumentation records raw and versioned
-  `kvobj` classes separately instead of calling both atomic overhead.
-- Retirement has a potentially stronger amplification mechanism than its
-  enqueue count suggests: every prune callback can walk the physical bag, walk
-  the committed-order chain, and then walk the physical bag again for the
-  promotion/tombstone census. Atomic retirement also has two grace stages for a
-  removed version (pre-unlink prune grace, then ordinary post-unlink physical
-  grace), whereas an ordinary FLAT overwrite only needs the physical grace.
-  The walk and sampled reclaim counters are needed before assigning that work
-  the tax.
-- `flatWorkerReclaim()` closes at most one retire list per active worker slice;
-  each close executes a seq-cst fence and snapshots every worker, even when the
-  oldest batch becomes ready immediately. Therefore `grace_waits == 0` would
-  falsify stalled grace, but would not by itself falsify QSBR CPU cost; the
-  sampled CPU and batches/install ratios make that distinction.
-- Promotion cannot be assumed to restore the raw read path under continuous
-  writes: it requires a sole committed survivor with no uncommitted member.
+## Verification in this worktree
 
-## Reading the sampled CPU fields
-
-Sampling is once per 1024 owner-local phase entries. `CLOCK_THREAD_CPUTIME_ID`
-avoids charging descheduling to a phase. Each sample first measures an adjacent
-empty clock interval, accumulated in `clock_ns`; use:
-
-```text
-net_sample_ns = max(0, cpu_ns - clock_ns)
-mean_ns_per_sampled_call = net_sample_ns / samples
-estimated_total_phase_ns = mean_ns_per_sampled_call * total_calls
-```
-
-`total_calls` is `write_*_installs`, `qsbr_passes`, or `stamp_drain_calls` for
-the corresponding stream. For stamp work, dividing `net_sample_ns` by
-`stamp_drain_sample_entries` also gives directly sampled nanoseconds per entry.
-Allocation size/class bookkeeping runs after the install end timestamp, so it
-does not inflate the ordinary-versus-versioned install delta. Use before/after
-INFO deltas for every field; preload/warm-up work is intentionally not guessed
-away inside the server.
-
-## Measurement result
-
-Not measured in this task. The user will build and run the existing campaign;
-the hard constraint forbids compiling, starting a server, testing, or
-benchmarking in this worktree during instrumentation.
-
-## Verification performed here
-
-- Confirmed the worktree, branch, and baseline commit before editing.
-- `git diff --check` passes, including the new `FINDINGS.md`.
-- Audited that all new hot-path fields are plain owner-local counters and that
-  every `flatBatchReady()` / `tomoApplyVersionStamp()` signature change has a
-  matching call site.
-- Deliberately did not compile, start a server, run tests, or run benchmarks.
+- Static inspection confirmed every worker-local retirement passes through the
+  counted `flatRetirePayload()` sink and every worker batch close is governed by
+  the new size/age condition.
+- `git diff --check` passes.
+- Per the hard constraint, no compiler, build, server, test, or benchmark was
+  run. Runtime validation and the counter/throughput verdict remain with the
+  owner of the box.

@@ -2835,7 +2835,7 @@ typedef struct exThread {
      * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
      * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
     char flat_pad[CACHE_LINE_SIZE];
-    struct flatRetireNode *flat_retire_local;
+    struct flatRetireNode *flat_retire_local;  /* bounded size/age batch builder; see flatstore.h */
     struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
     struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
     struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
