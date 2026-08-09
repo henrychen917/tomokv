@@ -189,6 +189,7 @@ static void tomoAtomicCostAggregate(tomoAtomicCostStat *out) {
         TOMO_COST_ADD(retire_prune);
         TOMO_COST_ADD(retire_physical);
         TOMO_COST_ADD(retire_vmeta);
+        TOMO_COST_ADD(promotions);
         TOMO_COST_ADD(prune_callbacks);
         TOMO_COST_ADD(prune_bag_walk);
         TOMO_COST_ADD(prune_commit_walk);
@@ -340,7 +341,6 @@ static struct {
 static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
     tomo_atomic_inflight_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define tomo_atomic_inflight (tomo_atomic_inflight_line.v)
-_Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
 
 uint64_t tomoCommittedSeq(void) {
@@ -9525,8 +9525,7 @@ static void csMsetStampAndAppend(csGroup *g) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         serverAssert(kv != NULL && vmeta != NULL);
         serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
-        serverAssert(install->install_order == (uint32_t)i);
-        serverAssert(vmeta->version_order == install->install_order);
+        serverAssert(vmeta->version_order == (uint32_t)i);
         atomic_store_explicit(&vmeta->owner_ops_pending, cancel ? 1 : 2,
                               memory_order_release);
         vmeta->owner_op[0] = (tomoOwnerOp){kv, seq,
@@ -10641,7 +10640,6 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
-    g->mset_installs[ii].install_order = (uint32_t)ii;
 }
 
 /* Reservations are visible to owner-side conflict detection while they remain
@@ -18436,7 +18434,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_inflight:%d\r\n",
                 atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_atomic_promotions:%llu\r\n",
-                atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+                acost.promotions,
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,

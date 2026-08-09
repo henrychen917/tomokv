@@ -909,9 +909,15 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     struct tomoVerMeta *head_meta = NULL;
     if (!vmeta->detached) {
         sds key = kvobjGetKey(kv);
-        int slot = getKeySlot(key);
-        dictEntryLink link = kvstoreDictFindLink(vmeta->version_kvs, slot,
-                                                  key, NULL);
+        dictEntryLink link;
+        if (kvstoreIsFlat(vmeta->version_kvs)) {
+            uint64_t key_hash = tomoKeyHash(key, sdslen(key));
+            link = kvstoreFlatFindLinkByHash(vmeta->version_kvs, key_hash, key);
+        } else {
+            /* Preserve the non-FLAT compatibility path; only FLAT can consume tomo's hash. */
+            int slot = getKeySlot(key);
+            link = kvstoreDictFindLink(vmeta->version_kvs, slot, key, NULL);
+        }
         serverAssert(link != NULL);
         head = dictGetKV(*link);
         head_meta = kvobjVmeta(head);
@@ -1079,8 +1085,11 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
 
     sds key = kvobjGetKey(anchor);
-    int slot = getKeySlot(key);
-    dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
+    uint64_t key_hash = tomoKeyHash(key, sdslen(key));
+    /* didx is ignored by FLAT's SetAtLink update below. Retain the ownership-bucket value for
+     * interface clarity while reusing this same full hash for the table probe. */
+    int slot = (int)(key_hash & TOMO_BUCKET_MASK);
+    dictEntryLink link = kvstoreFlatFindLinkByHash(kvs, key_hash, key);
     serverAssert(link != NULL);
     kvobj *head = dictGetKV(*link);
     struct tomoVerMeta *head_meta = kvobjVmeta(head);
@@ -1263,8 +1272,10 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
             kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);
-            atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
-                                      memory_order_relaxed);
+            /* INFO-only accounting has one owner writer per iotid. Keep it in
+             * the existing sharded census instead of bouncing a global line
+             * once for almost every promoted key. */
+            cost->promotions++;
             if (sole_committed == anchor) anchor_meta = NULL;
         }
     }

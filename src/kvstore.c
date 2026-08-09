@@ -1072,6 +1072,19 @@ dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLi
     return dictFindLink(d, key, bucket);
 }
 
+/* Version maintenance needs both the ownership bucket and a FLAT link. Its callers already have
+ * the full tomo hash, so do not make kvstoreDictFindLink() evaluate xxh64 a second time. This is
+ * deliberately FLAT-specific: dictionary backends own their hash policy and cannot consume this
+ * hash as a substitute. */
+dictEntryLink kvstoreFlatFindLinkByHash(kvstore *kvs, uint64_t hash, void *key) {
+    assert(kvs->flags & KVSTORE_FLAT);
+    flatTable *t = flatCurrent(kvs);
+    size_t len = sdslen((sds)key);
+    uint64_t slot;
+    int found = flatFindForWrite(t, hash, key, len, &slot);
+    return found ? (dictEntryLink)&t->slots[slot].w : NULL;
+}
+
 /* Set a key (or key-value) in the specified kvstore. 
  *
  * This function inserts a new key or updates an existing one, depending on 

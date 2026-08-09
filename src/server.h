@@ -1569,6 +1569,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long retire_prune;
     unsigned long long retire_physical;
     unsigned long long retire_vmeta;
+    unsigned long long promotions;
     unsigned long long prune_callbacks;
     unsigned long long prune_bag_walk;
     unsigned long long prune_commit_walk;
@@ -2266,7 +2267,6 @@ struct csCmdSpec;      /* fwd — full definition next to struct redisCommand be
 typedef struct csMsetInstall {
     kvobj *kv;                   /* exact store object returned by setKeyVersioned */
     int owner;                   /* sole owner that applies both embedded operations */
-    uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
 } csMsetInstall;
 
 typedef struct csGroup {
@@ -5139,9 +5139,6 @@ extern _Atomic unsigned long long tomo_nested_cmd_frames;
 /* ee451 (N): CLOSE_ASAP clients deferred by freeClientsInAsyncFreeQueue because their worker ring
  * was still in flight; defined in networking.c, reported as INFO tomokv_close_deferred_ring. */
 extern _Atomic unsigned long long tomo_close_deferred_ring;
-/* Bounded atomic-MSET admission. This includes every admitted versioned-write group until its
- * single csReassemble teardown, including groups whose real connection has disconnected. */
-extern _Atomic unsigned long long tomo_atomic_promotions;
 void tomoAtomicWindowChanged(void);
 void tomoAtomicUnstallClient(client *c);
 void freeClientOriginalArgv(client *c);
