@@ -368,12 +368,14 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * present. Raw heads retain the exact base return path. The three owner-local counters are a
      * partition of read-key lookups and a resolver depth census; they do not infer cost from bag
      * presence. In particular, a versioned lookup that races a promotion can legitimately report
-     * zero walked candidates: it still paid the resolver call selected by the first vmeta load. */
+     * zero walked candidates: it still paid the resolver call selected by the first header load. */
     tomoAtomicCostStat *cost = tomoAtomicCostLocal();
-    if (unlikely(kv && kvobjVmeta(kv))) {
+    uintptr_t version_head = kv ? kvobjVersionHead(kv) : 0;
+    if (unlikely(version_head)) {
         uint64_t walked = 0;
         cost->read_versioned++;
-        kv = kvobjVersionAtCounted(kv, tomoCurrentReadSnapshot(), &walked);
+        kv = kvobjVersionAtHeadCounted(kv, version_head,
+                                       tomoCurrentReadSnapshot(), &walked);
         cost->read_walk += walked;
     } else {
         /* Missing keys also take the vmeta-free fast path, so raw+versioned remains the exact
@@ -430,7 +432,6 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  * another allocator or a larger object does not fit those bins. */
 typedef enum tomoCostAllocKind {
     TOMO_COST_ALLOC_VERSION_KVOBJ,
-    TOMO_COST_ALLOC_VMETA,
     TOMO_COST_ALLOC_RAW_KVOBJ,
 } tomoCostAllocKind;
 
@@ -438,15 +439,7 @@ static inline void tomoAtomicWriteAlloc(void *allocation, tomoCostAllocKind kind
     tomoAtomicCostStat *cost = tomoAtomicCostLocal();
     size_t usable = zmalloc_size(allocation);
     int ci = tomoAtomicAllocClassIndex(usable);
-    if (kind == TOMO_COST_ALLOC_VMETA) {
-        cost->write_vmeta_allocs++;
-        cost->write_vmeta_usable_bytes += usable;
-        if (!cost->write_vmeta_usable_min || usable < cost->write_vmeta_usable_min)
-            cost->write_vmeta_usable_min = usable;
-        if (usable > cost->write_vmeta_usable_max) cost->write_vmeta_usable_max = usable;
-        if (ci >= 0) cost->write_vmeta_class[ci]++;
-        else cost->write_vmeta_class_other++;
-    } else if (kind == TOMO_COST_ALLOC_VERSION_KVOBJ) {
+    if (kind == TOMO_COST_ALLOC_VERSION_KVOBJ) {
         cost->write_kvobj_allocs++;
         cost->write_kvobj_usable_bytes += usable;
         if (!cost->write_kvobj_usable_min || usable < cost->write_kvobj_usable_min)
@@ -493,28 +486,34 @@ static inline void tomoAtomicWriteAlloc(void *allocation, tomoCostAllocKind kind
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
-static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
-                                                 kvobj *version_prev) {
-    struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
-    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+static inline void tomoVerMetaInit(kvobj *kv, redisDb *db, uint64_t version_seq,
+                                   kvobj *version_prev) {
+    serverAssert(kv->inline_vmeta && kvobjVersionHead(kv) == 0);
+    struct tomoVerMeta *vmeta = kvobjInlineVmeta(kv);
+    atomic_init(&vmeta->version_seq, version_seq);
     kvobj *committed_head = NULL;
     if (version_prev) {
-        struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
-        committed_head = prev_meta ?
-            atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
-            version_prev;
+        uintptr_t prev_head = kvobjVersionHead(version_prev);
+        committed_head = prev_head ? kvobjDecodeCommittedHead(prev_head) : version_prev;
     }
-    /* The new physical head inherits the per-key cursor before its vmeta/table
-     * publication. Cursor movement remains confined to owner stamp/retire. */
-    atomic_store_explicit(&vmeta->committed_head, committed_head,
-                          memory_order_release);
+    vmeta->version_order = 0;
+    vmeta->version_tombstone = 0;
+    vmeta->version_reservation = 0;
     vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
                          TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
     vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+    vmeta->detached = 0;
+    atomic_init(&vmeta->owner_ops_pending, 0);
     vmeta->version_prev = version_prev;
+    vmeta->committed_prev = NULL;
     vmeta->version_kvs = db->keys;
     vmeta->version_db = db;
-    return vmeta;
+    vmeta->reservation_owner = NULL;
+    /* owner_op[] is write-before-publish in csMsetStampAndAppend; avoiding a
+     * blanket 112-byte zero fill is part of removing the zcalloc cost. */
+    /* Publish the fully initialized prefix through the cursor in the new
+     * physical head. Cursor movement remains confined to owner stamp/retire. */
+    kvobjSetCommittedHead(kv, committed_head);
 }
 
 static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
@@ -525,9 +524,10 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     dictEntryLink tmp = NULL;
     if (link == NULL) link = &tmp;
     robj *val = *valref;
+    if (version_seq) flags |= KVOBJ_SET_INLINE_VMETA;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq)
-        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
+        tomoVerMetaInit(kv, db, version_seq, NULL);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -540,10 +540,10 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
             serverAssert(newkv == kv);
         }
         
-        /* memcpy modules metadata to beginning of kvobj */
+        /* memcpy modules metadata to the compact key-metadata block */
         if (keymeta->metabits & KEY_META_MASK_MODULES)
             /* Also trivial overwrite expire */
-            memcpy(kvobjGetAllocPtr(kv), 
+            memcpy(kvobjGetMetaPtr(kv),
                    keymeta->meta + KEY_META_ID_MAX - keymeta->numMeta, 
                    keymeta->numMeta * sizeof(uint64_t));
     }
@@ -676,9 +676,9 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
             serverAssert(newkv == kv);
         }
 
-        /* memcpy modules metadata to beginning of kvobj */
+        /* memcpy modules metadata to the compact key-metadata block */
         if (keyMetaSpec->metabits & KEY_META_MASK_MODULES)
-            memcpy(kvobjGetAllocPtr(kv),
+            memcpy(kvobjGetMetaPtr(kv),
                    keyMetaSpec->meta + KEY_META_ID_MAX - keyMetaSpec->numMeta,
                    keyMetaSpec->numMeta * sizeof(uint64_t));
     }
@@ -788,11 +788,9 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
          * encoding with the content of val. */
         robj tmp = *old;
         old->type = val->type;
-        old->vmeta = val->vmeta;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
-        val->vmeta = tmp.vmeta;
         val->encoding = tmp.encoding;
         val->ptr = tmp.ptr;
         /* Set new to old to keep the old object. Set old to val to be freed below. */
@@ -806,11 +804,13 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         /* Replace the old value at its location in the key space. */
         val->lru = old->lru;
 
-        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        int kvobjFlags = embedRawOk;
+        if (version_seq) kvobjFlags |= KVOBJ_SET_INLINE_VMETA;
+        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, kvobjFlags);
         if (version_expire >= 0)
             serverAssert(kvobjSetExpire(kvNew, version_expire) == kvNew);
         if (version_seq)
-            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old));
+            tomoVerMetaInit(kvNew, db, version_seq, old);
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -906,7 +906,7 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
      * head so installs need only inherit its authoritative per-key cursor. A
      * detached bag is no longer reader-resolvable and needs no cursor move. */
     kvobj *head = NULL;
-    struct tomoVerMeta *head_meta = NULL;
+    uintptr_t head_version = 0;
     if (!vmeta->detached) {
         sds key = kvobjGetKey(kv);
         int slot = getKeySlot(key);
@@ -914,13 +914,11 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
                                                   key, NULL);
         serverAssert(link != NULL);
         head = dictGetKV(*link);
-        head_meta = kvobjVmeta(head);
-        serverAssert(head_meta != NULL);
+        head_version = kvobjVersionHead(head);
+        serverAssert(head_version != 0);
     }
 
-    kvobj *committed_head = head_meta ?
-        atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
-        NULL;
+    kvobj *committed_head = kvobjDecodeCommittedHead(head_version);
 
     /* Sequence draw and publication are ordered, but pushes from completing
      * workers into this owner's lane need not arrive in that order. Find the
@@ -954,14 +952,13 @@ uint64_t tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
 
-    if (head_meta) {
+    if (head_version) {
         /* Publish only after the new node's predecessor and stamp. MAX
          * semantics leave an older arrival's committed-head unchanged. */
         if (committed_previous)
             kvobjSetCommittedPrev(committed_previous, kv);
         else
-            atomic_store_explicit(&head_meta->committed_head, kv,
-                                  memory_order_release);
+            kvobjSetCommittedHead(head, kv);
     }
     return apply_walk;
 }
@@ -1083,10 +1080,9 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
     serverAssert(link != NULL);
     kvobj *head = dictGetKV(*link);
-    struct tomoVerMeta *head_meta = kvobjVmeta(head);
-    serverAssert(head_meta != NULL);
-    kvobj *committed_head = atomic_load_explicit(&head_meta->committed_head,
-                                                  memory_order_acquire);
+    uintptr_t head_version = kvobjVersionHead(head);
+    serverAssert(head_version != 0);
+    kvobj *committed_head = kvobjDecodeCommittedHead(head_version);
     uint64_t visible = tomoCommittedSeq();
     int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
     /* A committed callback proves a grace only for its own frontier. A newer
@@ -1187,10 +1183,9 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
         return;
     }
-    struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
-    if (newhead_meta)
-        atomic_store_explicit(&newhead_meta->committed_head, committed_head,
-                              memory_order_release);
+    uintptr_t newhead_version = kvobjVersionHead(newhead);
+    if (newhead_version)
+        kvobjSetCommittedHead(newhead, committed_head);
     else
         serverAssert(committed_head == newhead);
     if (newhead != head)
@@ -1245,9 +1240,10 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
 
     /* I6 live-value case: canceled nodes above the sole committed value do
-     * not block promotion. Nodes below it must already be gone so stripping
-     * the metadata cannot orphan their links. Readers that acquired the
-     * metadata are covered by the existing metadata retire grace. */
+     * not block promotion. Nodes below it must already be gone so deactivating
+     * the inline metadata cannot orphan their links. A racing reader either
+     * sees the committed cursor or the raw zero; the prefix stays alive with
+     * the kvobj in both cases and needs no separate retirement grace. */
     if (committed == 1 && uncommitted == 0 && sole_committed &&
         kvobjVersionPrev(sole_committed) == NULL) {
         struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
@@ -1255,14 +1251,9 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
-            /* The cursor follows the sole committed value into the raw-head
-             * fast path; stale metadata readers retain a valid self cursor
-             * until its existing retire grace completes. */
-            atomic_store_explicit(&vmeta->committed_head, sole_committed,
-                                  memory_order_release);
+            serverAssert(kvobjCommittedHead(sole_committed) == sole_committed);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
-            kvobjSetVmeta(sole_committed, NULL);
-            kvstoreFlatRetireVmeta(kvs, vmeta);
+            kvobjDeactivateVmeta(sole_committed);
             atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
                                       memory_order_relaxed);
             if (sole_committed == anchor) anchor_meta = NULL;
@@ -1326,11 +1317,9 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     {
         robj tmp = *old;
         old->type = val->type;
-        old->vmeta = val->vmeta;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
-        val->vmeta = tmp.vmeta;
         val->encoding = tmp.encoding;
         val->ptr = tmp.ptr;
         kvNew = old;
@@ -1508,13 +1497,14 @@ static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valr
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
     if (cost_sample)
         cost->write_install_cpu_ns += tomoAtomicCostThreadCpuNs() - cost_start_ns;
-    /* Keep allocator diagnostics OUTSIDE the timed install region. Every versioned set above
-     * necessarily built one fresh kvobj and one fresh vmeta; recording them here avoids charging
-     * zmalloc_size and histogram maintenance to the very delta being measured. */
+    /* Keep allocator diagnostics OUTSIDE the timed install region. Every
+     * versioned set above built one fresh kvobj containing its inline vmeta;
+     * recording that allocation here avoids charging zmalloc_size and
+     * histogram maintenance to the timed install. The retained vmeta counters
+     * intentionally stay zero and are the engagement falsifier for embedding. */
     struct tomoVerMeta *installed_vmeta = kvobjVmeta(installed);
     serverAssert(installed_vmeta != NULL);
     tomoAtomicWriteAlloc(kvobjGetAllocPtr(installed), TOMO_COST_ALLOC_VERSION_KVOBJ);
-    tomoAtomicWriteAlloc(installed_vmeta, TOMO_COST_ALLOC_VMETA);
     return installed;
 }
 

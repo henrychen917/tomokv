@@ -1083,8 +1083,9 @@ char *getObjectTypeName(robj*);
     _var.encoding = OBJ_ENCODING_RAW; \
     _var.metabits = 0; \
     _var.iskvobj = 0; \
+    _var.inline_vmeta = 0; \
     _var.ptr = _ptr; \
-    _var.vmeta = NULL; \
+    _var.version_head = 0; \
 } while(0)
 
 struct evictionPoolEntry; /* Defined in evict.c */

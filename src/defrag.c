@@ -1060,8 +1060,11 @@ robj *activeDefragKvobj(kvobj* kv, int without_free) {
     /* Use LONG_MIN as sentinel to detect if we have an EMBSTR string */
     long offsetEmbstr = LONG_MIN;
 
-    /* Don't defrag kvobj's with multiple references (refcount > 1) */
-    if (kv->refcount != 1)
+    /* Inline vmeta contains self/chain pointers and owner-op records whose
+     * addresses may already be queued. Keep the allocation stable even after
+     * promotion: a reader that captured the old nonzero cursor may still be
+     * consuming the retained prefix until its flat grace ends. */
+    if (kv->inline_vmeta || kv->refcount != 1)
         return NULL;
 
     /* Calculate offset for EMBSTR strings */

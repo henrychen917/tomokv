@@ -26,40 +26,32 @@
  * the otherwise-clear high bits only inside retire lists (flat slot pointers
  * are already constrained to the low 48 bits) to request a grace callback. */
 #define FLAT_RETIRE_SPECIAL_BIT (UINT64_C(1) << 63)
-#define FLAT_RETIRE_VMETA_BIT   (UINT64_C(1) << 62)
-#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT)
 
-static inline dictEntry *flatRetireSpecial(void *payload, int vmeta) {
+static inline dictEntry *flatRetireSpecial(void *payload) {
     uintptr_t p = (uintptr_t)payload;
-    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
-    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
-                         (vmeta ? (uintptr_t)FLAT_RETIRE_VMETA_BIT : 0));
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT);
 }
 
 static inline void *flatRetireSpecialPayload(dictEntry *payload) {
-    return (void *)((uintptr_t)payload & ~(uintptr_t)FLAT_RETIRE_SPECIAL_MASK);
+    return (void *)((uintptr_t)payload & ~(uintptr_t)FLAT_RETIRE_SPECIAL_BIT);
 }
 
 void flatRetirePayloadReady(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT)) {
         decrRefCount((robj *)dictGetKV(payload));
-    } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
-        zfree(flatRetireSpecialPayload(payload));
     } else {
         tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
     }
 }
 
 /* Table teardown/resize is already quiescent. A prune anchor is still a live
- * value in the table copied/destroyed by the caller, so discard that callback;
- * a detached metadata block still belongs to this retire record. */
+ * value in the table copied/destroyed by the caller, so discard that callback. */
 void flatRetirePayloadDiscard(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
         decrRefCount((robj *)dictGetKV(payload));
-    else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
-        zfree(flatRetireSpecialPayload(payload));
 }
 
 flatTable *flatTableNew(uint64_t want_size) {
@@ -168,12 +160,7 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {
     tomoAtomicCostLocal()->retire_prune++;
-    flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
-}
-
-void flatRetireVmeta(flatTable *t, void *vmeta) {
-    tomoAtomicCostLocal()->retire_vmeta++;
-    flatRetirePayload(t, flatRetireSpecial(vmeta, 1));
+    flatRetirePayload(t, flatRetireSpecial(rawkv));
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

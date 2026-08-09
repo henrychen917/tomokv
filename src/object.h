@@ -38,7 +38,7 @@
  * Example layout with key and embedded value "myvalue":
  *    +--------------+--------------+--------------------+----------------------+
  *    | serverObject | key-hdr-size | sdshdr5 "mykey" \0 | sdshdr8 "myvalue" \0 |
- *    | 16 bytes     | 1 byte       | 1      +   5   + 1 | 3    +      7    + 1 |
+ *    | 24 bytes     | 1 byte       | 1      +   5   + 1 | 3    +      7    + 1 |
  *    +--------------+--------------+--------------------+----------------------+
  * 
  * kvobj with metadata (+expiration)
@@ -50,7 +50,7 @@
  * Example of a key with expiration time (metabits=0b00000001):
  *     +--------------+--------------+--------------+--------------------+
  *     | Expiry Time  | serverObject | key-hdr-size | sdshdr5 "mykey" \0 |
- *     | 8 byte       | 16 bytes     | 1 byte       | 1      +   5   + 1 |
+ *     | 8 byte       | 24 bytes     | 1 byte       | 1      +   5   + 1 |
  *     +--------------+--------------+--------------+--------------------+
  *                    ^
  *                    +---- kvobjCreate() returns pointer here
@@ -58,11 +58,15 @@
  * Example with metadata of class1 and class3 attached (metabits=0b00001010):
  * +--------------+--------------+--------------+--------------+--------------------+
  * | meta (class3)| meta (class1)| serverObject | key-hdr-size | sdshdr5 "mykey" \0 |
- * | 8 byte       | 8 byte       | 16 bytes     | 1 byte       | 1      +   5   + 1 |
+ * | 8 byte       | 8 byte       | 24 bytes     | 1 byte       | 1      +   5   + 1 |
  * +--------------+--------------+--------------+--------------+--------------------+
  *                               ^
  *                               +---- kvobjCreate() returns pointer here
  * 
+ * Atomic versions prepend a conditional 112-byte tomoVerMeta before these
+ * key-metadata blocks. The kvobj pointer, embedded-key offset, and 24-byte
+ * ordinary header remain unchanged.
+ *
  */
 #ifndef __OBJECT_H
 #define __OBJECT_H
@@ -128,23 +132,29 @@ typedef enum tomoRetireState {
 #define TOMO_RESERVATION_SIGNAL_SET 1
 #define TOMO_RESERVATION_SILENT     2
 
+/* Per-version state lives in a conditional prefix of the kvobj allocation.
+ * Keep the read-hot version_seq at the end: with no key metadata it is the
+ * eight bytes immediately preceding the kvobj header. The committed-head
+ * cursor itself occupies the old vmeta pointer word in that header. */
 struct tomoVerMeta {
-    _Atomic uint64_t version_seq;
-    _Atomic(struct redisObject *) committed_head;
-    uint32_t version_order;
-    uint8_t version_tombstone;
-    uint8_t version_reservation;
-    uint8_t stamp_state;
-    uint8_t retire_state;
-    uint8_t detached;
-    _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *committed_prev;
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
     tomoOwnerOp owner_op[2];
+    uint32_t version_order;
+    _Atomic unsigned int owner_ops_pending;
+    uint8_t version_tombstone;
+    uint8_t version_reservation;
+    uint8_t stamp_state;
+    uint8_t retire_state;
+    uint8_t detached;
+    _Atomic uint64_t version_seq;
 };
+
+_Static_assert(sizeof(struct tomoVerMeta) == 112,
+               "inline version metadata must remain in the 112-byte layout");
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
@@ -153,6 +163,7 @@ struct redisObject {
     unsigned encoding:4;
     unsigned refcount : OBJ_REFCOUNT_BITS;
     unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
+    unsigned inline_vmeta : 1; /* allocation permanently includes tomoVerMeta prefix */
     
     /* metabits and lru are Relevant only when iskvobj is set: */     
     unsigned metabits :8;  /* Bitmap of metadata (+expiry) attached to this kvobj */
@@ -161,10 +172,15 @@ struct redisObject {
                             * and most significant 16 bits access time). */
     void *ptr;
 
-    /* Cross-shard whole-value MVCC-lite state. NULL for ordinary objects;
-     * allocated lazily for atomic version-bag writes. */
-    struct tomoVerMeta *vmeta;
+    /* Cross-shard whole-value MVCC-lite cursor. Zero means a raw object, one
+     * means an active version bag with no committed value, and every other
+     * value is its committed-head kvobj pointer. Keeping this in the header
+     * removes the read-side metadata pointer chase. */
+    uintptr_t version_head;
 };
+
+_Static_assert(sizeof(struct redisObject) == 24,
+               "inline vmeta must not grow ordinary object headers");
 
 /* robj - General purpose redis object */
 typedef struct redisObject robj;
@@ -175,6 +191,7 @@ typedef struct redisObject kvobj;
 /* kvobjSetEx() 'flags' — see the function comment in object.c. */
 #define KVOBJ_SET_EMBED_RAW   (1<<0)  /* may copy a small RAW value into the kvobj allocation */
 #define KVOBJ_SET_MOVE_VALUE  (1<<1)  /* caller's extra ref is a lifetime pin only: move the value */
+#define KVOBJ_SET_INLINE_VMETA (1<<2) /* prepend tomoVerMeta in the kvobj allocation */
 
 kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits);
 kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits);
@@ -185,12 +202,41 @@ sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
 
-static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
-    return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
+/* The inline prefix precedes the ordinary key-metadata prefix, leaving all
+ * key-metadata offsets unchanged. inline_vmeta is permanent because a
+ * promoted raw object still has to recover the original allocation base. */
+static inline struct tomoVerMeta *kvobjInlineVmeta(const kvobj *kv) {
+    uint32_t meta_bytes = __builtin_popcount(kv->metabits) * sizeof(uint64_t);
+    return (struct tomoVerMeta *)((char *)kv - meta_bytes -
+                                  sizeof(struct tomoVerMeta));
 }
 
-static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
-    __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+#define TOMO_VERSION_HEAD_NONE ((uintptr_t)1)
+
+static inline uintptr_t kvobjVersionHead(const kvobj *kv) {
+    return __atomic_load_n(&kv->version_head, __ATOMIC_ACQUIRE);
+}
+
+static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
+    return kvobjVersionHead(kv) ? kvobjInlineVmeta(kv) : NULL;
+}
+
+static inline kvobj *kvobjDecodeCommittedHead(uintptr_t head) {
+    return head <= TOMO_VERSION_HEAD_NONE ? NULL : (kvobj *)head;
+}
+
+static inline void kvobjSetCommittedHead(kvobj *kv, kvobj *head) {
+    __atomic_store_n(&kv->version_head,
+                     head ? (uintptr_t)head : TOMO_VERSION_HEAD_NONE,
+                     __ATOMIC_RELEASE);
+}
+
+static inline kvobj *kvobjCommittedHead(const kvobj *kv) {
+    return kvobjDecodeCommittedHead(kvobjVersionHead(kv));
+}
+
+static inline void kvobjDeactivateVmeta(kvobj *kv) {
+    __atomic_store_n(&kv->version_head, 0, __ATOMIC_RELEASE);
 }
 
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
@@ -227,17 +273,23 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
  * the uncommitted physical prefix. Only an old snapshot walks down the
  * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
  * seq 0); no winner, or a tombstone winner, means absent. */
-static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
-                                           uint64_t *walked) {
-    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
-    if (!head_meta) return kv;
+static inline kvobj *kvobjVersionAtHeadCounted(kvobj *physical_head,
+                                               uintptr_t version_head,
+                                               uint64_t snapshot,
+                                               uint64_t *walked) {
+    if (!version_head) return physical_head;
 
-    kv = atomic_load_explicit(&head_meta->committed_head,
-                              memory_order_acquire);
+    kvobj *kv = kvobjDecodeCommittedHead(version_head);
     struct tomoVerMeta *vmeta = NULL;
     while (kv) {
         if (walked) (*walked)++;
-        vmeta = kvobjVmeta(kv);
+        /* The captured nonzero cursor proves that the physical head's prefix
+         * was active, and a racing promotion keeps that storage alive. Other
+         * candidates must re-check activity: a promoted object can retain an
+         * inline prefix and later serve as the implicit-seq-0 raw tail of a
+         * new bag. The common cursor==physical_head case therefore avoids the
+         * second acquire without confusing retained storage with live vmeta. */
+        vmeta = kv == physical_head ? kvobjInlineVmeta(kv) : kvobjVmeta(kv);
         if (!vmeta) break;
         uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
                                             memory_order_acquire);
@@ -246,6 +298,12 @@ static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
     }
     if (kv && vmeta && vmeta->version_tombstone) return NULL;
     return kv;
+}
+
+static inline kvobj *kvobjVersionAtCounted(kvobj *kv, uint64_t snapshot,
+                                           uint64_t *walked) {
+    uintptr_t version_head = kvobjVersionHead(kv);
+    return kvobjVersionAtHeadCounted(kv, version_head, snapshot, walked);
 }
 
 static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
@@ -314,10 +372,16 @@ int objectSetLRUOrLFU(robj *val, long long lfu_freq, long long lru_idle,
 void objectCommand(struct client *c);
 void memoryCommand(struct client *c);
 
-static inline void *kvobjGetAllocPtr(const kvobj *kv) {
-    /* Return the base allocation pointer (start of the metadata prefix). */
+static inline void *kvobjGetMetaPtr(const kvobj *kv) {
+    /* Start of the compact key-metadata block immediately before the header. */
     uint32_t numMetaBytes = __builtin_popcount(kv->metabits) * sizeof(uint64_t);
     return (char *)kv - numMetaBytes;
+}
+
+static inline void *kvobjGetAllocPtr(const kvobj *kv) {
+    /* Return the base allocation pointer (inline vmeta, then key metadata). */
+    uint32_t vmetaBytes = kv->inline_vmeta ? sizeof(struct tomoVerMeta) : 0;
+    return (char *)kvobjGetMetaPtr(kv) - vmetaBytes;
 }
 
 #endif /* __OBJECT_H */

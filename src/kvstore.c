@@ -92,10 +92,6 @@ void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv) {
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetireVersionPrune(t, rawkv);
 }
-void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta) {
-    flatTable *t = flatCurrent(kvs);
-    if (t && vmeta) flatRetireVmeta(t, vmeta);
-}
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
     flatTable *t = flatCurrent(kvs);
     if (t) flatIterRange(t, blo, bhi, cb, priv);

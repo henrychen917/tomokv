@@ -53,13 +53,14 @@ uint64_t *kvobjMetaRef(kvobj *kv, int metaId) {
  * Example of "mykey" with expiration and metadata :
  * 
  *    +------------+------------+-----------+------------------+------------------------+
- *    | m.meta (8) | expiry (8) | robj (16) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | 
+ *    | m.meta (8) | expiry (8) | robj (24) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) |
  *    +------------+------------+-----------+------------------+------------------------+
  *                              ^
  *                              |
  *                              kvobjCreate() returns pointer to here
  */
-kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
+static kvobj *kvobjCreateWithFlags(int type, const sds key, void *ptr,
+                                  uint32_t keyMetaBits, int flags) {
     /* Determine embedded key and expiration flags */
     serverAssert(key != NULL);
 
@@ -70,6 +71,8 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
 
     /* Now that keyMetaBits is finalized, compute metadata size. */
     uint32_t sizeMetas = getNumMeta(keyMetaBits) * sizeof(uint64_t);
+    uint32_t sizeVmeta = (flags & KVOBJ_SET_INLINE_VMETA) ?
+                         sizeof(struct tomoVerMeta) : 0;
 
     /* Calculate embedded key size */
     char key_sds_type = sdsReqType(key_sds_len);
@@ -77,19 +80,21 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
 
     /* Compute the base object size */
     size_t min_size = sizeof(robj);
+    min_size += sizeVmeta;
     min_size += sizeMetas;
     min_size += 1 + key_sds_size; /* 1 byte for SDS header size */
 
     /* Allocate object memory */
     char *alloc = zmalloc(min_size);
-    kvobj *kv = (kvobj *) (alloc + sizeMetas);
+    kvobj *kv = (kvobj *) (alloc + sizeVmeta + sizeMetas);
     kv->type = type;
     kv->encoding = OBJ_ENCODING_RAW;
     kv->ptr = ptr;
-    kv->vmeta = NULL;
+    kv->version_head = 0;
     kv->refcount = 1;
     kv->lru = 0;
     kv->iskvobj = 1;
+    kv->inline_vmeta = sizeVmeta != 0;
     kv->metabits = keyMetaBits;
 
     /* The memory after the struct where we embedded data. */
@@ -105,15 +110,20 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
     return kv;
 }
 
+kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
+    return kvobjCreateWithFlags(type, key, ptr, keyMetaBits, 0);
+}
+
 robj *createObject(int type, void *ptr) {
     robj *o = zmalloc(sizeof(*o));
     o->type = type;
     o->encoding = OBJ_ENCODING_RAW;
     o->ptr = ptr;
-    o->vmeta = NULL;
+    o->version_head = 0;
     o->refcount = 1;
     o->lru = 0;
     o->iskvobj = 0;
+    o->inline_vmeta = 0;
     o->metabits = 0;
     return o;
 }
@@ -157,17 +167,20 @@ robj *createRawStringObject(const char *ptr, size_t len) {
 /* Creates a new embedded string object and copies the content of key, val and
  * expire to the new object. LRU is set to 0. 
  * 
- * Example of kvobj "mykey" with embedded "myvalue" (16+1+7+11 = 35bytes):
+ * Example of kvobj "mykey" with embedded "myvalue" (24+1+7+11 = 43 bytes):
  *    +-----------+------------------+------------------------+----------------------------+
- *    | robj (16) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | sdshdr8 "myvalue" \0  (11) | 
+ *    | robj (24) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | sdshdr8 "myvalue" \0  (11) |
  *    +-----------+------------------+------------------------+----------------------------+
  */
 static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
-                                     const sds key, uint32_t keyMetaBits)
+                                     const sds key, uint32_t keyMetaBits,
+                                     int flags)
 {
     kvobj *o;
     debugServerAssert(key != NULL);
     uint32_t sizeMetas = getNumMeta(keyMetaBits) * sizeof(uint64_t);
+    uint32_t sizeVmeta = (flags & KVOBJ_SET_INLINE_VMETA) ?
+                         sizeof(struct tomoVerMeta) : 0;
 
     /* Calculate sizes for embedded key */
     size_t key_sds_len = sdslen(key);
@@ -179,21 +192,23 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
 
     /* Compute base object size */
     size_t min_size = sizeof(robj) + val_sds_size;
+    min_size += sizeVmeta;
     min_size += sizeMetas;
     min_size += 1 + key_sds_size; /* 1 byte for SDS header size */
 
     /* Allocate object memory */
     size_t bufsize = 0;
     char *alloc = zmalloc_usable(min_size, &bufsize);
-    o = (kvobj *) (alloc + sizeMetas);
+    o = (kvobj *) (alloc + sizeVmeta + sizeMetas);
 
     o->type = OBJ_STRING;
     o->encoding = OBJ_ENCODING_EMBSTR;
-    o->vmeta = NULL;
+    o->version_head = 0;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = keyMetaBits;
     o->iskvobj = 1;
+    o->inline_vmeta = sizeVmeta != 0;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);
@@ -216,9 +231,9 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
  * an object where the sds string is actually an unmodifiable string
  * allocated in the same chunk as the object itself.
  * 
- * Example of robj with embedded "myvalue" (16+1+11 = 28 bytes):
+ * Example of robj with embedded "myvalue" (24+11 = 35 bytes):
  *    +-----------+------------------+----------------------------+
- *    | robj (16) | key-hdr-size (1) | sdshdr8 "myvalue" \0  (11) | 
+ *    | robj (24) | sdshdr8 "myvalue" \0  (11) |
  *    +-----------+------------------+----------------------------+
  */
 robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
@@ -230,11 +245,12 @@ robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     robj *o = zmalloc_usable(sizeof(robj) + val_sds_size, &bufsize);
     o->type = OBJ_STRING;
     o->encoding = OBJ_ENCODING_EMBSTR;
-    o->vmeta = NULL;
+    o->version_head = 0;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = 0;
     o->iskvobj = 0;
+    o->inline_vmeta = 0;
 
     /* The memory after the struct where we embedded data. */
     char *data = (char *)(o + 1);
@@ -289,14 +305,20 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags) {
 }
 
 /* CANDIDATE (census rank-3): the embed-fit arithmetic, shared by the EMBSTR and
- * RAW branches of kvobjSetEx(). Metadata is discarded from the sum since we
- * don't have to be accurate and it is placed before the object.
+ * RAW branches of kvobjSetEx(). Ordinary key metadata remains excluded to
+ * preserve the existing policy. A versioned allocation counts both its inline
+ * vmeta and key metadata so it cannot silently cross the 192-byte class.
  * CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
  * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
  * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
  * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
-static inline int kvobjEmbedStringFits(const sds key, size_t len) {
+static inline int kvobjEmbedStringFits(const sds key, size_t len,
+                                       uint32_t keyMetaBits, int flags) {
     size_t size = sizeof(kvobj);
+    if (flags & KVOBJ_SET_INLINE_VMETA) {
+        size += sizeof(struct tomoVerMeta);
+        size += getNumMeta(keyMetaBits) * sizeof(uint64_t);
+    }
     size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
     size += 4 + len; /* embstr header (3) + nullterm (1) */
     return size <= 192u && len <= 255;
@@ -363,20 +385,21 @@ kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
         size_t len = sdslen(val->ptr);
 
         /* Embed when the sum is small (see kvobjEmbedStringFits) */
-        if (kvobjEmbedStringFits(key, len)) {
-            kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
+        if (kvobjEmbedStringFits(key, len, keyMetaBits, flags)) {
+            kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits, flags);
         } else {
-            kv = kvobjCreate(OBJ_STRING, key, sdsnewlen(val->ptr, len), keyMetaBits);
+            kv = kvobjCreateWithFlags(OBJ_STRING, key, sdsnewlen(val->ptr, len),
+                                      keyMetaBits, flags);
         }
     } else if (embedRawOk && val->type == OBJ_STRING &&
                val->encoding == OBJ_ENCODING_RAW &&
-               kvobjEmbedStringFits(key, sdslen(val->ptr)))
+               kvobjEmbedStringFits(key, sdslen(val->ptr), keyMetaBits, flags))
     {
         /* CANDIDATE (census rank-3): RAW single-allocation embed. The <=170B
          * memcpy (inside kvobjCreateEmbedString -> sdsnewplacement) is noise
          * next to the saved malloc/free pair of the separate value sds. */
         size_t len = sdslen(val->ptr);
-        kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
+        kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits, flags);
         /* Mirror the adopt path's consumption contract (below): with
          * refcount==1 the value sds is consumed here -- the bytes were already
          * copied, so free it and clear val->ptr so the decrRefCount() at the
@@ -414,7 +437,7 @@ kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
              * can be duplicated, but for a module type is not always possible. */
             serverPanic("Not implemented");
         }
-        kv = kvobjCreate(val->type, key, valptr, keyMetaBits);
+        kv = kvobjCreateWithFlags(val->type, key, valptr, keyMetaBits, flags);
         kv->encoding = val->encoding;
     }
     
@@ -737,8 +760,6 @@ void decrRefCount(robj *o) {
             default: serverPanic("Unknown object type"); break;
             }
         }
-        if (o->vmeta)
-            zfree(o->vmeta);
         zfree(alloc);
     }
 }
@@ -1338,7 +1359,8 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
     {
         return kvobjAllocSize(o);
     } else if (o->type == OBJ_MODULE) {
-        return zmalloc_size(o) + moduleGetMemUsage(key, o, sample_size, dbid);
+        return zmalloc_size(kvobjGetAllocPtr(o)) +
+               moduleGetMemUsage(key, o, sample_size, dbid);
     }
     serverPanic("Unknown object type");
 }
@@ -1346,8 +1368,6 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
 size_t kvobjAllocSize(kvobj *o) {
     /* All kv-objects has at least kvobj header and embedded key */
     size_t asize = zmalloc_size(kvobjGetAllocPtr(o));
-    if (o->vmeta)
-        asize += zmalloc_size(o->vmeta);
 
     if (o->type == OBJ_STRING) {
         asize += stringObjectAllocSize(o);

@@ -1,164 +1,111 @@
-# Atomic remaining-cost measurement
+# Inline atomic version metadata
 
-Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/wcost`
+## What changed
 
-Baseline: branch `2s-atomic-wcost`, commit `01941c452cedb67de15cacd445fa3772b0107bfb`
+I chose a conditional full embed. Atomic versions allocate one block laid out as:
 
-## Counter hypotheses and falsifiers (written before instrumentation)
+`[112-byte tomoVerMeta][key metadata][24-byte kvobj header][key][optional embedded value]`
 
-All counters below are owner-written in an `iotid`-indexed, cache-line-aligned
-slot and are only summed racily by `INFO`. No counter uses a shared atomic.
+Ordinary `robj` and `kvobj` allocations remain unchanged. The existing 8-byte `vmeta` pointer word
+in the header is now the acquire/release committed-head cursor itself: `0` means raw, `1` means an
+active bag with no committed value, and any other value is the committed-head `kvobj` address. A
+previously unused header bit records that the allocation permanently has the inline prefix, so
+freeing and defrag can still recover the allocation base after promotion clears the cursor.
 
-### Read-side version resolution
+The full metadata shrank from 120 bytes to 112 bytes by moving the committed-head word into the
+existing header slot and reordering `version_seq` to the end of the prefix, immediately adjacent to
+the header when there is no key metadata. Static assertions hold `sizeof(redisObject) == 24` and
+`sizeof(tomoVerMeta) == 112`.
 
-Counters:
+Version creation now initializes that prefix in place and publishes it through the header cursor.
+It does not call `zcalloc`. Promotion clears the cursor but keeps the prefix storage alive with the
+`kvobj`, so it no longer queues or frees a separate metadata object. The old vmeta allocation and
+retirement INFO counters remain present deliberately as engagement counters, but there is no code
+left that increments them.
 
-- `tomokv_atomic_read_raw`: read-key lookups whose table result was missing or
-  had no `vmeta`, and therefore did not call the version resolver.
-- `tomokv_atomic_read_versioned`: read-key lookups that observed `vmeta` and
-  called the resolver.
-- `tomokv_atomic_read_walk`: committed-chain candidates inspected by those
-  resolver calls. A raw pre-epoch tail counts as one inspected version.
+The read resolver consumes its first captured header cursor directly, avoiding the old
+vmeta-pointer load followed by a dependent committed-head load. The common cursor-equals-physical-
+head case derives the adjacent prefix without a second header acquire. Non-head candidates still
+check whether their metadata is active, because a promoted allocation can later be the raw tail of
+a new bag.
 
-Hypothesis: continuous writes leave version bags on nearly every key, making
-mixed-workload reads pay the `vmeta`/committed-head resolver and sometimes walk
-past versions newer than their pinned snapshot.
+Two lifetime/layout details were handled explicitly:
 
-Falsifier: pure MGET should have `read_versioned` near zero, while the 1:1 mix
-should have `read_versioned / (read_raw + read_versioned)` near one and
-`read_walk / read_versioned` above one. If the mixed run also has
-`read_versioned` near zero, the version-resolution hypothesis is dead. If it is
-near one but mean walk is about one, chain depth is not the explanation; the
-remaining read candidate is the fixed `kvobj` cache-line invalidation plus the
-`vmeta` and committed-head pointer loads.
+- Key metadata remains immediately before the header. Module-metadata copies use
+  `kvobjGetMetaPtr`; freeing, allocation accounting, and defrag use `kvobjGetAllocPtr`.
+- Active inline metadata contains queued owner-op addresses and self/chain pointers, so active
+  versioned objects are not moved by active defrag. Promoted inline objects also remain immovable:
+  a reader may have captured the pre-promotion cursor and still be consuming the retained prefix
+  until its flat grace ends.
 
-### Version-install / allocation cost
+## Falsifier
 
-Counters:
+Engagement requires `tomokv_atomic_write_vmeta_allocs` to fall from one per written key to
+approximately zero. `tomokv_atomic_retire_vmeta` should also be approximately zero, while
+`tomokv_atomic_write_kvobj_allocs` should remain one per written key and its usable-size histogram
+should move to the combined allocation classes. Total retirements should consequently fall from
+about three to about two per written key (prune plus physical only).
 
-- ordinary install baseline:
-  `tomokv_atomic_write_raw_{installs,samples,cpu_ns,clock_ns}`;
-- versioned install:
-  `tomokv_atomic_write_{installs,install_samples,install_cpu_ns,install_clock_ns}`;
-- ordinary and versioned `kvobj`, plus versioned `vmeta`, allocation counts,
-  allocator-usable byte totals/min/max, and exact class fields. The class fields
-  are `tomokv_atomic_write_{raw_kvobj,kvobj,vmeta}_class_<bytes>` for the default
-  jemalloc classes 16 through 512, plus `class_other`.
+Helpfulness requires instructions per operation to fall in the same pure MSET8/perf-stat cell. If
+`write_vmeta_allocs` is near zero but instructions/op does not fall reproducibly from the measured
+78,275 baseline, the separate allocation was not a meaningful part of the write tax. Throughput is
+not the verdict on this box.
 
-Hypothesis: the atomic-only version install, particularly its new `kvobj` and
-`vmeta` allocations, accounts for most of the pure-MSET loss.
+## Expected instruction effect
 
-Falsifier: subtract `clock_ns` from `cpu_ns`, divide by `samples`, and compare
-the versioned and ordinary per-install samples. If the versioned-minus-ordinary
-CPU delta is far below the missing per-key CPU budget, the whole install path
-cannot explain the tax, regardless of the fact that allocation counters are
-nonzero. Allocation counts/classes are diagnostic only after that timing test;
-they are not treated as proof of cost.
+My static estimate is **300-500 instructions saved per written key**, midpoint about 400. That is
+the removed jemalloc allocation/free pair, the vmeta allocation-size census work, and one retire
+enqueue/reclaim dispatch, plus the avoided blanket 120-byte zero fill; the field initialization
+stores required for correctness remain. For MSET8 this predicts roughly 2,400-4,000 fewer
+instructions/op. This is an estimate, not a measurement, and the falsifier above takes precedence.
 
-### QSBR / retirement cost
+## Size-class arithmetic
 
-Counters:
+These numbers use the default jemalloc classes already named by the in-tree counters and the
+warm10k `memtier-N` key shape (9-12 byte keys). Such a key occupies 12-15 bytes in the kvobj: one
+stored SDS-header-size byte plus an SDS_TYPE_5 allocation.
 
-- `tomokv_atomic_retires` and its
-  `tomokv_atomic_retire_{prune,physical,vmeta}` split;
-- active worker reclaim passes, batches closed, grace checks/readies, and waits
-  (`tomokv_atomic_qsbr_grace_waits`) split by foreign, IO, or worker blocker;
-- `tomokv_atomic_prune_callbacks` and the three independent walk totals
-  (`prune_bag_walk`, `prune_commit_walk`, and `prune_census_walk`);
-- 1/1024 sampled active-reclaim thread-CPU nanoseconds in
-  `tomokv_atomic_qsbr_{samples,cpu_ns,clock_ns}`.
+- **32-byte value:** the embedded SDS_TYPE_8 value is 36 bytes. Before: the kvobj request was
+  `24 + (12..15) + 36 = 72..75`, an 80-byte usable class, plus the 120-byte vmeta in the 128-byte
+  class: **208 usable bytes across two allocations**. Now the request is
+  `112 + 24 + (12..15) + 36 = 184..187`, the **192-byte class in one allocation**. Net: one fewer
+  object and 16 fewer usable bytes while the version is active.
+- **4KB value:** the RAW value SDS remains a separate, identical allocation in both versions
+  (`sdsReqSize(4096, SDS_TYPE_16) = 4102` requested), so it cancels out. Before: the wrapper was
+  `24 + (12..15) = 36..39`, a 48-byte class, plus the 128-byte vmeta class: **176 usable bytes**.
+  Now `112 + 24 + (12..15) = 148..151`, the **160-byte class**. Again the net is one fewer object
+  and 16 fewer usable bytes while active.
 
-Hypothesis: atomic versions amplify retire traffic and/or repeatedly fail a
-grace, or the post-grace callback repeatedly walks a deep live bag.
+The tree's current embed limit is 192 bytes. I did not retune it. The versioned fit calculation now
+includes the 112-byte prefix, so the common 32-byte/warm10k shape still embeds at 184-187 bytes but
+does not accidentally spill into a larger class. Ordinary objects retain the existing fit
+arithmetic. Reverting the policy to the older 64-byte threshold would stop this common versioned
+shape from embedding and would confound this allocation experiment.
 
-Falsifier: the hypothesis is false if sampled net reclaim CPU, scaled by active
-passes/samples, is too small to cover the missing budget, grace waits and
-pending batches remain negligible, and each callback's walk ratios stay small
-and bounded. A large retire count alone does not establish cost.
+After promotion the old design could free its 128-byte metadata object while this design retains
+the 112-byte prefix until the value itself is overwritten. At quiescence that is up to about
+1.12 MB of requested prefix space for 10,000 keys. Shrinking on promotion would require another
+allocation, table-pointer replacement, and grace period on the path this change is trying to
+remove, so I accepted this bounded retained-space tradeoff.
 
-### Worker-side stamp drain
+## Considered and rejected
 
-Counters:
+- **Unconditional full metadata in `redisObject`:** rejected because it would grow every ordinary
+  object from 24 bytes by roughly 112 bytes and push unrelated values through multiple allocator
+  classes.
+- **Only a committed-head field in the header:** rejected because reads improve but the standalone
+  vmeta allocation, retirement, and free remain; `write_vmeta_allocs` would stay one per key and
+  fail the primary falsifier.
+- **Small inline metadata plus spill pointer:** rejected for this implementation because every
+  installed version needs the sequence, physical/committed links, owner-op records, database/store
+  ownership, and retirement state. The target write path would spill on every key, preserving the
+  allocation being tested. It may be worth revisiting only after a design removes or externalizes
+  those always-live fields.
+- **Reallocate a smaller raw kvobj at promotion:** rejected because it adds an allocation, copy,
+  table publication, and another reader grace to the prune path, trading away the intended savings.
 
-- nonempty drain calls, empty drains, queue-pop batches, entries, and the
-  STAMP/PRUNE/CANCEL split under `tomokv_atomic_stamp_drain_*`;
-- committed-chain candidates inspected in `tomokv_atomic_stamp_apply_walk`;
-- 1/1024 sampled drain thread-CPU nanoseconds, paired clock baseline, and
-  sampled entry count under `tomokv_atomic_stamp_drain_*`.
+## Verification performed
 
-Hypothesis: the consumer-side drain (not the already-refuted producer pushes)
-accounts for a material part of the write tax.
-
-Falsifier: it is false if sampled net drain CPU, scaled by calls/samples, is too
-small to cover the missing budget and the structural ratios remain ordinary:
-about two entries per committed install, well-filled pop batches, no empty
-drains, and a shallow apply walk. No commit-section push counter is added here;
-that path was already falsified by the commit-diet experiment.
-
-## Code-inspection findings
-
-Code inspection only; no runtime conclusion is claimed here.
-
-- The read hypothesis is worth measuring. `lookupKeyReadWithFlags()` has an
-  exact raw fast path, but any observed head `vmeta` calls `kvobjVersionAt()`,
-  which acquire-loads the head metadata again, acquire-loads `committed_head`,
-  and then loads metadata/sequence/predecessor state for each candidate.
-- The write candidates are disjoint measurement regions: version installation
-  runs in the command worker, stamp drain runs from the worker loop before
-  normal jobs, and QSBR reclaim runs at the top of each worker slice.
-- The replacement `kvobj` allocation is **not atomic-only** in the target FLAT
-  workload. The ordinary overwrite also takes `dbSetValue()`'s copy branch and
-  calls `kvobjSetEx()`; its in-place branch is explicitly disabled for FLAT.
-  Atomic mode adds the separate `tomoVerMeta` allocation and retains prior
-  objects in a bag. This is why the instrumentation records raw and versioned
-  `kvobj` classes separately instead of calling both atomic overhead.
-- Retirement has a potentially stronger amplification mechanism than its
-  enqueue count suggests: every prune callback can walk the physical bag, walk
-  the committed-order chain, and then walk the physical bag again for the
-  promotion/tombstone census. Atomic retirement also has two grace stages for a
-  removed version (pre-unlink prune grace, then ordinary post-unlink physical
-  grace), whereas an ordinary FLAT overwrite only needs the physical grace.
-  The walk and sampled reclaim counters are needed before assigning that work
-  the tax.
-- `flatWorkerReclaim()` closes at most one retire list per active worker slice;
-  each close executes a seq-cst fence and snapshots every worker, even when the
-  oldest batch becomes ready immediately. Therefore `grace_waits == 0` would
-  falsify stalled grace, but would not by itself falsify QSBR CPU cost; the
-  sampled CPU and batches/install ratios make that distinction.
-- Promotion cannot be assumed to restore the raw read path under continuous
-  writes: it requires a sole committed survivor with no uncommitted member.
-
-## Reading the sampled CPU fields
-
-Sampling is once per 1024 owner-local phase entries. `CLOCK_THREAD_CPUTIME_ID`
-avoids charging descheduling to a phase. Each sample first measures an adjacent
-empty clock interval, accumulated in `clock_ns`; use:
-
-```text
-net_sample_ns = max(0, cpu_ns - clock_ns)
-mean_ns_per_sampled_call = net_sample_ns / samples
-estimated_total_phase_ns = mean_ns_per_sampled_call * total_calls
-```
-
-`total_calls` is `write_*_installs`, `qsbr_passes`, or `stamp_drain_calls` for
-the corresponding stream. For stamp work, dividing `net_sample_ns` by
-`stamp_drain_sample_entries` also gives directly sampled nanoseconds per entry.
-Allocation size/class bookkeeping runs after the install end timestamp, so it
-does not inflate the ordinary-versus-versioned install delta. Use before/after
-INFO deltas for every field; preload/warm-up work is intentionally not guessed
-away inside the server.
-
-## Measurement result
-
-Not measured in this task. The user will build and run the existing campaign;
-the hard constraint forbids compiling, starting a server, testing, or
-benchmarking in this worktree during instrumentation.
-
-## Verification performed here
-
-- Confirmed the worktree, branch, and baseline commit before editing.
-- `git diff --check` passes, including the new `FINDINGS.md`.
-- Audited that all new hot-path fields are plain owner-local counters and that
-  every `flatBatchReady()` / `tomoApplyVersionStamp()` signature change has a
-  matching call site.
-- Deliberately did not compile, start a server, run tests, or run benchmarks.
+Per instruction, I did not compile, start a server, run tests, or benchmark. Static checks were
+limited to diff/whitespace inspection and source searches confirming that no vmeta allocation,
+standalone vmeta free, or vmeta-retire enqueue remains.

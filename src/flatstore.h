@@ -132,10 +132,9 @@ dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new);
  * slot was already cleared) for the caller to QSBR-retire. Owner-exclusive single store. */
 dictEntry *flatDelete(flatTable *t, uint64_t slot);
 void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free until grace */
-/* CURE2 two-stage retirement. These payloads share the existing retire-node
- * pool but dispatch an owner prune or a metadata free when their grace ends. */
+/* CURE2 pre-unlink retirement. The payload shares the existing retire-node
+ * pool but dispatches an owner prune when its grace ends. */
 void       flatRetireVersionPrune(flatTable *t, void *rawkv);
-void       flatRetireVmeta(flatTable *t, void *vmeta);
 void       flatRetirePayloadReady(dictEntry *payload);
 void       flatRetirePayloadDiscard(dictEntry *payload);
 
