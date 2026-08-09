@@ -122,6 +122,9 @@ typedef enum tomoStampState {
 typedef enum tomoRetireState {
     TOMO_RETIRE_ACTIVE = 0,
     TOMO_RETIRE_PRUNE_GRACE,
+    /* A newer frontier unlinked this object while its own prune callback was
+     * still queued. The table ref is gone; the callback pin preserves it. */
+    TOMO_RETIRE_PRUNE_UNLINKED,
     TOMO_RETIRE_PHYSICAL,
 } tomoRetireState;
 
@@ -140,6 +143,10 @@ struct tomoVerMeta {
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *committed_prev;
+    /* Owner-only reverse link for O(1) committed-chain unlink. Readers use
+     * committed_prev exclusively. On the target ABI sizeof grows from 120 to
+     * 128, so the request remains in the same 128-byte allocator class. */
+    struct redisObject *committed_next;
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
@@ -220,7 +227,9 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
  * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order). Stamp arrival order is irrelevant:
+ * ordered by descending (seq,install_order). An owner-only committed_next
+ * reverse edge supports retire-side unlink; readers never load it. Stamp
+ * arrival order is irrelevant:
  * a newer stamp advances this cursor and an older stamp is inserted into the
  * history chain. The cursor's acquire pairs with the owner's release after
  * stamp application, so a current snapshot returns its winner without visiting
