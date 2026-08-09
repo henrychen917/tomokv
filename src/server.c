@@ -24377,18 +24377,20 @@ static void tomoFlipController(void) {
          * against io_sat 0.927 at the p32 SET optimum and ran the config to io=2 with 203 flips).
          * Consequences are recorded at the u_ex clip above and in the FLIP_SIG_* blind-spot
          * paragraph; flip-signal 3 is the repair for the trigger side of it. */
-        const double QCAP = (server.ex_queue_size > 0) ? (double)server.ex_queue_size : 4096.0;
+        /* OWNER EQUATION (2026-08-09, derived from the 30-cell signal census, not composed):
+         *     io_sat = u_io = EWMA(productive IO work / wall), capped at 1
+         *     ex_sat = u_ex = EWMA(EX busy work / wall),       capped at 1
+         *     r = io_sat / ex_sat — and NOTHING else in the ratio.
+         * The bare productive pair scored 100% opt-is-min / 100% monotone across all five workload
+         * families (mean |lr| at the optimum 0.145, inside every derived floor); every queue-
+         * augmented pairing scored worse. Owner rules encoded here: neither side may exceed 1, and
+         * "if both are near max at 1 then we are happy" — which the floor grants automatically
+         * (both ~1 => |lr| ~ 0 < gfloor => hold). The q_io/qd/ring-stall/drain quantities remain
+         * INFO observables (drain is the leading candidate for the anchor-drop workload-change
+         * detector: census span 7.68, near-zero within-regime variance), but they no longer touch
+         * the ratio. qd_max stays where it belongs, in the node_idle test. */
         double io_sat = u_io, ex_sat = u_ex;
-        if (c_ex >= 8.0) {
-            io_sat += (double)q_io / QCAP;
-            /* the MEAN depth, matching the mean used for utilisation on both sides. Leaving this
-             * as qd_max while busy moved to a mean stabilised only HALF of ex_sat: measured at the
-             * p32 optimum, io_sat held 0.96-0.98 while ex_sat still swung 0.67-1.13 (a 68% range)
-             * purely from whichever worker queue was deepest that tick, and every one of those
-             * excursions triggered a climb that throughput then rejected. qd_max stays for the
-             * node_idle test, where "any worker has work" is the right question. */
-            ex_sat += qd_mean / QCAP;
-        }
+        (void)q_io;
         /* TOTAL SATURATION => is the workload CLIENT-bound or SERVER-bound?
          * The pipeline is only as saturated as its tightest stage, so the total is the MAX, not a
          * sum: one stage at 1.0 means the server is the constraint even if the other idles.
@@ -24669,7 +24671,8 @@ static void tomoFlipController(void) {
         if (wsig)
             snprintf(wsig_log, sizeof(wsig_log),
                      " | W(sig=%d idle=%.3f u_ex=%.3f qd=%.2f/%.0f s_ex=%.3f lrw=%+.3f ewma=%+.3f anchor=%+.3f quiet=%d)",
-                     flip_signal, 1.0 - u_ex, u_ex, qd_mean, QCAP, ex_sat, lr, fc->lr_ewma,
+                     flip_signal, 1.0 - u_ex, u_ex, qd_mean, (server.ex_queue_size > 0 ? (double)server.ex_queue_size : 4096.0),
+                     ex_sat, lr, fc->lr_ewma,
                      fc->lr_anchor, fc->lr_quiet_run);
         else
             snprintf(wsig_log, sizeof(wsig_log),
