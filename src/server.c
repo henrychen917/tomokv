@@ -7697,7 +7697,7 @@ int processCommand(client *c) {
         return C_OK;
     }
 
-    /* Queuing inside MULTI: writes to real->mstate and addReply(real).
+    /* Queuing inside MULTI: writes to the real client sidecar mstate and addReply(real).
      * Must run on real. Drain ring first. */
     if (c->flags & CLIENT_MULTI &&
         c->cmd->proc != execCommand &&
@@ -7948,8 +7948,24 @@ int processCommand(client *c) {
             c->cur_script = NULL;
         }
         if (t6_kind == TOMO_T6_EXEC || t6_kind == TOMO_T6_DISCARD) {
-            fake->mstate = c->mstate;   /* ownership moves with the queued pendingCommand objects */
-            c->mstate = (multiState){ .executing_cmd = -1 };
+            /* MERGE(T6 x sidecar): move ONLY the queued-command fields to the fake's sidecar.
+             * A whole-struct move would also carry the EMBEDDED watched_keys list — but watches
+             * belong to the OWNER (tomoWatchOwner(fake) == c) and are cleared on the owner after
+             * the unit retires; moving them would let EXEC's cleanup free the owner's watch nodes
+             * from the wrong client. Ownership of the pendingCommand objects moves; watches stay. */
+            multiState *cms = clientMultiState(c);
+            multiState *fms = &getClientCold(fake)->mstate;
+            fms->commands      = cms ? cms->commands : NULL;
+            fms->count         = cms ? cms->count : 0;
+            fms->cmd_flags     = cms ? cms->cmd_flags : 0;
+            fms->cmd_inv_flags = cms ? cms->cmd_inv_flags : 0;
+            fms->argv_len_sums = cms ? cms->argv_len_sums : 0;
+            fms->alloc_count   = cms ? cms->alloc_count : 0;
+            fms->executing_cmd = -1;
+            if (cms) {
+                cms->commands = NULL; cms->count = 0; cms->cmd_flags = 0; cms->cmd_inv_flags = 0;
+                cms->argv_len_sums = 0; cms->alloc_count = 0; cms->executing_cmd = -1;
+            }
             uint64_t txflags = c->flags;
             unsigned int dirty_cas;
             atomicGet(c->tomo_dirty_cas, dirty_cas);
