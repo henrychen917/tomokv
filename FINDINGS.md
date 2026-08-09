@@ -1,164 +1,178 @@
-# Atomic remaining-cost measurement
+# Atomic IO-side group cost
 
-Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/wcost`
+Worktree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/ioside`
 
-Baseline: branch `2s-atomic-wcost`, commit `01941c452cedb67de15cacd445fa3772b0107bfb`
+Branch: `2s-atomic-ioside`
 
-## Counter hypotheses and falsifiers (written before instrumentation)
+Baseline: `81eaf79b1` (`atomic: instrument remaining read and write costs`)
 
-All counters below are owner-written in an `iotid`-indexed, cache-line-aligned
-slot and are only summed racily by `INFO`. No counter uses a shared atomic.
+## Outcome
 
-### Read-side version resolution
+This patch instruments the previously uncovered IO-thread region. It does not
+apply an allocator rewrite: code inspection shows that all three proposed
+reductions are already present for the target shape.
 
-Counters:
+For an 8-key MSET on four workers, `csInlineWant()` budgets 192 bytes for the
+ordinary coordinator arrays. Atomic mode adds exactly 128 bytes for eight
+`csMsetInstall` records and 64 bytes for eight key hashes, for a total inline
+region of 384 bytes. That is below `CS_INLINE_MAX_BYTES` (512). Consequently:
 
-- `tomokv_atomic_read_raw`: read-key lookups whose table result was missing or
-  had no `vmeta`, and therefore did not call the version resolver.
-- `tomokv_atomic_read_versioned`: read-key lookups that observed `vmeta` and
-  called the resolver.
-- `tomokv_atomic_read_walk`: committed-chain candidates inspected by those
-  resolver calls. A raw pre-epoch tail counts as one inspected version.
+- the group itself is one `zmalloc` in both atomic-off and atomic-on;
+- `mset_installs` and `key_h` are bump-pointer reserves inside that same group
+  allocation, not separate allocator calls;
+- pure MSET never creates `msetnx_state`;
+- `csMsetPub` is one lazy allocation per connection on its first atomic-group
+  registration, not one allocation per group.
 
-Hypothesis: continuous writes leave version bags on nearly every key, making
-mixed-workload reads pay the `vmeta`/committed-head resolver and sometimes walk
-past versions newer than their pinned snapshot.
+The remaining IO-side atomic work is therefore extra initialization bytes,
+two inline reserve/release bookkeeping pairs, pending-FIFO removal, admission
+retirement, and an amortized publish-ring allocation. The new counters and
+paired timing make the runtime size of that remainder falsifiable.
 
-Falsifier: pure MGET should have `read_versioned` near zero, while the 1:1 mix
-should have `read_versioned / (read_raw + read_versioned)` near one and
-`read_walk / read_versioned` above one. If the mixed run also has
-`read_versioned` near zero, the version-resolution hypothesis is dead. If it is
-near one but mean walk is about one, chain depth is not the explanation; the
-remaining read candidate is the fixed `kvobj` cache-line invalidation plus the
-`vmeta` and committed-head pointer loads.
+## What changed
 
-### Version-install / allocation cost
+All hot counters are plain owner-thread increments in a cache-line-aligned
+`tomoAtomicIoStat` embedded at the tail of each `tm_io_sig[]` slot. `INFO` is
+the only racy reader. No shared atomic counter was added.
 
-Counters:
+Group allocation counters are split between otherwise identical cross-shard
+groups with atomic visibility off (`raw`) and registered versioned writes
+(`write`):
 
-- ordinary install baseline:
-  `tomokv_atomic_write_raw_{installs,samples,cpu_ns,clock_ns}`;
-- versioned install:
-  `tomokv_atomic_write_{installs,install_samples,install_cpu_ns,install_clock_ns}`;
-- ordinary and versioned `kvobj`, plus versioned `vmeta`, allocation counts,
-  allocator-usable byte totals/min/max, and exact class fields. The class fields
-  are `tomokv_atomic_write_{raw_kvobj,kvobj,vmeta}_class_<bytes>` for the default
-  jemalloc classes 16 through 512, plus `class_other`.
+- `tomokv_atomic_io_group_{raw,write}_heap_allocs`
+- `tomokv_atomic_io_group_{raw,write}_requested_bytes`
+- `tomokv_atomic_io_group_{raw,write}_heap_frees`
 
-Hypothesis: the atomic-only version install, particularly its new `kvobj` and
-`vmeta` allocations, accounts for most of the pure-MSET loss.
+The requested-byte fields describe the exact `sizeof(csGroup) + inl_cap`
+request, not allocator usable size.
 
-Falsifier: subtract `clock_ns` from `cpu_ns`, divide by `samples`, and compare
-the versioned and ordinary per-install samples. If the versioned-minus-ordinary
-CPU delta is far below the missing per-key CPU budget, the whole install path
-cannot explain the tax, regardless of the fact that allocation counters are
-nonzero. Allocation counts/classes are diagnostic only after that timing test;
-they are not treated as proof of cost.
+Each atomic-only coordinator array reports its physical storage path:
 
-### QSBR / retirement cost
+- `tomokv_atomic_io_install_{inline_reserves,heap_allocs,inline_releases,heap_frees}`
+- `tomokv_atomic_io_msetnx_{inline_reserves,heap_allocs,inline_releases,heap_frees}`
+- `tomokv_atomic_io_keyhash_{inline_reserves,heap_allocs,inline_releases,heap_frees}`
 
-Counters:
+An inline reserve/release is deliberately not called an allocation/free: it is
+pointer arithmetic on the group-owned bump region and dies with `zfree(g)`.
+Only the `heap_*` fields count real spill allocator calls.
 
-- `tomokv_atomic_retires` and its
-  `tomokv_atomic_retire_{prune,physical,vmeta}` split;
-- active worker reclaim passes, batches closed, grace checks/readies, and waits
-  (`tomokv_atomic_qsbr_grace_waits`) split by foreign, IO, or worker blocker;
-- `tomokv_atomic_prune_callbacks` and the three independent walk totals
-  (`prune_bag_walk`, `prune_commit_walk`, and `prune_census_walk`);
-- 1/1024 sampled active-reclaim thread-CPU nanoseconds in
-  `tomokv_atomic_qsbr_{samples,cpu_ns,clock_ns}`.
+The connection-owned publish ring reports:
 
-Hypothesis: atomic versions amplify retire traffic and/or repeatedly fail a
-grace, or the post-grace callback repeatedly walks a deep live bag.
+- `tomokv_atomic_io_pub_heap_allocs`
+- `tomokv_atomic_io_pub_requested_bytes`
+- `tomokv_atomic_io_pub_heap_frees`
 
-Falsifier: the hypothesis is false if sampled net reclaim CPU, scaled by active
-passes/samples, is too small to cover the missing budget, grace waits and
-pending batches remain negligible, and each callback's walk ratios stay small
-and bounded. A large retire count alone does not establish cost.
+Its free remains at the existing safe point in `freeClient()`, after the fake
+ring has drained; a small server-side wrapper records the owner-local free.
 
-### Worker-side stamp drain
+Finally, the full `csReassemble()` phase is sampled independently for raw and
+versioned-write groups:
 
-Counters:
+- `tomokv_atomic_io_teardown_{raw,write}_groups`
+- `tomokv_atomic_io_teardown_{raw,write}_samples`
+- `tomokv_atomic_io_teardown_{raw,write}_cpu_ns`
+- `tomokv_atomic_io_teardown_{raw,write}_clock_ns`
 
-- nonempty drain calls, empty drains, queue-pop batches, entries, and the
-  STAMP/PRUNE/CANCEL split under `tomokv_atomic_stamp_drain_*`;
-- committed-chain candidates inspected in `tomokv_atomic_stamp_apply_walk`;
-- 1/1024 sampled drain thread-CPU nanoseconds, paired clock baseline, and
-  sampled entry count under `tomokv_atomic_stamp_drain_*`.
+Sampling is 1 in 1024 calls with `CLOCK_THREAD_CPUTIME_ID`. Each sample first
+takes the established adjacent empty-clock baseline. The timer begins before
+`csMsetPendingRemove()` and ends after `zfree(g)` and clearing the head, so it
+includes reply reassembly and every terminal cleanup operation. The raw stream
+is what removes the ordinary part of that full phase.
 
-Hypothesis: the consumer-side drain (not the already-refuted producer pushes)
-accounts for a material part of the write tax.
+## FALSIFIER
 
-Falsifier: it is false if sampled net drain CPU, scaled by calls/samples, is too
-small to cover the missing budget and the structural ratios remain ordinary:
-about two entries per committed install, well-filled pop batches, no empty
-drains, and a shallow apply walk. No commit-section push counter is added here;
-that path was already falsified by the commit-diet experiment.
+Use before/after `INFO` deltas from matched pure 8-key MSET runs. Do not use a
+mixed read/write run as the raw timing baseline because its raw samples include
+different command shapes.
 
-## Code-inspection findings
-
-Code inspection only; no runtime conclusion is claimed here.
-
-- The read hypothesis is worth measuring. `lookupKeyReadWithFlags()` has an
-  exact raw fast path, but any observed head `vmeta` calls `kvobjVersionAt()`,
-  which acquire-loads the head metadata again, acquire-loads `committed_head`,
-  and then loads metadata/sequence/predecessor state for each candidate.
-- The write candidates are disjoint measurement regions: version installation
-  runs in the command worker, stamp drain runs from the worker loop before
-  normal jobs, and QSBR reclaim runs at the top of each worker slice.
-- The replacement `kvobj` allocation is **not atomic-only** in the target FLAT
-  workload. The ordinary overwrite also takes `dbSetValue()`'s copy branch and
-  calls `kvobjSetEx()`; its in-place branch is explicitly disabled for FLAT.
-  Atomic mode adds the separate `tomoVerMeta` allocation and retains prior
-  objects in a bag. This is why the instrumentation records raw and versioned
-  `kvobj` classes separately instead of calling both atomic overhead.
-- Retirement has a potentially stronger amplification mechanism than its
-  enqueue count suggests: every prune callback can walk the physical bag, walk
-  the committed-order chain, and then walk the physical bag again for the
-  promotion/tombstone census. Atomic retirement also has two grace stages for a
-  removed version (pre-unlink prune grace, then ordinary post-unlink physical
-  grace), whereas an ordinary FLAT overwrite only needs the physical grace.
-  The walk and sampled reclaim counters are needed before assigning that work
-  the tax.
-- `flatWorkerReclaim()` closes at most one retire list per active worker slice;
-  each close executes a seq-cst fence and snapshots every worker, even when the
-  oldest batch becomes ready immediately. Therefore `grace_waits == 0` would
-  falsify stalled grace, but would not by itself falsify QSBR CPU cost; the
-  sampled CPU and batches/install ratios make that distinction.
-- Promotion cannot be assumed to restore the raw read path under continuous
-  writes: it requires a sole committed survivor with no uncommitted member.
-
-## Reading the sampled CPU fields
-
-Sampling is once per 1024 owner-local phase entries. `CLOCK_THREAD_CPUTIME_ID`
-avoids charging descheduling to a phase. Each sample first measures an adjacent
-empty clock interval, accumulated in `clock_ns`; use:
+For each stream:
 
 ```text
-net_sample_ns = max(0, cpu_ns - clock_ns)
-mean_ns_per_sampled_call = net_sample_ns / samples
-estimated_total_phase_ns = mean_ns_per_sampled_call * total_calls
+raw_ns_per_group = (raw_cpu_ns - raw_clock_ns) / raw_samples
+write_ns_per_group = (write_cpu_ns - write_clock_ns) / write_samples
+atomic_io_teardown_ns_per_group = write_ns_per_group - raw_ns_per_group
 ```
 
-`total_calls` is `write_*_installs`, `qsbr_passes`, or `stamp_drain_calls` for
-the corresponding stream. For stamp work, dividing `net_sample_ns` by
-`stamp_drain_sample_entries` also gives directly sampled nanoseconds per entry.
-Allocation size/class bookkeeping runs after the install end timestamp, so it
-does not inflate the ordinary-versus-versioned install delta. Use before/after
-INFO deltas for every field; preload/warm-up work is intentionally not guessed
-away inside the server.
+Clamp a negative clock-subtracted numerator to zero. Compare atomic-on and
+atomic-off runs with the same command shape and use `perf stat` instructions
+per operation as the final metric.
 
-## Measurement result
+The allocation explanation requires both of the following:
 
-Not measured in this task. The user will build and run the existing campaign;
-the hard constraint forbids compiling, starting a server, testing, or
-benchmarking in this worktree during instrumentation.
+1. real atomic-only heap traffic must be non-trivial per group (array heap
+   allocs/frees, plus publish-ring allocations amortized by completed write
+   groups); and
+2. the paired teardown delta plus any allocation/initialization effect visible
+   in instructions/op must cover a material share of the given 2,900 extra
+   instructions per written key.
 
-## Verification performed here
+For the target shape, the structural sanity signature is:
 
-- Confirmed the worktree, branch, and baseline commit before editing.
-- `git diff --check` passes, including the new `FINDINGS.md`.
-- Audited that all new hot-path fields are plain owner-local counters and that
-  every `flatBatchReady()` / `tomoApplyVersionStamp()` signature change has a
-  matching call site.
-- Deliberately did not compile, start a server, run tests, or run benchmarks.
+```text
+write group heap allocs / write groups       ~= 1
+install inline reserves / write groups       ~= 1
+keyhash inline reserves / write groups       ~= 1
+install heap allocs                           == 0
+keyhash heap allocs                           == 0
+msetnx reserves and heap allocs               == 0
+pub heap allocs / write groups                ~= connections / groups (tiny)
+```
+
+Inline releases should track inline reserves once the run drains, group frees
+should track group allocs, and `tomokv_xshard_heap_fallbacks` must not increase
+for the common shape. A small tail mismatch merely means groups or connections
+were still live at the second snapshot.
+
+If real atomic-only heap calls are zero for the arrays and the paired
+`csReassemble` delta is only a few dozen instructions per key, this line is
+refuted: the 2,900 instructions/key remain worker-side. A large full-phase
+delta without a corresponding raw subtraction is not evidence; it can be
+ordinary reply/group teardown.
+
+## Instruction-saving estimate
+
+Instructions saved by this patch: **0 per written key**. It is an
+instrumentation/refutation patch, not a speculative optimization.
+
+The common 8-key MSET already has one physical group allocation in both modes.
+Folding `mset_installs` and `key_h` into a new explicit bundle could only remove
+two already-inlined bump/free classification sequences per group while adding
+new ownership/layout state. That is at most a low-single-digit instruction
+opportunity per key after LTO, nowhere near the measured 2,900 instructions per
+key, and it risks making spill ownership less obvious. Runtime counters should
+justify such a micro-change before it is made.
+
+## Considered and rejected
+
+- **Fold the arrays into one new heap block.** Rejected for the target shape:
+  the existing inline bump region already folds them into the group's single
+  allocation. A bundle only changes rare `CS_INLINE_MAX_BYTES` spill shapes.
+- **Put more fields or fixed arrays in `csGroup`.** Rejected: it permanently
+  enlarges every group and works against the derived per-command sizing policy.
+  This patch does not change `csGroup` or `CS_INLINE_MAX_BYTES`.
+- **Allocate `msetnx_state` only for MSETNX/NX shapes.** Already true. Pure MSET
+  does not execute either allocation site; the zero counters verify that at
+  runtime.
+- **Lazily allocate `csMsetPub`.** Already true in `csMsetRegister()`. A
+  connection that never registers an atomic group never gets a ring. Delaying
+  it beyond registration is unsafe because a following own-read needs the
+  detached group's copied key set.
+- **Embed or shrink the publish ring.** Rejected: its capacity is derived from
+  the immutable pipeline-depth bound that makes record overflow unreachable;
+  shrinking it reopens a correctness/conservative-hold path, while embedding
+  it would bloat every client.
+- **Increase the inline ceiling to suppress rare spills.** Rejected without
+  measurements: it increases zeroing/cache footprint and is unnecessary for
+  the 384-byte target shape.
+
+## Static verification
+
+- Audited every `csGroupNew()` call and classified it raw versus atomic write.
+- Audited every `mset_installs`, `msetnx_state`, and `key_h` construction and
+  terminal release through the new typed wrappers.
+- Confirmed the publish ring still allocates only in `csMsetRegister()` and
+  frees only after the existing client in-flight deferral.
+- Confirmed no `csGroup` field, inline budget, or allocation order changed.
+- `git diff --check` passes.
+- Per the hard constraint, no compiler, build, server, test, or benchmark was
+  run. Runtime findings are intentionally left to the user's measurement.

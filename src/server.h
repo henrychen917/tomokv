@@ -5144,6 +5144,7 @@ extern _Atomic unsigned long long tomo_close_deferred_ring;
 extern _Atomic unsigned long long tomo_atomic_promotions;
 void tomoAtomicWindowChanged(void);
 void tomoAtomicUnstallClient(client *c);
+void tomoAtomicIoPubFree(csMsetPub *pub);
 void freeClientOriginalArgv(client *c);
 void freeClientArgv(client *c);
 void freeClientPendingCommands(client *c, int num_pcmds_to_free);

@@ -581,6 +581,41 @@ static int csAtomicNeedsOwnReadHold(client *c) {
     return csAtomicPortallVersionedWrite(c, s);
 }
 
+/* IO-side atomic-group cost census. Keep the hot construction fields first: an ordinary 8-key
+ * atomic MSET updates the WRITE group pair plus INSTALL/KEYHASH inline reserves, all on this
+ * slot's first cache line. Every field is plain owner-written through tm_io_sig[iotid] and only
+ * folded racily by INFO, matching the control-plane counters below. */
+#define TOMO_ATOMIC_IO_ARRAY_KINDS 3
+#define TOMO_ATOMIC_IO_INSTALL    0
+#define TOMO_ATOMIC_IO_MSETNX     1
+#define TOMO_ATOMIC_IO_KEYHASH    2
+#define TOMO_ATOMIC_IO_GROUP_KINDS 2
+#define TOMO_ATOMIC_IO_RAW         0
+#define TOMO_ATOMIC_IO_WRITE       1
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    unsigned long long group_heap_allocs[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long group_requested_bytes[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long array_inline_reserves[TOMO_ATOMIC_IO_ARRAY_KINDS];
+    unsigned long long pub_heap_allocs;
+
+    unsigned long long array_heap_allocs[TOMO_ATOMIC_IO_ARRAY_KINDS];
+    unsigned long long pub_requested_bytes;
+    unsigned long long pub_heap_frees;
+    unsigned long long group_heap_frees[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long array_inline_releases[TOMO_ATOMIC_IO_ARRAY_KINDS];
+    unsigned long long array_heap_frees[TOMO_ATOMIC_IO_ARRAY_KINDS];
+
+    /* Paired full csReassemble samples. RAW is the same cross-shard command with atomic
+     * visibility disabled; WRITE is a registered versioned-write group. The difference removes
+     * reply construction and ordinary group cleanup from the IO-side atomic estimate. */
+    unsigned long long teardown_groups[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long teardown_samples[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long teardown_cpu_ns[TOMO_ATOMIC_IO_GROUP_KINDS];
+    unsigned long long teardown_clock_ns[TOMO_ATOMIC_IO_GROUP_KINDS];
+} tomoAtomicIoStat;
+_Static_assert(sizeof(tomoAtomicIoStat) % CACHE_LINE_SIZE == 0,
+               "atomic IO cost stat must occupy whole cache lines");
+
 /* ---- ee451 (thread-modes step 4): per-IO-thread balancer signal line ----
  * One cache-line-aligned slot per IO identity (0 = main, 1..io_threads-1 = io threads,
  * io_threads..io_threads+ngrow = flip growth slots). Each field is written ONLY by the owning
@@ -682,15 +717,47 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long ownread_held;
     unsigned long long ownread_conserv;
     unsigned long long ownread_detach;
+    /* Atomic group construction/teardown. Appended so no established balancer/QSBR offset moves;
+     * see tomoAtomicIoStat for the one-writer and sampling contracts. */
+    tomoAtomicIoStat atomic_io;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
+_Static_assert(offsetof(tmIoSignal, atomic_io) % CACHE_LINE_SIZE == 0,
+               "atomic IO counters must start on their own cache line");
 /* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+
+/* Cold INFO fold. A stale/torn field is acceptable observation, exactly as for ownread_* above;
+ * none of these values participates in allocation, teardown, or admission decisions. */
+static void tomoAtomicIoAggregate(tomoAtomicIoStat *out) {
+    memset(out, 0, sizeof(*out));
+    for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+        const tomoAtomicIoStat *in = &tm_io_sig[t].atomic_io;
+        for (int k = 0; k < TOMO_ATOMIC_IO_GROUP_KINDS; k++) {
+            out->group_heap_allocs[k] += in->group_heap_allocs[k];
+            out->group_requested_bytes[k] += in->group_requested_bytes[k];
+            out->group_heap_frees[k] += in->group_heap_frees[k];
+            out->teardown_groups[k] += in->teardown_groups[k];
+            out->teardown_samples[k] += in->teardown_samples[k];
+            out->teardown_cpu_ns[k] += in->teardown_cpu_ns[k];
+            out->teardown_clock_ns[k] += in->teardown_clock_ns[k];
+        }
+        for (int k = 0; k < TOMO_ATOMIC_IO_ARRAY_KINDS; k++) {
+            out->array_inline_reserves[k] += in->array_inline_reserves[k];
+            out->array_heap_allocs[k] += in->array_heap_allocs[k];
+            out->array_inline_releases[k] += in->array_inline_releases[k];
+            out->array_heap_frees[k] += in->array_heap_frees[k];
+        }
+        out->pub_heap_allocs += in->pub_heap_allocs;
+        out->pub_requested_bytes += in->pub_requested_bytes;
+        out->pub_heap_frees += in->pub_heap_frees;
+    }
+}
 /* DEBUG TOMO-FLIPTRACE 1 -- dense per-TICK dump of the flip controller's inputs. The normal HOLD
  * line is rate limited to one per 5s, i.e. 0.2Hz sampling of a 4Hz controller, which is how a whole
  * day of diagnosis ended up guessing between "converges slowly" and "thrashes at rest". Off by
@@ -9065,6 +9132,15 @@ static void csMsetPubRetire(client *real, uintptr_t tag) {
     serverAssert(before > 0);
 }
 
+/* Connection-lifetime counterpart to csMsetRegister's lazy publish-ring allocation. freeClient
+ * calls this only after its in-flight fake ring has drained, on the IO identity performing the
+ * teardown; aggregation does not require allocation and free to land in the same identity slot. */
+void tomoAtomicIoPubFree(csMsetPub *pub) {
+    serverAssert(pub != NULL);
+    tm_io_sig[iotid].atomic_io.pub_heap_frees++;
+    zfree(pub);
+}
+
 /* I5/R1 registration is ticket-free and precedes every owner publish. */
 static void csMsetRegister(csGroup *g) {
     client *real = g->head->parent;
@@ -9089,7 +9165,10 @@ static void csMsetRegister(csGroup *g) {
     if (__builtin_expect(real->mset_pub == NULL, 0)) {
         unsigned int cap = 1;
         while (cap < (unsigned int)server.pipeline_ring_depth) cap <<= 1;
-        csMsetPub *pub = zcalloc(sizeof(*pub) + (size_t)cap * sizeof(csPubRec));
+        size_t bytes = sizeof(csMsetPub) + (size_t)cap * sizeof(csPubRec);
+        csMsetPub *pub = zcalloc(bytes);
+        tm_io_sig[iotid].atomic_io.pub_heap_allocs++;
+        tm_io_sig[iotid].atomic_io.pub_requested_bytes += bytes;
         pub->mask = cap - 1;
         csMsetPendingLock(real);
         real->mset_pub = pub;
@@ -11605,14 +11684,18 @@ static struct __attribute__((aligned(CACHE_LINE_SIZE))) {
  * "every unused inline slot is dead weight in EVERY instance".
  *
  * Under-estimating is SAFE by construction: anything that does not fit spills to zmalloc, i.e.
- * an arithmetic slip degrades to the pre-inline behaviour, never to a bug. */
-static csGroup *csGroupNew(size_t want) {
+ * an arithmetic slip degrades to the pre-inline behaviour, never to a bug. `atomic_group` is
+ * measurement classification only; registration remains the sole writer of versioned_write. */
+static csGroup *csGroupNew(size_t want, int atomic_group) {
     if (want > CS_INLINE_MAX_BYTES) want = CS_INLINE_MAX_BYTES;   /* tail spills; see csgAlloc */
     want = (want + 7) & ~(size_t)7;          /* keep the region 8-aligned end to end */
     size_t n = sizeof(csGroup) + want;       /* want==0 => exactly the pre-inline allocation */
     csGroup *g = zmalloc(n);
     memset(g, 0, n);                         /* header AND region: invariant 1 depends on this */
     g->inl_cap = (uint16_t)want;
+    int kind = atomic_group ? TOMO_ATOMIC_IO_WRITE : TOMO_ATOMIC_IO_RAW;
+    tm_io_sig[iotid].atomic_io.group_heap_allocs[kind]++;
+    tm_io_sig[iotid].atomic_io.group_requested_bytes[kind] += n;
     return g;
 }
 
@@ -11675,10 +11758,47 @@ static inline void *csgCalloc(csGroup *g, size_t n) {
     return p;
 }
 
+static inline int csgIsInline(const csGroup *g, const void *p) {
+    const char *b = (const char *)g->inl;
+    return (const char *)p >= b && (const char *)p < b + g->inl_cap;
+}
+
 static inline void csgFree(csGroup *g, void *p) {
     if (!p) return;
-    char *b = (char *)g->inl;
-    if ((char *)p >= b && (char *)p < b + g->inl_cap) return;   /* inline: dies with the group */
+    if (csgIsInline(g, p)) return;   /* inline: dies with the group */
+    zfree(p);
+}
+
+/* Atomic-only coordinator arrays use the same bump allocator as every other group array, but
+ * retain their own physical-path census. "inline reserve/release" means no allocator call at
+ * either end; "heap alloc/free" means a real csgAlloc spill. Keeping that distinction explicit is
+ * what lets the counters falsify the proposed several-allocations-per-MSET explanation. */
+static inline void csAtomicIoArrayRecord(csGroup *g, void *p, int kind) {
+    serverAssert(kind >= 0 && kind < TOMO_ATOMIC_IO_ARRAY_KINDS);
+    if (csgIsInline(g, p)) tm_io_sig[iotid].atomic_io.array_inline_reserves[kind]++;
+    else tm_io_sig[iotid].atomic_io.array_heap_allocs[kind]++;
+}
+
+static inline void *csAtomicIoArrayCalloc(csGroup *g, size_t n, int kind) {
+    void *p = csgCalloc(g, n);
+    csAtomicIoArrayRecord(g, p, kind);
+    return p;
+}
+
+static inline void *csAtomicIoArrayAlloc(csGroup *g, size_t n, int kind) {
+    void *p = csgAlloc(g, n);
+    csAtomicIoArrayRecord(g, p, kind);
+    return p;
+}
+
+static inline void csAtomicIoArrayFree(csGroup *g, void *p, int kind) {
+    if (!p) return;
+    serverAssert(kind >= 0 && kind < TOMO_ATOMIC_IO_ARRAY_KINDS);
+    if (csgIsInline(g, p)) {
+        tm_io_sig[iotid].atomic_io.array_inline_releases[kind]++;
+        return;
+    }
+    tm_io_sig[iotid].atomic_io.array_heap_frees[kind]++;
     zfree(p);
 }
 
@@ -11698,7 +11818,7 @@ static inline void csgFree(csGroup *g, void *p) {
 static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys) {
     size_t want = csKeyHashWant(nkeys);
     if (!want) return NULL;
-    g->key_h = csgAlloc(g, want);
+    g->key_h = csAtomicIoArrayAlloc(g, want, TOMO_ATOMIC_IO_KEYHASH);
     return g->key_h;
 }
 
@@ -12153,7 +12273,8 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
                             8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
-                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0));
+                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0),
+                            atomic_admission != 0);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
@@ -12167,7 +12288,8 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
         serverAssert(atomic_admission == 1 || atomic_admission == 2);
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->version_install_expected = 1;
-        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
+        g->mset_installs = csAtomicIoArrayCalloc(g, sizeof(*g->mset_installs),
+                                                 TOMO_ATOMIC_IO_INSTALL);
         serverAssert(s->dst_argi > 0);
         csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
         csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
@@ -12706,7 +12828,7 @@ static int csPipeAdvance(csGroup *g) {
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
 static void dispatchLocalReal(client *head, int w, int dbid) {
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc));
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc), 0);
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -12836,7 +12958,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
                         * this is meant to remove for an allocation. */
                        csKeyHashWant(atomic_bag ? nkeys : 1);
     if (atomic_msetnx) inline_want += (size_t)nkeys;
-    csGroup *g = csGroupNew(inline_want);
+    csGroup *g = csGroupNew(inline_want, atomic_write);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
     g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
@@ -12859,10 +12981,12 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->version_install_expected = version_expected;
         g->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
-        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) *
-                                       (size_t)version_expected);
+        g->mset_installs = csAtomicIoArrayCalloc(g, sizeof(*g->mset_installs) *
+                                                   (size_t)version_expected,
+                                                 TOMO_ATOMIC_IO_INSTALL);
         if (atomic_msetnx)
-            g->msetnx_state = csgCalloc(g, (size_t)nkeys);
+            g->msetnx_state = csAtomicIoArrayCalloc(g, (size_t)nkeys,
+                                                    TOMO_ATOMIC_IO_MSETNX);
         /* MSET/DEL/MSETNX accumulate their signature in the same routing-hash pass that builds
          * the first owner wave, then register immediately before its first push. Every other
          * atomic GATHER shape writes only the declared store destination. */
@@ -12982,7 +13106,7 @@ static void dispatchFanAll(client *head) {
     int nw = 0;
     for (int w = 0; w < server.num_workers; w++)
         if (tmWorkerLive(w)) lw[nw++] = w;
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc));
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc), 0);
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*) * nw);
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
@@ -13537,7 +13661,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
     if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
         migHoldKeyIfDraining(src);
     int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
-    csGroup *g = csGroupNew(CS_INLINE_MAX_BYTES);
+    csGroup *g = csGroupNew(CS_INLINE_MAX_BYTES, atomic_admission != 0);
     g->ctype = CS_SORTSTORE;
     g->nkeys = 1;
     g->nsub = 1;
@@ -13560,7 +13684,8 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
         serverAssert(atomic_admission == 1 || atomic_admission == 2);
         if (atomic_admission == 2) tomoAtomicMsetTryReserve(0);
         g->version_install_expected = 1;
-        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
+        g->mset_installs = csAtomicIoArrayCalloc(g, sizeof(*g->mset_installs),
+                                                 TOMO_ATOMIC_IO_INSTALL);
         int dst_argi = s->dynamic_dst_argi(head);
         serverAssert(dst_argi > 0 && dst_argi < head->argc);
         csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
@@ -13620,7 +13745,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
                         (size_t)head->argc : h1_argv + h2_argv;
     csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots) +
                             /* R1 exact-overlap vector: dst, plus src on the two-write shapes. */
-                            (atomic_admission ? csKeyHashWant(2) : 0));
+                            (atomic_admission ? csKeyHashWant(2) : 0), atomic_admission != 0);
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -13664,9 +13789,11 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
             (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
         g->version_nx = s->ctype == CS_RENAMENX ||
                         (s->ctype == CS_COPY && !(g->h2_flags & CS_H2F_REPLACE));
-        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
-                                       (size_t)g->version_install_expected);
-        if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
+        g->mset_installs = csAtomicIoArrayCalloc(g, sizeof(*g->mset_installs) *
+                                                   (size_t)g->version_install_expected,
+                                                 TOMO_ATOMIC_IO_INSTALL);
+        if (g->version_nx)
+            g->msetnx_state = csAtomicIoArrayCalloc(g, 1, TOMO_ATOMIC_IO_MSETNX);
         /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
          * source tombstone. Reuse the two routing hashes already computed above — the signature
          * is unchanged (csHashSignature reads the low 6 bits, which the bucket mask preserves),
@@ -14081,6 +14208,14 @@ static int csLaunchHop2(csGroup *g) {
 
 static void csReassemble(client *dst, client *head) {
     csGroup *g = head->csgroup;
+    int io_kind = g->versioned_write ? TOMO_ATOMIC_IO_WRITE : TOMO_ATOMIC_IO_RAW;
+    tomoAtomicIoStat *io_cost = &tm_io_sig[iotid].atomic_io;
+    uint64_t io_cost_start_ns = 0;
+    unsigned long long io_ordinal = ++io_cost->teardown_groups[io_kind];
+    int io_cost_sample = tomoAtomicCostSampleStart(io_ordinal,
+                                                   &io_cost->teardown_samples[io_kind],
+                                                   &io_cost->teardown_clock_ns[io_kind],
+                                                   &io_cost_start_ns);
     if (g->versioned_write) csMsetPendingRemove(g);
     /* ee451 (#B1): count the cross-shard command HERE — once, on the drain thread that retires the
      * group head — and NOT in csSubExec. A cross-shard command is fanned into one sub per owning
@@ -14514,13 +14649,13 @@ static void csReassemble(client *dst, client *head) {
     if (g->mset_installs) {
         for (int i = 0; i < g->version_install_expected; i++)
             serverAssert(g->mset_installs[i].kv == NULL);
-        csgFree(g, g->mset_installs);
+        csAtomicIoArrayFree(g, g->mset_installs, TOMO_ATOMIC_IO_INSTALL);
     }
-    csgFree(g, g->msetnx_state);
+    csAtomicIoArrayFree(g, g->msetnx_state, TOMO_ATOMIC_IO_MSETNX);
     /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
      * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
      * unlinked the group, so no R1 walk can still reach it. */
-    csgFree(g, g->key_h);
+    csAtomicIoArrayFree(g, g->key_h, TOMO_ATOMIC_IO_KEYHASH);
     if (g->snapshot_pinned) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
@@ -14544,8 +14679,12 @@ static void csReassemble(client *dst, client *head) {
             tomoAtomicWakeAll();
     }
     head->tomo_bkt_ptr = NULL;  /* group heads do not pass through exExecFake's stale-hint clear */
+    io_cost->group_heap_frees[io_kind]++;
     zfree(g);   /* MUST be last: every inline array above lives inside this block */
     head->csgroup = NULL;
+    if (io_cost_sample)
+        io_cost->teardown_cpu_ns[io_kind] +=
+            tomoAtomicCostThreadCpuNs() - io_cost_start_ns;
 }
 
 /* ee451 (v7): FLUSHALL/FLUSHDB for the sharded build. Each worker owns its shard DBs and is
@@ -18378,6 +18517,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         }
         tomoAtomicCostStat acost;
         tomoAtomicCostAggregate(&acost);
+        tomoAtomicIoStat aiocost;
+        tomoAtomicIoAggregate(&aiocost);
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -18510,6 +18651,69 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_stamp_drain_sample_entries:%llu\r\n", acost.stamp_drain_sample_entries,
             "tomokv_atomic_stamp_drain_cpu_ns:%llu\r\n", acost.stamp_drain_cpu_ns,
             "tomokv_atomic_stamp_drain_clock_ns:%llu\r\n", acost.stamp_drain_clock_ns));
+        /* IO-side atomic-group construction/teardown. Coordinator arrays are split into inline
+         * reserves (no allocator call) and real heap spills, so a logical csgAlloc cannot be
+         * mistaken for an allocation cycle. RAW/WRITE csReassemble use the same 1/1024 sampler;
+         * subtract each clock baseline, divide by its samples, then subtract RAW from WRITE for
+         * the atomic-only per-group teardown estimate on a matched command shape. */
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_atomic_io_group_raw_heap_allocs:%llu\r\n",
+                aiocost.group_heap_allocs[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_group_raw_requested_bytes:%llu\r\n",
+                aiocost.group_requested_bytes[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_group_raw_heap_frees:%llu\r\n",
+                aiocost.group_heap_frees[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_group_write_heap_allocs:%llu\r\n",
+                aiocost.group_heap_allocs[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_group_write_requested_bytes:%llu\r\n",
+                aiocost.group_requested_bytes[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_group_write_heap_frees:%llu\r\n",
+                aiocost.group_heap_frees[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_install_inline_reserves:%llu\r\n",
+                aiocost.array_inline_reserves[TOMO_ATOMIC_IO_INSTALL],
+            "tomokv_atomic_io_install_heap_allocs:%llu\r\n",
+                aiocost.array_heap_allocs[TOMO_ATOMIC_IO_INSTALL],
+            "tomokv_atomic_io_install_inline_releases:%llu\r\n",
+                aiocost.array_inline_releases[TOMO_ATOMIC_IO_INSTALL],
+            "tomokv_atomic_io_install_heap_frees:%llu\r\n",
+                aiocost.array_heap_frees[TOMO_ATOMIC_IO_INSTALL]));
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_atomic_io_msetnx_inline_reserves:%llu\r\n",
+                aiocost.array_inline_reserves[TOMO_ATOMIC_IO_MSETNX],
+            "tomokv_atomic_io_msetnx_heap_allocs:%llu\r\n",
+                aiocost.array_heap_allocs[TOMO_ATOMIC_IO_MSETNX],
+            "tomokv_atomic_io_msetnx_inline_releases:%llu\r\n",
+                aiocost.array_inline_releases[TOMO_ATOMIC_IO_MSETNX],
+            "tomokv_atomic_io_msetnx_heap_frees:%llu\r\n",
+                aiocost.array_heap_frees[TOMO_ATOMIC_IO_MSETNX],
+            "tomokv_atomic_io_keyhash_inline_reserves:%llu\r\n",
+                aiocost.array_inline_reserves[TOMO_ATOMIC_IO_KEYHASH],
+            "tomokv_atomic_io_keyhash_heap_allocs:%llu\r\n",
+                aiocost.array_heap_allocs[TOMO_ATOMIC_IO_KEYHASH],
+            "tomokv_atomic_io_keyhash_inline_releases:%llu\r\n",
+                aiocost.array_inline_releases[TOMO_ATOMIC_IO_KEYHASH],
+            "tomokv_atomic_io_keyhash_heap_frees:%llu\r\n",
+                aiocost.array_heap_frees[TOMO_ATOMIC_IO_KEYHASH],
+            "tomokv_atomic_io_pub_heap_allocs:%llu\r\n", aiocost.pub_heap_allocs,
+            "tomokv_atomic_io_pub_requested_bytes:%llu\r\n", aiocost.pub_requested_bytes,
+            "tomokv_atomic_io_pub_heap_frees:%llu\r\n", aiocost.pub_heap_frees));
+        info = sdscatprintf(info, FMTARGS(
+            "tomokv_atomic_io_teardown_raw_groups:%llu\r\n",
+                aiocost.teardown_groups[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_teardown_raw_samples:%llu\r\n",
+                aiocost.teardown_samples[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_teardown_raw_cpu_ns:%llu\r\n",
+                aiocost.teardown_cpu_ns[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_teardown_raw_clock_ns:%llu\r\n",
+                aiocost.teardown_clock_ns[TOMO_ATOMIC_IO_RAW],
+            "tomokv_atomic_io_teardown_write_groups:%llu\r\n",
+                aiocost.teardown_groups[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_teardown_write_samples:%llu\r\n",
+                aiocost.teardown_samples[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_teardown_write_cpu_ns:%llu\r\n",
+                aiocost.teardown_cpu_ns[TOMO_ATOMIC_IO_WRITE],
+            "tomokv_atomic_io_teardown_write_clock_ns:%llu\r\n",
+                aiocost.teardown_clock_ns[TOMO_ATOMIC_IO_WRITE]));
         for (int c = 0; c < TOMO_ATOMIC_ALLOC_CLASSES; c++) {
             info = sdscatprintf(info,
                 "tomokv_atomic_write_raw_kvobj_class_%u:%llu\r\n"

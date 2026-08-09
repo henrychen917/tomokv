@@ -2696,7 +2696,7 @@ void freeClient(client *c) {
         /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
          * reply buses: a worker retiring a group touches both (csMsetPubRetire, cdbSlotPublish),
          * and the ring-in-flight deferral above is what guarantees no worker still can. */
-        if (c->mset_pub) { zfree(c->mset_pub); c->mset_pub = NULL; }
+        if (c->mset_pub) { tomoAtomicIoPubFree(c->mset_pub); c->mset_pub = NULL; }
     }
 
     /* We need to unbind connection of client from io thread event loop first. */
