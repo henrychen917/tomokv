@@ -23068,7 +23068,7 @@ typedef struct {
     uint64_t ops_prev; mstime_t ops_prev_ms; int primed;
     /* extremum-seeking state */
     int      dir;            /* current gradient search direction (+1 front / -1 back); 0 = unset */
-    int      phase;          /* 0 idle, 1 warmup (await rebalance settle), 2 measure */
+    int      phase;          /* 0 idle, 1 warmup, 2 measure, 3 finish a multi-thread step */
     int      wait;           /* idle ticks before the next probe (exponential backoff when stable) */
     /* (backoff / probed_mask / converged / conv_mean / shift_run / null_abs / null_ref /
      * null_ref_valid DELETED 2026-07-28: eight fields left behind by earlier revisions of this
@@ -23083,6 +23083,9 @@ typedef struct {
     uint64_t ref_ops; mstime_t ref_ms;  /* measure-window open snapshot */
     double   before;         /* smoothed rate just before the probe flip */
     int      last_dir;       /* direction of the probe under evaluation */
+    int      step_moves;     /* thread moves in the ONE step now awaiting throughput judgement */
+    int      step_done;      /* phase 3: moves confirmed landed (each is a paired role transfer) */
+    int      step_armed;     /* phase 3: one async move is armed and awaiting land/abort */
     int      revert_dir;     /* direction of the last issued REVERT (0 = none since the last probe) */
     int      revert_retry;   /* that revert ABORTED mid-flight — re-issue until it lands */
     int      refuse_run;     /* consecutive refused climb steps; >= FLIP_SUSTAIN => structural */
@@ -23145,11 +23148,11 @@ typedef struct {
     int      lr_out_run;     /* consecutive ticks outside the band in that direction (Schmitt) */
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
-    int      best_dist;      /* steps taken since best_rate was set (0 = standing on the best) */
+    int      best_dist;      /* thread moves since best_rate was set (0 = standing on the best) */
     int      coast_used;     /* consecutive steps that did not beat the best SIGNIFICANTLY (momentum
                               * budget). Split from best_dist 2026-07-29: they answer different
                               * questions and conflating them walked the climb off its own optimum. */
-    int      revert_steps;   /* walk-back-to-best counter after an exhausted coast (>0 => repositioning) */
+    int      revert_steps;   /* one-thread transfers left in the exact walk-back-to-best */
     int      walkback_armed; /* a walk-back step is in flight; confirm it landed (no abort) before counting */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
@@ -23255,7 +23258,7 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * a climb may START. The actuator moves the signal, so without this
                                 * the controller re-triggers on its own post-flip transient. */
 #define FLIP_LOAD_SHIFT  3.0   /* a mid-climb throughput ratio past this is the OFFERED LOAD moving,
-                                * not the config: one flip moves one thread, and the worst case that
+                                * not the config: one physical flip moves one thread, and the worst case that
                                 * can do is halve the worker side (w=2 -> w=1) on a fully
                                 * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
 
@@ -23351,6 +23354,46 @@ static flipCtlState fctl[TM_MAXNODE];
 static int tmFlipDo(int node, int dir, const char **err) {
     if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
     return dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err);
+}
+
+/* How many one-thread role transfers make the next controller STEP. Only a gross imbalance that
+ * still agrees with the climb direction gets coalesced: close to the target (or after the signal
+ * crosses it) the existing one-thread hill-climb keeps its magnitude-one endgame. Far away,
+ * floor(|lr|/gstep) is the conservative count of WHOLE live-count-derived ratio quanta in the
+ * measured distance. The direction-specific live cap is a hard role-liveness invariant, not a
+ * tuning limit: grow-front must leave one EX worker; grow-back may consume only grown IO threads
+ * and must leave one live poly IO destination. The caller recalculates this for every new measured
+ * step. step_moves stores a result only while that step is actuated/judged so an exact revert is
+ * possible; it is never reused as the next step's magnitude. There is deliberately no signal-mode
+ * branch here: modes 0/1/2/3/5 all maintain lr_ewma and pass its matching existing gstep. */
+static int tmFlipStepMoves(flipCtlState *fc, double gstep, int dir,
+                           int w_live, int io_live, int grown_io_live) {
+    int cap;
+    if (dir > 0) {
+        cap = w_live - 1;
+    } else {
+        int io_cap = io_live - 1;
+        cap = grown_io_live < io_cap ? grown_io_live : io_cap;
+    }
+    if (cap < 1) return 0;
+
+    int moves = 1;
+    if (fabs(fc->lr_ewma) > FLIP_R_FAR && fc->lr_ewma * (double)dir > 0.0 &&
+        isfinite(gstep) && gstep > 0.0) {
+        double whole_moves = floor(fabs(fc->lr_ewma) / gstep);
+        moves = whole_moves < 1.0 ? 1 : (whole_moves > (double)cap ? cap : (int)whole_moves);
+    }
+    return moves;
+}
+
+/* A distance step is k serialized uses of the existing one-thread actuator, followed by exactly
+ * the existing settle + throughput-measure phases. Serializing is part of the conservation proof:
+ * the next transfer is not armed until the previous transfer has completed its -1/+1 role pair. */
+static void tmFlipStepMeasure(flipCtlState *fc) {
+    fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
+    fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
+    fc->rs_quiet = 0;
+    fc->step_done = 0; fc->step_armed = 0;
 }
 
 static void tomoFlipController(void) {
@@ -23480,7 +23523,7 @@ static void tomoFlipController(void) {
         }
         long io_occ_sum = 0; double io_wait_u_sum = 0.0;
         uint64_t io_wait_delta_sum = 0;
-        int io_occ_cnt = 0, io_live_node = 0;
+        int io_occ_cnt = 0, io_live_node = 0, grown_io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
@@ -23507,6 +23550,7 @@ static void tomoFlipController(void) {
             io_wait_delta_sum += dw;
             io_occ_cnt++;
             io_live_node++;
+            if (t >= server.io_threads) grown_io_live_node++;
         }
         /* ee451 2026-08-04: BOTH ROLES, ONE STATISTIC, ONE FILTER — EWMA(FESC_ALPHA) of the
          * per-thread mean OCCUPANCY. Two asymmetries were removed together:
@@ -23905,6 +23949,87 @@ static void tomoFlipController(void) {
                      " | IW(sig=%d UNSUPPORTED io_uring=%d u_io_idle=%.3f selected=legacy)",
                      server.flip_signal, server.io_uring, u_io_idle);
 
+        /* GRANULARITY OF ONE LIVE THREAD MOVE, in the units of the selected lr_ewma signal. This
+         * used to be calculated only in IDLE for the half-step floor. A distance step needs the
+         * same derived unit after every measured climb step too, so calculate it from the CURRENT
+         * live counts on every tick. Modes 0/5 use both role-capacity terms; worker modes 1/2/3
+         * use the existing direction-specific worker term because their lr_ewma omits IO. */
+        int ni = io_live_node > 0 ? io_live_node : 1;
+        int ne = w_live > 0 ? w_live : 1;
+        double gstep = log((double)(ni + 1) / (double)ni);
+        gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
+                          : 1.0;                          /* last worker: grow-back unavailable */
+        if (wsig)
+            gstep = (fc->lr_ewma > 0.0)
+                  ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)  /* grow-front: ne-1 */
+                  : log((double)(ne + 1) / (double)ne);                    /* grow-back:  ne+1 */
+        double gfloor = gstep / 2.0;
+
+        /* ===== PHASE 3: finish one distance-derived controller STEP. The physical actuator is
+         * intentionally still the existing one-thread tmFlipDo: arm one transfer, wait until its
+         * complete -1/+1 role conversion lands, then arm the next. No throughput judgement occurs
+         * between these transfers; after all k land, phases 1/2 judge the resulting k-thread step
+         * exactly as they judged the old one-thread step.
+         *
+         * If a later transfer aborts, the aborted transfer changed no role counts. Reverse every
+         * earlier transfer that DID land before ending the climb, restoring the precise pre-step
+         * config. If a later transfer is merely refused, judge the landed prefix as the actual
+         * step; a loss then walks back that exact prefix through the normal best_dist machinery. */
+        if (fc->phase == 3) {
+            if (server.tm_flip_aborted && node == server.tm_flip_aborted_node) {
+                int landed = fc->step_done;
+                server.tm_flip_aborted = 0;
+                fc->step_armed = 0;
+                if (landed == 0) {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] step %s k=%d ABORTED on its first transfer "
+                              "-> end climb, pin, pause", node,
+                              fc->last_dir > 0 ? "grow-front" : "grow-back", fc->step_moves);
+                    fc->dir = 0;
+                    fc->just_settled = 1;
+                    fc->revert_steps = 0; fc->walkback_armed = 0;
+                    fc->wait = FLIP_WAIT_REVERT;
+                } else {
+                    serverLog(LL_WARNING, "[flip-ctl n%d] step %s k=%d ABORTED after %d landed "
+                              "transfer(s) -> reverse exactly %d to restore pre-step config",
+                              node, fc->last_dir > 0 ? "grow-front" : "grow-back",
+                              fc->step_moves, landed, landed);
+                    fc->revert_steps = landed; fc->walkback_armed = 0;
+                    fc->wait = 0;
+                }
+                fc->step_moves = 0; fc->step_done = 0;
+                fc->phase = 0;
+                continue;
+            }
+            if (fc->step_armed) {
+                fc->step_armed = 0;
+                fc->step_done++;                    /* no abort => the paired role transfer landed */
+            }
+            if (fc->step_done < fc->step_moves) {
+                int can = fc->last_dir > 0 ? can_front : can_back;
+                const char *err = NULL;
+                if (can && tmFlipDo(node, fc->last_dir, &err)) {
+                    fc->step_armed = 1;
+                    break;                           /* serialize through the single migration gate */
+                }
+                /* The already-landed prefix is still a valid measured step. Do not silently add or
+                 * lose a role: shrink k to exactly that prefix and put it through the same judge. */
+                serverLog(LL_NOTICE, "[flip-ctl n%d] step %s k=%d stopped after %d transfer(s): %s "
+                          "-> settle+confirm the landed prefix",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back",
+                          fc->step_moves, fc->step_done,
+                          err ? err : "live role boundary changed");
+                if (fc->step_done == 0) {
+                    fc->dir = 0; fc->just_settled = 1; fc->wait = FESC_WAIT_BASE;
+                    fc->step_moves = 0; fc->phase = 0;
+                    continue;
+                }
+                fc->step_moves = fc->step_done;
+            }
+            serverLog(LL_NOTICE, "[flip-ctl n%d] STEP %s k=%d landed -> settle+confirm",
+                      node, fc->last_dir > 0 ? "GROW-FRONT" : "GROW-BACK", fc->step_moves);
+            tmFlipStepMeasure(fc);
+        }
+
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
          * consecutive ticks (all relative), capped for safety only. ===== */
@@ -24000,7 +24125,7 @@ static void tomoFlipController(void) {
              * going, reset the coast budget. A step that does NOT beat the best => COAST up to
              * FLIP_COAST such steps (crosses a single-config dip — real, or a false dip from a
              * transient-inflated start baseline); once the coast budget is spent we have clearly
-             * overshot the peak => WALK BACK best_dist steps to the best config and end. Bounding the
+             * overshot the peak => WALK BACK best_dist thread moves to the best config and end. Bounding the
              * coast to FLIP_COAST+1 steps means no unbounded drift (no ratchet). */
             /* TWO DIFFERENT QUESTIONS, and one band used to answer both (2026-07-29):
              *   "keep climbing?"      — needs a NOISE BAND, or the climb chases jitter for ever.
@@ -24028,12 +24153,13 @@ static void tomoFlipController(void) {
              * 2 steps, and pinned the deadzone — shutting that direction for the life of the
              * process. Three of the flip cell's failures were this one behaviour.
              *
-             * ONE flip moves ONE thread, which bounds how much throughput can physically change:
-             * the worst case is halving the worker side (w=2 -> w=1) on a fully worker-bound load,
-             * i.e. ~2x. A ratio past FLIP_LOAD_SHIFT therefore cannot be the config — the offered
-             * load moved. Adopt the new reference and keep climbing instead of judging against a
-             * phantom. Logged loudly: if this fires when the load did NOT change, that is a real
-             * defect (a flip that costs >3x is a wedge, not a tuning result) and must be visible.
+             * ONE physical transfer moves ONE thread, which bounds how much throughput it can
+             * change: the worst case is halving the worker side (w=2 -> w=1), ~2x. The existing
+             * FLIP_LOAD_SHIFT=3 bound therefore applies per transfer. A distance step serializes k
+             * such transfers without an intervening measure window, so its derived bound is
+             * FLIP_LOAD_SHIFT^k. Keeping the old 3x bound for a k-thread config change could call a
+             * real regression a load shift and bypass the required revert; composing the SAME
+             * per-transfer bound preserves the distinction without a new constant.
              *
              * This does NOT touch the climb law — owner ruling: "when flip triggers still go all
              * the way then fall back once it overshoots, that part stays the same". The step is
@@ -24046,8 +24172,9 @@ static void tomoFlipController(void) {
              * The actuator moves this signal, so this signal cannot police the actuator. Only
              * throughput -- which the climb is explicitly trying to move, and judges against its
              * own best -- can end a climb. */
+            double load_shift = pow(FLIP_LOAD_SHIFT, (double)(fc->step_moves > 0 ? fc->step_moves : 1));
             if ((after > 0 && fc->best_rate > 0 &&
-                (after > fc->best_rate * FLIP_LOAD_SHIFT || after * FLIP_LOAD_SHIFT < fc->best_rate))) {
+                (after > fc->best_rate * load_shift || after * load_shift < fc->best_rate))) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] RE-BASELINE %s (%.0f vs best %.0f; r %.2f vs "
                           "anchor %.2f) -> offered load changed mid-climb, not the config; end and re-decide",
                           node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
@@ -24072,12 +24199,13 @@ static void tomoFlipController(void) {
             int significant = (after > fc->best_rate + band);   /* worth spending another step on */
             int improved    = (after > fc->best_rate);          /* the best config measured so far */
             if (improved) { fc->best_rate = after; fc->best_dist = 0; }
-            else fc->best_dist++;
+            else fc->best_dist += fc->step_moves;
             if (significant) {
                 fc->coast_used = 0;
                 fc->wait = FLIP_WAIT_KEEP;                  /* fc->dir unchanged => PHASE 0 steps again */
-                serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN %s (best %.0f, sigma %.0f) -> keep climbing",
-                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, sigma);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] GAIN %s k=%d (best %.0f, sigma %.0f) -> keep climbing",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back",
+                          fc->step_moves, after, sigma);
             } else if (fc->best_rate - after <= band && ++fc->coast_used <= FLIP_COAST) {
                 /* ee451 2026-08-04: COAST ONLY ACROSS A DIP THAT COULD BE NOISE.
                  *
@@ -24100,16 +24228,17 @@ static void tomoFlipController(void) {
                  * the climb still steps past the peak once and walks back. This only stops it from
                  * stepping past a SECOND time on evidence that was never ambiguous. */
                 fc->wait = FLIP_WAIT_KEEP;                  /* coast: bet the next step recovers past a dip */
-                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s (%.0f vs best %.0f, short %.0f <= band %.0f, coast %d, back %d) -> keep climbing",
-                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] COAST %s k=%d (%.0f vs best %.0f, short %.0f <= band %.0f, coast %d, back %d) -> keep climbing",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->step_moves, after, fc->best_rate,
                           fc->best_rate - after, band, fc->coast_used, fc->best_dist);
             } else if (fc->best_dist > 0) {
-                /* coast spent without beating the best => overshot. Walk back best_dist steps to the
+                /* coast spent without beating the best => overshot. Walk back best_dist thread moves to the
                  * best config, then end the climb (PHASE 0 pins the deadzones there). */
                 fc->revert_steps = fc->best_dist;
                 fc->wait = 0;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s (%.0f vs best %.0f) -> walk back %d step(s) to best",
-                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", after, fc->best_rate, fc->best_dist);
+                serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s k=%d (%.0f vs best %.0f) -> walk back %d thread move(s) to best",
+                          node, fc->last_dir > 0 ? "grow-front" : "grow-back", fc->step_moves,
+                          after, fc->best_rate, fc->best_dist);
             } else {
                 /* Coast spent while STANDING ON the best measured config — the ordinary end of a
                  * climb whose last steps were real but sub-band improvements. There is nowhere to
@@ -24266,7 +24395,7 @@ static void tomoFlipController(void) {
         }
 
         /* WALK-BACK: after an exhausted coast (or a coasted climb that hit a pool edge/refusal), step
-         * back toward the best config — reverse of the climb direction, best_dist steps.
+         * back toward the best config — reverse of the climb direction, best_dist one-thread moves.
          * review [2,10]: ABORT-SAFE. tmFlipDo returns on ARM, not completion, and the step can abort
          * later; so confirm the previous step LANDED (no abort for this node) before counting it — never
          * decrement on a step that didn't physically happen. review [7]: only consume THIS node's abort. */
@@ -24288,7 +24417,8 @@ static void tomoFlipController(void) {
         /* MID-CLIMB: keep flipping the SAME direction while the pool allows it (momentum). */
         if (fc->dir != 0) {
             int d = fc->dir;
-            int can = (d > 0) ? can_front : can_back;
+            int moves = tmFlipStepMoves(fc, gstep, d, w_live, io_live_node, grown_io_live_node);
+            int can = ((d > 0) ? can_front : can_back) && moves > 0;
             if (!can) {
                 /* pool edge — the climb cannot continue. review [3,4]: if we COASTED past the best
                  * (best_dist>0) the current position is NOT the best, so walk back to it; otherwise
@@ -24316,12 +24446,13 @@ static void tomoFlipController(void) {
                 if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped */
                 fc->revert_dir = 0; fc->revert_retry = 0; fc->refuse_run = 0;
                 fc->last_dir = d;
-                fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
-                fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
-                fc->rs_quiet = 0;
-                serverLog(LL_NOTICE, "[flip-ctl n%d] CLIMB %s io_sat=%.2f ex_sat=%.2f (baseline %.0f ops/s) -> settle+confirm%s",
-                          node, d > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, fc->before, wsig_log);
-                break;                                       /* one flip per tick (single migration gate) */
+                fc->step_moves = moves; fc->step_done = 0; fc->step_armed = 1;
+                fc->phase = 3;
+                serverLog(LL_NOTICE, "[flip-ctl n%d] CLIMB %s k=%d io_sat=%.2f ex_sat=%.2f "
+                          "(baseline %.0f ops/s) -> finish-step+settle+confirm%s",
+                          node, d > 0 ? "GROW-FRONT" : "GROW-BACK", moves,
+                          io_sat, ex_sat, fc->before, wsig_log);
+                break;                                       /* first transfer owns the migration gate */
             } else if (err) {
                 /* review [9]: a REFUSAL is USUALLY transient (a migration slot momentarily busy),
                  * so pause and RETRY with dir kept.
@@ -24402,38 +24533,10 @@ static void tomoFlipController(void) {
          * NOT an objective: io5ex3 (|log r| 0.068) and io6ex2 (0.010) are CLOSER to 1 and
          * measurably WORSE (6.58M, 4.26M vs 7.28M). Nearness to 1 does not make a config good; it
          * only means no flip can make it more balanced. Throughput still picks among them. */
-        double gstep;
-        {
-            int ni = io_live_node > 0 ? io_live_node : 1;     /* THIS node's live IO threads */
-            int ne = w_live > 0 ? w_live : 1;                 /* THIS node's live workers */
-            gstep = log((double)(ni + 1) / (double)ni);
-            gstep += (ne > 1) ? log((double)ne / (double)(ne - 1))
-                              : 1.0;                          /* last worker: grow-back unavailable */
-            /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3). Same derivation, different signal.
-             * lr_worker = -log(ex_sat) is built from the WORKER side alone, so one thread-move
-             * moves it only through the worker capacity: grow-front takes ne -> ne-1 (capacity
-             * x (ne-1)/ne, signal -log(ne/(ne-1))), grow-back takes ne -> ne+1 (+log((ne+1)/ne)).
-             * Those two are NOT equal, so the step is taken in the direction the signal is actually
-             * asking to move -- the floor's question is "would THAT move land us closer to
-             * balance", and by the half-step argument above the answer is yes exactly when
-             * |lr| > step/2.
-             * The io term is deliberately NOT carried over: it is the step of a DIFFERENT signal,
-             * and pricing one signal's floor off another's step is the mismatched-kinds error this
-             * whole change exists to remove. Leaving it out is also the conservative direction --
-             * a lower-bound step gives a lower-bound floor, so the controller can still SEE an
-             * imbalance one move could fix, and throughput remains the thing that decides whether
-             * the move is worth taking. CONSEQUENCE, stated so it is not a surprise in the
-             * conformance table: at p32 SET/io4ex4 the ratio's floor (0.288) holds without probing
-             * while the worker floor at ne=4 is ln(4/3)/2 = 0.144 against a signal of about
-             * -log(0.85) = 0.16, so a cold boot AT that config will probe once, be rejected by
-             * throughput, walk back and anchor there. One excursion, then held -- not a re-climb,
-             * because the anchor is captured at the settled point. */
-            if (wsig)
-                gstep = (fc->lr_ewma > 0.0)
-                      ? ((ne > 1) ? log((double)ne / (double)(ne - 1)) : 1.0)  /* grow-front: ne-1 */
-                      : log((double)(ne + 1) / (double)ne);                    /* grow-back:  ne+1 */
-        }
-        double gfloor = gstep / 2.0;
+        /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3) remains the same derivation as before:
+         * lr_worker=-log(ex_sat), so only the direction-specific ne capacity change belongs in
+         * its gstep. The IO term belongs to a different signal. gstep/gfloor were calculated above
+         * from this tick's live counts so both this floor and a distance step use identical units. */
 
         if (tm_flip_trace) {
             serverLog(LL_NOTICE,
@@ -24646,6 +24749,8 @@ static void tomoFlipController(void) {
         }
 
         fc->before = fc->mean;
+        int moves = tmFlipStepMoves(fc, gstep, want, w_live, io_live_node, grown_io_live_node);
+        if (moves <= 0) continue;                         /* live cap is the final role invariant */
         const char *err = NULL;
         if (tmFlipDo(node, want, &err)) {
             if (node == server.tm_flip_aborted_node) server.tm_flip_aborted = 0;  /* review [7]: node-scoped clear */
@@ -24653,16 +24758,17 @@ static void tomoFlipController(void) {
             fc->best_rate = fc->before; fc->best_dist = 0; fc->revert_steps = 0; fc->walkback_armed = 0;  /* look-ahead */
             fc->coast_used = 0;                          /* fresh momentum budget for the new climb */
             fc->last_dir = want; fc->dir = want;
+            fc->step_moves = moves; fc->step_done = 0; fc->step_armed = 1;
             fc->start_io = io_live_node;              /* net-zero detector: where this climb began */
             fc->veto_lr = fc->lr_ewma;                /* same-wave latch: the lr that pulled this trigger */
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
-            fc->phase = 1; fc->warm_ticks = 0; fc->settle_run = 0; fc->warm_prev = fc->mean;
-            fc->rs_prev = atomic_load_explicit(&server.reshard_done_seq, memory_order_relaxed);
-            fc->rs_quiet = 0;
-            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s io_sat=%.2f ex_sat=%.2f r=%.2f past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm%s",
-                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", io_sat, ex_sat, exp(fc->lr_ewma),
-                      exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band), fc->before, wsig_log);
-            break;                                           /* one flip per tick (single migration gate) */
+            fc->phase = 3;
+            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s k=%d io_sat=%.2f ex_sat=%.2f r=%.2f "
+                      "past %.2f (target 1) (baseline %.0f ops/s) -> finish-step+settle+confirm%s",
+                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", moves, io_sat, ex_sat,
+                      exp(fc->lr_ewma), exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band),
+                      fc->before, wsig_log);
+            break;                                           /* first transfer owns the migration gate */
         } else if (err) {
             serverLog(LL_NOTICE, "[flip-ctl n%d] start %s refused: %s", node, want > 0 ? "grow-front" : "grow-back", err);
             fc->wait = FESC_WAIT_BASE;                       /* blocked (transient) — pause and re-read */
