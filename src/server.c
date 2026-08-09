@@ -23226,11 +23226,14 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * relied on to absorb. At 3% the marginal ticks are isolated, and
                                 * a trigger needs FLIP_SUSTAIN(8) CONSECUTIVE of them.
                                 * Centring on the settle point,
-                                * not on 1, is what makes a REJECTED climb stick: the throughput
-                                * veto walks back, we settle at r=1.19, the band becomes
-                                * [1.13,1.25], and r=1.19 is inside => hold. Centred on 1 instead,
-                                * r=1.19 stays out of band and the identical climb restarts for
-                                * ever -- measured as 103 flips and -24% throughput on p32 SET.
+                                * not on 1, is what makes a REJECTED climb stick near the target:
+                                * the throughput veto walks back, we settle at r=1.19, the band
+                                * becomes [1.13,1.25], and r=1.19 is inside => hold. Centred on 1
+                                * instead, r=1.19 stays out of band and the identical climb
+                                * restarts for ever -- measured as 103 flips and -24% throughput
+                                * on p32 SET. Gross imbalance is the exception: FLIP_R_FAR keeps
+                                * an anchor from certifying a >=2x error, while veto_run and the
+                                * same-wave latch quench a move that throughput rejects there.
                                 * r=1 remains the GOAL the climb moves toward; this is only the
                                 * hysteresis around where it actually came to rest. */
 #define FLIP_SUSTAIN     8     /* consecutive out-of-band ticks (~2s = 2 EWMA time constants) before
@@ -24488,7 +24491,27 @@ static void tomoFlipController(void) {
          * is a difference — but it is worth knowing before anyone reads u_ex as ground truth.) */
         const int occ_clip = 100 - ((int)(1.0 / FESC_ALPHA) - 1);   /* = 97 at alpha 0.25 */
         int floor_blind = (wclip && fc->lr_ewma < 0.0 && fc->ex_occ_smooth >= occ_clip);
-        if ((fabs(fc->lr_ewma) > gfloor || floor_blind) && fabs(fc->lr_ewma - fc->lr_anchor) > band)
+        int beyond_floor = (fabs(fc->lr_ewma) > gfloor || floor_blind);
+        int beyond_band = fabs(fc->lr_ewma - fc->lr_anchor) > band;
+        /* GROSS IMBALANCE CANNOT BE RATIFIED BY A SELF-CENTRING ANCHOR. The band is hysteresis
+         * around a throughput-settled point, not a second opinion on the target. Letting its
+         * running mean override the granularity floor made every stable configuration certify
+         * itself: once lr stopped moving, anchor converged to lr and beyond_band became false even
+         * while the floor said a thread move could still improve balance.
+         *
+         * Keep that hysteresis for the normal settled regime, including the asymmetric optima for
+         * which it was introduced, but bypass it once the SAME smoothed decision signal used by
+         * every mode is beyond FLIP_R_FAR. That is the existing scale-free definition of a gross
+         * (>=2x) imbalance, not a new machine-dependent threshold. The floor still has to pass, so
+         * an unrepresentable move remains suppressed.
+         *
+         * This cannot create an unbounded optimum oscillation. If throughput rejects the move, the
+         * unchanged judge walks back; each net-zero excursion raises veto_run, and after two the
+         * same-wave latch below suppresses this stable lr until it moves by a full live-thread
+         * gstep. Below FLIP_R_FAR the band is completely unchanged, and at a pool edge can_front /
+         * can_back still prevents a move. */
+        int gross_imbalance = fabs(fc->lr_ewma) > FLIP_R_FAR;
+        if (beyond_floor && (beyond_band || gross_imbalance))
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
         else {
             /* ee451 2026-08-04: SELF-CENTRING ANCHOR — the anchor is the RUNNING MEAN of the
@@ -24507,8 +24530,9 @@ static void tomoFlipController(void) {
              *
              * A running mean needs NO rate constant: 1/n IS the rate, and it slows as evidence
              * accumulates, so a well-established anchor stops chasing and a genuine drift crosses
-             * the band instead of being absorbed. Only IN-BAND ticks contribute, so an excursion
-             * that is on its way to triggering cannot drag the centre toward itself. */
+             * the band instead of being absorbed. Only non-triggering ticks contribute. In
+             * particular, a floor-actionable gross imbalance never contributes even when the
+             * anchor has already slid onto it, so it cannot erase its own trigger. */
             if (fc->dir == 0 && fc->phase == 0 && fc->lr_init && fc->anchor_n > 0 &&
                 isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
                 if (fc->anchor_n < INT_MAX) fc->anchor_n++;
