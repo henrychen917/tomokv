@@ -21569,6 +21569,22 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
  * mode/target_mode, which follow the checkpoint protocol documented on polyThreadCtx). */
 static polyThreadCtx *tmPolyCtxs = NULL;
 
+/* Keep the kernel thread name aligned with the role published by the checkpoint below. On Linux
+ * redis_set_thread_title() is pthread_setname_np() (PR_SET_NAME underneath), so
+ * /proc/<pid>/task/<tid>/comm is a cheap, authoritative TID -> current-role map for perf/resctrl.
+ * The main thread is the fixed IO0 endpoint and deliberately keeps the process title; its TID is
+ * getpid(). Names are <= Linux's 15-byte payload limit even at the compiled slot maxima. */
+static void tmSetRoleThreadTitle(const polyThreadCtx *ctx, int mode) {
+    char title[16];
+    if (mode == TOMO_MODE_IO)
+        snprintf(title, sizeof(title), "tomo-io-%03d", ctx->io_slot);
+    else {
+        serverAssert(mode == TOMO_MODE_EX);
+        snprintf(title, sizeof(title), "tomo-ex-%03d", ctx->ex_slot);
+    }
+    redis_set_thread_title(title);
+}
+
 /* ee451 (thread-modes v1.6): connection-migration mailboxes, one per io-capable slot.
  * Zero-initialized (static storage); live slots get lists/notifier from tmMigInitSlot. */
 tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];
@@ -22197,6 +22213,10 @@ void *polyThreadMain(void *arg) {
             }
             if (ok) {
                 cur = want;
+                /* Publish the diagnostic identity before the role. An observer that acquires the
+                 * new mode can therefore already resolve this TID by its current-role comm name;
+                 * static-mode measurements see no subsequent rename at all. */
+                tmSetRoleThreadTitle(ctx, cur);
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
                 refused = 0;                            /* a successful shift re-arms rejection logging */
             } else if (refused != want) {
