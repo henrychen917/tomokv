@@ -23029,6 +23029,11 @@ typedef struct {
      * 43%-below-peak config "balanced" because an over-provisioned IO thread SPINS rather than
      * blocking, so scheduled CPU cannot tell working from polling. See the u_io/u_ex comment.
      * The raw tm_busy_us counters survive for INFO only — nothing decides on them. */
+    int      io_occ_smooth_q4;
+    int      ex_occ_smooth_q4;
+    /* tomokv-flip-signal 0 is the A/B control arm. Keep its original whole-percent filters as
+     * shadows so its decisions stay bit-identical; both representations advance every tick so a
+     * runtime CONFIG SET does not cold-start either arm. Modes 1/2/3 consume the Q4 fields. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
     int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
@@ -23074,6 +23079,8 @@ static flipCtlState fctl[TM_MAXNODE];
  * None is an operating threshold in throughput or pressure units — those are all derived per-tick
  * from the measured rate and its noise. */
 #define FESC_ALPHA      0.25   /* throughput mean/variance EWMA rate */
+#define FESC_OCC_Q4_SHIFT 4    /* modes 1/2/3 occupancy EWMAs store percentage points * 16 */
+#define FESC_OCC_Q4_ONE (1 << FESC_OCC_Q4_SHIFT)
 #define FESC_SETTLE_N   5      /* warmup ends after this many settled ticks (rate plateau AND reshard-quiet; cache warmup needs the extra room) */
 #define FESC_WARM_FAST  12     /* warmup cap (~3s) while the ratio is FAR from target: direction is
                                 * unambiguous there, so only the rate plateau is required */
@@ -23120,6 +23127,11 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * io4ex4 boot read 0.90 steady, was labelled CLIENT-bound, and held
                                 * at 95% of peak with its band, floor and direction all already
                                 * correct.
+                                *
+                                * HISTORICAL-NUMBERS NOTE (2026-08-08): the io_sat/ex_sat figures
+                                * above predate the occupancy-Q4 fix and include the old integer
+                                * EWMA's up-to-3-percentage-point under-read. Do not re-derive this
+                                * threshold from those stale absolute values.
                                 *
                                 * 0.75 is not a new number — it is the distress point the quorum
                                 * pressure balancer already calibrates against (busy_hi, see the
@@ -23409,6 +23421,13 @@ static void tomoFlipController(void) {
          *   - quantity: both were CPU time, which counts an idle IO thread's spin as work.
          * The CPU-time path is gone; see the u_io/u_ex comment for the measurement. */
         int io_occ_mean = io_occ_cnt ? (int)(io_occ_sum / io_occ_cnt) : 0;
+        /* Q4 fixes the same bug class as tm_qdepth_ewma_q4 above: keeping the EWMA in whole
+         * units made alpha*delta truncate to zero throughout the last three percentage points.
+         * Scaling the input before the unchanged recurrence moves that dead zone to 3/16 point. */
+        fc->io_occ_smooth_q4 += (int)(FESC_ALPHA *
+            ((io_occ_mean << FESC_OCC_Q4_SHIFT) - fc->io_occ_smooth_q4));
+        /* Mode 0 is the owner-required bit-identical control arm. Its original recurrence is
+         * intentionally maintained in parallel and selected at the u_io/u_ex conversion below. */
         fc->io_occ_smooth += (int)(FESC_ALPHA * (io_occ_mean - fc->io_occ_smooth));
         double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
@@ -23473,6 +23492,8 @@ static void tomoFlipController(void) {
             occ_sum += (100 - oi); occ_n++;
         }
         int occ_mean = occ_n ? (occ_sum / occ_n) : 0;
+        fc->ex_occ_smooth_q4 += (int)(FESC_ALPHA *
+            ((occ_mean << FESC_OCC_Q4_SHIFT) - fc->ex_occ_smooth_q4));
         fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
         /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
          * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
@@ -23591,8 +23612,13 @@ static void tomoFlipController(void) {
          * and the remaining ~0.85 over 4 workers is ~21% spin EACH. Switching EX to thread CPU
          * would report those workers at ~0.99, hiding 21% of real slack, moving r from 1.26 to
          * ~1.0 and destroying the discrimination that makes p32 SET correctly HOLD. */
-        double u_io = (double)fc->io_occ_smooth / 100.0;
-        double u_ex = (double)fc->ex_occ_smooth / 100.0;
+        /* Representation changes here, units do not: Q4 percentage points / (16 * 100) is the
+         * same [0,1] utilization consumed by every existing saturation and threshold comparison.
+         * Mode 0 selects the untouched whole-percent shadows, preserving its decision operands. */
+        double u_io = wsig ? (double)fc->io_occ_smooth_q4 / (100.0 * FESC_OCC_Q4_ONE)
+                           : (double)fc->io_occ_smooth / 100.0;
+        double u_ex = wsig ? (double)fc->ex_occ_smooth_q4 / (100.0 * FESC_OCC_Q4_ONE)
+                           : (double)fc->ex_occ_smooth / 100.0;
         if (u_io > 1.0) u_io = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
         /* THE CLIP IS WHY THE BACKLOG TERM IS LOAD-BEARING RATHER THAN DECORATIVE (2026-08-08).
@@ -24352,19 +24378,16 @@ static void tomoFlipController(void) {
          * already IMPLIES a persistent standing queue given u_ex <= 1 — ex_sat can only exceed 1
          * through the backlog term — so no separate queue test is needed or wanted.
          *
-         * THE CLIP POINT IS NOT 100, AND THIS IS A REAL PROPERTY OF THE FILTER, NOT A FUDGE.
-         * ex_occ_smooth is an INTEGER EWMA:  s += (int)(FESC_ALPHA * (occ - s)). With alpha 0.25
-         * the increment truncates to zero once |occ - s| < 4, so the filter STALLS 3 units short:
-         * a worker at a true 100% occupancy converges to 97 and stops (96 -> +1 -> 97 -> +0).
-         * u_ex therefore reads at most 0.97 no matter how saturated the role is, and testing for
-         * 1.0 would make this branch dead code. The stall band is 1/alpha - 1 units, so the clip
-         * point is derived from the filter's own quantisation rather than hand-set.
-         * (Note the same quantisation puts a +/-3-unit dead zone around EVERY occupancy reading,
-         * and hence a systematic ~+0.03 offset on lr_worker at true balance. It is harmless for
-         * triggering because the ANCHOR is captured from the same biased signal and the band test
-         * is a difference — but it is worth knowing before anyone reads u_ex as ground truth.) */
-        const int occ_clip = 100 - ((int)(1.0 / FESC_ALPHA) - 1);   /* = 97 at alpha 0.25 */
-        int floor_blind = (wclip && fc->lr_ewma < 0.0 && fc->ex_occ_smooth >= occ_clip);
+         * THE CLIP POINT IS THE FILTER'S REACHABLE FULL-SCALE PLATEAU, NOT A NEW THRESHOLD.
+         * A fixed-point EWMA must still truncate sub-LSB increments. With alpha 0.25 it stalls
+         * three STORAGE units short of its input; Q4 moves those units from whole percentage
+         * points to sixteenths, so a true 100% input plateaus at 1597/16 = 99.8125% rather than
+         * 97%. Deriving and comparing in Q4 preserves this check's meaning exactly: "the worker
+         * occupancy filter has clipped at the highest value its representation can reach." */
+        const int occ_clip_q4 = (100 << FESC_OCC_Q4_SHIFT) -
+                                ((int)(1.0 / FESC_ALPHA) - 1);       /* 1597 at alpha 0.25 */
+        int floor_blind = (wclip && fc->lr_ewma < 0.0 &&
+                           fc->ex_occ_smooth_q4 >= occ_clip_q4);
         if ((fabs(fc->lr_ewma) > gfloor || floor_blind) && fabs(fc->lr_ewma - fc->lr_anchor) > band)
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
         else {
