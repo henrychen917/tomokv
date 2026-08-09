@@ -562,12 +562,19 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
+    /* Productive IO wall µs: CQ harvest/parser callbacks, beforeSleepIO reply/write work, and
+     * fired read/write callbacks. Appended into pend_write's existing owner-written cache line so
+     * no preceding field moves and the struct gains no cache line. Wrap-safe cumulative counter. */
+    unsigned int tm_work_us;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
+_Static_assert(offsetof(tmIoSignal, pend_write) / CACHE_LINE_SIZE
+               == offsetof(tmIoSignal, tm_work_us) / CACHE_LINE_SIZE,
+               "IO work clock added an owner cache line");
 /* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
@@ -18027,15 +18034,17 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flip_in_floor_probe_reverts:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed)));
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
-         * candidate utilization estimator can be checked against a measured throughput curve.
-         * Take two samples and divide each delta by (threads * wall * 1000) to derive its fraction.
+         * utilization estimator can be checked against a measured throughput curve. Take two
+         * samples and divide each productive-work delta by (live threads * wall * 1000):
+         * tm_work_us on IO and tm_busy_us on EX are the controller's symmetric numerators.
          *
          * tm_idle_us remains the legacy zero-event-episode measure. tm_wait_us is the new epoll
-         * wait measure; it is published beside idle so one pair of INFO snapshots can falsify the
-         * new estimator without losing the old control. It is explicitly unsupported under uring
-         * because DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
+         * wait measure; both remain beside productive work so one pair of INFO snapshots can
+         * compare all three observations. Wait is explicitly unsupported under uring because
+         * DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
         {
-            unsigned long long io_busy = 0, ex_busy = 0, io_idle = 0, io_wait = 0, ex_idle = 0;
+            unsigned long long io_work = 0, io_busy = 0, ex_busy = 0;
+            unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
@@ -18046,6 +18055,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
                 if ((!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO)
                     && t >= server.io_threads) continue;      /* grown slot not serving IO */
+                io_work += tm_io_sig[t].tm_work_us;
                 io_busy += tm_io_sig[t].tm_busy_us;
                 io_idle += tm_io_sig[t].tm_idle_us;
                 io_wait += tm_io_sig[t].tm_wait_us;
@@ -18056,6 +18066,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 { ex_busy += server.exThreads[w].tm_busy_us;
                   ex_idle += server.exThreads[w].tm_idle_us; }
             info = sdscatprintf(info, FMTARGS(
+                "tomokv_io_work_us:%llu\r\n", io_work,
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
                 "tomokv_io_idle_us:%llu\r\n", io_idle,
@@ -21578,8 +21589,8 @@ void initIOThreads(void) {
  * It is not a useful-work estimator: an idle IO owner can burn scheduled CPU in drain spin and
  * short polls, so CPU over-reports busy. Nor can elapsed time around io_uring_enter replace it as
  * a wait estimator: with DEFER_TASKRUN, useful completion taskwork runs inside that syscall (the
- * recorded naive bracket published 17% busy on a 99.5%-CPU thread). The controller therefore uses
- * neither observation as mode-5 WAIT under uring; that mode is explicitly unsupported there.
+ * recorded naive bracket published 17% busy on a 99.5%-CPU thread). The ratio controller uses
+ * neither observation; its explicit productive-work brackets sit outside backend wait/spin.
  *
  * CLOCK_THREAD_CPUTIME_ID is a real syscall rather than a vDSO read, so the diagnostic counter is
  * sampled on a ~16ms gate instead of every pass. Both marks are TLS; only tm_busy_us is published. */
@@ -21621,21 +21632,25 @@ static inline void tmIoBusyBegin(void) {
  * uses a bounded wait so late dormant-EX work is observed without relying on an
  * event-loop wakeup; reply-bearing passes retain ae.c's shorter drain policy.
  *
- * aeProcessEventsIO also returns the epoll/drain WAIT span for this pass. ioSlice publishes it
- * beside the legacy zero-event idle counter; server.c wait helpers publish callback-side waits
- * directly into the same per-owner counter. io_uring returns zero by design because completion
- * taskwork and sleeping cannot be separated inside io_uring_enter. */
+ * aeProcessEventsIO returns both explicitly bracketed productive work and the epoll/drain WAIT
+ * span for this pass. ioSlice publishes both beside the legacy zero-event idle counter; server.c
+ * wait helpers publish callback-side waits directly into the same wait counter. io_uring wait is
+ * zero by design because completion taskwork and sleeping cannot be separated inside enter, but
+ * its user-space CQ/parser/reply/event work is still bracketed. */
 static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     tmIoSignal *s = &tm_io_sig[t->id];
-    uint64_t wait_us = 0;
-    int ne = aeProcessEventsIO(t->el, idle_wait_us, &wait_us);
-    s->tm_wait_us += (unsigned int)wait_us;
+    aeIOAccounting accounting;
+    int ne = aeProcessEventsIO(t->el, idle_wait_us, &accounting);
+    s->tm_work_us += (unsigned int)accounting.work_us;
+    s->tm_wait_us += (unsigned int)accounting.wait_us;
     {
         /* Owner-published scheduled-CPU diagnostic, sampled on a gate. Accumulate it in STATIC
          * mode as well as auto so INFO snapshots can compare CPU, zero-event idle, and true wait
          * against measured throughput while the split is held fixed. It is not a controller input;
          * see tmIoBusyBegin for why neither CPU nor whole-uring-call elapsed time is WAIT. */
-        uint64_t now_us = getMonotonicUs();
+        /* aeProcessEventsIO moved this pass's existing monotonic read to the end of its final
+         * productive span, so the CPU diagnostic and legacy idle clock reuse it here. */
+        uint64_t now_us = accounting.end_us;
         if (now_us >= tm_io_cpu_next_us) {
             uint64_t cpu = tmThreadCpuNs();
             if (tm_io_cpu_last_ns && cpu > tm_io_cpu_last_ns)
@@ -22340,8 +22355,8 @@ static long tmIoThreadLoad(int id) {
 
 /* Client-LB weight for io thread `id` (events-per-pass, Q4 fixed-point). This is deliberately
  * retained for relative connection placement, where per-thread event density is useful, but it
- * is NOT a flip-controller IO saturation signal (legacy zero-event occupancy or mode-5 wait-time
- * occupancy is). Cross-thread-racy read of a single int (non-torn) — fine for a heuristic. */
+ * is NOT a flip-controller ratio signal (productive work/wall is). Cross-thread-racy read of a
+ * single int (non-torn) — fine for a heuristic. */
 static double tmIoThreadBusy(int id) {
     return (id >= 0 && id <= TOMO_IO_THREADS_MAX) ? (double)tm_io_sig[id].busy_ewma_q4 : 0.0;
 }
@@ -23130,16 +23145,14 @@ typedef struct {
                               * ~80s period, 4 flips/160s, after backoff halved the original 8). */
     double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
-    /* Legacy occupancy = 100 - zero-event-idle%, EWMA(FESC_ALPHA). The CPU-time pair
-     * (busy_smooth / io_busy_smooth) was deleted 2026-08-04: it called a
-     * 43%-below-peak config "balanced" because an over-provisioned IO thread SPINS rather than
-     * blocking, so scheduled CPU cannot tell working from polling. See the u_io/u_ex comment.
-     * The raw tm_busy_us counters survive for INFO only — nothing decides on them. Modes 0-4
-     * retain these fields byte-for-byte; mode 5 substitutes the epoll wait-time estimate below. */
+    /* Legacy no-work occupancy stays live for worker-only modes 1/2/3 and for diagnostics. It is
+     * deliberately not a ratio operand: one fd event marks a whole IO pass occupied. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
-    double   io_wait_u_smooth; /* EWMA of 1 - epoll-wait/wall, kept in double so the legacy
-                                * integer-EWMA truncation cannot pin a near-one signal. */
+    double   io_wait_u_smooth; /* INFO comparison: EWMA of 1 - epoll-wait/wall. */
+    /* Ratio modes 0/5 use these two identically filtered PRODUCTIVE-WORK/WALL fractions. */
+    double   io_work_u_smooth;
+    double   ex_work_u_smooth;
     /* Per-role saturation-magnitude noise. This is the same EWMA mean+variance estimator shape as
      * throughput's mean/var pair, applied to the selected U_IO and U_EX fractions. */
     double   u_io_mean, u_io_var;
@@ -23156,14 +23169,14 @@ typedef struct {
      * and specifically the thrash the just_settled block below documents. Both signals are LOGS OF
      * A DIMENSIONLESS SATURATION, so FLIP_R_BAND / FLIP_R_QUIET / FLIP_R_FAR keep their meaning
      * (relative change of the smoothed signal) unchanged across modes. */
-    double   lr_ewma;        /* EWMA of the DECISION signal: log(io_sat/ex_sat) at flip-signal 0/5,
+    double   lr_ewma;        /* EWMA of the DECISION signal: log(u_io/u_ex) at flip-signal 0/5,
                               * -log(ex_sat) at 1/2/3/4. Positive => grow-front in both. */
     int      lr_init;        /* lr_ewma seeded from the first non-idle sample */
     double   lr_prev_tick;   /* lr_ewma at the previous tick — feeds lr_quiet_run */
     int      lr_quiet_run;   /* consecutive ticks the RATIO has held still; gates climb START */
     int      anchor_n;       /* settled ticks folded into lr_anchor — 1/n IS the re-centring rate */
-    double   lr_anchor;      /* log of the SETTLE sat ratio = the band CENTRE (owner: "dz is settle
-                              * sat ratio +/- 5%"). Target r=1 is the GOAL the climb moves toward;
+    double   lr_anchor;      /* settled decision signal = the retry-band centre. Target r=1 is the
+                              * productive-ratio GOAL the ratio climb moves toward;
                               * the deadzone sits at wherever we actually settled, which is what
                               * stops a failed direction from being retried immediately. */
     double   anchor_u_io;    /* selected U_IO snapshot at capture; magnitude-shift invalidator */
@@ -23202,23 +23215,20 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FESC_WAIT_BASE  8      /* idle ticks between probes (~2s) */
 
 /* --- Pressure-directed decision (2026-07-24 user directive: "determine direction by front/back
- * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION comes
- * from the io-vs-ex saturation RATIO; THROUGHPUT only VETOES (revert a measured regress).
+ * pressure + throughput; revert if worse; deadzone = pre-flip pressure + 5-10%"). DIRECTION in
+ * ratio modes comes from productive U_IO/U_EX; THROUGHPUT only VETOES a measured regression.
  * A fully settled inside-floor episode gets one adjacent-config probe; after its existing judge
  * keeps or reverts that probe, the episode latch restores the zero-churn steady-state hold.
  *
- * RATIO, NOT DIFFERENCE (owner design 2026-08-03). The old signal was io_sat - ex_sat. A
- * difference is not scale-free and it assumes the two roles are symmetric. They are not: at the
- * config this controller converges to, AND that the static sweep confirms is optimal (io6,
- * ~828k ops/s), the steady readings are io_sat=1.18 ex_sat=0.68 — the HEALTHY operating point is
- * r=1.74, not "difference == 0". A difference also compresses the distinction that matters (the
- * transient that used to pin the deadzone, 0.73/0.08, and the steady state that followed,
- * 0.87/0.60, are 2.4x apart as differences but 6.3x apart as ratios) and goes blind at low load,
- * where (0.09, 0.01) is a difference of 0.08 while IO does 9x the work of EX.
+ * RATIO, NOT DIFFERENCE (owner design 2026-08-03). A difference is not scale-free. With both
+ * operands now the same PRODUCTIVE-WORK/WALL statistic, r=1 has a physical meaning: each live
+ * thread in the two roles spends the same wall fraction producing role output. That is the target
+ * whose one-thread capacity step defines the floor; legacy IO CPU/non-waiting/occupancy ratios did
+ * not share that meaning and placed r=1 on the wrong configurations.
  *
- * Worked in LOG space, so |log r| is symmetric and ONE band replaces the old dz_front AND
- * dz_back. The band is centred on the ANCHOR — the log-ratio measured at a settled operating
- * point — so the controller LEARNS that balanced is 1.74 here instead of assuming 1.0. --- */
+ * Worked in log space, |log r| is symmetric and one band covers both directions. The settled
+ * anchor remains only retry hysteresis after the throughput judge; it does not redefine r=1 or
+ * legalize an anchor outside the existing half-step floor. --- */
 #define FLIP_BOUND_SAT   0.75  /* total sat (= max of the two roles) at or above this => the SERVER is
                                 * the constraint and a flip can win something. Below it no stage is
                                 * saturated, so the CLIENT or the round trip is the constraint and
@@ -23261,13 +23271,9 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * out-of-band rate is 4-14%, which FLIP_SUSTAIN can no longer be
                                 * relied on to absorb. At 3% the marginal ticks are isolated, and
                                 * a trigger needs FLIP_SUSTAIN(8) CONSECUTIVE of them.
-                                * Centring on the settle point,
-                                * not on 1, is what makes a REJECTED climb stick near the target:
-                                * the throughput veto walks back, we settle at r=1.19, the band
-                                * becomes [1.13,1.25], and r=1.19 is inside => hold. Centred on 1
-                                * instead, r=1.19 stays out of band and the identical climb
-                                * restarts for ever -- measured as 103 flips and -24% throughput
-                                * on p32 SET. An anchor now exists only strictly inside the derived
+                                * Centring retry hysteresis on the settle point makes a rejected
+                                * climb stick instead of immediately retrying. An anchor now exists
+                                * only strictly inside the derived
                                 * half-step floor; on floor exit it becomes UNSET before the band is
                                 * consulted, so no outside-floor magnitude can certify itself.
                                 * r=1 remains the GOAL the climb moves toward; this is only the
@@ -23305,14 +23311,11 @@ static flipCtlState fctl[TM_MAXNODE];
  * the load-change re-baseline and the client-bound terminal condition are shared across all modes
  * — this knob answers "which quantity drives the imbalance", nothing else.
  *
- * WHY THE IO SIDE IS THE OPERAND WORTH REMOVING. Every defect this controller has had was a gate
- * comparing MISMATCHED KINDS, and the io term is the one that cannot be trusted to mean what it
- * says: an over-provisioned IO thread does not block, it SPINS, so its busy time counts polling an
- * empty socket set as work (measured in the u_io comment: r_cpu 0.982 — dead on "balanced" — for a
- * config running at 57% of peak), and under io_uring with DEFER_TASKRUN the work happens INSIDE
- * io_uring_enter, which once read io_sat 0.17 on a thread that was 99.5% busy. Occupancy fixed the
- * first of those; the second is a property of where the work is accounted, not of the filter.
- * Deleting the io operand from the DIRECTION deletes the whole class.
+ * RATIO MODES NOW COMPARE THE SAME KIND OF QUANTITY. IO scheduled CPU, IO non-waiting time and
+ * zero-event occupancy all counted some polling as work; EX already publishes the actual
+ * first-pop..work-pass-end clock. Ratio modes therefore use only explicitly bracketed productive
+ * work divided by the same wall x live-thread denominator on both roles. Empty poll/drain spin is
+ * outside every IO work bracket and cannot move the numerator.
  *
  * THE WORKER SIGNAL, AND WHY IT IS ONE NUMBER. ex_sat is already "output vs input" for the worker
  * station (see the SATURATION comment): sat = U + Q/QCAP, U the fraction of wall time with work
@@ -23343,16 +23346,16 @@ static flipCtlState fctl[TM_MAXNODE];
  * granularity floor, exactly as the ratio is treated today.
  *
  * MODES:
- *   FLIP_SIG_RATIO (0)  today's io/ex ratio. Bit-identical: same decisions, same log bytes.
+ *   FLIP_SIG_RATIO (0)  DEPRECATED compatibility alias for mode 5. It selects the same productive
+ *                       ratio and never selects zero-event occupancy.
  *   FLIP_SIG_WORKER (1) worker-only DIRECTION; the server/client-bound gate is retained.
  *   FLIP_SIG_WORKER_PURE (2) that gate is dropped too — see the gate site for what this gives up
  *                       and what damps it.
  *   FLIP_SIG_WORKER_CLIP (3) = mode 2 PLUS the clip repair at the granularity floor. See the
  *                       floor site; the reason it exists is below.
- *   FLIP_SIG_IO_WAIT (5) the mode-0 IO/EX ratio, but U_IO is derived from true epoll WAIT time
- *                       instead of zero-event episodes. Modes 0-4 do not read this measure.
- *                       Under either io_uring backend the mode safely falls back to mode 0 and
- *                       logs UNSUPPORTED: DEFER_TASKRUN prevents a correct wait-only bracket.
+ *   FLIP_SIG_PRODUCTIVE_RATIO (5) U_IO=io_work/(wall*n_io),
+ *                       U_EX=ex_work/(wall*n_ex), r=U_IO/U_EX. This is the default. Mode 0 is the
+ *                       same branch; there is no remaining legacy ratio branch.
  *
  * THE WORKER SIGNAL'S ONE STRUCTURAL BLIND SPOT, and why mode 3 exists. u_ex is hard-clipped at
  * 1.0, so once the workers are saturated the ONLY thing that can still express "and how far
@@ -23381,7 +23384,7 @@ static flipCtlState fctl[TM_MAXNODE];
 #define FLIP_SIG_WORKER_PURE  2
 #define FLIP_SIG_WORKER_CLIP  3
 /* 4 is FLIP_SIG_WORKER_MAX on the adjacent worker-skew branch. */
-#define FLIP_SIG_IO_WAIT      5
+#define FLIP_SIG_PRODUCTIVE_RATIO 5
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -23429,7 +23432,9 @@ static void tomoFlipController(void) {
     static mstime_t prev_wall = 0, last_log = 0;
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_wait_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
+    static uint32_t fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static mstime_t fc_prev_busy_wall[TM_MAXNODE];
     mstime_t now = mstime();
     long wall_ms = prev_wall ? (long)(now - prev_wall) : 0;
@@ -23479,30 +23484,27 @@ static void tomoFlipController(void) {
     }
 
     int nnodes = tmNumNodes();
-    /* tomokv-flip-signal, read ONCE per tick so every node in this tick decides on the same signal
-     * definition (the knob is MODIFIABLE and could otherwise change between node bodies). `wsig`
-     * selects one of the worker-only triggers; `wpure` additionally drops the io-side don't-bother
-     * gate. `waitsig` selects the mode-0 ratio with epoll wait-time U_IO. It is false under uring,
-     * where mode 5 safely follows the unchanged mode-0 decision path and logs why. */
-    const int waitsig_requested = (server.flip_signal == FLIP_SIG_IO_WAIT);
-    const int waitsig = waitsig_requested && server.io_uring == 0;
+    /* Read the modifiable knob once per tick. Modes 0 and 5 intentionally need no selector: every
+     * non-worker mode falls through the one productive-work ratio path, making the deprecated 0
+     * spelling behaviorally identical to the default 5 spelling. */
+    const int flip_signal = server.flip_signal;
     /* The upper endpoint includes the adjacent worker-max mode 4. It is rejected by this branch's
      * config validator until that implementation combines, but spelling the classification here
-     * preserves its worker/pure/clip semantics when the branches meet. Mode 5 remains a ratio. */
-    const int wsig  = (server.flip_signal >= FLIP_SIG_WORKER && server.flip_signal <= 4);
-    const int wpure = (server.flip_signal >= FLIP_SIG_WORKER_PURE && server.flip_signal <= 4);
-    const int wclip = (server.flip_signal == FLIP_SIG_WORKER_CLIP || server.flip_signal == 4);
-    /* Names for the log lines, so a mode-1/2/3/4 run does not call the worker signal "the ratio".
-     * At mode 0 these expand to exactly the words already in the format strings. */
-    const char *sig_lc = wsig ? "worker-signal" : (waitsig ? "wait-ratio" : "ratio");
-    const char *sig_uc = wsig ? "WORKER-SIGNAL" : (waitsig ? "WAIT-RATIO" : "RATIO");
+     * preserves its worker/pure/clip semantics when the branches meet. */
+    const int wsig  = (flip_signal >= FLIP_SIG_WORKER && flip_signal <= 4);
+    const int wpure = (flip_signal >= FLIP_SIG_WORKER_PURE && flip_signal <= 4);
+    const int wclip = (flip_signal == FLIP_SIG_WORKER_CLIP || flip_signal == 4);
+    /* Names for the log lines, so a mode-1/2/3/4 run does not call the worker signal a ratio. */
+    const char *sig_lc = wsig ? "worker-signal" : "productive-ratio";
+    const char *sig_uc = wsig ? "WORKER-SIGNAL" : "PRODUCTIVE-RATIO";
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
         flipCtlState *fc = &fctl[node];   /* zero-init is the correct PID start (I=0, bias=0, unprimed) */
         /* Both role counters below must be divided by wall time over the SAME span. A node body
          * can be skipped when an earlier node starts a flip, so the controller-entry wall delta
          * is not necessarily this node's counter-snapshot delta. */
-        long node_wall_ms = fc_prev_busy_wall[node] ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
+        int work_sample_primed = fc_prev_busy_wall[node] != 0;
+        long node_wall_ms = work_sample_primed ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
         fc_prev_busy_wall[node] = now;
 
         /* --- node throughput proxy: sum of per-worker ops_total over the node's worker SLOTS
@@ -23522,8 +23524,15 @@ static void tomoFlipController(void) {
         if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
         else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
         int w_live = 0; double qd_max = 0.0, qd_sum = 0.0; int qd_n = 0;
+        uint64_t ex_work_delta_sum = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
+            /* Snapshot every node-owned slot even while it is converted to IO. Its work counter
+             * freezes outside EX, and advancing the baseline prevents a later EX re-entry from
+             * inheriting work from an older role episode. */
+            uint32_t cb = et->tm_busy_us;
+            uint32_t db = cb - fc_prev_ex_work_us[node][w];
+            fc_prev_ex_work_us[node][w] = cb;
             /* ee451 2026-08-03: read at FULL Q4 PRECISION, not `>>4`.
              *
              * tm_qdepth_ewma_q4 stores depth*16. The old integer shift divided by 16 and floored,
@@ -23543,23 +23552,31 @@ static void tomoFlipController(void) {
             qd_sum += qd; qd_n++;
             /* count a worker "live as EX" only if it is actually in EX mode (converted ones are IO) */
             polyThreadCtx *wc = (nnodes == 1) ? NULL : tmPolyCtxFor(TOMO_MODE_EX, w);
-            if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
+            int ex_live = nnodes == 1 ||
+                          (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX);
+            if (ex_live) {
+                w_live++;
+                ex_work_delta_sum += db;
+            }
         }
         long io_occ_sum = 0; double io_wait_u_sum = 0.0;
-        uint64_t io_wait_delta_sum = 0;
+        uint64_t io_wait_delta_sum = 0, io_work_delta_sum = 0;
         int io_occ_cnt = 0, io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             /* Snapshot EVERY node-owned slot, including a growth slot currently serving EX.
              * Its counter freezes outside the IO role; continuing to advance the baseline here
-             * makes a later EX->IO re-entry naturally start with only this tick's IO CPU. */
+             * makes a later EX->IO re-entry naturally start with only this tick's IO work. */
             uint32_t ci = tm_io_sig[t].tm_idle_us;
             uint32_t di = ci - fc_prev_io_idle_us[node][t];
             fc_prev_io_idle_us[node][t] = ci;
             uint32_t cw = tm_io_sig[t].tm_wait_us;
             uint32_t dw = cw - fc_prev_io_wait_us[node][t];
             fc_prev_io_wait_us[node][t] = cw;
+            uint32_t cwork = tm_io_sig[t].tm_work_us;
+            uint32_t dwork = cwork - fc_prev_io_work_us[node][t];
+            fc_prev_io_work_us[node][t] = cwork;
             polyThreadCtx *ic = tmCtxForIotid(t);
             if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 if (t >= server.io_threads) continue;      /* growth slot not live */
@@ -23572,11 +23589,19 @@ static void tomoFlipController(void) {
             if (wait_frac > 1.0) wait_frac = 1.0;
             io_wait_u_sum += 1.0 - wait_frac;
             io_wait_delta_sum += dw;
+            io_work_delta_sum += dwork;
             io_occ_cnt++;
             io_live_node++;
         }
-        /* ee451 2026-08-04: BOTH ROLES, ONE STATISTIC, ONE FILTER — EWMA(FESC_ALPHA) of the
-         * per-thread mean OCCUPANCY. Two asymmetries were removed together:
+        /* The first node visit establishes cumulative-counter baselines. Its deltas reach back to
+         * process start rather than one controller wall span, so publish/fold no work sample. */
+        if (!work_sample_primed) {
+            io_work_delta_sum = 0;
+            ex_work_delta_sum = 0;
+        }
+        /* Retain the legacy idle/wait filters for INFO and worker modes. Productive work below is
+         * independently folded in double precision at the same FESC_ALPHA horizon. The older
+         * occupancy change removed two asymmetries at the time:
          *   - estimator: IO was a raw per-tick mean against an EX side already on an EWMA, so on
          *     any load STEP the IO term moved first and r spiked high from filter lag alone — a
          *     fixed-sign bias toward growing IO, largest exactly when the workload changes and the
@@ -23587,6 +23612,12 @@ static void tomoFlipController(void) {
         fc->io_occ_smooth += (int)(FESC_ALPHA * (io_occ_mean - fc->io_occ_smooth));
         double io_wait_u_mean = io_occ_cnt ? io_wait_u_sum / (double)io_occ_cnt : 0.0;
         fc->io_wait_u_smooth += FESC_ALPHA * (io_wait_u_mean - fc->io_wait_u_smooth);
+        double io_work_u_mean = (work_sample_primed && io_occ_cnt && node_wall_ms > 0)
+            ? (double)io_work_delta_sum /
+              ((double)node_wall_ms * 1000.0 * (double)io_occ_cnt)
+            : fc->io_work_u_smooth;
+        if (io_work_u_mean > 1.0) io_work_u_mean = 1.0;
+        fc->io_work_u_smooth += FESC_ALPHA * (io_work_u_mean - fc->io_work_u_smooth);
         double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
         /* --- measured node throughput: EWMA mean + EWMA variance (the noise floor = the ONLY scale
@@ -23621,25 +23652,9 @@ static void tomoFlipController(void) {
         int can_back  = (io_live_node >= 2) && (nnodes == 1 ? (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) > server.io_threads)
                                                            : (io_live_node > server.io_per_node));
 
-        /* --- BACK pressure = ex-worker utilization: per-worker busy-us delta / wall (0-100),
-         * MEAN over live workers, leaky-smoothed.
-         *
-         * The mean, not the hottest worker, and this matters. io_sat is built from io_busy_MEAN,
-         * so taking the EX side's MAX compared two different statistics: one stable, one set by
-         * whichever queue happened to be deepest that tick. Measured at p32/io4ex4 (the optimum,
-         * baseline 7.5M): io_sat held 0.97-0.98 while ex_sat swung 0.69-0.75, moving the ratio
-         * across 1.21-1.37 -- about +/-6% against a +/-5% band. So the controller repeatedly left
-         * the config it was already sitting on, had the move rejected by throughput (7.5M -> 4.7M),
-         * walked back, and re-fired: 11 flips in three supposedly-settled windows, never a 10s
-         * quiet window, so the suite scored it unsettled and measured 17.6% below static WHILE THE
-         * CONFIG WAS CORRECT.
-         *
-         * "Hottest worker" is the right question only when one worker is a bottleneck, i.e. a hot
-         * key -- and that is key-lb's job, not the flip's. For "is this ROLE the constraint" with
-         * work spread across workers, the role's utilization is the mean.
-         *
-         * Smoothing also slowed from alpha 0.5 to FESC_ALPHA (0.25), matching the horizon every
-         * other decision input already uses. --- */
+        /* Legacy EX no-work occupancy remains the mode-1/2/3 operand. Keep its existing integer
+         * EWMA untouched; the productive-work mean folded immediately after it is the ratio-mode
+         * operand and uses the same live-worker denominator as IO work. */
         int occ_sum = 0, occ_n = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
@@ -23651,29 +23666,18 @@ static void tomoFlipController(void) {
         }
         int occ_mean = occ_n ? (occ_sum / occ_n) : 0;
         fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
-        /* --- role SATURATIONS, each normalized to the balancer's calibrated distress band (unit-
-         * free, no absolute operating point): io_sat = mean IO busy% / busy_hi(75);
-         * ex_sat = max(busy%/busy_hi(75), qd_max/qd_abs_hi(8*popbatch)). imbalance>0 => io is the
-         * constraint (grow front); <0 => ex is the constraint (grow back).
-         *
-         * INTENTIONAL RANGE CHANGE: the old events/pass io_sat was unbounded. Utilization bounds
-         * this component to [0, 100/75]. The comparison units stay compatible (dimensionless role
-         * saturation, with 1.0 at the 75% busy distress point), so the phase/deadzone machinery and
-         * its 0.25 constants remain untouched. --- */
-        /* ===== RATE-BALANCE SATURATION (docs/FLIP_SATURATION_SPEC.md, 2026-08-03) =====
-         *
-         *      S_r = (A_r + Q_r) * U_r / C_r          for r in {IO, EX}
-         *
-         * REPLACES io_sat = busy/75 and ex_sat = max(busy/75, qd/(8*POP)). Those were (a) not the
-         * same measurement on the two sides of the subtraction -- EX had a backlog term, IO had
-         * none -- and (b) UTILIZATION, which clips at 1.0 and then carries no further information:
-         * a thread 100% busy keeping up is indistinguishable from one 100% busy and falling behind
-         * 3x. Because the old signal could not express magnitude, magnitude had to come from the
-         * throughput hill-climb, whose best_rate never re-baselines (#74).
-         *
-         * S does not clip, so the same number carries direction AND how far.
-         *
-         * TERMS, all already measured -- this adds no hot-path counter:
+        double ex_work_u_mean = (work_sample_primed && w_live && node_wall_ms > 0)
+            ? (double)ex_work_delta_sum /
+              ((double)node_wall_ms * 1000.0 * (double)w_live)
+            : fc->ex_work_u_smooth;
+        if (ex_work_u_mean > 1.0) ex_work_u_mean = 1.0;
+        fc->ex_work_u_smooth += FESC_ALPHA * (ex_work_u_mean - fc->ex_work_u_smooth);
+        /* Backlog-augmented role saturation below remains the server/client-bound gate and the
+         * worker-only signal. It is no longer divided to form the ratio-mode r. */
+        /* ===== BACKLOG-AUGMENTED GATE / WORKER SIGNAL =====
+         * The controller still computes S_r = U_r + Q_r/QCAP for the server-bound gate and for
+         * worker-only modes. Ratio modes use only productive U_IO/U_EX for direction and floor.
+         * TERMS:
          *   C_EX  commands retired by the node's workers this tick  (node_ops delta = inst * dt)
          *   A_IO  == C_EX, the pipeline chain identity: every retired command yields exactly one
          *         reply the IO role must write. Spec section 1.
@@ -23687,8 +23691,8 @@ static void tomoFlipController(void) {
          *   Q_IO  clients holding unwritten replies (commands owed to IO) -- NOT rob, which is
          *         replyWorking, i.e. in flight ON WORKERS; charging that to IO would attribute EX's
          *         backlog to IO and count the same work twice. See tmIoSignal.pend_write.
-         *   U_r   selected role-utilization estimate as a fraction: legacy no-work occupancy for
-         *         modes 0-4, and epoll WAIT-derived IO occupancy for mode 5.
+         *   U_r   selected role-utilization fraction: productive work/wall for ratio modes 0/5;
+         *         legacy no-work occupancy for worker-only modes 1/2/3.
          *
          * Degenerate case is correct by construction: no queue => S_r == U_r, i.e. a station with
          * nothing owed to it is saturated exactly as much as it is busy. Q_IO only becomes non-zero
@@ -23700,76 +23704,35 @@ static void tomoFlipController(void) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             q_io += (long)tm_io_sig[t].pend_write;
         }
-        /* ===== SATURATION, as the owner defines it (2026-08-04) =====
-         *   sat < 1  the role's OUTPUT outruns its INPUT (it finishes and idles)
-         *   sat = 1  input == output, exactly keeping up
-         *   sat > 1  INPUT outruns output (work is piling up)
+        /* ===== ROLE UTILISATION: PRODUCTIVE WORK / WALL =====
+         * Ratio modes use exactly one kind of quantity on both sides:
          *
-         *   sat = U + Q/C
+         *   U_IO = sum(io productive-work µs) / (wall µs * live IO owners)
+         *   U_EX = sum(EX productive-work µs) / (wall µs * live workers)
+         *   r    = U_IO / U_EX
          *
-         * U is bounded to a 0-1 wall-time occupancy estimate. Mode 5 obtains the IO side directly
-         * as 1-WAIT/wall; legacy modes retain the zero-event approximation for their control arm.
-         * Q/C adds standing backlog as a fraction of a tick's completions, the only term that can
-         * push a role past 1. A fully busy role with no queue sits at exactly 1.
+         * IO work brackets CQ harvest/parser callbacks, beforeSleepIO reply/write work (including
+         * its normal queue/maintenance duties), adaptive-drain beforeSleepIO calls, and fired fd
+         * read/write callbacks. Poll/syscall time and the PAUSE-only part of drain userpoll are
+         * outside those brackets, so burning CPU while polling an empty socket set cannot increase
+         * U_IO. EX uses its existing first-pop..work-pass-end clock. Both raw means use this
+         * node's same snapshot wall and live-role count, then the same double EWMA.
          *
-         * The old scale divided by 75 (the quorum balancer's "distress" point), so sat=1 meant
-         * "75% busy" and NOT "input == output". Every rule built on top was therefore comparing
-         * something other than what it claimed to. /100 is what makes 1.0 mean what it says.
+         * Slot 0 remains outside the measured/movable IO pool: main runs aeMain rather than
+         * ioSlice. io_live_node is therefore both the denominator and the exact pool whose one
+         * thread movement defines the existing granularity floor.
          *
-         * Modes 0-4 use their existing occupancy statistic. Mode 5 changes only the IO operand
-         * to 1 - WAIT/wall because an event-bearing pass may still have spent almost all its wall
-         * time waiting.
-         *
-         * WHY OCCUPANCY AND NOT CPU TIME. Measured 2026-08-04, static sweep, p32 SET, 8 cores:
-         *
-         *     cfg      ops/s    u_io(cpu)  idle_io   r_cpu    r_occ
-         *     io4ex4   7.33M      0.989     0.006    1.224    1.171   <- PEAK
-         *     io5ex3   6.31M      0.988     0.020    1.062    1.002
-         *     io6ex2   4.17M      0.914     0.413    0.982    0.598
-         *
-         * At io6ex2 the CPU-time ratio reads 0.982 — dead on 1, inside any sane band — for a
-         * config running at 57% of peak. An over-provisioned IO thread does not block, it SPINS
-         * (the drain spin / short poll timeout), so scheduled CPU counts polling an empty socket
-         * set as work: busy 0.914 while genuinely having nothing to do 41.3% of the time (the two
-         * sum to 1.327 — they overlap, which is the tell). A controller fed that signal cannot
-         * see over-provisioning at all, declares the config balanced, and holds. Occupancy reads
-         * the same config at 0.598 and correctly says "too much IO".
-         *
-         * Occupancy also separates "no work" from "no CPU": at p1 GET io7ex1 the IO threads are
-         * runnable-but-descheduled 14% of the time (busy 0.855, idle 0.004). CPU time reports
-         * that as 15% slack that growing IO could fill; occupancy reports 0.996 — fully occupied,
-         * starved of cores, not of threads — which is the truth and the correct thing to hold on.
-         *
-         * NOTE r=1 still does not sit exactly on the peak, and no reweighting of these two signals
-         * can put it there: the optimum r is workload-dependent (1.17 at p32 SET, 3.11 at p1 GET
-         * where the box runs out of cores before IO stops being the constraint). That is what the
-         * ANCHOR is for — r=1 is only the STARTING guess and the direction of travel; the anchor
-         * re-centres the band on wherever throughput actually settled. Occupancy's job is not to
-         * make 1 the optimum, it is to stop 1 from landing on a config that is 43% wrong.
-         *
-         * IO SLOT 0 IS NOT IN THE MEAN, AND MUST NOT BE. --tomokv-thread-io N starts poly IO
-         * threads with iotid 1..N-1 only; slot 0 is main's default iotid and main runs aeMain,
-         * never ioSlice, so tm_io_sig[0].tm_busy_us NEVER ADVANCES (measured 2026-08-04: 0us delta
-         * across a 12s saturating run while slots 1-3 each took 11.92s). Including it would
-         * average a structural zero into the role and drag u_io down by 1/N. io_live_node counts
-         * the same threads the mean does, which is also what makes the granularity floor right: a
-         * flip moves the MEASURED pool 3->4, so the step really is ln(4/3).
-         *
-         * THE TWO ROLES STILL NEED DIFFERENT OBSERVATION BOUNDARIES.
-         *   IO mode 5 = epoll/drain/backpressure/yield WAIT spans, then 1 - wait/wall
-         *   EX         = empty-queue episodes, then 1 - idle/wall
-         * Scheduled IO CPU remains in tm_busy_us for INFO only. It cannot replace WAIT: drain
-         * spin and short polls consume CPU without useful work. Conversely, an io_uring syscall
-         * cannot supply WAIT because DEFER_TASKRUN executes useful completion work inside it;
-         * mode 5 therefore falls back to the legacy mode-0 operand under uring. */
+         * Modes 1/2/3 deliberately retain their old worker-idle signal for now. `u_io`/`u_ex`
+         * below select those legacy operands only for a worker mode; every ratio spelling (0 or
+         * 5) selects productive work. Wait-derived and zero-event IO occupancy remain diagnostics,
+         * never ratio inputs. */
         double u_io_idle = (double)fc->io_occ_smooth / 100.0;
         double u_io_wait = fc->io_wait_u_smooth;
-        /* Modes 0-4 retain their existing IO occupancy exactly. Mode 5 alone substitutes
-         * 1 - measured WAIT/wall (double EWMA, so integer truncation cannot pin it at 0.97).
-         * waitsig is false under uring, deliberately selecting the legacy value rather than a
-         * partial wait counter that omits io_uring_enter. */
-        double u_io = waitsig ? u_io_wait : u_io_idle;
-        double u_ex = (double)fc->ex_occ_smooth / 100.0;
+        double u_ex_idle = (double)fc->ex_occ_smooth / 100.0;
+        double u_io_work = fc->io_work_u_smooth;
+        double u_ex_work = fc->ex_work_u_smooth;
+        double u_io = wsig ? u_io_idle : u_io_work;
+        double u_ex = wsig ? u_ex_idle : u_ex_work;
         if (u_io > 1.0) u_io = 1.0;
         if (u_io_wait > 1.0) u_io_wait = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
@@ -23890,12 +23853,14 @@ static void tomoFlipController(void) {
          * still gates; only the tick-to-tick jitter is removed. */
         fc->sat_smooth += FESC_ALPHA * (sat_total - fc->sat_smooth);
         int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);
-        /* The decision signal: log of the saturation RATIO (see FLIP_R_BAND). Smoothed, so a
+        /* The ratio-mode decision signal is log(U_IO/U_EX), using productive work on both sides.
+         * Backlog-augmented io_sat/ex_sat remains the server-bound gate; it does not contaminate
+         * r or the floor. Smoothed, so a
          * single-tick pressure spike can neither start a spurious climb nor be captured as an
          * anchor (that failure was seen as io7/ex1 oscillation: steady pressure ~0.55 but a lone
          * 0.42 tick pinned the deadzone and let later 0.55 ticks re-trigger). The raw per-tick
          * ratio stays for logging/observability. */
-        /* FLOOR BOTH SIDES BEFORE DIVIDING. An idle tick drives io_sat to 0, and the old guard
+        /* FLOOR BOTH SIDES BEFORE DIVIDING. An idle tick drives utilization to 0, and the old guard
          * only protected the DENOMINATOR: ratio became 0, log(0) = -inf, and the very next EWMA
          * update computed -inf + a*(-inf - -inf) = NaN. NaN is absorbing and every comparison
          * against it is false, so `lr_ewma > anchor+band` and `< anchor-band` were BOTH false for
@@ -23903,14 +23868,17 @@ static void tomoFlipController(void) {
          * being structurally unable to ever flip again. Observed as anchor=-nan, grow-back never
          * firing, and p32 SET stuck at io7ex1 for 3.09M against static's 7.50M (-58.8%).
          * Flooring both sides bounds the ratio to [1e-3, 1e3] so the log is always finite. */
-        double ratio = fmax(io_sat, 1e-3) / fmax(ex_sat, 1e-3);
+        double ratio = wsig
+                     ? fmax(io_sat, 1e-3) / fmax(ex_sat, 1e-3) /* legacy worker-mode log only */
+                     : fmax(u_io, 1e-3) / fmax(u_ex, 1e-3);
         double lr = log(ratio);
         if (!isfinite(lr)) lr = 0.0;                       /* belt and braces: never poison the EWMA */
         /* WORKER-ONLY TRIGGER INPUT (tomokv-flip-signal 1/2/3; see the FLIP_SIG_* block). The io side
          * leaves the DIRECTION decision here and nowhere else: same log space, same sign
          * convention, same variable, so every downstream gate keeps its calibration and — the part
          * that matters — the quantity that is ANCHORED is by construction the same quantity the
-         * quiet tests watch. `ratio` stays computed for the log lines only.
+         * quiet tests watch. In a worker mode `ratio` retains its legacy saturation-ratio log
+         * value only; no ratio controls a decision there.
          * The same 1e-3 floor as the ratio: ex_sat is >= 0, so this bounds the signal to <= 6.9 and
          * an idle-tick zero can never put an infinity into the EWMA (the -inf/NaN failure recorded
          * just above disabled the actuator for the life of the process). */
@@ -23918,7 +23886,7 @@ static void tomoFlipController(void) {
             double lr_w = -log(fmax(ex_sat, 1e-3));
             lr = isfinite(lr_w) ? lr_w : 0.0;
         }
-        if (!node_idle) {
+        if (!node_idle && (wsig || work_sample_primed)) {
             if (!fc->lr_init) {
                 /* Seed the signal from the first loaded sample, but leave anchor_n==0 (UNSET).
                  * That is what lets a cold outside-floor boot climb; capturing here instead would
@@ -24000,7 +23968,7 @@ static void tomoFlipController(void) {
 
         /* Per-role noise is EWMA(mean, squared deviation) at FESC_ALPHA, exactly the throughput
          * estimator shape. Idle samples carry no configuration information and are excluded. */
-        if (!node_idle) {
+        if (!node_idle && (wsig || work_sample_primed)) {
             if (!fc->u_noise_primed) {
                 fc->u_io_mean = u_io; fc->u_io_var = 0.0;
                 fc->u_ex_mean = u_ex; fc->u_ex_var = 0.0;
@@ -24022,27 +23990,24 @@ static void tomoFlipController(void) {
          * 1/2/3 the io_sat/ex_sat/r fields those lines already carry are no longer what the decision
          * was made from. This suffix carries the decision's actual operands: raw idleness and the
          * queue depth that produced ex_sat, the combined worker saturation, this tick's signal, its
-         * EWMA, and the anchor it is being compared against.
-         * At flip-signal 5 the suffix prints legacy tm_idle-derived U_IO beside the raw and smoothed
-         * tm_wait-derived U_IO, so the proposed estimator is falsifiable in one run. EMPTY at
-         * flip-signal 0, so every line below stays BYTE-IDENTICAL to today's — that is the A/B
-         * control arm and the harnesses grep these lines. */
-        char wsig_log[320]; wsig_log[0] = '\0';
+         * EWMA, and the anchor it is being compared against. Ratio modes print both raw counter
+         * fractions and their matched EWMAs, plus legacy idle/wait observations for comparison. */
+        char wsig_log[384]; wsig_log[0] = '\0';
         if (wsig)
             snprintf(wsig_log, sizeof(wsig_log),
                      " | W(sig=%d idle=%.3f u_ex=%.3f qd=%.2f/%.0f s_ex=%.3f lrw=%+.3f ewma=%+.3f anchor=%+.3f quiet=%d)",
-                     server.flip_signal, 1.0 - u_ex, u_ex, qd_mean, QCAP, ex_sat, lr, fc->lr_ewma,
+                     flip_signal, 1.0 - u_ex, u_ex, qd_mean, QCAP, ex_sat, lr, fc->lr_ewma,
                      fc->lr_anchor, fc->lr_quiet_run);
-        else if (waitsig)
+        else
             snprintf(wsig_log, sizeof(wsig_log),
-                     " | IW(sig=%d wait_us=%llu/%llu u_io_idle=%.3f u_io_raw=%.3f u_io_wait=%.3f)",
-                     server.flip_signal, (unsigned long long)io_wait_delta_sum,
+                     " | PW(sig=%d io=%llu/%llu ex=%llu/%llu raw=%.3f/%.3f u=%.3f/%.3f r=%.3f idle_io=%.3f wait_io=%.3f wait_us=%llu)",
+                     flip_signal,
+                     (unsigned long long)io_work_delta_sum,
                      (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)io_occ_cnt,
-                     u_io_idle, io_wait_u_mean, u_io_wait);
-        else if (waitsig_requested)
-            snprintf(wsig_log, sizeof(wsig_log),
-                     " | IW(sig=%d UNSUPPORTED io_uring=%d u_io_idle=%.3f selected=legacy)",
-                     server.flip_signal, server.io_uring, u_io_idle);
+                     (unsigned long long)ex_work_delta_sum,
+                     (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)w_live,
+                     io_work_u_mean, ex_work_u_mean, u_io, u_ex, ratio,
+                     u_io_idle, u_io_wait, (unsigned long long)io_wait_delta_sum);
 
         /* ===== PHASE 1: adaptive warmup — wait for the post-flip bucket rebalance to SETTLE before
          * judging. "Settled" = the smoothed rate stopped moving relative to its own noise for a few
@@ -24538,21 +24503,12 @@ static void tomoFlipController(void) {
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
         int in_floor_probe = 0;
-        /* TARGET IS 1 (owner, 2026-08-03): sat<1 means the role outputs faster than input, sat>1
-         * means input outruns output, and the whole job of the flip is to bring the two sides
-         * together. So the reference is the FIXED point r=1, not a learned one.
-         *
-         * A learned anchor was tried and REMOVED: it teaches the controller that whatever
-         * imbalance it currently has is normal. Measured — at p1/io6ex1 the anchor learned r=4.87,
-         * declared it the operating point, and stopped grow-front ONE CONFIG SHORT of the optimum
-         * (io7ex1), which is exactly the AUTO==STATIC-p1 failure. Do not reintroduce it.
-         *
-         * Ill-conditioning at a small denominator is a non-issue against a fixed target of 1: a
-         * tiny ex_sat only occurs when r is far from 1, i.e. when the decision is unambiguous.
-         * Measured ratios: p32 io3ex4 1.59 -> io4ex3 1.09 -> io5ex2 1.04 (converged, both sides
-         * ~0.70 busy); p1 io4ex3 12.9 -> io6ex1 4.9, never reaching 1 because the workers stay
-         * near-idle — so the controller keeps moving threads to IO and lands on io7ex1, which IS
-         * the p1 optimum. One rule, both regimes. */
+        /* TARGET IS 1. In ratio modes this now follows from the operands rather than from a label:
+         * r is productive U_IO/U_EX, so equal per-thread productive wall fractions are exactly 1.
+         * The settled anchor is retry hysteresis only; the target and half-step floor remain fixed
+         * around zero in log space. The static-sweep falsifier is correspondingly strict: p32 GET
+         * and MGET8 must move from r=1.23/1.31 to about 1 at io4/ex4 while io5/ex3 moves away from
+         * its old false 1.00/1.01; the p1 optima must remain near 1. */
         double band = log1p(FLIP_R_BAND);
         /* GRANULARITY FLOOR (owner, 2026-08-04). How close to r=1 can THIS NODE's core count even
          * get? One flip moves a thread EX->IO, scaling io capacity by n_io/(n_io+1) and ex capacity
@@ -24570,14 +24526,10 @@ static void tomoFlipController(void) {
          * count would understate the floor on every node and reintroduce exactly the churn this
          * removes.
          *
-         * This IS the p32 failure: the measured optimum io4ex4 sits at |log r| = 0.231, INSIDE the
-         * 0.255 floor for 8 threads, so the controller kept trying to improve a balance already as
-         * good as 4io/4ex can be -- each attempt correctly rejected by throughput, then retried.
-         * Derived from core count, so it needs no tuning and tightens automatically as threads grow.
-         *
-         * NOT an objective: io5ex3 (|log r| 0.068) and io6ex2 (0.010) are CLOSER to 1 and
-         * measurably WORSE (6.58M, 4.26M vs 7.28M). Nearness to 1 does not make a config good; it
-         * only means no flip can make it more balanced. Throughput still picks among them. */
+         * The old IO non-waiting operand put the p32 optimum well away from 1 while a slower
+         * neighbour sat almost exactly at 1, so this correctly derived floor admitted the wrong
+         * split. Changing the operand—not the floor—is what restores the floor's premise. The
+         * step remains derived from live role counts and introduces no machine-dependent value. */
         /* WORKER-SIGNAL GRANULARITY (flip-signal 1/2/3). Same derivation, different signal.
              * lr_worker = -log(ex_sat) is built from the WORKER side alone, so one thread-move
              * moves it only through the worker capacity: grow-front takes ne -> ne-1 (capacity
@@ -24592,10 +24544,9 @@ static void tomoFlipController(void) {
              * a lower-bound step gives a lower-bound floor, so the controller can still SEE an
              * imbalance one move could fix, and throughput remains the thing that decides whether
              * the move is worth taking. CONSEQUENCE, stated so it is not a surprise in the
-             * conformance table: at p32 SET/io4ex4 the ratio floor is 0.288, while the worker floor
-             * at ne=4 is ln(4/3)/2 = 0.144 against a signal of about -log(0.85) = 0.16. The ratio
-             * mode now takes its one owner-approved in-floor probe too; throughput rejects it and
-             * the episode latch holds after the walk-back. The shared gstep/gfloor above implements
+             * conformance table. Ratio mode still takes its one owner-approved in-floor probe;
+             * the existing throughput judge decides it and the episode latch holds afterward.
+             * The shared gstep/gfloor above implements
              * both forms before any phase can return, so anchor invalidation sees them too. */
 
         if (tm_flip_trace) {
@@ -24663,7 +24614,7 @@ static void tomoFlipController(void) {
             out = (fc->lr_ewma > 0.0) ? +1 : -1;
 
         /* SUSTAIN (Schmitt). THE ACTUATOR MOVES THE SIGNAL: a flip changes the config, which changes
-         * io_sat/ex_sat, which changes r. Acting on the FIRST out-of-band tick therefore lets the
+         * per-role productive utilization and therefore r. Acting on the FIRST out-of-band tick
          * controller chase its own wake — measured as three separate climbs inside one unchanged-
          * workload window (anti-thrash-p1 and -p32, flips-during=5). Requiring the excursion to
          * persist FLIP_SUSTAIN ticks (2 EWMA time constants) discards post-flip transients, which
@@ -24678,8 +24629,7 @@ static void tomoFlipController(void) {
         /* CLIENT-BOUND => nothing to win: hold regardless of the ratio. This is the owner's
          * terminal condition ("lb wants total sat to indicate client bound"): once no stage is
          * saturated, the workload is limited by something a thread flip cannot move, and further
-         * flips only cost migrations. It also suppresses the one case the bare ratio gets wrong —
-         * SET at io4ex4 reads r=1.26 and would grow the IO side for a measured 10% LOSS.
+         * flips only cost migrations. This gate remains separate from ratio direction.
          *
          * THIS IS WHERE THE IO SIDE STAYS AT flip-signal 1, ON PURPOSE. It is not a direction
          * decision — it is "is ANY stage saturated at all", and it needs the io side because from

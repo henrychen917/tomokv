@@ -127,8 +127,13 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeEventFinalizerProc *finalizerProc);
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
+typedef struct aeIOAccounting {
+    uint64_t wait_us;     /* backend/drain wait in this pass (epoll only) */
+    uint64_t work_us;     /* explicitly bracketed productive IO work */
+    uint64_t end_us;      /* final timing boundary, reused by ioSlice */
+} aeIOAccounting;
 int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
-                      uint64_t *wait_us);
+                      aeIOAccounting *accounting);
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);
