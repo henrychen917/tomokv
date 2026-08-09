@@ -3214,9 +3214,9 @@ standardConfig static_configs[] = {
      * a compile-time assumption. */
     /* ee451 (B1): EX-side prefetch, as monotonic LEVELS so a sweep is one-dimensional.
      * 0 = the machinery is not entered at all (counters stay still, so "disabled" and "gated"
-     * are distinguishable in INFO). 1 = the existing operand/key pipeline. Higher levels are
-     * reserved for the staged flat probe and the KVOBJ/VALDATA split. Default 1 preserves
-     * current behaviour exactly -- this knob exists so the feature can finally be MEASURED. */
+     * are distinguishable in INFO). 1 = the existing operand/key pipeline, 2 adds the FLAT home
+     * SLOT line, and 3 adds the dependent tag-gated FLAT KVOBJ line. Default 1 preserves the
+     * operand-only control; the higher arms exist so storage residency can be measured. */
     createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
     /* Startup-only because the entry count fixes one separately aligned private allocation per
      * worker. 0 is a true off arm: no allocation and no per-key loop. Power-of-two sizing makes

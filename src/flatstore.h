@@ -31,7 +31,7 @@
  * and DELETE is ONE store — the old 16B FIX-A two-step is gone. The 14-bit ownership bucket is NO
  * longer stored; the rare range scans (KEYS / RANDOMKEY / reshard) recompute it from the key. */
 #define FLAT_PTR_MASK   0x0000FFFFFFFFFFFFULL      /* [47:0] the masked pointer */
-#define FLAT_MIN_SIZE   (1ULL << 18)               /* initial + shrink floor: 256K slots (4MB @ 8B) */
+#define FLAT_MIN_SIZE   (1ULL << 18)               /* initial + shrink floor: 256K slots (2MB @ 8B) */
 /* Target peak load % — the resize trigger. Higher = fuller table = less memory but longer
  * linear-probe chains; (100-FLAT_LOAD_PCT)% of the table is the burst headroom before the
  * table-full wall. 70 is measured: ~half the table memory of 50 with GET unaffected (a dense

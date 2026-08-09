@@ -169,7 +169,7 @@ for the balancer is spelled `tomokv-key-lb 0`.
 |---|---|---|
 | `tomokv-strict-order` | 0 off | cross-IO ordering; non-zero forces a dense lane sweep. Per-queue FIFO holds either way |
 | `tomokv-pipeline-depth` | -1 → **32** | in-flight per connection + fake ring size |
-| `tomokv-prefetch-ex` | 1 | **levels 2 and 3 are accepted but inert** — only `== 0` is ever read |
+| `tomokv-prefetch-ex` | 1 | monotonic: 0 off, 1 operands, 2 + FLAT SLOT, 3 + tag-gated FLAT KVOBJ |
 | `tomokv-zerocopy-min-value` | 1024 | **effective floor is 16384** — see §5 |
 | `tomokv-mset-move` | **no** | ownership handoff for xshard MSET values. Correct, never shown to pay |
 | `tomokv-os-opts` | no | `TCP_QUICKACK` + `MADV_HUGEPAGE` |
@@ -194,7 +194,7 @@ Each of these was built or seriously attempted, measured, and rejected. The numb
 | **Non-owner multi-key reads** (worker-borrow, flat-native MGET) | **1547/4000 ordering violations.** A correctness wall, not tuning |
 | **IO-side drain prefetch** | Net-negative in v11, ≈noise since; duplicated the splice loop's own walk |
 | **IO-side prefetch generally ("C")** | **−3.9% p32 GET** |
-| **More EX prefetch stages** | Base feature is a wash: −0.0004% / −0.43% / −0.23% with 173–356M hints issued. The worker is **overhead-bound**, not miss-bound |
+| **Operand-only EX prefetch** | A wash at −0.0004% / −0.43% / −0.23%. The 173–356M aggregate issues were operand stages; FLAT storage retired at the null-dict guard, so this is not a storage-residency verdict |
 | **Next-op look-ahead at distance = n** | `la = j+n` guarded by `la < n` is false for every `j` — **body unreachable**. AUTO ≡ 0 |
 | **Chasing the old value on writes in the prefetch FSM** | **~35% regression** on pure-SET populate. The `CMD_READONLY` filter must stay |
 | **Fixed 320 B `csGroup` inline region** | **+1.27% regression** (mset4_p32). Per-command derived sizing shipped instead |
@@ -225,7 +225,9 @@ A feature behind a shut gate is untested, and a green run through one proves not
   16383 bytes has ever taken the zero-copy path.**
 - **`TOMO_PF_W_NEXTOP`** — unreachable body, see §4.
 - **`fakeRingAutoTune` / `use_slim`** — reads `cmd->calls` for GET/SET, which never enter `call()`.
-- **`tomokv-prefetch-ex` levels 2/3** — accepted by the validator, never read.
+- **`tomokv-prefetch-ex` levels 2/3** — now live but not yet measured. A valid FLAT arm must show
+  `tomo_prefetch_issued_slot` near one per admitted GET; level 3 must additionally move
+  `tomo_prefetch_issued_kvobj` on matching-tag candidates.
 
 ---
 

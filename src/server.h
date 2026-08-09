@@ -2412,9 +2412,9 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
  *   but the bucket-line prefetch it issues is EX-side memory.
  *   EX-SIDE ONLY — these dereference the shard's keyspace, which only the owning worker may
  *   touch under its bucket lock: the bucket-line half of PFS_HASH, PFS_ENTRY (bucket -> entry),
- *   PFS_VALUE (entry -> kvobj/value). Issuing these from an IO thread would read a table another
- *   thread is mutating; a prefetch of a stale address is harmless, but the dict/idx it needs are
- *   worker-private state.
+ *   PFS_VALUE (entry -> kvobj/value), and the FLAT SLOT -> KVOBJ pair. Issuing these from an IO
+ *   thread would read a table another thread is mutating; a prefetch of a stale address is
+ *   harmless, but the table/slot scratch it needs is worker-private state.
  * Note this file already carries the plumbing for the cross-thread half: PFS_HASH stashes
  * (prefetch_key_hash, prefetch_dict, prefetch_bucket_idx) on the fake client, which is precisely
  * the handoff an IO-side issuer would fill in and an EX-side consumer would read. */
@@ -2452,11 +2452,10 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
  * it wrong once already forced a revert (a "these stages are dead, delete them" conclusion that
  * was false at ex=1):
  *   ex >= 2 workers per node  -> shared_node_dbs, so the keyspace kvstore carries KVSTORE_FLAT.
- *                                Its dicts[] are ALLOCATE_DICTS_ON_DEMAND and no flat path ever
- *                                creates one, so PFS_HASH's kvstoreGetDict() returns NULL, the
- *                                stage retires at the !d guard, and prefetch_key_hash_valid stays
- *                                0 — which is exactly the input this look-ahead is gated on. So
- *                                on a flat store it CANNOT fire, knob or no knob. No change.
+ *                                The level-2/3 flat branch issues SLOT/KVOBJ hints but deliberately
+ *                                leaves the DICT-only prefetch_key_hash_valid at 0. That is exactly
+ *                                the input this DICT look-ahead is gated on, so on a flat store it
+ *                                still CANNOT fire, knob or no knob. No change.
  *   ex == 1 worker per node   -> shared_node_dbs is false, the keyspace stays DICT-backed,
  *                                PFS_HASH populates the (hash, dict, bucket_idx) stash, and this
  *                                look-ahead becomes live. io7/ex1 is a standard test config, so
@@ -2772,6 +2771,10 @@ typedef struct exThread {
     unsigned int pf_perkey_mask;
     unsigned long long pf_perkey_hits;
     unsigned long long pf_perkey_miss;
+    /* Flat storage-stage proof counters. Appended to preserve every tuned predecessor offset;
+     * folded by INFO exactly like pf_batches/pf_gated/pf_issued. */
+    unsigned long long pf_issued_slot;
+    unsigned long long pf_issued_kvobj;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {

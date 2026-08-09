@@ -8789,8 +8789,8 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * The structural edge a multi-key command holds over N pipelined singles is that all N keys are
  * known UP FRONT: besides amortizing parse/pcmd/dispatch over N, the execution can SOFTWARE-
  * PIPELINE the memory accesses. N pipelined GETs each serialize one dependent argv -> key-bytes ->
- * hash -> slot-line -> kvobj chain (~2-3 DRAM round-trips of ~100ns, back-to-back — on a FLAT
- * store the cross-command prefetcher is inert, see the interaction audit below); a wave issues
+ * hash -> slot-line -> kvobj chain (~2-3 DRAM round-trips of ~100ns, back-to-back without the
+ * level-2/3 FLAT scoreboard stages described in the interaction audit below); a wave issues
  * each chain stage for the WHOLE wave before consuming it, so the misses overlap up to the core's
  * memory-level parallelism (~10-12 sustained outstanding DRAM misses on Zen4).
  *
@@ -8802,16 +8802,13 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * line has fallen out of L1 by then it is still L2-resident (~14cy), keeping the bulk of the
  * ~100ns saving.
  *
- * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / the old mget-coalesce level 2): on a FLAT store every
- * table-touching stage of the existing prefetch machinery self-disables — exPrefetchBatch's
- * PFS_HASH reads kvstoreGetDict(), which is NULL under KVSTORE_FLAT (dicts are on-demand,
- * initServer/kvstoreCreate; no flat path ever creates one), so it retires at the !d guard,
- * prefetch_key_hash_valid stays 0, and the #3 next-op look-ahead (TOMO_PF_W_NEXTOP, exec loop) never
- * fires; the in-sub two-pass dict prefetch (mget-coalesce level 2, csSubExec CS_MGET) nulls its
- * ds[] the same way. These waves are therefore the ONLY issuer of flat-table prefetches: no
- * double-prefetch, no LFB competition. The batch prefetcher still warms fake METADATA
- * (struct/argv vector/argv[1]) — complementary, not conflicting; the single overlap (key 0's
- * robj/byte lines) costs one dropped L1-hit prefetch. Neither pf knob changes meaning.
+ * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / the old mget-coalesce level 2): at prefetch level 1
+ * the table half still self-disables because KVSTORE_FLAT has no per-bucket dict. Levels 2/3 now
+ * let exPrefetchBatch issue SLOT/KVOBJ for its one dispatched key, while deliberately leaving the
+ * DICT hash stash invalid, so #3 next-op remains unable to fire. A coalesced multi-key sub exposes
+ * only argv[1] to that batch scoreboard; this wave covers every key in the sub. The only storage
+ * overlap is therefore the first key's already-warm hint, which hardware drops cheaply; the rest
+ * of the wave retains its needed MLP coverage.
  *
  * PASSES over a wave of nw <= TOMO_MWAVE keys:
  *   A0  prefetch key robj headers (argv was built on the IO thread — cross-core cold here);
@@ -18118,11 +18115,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
      * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
      * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
     unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
+    unsigned long long tomo_pf_issued_slot = 0, tomo_pf_issued_kvobj = 0;
     unsigned long long tomo_pf_perkey_hits = 0, tomo_pf_perkey_miss = 0;
     for (int _w = 0; _w < server.num_workers; _w++) {
         tomo_pf_batches += server.exThreads[_w].pf_batches;
         tomo_pf_gated   += server.exThreads[_w].pf_gated;
         tomo_pf_issued  += server.exThreads[_w].pf_issued;
+        tomo_pf_issued_slot += server.exThreads[_w].pf_issued_slot;
+        tomo_pf_issued_kvobj += server.exThreads[_w].pf_issued_kvobj;
         tomo_pf_perkey_hits += server.exThreads[_w].pf_perkey_hits;
         tomo_pf_perkey_miss += server.exThreads[_w].pf_perkey_miss;
     }
@@ -18519,6 +18519,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
             "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
             "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
+            "tomo_prefetch_issued_slot:%llu\r\n", tomo_pf_issued_slot,
+            "tomo_prefetch_issued_kvobj:%llu\r\n", tomo_pf_issued_kvobj,
             "tomokv_prefetch_perkey_hits:%llu\r\n", tomo_pf_perkey_hits,
             "tomokv_prefetch_perkey_miss:%llu\r\n", tomo_pf_perkey_miss,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
@@ -20049,7 +20051,8 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  *
  *     fake -> argv -> argv[1](robj) -> argv[1]->ptr(sds)        (the key)
  *           -> cmd                                              (the proc)
- *           -> shard dict bucket -> dict entry -> kvobj         (the value)
+ *           -> DICT bucket -> dict entry -> kvobj               (ex=1)
+ *           -> FLAT home-slot line -> tag-matched kvobj         (ex>=2)
  *
  * Chasing that chain synchronously inside the command handler serializes a
  * string of L3/DRAM misses. Instead we issue the loads as a SOFTWARE PIPELINE
@@ -20057,20 +20060,16 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * the time a later pass dereferences a link it has had ~n iterations to land,
  * and the misses of different fakes overlap (memory-level parallelism).
  *
- * Passes mirror the requested ordering "prefetch fc -> prefetch command
+ * Stages mirror the requested ordering "prefetch fc -> prefetch command
  * execution stages -> prefetch key value -> execute":
  *   1. fake client struct, its argv vector, the command descriptor, key robj
- *   2. key sds bytes; compute SipHash ONCE and stash it on the fake (reused at
- *      execution via dictArmHashHint so we don't hash the key a second time);
- *      prefetch the bucket slot
- *   3. dereference the (now-warm) bucket slot to the head entry; prefetch it
- *   4. dereference the (now-warm) entry to the stored kvobj; prefetch the value
+ *   2. key sds bytes, then select the storage branch:
+ *      DICT computes/stashes SipHash and prefetches bucket -> entry -> kvobj;
+ *      FLAT uses the dispatch-carried tomoKeyHash result and prefetches SLOT -> KVOBJ
  *
- * fake->db was already pointed at the worker's shard during dispatch, so
- * kvstoreGetDict here returns the worker-local dict. Scratch arrays are bounded
- * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a
- * prefetch of a stale address is harmless, and a missed hash hint simply falls
- * back to recomputation at execution. */
+ * fake->db was already pointed at the worker's shard during dispatch. Scratch arrays are bounded
+ * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a stale slot word or
+ * stale prefetch address is harmless, and execution always performs the authoritative lookup. */
 static inline void exPrefetchBatch(client **batch, int n) {
     /* ee451 (B1, 2026-08-02): LEVEL 0 == the machinery does not exist on this path.
      *
@@ -20084,8 +20083,12 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * Returning here BEFORE pf_batches++ is deliberate: at level 0 the counters must not move
      * either, so a gated run and a disabled run are distinguishable in INFO rather than both
      * reading as zero issues. Levels are monotonic supersets so a sweep stays one-dimensional. */
-    if (__builtin_expect(server.prefetch_ex_level == 0, 0)) return;
-    dict *dts[WORKER_POP_BATCH];
+    int prefetch_level = server.prefetch_ex_level;   /* one batch snapshot; CONFIG can change it live */
+    if (__builtin_expect(prefetch_level == 0, 0)) return;
+    union {
+        dict *d;
+        flatSlot *slot;
+    } storage[WORKER_POP_BATCH];
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];
 
@@ -20214,20 +20217,23 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * dereference lands on a line whose prefetch got a full scoreboard rotation to
      * arrive. Stages that issue nothing (guard-fail, width-skip, embstr) fall through
      * within the same visit; DONE lookups retire from the rotation (writes retire right
-     * after HASH — no wasted visits, unlike the fixed pass structure).
+     * after their storage-slot hint — no wasted old-value chase).
      * Stage set (superset of Redis's dict-only FSM — our operands cross a core
      * boundary, ifid-parse -> worker-exec, so the struct/argv/key links are cold too):
-     *   STRUCT -> ARGV -> KEYOBJ -> KEYBYTES -> HASH -> ENTRY -> VALUE -> DONE
+     *   common: STRUCT -> ARGV -> KEYOBJ -> KEYBYTES
+     *   DICT:   HASH(bucket) -> ENTRY -> VALUE(kvobj) -> DONE
+     *   FLAT:   SLOT -> KVOBJ -> DONE
      * The group stages issue across the full batch; only the adaptive VALUE width can
-     * stop the entry-to-value chase early. The FUNCTIONAL work (SipHash +
-     * hash/dict/bucket stash, consumed by hash-carry, #3 nextop, and the predictors)
-     * runs for every key admitted to the scoreboard (all n when the optional filter is off).
+     * stop the DICT entry-to-value chase early. FLAT level 2 stops after SLOT; level 3 lets
+     * READONLY commands consume the warmed slot one rotation later and hint its tag-matched
+     * KVOBJ. The per-key filter admits or skips the entire chain, including storage.
      * pf-cmd stays deleted (command table is permanently L1-hot). */
-    enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH, PFS_ENTRY, PFS_VALUE, PFS_DONE };
+    enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH,
+           PFS_FLAT_KVOBJ, PFS_ENTRY, PFS_VALUE, PFS_DONE };
     uint8_t st[WORKER_POP_BATCH];
     for (int j = 0; j < n; j++) {
         st[j] = PFS_STRUCT;
-        dts[j] = NULL;
+        storage[j].d = NULL;
         des[j] = NULL;
         batch[j]->prefetch_key_hash_valid = 0;
     }
@@ -20267,6 +20273,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
         pfw->pf_perkey_miss += miss;
     }
 
+    unsigned int issued_slot = 0, issued_kvobj = 0;
     int cur = 0;
     while (remaining > 0) {
         int j = cur;
@@ -20308,10 +20315,33 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 break;
             }
             case PFS_HASH: {
-                /* FUNCTIONAL stage — always runs for keys admitted to the scoreboard (feeds
-                 * hash-carry, #3 nextop, and the predictors); key bytes are warm from KEYBYTES/KEYOBJ.
-                 * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
-                 * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
+                /* Storage split. Normal keyed dispatch has already computed tomoKeyHash's exact
+                 * xxh64 into tomo_key_h. The pointer match proves argv[1] is that routed key, so
+                 * this owner may touch its FLAT table without re-reading/hash-walking key bytes.
+                 * Level 2 issues the home SLOT line. Level 3 schedules the tag-gated KVOBJ read a
+                 * full cursor rotation later. Writes stop at SLOT: they install a new value and
+                 * never read the old payload. The live table cannot swap during this exSlice's
+                 * in_flat_section; a stale atomic slot word remains only a harmless hint. */
+                kvstore *kvs = fake->db->keys;
+                robj *key = fake->argv[1];
+                if (prefetch_level >= 2 && fake->tomo_bkt_ptr == (const void *)key->ptr) {
+                    flatTable *t = kvstoreFlatTable(kvs);
+                    if (t && t->slots) {
+                        uint64_t h = fake->tomo_key_h;
+                        flatSlot *slot = &t->slots[h & t->mask];
+                        storage[j].slot = slot;
+                        idxs[j] = (unsigned long)flat_tag_of(h);
+                        st[j] = (prefetch_level >= 3 && fake->cmd &&
+                                 (fake->cmd->flags & CMD_READONLY)) ? PFS_FLAT_KVOBJ : PFS_DONE;
+                        redis_prefetch_read(slot);   /* 8B slots: home line also warms 7 neighbours */
+                        issued_slot++;
+                        issued = 1;
+                        break;
+                    }
+                }
+
+                /* DICT branch remains independent. In particular, a level-1 FLAT lookup still
+                 * reaches and retires at the original NULL-dict guard below. */
                 dict *d = kvstoreGetDict(fake->db->keys,
                     server.ex_threads > 0
                         ? ((fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
@@ -20331,14 +20361,31 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
                  * the chase is gated by READONLY; VALUE remains adaptively capped. */
                 int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
-                if (chase) { dts[j] = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
+                if (chase) { storage[j].d = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
                 else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
                 redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
                 issued = 1;
                 break;
             }
+            case PFS_FLAT_KVOBJ: {
+                /* SLOT had one full scoreboard rotation to arrive. Match the same LIVE + 15-bit
+                 * tag predicate as flatFindForWrite before decoding the atomically published
+                 * pointer. No key comparison or lookup result is consumed here: a tag collision,
+                 * overwrite, or stale word can only issue a useless prefetch. */
+                uint64_t w = atomic_load_explicit(&storage[j].slot->w, memory_order_acquire);
+                st[j] = PFS_DONE;
+                if (FLAT_IS_LIVE(w) && flat_word_tag(w) == idxs[j]) {
+                    kvobj *kv = dictGetKV(flat_word_ptr(w));
+                    if (kv) {
+                        redis_prefetch_read(kv);
+                        issued_kvobj++;
+                        issued = 1;
+                    }
+                }
+                break;
+            }
             case PFS_ENTRY: {
-                dictEntry *de = dts[j]->ht_table[0][idxs[j]];    /* bucket line warm */
+                dictEntry *de = storage[j].d->ht_table[0][idxs[j]];    /* bucket line warm */
                 if (!de) { st[j] = PFS_DONE; break; }
                 des[j] = de;
                 st[j] = (j < w4) ? PFS_VALUE : PFS_DONE;
@@ -20360,6 +20407,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
         pfw->pf_issued += (unsigned)issued;   /* L0: prefetch stages actually issued */
         if (st[j] == PFS_DONE) remaining--;
     }
+    /* Fold once per batch so proof instrumentation adds no per-key worker-counter stores. */
+    if (issued_slot) pfw->pf_issued_slot += issued_slot;
+    if (issued_kvobj) pfw->pf_issued_kvobj += issued_kvobj;
 }
 
 /* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
@@ -20953,8 +21003,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
              * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
              * owner's explicit ruling. It only actually fires at ONE worker per node, though —
-             * with >= 2 the node db is KVSTORE_FLAT, PFS_HASH's kvstoreGetDict() is NULL, and the
-             * prefetch_key_hash_valid this reads is never set. See TOMO_PF_W_NEXTOP in server.h. */
+             * with >= 2 the node db is KVSTORE_FLAT, whose SLOT/KVOBJ branch deliberately never
+             * sets the DICT-only prefetch_key_hash_valid. See TOMO_PF_W_NEXTOP in server.h. */
             if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
                 int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
                 if (la < n) {
