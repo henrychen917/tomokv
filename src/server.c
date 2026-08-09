@@ -23536,11 +23536,13 @@ static double tmFlipPredictedLr(double entry_lr, int entry_io, int entry_ex,
     return entry_lr + ex_term - (wsig ? 0.0 : log((double)ni / (double)entry_io));
 }
 
-/* Translate lr back into the entry split's capacity coordinates before applying b9884f70c's floor
- * invalidator. Per-role magnitudes cannot be capacity-normalized reliably, so they are suspended
- * throughout enumeration/final positioning. Once the sweep is inactive and its quiet/rate window
- * has settled at one split, the first local sample re-bases the snapshot and later samples at that
- * exact split use the same two-sigma rule. The normalized floor remains live during the sweep. */
+/* Post-completion workload-change test ONLY (2026-08-09): the caller no longer runs this while
+ * enumeration/positioning is active, and tmFlipSweepFinish re-bases entry_* onto the finished
+ * split, so the predictor telescopes over a zero-length path and both arms compare the split's
+ * own samples against its own baseline. The during-sweep use died with the owner-equation cap:
+ * a predictor fed capped saturations mispredicts a one-step move by more than gfloor, so the
+ * "normalized floor" read the sweep's own actuation as a workload change (abandon livelock —
+ * see the caller's comment). Per-role magnitudes re-base per split via floor_probe_check_*. */
 static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
                                       double u_io, double u_ex,
                                       double sigma_io, double sigma_ex,
@@ -23855,6 +23857,21 @@ static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io) {
                   fc->floor_probe_entry_io, intended_best, current_io, fc->best_rate,
                   keep ? "KEEP" : "REVERT", outcomes);
         if (keep) fc->veto_run = 0;
+    }
+    /* RE-BASE the episode's coordinates onto the split the sweep actually FINISHED at
+     * (2026-08-09). The post-completion workload-change test translates lr through the
+     * capacity predictor from entry coordinates; after a KEEP at a neighbour that translation
+     * crosses a config move and inherits the predictor's capped-saturation error, so every
+     * KEEP was followed by a spurious EPISODE-DROP -> re-arm -> sweep churn (mget8_p1: correct
+     * config at 10s, then chg=5). With entry == final split the predictor telescopes over a
+     * zero-length path and the test compares the split's own lr against its own floor. */
+    int rebase_pool = fc->floor_probe_entry_io + fc->floor_probe_entry_ex;
+    if (current_io >= 1 && rebase_pool - current_io >= 1) {
+        fc->floor_probe_entry_io = current_io;
+        fc->floor_probe_entry_ex = rebase_pool - current_io;
+        fc->floor_probe_entry_lr = fc->lr_ewma;
+        fc->floor_probe_entry_gfloor = tmFlipGstepAt(current_io, rebase_pool - current_io,
+                                                     fc->lr_ewma, fc->floor_probe_wsig) / 2.0;
     }
     fc->floor_probe_used = fresh_episode ? 0 : 1;
     fc->floor_probe_active = 0;
@@ -24619,13 +24636,25 @@ static void tomoFlipController(void) {
         int sweep_observable = !node_idle &&
                                fc->lr_quiet_run >= FLIP_R_QUIET_N &&
                                fc->anchor_rate_run >= FESC_SETTLE_N;
+        /* NO workload-change test while enumeration/positioning is ACTIVE (2026-08-09). The
+         * during-sweep floor-exit abandon reproduced, at sweep scale, the exact defect the climb's
+         * comment below records being tried and REVERTED on 2026-08-04: the sweep MOVES the config,
+         * the move moves lr, so lr cannot police the sweep. The entry-equivalent translation was
+         * the attempted dodge, and the owner-equation cap breaks it structurally: the predictor
+         * telescopes from CAPPED entry sats, so at a saturated entry (u_ex=1 hiding demand ~1.4x)
+         * one candidate step mispredicts by ~0.5 nats > gfloor, every enumeration self-aborts, and
+         * ABANDON-RETURNED's re-arm turns that into a livelock. Measured on the owner-equation
+         * battery: get_p32 anystart 0/6 stable, ABANDON #8..#12 at 6s intervals from entry=io6,
+         * settle=NEVER chg=9 at -26%. A real mid-sweep load change is still caught by the RATE
+         * tests that remain live during enumeration (idle, after<=0, FLIP_LOAD_SHIFT), and costs at
+         * worst one bounded excursion over the frozen candidate set, corrected next episode. */
         if (fc->floor_probe_used && !fc->floor_probe_abandon_pending && sweep_observable &&
-            (fc->floor_probe_active || !fc->floor_probe_await_settle)) {
+            !fc->floor_probe_active && !fc->floor_probe_await_settle) {
             int sweep_drop_floor = 0;
             double sweep_lr_equiv = 0.0;
             if (tmFlipSweepWorkloadChanged(fc, ni, ne, u_io, u_ex,
                                            u_sigma_io_prior, u_sigma_ex_prior,
-                                           !fc->floor_probe_active,
+                                           1 /* sat arm live: sweep inactive by gate above */,
                                            &sweep_drop_floor, &sweep_lr_equiv)) {
                 if (sweep_drop_floor)
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1,
@@ -24633,11 +24662,7 @@ static void tomoFlipController(void) {
                 else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1,
                                               memory_order_relaxed);
-                if (fc->floor_probe_active) {
-                    tmFlipSweepAbandon(fc, node,
-                                       sweep_drop_floor ? "floor-exit" : "sat-magnitude",
-                                       ni, sweep_lr_equiv);
-                } else {
+                {
                     serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP EPISODE-DROP %s "
                               "entry=io%d current=io%d entry-equivalent-lr=%+.3f -> re-arm",
                               node, sweep_drop_floor ? "floor-exit" : "sat-magnitude",
@@ -24961,7 +24986,14 @@ static void tomoFlipController(void) {
                 double prior_best = fc->best_rate;
                 double sweep_band = fmax(2.0 * sigma, 0.02 * prior_best);
                 int significant = after > prior_best + sweep_band;
-                int improved = after > prior_best;
+                /* RATIFICATION HYSTERESIS (2026-08-09): displacing the standing best requires
+                 * beating it by the SAME band the verdicts use; a raw argmax let a within-noise
+                 * reading hand the final position to a near-tie neighbour (owner-equation battery:
+                 * HOLD@io4 rep2 landed io3 on a +1.1% window, box noise ~2%). Ties keep the
+                 * incumbent, so a flat-topped curve holds still. A config may still refresh its
+                 * OWN standing measurement without the band — that pair stays coherent. */
+                int improved = significant ||
+                               (ni == fc->floor_probe_best_io && after > prior_best);
                 if (improved) {
                     fc->floor_probe_best_io = ni;
                     tmFlipAcceptBestRate(fc, after);
