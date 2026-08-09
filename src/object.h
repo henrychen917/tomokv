@@ -67,6 +67,7 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdatomic.h>
 
@@ -128,6 +129,10 @@ typedef enum tomoRetireState {
 #define TOMO_RESERVATION_SIGNAL_SET 1
 #define TOMO_RESERVATION_SILENT     2
 
+#define TOMO_SINGLE_NONE        0
+#define TOMO_SINGLE_COMMITTED   1
+#define TOMO_SINGLE_SUPERSEDED  2
+
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
@@ -137,6 +142,11 @@ struct tomoVerMeta {
     uint8_t stamp_state;
     uint8_t retire_state;
     uint8_t detached;
+    /* Owner-published read state. This consumes one of the three padding bytes
+     * that already preceded owner_ops_pending, so tomoVerMeta does not grow.
+     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents a
+     * late prune op from relicensing an object after a successor was installed. */
+    _Atomic uint8_t single_state;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *committed_prev;
@@ -145,6 +155,13 @@ struct tomoVerMeta {
     void *reservation_owner;
     tomoOwnerOp owner_op[2];
 };
+
+_Static_assert(offsetof(struct tomoVerMeta, single_state) ==
+               offsetof(struct tomoVerMeta, detached) + sizeof(uint8_t),
+               "single-version state must consume vmeta padding");
+_Static_assert(offsetof(struct tomoVerMeta, owner_ops_pending) ==
+               offsetof(struct tomoVerMeta, detached) + 4,
+               "single-version state must not move owner_ops_pending");
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
@@ -191,6 +208,11 @@ static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
 
 static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
     __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+}
+
+static inline int kvobjSingleCommitted(const struct tomoVerMeta *vmeta) {
+    return atomic_load_explicit(&vmeta->single_state,
+                                memory_order_acquire) == TOMO_SINGLE_COMMITTED;
 }
 
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {

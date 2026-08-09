@@ -3591,7 +3591,11 @@ struct redisServer {
     struct {
         _Atomic long long hits;     /* single-writer per slot; tomoRelaxedBump/Read/Set */
         _Atomic long long misses;
-        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
+        /* Atomic bag-resolution census. These share the owner-local line that
+         * lookupKey already dirties for hits/misses, avoiding a shared RMW. */
+        _Atomic unsigned long long atomic_read_fast;
+        _Atomic unsigned long long atomic_read_slow;
+        char _pad[CACHE_LINE_SIZE - 4 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
@@ -5894,6 +5898,28 @@ void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
+/* Return the command's already-pinned snapshot without touching commit_seq.
+ * False means this is a single-owner/current read which may linearize now. */
+static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
+    client *c = server.current_client[iotid].p;
+    if (!c) return 0;
+    if (c->tomo_read_snapshot_pinned) {
+        *snapshot = c->tomo_read_snapshot;
+        return 1;
+    }
+    if (c->csparent) {
+        csGroup *g = c->csparent;
+        if (g->snapshot_pinned) {
+            *snapshot = g->read_seq;
+            return 1;
+        }
+        if (g->head && g->head->tomo_read_snapshot_pinned) {
+            *snapshot = g->head->tomo_read_snapshot;
+            return 1;
+        }
+    }
+    return 0;
+}
 uint64_t tomoCurrentReadSnapshot(void);
 uint64_t tomoCommittedSeq(void);
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
