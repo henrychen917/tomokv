@@ -580,6 +580,10 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long tm_drain_bytes;
     unsigned int tm_read_events;
 } tmIoSignal;
+
+/* Owner read-batch demand accumulators, callable from networking.c (tmIoSignal and the iotid TLS
+ * are server.c-private). One call per successful read event; two adds, zero syscalls. */
+void tomoIoDrainNote(unsigned int nread);
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
@@ -591,6 +595,11 @@ _Static_assert(offsetof(tmIoSignal, pend_write) / CACHE_LINE_SIZE
 /* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
+
+void tomoIoDrainNote(unsigned int nread) {
+    tm_io_sig[iotid].tm_drain_bytes += (unsigned long long)nread;
+    tm_io_sig[iotid].tm_read_events++;
+}
 
 /* Nestable wait episodes for server.c waits reached by an IO owner (queue/freeback backpressure,
  * polling yields, synchronization spins, and sched_yield). ae.c accounts the event-backend poll

@@ -4937,6 +4937,7 @@ void redisSetCpuAffinity(const char *cpulist);
 client *createClient(connection *conn);
 void freeClient(client *c);
 clientCold *getClientCold(client *c);
+void tomoIoDrainNote(unsigned int nread);  /* owner read-batch demand accumulator (server.c) */
 void freeClientCold(client *c);
 void initClientPubSubData(client *c);
 void freeClientPubSubData(client *c);
