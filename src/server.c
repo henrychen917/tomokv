@@ -521,11 +521,10 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int tm_idle_us; /* ee451 2026-08-04 (OBSERVATION ONLY): wall µs in zero-event passes,
                               * i.e. this thread had NO work. Same episode measurement as
                               * exThread.tm_idle_us so the two roles are directly comparable. */
-    unsigned int tm_wait_us; /* wall µs spent waiting instead of doing useful IO work. Complete
-                              * on epoll only: poll/drain/backpressure/yield spans are bracketed;
-                              * io_uring leaves this at zero because DEFER_TASKRUN can execute
-                              * completion work inside the otherwise-indivisible wait syscall.
-                              * Wrap-safe cumulative counter, like tm_idle_us/tm_busy_us. */
+    unsigned int tm_wait_us; /* epoll wall µs spent in directly bracketed poll/drain/
+                              * backpressure/yield waits. io_uring publishes its complete wait
+                              * numerator and matching sampled-wall denominator atomically in
+                              * tm_uring_wait_sample below. Wrap-safe cumulative counter. */
     unsigned int tm_busy_us; /* thread CPU µs consumed while serving the IO role. Like
                               * exThread.tm_busy_us, this is a wrap-safe cumulative counter;
                               * blocked poll time does not advance it, while zero-timeout drain
@@ -562,40 +561,60 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * send-bound regime (large values, socket backpressure), which is the case utilization alone
      * cannot express and the reason this term exists. */
     unsigned long pend_write;
+    /* io_uring-only matched-span sample, published once per ~16ms CPU gate. High 32 bits are the
+     * cumulative wall µs covered by the samples; low 32 bits are cumulative true-sleep µs,
+     * max(wall_delta_us - thread_cpu_delta_us, 0), over those exact same samples. One packed
+     * relaxed store prevents the controller from pairing operands from different gates. This
+     * occupies the existing owner/control-plane line containing pend_write, not a new line. */
+    _Atomic uint64_t tm_uring_wait_sample;
 } tmIoSignal;
 /* build-time guard, same shape as the exThread ones above: the grace flag every worker polls must
  * not share a line with any counter this thread writes on the data path. */
 _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
                != offsetof(tmIoSignal, q_full_events) / CACHE_LINE_SIZE,
                "flat_epoch shares a cache line with q_full_events (false sharing on the QSBR grace)");
+_Static_assert(offsetof(tmIoSignal, pend_write) / CACHE_LINE_SIZE
+               == offsetof(tmIoSignal, tm_uring_wait_sample) / CACHE_LINE_SIZE,
+               "uring wait sample added a shared cache line");
 /* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 
-/* Nestable wait episodes for server.c waits reached by an IO owner (queue/freeback backpressure,
- * polling yields, synchronization spins, and sched_yield). ae.c accounts the event-backend poll
- * and drain-userpoll spans separately and returns their delta to ioSlice(). Nested bracketing is
- * required because a backpressure episode contains tomoPollingYield calls: only the outermost
- * pair reads the clock and publishes elapsed time, so wait is never double-counted.
+/* Nestable wait episodes for server.c waits reached by an epoll IO owner (queue/freeback
+ * backpressure, polling yields, synchronization spins, and sched_yield). ae.c accounts the
+ * event-backend poll and drain-userpoll spans separately and returns their delta to ioSlice().
+ * Nested bracketing is required because a backpressure episode contains tomoPollingYield calls:
+ * only the outermost pair reads the clock and publishes elapsed time, so wait is never
+ * double-counted.
  *
- * This is deliberately disabled for both io_uring backends. Their explicit server.c waits are
- * measurable, but publishing only those while omitting the inseparable io_uring_enter wait would
- * create a plausible-looking partial utilization signal, which is more dangerous than an explicit
- * unsupported zero. server.io_uring is immutable, so a span cannot change support mid-episode. */
+ * Direct bracketing deliberately remains disabled for both io_uring backends. Their complete span
+ * is classified once in ioSlice by matched wall/CPU clocks: a sleeping episode contributes wait,
+ * while a CPU-burning spin does not. Enabling direct brackets as well would double-count or
+ * reclassify those spans. server.io_uring is immutable, so an episode cannot change backend. */
 static __thread unsigned int tm_io_wait_depth;
 static __thread uint64_t tm_io_wait_mark;
 
+/* Whether the published wait metric is trustworthy for the active backend. Epoll always has its
+ * direct brackets. A requested uring backend is supported only after its main-owner ring is
+ * actually live; initialization is fail-fast, so that also proves the poly owners use the selected
+ * backend before the controller can run. Keep this check aligned with INFO and flip-signal 5. */
 static inline int tmIoWaitSupported(void) {
+    if (server.io_uring == 0) return 1;
+    return (server.io_uring == 1 || server.io_uring == 2) &&
+           tomoUringBackendThreadEnabled(0);
+}
+
+static inline int tmIoBracketWaitSupported(void) {
     return server.io_uring == 0 && iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX;
 }
 
 static inline void tmIoWaitBegin(void) {
-    if (!tmIoWaitSupported()) return;
+    if (!tmIoBracketWaitSupported()) return;
     if (tm_io_wait_depth++ == 0) tm_io_wait_mark = getMonotonicUs();
 }
 
 static inline void tmIoWaitEnd(void) {
-    if (!tmIoWaitSupported() || tm_io_wait_depth == 0) return;
+    if (!tmIoBracketWaitSupported() || tm_io_wait_depth == 0) return;
     if (--tm_io_wait_depth == 0) {
         tm_io_sig[iotid].tm_wait_us +=
             (unsigned int)(getMonotonicUs() - tm_io_wait_mark);
@@ -18003,12 +18022,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
          * candidate utilization estimator can be checked against a measured throughput curve.
-         * Take two samples and divide each delta by (threads * wall * 1000) to derive its fraction.
+         * For idle/busy and epoll wait, take two samples and divide the counter delta by
+         * (threads * snapshot-wall * 1000). Uring's gated wait numerator must instead be divided
+         * by its packed matching-wall delta; the mode-5 IW log exposes that exact pair.
          *
-         * tm_idle_us remains the legacy zero-event-episode measure. tm_wait_us is the new epoll
-         * wait measure; it is published beside idle so one pair of INFO snapshots can falsify the
-         * new estimator without losing the old control. It is explicitly unsupported under uring
-         * because DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
+         * tm_idle_us remains the legacy zero-event-episode measure. tomokv_io_wait_us selects the
+         * complete active-backend wait numerator: direct brackets for epoll, or matched
+         * wall-minus-thread-CPU spans for uring. It is published beside idle so one pair of INFO
+         * snapshots can falsify the new estimator without losing the old control. */
         {
             unsigned long long io_busy = 0, ex_busy = 0, io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
@@ -18023,7 +18044,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     && t >= server.io_threads) continue;      /* grown slot not serving IO */
                 io_busy += tm_io_sig[t].tm_busy_us;
                 io_idle += tm_io_sig[t].tm_idle_us;
-                io_wait += tm_io_sig[t].tm_wait_us;
+                if (server.io_uring) {
+                    uint64_t sample = atomic_load_explicit(
+                        &tm_io_sig[t].tm_uring_wait_sample, memory_order_relaxed);
+                    io_wait += (uint32_t)sample;
+                } else {
+                    io_wait += tm_io_sig[t].tm_wait_us;
+                }
                 nio++;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
@@ -18035,7 +18062,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
                 "tomokv_io_idle_us:%llu\r\n", io_idle,
                 "tomokv_io_wait_us:%llu\r\n", io_wait,
-                "tomokv_io_wait_supported:%d\r\n", server.io_uring == 0,
+                "tomokv_io_wait_supported:%d\r\n", tmIoWaitSupported(),
                 "tomokv_ex_idle_us:%llu\r\n", ex_idle,
                 "tomokv_svc_us_c0:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[0], memory_order_relaxed) / 256.0,
                 "tomokv_svc_us_c1:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[1], memory_order_relaxed) / 256.0,
@@ -21548,21 +21575,26 @@ void initIOThreads(void) {
         exit(1);
     }
 }
-/* Legacy IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID), retained for INFO only.
+/* Gated IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID).
  *
- * It is not a useful-work estimator: an idle IO owner can burn scheduled CPU in drain spin and
- * short polls, so CPU over-reports busy. Nor can elapsed time around io_uring_enter replace it as
- * a wait estimator: with DEFER_TASKRUN, useful completion taskwork runs inside that syscall (the
- * recorded naive bracket published 17% busy on a 99.5%-CPU thread). The controller therefore uses
- * neither observation as mode-5 WAIT under uring; that mode is explicitly unsupported there.
+ * The raw tm_busy_us counter remains an INFO diagnostic: scheduled CPU alone over-reports useful
+ * work when drain spin and short polls burn cycles. For io_uring, however, the SAME CPU sample has
+ * a second use: subtracting it from wall elapsed over the exact same gated span isolates true
+ * sleep. DEFER_TASKRUN completion taskwork advances both clocks, while sleeping advances only
+ * wall, so taskwork inside io_uring_enter cannot be misclassified as wait.
  *
- * CLOCK_THREAD_CPUTIME_ID is a real syscall rather than a vDSO read, so the diagnostic counter is
- * sampled on a ~16ms gate instead of every pass. Both marks are TLS; only tm_busy_us is published. */
+ * CLOCK_THREAD_CPUTIME_ID is a real syscall rather than a vDSO read, so it stays on the existing
+ * ~16ms gate instead of running every pass. The monotonic timestamp already read on every pass is
+ * the matching wall endpoint; uring adds one monotonic baseline read only on IO-role entry. All
+ * marks and cumulative uring operands are TLS; only one packed sample is published per gate. */
 #define TOMO_IO_CPU_SAMPLE_US 16000
 
 static __thread uint64_t tm_io_cpu_last_ns;   /* CLOCK_THREAD_CPUTIME_ID at the last sample */
 static __thread uint64_t tm_io_idle_mark;     /* start of the current zero-event episode, 0 = busy */
 static __thread uint64_t tm_io_cpu_next_us;   /* monotonic gate for the next sample */
+static __thread uint64_t tm_io_uring_wall_last_us; /* wall mark paired with tm_io_cpu_last_ns */
+static __thread uint32_t tm_io_uring_wait_us;      /* packed sample's wrap-safe low half */
+static __thread uint32_t tm_io_uring_span_us;      /* packed sample's wrap-safe high half */
 
 static inline uint64_t tmThreadCpuNs(void) {
     struct timespec ts;
@@ -21570,9 +21602,11 @@ static inline uint64_t tmThreadCpuNs(void) {
     return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 
-static inline void tmIoBusyBegin(void) {
-    /* Re-baseline on role entry: CPU burned in this thread's PREVIOUS role must not land in the
-     * IO numerator. */
+static inline void tmIoBusyBegin(ioThreadArgs *t) {
+    /* Re-baseline on role entry: CPU/wall elapsed in this thread's PREVIOUS role must not land in
+     * the IO operands. For uring, take the wall mark immediately before the CPU mark, the same
+     * ordering used at every gated endpoint below. Epoll takes no added clock read. */
+    if (t->el->uring_enter) tm_io_uring_wall_last_us = getMonotonicUs();
     tm_io_cpu_last_ns = tmThreadCpuNs();
     tm_io_cpu_next_us = 0;                 /* publish on the next pass */
     /* Same reason, for the idle clock: tm_io_idle_mark is TLS and SURVIVES the role change. A
@@ -21598,8 +21632,8 @@ static inline void tmIoBusyBegin(void) {
  *
  * aeProcessEventsIO also returns the epoll/drain WAIT span for this pass. ioSlice publishes it
  * beside the legacy zero-event idle counter; server.c wait helpers publish callback-side waits
- * directly into the same per-owner counter. io_uring returns zero by design because completion
- * taskwork and sleeping cannot be separated inside io_uring_enter. */
+ * directly into the same per-owner counter. io_uring deliberately returns zero there: ioSlice
+ * instead separates completion work from sleep across matched gated wall/thread-CPU spans. */
 static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     tmIoSignal *s = &tm_io_sig[t->id];
     uint64_t wait_us = 0;
@@ -21608,13 +21642,34 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     {
         /* Owner-published scheduled-CPU diagnostic, sampled on a gate. Accumulate it in STATIC
          * mode as well as auto so INFO snapshots can compare CPU, zero-event idle, and true wait
-         * against measured throughput while the split is held fixed. It is not a controller input;
-         * see tmIoBusyBegin for why neither CPU nor whole-uring-call elapsed time is WAIT. */
+         * against measured throughput while the split is held fixed. Under uring the CPU delta
+         * also forms the wait metric, but only paired with its matching wall delta below. */
         uint64_t now_us = getMonotonicUs();
         if (now_us >= tm_io_cpu_next_us) {
             uint64_t cpu = tmThreadCpuNs();
             if (tm_io_cpu_last_ns && cpu > tm_io_cpu_last_ns)
                 s->tm_busy_us += (unsigned int)((cpu - tm_io_cpu_last_ns) / 1000);
+            if (t->el->uring_enter && tm_io_uring_wall_last_us) {
+                /* Both operands cover one identical span: the previous gated wall/CPU sample pair
+                 * through the current gated wall/CPU sample pair. wall_delta_us is unsigned for
+                 * monotonic-counter wrap; cpu_delta_us is the unsigned CLOCK_THREAD_CPUTIME_ID
+                 * delta over those same boundaries. Compare before subtracting so clock skew (or
+                 * a wrapped CPU counter) clamps sleep to zero instead of underflowing to a huge
+                 * wait. Publishing span and wait in one word keeps the later ratio's numerator
+                 * and denominator on this same set of gated spans. */
+                uint64_t cpu_delta_ns = cpu - tm_io_cpu_last_ns;
+                uint64_t wall_delta_us = now_us - tm_io_uring_wall_last_us;
+                uint64_t cpu_delta_us = cpu_delta_ns / 1000;
+                uint64_t sleep_delta_us = wall_delta_us > cpu_delta_us
+                                        ? wall_delta_us - cpu_delta_us : 0;
+                tm_io_uring_wait_us += (uint32_t)sleep_delta_us;
+                tm_io_uring_span_us += (uint32_t)wall_delta_us;
+                uint64_t sample = ((uint64_t)tm_io_uring_span_us << 32) |
+                                  (uint64_t)tm_io_uring_wait_us;
+                atomic_store_explicit(&s->tm_uring_wait_sample, sample,
+                                      memory_order_relaxed);
+                tm_io_uring_wall_last_us = now_us;
+            }
             tm_io_cpu_last_ns = cpu;
             tm_io_cpu_next_us = now_us + TOMO_IO_CPU_SAMPLE_US;
         }
@@ -21810,9 +21865,9 @@ void *polyThreadMain(void *arg) {
                 } else if (cur == TOMO_MODE_UNSET) {
                     fprintf(stderr, "IO thread %d started (poly, iotid=%d)\n", ctx->io->id, iotid);
                 }
-                /* Seed after the role transition so EX-role CPU and listener setup are not charged
-                 * to IO utilization. The first ioSlice publishes only CPU spent in the IO role. */
-                tmIoBusyBegin();
+                /* Seed after the role transition so EX-role CPU/wall and listener setup are not
+                 * charged to IO utilization. The first ioSlice publishes only the new IO span. */
+                tmIoBusyBegin(ctx->io);
                 break;
             case TOMO_MODE_EX:
                 if (!ctx->ex) { ok = 0; break; }        /* no shard slot binding */
@@ -23105,16 +23160,17 @@ typedef struct {
                               * ~80s period, 4 flips/160s, after backoff halved the original 8). */
     double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
-    /* Legacy occupancy = 100 - zero-event-idle%, EWMA(FESC_ALPHA). The CPU-time pair
+    /* Legacy occupancy = 100 - zero-event-idle%, EWMA(FESC_ALPHA). The old CPU-time pair
      * (busy_smooth / io_busy_smooth) was deleted 2026-08-04: it called a
      * 43%-below-peak config "balanced" because an over-provisioned IO thread SPINS rather than
      * blocking, so scheduled CPU cannot tell working from polling. See the u_io/u_ex comment.
-     * The raw tm_busy_us counters survive for INFO only — nothing decides on them. Modes 0-4
-     * retain these fields byte-for-byte; mode 5 substitutes the epoll wait-time estimate below. */
+     * The raw tm_busy_us counters survive for INFO only. Modes 0-4 retain these fields
+     * byte-for-byte; mode 5 substitutes the backend-correct wait-time estimate below. Uring uses
+     * the same gated CPU clock only as one operand of matched wall-minus-CPU sleep accounting. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
-    double   io_wait_u_smooth; /* EWMA of 1 - epoll-wait/wall, kept in double so the legacy
-                                * integer-EWMA truncation cannot pin a near-one signal. */
+    double   io_wait_u_smooth; /* EWMA of 1 - true-wait/matching-wall, kept in double so the
+                                * legacy integer-EWMA truncation cannot pin a near-one signal. */
     int      just_settled;   /* a climb just ended => re-anchor the band at this settled point */
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
     /* ONE VARIABLE CARRIES WHICHEVER SIGNAL tomokv-flip-signal SELECTS (see FLIP_SIG_*), and that
@@ -23272,10 +23328,10 @@ static flipCtlState fctl[TM_MAXNODE];
  * comparing MISMATCHED KINDS, and the io term is the one that cannot be trusted to mean what it
  * says: an over-provisioned IO thread does not block, it SPINS, so its busy time counts polling an
  * empty socket set as work (measured in the u_io comment: r_cpu 0.982 — dead on "balanced" — for a
- * config running at 57% of peak), and under io_uring with DEFER_TASKRUN the work happens INSIDE
- * io_uring_enter, which once read io_sat 0.17 on a thread that was 99.5% busy. Occupancy fixed the
- * first of those; the second is a property of where the work is accounted, not of the filter.
- * Deleting the io operand from the DIRECTION deletes the whole class.
+ * config running at 57% of peak). A second failure naively treated all wall time inside
+ * io_uring_enter as sleep even though DEFER_TASKRUN runs work there, producing io_sat 0.17 on a
+ * 99.5%-busy thread. Mode 5 repairs that boundary with matched wall-minus-thread-CPU spans; the
+ * worker-only modes still delete the IO operand from their DIRECTION entirely.
  *
  * THE WORKER SIGNAL, AND WHY IT IS ONE NUMBER. ex_sat is already "output vs input" for the worker
  * station (see the SATURATION comment): sat = U + Q/QCAP, U the fraction of wall time with work
@@ -23312,10 +23368,9 @@ static flipCtlState fctl[TM_MAXNODE];
  *                       and what damps it.
  *   FLIP_SIG_WORKER_CLIP (3) = mode 2 PLUS the clip repair at the granularity floor. See the
  *                       floor site; the reason it exists is below.
- *   FLIP_SIG_IO_WAIT (5) the mode-0 IO/EX ratio, but U_IO is derived from true epoll WAIT time
- *                       instead of zero-event episodes. Modes 0-4 do not read this measure.
- *                       Under either io_uring backend the mode safely falls back to mode 0 and
- *                       logs UNSUPPORTED: DEFER_TASKRUN prevents a correct wait-only bracket.
+ *   FLIP_SIG_IO_WAIT (5) the mode-0 IO/EX ratio, but U_IO is derived from true WAIT time instead
+ *                       of zero-event episodes. Epoll uses direct wait brackets; uring uses
+ *                       matched gated wall-minus-thread-CPU spans. Modes 0-4 do not read it.
  *
  * THE WORKER SIGNAL'S ONE STRUCTURAL BLIND SPOT, and why mode 3 exists. u_ex is hard-clipped at
  * 1.0, so once the workers are saturated the ONLY thing that can still express "and how far
@@ -23362,6 +23417,7 @@ static void tomoFlipController(void) {
     static mstime_t prev_wall = 0, last_log = 0;
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_wait_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_io_wait_span_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static mstime_t fc_prev_busy_wall[TM_MAXNODE];
     mstime_t now = mstime();
@@ -23415,10 +23471,9 @@ static void tomoFlipController(void) {
     /* tomokv-flip-signal, read ONCE per tick so every node in this tick decides on the same signal
      * definition (the knob is MODIFIABLE and could otherwise change between node bodies). `wsig`
      * selects one of the worker-only triggers; `wpure` additionally drops the io-side don't-bother
-     * gate. `waitsig` selects the mode-0 ratio with epoll wait-time U_IO. It is false under uring,
-     * where mode 5 safely follows the unchanged mode-0 decision path and logs why. */
+     * gate. `waitsig` selects the mode-0 ratio with the active backend's true-wait U_IO. */
     const int waitsig_requested = (server.flip_signal == FLIP_SIG_IO_WAIT);
-    const int waitsig = waitsig_requested && server.io_uring == 0;
+    const int waitsig = waitsig_requested && tmIoWaitSupported();
     /* The upper endpoint includes the adjacent worker-max mode 4. It is rejected by this branch's
      * config validator until that implementation combines, but spelling the classification here
      * preserves its worker/pure/clip semantics when the branches meet. Mode 5 remains a ratio. */
@@ -23432,9 +23487,11 @@ static void tomoFlipController(void) {
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
         flipCtlState *fc = &fctl[node];   /* zero-init is the correct PID start (I=0, bias=0, unprimed) */
-        /* Both role counters below must be divided by wall time over the SAME span. A node body
-         * can be skipped when an earlier node starts a flip, so the controller-entry wall delta
-         * is not necessarily this node's counter-snapshot delta. */
+        /* Snapshot-derived legacy/worker/epoll counters below must be divided by wall time over
+         * the SAME snapshot span. A node body can be skipped when an earlier node starts a flip,
+         * so the controller-entry wall delta is not necessarily this node's snapshot delta.
+         * Uring does not use this denominator: its atomic sample carries the matching gated wall
+         * span beside derived sleep. */
         long node_wall_ms = fc_prev_busy_wall[node] ? (long)(now - fc_prev_busy_wall[node]) : wall_ms;
         fc_prev_busy_wall[node] = now;
 
@@ -23479,8 +23536,8 @@ static void tomoFlipController(void) {
             if (nnodes == 1 || (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX)) w_live++;
         }
         long io_occ_sum = 0; double io_wait_u_sum = 0.0;
-        uint64_t io_wait_delta_sum = 0;
-        int io_occ_cnt = 0, io_live_node = 0;
+        uint64_t io_wait_delta_sum = 0, io_wait_span_delta_sum = 0;
+        int io_occ_cnt = 0, io_wait_u_cnt = 0, io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
         for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
@@ -23490,9 +23547,19 @@ static void tomoFlipController(void) {
             uint32_t ci = tm_io_sig[t].tm_idle_us;
             uint32_t di = ci - fc_prev_io_idle_us[node][t];
             fc_prev_io_idle_us[node][t] = ci;
-            uint32_t cw = tm_io_sig[t].tm_wait_us;
+            uint32_t cw, cws = 0;
+            if (server.io_uring) {
+                uint64_t sample = atomic_load_explicit(
+                    &tm_io_sig[t].tm_uring_wait_sample, memory_order_relaxed);
+                cw = (uint32_t)sample;
+                cws = (uint32_t)(sample >> 32);
+            } else {
+                cw = tm_io_sig[t].tm_wait_us;
+            }
             uint32_t dw = cw - fc_prev_io_wait_us[node][t];
             fc_prev_io_wait_us[node][t] = cw;
+            uint32_t dws = cws - fc_prev_io_wait_span_us[node][t];
+            fc_prev_io_wait_span_us[node][t] = cws;
             polyThreadCtx *ic = tmCtxForIotid(t);
             if (!ic || atomic_load_explicit(&ic->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 if (t >= server.io_threads) continue;      /* growth slot not live */
@@ -23500,11 +23567,32 @@ static void tomoFlipController(void) {
             int oi = node_wall_ms > 0 ? (int)(di / (uint32_t)(node_wall_ms * 10)) : 0;
             if (oi > 100) oi = 100;
             io_occ_sum += (100 - oi);
-            double wait_frac = node_wall_ms > 0
-                ? (double)dw / ((double)node_wall_ms * 1000.0) : 0.0;
-            if (wait_frac > 1.0) wait_frac = 1.0;
-            io_wait_u_sum += 1.0 - wait_frac;
-            io_wait_delta_sum += dw;
+            if (server.io_uring) {
+                /* uring ratio operands are explicit and matched: numerator dw is true-sleep µs,
+                 * denominator dws is monotonic-wall µs, and the packed sample guarantees both
+                 * cumulative deltas cover exactly the same ~16ms gated CPU/wall spans. A zero
+                 * denominator means no gate closed in this controller tick, so freeze rather than
+                 * inventing a busy or idle sample. Both uint32_t subtractions are wrap-safe. */
+                if (dws) {
+                    double wait_frac = (double)dw / (double)dws;
+                    if (wait_frac > 1.0) wait_frac = 1.0;
+                    io_wait_u_sum += 1.0 - wait_frac;
+                    io_wait_delta_sum += dw;
+                    io_wait_span_delta_sum += dws;
+                    io_wait_u_cnt++;
+                }
+            } else {
+                /* Epoll is intentionally unchanged: numerator dw is directly bracketed wait µs
+                 * folded between these controller snapshots; denominator is node_wall_ms*1000,
+                 * the wall µs between the same snapshots for this thread. */
+                double wait_frac = node_wall_ms > 0
+                    ? (double)dw / ((double)node_wall_ms * 1000.0) : 0.0;
+                if (wait_frac > 1.0) wait_frac = 1.0;
+                io_wait_u_sum += 1.0 - wait_frac;
+                io_wait_delta_sum += dw;
+                io_wait_span_delta_sum += (uint64_t)node_wall_ms * 1000ULL;
+                io_wait_u_cnt++;
+            }
             io_occ_cnt++;
             io_live_node++;
         }
@@ -23515,10 +23603,12 @@ static void tomoFlipController(void) {
          *     fixed-sign bias toward growing IO, largest exactly when the workload changes and the
          *     anchor is most likely to be captured wrong;
          *   - quantity: both were CPU time, which counts an idle IO thread's spin as work.
-         * The CPU-time path is gone; see the u_io/u_ex comment for the measurement. */
+         * The standalone CPU-ratio path is gone; see the u_io/u_ex comment for the measurements. */
         int io_occ_mean = io_occ_cnt ? (int)(io_occ_sum / io_occ_cnt) : 0;
         fc->io_occ_smooth += (int)(FESC_ALPHA * (io_occ_mean - fc->io_occ_smooth));
-        double io_wait_u_mean = io_occ_cnt ? io_wait_u_sum / (double)io_occ_cnt : 0.0;
+        double io_wait_u_mean = io_wait_u_cnt
+                              ? io_wait_u_sum / (double)io_wait_u_cnt
+                              : fc->io_wait_u_smooth;
         fc->io_wait_u_smooth += FESC_ALPHA * (io_wait_u_mean - fc->io_wait_u_smooth);
         double qd_mean = qd_n ? (qd_sum / qd_n) : 0.0;
 
@@ -23621,7 +23711,7 @@ static void tomoFlipController(void) {
          *         replyWorking, i.e. in flight ON WORKERS; charging that to IO would attribute EX's
          *         backlog to IO and count the same work twice. See tmIoSignal.pend_write.
          *   U_r   selected role-utilization estimate as a fraction: legacy no-work occupancy for
-         *         modes 0-4, and epoll WAIT-derived IO occupancy for mode 5.
+         *         modes 0-4, and active-backend true-WAIT-derived IO occupancy for mode 5.
          *
          * Degenerate case is correct by construction: no queue => S_r == U_r, i.e. a station with
          * nothing owed to it is saturated exactly as much as it is busy. Q_IO only becomes non-zero
@@ -23689,18 +23779,18 @@ static void tomoFlipController(void) {
          * flip moves the MEASURED pool 3->4, so the step really is ln(4/3).
          *
          * THE TWO ROLES STILL NEED DIFFERENT OBSERVATION BOUNDARIES.
-         *   IO mode 5 = epoll/drain/backpressure/yield WAIT spans, then 1 - wait/wall
+         *   IO mode 5 = true WAIT, then 1 - wait/matching-wall. Epoll directly brackets
+         *               poll/drain/backpressure/yield; uring uses gated wall-thread-CPU.
          *   EX         = empty-queue episodes, then 1 - idle/wall
-         * Scheduled IO CPU remains in tm_busy_us for INFO only. It cannot replace WAIT: drain
-         * spin and short polls consume CPU without useful work. Conversely, an io_uring syscall
-         * cannot supply WAIT because DEFER_TASKRUN executes useful completion work inside it;
-         * mode 5 therefore falls back to the legacy mode-0 operand under uring. */
+         * Scheduled IO CPU alone remains an INFO diagnostic: drain spin and short polls consume
+         * CPU without useful work. Uring uses CPU only to subtract work from the SAME wall span;
+         * DEFER_TASKRUN taskwork advances both clocks and therefore cannot inflate wait. */
         double u_io_idle = (double)fc->io_occ_smooth / 100.0;
         double u_io_wait = fc->io_wait_u_smooth;
         /* Modes 0-4 retain their existing IO occupancy exactly. Mode 5 alone substitutes
-         * 1 - measured WAIT/wall (double EWMA, so integer truncation cannot pin it at 0.97).
-         * waitsig is false under uring, deliberately selecting the legacy value rather than a
-         * partial wait counter that omits io_uring_enter. */
+         * 1 - measured WAIT/matching-wall (double EWMA, so integer truncation cannot pin it at
+         * 0.97). An inactive requested backend keeps the explicit unsupported fallback rather
+         * than selecting a partial or unprimed metric. */
         double u_io = waitsig ? u_io_wait : u_io_idle;
         double u_ex = (double)fc->ex_occ_smooth / 100.0;
         if (u_io > 1.0) u_io = 1.0;
@@ -23898,7 +23988,7 @@ static void tomoFlipController(void) {
             snprintf(wsig_log, sizeof(wsig_log),
                      " | IW(sig=%d wait_us=%llu/%llu u_io_idle=%.3f u_io_raw=%.3f u_io_wait=%.3f)",
                      server.flip_signal, (unsigned long long)io_wait_delta_sum,
-                     (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)io_occ_cnt,
+                     (unsigned long long)io_wait_span_delta_sum,
                      u_io_idle, io_wait_u_mean, u_io_wait);
         else if (waitsig_requested)
             snprintf(wsig_log, sizeof(wsig_log),

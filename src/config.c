@@ -3250,9 +3250,9 @@ standardConfig static_configs[] = {
      *       can hold at io7/ex1 under ZRANGE at pipeline 1 because the backlog term's range is
      *       bounded by conns x pipeline, not by the server.
      *   4 = reserved for the adjacent worker-max experiment; this branch leaves it rejected.
-     *   5 = mode-0 IO/EX ratio with U_IO derived from epoll WAIT time instead of zero-event
-     *       episodes. Under io_uring this safely retains mode-0 decisions because DEFER_TASKRUN
-     *       makes the waiting part of io_uring_enter inseparable from completion work.
+     *   5 = mode-0 IO/EX ratio with U_IO derived from true WAIT time instead of zero-event
+     *       episodes. Epoll brackets wait directly; io_uring subtracts matched gated thread CPU
+     *       from wall, so DEFER_TASKRUN taskwork inside io_uring_enter is not charged as wait.
      * Default 0 until the conformance table decides. If 2 matches 1 everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */

@@ -1536,9 +1536,10 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 /* ---- IO-utilisation observations -------------------------------------------
  * tm_busy_us retains sampled scheduled CPU for INFO only; CPU over-reports useful IO work when
  * drain spin and short polls burn cycles. Controller modes 0-4 retain zero-event occupancy.
- * flip-signal 5 uses bracketed WAIT time on epoll only. It must not bracket io_uring_enter:
- * DEFER_TASKRUN runs completion work inside that syscall (the recorded naive bracket published
- * 17% busy on a 99.5%-CPU thread), so mode 5 safely falls back to mode 0 under uring. */
+ * flip-signal 5 uses true WAIT: direct brackets on epoll, matched wall-minus-thread-CPU spans on
+ * io_uring. It must not wall-bracket io_uring_enter: DEFER_TASKRUN runs completion work inside that
+ * syscall (the recorded naive bracket published 17% busy on a 99.5%-CPU thread), while the paired
+ * clocks correctly charge that taskwork to CPU rather than wait. */
 
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
@@ -3315,8 +3316,8 @@ struct redisServer {
      *   3 = mode 2 + the clip repair (the granularity floor does not veto a grow-back once worker
      *       occupancy has clipped and its magnitude is unmeasurable)
      *   4 = reserved for the adjacent worker-max experiment (rejected until that branch combines)
-     *   5 = mode-0 ratio with epoll WAIT-time IO utilization; safely falls back to mode 0 under
-     *       io_uring, whose DEFER_TASKRUN completion work cannot be separated from kernel wait
+     *   5 = mode-0 ratio with true WAIT-time IO utilization: direct epoll brackets or matched
+     *       wall-minus-thread-CPU spans for io_uring
      * Read only by the 4Hz controller, so 0 costs nothing anywhere. */
     int flip_signal;
     /* ee451 node-topology config (2026-07-22): the pool is nodes * cores_per_node threads, ALWAYS

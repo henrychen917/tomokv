@@ -605,9 +605,9 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         /* The PAUSE prefix is waiting for a worker reply, but beforesleep performs useful reply
          * completion work and must not be charged as wait. Accumulate the whole prefix span and
          * subtract the individually bracketed work calls so sub-microsecond PAUSE batches are not
-         * lost independently to getMonotonicUs() resolution. This is deliberately epoll-only:
-         * under DEFER_TASKRUN an io_uring enter can execute completion work inside the syscall,
-         * so that backend has no clean wall-clock wait boundary (see the enter site below). */
+         * lost independently to getMonotonicUs() resolution. This direct bracket is deliberately
+         * epoll-only: under DEFER_TASKRUN an io_uring enter can execute completion work inside the
+         * syscall, so uring is classified by ioSlice's matched wall/thread-CPU spans instead. */
         uint64_t spin_start = 0, work_us = 0;
         if (eventLoop->uring_enter == NULL) spin_start = getMonotonicUs();
         for (int u = 0; u < AE_IO_DRAIN_USERPOLL_MAX; u++) {
@@ -655,10 +655,11 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         tvp = &tv;
     }
 
-    /* WAIT accounting is intentionally NOT wrapped around this call. DEFER_TASKRUN runs useful
-     * completion taskwork inside io_uring_enter, so elapsed wall time cannot distinguish sleeping
-     * from working (the recorded failure read io_sat=0.17 on a 99.5%-CPU thread). The new wait
-     * counter is therefore explicitly epoll-only rather than publishing a partial uring signal. */
+    /* This call is intentionally NOT wall-bracketed. DEFER_TASKRUN runs useful completion taskwork
+     * inside io_uring_enter, so elapsed syscall wall time cannot distinguish sleeping from working
+     * (the recorded failure read io_sat=0.17 on a 99.5%-CPU thread). ae's direct wait component
+     * therefore remains zero; ioSlice derives complete uring sleep from matched gated wall and
+     * thread-CPU deltas instead. */
     if (eventLoop->uring_enter) {
         (void)eventLoop->uring_enter(eventLoop, tvp);
         int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;

@@ -191,7 +191,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-flip-signal 1 "worker idle+qdepth picks direction; server_bound gate retained"
   try tomokv-flip-signal 2 "pure worker-only: the io-side don't-bother gate is dropped too"
   try tomokv-flip-signal 3 "pure worker-only + clip repair (floor does not veto grow-back once u_ex clips)"
-  try tomokv-flip-signal 5 "mode-0 ratio with epoll wait-time u_io; uring safely falls back to mode 0"
+  try tomokv-flip-signal 5 "mode-0 ratio with backend-correct true-wait u_io"
 
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..2; only 0 is driven here on purpose -- modes 1/2 both need a
