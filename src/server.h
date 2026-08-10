@@ -4230,8 +4230,8 @@ struct redisServer {
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
     int dbg_assert_alloc_per_slot; /* Assert per-slot alloc_size after each command */
-    /* Measurement-only CROSS-L3 rig. Appended so the normal server layout ahead of
-     * this point is unchanged. Zero performs no calibration or allocation. */
+    /* Measurement-only CROSS-L3 delayed visibility. Appended so the normal
+     * server layout ahead of this point is unchanged. Zero has no hot hook. */
     int tomokv_sim_hop_ns;
 };
 
@@ -6549,7 +6549,6 @@ client *createFakeClient(client *parent);               /* ee451 (v7): for cross
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
-void tomoSimHopDebug(client *c, long long duration_ms);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */

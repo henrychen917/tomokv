@@ -3187,8 +3187,8 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
-    /* Measurement rig, not a production feature. The delay is consumed only by
-     * DEBUG TOMO-SIM-HOP; zero does not calibrate the TSC or touch hot paths. */
+    /* Measurement rig, not a production feature. Non-zero selects the delayed-
+     * visibility binary; zero does not calibrate, allocate, or touch hot paths. */
     createIntConfig("tomokv-sim-hop-ns", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, 1000000, server.tomokv_sim_hop_ns, 0, INTEGER_CONFIG, NULL, NULL),
     /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
      * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.

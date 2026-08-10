@@ -168,7 +168,7 @@ for the balancer is spelled `tomokv-key-lb 0`.
 | knob | default | note |
 |---|---|---|
 | `tomokv-strict-order` | 0 off | cross-IO ordering; non-zero forces a dense lane sweep. Per-queue FIFO holds either way |
-| `tomokv-sim-hop-ns` | 0 off | DEBUG-only two-hop CROSS-L3 delay; non-zero calibrates invariant TSC at boot, while zero leaves production paths untouched |
+| `tomokv-sim-hop-ns` | 0 off | normal-traffic two-hop CROSS-L3 delayed visibility; non-zero selects the simulator binary and calibrates invariant TSC, while zero has no sidecar allocation or hot-path hook |
 | `tomokv-pipeline-depth` | -1 → **32** | in-flight per connection + fake ring size |
 | `tomokv-prefetch-ex` | 1 | monotonic: 0 off, 1 operands, 2 + FLAT SLOT, 3 + tag-gated FLAT KVOBJ |
 | `tomokv-zerocopy-min-value` | 1024 | **effective floor is 16384** — see §5 |

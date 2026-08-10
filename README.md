@@ -312,15 +312,16 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-thread-io` | **mandatory** ≥ 1, **per node** | Ingress threads (parse/dispatch/reply) per node, and the STARTING split. No default — the io/ex split is the most consequential decision you make (see the performance section). With `tomokv-nodes 1` this is the total count. |
 | `tomokv-thread-ex` | **mandatory** ≥ 1, **any count**, **per node** | Execution workers (one shard each) per node, and the STARTING split. Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
 | `tomokv-thread-mode` | `auto` (default) · `static` | Whether the flip controller may move the io/ex split away from the boot values. `static` holds it for the whole run — use it for reproducible measurement, since a run that starts at a different split spends its window converging. |
-| `tomokv-sim-hop-ns` | `0` off (default) · 0..1000000 ns | Measurement-only CROSS-L3 emulator used by `DEBUG TOMO-SIM-HOP <duration-ms>`. A non-zero value calibrates invariant TSC once at startup and delays both producer publications; zero allocates/calibrates nothing and adds no production hot-path branch. |
+| `tomokv-sim-hop-ns` | `0` off (default) · 0..1000000 ns | Measurement-only CROSS-L3 delayed visibility for normal traffic. A non-zero value selects the simulator binary, calibrates invariant TSC once, and delays IO→EX queue and EX→IO completion visibility without delaying either producer. Zero allocates/calibrates nothing and has no production hot-path branch. |
 | `tomokv-pin-mode` | `float` · `ccd` (default) · `numa` · `static` | `float`: no pinning, the scheduler decides. `ccd`: pack threads onto shared‑L3 (CCD) groups. `numa`: pack them per NUMA node. `static`: exact placement from `tomokv-pin-io` / `tomokv-pin-ex`. Every pinning mode also binds a worker's shard memory to its core's NUMA node; all of them respect taskset/cgroup affinity. |
 | `tomokv-pin-io` / `tomokv-pin-ex` | e.g. `"node0=0-3 node1=8,9,10,11"` | Per‑role‑per‑node cpu specs, used **only** with `tomokv-pin-mode static`. Grammar: whitespace‑separated `node<N>=<cpu-list>` tokens; a cpu list is comma‑separated ids and/or `lo-hi` ranges. A malformed token is rejected at boot with the offending token named; setting these with any other pin‑mode, or `static` without them, is also fatal — they are never silently ignored. |
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 
 The CROSS-L3 rig is documented in [docs/CROSS_L3_LATENCY_RIG.md](docs/CROSS_L3_LATENCY_RIG.md).
-It uses a fixed, pre-generated 32-message cycle and a caller-supplied wall-clock duration so
-`perf stat` can measure the server process externally. Run it only on an isolated instance.
+It operates on the normal workload path. During every non-zero sweep,
+`tomokv_sim_hop_io_to_ex_deferred` and `tomokv_sim_hop_ex_to_io_deferred` in `INFO stats` must
+advance; a flat result without moving counters is a vacuous run.
 
 ### Batching, spin & prefetch — no knobs, by design
 

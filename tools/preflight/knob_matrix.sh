@@ -6,6 +6,7 @@ J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
 # review fix: was a HARDCODED path -- the suite tested a different binary than the one being
 # stamped, so the GO certified a build it never exercised.
 BIN="${TOMO_BIN:-/shared/Projects/.claude/jobs/fd085c8e/tmp/bins/fence_d/redis-server}"
+SIM_BIN="${TOMO_SIM_BIN:-${BIN}-sim}"
 PORT=7979
 CLI="$P/redis/src/redis-cli -p $PORT"
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
@@ -17,11 +18,13 @@ bad(){ echo "  FAIL $1" >> $OUT; FAIL=$((FAIL+1)); }
 # PRIVATE BINARY NAME (the correctness_suite -> redis-corr convention). This box is shared and
 # other sessions run `pkill -9 -x redis-server`; if this suite ran a binary called redis-server it
 # would (a) be killed mid-cell by them and (b) kill THEIR servers with its own cleanup, and every
-# cell would then look like a boot failure of the build under test. Copy once, kill by the private
-# comm only. Never `pkill -f` -- that matches this script's own shell.
+# cell would then look like a boot failure of the build under test. Copy both specializations once,
+# kill by their private comm names only. Never `pkill -f` -- that matches this script's own shell.
 KB=$J/redis-knob
+KBSIM=$J/redis-knob-sim
 cp "$BIN" $KB 2>/dev/null; chmod +x $KB 2>/dev/null
-kb_kill(){ pkill -9 -x redis-knob 2>/dev/null; }
+cp "$SIM_BIN" $KBSIM 2>/dev/null; chmod +x $KBSIM 2>/dev/null
+kb_kill(){ pkill -9 -x redis-knob 2>/dev/null; pkill -9 -x redis-knob-sim 2>/dev/null; }
 # ee451 2026-07-29: reap on EVERY exit path. A cell that exits early (or the suite being killed)
 # otherwise leaves a redis-knob running, and a leaked server inherits withbox.sh's box-lock fd and
 # holds the shared box lock forever.
@@ -168,11 +171,11 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   must_refuse tomokv-sim-hop-ns -1 "below the declared minimum -- 0 means the measurement rig is completely off"
   must_refuse tomokv-sim-hop-ns 1000001 "above the one-millisecond-per-hop measurement ceiling"
 
-  try tomokv-sim-hop-ns 0 "OFF: no invariant-TSC calibration and no production hot-path hook"
+  try tomokv-sim-hop-ns 0 "OFF: no invariant-TSC calibration, sidecar allocation, or hot-path hook"
   if [ "$(uname -m)" = x86_64 ] && grep -qm1 -w constant_tsc /proc/cpuinfo 2>/dev/null \
      && grep -qm1 -w nonstop_tsc /proc/cpuinfo 2>/dev/null \
      && grep -qm1 -w rdtscp /proc/cpuinfo 2>/dev/null; then
-    try tomokv-sim-hop-ns 50 "measurement arm: verify invariant-TSC startup calibration"
+    try tomokv-sim-hop-ns 50 "measurement arm: verify delayed-visibility specialization and TSC calibration"
   else
     echo "  NOTE tomokv-sim-hop-ns 50 skipped: host does not advertise x86 invariant TSC + RDTSCP" >> $OUT
   fi
