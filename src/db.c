@@ -365,9 +365,31 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
     kvobj *kv = lookupKey(db, key, flags, NULL);
     /* I7: the table slot is only the entry point while a transient bag is
-     * present. Raw heads retain the exact base return path. */
-    if (unlikely(kv && kvobjVmeta(kv)))
+     * present. Raw heads retain the exact base return path: in particular,
+     * they neither read atomic mode nor test the new metadata hint. */
+    struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
+    if (unlikely(vmeta)) {
+        /* A live CONFIG transition may leave bags after atomic mode is turned
+         * off. Such reads keep the old resolver and do not test the new hint. */
+        if (__builtin_expect(server.tomo_atomic != 0, 1)) {
+            if (likely(kvobjSingleCommitted(vmeta))) {
+                uint64_t pinned_snapshot;
+                if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
+                    atomic_load_explicit(&vmeta->version_seq,
+                                         memory_order_acquire) <= pinned_snapshot) {
+                    tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
+                    return kv;
+                }
+                /* This sole version committed after an already-pinned cut.
+                 * Preserve the slow path's absent result without re-reading
+                 * the pin or the global frontier. */
+                tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+                return kvobjVersionAt(kv, pinned_snapshot);
+            }
+            tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+        }
         kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+    }
     return kv;
 }
 
@@ -444,12 +466,22 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
+                          memory_order_relaxed);
     kvobj *committed_head = NULL;
     if (version_prev) {
         struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
         committed_head = prev_meta ?
             atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
             version_prev;
+        /* Withdraw the sole-version licence before the caller release-attaches
+         * this metadata and release-publishes a new physical table head. A
+         * reader which already saw true may linearize before this transition;
+         * one which sees the new head sees its zero-initialized hint. */
+        if (prev_meta)
+            atomic_store_explicit(&prev_meta->single_state,
+                                  TOMO_SINGLE_SUPERSEDED,
+                                  memory_order_release);
     }
     /* The new physical head inherits the per-key cursor before its vmeta/table
      * publication. Cursor movement remains confined to owner stamp/retire. */
@@ -933,6 +965,44 @@ void tomoCancelVersion(kvobj *kv) {
     kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
 }
 
+/* Publish the exact state licensed by the read fast path. The owner holds its
+ * per-key worker lock throughout this census and the store, so no install,
+ * stamp, cancellation, or prune can mutate the bag concurrently.
+ *
+ * TOMO_SINGLE_NONE proves no later install has superseded this physical head:
+ * every successor release-stores SUPERSEDED before publishing its own
+ * vmeta/table pointer, and that state is permanent even if this object's prune
+ * op arrives late. committed_prev==NULL proves no older committed candidate;
+ * the physical predecessor scan rejects raw, applied, and pending members, but
+ * permits fully canceled members because they can never become visible. */
+static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
+    if (vmeta->detached || vmeta->version_tombstone ||
+        vmeta->stamp_state != TOMO_STAMP_APPLIED ||
+        atomic_load_explicit(&vmeta->single_state,
+                             memory_order_acquire) != TOMO_SINGLE_NONE ||
+        atomic_load_explicit(&vmeta->owner_ops_pending,
+                             memory_order_acquire) != 0 ||
+        atomic_load_explicit(&vmeta->committed_head,
+                             memory_order_acquire) != kv ||
+        kvobjCommittedPrev(kv) != NULL)
+        return;
+
+    for (kvobj *prev = kvobjVersionPrev(kv); prev; ) {
+        struct tomoVerMeta *prev_meta = kvobjVmeta(prev);
+        if (!prev_meta || prev_meta->stamp_state != TOMO_STAMP_CANCELED ||
+            atomic_load_explicit(&prev_meta->owner_ops_pending,
+                                 memory_order_acquire) != 0)
+            return;
+        prev = kvobjVersionPrev(prev);
+    }
+
+    /* The prune owner-op is queued only after commit_seq's release-store. Its
+     * queue acquire, this release, and the reader's acquire form the chain
+     * which lets an unpinned reader omit commit_seq altogether. */
+    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_COMMITTED,
+                          memory_order_release);
+}
+
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
@@ -949,6 +1019,7 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
     kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+    tomoPublishSingleCommitted(kv, vmeta);
 }
 
 /* A non-versioned overwrite/delete removes the whole bag from the table in

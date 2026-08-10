@@ -395,16 +395,8 @@ uint64_t tomoCommittedSeq(void) {
 }
 
 uint64_t tomoCurrentReadSnapshot(void) {
-    client *c = server.current_client[iotid].p;
-    if (c) {
-        if (c->tomo_read_snapshot_pinned) return c->tomo_read_snapshot;
-        if (c->csparent) {
-            csGroup *g = c->csparent;
-            if (g->snapshot_pinned) return g->read_seq;
-            if (g->head && g->head->tomo_read_snapshot_pinned)
-                return g->head->tomo_read_snapshot;
-        }
-    }
+    uint64_t snapshot;
+    if (tomoPinnedReadSnapshot(&snapshot)) return snapshot;
     return tomoCommittedSeq();
 }
 
@@ -5105,6 +5097,8 @@ void resetServerStats(void) {
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
         tomoRelaxedSet(server.kstat[i].hits, 0);
         tomoRelaxedSet(server.kstat[i].misses, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -18911,6 +18905,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             orh += tm_io_sig[_t].ownread_held;    orc += tm_io_sig[_t].ownread_conserv;
             ord += tm_io_sig[_t].ownread_detach;
         }
+        /* Fast/slow cover only reads which observed a versioned head while
+         * atomic mode was enabled. Raw values and misses are deliberately not
+         * called fast: a large fast count therefore proves the new gate fired. */
+        unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
+            atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
+            atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+        }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -18976,6 +18978,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed),
             "tomokv_atomic_promotions:%llu\r\n",
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
+            "tomokv_atomic_read_fast:%llu\r\n", atomic_read_fast,
+            "tomokv_atomic_read_slow:%llu\r\n", atomic_read_slow,
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
