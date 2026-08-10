@@ -71,8 +71,31 @@ must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
 # OWNER NOTE: the -1-vs-0 split is a real inconsistency in the knob surface, not a test detail
 # (task #31, unify adaptive sizing). This documents the split rather than hiding it.
 
-try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (optional)
-  local knob=$1 val=$2 note=$3 companion=${4:-}
+atomic_mixed_smoke(){
+  # MSET8/MGET8 over 64 keys: enough pipelined overlap to enter atomic completion, but still a
+  # small smoke cell rather than another benchmark.
+  local i k
+  for i in $(seq 1 512); do
+    k=$((i % 8))
+    echo "MSET atomic:$k:0 v$i atomic:$k:1 v$i atomic:$k:2 v$i atomic:$k:3 v$i atomic:$k:4 v$i atomic:$k:5 v$i atomic:$k:6 v$i atomic:$k:7 v$i"
+    echo "MGET atomic:$k:0 atomic:$k:1 atomic:$k:2 atomic:$k:3 atomic:$k:4 atomic:$k:5 atomic:$k:6 atomic:$k:7"
+  done | timeout 20 $CLI --pipe >/dev/null 2>&1
+}
+
+atomic_inflight_drained(){
+  local i inflight=
+  for i in $(seq 1 20); do
+    inflight=$(timeout 2 $CLI info stats 2>/dev/null |
+      awk -F: '$1=="tomokv_atomic_inflight"{gsub(/\r/,"",$2); print $2; exit}')
+    [ "$inflight" = 0 ] && { echo 0; return 0; }
+    sleep 0.25
+  done
+  echo "${inflight:-missing}"
+  return 1
+}
+
+try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smoke (optional)
+  local knob=$1 val=$2 note=$3 companion=${4:-} smoke=${5:-}
   kb_kill; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
   taskset -c 0-7 $KB --port $PORT --dir $J/kdata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 $companion \
@@ -87,12 +110,20 @@ try(){ # $1 = knob, $2 = value, $3 = expectation note, $4 = companion flags (opt
   # serve real traffic so a knob that breaks the data path shows up
   $MT --test-time=4 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 8 -c 25 --pipeline 8 >/dev/null 2>&1
   local ops=$($MT --test-time=5 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 8 -c 25 --pipeline 8 2>&1 | awk '/^Totals/{print int($2)}')
+  local extra_ok=1 extra=""
+  if [ "$smoke" = atomic ]; then
+    local mixed=fail inflight
+    atomic_mixed_smoke && mixed=ok
+    inflight=$(atomic_inflight_drained) || extra_ok=0
+    [ "$mixed" = ok ] || extra_ok=0
+    extra=" mixed8=$mixed inflight=$inflight"
+  fi
   local alive=$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')
   local crash=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' $J/knob.log 2>/dev/null)
-  if [ "$alive" = PONG ] && [ "${ops:-0}" -gt 1000 ] && [ "${crash:-0}" = 0 ]; then
-    ok "$knob=$val (echo=$got ops=$ops) $note"
+  if [ "$alive" = PONG ] && [ "${ops:-0}" -gt 1000 ] && [ "${crash:-0}" = 0 ] && [ "$extra_ok" = 1 ]; then
+    ok "$knob=$val (echo=$got ops=$ops)$extra $note"
   else
-    bad "$knob=$val alive=$alive ops=${ops:-0} crashes=$crash (echo=$got) $note"
+    bad "$knob=$val alive=$alive ops=${ops:-0} crashes=$crash (echo=$got)$extra $note"
   fi
   kb_kill
 }
@@ -255,6 +286,17 @@ echo "=== boolean levers (default off, restored for experimentation) ===" >> $OU
 # use-after-free rather than a wrong answer, and a knob nothing ever boots is a knob nothing tests.
   try tomokv-mset-move no  "default: cross-shard MSET gives each sub a private value copy"
   try tomokv-mset-move yes "MOVE arm: value robj handed to the worker via argv_released_mask"
+
+# Atomic visibility ships OFF. Enabled cells add a bounded mixed MSET8/MGET8 pipeline and require
+# the admission census to return to zero after the pipe drains; a pinned non-zero inflight count is
+# the completion-wedge signature. Window cells enable their master so every value is exercised on
+# the live admission path rather than merely echoed while atomic mode is inert.
+  try tomokv-atomic no  "default: ordinary non-versioned SET/GET path"
+  try tomokv-atomic yes "ON: mixed multi-key completion drains cleanly" "" atomic
+
+  try tomokv-atomic-window 0   "unlimited atomic admission" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-window 64  "small static atomic admission window" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-window 512 "default atomic admission window" "--tomokv-atomic yes" atomic
 
 # ── DRIFT GUARD ──────────────────────────────────────────────────────────────────────────────
 # The cells above are hand-written (the VALUE to try needs per-knob judgement) but the SET of
