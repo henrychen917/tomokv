@@ -29,7 +29,7 @@
 #include <math.h>
 #include <ctype.h>
 
-static void setProtocolError(const char *errstr, client *c);
+static void setProtocolError(const char *errstr, client *c) __attribute__((cold,noinline));
 static void pauseClientsByClient(mstime_t end, int isPauseClientAll);
 char *getClientSockname(client *c);
 static inline int clientTypeIsSlave(client *c);
@@ -135,12 +135,17 @@ int authRequired(client *c) {
 /* Allocate only the sidecar itself. Subsystem initializers below/elsewhere
  * create their dictionaries on demand. zcalloc provides all normal cold-state
  * defaults; executing_cmd is the sole non-zero default. */
-clientCold *getClientCold(client *c) {
-    serverAssert(c->has_exec_tail);
-    if (likely(clientTail(c)->cold != NULL)) return clientTail(c)->cold;
+static clientCold *getClientColdNew(client *c) __attribute__((cold,noinline));
+static clientCold *getClientColdNew(client *c) {
     clientTail(c)->cold = zcalloc(sizeof(*clientTail(c)->cold));
     clientTail(c)->cold->mstate.executing_cmd = -1;
     return clientTail(c)->cold;
+}
+
+clientCold *getClientCold(client *c) {
+    serverAssert(c->has_exec_tail);
+    if (likely(clientTail(c)->cold != NULL)) return clientTail(c)->cold;
+    return getClientColdNew(c);
 }
 
 void freeClientCold(client *c) {
@@ -926,6 +931,20 @@ static size_t _addBulkStrRefToBuffer(client *c, const void *payload, size_t len)
     return _addReplyPayloadToBuffer(c, payload, len, BULK_STR_REF);
 }
 
+static void growFakeReplyBuffer(client *c, size_t len) __attribute__((cold,noinline));
+static void growFakeReplyBuffer(client *c, size_t len) {
+    size_t need = (size_t)c->bufpos + len;
+    size_t ns = c->buf_usable_size ? c->buf_usable_size : (size_t)FAKE_BUF_START_BYTES;
+    while (ns < need && ns < FAKE_BUF_MAX_BYTES) ns <<= 1;
+    if (ns > FAKE_BUF_MAX_BYTES) ns = FAKE_BUF_MAX_BYTES;
+    if (ns > c->buf_usable_size) {
+        char *nb = zmalloc_usable(ns, &c->buf_usable_size);
+        if (c->bufpos > 0) memcpy(nb, c->buf, (size_t)c->bufpos);
+        zfree(c->buf);
+        c->buf = nb;
+    }
+}
+
 void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
     if (c->flags & CLIENT_CLOSE_AFTER_REPLY) return;
 
@@ -965,19 +984,9 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
      * bufpos is usually > 0 at the value write, which is exactly why the old post-write guard was
      * unreachable). If even the capped (FAKE_BUF_MAX_BYTES) buffer can't hold the value, the
      * remainder spills to the list below exactly as before — no byte is ever discarded. */
-    if (c->isFake && listLength(c->reply) == 0 &&
-        (size_t)c->bufpos + len > c->buf_usable_size && c->buf_usable_size < FAKE_BUF_MAX_BYTES) {
-        size_t need = (size_t)c->bufpos + len;
-        size_t ns = c->buf_usable_size ? c->buf_usable_size : (size_t)FAKE_BUF_START_BYTES;
-        while (ns < need && ns < FAKE_BUF_MAX_BYTES) ns <<= 1;
-        if (ns > FAKE_BUF_MAX_BYTES) ns = FAKE_BUF_MAX_BYTES;
-        if (ns > c->buf_usable_size) {
-            char *nb = zmalloc_usable(ns, &c->buf_usable_size);
-            if (c->bufpos > 0) memcpy(nb, c->buf, (size_t)c->bufpos);
-            zfree(c->buf);
-            c->buf = nb;
-        }
-    }
+    if (unlikely(c->isFake && listLength(c->reply) == 0 &&
+        (size_t)c->bufpos + len > c->buf_usable_size && c->buf_usable_size < FAKE_BUF_MAX_BYTES))
+        growFakeReplyBuffer(c, len);
 
     size_t reply_len = _addReplyPayloadToBuffer(c, s, len, PLAIN_REPLY);
     if (len > reply_len)
@@ -1112,7 +1121,7 @@ void addReplyProto(client *c, const char *s, size_t len) {
  * code provided is used, otherwise the string "-ERR " for the generic
  * error code is automatically added.
  * Note that 's' must NOT end with \r\n. */
-void addReplyErrorLength(client *c, const char *s, size_t len) {
+void __attribute__((cold,noinline)) addReplyErrorLength(client *c, const char *s, size_t len) {
     /* If the string already starts with "-..." then the error code
      * is provided by the caller. Otherwise we use "-ERR". */
     if (!len || s[0] != '-') addReplyProto(c,"-ERR ",5);
@@ -1123,7 +1132,7 @@ void addReplyErrorLength(client *c, const char *s, size_t len) {
 /* Do some actions after an error reply was sent (Log if needed, updates stats, etc.)
  * Possible flags:
  * * ERR_REPLY_FLAG_NO_STATS_UPDATE - indicate not to update any error stats. */
-void afterErrorReply(client *c, const char *s, size_t len, int flags) {
+void __attribute__((cold,noinline)) afterErrorReply(client *c, const char *s, size_t len, int flags) {
     /* Module clients fall into two categories:
      * Calls to RM_Call, in which case the error isn't being returned to a client, so should not be counted.
      * Module thread safe context calls to RM_ReplyWithError, which will be added to a real client by the main thread later. */
@@ -1231,7 +1240,7 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
 
 /* The 'err' object is expected to start with -ERRORCODE and end with \r\n.
  * Unlike addReplyErrorSds and others alike which rely on addReplyErrorLength. */
-void addReplyErrorObject(client *c, robj *err) {
+void __attribute__((cold,noinline)) addReplyErrorObject(client *c, robj *err) {
     addReply(c, err);
     afterErrorReply(c, err->ptr, sdslen(err->ptr)-2, 0); /* Ignore trailing \r\n */
 }
@@ -1252,7 +1261,7 @@ void addReplyOrErrorObject(client *c, robj *reply) {
 }
 
 /* See addReplyErrorLength for expectations from the input string. */
-void addReplyError(client *c, const char *err) {
+void __attribute__((cold,noinline)) addReplyError(client *c, const char *err) {
     addReplyErrorLength(c,err,strlen(err));
     afterErrorReply(c,err,strlen(err),0);
 }
@@ -1260,7 +1269,7 @@ void addReplyError(client *c, const char *err) {
 /* Add error reply to the given client.
  * Supported flags:
  * * ERR_REPLY_FLAG_NO_STATS_UPDATE - indicate not to perform any error stats updates */
-void addReplyErrorSdsEx(client *c, sds err, int flags) {
+void __attribute__((cold,noinline)) addReplyErrorSdsEx(client *c, sds err, int flags) {
     addReplyErrorLength(c,err,sdslen(err));
     afterErrorReply(c,err,sdslen(err),flags);
     sdsfree(err);
@@ -1268,27 +1277,27 @@ void addReplyErrorSdsEx(client *c, sds err, int flags) {
 
 /* See addReplyErrorLength for expectations from the input string.
  * The string is safe to contain \r and \n anywhere. */
-void addReplyErrorSdsExSafe(client *c, sds err, int flags) {
+void __attribute__((cold,noinline)) addReplyErrorSdsExSafe(client *c, sds err, int flags) {
     err = sdsmapchars(err, "\r\n", "  ",  2);
     addReplyErrorSdsEx(c, err, flags);
 }
 
 /* See addReplyErrorLength for expectations from the input string. */
 /* As a side effect the SDS string is freed. */
-void addReplyErrorSds(client *c, sds err) {
+void __attribute__((cold,noinline)) addReplyErrorSds(client *c, sds err) {
     addReplyErrorSdsEx(c, err, 0);
 }
 
 /* See addReplyErrorLength for expectations from the input string. */
 /* As a side effect the SDS string is freed. */
-void addReplyErrorSdsSafe(client *c, sds err) {
+void __attribute__((cold,noinline)) addReplyErrorSdsSafe(client *c, sds err) {
     err = sdsmapchars(err, "\r\n", "  ",  2);
     addReplyErrorSdsEx(c, err, 0);
 }
 
 /* Internal function used by addReplyErrorFormat, addReplyErrorFormatEx and RM_ReplyWithErrorFormat.
  * Refer to afterErrorReply for more information about the flags. */
-void addReplyErrorFormatInternal(client *c, int flags, const char *fmt, va_list ap) {
+void __attribute__((cold,noinline)) addReplyErrorFormatInternal(client *c, int flags, const char *fmt, va_list ap) {
     va_list cpy;
     va_copy(cpy,ap);
     sds s = sdscatvprintf(sdsempty(),fmt,cpy);
@@ -1303,7 +1312,7 @@ void addReplyErrorFormatInternal(client *c, int flags, const char *fmt, va_list 
     sdsfree(s);
 }
 
-void addReplyErrorFormatEx(client *c, int flags, const char *fmt, ...) {
+void __attribute__((cold,noinline)) addReplyErrorFormatEx(client *c, int flags, const char *fmt, ...) {
     va_list ap;
     va_start(ap,fmt);
     addReplyErrorFormatInternal(c, flags, fmt, ap);
@@ -1312,19 +1321,19 @@ void addReplyErrorFormatEx(client *c, int flags, const char *fmt, ...) {
 
 /* See addReplyErrorLength for expectations from the formatted string.
  * The formatted string is safe to contain \r and \n anywhere. */
-void addReplyErrorFormat(client *c, const char *fmt, ...) {
+void __attribute__((cold,noinline)) addReplyErrorFormat(client *c, const char *fmt, ...) {
     va_list ap;
     va_start(ap,fmt);
     addReplyErrorFormatInternal(c, 0, fmt, ap);
     va_end(ap);
 }
 
-void addReplyErrorArity(client *c) {
+void __attribute__((cold,noinline)) addReplyErrorArity(client *c) {
     addReplyErrorFormat(c, "wrong number of arguments for '%s' command",
                         c->cmd->fullname);
 }
 
-void addReplyErrorExpireTime(client *c) {
+void __attribute__((cold,noinline)) addReplyErrorExpireTime(client *c) {
     addReplyErrorFormat(c, "invalid expire time in '%s' command",
                         c->cmd->fullname);
 }
@@ -3012,7 +3021,7 @@ void freeClientAsync(client *c) {
 
 /* Log errors for invalid use and free the client in async way.
  * We will add additional information about the client to the message. */
-void logInvalidUseAndFreeClientAsync(client *c, const char *fmt, ...) {
+void __attribute__((cold,noinline)) logInvalidUseAndFreeClientAsync(client *c, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     sds info = sdscatvprintf(sdsempty(), fmt, ap);
@@ -3931,7 +3940,7 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
 
     /* Nothing to do without a \r\n */
     if (newline == NULL) {
-        if (sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
+        if (unlikely(sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE)) {
             pcmd->read_error = CLIENT_READ_TOO_BIG_INLINE_REQUEST;
         }
         return C_ERR;
@@ -3946,7 +3955,7 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
     aux = sdsnewlen(clientTail(c)->querybuf+clientTail(c)->qb_pos,querylen);
     argv = sdssplitargs(aux,&argc);
     sdsfree(aux);
-    if (argv == NULL) {
+    if (unlikely(argv == NULL)) {
         pcmd->read_error = CLIENT_READ_UNBALANCED_QUOTES;
         return C_ERR;
     }
@@ -3974,7 +3983,7 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
      *
      * However there is an exception: masters may send us just a newline
      * to keep the connection active. */
-    if (querylen != 0 && c->flags & CLIENT_MASTER) {
+    if (unlikely(querylen != 0 && c->flags & CLIENT_MASTER)) {
         sdsfreesplitres(argv,argc);
         pcmd->read_error = CLIENT_READ_MASTER_USING_INLINE_PROTOCAL;
         return C_ERR;
@@ -4122,7 +4131,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
         /* Multi bulk length cannot be read without a \r\n */
         newline = strchr(clientTail(c)->querybuf+clientTail(c)->qb_pos,'\r');
         if (newline == NULL) {
-            if (querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
+            if (unlikely(querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE)) {
                 pcmd->read_error = CLIENT_READ_TOO_BIG_MBULK_COUNT_STRING;
             }
             return C_ERR;
@@ -4137,10 +4146,10 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
         serverAssertWithInfo(c,NULL,clientTail(c)->querybuf[clientTail(c)->qb_pos] == '*');
         size_t multibulklen_slen = newline - (clientTail(c)->querybuf + 1 + clientTail(c)->qb_pos);
         ok = string2ll(clientTail(c)->querybuf+1+clientTail(c)->qb_pos,newline-(clientTail(c)->querybuf+1+clientTail(c)->qb_pos),&ll);
-        if (!ok || ll > INT_MAX) {
+        if (unlikely(!ok || ll > INT_MAX)) {
             pcmd->read_error = CLIENT_READ_INVALID_MULTIBUCK_LENGTH;
             return C_ERR;
-        } else if (ll > 10 && authRequired(c)) {
+        } else if (unlikely(ll > 10 && authRequired(c))) {
             pcmd->read_error = CLIENT_READ_UNAUTH_MBUCK_COUNT;
             return C_ERR;
         }
@@ -4203,7 +4212,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
              * mutation in this function — no need to re-derive sdslen here. */
             newline = memchr(clientTail(c)->querybuf+clientTail(c)->qb_pos,'\r',querybuf_len - clientTail(c)->qb_pos);
             if (newline == NULL) {
-                if (querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
+                if (unlikely(querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE)) {
                     pcmd->read_error = CLIENT_READ_TOO_BIG_BUCK_COUNT_STRING;
                     return C_ERR;
                 }
@@ -4214,18 +4223,18 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             if (newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos) > (ssize_t)(querybuf_len-clientTail(c)->qb_pos-2))
                 break;
 
-            if (clientTail(c)->querybuf[clientTail(c)->qb_pos] != '$') {
+            if (unlikely(clientTail(c)->querybuf[clientTail(c)->qb_pos] != '$')) {
                 pcmd->read_error = CLIENT_READ_EXPECTED_DOLLAR;
                 return C_ERR;
             }
 
             size_t bulklen_slen = newline - (clientTail(c)->querybuf + clientTail(c)->qb_pos + 1);
             ok = string2ll(clientTail(c)->querybuf+clientTail(c)->qb_pos+1,newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos+1),&ll);
-            if (!ok || ll < 0 ||
-                (!is_master && ll > server.proto_max_bulk_len)) {
+            if (unlikely(!ok || ll < 0 ||
+                (!is_master && ll > server.proto_max_bulk_len))) {
                 pcmd->read_error = CLIENT_READ_INVALID_BUCK_LENGTH;
                 return C_ERR;
-            } else if (ll > 16384 && authRequired(c)) {
+            } else if (unlikely(ll > 16384 && authRequired(c))) {
                 pcmd->read_error = CLIENT_READ_UNAUTH_BUCK_LENGTH;
                 return C_ERR;
             }
@@ -4449,7 +4458,7 @@ int processPendingCommandAndInputBuffer(client *c) {
     return C_OK;
 }
 
-void handleClientReadError(client *c) {
+void __attribute__((cold,noinline)) handleClientReadError(client *c) {
     switch (clientTail(c)->read_error) {
         case CLIENT_READ_TOO_BIG_INLINE_REQUEST:
             addReplyError(c,"Protocol error: too big inline request");
@@ -4647,7 +4656,7 @@ int processInputBuffer(client *c) {
          * correct shard DB. */
 
         /* Check if the client has a fatal read error that requires stopping processing. */
-        if (isClientReadErrorFatal(c)) {
+        if (unlikely(isClientReadErrorFatal(c))) {
             if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
                 enqueuePendingClientsToMainThread(c, 0);
             }
@@ -4747,6 +4756,26 @@ int processInputBuffer(client *c) {
     return C_OK;
 }
 
+static void rejectUringQueryBuffer(client *c) __attribute__((cold,noinline));
+static void rejectUringQueryBuffer(client *c) {
+    clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+    atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
+    freeClientAsync(c);
+}
+
+static void rejectQueryBuffer(client *c) __attribute__((cold,noinline));
+static void rejectQueryBuffer(client *c) {
+    clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+    freeClientAsync(c);
+    atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
+}
+
+static void createQueryBuffer(sds *querybuf) __attribute__((cold,noinline));
+static void createQueryBuffer(sds *querybuf) {
+    *querybuf = sdsnewlen(NULL, PROTO_IOBUF_LEN);
+    sdsclear(*querybuf);
+}
+
 /* Append one provided-buffer receive to a client-owned SDS.  Unlike the
  * epoll reader this never borrows thread_reusable_qb: bytes consumed while a
  * recv is being disarmed may have to travel with the client to another IO
@@ -4781,12 +4810,10 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len) {
     size_t qb_memory = qblen;
     if (unlikely(c->flags & CLIENT_MULTI))
         qb_memory += clientMultiState(c)->argv_len_sums;
-    if (!(c->flags & CLIENT_MASTER) &&
+    if (unlikely(!(c->flags & CLIENT_MASTER) &&
         (qb_memory > server.client_max_querybuf_len ||
-         (qb_memory > 1024*1024 && authRequired(c)))) {
-        clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
-        atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
-        freeClientAsync(c);
+         (qb_memory > 1024*1024 && authRequired(c))))) {
+        rejectUringQueryBuffer(c);
         return C_ERR;
     }
     return C_OK;
@@ -4872,14 +4899,11 @@ void readQueryFromClient(connection *conn) {
             /* The reusable query buffer is already used by another client,
              * switch to using the client's private query buffer. This only
              * occurs when commands are executed nested via processEventsWhileBlocked(). */
-            clientTail(c)->querybuf = sdsnewlen(NULL, PROTO_IOBUF_LEN);
-            sdsclear(clientTail(c)->querybuf);
+            createQueryBuffer(&clientTail(c)->querybuf);
         } else {
             /* Create the reusable query buffer if it doesn't exist. */
-            if (!thread_reusable_qb) {
-                thread_reusable_qb = sdsnewlen(NULL, PROTO_IOBUF_LEN);
-                sdsclear(thread_reusable_qb);
-            }
+            if (unlikely(!thread_reusable_qb))
+                createQueryBuffer(&thread_reusable_qb);
 
             /* Assign the reusable query buffer to the client and mark it as in use. */
             serverAssert(sdslen(thread_reusable_qb) == 0);
@@ -4952,17 +4976,15 @@ void readQueryFromClient(connection *conn) {
     size_t qb_memory = sdslen(clientTail(c)->querybuf);
     if (unlikely(c->flags & CLIENT_MULTI))
         qb_memory += clientMultiState(c)->argv_len_sums;
-    if (!(c->flags & CLIENT_MASTER) &&
+    if (unlikely(!(c->flags & CLIENT_MASTER) &&
         /* The commands cached in the MULTI/EXEC queue have not been executed yet,
          * so they are also considered a part of the query buffer in a broader sense.
          *
          * For unauthenticated clients, the query buffer cannot exceed 1MB at most. */
         (qb_memory > server.client_max_querybuf_len ||
-         (qb_memory > 1024*1024 && authRequired(c))))
+         (qb_memory > 1024*1024 && authRequired(c)))))
     {
-        clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
-        freeClientAsync(c);
-        atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
+        rejectQueryBuffer(c);
         goto done;
     }
 
