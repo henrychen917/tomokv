@@ -943,12 +943,58 @@ static inline int tomoEvalFcallProc(redisCommandProc *p) {
  * for the duration: fail-safe, exactly the old flag behaviour, and ~always zero in this fork. */
 static _Atomic int flat_foreign_active __attribute__((aligned(CACHE_LINE_SIZE)));
 static char _pad_flat_foreign[CACHE_LINE_SIZE - sizeof(_Atomic int)] __attribute__((unused));  /* deliberate: isolates flat_foreign_active on its own line */
+
+/* Dispatch-lifetime group pins use close generations instead of nesting into flat_epoch. The
+ * fixed ring is deliberately fail-safe: once a live floor is a ring-width behind, reclamation
+ * blocks until the ambiguous cells drain. active and the scan state have separate lines because
+ * the io owner writes the former while reclaiming workers write the latter. */
+#define FLAT_PIN_GEN_WIDTH 4096
+#define FLAT_PIN_GEN_MASK  (FLAT_PIN_GEN_WIDTH - 1)
+_Static_assert((FLAT_PIN_GEN_WIDTH & FLAT_PIN_GEN_MASK) == 0,
+               "group-pin generation ring must be a power of two");
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic uint64_t active;
+    char _pad_active[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
+    _Atomic uint64_t floor;
+    _Atomic int scan_lock;
+    char _pad_floor[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) - sizeof(_Atomic int)];
+    _Atomic uint64_t pin_out[FLAT_PIN_GEN_WIDTH];
+} flatGroupPinSlot;
+_Static_assert(sizeof(flatGroupPinSlot) % CACHE_LINE_SIZE == 0,
+               "group-pin slots must not share cache lines");
+static flatGroupPinSlot flat_group_pins[TOMO_IO_THREADS_MAX + 1];
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic uint64_t bits[TOMO_IO_MASK_WORDS];
+    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) * TOMO_IO_MASK_WORDS];
+} flatGroupPinMask;
+_Static_assert(sizeof(flatGroupPinMask) == CACHE_LINE_SIZE,
+               "group-pin mask must not share the close-generation line");
+static flatGroupPinMask flat_group_pin_mask;
+
+/* closed doubles as the monotone close generation: its fetch-add is the one global RMW per batch,
+ * off the per-retire path. pending = closed - freed remains the INFO progress witness. */
+static _Atomic uint64_t flat_batches_closed_n, flat_batches_freed_n;
+static _Atomic unsigned long long flat_pin_wrap_blocks;
+
 static inline int flatIoHi(void);            /* fwd; defined with the region machinery below */
-static int flatIoPinnedCount(void) {         /* INFO gauge: io identities currently inside a region */
+static int flatIoPinnedCount(void) {         /* INFO gauge: io identities with inline or group pins */
     int n = 0, hi = flatIoHi();
     for (int t = 0; t <= hi; t++)
-        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_relaxed) & 1) n++;
+        if ((atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_relaxed) & 1) ||
+            atomic_load_explicit(&flat_group_pins[t].active, memory_order_relaxed)) n++;
     return n;
+}
+/* INFO witness: rises when closes outrun an active group pin and returns to zero when all floors
+ * catch up; an inactive slot's effective floor is cur. */
+static uint64_t flatPinBacklog(void) {
+    uint64_t cur = atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed), min = cur;
+    int hi = flatIoHi();
+    for (int t = 0; t <= hi; t++) {
+        if (!atomic_load_explicit(&flat_group_pins[t].active, memory_order_relaxed)) continue;
+        uint64_t floor = atomic_load_explicit(&flat_group_pins[t].floor, memory_order_acquire);
+        if (floor < min) min = floor;
+    }
+    return cur - min;
 }
 /* build-time layout guard (FLATSTORE reclaim): the worker-private retire fields must NOT share a
  * cache line with loop_seq / in_flat_section, which every OTHER worker polls in flatBatchReady —
@@ -1087,6 +1133,87 @@ static inline void flatExternScopeEnd(const int *unused) { (void)unused; flatExt
  * inside call()'s region this is an increment and a decrement, publishing nothing. */
 void flatQsbrRegionEnter(void) { flatExternEnter(); }
 void flatQsbrRegionExit(void)  { flatExternExit(); }
+
+/* Register before the snapshot/table probe. The 0->1 mask publication fence and close-generation
+ * bump are seq_cst peers: either a close sees this slot, or this pin reads the post-close generation.
+ * scan_lock closes the smaller load-generation/increment-cell race with a concurrent floor walk. */
+static inline void flatGroupPinEnter(client *fake) {
+    int s = flat_slot_owned;
+    serverAssert(s >= 0 && s <= flatIoHi());
+    flatGroupPinSlot *ps = &flat_group_pins[s];
+    int expected = 0;
+    while (!atomic_compare_exchange_weak_explicit(&ps->scan_lock, &expected, 1,
+                                                   memory_order_acquire, memory_order_relaxed))
+        expected = 0;
+    uint64_t was_active = atomic_fetch_add_explicit(&ps->active, 1, memory_order_relaxed);
+    if (was_active == 0) {
+        atomic_fetch_or_explicit(&flat_group_pin_mask.bits[s >> 6], 1ULL << (s & 63),
+                                 memory_order_relaxed);
+        atomic_thread_fence(memory_order_seq_cst);
+    }
+    uint64_t gen = atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed);
+    if (was_active == 0)
+        atomic_store_explicit(&ps->floor, gen, memory_order_relaxed);
+    atomic_fetch_add_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1, memory_order_relaxed);
+    fake->tomo_read_snapshot_gen = gen;
+    fake->tomo_read_snapshot_pinned = 1;
+    atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
+    FLAT_PUBLISH_FENCE();
+}
+
+static inline void flatGroupPinExit(client *fake) {
+    int s = flat_slot_owned;
+    serverAssert(s >= 0 && s <= flatIoHi());
+    flatGroupPinSlot *ps = &flat_group_pins[s];
+    uint64_t gen = fake->tomo_read_snapshot_gen;
+    atomic_thread_fence(memory_order_release);
+    uint64_t old = atomic_fetch_sub_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1,
+                                              memory_order_relaxed);
+    serverAssert(old > 0);
+    old = atomic_fetch_sub_explicit(&ps->active, 1, memory_order_release);
+    serverAssert(old > 0);
+    if (old == 1)
+        atomic_fetch_and_explicit(&flat_group_pin_mask.bits[s >> 6], ~(1ULL << (s & 63)),
+                                  memory_order_release);
+}
+
+/* Advance each engaged slot to its oldest live generation. A busy scan gate and ring ambiguity
+ * both block this batch; neither condition is ever allowed to guess in the freeing direction. */
+static int flatGroupPinsBlock(uint64_t close_gen) {
+    int hi = flatIoHi(), nwords = (hi + 64) >> 6;
+    for (int wi = 0; wi < nwords; wi++) {
+        uint64_t m = atomic_load_explicit(&flat_group_pin_mask.bits[wi], memory_order_seq_cst);
+        while (m) {
+            int s = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
+            if (s > hi) continue;
+            flatGroupPinSlot *ps = &flat_group_pins[s];
+            int expected = 0;
+            if (!atomic_compare_exchange_strong_explicit(&ps->scan_lock, &expected, 1,
+                                                          memory_order_acquire, memory_order_relaxed))
+                return 1;
+            uint64_t cur = atomic_load_explicit(&flat_batches_closed_n, memory_order_acquire);
+            uint64_t floor = atomic_load_explicit(&ps->floor, memory_order_relaxed);
+            uint64_t active = atomic_load_explicit(&ps->active, memory_order_acquire);
+            int pressure = cur < floor || cur - floor >= FLAT_PIN_GEN_WIDTH;
+            if (!active) {
+                floor = cur;
+            } else if (cur >= floor) {
+                while (floor < cur &&
+                       atomic_load_explicit(&ps->pin_out[floor & FLAT_PIN_GEN_MASK],
+                                            memory_order_acquire) == 0)
+                    floor++;
+            }
+            atomic_store_explicit(&ps->floor, floor, memory_order_release);
+            atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
+            if (pressure) {
+                atomic_fetch_add_explicit(&flat_pin_wrap_blocks, 1, memory_order_relaxed);
+                return 1;
+            }
+            if (active && floor <= close_gen) return 1;
+        }
+    }
+    return 0;
+}
 
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 static int tmNumNodes(void);               /* logical node helpers, defined below */
@@ -3774,7 +3901,7 @@ static inline void foldClientCommandsProcessed(client *real, client *fake) {
 static inline void tomoReleaseReadSnapshot(client *fake) {
     if (!fake->tomo_read_snapshot_pinned) return;
     fake->tomo_read_snapshot_pinned = 0;
-    flatQsbrRegionExit();
+    flatGroupPinExit(fake);
 }
 
 void handleWorkerReplies(void) {
@@ -4101,7 +4228,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
      * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
-     * region flags (see flatBatchReady), not by a counter here. */
+     * inline epochs and group-pin generations (see flatBatchReady), not by a counter here. */
     /* CORRECTNESS NOTE (2026-07-28): this used to be hinted UNLIKELY. FLATSTORE is the DEFAULT
      * shape (any node with >1 worker), so the hint was backwards — it laid the taken path out cold
      * on the busiest loop in the server. Hint dropped, predicate unchanged. */
@@ -8105,9 +8232,8 @@ int processCommand(client *c) {
         fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
         ((fake->cmd->flags & CMD_READONLY) ||
          (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
-        flatQsbrRegionEnter();
+        flatGroupPinEnter(fake);
         fake->tomo_read_snapshot = atomic_load_explicit(&commit_seq, memory_order_acquire);
-        fake->tomo_read_snapshot_pinned = 1;
     }
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
@@ -8573,16 +8699,12 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
  * has passed (all pre-retire lock-free readers have since finished a full pass). */
 /* (flat_main quiescence pair is defined above beforeSleep.) */
 
-/* Close a retire list into a grace batch: snapshot every worker's loop_seq AND every io identity's
- * region epoch right now (the old close never stamped io identities at all — the flag was probed
- * repeatedly at check time instead, which is what made one long region block everything).
+/* Close a retire list into a grace batch: allocate its group-pin generation, then snapshot every
+ * worker's loop_seq and every io identity's inline-region epoch right now.
  * `spare` (optional) is a recycle list of spent headers — a batch is ~816B and the worker closes one
  * per pass under write load, so recycling keeps the steady state allocation-free. */
-/* QSBR reclaim observability. Incremented once per BATCH (not per retire), so this is off the hot
- * path entirely. pending = closed - freed is the direct measure of whether the grace is making
- * progress; RSS is a poor proxy because jemalloc retains freed spans. Exposed as
- * INFO tomokv_flat_batches_{closed,freed,pending} per this tree's "expose the state" rule. */
-static _Atomic unsigned long flat_batches_closed_n, flat_batches_freed_n;
+/* (flat_batches_closed_n/freed_n moved beside the group-pin slots above: closed doubles as the
+ * monotone close generation.) */
 static _Atomic unsigned long flat_reclaim_budget_trips_n;
 
 /* ee451 #83: runtime size of a flatBatch's QSBR snapshot block. slots = io_threads + num_workers + 1
@@ -8597,7 +8719,6 @@ static int flat_batch_mask_words;
 #define FB_IOPIN(b)  ((b)->arr + 2*flat_batch_slots)     /* uint64_t[flat_batch_mask_words] */
 
 static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
-    atomic_fetch_add_explicit(&flat_batches_closed_n, 1, memory_order_relaxed);
     debugServerAssert(flat_batch_slots > 0);   /* initExThreads must have run before any close */
     flatBatch *b = NULL;
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
@@ -8620,6 +8741,10 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
      * was closed only ACCIDENTALLY by the lock-xadd on t->tombs inside flatDelete and the loop_seq
      * fetch_add in exSlice. ~30 cycles, once per exSlice pass. Do not remove. */
     atomic_thread_fence(memory_order_seq_cst);
+    /* OLD is the generation this close seals. A pin that observes the increment reads a table from
+     * which this batch's values were already unlinked; the seq_cst RMW also pairs with 0->1 pin-mask
+     * publication so a pin cannot disappear between its generation probe and the floor scan. */
+    b->close_gen = atomic_fetch_add_explicit(&flat_batches_closed_n, 1, memory_order_seq_cst);
 
     for (int w = 0; w < nw; w++)
         snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
@@ -8671,6 +8796,9 @@ static int flatBatchReady(const flatBatch *b) {
      * cache lines on EVERY readiness check of EVERY batch. */
     if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
         return 0;                                   /* unregistered reader inside: fail-safe global pin */
+    /* GROUP pins overlap for whole dispatch/reassembly lifetimes. A slot blocks exactly while its
+     * oldest live generation is no newer than this batch's close generation. */
+    if (flatGroupPinsBlock(b->close_gen)) return 0;
     const uint64_t *io_pin = FB_IOPIN(b), *io_snap = FB_IOSNAP(b), *snap = FB_SNAP(b);
     for (int wi = 0; wi < flat_batch_mask_words; wi++) {
       uint64_t m = io_pin[wi];
@@ -8725,9 +8853,11 @@ static unsigned long flatReclaimBudget(unsigned long closed) {
 }
 
 /* Drain at most *budget batches from the ready FIFO prefix. MONOTONICITY makes stopping at the first
- * non-ready head sound: for FIFO batches B1 closed before B2, snap1 <= snap2 per worker and
- * io_snap1[t] <= io_snap2[t] per io slot, so B2 ready => B1 ready. Return true only when the budget
- * blocks a ready head, which is the exact event exposed by tomokv_flat_reclaim_budget_trips. */
+ * non-ready head sound: for FIFO batches B1 closed before B2, snap1 <= snap2 per worker,
+ * io_snap1[t] <= io_snap2[t] per io slot, and close_gen1 < close_gen2, so every worker,
+ * inline-region and group-pin clause that passes for B2 also passes for B1. Return true only when
+ * the budget blocks a ready head, which is the exact event exposed by
+ * tomokv_flat_reclaim_budget_trips. */
 static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch **spare, int *spare_n,
                                  unsigned long *budget) {
     while (*head && flatBatchReady(*head)) {
@@ -12587,7 +12717,6 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     if (head->tomo_read_snapshot_pinned) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
-        head->tomo_read_snapshot_pinned = 0;
     }
     if (atomic_admission) {
         serverAssert(atomic_admission == 1);
@@ -13273,7 +13402,6 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         serverAssert(head->tomo_read_snapshot_pinned);
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
-        head->tomo_read_snapshot_pinned = 0; /* group owns the matching exit */
     }
     if (atomic_write) {
         /* The pre-ring admission gate reserved exactly one inflight slot and rechecked the cutover
@@ -13976,7 +14104,6 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
     if (head->tomo_read_snapshot_pinned) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
-        head->tomo_read_snapshot_pinned = 0;
     }
     if (atomic_admission) {
         serverAssert(atomic_admission == 1);
@@ -14049,7 +14176,6 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     if (head->tomo_read_snapshot_pinned) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
-        head->tomo_read_snapshot_pinned = 0;
     }
 
     if (s->ctype == CS_COPY) {
@@ -14942,10 +15068,6 @@ static void csReassemble(client *dst, client *head) {
      * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
      * unlinked the group, so no R1 walk can still reach it. */
     csgFree(g, g->key_h);
-    if (g->snapshot_pinned) {
-        g->snapshot_pinned = 0;
-        flatQsbrRegionExit();
-    }
     /* Exactly-once atomic admission retirement. csReassemble is the group's single terminal
      * point: stage/HOP2 advances return before it, while both live reply publication and the
      * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
@@ -18897,14 +19019,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
-            "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
-            "tomokv_flat_batches_freed:%lu\r\n", atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
-            "tomokv_flat_batches_pending:%lu\r\n",
-                atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed) -
-                atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
+            "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
+            "tomokv_flat_batches_freed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
+            "tomokv_flat_batches_pending:%llu\r\n",
+                (unsigned long long)(atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed) -
+                                     atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed)),
             "tomokv_flat_reclaim_budget_trips:%lu\r\n",
                 atomic_load_explicit(&flat_reclaim_budget_trips_n, memory_order_relaxed),
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
+            "tomokv_flat_pin_backlog:%llu\r\n", (unsigned long long)flatPinBacklog(),
+            "tomokv_flat_pin_wrap_blocks:%llu\r\n", atomic_load_explicit(&flat_pin_wrap_blocks, memory_order_relaxed),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_flat_hash_reuses:%lld\r\n", flatHashReusesTotal(),
             /* ee451: the resize coordinator's QUIESCING/COPYING window, per this tree's

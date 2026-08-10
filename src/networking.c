@@ -207,6 +207,7 @@ static void resetFakeClientState(client *c, client *parent) {
     clientTail(c)->atomic_window_parked_node = NULL;
     clientTail(c)->atomic_window_parked_tid = 0;
     c->tomo_read_snapshot = 0;
+    c->tomo_read_snapshot_gen = 0;
     c->tomo_read_snapshot_pinned = 0;
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
@@ -386,6 +387,7 @@ client *createCoreFakeClient(client *parent) {
     c->tomo_bkt_ptr = NULL;
     c->tomo_key_h = 0;
     c->tomo_read_snapshot = 0;
+    c->tomo_read_snapshot_gen = 0;
     c->all_argv_len_sum = 0;
 
     c->reply_bytes = 0;
@@ -667,6 +669,7 @@ client *createClient(connection *conn) {
     clientTail(c)->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
     clientTail(c)->mset_next_install_order = 0;   /* ownread: connection-global R1 order */
     c->tomo_read_snapshot = 0;
+    c->tomo_read_snapshot_gen = 0;
     c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
      * carries whatever was in that heap word. unlinkClient tests mig_parked_node on EVERY client
