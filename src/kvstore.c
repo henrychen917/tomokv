@@ -1057,16 +1057,27 @@ dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
  *      else
  *          kvstoreDictSetAtLink(kvs, didx, kv, &bucket, 1); // Insert new entry
  */
+static dictEntryLink flatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key,
+                                          size_t len, dictEntryLink *bucket) {
+    if (bucket) *bucket = NULL;
+    flatTable *t = flatCurrent(kvs);
+    uint64_t slot; int found = flatFindForWrite(t, hash, key, len, &slot);
+    dictEntryLink link = (dictEntryLink)&t->slots[slot].w;
+    if (bucket) *bucket = link;               /* insert-or-found position */
+    return found ? link : NULL;
+}
+
+dictEntryLink kvstoreFlatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key,
+                                          dictEntryLink *bucket) {
+    return flatFindLinkWithHash(kvs, hash, key, sdslen((sds)key), bucket);
+}
+
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket) {
-    if (bucket) *bucket = NULL;    
     if (kvs->flags & KVSTORE_FLAT) {
-        flatTable *t = flatCurrent(kvs);
         size_t len = sdslen((sds)key);
-        uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), key, len, &slot);
-        dictEntryLink link = (dictEntryLink)&t->slots[slot].w;
-        if (bucket) *bucket = link;               /* insert-or-found position */
-        return found ? link : NULL;
+        return flatFindLinkWithHash(kvs, tomoKeyHash(key, len), key, len, bucket);
     }
+    if (bucket) *bucket = NULL;
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d) return NULL;
     return dictFindLink(d, key, bucket);

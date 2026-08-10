@@ -1997,9 +1997,9 @@ typedef struct client {
      * drain, +1 RFO on the worker's next reply build — measured ~2-5%%). Parked at the TAIL so the
      * pre-shared-kv hot-field offsets are restored; these fields are dispatch/exec-warm anyway and
      * ride whatever line the tail gives them. */
-    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): argv[1]'s sds ptr whose bucket was computed at
-                                * dispatch; getKeySlot consumes on POINTER match (same sds, alive for
-                                * the exec window), collapsing the 2-3 xxh64s a write pays to one. */
+    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): sds ptr whose bucket/full hash were carried;
+                                * getKeySlot/dbFindByLink consume on POINTER match (same sds, alive
+                                * for the exec window), collapsing redundant xxh64 calls. */
     int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
     uint64_t tomo_key_h;       /* ee451 D: the routing xxh64, kept whole. The reorder's dependency
                                 * guard compares these (same key => same h => always caught; a
@@ -3617,7 +3617,8 @@ struct redisServer {
          * lookupKey already dirties for hits/misses, avoiding a shared RMW. */
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
-        char _pad[CACHE_LINE_SIZE - 4 * sizeof(long long)];
+        _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
+        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the

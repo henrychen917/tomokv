@@ -168,6 +168,8 @@ void *kvstoreGetDictMeta(kvstore *kvs, int didx, int createIfNeeded);
 void *kvstoreGetMetadata(kvstore *kvs);
 
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket);
+/* FLAT-only form; hash must be the full tomo key hash for this exact key. */
+dictEntryLink kvstoreFlatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key, dictEntryLink *bucket);
 void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem);
 
 /* dict with distinct key & value (no_value=1) currently is used only by pubsub. */

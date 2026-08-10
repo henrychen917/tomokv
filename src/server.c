@@ -5099,6 +5099,7 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].misses, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
+        tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -11212,6 +11213,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
                 int a = 1 + 2 * (base + i);
                 robj *keyo = sub->argv[a];
                 sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);
+                sub->tomo_key_h = h[i];
                 sub->tomo_bkt_ptr = keyo->ptr;
                 sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
                 kvobj *installed = setKeyVersioned(sub, sub->db, keyo,
@@ -11376,6 +11378,7 @@ static void csSubExec(client *sub) {
                     int a = 1 + 2 * (base + i);
                     robj *keyo = sub->argv[a];
                     sub->tomo_bkt = (int)(h[i] & TOMO_BUCKET_MASK);   /* hash-carry: reuse A2 */
+                    sub->tomo_key_h = h[i];
                     sub->tomo_bkt_ptr = keyo->ptr;
                     sub->argv[a+1] = tryObjectEncoding(sub->argv[a+1]);
                     setKey(sub, sub->db, keyo, &sub->argv[a+1], 0);
@@ -14131,6 +14134,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
             g->key_h_n = nwrite;      /* publish only once every slot is written */
         }
         head->tomo_bkt = dst_bkt;
+        head->tomo_key_h = dst_h;
         head->tomo_bkt_ptr = dst->ptr;
         csMsetRegister(g);       /* before source snapshot reads or destination reservation */
     }
@@ -18447,6 +18451,11 @@ static long long keyspaceMissesTotal(void) {
     for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].misses);
     return s;
 }
+static long long flatHashReusesTotal(void) {
+    long long s = 0;
+    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) s += tomoRelaxedRead(server.kstat[i].flat_hash_reuses);
+    return s;
+}
 
 /* ee451 (bug #42): same shape — expired_keys_active must count the WORKER cycles too, otherwise
  * the one instrument that distinguishes active from lazy expiry reads 0 on a sharded server and
@@ -18921,6 +18930,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
+            "tomokv_flat_hash_reuses:%lld\r\n", flatHashReusesTotal(),
             /* ee451: the resize coordinator's QUIESCING/COPYING window, per this tree's
              * "expose the state" rule. Nothing else could observe it, which is why
              * flat_resize_reload_race.sh could not tell whether it had actually fired a reload INTO

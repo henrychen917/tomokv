@@ -570,6 +570,15 @@ int calculateKeySlot(sds key) {
     return keyHashSlot(key, (int) sdslen(key));
 }
 
+/* Only fakes initialize the tomo hash hint. The exact sds pointer is its validity guard: derived
+ * or additional keys in multi-key commands must take the normal hash path. */
+static inline client *tomoKeyHashHint(sds key) {
+    client *cc = server.current_client[iotid].p;
+    if (cc && (cc->flags & CLIENT_EX_PENDING) && cc->tomo_bkt_ptr == (const void *)key)
+        return cc;
+    return NULL;
+}
+
 /* Return slot-specific dictionary for key based on key's hash slot when cluster mode is enabled, else 0.*/
 int getKeySlot(sds key) {
     if (!server.cluster_enabled) {
@@ -577,12 +586,11 @@ int getKeySlot(sds key) {
         /* ee451 (hash-carry): the dispatch stamped argv[1]'s bucket on the executing fake. POINTER
          * match (not content) makes this safe for multi-key procs — only the exact carried sds hits;
          * every other key falls through to the computation. The sds is alive for the exec window. */
-        client *cc = server.current_client[iotid].p;
         /* review [8]: only FAKES carry the hint (dispatch stamps them; CLIENT_EX_PENDING is set on
          * every exec path). Real clients zmalloc'd by createClient never initialize the field —
          * the flags check keeps us from ever reading it there. */
-        if (cc && (cc->flags & CLIENT_EX_PENDING) && cc->tomo_bkt_ptr == (const void *)key)
-            return cc->tomo_bkt;
+        client *cc = tomoKeyHashHint(key);
+        if (cc) return cc->tomo_bkt;
         return tomoKeyBucket(key, sdslen(key));
     }
     /* This is performance optimization that uses pre-set slot id from the current command,
@@ -4179,10 +4187,17 @@ kvobj *dbFind(redisDb *db, sds key) {
  *         If set to NULL, then HT of dict not allocated yet.
  */
 kvobj *dbFindByLink(redisDb *db, sds key, dictEntryLink *plink) {
-    int slot = getKeySlot(key);
     dictEntryLink link, bucket;
 
-    link = kvstoreDictFindLink(db->keys, slot, key, &bucket);
+    /* Reuse the routing hash only for a FLAT lookup of the exact carried sds; every non-dispatch
+     * or additional-key lookup retains the hashing fallback. */
+    client *cc = kvstoreIsFlat(db->keys) ? tomoKeyHashHint(key) : NULL;
+    if (cc) {
+        link = kvstoreFlatFindLinkWithHash(db->keys, cc->tomo_key_h, key, &bucket);
+        tomoRelaxedBump(server.kstat[iotid].flat_hash_reuses, 1);
+    } else {
+        link = kvstoreDictFindLink(db->keys, getKeySlot(key), key, &bucket);
+    }
     if (link == NULL) {
         if (plink) *plink = bucket;
         return NULL;
