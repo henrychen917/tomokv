@@ -13,6 +13,7 @@
  */
 
 #include "server.h"
+#include "flatstore.h"   /* ee451 FLATSTORE: flat SCAN slice */
 #include "cluster.h"
 #include "atomicvar.h"
 #include "latency.h"
@@ -135,6 +136,9 @@ void updateSlotHist(keysizesHist kvstoreHist, keysizesHist dictHist, uint32_t ty
 }
 
 void updateKeysizesHist(redisDb *db, int didx, uint32_t type, int64_t oldLen, int64_t newLen) {
+    /* review [7]: on a SHARED node db multiple workers RMW the same kvstore-level histograms —
+     * lost updates / unsigned underflow. Histograms are observability-only: disable there. */
+    if (server.shared_node_dbs && kvstoreIsSharedMT(db->keys)) return;
     kvstoreMetadata *kvstoreMeta = kvstoreGetMetadata(db->keys);
     kvstoreDictMetadata *dictMeta = kvstoreGetDictMeta(db->keys, didx, 0);
     updateSlotHist(kvstoreMeta->keysizes_hist, dictMeta ? dictMeta->keysizes_hist : NULL, type, oldLen, newLen);
@@ -306,8 +310,8 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
          * Don't do it if we have a saving child, as this will trigger
          * a copy on write madness. */
         if (((flags & LOOKUP_NOTOUCH) == 0) &&
-            (server.current_client && server.current_client->flags & CLIENT_NO_TOUCH) &&
-            (server.executing_client && server.executing_client->cmd->proc != touchCommand))
+            (server.current_client[iotid].p && server.current_client[iotid].p->flags & CLIENT_NO_TOUCH) &&
+            (server.executing_client[iotid].p && server.executing_client[iotid].p->cmd->proc != touchCommand))
             flags |= LOOKUP_NOTOUCH;
         if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)){
             if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
@@ -318,19 +322,32 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
             }
         }
 
-        if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_hits++;
+        if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
+            /* ee451 (S6, v13): per-thread contention-free — HARDWIRED (knob retired) */
+            tomoRelaxedBump(server.kstat[iotid].hits, 1);
+        }
         /* TODO: Use separate hits stats for WRITE */
     } else {
         if (!(flags & (LOOKUP_NONOTIFY | LOOKUP_WRITE)))
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
-        if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE)))
-            server.stat_keyspace_misses++;
+        if (!(flags & (LOOKUP_NOSTATS | LOOKUP_WRITE))) {
+            /* ee451 (S6, v13): hardwired */
+            tomoRelaxedBump(server.kstat[iotid].misses, 1);
+        }
         /* TODO: Use separate misses stats and notify event for WRITE */
     }
 
     return val;
 }
+
+/* ee451: read-run value forwarding (Tomasulo CDB analog) was REMOVED 2026-07-28.
+ * Permanently abandoned as a paper NEGATIVE RESULT, not a regression: measured a wash in every
+ * tested regime (small/large GET, complex LRANGE, even a maximal single-hot-key + zerocopy
+ * setup). It removes a non-bottleneck -- per-op cost is dominated by net/syscall/socket-write,
+ * not the hot-key lookup it elided -- and real workloads lack the same-key runs it needs
+ * (measured mean run length 1.008). The predictor/record/replay/cost-gate machinery and its
+ * knobs were already inert (F4 took the 2 TLS loads + 2 compares off lookupKeyReadWithFlags);
+ * this removes the last dead helpers. Rationale preserved in docs/BUGS.md and the paper. */
 
 /* Lookup a key for read operations, or return NULL if the key is not found
  * in the specified DB.
@@ -343,7 +360,41 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
  * the key. */
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     serverAssert(!(flags & LOOKUP_WRITE));
-    return lookupKey(db, key, flags, NULL);
+    /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
+     * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
+     * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
+    kvobj *kv = lookupKey(db, key, flags, NULL);
+    /* I7: the table slot is only the entry point while a transient bag is
+     * present. Raw heads retain the exact base return path: in particular,
+     * they neither read atomic mode nor test the new metadata hint. */
+    struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
+    if (unlikely(vmeta)) {
+        /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
+         * with its own uncommitted write on this key cannot see SingleCommitted, so every
+         * own-origin case falls through to the client-aware resolver and the license never
+         * hides an own write. */
+        if (__builtin_expect(server.tomo_atomic != 0, 1)) {
+            if (likely(kvobjSingleCommitted(vmeta))) {
+                uint64_t pinned_snapshot;
+                if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
+                    atomic_load_explicit(&vmeta->version_seq,
+                                         memory_order_acquire) <= pinned_snapshot) {
+                    tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
+                    return kv;
+                }
+                /* This sole version committed after an already-pinned cut.
+                 * Preserve the slow path's absent result without re-reading
+                 * the pin or the global frontier. */
+                tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+                return kvobjVersionAt(kv, pinned_snapshot,
+                                      server.current_client[iotid].p);
+            }
+            tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+        }
+        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
+                            server.current_client[iotid].p);
+    }
+    return kv;
 }
 
 /* Like lookupKeyReadWithFlags(), but does not use any flag, which is the
@@ -405,17 +456,62 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  * link - Optional link to bucket where the key should be added.
  *          On return, get updated, by need, to the inserted key.
  *          
- * keymeta - Defines metadata to be attached to the key. Including optional 
+ * keymeta - Defines metadata to be attached to the key. Including optional
  *           expiration and modules metadata to be copied (REQUIRED).
+ *
+ * flags - KVOBJ_SET_* bitmask forwarded to kvobjSetEx(); 0 is the historical
+ *           behaviour. KVOBJ_SET_EMBED_RAW only when the caller guarantees the
+ *           stored value is final (never mutated in place through *valref
+ *           without dbUnshareStringValue()); KVOBJ_SET_MOVE_VALUE only when the
+ *           caller's extra reference on *valref is a pure lifetime pin
+ *           (renameGenericCommand under FLATSTORE — see there).
  */
-kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link, 
-                     const KeyMetaSpec *keymeta) 
+static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
+                                                 kvobj *version_prev) {
+    struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
+    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
+                          memory_order_relaxed);
+    atomic_store_explicit(&vmeta->version_canceled, 0, memory_order_relaxed);
+    kvobj *committed_head = NULL;
+    if (version_prev) {
+        struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
+        committed_head = prev_meta ?
+            atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
+            version_prev;
+        /* Withdraw the sole-version licence before the caller release-attaches
+         * this metadata and release-publishes a new physical table head. A
+         * reader which already saw true may linearize before this transition;
+         * one which sees the new head sees its zero-initialized hint. */
+        if (prev_meta)
+            atomic_store_explicit(&prev_meta->single_state,
+                                  TOMO_SINGLE_SUPERSEDED,
+                                  memory_order_release);
+    }
+    /* The new physical head inherits the per-key cursor before its vmeta/table
+     * publication. Cursor movement remains confined to owner stamp/retire. */
+    atomic_store_explicit(&vmeta->committed_head, committed_head,
+                          memory_order_release);
+    vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
+                         TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
+    vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+    vmeta->version_prev = version_prev;
+    vmeta->version_kvs = db->keys;
+    vmeta->version_db = db;
+    return vmeta;
+}
+
+static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
+                     dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
+                     uint64_t version_seq)
 {
     int slot = getKeySlot(key->ptr);
     dictEntryLink tmp = NULL;
     if (link == NULL) link = &tmp;
     robj *val = *valref;
-    kvobj *kv = kvobjSet(key->ptr, val, keymeta->metabits);
+    kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
+    if (version_seq)
+        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
     
@@ -445,17 +541,25 @@ kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
     return kv;
 }
 
-/* Read dbAddInternal() comment */
+kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link,
+                     const KeyMetaSpec *keymeta, int flags)
+{
+    return dbAddInternalVersion(db, key, valref, link, keymeta, flags, 0);
+}
+
+/* Read dbAddInternal() comment. No RAW-embed: callers of the generic add path
+ * (SETRANGE/SETBIT/PFADD fresh-create, RM_StringTruncate, ...) may mutate the
+ * stored sds in place right after adding, which requires OBJ_ENCODING_RAW. */
 kvobj *dbAdd(redisDb *db, robj *key, robj **valref) {
     KeyMetaSpec keyMetaEmpty; /* No metadata added */
     keyMetaSpecInit(&keyMetaEmpty);
-    return dbAddInternal(db, key, valref, NULL, &keyMetaEmpty);
+    return dbAddInternal(db, key, valref, NULL, &keyMetaEmpty, 0);
 }
 
 kvobj *dbAddByLink(redisDb *db, robj *key, robj **valref, dictEntryLink *link) {
     KeyMetaSpec keyMetaEmpty; /* No metadata added */
     keyMetaSpecInit(&keyMetaEmpty);
-    return dbAddInternal(db, key, valref, link, &keyMetaEmpty);
+    return dbAddInternal(db, key, valref, link, &keyMetaEmpty, 0);
 }
 
 /* Returns key's hash slot when cluster mode is enabled, or 0 when disabled.
@@ -463,12 +567,37 @@ kvobj *dbAddByLink(redisDb *db, robj *key, robj **valref, dictEntryLink *link) {
  * and always calculates CRC hash.
  * This is useful when slot needs to be calculated for a key that user didn't request for, such as in case of eviction. */
 int calculateKeySlot(sds key) {
-    return server.cluster_enabled ? keyHashSlot(key, (int) sdslen(key)) : 0;
+    if (!server.cluster_enabled)
+        /* ee451 (shared-kv S0.2a): tomo sharding — dict index == ownership bucket. Same xxh64
+         * the dispatch router uses (exIndexForKey), so owner(bucket) is the exclusive toucher
+         * of dict[bucket]. Non-sharded (ex_threads unset) keeps the single dict 0. */
+        return server.ex_threads > 0 ? tomoKeyBucket(key, sdslen(key)) : 0;
+    return keyHashSlot(key, (int) sdslen(key));
+}
+
+/* Only fakes initialize the tomo hash hint. The exact sds pointer is its validity guard: derived
+ * or additional keys in multi-key commands must take the normal hash path. */
+static inline client *tomoKeyHashHint(sds key) {
+    client *cc = server.current_client[iotid].p;
+    if (cc && (cc->flags & CLIENT_EX_PENDING) && cc->tomo_bkt_ptr == (const void *)key)
+        return cc;
+    return NULL;
 }
 
 /* Return slot-specific dictionary for key based on key's hash slot when cluster mode is enabled, else 0.*/
 int getKeySlot(sds key) {
-    if (!server.cluster_enabled) return 0;
+    if (!server.cluster_enabled) {
+        if (server.ex_threads <= 0) return 0;
+        /* ee451 (hash-carry): the dispatch stamped argv[1]'s bucket on the executing fake. POINTER
+         * match (not content) makes this safe for multi-key procs — only the exact carried sds hits;
+         * every other key falls through to the computation. The sds is alive for the exec window. */
+        /* review [8]: only FAKES carry the hint (dispatch stamps them; CLIENT_EX_PENDING is set on
+         * every exec path). Real clients zmalloc'd by createClient never initialize the field —
+         * the flags check keeps us from ever reading it there. */
+        client *cc = tomoKeyHashHint(key);
+        if (cc) return cc->tomo_bkt;
+        return tomoKeyBucket(key, sdslen(key));
+    }
     /* This is performance optimization that uses pre-set slot id from the current command,
      * in order to avoid calculation of the key hash.
      *
@@ -476,10 +605,10 @@ int getKeySlot(sds key) {
      * It only gets set during the execution of command under `call` method. Other flows requesting
      * the key slot would fallback to calculateKeySlot.
      */
-    if (server.current_client && server.current_client->slot >= 0 && server.current_client->flags & CLIENT_EXECUTING_COMMAND) {
-        debugServerAssertWithInfo(server.current_client, NULL,
-                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client->slot);
-        return server.current_client->slot;
+    if (server.current_client[iotid].p && server.current_client[iotid].p->slot >= 0 && server.current_client[iotid].p->flags & CLIENT_EXECUTING_COMMAND) {
+        debugServerAssertWithInfo(server.current_client[iotid].p, NULL,
+                                  (int)keyHashSlot(key, (int)sdslen(key)) == server.current_client[iotid].p->slot);
+        return server.current_client[iotid].p->slot;
     }
     int slot = keyHashSlot(key, (int)sdslen(key));
     return slot;
@@ -521,9 +650,12 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
     if (link != NULL)
         return NULL;
 
-    /* Create kvobj with metadata bits from KeyMetaSpec */
+    /* Create kvobj with metadata bits from KeyMetaSpec.
+     * CANDIDATE (census rank-3): RDB-loaded values are final (the loader never
+     * mutates them in place after the add), so RAW-embedding is safe here and
+     * keeps a reloaded dataset allocation-layout-identical to a written one. */
     robj *val = *valref;
-    kvobj *kv = kvobjSet(key, val, keyMetaSpec->metabits);
+    kvobj *kv = kvobjSetEx(key, val, keyMetaSpec->metabits, KVOBJ_SET_EMBED_RAW);
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1);
 
@@ -566,9 +698,14 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
  *   replacement (in which case we need to emit deletion signals), or just an
  *   update of a value of an existing key (when false).
  * - The `link` is optional, can save lookup, if provided.
+ * - 'embedRawOk': see kvobjSetEx(). Non-zero only when the caller guarantees
+ *   the stored value is final (SETKEY_EMBED_RAW path). MUST stay 0 for the
+ *   dbUnshareStringValue() path, which depends on the replacement staying
+ *   OBJ_ENCODING_RAW so the caller can realloc kv->ptr in place.
  */
-static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link, 
-                       int overwrite, int updateKeySizes, int keepTTL) {
+static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                                  int overwrite, int updateKeySizes, int keepTTL, int embedRawOk,
+                                  uint64_t version_seq, long long version_expire) {
     int freeModuleMeta = 0;
     robj *val = *valref;
     int slot = getKeySlot(key->ptr);
@@ -622,19 +759,32 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         /* Because of RM_StringDMA, old may be changed, so we need get old again */
         old = dictGetKV(*link);
     }
+    /* Atomic whole-value installs carry their final TTL in the allocation that is published.
+     * Adding it later with setExpire() can reallocate a FLAT kvobj, losing the version metadata
+     * and feeding the ordinary raw-retire lane. Pre-sizing the metadata keeps this one physical
+     * install and leaves all version retirement on the existing version/prune queue. */
+    if (version_expire >= 0)
+        newKeyMetaBits |= KEY_META_MASK_EXPIRE;
+    else
+        newKeyMetaBits &= ~KEY_META_MASK_EXPIRE;
     if (server.memory_tracking_enabled)
         oldsize = kvobjAllocSize(old);
 
     if ((old->refcount == 1 && old->encoding != OBJ_ENCODING_EMBSTR) &&
-        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) && (!freeModuleMeta))
+        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) && (!freeModuleMeta) &&
+        version_seq == 0 &&
+        !kvstoreIsFlat(db->keys))   /* FLATSTORE: in-place mutates a LIVE table object a cross-shard
+                                     * reader may be reading (data race) -- force the copy path. */
     {
         /* Keep old object in the database. Just swap it's ptr, type and
          * encoding with the content of val. */
         robj tmp = *old;
         old->type = val->type;
+        old->vmeta = val->vmeta;
         old->encoding = val->encoding;
         old->ptr = val->ptr;
         val->type = tmp.type;
+        val->vmeta = tmp.vmeta;
         val->encoding = tmp.encoding;
         val->ptr = tmp.ptr;
         /* Set new to old to keep the old object. Set old to val to be freed below. */
@@ -647,21 +797,27 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     } else {
         /* Replace the old value at its location in the key space. */
         val->lru = old->lru;
-        
-        kvNew = kvobjSet(key->ptr, val, newKeyMetaBits);
+
+        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        if (version_expire >= 0)
+            serverAssert(kvobjSetExpire(kvNew, version_expire) == kvNew);
+        if (version_seq)
+            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
-        if (oldExpire != -1) {
-            if (keepTTL) {
-                kvobjSetExpire(kvNew, oldExpire); /* kvNew not reallocated here */
+        if (version_expire >= 0) {
+            if (oldExpire != -1) {
                 dictEntryLink exLink = kvstoreDictFindLink(db->expires, slot,
                                                            key->ptr, NULL);
                 serverAssertWithInfo(NULL, key, exLink != NULL);
                 kvstoreDictSetAtLink(db->expires, slot, kvNew, &exLink, 0);
             } else {
-                kvstoreDictDelete(db->expires, slot, key->ptr);
+                dictEntry *de = kvstoreDictAddRaw(db->expires, slot, kvNew, NULL);
+                serverAssert(de != NULL);
             }
+        } else if (oldExpire != -1) {
+            kvstoreDictDelete(db->expires, slot, key->ptr);
         }
 
         if (newKeyMetaBits & KEY_META_MASK_MODULES)
@@ -690,13 +846,580 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
         }
     }
 
-    if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
-        /* In multi-threaded mode, the OBJ_ENCODING_RAW string object usually is
-         * allocated in the IO thread, so we defer the free to the IO thread.
-         * Besides, we never free a string object in BIO threads, so, even with
-         * lazyfree-lazy-server-del enabled, a fallback to main thread freeing
-         * due to defer free failure doesn't go against the config intention. */
-        tryDeferFreeClientObject(server.current_client, DEFERRED_OBJECT_TYPE_ROBJ, old);
+    if (kvstoreIsFlat(db->keys)) {
+        /* FLATSTORE Stage-1: defer the old value's free past a reader grace (a lock-free cross-shard
+         * reader may still hold it). Transfers old's ref to the QSBR retire list. */
+        /* I1: an atomic install only prepends the old head. It never retires,
+         * inspects, sorts, or rewrites any existing version link. */
+        if (!version_seq)
+            kvstoreFlatRetireRaw(db->keys, old);
+    } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW && old->refcount == 1) {
+        tryDeferFreeClientObject(server.current_client[iotid].p, DEFERRED_OBJECT_TYPE_ROBJ, old);
+    } else if (server.lazyfree_lazy_server_del) {
+        freeObjAsync(key, old, db->id);
+    } else {
+        decrRefCount(old);
+    }
+    *valref = kvNew;
+    return kvNew;
+}
+
+/* CURE2 retirement is deliberately not a chain repair. A committed version
+ * first waits a full grace while it is still reachable. The owner then removes
+ * only versions below the committed maximum, preserving the relative install
+ * order of every survivor, and puts removed objects through the ordinary flat
+ * retire path for the post-unlink grace. */
+static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    if (vmeta) {
+        serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED ||
+                     vmeta->stamp_state == TOMO_STAMP_CANCELED);
+        if (vmeta->stamp_state == TOMO_STAMP_APPLIED)
+            serverAssert(kvobjVersionSeq(kv) != TOMO_VERSION_UNCOMMITTED);
+        else
+            serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+        serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                          memory_order_acquire) == 0);
+        if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
+        vmeta->retire_state = TOMO_RETIRE_PHYSICAL;
+    }
+    kvstoreFlatRetireRaw(kvs, kv);
+}
+
+void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL);
+    serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+
+    /* The owner lane is the sole cursor mutator. Locate the current physical
+     * head so installs need only inherit its authoritative per-key cursor. A
+     * detached bag is no longer reader-resolvable and needs no cursor move. */
+    kvobj *head = NULL;
+    struct tomoVerMeta *head_meta = NULL;
+    if (!vmeta->detached) {
+        sds key = kvobjGetKey(kv);
+        int slot = getKeySlot(key);
+        dictEntryLink link = kvstoreDictFindLink(vmeta->version_kvs, slot,
+                                                  key, NULL);
+        serverAssert(link != NULL);
+        head = dictGetKV(*link);
+        head_meta = kvobjVmeta(head);
+        serverAssert(head_meta != NULL);
+    }
+
+    kvobj *committed_head = head_meta ?
+        atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
+        NULL;
+
+    /* Sequence draw and publication are ordered, but pushes from completing
+     * workers into this owner's lane need not arrive in that order. Find the
+     * descending (seq,install_order) insertion point. The common monotone case
+     * stops immediately and advances the cursor; an older arrival is linked
+     * into history without moving the cursor backward. */
+    kvobj *committed_previous = NULL, *committed_next = committed_head;
+    while (committed_next) {
+        struct tomoVerMeta *committed_meta = kvobjVmeta(committed_next);
+        uint64_t committed_seq = committed_meta ?
+            atomic_load_explicit(&committed_meta->version_seq,
+                                 memory_order_acquire) : 0;
+        uint32_t committed_order = committed_meta ? committed_meta->version_order : 0;
+        if (version_seq > committed_seq ||
+            (version_seq == committed_seq &&
+             vmeta->version_order > committed_order))
+            break;
+
+        /* A group has one object per install_order, and different groups have
+         * different sequences, so distinct committed objects cannot tie. */
+        serverAssert(version_seq != committed_seq ||
+                     vmeta->version_order != committed_order);
+        committed_previous = committed_next;
+        committed_next = committed_meta ? kvobjCommittedPrev(committed_next) : NULL;
+    }
+
+    kvobjSetCommittedPrev(kv, committed_next);
+    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
+    vmeta->stamp_state = TOMO_STAMP_APPLIED;
+    vmeta->version_reservation = 0;
+    vmeta->reservation_owner = NULL;
+
+    if (head_meta) {
+        /* Publish only after the new node's predecessor and stamp. MAX
+         * semantics leave an older arrival's committed-head unchanged. */
+        if (committed_previous)
+            kvobjSetCommittedPrev(committed_previous, kv);
+        else
+            atomic_store_explicit(&head_meta->committed_head, kv,
+                                  memory_order_release);
+    }
+    /* origin_client_id is deliberately NOT cleared: it is written once at
+     * install and must survive the stamp. This lane runs BEFORE commit_seq
+     * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
+     * csMsetInstallDone publishes), so the installing connection's own read
+     * can meet this version already stamped while still holding a snapshot
+     * below it — a cross-shard read pins S at dispatch, and even a lazily
+     * resolved GET can draw commit_seq inside that window. kvobjVersionAt
+     * then recognizes the version as the reader's own by this identity and
+     * widens the snapshot upward to it; clearing the id here made the own
+     * branch miss and the strict cursor step past the connection's own
+     * atomic write (the torn-own-read P0). */
+}
+
+/* Canceled atomic-group versions use the same owner lane as stamping. A canceled
+ * version never receives a sequence, so it remains invisible forever.
+ * Live-bag cancellation arms the existing prune grace; a version whose bag
+ * was already detached can enter the ordinary post-unlink retire grace. */
+void tomoCancelVersion(kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+    serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+    vmeta->stamp_state = TOMO_STAMP_CANCELED;
+    vmeta->version_reservation = 0;
+    vmeta->reservation_owner = NULL;
+    /* origin_client_id stays: the field is write-once at install (see
+     * tomoApplyVersionStamp). A canceled version is excluded from the own
+     * branch by version_canceled and never enters the committed chain, so
+     * the surviving identity is inert here. */
+    if (vmeta->detached) {
+        tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
+        return;
+    }
+    serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
+    vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+}
+
+/* Publish the exact state licensed by the read fast path. The owner holds its
+ * per-key worker lock throughout this census and the store, so no install,
+ * stamp, cancellation, or prune can mutate the bag concurrently.
+ *
+ * TOMO_SINGLE_NONE proves no later install has superseded this physical head:
+ * every successor release-stores SUPERSEDED before publishing its own
+ * vmeta/table pointer, and that state is permanent even if this object's prune
+ * op arrives late. committed_prev==NULL proves no older committed candidate;
+ * the physical predecessor scan rejects raw, applied, and pending members, but
+ * permits fully canceled members because they can never become visible. */
+static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
+    if (vmeta->detached || vmeta->version_tombstone ||
+        vmeta->stamp_state != TOMO_STAMP_APPLIED ||
+        atomic_load_explicit(&vmeta->single_state,
+                             memory_order_acquire) != TOMO_SINGLE_NONE ||
+        atomic_load_explicit(&vmeta->owner_ops_pending,
+                             memory_order_acquire) != 0 ||
+        atomic_load_explicit(&vmeta->committed_head,
+                             memory_order_acquire) != kv ||
+        kvobjCommittedPrev(kv) != NULL)
+        return;
+
+    for (kvobj *prev = kvobjVersionPrev(kv); prev; ) {
+        struct tomoVerMeta *prev_meta = kvobjVmeta(prev);
+        if (!prev_meta || prev_meta->stamp_state != TOMO_STAMP_CANCELED ||
+            atomic_load_explicit(&prev_meta->owner_ops_pending,
+                                 memory_order_acquire) != 0)
+            return;
+        prev = kvobjVersionPrev(prev);
+    }
+
+    /* The prune owner-op is queued only after commit_seq's release-store. Its
+     * queue acquire, this release, and the reader's acquire form the chain
+     * which lets an unpinned reader omit commit_seq altogether. */
+    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_COMMITTED,
+                          memory_order_release);
+}
+
+void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
+    serverAssert(kvobjVersionSeq(kv) == version_seq);
+    serverAssert(version_seq <= tomoCommittedSeq());
+    serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+    if (vmeta->detached) {
+        if (vmeta->retire_state == TOMO_RETIRE_ACTIVE)
+            tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
+        return;
+    }
+    serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
+    vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+    tomoPublishSingleCommitted(kv, vmeta);
+}
+
+/* A non-versioned overwrite/delete removes the whole bag from the table in
+ * one ordinary owner store. Committed members with no queued owner operation
+ * can enter their post-unlink grace now; uncommitted members remain pinned by
+ * their install records and retire only when their stamp+prune operations run. */
+void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
+    serverAssert(kvstoreIsFlat(kvs));
+    kvobj *kv = head;
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) {
+            kvstoreFlatRetireRaw(kvs, kv);
+            break;
+        }
+        kvobj *next = kvobjVersionPrev(kv);
+        vmeta->detached = 1;
+        uint64_t seq = kvobjVersionSeq(kv);
+        if ((vmeta->stamp_state == TOMO_STAMP_CANCELED ||
+             seq != TOMO_VERSION_UNCOMMITTED) &&
+            atomic_load_explicit(&vmeta->owner_ops_pending,
+                                 memory_order_acquire) == 0 &&
+            vmeta->retire_state == TOMO_RETIRE_ACTIVE)
+            tomoSchedulePhysicalRetire(kvs, kv);
+        kv = next;
+    }
+}
+
+static void tomoVersionPruneFinish(int owner, exThread *worker,
+                                   struct tomoVerMeta *callback_meta) {
+    tomoWkrUnlockPub(owner);
+    /* Drop only after every live-bag mutation and the executing worker's lock are finished, but
+     * before leaving the flat section: promotion may already have QSBR-retired this metadata
+     * block, and this pin keeps it valid through the counter update. */
+    tomoAtomicLifecycleRelease(callback_meta);
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+}
+
+void tomoVersionPruneAfterGrace(kvobj *anchor) {
+    /* Check at callback ENTRY, before taking any lock or touching the bag. Checking only when the
+     * callback was armed misses exactly an old-owner callback which matures after a cutover. */
+    struct tomoVerMeta *callback_meta = kvobjVmeta(anchor);
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    tomoAtomicOwnerCheck(callback_meta, owner, 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+
+    /* The ordinary reclaim pass runs outside a flat section, preserving the
+     * shipped OFF path. Only this CURE2 callback needs to re-enter: it walks
+     * and may update a live bag after its first grace. The seq_cst
+     * publish/check is the same exclusion handshake used by exSlice. */
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    while (atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) {
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoFlatResizeQuiesce();
+        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    }
+    tomoWkrLockPub(owner);
+
+    struct tomoVerMeta *anchor_meta = callback_meta;
+    if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
+        tomoVersionPruneFinish(owner, worker, callback_meta);
+        return;
+    }
+    kvstore *kvs = anchor_meta->version_kvs;
+    serverAssert(kvs != NULL && kvstoreIsFlat(kvs));
+    if (anchor_meta->detached) {
+        serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+        tomoSchedulePhysicalRetire(kvs, anchor);
+        tomoVersionPruneFinish(owner, worker, callback_meta);
+        return;
+    }
+
+    sds key = kvobjGetKey(anchor);
+    int slot = getKeySlot(key);
+    dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
+    serverAssert(link != NULL);
+    kvobj *head = dictGetKV(*link);
+    struct tomoVerMeta *head_meta = kvobjVmeta(head);
+    serverAssert(head_meta != NULL);
+    kvobj *committed_head = atomic_load_explicit(&head_meta->committed_head,
+                                                  memory_order_acquire);
+    uint64_t visible = tomoCommittedSeq();
+    int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
+    /* A committed callback proves a grace only for its own frontier. A newer
+     * version may have committed while that grace was running; using the
+     * current global maximum would unlink a value still needed by a reader
+     * pinned between the two commits. A canceled anchor has no frontier: its
+     * grace licenses only canceled nodes whose own grace has completed. */
+    uint64_t retire_max = cancel_anchor ? 0 : kvobjVersionSeq(anchor);
+    if (cancel_anchor) {
+        serverAssert(kvobjVersionSeq(anchor) == TOMO_VERSION_UNCOMMITTED);
+        serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+    } else {
+        serverAssert(retire_max != TOMO_VERSION_UNCOMMITTED && retire_max <= visible);
+        serverAssert(anchor_meta->stamp_state == TOMO_STAMP_APPLIED);
+    }
+    serverAssert(atomic_load_explicit(&anchor_meta->owner_ops_pending,
+                                      memory_order_acquire) == 0);
+
+    /* This one maintenance walk owns every live-bag cancellation mutation:
+     * unlink a buried canceled node, replace a canceled head with a survivor,
+     * or remove the whole key when cancellation leaves no survivor. The
+     * cancel owner-op itself only marks and arms this grace callback. */
+    kvobj *newhead = head, *previous = NULL, *kv = head;
+    while (kv) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
+        uint64_t seq = vmeta ? kvobjVersionSeq(kv) : 0;
+        int eligible = 0;
+        if (vmeta && vmeta->stamp_state == TOMO_STAMP_CANCELED) {
+            /* CANCELED is retire-eligible independent of every committed
+             * frontier, but never before its own pre-unlink grace. */
+            eligible = vmeta->retire_state == TOMO_RETIRE_ACTIVE &&
+                       atomic_load_explicit(&vmeta->owner_ops_pending,
+                                            memory_order_acquire) == 0;
+        } else if (!cancel_anchor) {
+            eligible = seq < retire_max;
+            if (vmeta && (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
+                          vmeta->stamp_state != TOMO_STAMP_APPLIED ||
+                          atomic_load_explicit(&vmeta->owner_ops_pending,
+                                               memory_order_acquire) != 0))
+                eligible = 0;
+        }
+
+        if (eligible) {
+            /* Retirement-only deletion: survivors retain their original
+             * install order; no node is inserted, relocated, or re-spliced. */
+            if (previous) kvobjSetVersionPrev(previous, next);
+            else newhead = next;
+            tomoSchedulePhysicalRetire(kvs, kv);
+        } else {
+            previous = kv;
+        }
+        kv = next;
+    }
+
+    /* Remove reclaimed members from the committed-order chain. This is a
+     * stable filter of the already sorted chain: it neither assumes that the
+     * anchor was the cursor nor that stamps arrived in sequence order.
+     * Physical retirement marks versioned members before this pass; a
+     * committed prune also always retires the implicit-seq-0 raw tail. Stores
+     * to survivor links precede release publication of the repaired maximum. */
+    if (!cancel_anchor) {
+        kvobj *new_committed_head = NULL, *committed_previous = NULL;
+        for (kv = committed_head; kv; ) {
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            kvobj *next = vmeta ? kvobjCommittedPrev(kv) : NULL;
+            int survives = vmeta && vmeta->retire_state != TOMO_RETIRE_PHYSICAL;
+            if (survives) {
+                if (!new_committed_head) new_committed_head = kv;
+                if (committed_previous)
+                    kvobjSetCommittedPrev(committed_previous, kv);
+                committed_previous = kv;
+            }
+            kv = next;
+        }
+        if (committed_previous)
+            kvobjSetCommittedPrev(committed_previous, NULL);
+        committed_head = new_committed_head;
+    }
+    /* A reservation that created an absent key can be the bag's last member.
+     * SetAtLink(NULL) is not a delete operation for FLAT stores: it would
+     * expose a reusable tomb before the follow-up unlink. Route the empty-bag
+     * case through the same stock owner-side single-store delete used for a
+     * committed tombstone. Every removed node above has already completed its
+     * pre-unlink grace and entered the ordinary post-unlink retire grace. */
+    if (!newhead) {
+        redisDb *db = anchor_meta->version_db;
+        serverAssert(db != NULL && db->keys == kvs);
+        robj *keyobj = createStringObject(key, sdslen(key));
+        serverAssert(dbSyncDelete(db, keyobj) == 1);
+        decrRefCount(keyobj);
+        tomoVersionPruneFinish(owner, worker, callback_meta);
+        return;
+    }
+    struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
+    if (newhead_meta)
+        atomic_store_explicit(&newhead_meta->committed_head, committed_head,
+                              memory_order_release);
+    else
+        serverAssert(committed_head == newhead);
+    if (newhead != head)
+        kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
+
+    int committed = 0, uncommitted = 0;
+    kvobj *sole_committed = NULL;
+    for (kv = newhead; kv; ) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) {
+            committed++;
+            sole_committed = kv;
+            break;
+        }
+        uint64_t seq = kvobjVersionSeq(kv);
+        if (vmeta->stamp_state == TOMO_STAMP_CANCELED) {
+            /* A canceled sibling is semantically retired immediately. It is
+             * still linked only until its own grace callback can reclaim it. */
+        } else if (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
+                   vmeta->stamp_state != TOMO_STAMP_APPLIED) {
+            uncommitted++;
+        } else {
+            committed++;
+            sole_committed = kv;
+        }
+        kv = kvobjVersionPrev(kv);
+    }
+
+    /* I6 tombstone case: physical key removal happens here and nowhere in the
+     * atomic command path. Use dbSyncDelete, the same owner-side deletion path
+     * stock DEL uses. Canceled siblings are detached with the bag and retain
+     * their own grace protection in tomoRetireDetachedBag. */
+    if (committed == 1 && uncommitted == 0 && sole_committed) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
+        if (vmeta && vmeta->version_tombstone &&
+            (sole_committed == anchor || vmeta->retire_state == TOMO_RETIRE_ACTIVE)) {
+            redisDb *db = vmeta->version_db;
+            serverAssert(db != NULL && db->keys == kvs);
+            if (vmeta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
+                vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            robj *keyobj = createStringObject(kvobjGetKey(sole_committed),
+                                               sdslen(kvobjGetKey(sole_committed)));
+            serverAssert(dbSyncDelete(db, keyobj) == 1);
+            decrRefCount(keyobj);
+            tomoVersionPruneFinish(owner, worker, callback_meta);
+            return;
+        }
+    }
+
+    /* I6 live-value case: canceled nodes above the sole committed value do
+     * not block promotion. Nodes below it must already be gone so stripping
+     * the metadata cannot orphan their links. Readers that acquired the
+     * metadata are covered by the existing metadata retire grace. */
+    if (committed == 1 && uncommitted == 0 && sole_committed &&
+        kvobjVersionPrev(sole_committed) == NULL) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
+        /* Do not detach another version's install-owner identity while its own prune callback is
+         * still queued. That callback must retain metadata for its entry-time stale-owner check and
+         * must itself retire the lifecycle reference. Its own callback may promote it normally. */
+        if (vmeta && (sole_committed == anchor || !vmeta->lifecycle_ref_held)) {
+            serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
+            serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
+                                              memory_order_acquire) == 0);
+            /* The cursor follows the sole committed value into the raw-head
+             * fast path; stale metadata readers retain a valid self cursor
+             * until its existing retire grace completes. */
+            atomic_store_explicit(&vmeta->committed_head, sole_committed,
+                                  memory_order_release);
+            vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            kvobjSetVmeta(sole_committed, NULL);
+            kvstoreFlatRetireVmeta(kvs, vmeta);
+            atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
+                                      memory_order_relaxed);
+            if (sole_committed == anchor) anchor_meta = NULL;
+        }
+    }
+    if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
+        anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
+    tomoVersionPruneFinish(owner, worker, callback_meta);
+}
+
+/* The ordinary write path is deliberately kept separate from the versioned
+ * whole-value twin above: with tomokv-atomic off it has the base implementation's
+ * stores, branches and retirement behavior. */
+static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link,
+                       int overwrite, int updateKeySizes, int keepTTL, int embedRawOk) {
+    int freeModuleMeta = 0;
+    robj *val = *valref;
+    int slot = getKeySlot(key->ptr);
+    size_t oldsize = 0;
+    if (!link) {
+        link = kvstoreDictFindLink(db->keys, slot, key->ptr, NULL);
+        serverAssertWithInfo(NULL, key, link != NULL);
+    }
+    kvobj *old = dictGetKV(*link);
+    kvobj *kvNew;
+
+    int64_t oldlen = (int64_t)getObjectLength(old);
+    int oldtype = old->type;
+
+    if (old->type == OBJ_HASH)
+        estoreRemove(db->subexpires, slot, old);
+    if (old->type == OBJ_STREAM)
+        dictDelete(db->stream_idmp_keys, key);
+
+    long long oldExpire = getExpire(db, key->ptr, old);
+    uint32_t newKeyMetaBits = old->metabits;
+    if ((!keepTTL) || (oldExpire == -1))
+        newKeyMetaBits &= ~KEY_META_MASK_EXPIRE;
+
+    if (overwrite) {
+        newKeyMetaBits &= KEY_META_MASK_EXPIRE;
+        incrRefCount(old);
+        if (getModuleMetaBits(old->metabits)) {
+            keyMetaOnUnlink(db, key, old);
+            freeModuleMeta = 1;
+        }
+        moduleNotifyKeyUnlink(key, old, db->id, DB_FLAG_KEY_OVERWRITE);
+        signalDeletedKeyAsReady(db, key, old->type);
+        decrRefCount(old);
+        old = dictGetKV(*link);
+    }
+    if (server.memory_tracking_enabled)
+        oldsize = kvobjAllocSize(old);
+
+    if ((old->refcount == 1 && old->encoding != OBJ_ENCODING_EMBSTR) &&
+        (val->refcount == 1 && val->encoding != OBJ_ENCODING_EMBSTR) &&
+        (!freeModuleMeta) && !kvstoreIsFlat(db->keys))
+    {
+        robj tmp = *old;
+        old->type = val->type;
+        old->vmeta = val->vmeta;
+        old->encoding = val->encoding;
+        old->ptr = val->ptr;
+        val->type = tmp.type;
+        val->vmeta = tmp.vmeta;
+        val->encoding = tmp.encoding;
+        val->ptr = tmp.ptr;
+        kvNew = old;
+        old = val;
+        if ((!keepTTL) && (oldExpire >= 0))
+            removeExpire(db, key);
+    } else {
+        val->lru = old->lru;
+        kvNew = kvobjSetEx(key->ptr, val, newKeyMetaBits, embedRawOk);
+        kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
+
+        if (oldExpire != -1) {
+            if (keepTTL) {
+                kvobjSetExpire(kvNew, oldExpire);
+                dictEntryLink exLink = kvstoreDictFindLink(db->expires, slot,
+                                                           key->ptr, NULL);
+                serverAssertWithInfo(NULL, key, exLink != NULL);
+                kvstoreDictSetAtLink(db->expires, slot, kvNew, &exLink, 0);
+            } else {
+                kvstoreDictDelete(db->expires, slot, key->ptr);
+            }
+        }
+        if (newKeyMetaBits & KEY_META_MASK_MODULES)
+            keyMetaTransition(old, kvNew);
+    }
+
+    int64_t newlen = (int64_t)getObjectLength(kvNew);
+    if (updateKeySizes) {
+        if (oldtype == kvNew->type) {
+            updateKeysizesHist(db, slot, oldtype, oldlen, newlen);
+        } else {
+            updateKeysizesHist(db, slot, oldtype, oldlen, -1);
+            updateKeysizesHist(db, slot, kvNew->type, -1, newlen);
+        }
+    }
+
+    if (server.memory_tracking_enabled) {
+        if (oldtype == kvNew->type) {
+            updateSlotAllocSize(db, slot, kvNew, oldsize, kvobjAllocSize(kvNew));
+        } else {
+            updateSlotAllocSize(db, slot, old, oldsize, -1);
+            updateSlotAllocSize(db, slot, kvNew, -1, kvobjAllocSize(kvNew));
+        }
+    }
+
+    if (kvstoreIsFlat(db->keys)) {
+        if (kvobjVmeta(old))
+            tomoRetireDetachedBag(db->keys, old);
+        else
+            kvstoreFlatRetireRaw(db->keys, old);
+    } else if (server.io_threads_num > 1 && old->encoding == OBJ_ENCODING_RAW &&
+               old->refcount == 1) {
+        tryDeferFreeClientObject(server.current_client[iotid].p,
+                                 DEFERRED_OBJECT_TYPE_ROBJ, old);
     } else if (server.lazyfree_lazy_server_del) {
         freeObjAsync(key, old, db->id);
     } else {
@@ -708,15 +1431,21 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
 /* Replace an existing key with a new value, we just replace value and don't
  * emit any events */
 void dbReplaceValue(redisDb *db, robj *key, robj **valref, int updateKeySizes) {
-    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1);
+    dbSetValue(db, key, valref, NULL, 0, updateKeySizes, 1, 0);
 }
 
 /* Replace an existing key with a new value (don't emit any events)
  *
  * parameter 'link' is optional. If provided, saves lookup.
- */
+ *
+ * No RAW-embed here (embedRawOk=0): dbUnshareStringValueByLink() funnels
+ * through this function and its whole point is to leave an OBJ_ENCODING_RAW
+ * value in the db that the caller (APPEND/SETRANGE/SETBIT/PFADD/StringDMA)
+ * can then realloc in place through kv->ptr. Embedding here would hand those
+ * callers an sds living inside the kvobj allocation -- heap corruption on the
+ * first sdscatlen/sdsgrowzero/sdsResize. */
 void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink link) {
-    dbSetValue(db, key, val, link, 0, 1, 1);
+    dbSetValue(db, key, val, link, 0, 1, 1, 0);
 }
 
 /* High level Set operation. This function can be used in order to set
@@ -734,8 +1463,19 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
  * All the new keys in the database should be created via this interface.
  * The client 'c' argument may be set to NULL if the operation is performed
  * in a context where there is no clear client performing the operation. */
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key,
+                                  robj **valref, int flags,
+                                  dictEntryLink *plink, uint64_t version_seq,
+                                  long long version_expire);
+
 void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
     setKeyByLink(c, db, key, valref, flags, NULL);
+}
+
+kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                       uint64_t version_seq, long long version_expire) {
+    return setKeyByLinkVersion(c, db, key, valref, flags, NULL, version_seq,
+                               version_expire);
 }
 
 /* Like setKey(), but accepts an optional link
@@ -746,7 +1486,9 @@ void setKey(client *c, redisDb *db, robj *key, robj **valref, int flags) {
  * - If flag is not set (0) then add or update key, and `link` must be NULL
  * On return, link get updated, by need, to the inserted kvobj.
  */
-void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *plink) {
+static kvobj *setKeyByLinkVersion(client *c, redisDb *db, robj *key, robj **valref,
+                                  int flags, dictEntryLink *plink, uint64_t version_seq,
+                                  long long version_expire) {
     dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
     int exists;
     kvobj *oldval = NULL;
@@ -764,12 +1506,16 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
         exists = oldval != NULL;
     }
 
+    kvobj *installed;
     if (exists) {
         int oldtype = oldval->type;
         int newtype = (*valref)->type;
 
         /* Update the value of an existing key */
-        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL);
+        installed = dbSetValueVersioned(db, key, valref, *link, 1, 1,
+                                        flags & SETKEY_KEEPTTL,
+                                        (flags & SETKEY_EMBED_RAW) != 0, version_seq,
+                                        version_expire);
 
         /* Notify keyspace events for override and type change */
         notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
@@ -777,11 +1523,55 @@ void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, d
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
     } else {
         /* Add the new key to the database */
-        dbAddByLink(db, key, valref, link);
+        KeyMetaSpec keyMeta;
+        keyMetaSpecInit(&keyMeta);
+        if (version_expire >= 0)
+            keyMetaSpecAdd(&keyMeta, KEY_META_ID_EXPIRE,
+                           (uint64_t)version_expire);
+        installed = dbAddInternalVersion(db, key, valref, link, &keyMeta,
+                                         (flags & SETKEY_EMBED_RAW) != 0, version_seq);
     }
 
     /* Signal key modification and update LRM timestamp. */
     keyModified(c,db,key,*valref,!(flags & SETKEY_NO_SIGNAL));
+    return installed;
+}
+
+void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags,
+                  dictEntryLink *plink) {
+    dictEntryLink dummy = NULL, *link = plink ? plink : &dummy;
+    int exists;
+    kvobj *oldval = NULL;
+
+    if (flags & SETKEY_ALREADY_EXIST) {
+        debugServerAssert((*link) != NULL);
+        oldval = dictGetKV(**link);
+        exists = 1;
+    } else if (flags & SETKEY_DOESNT_EXIST) {
+        exists = 0;
+    } else {
+        oldval = lookupKeyWriteWithLink(db, key, link);
+        exists = oldval != NULL;
+    }
+
+    if (exists) {
+        int oldtype = oldval->type;
+        int newtype = (*valref)->type;
+
+        dbSetValue(db, key, valref, *link, 1, 1, flags & SETKEY_KEEPTTL,
+                   (flags & SETKEY_EMBED_RAW) != 0);
+
+        notifyKeyspaceEvent(NOTIFY_OVERWRITTEN, "overwritten", key, db->id);
+        if (oldtype != newtype)
+            notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", key, db->id);
+    } else {
+        KeyMetaSpec keyMetaEmpty;
+        keyMetaSpecInit(&keyMetaEmpty);
+        dbAddInternal(db, key, valref, link, &keyMetaEmpty,
+                      (flags & SETKEY_EMBED_RAW) != 0);
+    }
+
+    keyModified(c, db, key, *valref, !(flags & SETKEY_NO_SIGNAL));
 }
 
 /* During atomic slot migration, keys that are being imported are in an
@@ -804,6 +1594,74 @@ robj *dbRandomKey(redisDb *db) {
     dictEntry *de;
     int maxtries = 100;
     int allvolatile = kvstoreSize(db->keys) == kvstoreSize(db->expires);
+
+    /* ee451 (shared-kv S0.2b): on a SHARED node db, sample ONLY this worker's own bucket range —
+     * walking another worker's dict races its owner (the pre-share code sampled a whole per-worker
+     * kvstore, which was the same restriction expressed structurally). RANDOMKEY is routed to a
+     * worker (getWorkerForCommand size-weight), so the executing thread's identity IS the range.
+     * Distribution: fair within the worker's range; across workers it follows the router's
+     * weighting — same two-level shape as before sharing. */
+    if (server.shared_node_dbs && server.num_workers > 0) {
+        int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+        if (wid >= 0 && wid < server.num_workers && db == &server.exThreads[wid].db[db->id]) {
+            int blo = wid ? server.ex_bucket_end[wid - 1] : 0;
+            int bhi = server.ex_bucket_end[wid];
+            if (kvstoreIsFlat(db->keys)) {
+                for (int tries = 0; tries < 100; tries++) {
+                    kvobj *kv = kvstoreFlatRandomKeyInRange(db->keys, blo, bhi);
+                    if (!kv) return NULL;
+                    sds key = kvobjGetKey(kv);
+                    robj *keyobj = createStringObject(key, sdslen(key));
+                    tomoWkrLockPub(wid);
+                    int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                    tomoWkrUnlockPub(wid);
+                    if (kvalid != KEY_VALID) { decrRefCount(keyobj); continue; }
+                    return keyobj;
+                }
+                return NULL;
+            }
+            for (int tries = 0; tries < 100; tries++) {
+                unsigned long long total = 0;
+                for (int b = blo; b < bhi; b++) {
+                    dict *d = kvstoreGetDict(db->keys, b);
+                    if (d) total += dictSize(d);
+                }
+                if (total == 0) return NULL;
+                unsigned long long target = ((unsigned long long)rand() << 16 | rand()) % total;
+                dict *pick = NULL;
+                for (int b = blo; b < bhi; b++) {
+                    dict *d = kvstoreGetDict(db->keys, b);
+                    if (!d) continue;
+                    size_t s = dictSize(d);
+                    if (target < s) { pick = d; break; }
+                    target -= s;
+                }
+                if (!pick) return NULL;                      /* raced a delete: retry */
+                de = dictGetFairRandomKey(pick);
+                if (!de) continue;
+                kvobj *kv = dictGetKV(de);
+                sds key = kvobjGetKey(kv);
+                robj *keyobj = createStringObject(key, sdslen(key));
+                /* review [5]: expireIfNeeded may DELETE from the shared node kvstore, which the
+                 * whole node's workers share. Take our own worker lock so that delete is excluded
+                 * against the paths that reach this node db from OFF this worker: an HFE command
+                 * (HEXPIRE/HGETEX/... ) running on a sibling worker holds ALL the node's worker
+                 * locks across its estore walk, and the resharding apply/scan takes the owner's
+                 * lock too. argc==1, so the S2 single-key path never covered us.
+                 * (The node-local BORROW was deleted 2026-07-27; it was one such off-worker
+                 * reader, not the only one — this lock is still required.) */
+                tomoWkrLockPub(wid);
+                int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                tomoWkrUnlockPub(wid);
+                if (kvalid != KEY_VALID) {
+                    decrRefCount(keyobj);
+                    continue;                                /* expired: search for another key */
+                }
+                return keyobj;
+            }
+            return NULL;                                     /* all tries hit expired keys */
+        }
+    }
 
     while(1) {
         robj *keyobj;
@@ -876,12 +1734,22 @@ int dbGenericDelete(redisDb *db, robj *key, int async, int flags) {
         if (kvobjGetExpire(kv) != -1)
             kvstoreDictDelete(db->expires, slot, key->ptr);
 
-        if (async) {
+        /* ee451 FLATSTORE (8B-slot review fix): the async path's freeObjAsync + SetAtLink(NULL)
+         * preclear is UNSAFE on a flat store. The 8B slot has no "occupied-but-no-value" state, so
+         * the preclear must store FLAT_TOMB — which is immediately reusable, so a concurrent cross-key
+         * insert can claim the slot in the window before flatDelete, which then blindly clobbers it
+         * (silent key loss + UAF of the reinserted value). freeObjAsync is also not QSBR-safe against
+         * lock-free readers. So for flat, ALWAYS take the single-store path: TwoPhaseUnlinkFree's one
+         * atomic flatDelete tombstones the still-LIVE slot (no reuse window) and flatRetire defers the
+         * free past the reader grace — same as the sync path. */
+        if (async && !kvstoreIsFlat(db->keys)) {
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(db, slot, kv, kvobjAllocSize(kv), -1);
             freeObjAsync(key, kv, db->id);
             /* Set the key to NULL in the main dictionary. */
             kvstoreDictSetAtLink(db->keys, slot, NULL, &link, 0);
+        } else if (async && server.memory_tracking_enabled) {
+            updateSlotAllocSize(db, slot, kv, kvobjAllocSize(kv), -1);   /* flat: still account the drop */
         }
         kvstoreDictTwoPhaseUnlinkFree(db->keys, slot, link, table);
 
@@ -986,6 +1854,7 @@ long long emptyDbStructure(redisDb *dbarray, int dbnum, int async,
     }
 
     for (int j = startdb; j <= enddb; j++) {
+        if (!dbIsInitialized(&dbarray[j])) continue;
         removed += kvstoreSize(dbarray[j].keys);
         if (async) {
             emptyDbAsync(&dbarray[j]);
@@ -1047,6 +1916,46 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
     /* Empty redis database structure. */
     removed = emptyDbStructure(server.db, dbnum, async, callback);
 
+    /* ee451: under sharding the keyspace lives in the per-node SHARD dbs, not in server.db
+     * (which is all but empty here) — every worker's db array ALIASES one of server.node_dbs.
+     * Emptying only server.db therefore left every key alive, which made DEBUG RELOAD's flush a
+     * silent no-op: rdbLoad then re-added, key by key, rows that were still present in the very
+     * shard it routes to, and dbAddRDBLoad's NULL tripped "Duplicated key found in RDB file"
+     * (rdb.c) — deterministically, in BOTH the dict (ex=1) and FLATSTORE (ex>=2) regimes. The
+     * same hole silently kept stale keys across a replica full resync.
+     *
+     * Fold over the PHYSICAL node arrays, not over workers: with a shared node db (wpn > 1) a
+     * per-worker loop would empty the same kvstore once per worker. This mirrors rdbSaveRio's
+     * save-side fold, which needs the same care.
+     *
+     * THE BOUND IS `n < server.n_node_dbs` AND NOTHING ELSE. server.node_dbs is
+     * zmalloc(sizeof(redisDb *) * n_node_dbs) with every pointer and inner shell initialized in
+     * that same range (initServer), so n_node_dbs is one PAST the end. The earlier version of this
+     * fold used
+     * `n <= server.n_node_dbs` because the tree it was written against still allocated a +1
+     * spare-PRIVATE array for a reserve worker slot; that spare was deleted 2026-07-28 and the
+     * fold read one pointer of uninitialised heap, handed it to emptyDbStructure as a redisDb *,
+     * and called kvstoreEmpty/estoreEmpty on garbage — which corrupted the allocator accounting
+     * (used-mem read 94 MB before the first reload and 20 595 MB after it) and crashed 8 runs in
+     * 10 with illegal decrRefCount / lost keys under an intact dbsize. Every other fold over the
+     * physical arrays in this tree is `n < server.n_node_dbs`; keep this one identical.
+     *
+     * SYNC empty only, whatever `async` says: emptyDbAsync installs a REPLACEMENT kvstore built
+     * without KVSTORE_FLAT/KVSTORE_SHARED_MT, so on a shared node db it would silently demote a
+     * shared flat table to a private dict. That is why the worker-side flush sentinel likewise
+     * forces flush_async = 0. */
+    if (server.node_dbs) {
+        /* A shared node db IS a flat table that the resize coordinator may be rebuilding right now,
+         * and FLAT_RZ_COPYING requires the old table to stay immutable for the whole rebuild.
+         * Emptying it under a live copy loses the empty at the swap and republishes the kvobjs the
+         * empty just retired. See tomoFlatResizeQuiesce — and note this one wait also covers the
+         * rdbLoad that follows us, because call() keeps this thread's flat region open (which is
+         * what stops the NEXT resize) for the rest of the command. */
+        tomoFlatResizeQuiesce();
+        for (int n = 0; n < server.n_node_dbs; n++)
+            removed += emptyDbStructure(server.node_dbs[n], dbnum, 0, callback);
+    }
+
     if (dbnum == -1) flushSlaveKeysWithExpireList();
 
     if (with_functions) {
@@ -1063,26 +1972,36 @@ long long emptyData(int dbnum, int flags, void(callback)(dict*)) {
     return removed;
 }
 
-/* Initialize temporary db on replica for use during diskless replication. */
+/* Initialize temporary DB shells for diskless replication. */
 redisDb *initTempDb(void) {
+    redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
+    for (int i=0; i<server.dbnum; i++) {
+        tempDb[i].id = i;
+        atomicSet(tempDb[i].initialized, 0);
+    }
+    return tempDb;
+}
+
+/* Temporary RDB databases also retain contiguous shells, but unlike the main
+ * DB group they have no per-node aliases and can be initialized independently. */
+void ensureTempDbInitialized(redisDb *db) {
+    if (dbIsInitialized(db)) return;
+
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
         slot_count_bits = CLUSTER_SLOT_MASK_BITS;
         flags |= KVSTORE_FREE_EMPTY_DICTS;
+    } else if (server.ex_threads > 0) {
+        /* review [4]: tomo getKeySlot returns BUCKETS (xxh64&16383) — a 1-dict tempDb would be
+         * indexed out of bounds on the replica diskless-load swapdb path. Same bits as initServer. */
+        slot_count_bits = TOMO_BUCKET_BITS;
     }
-    redisDb *tempDb = zcalloc(sizeof(redisDb)*server.dbnum);
-    for (int i=0; i<server.dbnum; i++) {
-        tempDb[i].id = i;
-        tempDb[i].keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits,
-                                       flags);
-        tempDb[i].expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType,
-                                          slot_count_bits, flags);
-        tempDb[i].subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
-        tempDb[i].stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
-    }
-
-    return tempDb;
+    db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, flags);
+    db->expires = kvstoreCreate(&kvstoreBaseType, &dbExpiresDictType, slot_count_bits, flags);
+    db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
+    db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
+    atomicSetWithSync(db->initialized, 1);
 }
 
 /* Discard tempDb, this can be slow (similar to FLUSHALL), but it's always async. */
@@ -1092,6 +2011,7 @@ void discardTempDb(redisDb *tempDb) {
     /* Release temp DBs. */
     emptyDbStructure(tempDb, -1, async, NULL);
     for (int i=0; i<server.dbnum; i++) {
+        if (!dbIsInitialized(&tempDb[i])) continue;
         /* Destroy sub-expires before deleting the kv-objects since ebuckets
          * data structure is embedded in the stored kv-objects. */
         estoreRelease(tempDb[i].subexpires);
@@ -1125,7 +2045,15 @@ void streamMoveIdmpKeys(dict *src, dict *dst, int slot) {
 int selectDb(client *c, int id) {
     if (id < 0 || id >= server.dbnum)
         return C_ERR;
-    c->db = &server.db[id];
+    /* MERGE(T6 x lazy-DB): initialize the logical DB first (idempotent — the sidecar work made
+     * non-zero DBs lazy), THEN apply T6 routing: a worker fake stays on that worker's shard DB
+     * across SELECTs queued inside EXEC. OPEN QUESTION for the merge probe: whether the worker
+     * shard view needs any per-id init beyond the logical one — exercised by SELECT-inside-EXEC. */
+    ensureLogicalDbInitialized(id);
+    if (server.num_workers > 0 && c->tomo_local_worker >= 0)
+        c->db = &server.exThreads[c->tomo_local_worker].db[id];
+    else
+        c->db = &server.db[id];
     return C_OK;
 }
 
@@ -1133,6 +2061,7 @@ long long dbTotalServerKeyCount(void) {
     long long total = 0;
     int j;
     for (j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         total += kvstoreSize(server.db[j].keys);
     }
     return total;
@@ -1175,6 +2104,7 @@ void signalFlushedDb(int dbid, int async, slotRangeArray *slots) {
     }
 
     for (int j = startdb; j <= enddb; j++) {
+        if (!dbIsInitialized(&server.db[j])) continue;
         scanDatabaseForDeletedKeys(&server.db[j], NULL, slots);
         touchAllWatchedKeysInDb(&server.db[j], NULL, slots);
     }
@@ -1216,7 +2146,7 @@ int getFlushCommandFlags(client *c, int *flags) {
 
 /* Flushes the whole server data set. */
 void flushAllDataAndResetRDB(int flags) {
-    server.dirty += emptyData(-1,flags,NULL);
+    markDirty(emptyData(-1,flags,NULL));
     if (server.child_type == CHILD_TYPE_RDB) killRDBChild();
     if (server.saveparamslen > 0) {
         rdbSaveInfo rsi, *rsiptr;
@@ -1253,11 +2183,11 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
     }
 
     /* Update current_client (Called functions might rely on it) */
-    client *old_client = server.current_client;
-    server.current_client = c;
+    client *old_client = server.current_client[iotid].p;
+    server.current_client[iotid].p = c;
 
     /* Don't update blocked_us since command was processed in bg by lazy_free thread */
-    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(c->bstate.lazyfreeStartTime), 0);
+    updateStatsOnUnblock(c, 0 /*blocked_us*/, elapsedUs(clientBlockingState(c)->lazyfreeStartTime), 0);
 
     /* Only SFLUSH command pass user data pointer. */
     if (slots)
@@ -1276,11 +2206,8 @@ void flushallSyncBgDone(uint64_t client_id, void *userdata) {
         commandProcessed(c);
     }
 
-    /* On flush completion, update the client's memory */
-    updateClientMemUsageAndBucket(c);
-
     /* restore current_client */
-    server.current_client = old_client;
+    server.current_client[iotid].p = old_client;
 }
 
 /* Common flush command implementation for FLUSHALL, FLUSHDB and SFLUSH.
@@ -1308,7 +2235,7 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
     if (type == FLUSH_TYPE_ALL)
         flushAllDataAndResetRDB(flags | EMPTYDB_NOFUNCTIONS);
     else
-        server.dirty += emptyData(c->db->id,flags | EMPTYDB_NOFUNCTIONS,NULL);
+        markDirty(emptyData(c->db->id,flags | EMPTYDB_NOFUNCTIONS,NULL));
 
     /* Without the forceCommandPropagation, when DB(s) was already empty,
      * FLUSHALL\FLUSHDB will not be replicated nor put into the AOF. */
@@ -1318,16 +2245,17 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
      * worker's queue. To be called and reply with OK only after all preceding pending
      * lazyfree jobs in queue were processed */
     if (blocking_async) {
+        initClientBlockingState(c);
         /* measure bg job till completion as elapsed time of flush command */
-        elapsedStart(&c->bstate.lazyfreeStartTime);
+        elapsedStart(&clientBlockingState(c)->lazyfreeStartTime);
 
-        c->bstate.timeout = 0;
+        clientBlockingState(c)->timeout = 0;
         /* We still need to perform cleanup operations for the command, including
          * updating the replication offset, so mark this command as pending to
          * avoid command from being reset during unblock. */
         c->flags |= CLIENT_PENDING_COMMAND;
         blockClient(c,BLOCKED_LAZYFREE);
-        bioCreateCompRq(BIO_WORKER_LAZY_FREE, flushallSyncBgDone, c->id, slots);
+        bioCreateCompRq(BIO_WORKER_LAZY_FREE, flushallSyncBgDone, clientTail(c)->id, slots);
     }
 
 #if defined(USE_JEMALLOC)
@@ -1355,6 +2283,21 @@ void flushallCommand(client *c) {
     int flags;
     if (getFlushCommandFlags(c,&flags) == C_ERR) return;
 
+    /* ee451 (v7): sharded build — data lives in per-worker shard DBs that only their owning
+     * worker may mutate, so the stock blocking-async flush (which empties only server.db and
+     * waits on a bio completion that never fires here) hangs. Dispatch a flush to each worker
+     * and barrier-wait instead. */
+    /* NB: inline-dispatched commands run on a ring-slot FAKE (c->isFake==1), so do NOT gate
+     * on !c->isFake — that would skip the fix and fall into the stock blocking-async path,
+     * which hangs/crashes here. flushAllShards works whether c is the real client or its fake. */
+    if (server.exThreads && server.num_workers > 0) {
+        flushAllShards(c, -1, (flags & EMPTYDB_ASYNC) ? 1 : 0);
+        markDirty(1);
+        forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
+        addReply(c, shared.ok);
+        return;
+    }
+
     /* If FLUSH SYNC isn't running as blocking async, then reply */
     if (flushCommandCommon(c, FLUSH_TYPE_ALL, flags, NULL) == 0)
         addReply(c, shared.ok);
@@ -1366,6 +2309,18 @@ void flushallCommand(client *c) {
 void flushdbCommand(client *c) {
     int flags;
     if (getFlushCommandFlags(c,&flags) == C_ERR) return;
+
+    /* ee451 (v7): sharded build — flush the selected DB across all worker shards. See
+     * flushallCommand for why the stock path hangs here. */
+    /* ee451 (audit fix): do NOT gate on !c->isFake — inline-dispatched FLUSHDB runs on a ring-slot
+     * fake, and skipping the shard flush made it a silent no-op on shard data. Mirrors flushallCommand. */
+    if (server.exThreads && server.num_workers > 0) {
+        flushAllShards(c, c->db->id, (flags & EMPTYDB_ASYNC) ? 1 : 0);
+        markDirty(1);
+        forceCommandPropagation(c, PROPAGATE_REPL | PROPAGATE_AOF);
+        addReply(c, shared.ok);
+        return;
+    }
 
     /* If FLUSH SYNC isn't running as blocking async, then reply */
     if (flushCommandCommon(c, FLUSH_TYPE_DB,flags, NULL) == 0)
@@ -1386,7 +2341,7 @@ void delGenericCommand(client *c, int lazy) {
             keyModified(c,c->db,c->argv[j],NULL,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,
                 "del",c->argv[j],c->db->id);
-            server.dirty++;
+            markDirty(1);
             numdel++;
         }
     }
@@ -1485,7 +2440,7 @@ void delexCommand(client *c) {
         rewriteClientCommandVector(c, 2, shared.del, key);
         keyModified(c, c->db, key, NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 
     addReplyLongLong(c, deleted);
@@ -1601,6 +2556,7 @@ typedef struct {
     int no_values; /* set to 1 means to return keys only */
     sds typename; /* typename string, NULL means no type filter */
     redisDb *db;  /* database reference for expiration checks */
+    int avoid_expire_del; /* ee451 FLATSTORE: filter expired keys read-only (no cross-owner delete) */
 } scanData;
 
 /* Helper function to compare key type in scan commands */
@@ -1611,6 +2567,12 @@ int objectTypeCompare(robj *o, long long target) {
         else 
             return 1;
     }
+    /* FLATSTORE: this is the ONLY dereference of a non-string ->ptr on the SCAN path, and a flat
+     * SCAN walks every node's table lock-free (see flatScanDbs), so it can observe a kvobj that a
+     * worker just QSBR-retired. A retired shell whose value was MOVED out (KVOBJ_SET_MOVE_VALUE:
+     * first-TTL EXPIRE / RENAME under a flat store) has ptr == NULL until the grace frees it — and
+     * it is not a live key anyway, so filter it out rather than dereference NULL. */
+    if (o->ptr == NULL) return 0;
     /* module type compare */
     moduleType *type = ((moduleValue *)o->ptr)->type;
     long long mt = (long long)REDISMODULE_TYPE_SIGN(type->entity.id);
@@ -1660,7 +2622,11 @@ void scanCallback(void *privdata, const dictEntry *de, dictEntryLink plink) {
     if (!o) {
         /* Expiration check first - only for database keyspace scanning.
          * Use kv obj to avoid robj creation. */
-        if (expireIfNeeded(data->db, NULL, kv, 0) != KEY_VALID)
+        /* ee451 FLATSTORE: on a flat SCAN one worker walks EVERY owner's keys, so it must NOT
+         * physically expire a key it doesn't own (that flatDelete would race the real owner's writes
+         * -> single-writer violation / double-retire, and cross-node it propagates a phantom DEL).
+         * AVOID_DELETE filters the expired key from the reply and leaves reaping to its owner. */
+        if (expireIfNeeded(data->db, NULL, kv, data->avoid_expire_del ? EXPIRE_AVOID_DELETE_EXPIRED : 0) != KEY_VALID)
             return;
 
         /* Type filtering - only for database keyspace scanning */
@@ -1767,6 +2733,99 @@ static int scanShouldSkipDict(dict *d, int didx) {
  *
  * In the case of a Hash object the function returns both the field and value
  * of every element on the Hash. */
+/* ee451 FLATSTORE: is the REAL keyspace behind `db` a flat table?
+ *
+ * The predicate cannot be `kvstoreIsFlat(db->keys)`: under sharding the real data lives in
+ * server.node_dbs[node][dbid], and only a WORKER-routed command holds one of those as `c->db`.
+ * An INLINE caller — module RM_Scan runs on the calling io thread — holds the empty decoy
+ * `server.db[dbid]`, which is never marked KVSTORE_FLAT, so a `db->keys` test answers "not flat"
+ * and silently walks the empty decoy. Ask the node table directly so both callers agree.
+ * (The flat flag is set identically on every node db at initServer, so node 0 decides.) */
+static int flatScanEligible(redisDb *db) {
+    return server.shared_node_dbs && server.node_dbs && server.node_dbs[0] &&
+           kvstoreIsFlat(server.node_dbs[0][db->id].keys);
+}
+
+/* Non-shared worker DBs cannot be walked from one coordinator: each dict belongs to exactly one
+ * worker. Encode the current worker alongside kvstoreScan's cursor so the next client SCAN command
+ * is dispatched back to the owner of that slice. Layout:
+ *
+ *   [63:22] dictScan cursor | [21:14] worker | [13:0] kvstore bucket/dict index
+ *
+ * kvstoreScan already reserves the low TOMO_BUCKET_BITS. The extra worker field leaves a 42-bit
+ * hash-table cursor, enough for over four trillion buckets and beyond supported memory. */
+static unsigned long long dictShardScanCursorToKv(unsigned long long cursor) {
+    unsigned long long didx = cursor & TOMO_BUCKET_MASK;
+    return ((cursor >> TOMO_SCAN_DICT_SHIFT) << TOMO_BUCKET_BITS) | didx;
+}
+
+static unsigned long long dictShardScanCursorFromKv(unsigned long long cursor, int worker) {
+    unsigned long long didx = cursor & TOMO_BUCKET_MASK;
+    return ((cursor >> TOMO_BUCKET_BITS) << TOMO_SCAN_DICT_SHIFT) |
+           ((unsigned long long)worker << TOMO_SCAN_WORKER_SHIFT) | didx;
+}
+
+/* SCAN's COUNT is a hint, so keep a single resumable scan slice from monopolizing an execution
+ * worker even when the client supplies a huge value. This matches Dragonfly's approximately 30 us
+ * per-shard budget. The limit is best-effort: a dict bucket chain and a small FLATSTORE slot chunk
+ * are indivisible so that every returned cursor describes only fully-consumed scan work. */
+#define SCAN_MAX_WORK_US 30
+#define FLAT_SCAN_TIME_CHECK_SLOTS 64
+
+/* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
+ * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
+ * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
+ * kvobjs it derefs across nodes); dbScan()'s module arm runs it inline and opens an explicit flat
+ * extern region for the same guarantee. One caller reads all node tables lock-free with no
+ * double-counting (one physical table per node).
+ * cursor: [63:52] node | [51:32] gen(low 20) | [31:0] slot. cursor 0 = start AND done.
+ * Resize-stability: a resize is the ONLY thing that relocates a live key and it ALWAYS bumps gen, so
+ * a gen mismatch on resume means "restart this node at slot 0" (the new table holds all live keys).
+ * `priv`/`sampled` are caller-supplied rather than a scanData* so the module scan callback (which
+ * has its own privdata shape) can share this one walk. */
+static unsigned long long flatScanDbs(redisDb *db, unsigned long long cursor, long count,
+                                      dictScanFunction *cb, void *priv, long *sampled) {
+    int node = (int)((cursor >> 52) & 0xFFF);
+    unsigned long gen_lo = (unsigned long)((cursor >> 32) & 0xFFFFF);
+    uint64_t slot = (uint64_t)(cursor & 0xFFFFFFFFULL);
+    uint64_t budget = (uint64_t)count > (UINT64_MAX - 64) / 10 ?
+                      UINT64_MAX : (uint64_t)count * 10 + 64; /* sparse-table guard */
+    int nmax = server.n_node_dbs - 1;               /* highest physical node-db index */
+    monotime scan_timer;
+    elapsedStart(&scan_timer);
+    while (node <= nmax) {
+        flatTable *t = kvstoreFlatTable(server.node_dbs[node][db->id].keys);
+        if (!t) {
+            node++; slot = 0; gen_lo = 0;
+            if (node <= nmax && elapsedUs(scan_timer) >= SCAN_MAX_WORK_US)
+                return (unsigned long long)node << 52;
+            continue;
+        }
+        unsigned long cur_gen = (unsigned long)(t->gen & 0xFFFFF);
+        if (slot != 0 && gen_lo != cur_gen) slot = 0;   /* a resize happened between calls -> restart node */
+        int hit_end = 0;
+        while (!hit_end) {
+            uint64_t chunk = budget < FLAT_SCAN_TIME_CHECK_SLOTS ?
+                             budget : FLAT_SCAN_TIME_CHECK_SLOTS;
+            uint64_t chunk_left = chunk;
+            slot = flatScanSlice(t, slot, &chunk_left, &hit_end, cb, priv, sampled, count);
+            budget -= chunk - chunk_left;
+            /* Check time only after flatScanSlice has advanced slot, so an early return always
+             * carries a cursor immediately after all entries emitted by this call. */
+            if (!hit_end && (*sampled >= count || budget == 0 ||
+                             elapsedUs(scan_timer) >= SCAN_MAX_WORK_US))
+                return ((unsigned long long)node << 52) |
+                       (((unsigned long long)cur_gen & 0xFFFFF) << 32) |
+                       (slot & 0xFFFFFFFFULL);
+        }
+        node++; slot = 0; gen_lo = 0;                   /* finished this node */
+        if (*sampled >= count || budget == 0 ||
+            elapsedUs(scan_timer) >= SCAN_MAX_WORK_US)  /* resume next node at slot zero */
+            return (node <= nmax) ? ((unsigned long long)node << 52) : 0;
+    }
+    return 0;                                           /* all nodes swept */
+}
+
 void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
     int i, j;
     listNode *node;
@@ -1873,7 +2932,9 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * COUNT, so if the hash table is in a pathological state (very
          * sparsely populated) we avoid to block too much time at the cost
          * of returning no or very few elements. */
-        long maxiterations = count*10;
+        long maxiterations = count > LONG_MAX / 10 ? LONG_MAX : count * 10;
+        monotime scan_timer;
+        elapsedStart(&scan_timer);
 
         /* We pass scanData which have three pointers to the callback:
          * 1. data.keys: the list to which it will add new elements;
@@ -1888,6 +2949,8 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
          * to prevent a long hang time caused by filtering too many keys;
          * 6. data.no_values: to control whether values will be returned or
          * only keys are returned. */
+        int flat_scan = (o == NULL && flatScanEligible(c->db));
+        int dict_shard_scan = (o == NULL && !server.shared_node_dbs && server.num_workers > 1);
         scanData data = {
             .keys = keys,
             .o = o,
@@ -1897,6 +2960,7 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
             .no_values = no_values,
             .typename = typename,
             .db = c->db,
+            .avoid_expire_del = flat_scan,
         };
 
         /* A pattern may restrict all matching keys to one cluster slot. */
@@ -1904,15 +2968,43 @@ void scanGenericCommand(client *c, robj *o, unsigned long long cursor) {
         if (o == NULL && use_pattern && server.cluster_enabled) {
             onlydidx = patternHashSlot(pat, patlen);
         }
-        do {
-            /* In cluster mode there is a separate dictionary for each slot.
-             * If cursor is empty, we should try exploring next non-empty slot. */
-            if (o == NULL) {
-                cursor = kvstoreScan(c->db->keys, cursor, onlydidx, scanCallback, scanShouldSkipDict, &data);
+        if (flat_scan) {
+            /* ee451 FLATSTORE: composite-cursor walk over all node flat tables (this runs on a worker). */
+            cursor = flatScanDbs(c->db, cursor, count, scanCallback, &data, &data.sampled);
+        } else if (dict_shard_scan) {
+            /* This command was dispatched to the cursor's owner. Scan only that private kvstore;
+             * after it completes, return a cursor owned by the next worker. Empty owners consume a
+             * round trip deliberately—walking the next owner's dict here would violate ownership. */
+            int worker = (int)((cursor >> TOMO_SCAN_WORKER_SHIFT) & TOMO_SCAN_WORKER_MASK);
+            /* A non-shared pool has one configured worker per node. It cannot role-flip that
+             * worker away (there is no sibling owner for its private dict), so every slot here is
+             * live; getWorkerForCommand applies the same range check before dispatch. */
+            if (worker >= server.num_workers) worker = 0;
+            unsigned long long kv_cursor = dictShardScanCursorToKv(cursor);
+            do {
+                kv_cursor = kvstoreScan(c->db->keys, kv_cursor, onlydidx,
+                                        scanCallback, scanShouldSkipDict, &data);
+            } while (kv_cursor && maxiterations-- && data.sampled < count &&
+                     elapsedUs(scan_timer) < SCAN_MAX_WORK_US);
+            if (kv_cursor) {
+                cursor = dictShardScanCursorFromKv(kv_cursor, worker);
+            } else if (worker + 1 < server.num_workers) {
+                cursor = (unsigned long long)(worker + 1) << TOMO_SCAN_WORKER_SHIFT;
             } else {
-                cursor = dictScan(ht, cursor, scanCallback, &data);
+                cursor = 0;
             }
-        } while (cursor && maxiterations-- && data.sampled < count);
+        } else {
+            do {
+                /* In cluster mode there is a separate dictionary for each slot.
+                 * If cursor is empty, we should try exploring next non-empty slot. */
+                if (o == NULL) {
+                    cursor = kvstoreScan(c->db->keys, cursor, onlydidx, scanCallback, scanShouldSkipDict, &data);
+                } else {
+                    cursor = dictScan(ht, cursor, scanCallback, &data);
+                }
+            } while (cursor && maxiterations-- && data.sampled < count &&
+                     elapsedUs(scan_timer) < SCAN_MAX_WORK_US);
+        }
     } else if (o->type == OBJ_SET) {
         unsigned long array_reply_len = 0;
         void *replylen = NULL;
@@ -2077,6 +3169,27 @@ void scanCommand(client *c) {
 }
 
 void dbsizeCommand(client *c) {
+    /* ee451 v10-B (fan_all): the keyspace is partitioned across worker shard dbs; c->db (main)
+     * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
+     * used counter only (no iteration), so reading it from the IO thread while a worker writes
+     * is racy but crash-free and DBSIZE is approximate by nature. */
+    if (server.num_workers > 0 && server.exThreads) {
+        long long total = 0;
+        int dbid = c->db->id;
+        if (server.shared_node_dbs) {
+            /* ee451 (shared-kv S0.2b): workers of a node ALIAS one physical kvstore — summing
+             * per worker would count each node wpn times. Sum the distinct node dbs. */
+            for (int n = 0; n < server.n_node_dbs; n++)
+                total += dbSize(&server.node_dbs[n][dbid]);
+        } else {
+            /* Fold over ALL worker SLOTS, not the live set: a slot that is mid-flip still owns
+             * its keys until the migration's FLIP, and liveness is published after it. */
+            for (int w = 0; w < server.num_workers; w++)
+                total += dbSize(&server.exThreads[w].db[dbid]);
+        }
+        addReplyLongLong(c, total);
+        return;
+    }
     addReplyLongLong(c,dbSize(c->db));
 }
 
@@ -2197,9 +3310,29 @@ void renameGenericCommand(client *c, int nx) {
     keyMetaSpecInit(&keymeta);
     if (o->metabits) keyMetaOnRename(c->db, o, c->argv[1], c->argv[2], &keymeta);
 
+    /* FLATSTORE (same class as the setExpireByLink fix): dbDelete does NOT drop the db's
+     * reference synchronously on a flat store — the node is QSBR-retired and its decrRefCount
+     * runs at the reader grace. So the `incrRefCount(o)` pin above leaves refcount == 2 here,
+     * kvobjSetEx() falls through to its multi-ref branch and, for any NON-STRING value, has no
+     * cheap re-homing left => serverPanic("Not implemented") (crash repro: `SADD s m1;
+     * RENAME s d` with both keys on ONE shard, on a shared node db).
+     *
+     * The pin is a LIFETIME pin, not a second reader of the value: nothing reads the value
+     * through `o` after this point (`o` is repointed at the new kvobj by dbAddInternal, and
+     * the retired shell is only ever freed). That is exactly the KVOBJ_SET_MOVE_VALUE
+     * contract, so pass it: the value is MOVED into the new kvobj (no O(n) duplication of a
+     * possibly huge collection — a deep copy here would be a hang-class regression on
+     * `RENAME bigzset`) and the retired old kvobj is freed ALLOCATION-ONLY at grace
+     * (decrRefCount skips the type free when ptr == NULL).
+     * Strings never reach that branch (the EMBSTR/INT/RAW branches above it copy), which is
+     * what keeps the lock-free cross-shard readers that DO dereference an OBJ_STRING's ptr
+     * (csSubExec MGET) safe. */
+    int flat_keys = kvstoreIsFlat(c->db->keys);
+
     dbDelete(c->db,c->argv[1]);
-    
-    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta);
+
+    dbAddInternal(c->db, c->argv[2], &o, NULL, &keymeta,
+                  flat_keys ? KVOBJ_SET_MOVE_VALUE : 0);
 
     /* If hash with HFEs, register in DB subexpires */
     if (minHashExpireTime != EB_EXPIRE_TIME_INVALID)
@@ -2222,7 +3355,7 @@ void renameGenericCommand(client *c, int nx) {
         if (desttype != srctype)
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", c->argv[2], c->db->id);
     }
-    server.dirty++;
+    markDirty(1);
     addReply(c,nx ? shared.cone : shared.ok);
 }
 
@@ -2298,7 +3431,7 @@ void moveCommand(client *c) {
     incrRefCount(kv);            /* ref counter = 1->2 */
     dbDelete(src,c->argv[1]);    /* ref counter = 2->1 */
 
-    dbAddInternal(dst, c->argv[1], &kv, &dstBucket, &keymeta);
+    dbAddInternal(dst, c->argv[1], &kv, &dstBucket, &keymeta, 0);
 
     /* If object of type hash with expiration on fields. Taken care to add the
      * hash to subexpires of `dst` only after dbDelete(). */
@@ -2318,7 +3451,7 @@ void moveCommand(client *c) {
     notifyKeyspaceEvent(NOTIFY_GENERIC,
                 "move_to",c->argv[1],dst->id);
 
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.cone);
 }
 
@@ -2424,7 +3557,7 @@ void copyCommand(client *c) {
     keyMetaSpecInit(&keymeta);
     if (o->metabits) keyMetaOnCopy(o, key, newkey, c->db->id, dst->id, &keymeta);
 
-    kvobj *kvCopy = dbAddInternal(dst, newkey, &newobj, NULL, &keymeta);
+    kvobj *kvCopy = dbAddInternal(dst, newkey, &newobj, NULL, &keymeta, 0);
 
     /* If minExpiredField was set, then the object is hash with expiration
      * on fields and need to register it in global HFE DS */
@@ -2451,7 +3584,7 @@ void copyCommand(client *c) {
             notifyKeyspaceEvent(NOTIFY_TYPE_CHANGED, "type_changed", c->argv[2], dst->id);
     }
 
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.cone);
 }
 
@@ -2521,8 +3654,14 @@ int dbSwapDatabases(int id1, int id2) {
     if (id1 < 0 || id1 >= server.dbnum ||
         id2 < 0 || id2 >= server.dbnum) return C_ERR;
     if (id1 == id2) return C_OK;
-    redisDb aux = server.db[id1];
+    ensureLogicalDbInitialized(id1);
+    ensureLogicalDbInitialized(id2);
     redisDb *db1 = &server.db[id1], *db2 = &server.db[id2];
+    kvstore *aux_keys = db1->keys, *aux_expires = db1->expires;
+    estore *aux_subexpires = db1->subexpires;
+    dict *aux_stream_idmp_keys = db1->stream_idmp_keys;
+    long long aux_avg_ttl = db1->avg_ttl;
+    unsigned long aux_expires_cursor = db1->expires_cursor;
 
     /* Swapdb should make transaction fail if there is any
      * client watching keys */
@@ -2543,12 +3682,12 @@ int dbSwapDatabases(int id1, int id2) {
     db1->avg_ttl = db2->avg_ttl;
     db1->expires_cursor = db2->expires_cursor;
 
-    db2->keys = aux.keys;
-    db2->expires = aux.expires;
-    db2->subexpires = aux.subexpires;
-    db2->stream_idmp_keys = aux.stream_idmp_keys;
-    db2->avg_ttl = aux.avg_ttl;
-    db2->expires_cursor = aux.expires_cursor;
+    db2->keys = aux_keys;
+    db2->expires = aux_expires;
+    db2->subexpires = aux_subexpires;
+    db2->stream_idmp_keys = aux_stream_idmp_keys;
+    db2->avg_ttl = aux_avg_ttl;
+    db2->expires_cursor = aux_expires_cursor;
 
     /* Now we need to handle clients blocked on lists: as an effect
      * of swapping the two DBs, a client that was waiting for list
@@ -2569,8 +3708,17 @@ int dbSwapDatabases(int id1, int id2) {
  * (which will now be placed in the temp one) is done later. */
 void swapMainDbWithTempDb(redisDb *tempDb) {
     for (int i=0; i<server.dbnum; i++) {
-        redisDb aux = server.db[i];
+        int main_initialized = dbIsInitialized(&server.db[i]);
+        int temp_initialized = dbIsInitialized(&tempDb[i]);
+        if (!main_initialized && !temp_initialized) continue;
+        if (!main_initialized) ensureLogicalDbInitialized(i);
+        if (!temp_initialized) ensureTempDbInitialized(&tempDb[i]);
         redisDb *activedb = &server.db[i], *newdb = &tempDb[i];
+        kvstore *aux_keys = activedb->keys, *aux_expires = activedb->expires;
+        estore *aux_subexpires = activedb->subexpires;
+        dict *aux_stream_idmp_keys = activedb->stream_idmp_keys;
+        long long aux_avg_ttl = activedb->avg_ttl;
+        unsigned long aux_expires_cursor = activedb->expires_cursor;
 
         /* Swapping databases should make transaction fail if there is any
          * client watching keys. */
@@ -2589,12 +3737,12 @@ void swapMainDbWithTempDb(redisDb *tempDb) {
         activedb->avg_ttl = newdb->avg_ttl;
         activedb->expires_cursor = newdb->expires_cursor;
 
-        newdb->keys = aux.keys;
-        newdb->expires = aux.expires;
-        newdb->subexpires = aux.subexpires;
-        newdb->stream_idmp_keys = aux.stream_idmp_keys;
-        newdb->avg_ttl = aux.avg_ttl;
-        newdb->expires_cursor = aux.expires_cursor;
+        newdb->keys = aux_keys;
+        newdb->expires = aux_expires;
+        newdb->subexpires = aux_subexpires;
+        newdb->stream_idmp_keys = aux_stream_idmp_keys;
+        newdb->avg_ttl = aux_avg_ttl;
+        newdb->expires_cursor = aux_expires_cursor;
 
         /* Now we need to handle clients blocked on lists: as an effect
          * of swapping the two DBs, a client that was waiting for list
@@ -2638,7 +3786,7 @@ void swapdbCommand(client *c) {
     } else {
         RedisModuleSwapDbInfo si = {REDISMODULE_SWAPDBINFO_VERSION,id1,id2};
         moduleFireServerEvent(REDISMODULE_EVENT_SWAPDB,0,&si);
-        server.dirty++;
+        markDirty(1);
         server.stat_cluster_incompatible_ops++;
         addReply(c,shared.ok);
     }
@@ -2702,13 +3850,30 @@ kvobj *setExpireByLink(client *c, redisDb *db, sds key, long long when, dictEntr
         if (kv->type == OBJ_HASH)
             subexpiry = estoreRemove(db->subexpires, slot, kv);
 
-        kvobj *kvnew = kvobjSetExpire(kv, when); /* release kv if reallocated */
+        /* holistic-review fix: kvobjSetExpire reallocs a not-yet-expirable kv and decrRefCounts the
+         * OLD one, which under a flat store would free it SYNCHRONOUSLY while a lock-free cross-shard
+         * reader may still hold it (UAF), and would leave the slot pointing at freed memory in
+         * the gap before SetAtLink. Pin the old across the realloc and QSBR-retire it (mirrors
+         * dbSetValue's kvstoreFlatRetireRaw). No-op for non-flat (no lock-free readers).
+         *
+         * The pin is a LIFETIME pin, not a second reader of the value, so it must be passed
+         * down as KVOBJ_SET_MOVE_VALUE: otherwise kvobjSetEx() sees refcount != 1 and has no
+         * cheap way to re-home a non-string value, and panics "Not implemented" (crash repro:
+         * `SADD s m; EXPIRE s 100` on a shared node db). With the flag the value is
+         * moved into kvnew and the retired old kvobj is freed allocation-only. */
+        int flat_keys = kvstoreIsFlat(db->keys);
+        if (flat_keys) incrRefCount(kv);
+        /* release kv if reallocated */
+        kvobj *kvnew = kvobjSetExpireEx(kv, when, flat_keys ? KVOBJ_SET_MOVE_VALUE : 0);
         /* if kvobj was reallocated, update dict */
         if (kv != kvnew) {
             kvstoreDictSetAtLink(db->keys, slot, kvnew, &keyLink, 0);
             if (server.memory_tracking_enabled)
                 updateSlotAllocSize(db, slot, kvnew, oldsize, kvobjAllocSize(kvnew));
+            if (flat_keys) kvstoreFlatRetireRaw(db->keys, kv);  /* grace-deferred free of the old */
             kv = kvnew;
+        } else if (flat_keys) {
+            decrRefCount(kv);   /* not reallocated (no internal free) — drop the pin */
         }
         /* Now add to expires */
         dictEntry *de = kvstoreDictAddRaw(db->expires, slot, kv, NULL);
@@ -2793,6 +3958,10 @@ static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, lo
 }
 
 /* Delete the specified expired key and propagate. */
+/* ee451 (v8d): migCaptureImplicitDelete used to sit on both of these — an IMPLICIT delete
+ * (expiry/eviction) skips the exExecFake write hook, so a range key expiring mid-migration had to
+ * emit a tombstone or B's replay would resurrect it. Deleted with the copy engine (2026-07-28):
+ * there is no second copy to resurrect anything from, so an implicit delete needs no capture. */
 void deleteExpiredKeyAndPropagate(redisDb *db, robj *keyobj) {
     deleteKeyAndPropagate(db, keyobj, NOTIFY_EXPIRED, NULL);
 }
@@ -2846,7 +4015,7 @@ void propagateDeletion(redisDb *db, robj *key, int lazy) {
  */
 int keyIsExpired(redisDb *db, sds key, kvobj *kv) {
     /* Don't expire anything while loading. It will be done later. */
-    if (server.loading || server.allow_access_expired) return 0;
+    if (server.loading || accessExpiredAllowed()) return 0;
     mstime_t when = getExpire(db, key, kv);
     if (when < 0) return 0; /* No expire for this key */
     const mstime_t now = commandTimeSnapshot();
@@ -2863,7 +4032,7 @@ int confAllowsExpireDel(void) {
     /* This configuration specifically targets nested commands, to align with RE's feature of replication between dbs.
      * transactions (from scripts or multi-exec) containing commands like SCAN and RANDOMKEY will execute locally, but their
      * lazy-expiration DELs may induce CROSS-SLOT on remote proxy in mode replica-of (RED-161574) */
-    return !(server.execution_nesting > 1 && server.executing_client->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
+    return !(execution_nesting > 1 && server.executing_client[iotid].p->cmd->flags & CMD_TOUCHES_ARBITRARY_KEYS);
 }
 
 /* This function is called when we are going to perform some operation
@@ -2910,7 +4079,7 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * keys, and return KEY_TRIMMED otherwise. */
     sds key_name = key ? key->ptr : kvobjGetKey(kv);
     if (asmIsKeyInTrimJob(key_name)) {
-        if (server.allow_access_trimmed || (flags & EXPIRE_ALLOW_ACCESS_TRIMMED))
+        if (accessTrimmedAllowed() || (flags & EXPIRE_ALLOW_ACCESS_TRIMMED))
             return KEY_VALID;
 
         return KEY_TRIMMED;
@@ -2939,7 +4108,7 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * When replicating commands from the master, keys are never considered
      * expired. */
     if (server.masterhost != NULL || server.cluster_enabled) {
-        if (server.current_client && (server.current_client->flags & CLIENT_MASTER)) return KEY_VALID;
+        if (server.current_client[iotid].p && (server.current_client[iotid].p->flags & CLIENT_MASTER)) return KEY_VALID;
         if (server.masterhost != NULL && !(flags & EXPIRE_FORCE_DELETE_EXPIRED)) return KEY_EXPIRED;
     }
 
@@ -2957,6 +4126,17 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
      * Typically, at the end of the pause we will properly expire the key OR we
      * will have failed over and the new primary will send us the expire. */
     if (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)) return KEY_EXPIRED;
+
+    /* ee451 (W6-E2): mid-cutover DRAINING fence — on the src worker, an in-range lazy expire
+     * must not delete (its tombstone could land after the s_final sample and clobber a
+     * post-flip write on B; see migSuppressLazyExpire). Same expired-as-missing semantics as
+     * the replica branch above. NOT applied to EXPIRE_FORCE_DELETE_EXPIRED: forced deletes
+     * come from range WRITES, which the drain fence already proves executed pre-s_final (and
+     * post-fence range writes are held), so their captures are fence-covered — and write
+     * semantics require the physical delete. */
+    if (!(flags & EXPIRE_FORCE_DELETE_EXPIRED) &&
+        migSuppressLazyExpire(db, key ? key->ptr : kvobjGetKey(kv)))
+        return KEY_EXPIRED;
 
     /* Perform deletion */
     if (key) {
@@ -3027,10 +4207,17 @@ kvobj *dbFind(redisDb *db, sds key) {
  *         If set to NULL, then HT of dict not allocated yet.
  */
 kvobj *dbFindByLink(redisDb *db, sds key, dictEntryLink *plink) {
-    int slot = getKeySlot(key);
     dictEntryLink link, bucket;
 
-    link = kvstoreDictFindLink(db->keys, slot, key, &bucket);
+    /* Reuse the routing hash only for a FLAT lookup of the exact carried sds; every non-dispatch
+     * or additional-key lookup retains the hashing fallback. */
+    client *cc = kvstoreIsFlat(db->keys) ? tomoKeyHashHint(key) : NULL;
+    if (cc) {
+        link = kvstoreFlatFindLinkWithHash(db->keys, cc->tomo_key_h, key, &bucket);
+        tomoRelaxedBump(server.kstat[iotid].flat_hash_reuses, 1);
+    } else {
+        link = kvstoreDictFindLink(db->keys, getKeySlot(key), key, &bucket);
+    }
     if (link == NULL) {
         if (plink) *plink = bucket;
         return NULL;
@@ -3071,7 +4258,33 @@ unsigned long long dbSize(redisDb *db) {
     return total;
 }
 
+/* Per-call key budget for the FLATSTORE arm of dbScan(). The dict arm scans one dict bucket chain
+ * per call and the module loops until the cursor returns to 0, so the flat arm must be bounded the
+ * same way rather than sweeping the whole table in one go (flatScanDbs converts this into a
+ * count*10+64 slot budget, its guard against a sparse table). */
+#define DBSCAN_FLAT_COUNT 100
+
 unsigned long long dbScan(redisDb *db, unsigned long long cursor, dictScanFunction *scan_cb, void *privdata) {
+    /* ee451 FLATSTORE: kvstoreScan has NO flat branch — kvstoreGetDict() returns NULL for every
+     * didx under KVSTORE_FLAT (the dicts are unused), so every slot is "skipped" and the walk ends
+     * with 0 keys and no error. That made the MODULE scan API (RM_Scan -> here) silently answer
+     * EMPTY on the default multi-worker config, which is the worst failure shape: a wrong answer
+     * that looks like an empty keyspace. The top-level SCAN command has worked all along because
+     * scanGenericCommand branches to flatScanDbs; reuse that ONE mechanism rather than growing a
+     * second table walk with its own cursor encoding.
+     *
+     * QSBR: flatScanDbs derefs RAW kvobjs across every node's table lock-free, so the caller must
+     * be inside a flat extern region or a worker section. call() opens one for every command, which
+     * covers RM_Scan from a module command; the explicit region here additionally covers RM_Scan
+     * driven from a module background thread under the GIL (which never passes through call()).
+     * Entering is depth-nested, so on the covered path this is a decrement-and-return. */
+    if (flatScanEligible(db)) {
+        long sampled = 0;
+        flatQsbrRegionEnter();
+        cursor = flatScanDbs(db, cursor, DBSCAN_FLAT_COUNT, scan_cb, privdata, &sampled);
+        flatQsbrRegionExit();
+        return cursor;
+    }
     return kvstoreScan(db->keys, cursor, -1, scan_cb, scanShouldSkipDict, privdata);
 }
 
@@ -3469,11 +4682,7 @@ int getKeysFromCommand(struct redisCommand *cmd, robj **argv, int argc, getKeysR
     }
 }
 
-/* Free the result of getKeysFromCommand. */
-void getKeysFreeResult(getKeysResult *result) {
-    if (result && result->keys != result->keysbuf)
-        zfree(result->keys);
-}
+/* getKeysFreeResult: moved to server.h as static inline (ee451 v14, teardown shave). */
 
 /* Helper function to extract keys from following commands:
  * COMMAND [destkey] <num-keys> <key> [...] <key> [...] ... <options>

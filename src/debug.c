@@ -89,9 +89,28 @@ void xorDigest(unsigned char *digest, const void *ptr, size_t len) {
 }
 
 void xorStringObjectDigest(unsigned char *digest, robj *o) {
-    o = getDecodedObject(o);
-    xorDigest(digest,o->ptr,sdslen(o->ptr));
-    decrRefCount(o);
+    /* ee451 FIX (#38 double-decref, object.c:608): do NOT getDecodedObject() here. On an
+     * sds-encoded object that call is incrRefCount(o) + decrRefCount(o) — a NON-ATOMIC RMW pair
+     * on the LIVE kvobj's refcount bitfield (object.h: refcount:23 packed in the header word) —
+     * executed on the DIGEST thread (an INLINE reader on a main/io identity), while the key's
+     * OWNER worker concurrently RMWs the same word: SET's argv-alias incref 1->2
+     * (setGenericCommand), the post-exec argv release decref (exExecFake, "worker: sole
+     * shard-refcount mutator"), and the QSBR batch decref (flatBatchFree). The flat region
+     * (flatExternEnter epoch) already keeps the POINTER alive for the whole walk, so the
+     * refcount pair added nothing but a torn-RMW race: one lost increment ends with the kvobj
+     * freed while the flat table still points at it — either the worker's `refcount > 1`
+     * release guard reads the torn 1, skips masking, and the io thread's freePendingCommand
+     * frees the DB object; or this thread's own paired decref hits 1->0 — and the NEXT
+     * overwrite retires the freed object, whose batch decref then reads the residual
+     * refcount==0 => the exSlice Guru Meditation seen after SAVE/DIGEST under churn.
+     * Digest bytes are IDENTICAL to getDecodedObject()'s output. */
+    if (sdsEncodedObject(o)) {
+        xorDigest(digest,o->ptr,sdslen(o->ptr));
+    } else {
+        char buf[32];
+        int len = ll2string(buf,sizeof(buf),(long)o->ptr);
+        xorDigest(digest,buf,len);
+    }
 }
 
 /* This function instead of just computing the SHA1 and xoring it
@@ -118,9 +137,15 @@ void mixDigest(unsigned char *digest, const void *ptr, size_t len) {
 }
 
 void mixStringObjectDigest(unsigned char *digest, robj *o) {
-    o = getDecodedObject(o);
-    mixDigest(digest,o->ptr,sdslen(o->ptr));
-    decrRefCount(o);
+    /* ee451 FIX (#38 double-decref, object.c:608): refcount-free digest — a foreign thread must
+     * never mutate a live kvobj's non-atomic refcount word. See xorStringObjectDigest above. */
+    if (sdsEncodedObject(o)) {
+        mixDigest(digest,o->ptr,sdslen(o->ptr));
+    } else {
+        char buf[32];
+        int len = ll2string(buf,sizeof(buf),(long)o->ptr);
+        mixDigest(digest,buf,len);
+    }
 }
 
 /* This function computes the digest of a data structure stored in the
@@ -277,43 +302,54 @@ void xorObjectDigest(redisDb *db, robj *keyobj, unsigned char *digest, robj *o) 
  * the result. For list instead we use a feedback entering the output digest
  * as input in order to ensure that a different ordered list will result in
  * a different digest. */
-void computeDatasetDigest(unsigned char *final) {
+/* ee451: XOR every key's per-key digest of ONE physical db into `final` (order-independent). */
+static void digestOneDb(redisDb *db, unsigned char *final) {
     unsigned char digest[20];
     dictEntry *de;
+    kvstoreIterator kvs_it;
+    kvstoreIteratorInit(&kvs_it, db->keys);   /* flat-aware (KVSTORE_FLAT branch) */
+    while ((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
+        robj *keyobj;
+        memset(digest,0,20);
+        kvobj *kv = dictGetKV(de);
+        sds key = kvobjGetKey(kv);
+        keyobj = createStringObject(key,sdslen(key));
+        mixDigest(digest,key,sdslen(key));
+        xorObjectDigest(db, keyobj, digest, kv);
+        xorDigest(final,digest,20);
+        decrRefCount(keyobj);
+    }
+    kvstoreIteratorReset(&kvs_it);
+}
+
+void computeDatasetDigest(unsigned char *final) {
     int j;
     uint32_t aux;
 
     memset(final,0,20); /* Start with a clean result */
 
     for (j = 0; j < server.dbnum; j++) {
-        redisDb *db = server.db+j;
-        if (kvstoreSize(db->keys) == 0)
-            continue;
-
-        /* hash the DB id, so the same dataset moved in a different DB will lead to a different digest */
-        aux = htonl(j);
-        mixDigest(final,&aux,sizeof(aux));
-
-        /* Iterate this DB writing every entry */
-        kvstoreIterator kvs_it;
-        kvstoreIteratorInit(&kvs_it, db->keys);
-        while((de = kvstoreIteratorNext(&kvs_it)) != NULL) {
-            robj *keyobj;
-
-            memset(digest,0,20); /* This key-val digest */
-            kvobj *kv = dictGetKV(de);
-            sds key = kvobjGetKey(kv);
-            keyobj = createStringObject(key,sdslen(key));
-
-            mixDigest(digest,key,sdslen(key));
-
-            xorObjectDigest(db, keyobj, digest, kv);
-
-            /* We can finally xor the key-val digest to the final digest */
-            xorDigest(final,digest,20);
-            decrRefCount(keyobj);
+        if (!dbIsInitialized(&server.db[j])) continue;
+        /* ee451: the keyspace lives in the shard/node dbs, not the (empty) decoy server.db — iterating
+         * server.db here digested ZERO keys. Digest the physical dbs holding dbid j: under shared_node_dbs
+         * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard. */
+        if (server.shared_node_dbs && server.node_dbs) {
+            unsigned long long sz = 0;
+            for (int n = 0; n < server.n_node_dbs; n++) sz += kvstoreSize(server.node_dbs[n][j].keys);
+            if (sz == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));   /* mix DB id ONCE per db */
+            for (int n = 0; n < server.n_node_dbs; n++) digestOneDb(&server.node_dbs[n][j], final);
+        } else if (server.exThreads) {
+            unsigned long long sz = 0;
+            for (int w = 0; w < server.num_workers; w++) sz += kvstoreSize(server.exThreads[w].db[j].keys);
+            if (sz == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
+            for (int w = 0; w < server.num_workers; w++) digestOneDb(&server.exThreads[w].db[j], final);
+        } else {
+            if (kvstoreSize(server.db[j].keys) == 0) continue;
+            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
+            digestOneDb(&server.db[j], final);
         }
-        kvstoreIteratorReset(&kvs_it);
     }
 }
 
@@ -599,6 +635,28 @@ NULL
             }
         }
 
+        /* ee451 (BUGS.md J3, 2026-08-02): under sharding a plain RELOAD *is* one of the "special
+         * modes" RDBFLAGS_ALLOW_DUP was written for, so force it.
+         *
+         * emptyData() and rdbLoad() are not atomic with respect to the workers: the workers keep
+         * serving between the two, so any key a client writes in that window is present again by
+         * the time rdbLoad re-adds it. dbAddRDBLoad then returns NULL and the default path calls
+         * serverPanic("Duplicated key found in RDB file") — a deterministic SERVER KILL, measured
+         * 8/8 under a trivial 1:9 memtier load, in BOTH the ex=1 (dict) and ex>=2 (FLATSTORE)
+         * regimes, i.e. it is a concurrency property and not an engine one. The duplicate always
+         * carried the concurrent writer's key prefix, never the seeded one, which is what proves it
+         * is post-flush re-insertion rather than a save-side double-emit. SAVE and BGSAVE are both
+         * clean under the same load, so nothing here is a durability defect.
+         *
+         * ALLOW_DUP makes the RDB's copy win for keys it contains, which is the only sensible
+         * reading of "reload" and is strictly better than dying. Scope is deliberately narrow: this
+         * is the DEBUG RELOAD path only. Startup loads and replica full resync still pass
+         * RDBFLAGS_NONE, so a genuinely corrupt RDB with a repeated key is still caught there.
+         *
+         * This does NOT make the reload atomic — rdbLoad remains a non-owner writer of the shared
+         * node dbs, which the flat-resize quiesce comment already documents. It removes the kill. */
+        if (server.shared_node_dbs || server.num_workers > 1) flags |= RDBFLAGS_ALLOW_DUP;
+
         /* The default behavior is to remove the current dataset from
          * memory before loading the RDB file, however when MERGE is
          * used together with NOFLUSH, we are able to merge two datasets. */
@@ -628,7 +686,7 @@ NULL
             return;
         }
         applyAppendOnlyConfig(); /* Check if AOF config was changed while loading */
-        server.dirty = 0; /* Prevent AOF / replication */
+        resetDirtyCounter(); /* Prevent AOF / replication */
         serverLog(LL_NOTICE,"Append Only File loaded by DEBUG LOADAOF");
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"drop-cluster-packet-filter") && c->argc == 3) {
@@ -896,6 +954,148 @@ NULL
         tv.tv_nsec = (utime % 1000000) * 1000;
         nanosleep(&tv, NULL);
         addReply(c,shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
+        reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-ioload")) {
+        /* ee451 (client-lb unify): per-io-thread live conn counts (+ mode), to validate that flips
+         * spread conns load-aware. Only IO-mode slots serve conns. */
+        extern long tmIoThreadLoadPub(int id);
+        extern int tmIoModePub(int id);
+        extern double tmIoBusyPub(int id);
+        sds o = sdsempty();
+        /* The main event-loop thread is the fixed IO endpoint of the role pool.
+         * It has no polyThreadCtx, so tmIoModePub(0) intentionally returns
+         * UNSET; publish it explicitly or a 7-IO/1-EX topology misleadingly
+         * appears as only six IO roles. */
+        o = sdscatprintf(o, "io_slot 0 mode=IO conns=%ld busy=%.0f\n",
+                         tmIoThreadLoadPub(0), tmIoBusyPub(0));
+        for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+            int md = tmIoModePub(t);
+            if (md < 0) continue;                 /* slot not allocated, or not adopted yet (UNSET) */
+            /* TOMO_MODE_IO / TOMO_MODE_EX; there is no third mode (no zero mode either). */
+            o = sdscatprintf(o, "io_slot %d mode=%s conns=%ld busy=%.0f\n", t,
+                             md == 1 ? "IO" : (md == 2 ? "EX" : "?"),
+                             tmIoThreadLoadPub(t), tmIoBusyPub(t));
+        }
+        /* Worker zero is the fixed EX endpoint: grow-front never converts it,
+         * and therefore it likewise has no live IO identity for
+         * tmIoModePub(). The other workers' growth-slot identities occupy
+         * [io_threads, io_threads+tm_ngrow_io), making the next slot a stable,
+         * unique label for this final fixed role. */
+        if (server.num_workers > 0) {
+            int fixed_ex_slot = server.io_threads + server.tm_ngrow_io;
+            o = sdscatprintf(o, "io_slot %d mode=EX conns=0 busy=0\n",
+                             fixed_ex_slot);
+        }
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
+        /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
+         * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose
+         * on. The standard HOLD line samples a 4Hz controller at 0.2Hz, which is far too coarse to
+         * tell a slow convergence from a resting oscillation. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tm_flip_trace = (on != 0);
+        addReplyStatus(c, tm_flip_trace ? "flip trace ON" : "flip trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
+        /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
+         * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */
+        long on; if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tm_rord_trace = (on != 0);
+        addReplyStatus(c, tm_rord_trace ? "rord trace ARMED" : "rord trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-modeshift") && c->argc == 3) {
+        /* DEBUG TOMO-MODESHIFT <mode> -- manual actuator for the thread-mode machinery, moved here
+         * from the retired `tomokv-modeshift-test` config knob (2026-07-28, knob surface 55 -> 11).
+         * It is a TEST HOOK, not a tunable: it has no default and no steady-state behaviour, it only
+         * fires an action. Redis puts such hooks in DEBUG (already gated by enable-debug-command),
+         * which is where this belongs; leaving it in the config surface implied it was something an
+         * operator should set.
+         *
+         * It is NOT retired outright because four suites use it as their POSITIVE CONTROL -- the
+         * thing that proves the flip/migrate machinery actually fires (numa2_validate's per-node
+         * grow-front/back, stress_reclaim's flip-under-churn, flip_updown's manual arm).
+         * Deleting it would leave those assertions passing without ever exercising the mechanism,
+         * which is the vacuous-validation pattern this project has hit repeatedly.
+         *
+         * Modes: 5/6 = connection migration (IO-EXIT / rebalance), 7/8 = flip grow-front/grow-back,
+         * 70+n / 80+n = per-node grow-front/grow-back on node n. NOTHING ELSE IS VALID: the old
+         * 0/1/2/3 arm retargeted a reserve poly thread that no longer exists (2026-07-28) -- there
+         * is no third role to provision or retarget, only front-flip-back and back-flip-front. An
+         * out-of-set value is an error, not a fallthrough. */
+        long mode;
+        if (getLongFromObjectOrReply(c, c->argv[2], &mode, NULL) != C_OK) return;
+        const char *err = NULL;
+        int rc;
+        if (mode == 5 || mode == 6)            rc = tomoMigrateTest((int)mode, &err);
+        else if (mode == 7)                    rc = tomoGrowFront(&err);
+        else if (mode == 8)                    rc = tomoGrowBack(&err);
+        else if (mode >= 70 && mode < 86)      rc = tomoNodeFlipTest((int)mode, &err);
+        else { rc = 0; err = "unknown modeshift verb (valid: 5, 6, 7, 8, 70+n, 80+n)"; }
+        if (rc == 1) addReply(c, shared.ok);
+        else addReplyErrorFormat(c, "modeshift %ld refused: %s", mode, err ? err : "unknown");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-jestats")) {
+        /* DEBUG TOMO-JESTATS -- per-thread allocator accounting, so the "cross-shard pays for
+         * CROSS-THREAD block ownership" theory can be MEASURED (and disproven) rather than
+         * assumed. Each line is one registered thread's jemalloc byte counters; `net` < 0 means
+         * the thread frees more than it allocates, i.e. it is a net CONSUMER of blocks other
+         * threads allocated. The trailing tcache line reports whether that traffic actually
+         * drives tcache turnover (fills/flushes) -- if it does not, the asymmetry is free.
+         * Read-only, main-thread-only, and costs nothing when not called. */
+        sds o = sdsempty();
+        int n = zmalloc_thread_stats_count();
+        for (int i = 0; i < n; i++) {
+            const char *nm = NULL; uint64_t a = 0, d = 0;
+            if (!zmalloc_thread_stats_get(i, &nm, &a, &d)) continue;
+            o = sdscatprintf(o, "thread %-12s allocated=%llu deallocated=%llu net=%lld\n",
+                             nm, (unsigned long long)a, (unsigned long long)d,
+                             (long long)a - (long long)d);
+        }
+        uint64_t tf = 0, tfl = 0, bf = 0, bfl = 0;
+        if (zmalloc_tcache_turnover(&tf, &tfl, 32, &bf, &bfl) == 0)
+            o = sdscatprintf(o, "tcache nfills=%llu nflushes=%llu bin32_fills=%llu bin32_flushes=%llu\n",
+                             (unsigned long long)tf, (unsigned long long)tfl,
+                             (unsigned long long)bf, (unsigned long long)bfl);
+        else
+            o = sdscat(o, "tcache stats unavailable (non-jemalloc build)\n");
+        uint64_t nreq = 0;
+        if (zmalloc_small_requests(&nreq) == 0)
+            o = sdscatprintf(o, "smallreq %llu\n", (unsigned long long)nreq);
+        o = sdscatprintf(o, "commands %lld\n", getNumCommands());   /* ee451 (#B1): folded per-thread —
+                                                                     * the per-op derivations below are
+                                                                     * only meaningful against the REAL
+                                                                     * command count, workers included. */
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-lbgroups")) {
+        /* ee451 (flatstore lb): dump coarse per-group load + per-worker totals + the hottest groups,
+         * so the minimal-move balancer's signal can be validated (DEBUG TOMO-LBGROUPS [topN]). */
+        int topN = (c->argc >= 3) ? atoi(c->argv[2]->ptr) : 8;
+        if (topN < 1) topN = 1;
+        if (topN > TOMO_LB_GROUPS) topN = TOMO_LB_GROUPS;
+        int W = server.num_workers;
+        unsigned long long grp[TOMO_LB_GROUPS]; unsigned long long wtot[TOMO_EX_THREADS_MAX+1];
+        for (int g = 0; g < TOMO_LB_GROUPS; g++) grp[g] = 0;
+        for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++) {
+            wtot[w] = 0;
+            for (int g = 0; g < TOMO_LB_GROUPS; g++) { unsigned long long v = server.exThreads[w].lb_grp_ops[g]; grp[g] += v; wtot[w] += v; }
+        }
+        sds o = sdsempty();
+        o = sdscatprintf(o, "groups=%d buckets_per_group=%d workers=%d\n", TOMO_LB_GROUPS, TOMO_BUCKETS/TOMO_LB_GROUPS, W);
+        for (int w = 0; w < W && w <= TOMO_EX_THREADS_MAX; w++)
+            o = sdscatprintf(o, "worker %d ops=%llu\n", w, wtot[w]);
+        /* top-N hottest groups by total load + which worker(s) own them */
+        for (int n = 0; n < topN; n++) {
+            int best = -1; unsigned long long bv = 0;
+            for (int g = 0; g < TOMO_LB_GROUPS; g++) if (grp[g] > bv) { bv = grp[g]; best = g; }
+            if (best < 0 || bv == 0) break;
+            int owner = server.ex_bucket_table[best * (TOMO_BUCKETS/TOMO_LB_GROUPS)];
+            o = sdscatprintf(o, "hot group %d (buckets %d-%d) load=%llu owner_w=%d\n",
+                             best, best*(TOMO_BUCKETS/TOMO_LB_GROUPS), (best+1)*(TOMO_BUCKETS/TOMO_LB_GROUPS)-1, bv, owner);
+            grp[best] = 0;
+        }
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
     } else if (!strcasecmp(c->argv[1]->ptr,"set-active-expire") &&
                c->argc == 3)
     {
@@ -967,12 +1167,16 @@ NULL
             full = 1;
 
         stats = sdscatprintf(stats,"[Dictionary HT]\n");
-        kvstoreGetStats(server.db[dbid].keys, buf, sizeof(buf), full);
-        stats = sdscat(stats,buf);
+        if (dbIsInitialized(&server.db[dbid])) {
+            kvstoreGetStats(server.db[dbid].keys, buf, sizeof(buf), full);
+            stats = sdscat(stats,buf);
+        }
 
         stats = sdscatprintf(stats,"[Expires HT]\n");
-        kvstoreGetStats(server.db[dbid].expires, buf, sizeof(buf), full);
-        stats = sdscat(stats,buf);
+        if (dbIsInitialized(&server.db[dbid])) {
+            kvstoreGetStats(server.db[dbid].expires, buf, sizeof(buf), full);
+            stats = sdscat(stats,buf);
+        }
 
         addReplyVerbatim(c,stats,sdslen(stats),"txt");
         sdsfree(stats);
@@ -1028,26 +1232,8 @@ NULL
         else
             addReply(c, shared.ok);
     } else if(!strcasecmp(c->argv[1]->ptr,"client-eviction") && c->argc == 2) {
-        if (!server.client_mem_usage_buckets) {
-            addReplyError(c,"maxmemory-clients is disabled.");
-            return;
-        }
-        sds bucket_info = sdsempty();
-        for (int j = 0; j < CLIENT_MEM_USAGE_BUCKETS; j++) {
-            if (j == 0)
-                bucket_info = sdscatprintf(bucket_info, "bucket          0");
-            else
-                bucket_info = sdscatprintf(bucket_info, "bucket %10zu", (size_t)1<<(j-1+CLIENT_MEM_USAGE_BUCKET_MIN_LOG));
-            if (j == CLIENT_MEM_USAGE_BUCKETS-1)
-                bucket_info = sdscatprintf(bucket_info, "+            : ");
-            else
-                bucket_info = sdscatprintf(bucket_info, " - %10zu: ", ((size_t)1<<(j+CLIENT_MEM_USAGE_BUCKET_MIN_LOG))-1);
-            bucket_info = sdscatprintf(bucket_info, "tot-mem: %10zu, clients: %lu\n",
-                server.client_mem_usage_buckets[j].mem_usage_sum,
-                server.client_mem_usage_buckets[j].clients->len);
-        }
-        addReplyVerbatim(c,bucket_info,sdslen(bucket_info),"txt");
-        sdsfree(bucket_info);
+        addReplyError(c,"maxmemory-clients is disabled.");
+        return;
 #ifdef USE_JEMALLOC
     } else if(!strcasecmp(c->argv[1]->ptr,"mallctl") && c->argc >= 3) {
         mallctl_int(c, c->argv+2, c->argc-2);
@@ -2565,8 +2751,8 @@ void printCrashReport(void) {
     logServerInfo();
 
     /* Log the current client */
-    logCurrentClient(server.current_client, "CURRENT");
-    logCurrentClient(server.executing_client, "EXECUTING");
+    logCurrentClient(server.current_client[iotid].p, "CURRENT");
+    logCurrentClient(server.executing_client[iotid].p, "EXECUTING");
 
     /* Log modules info. Something we wanna do last since we fear it may crash. */
     logModulesInfo();

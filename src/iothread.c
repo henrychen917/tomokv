@@ -9,6 +9,8 @@
  */
 
 #include "server.h"
+#include "uring.h"
+#include "uring2.h"
 
 /* IO threads. */
 static IOThread IOThreads[IO_THREADS_MAX_NUM];
@@ -52,28 +54,28 @@ void updateClientDataFromIOThread(client *c) {
     serverAssert(c->tid != IOTHREAD_MAIN_THREAD_ID &&
                  c->running_tid == IOTHREAD_MAIN_THREAD_ID);
 
-    if (c->io_repl_ack_time > c->repl_ack_time) {
+    if (clientReplicationData(c)->io_repl_ack_time > clientReplicationData(c)->repl_ack_time) {
         serverAssert(c->flags & CLIENT_SLAVE);
-        c->repl_ack_time = c->io_repl_ack_time;
+        clientReplicationData(c)->repl_ack_time = clientReplicationData(c)->io_repl_ack_time;
     }
-    if (c->io_lastinteraction > c->lastinteraction) {
+    if (clientTail(c)->io_lastinteraction > clientTail(c)->lastinteraction) {
         serverAssert(c->flags & CLIENT_MASTER);
-        c->lastinteraction = c->io_lastinteraction;
+        clientTail(c)->lastinteraction = clientTail(c)->io_lastinteraction;
     }
-    if (c->io_read_reploff > c->read_reploff) {
+    if (clientReplicationData(c)->io_read_reploff > clientReplicationData(c)->read_reploff) {
         serverAssert(c->flags & CLIENT_MASTER);
-        c->read_reploff = c->io_read_reploff;
+        clientReplicationData(c)->read_reploff = clientReplicationData(c)->io_read_reploff;
     }
 
     /* Update replication buffer referenced node if IO thread has sent some data. */
-    if (c->flags & CLIENT_SLAVE && c->ref_repl_buf_node != NULL &&
-        (c->io_curr_repl_node != c->ref_repl_buf_node ||
-         c->io_curr_block_pos != c->ref_block_pos))
+    if (c->flags & CLIENT_SLAVE && clientReplicationData(c)->ref_repl_buf_node != NULL &&
+        (clientReplicationData(c)->io_curr_repl_node != clientReplicationData(c)->ref_repl_buf_node ||
+         clientReplicationData(c)->io_curr_block_pos != clientReplicationData(c)->ref_block_pos))
     {
-        ((replBufBlock*)listNodeValue(c->ref_repl_buf_node))->refcount--;
-        ((replBufBlock*)listNodeValue(c->io_curr_repl_node))->refcount++;
-        c->ref_block_pos = c->io_curr_block_pos;
-        c->ref_repl_buf_node = c->io_curr_repl_node;
+        ((replBufBlock*)listNodeValue(clientReplicationData(c)->ref_repl_buf_node))->refcount--;
+        ((replBufBlock*)listNodeValue(clientReplicationData(c)->io_curr_repl_node))->refcount++;
+        clientReplicationData(c)->ref_block_pos = clientReplicationData(c)->io_curr_block_pos;
+        clientReplicationData(c)->ref_repl_buf_node = clientReplicationData(c)->io_curr_repl_node;
         incrementalTrimReplicationBacklog(REPL_BACKLOG_TRIM_BLOCKS_PER_CALL);
     }
 }
@@ -82,22 +84,18 @@ void updateClientDataFromIOThread(client *c) {
  * client should be terminated */
 int runClientCronFromIOThread(client *c) {
     if (c->flags & CLIENT_MASTER &&
-        c->io_last_repl_cron + 1000 <= server.mstime)
+        clientReplicationData(c)->io_last_repl_cron + 1000 <= server.mstime)
     {
-        c->io_last_repl_cron = server.mstime;
+        clientReplicationData(c)->io_last_repl_cron = server.mstime;
         if (replicationCronRunMasterClient()) return 1;
     }
 
     /* Run client cron task for the client per second or it is marked as pending cron. */
-    if (c->io_last_client_cron + 1000 <= server.mstime ||
+    if (clientTail(c)->io_last_client_cron + 1000 <= server.mstime ||
         c->io_flags & CLIENT_IO_PENDING_CRON)
     {
-        c->io_last_client_cron = server.mstime;
+        clientTail(c)->io_last_client_cron = server.mstime;
         if (clientsCronRunClient(c)) return 1;
-    } else {
-        /* Update the client in the mem usage if clientsCronRunClient is not
-         * being called, since that function already performs the update. */
-        updateClientMemUsageAndBucket(c);
     }
 
     return 0;
@@ -111,7 +109,7 @@ void enqueuePendingClientsToMainThread(client *c, int unbind) {
      * unbind client from event loop, so main thread doesn't need to do it costly. */
     if (unbind) connUnbindEventLoop(c->conn);
     /* Just skip if it already is transferred. */
-    if (c->io_thread_client_list_node) {
+    if (clientTail(c)->io_thread_client_list_node) {
         IOThread *t = &IOThreads[c->tid];
         /* If there are several clients to process, let the main thread handle them ASAP.
          * Since the client being added to the queue may still need to be processed by
@@ -121,9 +119,9 @@ void enqueuePendingClientsToMainThread(client *c, int unbind) {
         /* Disable read and write to avoid race when main thread processes. */
         c->io_flags &= ~(CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED);
         /* Remove the client from IO thread, add it to main thread's pending list. */
-        listUnlinkNode(t->clients, c->io_thread_client_list_node);
-        listLinkNodeTail(t->pending_clients_to_main_thread, c->io_thread_client_list_node);
-        c->io_thread_client_list_node = NULL;
+        listUnlinkNode(t->clients, clientTail(c)->io_thread_client_list_node);
+        listLinkNodeTail(t->pending_clients_to_main_thread, clientTail(c)->io_thread_client_list_node);
+        clientTail(c)->io_thread_client_list_node = NULL;
     }
 }
 
@@ -133,20 +131,20 @@ void enqueuePendingClienstToIOThreads(client *c) {
 
     if (c->flags & CLIENT_PENDING_WRITE) {
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
     }
     if (c->flags & CLIENT_SLAVE) {
-        serverAssert(c->ref_repl_buf_node != NULL);
+        serverAssert(clientReplicationData(c)->ref_repl_buf_node != NULL);
 
-        c->io_repl_ack_time = c->repl_ack_time;
-        c->io_curr_repl_node = c->ref_repl_buf_node;
-        c->io_curr_block_pos = c->ref_block_pos;
-        c->io_bound_repl_node = listLast(server.repl_buffer_blocks);
-        c->io_bound_block_pos = ((replBufBlock*)listNodeValue(c->io_bound_repl_node))->used;
+        clientReplicationData(c)->io_repl_ack_time = clientReplicationData(c)->repl_ack_time;
+        clientReplicationData(c)->io_curr_repl_node = clientReplicationData(c)->ref_repl_buf_node;
+        clientReplicationData(c)->io_curr_block_pos = clientReplicationData(c)->ref_block_pos;
+        clientReplicationData(c)->io_bound_repl_node = listLast(server.repl_buffer_blocks);
+        clientReplicationData(c)->io_bound_block_pos = ((replBufBlock*)listNodeValue(clientReplicationData(c)->io_bound_repl_node))->used;
     }
     if (c->flags & CLIENT_MASTER) {
-        c->io_read_reploff = c->read_reploff;
-        c->io_lastinteraction = c->lastinteraction;
+        clientReplicationData(c)->io_read_reploff = clientReplicationData(c)->read_reploff;
+        clientTail(c)->io_lastinteraction = clientTail(c)->lastinteraction;
     }
 
     c->running_tid = c->tid;
@@ -171,6 +169,16 @@ void unbindClientFromIOThreadEventLoop(client *c) {
 void keepClientInMainThread(client *c) {
     if (c->tid == IOTHREAD_MAIN_THREAD_ID) return;
     serverAssert(c->running_tid == IOTHREAD_MAIN_THREAD_ID);
+    /*
+     * This is the unrelated upstream IO-thread transfer primitive; it has no
+     * Tomo owner mailbox and cannot safely mutate main's event loop from a
+     * custom IO owner. Supported uring configurations disable upstream IO
+     * threads, and commands that could reach this transition are refused in
+     * the sharded runtime. Fail closed if that contract ever changes: a live
+     * source-ring receive must never be followed by a main-epoll arm.
+     */
+    if (server.io_uring)
+        serverAssert(!tomoUringBackendClientAttached(c));
     /* IO thread no longer manage it. */
     server.io_threads_clients_num[c->tid]--;
     /* Unbind connection of client from io thread event loop. */
@@ -197,9 +205,9 @@ void fetchClientFromIOThread(client *c) {
                  c->running_tid != IOTHREAD_MAIN_THREAD_ID);
     pauseIOThread(c->tid);
     /* Remove the client from clients list of IO thread or main thread. */
-    if (c->io_thread_client_list_node) {
-        listDelNode(IOThreads[c->tid].clients, c->io_thread_client_list_node);
-        c->io_thread_client_list_node = NULL;
+    if (clientTail(c)->io_thread_client_list_node) {
+        listDelNode(IOThreads[c->tid].clients, clientTail(c)->io_thread_client_list_node);
+        clientTail(c)->io_thread_client_list_node = NULL;
     } else {
         list *clients[5] = {
             IOThreads[c->tid].pending_clients,
@@ -265,10 +273,10 @@ int isClientMustHandledByMainThread(client *c) {
      * to prevent race conditions with main thread when it feeds the replication
      * buffer. */
     if (c->flags & CLIENT_SLAVE &&
-        (c->replstate == SLAVE_STATE_ONLINE ||
-         c->replstate == SLAVE_STATE_SEND_BULK_AND_STREAM) &&
-        c->repl_start_cmd_stream_on_ack == 0 &&
-        c->ref_repl_buf_node != NULL)
+        (clientReplicationData(c)->replstate == SLAVE_STATE_ONLINE ||
+         clientReplicationData(c)->replstate == SLAVE_STATE_SEND_BULK_AND_STREAM) &&
+        clientReplicationData(c)->repl_start_cmd_stream_on_ack == 0 &&
+        clientReplicationData(c)->ref_repl_buf_node != NULL)
     {
         return 0;
     }
@@ -298,7 +306,7 @@ void assignClientToIOThread(client *c) {
     server.io_threads_clients_num[min_id]++;
 
     /* The client running in IO thread needs to have deferred objects array. */
-    c->deferred_objects = zmalloc(sizeof(deferredObject) * CLIENT_MAX_DEFERRED_OBJECTS);
+    clientTail(c)->deferred_objects = zmalloc(sizeof(deferredObject) * CLIENT_MAX_DEFERRED_OBJECTS);
 
     /* Unbind connection of client from main thread event loop, disable read and
      * write, and then put it in the list, main thread will send these clients
@@ -494,12 +502,10 @@ int prefetchIOThreadCommands(IOThread *t) {
         redis_prefetch_read(&c[i]->pending_cmds);
     }
     /* Phase 2: Access client data (now likely in cache) and add to batch.
-     * Also prefetch additional fields (reply, mem_usage_bucket) that will be
-     * needed later during command execution. */
+     * Also prefetch the reply field needed later during command execution. */
     for (int i = 0; i < to_prefetch; i++) {
         if (addCommandToBatch(c[i]) == C_ERR) break;
         if (c[i]->reply) redis_prefetch_read(c[i]->reply);
-        redis_prefetch_read(&c[i]->mem_usage_bucket);
         clients++;
     }
     /* Prefetch the commands in the batch. */
@@ -638,7 +644,7 @@ int processClientsFromIOThread(IOThread *t) {
          * And some clients may do not have reply if CLIENT REPLY OFF/SKIP. */
         if (c->flags & CLIENT_PENDING_WRITE) {
             c->flags &= ~CLIENT_PENDING_WRITE;
-            listUnlinkNode(server.clients_pending_write, &c->clients_pending_write_node);
+            listUnlinkNode(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
         }
         c->running_tid = c->tid;
         listLinkNodeHead(mainThreadPendingClientsToIOThreads[c->tid], node);
@@ -734,10 +740,10 @@ int processClientsFromMainThread(IOThread *t) {
         serverAssert(!(c->flags & CLIENT_CLOSE_ASAP));
 
         /* Link client in IO thread clients list first. */
-        serverAssert(c->io_thread_client_list_node == NULL);
+        serverAssert(clientTail(c)->io_thread_client_list_node == NULL);
         listUnlinkNode(t->processing_clients, ln);
         listLinkNodeTail(t->clients, ln);
-        c->io_thread_client_list_node = listLast(t->clients);
+        clientTail(c)->io_thread_client_list_node = listLast(t->clients);
 
         /* The client now is in the IO thread, let's free deferred objects. */
         freeClientDeferredObjects(c, 0);
@@ -856,6 +862,7 @@ void *IOThreadMain(void *ptr) {
     char thdname[16];
     snprintf(thdname, sizeof(thdname), "io_thd_%d", t->id);
     redis_set_thread_title(thdname);
+    zmalloc_thread_stats_register(thdname);   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     redisSetCpuAffinity(server.server_cpulist);
     makeThreadKillable();
     aeSetBeforeSleepProc(t->el, IOThreadBeforeSleep);

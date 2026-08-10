@@ -14,6 +14,7 @@
 #define __AE_H__
 
 #include "monotonic.h"
+#include <sys/time.h>
 
 #define AE_OK 0
 #define AE_ERR -1
@@ -34,6 +35,9 @@
 #define AE_CALL_BEFORE_SLEEP (1<<3)
 #define AE_CALL_AFTER_SLEEP (1<<4)
 
+#define AE_URING_EPOLL_READY (1U<<30)
+#define AE_URING_COUNT_MASK  (AE_URING_EPOLL_READY-1)
+
 #define AE_NOMORE -1
 #define AE_DELETED_EVENT_ID -1
 
@@ -47,6 +51,15 @@ typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData,
 typedef int aeTimeProc(struct aeEventLoop *eventLoop, long long id, void *clientData);
 typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientData);
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
+/* Optional completion backend used by TomoKV's io_uring network path.  These
+ * are function pointers rather than direct ae.c -> server symbols because
+ * redis-cli also links ae.o.  A NULL enter callback is the exact epoll path. */
+typedef int aeUringEnterProc(struct aeEventLoop *eventLoop, struct timeval *tvp);
+/* Return a completion count in AE_URING_COUNT_MASK and OR
+ * AE_URING_EPOLL_READY when the ring's poll of the native backend fired. */
+typedef int aeUringReapProc(struct aeEventLoop *eventLoop, int process_file_events);
+typedef void aeUringEpollDrainedProc(struct aeEventLoop *eventLoop);
+typedef void aeUringFreeProc(struct aeEventLoop *eventLoop);
 
 /* File event structure */
 typedef struct aeFileEvent {
@@ -88,10 +101,18 @@ typedef struct aeEventLoop {
     void *apidata; /* This is used for polling API specific data */
     aeBeforeSleepProc *beforesleep;
     aeBeforeSleepProc *aftersleep;
+    aeUringEnterProc *uring_enter;
+    aeUringReapProc *uring_reap;
+    aeUringEpollDrainedProc *uring_epoll_drained;
+    aeUringFreeProc *uring_free;
     int flags;
     void *privdata[2];
 } aeEventLoop;
-
+extern __thread int iotid;
+extern __thread int replyWorking;
+/* (aeIODrainSpin / aeIODrainUserpoll DELETED 2026-07-28: both are compile-time constants inside
+ * ae.c now — AE_IO_DRAIN_SPIN / AE_IO_DRAIN_USERPOLL_MAX — so there is nothing for server.c to
+ * mirror in.) */
 /* Prototypes */
 aeEventLoop *aeCreateEventLoop(int setsize);
 void aeDeleteEventLoop(aeEventLoop *eventLoop);
@@ -106,11 +127,23 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeEventFinalizerProc *finalizerProc);
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
+typedef struct aeIOAccounting {
+    uint64_t wait_us;     /* backend/drain wait in this pass (epoll only) */
+    uint64_t work_us;     /* explicitly bracketed productive IO work */
+    uint64_t end_us;      /* final timing boundary, reused by ioSlice */
+} aeIOAccounting;
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
+                      aeIOAccounting *accounting);
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep);
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep);
+void aeSetUringProcs(aeEventLoop *eventLoop, aeUringEnterProc *enter,
+                     aeUringReapProc *reap,
+                     aeUringEpollDrainedProc *epoll_drained,
+                     aeUringFreeProc *free_proc);
+int aeGetPollFd(aeEventLoop *eventLoop);
 int aeGetSetSize(aeEventLoop *eventLoop);
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize);
 void aeSetDontWait(aeEventLoop *eventLoop, int noWait);

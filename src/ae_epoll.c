@@ -68,10 +68,12 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     return 0;
 }
 
-static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int delmask) {
+static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee = {0}; /* avoid valgrind warning */
-    int mask = eventLoop->events[fd].mask & (~delmask);
+
+    /* We rely on the fact that our caller has already updated the mask in the eventLoop. */
+    mask = eventLoop->events[fd].mask;
 
     ee.events = 0;
     if (mask & AE_READABLE) ee.events |= EPOLLIN;
@@ -90,8 +92,24 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
     aeApiState *state = eventLoop->apidata;
     int retval, numevents = 0;
 
-    retval = epoll_wait(state->epfd,state->events,eventLoop->setsize,
-            tvp ? (tvp->tv_sec*1000 + (tvp->tv_usec + 999)/1000) : -1);
+    /* ee451 (v14): epoll_pwait2 keeps sub-ms (ns) timeouts. The tomokv IO/WB poll uses a
+     * 100us window while replies are in flight; epoll_wait's ms granularity rounded that UP
+     * to 1ms — the low-pipeline / single-client wakeup floor. Falls back to epoll_wait on
+     * kernels < 5.11 (ENOSYS, probed once). */
+    int used_pwait2 = 0;
+#ifdef __linux__
+    static int pwait2_ok = 1;
+    if (pwait2_ok) {
+        struct timespec ts, *tsp = NULL;
+        if (tvp) { ts.tv_sec = tvp->tv_sec; ts.tv_nsec = (long)tvp->tv_usec * 1000L; tsp = &ts; }
+        retval = epoll_pwait2(state->epfd, state->events, eventLoop->setsize, tsp, NULL);
+        if (retval == -1 && errno == ENOSYS) pwait2_ok = 0;
+        else used_pwait2 = 1;
+    }
+#endif
+    if (!used_pwait2)
+        retval = epoll_wait(state->epfd,state->events,eventLoop->setsize,
+                tvp ? (tvp->tv_sec*1000 + (tvp->tv_usec + 999)/1000) : -1);
     if (retval > 0) {
         int j;
 
@@ -116,4 +134,13 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
 
 static char *aeApiName(void) {
     return "epoll";
+}
+
+/* epoll descriptors are pollable: they become readable while their ready
+ * list is non-empty.  The uring backend keeps one POLL_ADD on this fd so
+ * listeners and cold control fds share the same blocking io_uring_enter as
+ * data-socket completions. */
+static int aeApiPollFd(aeEventLoop *eventLoop) {
+    aeApiState *state = eventLoop->apidata;
+    return state->epfd;
 }

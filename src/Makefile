@@ -82,6 +82,12 @@ ifeq ($(uname_S),Linux)
 	MALLOC=jemalloc
 endif
 
+# Persisted settings are a baseline, not a late override.  In particular they
+# must be loaded before SANITIZER appends its compiler/linker flags and selects
+# its allocator; otherwise a stale CFLAGS= / LDFLAGS= / MALLOC= here silently
+# turns `make SANITIZER=address` into a non-sanitized jemalloc build.
+-include .make-settings
+
 # To get ARM stack traces if Redis crashes we need a special C flag.
 ifneq (,$(filter aarch64 armv%,$(uname_M)))
         CFLAGS+=-funwind-tables
@@ -143,9 +149,6 @@ ifeq ($(DEBUG_DEFRAG), force)
 else ifeq ($(DEBUG_DEFRAG), fully)
 	CFLAGS +=-DDEBUG_DEFRAG_FORCE -DDEBUG_DEFRAG_FULLY
 endif
-
-# Override default settings if possible
--include .make-settings
 
 FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
 FINAL_LDFLAGS=$(LDFLAGS) $(OPT) $(REDIS_LDFLAGS) $(DEBUG)
@@ -302,6 +305,35 @@ ifeq ($(MALLOC),jemalloc)
 	FINAL_LIBS := ../deps/jemalloc/lib/libjemalloc.a $(FINAL_LIBS)
 endif
 
+# TomoKV's io_uring data plane is runtime-gated by the single immutable
+# `tomokv-io-uring` integer (default 0).  `auto` keeps ordinary builds
+# dependency-free when liburing is absent, while making the backend available
+# when liburing >= 2.4 is installed.  `yes` is strict so a requested uring
+# build can never silently become an epoll-only measurement.
+USE_URING?=auto
+LIBURING_OK:=$(shell $(PKG_CONFIG) --exists 'liburing >= 2.4' >/dev/null 2>&1 && echo yes)
+ifeq ($(USE_URING),yes)
+ifneq ($(uname_S),Linux)
+$(error USE_URING=yes is supported only on Linux)
+endif
+ifneq ($(LIBURING_OK),yes)
+$(error USE_URING=yes requires liburing >= 2.4)
+endif
+URING_ENABLED:=yes
+else ifeq ($(USE_URING),auto)
+ifeq ($(uname_S),Linux)
+ifeq ($(LIBURING_OK),yes)
+URING_ENABLED:=yes
+endif
+endif
+else ifneq ($(USE_URING),no)
+$(error USE_URING must be auto, yes, or no)
+endif
+ifeq ($(URING_ENABLED),yes)
+	FINAL_CFLAGS+= -DHAVE_LIBURING $(shell $(PKG_CONFIG) --cflags liburing)
+	FINAL_LIBS+= $(shell $(PKG_CONFIG) --libs liburing)
+endif
+
 # LIBSSL & LIBCRYPTO
 LIBSSL_LIBS=
 LIBSSL_PKGCONFIG := $(shell $(PKG_CONFIG) --exists libssl && echo $$?)
@@ -382,7 +414,7 @@ endif
 
 REDIS_SERVER_NAME=redis-server$(PROG_SUFFIX)
 REDIS_SENTINEL_NAME=redis-sentinel$(PROG_SUFFIX)
-REDIS_SERVER_OBJ=threads_mngr.o memory_prefetch.o adlist.o quicklist.o ae.o anet.o dict.o ebuckets.o eventnotifier.o iothread.o mstr.o entry.o kvstore.o fwtree.o estore.o server.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o cluster_asm.o cluster_legacy.o cluster_slot_stats.o crc16.o endianconv.o slowlog.o eval.o bio.o rio.o rand.o memtest.o syscheck.o crcspeed.o crccombine.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o redis-check-rdb.o redis-check-aof.o geo.o lazyfree.o module.o evict.o expire.o geohash.o geohash_helper.o childinfo.o defrag.o siphash.o rax.o t_stream.o listpack.o localtime.o lolwut.o lolwut5.o lolwut6.o lolwut8.o acl.o tracking.o socket.o tls.o sha256.o timeout.o setcpuaffinity.o monotonic.o mt19937-64.o resp_parser.o call_reply.o script_lua.o script.o functions.o function_lua.o commands.o strl.o connection.o unix.o logreqres.o keymeta.o chk.o hotkeys.o
+REDIS_SERVER_OBJ=threads_mngr.o memory_prefetch.o adlist.o quicklist.o ae.o anet.o dict.o ebuckets.o eventnotifier.o iothread.o mstr.o entry.o kvstore.o flatstore.o fwtree.o estore.o server.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o uring.o uring2.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o cluster_asm.o cluster_legacy.o cluster_slot_stats.o crc16.o endianconv.o slowlog.o eval.o bio.o rio.o rand.o memtest.o syscheck.o crcspeed.o crccombine.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o redis-check-rdb.o redis-check-aof.o geo.o lazyfree.o module.o evict.o expire.o geohash.o geohash_helper.o childinfo.o defrag.o siphash.o rax.o t_stream.o listpack.o localtime.o lolwut.o lolwut5.o lolwut6.o lolwut8.o acl.o tracking.o socket.o tls.o sha256.o timeout.o setcpuaffinity.o monotonic.o mt19937-64.o resp_parser.o call_reply.o script_lua.o script.o functions.o function_lua.o commands.o strl.o connection.o unix.o logreqres.o keymeta.o chk.o hotkeys.o
 REDIS_CLI_NAME=redis-cli$(PROG_SUFFIX)
 REDIS_CLI_OBJ=anet.o adlist.o dict.o redis-cli.o zmalloc.o release.o ae.o redisassert.o crcspeed.o crccombine.o crc64.o siphash.o crc16.o monotonic.o cli_common.o mt19937-64.o strl.o cli_commands.o
 REDIS_BENCHMARK_NAME=redis-benchmark$(PROG_SUFFIX)
@@ -391,7 +423,7 @@ REDIS_CHECK_RDB_NAME=redis-check-rdb$(PROG_SUFFIX)
 REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
 ALL_SOURCES=$(sort $(patsubst %.o,%.c,$(REDIS_SERVER_OBJ) $(REDIS_VEC_SETS_OBJ) $(REDIS_CLI_OBJ) $(REDIS_BENCHMARK_OBJ)))
 
-all: $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) $(TLS_MODULE) module_tests
+all: $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) $(TLS_MODULE)
 	@echo ""
 	@echo "Hint: It's a good idea to run 'make test' ;)"
 	@echo ""
@@ -404,11 +436,6 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
 endif
 
 .PHONY: all
-
-module_tests: $(REDIS_SERVER_NAME)
-	$(MAKE) -C ../tests/modules
-
-.PHONY: module_tests
 
 persist-settings: distclean
 	echo STD=$(STD) >> .make-settings
@@ -494,29 +521,21 @@ commands.c: $(COMMANDS_DEF_FILENAME).def
 clean:
 	rm -rf $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) *.o *.gcda *.gcno *.gcov redis.info lcov-html Makefile.dep *.so
 	rm -f $(DEP)
-	-(cd ../tests/modules && $(MAKE) clean)
 
 .PHONY: clean
 
 distclean: clean
 	-(cd ../deps && $(MAKE) distclean)
 	-(cd modules && $(MAKE) clean)
-	-(cd ../tests/modules && $(MAKE) clean)
 	-(rm -f .make-*)
 
 .PHONY: distclean
 
-test: $(REDIS_SERVER_NAME) $(REDIS_CHECK_AOF_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) module_tests
+test: $(REDIS_SERVER_NAME) $(REDIS_CHECK_AOF_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME)
 	@(cd ..; ./runtest)
-
-test-modules: $(REDIS_SERVER_NAME)
-	@(cd ..; ./runtest-moduleapi)
 
 test-sentinel: $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME)
 	@(cd ..; ./runtest-sentinel)
-
-test-cluster: $(REDIS_SERVER_NAME) $(REDIS_CLI_NAME)
-	@(cd ..; ./runtest-cluster)
 
 check: test
 

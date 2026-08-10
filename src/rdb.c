@@ -41,7 +41,7 @@
 
 /* This macro tells if we are in the context of a RESTORE command, and not loading an RDB or AOF. */
 #define isRestoreContext() \
-    ((server.current_client == NULL || server.current_client->id == CLIENT_ID_AOF) ? 0 : 1)
+    ((server.current_client[iotid].p == NULL || clientTail(server.current_client[iotid].p)->id == CLIENT_ID_AOF) ? 0 : 1)
 
 char* rdbFileBeingLoaded = NULL; /* used for rdb checking on read error */
 extern int rdbCheckMode;
@@ -1570,7 +1570,11 @@ werr:
     return -1;
 }
 
-ssize_t rdbSaveDb(rio *rdb, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {
+/* ee451: rdbSaveDb now takes an explicit redisDb* so the caller can save each
+ * worker SHARD db (Tomo KV stores data in server.exThreads[w].db[dbid], not
+ * server.db[dbid]). Multiple SELECTDB(dbid) sections per dbid are valid RDB; load
+ * routes each key to its shard by hash. */
+ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key_counter, unsigned long long *skipped) {
     dictEntry *de;
     ssize_t written = 0;
     ssize_t res;
@@ -1579,7 +1583,8 @@ ssize_t rdbSaveDb(rio *rdb, int dbid, int rdbflags, long *key_counter, unsigned 
     static long long info_updated_time = 0;
     char *pname = (rdbflags & RDBFLAGS_AOF_PREAMBLE) ? "AOF rewrite" :  "RDB";
 
-    redisDb *db = server.db + dbid;
+    redisDb *db = db_param;   /* ee451: caller passes server.db[dbid] or a worker shard db */
+    if (!dbIsInitialized(db)) return 0;
     unsigned long long int db_size = kvstoreSize(db->keys);
     if (db_size == 0) return 0;
 
@@ -1690,7 +1695,24 @@ int rdbSaveRio(int req, rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
     /* save all databases, skip this if we're in functions-only mode */
     if (!(req & SLAVE_REQ_RDB_EXCLUDE_DATA)) {
         for (j = 0; j < server.dbnum; j++) {
-            if (rdbSaveDb(rdb, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            if (!dbIsInitialized(&server.db[j])) continue;
+            /* ee451: save the main logical db (usually empty under sharding) AND every
+             * worker shard db for this dbid. Each writes its own SELECTDB(dbid) section. */
+            if (rdbSaveDb(rdb, server.db + j, j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            if (server.shared_node_dbs && server.node_dbs) {
+                /* ee451 FLATSTORE / shared-kv: every worker on a node ALIASES that node's one physical
+                 * db (exThreads[w].db[j].keys == node_dbs[node][j].keys), so a per-worker loop would
+                 * write each node's whole table once PER worker -> wpn-fold duplication -> reload
+                 * "Duplicated key found in RDB" panic. Save each node's db ONCE. */
+                for (int n = 0; n < server.n_node_dbs; n++)
+                    if (rdbSaveDb(rdb, &server.node_dbs[n][j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            } else if (server.exThreads) {
+                /* ee451: non-shared sharding — one worker per physical db (no aliasing). ALL worker
+                 * SLOTS: a slot that is mid-flip still holds real keys until the migration's FLIP,
+                 * and a live-set-bounded loop would drop them (data loss). */
+                for (int w = 0; w < server.num_workers; w++)
+                    if (rdbSaveDb(rdb, &server.exThreads[w].db[j], j, rdbflags, &key_counter, &skipped) == -1) goto werr;
+            }
         }
     }
 
@@ -1849,7 +1871,7 @@ int rdbSave(int req, char *filename, rdbSaveInfo *rsi, int rdbflags) {
     }
 
     serverLog(LL_NOTICE,"DB saved on disk");
-    server.dirty = 0;
+    resetDirtyCounter();
     server.lastsave = time(NULL);
     server.lastbgsave_status = C_OK;
     stopSaving(1);
@@ -1862,7 +1884,7 @@ int rdbSaveBackground(int req, char *filename, rdbSaveInfo *rsi, int rdbflags) {
     if (hasActiveChildProcess()) return C_ERR;
     server.stat_rdb_saves++;
 
-    server.dirty_before_bgsave = server.dirty;
+    server.dirty_before_bgsave = getDirty();
     server.lastbgsave_try = time(NULL);
 
     if ((childpid = redisFork(CHILD_TYPE_RDB)) == 0) {
@@ -2189,9 +2211,9 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, int dbid, int *error)
         /* Skip sanitization when loading (an RDB), or getting a RESTORE command
          * from either the master or a client using an ACL user with the skip-sanitize-payload flag. */
         int skip = server.loading ||
-            (server.current_client && (server.current_client->flags & CLIENT_MASTER));
-        if (!skip && server.current_client && server.current_client->user)
-            skip = !!(server.current_client->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
+            (server.current_client[iotid].p && (server.current_client[iotid].p->flags & CLIENT_MASTER));
+        if (!skip && server.current_client[iotid].p && server.current_client[iotid].p->user)
+            skip = !!(server.current_client[iotid].p->user->flags & USER_FLAG_SANITIZE_PAYLOAD_SKIP);
         deep_integrity_validation = !skip;
     }
 
@@ -3665,7 +3687,11 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
     int type, rdbver;
     uint64_t db_size = 0, expires_size = 0;
     int should_expand_db = 0;
+    /* RDB keys are routed into THredis's physical DBs even when a temporary
+     * decoy array is used, so initialize the complete logical DB group first. */
+    ensureLogicalDbInitialized(0);
     redisDb *db = rdb_loading_ctx->dbarray+0;
+    if (rdb_loading_ctx->dbarray != server.db) ensureTempDbInitialized(db);
     char buf[1024];
     int error;
     long long empty_keys_skipped = 0;
@@ -3739,7 +3765,9 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
                     "databases. Exiting\n", server.dbnum);
                 exit(1);
             }
+            ensureLogicalDbInitialized(dbid);
             db = rdb_loading_ctx->dbarray+dbid;
+            if (rdb_loading_ctx->dbarray != server.db) ensureTempDbInitialized(db);
             continue; /* Read next opcode. */
         } else if (type == RDB_OPCODE_RESIZEDB) {
             /* RESIZEDB: Hint about the size of the keys in the currently
@@ -3899,7 +3927,15 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
         /* If there is no slot info, it means that it's either not cluster mode or we are trying to load legacy RDB file.
          * In this case we want to estimate number of keys per slot and resize accordingly. */
         if (should_expand_db) {
-            dbExpand(db, db_size, 0);
+            if (server.shared_node_dbs && server.node_dbs) {
+                /* ee451 FLATSTORE: this section's db_size keys reload (by deterministic hash) to their
+                 * original node; pre-size EACH node's flat table for dbid so the load can't hit the
+                 * table-full panic. Repeated per-node sections converge each node to max(db_size)*3. */
+                for (int n = 0; n < server.n_node_dbs; n++)
+                    kvstoreExpand(server.node_dbs[n][db->id].keys, db_size, 0, NULL);
+            } else {
+                dbExpand(db, db_size, 0);
+            }
             dbExpandExpires(db, expires_size, 0);
             should_expand_db = 0;
             serverLog(LL_VERBOSE, "DB %d resized: %lu key buckets, %lu expire buckets",
@@ -3964,16 +4000,23 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
             robj keyobj;
             initStaticStringObject(keyobj,key);
 
+            /* ee451: route this key to its worker SHARD db (same hash as dispatch).
+             * RDB load is single-threaded and runs before clients connect with workers
+             * idle, so populating shard dbs here is race-free. */
+            redisDb *kdb = db;
+            if (server.exThreads)
+                kdb = &server.exThreads[exIndexForKey(key, sdslen(key))].db[db->id];
+
             /* Add the new object in the hash table */
-            kvobj *kv = dbAddRDBLoad(db, key, &val, &keyMeta);
+            kvobj *kv = dbAddRDBLoad(kdb, key, &val, &keyMeta);
             server.rdb_last_load_keys_loaded++;
             if (!kv) {
                 if (rdbflags & RDBFLAGS_ALLOW_DUP) {
                     /* This flag is useful for DEBUG RELOAD special modes.
                      * When it's set we allow new keys to replace the current
                      * keys with the same name. */
-                    dbSyncDelete(db,&keyobj);
-                    kv = dbAddRDBLoad(db, key, &val, &keyMeta);
+                    dbSyncDelete(kdb,&keyobj);
+                    kv = dbAddRDBLoad(kdb, key, &val, &keyMeta);
                     serverAssert(kv != NULL);
                 } else {
                     serverLog(LL_WARNING,
@@ -3987,7 +4030,7 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
             if (kv->type == OBJ_HASH) {
                 uint64_t minExpiredField = hashTypeGetMinExpire(kv, 1);
                 if (minExpiredField != EB_EXPIRE_TIME_INVALID)
-                    estoreAdd(db->subexpires, getKeySlot(key), kv, minExpiredField);
+                    estoreAdd(kdb->subexpires, getKeySlot(key), kv, minExpiredField);  /* ee451: shard */
             }
 
             /* Register streams with IDMP producers for cron-based expiration. */
@@ -3995,7 +4038,7 @@ int rdbLoadRioWithLoadingCtx(rio *rdb, int rdbflags, rdbSaveInfo *rsi, rdbLoadin
                 stream *s = kv->ptr;
                 if (s->idmp_producers != NULL) {
                     robj *kobj = createStringObject(key, sdslen(key));
-                    if (dictAddRaw(db->stream_idmp_keys, kobj, NULL) == NULL)
+                    if (dictAddRaw(kdb->stream_idmp_keys, kobj, NULL) == NULL)  /* ee451: shard */
                         decrRefCount(kobj);
                 }
             }
@@ -4273,9 +4316,9 @@ int rdbSaveToSlavesSockets(int req, rdbSaveInfo *rsi) {
     listRewind(server.slaves,&li);
     while((ln = listNext(&li))) {
         client *slave = ln->value;
-        if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
+        if (clientReplicationData(slave)->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
             /* Check slave has the exact requirements */
-            if (slave->slave_req != req)
+            if (clientReplicationData(slave)->slave_req != req)
                 continue;
             replicationSetupSlaveForFullResync(slave, getPsyncInitialOffset());
             conns[numconns++] = slave->conn;
@@ -4355,8 +4398,8 @@ int rdbSaveToSlavesSockets(int req, rdbSaveInfo *rsi) {
             listRewind(server.slaves,&li);
             while((ln = listNext(&li))) {
                 client *slave = ln->value;
-                if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
-                    slave->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
+                if (clientReplicationData(slave)->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
+                    clientReplicationData(slave)->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
                 }
             }
 
@@ -4429,8 +4472,8 @@ void bgsaveCommand(client *c) {
 
     if (server.child_type == CHILD_TYPE_RDB) {
         addReplyError(c,"Background save already in progress");
-    } else if (hasActiveChildProcess() || server.in_exec) {
-        if (schedule || server.in_exec) {
+    } else if (hasActiveChildProcess() || tomoAnyExecRunning()) {
+        if (schedule || tomoAnyExecRunning()) {
             server.rdb_bgsave_scheduled = 1;
             addReplyStatus(c,"Background saving scheduled");
         } else {

@@ -43,6 +43,17 @@
 #endif
 #endif
 
+/* Legacy source-compatibility definitions. Reply CDBs are now heap-resident
+ * cdbSlots and are always cache-line isolated; these macros have no live user. */
+#ifndef THREDIS_OPT_MASK_ISOLATE
+#define THREDIS_OPT_MASK_ISOLATE 1
+#endif
+#if THREDIS_OPT_MASK_ISOLATE
+#define THREDIS_MASK_ALIGN __attribute__((aligned(CACHE_LINE_SIZE)))
+#else
+#define THREDIS_MASK_ALIGN
+#endif
+
 /* Test for proc filesystem */
 #ifdef __linux__
 #define HAVE_PROC_STAT 1
@@ -361,6 +372,7 @@ void setcpuaffinity(const char *cpulist);
 #if defined (__x86_64__) && ((defined(__GNUC__) && __GNUC__ >= 5) || (defined(__clang__) && __clang_major__ >= 4))
 #if defined(__has_attribute) && __has_attribute(target)
 #define HAVE_AVX512
+#define ATTRIBUTE_TARGET_AVX512 __attribute__((target("avx512f,avx512bw,avx512vl")))
 #define ATTRIBUTE_TARGET_AVX512_POPCOUNT __attribute__((target("avx512f,avx512vpopcntdq")))
 #endif
 #endif

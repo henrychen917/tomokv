@@ -386,7 +386,9 @@ void listpackExExpire(redisDb *db, kvobj *kv, ExpireInfo *info, int activeEx) {
 
         propagateHashFieldDeletion(db, key, (char *)((fref) ? fref : intbuf), flen);
         server.stat_expired_subkeys++;
-        if (activeEx) server.stat_expired_subkeys_active++;
+        /* activeEx == 2 is the sharded worker cycle. Its owning exThread folds a
+         * worker-private counter into INFO; do not race this main-thread stat. */
+        if (activeEx == 1) server.stat_expired_subkeys_active++;
 
         ptr = lpNext(lpt->lp, ptr);
 
@@ -550,7 +552,7 @@ SetExRes hashTypeSetExpiryListpack(HashTypeSetEx *ex, sds field,
 
 /* Returns 1 if expired */
 int hashTypeIsExpired(const robj *o, uint64_t expireAt) {
-    if (server.allow_access_expired) return 0;
+    if (accessExpiredAllowed()) return 0;
 
     if (o->encoding == OBJ_ENCODING_LISTPACK_EX) {
         if (expireAt == HASH_LP_NO_TTL)
@@ -736,7 +738,7 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
         serverPanic("Unknown hash encoding");
     }
 
-    if ((server.allow_access_expired) ||
+    if ((accessExpiredAllowed()) ||
         (*expiredAt >= (uint64_t) commandTimeSnapshot()) ||
         (hfeFlags & HFE_LAZY_ACCESS_EXPIRED))
         return GETF_OK;
@@ -748,7 +750,7 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
          * from the source, to avoid deleting fields that are still in use.
          * We create a fake master client for data import, which can be
          * identified using the CLIENT_MASTER flag. */
-        if (server.current_client && (server.current_client->flags & CLIENT_MASTER))
+        if (server.current_client[iotid].p && (server.current_client[iotid].p->flags & CLIENT_MASTER))
             return GETF_OK;
 
         /* For replica, if user client, then act as if expired, but don't delete! */
@@ -757,7 +759,10 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
 
     if ((server.loading) ||
         (hfeFlags & HFE_LAZY_AVOID_FIELD_DEL) ||
-        (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)))
+        (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)) ||
+        (migSuppressLazyExpire(db, key)))   /* ee451 (W6-E2): DRAINING fence — suppress the field
+                                             * delete AND the whole-key delete below (its tombstone
+                                             * could land post-s_final); see expireIfNeeded. */
         return GETF_EXPIRED;
 
     /* delete the field and propagate the deletion */
@@ -1305,7 +1310,7 @@ int hashTypeDelete(robj *o, void *field) {
 unsigned long hashTypeLength(const robj *o, int subtractExpiredFields) {
     unsigned long length = ULONG_MAX;
     /* If expired field access is allowed, don't subtract expired fields from the count. */
-    if (server.allow_access_expired)
+    if (accessExpiredAllowed())
         subtractExpiredFields = 0;
 
     if (o->encoding == OBJ_ENCODING_LISTPACK) {
@@ -1378,7 +1383,7 @@ void hashTypeResetIterator(hashTypeIterator *hi) {
  * could be found and C_ERR when the iterator reaches the end. */
 int hashTypeNext(hashTypeIterator *hi, int skipExpiredFields) {
     /* If expired field access is allowed, don't skip expired fields during iteration */
-    if (server.allow_access_expired)
+    if (accessExpiredAllowed())
         skipExpiredFields = 0;
 
     hi->expire_time = EB_EXPIRE_TIME_INVALID;
@@ -1824,19 +1829,6 @@ robj *hashTypeDup(kvobj *o, uint64_t *minHashExpire) {
     return hobj;
 }
 
-/* Create a new sds string from the listpack entry. */
-sds hashSdsFromListpackEntry(listpackEntry *e) {
-    return e->sval ? sdsnewlen(e->sval, e->slen) : sdsfromlonglong(e->lval);
-}
-
-/* Reply with bulk string from the listpack entry. */
-void hashReplyFromListpackEntry(client *c, listpackEntry *e) {
-    if (e->sval)
-        addReplyBulkCBuffer(c, e->sval, e->slen);
-    else
-        addReplyBulkLongLong(c, e->lval);
-}
-
 /* Return random element from a non empty hash.
  * 'key' and 'val' will be set to hold the element.
  * The memory in them is not to be freed or modified by the caller.
@@ -1867,6 +1859,8 @@ void hashTypeRandomElement(robj *hashobj, unsigned long hashsize, CommonEntry *k
  *
  * updateSubexpires - If the hash should be updated in the subexpires DB with new
  *                   expiration time in case expired fields were deleted.
+ * activeEx         - 0 for lazy expiry, 1 for the main-thread active cycle, and
+ *                   2 for the sharded worker cycle (whose caller owns its stat).
  *
  * Return next Expire time of the hash
  * - 0 if hash got deleted
@@ -1957,9 +1951,10 @@ static int hashTypeExpireIfNeeded(redisDb *db, kvobj *o) {
 
     /* Follow expireIfNeeded() conditions of when not lazy-expire */
     if ( (server.loading) ||
-         (server.allow_access_expired) ||
+         (accessExpiredAllowed()) ||
          (server.masterhost) ||  /* master-client or user-client, don't delete */
-         (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)))
+         (isPausedActionsWithUpdate(PAUSE_ACTION_EXPIRE)) ||
+         (migSuppressLazyExpire(db, kvobjGetKey(o))))  /* ee451 (W6-E2): DRAINING fence */
         return 0;
 
     /* Take care to expire all the fields */
@@ -2102,7 +2097,7 @@ void hsetnxCommand(client *c) {
     updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_HASH, hlen - 1, hlen);
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
-    server.dirty++;
+    markDirty(1);
 }
 
 void hsetCommand(client *c) {
@@ -2139,7 +2134,7 @@ void hsetCommand(client *c) {
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
     notifyKeyspaceEvent(NOTIFY_HASH,"hset",c->argv[1],c->db->id);
-    server.dirty += (c->argc - 2)/2;
+    markDirty((c->argc - 2)/2);
 }
 
 /* Parse expire time from argument and do boundary checks. */
@@ -2450,7 +2445,7 @@ void hsetexCommand(client *c) {
     if (set_expiry)
         hashTypeSetExDone(&setex);
 
-    server.dirty += field_count;
+    markDirty(field_count);
 
     if (deleted) {
         /* If fields are deleted due to timestamp is being in the past, hdel's
@@ -2545,7 +2540,7 @@ void hincrbyCommand(client *c) {
     addReplyLongLong(c,value);
     keyModified(c,c->db,c->argv[1], o, 1);
     notifyKeyspaceEvent(NOTIFY_HASH,"hincrby",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 }
 
 void hincrbyfloatCommand(client *c) {
@@ -2603,7 +2598,7 @@ void hincrbyfloatCommand(client *c) {
     addReplyBulkCBuffer(c,buf,len);
     keyModified(c,c->db,c->argv[1],o,1);
     notifyKeyspaceEvent(NOTIFY_HASH,"hincrbyfloat",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     /* Always replicate HINCRBYFLOAT as an HSETEX command with the final value
      * in order to make sure that differences in float precision or formatting
@@ -2750,7 +2745,7 @@ void hgetdelCommand(client *c) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hexpired", c->argv[1], c->db->id);
     if (deleted) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hdel", c->argv[1], c->db->id);
-        server.dirty += deleted;
+        markDirty(deleted);
 
         /* Propagate as HDEL command.
          * Orig: HGETDEL <key> FIELDS <numfields> field1 field2 ...
@@ -2851,7 +2846,7 @@ void hgetexCommand(client *c) {
     if (expired == 0 && deleted == 0 && updated == 0)
         return;
 
-    server.dirty += deleted + updated;
+    markDirty(deleted + updated);
     keyModified(c, c->db, c->argv[1], o, 1);
 
     /* This command will never be propagated as it is. It will be propagated as
@@ -2938,6 +2933,8 @@ void hdelCommand(client *c) {
      * field with expiration and removes it from global HFE DS. */
     int isHFE = hashTypeIsFieldsWithExpire(o);
 
+    if (o->encoding == OBJ_ENCODING_HT)
+        dictPauseAutoResize((dict *)o->ptr);
     for (j = 2; j < c->argc; j++) {
         if (hashTypeDelete(o,c->argv[j]->ptr)) {
             deleted++;
@@ -2950,6 +2947,10 @@ void hdelCommand(client *c) {
                 break;
             }
         }
+    }
+    if (!keyremoved && o->encoding == OBJ_ENCODING_HT) {
+        dictResumeAutoResize((dict *)o->ptr);
+        dictShrinkIfNeeded((dict *)o->ptr);
     }
     if (server.memory_tracking_enabled && !keyremoved)
         updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), o, oldsize, kvobjAllocSize(o));
@@ -2965,7 +2966,7 @@ void hdelCommand(client *c) {
             newLen = oldLen - deleted;
         }
         updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_HASH, oldLen, newLen);
-        server.dirty += deleted;
+        markDirty(deleted);
     }
     addReplyLongLong(c,deleted);
 }
@@ -3518,7 +3519,7 @@ static ExpireAction onFieldExpire(eItem item, void *ctx) {
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(expCtx->db, getKeySlot(key), kv, oldsize, kvobjAllocSize(kv));
     server.stat_expired_subkeys++;
-    if (expCtx->activeEx)
+    if (expCtx->activeEx == 1)
         server.stat_expired_subkeys_active++;
     return ACT_REMOVE_EXP_ITEM;
 }
@@ -3860,7 +3861,7 @@ static void hexpireGenericCommand(client *c, long long basetime, int unit) {
         updateSlotAllocSize(c->db, getKeySlot(keyArg->ptr), hashObj, oldsize, kvobjAllocSize(hashObj));
 
     if (deleted + updated > 0) {
-        server.dirty += deleted + updated;
+        markDirty(deleted + updated);
         keyModified(c, c->db, keyArg, hashObj, 1);
         notifyKeyspaceEvent(NOTIFY_HASH, deleted ? "hdel" : "hexpire",
                             keyArg, c->db->id);
@@ -4089,6 +4090,6 @@ void hpersistCommand(client *c) {
     if (changed) {
         notifyKeyspaceEvent(NOTIFY_HASH, "hpersist", c->argv[1], c->db->id);
         keyModified(c, c->db, c->argv[1], hashObj, 1);
-        server.dirty++;
+        markDirty(1);
     }
 }

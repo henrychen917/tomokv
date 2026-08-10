@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"workerQueuePush\\\\|workerQueuePop\\\\|workerQueueInit\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -n \"batch->key_count\\\\|batch->client_count\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\memory_prefetch.c\")",
+      "Bash(grep -A 5 \"resetCommandsBatch\\\\|batch->cur_idx\\\\|batch->key_count\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -n \"prefetchCommands\\(\\)\\\\|resetCommandsBatch\\(\\)\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -n \"prefetchCommands\\\\|addCommandToBatch\\\\|resetCommandsBatch\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -n \"num_workers\\\\|server.workers\\\\|workerThread\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.h\")",
+      "Bash(grep -n \"server.num_workers\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -B5 -A5 \"initWorkers\\\\|num_workers\\\\s*=\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.c\")",
+      "Bash(grep -n \"readQueryFromClient\\\\|processInputBuffer\\\\|addCommandToBatch\\\\|prefetchCommands\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\networking.c\")",
+      "Bash(grep -n \"ready_len\\\\|pending_cmds\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\server.h\")",
+      "Bash(grep -n \"offset\\\\|sizeof.*8\\\\|>>3\\\\|%8\\\\|&7\" \"\\\\\\\\192.168.50.29\\\\fast\\\\usc\\\\451\\\\Project\\\\THredis-dev\\\\src\\\\memory_prefetch.c\")",
+      "Bash(xargs grep *)"
+    ]
+  }
+}

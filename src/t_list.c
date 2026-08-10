@@ -504,7 +504,7 @@ void pushGenericCommand(client *c, int where, int xx) {
     listTypeTryConversionAppend(lobj,c->argv,2,c->argc-1,NULL,NULL);
     for (j = 2; j < c->argc; j++) {
         listTypePush(lobj,c->argv[j],where);
-        server.dirty++;
+        markDirty(1);
     }
 
     llen = listTypeLength(lobj);
@@ -588,7 +588,7 @@ void linsertCommand(client *c) {
         keyModified(c,c->db,c->argv[1],subject,1);
         notifyKeyspaceEvent(NOTIFY_LIST,"linsert",
                             c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
         unsigned long ll = listTypeLength(subject);
         updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_LIST, ll-1, ll);
     } else {
@@ -659,7 +659,7 @@ void lsetCommand(client *c) {
         addReply(c,shared.ok);
         keyModified(c,c->db,c->argv[1],o,1);
         notifyKeyspaceEvent(NOTIFY_LIST,"lset",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else {
         addReplyErrorObject(c,shared.outofrangeerr);
     }
@@ -802,7 +802,7 @@ void listElementsRemoved(client *c, robj *key, int where, robj *o, long count, s
     }
     if (signal)
         keyModified(c, c->db, key, llen ? o : NULL, 1);
-    server.dirty += count;
+    markDirty(count);
 }
 
 /* Implements the generic list pop operation for LPOP/RPOP.
@@ -981,7 +981,7 @@ void ltrimCommand(client *c) {
     }
     updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr), OBJ_LIST, llen, llenNew);
     keyModified(c, c->db, c->argv[1], (llenNew > 0) ? o : NULL, 1);
-    server.dirty += (ltrim + rtrim);
+    markDirty((ltrim + rtrim));
     addReply(c,shared.ok);
 }
 
@@ -1132,7 +1132,7 @@ void lremCommand(client *c) {
     while (listTypeNext(&li, &entry)) {
         if (listTypeEqual(&entry,obj,object_len,&cached_longval,&cached_valid)) {
             listTypeDelete(&li, &entry);
-            server.dirty++;
+            markDirty(1);
             removed++;
             if (toremove && removed == toremove) break;
         }
@@ -1194,15 +1194,6 @@ int getListPositionFromObjectOrReply(client *c, robj *arg, int *position) {
         return C_ERR;
     }
     return C_OK;
-}
-
-robj *getStringObjectFromListPosition(int position) {
-    if (position == LIST_HEAD) {
-        return shared.left;
-    } else {
-        // LIST_TAIL
-        return shared.right;
-    }
 }
 
 void lmoveGenericCommand(client *c, int wherefrom, int whereto) {

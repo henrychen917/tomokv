@@ -1040,7 +1040,7 @@ int startAppendOnly(void) {
     if (hasActiveChildProcess() && server.child_type != CHILD_TYPE_AOF) {
         server.aof_rewrite_scheduled = 1;
         serverLog(LL_NOTICE,"AOF was enabled but there is already another background operation. An AOF background was scheduled to start when possible.");
-    } else if (server.in_exec){
+    } else if (tomoAnyExecRunning()){
         server.aof_rewrite_scheduled = 1;
         serverLog(LL_NOTICE,"AOF was enabled during a transaction. An AOF background was scheduled to start when possible.");
     } else {
@@ -1456,7 +1456,7 @@ void feedAppendOnlyFile(int dictid, robj **argv, int argc) {
 struct client *createAOFClient(void) {
     struct client *c = createClient(NULL);
 
-    c->id = CLIENT_ID_AOF; /* So modules can identify it's the AOF client. */
+    clientTail(c)->id = CLIENT_ID_AOF; /* So modules can identify it's the AOF client. */
 
     /*
      * The AOF client should never be blocked (unlike master
@@ -1471,7 +1471,8 @@ struct client *createAOFClient(void) {
 
     /* We set the fake client as a slave waiting for the synchronization
      * so that Redis will not try to send replies to this client. */
-    c->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
+    initClientReplicationData(c);
+    clientReplicationData(c)->replstate = SLAVE_STATE_WAIT_BGSAVE_START;
     return c;
 }
 
@@ -1539,10 +1540,10 @@ int loadSingleAppendOnlyFile(char *filename) {
      * to the same file we're about to read. */
     server.aof_state = AOF_OFF;
 
-    client *old_cur_client = server.current_client;
-    client *old_exec_client = server.executing_client;
+    client *old_cur_client = server.current_client[iotid].p;
+    client *old_exec_client = server.executing_client[iotid].p;
     fakeClient = createAOFClient();
-    server.current_client = server.executing_client = fakeClient;
+    server.current_client[iotid].p = server.executing_client[iotid].p = fakeClient;
 
     /* Check if the AOF file is in RDB format (it may be RDB encoded base AOF
      * or old style RDB-preamble AOF). In that case we need to load the RDB file 
@@ -1660,7 +1661,7 @@ int loadSingleAppendOnlyFile(char *filename) {
         if (cmd->proc == multiCommand) valid_before_multi = valid_up_to;
 
         /* Run the command in the context of a fake client */
-        fakeClient->cmd = fakeClient->lastcmd = cmd;
+        fakeClient->cmd = clientTail(fakeClient)->lastcmd = cmd;
         if (fakeClient->flags & CLIENT_MULTI &&
             fakeClient->cmd->proc != execCommand)
         {
@@ -1761,8 +1762,8 @@ fmterr: /* Format error. */
 
 cleanup:
     if (fakeClient) freeClient(fakeClient);
-    server.current_client = old_cur_client;
-    server.executing_client = old_exec_client;
+    server.current_client[iotid].p = old_cur_client;
+    server.executing_client[iotid].p = old_exec_client;
     int fd = dup(fileno(fp));
     fclose(fp);
     /* Reclaim page cache memory used by the AOF file in background. */
@@ -2497,6 +2498,7 @@ int rewriteAppendOnlyFileRio(rio *aof) {
     for (j = 0; j < server.dbnum; j++) {
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
         redisDb *db = server.db + j;
+        if (!dbIsInitialized(db)) continue;
         if (kvstoreSize(db->keys) == 0) continue;
 
         /* SELECT the new DB */
@@ -2722,7 +2724,7 @@ int rewriteAppendOnlyFileBackground(void) {
 void bgrewriteaofCommand(client *c) {
     if (server.child_type == CHILD_TYPE_AOF) {
         addReplyError(c,"Background append only file rewriting already in progress");
-    } else if (hasActiveChildProcess() || server.in_exec) {
+    } else if (hasActiveChildProcess() || tomoAnyExecRunning()) {
         server.aof_rewrite_scheduled = 1;
         /* When manually triggering AOFRW we reset the count 
          * so that it can be executed immediately. */

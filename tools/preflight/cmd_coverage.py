@@ -1,0 +1,643 @@
+#!/usr/bin/env python3
+# Broad command-coverage GATE for THredis. NOT exhaustive — a few representative invocations per command
+# family with KNOWN-correct expected results (Part A), PLUS a concurrency race sweep (Part B): many
+# connections, each deterministic on its OWN keys with per-connection-VARIED parameters, verifying every
+# result. Part B is what catches the class of bug where a command stashes per-invocation state in a
+# process global (the SORT desc/alpha race: 19 mis-sorts on the buggy build). Exit 0 = pass, 1 = fail.
+# Usage: cmd_gate.py PORT [label]
+import socket, sys, time, threading, random, math
+PORT=int(sys.argv[1]); LABEL=sys.argv[2] if len(sys.argv)>2 else '?'
+HOST='127.0.0.1'
+def conn():
+    s=socket.create_connection((HOST,PORT),timeout=15); s.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1); return s,s.makefile('rb')
+def enc(*a):
+    o=[b'*%d\r\n'%len(a)]
+    for x in a:
+        x=str(x).encode() if not isinstance(x,bytes) else x
+        o.append(b'$%d\r\n'%len(x)); o.append(x); o.append(b'\r\n')
+    return b''.join(o)
+def rr(f):
+    ln=f.readline()
+    if not ln: raise EOFError
+    t=ln[:1]
+    if t==b'+': return ln[1:].strip()
+    if t==b':': return int(ln[1:])
+    if t==b'-': return Exception(ln[1:].strip().decode())
+    if t==b'$':
+        n=int(ln[1:]); return None if n<0 else f.read(n+2)[:-2]
+    if t==b'*':
+        n=int(ln[1:]); return None if n<0 else [rr(f) for _ in range(n)]
+    if t==b'%':  # RESP3 map (if used)
+        n=int(ln[1:]); return [rr(f) for _ in range(2*n)]
+    raise ValueError(ln)
+def c(s,f,*a): s.sendall(enc(*a)); return rr(f)
+
+fails=[]
+def ck(cond,msg):
+    if not cond: fails.append(msg)
+def eq(got,want,msg): ck(got==want, "%s: got %r want %r"%(msg,got,want))
+def B(x): return x.encode() if isinstance(x,str) else x
+def lst(r): return [x.decode() if isinstance(x,bytes) else x for x in r] if isinstance(r,list) else r
+def rejected(r): return isinstance(r,Exception)  # THredis fail-safe-rejects some cross-shard/txn cmds
+def lcs_ref(a,b,minmatchlen=0,withmatchlen=False):
+    # Mirror Redis's DP tie-break (walk left on ties) and reverse-order IDX range emission.
+    alen,blen=len(a),len(b); dp=[[0]*(blen+1) for _ in range(alen+1)]
+    for i in range(1,alen+1):
+        for j in range(1,blen+1):
+            dp[i][j]=dp[i-1][j-1]+1 if a[i-1]==b[j-1] else max(dp[i-1][j],dp[i][j-1])
+    idx=dp[alen][blen]; result=bytearray(idx); ranges=[]
+    arange_start,arange_end,brange_start,brange_end=alen,0,0,0
+    i,j=alen,blen
+    while i>0 and j>0:
+        emit=False
+        if a[i-1]==b[j-1]:
+            result[idx-1]=a[i-1]
+            if arange_start==alen:
+                arange_start=arange_end=i-1; brange_start=brange_end=j-1
+            elif arange_start==i and brange_start==j:
+                arange_start-=1; brange_start-=1
+            else:
+                emit=True
+            if arange_start==0 or brange_start==0: emit=True
+            idx-=1; i-=1; j-=1
+        else:
+            if dp[i-1][j]>dp[i][j-1]: i-=1
+            else: j-=1
+            if arange_start!=alen: emit=True
+        if emit:
+            matchlen=arange_end-arange_start+1
+            if minmatchlen==0 or matchlen>=minmatchlen:
+                item=[[arange_start,arange_end],[brange_start,brange_end]]
+                if withmatchlen: item.append(matchlen)
+                ranges.append(item)
+            arange_start=alen
+    return bytes(result),ranges
+def info_int(s,f,name):
+    p=B(name)+b':'
+    for line in c(s,f,'INFO','stats').splitlines():
+        if line.startswith(p): return int(line[len(p):])
+    raise AssertionError('INFO stats missing '+name)
+def shard_pair(s,f,want_cross,prefix,keymaker=None):
+    # cmd_coverage.sh fixes four static workers. The split counter is a live routing oracle:
+    # MGET bumps it iff these two keys currently have different owners.
+    for i in range(128):
+        a,b=keymaker(i) if keymaker else ('%s-src:%d'%(prefix,i),'%s-dst:%d'%(prefix,i))
+        before=info_int(s,f,'tomokv_xshard_multikey_split'); c(s,f,'MGET',a,b)
+        split=info_int(s,f,'tomokv_xshard_multikey_split')>before
+        if split==want_cross: return a,b
+    raise AssertionError('could not find %s-shard key pair'%('cross' if want_cross else 'same'))
+
+def partA():
+    s,f=conn(); c(s,f,'FLUSHDB')
+    # First SELECT of a non-default logical DB constructs its decoy and every
+    # per-node physical DB before the selected pointer becomes visible.
+    lazy_key='cov:lazy-db'
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SELECT','1'),b'OK','SELECT lazy DB')
+    c(s,f,'DEL',lazy_key)
+    eq(c(s,f,'SET',lazy_key,'db1'),b'OK','lazy DB SET')
+    eq(c(s,f,'GET',lazy_key),b'db1','lazy DB GET')
+    eq(c(s,f,'SELECT','0'),b'OK','SELECT default DB')
+    eq(c(s,f,'GET',lazy_key),None,'lazy DB isolation')
+    eq(c(s,f,'SELECT','1'),b'OK','reselect initialized DB')
+    eq(c(s,f,'DEL',lazy_key),1,'lazy DB cleanup')
+    eq(c(s,f,'SELECT','0'),b'OK','restore default DB')
+    xs,xd=shard_pair(s,f,True,'t1x'); ls,ld=shard_pair(s,f,False,'t1l')
+    # ---- strings ----
+    eq(c(s,f,'SET','s','hello'),b'OK','SET'); eq(c(s,f,'GET','s'),b'hello','GET')
+    eq(c(s,f,'APPEND','s',' world'),11,'APPEND'); eq(c(s,f,'STRLEN','s'),11,'STRLEN')
+    eq(c(s,f,'GETRANGE','s','0','4'),b'hello','GETRANGE'); eq(c(s,f,'GETRANGE','s','-5','-1'),b'world','GETRANGE-neg')
+    c(s,f,'SETRANGE','s','6','WORLD'); eq(c(s,f,'GET','s'),b'hello WORLD','SETRANGE')
+    c(s,f,'SET','n','10'); eq(c(s,f,'INCR','n'),11,'INCR'); eq(c(s,f,'INCRBY','n','5'),16,'INCRBY')
+    eq(c(s,f,'DECR','n'),15,'DECR'); eq(c(s,f,'DECRBY','n','5'),10,'DECRBY')
+    eq(c(s,f,'INCRBYFLOAT','n','2.5'),b'12.5','INCRBYFLOAT')
+    eq(c(s,f,'GETSET','g','v1'),None,'GETSET-new'); eq(c(s,f,'GETSET','g','v2'),b'v1','GETSET')
+    eq(c(s,f,'SETNX','g','x'),0,'SETNX-exists'); eq(c(s,f,'SETNX','g2','y'),1,'SETNX-new')
+    c(s,f,'MSET','a','1','b','2','cc','3'); eq(lst(c(s,f,'MGET','a','b','cc','nope')),['1','2','3',None],'MSET/MGET')
+    eq(c(s,f,'GETDEL','g2'),b'y','GETDEL'); eq(c(s,f,'EXISTS','g2'),0,'GETDEL-removed')
+    # LCS T2: xs/xd are proven cross-owner above; compare stock tie/range semantics to Python.
+    la,lb=B('ohmytext'),B('mynewtext'); want,_=lcs_ref(la,lb)
+    c(s,f,'DEL',xs,xd); c(s,f,'SET',xs,la); c(s,f,'SET',xd,lb)
+    eq(c(s,f,'LCS',xs,xd),want,'LCS cross-shard/string')
+    eq(c(s,f,'LCS',xs,xd,'LEN'),len(want),'LCS cross-shard/LEN')
+    _,matches=lcs_ref(la,lb,2,True)
+    eq(c(s,f,'LCS',xs,xd,'IDX','MINMATCHLEN','2','WITHMATCHLEN'),
+       [b'matches',matches,b'len',len(want)],'LCS cross-shard/IDX+MINMATCHLEN+WITHMATCHLEN')
+    c(s,f,'DEL',xd); empty,_=lcs_ref(la,b'')
+    eq(c(s,f,'LCS',xs,xd),empty,'LCS cross-shard/missing-as-empty')
+    eq(c(s,f,'LCS',xs,xd,'LEN'),0,'LCS cross-shard/missing-LEN')
+    c(s,f,'SET',ls,la); c(s,f,'SET',ld,lb)
+    eq(c(s,f,'LCS',ls,ld),want,'LCS same-shard/stock-proc')
+    # ---- bitmaps ----
+    c(s,f,'DEL','bit'); c(s,f,'SETBIT','bit','7','1'); eq(c(s,f,'GETBIT','bit','7'),1,'SETBIT/GETBIT')
+    eq(c(s,f,'BITCOUNT','bit'),1,'BITCOUNT'); c(s,f,'SET','bc','foobar'); eq(c(s,f,'BITCOUNT','bc'),26,'BITCOUNT-str')
+    eq(c(s,f,'BITCOUNT','bc','1','1'),6,'BITCOUNT-range'); eq(c(s,f,'BITPOS','bit','1'),7,'BITPOS')
+    eq(lst(c(s,f,'BITFIELD','bf','SET','u8','0','255','GET','u8','0')),[0,255],'BITFIELD')
+    # ---- hashes ----
+    c(s,f,'DEL','h'); eq(c(s,f,'HSET','h','f1','v1','f2','v2'),2,'HSET'); eq(c(s,f,'HGET','h','f1'),b'v1','HGET')
+    eq(c(s,f,'HLEN','h'),2,'HLEN'); eq(c(s,f,'HEXISTS','h','f1'),1,'HEXISTS'); eq(c(s,f,'HDEL','h','f2'),1,'HDEL')
+    eq(c(s,f,'HINCRBY','h','cnt','5'),5,'HINCRBY'); eq(sorted(lst(c(s,f,'HKEYS','h'))),['cnt','f1'],'HKEYS')
+    eq(lst(c(s,f,'HMGET','h','f1','nope')),['v1',None],'HMGET')
+    # Batched collection deletes must keep the surviving dict contents and encoding intact.
+    delete_batch_n,delete_batch_keep=1024,64
+    hdel_fields=['hdel%04d'%i for i in range(delete_batch_n)]
+    hdel_args=[x for i,name in enumerate(hdel_fields) for x in (name,'v%04d'%i)]
+    hdel_survivors=hdel_fields[-delete_batch_keep:]
+    c(s,f,'DEL','hdel-batch'); eq(c(s,f,'HSET','hdel-batch',*hdel_args),delete_batch_n,'HDEL-batch-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-before')
+    eq(c(s,f,'HDEL','hdel-batch',*hdel_fields[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'HDEL-batch-delete')
+    eq(c(s,f,'HLEN','hdel-batch'),delete_batch_keep,'HDEL-batch-HLEN')
+    eq(sorted(lst(c(s,f,'HKEYS','hdel-batch'))),hdel_survivors,'HDEL-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','hdel-batch'),b'hashtable','HDEL-batch-encoding-after')
+    # Large listpack HMGET: reverse-order probes, a miss, and duplicates exercise the one-pass request map.
+    hm_fields=['hf%03d'%i for i in range(400)]; hm_values={name:'hv%03d'%i for i,name in enumerate(hm_fields)}
+    hm_args=[x for name in hm_fields for x in (name,hm_values[name])]
+    c(s,f,'DEL','hmget-lp'); eq(c(s,f,'HSET','hmget-lp',*hm_args),400,'HMGET-listpack-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','hmget-lp'),b'listpack','HMGET-listpack-encoding')
+    hm_req=hm_fields[::-2]+['hm-missing',hm_fields[17],hm_fields[17]]
+    hm_want=[hm_values.get(name) for name in hm_req]
+    eq(lst(c(s,f,'HMGET','hmget-lp',*hm_req)),hm_want,'HMGET-listpack-one-pass/order/missing/duplicate')
+    # hash field expiry (THredis HFE)
+    c(s,f,'HSET','he','x','1'); r=c(s,f,'HEXPIRE','he','100','FIELDS','1','x'); ck(isinstance(r,list) and r[0]==1,'HEXPIRE %r'%r)
+    r=c(s,f,'HTTL','he','FIELDS','1','x'); ck(isinstance(r,list) and 0<int(r[0])<=100,'HTTL %r'%r)
+    # ---- lists ----
+    c(s,f,'DEL','l'); eq(c(s,f,'RPUSH','l','a','b','c'),3,'RPUSH'); eq(c(s,f,'LPUSH','l','z'),4,'LPUSH')
+    eq(lst(c(s,f,'LRANGE','l','0','-1')),['z','a','b','c'],'LRANGE'); eq(c(s,f,'LLEN','l'),4,'LLEN')
+    eq(c(s,f,'LINDEX','l','1'),b'a','LINDEX'); eq(c(s,f,'LPOP','l'),b'z','LPOP'); eq(c(s,f,'RPOP','l'),b'c','RPOP')
+    c(s,f,'LSET','l','0','A'); eq(c(s,f,'LINDEX','l','0'),b'A','LSET'); eq(c(s,f,'LPOS','l','b'),1,'LPOS')
+    c(s,f,'RPUSH','l2','1','2','3'); eq(c(s,f,'LMOVE','l2','l3','LEFT','RIGHT'),b'1','LMOVE')
+    # T4 phase 1: force different owners. A ready key is served in request order with the
+    # stock B[LR]POP reply; a genuinely would-block request is rejected instead of parking.
+    bla,blb=shard_pair(s,f,True,'blpop')
+    c(s,f,'DEL',bla,blb); c(s,f,'RPUSH',blb,'left','right')
+    eq(c(s,f,'BLPOP',bla,blb,'10'),[B(blb),b'left'],'BLPOP cross-shard/skip-empty+reply')
+    eq(c(s,f,'BRPOP',bla,blb,'10'),[B(blb),b'right'],'BRPOP cross-shard/skip-empty+reply')
+    c(s,f,'RPUSH',bla,'first'); c(s,f,'RPUSH',blb,'second')
+    eq(c(s,f,'BLPOP',bla,blb,'10'),[B(bla),b'first'],'BLPOP cross-shard/first-ready precedence')
+    c(s,f,'DEL',bla,blb)
+    for op in ('BLPOP','BRPOP'):
+        r=c(s,f,op,bla,blb,'.05')
+        ck(rejected(r) and 'would block across shards' in str(r),
+           '%s cross-shard/all-empty must fail-safe reject: %r'%(op,r))
+    # ---- sets ----
+    c(s,f,'DEL','st'); eq(c(s,f,'SADD','st','a','b','c'),3,'SADD'); eq(c(s,f,'SCARD','st'),3,'SCARD')
+    eq(c(s,f,'SISMEMBER','st','a'),1,'SISMEMBER'); eq(sorted(lst(c(s,f,'SMEMBERS','st'))),['a','b','c'],'SMEMBERS')
+    eq(lst(c(s,f,'SMISMEMBER','st','a','z')),[1,0],'SMISMEMBER'); eq(c(s,f,'SREM','st','c'),1,'SREM')
+    srem_members=['srem%04d'%i for i in range(delete_batch_n)]; srem_survivors=srem_members[-delete_batch_keep:]
+    c(s,f,'DEL','srem-batch'); eq(c(s,f,'SADD','srem-batch',*srem_members),delete_batch_n,'SREM-batch-SADD')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-before')
+    eq(c(s,f,'SREM','srem-batch',*srem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'SREM-batch-delete')
+    eq(c(s,f,'SCARD','srem-batch'),delete_batch_keep,'SREM-batch-SCARD')
+    eq(sorted(lst(c(s,f,'SMEMBERS','srem-batch'))),srem_survivors,'SREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','srem-batch'),b'hashtable','SREM-batch-encoding-after')
+    c(s,f,'SADD','s1','a','b','c','d'); c(s,f,'SADD','s2','c','d','e')
+    eq(sorted(lst(c(s,f,'SINTER','s1','s2'))),['c','d'],'SINTER'); eq(sorted(lst(c(s,f,'SUNION','s1','s2'))),['a','b','c','d','e'],'SUNION')
+    eq(sorted(lst(c(s,f,'SDIFF','s1','s2'))),['a','b'],'SDIFF'); eq(c(s,f,'SINTERCARD','2','s1','s2'),2,'SINTERCARD')
+    eq(c(s,f,'SINTERSTORE','sd','s1','s2'),2,'SINTERSTORE'); eq(c(s,f,'SUNIONSTORE','su','s1','s2'),5,'SUNIONSTORE')
+    eq(c(s,f,'SDIFFSTORE','sf','s1','s2'),2,'SDIFFSTORE')
+    # ---- sorted sets ----
+    c(s,f,'DEL','z'); eq(c(s,f,'ZADD','z','1','a','2','b','3','c'),3,'ZADD'); eq(c(s,f,'ZSCORE','z','b'),b'2','ZSCORE')
+    eq(c(s,f,'ZCARD','z'),3,'ZCARD'); eq(lst(c(s,f,'ZRANGE','z','0','-1')),['a','b','c'],'ZRANGE')
+    eq(lst(c(s,f,'ZREVRANGE','z','0','-1')),['c','b','a'],'ZREVRANGE')
+    eq(lst(c(s,f,'ZRANGEBYSCORE','z','2','3')),['b','c'],'ZRANGEBYSCORE'); eq(c(s,f,'ZRANK','z','c'),2,'ZRANK')
+    eq(c(s,f,'ZCOUNT','z','1','2'),2,'ZCOUNT'); eq(c(s,f,'ZINCRBY','z','5','a'),b'6','ZINCRBY')
+    eq(lst(c(s,f,'ZPOPMIN','z')),['b','2'],'ZPOPMIN')
+    zrem_members=['zrem%04d'%i for i in range(delete_batch_n)]
+    zrem_args=[x for i,name in enumerate(zrem_members) for x in (i,name)]
+    zrem_survivors=zrem_members[-delete_batch_keep:]
+    c(s,f,'DEL','zrem-batch'); eq(c(s,f,'ZADD','zrem-batch',*zrem_args),delete_batch_n,'ZREM-batch-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-before')
+    eq(c(s,f,'ZREM','zrem-batch',*zrem_members[:-delete_batch_keep]),delete_batch_n-delete_batch_keep,'ZREM-batch-delete')
+    eq(c(s,f,'ZCARD','zrem-batch'),delete_batch_keep,'ZREM-batch-ZCARD')
+    eq(lst(c(s,f,'ZRANGE','zrem-batch','0','-1')),zrem_survivors,'ZREM-batch-survivors')
+    eq(c(s,f,'OBJECT','ENCODING','zrem-batch'),b'skiplist','ZREM-batch-encoding-after')
+    # Shared string2ll/listpack edge corpus. Canonical integers must round-trip, while raw spellings
+    # (including values that would collide if normalized) must remain byte-exact in every listpack user.
+    lp_int_values=[
+        b'0',b'5',b'7',b'-7',b'12',b'99999999',b'100000000',
+        b'9999999999999999',b'10000000000000000',
+        b'9223372036854775807',b'-9223372036854775808',
+    ]
+    lp_raw_values=[
+        b'007',b' 12',b'12 ',b'+5',b'-0',
+        b'9223372036854775808',b'-9223372036854775809',
+        b'18446744073709551615',b'12x',b'',
+    ]
+    lp_values=lp_int_values+lp_raw_values
+    c(s,f,'DEL','str2ll-list')
+    eq(c(s,f,'RPUSH','str2ll-list',*lp_values),len(lp_values),'string2ll-list-RPUSH')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-list'),b'listpack','string2ll-list-encoding')
+    eq(c(s,f,'LRANGE','str2ll-list','0','-1'),lp_values,'string2ll-list-roundtrip')
+    c(s,f,'DEL','str2ll-hash')
+    lp_hash_args=[x for value in lp_values for x in (value,value)]
+    eq(c(s,f,'HSET','str2ll-hash',*lp_hash_args),len(lp_values),'string2ll-hash-HSET')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-hash'),b'listpack','string2ll-hash-encoding')
+    eq(c(s,f,'HLEN','str2ll-hash'),len(lp_values),'string2ll-hash-distinct-fields')
+    eq(c(s,f,'HMGET','str2ll-hash',*lp_values),lp_values,'string2ll-hash-roundtrip')
+    c(s,f,'DEL','str2ll-zset')
+    lp_zset_args=[x for i,value in enumerate(lp_values) for x in (i,value)]
+    eq(c(s,f,'ZADD','str2ll-zset',*lp_zset_args),len(lp_values),'string2ll-zset-ZADD')
+    eq(c(s,f,'OBJECT','ENCODING','str2ll-zset'),b'listpack','string2ll-zset-encoding')
+    eq(c(s,f,'ZCARD','str2ll-zset'),len(lp_values),'string2ll-zset-distinct-members')
+    eq(c(s,f,'ZRANGE','str2ll-zset','0','-1'),lp_values,'string2ll-zset-roundtrip')
+    # BZPOP uses the same T4 probe/winner path, but preserves its flat [key,member,score] reply.
+    bza,bzb=shard_pair(s,f,True,'bzpop')
+    c(s,f,'DEL',bza,bzb); c(s,f,'ZADD',bzb,'1','low','9','high')
+    eq(c(s,f,'BZPOPMIN',bza,bzb,'10'),[B(bzb),b'low',b'1'],
+       'BZPOPMIN cross-shard/skip-empty+reply')
+    eq(c(s,f,'BZPOPMAX',bza,bzb,'10'),[B(bzb),b'high',b'9'],
+       'BZPOPMAX cross-shard/skip-empty+reply')
+    c(s,f,'ZADD',bza,'50','first'); c(s,f,'ZADD',bzb,'1','second')
+    eq(c(s,f,'BZPOPMIN',bza,bzb,'10'),[B(bza),b'first',b'50'],
+       'BZPOPMIN cross-shard/first-ready precedence')
+    c(s,f,'DEL',bza,bzb)
+    for op in ('BZPOPMIN','BZPOPMAX'):
+        r=c(s,f,op,bza,bzb,'.05')
+        ck(rejected(r) and 'would block across shards' in str(r),
+           '%s cross-shard/all-empty must fail-safe reject: %r'%(op,r))
+    c(s,f,'ZADD','z1','1','a','2','b'); c(s,f,'ZADD','z2','3','b','4','c')
+    eq(c(s,f,'ZUNIONSTORE','zu','2','z1','z2'),3,'ZUNIONSTORE'); eq(c(s,f,'ZINTERSTORE','zi','2','z1','z2'),1,'ZINTERSTORE')
+    eq(lst(c(s,f,'ZDIFF','2','z1','z2')),['a'],'ZDIFF'); eq(lst(c(s,f,'ZMSCORE','z1','a','x')),['1',None],'ZMSCORE')
+    # ---- cross-shard set-op REDUCE path (fpp: shard-local reduce -> coordinator merge -> dest write) ----
+    # Force >=2 sources onto DIFFERENT shards so the merge-execution pipeline (nkeys>=2) runs; compare the
+    # stored/returned result to a Python reference of stock SINTER/UNION/DIFF + ZUNION/INTER/DIFF WEIGHTS/
+    # AGGREGATE. The zset fold is done in KEY ORDER, so a shard-regrouped (a+b)+c != a+(b+c) FP sum is caught.
+    def zsetop_ref(op, srcs, weights=None, agg='SUM'):
+        w=weights or [1.0]*len(srcs)
+        def fold(vs):
+            if agg=='MIN': return min(vs)
+            if agg=='MAX': return max(vs)
+            r=0.0
+            for v in vs: r+=v
+            return r
+        if op=='INTER':
+            ks=set(srcs[0])
+            for d in srcs[1:]: ks&=set(d)
+        elif op=='DIFF':
+            ks=set(srcs[0])
+            for d in srcs[1:]: ks-=set(d)
+            return sorted(((m,srcs[0][m]) for m in ks), key=lambda p:(p[1],p[0]))
+        else:
+            ks=set()
+            for d in srcs: ks|=set(d)
+        out=[(m, fold([w[i]*srcs[i][m] for i in range(len(srcs)) if m in srcs[i]])) for m in ks]
+        return sorted(out, key=lambda p:(p[1],p[0]))
+    def znum(x): return '%d'%x if float(x)==int(x) else repr(x)
+    csa,csb=shard_pair(s,f,True,'csetop')
+    c(s,f,'DEL',csa,csb,'cs-i','cs-u','cs-d')
+    c(s,f,'SADD',csa,'a','b','c','d'); c(s,f,'SADD',csb,'c','d','e')
+    eq(sorted(lst(c(s,f,'SINTER',csa,csb))),['c','d'],'xshard-SINTER-read'); eq(sorted(lst(c(s,f,'SUNION',csa,csb))),['a','b','c','d','e'],'xshard-SUNION-read')
+    eq(c(s,f,'SINTERSTORE','cs-i',csa,csb),2,'xshard-SINTERSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-i'))),['c','d'],'xshard-SINTERSTORE')
+    eq(c(s,f,'SUNIONSTORE','cs-u',csa,csb),5,'xshard-SUNIONSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-u'))),['a','b','c','d','e'],'xshard-SUNIONSTORE')
+    eq(c(s,f,'SDIFFSTORE','cs-d',csa,csb),2,'xshard-SDIFFSTORE-card'); eq(sorted(lst(c(s,f,'SMEMBERS','cs-d'))),['a','b'],'xshard-SDIFFSTORE')
+    c(s,f,'DEL',csa,csb); c(s,f,'SADD',csa,'x','y'); c(s,f,'SADD',csb,'z','w'); c(s,f,'SET','cs-i','stale')
+    eq(c(s,f,'SINTERSTORE','cs-i',csa,csb),0,'xshard-SINTERSTORE-empty-card'); eq(c(s,f,'EXISTS','cs-i'),0,'xshard-SINTERSTORE-empty-deletes')
+    c(s,f,'SET','cs-str','v'); r=c(s,f,'SINTERSTORE','cs-w',csa,'cs-str'); ck(rejected(r) and 'WRONGTYPE' in str(r),'xshard-SINTERSTORE-WRONGTYPE %r'%r)
+    za,zb=shard_pair(s,f,True,'czop'); zA={'a':1,'b':2,'c':3}; zB={'b':10,'c':20,'d':30}
+    c(s,f,'DEL',za,zb); c(s,f,'ZADD',za,*[x for m,sc in zA.items() for x in (znum(sc),m)]); c(s,f,'ZADD',zb,*[x for m,sc in zB.items() for x in (znum(sc),m)])
+    zr=zsetop_ref('UNION',[zA,zB],[2,3],'SUM')
+    eq(lst(c(s,f,'ZUNION','2',za,zb,'WEIGHTS','2','3','WITHSCORES')),[x for m,sc in zr for x in (m,znum(sc))],'xshard-ZUNION-read')
+    def zopchk(storecmd,op,weights,agg):
+        ref=zsetop_ref(op,[zA,zB],weights,agg); args=['2',za,zb]
+        if weights: args+=['WEIGHTS']+[znum(w) for w in weights]
+        if agg!='SUM': args+=['AGGREGATE',agg]
+        exp=[x for m,sc in ref for x in (m,znum(sc))]
+        eq(c(s,f,storecmd,'cz-dst',*args),len(ref),'xshard-%s-%s-card'%(storecmd,agg)); eq(lst(c(s,f,'ZRANGE','cz-dst','0','-1','WITHSCORES')),exp,'xshard-%s-%s'%(storecmd,agg))
+    zopchk('ZUNIONSTORE','UNION',[2,3],'SUM'); zopchk('ZUNIONSTORE','UNION',[1,1],'MIN'); zopchk('ZUNIONSTORE','UNION',[1,1],'MAX')
+    zopchk('ZINTERSTORE','INTER',[2,3],'SUM'); zopchk('ZINTERSTORE','INTER',[1,1],'MAX')
+    eq(c(s,f,'ZDIFFSTORE','cz-dst','2',za,zb),1,'xshard-ZDIFFSTORE-card'); eq(lst(c(s,f,'ZRANGE','cz-dst','0','-1','WITHSCORES')),['a','1'],'xshard-ZDIFFSTORE')
+    c(s,f,'DEL','cz-set'); c(s,f,'SADD','cz-set','c','e')
+    mref=zsetop_ref('UNION',[zA,{'c':1,'e':1}],[1,5],'SUM')
+    eq(c(s,f,'ZUNIONSTORE','cz-mix','2',za,'cz-set','WEIGHTS','1','5'),len(mref),'xshard-ZUNIONSTORE-mixed-card'); eq(lst(c(s,f,'ZRANGE','cz-mix','0','-1','WITHSCORES')),[x for m,sc in mref for x in (m,znum(sc))],'xshard-ZUNIONSTORE-mixed')
+    # Monotonic skiplist inserts (including equal-score lexical tails) must retain exact sorted order.
+    zmono=[('zm%04d'%i,i//3) for i in range(384)]; zmono_args=[x for name,score in zmono for x in (str(score),name)]
+    c(s,f,'DEL','zmono'); eq(c(s,f,'ZADD','zmono',*zmono_args),len(zmono),'ZADD-monotonic-append')
+    eq(c(s,f,'OBJECT','ENCODING','zmono'),b'skiplist','ZADD-monotonic-skiplist-encoding')
+    zmono_want=[x for name,score in zmono for x in (name,str(score))]
+    eq(lst(c(s,f,'ZRANGE','zmono','0','-1','WITHSCORES')),zmono_want,'ZADD-monotonic-append-order')
+    eq(lst(c(s,f,'ZRANGE','zmono','190','195','WITHSCORES')),zmono_want[380:392],'ZADD-monotonic-span-window')
+    eq(c(s,f,'ZRANK','zmono',zmono[-1][0]),len(zmono)-1,'ZADD-monotonic-tail-rank')
+    zs,zd='zrs-src','zrs-dst'; zref=[('a',-3),('b',-1),('c',0),('d',1),('e',2),('f',4)]
+    def zrs(tail,want,tag):
+        exp=[x for m,q in sorted(want,key=lambda p:(p[1],p[0])) for x in (m,str(q))]
+        eq(c(s,f,'ZRANGESTORE',zd,zs,*tail),len(want),tag+'-card'); eq(lst(c(s,f,'ZRANGE',zd,'0','-1','WITHSCORES')),exp,tag+'-data')
+    c(s,f,'ZADD',zs,*[x for m,q in zref for x in (str(q),m)]); c(s,f,'SET',zd,'stale')
+    zrs(('1','4'),zref[1:5],'ZRANGESTORE-index/overwrite'); zrs(('1','3','REV'),zref[::-1][1:4],'ZRANGESTORE-REV')
+    zrs(('-inf','(2','BYSCORE'),[p for p in zref if p[1]<2],'ZRANGESTORE-BYSCORE--inf/exclusive')
+    zrs(('(0','+inf','BYSCORE','LIMIT','1','2'),[p for p in zref if p[1]>0][1:3],'ZRANGESTORE-BYSCORE-+inf/LIMIT')
+    lexref=[(m,7) for m in 'abcdef']; c(s,f,'DEL',zs); c(s,f,'ZADD',zs,*[x for m,q in lexref for x in (str(q),m)])
+    zrs(('[b','(f','BYLEX','LIMIT','1','3'),[p for p in lexref if 'b'<=p[0]<'f'][1:4],'ZRANGESTORE-BYLEX/LIMIT')
+    eq(c(s,f,'ZRANGESTORE',zd,zs,'99','100'),0,'ZRANGESTORE-empty-card'); eq(c(s,f,'EXISTS',zd),0,'ZRANGESTORE-empty-deletes')
+    # ---- streams ----
+    c(s,f,'DEL','x'); i1=c(s,f,'XADD','x','*','k','v1'); c(s,f,'XADD','x','*','k','v2'); eq(c(s,f,'XLEN','x'),2,'XADD/XLEN')
+    r=c(s,f,'XRANGE','x','-','+'); ck(isinstance(r,list) and len(r)==2,'XRANGE %r'%(r if not isinstance(r,list) else len(r)))
+    eq(c(s,f,'XDEL','x',i1.decode() if i1 else ''),1,'XDEL')
+    # ---- HLL ----
+    c(s,f,'DEL','hll'); c(s,f,'PFADD','hll','a','b','c','a'); v=c(s,f,'PFCOUNT','hll'); ck(isinstance(v,int) and 2<=v<=4,'PFCOUNT %r'%v)
+    # ---- geo ----
+    c(s,f,'DEL','geo'); c(s,f,'GEOADD','geo','13.361','38.115','Palermo','15.087','37.502','Catania')
+    d=c(s,f,'GEODIST','geo','Palermo','Catania','km'); ck(d and 160<float(d)<170,'GEODIST %r'%d)
+    r=c(s,f,'GEOSEARCH','geo','FROMMEMBER','Palermo','BYRADIUS','200','km','ASC'); eq(lst(r),['Palermo','Catania'],'GEOSEARCH')
+    gref=[('Palermo',13.361389,38.115556),('Catania',15.087269,37.502669),('Rome',12.496366,41.902782)]
+    gpos={m:(lo,la) for m,lo,la in gref}
+    def gkm(a,b):
+        lo1,la1=gpos[a]; lo2,la2=gpos[b]
+        u=math.sin(math.radians(la2-la1)/2); v=math.sin(math.radians(lo2-lo1)/2)
+        return 2*6372.797560856*math.asin(math.sqrt(u*u+math.cos(math.radians(la1))*math.cos(math.radians(la2))*v*v))
+    def zraw(k):
+        a=lst(c(s,f,'ZRANGE',k,'0','-1','WITHSCORES')); return [(a[i],a[i+1]) for i in range(0,len(a),2)]
+    def hashcheck(k,members,gh,tag):
+        exp=[x for m in sorted(members,key=lambda m:(float(gh[m]),m)) for x in (m,gh[m])]
+        eq(lst(c(s,f,'ZRANGE',k,'0','-1','WITHSCORES')),exp,tag)
+    def distcheck(k,center,members,tag):
+        a=zraw(k); got={m:float(q) for m,q in a}; exp=sorted(members,key=lambda m:(gkm(center,m),m))
+        eq([m for m,q in a],exp,tag+'-order'); eq(sorted(got),sorted(exp),tag+'-members')
+        for m in exp: ck(abs(got[m]-gkm(center,m))<.01,'%s-%s score got %r want %.6f'%(tag,m,got[m],gkm(center,m)))
+    c(s,f,'DEL',xs,xd); c(s,f,'GEOADD',xs,*[x for m,lo,la in gref for x in (lo,la,m)])
+    gh=dict(zraw(xs)); pnear=[m for m in gpos if gkm('Palermo',m)<=200]; cnear=[m for m in gpos if gkm('Catania',m)<=200]
+    far=max(pnear,key=lambda m:gkm('Palermo',m))
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT',*gpos['Palermo'],'BYRADIUS','200','km','ASC'),len(pnear),'GEOSEARCHSTORE hash/card')
+    hashcheck(xd,pnear,gh,'GEOSEARCHSTORE hash/order+scores+overwrite')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT',*gpos['Palermo'],'BYRADIUS','200','km','DESC','COUNT','1','STOREDIST'),1,'GEOSEARCHSTORE STOREDIST/card')
+    distcheck(xd,'Palermo',[far],'GEOSEARCHSTORE STOREDIST')
+    eq(c(s,f,'GEOSEARCHSTORE',xd,xs,'FROMLONLAT','0','0','BYRADIUS','1','m'),0,'GEOSEARCHSTORE empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEOSEARCHSTORE empty/deletes')
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEORADIUS',xs,*gpos['Palermo'],'200','km','DESC','COUNT','1','STORE',xd),1,'GEORADIUS STORE/card')
+    hashcheck(xd,[far],gh,'GEORADIUS STORE/hash+overwrite')
+    eq(c(s,f,'GEORADIUS',xs,*gpos['Palermo'],'200','km','ASC','STOREDIST',xd),len(pnear),'GEORADIUS STOREDIST/card')
+    distcheck(xd,'Palermo',pnear,'GEORADIUS STOREDIST')
+    eq(c(s,f,'GEORADIUS',xs,'0','0','1','m','STORE',xd),0,'GEORADIUS empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEORADIUS empty/deletes')
+    c(s,f,'SET',xd,'stale')
+    eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Palermo','200','km','ASC','COUNT','1','STORE',xd),1,'GEORADIUSBYMEMBER STORE/card')
+    hashcheck(xd,['Palermo'],gh,'GEORADIUSBYMEMBER STORE/hash+overwrite')
+    eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Catania','200','km','ASC','STOREDIST',xd),len(cnear),'GEORADIUSBYMEMBER STOREDIST/card')
+    distcheck(xd,'Catania',cnear,'GEORADIUSBYMEMBER STOREDIST')
+    c(s,f,'DEL',xs); eq(c(s,f,'GEORADIUSBYMEMBER',xs,'Palermo','200','km','STORE',xd),0,'GEORADIUSBYMEMBER empty/card'); eq(c(s,f,'EXISTS',xd),0,'GEORADIUSBYMEMBER empty/deletes')
+    # Co-located T1 control: distinct keys on one worker must run each real stock proc.
+    c(s,f,'DEL',ls,ld); c(s,f,'GEOADD',ls,*[x for m,lo,la in gref for x in (lo,la,m)])
+    eq(c(s,f,'GEOSEARCHSTORE',ld,ls,'FROMMEMBER','Palermo','BYRADIUS','200','km'),len(pnear),'GEOSEARCHSTORE same-shard/card'); hashcheck(ld,pnear,gh,'GEOSEARCHSTORE same-shard/data')
+    eq(c(s,f,'GEORADIUS',ls,*gpos['Palermo'],'200','km','STORE',ld),len(pnear),'GEORADIUS same-shard/card'); hashcheck(ld,pnear,gh,'GEORADIUS same-shard/data')
+    eq(c(s,f,'GEORADIUSBYMEMBER',ls,'Catania','200','km','STOREDIST',ld),len(cnear),'GEORADIUSBYMEMBER same-shard/card'); distcheck(ld,'Catania',cnear,'GEORADIUSBYMEMBER same-shard/data')
+    # XREAD T5: force two owners, then verify entries and stream ordering against a Python shape.
+    xra,xrb=shard_pair(s,f,True,'xread')
+    c(s,f,'DEL',xra,xrb)
+    eq(c(s,f,'XADD',xra,'1-0','f','a'),b'1-0','XREAD fixture A1')
+    eq(c(s,f,'XADD',xra,'2-0','f','b'),b'2-0','XREAD fixture A2')
+    eq(c(s,f,'XADD',xrb,'1-0','g','c'),b'1-0','XREAD fixture B1')
+    eq(c(s,f,'XADD',xrb,'2-0','g','d'),b'2-0','XREAD fixture B2')
+    xread_want=[
+        [B(xrb),[[b'1-0',[b'g',b'c']],[b'2-0',[b'g',b'd']]]],
+        [B(xra),[[b'1-0',[b'f',b'a']],[b'2-0',[b'f',b'b']]]],
+    ]
+    eq(c(s,f,'XREAD','COUNT','2','STREAMS',xrb,xra,'0','0'),xread_want,
+       'XREAD cross-shard/entries+key-order')
+    xread_omit=[[B(xra),[[b'2-0',[b'f',b'b']]]]]
+    eq(c(s,f,'XREAD','STREAMS',xrb,xra,'2-0','1-0'),xread_omit,
+       'XREAD cross-shard/omit-empty')
+    block_err=c(s,f,'XREAD','BLOCK','0','STREAMS',xra,xrb,'0','0')
+    ck(rejected(block_err) and 'not yet supported with tomokv sharding' in str(block_err),
+       'XREAD BLOCK must remain fail-safe rejected: %r'%block_err)
+    group_err=c(s,f,'XREADGROUP','GROUP','g','consumer','STREAMS',xra,xrb,'>','>')
+    ck(rejected(group_err) and 'not yet supported with tomokv sharding' in str(group_err),
+       'XREADGROUP must remain fail-safe rejected: %r'%group_err)
+    # ---- generic / key ----
+    c(s,f,'SET','k1','v'); eq(c(s,f,'TYPE','k1'),b'string','TYPE'); eq(c(s,f,'EXISTS','k1'),1,'EXISTS')
+    c(s,f,'EXPIRE','k1','100'); t=c(s,f,'TTL','k1'); ck(0<int(t)<=100,'TTL %r'%t); eq(c(s,f,'PERSIST','k1'),1,'PERSIST')
+    c(s,f,'RENAME','k1','k2'); eq(c(s,f,'GET','k2'),b'v','RENAME'); eq(c(s,f,'COPY','k2','k3'),1,'COPY'); eq(c(s,f,'GET','k3'),b'v','COPY-val')
+    eq(c(s,f,'TOUCH','k2','k3'),2,'TOUCH'); eq(c(s,f,'UNLINK','k3'),1,'UNLINK')
+    du=c(s,f,'DUMP','k2'); ck(du is not None,'DUMP'); c(s,f,'DEL','k4'); eq(c(s,f,'RESTORE','k4','0',du),b'OK','RESTORE'); eq(c(s,f,'GET','k4'),b'v','RESTORE-val')
+    # SORT (the fixed one): numeric + alpha + LIMIT, verify order
+    c(s,f,'DEL','so'); c(s,f,'RPUSH','so','3','1','2','5','4')
+    eq(lst(c(s,f,'SORT','so')),['1','2','3','4','5'],'SORT'); eq(lst(c(s,f,'SORT','so','LIMIT','0','3')),['1','2','3'],'SORT-LIMIT')
+    eq(lst(c(s,f,'SORT','so','DESC','LIMIT','0','2')),['5','4'],'SORT-DESC-LIMIT')
+    c(s,f,'DEL','sa'); c(s,f,'RPUSH','sa','banana','apple','cherry')
+    eq(lst(c(s,f,'SORT','sa','ALPHA','LIMIT','0','2')),['apple','banana'],'SORT-ALPHA-LIMIT')
+    eq(lst(c(s,f,'SORT_RO','so','LIMIT','0','2')),['1','2'],'SORT_RO')
+    nums=['10','2','7','-1','3']; c(s,f,'DEL',xs,xd); c(s,f,'RPUSH',xs,*nums); c(s,f,'SET',xd,'stale')
+    want=[str(x) for x in sorted(map(int,nums),reverse=True)][1:4]
+    eq(c(s,f,'SORT',xs,'DESC','LIMIT','1','3','STORE',xd),len(want),'SORT STORE numeric/card'); eq(lst(c(s,f,'LRANGE',xd,'0','-1')),want,'SORT STORE numeric/order+overwrite')
+    words=['banana','apple','cherry','apricot']; c(s,f,'DEL',xs); c(s,f,'RPUSH',xs,*words); want=sorted(words)[1:3]
+    eq(c(s,f,'SORT',xs,'ALPHA','ASC','LIMIT','1','2','STORE',xd),len(want),'SORT STORE alpha/card'); eq(lst(c(s,f,'LRANGE',xd,'0','-1')),want,'SORT STORE alpha/order')
+    eq(c(s,f,'SORT',xs,'ALPHA','LIMIT','99','2','STORE',xd),0,'SORT STORE empty/card'); eq(c(s,f,'EXISTS',xd),0,'SORT STORE empty/deletes')
+    c(s,f,'DEL',ls,ld); c(s,f,'RPUSH',ls,*nums); c(s,f,'SET',ld,'stale'); want=[str(x) for x in sorted(map(int,nums))[:3]]
+    eq(c(s,f,'SORT',ls,'LIMIT','0','3','STORE',ld),len(want),'SORT STORE same-shard/card'); eq(lst(c(s,f,'LRANGE',ld,'0','-1')),want,'SORT STORE same-shard/data')
+    # SORT T3: derived weight keys are proven to span owners. Numeric and ALPHA use the same
+    # Python reference but deliberately disagree for "10" vs "2".
+    wk1,wk2=shard_pair(s,f,True,'sort-t3-weight',
+                       lambda i: ('weight:t3a:%d'%i,'weight:t3b:%d'%i))
+    wm=[wk1[len('weight:'):],wk2[len('weight:'):]]; weights={wm[0]:'10',wm[1]:'2'}
+    bysrc='sort-t3-by-src'; c(s,f,'DEL',bysrc,wk1,wk2); c(s,f,'RPUSH',bysrc,*wm)
+    c(s,f,'MSET',wk1,weights[wm[0]],wk2,weights[wm[1]])
+    by_num=sorted(wm,key=lambda m:(float(weights[m]),m))
+    by_alpha=sorted(wm,key=lambda m:weights[m])
+    eq(lst(c(s,f,'SORT',bysrc,'BY','weight:*')),by_num,'SORT BY weight:* numeric/cross-shard')
+    eq(lst(c(s,f,'SORT',bysrc,'BY','weight:*','ALPHA')),by_alpha,'SORT BY weight:* ALPHA/cross-shard')
+    c(s,f,'SET','sort-t3-wrongtype','not-a-collection')
+    wrong=c(s,f,'SORT','sort-t3-wrongtype','GET','#')
+    ck(rejected(wrong) and 'WRONGTYPE' in str(wrong),'SORT BY/GET source WRONGTYPE: %r'%wrong)
+
+    # GET hash-field dereferences are expanded only after external-BY ordering selects this
+    # window. The two data keys are a proven cross-owner pair; the second is absent and must
+    # project nil, while GET # preserves the selected element beside it. Two GET clauses cover
+    # projection ordering.
+    dk1,dk2=shard_pair(s,f,True,'sort-t3-data',
+                       lambda i: ('data_t3ga:%d'%i,'data_t3gb:%d'%i))
+    dm=[dk1[len('data_'):],dk2[len('data_'):]]
+    getsrc='sort-t3-get-src'; native=['outside']+dm+['tail']
+    c(s,f,'DEL',getsrc,dk1,dk2); c(s,f,'RPUSH',getsrc,*native); c(s,f,'HSET',dk1,'field','value-a')
+    window_weights={'outside':'0',dm[0]:'10',dm[1]:'2','tail':'20'}
+    c(s,f,'MSET',*[x for m in native for x in ('weight:'+m,window_weights[m])])
+    selected=sorted(native,key=lambda m:(float(window_weights[m]),m))[1:3]
+    get_data={dm[0]:'value-a',dm[1]:None}
+    get_ref=[x for m in selected for x in (get_data[m],m)]
+    eq(lst(c(s,f,'SORT',getsrc,'BY','weight:*','LIMIT','1','2',
+             'GET','data_*->field','GET','#')),get_ref,
+       'SORT BY/GET hash+GET #/multiple GET/missing nil/selected window')
+    nosort_ref=list(reversed(native))[1:3]
+    eq(lst(c(s,f,'SORT',getsrc,'BY','nosort','DESC','LIMIT','1','2')),nosort_ref,
+       'SORT BY-nosort DESC/LIMIT native order')
+
+    # Full T3 STORE: source and destination are proven cross-owner; BY weights themselves span
+    # owners, projection is computed in Python, and LRANGE checks the stored flattened list order.
+    t3src,t3dst=shard_pair(s,f,True,'sort-t3-store')
+    data_by={wm[0]:'row-a',wm[1]:'row-b'}
+    c(s,f,'DEL',t3src,t3dst,'data_'+wm[0],'data_'+wm[1]); c(s,f,'RPUSH',t3src,*wm)
+    c(s,f,'HSET','data_'+wm[0],'field',data_by[wm[0]]); c(s,f,'HSET','data_'+wm[1],'field',data_by[wm[1]])
+    store_members=sorted(wm,key=lambda m:(float(weights[m]),m),reverse=True)
+    store_ref=[x for m in store_members for x in (data_by[m],m)]
+    eq(c(s,f,'SORT',t3src,'BY','weight:*','GET','data_*->field','GET','#',
+         'DESC','LIMIT','0','2','STORE',t3dst),len(store_ref),'SORT BY/GET STORE cross-shard/card')
+    eq(lst(c(s,f,'LRANGE',t3dst,'0','-1')),store_ref,'SORT BY/GET STORE cross-shard/order')
+    # SCAN wall-cap: a huge COUNT is wall-time sliced; follow every cursor and verify no key lost/repeated.
+    eq(c(s,f,'FLUSHDB'),b'OK','SCAN-cap-FLUSHDB')
+    scan_want={'scan-cap:%04d'%i for i in range(4096)}
+    scan_args=[x for key in sorted(scan_want) for x in (key,'v')]
+    eq(c(s,f,'MSET',*scan_args),b'OK','SCAN-cap-fixture')
+    seen=[]; cur=b'0'; scan_calls=0
+    while True:
+        r=c(s,f,'SCAN',cur,'COUNT','1000000'); cur=r[0]; scan_calls+=1
+        seen.extend(lst(r[1]))
+        if cur==b'0': break
+        if scan_calls>100000: fails.append('SCAN cap cursor did not terminate'); break
+    eq(set(seen),scan_want,'SCAN-cap-full-keyspace')
+    eq(len(seen),len(scan_want),'SCAN-cap-no-duplicates')
+    ck(scan_calls>1,'SCAN cap did not split huge COUNT (calls=%d)'%scan_calls)
+    # ---- T6 single-shard transactions + keyed scripts/functions ----
+    ta,tb=shard_pair(s,f,False,'t6same'); txa,txb=shard_pair(s,f,True,'t6cross')
+    c(s,f,'DEL',ta,tb,txa,txb)
+    eq(c(s,f,'MULTI'),b'OK','MULTI same-shard/open')
+    eq(c(s,f,'SET',ta,'0'),b'QUEUED','MULTI same-shard/queue SET')
+    eq(c(s,f,'INCR',ta),b'QUEUED','MULTI same-shard/queue INCR')
+    eq(c(s,f,'SET',tb,'peer'),b'QUEUED','MULTI same-shard/queue peer')
+    eq(c(s,f,'EXEC'),[b'OK',1,b'OK'],'MULTI same-shard/EXEC replies')
+    eq(lst(c(s,f,'MGET',ta,tb)),['1','peer'],'MULTI same-shard/committed data')
+
+    eq(c(s,f,'MULTI'),b'OK','MULTI cross-shard/open')
+    eq(c(s,f,'SET',txa,'left'),b'QUEUED','MULTI cross-shard/queue left')
+    eq(c(s,f,'SET',txb,'right'),b'QUEUED','MULTI cross-shard/queue right')
+    xexec=c(s,f,'EXEC')
+    ck(rejected(xexec) and 'CROSSSLOT' in str(xexec),'MULTI cross-shard must CROSSSLOT: %r'%xexec)
+    eq(lst(c(s,f,'MGET',txa,txb)),[None,None],'MULTI cross-shard/discarded queue')
+    xwatch=c(s,f,'WATCH',txa,txb)
+    ck(rejected(xwatch) and 'CROSSSLOT' in str(xwatch),'WATCH cross-shard must CROSSSLOT: %r'%xwatch)
+
+    # WATCH is registered on the key owner. A competing owner-routed write must dirty the CAS,
+    # while UNWATCH and DISCARD retain their stock state cleanup.
+    s2,f2=conn()
+    eq(c(s,f,'WATCH',ta),b'OK','WATCH/register')
+    eq(c(s2,f2,'SET',ta,'41'),b'OK','WATCH/concurrent writer')
+    eq(c(s,f,'MULTI'),b'OK','WATCH dirty/MULTI')
+    eq(c(s,f,'INCR',ta),b'QUEUED','WATCH dirty/queue')
+    eq(c(s,f,'EXEC'),None,'WATCH dirty/EXEC abort')
+    eq(c(s,f,'GET',ta),b'41','WATCH dirty/no commit')
+    eq(c(s,f,'WATCH',ta),b'OK','UNWATCH/register')
+    eq(c(s,f,'UNWATCH'),b'OK','UNWATCH')
+    eq(c(s2,f2,'SET',ta,'99'),b'OK','UNWATCH/external write')
+    eq(c(s,f,'MULTI'),b'OK','UNWATCH/MULTI')
+    eq(c(s,f,'INCR',ta),b'QUEUED','UNWATCH/queue')
+    eq(c(s,f,'EXEC'),[100],'UNWATCH/EXEC commits')
+    eq(c(s,f,'MULTI'),b'OK','DISCARD/open')
+    eq(c(s,f,'SET',ta,'discarded'),b'QUEUED','DISCARD/queue')
+    eq(c(s,f,'DISCARD'),b'OK','DISCARD/reply')
+    eq(c(s,f,'GET',ta),b'100','DISCARD/no commit')
+    s2.close()
+
+    pair_script="return redis.call('mset',KEYS[1],ARGV[1],KEYS[2],ARGV[2])"
+    eq(c(s,f,'EVAL',pair_script,'2',ta,tb,'eval-a','eval-b'),b'OK','EVAL keyed same-shard')
+    eq(lst(c(s,f,'MGET',ta,tb)),['eval-a','eval-b'],'EVAL keyed same-shard/data')
+    c(s,f,'SET',txa,'guard-a'); c(s,f,'SET',txb,'guard-b')
+    xeval=c(s,f,'EVAL',pair_script,'2',txa,txb,'bad-a','bad-b')
+    ck(rejected(xeval) and 'CROSSSLOT' in str(xeval),'EVAL keyed cross-shard must CROSSSLOT: %r'%xeval)
+    eq(lst(c(s,f,'MGET',txa,txb)),['guard-a','guard-b'],'EVAL cross-shard/no side effects')
+    eq(c(s,f,'EVAL','return 7','0'),7,'EVAL keyless unchanged')
+    sha=c(s,f,'SCRIPT','LOAD',"return redis.call('get',KEYS[1])")
+    ck(isinstance(sha,bytes) and len(sha)==40,'SCRIPT LOAD for keyed EVALSHA: %r'%sha)
+    eq(c(s,f,'EVALSHA',sha,'1',ta),b'eval-a','EVALSHA keyed same-shard')
+    xevalsha=c(s,f,'EVALSHA',sha,'2',txa,txb)
+    ck(rejected(xevalsha) and 'CROSSSLOT' in str(xevalsha),'EVALSHA keyed cross-shard must CROSSSLOT: %r'%xevalsha)
+
+    flib=("#!lua name=t6lib\n"
+          "redis.register_function('t6pair', function(keys,args) "
+          "redis.call('mset',keys[1],args[1],keys[2],args[2]); "
+          "return redis.call('mget',keys[1],keys[2]) end)")
+    eq(c(s,f,'FUNCTION','LOAD','REPLACE',flib),b't6lib','FUNCTION LOAD T6 fixture')
+    eq(lst(c(s,f,'FCALL','t6pair','2',ta,tb,'fun-a','fun-b')),
+       ['fun-a','fun-b'],'FCALL keyed same-shard')
+    xfcall=c(s,f,'FCALL','t6pair','2',txa,txb,'bad-a','bad-b')
+    ck(rejected(xfcall) and 'CROSSSLOT' in str(xfcall),'FCALL keyed cross-shard must CROSSSLOT: %r'%xfcall)
+    # ---- cold client state ----
+    # CLIENT INFO must report the zero/default view without forcing any of the
+    # lazily allocated tracking, pubsub, WATCH, or MULTI structures to exist.
+    ci=c(s,f,'CLIENT','INFO')
+    ck(isinstance(ci,bytes) and b'id=' in ci and b' sub=0' in ci and
+       b' psub=0' in ci and b' ssub=0' in ci and b' multi=-1' in ci and b' watch=0' in ci,
+       'CLIENT INFO cold defaults: %r'%ci)
+
+    # Tracking shares the cold pubsub component. Exercise allocation, prefix
+    # ownership, reads, and cleanup while leaving the client usable afterward.
+    eq(c(s,f,'CLIENT','TRACKING','ON','BCAST','PREFIX','cov:'),b'OK','CLIENT TRACKING ON')
+    eq(c(s,f,'CLIENT','GETREDIR'),0,'CLIENT TRACKING redirect')
+    eq(c(s,f,'CLIENT','TRACKINGINFO'),
+       [b'flags',[b'on',b'bcast'],b'redirect',0,b'prefixes',[b'cov:']],
+       'CLIENT TRACKINGINFO cold state')
+    eq(c(s,f,'CLIENT','TRACKING','OFF'),b'OK','CLIENT TRACKING OFF')
+    eq(c(s,f,'CLIENT','GETREDIR'),-1,'CLIENT TRACKING cleanup')
+
+    # Pubsub mode is connection state, so use a dedicated connection and prove
+    # both its cold dictionaries and the subscribe-mode command guard.
+    ps,pf=conn()
+    eq(c(ps,pf,'SUBSCRIBE','cov:cold'),[b'subscribe',b'cov:cold',1],'SUBSCRIBE cold state')
+    subcmd=c(ps,pf,'GET','s')
+    ck(rejected(subcmd) and 'subscribe' in str(subcmd).lower(),
+       'subscribed client command guard: %r'%subcmd)
+    eq(c(ps,pf,'UNSUBSCRIBE','cov:cold'),[b'unsubscribe',b'cov:cold',0],'UNSUBSCRIBE cold cleanup')
+    ps.close()
+
+    # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
+    exec_err=c(s,f,'EXEC')
+    ck(rejected(exec_err) and 'EXEC without MULTI' in str(exec_err),
+       'EXEC without MULTI must reject cleanly: %r'%exec_err)
+    multi_err=c(s,f,'MULTI')
+    ck(rejected(multi_err),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
+    exec_after_multi_error=c(s,f,'EXEC')
+    ck(rejected(exec_after_multi_error) and 'EXEC without MULTI' in str(exec_after_multi_error),
+       'MULTI rejection must not leave transaction state: %r'%exec_after_multi_error)
+    # ---- server/conn ----
+    eq(c(s,f,'PING'),b'PONG','PING'); eq(c(s,f,'ECHO','hi'),b'hi','ECHO')
+    s.close()
+
+def partB(C=48, iters=12):
+    # concurrency race sweep: each conn deterministic on its OWN keys, params VARIED per conn. This is the
+    # net that catches process-global command scratch races (the SORT desc/alpha class) across workers.
+    def worker(cid):
+        try:
+            s,f=conn(); r=random.Random(9000+cid); desc=(cid%2==0); alpha=(cid%3==0)
+            for it in range(iters):
+                # SORT with per-conn DESC/ALPHA (the known race pattern)
+                k='rk%d'%cid; c(s,f,'DEL',k)
+                vals=[r.randint(0,10**7) for _ in range(150)]; c(s,f,'RPUSH',k,*map(str,vals))
+                opt=['SORT',k]+(['ALPHA'] if alpha else [])+(['DESC'] if desc else [])+['LIMIT','0','40']
+                got=lst(c(s,f,*opt))
+                exp=sorted(map(str,vals)) if alpha else sorted(vals)
+                if desc: exp=exp[::-1]
+                exp=[str(x) for x in exp[:40]]
+                if got!=exp: fails.append('B conn%d it%d SORT desc=%s alpha=%s mismatch'%(cid,it,desc,alpha)); return
+                # GETRANGE with per-conn offsets
+                sv=('p%d_'%cid)+('y'*(cid%17))+str(it); c(s,f,'SET','g%d'%cid,sv)
+                lo=cid%7; hi=lo+4; gr=c(s,f,'GETRANGE','g%d'%cid,str(lo),str(hi))
+                if gr!=B(sv)[lo:hi+1]: fails.append('B conn%d it%d GETRANGE mismatch'%(cid,it)); return
+                # ZRANGEBYSCORE window per-conn
+                zk='z%d'%cid; c(s,f,'DEL',zk)
+                for i in range(20): c(s,f,'ZADD',zk,str(i),'m%d'%i)
+                a0=cid%5; a1=a0+6; zr=lst(c(s,f,'ZRANGEBYSCORE',zk,str(a0),str(a1)))
+                if zr!=['m%d'%i for i in range(a0,a1+1)]: fails.append('B conn%d it%d ZRANGEBYSCORE mismatch'%(cid,it)); return
+                # INCR sequence integrity (same-key same-conn order)
+                c(s,f,'SET','ic%d'%cid,'0')
+                for want in range(1,11):
+                    if int(c(s,f,'INCR','ic%d'%cid))!=want: fails.append('B conn%d INCR order'%cid); return
+                # Single-owner EXEC is one worker job: per-command replies and the final value must
+                # remain coherent while many connections execute transactions on all workers.
+                tk='mtx%d'%cid
+                if c(s,f,'MULTI')!=b'OK': fails.append('B conn%d MULTI open'%cid); return
+                if c(s,f,'SET',tk,'0')!=b'QUEUED': fails.append('B conn%d MULTI SET queue'%cid); return
+                if c(s,f,'INCR',tk)!=b'QUEUED': fails.append('B conn%d MULTI INCR queue'%cid); return
+                if c(s,f,'GET',tk)!=b'QUEUED': fails.append('B conn%d MULTI GET queue'%cid); return
+                if c(s,f,'EXEC')!=[b'OK',1,b'1']: fails.append('B conn%d MULTI EXEC replies'%cid); return
+            s.close()
+        except Exception as e:
+            fails.append('B conn%d exception %r'%(cid,e))
+    ts=[threading.Thread(target=worker,args=(i,)) for i in range(C)]
+    [t.start() for t in ts]; [t.join() for t in ts]
+
+print('[%s] cmd_gate: Part A (breadth) ...'%LABEL, flush=True)
+try: partA()
+except Exception as e: fails.append('Part A crashed: %r'%e)
+print('[%s] cmd_gate: Part B (concurrency race sweep) ...'%LABEL, flush=True)
+try: partB()
+except Exception as e: fails.append('Part B crashed: %r'%e)
+if fails:
+    print("FAIL (%d):"%len(fails))
+    for m in fails[:30]: print("  -",m)
+    sys.exit(1)
+print("PASS — all command-family checks + concurrency race sweep clean")

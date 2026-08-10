@@ -471,34 +471,6 @@ int anetTcpNonBlockBestEffortBindConnect(char *err, const char *addr, int port,
             ANET_CONNECT_NONBLOCK|ANET_CONNECT_BE_BINDING);
 }
 
-int anetUnixGenericConnect(char *err, const char *path, int flags)
-{
-    int s;
-    struct sockaddr_un sa;
-
-    if ((s = anetCreateSocket(err,AF_LOCAL)) == ANET_ERR)
-        return ANET_ERR;
-
-    sa.sun_family = AF_LOCAL;
-    redis_strlcpy(sa.sun_path,path,sizeof(sa.sun_path));
-    if (flags & ANET_CONNECT_NONBLOCK) {
-        if (anetNonBlock(err,s) != ANET_OK) {
-            close(s);
-            return ANET_ERR;
-        }
-    }
-    if (connect(s,(struct sockaddr*)&sa,sizeof(sa)) == -1) {
-        if (errno == EINPROGRESS &&
-            flags & ANET_CONNECT_NONBLOCK)
-            return s;
-
-        anetSetError(err, "connect: %s", strerror(errno));
-        close(s);
-        return ANET_ERR;
-    }
-    return s;
-}
-
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog, mode_t perm) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
@@ -552,6 +524,18 @@ static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backl
 
         if (af == AF_INET6 && anetV6Only(err,s) == ANET_ERR) goto error;
         if (anetSetReuseAddr(err,s) == ANET_ERR) goto error;
+
+        /* SO_REUSEPORT: allows each io thread to bind its own socket to the
+         * same port. The kernel load-balances incoming connections across all
+         * of them, eliminating accept() contention. Must be set before bind(). */
+
+        int yes = 1;
+        if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) == -1) {
+            anetSetError(err, "setsockopt SO_REUSEPORT: %s", strerror(errno));
+            goto error;
+        }
+        
+
         if (anetListen(err,s,p->ai_addr,p->ai_addrlen,backlog,0) == ANET_ERR) s = ANET_ERR;
         goto end;
     }
@@ -571,6 +555,59 @@ end:
 int anetTcpServer(char *err, int port, char *bindaddr, int backlog)
 {
     return _anetTcpServer(err, port, bindaddr, AF_INET, backlog);
+}
+
+/* ee451 (thread-modes v1, step 2): _anetTcpServer minus the listen() — socket +
+ * SO_REUSEADDR + SO_REUSEPORT + bind only. A TCP socket joins the kernel's
+ * SO_REUSEPORT dispatch group at listen() time, NOT at bind() time, so a
+ * bound-but-not-listening socket steals no connections from the live listeners:
+ * this is the DORMANT pre-allocated listener for a flip GROWTH io slot. The EX
+ * worker that grows into it completes IO-entry later with a single
+ * listen(fd, backlog) — instant. */
+int anetTcpServerBindOnly(char *err, int port, char *bindaddr)
+{
+    int s = -1, rv;
+    char _port[6];
+    struct addrinfo hints, *servinfo, *p;
+
+    snprintf(_port,6,"%d",port);
+    memset(&hints,0,sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    if (bindaddr && !strcmp("*", bindaddr))
+        bindaddr = NULL;
+
+    if ((rv = getaddrinfo(bindaddr,_port,&hints,&servinfo)) != 0) {
+        anetSetError(err, "%s", gai_strerror(rv));
+        return ANET_ERR;
+    }
+    for (p = servinfo; p != NULL; p = p->ai_next) {
+        if ((s = socket(p->ai_family,p->ai_socktype,p->ai_protocol)) == -1)
+            continue;
+        if (anetSetReuseAddr(err,s) == ANET_ERR) goto error;
+        int yes = 1;
+        if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) == -1) {
+            anetSetError(err, "setsockopt SO_REUSEPORT: %s", strerror(errno));
+            goto error;
+        }
+        if (bind(s,p->ai_addr,p->ai_addrlen) == -1) {
+            anetSetError(err, "bind: %s", strerror(errno));
+            goto error;
+        }
+        goto end;
+    }
+    if (p == NULL) {
+        anetSetError(err, "unable to bind socket, errno: %d", errno);
+        goto error;
+    }
+
+error:
+    if (s != -1) close(s);
+    s = ANET_ERR;
+end:
+    freeaddrinfo(servinfo);
+    return s;
 }
 
 int anetTcp6Server(char *err, int port, char *bindaddr, int backlog)

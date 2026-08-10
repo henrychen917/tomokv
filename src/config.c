@@ -167,6 +167,26 @@ configEnum propagation_error_behavior_enum[] = {
     {NULL, 0}
 };
 
+/* ---- tomokv named enums (see server.h for the full semantics) ---------------- */
+configEnum tomokv_thread_mode_enum[] = {
+    {"auto", TOMO_THREAD_MODE_AUTO},        /* the controller may move the io/ex split */
+    {"static", TOMO_THREAD_MODE_STATIC},    /* the boot split is held for the whole run */
+    {NULL, 0}
+};
+
+
+configEnum tomokv_pin_mode_enum[] = {
+    {"float", TOMO_PIN_FLOAT},              /* no pinning; scheduler decides */
+    {"ccd", TOMO_PIN_CCD},                  /* a node is a CCD / shared-L3 domain (DEFAULT) */
+    {"numa", TOMO_PIN_NUMA},                /* a node is a NUMA node */
+    {"static", TOMO_PIN_STATIC},            /* placement from tomokv-pin-io / tomokv-pin-ex */
+    {NULL, 0}
+};
+
+/* (tomokv_mget_coalesce_enum DELETED 2026-07-28 with tomokv-mget-coalesce: the table outlived
+ * its createEnumConfig() row, and its `coalesce-prefetch` level named an in-sub dict prefetch
+ * that a flat keyspace has no dictEntry for — it was gutted in 77174fa4a.) */
+
 /* Output buffer limits presets. */
 clientBufferLimitsConfig clientBufferLimitsDefaults[CLIENT_TYPE_OBUF_COUNT] = {
     {0, 0, 0}, /* normal */
@@ -2352,6 +2372,11 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
     embedConfigInterface(NULL, setfn, getfn, rewritefn, applyfn) \
 }
 
+
+
+/* ee451 (v8): ANY worker count in [1, MAX] is allowed now. Dispatch goes through the
+ * bucket->worker indirection table (exIndexForKey), not hash&(N-1), so num_workers no
+ * longer has to be a power of two — that was the whole point of axing the limit. */
 static int isValidActiveDefrag(int val, const char **err) {
 #ifndef HAVE_DEFRAG
     if (val) {
@@ -2478,6 +2503,8 @@ static int updateProcTitleTemplate(const char **err) {
     return 1;
 }
 
+
+
 static int updateHZ(const char **err) {
     UNUSED(err);
     /* Hz is more a hint from the user, so we accept values out of range
@@ -2511,6 +2538,27 @@ static int updateDefragConfiguration(const char **err) {
     return 1;
 }
 
+
+/* tomokv-pin-io / tomokv-pin-ex validator. Runs on the config-file/CLI path AND on CONFIG SET,
+ * so a malformed spec is rejected with the offending token named — never silently ignored.
+ * The pool-coverage check (does the spec supply enough cpus for every role/node?) happens in
+ * initServer, where the resolved topology is known. */
+static int isValidTomokvPinSpec(char *val, const char **err) {
+    /* The knob name is not available here; tomoPinSpecParse phrases the message so it reads
+     * correctly for either knob ("tomokv-pin-io/-ex: ..."). */
+    return tomoPinSpecParse(val, "tomokv-pin-io/-ex", NULL, NULL, err);
+}
+
+/* Signal 4 is owned by the adjacent worker-skew experiment. This branch predates that commit, so
+ * preserve its current rejection rather than silently assigning it a different meaning; the two
+ * branches combine by admitting 4 (worker-max) beside productive-ratio mode 5. */
+static int isValidTomokvFlipSignal(long long val, const char **err) {
+    if (val >= 0 && val <= 3) return 1;
+    if (val == 5) return 1;
+    *err = "tomokv-flip-signal 4 is reserved for the worker-max signal; use 0-3 or 5 on this branch";
+    return 0;
+}
+
 static int updateJemallocBgThread(const char **err) {
     UNUSED(err);
     set_jemalloc_bg_thread(server.jemalloc_bg_thread);
@@ -2524,7 +2572,17 @@ static int updateReplBacklogSize(const char **err) {
 }
 
 static int updateMaxmemory(const char **err) {
-    UNUSED(err);
+    /* ee451 (W6-E3, RP-1 runtime): the boot gate refuses maxmemory>0 with sharding — extend it
+     * to CONFIG SET. Armed at runtime, eviction walks only the empty decoy server.db (can free
+     * nothing real = permanent OOM write-stop) while N IO threads race the shared eviction pool,
+     * and shouldPropagate() turning true lets worker-side lazy-expire deletes hit the single
+     * global also_propagate array concurrently = heap corruption. Apply-failure rolls the value
+     * back (restoreBackupConfig), so this is a clean -ERR to the client. */
+    if (server.maxmemory > 0 && server.num_workers > 0) {
+        *err = "maxmemory > 0 is not supported with tomokv sharding (tomokv-thread-ex >= 1): "
+               "the dataset lives in per-worker shard DBs that eviction does not see";
+        return 0;
+    }
     if (server.maxmemory) {
         size_t used = zmalloc_used_memory()-freeMemoryGetNotCountedMemory();
         if (server.maxmemory < used) {
@@ -2548,6 +2606,15 @@ static int updateWatchdogPeriod(const char **err) {
 }
 
 static int updateAppendonly(const char **err) {
+    /* ee451 (W6-E3, RP-1 runtime): the boot gate refuses appendonly with sharding — extend it
+     * to CONFIG SET. Armed at runtime, the AOF (and any rewrite) serializes ONLY the empty decoy
+     * server.db = total data loss on reload, and every worker-side lazy-expire delete starts
+     * calling alsoPropagate on the global redisOpArray from N threads concurrently. */
+    if (server.aof_enabled && server.num_workers > 0) {
+        *err = "appendonly cannot be enabled with tomokv sharding (tomokv-thread-ex >= 1): "
+               "the dataset lives in per-worker shard DBs that AOF does not see";
+        return 0;
+    }
     /* If loading flag is set, AOF might have been stopped temporarily, and it
      * will be restarted depending on server.aof_enabled flag after loading is
      * completed. So, we just need to update 'server.aof_enabled' which has been
@@ -3067,35 +3134,25 @@ void rewriteConfigLatencyTrackingInfoPercentilesOutputOption(standardConfig *con
 }
 
 static int applyClientMaxMemoryUsage(const char **err) {
-    UNUSED(err);
-    listIter li;
-    listNode *ln;
-
-    /* server.client_mem_usage_buckets is an indication that the previous config
-     * was non-zero, in which case we can exit and no apply is needed. */
-    if(server.maxmemory_clients !=0 && server.client_mem_usage_buckets)
-        return 1;
-    if (server.maxmemory_clients != 0)
-        initServerClientMemUsageBuckets();
-
-    pauseAllIOThreads();
-    /* When client eviction is enabled update memory buckets for all clients.
-     * When disabled, clear that data structure. */
-    listRewind(server.clients, &li);
-    while ((ln = listNext(&li)) != NULL) {
-        client *c = listNodeValue(ln);
-        if (server.maxmemory_clients == 0) {
-            /* Remove client from memory usage bucket. */
-            removeClientFromMemUsageBucket(c, 0);
-        } else {
-            /* Update each client(s) memory usage and add to appropriate bucket. */
-            updateClientMemUsageAndBucket(c);
-        }
+    /* Client eviction depended on the deleted sharding-off execution model.
+     * Keep the configuration surface for compatibility, but reject attempts
+     * to enable it exactly as every supported configuration did before. */
+    if (server.maxmemory_clients != 0) {
+        *err = "maxmemory-clients (client eviction) is not supported when IO threads or workers "
+               "are enabled — the client memory-usage buckets require single-threaded exclusivity";
+        return 0;
     }
-    resumeAllIOThreads();
+    return 1;
+}
 
-    if (server.maxmemory_clients == 0)
-        freeServerClientMemUsageBuckets();
+static int applyTomoAtomicAdmission(const char **err) {
+    UNUSED(err);
+    /* A live enable must publish the lifecycle table before its first version can install. Boot
+     * configuration reaches this callback before workers exist; initExThreads covers that case. */
+    if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
+    /* A live increase, window=0, or tomokv-atomic=off may make parked commands admissible without
+     * any group retiring. Wake their event loops; each owner rechecks the current settings. */
+    tomoAtomicWindowChanged();
     return 1;
 }
 
@@ -3105,6 +3162,222 @@ standardConfig static_configs[] = {
     createBoolConfig("daemonize", NULL, IMMUTABLE_CONFIG, server.daemonize, 0, NULL, NULL),
     createBoolConfig("always-show-logo", NULL, IMMUTABLE_CONFIG, server.always_show_logo, 0, NULL, NULL),
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
+    /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
+    /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
+     * worker's captured CDB index from the drain's combined-read bound — see the
+     * design review. num_cdb is resolved once at init from this. Default OFF. */
+    /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
+     * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
+    /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */
+    /* ee451 (#3) write-rate gate, (#4) branch-predictor-style adaptive forwarding. */
+    /* ee451: forward-predictor variant selector so each is independently sweepable.
+     * 0=bimodal(general-only), 1=gshare(history-only), 2=tournament. tournament bool
+     * forces 2 (back-compat); default 1 = the old "simple" gshare. */
+    /* ee451 adaptive predictor selection. Bitmask over the 6 bake-off predictors
+     * (bit0=bimodal 1=gshare 2=perceptron 3=recency 4=frequency 5=client). 0 = legacy
+     * vf-predictor-mode. Exactly one bit set = use that predictor. Multiple bits = all
+     * run as shadows and the WINDOWED-BEST (live accuracy) drives the actual forwarding.
+     * bit6=key-correlation(Markov "X follows Y"), bit7=pure-client. */
+    /* ee451 (#20/#21): adaptive prefetch throttling + SHiP-style reuse prediction. */
+    /* ee451 v10-B: DEFAULT ON. With cross-shard OFF, multi-key cmds (MGET/MSET/EXISTS/UNLINK/TOUCH/
+     * multi-DEL) run inline on the empty MAIN db — self-consistent but DESYNCED from the worker
+     * shards where single-key cmds operate (two separate keyspaces). Correctness requires it ON so
+     * they scatter-gather to the shards. The mechanism is validated (v7/v8d). */
+    /* NO tomokv-xshard-inline-* knob, deliberately: the inline region is sized per command from
+     * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
+     * — that turns every csgAlloc into a plain zmalloc. */
+    createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
+    /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
+     * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
+     * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
+     * historical note about it recorded a concern. It is restored (2026-07-28) as an experiment
+     * lever, the same call already made for prefetch — the regime where a copy could matter is
+     * large values and/or cross-NUMA, which this box cannot answer. Turning it on is a real
+     * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
+     * that keeps exactly one owner of the value at every instant. */
+    createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
+    createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
+    createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 64, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
+    /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
+     * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
+     * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed
+     * here), so it silently no-op'd while implying worker-direct replies. */
+    /* tomokv-mcmd-lock DELETED 2026-07-27: always-lock IS the design (the S2 single-key owner
+     * lock is what makes a shared node db safe against sibling workers), so the knob was
+     * accepted-and-ignored — a silently-inert config surface. Basis for hardwiring it on: MGET
+     * borrow +57-69%/instr halved, MSET ~0, singles tax <=0.8%, INTER node-exec +40-51%, HFE
+     * requires the exclusion to exist. 2026-07-28: the server.mcmd_lock field is gone too — every
+     * site that gated on it now locks unconditionally.
+     * tomokv-mcmd-nodelocal DELETED 2026-07-27: it selected the node-local BORROW for MGET, and
+     * the borrow is gone (owner ruling: uniform torn cross-key reads). With no borrow to A/B
+     * against, the knob could only ever have been inert. */
+
+    /* ================= TOPOLOGY (total real cores = nodes * cores-per-node) =================
+     * ONE way to describe the thread pool. tomokv-nodes 1 makes tomokv-thread-io/-ex the plain
+     * TOTAL thread counts (this is what the old flat tomokv-thread-io/-ex-threads meant).
+     * WHAT A "NODE" IS depends on tomokv-pin-mode: `ccd` => a CCD / shared-L3 domain, `numa` =>
+     * a NUMA node. Which partitioning is better for the target hardware is NOT yet known — it
+     * is a measurement to run on the EPYC/Threadripper box, which is why it is one knob and not
+     * a compile-time assumption. */
+    /* ee451 (B1): EX-side prefetch, as monotonic LEVELS so a sweep is one-dimensional.
+     * 0 = the machinery is not entered at all (counters stay still, so "disabled" and "gated"
+     * are distinguishable in INFO). 1 = the existing operand/key pipeline, 2 adds the FLAT home
+     * SLOT line, and 3 adds the dependent tag-gated FLAT KVOBJ line. Default 1 preserves the
+     * operand-only control; the higher arms exist so storage residency can be measured. */
+    createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 3, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
+    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
+
+    /* ================= FRONT/BACK SPLIT ====================================================
+     * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes. Under `auto` the
+     * flip controller may move away from it; under `static` it is held for the whole run. The
+     * starting point matters for measurement reproducibility: a benchmark that starts at a
+     * different split spends its window converging instead of measuring. */
+    createIntConfig("tomokv-recv-batch", NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_recv_batch, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-io-prefetch", NULL, MODIFIABLE_CONFIG, 0, 8, server.tomo_io_prefetch, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
+    createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
+    /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;
+     * everything downstream of the trigger (momentum hill-climb, throughput judge, walk-back,
+     * settle sequencing) is shared across all modes.
+     *   0 = deprecated alias for 5. Accepted for compatibility, but selects the identical
+     *       productive-work IO/EX ratio path and is no longer the legacy zero-event control.
+     *   1 = WORKER-ONLY direction: worker idleness + standing queue decide grow-front/grow-back;
+     *       the io side is dropped from the DIRECTION but the server/client-bound "is anything
+     *       saturated at all" gate is retained as a don't-bother filter.
+     *   2 = PURE worker-only: that gate is dropped too, so no IO-side MEASUREMENT enters any
+     *       decision. Probes and walks back under client-bound load; the veto/net-zero backoff is
+     *       what damps it (see the FLIP_SIG_* comment in server.c).
+     *   3 = mode 2 plus the CLIP REPAIR: when worker occupancy has clipped, the granularity floor
+     *       is being asked a question its input can no longer answer, so it does not veto a
+     *       grow-back. This is the repair for the p1 blind spot documented in server.c — modes 1/2
+     *       can hold at io7/ex1 under ZRANGE at pipeline 1 because the backlog term's range is
+     *       bounded by conns x pipeline, not by the server.
+     *   4 = reserved for the adjacent worker-max experiment; this branch leaves it rejected.
+     *   5 = PRODUCTIVE-WORK ratio: U_IO=io_work/(wall*n_io),
+     *       U_EX=ex_work/(wall*n_ex), and r=U_IO/U_EX. This is the default ratio mode.
+     * Default 5; 0 remains only as its deprecated compatibility spelling. If 2 matches 1
+     * everywhere, the IO-side
+     * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
+     * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
+    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 5, server.flip_signal, 5, INTEGER_CONFIG, isValidTomokvFlipSignal, NULL),
+    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
+    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
+    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; 1=existing unified SI|DTR ring; 2=Helio-style staged/taskrun-aware ring */
+
+    /* ================= PINNING =============================================================
+     * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting
+     * them with any other pin-mode is a boot FATAL (they would otherwise be silently ignored),
+     * and pin-mode static with an empty/short spec is a boot FATAL too. */
+    createEnumConfig("tomokv-pin-mode",              NULL, IMMUTABLE_CONFIG, tomokv_pin_mode_enum, server.pin_mode, TOMO_PIN_CCD, NULL, NULL),
+    createStringConfig("tomokv-pin-io",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_io_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=0-3 node1=8,9,10,11" */
+    createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
+
+    /* ================= LOAD BALANCING (three separate levers, deliberately) =================
+     * These were briefly collapsed into one another; they are not the same decision:
+     *   key-lb        moves BUCKETS between workers   (reshardAutoTune)  -- data placement
+     *   client-lb     moves CONNECTIONS between io threads, continuously (tmClientBalanceCron)
+     *   flip-rebalance moves CONNECTIONS once, when a flip creates a new io thread
+     * Owner rule: always-on LB machinery must cost <= 3% throughput or it does not ship, so each
+     * lever is separately switchable and separately measurable. */
+
+    /* ================= PREFETCH — no knobs, by design (2026-07-28) =========================
+     * There is deliberately no tomokv-pf-* / tomokv-prefetch-* knob. The ten that used to live
+     * here (pf-w-struct/-argv/-keyobj/-keybytes/-hash/-nextop/-entry/-value, pf-value-budget-kb,
+     * prefetch-min-keys) were retired as a CONFIG SURFACE only: every prefetch stage, the batch
+     * scoreboard, the #3 next-op look-ahead and the value chase are all still there in
+     * exPrefetchBatch, unchanged and under active work (io-side prefetch is planned next).
+     *
+     * They came out because none of them was a decision an operator had information for. Nine
+     * shipped in their AUTO arm, and the AUTO arms are self-deriving: the stage widths follow the
+     * CURRENT batch occupancy (group prefetching with prefetch distance = group size — the
+     * standard software-pipelining form), the residency gate follows the detected L3 divided by
+     * the workers that share it, and the value-chase budget follows a measured value-size EWMA.
+     * A number typed into a config file could only restate what the server already measures, and
+     * would then be wrong on the next machine. See the constants beside WORKER_POP_BATCH in
+     * server.h for what is left, and the note there for why AMAC's per-slot state machine is not
+     * the right shape for a CONSTANT-depth probe chain.
+     *
+     * NOT a re-run of the earlier deletion: that one removed the STAGES on a false "unreachable
+     * under FLATSTORE" premise (false at tomokv-thread-ex 1, where shared_node_dbs is 0 and the
+     * keyspace stays DICT-backed, and io7/ex1 is a standard test config). Nothing is deleted here
+     * except operator-facing names. */
+
+
+    /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy
+     * single-tick trigger: the hysteresis dead-band and the SUSTAIN gate are unreachable and
+     * mig_hot_streak[] can never be nonzero. That makes auto-reshard MORE trigger-happy than
+     * designed, at exactly the moment its cutover fence (H2) is known fail-open. */
+    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule. A granule of 0 buckets is not a state; "off" is tomokv-reshard-min-ops 0. */
+    createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
+    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
+    createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
+    /* ================= OS DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults
+     * made TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off. That is disabling a
+     * feature to simplify a config surface, which is not the same as retiring a knob. */
+    createBoolConfig("tomokv-os-opts",               NULL, IMMUTABLE_CONFIG,  server.os_opts,               0, NULL, NULL),
+    createBoolConfig("tomokv-os-busypoll",           NULL, IMMUTABLE_CONFIG,  server.os_busypoll,           0, NULL, NULL),
+
+
+    createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
+    /* SUSTAIN — the one trigger parameter with a genuine workload-dependent trade-off, and the A/B
+     * lever for the whole detector. reshardAutoTune fires only after the hot shard has been a
+     * statistical outlier for K CONSECUTIVE 1 Hz ticks (standard "N consecutive violations" debounce:
+     * Nagios max_check_attempts, Prometheus alert `for:`, k8s HPA stabilization windows).
+     *   -1 = auto: K = one EWMA time constant, ceil(1/alpha), floored at 3 ticks
+     *    0 = OFF: no debounce, fire on the first violating tick (the pre-2026-07-28 behaviour;
+     *             kept ONLY so the two detectors can be A/B'd on the same binary)
+     *    N = require N consecutive violating ticks
+     * Everything else in the detector self-derives from the signal and needs no operator input:
+     * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
+     * the chunk size. Their fields still carry full -1/0/N semantics for anyone who needs to
+     * re-expose one; they are simply not decisions an operator should have to make. Disable the
+     * whole balancer with tomokv-key-lb 0. */
+    createIntConfig("tomokv-key-lb-sustain",         "tomokv-reshard-sustain-ticks", MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
+    /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
+     * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
+     * path). That is too coarse for the veto: a hot key is one BUCKET, and averaged over its 64
+     * group-mates it looks like 64 mildly-warm buckets, i.e. like something a bucket flip could
+     * divide. Level 2 is a 64-counter window the balancer points at each worker's hottest group,
+     * armed only when that group is genuinely concentrated.
+     *   -1 = auto (default): arm at max(4x the uniform per-group share, 5% of the shard's rate)
+     *    0 = OFF: nothing allocated, every window disarmed, the exec path pays one never-taken
+     *             branch and the planner is back to group resolution. This is the A/B arm both for
+     *             the <=3%-throughput budget and for proving the veto's refusals came from level 2.
+     *    N = arm when the top group holds >= N% of the shard's rate
+     * A full 16384-counter-per-worker table was rejected on the budget: same one instruction, but a
+     * 64x always-on working-set growth for a question that is local to one group. */
+    createIntConfig("tomokv-key-lb-fine",            NULL, MODIFIABLE_CONFIG, -1, 100, server.reshard_fine_pct, -1, INTEGER_CONFIG, NULL, NULL),
+    /* ee451 (H2): cutover drain-fence watchdog. The fence now waits for PROOF that every producer
+     * has retired its in-flight range commands (worker A executing that producer's sentinel), which
+     * is the only sound drain test — but a proof that never arrives is a hang, and a hung cutover
+     * spins every held producer forever. N = abort the cutover (leaving the range exactly where it
+     * is; nothing is copied under shared node dbs, so an abort is a keyspace no-op) if the fence has
+     * not completed in N ms. 0 = wait forever. The default is deliberately far above any legitimate
+     * fence: the fence waits out the longest command batch already in flight on the old owner, so a
+     * short timeout would abort cutovers that were about to succeed. INFO reports
+     * tomokv_reshard_fence_aborts — a nonzero value means a producer stopped answering, not that the
+     * timeout is too tight. */
+    createIntConfig("tomokv-reshard-fence-timeout",  NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_fence_timeout_ms, 10000, INTEGER_CONFIG, NULL, NULL),
+    /* NOTE: there is deliberately no tomokv-flip-rebalance knob. Backfilling connections onto a
+     * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
+     * thread nobody routes to has done half a job, and the only reason to want the split was to
+     * debug the actuator, which DEBUG TOMO-MODESHIFT already covers. It is therefore derived from
+     * tomokv-thread-mode: auto => flip AND backfill, static => neither. Client-lb stays separate
+     * because it is genuinely a different question (continuous rebalancing on load skew, which is
+     * useful with a STATIC split too). */
+    createBoolConfig("tomokv-client-lb",             NULL, MODIFIABLE_CONFIG, server.tm_client_lb, 1, NULL, NULL), /* continuous connection balancer: moves conns off a SUSTAINED busy-outlier io thread, within a node, to a tolerance band. */
+
+    /* Client pipeline ring depth. ALSO the per-client fake-client (fc) ring cap: the fc ring is
+     * allocated at min(want, pipeline-depth) (networking.c) and may only grow while
+     * ring_size < pipeline-depth (server.c), so this one knob bounds BOTH in-flight commands per
+     * connection and the per-client ring memory. -1 = auto (max 32, decays toward measured demand),
+     * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
+    createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
+    createBoolConfig("tomokv-reply-buffer-transfer", NULL, MODIFIABLE_CONFIG, server.reply_buffer_transfer_enabled, 0, NULL, NULL), /* exchange equal-capacity EX/IO reply scratch for completed plain replies >= 8KB. Default OFF: reviewed-correct but large-reply win unmeasured on this HW; opt-in knob, A/B before default-on. */
+    createBoolConfig("tomokv-reply-iovec",           NULL, MODIFIABLE_CONFIG, server.reply_iovec_enabled, 0, NULL, NULL), /* retain large owned reply values and submit stable scatter/gather sends; zerocopy-min-value is the byte threshold. Default OFF: completion-lifetime experiment. */
+
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
     createBoolConfig("activerehashing", NULL, MODIFIABLE_CONFIG, server.activerehashing, 1, NULL, NULL),
@@ -3206,6 +3479,13 @@ standardConfig static_configs[] = {
     createIntConfig("databases", NULL, IMMUTABLE_CONFIG, 1, INT_MAX, server.dbnum, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("port", NULL, MODIFIABLE_CONFIG, 0, 65535, server.port, 6379, INTEGER_CONFIG, NULL, updatePort), /* TCP port. */
     createIntConfig("io-threads", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 1, 128, server.io_threads_num, 1, INTEGER_CONFIG, NULL, NULL), /* Single threaded by default */
+    /* Tomo KV-dev custom threading knobs. `io-threads` above is inert in this fork
+     * (stock Redis upstream IO threads have been removed); the thread pool is described by
+     * tomokv-nodes / tomokv-cores-per-node / tomokv-thread-io / tomokv-thread-ex above.
+     * The old flat tomokv-thread-io / tomokv-thread-ex were REMOVED 2026-07-27: they were a
+     * second way to say the same thing. With tomokv-nodes 1 (the default) the new per-node
+     * knobs ARE the old flat counts. */
+    /* ee451 (reshard-better §1.1): trigger-hardening knobs — every default 0 reproduces legacy behavior bit-for-bit (clean A/B baseline). */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */
@@ -3353,6 +3633,7 @@ int registerConfigValue(const char *name, const standardConfig *config, int alia
 
 /* Initialize configs to their default values and create and populate the 
  * runtime configuration dictionary. */
+
 void initConfigValues(void) {
     configs = dictCreate(&sdsHashDictType);
     dictExpand(configs, sizeof(static_configs) / sizeof(standardConfig));

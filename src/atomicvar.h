@@ -115,6 +115,13 @@
     atomic_compare_exchange_weak_explicit(&var,&expected_var,desired,memory_order_relaxed,memory_order_relaxed)
 #define atomicFlagGetSet(var,oldvalue_var) \
     oldvalue_var = atomic_exchange_explicit(&var,1,memory_order_relaxed)
+#define atomicFetchOrWithRelease(var,value) \
+    atomic_fetch_or_explicit(&var,(value),memory_order_release)
+#define atomicFetchAnd(var,value) \
+    atomic_fetch_and_explicit(&var,(value),memory_order_relaxed)
+#define atomicGetAcquire(var,dstvar) do { \
+    dstvar = atomic_load_explicit(&var,memory_order_acquire); \
+} while(0)
 #define REDIS_ATOMIC_API "c11-builtin"
 
 #elif !defined(__ATOMIC_VAR_FORCE_SYNC_MACROS) && \
@@ -142,6 +149,13 @@
     __atomic_compare_exchange_n(&var,&expected_var,desired,1,__ATOMIC_RELAXED,__ATOMIC_RELAXED)
 #define atomicFlagGetSet(var,oldvalue_var) \
     oldvalue_var = __atomic_exchange_n(&var,1,__ATOMIC_RELAXED)
+#define atomicFetchOrWithRelease(var,value) \
+    __atomic_fetch_or(&var,(value),__ATOMIC_RELEASE)
+#define atomicFetchAnd(var,value) \
+    __atomic_fetch_and(&var,(value),__ATOMIC_RELAXED)
+#define atomicGetAcquire(var,dstvar) do { \
+    dstvar = __atomic_load_n(&var,__ATOMIC_ACQUIRE); \
+} while(0)
 #define REDIS_ATOMIC_API "atomic-builtin"
 
 #elif defined(HAVE_ATOMIC)
@@ -177,6 +191,13 @@
 })
 #define atomicFlagGetSet(var,oldvalue_var) \
     oldvalue_var = __sync_val_compare_and_swap(&var,0,1)
+#define atomicFetchOrWithRelease(var,value) \
+    __sync_fetch_and_or(&var,(value))
+#define atomicFetchAnd(var,value) \
+    __sync_fetch_and_and(&var,(value))
+#define atomicGetAcquire(var,dstvar) do { \
+    dstvar = __sync_fetch_and_add(&var,0); \
+} while(0)
 #define REDIS_ATOMIC_API "sync-builtin"
 
 #else

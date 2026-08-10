@@ -595,7 +595,7 @@ void functionDeleteCommand(client *c) {
     engineLibraryFree(li);
     /* Indicate that the command changed the data so it will be replicated and
      * counted as a data change (for persistence configuration) */
-    server.dirty++;
+    markDirty(1);
     addReply(c, shared.ok);
 }
 
@@ -608,10 +608,10 @@ void functionKillCommand(client *c) {
  * Note that it does not guarantee the command arguments are right. */
 uint64_t fcallGetCommandFlags(client *c, uint64_t cmd_flags) {
     robj *function_name = c->argv[1];
-    c->cur_script = dictFind(curr_functions_lib_ctx->functions, function_name->ptr);
-    if (!c->cur_script)
+    clientTail(c)->cur_script = dictFind(curr_functions_lib_ctx->functions, function_name->ptr);
+    if (!clientTail(c)->cur_script)
         return cmd_flags;
-    functionInfo *fi = dictGetVal(c->cur_script);
+    functionInfo *fi = dictGetVal(clientTail(c)->cur_script);
     uint64_t script_flags = fi->f_flags;
     return scriptFlagsToCmdFlags(cmd_flags, script_flags);
 }
@@ -621,7 +621,7 @@ static void fcallCommandGeneric(client *c, int ro) {
     replicationFeedMonitors(c,server.monitors,c->db->id,c->argv,c->argc);
 
     robj *function_name = c->argv[1];
-    dictEntry *de = c->cur_script;
+    dictEntry *de = clientTail(c)->cur_script;
     if (!de)
         de = dictFind(curr_functions_lib_ctx->functions, function_name->ptr);
     if (!de) {
@@ -793,7 +793,7 @@ void functionRestoreCommand(client *c) {
 
     /* Indicate that the command changed the data so it will be replicated and
      * counted as a data change (for persistence configuration) */
-    server.dirty++;
+    markDirty(1);
 
 load_error:
     if (err) {
@@ -828,7 +828,7 @@ void functionFlushCommand(client *c) {
 
     /* Indicate that the command changed the data so it will be replicated and
      * counted as a data change (for persistence configuration) */
-    server.dirty++;
+    markDirty(1);
     addReply(c,shared.ok);
 }
 
@@ -1073,7 +1073,7 @@ void functionLoadCommand(client *c) {
     }
     /* Indicate that the command changed the data so it will be replicated and
      * counted as a data change (for persistence configuration) */
-    server.dirty++;
+    markDirty(1);
     addReplyBulkSds(c, library_name);
 }
 

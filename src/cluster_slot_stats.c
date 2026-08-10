@@ -164,7 +164,7 @@ void clusterSlotStatsAddNetworkBytesOutForUserClient(client *c) {
 
 /* Accumulates egress bytes upon sending replication stream. This only applies for primary nodes. */
 static void clusterSlotStatsUpdateNetworkBytesOutForReplication(long long len) {
-    client *c = server.current_client;
+    client *c = server.current_client[iotid].p;
     if (c == NULL || !canAddNetworkBytesOut(c)) return;
 
     /* We multiply the bytes len by the number of replicas to account for us broadcasting to multiple replicas at once. */
@@ -236,7 +236,7 @@ void clusterSlotStatResetAll(void) {
 }
 
 /* For cpu-usec accumulation, nested commands within EXEC, EVAL, FCALL are skipped.
- * This is due to their unique callstack, where the c->duration for
+ * This is due to their unique callstack, where the clientTail(c)->duration for
  * EXEC, EVAL and FCALL already includes all of its nested commands.
  * Meaning, the accumulation of cpu-usec for these nested commands
  * would equate to repeating the same calculation twice.
@@ -244,8 +244,8 @@ void clusterSlotStatResetAll(void) {
 static int canAddCpuDuration(client *c) {
     return clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_CPU) && /* CPU tracking should be enabled. */
            c->slot != INVALID_CLUSTER_SLOT &&    /* Command should be slot specific. */
-           (!server.execution_nesting ||         /* Either command should not be nested, */
-            (c->realcmd->flags & CMD_BLOCKING)); /* or it must be due to unblocking. */
+           (!execution_nesting ||                /* Either command should not be nested, */
+            (clientTail(c)->realcmd->flags & CMD_BLOCKING)); /* or it must be due to unblocking. */
 }
 
 void clusterSlotStatsAddCpuDuration(client *c, ustime_t duration) {
@@ -271,7 +271,7 @@ static int canAddNetworkBytesIn(client *c) {
      * Fourth, the server is not under a MULTI/EXEC transaction, to avoid duplicate aggregation of
      * EXEC's 14 bytes RESP upon nested call()'s afterCommand(). */
     return clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_NET) && c->slot != INVALID_CLUSTER_SLOT &&
-        !(c->flags & CLIENT_BLOCKED) && !server.in_exec;
+        !(c->flags & CLIENT_BLOCKED) && !tomo_in_exec;
 }
 
 /* Adds network ingress bytes of the current command in execution,

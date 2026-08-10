@@ -24,5 +24,3 @@ cd redis-${TAG}
 make
 ./runtest
 ./runtest-sentinel
-./runtest-cluster
-./runtest-moduleapi

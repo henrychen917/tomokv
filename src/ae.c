@@ -27,6 +27,25 @@
 #include "zmalloc.h"
 #include "config.h"
 
+/* Per-thread counter of worker-dispatched fakes still in flight for this
+ * IO thread. Defined here (not in server.c) so redis-cli — which links
+ * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
+ * below. Declared extern in ae.h. */
+__thread int replyWorking = 0;
+
+/* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the
+ * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
+ * which picks up finished worker replies — workers typically complete in ~1-5us) before
+ * falling back to the fixed 100us wait window; that fixed window was the low-pipeline
+ * latency floor.
+ * 2026-07-28: tomokv-io-drain-spin was retired at 32 and tomokv-io-drain-userpoll at -1
+ * (auto), so both are now compile-time constants here and the server-struct mirrors are gone.
+ * The two operator arms they used to select — "syscall-only legacy" (userpoll 0) and "fixed
+ * userpoll passes" (userpoll N>0) — are deleted with them; the EWMA mode picker below is the
+ * only drain policy. */
+#define AE_IO_DRAIN_SPIN         32   /* zero-timeout drain passes before the 100us fallback window */
+#define AE_IO_DRAIN_USERPOLL_MAX 16   /* userpoll prefix: max pause+beforesleep rounds per poll */
+
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT
@@ -62,6 +81,10 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     eventLoop->maxfd = -1;
     eventLoop->beforesleep = NULL;
     eventLoop->aftersleep = NULL;
+    eventLoop->uring_enter = NULL;
+    eventLoop->uring_reap = NULL;
+    eventLoop->uring_epoll_drained = NULL;
+    eventLoop->uring_free = NULL;
     eventLoop->flags = 0;
     memset(eventLoop->privdata, 0, sizeof(eventLoop->privdata));
     if (aeApiCreate(eventLoop) == -1) goto err;
@@ -122,6 +145,7 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
 }
 
 void aeDeleteEventLoop(aeEventLoop *eventLoop) {
+    if (eventLoop->uring_free) eventLoop->uring_free(eventLoop);
     aeApiFree(eventLoop);
     zfree(eventLoop->events);
     zfree(eventLoop->fired);
@@ -188,7 +212,9 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
      * is removed. */
     if (mask & AE_WRITABLE) mask |= AE_BARRIER;
 
-    aeApiDelEvent(eventLoop, fd, mask);
+    /* Only remove attached events */
+    mask = mask & fe->mask;
+
     fe->mask = fe->mask & (~mask);
     if (fd == eventLoop->maxfd && fe->mask == AE_NONE) {
         /* Update the max fd */
@@ -197,6 +223,15 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
         for (j = eventLoop->maxfd-1; j >= 0; j--)
             if (eventLoop->events[j].mask != AE_NONE) break;
         eventLoop->maxfd = j;
+    }
+
+    /* Check whether there are events to be removed.
+     * Note: user may remove the AE_BARRIER without
+     * touching the actual events. */
+    if (mask & (AE_READABLE | AE_WRITABLE)) {
+        /* Must be invoked after the eventLoop mask is modified,
+         * which is required by evport and epoll */
+        aeApiDelEvent(eventLoop, fd, mask);
     }
 }
 
@@ -360,15 +395,25 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
 int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 {
     int processed = 0, numevents;
+    int uring_ready = 0;
 
     /* Nothing to do? return ASAP */
     if (!(flags & AE_TIME_EVENTS) && !(flags & AE_FILE_EVENTS)) return 0;
+
+    /* CQ memory is owned by this event-loop thread.  Reap anything already
+     * visible before beforeSleep so send results and received requests can
+     * participate in the same pass's normal batching. */
+    if (eventLoop->uring_reap) {
+        int rr = eventLoop->uring_reap(eventLoop, flags & AE_FILE_EVENTS);
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+    }
 
     /* Note that we want to call aeApiPoll() even if there are no
      * file events to process as long as we want to process time
      * events, in order to sleep until the next time event is ready
      * to fire. */
-    if (eventLoop->maxfd != -1 ||
+    if (eventLoop->maxfd != -1 || eventLoop->uring_enter ||
         ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT))) {
         int j;
         struct timeval tv, *tvp = NULL; /* NULL means infinite wait. */
@@ -393,9 +438,22 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp = &tv;
             }
         }
-        /* Call the multiplexing API, will return only on timeout or when
-         * some event fires. */
-        numevents = aeApiPoll(eventLoop, tvp);
+        /* A native-backend readiness CQE is already pending, so this pass
+         * must not block again.  The enter is still made: DEFER_TASKRUN
+         * requires it, and it submits every arm/cancel/send staged above. */
+        if (uring_ready) {
+            tv.tv_sec = tv.tv_usec = 0;
+            tvp = &tv;
+        }
+
+        if (eventLoop->uring_enter) {
+            (void)eventLoop->uring_enter(eventLoop, tvp);
+            numevents = 0;
+        } else {
+            /* Call the multiplexing API, will return only on timeout or when
+             * some event fires. */
+            numevents = aeApiPoll(eventLoop, tvp);
+        }
 
         /* Don't process file events if not requested. */
         if (!(flags & AE_FILE_EVENTS)) {
@@ -405,6 +463,23 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         /* After sleep callback. */
         if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
             eventLoop->aftersleep(eventLoop);
+
+        if (eventLoop->uring_reap) {
+            int rr = eventLoop->uring_reap(eventLoop, flags & AE_FILE_EVENTS);
+            processed += rr & AE_URING_COUNT_MASK;
+            uring_ready |= rr & AE_URING_EPOLL_READY;
+            if (uring_ready) {
+                struct timeval nowait = {0};
+                numevents = aeApiPoll(eventLoop, &nowait);
+                if (eventLoop->uring_epoll_drained)
+                    eventLoop->uring_epoll_drained(eventLoop);
+            }
+        }
+
+        /* The completion backend can discover native readiness only after
+         * the initial flags check above.  Preserve ae's contract for callers
+         * that requested timers without file-event dispatch. */
+        if (!(flags & AE_FILE_EVENTS)) numevents = 0;
 
         for (j = 0; j < numevents; j++) {
             int fd = eventLoop->fired[j].fd;
@@ -466,6 +541,204 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
+                      aeIOAccounting *accounting) {
+    int processed = 0, numevents;
+    aeIOAccounting a = {0};
+    if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) {
+        a.end_us = getMonotonicUs();
+        if (accounting) *accounting = a;
+        return 0;
+    }
+
+    /* PRODUCTIVE PREFIX. On epoll this is the reply-retire/write path in beforeSleepIO. On
+     * io_uring, reap first also harvests CQEs and runs ready parser callbacks, so the one bracket
+     * deliberately covers reap + beforeSleepIO as a contiguous work interval. These are the two
+     * new vDSO reads paid by every IO pass. The final endpoint below moves ioSlice's pre-existing
+     * per-pass clock read into this function, while the event-work start reuses the poll-return
+     * timestamp on epoll. */
+    uint64_t work_start = getMonotonicUs();
+    int uring_ready = 0;
+    if (eventLoop->uring_reap) {
+        int rr = eventLoop->uring_reap(eventLoop, 1);
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+    }
+
+    if (eventLoop->beforesleep != NULL)
+        eventLoop->beforesleep(eventLoop);
+    a.end_us = getMonotonicUs();
+    a.work_us += a.end_us - work_start;
+    /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
+     * (tvp NULL). A non-negative idle_wait_us gives converted IO threads a bounded
+     * idle wait so they can service work published to their dormant EX binding.
+     * replyWorking>0 -> replies are in flight on workers: burn up to AE_IO_DRAIN_SPIN
+     * ZERO-timeout passes (each still services fd events, and beforesleep above drains
+     * completed replies) so a 1-5us worker completion is picked up in ~that time instead
+     * of eating the 100us window; after the budget (wedged/slow worker) fall back to the
+     * 100us poll so the IO thread never turns into a pure busy-loop. */
+    static __thread int drainPasses = 0;
+    /* ee451 (AE-1b): REPLY progress also refreshes the budget, not just fd progress.
+     * At moderate pipeline depths (P4-P16) a client burst puts N fakes in flight and
+     * the replies retire one-by-one through beforesleep (above) with ZERO inbound fd
+     * events until the whole burst is answered — each such productive pass still
+     * burned budget, so a long burst exhausted it mid-burst and fell onto the 100us
+     * window despite steady progress. Retirement is progress by the same logic as an
+     * fd event, so re-arm the window. prevReplyWorking snapshots the post-beforesleep
+     * value: with no fd events in between, replyWorking can only have decreased via
+     * retirement (dispatches ride fd events, which reset the budget below anyway).
+     * Wedged-worker protection is preserved: no retirement -> no refresh -> budget
+     * exhausts -> 100us duty cycle exactly as before. */
+    static __thread int prevReplyWorking = 0;
+    /* 2s-auto T1: thread-local EWMA of replyWorking to pick userpoll spin vs syscall. (The
+     * unused slow-rate EWMA was removed in the review cleanup — only the fast rate drives the
+     * mode decision below, so it was never a true dual-rate controller.) */
+    static __thread double drain_ewma_fast = 0.0;
+    static __thread int drain_mode = 0;        /* 0 = syscall, 1 = userpoll */
+    static __thread int drain_primed = 0, drain_trans = 0;
+    if (replyWorking < prevReplyWorking) drainPasses = 0; /* reply progress: refresh */
+    prevReplyWorking = replyWorking;
+
+    /* 2s-auto T1: fold replyWorking into the EWMA and pick a drain mode with a
+     * Schmitt band (fast<2 -> userpoll, fast>16 -> syscall) requiring 2 consecutive votes. */
+    if (replyWorking > 0) {
+        double af = 0.4;
+        drain_ewma_fast = drain_primed ? (af*(double)replyWorking + (1.0-af)*drain_ewma_fast) : (double)replyWorking;
+        drain_primed = 1;
+        int tgt = (drain_ewma_fast < 2.0) ? 1 : (drain_ewma_fast > 16.0 ? 0 : drain_mode);
+        if (tgt != drain_mode) { if (++drain_trans >= 2) { drain_mode = tgt; drain_trans = 0; } }
+        else drain_trans = 0;
+    }
+    /* 2s-auto T1: userpoll prefix — a bounded pause+beforesleep loop that breaks on reply
+     * progress, then falls through to the existing aeApiPoll below. Never a pure busy-loop: a
+     * wedged worker (replyWorking stuck) makes no progress => the loop exits => syscall poll. */
+    if (replyWorking > 0 && eventLoop->beforesleep != NULL && drain_mode == 1) {
+        int rw0 = replyWorking;
+        /* The PAUSE prefix is waiting for a worker reply, but beforesleep performs useful reply
+         * completion work and must not be charged as wait. Accumulate the whole prefix span and
+         * subtract the individually bracketed work calls so sub-microsecond PAUSE batches are not
+         * lost independently to getMonotonicUs() resolution. Productive beforesleep work is
+         * published on every backend. Only the surrounding WAIT subtraction is epoll-only:
+         * DEFER_TASKRUN leaves io_uring without a clean wall-clock wait boundary. */
+        uint64_t spin_start = 0, spin_work_us = 0;
+        if (eventLoop->uring_enter == NULL) spin_start = getMonotonicUs();
+        for (int u = 0; u < AE_IO_DRAIN_USERPOLL_MAX; u++) {
+            for (int p = 0; p < 16; p++) {
+#if defined(__i386__) || defined(__x86_64__)
+                __builtin_ia32_pause();
+#else
+                __asm__ __volatile__("" ::: "memory");
+#endif
+            }
+            uint64_t spin_work_start = getMonotonicUs();
+            eventLoop->beforesleep(eventLoop);
+            a.end_us = getMonotonicUs();
+            spin_work_us += a.end_us - spin_work_start;
+            if (replyWorking < rw0) break;
+        }
+        a.work_us += spin_work_us;
+        if (spin_start) {
+            uint64_t spin_us = getMonotonicUs() - spin_start;
+            if (spin_us > spin_work_us) a.wait_us += spin_us - spin_work_us;
+        }
+    }
+    struct timeval tv, *tvp = NULL;
+    if (replyWorking == 0) {
+        drainPasses = 0;
+        if (idle_wait_us >= 0) {
+            tv.tv_sec = idle_wait_us / 1000000;
+            tv.tv_usec = idle_wait_us % 1000000;
+            tvp = &tv;
+        }
+    } else {
+        tv.tv_sec = 0;
+        if (drainPasses < AE_IO_DRAIN_SPIN) {
+            drainPasses++;
+            tv.tv_usec = 0;     /* zero-timeout drain pass */
+        } else {
+            tv.tv_usec = 100;   /* budget exhausted: fixed fallback window */
+        }
+        tvp = &tv;
+    }
+
+    /* A CQE was already reaped above, so there is work in hand: force this pass's
+     * wait to zero so it cannot block behind work we can already run. */
+    if (uring_ready) {
+        tv.tv_sec = tv.tv_usec = 0;
+        tvp = &tv;
+    }
+
+    /* WAIT accounting is intentionally NOT wrapped around this call. DEFER_TASKRUN runs useful
+     * completion taskwork inside io_uring_enter, so elapsed wall time cannot distinguish sleeping
+     * from working (the recorded failure read io_sat=0.17 on a 99.5%-CPU thread). The new wait
+     * counter is therefore explicitly epoll-only rather than publishing a partial uring signal. */
+    if (eventLoop->uring_enter) {
+        (void)eventLoop->uring_enter(eventLoop, tvp);
+        /* uring has no clean poll-return timestamp: take one boundary after the indivisible enter
+         * so CQ harvest/parser work below is counted but enter sleep/taskwork is not. */
+        uint64_t event_work_start = getMonotonicUs();
+        int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;
+        processed += rr & AE_URING_COUNT_MASK;
+        uring_ready |= rr & AE_URING_EPOLL_READY;
+        if (uring_ready) {
+            struct timeval nowait = {0};
+            /* This native-backend probe is part of the ready-CQ handoff, not an empty drain poll:
+             * it runs only after the ring reports AE_URING_EPOLL_READY and cannot block. Keep it
+             * in the contiguous post-enter work span with the callbacks it discovers. */
+            numevents = aeApiPoll(eventLoop, &nowait);
+            if (eventLoop->uring_epoll_drained)
+                eventLoop->uring_epoll_drained(eventLoop);
+        } else {
+            numevents = 0;
+        }
+        a.end_us = event_work_start;
+    } else {
+        /* epoll/select/kqueue callbacks run only after aeApiPoll returns. The syscall boundary is
+         * consequently a clean measure of time spent waiting/polling, including zero-timeout
+         * drain passes, without charging event handling as wait. */
+        uint64_t wait_start = getMonotonicUs();
+        numevents = aeApiPoll(eventLoop, tvp);
+        a.end_us = getMonotonicUs();
+        a.wait_us += a.end_us - wait_start;
+    }
+    uint64_t event_work_start = a.end_us;
+    if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
+
+    for (int j = 0; j < numevents; j++) {
+        int fd = eventLoop->fired[j].fd;
+        aeFileEvent *fe = &eventLoop->events[fd];
+        int mask = eventLoop->fired[j].mask;
+        int fired = 0;
+
+        if (fe->mask & mask & AE_READABLE) {
+            fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+            fired++;
+
+            fe = &eventLoop->events[fd];
+            //fprintf(stderr, "[IO thread %d] handled read event on fd %d\n", iotid, fd);
+        }
+
+        if (fe->mask & mask & AE_WRITABLE) {
+            if (!fired || fe->wfileProc != fe->rfileProc) {
+                fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+            }
+        }
+
+        processed++;
+    }
+    /* PRODUCTIVE TAIL. Epoll's boundary is the already-required poll endpoint. The end clock is
+     * ioSlice's former per-pass timestamp, moved here so it closes read/parse/dispatch and
+     * writable callbacks without adding another read. Uring also includes its post-enter CQ reap
+     * and ready-only native-backend handoff in this tail; it needs the extra start boundary above
+     * because enter itself is indivisible. */
+    if (eventLoop->uring_enter || numevents) {
+        a.end_us = getMonotonicUs();
+        a.work_us += a.end_us - event_work_start;
+    }
+    if (accounting) *accounting = a;
+    return processed;
+}
+
 
 /* Wait for milliseconds until the given file descriptor becomes
  * writable/readable/exception */
@@ -508,4 +781,23 @@ void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep
 
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep) {
     eventLoop->aftersleep = aftersleep;
+}
+
+void aeSetUringProcs(aeEventLoop *eventLoop, aeUringEnterProc *enter,
+                     aeUringReapProc *reap,
+                     aeUringEpollDrainedProc *epoll_drained,
+                     aeUringFreeProc *free_proc) {
+    eventLoop->uring_enter = enter;
+    eventLoop->uring_reap = reap;
+    eventLoop->uring_epoll_drained = epoll_drained;
+    eventLoop->uring_free = free_proc;
+}
+
+int aeGetPollFd(aeEventLoop *eventLoop) {
+#ifdef HAVE_EPOLL
+    return aeApiPollFd(eventLoop);
+#else
+    (void)eventLoop;
+    return -1;
+#endif
 }

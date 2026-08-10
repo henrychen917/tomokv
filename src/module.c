@@ -183,6 +183,11 @@ struct RedisModuleKey {
     kvobj *kv;      /* Key-Value object, or NULL if the key was not found. */
     void *iter;     /* Iterator. */
     int mode;       /* Opening mode. */
+    /* ee451: scratch for RM_StringDMA on a NON-RESIDENT OBJ_ENCODING_INT value — see the
+     * residency branch there. Lives exactly as long as the handle, which is exactly as long as
+     * the DMA pointer is documented to be valid, so it needs no allocation or free. 32 bytes
+     * covers LONG_STR_SIZE (a 64-bit integer is at most 20 digits plus sign). */
+    char dma_intbuf[32];
 
     union {
         struct {
@@ -649,6 +654,22 @@ client *moduleAllocTempClient(void) {
     return c;
 }
 
+void initClientModuleData(client *c) {
+    (void)getClientCold(c);
+}
+
+void freeClientModuleData(client *c) {
+    if (!clientTail(c)->cold) return;
+    /* Free the RedisModuleBlockedClient retained for auth reprocessing if it
+     * was not consumed already. The remaining fields are non-owning. */
+    zfree(clientTail(c)->cold->module_blocked_client);
+    clientTail(c)->cold->module_blocked_client = NULL;
+    clientTail(c)->cold->module_auth_ctx = NULL;
+    clientTail(c)->cold->auth_callback = NULL;
+    clientTail(c)->cold->auth_callback_privdata = NULL;
+    clientTail(c)->cold->auth_module = NULL;
+}
+
 static void freeRedisModuleAsyncRMCallPromise(RedisModuleAsyncRMCallPromise *promise) {
     if (--promise->ref_count > 0) {
         return;
@@ -667,18 +688,19 @@ void moduleReleaseTempClient(client *c) {
     clearClientConnectionState(c);
     listEmpty(c->reply);
     c->reply_bytes = 0;
-    c->duration = 0;
+    clientTail(c)->duration = 0;
     resetClient(c, -1);
     serverAssert(c->all_argv_len_sum == 0);
     c->bufpos = 0;
     c->flags = CLIENT_MODULE;
     c->user = NULL; /* Root user */
-    c->cmd = c->lastcmd = c->realcmd = NULL;
-    if (c->bstate.async_rm_call_handle) {
-        RedisModuleAsyncRMCallPromise *promise = c->bstate.async_rm_call_handle;
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = NULL;
+    blockingState *bs = clientBlockingState(c);
+    if (bs && bs->async_rm_call_handle) {
+        RedisModuleAsyncRMCallPromise *promise = bs->async_rm_call_handle;
         promise->c = NULL; /* Remove the client from the promise so it will no longer be possible to abort it. */
         freeRedisModuleAsyncRMCallPromise(promise);
-        c->bstate.async_rm_call_handle = NULL;
+        bs->async_rm_call_handle = NULL;
     }
     moduleTempClients[moduleTempClientCount++] = c;
 }
@@ -806,14 +828,14 @@ int RM_GetApi(const char *funcname, void **targetPtrPtr) {
 }
 
 void modulePostExecutionUnitOperations(void) {
-    if (server.execution_nesting)
+    if (execution_nesting)
         return;
 
     if (server.busy_module_yield_flags) {
         blockingOperationEnds();
         server.busy_module_yield_flags = BUSY_MODULE_YIELD_NONE;
-        if (server.current_client)
-            unprotectClient(server.current_client);
+        if (server.current_client[iotid].p)
+            unprotectClient(server.current_client[iotid].p);
         unblockPostponedClients();
     }
 }
@@ -857,14 +879,14 @@ static CallReply *moduleParseReply(client *c, RedisModuleCtx *ctx) {
         proto = sdscatlen(proto,o->buf,o->used);
         listDelNode(c->reply,listFirst(c->reply));
     }
-    CallReply *reply = callReplyCreate(proto, c->deferred_reply_errors, ctx);
-    c->deferred_reply_errors = NULL; /* now the responsibility of the reply object. */
+    CallReply *reply = callReplyCreate(proto, clientTail(c)->deferred_reply_errors, ctx);
+    clientTail(c)->deferred_reply_errors = NULL; /* now the responsibility of the reply object. */
     return reply;
 }
 
 void moduleCallCommandUnblockedHandler(client *c) {
     RedisModuleCtx ctx;
-    RedisModuleAsyncRMCallPromise *promise = c->bstate.async_rm_call_handle;
+    RedisModuleAsyncRMCallPromise *promise = clientBlockingState(c)->async_rm_call_handle;
     serverAssert(promise);
     RedisModule *module = promise->module;
     if (!promise->on_unblocked) {
@@ -1305,6 +1327,11 @@ int RM_CreateCommand(RedisModuleCtx *ctx, const char *name, RedisModuleCmdFunc c
     resumeAllIOThreads();
 
     cp->rediscmd->id = ACLGetCommandID(declared_name); /* ID used for ACL. */
+    /* ee451 (#B2): the live per-command counts live in the per-thread shards, keyed by that id.
+     * ACL reuses an id for a re-registered command of the same name, so clear the shards here —
+     * AFTER the id exists — or the new registration inherits the old incarnation's stats.
+     * (Doing it in moduleCreateCommandProxy would clobber id 0: the id is assigned only here.) */
+    tomoCmdStatResetOne(cp->rediscmd);
     return REDISMODULE_OK;
 }
 
@@ -2444,8 +2471,8 @@ void RM_Yield(RedisModuleCtx *ctx, int flags, const char *busy_reply) {
             if (!server.busy_module_yield_flags) {
                 server.busy_module_yield_flags = BUSY_MODULE_YIELD_EVENTS;
                 blockingOperationStarts();
-                if (server.current_client)
-                    protectClient(server.current_client);
+                if (server.current_client[iotid].p)
+                    protectClient(server.current_client[iotid].p);
             }
             if (flags & REDISMODULE_YIELD_FLAG_CLIENTS)
                 server.busy_module_yield_flags |= BUSY_MODULE_YIELD_CLIENTS;
@@ -3631,7 +3658,7 @@ int RM_Replicate(RedisModuleCtx *ctx, const char *cmdname, const char *fmt, ...)
     /* Release the argv. */
     for (j = 0; j < argc; j++) decrRefCount(argv[j]);
     zfree(argv);
-    server.dirty++;
+    markDirty(1);
     return REDISMODULE_OK;
 }
 
@@ -3653,7 +3680,7 @@ int RM_ReplicateVerbatim(RedisModuleCtx *ctx) {
     alsoPropagate(ctx->client->db->id,
         ctx->client->argv,ctx->client->argc,
         PROPAGATE_AOF|PROPAGATE_REPL);
-    server.dirty++;
+    markDirty(1);
     return REDISMODULE_OK;
 }
 
@@ -3682,7 +3709,7 @@ int RM_ReplicateVerbatim(RedisModuleCtx *ctx) {
  */
 unsigned long long RM_GetClientId(RedisModuleCtx *ctx) {
     if (ctx->client == NULL) return 0;
-    return ctx->client->id;
+    return clientTail(ctx->client)->id;
 }
 
 /* Return the ACL user name used by the client with the specified client ID.
@@ -3736,7 +3763,7 @@ int modulePopulateClientInfoStructure(void *ci, client *client, int structver) {
     connAddrPeerName(client->conn,ci1->addr,sizeof(ci1->addr),&port);
     ci1->port = port;
     ci1->db = client->db->id;
-    ci1->id = client->id;
+    ci1->id = clientTail(client)->id;
     return REDISMODULE_OK;
 }
 
@@ -3819,8 +3846,8 @@ int RM_GetClientInfoById(void *ci, uint64_t id) {
  * it, NULL is returned. */
 RedisModuleString *RM_GetClientNameById(RedisModuleCtx *ctx, uint64_t id) {
     client *client = lookupClientByID(id);
-    if (client == NULL || client->name == NULL) return NULL;
-    robj *name = client->name;
+    if (client == NULL || clientTail(client)->name == NULL) return NULL;
+    robj *name = clientTail(client)->name;
     incrRefCount(name);
     autoMemoryAdd(ctx, REDISMODULE_AM_STRING, name);
     return name;
@@ -3968,7 +3995,7 @@ int RM_GetContextFlags(RedisModuleCtx *ctx) {
     if (scriptIsRunning())
         flags |= REDISMODULE_CTX_FLAGS_LUA;
 
-    if (server.in_exec)
+    if (tomo_in_exec)
         flags |= REDISMODULE_CTX_FLAGS_MULTI;
 
     if (server.cluster_enabled)
@@ -4692,8 +4719,32 @@ char *RM_StringDMA(RedisModuleKey *key, size_t *len, int mode) {
 
     /* For write access, and even for read access if the object is encoded,
      * we unshare the string (that has the side effect of decoding it). */
-    if ((mode & REDISMODULE_WRITE) || key->kv->encoding != OBJ_ENCODING_RAW)
-        key->kv = dbUnshareStringValue(key->db, key->key, key->kv);
+    if ((mode & REDISMODULE_WRITE) || key->kv->encoding != OBJ_ENCODING_RAW) {
+        /* ee451: ONLY when this exact object is resident in key->db.
+         *
+         * Under sharding the real keyspace lives in the workers' node dbs while an inline module
+         * context carries the EMPTY decoy server.db, and dbScan()'s FLATSTORE arm hands the
+         * RM_Scan callback a kvobj straight out of a shard. Unsharing that would take
+         * dbSetValue's "expected to exist" serverAssertWithInfo on the decoy — the process dies
+         * — and if it ever DID find the key it would be worse: an in-place
+         * rewrite (kvobjSetEx + kvstoreDictSetAtLink + a QSBR retire) of an object owned by
+         * another thread, i.e. a single-writer violation on the shared flat table.
+         *
+         * READ access needs no rewrite at all. EMBSTR and RAW both keep a real sds in ->ptr, so
+         * the bytes are already directly viewable; only OBJ_ENCODING_INT stores its value IN the
+         * pointer, and that one is rendered into the handle's own scratch buffer. WRITE access
+         * genuinely cannot be served from here, so it reports failure instead of corrupting. */
+        if (dbFind(key->db, key->key->ptr) == key->kv) {
+            key->kv = dbUnshareStringValue(key->db, key->key, key->kv);
+        } else if (mode & REDISMODULE_WRITE) {
+            *len = 0;
+            return NULL;
+        } else if (key->kv->encoding == OBJ_ENCODING_INT) {
+            int n = ll2string(key->dma_intbuf, sizeof(key->dma_intbuf), (long)key->kv->ptr);
+            *len = (size_t)n;
+            return key->dma_intbuf;
+        }
+    }
 
     *len = sdslen(key->kv->ptr);
     return key->kv->ptr;
@@ -6856,7 +6907,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
     /* Lookup command now, after filters had a chance to make modifications
      * if necessary.
      */
-    c->cmd = c->lastcmd = c->realcmd = lookupCommand(c->argv,c->argc);
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = lookupCommand(c->argv,c->argc);
 
     /* We nullify the command if it is not supposed to be seen by the client,
      * such that it will be rejected like an unknown command. */
@@ -6865,7 +6916,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
         (flags & REDISMODULE_ARGV_RUN_AS_USER) &&
         !((ctx->client->flags & CLIENT_INTERNAL) || mustObeyClient(ctx->client)))
     {
-        c->cmd = c->lastcmd = c->realcmd = NULL;
+        c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = NULL;
     }
 
     sds err;
@@ -6951,7 +7002,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
             }
 
             int deny_write_type = writeCommandsDeniedByDiskError();
-            int obey_client = (server.current_client && mustObeyClient(server.current_client));
+            int obey_client = (server.current_client[iotid].p && mustObeyClient(server.current_client[iotid].p));
 
             if (deny_write_type != DISK_ERROR_TYPE_NONE && !obey_client) {
                 errno = ESPIPE;
@@ -7086,7 +7137,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
                 .ctx = (ctx->flags & REDISMODULE_CTX_AUTO_MEMORY) ? ctx : NULL,
         };
         reply = callReplyCreatePromise(promise);
-        c->bstate.async_rm_call_handle = promise;
+        clientBlockingState(c)->async_rm_call_handle = promise;
         if (!(call_flags & CMD_CALL_PROPAGATE_AOF)) {
             /* No need for AOF propagation, set the relevant flags of the client */
             c->flags |= CLIENT_MODULE_PREVENT_AOF_PROP;
@@ -8209,7 +8260,7 @@ void RM_LatencyAddSample(const char *event, mstime_t latency) {
 
 /* Returns 1 if the client already in the moduleUnblocked list, 0 otherwise. */
 int isModuleClientUnblocked(client *c) {
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
 
     return bc->unblocked == 1;
 }
@@ -8227,7 +8278,7 @@ int isModuleClientUnblocked(client *c) {
  * The structure RedisModuleBlockedClient will be always deallocated when
  * running the list of clients blocked by a module that need to be unblocked. */
 void unblockClientFromModule(client *c) {
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
 
     /* Call the disconnection callback if any. Note that
      * bc->disconnect_callback is set to NULL if the client gets disconnected
@@ -8290,10 +8341,11 @@ RedisModuleBlockedClient *moduleBlockClient(RedisModuleCtx *ctx, RedisModuleCmdF
                                             int flags) {
     client *c = ctx->client;
     int islua = scriptIsRunning();
-    int ismulti = server.in_exec;
+    int ismulti = tomo_in_exec;
 
-    c->bstate.module_blocked_handle = zcalloc(sizeof(RedisModuleBlockedClient));
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    initClientBlockingState(c);
+    clientBlockingState(c)->module_blocked_handle = zcalloc(sizeof(RedisModuleBlockedClient));
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
     ctx->module->blocked_clients++;
 
     /* We need to handle the invalid operation of calling modules blocking
@@ -8322,7 +8374,7 @@ RedisModuleBlockedClient *moduleBlockClient(RedisModuleCtx *ctx, RedisModuleCmdF
     if (timeout_ms) {
         mstime_t now = mstime();
         if (timeout_ms > LLONG_MAX - now) {
-            c->bstate.module_blocked_handle = NULL;
+            clientBlockingState(c)->module_blocked_handle = NULL;
             addReplyError(c, "timeout is out of range"); /* 'timeout_ms+now' would overflow */
             return bc;
         }
@@ -8330,21 +8382,21 @@ RedisModuleBlockedClient *moduleBlockClient(RedisModuleCtx *ctx, RedisModuleCmdF
     }
 
     if (islua || ismulti) {
-        c->bstate.module_blocked_handle = NULL;
+        clientBlockingState(c)->module_blocked_handle = NULL;
         addReplyError(c, islua ?
             "Blocking module command called from Lua script" :
             "Blocking module command called from transaction");
     } else if (ctx->flags & REDISMODULE_CTX_BLOCKED_REPLY) {
-        c->bstate.module_blocked_handle = NULL;
+        clientBlockingState(c)->module_blocked_handle = NULL;
         addReplyError(c, "Blocking module command called from a Reply callback context");
     } else if (!auth_reply_callback && clientHasModuleAuthInProgress(c)) {
-        c->bstate.module_blocked_handle = NULL;
+        clientBlockingState(c)->module_blocked_handle = NULL;
         addReplyError(c, "Clients undergoing module based authentication can only be blocked on auth");
     } else {
         if (keys) {
             blockForKeys(c,BLOCKED_MODULE,keys,numkeys,timeout,flags&REDISMODULE_BLOCK_UNBLOCK_DELETED);
         } else {
-            c->bstate.timeout = timeout;
+            clientBlockingState(c)->timeout = timeout;
             blockClient(c,BLOCKED_MODULE);
         }
     }
@@ -8441,7 +8493,7 @@ void moduleUnregisterAuthCBs(RedisModule *module) {
 /* Search for & attempt next module auth callback after skipping the ones already attempted.
  * Returns the result of the module auth callback. */
 int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
-    int handle_next_callback = c->module_auth_ctx == NULL;
+    int handle_next_callback = !clientTail(c)->cold || clientTail(c)->cold->module_auth_ctx == NULL;
     RedisModuleAuthCtx *cur_auth_ctx = NULL;
     listNode *ln;
     listIter li;
@@ -8451,7 +8503,7 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
         cur_auth_ctx = listNodeValue(ln);
         /* Skip over the previously attempted auth contexts. */
         if (!handle_next_callback) {
-            handle_next_callback = cur_auth_ctx == c->module_auth_ctx;
+            handle_next_callback = cur_auth_ctx == clientTail(c)->cold->module_auth_ctx;
             continue;
         }
         /* Remove the module auth complete flag before we attempt the next cb. */
@@ -8460,7 +8512,8 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
         moduleCreateContext(&ctx, cur_auth_ctx->module, REDISMODULE_CTX_NONE);
         ctx.client = c;
         *err = NULL;
-        c->module_auth_ctx = cur_auth_ctx;
+        initClientModuleData(c);
+        clientTail(c)->cold->module_auth_ctx = cur_auth_ctx;
         result = cur_auth_ctx->auth_cb(&ctx, username, password, err);
         moduleFreeContext(&ctx);
         if (result == REDISMODULE_AUTH_HANDLED) break;
@@ -8476,8 +8529,8 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
  * return the result of the reply callback. */
 int attemptBlockedAuthReplyCallback(client *c, robj *username, robj *password, robj **err) {
     int result = REDISMODULE_AUTH_NOT_HANDLED;
-    if (!c->module_blocked_client) return result;
-    RedisModuleBlockedClient *bc = (RedisModuleBlockedClient *) c->module_blocked_client;
+    if (!clientTail(c)->cold || !clientTail(c)->cold->module_blocked_client) return result;
+    RedisModuleBlockedClient *bc = (RedisModuleBlockedClient *) clientTail(c)->cold->module_blocked_client;
     bc->client = c;
     if (bc->auth_reply_cb) {
         RedisModuleCtx ctx;
@@ -8490,8 +8543,8 @@ int attemptBlockedAuthReplyCallback(client *c, robj *username, robj *password, r
         moduleFreeContext(&ctx);
     }
     moduleInvokeFreePrivDataCallback(c, bc);
-    c->module_blocked_client = NULL;
-    c->lastcmd->microseconds += bc->background_duration;
+    clientTail(c)->cold->module_blocked_client = NULL;
+    tomoCmdStatAddUsec(clientTail(c)->lastcmd, bc->background_duration);   /* ee451 (#B2): per-thread shard */
     bc->module->blocked_clients--;
     zfree(bc);
     return result;
@@ -8518,7 +8571,7 @@ int checkModuleAuthentication(client *c, robj *username, robj *password, robj **
         serverAssert(result == REDISMODULE_AUTH_HANDLED);
         return AUTH_BLOCKED;
     }
-    c->module_auth_ctx = NULL;
+    if (clientTail(c)->cold) clientTail(c)->cold->module_auth_ctx = NULL;
     if (result == REDISMODULE_AUTH_NOT_HANDLED) {
         c->flags &= ~CLIENT_MODULE_AUTH_HAS_RESULT;
         return AUTH_NOT_HANDLED;
@@ -8539,7 +8592,7 @@ int checkModuleAuthentication(client *c, robj *username, robj *password, robj **
  * This function returns 1 if client was served (and should be unblocked) */
 int moduleTryServeClientBlockedOnKey(client *c, robj *key) {
     int served = 0;
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
 
     /* Protect against re-processing: don't serve clients that are already
      * in the unblocking list for any reason (including RM_UnblockClient()
@@ -8735,14 +8788,14 @@ int moduleUnblockClientByHandle(RedisModuleBlockedClient *bc, void *privdata) {
 /* This API is used by the Redis core to unblock a client that was blocked
  * by a module. */
 void moduleUnblockClient(client *c) {
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
     moduleUnblockClientByHandle(bc,NULL);
 }
 
 /* Return true if the client 'c' was blocked by a module using
  * RM_BlockClientOnKeys(). */
 int moduleClientIsBlockedOnKeys(client *c) {
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
     return bc->blocked_on_keys;
 }
 
@@ -8834,7 +8887,7 @@ void moduleHandleBlockedClients(void) {
          * was blocked on keys (RM_BlockClientOnKeys()), because we already
          * called such callback in moduleTryServeClientBlockedOnKey() when
          * the key was signaled as ready. */
-        long long prev_error_replies = server.stat_total_error_replies;
+        long long prev_error_replies = tomoErrRepliesLocal();   /* ee451 (#B2): per-thread shard */
         uint64_t reply_us = 0;
         if (c && !bc->blocked_on_keys && bc->reply_callback) {
             RedisModuleCtx ctx;
@@ -8856,7 +8909,7 @@ void moduleHandleBlockedClients(void) {
         /* Hold onto the blocked client if module auth is in progress. The reply callback is invoked
          * when the client is reprocessed. */
         if (c && clientHasModuleAuthInProgress(c)) {
-            c->module_blocked_client = bc;
+            clientTail(c)->cold->module_blocked_client = bc;
         } else {
             /* Free privdata if any. */
             moduleInvokeFreePrivDataCallback(c, bc);
@@ -8878,7 +8931,7 @@ void moduleHandleBlockedClients(void) {
          * called from moduleUnblockClientOnKey
          */
         if (c && !clientHasModuleAuthInProgress(c) && !bc->blocked_on_keys) {
-            updateStatsOnUnblock(c, bc->background_duration, reply_us, server.stat_total_error_replies != prev_error_replies);
+            updateStatsOnUnblock(c, bc->background_duration, reply_us, tomoErrRepliesLocal() != prev_error_replies);
         }
 
         if (c != NULL) {
@@ -8890,7 +8943,7 @@ void moduleHandleBlockedClients(void) {
 
             /* Update the wait offset, we don't know if this blocked client propagated anything,
              * currently we rather not add any API for that, so we just assume it did. */
-            c->woff = server.master_repl_offset;
+            clientTail(c)->woff = server.master_repl_offset;
 
             /* Put the client in the list of clients that need to write
              * if there are pending replies here. This is needed since
@@ -8899,7 +8952,7 @@ void moduleHandleBlockedClients(void) {
                 !(c->flags & CLIENT_PENDING_WRITE) && c->conn)
             {
                 c->flags |= CLIENT_PENDING_WRITE;
-                listLinkNodeHead(server.clients_pending_write, &c->clients_pending_write_node);
+                listLinkNodeHead(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
             }
         }
 
@@ -8921,10 +8974,10 @@ void moduleHandleBlockedClients(void) {
  * moduleBlockedClientTimedOut().
  */
 int moduleBlockedClientMayTimeout(client *c) {
-    if (c->bstate.btype != BLOCKED_MODULE)
+    if (clientBlockingState(c)->btype != BLOCKED_MODULE)
         return 1;
 
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
     return (bc && bc->timeout_callback != NULL);
 }
 
@@ -8937,7 +8990,7 @@ int moduleBlockedClientMayTimeout(client *c) {
  * of the client synchronously. This ensures that we can reply to the client before
  * resetClient() is called. */
 void moduleBlockedClientTimedOut(client *c) {
-    RedisModuleBlockedClient *bc = c->bstate.module_blocked_handle;
+    RedisModuleBlockedClient *bc = clientBlockingState(c)->module_blocked_handle;
 
     RedisModuleCtx ctx;
     moduleCreateContext(&ctx, bc->module, REDISMODULE_CTX_BLOCKED_TIMEOUT);
@@ -8945,7 +8998,7 @@ void moduleBlockedClientTimedOut(client *c) {
     ctx.blocked_client = bc;
     ctx.blocked_privdata = bc->privdata;
 
-    long long prev_error_replies = server.stat_total_error_replies;
+    long long prev_error_replies = tomoErrRepliesLocal();   /* ee451 (#B2): per-thread shard */
 
     if (bc->timeout_callback) {
         /* In theory, the user should always pass the timeout handler as an
@@ -8955,7 +9008,7 @@ void moduleBlockedClientTimedOut(client *c) {
 
     moduleFreeContext(&ctx);
 
-    updateStatsOnUnblock(c, bc->background_duration, 0, server.stat_total_error_replies != prev_error_replies);
+    updateStatsOnUnblock(c, bc->background_duration, 0, tomoErrRepliesLocal() != prev_error_replies);
 
     /* For timeout events, we do not want to call the disconnect callback,
      * because the blocked client will be automatically disconnected in
@@ -9051,7 +9104,7 @@ RedisModuleCtx *RM_GetThreadSafeContext(RedisModuleBlockedClient *bc) {
         ctx->client = bc->thread_safe_ctx_client;
         selectDb(ctx->client,bc->dbid);
         if (bc->client) {
-            ctx->client->id = bc->client->id;
+            clientTail(ctx->client)->id = clientTail(bc->client)->id;
             ctx->client->resp = bc->client->resp;
         }
     }
@@ -9081,7 +9134,7 @@ void RM_FreeThreadSafeContext(RedisModuleCtx *ctx) {
 void moduleGILAfterLock(void) {
     /* We should never get here if we already inside a module
      * code block which already opened a context. */
-    serverAssert(server.execution_nesting == 0);
+    serverAssert(execution_nesting == 0);
     /* Bump up the nesting level to prevent immediate propagation
      * of possible RM_Call from th thread */
     enterExecutionUnit(1, 0);
@@ -9118,7 +9171,7 @@ void moduleGILBeforeUnlock(void) {
     /* We should never get here if we already inside a module
      * code block which already opened a context, except
      * the bump-up from moduleGILAcquired. */
-    serverAssert(server.execution_nesting == 1);
+    serverAssert(execution_nesting == 1);
     /* Restore nesting level and propagate pending commands
      * (because it's unclear when thread safe contexts are
      * released we have to propagate here). */
@@ -9133,11 +9186,48 @@ void RM_ThreadSafeContextUnlock(RedisModuleCtx *ctx) {
     moduleReleaseGIL();
 }
 
+/* ee451 (O/perf): has anything OTHER than the main event loop ever wanted the GIL?
+ *
+ * The GIL exists so module threads cannot touch server state while the main loop runs. It starts
+ * LOCKED (see moduleInitModulesSystem) and main hands it back and forth every single event-loop
+ * iteration -- moduleReleaseGIL() in beforeSleep, moduleAcquireGIL() in afterSleep. That round trip
+ * is unconditional on moduleCount(), and this Redis 8 build ships `vectorset` as a BUILT-IN module,
+ * so a server started with no --loadmodule at all still pays a process-global mutex per iteration
+ * for a module nothing in the workload ever calls.
+ *
+ * STICKY, deliberately. Until some non-main thread actually asks for the GIL, main simply keeps
+ * holding it and skips both halves -- safe by construction, because a lock nobody else wants cannot
+ * be contended. The FIRST such asker sets this flag and then blocks until main's next beforeSleep,
+ * which is bounded by the serverCron tick (server.hz), not unbounded. From that point on main
+ * releases every iteration exactly as upstream does, forever. So a server that genuinely uses module
+ * threads gets upstream behaviour after a one-time sub-tick delay, and a server that does not -- the
+ * only kind this fork is ever benchmarked or shipped as -- pays one relaxed atomic load instead of a
+ * lock/unlock pair.
+ *
+ * Main must NOT come through here; it uses moduleAcquireGILForMainLoop() so its own acquire does not
+ * trip the flag it is testing. */
+static _Atomic int moduleGILEverWanted = 0;
+
+int moduleGILNeedsHandoff(void) {
+    return atomic_load_explicit(&moduleGILEverWanted, memory_order_acquire);
+}
+
+/* The main event loop's acquire: does not mark the GIL as wanted. */
+void moduleAcquireGILForMainLoop(void) {
+    pthread_mutex_lock(&moduleGIL);
+}
+
 void moduleAcquireGIL(void) {
+    atomic_store_explicit(&moduleGILEverWanted, 1, memory_order_release);
     pthread_mutex_lock(&moduleGIL);
 }
 
 int moduleTryAcquireGIL(void) {
+    /* Mark it wanted even though we may fail to take it. Main now HOLDS the GIL across its sleep
+     * and only hands it off once someone asks; a module that only ever uses the try-variant would
+     * otherwise never register that want, main would never release, and every trylock would fail
+     * forever. Recording the want on the attempt makes the next one succeed. */
+    atomic_store_explicit(&moduleGILEverWanted, 1, memory_order_release);
     return pthread_mutex_trylock(&moduleGIL);
 }
 
@@ -9281,6 +9371,23 @@ int moduleHasSubscribersForKeyspaceEvent(int type) {
     return 0;
 }
 
+/* A core-only execution client cannot be exposed to a synchronous module
+ * callback: supported callback APIs may inspect the ambient current client. */
+int moduleHasKeyspaceChangeCallbacks(int type) {
+    if (moduleKeyspaceSubscribers && listLength(moduleKeyspaceSubscribers) &&
+        moduleHasSubscribersForKeyspaceEvent(type)) return 1;
+    if (!RedisModule_EventListeners || !listLength(RedisModule_EventListeners)) return 0;
+
+    listIter li;
+    listNode *ln;
+    listRewind(RedisModule_EventListeners,&li);
+    while((ln = listNext(&li))) {
+        RedisModuleEventListener *el = ln->value;
+        if (el->event.id == REDISMODULE_EVENT_KEY) return 1;
+    }
+    return 0;
+}
+
 void firePostExecutionUnitJobs(void) {
     /* Avoid propagation of commands.
      * In that way, postExecutionUnitOperations will prevent
@@ -9400,11 +9507,12 @@ void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid)
              * it will not be notified about it. */
             int prev_active = sub->active;
             sub->active = 1;
-            server.allow_access_expired++;
-            server.allow_access_trimmed++;
+            /* ee451 (F-clock family): thread-local guard — see tomo_access_expired in server.h. */
+            tomo_access_expired++;
+            tomo_access_trimmed++;
             sub->notify_callback(&ctx, type, event, key);
-            server.allow_access_expired--;
-            server.allow_access_trimmed--;
+            tomo_access_expired--;
+            tomo_access_trimmed--;
             sub->active = prev_active;
             moduleFreeContext(&ctx);
         }
@@ -10226,16 +10334,15 @@ static void eventLoopHandleOneShotEvents(void) {
  * A client's user can be changed through the AUTH command, module
  * authentication, and when a client is freed. */
 void moduleNotifyUserChanged(client *c) {
-    if (c->auth_callback) {
-        c->auth_callback(c->id, c->auth_callback_privdata);
+    if (!clientTail(c)->cold || !clientTail(c)->cold->auth_callback) return;
+    clientTail(c)->cold->auth_callback(clientTail(c)->id, clientTail(c)->cold->auth_callback_privdata);
 
-        /* The callback will fire exactly once, even if the user remains
-         * the same. It is expected to completely clean up the state
-         * so all references are cleared here. */
-        c->auth_callback = NULL;
-        c->auth_callback_privdata = NULL;
-        c->auth_module = NULL;
-    }
+    /* The callback will fire exactly once, even if the user remains
+     * the same. It is expected to completely clean up the state
+     * so all references are cleared here. */
+    clientTail(c)->cold->auth_callback = NULL;
+    clientTail(c)->cold->auth_callback_privdata = NULL;
+    clientTail(c)->cold->auth_module = NULL;
 }
 
 void revokeClientAuthentication(client *c) {
@@ -10255,12 +10362,12 @@ void revokeClientAuthentication(client *c) {
 static void moduleFreeAuthenticatedClients(RedisModule *module) {
     listIter li;
     listNode *ln;
-    listRewind(server.clients,&li);
+    listRewind(server.clients[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
-        if (!c->auth_module) continue;
+        if (!clientTail(c)->cold || !clientTail(c)->cold->auth_module) continue;
 
-        RedisModule *auth_module = (RedisModule *) c->auth_module;
+        RedisModule *auth_module = (RedisModule *) clientTail(c)->cold->auth_module;
         if (auth_module == module) {
             revokeClientAuthentication(c);
         }
@@ -10612,13 +10719,14 @@ static int authenticateClientWithUser(RedisModuleCtx *ctx, user *user, RedisModu
     }
 
     if (callback) {
-        ctx->client->auth_callback = callback;
-        ctx->client->auth_callback_privdata = privdata;
-        ctx->client->auth_module = ctx->module;
+        initClientModuleData(ctx->client);
+        clientTail(ctx->client)->cold->auth_callback = callback;
+        clientTail(ctx->client)->cold->auth_callback_privdata = privdata;
+        clientTail(ctx->client)->cold->auth_module = ctx->module;
     }
 
     if (client_id) {
-        *client_id = ctx->client->id;
+        *client_id = clientTail(ctx->client)->id;
     }
 
     return REDISMODULE_OK;
@@ -11558,7 +11666,7 @@ void moduleCallCommandFilters(client *c) {
 
     /* If the filter sets a new command, including command or subcommand,
      * the command looked up will be invalid. */
-    c->lookedcmd = NULL;
+    clientTail(c)->lookedcmd = NULL;
 
     c->argv = filter.argv;
     c->argv_len = filter.argv_len;
@@ -11655,7 +11763,7 @@ int RM_CommandFilterArgDelete(RedisModuleCommandFilterCtx *fctx, int pos)
 
 /* Get Client ID for client that issued the command we are filtering */
 unsigned long long RM_CommandFilterGetClientId(RedisModuleCommandFilterCtx *fctx) {
-    return fctx->c->id;
+    return clientTail(fctx->c)->id;
 }
 
 /* For a given pointer allocated via RedisModule_Alloc() or
@@ -11730,6 +11838,21 @@ static void moduleScanCallback(void *privdata, const dictEntry *de, dictEntryLin
     UNUSED(plink);
     ScanCBData *data = privdata;
     kvobj *keyvalObj = dictGetKey(de);
+    /* ee451 FLATSTORE: same guard, same reason, as objectTypeCompare's (db.c). dbScan's flat arm
+     * walks every node's table lock-free, so it can hand us a kvobj a worker QSBR-retired between
+     * the slot load and this call. A retired shell whose value was MOVED out
+     * (KVOBJ_SET_MOVE_VALUE: first-TTL EXPIRE / same-shard RENAME) has ptr == NULL until the grace
+     * frees it, and unlike SCAN — which only ever reads the embedded key — we hand the value
+     * straight to module code that WILL dereference it (RedisModule_StringDMA and friends). It is
+     * not a live key anyway, so drop it rather than publish a NULL-valued handle.
+     *
+     * The `!= OBJ_STRING` conjunct is LOAD-BEARING, not defensive: an OBJ_ENCODING_INT string
+     * stores its integer IN the ptr field, so `SET k 0` is a perfectly live key whose ptr is NULL.
+     * A bare `ptr == NULL` test would silently hide every key whose value is 0 — the same shape of
+     * silent-omission defect this whole fix exists to remove. Only non-strings can be MOVEd
+     * (kvobjSetEx's EMBSTR/INT/RAW branches copy instead), so restricting the test to them is
+     * exact rather than merely cautious. */
+    if (keyvalObj->ptr == NULL && keyvalObj->type != OBJ_STRING) return;
     sds key = kvobjGetKey(keyvalObj);
     RedisModuleString *keyname = createObject(OBJ_STRING,sdsdup(key));
 
@@ -12724,8 +12847,11 @@ void processModuleLoadingProgressEvent(int is_aof) {
 /* When a key is deleted (in dbAsyncDelete/dbSyncDelete/setKey), it
 *  will be called to tell the module which key is about to be released. */
 void moduleNotifyKeyUnlink(robj *key, kvobj *kv, int dbid, int flags) {
-    server.allow_access_expired++;
-    server.allow_access_trimmed++;
+    /* ee451 (F-clock family): thread-local guard. This function runs on EVERY worker thread on
+     * EVERY key overwrite/delete; the two ints it used to bump were shared globals, and the lost
+     * ++/-- updates permanently disabled lazy expiry. See tomo_access_expired in server.h. */
+    tomo_access_expired++;
+    tomo_access_trimmed++;
     int subevent = REDISMODULE_SUBEVENT_KEY_DELETED;
     if (flags & DB_FLAG_KEY_EXPIRED) {
         subevent = REDISMODULE_SUBEVENT_KEY_EXPIRED;
@@ -12748,8 +12874,8 @@ void moduleNotifyKeyUnlink(robj *key, kvobj *kv, int dbid, int flags) {
             mt->unlink(key,mv->value);
         }
     }
-    server.allow_access_expired--;
-    server.allow_access_trimmed--;
+    tomo_access_expired--;
+    tomo_access_trimmed--;
 }
 
 /* Return the free_effort of the module, it will automatically choose to call 
@@ -13056,6 +13182,7 @@ int moduleFreeCommand(struct RedisModule *module, struct redisCommand *cmd) {
         hdr_close(cmd->latency_histogram);
         cmd->latency_histogram = NULL;
     }
+    tomoCmdStatResetOne(cmd);   /* ee451 (#B2): drop this id's per-thread shards too */
     moduleFreeArgs(cmd->args, cmd->num_args);
     zfree(cp);
 
@@ -13437,12 +13564,6 @@ sds genModulesInfoString(sds info) {
  * Module Configurations API internals
  * -------------------------------------------------------------------------- */
 	 
-/* Check if the configuration name is already registered */
-int isModuleConfigNameRegistered(RedisModule *module, const char *name) {
-    listNode *match = listSearchKey(module->module_configs, (void *) name);
-    return match != NULL;
-}
-
 /* Assert that the flags passed into the RM_RegisterConfig Suite are valid */
 int moduleVerifyConfigFlags(unsigned int flags, configType type) {
     if ((flags & ~(REDISMODULE_CONFIG_DEFAULT
@@ -14150,12 +14271,12 @@ int RM_RdbLoad(RedisModuleCtx *ctx, RedisModuleRdbStream *stream, int flags) {
      * RM_RdbLoad() is called inside a command callback, we don't want to
      * process the current client. Otherwise, we may free the client or try to
      * process next message while we are already in the command callback. */
-    if (server.current_client) protectClient(server.current_client);
+    if (server.current_client[iotid].p) protectClient(server.current_client[iotid].p);
 
     serverAssert(stream->type == REDISMODULE_RDB_STREAM_FILE);
     int ret = rdbLoad(stream->data.filename,NULL,RDBFLAGS_NONE);
 
-    if (server.current_client) unprotectClient(server.current_client);
+    if (server.current_client[iotid].p) unprotectClient(server.current_client[iotid].p);
     if (server.aof_enabled) startAppendOnlyWithRetry();
 
     if (ret != RDB_OK) {
@@ -14500,17 +14621,37 @@ int RM_ConfigSetNumeric(RedisModuleCtx *ctx, const char *name, long long value, 
  * MODULE LOADEX <path> [[CONFIG NAME VALUE] [CONFIG NAME VALUE]] [ARGS ...]
  * MODULE UNLOAD <name>
  */
+/* ee451: the module API is not supported by this fork — 'loadmodule' is a boot FATAL (initServer).
+ * LOAD/LOADEX are the runtime equivalents and must be refused for the same reason rather than
+ * half-working: a module command's proc is not on canDispatchToWorker's whitelist, so it executes
+ * inline on an IO thread against the EMPTY decoy server.db and sees none of the sharded keyspace;
+ * and the module APIs that do reach shard data (RM_Scan via dbScan's FLATSTORE arm) are handed
+ * kvobjs owned by another worker thread — see the residency guard in RM_StringDMA above.
+ * LIST and UNLOAD stay: nothing can be loaded, so LIST is empty and UNLOAD is a no-op, but they
+ * remain honest answers rather than errors. */
+static void moduleRefuseLoad(client *c) {
+    addReplyError(c,
+        "MODULE LOAD is not supported by this fork: TomoKV shards the keyspace across worker "
+        "threads, so a module command would run inline on an IO thread against the empty decoy "
+        "DB and see no keys. Use upstream Redis if you need modules.");
+}
+
 void moduleCommand(client *c) {
     char *subcmd = c->argv[1]->ptr;
+
+    if ((!strcasecmp(subcmd,"load") || !strcasecmp(subcmd,"loadex")) && c->argc >= 3) {
+        moduleRefuseLoad(c);
+        return;
+    }
 
     if (c->argc == 2 && !strcasecmp(subcmd,"help")) {
         const char *help[] = {
 "LIST",
 "    Return a list of loaded modules.",
 "LOAD <path> [<arg> ...]",
-"    Load a module library from <path>, passing to it any optional arguments.",
+"    NOT SUPPORTED by this fork (the keyspace is sharded across worker threads).",
 "LOADEX <path> [[CONFIG NAME VALUE] [CONFIG NAME VALUE]] [ARGS ...]",
-"    Load a module library from <path>, while passing it module configurations and optional arguments.",
+"    NOT SUPPORTED by this fork (the keyspace is sharded across worker threads).",
 "UNLOAD <name>",
 "    Unload a module.",
 NULL

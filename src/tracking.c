@@ -49,7 +49,7 @@ void disableTracking(client *c) {
      * from all the prefixes it is registered to. */
     if (c->flags & CLIENT_TRACKING_BCAST) {
         raxIterator ri;
-        raxStart(&ri,c->client_tracking_prefixes);
+        raxStart(&ri,clientPubSubData(c)->client_tracking_prefixes);
         raxSeek(&ri,"^",NULL,0);
         while(raxNext(&ri)) {
             void *result;
@@ -67,8 +67,8 @@ void disableTracking(client *c) {
             }
         }
         raxStop(&ri);
-        raxFree(c->client_tracking_prefixes);
-        c->client_tracking_prefixes = NULL;
+        raxFree(clientPubSubData(c)->client_tracking_prefixes);
+        clientPubSubData(c)->client_tracking_prefixes = NULL;
     }
 
     /* Clear flags and adjust the count. */
@@ -92,11 +92,12 @@ static int stringCheckPrefix(unsigned char *s1, size_t s1_len, unsigned char *s2
  * collision is found, 1 is return, otherwise 0 is returned and the client 
  * has an error emitted describing the error. */
 int checkPrefixCollisionsOrReply(client *c, robj **prefixes, size_t numprefix) {
+    initClientPubSubData(c);
     for (size_t i = 0; i < numprefix; i++) {
         /* Check input list has no overlap with existing prefixes. */
-        if (c->client_tracking_prefixes) {
+        if (clientPubSubData(c)->client_tracking_prefixes) {
             raxIterator ri;
-            raxStart(&ri,c->client_tracking_prefixes);
+            raxStart(&ri,clientPubSubData(c)->client_tracking_prefixes);
             raxSeek(&ri,"^",NULL,0);
             while(raxNext(&ri)) {
                 if (stringCheckPrefix(ri.key,ri.key_len,
@@ -148,9 +149,9 @@ void enableBcastTrackingForPrefix(client *c, char *prefix, size_t plen) {
         bs = result;
     }
     if (raxTryInsert(bs->clients,(unsigned char*)&c,sizeof(c),NULL,NULL)) {
-        if (c->client_tracking_prefixes == NULL)
-            c->client_tracking_prefixes = raxNew();
-        raxInsert(c->client_tracking_prefixes,
+        if (clientPubSubData(c)->client_tracking_prefixes == NULL)
+            clientPubSubData(c)->client_tracking_prefixes = raxNew();
+        raxInsert(clientPubSubData(c)->client_tracking_prefixes,
                   (unsigned char*)prefix,plen,NULL,NULL);
     }
 }
@@ -163,12 +164,13 @@ void enableBcastTrackingForPrefix(client *c, char *prefix, size_t plen) {
  * inform it of the condition. Multiple clients can redirect the invalidation
  * messages to the same client ID. */
 void enableTracking(client *c, uint64_t redirect_to, uint64_t options, robj **prefix, size_t numprefix) {
+    initClientPubSubData(c);
     if (!(c->flags & CLIENT_TRACKING)) server.tracking_clients++;
     c->flags |= CLIENT_TRACKING;
     c->flags &= ~(CLIENT_TRACKING_BROKEN_REDIR|CLIENT_TRACKING_BCAST|
                   CLIENT_TRACKING_OPTIN|CLIENT_TRACKING_OPTOUT|
                   CLIENT_TRACKING_NOLOOP);
-    c->client_tracking_redirection = redirect_to;
+    clientPubSubData(c)->client_tracking_redirection = redirect_to;
 
     /* This may be the first client we ever enable. Create the tracking
      * table if it does not exist. */
@@ -235,7 +237,8 @@ void trackingRememberKeys(client *tracking, client *executing) {
         } else {
             ids = result;
         }
-        if (raxTryInsert(ids,(unsigned char*)&tracking->id,sizeof(tracking->id),NULL,NULL))
+        if (raxTryInsert(ids,(unsigned char*)&clientTail(tracking)->id,
+                         sizeof(clientTail(tracking)->id),NULL,NULL))
             TrackingTableTotalItems++;
     }
     getKeysFreeResult(&result);
@@ -259,8 +262,8 @@ void sendTrackingMessage(client *c, char *keyname, size_t keylen, int proto) {
     c->flags |= CLIENT_PUSHING;
 
     int using_redirection = 0;
-    if (c->client_tracking_redirection) {
-        client *redir = lookupClientByID(c->client_tracking_redirection);
+    if (clientPubSubData(c)->client_tracking_redirection) {
+        client *redir = lookupClientByID(clientPubSubData(c)->client_tracking_redirection);
         if (!redir) {
             c->flags |= CLIENT_TRACKING_BROKEN_REDIR;
             /* We need to signal to the original connection that we
@@ -269,7 +272,7 @@ void sendTrackingMessage(client *c, char *keyname, size_t keylen, int proto) {
             if (c->resp > 2) {
                 addReplyPushLen(c,2);
                 addReplyBulkCBuffer(c,"tracking-redir-broken",21);
-                addReplyLongLong(c,c->client_tracking_redirection);
+                addReplyLongLong(c,clientPubSubData(c)->client_tracking_redirection);
             }
             if (!(old_flags & CLIENT_PUSHING)) c->flags &= ~CLIENT_PUSHING;
             return;
@@ -313,7 +316,6 @@ void sendTrackingMessage(client *c, char *keyname, size_t keylen, int proto) {
         addReplyArrayLen(c,1);
         addReplyBulkCBuffer(c,keyname,keylen);
     }
-    updateClientMemUsageAndBucket(c);
     if (!(old_flags & CLIENT_PUSHING)) c->flags &= ~CLIENT_PUSHING;
 
 done:
@@ -403,7 +405,7 @@ void trackingInvalidateKey(client *c, robj *keyobj, int bcast) {
         /* If the client enabled the NOLOOP mode, don't send notifications
          * about keys changed by the client itself. */
         if (target->flags & CLIENT_TRACKING_NOLOOP &&
-            target == server.current_client)
+            target == server.current_client[iotid].p)
         {
             continue;
         }
@@ -411,7 +413,7 @@ void trackingInvalidateKey(client *c, robj *keyobj, int bcast) {
         /* If target is current client and it's executing a command, we need schedule key invalidation.
          * As the invalidation messages may be interleaved with command
          * response and should after command response. */
-        if (target == server.current_client && (server.current_client->flags & CLIENT_EXECUTING_COMMAND)) {
+        if (target == server.current_client[iotid].p && (server.current_client[iotid].p->flags & CLIENT_EXECUTING_COMMAND)) {
             incrRefCount(keyobj);
             listAddNodeTail(server.tracking_pending_keys, keyobj);
         } else {
@@ -432,7 +434,7 @@ void trackingHandlePendingKeyInvalidations(void) {
 
     /* Flush pending invalidation messages only when we are not in nested call.
      * So the messages are not interleaved with transaction response. */
-    if (server.execution_nesting) return;
+    if (execution_nesting) return;
 
     listNode *ln;
     listIter li;
@@ -442,12 +444,12 @@ void trackingHandlePendingKeyInvalidations(void) {
         robj *key = listNodeValue(ln);
         /* current_client maybe freed, so we need to send invalidation
          * message only when current_client is still alive */
-        if (server.current_client != NULL) {
+        if (server.current_client[iotid].p != NULL) {
             if (key != NULL) {
-                sendTrackingMessage(server.current_client,(char *)key->ptr,sdslen(key->ptr),0);
+                sendTrackingMessage(server.current_client[iotid].p,(char *)key->ptr,sdslen(key->ptr),0);
             } else {
-                sendTrackingMessage(server.current_client,shared.null[server.current_client->resp]->ptr,
-                    sdslen(shared.null[server.current_client->resp]->ptr),1);
+                sendTrackingMessage(server.current_client[iotid].p,shared.null[server.current_client[iotid].p->resp]->ptr,
+                    sdslen(shared.null[server.current_client[iotid].p->resp]->ptr),1);
             }
         }
         if (key != NULL) decrRefCount(key);
@@ -475,11 +477,11 @@ void trackingInvalidateKeysOnFlush(int async) {
     if (server.tracking_clients) {
         listNode *ln;
         listIter li;
-        listRewind(server.clients,&li);
+        listRewind(server.clients[iotid],&li);
         while ((ln = listNext(&li)) != NULL) {
             client *c = listNodeValue(ln);
             if (c->flags & CLIENT_TRACKING) {
-                if (c == server.current_client) {
+                if (c == server.current_client[iotid].p) {
                     /* We use a special NULL to indicate that we should send null */
                     listAddNodeTail(server.tracking_pending_keys,NULL);
                 } else {

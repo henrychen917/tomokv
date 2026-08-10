@@ -277,6 +277,12 @@ void dictSetHashFunctionSeed(uint8_t *seed);
 unsigned long dictScan(dict *d, unsigned long v, dictScanFunction *fn, void *privdata);
 unsigned long dictScanDefrag(dict *d, unsigned long v, dictScanFunction *fn, dictDefragFunctions *defragfns, void *privdata);
 uint64_t dictGetHash(dict *d, const void *key);
+/* ee451: one-shot per-thread hash hint. Arm with a (key-pointer, precomputed
+ * hash) pair so the next dictGetHash() for that exact key pointer returns the
+ * cached value instead of recomputing SipHash; consumed on first use. Used by
+ * the worker thread to reuse the hash it already computed during prefetch. */
+void dictArmHashHint(const void *key, uint64_t hash);
+void dictDisarmHashHint(void);
 void dictRehashingInfo(dict *d, unsigned long long *from_size, unsigned long long *to_size);
 
 size_t dictGetStatsMsg(char *buf, size_t bufsize, dictStats *stats, int full);
@@ -315,5 +321,7 @@ uint64_t dictGetUnsignedIntegerVal(const dictEntry *de);
 #ifdef REDIS_TEST
 int dictTest(int argc, char *argv[], int flags);
 #endif
+
+dictEntry *dictEncodeStoredKey(const dictType *dt, dict *dup_owner, void *key);  /* ee451 FLATSTORE */
 
 #endif /* __DICT_H */

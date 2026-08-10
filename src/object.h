@@ -67,9 +67,15 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdatomic.h>
+
 /* forward declarations */
 struct client;
 struct RedisModuleType;
+struct redisObject;
+struct _kvstore;
 
 /* Object encodings (see header comment below for details). */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
@@ -96,8 +102,85 @@ struct RedisModuleType;
 #define OBJ_STATIC_REFCOUNT ((1 << OBJ_REFCOUNT_BITS) - 2) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
+typedef enum tomoOwnerOpKind {
+    TOMO_OWNER_OP_STAMP = 1,
+    TOMO_OWNER_OP_PRUNE = 2,
+    TOMO_OWNER_OP_CANCEL = 3,
+} tomoOwnerOpKind;
+
+typedef struct tomoOwnerOp {
+    struct redisObject *kv;
+    uint64_t seq;
+    tomoOwnerOpKind kind;
+} tomoOwnerOp;
+
+typedef enum tomoStampState {
+    TOMO_STAMP_PENDING = 0,
+    TOMO_STAMP_APPLIED,
+    TOMO_STAMP_CANCELED,
+} tomoStampState;
+
+typedef enum tomoRetireState {
+    TOMO_RETIRE_ACTIVE = 0,
+    TOMO_RETIRE_PRUNE_GRACE,
+    TOMO_RETIRE_PHYSICAL,
+} tomoRetireState;
+
+#define TOMO_RESERVATION_SIGNAL_SET 1
+#define TOMO_RESERVATION_SILENT     2
+
+#define TOMO_SINGLE_NONE        0
+#define TOMO_SINGLE_COMMITTED   1
+#define TOMO_SINGLE_SUPERSEDED  2
+
+struct tomoVerMeta {
+    _Atomic uint64_t version_seq;
+    _Atomic(struct redisObject *) committed_head;
+    uint64_t install_order;
+    uint64_t origin_client_id; /* installing (real) connection id; written once
+                                * at install, IMMUTABLE until physical retire:
+                                * the RYOW resolver keys off it after the stamp
+                                * (kvobjVersionAt own-widening) */
+    uint32_t version_order;
+    int16_t install_owner;
+    uint16_t install_bucket;
+    uint8_t version_tombstone;
+    uint8_t version_reservation;
+    _Atomic uint8_t version_canceled;
+    uint8_t stamp_state;
+    uint8_t retire_state;
+    uint8_t detached;
+    uint8_t lifecycle_ref_held;
+    /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
+     * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
+     * tomoVerMeta still does not grow and owner_ops_pending does not move (both asserted below).
+     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents a late prune op
+     * from relicensing an object after a successor was installed. */
+    _Atomic uint8_t single_state;
+    _Atomic unsigned int owner_ops_pending;
+    struct redisObject *version_prev;
+    struct redisObject *committed_prev;
+    struct _kvstore *version_kvs;
+    struct redisDb *version_db;
+    void *reservation_owner;
+    tomoOwnerOp owner_op[2];
+};
+
+_Static_assert(offsetof(struct tomoVerMeta, single_state) ==
+               offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
+               "single-version state must consume vmeta padding");
+/* REPLAY NOTE (dev x ownread): install_order/origin_client_id/version_canceled inserted above
+ * shift detached to an odd offset, so the aligned slot after the packed byte run is detached+3,
+ * not +4. The INTENT is unchanged and asserted in that form: owner_ops_pending sits at the very
+ * next 4-byte-aligned position after single_state — the byte-packing consumed padding only. */
+_Static_assert(offsetof(struct tomoVerMeta, owner_ops_pending) ==
+               ((offsetof(struct tomoVerMeta, single_state) + 1 + 3) & ~(size_t)3),
+               "single-version state must not move owner_ops_pending");
+
+#define TOMO_VERSION_UNCOMMITTED UINT64_MAX
+
 struct redisObject {
-    unsigned type:4;
+    unsigned type:3;
     unsigned encoding:4;
     unsigned refcount : OBJ_REFCOUNT_BITS;
     unsigned iskvobj : 1;   /* 1 if this struct serves as a kvobj base */
@@ -108,6 +191,10 @@ struct redisObject {
                             * LFU data (least significant 8 bits frequency
                             * and most significant 16 bits access time). */
     void *ptr;
+
+    /* Cross-shard whole-value MVCC-lite state. NULL for ordinary objects;
+     * allocated lazily for atomic version-bag writes. */
+    struct tomoVerMeta *vmeta;
 };
 
 /* robj - General purpose redis object */
@@ -116,12 +203,62 @@ typedef struct redisObject robj;
 /* kvobj: see header comment above for definition and memory layout. */
 typedef struct redisObject kvobj;
 
+/* kvobjSetEx() 'flags' — see the function comment in object.c. */
+#define KVOBJ_SET_EMBED_RAW   (1<<0)  /* may copy a small RAW value into the kvobj allocation */
+#define KVOBJ_SET_MOVE_VALUE  (1<<1)  /* caller's extra ref is a lifetime pin only: move the value */
+
 kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits);
 kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits);
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags);
 kvobj *kvobjSetExpire(kvobj *kv, long long expire);
+kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags);
 sds kvobjGetKey(const kvobj *kv);
 long long kvobjGetExpire(const kvobj *val);
 uint64_t *kvobjMetaRef(kvobj *kv, int metaId);
+
+static inline struct tomoVerMeta *kvobjVmeta(const kvobj *kv) {
+    return __atomic_load_n(&kv->vmeta, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
+    __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
+}
+
+static inline int kvobjSingleCommitted(const struct tomoVerMeta *vmeta) {
+    return atomic_load_explicit(&vmeta->single_state,
+                                memory_order_acquire) == TOMO_SINGLE_COMMITTED;
+}
+
+static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return atomic_load_explicit(&vmeta->version_seq, memory_order_acquire);
+}
+
+static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
+}
+
+static inline kvobj *kvobjCommittedPrev(const kvobj *kv) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+}
+
+static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
+}
+
+/* Resolve a version bag for reader_connection at snapshot. The implementation
+ * lives beside the connection's pending R1 FIFO in server.c. Passing NULL is
+ * the write-side/internal committed-only resolver. */
+kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot,
+                      struct client *reader_connection);
 
 /* Redis object implementation */
 void decrRefCount(robj *o);

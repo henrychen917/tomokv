@@ -388,6 +388,8 @@ void zslUpdateNode(zskiplist *zsl, zskiplistNode *oldnode, zskiplistNode *newnod
     for (i = 0; i < zsl->level; i++) {
         if (update[i]->level[i].forward == oldnode)
             update[i]->level[i].forward = newnode;
+        if (zsl->level_tail[i] == oldnode)
+            zsl->level_tail[i] = newnode;
     }
     serverAssert(zsl->header!=oldnode);
     if (newnode->level[0].forward) {
@@ -1889,6 +1891,7 @@ static void beginDefragCycle(void) {
 
     for (int dbid = 0; dbid < server.dbnum; dbid++) {
         redisDb *db = &server.db[dbid];
+        if (!dbIsInitialized(db)) continue;
 
         /* Add stage for keys. */
         defragKeysCtx *defrag_keys_ctx = zcalloc(sizeof(defragKeysCtx));

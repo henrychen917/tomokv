@@ -138,17 +138,51 @@ client* scriptGetCaller(void) {
 /* interrupt function for scripts, should be call
  * from time to time to reply some special command (like ping)
  * and also check if the run should be terminated. */
+uint64_t tomoScriptGateEpoch(void);        /* server.c */
+int tomoScriptKillRequested(uint64_t epoch);
+void tomoScriptOwnerSlowTick(void);
+
 int scriptInterrupt(scriptRunCtx *run_ctx) {
+    /* TomoKV kill word: polled by EVERY owner (main or io thread) — this is the only kill path an
+     * io-thread owner has (no PEWB there), and it also serves foreign SCRIPT KILL for main owners.
+     * Epoch-tagged: a kill aimed at a finished script can never hit a later one. */
+    if (tomoScriptKillRequested(tomoScriptGateEpoch()) &&
+        !mustObeyClient(run_ctx->original_client))
+        run_ctx->flags |= SCRIPT_KILLED;
+
     if (run_ctx->flags & SCRIPT_TIMEDOUT) {
         /* script already timedout
            we just need to precess some events and return */
-        processEventsWhileBlocked();
+        /* TomoKV script fence (phase 1): only a MAIN-thread owner may re-enter the event loop —
+         * processEventsWhileBlocked drives server.el (main's loop, main-only coordinators); a
+         * second thread inside it is a corruption class of its own. An io-thread owner simply
+         * keeps running; its own clients wait (they already do — the loop is blocked in call()). */
+        if (iotid == 0) processEventsWhileBlocked();
         return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
     }
 
     long long elapsed = elapsedMs(run_ctx->start_time);
     if (elapsed < server.busy_reply_threshold) {
-        return SCRIPT_CONTINUE;
+        return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
+    }
+
+    /* TomoKV: an IO-THREAD owner must not enter timedout mode at all — enterScriptTimedoutMode's
+     * blockingOperationStarts mutates the plain global blocking_op_nesting and updateCachedTime,
+     * both main-thread state (review finding 6); protectClient/PEWB are main-only (finding above).
+     * The io owner just keeps running and keeps polling the kill word; log once per second. */
+    if (iotid != 0) {
+        /* Leave the accept group (once): this thread cannot accept while inline in Lua, so every
+         * conn the kernel deals to its listener — including the SCRIPT KILL that ends the script —
+         * would rot in the backlog. See tomoScriptOwnerSlowTick. */
+        tomoScriptOwnerSlowTick();
+        static __thread long long last_busy_log_ms;
+        if (server.mstime - last_busy_log_ms > 1000) {
+            last_busy_log_ms = server.mstime;
+            serverLog(LL_WARNING, "Slow script on io thread %d (%lld ms); SCRIPT KILL works from "
+                                  "any connection (kill word), PEWB does not run here.",
+                      iotid, elapsed);
+        }
+        return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
     }
 
     serverLog(LL_WARNING,
@@ -162,9 +196,10 @@ int scriptInterrupt(scriptRunCtx *run_ctx) {
      * we need to mask the client executing the script from the event loop.
      * If we don't do that the client may disconnect and could no longer be
      * here when the EVAL command will return. */
-    protectClient(run_ctx->original_client);
-
-    processEventsWhileBlocked();
+    if (iotid == 0) {                 /* TomoKV: main-owner-only (see the TIMEDOUT branch above) */
+        protectClient(run_ctx->original_client);
+        processEventsWhileBlocked();
+    }
 
     return (run_ctx->flags & SCRIPT_KILLED) ? SCRIPT_KILL : SCRIPT_CONTINUE;
 }
@@ -283,6 +318,11 @@ int scriptPrepareForRun(scriptRunCtx *run_ctx, client *engine_client, client *ca
 
     /* Select the right DB in the context of the Lua client */
     selectDb(script_client, curr_client->db->id);
+    /* T6 keyed scripts execute on a worker fake whose db is the real shard/node DB. selectDb()
+     * necessarily chooses server.db (the empty sharding decoy), so restore the caller's routed
+     * DB before any redis.call. Keyless scripts retain their established decoy/global path. */
+    if (server.num_workers > 0 && curr_client->tomo_local_worker >= 0)
+        script_client->db = curr_client->db;
     script_client->resp = 2; /* Default is RESP2, scripts can change it. */
 
     /* If we are in MULTI context, flag Lua client as CLIENT_MULTI. */
@@ -339,8 +379,15 @@ void scriptResetRun(scriptRunCtx *run_ctx) {
     curr_run_ctx = NULL;
 }
 
-/* return true if a script is currently running */
+/* return true if a script is currently running.
+ * TomoKV: safe to call from ANY thread. curr_run_ctx points into the OWNER thread's stack frame;
+ * a foreign thread must never dereference or even trust it (it races scriptResetRun's teardown —
+ * review findings 4/5/14). While the gate is armed by another identity this returns 0, which is
+ * the correct phase-1 semantic: to a foreign thread there IS no script it may interact with
+ * (script-family commands are rejected at the gate; kills go through the kill word). */
+int tomoScriptForeignArmed(void);   /* server.c: gate word owned there */
 int scriptIsRunning(void) {
+    if (tomoScriptForeignArmed()) return 0;
     return curr_run_ctx != NULL;
 }
 
@@ -638,7 +685,7 @@ void scriptCall(scriptRunCtx *run_ctx, sds *err) {
     moduleCallCommandFilters(c);
 
     struct redisCommand *cmd = lookupCommand(c->argv, c->argc);
-    c->cmd = c->lastcmd = c->realcmd = cmd;
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = cmd;
     if (scriptVerifyCommandArity(cmd, c->argc, err) != C_OK) {
         goto error;
     }
@@ -663,6 +710,18 @@ void scriptCall(scriptRunCtx *run_ctx, sds *err) {
 
     if (scriptVerifyOOM(run_ctx, err) != C_OK) {
         goto error;
+    }
+
+    /* A declared-key script is one indivisible single-shard unit. Enforce the same owner for
+     * every nested command too, so an undeclared/dynamically-generated key cannot escape through
+     * the shared node DB while only the declared worker's writer lock is held. */
+    if (server.num_workers > 0 && run_ctx->original_client->tomo_local_worker >= 0) {
+        int target = run_ctx->original_client->tomo_local_worker;
+        int worker = tomoCommandSingleWorker(cmd, c->argv, c->argc, 0);
+        if (worker == TOMO_SW_CROSS || (worker >= 0 && worker != target)) {
+            *err = sdsnew("CROSSSLOT Script attempted to access keys on another worker shard");
+            goto error;
+        }
     }
 
     if (cmd->flags & CMD_WRITE) {

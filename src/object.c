@@ -86,6 +86,7 @@ kvobj *kvobjCreate(int type, const sds key, void *ptr, uint32_t keyMetaBits) {
     kv->type = type;
     kv->encoding = OBJ_ENCODING_RAW;
     kv->ptr = ptr;
+    kv->vmeta = NULL;
     kv->refcount = 1;
     kv->lru = 0;
     kv->iskvobj = 1;
@@ -109,6 +110,7 @@ robj *createObject(int type, void *ptr) {
     o->type = type;
     o->encoding = OBJ_ENCODING_RAW;
     o->ptr = ptr;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->iskvobj = 0;
@@ -187,6 +189,7 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
 
     o->type = OBJ_STRING;
     o->encoding = OBJ_ENCODING_EMBSTR;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = keyMetaBits;
@@ -227,6 +230,7 @@ robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     robj *o = zmalloc_usable(sizeof(robj) + val_sds_size, &bufsize);
     o->type = OBJ_STRING;
     o->encoding = OBJ_ENCODING_EMBSTR;
+    o->vmeta = NULL;
     o->refcount = 1;
     o->lru = 0;
     o->metabits = 0;
@@ -262,13 +266,21 @@ long long kvobjGetExpire(const kvobj *kv) {
  * the old object's reference counter is decremented and possibly freed. Use the
  * returned object instead of 'val' after calling this function. */
 kvobj *kvobjSetExpire(kvobj *kv, long long expire) {
-    /* If kv not expirable, then we need to realloc to add expire metadata */ 
+    return kvobjSetExpireEx(kv, expire, 0);
+}
+
+/* Like kvobjSetExpire(), but 'flags' is forwarded to kvobjSetEx() for the case
+ * where adding the expire metadata forces a reallocation. The only flag that
+ * makes sense here is KVOBJ_SET_MOVE_VALUE — see kvobjSetEx() and its user in
+ * setExpireByLink(). */
+kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags) {
+    /* If kv not expirable, then we need to realloc to add expire metadata */
     if (!(kv->metabits & KEY_META_MASK_EXPIRE)) {
         /* Nothing to do if kv not expirable and expire is -1 */
         if (expire == -1)
             return kv;
-        
-        kv = kvobjSet(kvobjGetKey(kv), kv, kv->metabits | KEY_META_MASK_EXPIRE);
+
+        kv = kvobjSetEx(kvobjGetKey(kv), kv, kv->metabits | KEY_META_MASK_EXPIRE, flags);
     }
 
     /* kv is expirable. Update expire field. */
@@ -276,23 +288,103 @@ kvobj *kvobjSetExpire(kvobj *kv, long long expire) {
     return kv;
 }
 
+/* CANDIDATE (census rank-3): the embed-fit arithmetic, shared by the EMBSTR and
+ * RAW branches of kvobjSetEx(). Metadata is discarded from the sum since we
+ * don't have to be accurate and it is placed before the object.
+ * CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
+ * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
+ * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
+ * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
+static inline int kvobjEmbedStringFits(const sds key, size_t len) {
+    size_t size = sizeof(kvobj);
+    size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
+    size += 4 + len; /* embstr header (3) + nullterm (1) */
+    return size <= 192u && len <= 255;
+}
+
 /* This functions may reallocate the value. The new allocation is returned and
  * the old object's reference counter is decremented and possibly freed. Use the
- * returned object instead of 'val' after calling this function. */
-kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
+ * returned object instead of 'val' after calling this function.
+ *
+ * 'flags' is a bitmask of KVOBJ_SET_* (0 == the historical embedRawOk=0).
+ *
+ * KVOBJ_SET_EMBED_RAW (CANDIDATE census rank-3): when set, an OBJ_ENCODING_RAW
+ * string value that passes the same 192-byte arithmetic as the EMBSTR branch
+ * is COPIED into the kvobj allocation (result encoding OBJ_ENCODING_EMBSTR)
+ * instead of adopting/duplicating the sds into a second allocation. Values of
+ * 45B+ always arrive RAW from parsing (createStringObject()'s 44-byte EMBSTR
+ * limit), so without this they pay the second allocation and its extra cache
+ * line on every value-length read, GET reply and overwrite free.
+ *
+ * Pass 0 (or call kvobjSet()) whenever the caller may later mutate the stored
+ * value in place through kv->ptr without first going through
+ * dbUnshareStringValue() (which requires and produces OBJ_ENCODING_RAW): an
+ * embedded sds lives inside the kvobj allocation and must never be handed to
+ * sdscatlen/sdsgrowzero/sdsResize/sdsRemoveFreeSpace. Concrete offenders if
+ * this were unconditional: PFADD fresh-create then hllSparseAdd's sdsResize;
+ * SETRANGE/SETBIT fresh-create then sdsgrowzero; RM_StringTruncate
+ * fresh-create then sdsgrowzero. Keeping it clear on the metadata-realloc
+ * callers (kvobjSetExpire, keymeta) also preserves today's guarantee that a RAW
+ * value's sds pointer survives a metadata realloc (RM_StringDMA pointers).
+ *
+ * KVOBJ_SET_MOVE_VALUE: the caller holds an EXTRA reference to `val` that it
+ * disposes of itself AFTER this call, and it guarantees that nothing will read
+ * `val`'s value through that reference. Two FLATSTORE callers have that shape.
+ * (1) the metadata-realloc shape (setExpireByLink): it pins the live table object across the realloc
+ * purely so the OLD kvobj *allocation* outlives a concurrent lock-free reader's
+ * pointer, then QSBR-retires it. Without this flag the pin makes refcount != 1
+ * and a non-string value has no cheap re-homing left, so the branch below
+ * panics ("Not implemented") -- which is exactly what `SADD s m; EXPIRE s 100`
+ * used to do on a shared node db. With the flag the value is MOVED
+ * (stock semantics: adopt the ptr, no O(n) duplication of a possibly huge
+ * collection), and clearing val->ptr makes the caller's deferred
+ * decrRefCount() free the old ALLOCATION ONLY -- which is all the pin ever
+ * wanted.
+ * (2) renameGenericCommand: identical arithmetic from the other side — its
+ * `incrRefCount(o); dbDelete(src); dbAddInternal(dst)` sequence expects dbDelete to
+ * have dropped the db's reference, which a flat store defers to the QSBR grace, so the
+ * pin again leaves refcount == 2 here and `SADD s m1; RENAME s d` (both keys on ONE
+ * shard) panicked. Same disposal: the caller never reads the value through the pin
+ * again, and the retired source shell is freed allocation-only at the grace.
+ *
+ * NOT applied to string values: those keep the copying
+ * branches below, because the lock-free cross-shard readers do dereference
+ * `o->ptr` of an OBJ_STRING they looked up (server.c csSubExec MGET) and a
+ * NULL there would be a crash, whereas they type-check before touching a
+ * non-string (and EXISTS never touches ptr at all). Note this is a property of the
+ * BRANCH ORDER, not of the callers: a string always matches EMBSTR/INT/RAW above and
+ * can never reach the move, so passing the flag for a string value is a no-op.
+ * The one non-string lock-free ptr dereference in the tree is objectTypeCompare()'s
+ * OBJ_MODULE arm on the flat SCAN path; it now filters a NULL ptr (db.c). */
+kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
+    int embedRawOk = (flags & KVOBJ_SET_EMBED_RAW);
     kvobj *kv;
     if (val->type == OBJ_STRING && val->encoding == OBJ_ENCODING_EMBSTR) {
         size_t len = sdslen(val->ptr);
 
-        /* Embed when the sum is less than a cache line (Metadata is discarded 
-         * since we don't have to be accurate and it is placed before the object) */
-        size_t size = sizeof(kvobj);
-        size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
-        size += 4 + len; /* embstr header (3) + nullterm (1) */
-        if (size <= CACHE_LINE_SIZE) {
+        /* Embed when the sum is small (see kvobjEmbedStringFits) */
+        if (kvobjEmbedStringFits(key, len)) {
             kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
         } else {
             kv = kvobjCreate(OBJ_STRING, key, sdsnewlen(val->ptr, len), keyMetaBits);
+        }
+    } else if (embedRawOk && val->type == OBJ_STRING &&
+               val->encoding == OBJ_ENCODING_RAW &&
+               kvobjEmbedStringFits(key, sdslen(val->ptr)))
+    {
+        /* CANDIDATE (census rank-3): RAW single-allocation embed. The <=170B
+         * memcpy (inside kvobjCreateEmbedString -> sdsnewplacement) is noise
+         * next to the saved malloc/free pair of the separate value sds. */
+        size_t len = sdslen(val->ptr);
+        kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
+        /* Mirror the adopt path's consumption contract (below): with
+         * refcount==1 the value sds is consumed here -- the bytes were already
+         * copied, so free it and clear val->ptr so the decrRefCount() at the
+         * end doesn't see it. With refcount>1 other holders keep using val
+         * untouched, exactly like the sdsdup() path below. */
+        if (val->refcount == 1) {
+            sdsfree(val->ptr);
+            val->ptr = NULL;
         }
     } else {
         /* Create a new object with embedded key. Reuse ptr if possible. */
@@ -309,6 +401,14 @@ kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
                    val->encoding == OBJ_ENCODING_RAW) {
             /* Dup the string. */
             valptr = sdsdup(val->ptr);
+        } else if (flags & KVOBJ_SET_MOVE_VALUE) {
+            /* The extra reference is a lifetime pin the caller owns and will
+             * release itself; nobody reads the value through it. Move the value
+             * instead of duplicating it (see KVOBJ_SET_MOVE_VALUE above). The
+             * NULL ptr also makes the caller's later decrRefCount() free the
+             * old kvobj allocation WITHOUT touching the moved value. */
+            valptr = val->ptr;
+            val->ptr = NULL;
         } else {
             /* There are multiple references to this non-string object. Most types
              * can be duplicated, but for a module type is not always possible. */
@@ -323,9 +423,14 @@ kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
     /* Transfer module metadata from `val` to new `kv` (if `val` of type kvobj with metadata). */
     if (val->metabits & KEY_META_MASK_MODULES)
         keyMetaTransition((kvobj *) val, kv);
-    
+
     decrRefCount(val);
     return kv;
+}
+
+/* Historical-behavior wrapper: never RAW-embeds. See kvobjSetEx(). */
+kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
+    return kvobjSetEx(key, val, keyMetaBits, 0);
 }
 
 /* Create a string object with EMBSTR encoding if it is smaller than
@@ -632,6 +737,8 @@ void decrRefCount(robj *o) {
             default: serverPanic("Unknown object type"); break;
             }
         }
+        if (o->vmeta)
+            zfree(o->vmeta);
         zfree(alloc);
     }
 }
@@ -849,7 +956,7 @@ void trimStringObjectIfNeeded(robj *o, int trim_small_values) {
     size_t len = sdslen(o->ptr);
     if (len >= PROTO_MBULK_BIG_ARG ||
         trim_small_values||
-        (server.executing_client && server.executing_client->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
+        (server.executing_client[iotid].p && server.executing_client[iotid].p->flags & CLIENT_SCRIPT && len < LUA_CMD_OBJCACHE_MAX_LEN)) {
         if (sdsavail(o->ptr) > len/10) {
             o->ptr = sdsRemoveFreeSpace(o->ptr, 0);
         }
@@ -1239,6 +1346,8 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
 size_t kvobjAllocSize(kvobj *o) {
     /* All kv-objects has at least kvobj header and embedded key */
     size_t asize = zmalloc_size(kvobjGetAllocPtr(o));
+    if (o->vmeta)
+        asize += zmalloc_size(o->vmeta);
 
     if (o->type == OBJ_STRING) {
         asize += stringObjectAllocSize(o);
@@ -1363,6 +1472,7 @@ struct redisMemOverhead *getMemoryOverheadData(void) {
 
     for (j = 0; j < server.dbnum; j++) {
         redisDb *db = server.db+j;
+        if (!dbIsInitialized(db)) continue;
         if (!kvstoreNumAllocatedDicts(db->keys)) continue;
 
         unsigned long long keyscount = kvstoreSize(db->keys);
@@ -1467,7 +1577,7 @@ sds getMemoryDoctorReport(void) {
 
         /* Clients using more than 200k each average? */
         long numslaves = listLength(server.slaves);
-        long numclients = listLength(server.clients)-numslaves;
+        long numclients = listLength(server.clients[iotid])-numslaves;
         if (mh->clients_normal / numclients > (1024*200)) {
             big_client_buf = 1;
             num_reports++;

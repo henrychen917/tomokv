@@ -1166,10 +1166,6 @@ run_solo {defrag} {
         }
     } {} {defrag external:skip tsan:skip debug_defrag:skip cluster}
 
-    start_cluster 1 0 {tags {"defrag external:skip tsan:skip debug_defrag:skip cluster needs:debug"} overrides {appendonly yes auto-aof-rewrite-percentage 0 save "" loglevel notice}} {
-        test_active_defrag "cluster"
-    }
-
     start_server {tags {"defrag external:skip tsan:skip debug_defrag:skip standalone needs:debug"} overrides {appendonly yes auto-aof-rewrite-percentage 0 save "" loglevel notice}} {
         test_active_defrag "standalone"
     }

@@ -484,7 +484,7 @@ void ACLFreeUserGeneric(void *u) {
 void ACLFreeUserAndKillClients(user *u) {
     listIter li;
     listNode *ln;
-    listRewind(server.clients,&li);
+    listRewind(server.clients[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
         if (c->user == u) {
@@ -713,40 +713,6 @@ int ACLSetSelectorCategory(aclSelector *selector, const char *category, int allo
 
     /* Set the actual command bits on the selector. */
     ACLSetSelectorCommandBitsForCategory(server.orig_commands, selector, cflag, allow);
-    return C_OK;
-}
-
-void ACLCountCategoryBitsForCommands(dict *commands, aclSelector *selector, unsigned long *on, unsigned long *off, uint64_t cflag) {
-    dictIterator di;
-    dictEntry *de;
-    dictInitIterator(&di, commands);
-    while ((de = dictNext(&di)) != NULL) {
-        struct redisCommand *cmd = dictGetVal(de);
-        if (cmd->acl_categories & cflag) {
-            if (ACLGetSelectorCommandBit(selector,cmd->id))
-                (*on)++;
-            else
-                (*off)++;
-        }
-        if (cmd->subcommands_dict) {
-            ACLCountCategoryBitsForCommands(cmd->subcommands_dict, selector, on, off, cflag);
-        }
-    }
-    dictResetIterator(&di);
-}
-
-/* Return the number of commands allowed (on) and denied (off) for the user 'u'
- * in the subset of commands flagged with the specified category name.
- * If the category name is not valid, C_ERR is returned, otherwise C_OK is
- * returned and on and off are populated by reference. */
-int ACLCountCategoryBitsForSelector(aclSelector *selector, unsigned long *on, unsigned long *off,
-                                const char *category)
-{
-    uint64_t cflag = ACLGetCommandCategoryFlagByName(category);
-    if (!cflag) return C_ERR;
-
-    *on = *off = 0;
-    ACLCountCategoryBitsForCommands(server.orig_commands, selector, on, off, cflag);
     return C_OK;
 }
 
@@ -1972,10 +1938,12 @@ int ACLShouldKillPubsubClient(client *c, list *upcoming) {
     int kill = 0;
 
     if (getClientType(c) == CLIENT_TYPE_PUBSUB) {
+        clientCold *cold = clientPubSubData(c);
+        serverAssert(cold != NULL);
         /* Check for pattern violations. */
         dictIterator di;
         dictEntry *de;
-        dictInitIterator(&di, c->pubsub_patterns);
+        dictInitIterator(&di, cold->pubsub_patterns);
         while (!kill && ((de = dictNext(&di)) != NULL)) {
             o = dictGetKey(de);
             int res = ACLCheckChannelAgainstList(upcoming, o->ptr, sdslen(o->ptr), 1);
@@ -1986,7 +1954,7 @@ int ACLShouldKillPubsubClient(client *c, list *upcoming) {
         /* Check for channel violations. */
         if (!kill) {
             /* Check for global channels violation. */
-            dictInitIterator(&di, c->pubsub_channels);
+            dictInitIterator(&di, cold->pubsub_channels);
 
             while (!kill && ((de = dictNext(&di)) != NULL)) {
                 o = dictGetKey(de);
@@ -1997,7 +1965,7 @@ int ACLShouldKillPubsubClient(client *c, list *upcoming) {
         }
         if (!kill) {
             /* Check for shard channels violation. */
-            dictInitIterator(&di, c->pubsubshard_channels);
+            dictInitIterator(&di, cold->pubsubshard_channels);
             while (!kill && ((de = dictNext(&di)) != NULL)) {
                 o = dictGetKey(de);
                 int res = ACLCheckChannelAgainstList(upcoming, o->ptr, sdslen(o->ptr), 0);
@@ -2031,7 +1999,7 @@ void ACLKillPubsubClientsIfNeeded(user *new, user *original) {
     /* Permissions have changed, so we need to iterate through all
      * the clients and disconnect those that are no longer valid.
      * Scan all connected clients to find the user's pub/subs. */
-    listRewind(server.clients,&li);
+    listRewind(server.clients[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
         if (c->user != original)
@@ -2457,7 +2425,7 @@ sds ACLLoadFromFile(const char *filename) {
         listIter li;
         listNode *ln;
 
-        listRewind(server.clients,&li);
+        listRewind(server.clients[iotid],&li);
         while ((ln = listNext(&li)) != NULL) {
             client *c = listNodeValue(ln);
             /* a MASTER client can do everything (and user = NULL) so we can skip it */
@@ -2721,7 +2689,7 @@ void addACLLogEntry(client *c, int reason, int context, int argpos, sds username
     }
 
     /* if we have a real client from the network, use it (could be missing on module timers) */
-    client *realclient = server.current_client? server.current_client : c;
+    client *realclient = server.current_client[iotid].p? server.current_client[iotid].p : c;
 
     le->cinfo = catClientInfoString(sdsempty(),realclient);
     le->context = context;

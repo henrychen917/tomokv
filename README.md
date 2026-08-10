@@ -1,939 +1,471 @@
-[![codecov](https://codecov.io/github/redis/redis/graph/badge.svg?token=6bVHb5fRuz)](https://codecov.io/github/redis/redis)
+<div align="center">
 
-This document serves as both a quick start guide to Redis and a detailed resource for building it from source.
+# Tomo KV · 2‑Stage
 
-- New to Redis? Start with [What is Redis](#what-is-redis) and [Getting Started](#getting-started)
-- Ready to build from source? Jump to [Build Redis from Source](#build-redis-from-source)
-- Want to contribute? See the [Code contributions](#code-contributions) section
-  and [CONTRIBUTING.md](./CONTRIBUTING.md)
-- Looking for detailed documentation? Navigate to [redis.io/docs](https://redis.io/docs/)
+**A Tomasulo‑style, out‑of‑order key‑value engine built on the Redis 8 command surface.**
 
-## Table of contents
+*Parse and dispatch on ingress threads · execute out‑of‑order on sharded workers · commit replies in issue order.*
 
-- [What is Redis?](#what-is-redis)
-  - [Key use cases](#key-use-cases)
-- [Why choose Redis?](#why-choose-redis)
-- [What is Redis Open Source?](#what-is-redis-open-source)
-- [Getting started](#getting-started)
-  - [Redis starter projects](#redis-starter-projects)
-  - [Using Redis with client libraries](#using-redis-with-client-libraries)
-  - [Using Redis with redis-cli](#using-redis-with-redis-cli)
-  - [Using Redis with Redis Insight](#using-redis-with-redis-insight)
-- [Redis data types, processing engines, and capabilities](#redis-data-types-processing-engines-and-capabilities)
-- [Cloud hosted Redis](#cloud-hosted-redis)
-- [Community](#community)
-- [Build Redis from source](#build-redis-from-source)
-  - [Build and run Redis with all data structures - Ubuntu 20.04 (Focal)](#build-and-run-redis-with-all-data-structures---ubuntu-2004-focal)
-  - [Build and run Redis with all data structures - Ubuntu 22.04 (Jammy)](#build-and-run-redis-with-all-data-structures---ubuntu-2204-jammy)
-  - [Build and run Redis with all data structures - Ubuntu 24.04 (Noble)](#build-and-run-redis-with-all-data-structures---ubuntu-2404-noble)
-  - [Build and run Redis with all data structures - Debian 11 (Bullseye) / 12 (Bookworm)](#build-and-run-redis-with-all-data-structures---debian-11-bullseye--12-bookworm)
-  - [Build and run Redis with all data structures - AlmaLinux 8.10 / Rocky Linux 8.10](#build-and-run-redis-with-all-data-structures---almalinux-810--rocky-linux-810)
-  - [Build and run Redis with all data structures - AlmaLinux 9.5 / Rocky Linux 9.5](#build-and-run-redis-with-all-data-structures---almalinux-95--rocky-linux-95)
-  - [Build and run Redis with all data structures - macOS 13 (Ventura) and macOS 14 (Sonoma)](#build-and-run-redis-with-all-data-structures---macos-13-ventura-and-macos-14-sonoma)
-  - [Build and run Redis with all data structures - macOS 15 (Sequoia)](#build-and-run-redis-with-all-data-structures---macos-15-sequoia)
-  - [Building Redis - flags and general notes](#building-redis---flags-and-general-notes)
-  - [Fixing build problems with dependencies or cached build options](#fixing-build-problems-with-dependencies-or-cached-build-options)
-  - [Fixing problems building 32 bit binaries](#fixing-problems-building-32-bit-binaries)
-  - [Allocator](#allocator)
-  - [Monotonic clock](#monotonic-clock)
-  - [Verbose build](#verbose-build)
-  - [Running Redis with TLS](#running-redis-with-tls)
-- [Code contributions](#code-contributions)
-- [Redis Trademarks](#redis-trademarks)
+`2‑stage io↔ex pipeline` · `RESP‑compatible` · `epoll event loop`
 
-## What is Redis?
+</div>
 
-For developers, who are building real-time data-driven applications, Redis is the preferred, fastest, and most feature-rich cache, data structure server, and document and vector query engine.
+---
 
-### Key use cases
+## What is Tomo KV?
 
-Redis excels in various applications, including:
+**Tomo KV** ("Tomasulo KV") is a fork of Redis that replaces the single‑threaded command loop with a
+**hardware‑inspired, out‑of‑order execution pipeline**. It keeps Redis's data structures, RESP protocol, and
+on‑disk formats, but runs commands the way a superscalar CPU runs instructions: many at once, out of order
+across independent units, yet **observably in order** to every client.
 
-- **Caching:** Supports multiple eviction policies, key expiration, and hash-field expiration.
-- **Distributed Session Store:** Offers flexible session data modeling (string, JSON, hash).
-- **Data Structure Server:** Provides low-level data structures (strings, lists, sets, hashes, sorted sets, JSON, etc.) with high-level semantics (counters, queues, leaderboards, rate limiters) and supports transactions & scripting.
-- **NoSQL Data Store:** Key-value, document, and time series data storage.
-- **Search and Query Engine:** Indexing for hash/JSON documents, supporting vector search, full-text search, geospatial queries, ranking, and aggregations via Redis Query Engine.
-- **Event Store & Message Broker:** Implements queues (lists), priority queues (sorted sets), event deduplication (sets), streams, and pub/sub with probabilistic stream processing capabilities.
-- **Vector Store for GenAI:** Integrates with AI applications (e.g. LangGraph, mem0) for short-term memory, long-term memory, LLM response caching (semantic caching), and retrieval augmented generation (RAG).
-- **Real-Time Analytics:** Powers personalization, recommendations, fraud detection, and risk assessment.
+Its defining feature is a single tunable knob — **how you split your cores between *ingress* threads
+(parse / dispatch / reply) and *execution* workers (run commands on owned shards)** — which lets you match
+the engine to your workload's bottleneck. No fixed‑model engine offers this: Redis only scales I/O threads
+(execution stays single‑threaded); Dragonfly and Garnet are rigid.
 
-## Why choose Redis?
+The **2‑Stage** edition is the lean, low‑latency member of the family. See [the family](#the-tomo-kv-family)
+for the throughput‑oriented **3‑Stage** variant that adds a dedicated write‑back / reorder‑buffer stage.
 
-Redis is a popular choice for developers worldwide due to its combination of speed, flexibility, and rich feature set. Here's why people choose Redis for:
+---
 
-- **Performance:** Because Redis keeps data primarily in memory and uses efficient data structures, it achieves extremely low latency (often sub-millisecond) for both read and write operations. This makes it ideal for applications demanding real-time responsiveness.
-- **Flexibility:** Redis isn't just a key-value store, it provides native support for a wide range of data structures and capabilities listed in [What is Redis?](#what-is-redis)
-- **Extensibility:** Redis is not limited to the built-in data structures, it has a [modules API](https://redis.io/docs/latest/develop/reference/modules/) that makes it possible to extend Redis functionality and rapidly implement new Redis commands
-- **Simplicity:** Redis has a simple, text-based protocol and [well-documented command set](https://redis.io/docs/latest/commands/)
-- **Ubiquity:** Redis is battle tested in production workloads at a massive scale. There is a good chance you indirectly interact with Redis several times daily
-- **Versatility**: Redis is the de facto standard for use cases such as:
-  - **Caching:** quickly access frequently used data without needing to query your primary database
-  - **Session management:** read and write user session data without hurting user experience or slowing down every API call
-  - **Querying, sorting, and analytics:** perform deduplication, full text search, and secondary indexing on in-memory data as fast as possible
-  - **Messaging and interservice communication:** job queues, message brokering, pub/sub, and streams for communicating between services
-  - **Vector operations:** Long-term and short-term LLM memory, RAG content retrieval, semantic caching, semantic routing, and vector similarity search
+## Architecture
 
-In summary, Redis provides a powerful, fast, and flexible toolkit for solving a wide variety of data management challenges. If you want to know more, here is a list of starting points:
+Tomo KV is a direct translation of **Tomasulo's out‑of‑order execution algorithm** (IBM System/360 Model 91,
+1967) into a key‑value server. The mapping is one‑to‑one, and the code names its structures after the
+hardware they emulate (the reply bus is literally `reply_cdb`, the Common Data Bus; the 3‑Stage write‑back
+thread is aliased `tomokv-rob-threads`, the Reorder Buffer):
 
-- [**Introduction to Redis data types**](https://redis.io/docs/latest/develop/data-types/)
-- [**The full list of Redis commands**](https://redis.io/commands/)
-- [**Redis for AI**](https://redis.io/docs/latest/develop/ai/)
-- [**Redis documentation**](https://redis.io/documentation/)
+| CPU (Tomasulo)                     | Tomo KV                                                                        |
+| :--------------------------------- | :---------------------------------------------------------------------------- |
+| Instruction stream                 | Pipelined RESP command stream on a connection                                 |
+| Issue / dispatch                   | **Ingress (io) thread** parses RESP and routes each command by key            |
+| Register file, partitioned         | **Per‑worker key‑shards** — each worker owns a disjoint slice of the keyspace  |
+| Reservation stations / exec units  | **EX worker threads** executing against their own shard, in parallel          |
+| Hazard avoidance (RAW/WAR/WAW)     | **Single‑writer‑per‑shard**: one key ⇒ one worker ⇒ no cross‑worker hazards    |
+| Common Data Bus (CDB)              | **`reply_cdb`** — the mask bus workers use to signal completion               |
+| Reorder buffer, in‑order commit    | **Per‑connection pipeline ring + `flushid`** — replies retire in issue order  |
 
-## What is Redis Open Source?
+```
+                        ┌──────────────────────── ingress (io) thread ─────────────────────────┐
+   client ── RESP ──►   │  recv → parse → route by key(hash) → dispatch          reply‑reorder  │  ──► client
+   (SO_REUSEPORT,       │        │                                 │             (flushid ring)  │
+    one io thread       │        │  SPSC queue per (io,worker)      │  ▲ reply‑ready (CDB bus)    │
+    per connection)     └────────┼─────────────────────────────────┼──┼─────────────────────────┘
+                                 ▼                                  │  │
+                        ┌─────── EX worker 0 ───────┐   ┌─────── EX worker 1 ───────┐   ...
+                        │  owns key‑shard 0         │   │  owns key‑shard 1         │
+                        │  execute cmd->proc()      │   │  execute cmd->proc()      │   (N workers,
+                        │  prefetch pipeline        │   │  prefetch pipeline        │    out of order)
+                        └───────────────────────────┘   └───────────────────────────┘
+```
 
-Redis Community Edition (Redis CE) was renamed Redis Open Source with the v8.0 release.
+**Stage 1 — Ingress (io threads).** Each connection is pinned for life to one io thread via a per‑thread
+`SO_REUSEPORT` listener (the kernel load‑balances new connections across threads). The io thread reads,
+parses RESP, computes the key hash, and **dispatches** each command into a lock‑free SPSC queue for the
+worker that owns that key's shard. It also drains completed replies and writes them back to the socket,
+reordered into issue order.
 
-Redis Ltd. also offers [Redis Software](https://redis.io/enterprise/), a self-managed software with additional compliance, reliability, and resiliency for enterprise scaling,
-and [Redis Cloud](https://redis.io/cloud/), a fully managed service integrated with Google Cloud, Azure, and AWS for production-ready apps.
+**Stage 2 — Execute (EX workers).** Each worker owns a disjoint partition of the keyspace and is its sole
+mutator. It pops a batch of commands, warms caches with a multi‑pass software prefetch pipeline, executes
+`cmd->proc()` directly against its shard, and signals completion on the Common Data Bus. No locks, no
+cross‑worker synchronization on the data path.
 
-Read more about the differences between Redis Open Source and Redis [here](https://redis.io/technology/advantages/).
+**Reply commit.** Completed commands retire through a per‑connection ring. The ingress thread advances a
+`flushid` cursor over the ready‑prefix and splices replies onto the socket **strictly in issue order**, so a
+command that finished early on an idle shard never overtakes an earlier command still running on a busy one.
+Replies leave over the ingress thread's **epoll** `write()` path.
 
-## Getting started
+**Correctness.** Because each key is owned by exactly one worker, there are no locks on the data path and no
+cross‑worker hazards. Commands to *different* keys execute fully in parallel and out of order; commands to
+the *same* key (or one connection) are serialized and committed to the socket in the exact order the client
+sent them. **Linearizability per key and FIFO per connection are preserved** — the client cannot tell the
+work was reordered, exactly as a program cannot tell its instructions were.
 
-If you want to get up and running with Redis quickly without needing to build from source, use one of the following methods:
+---
 
-- [**Redis Cloud**](https://cloud.redis.io/)
-- [**Official Redis Docker images (Alpine/Debian)**](https://hub.docker.com/_/redis)
-  ```sh
-  docker run -d -p 6379:6379 redis:latest
-  ```
-- **Redis binary distributions**
-  - [**Snap**](https://github.com/redis/redis-snap)
-  - [**Homebrew**](https://github.com/redis/homebrew-redis)
-  - [**RPM**](https://github.com/redis/redis-rpm)
-  - [**Debian**](https://github.com/redis/redis-debian)
-- [**Redis quick start guides**](https://redis.io/docs/latest/develop/get-started/)
+## Performance
 
-If you prefer to [build Redis from source](#build-redis-from-source) - see instructions below.
+> 📊 **Latest results & analysis:** see **[BENCHMARKS.md](BENCHMARKS.md)** — three regimes on a 1‑CCD
+> 7700X: the **DRAM throughput matrix** (deep pipeline — Tomo ~2.4× Redis), the **YCSB ingress study**
+> (low pipeline — Tomo wins all workloads +5–16%), and a **25‑workload real‑world suite** (realistic
+> P1–P8 — Tomo is the strongest general‑purpose engine, consistently #2 behind Garnet, a throughput‑only
+> cache with no data structures and a ~33 M‑key ceiling). Honest per‑workload table + weak spots inside.
 
-### Redis starter projects
+Every number below is single node, loopback, **AMD Ryzen 7 7700X** (8 cores / 1 CCD); server and load
+generator (`memtier_benchmark`) each pinned to a disjoint set of 8 hyperthreads; **jemalloc on every
+binary**; median of interleaved reps, each sanity‑gated against its expected range (contended reads
+discarded and re‑run). Five workloads, five tables — each shows **all five 8‑core Tomo splits** against
+**Redis 8** (`io-threads 8`), **Dragonfly** (`proactor_threads 8`), **Garnet**, and **Valkey**
+(`io-threads 8`). All figures are **M ops/s**, higher is better.
 
-To get started as quickly as possible in your language of choice, use one of the following starter projects:
+Because the ingress/execution split is Tomo's defining knob, read these tables as *one story*: **different
+workloads want different splits, and Tomo is the only engine that can retune to match.** Dispatch‑bound work
+wants ingress; execution‑bound work wants workers.
 
-- [**Python (redis-py)**](https://github.com/redis-developer/redis-starter-python)
-- [**C#/.NET (NRedisStack/StackExchange.Redis)**](https://github.com/redis-developer/redis-starter-csharp)
-- [**Go (go-redis)**](https://github.com/redis-developer/redis-starter-go)
-- [**JavaScript (node-redis)**](https://github.com/redis-developer/redis-starter-js)
-- [**Java/Spring (Jedis)**](https://github.com/redis-developer/redis-starter-java)
+### 1 · No pipeline (P1)
 
-### Using Redis with client libraries
+*Method: GET/SET 32 B, **pipeline = 1**, 2 M‑key cache‑resident DB, `-t8 -c64`. Latency‑hiding comes from
+512 concurrent connections, so throughput here is bounded by per‑command overhead, not latency.*
 
-To connect your application to Redis, you will need a client library. Redis has documented client libraries in most popular languages, with community-supported client libraries in additional languages.
+| Config | GET 32 B | SET 32 B |
+| :--- | :--- | :--- |
+| Tomo `io2ex6` | 0.33 | 0.32 |
+| Tomo `io3ex5` | 0.47 | 0.47 |
+| Tomo `io4ex4` | 0.60 | 0.59 |
+| Tomo `io5ex3` | 0.71 | 0.70 |
+| **Tomo `io6ex2`** | **0.82** | **0.81** |
+| Redis 8 | 0.79 | 0.79 |
+| Dragonfly | 0.80 | 0.79 |
+| Garnet | 0.67 | 0.64 |
+| Valkey | 0.81 | 0.80 |
 
-- [**Python (redis-py)**](https://redis.io/docs/latest/develop/clients/redis-py/)
-- [**Python (RedisVL)**](https://redis.io/docs/latest/integrate/redisvl/)
-- [**C#/.NET (NRedisStack/StackExchange.Redis)**](https://redis.io/docs/latest/develop/clients/dotnet/)
-- [**JavaScript (node-redis)**](https://redis.io/docs/latest/develop/clients/nodejs/)
-- [**Java (Jedis)**](https://redis.io/docs/latest/develop/clients/jedis/)
-- [**Java (Lettuce)**](https://redis.io/docs/latest/develop/clients/lettuce/)
-- [**Go (go-redis)**](https://redis.io/docs/latest/develop/clients/go/)
-- [**PHP (Predis)**](https://redis.io/docs/latest/develop/clients/php/)
-- [**C (hiredis)**](https://redis.io/docs/latest/develop/clients/hiredis/)
-- [**Full list of client libraries**](https://redis.io/docs/latest/develop/clients/)
+No‑pipe throughput is **io‑thread‑bound** — every command pays its own `recv`/`send`/`epoll`, and execution
+is idle. So it is *monotone in ingress share* (0.33 → 0.82, a 2.5× swing) and the dial is the whole story:
+at ingress‑heavy `io6ex2`, Tomo **leads the field** (0.82, past Valkey/Dragonfly ~0.80 and Garnet 0.67).
+The balanced `io4ex4` under‑provisions ingress here and trails — that is a config choice, not an
+architectural limit.
 
-### Using Redis with redis-cli
+### 2 · Pipelined (P32)
 
-[`redis-cli`](https://redis.io/docs/latest/develop/tools/cli/) is Redis' command line interface. It is available as part of all the binary distributions and when you build Redis from source.
+*Method: GET/SET 32 B and 1:1 mixed, **pipeline = 32**, 2 M‑key cache‑resident DB, `-t8 -c25`.*
 
-You can start a redis-server instance, and then, in another terminal try the following:
+| Config | GET | SET | GET/SET 1:1 |
+| :--- | :--- | :--- | :--- |
+| Tomo `io2ex6` | 4.38 | 4.23 | 4.10 |
+| Tomo `io3ex5` | 6.34 | 5.99 | 5.91 |
+| **Tomo `io4ex4`** | **7.92** | 6.04 | 6.63 |
+| Tomo `io5ex3` | 7.78 | 4.95 | 5.62 |
+| Tomo `io6ex2` | 5.45 | 3.78 | 3.91 |
+| Redis 8 | 3.59 | 2.38 | 2.59 |
+| Dragonfly | 5.75 | 5.25 | 5.42 |
+| **Garnet** | **9.90** | **8.83** | **9.43** |
+| Valkey | 3.21 | 2.45 | 2.76 |
+
+Deep pipelining amortizes the per‑command syscalls and the io→ex hop, so this is where raw execution
+throughput shows. **Garnet leads** — its no‑hop shared‑store design (the network thread executes the store
+op inline, made safe by epoch reclamation instead of sharding) has no dispatch hop to pay. Tomo's balanced
+`io4ex4` is **second and comfortably beats Dragonfly, Redis, and Valkey**; the dial peaks around
+`io4ex4`/`io5ex3` where ingress and execution are matched to this 32 B, both‑bound workload.
+
+### 3 · DRAM‑resident
+
+*Method: GET 512 B (2 M keys, ~1 GB) and GET 4 KB (1 M keys, ~4 GB) — working sets well past the 32 MB L3 —
+**pipeline = 16**, `-t8 -c25`.*
+
+| Config | GET 512 B | GET 4 KB |
+| :--- | :--- | :--- |
+| Tomo `io2ex6` | 1.36 | 0.79 |
+| Tomo `io3ex5` | 2.01 | 1.03 |
+| Tomo `io4ex4` | 2.56 | **1.27** |
+| Tomo `io5ex3` | 3.11 | 1.18 |
+| **Tomo `io6ex2`** | **3.64** | 1.18 |
+| Redis 8 | 3.29 | 1.12 |
+| Dragonfly | 0.82 | 0.60 |
+| Garnet | **3.97** | 0.68 |
+| Valkey | 3.17 | 0.95 |
+
+Larger values make this I/O‑bound, so throughput is again monotone in ingress share (dial up for the send
+work). At 512 B, Garnet leads with **Tomo `io6ex2` close behind (3.64)** and past Redis/Valkey; at **4 KB
+Tomo `io4ex4` wins outright (1.27)** — the ingress/execution hop amortizes on large values and the
+zero‑copy send path pays. Dragonfly collapses above 256 B (0.82 / 0.60) — a known artifact of its
+reply‑builder capping the coalescing buffer, which fragments large‑value sends into many syscalls.
+
+### 4 · Hot key
+
+*Method: **DRAM‑resident 8 M‑key DB (~724 MB)**, GET/SET 32 B, **pipeline = 32**, with a tight Gaussian
+key distribution (median 4 M, σ = 3 → a ~18‑key hot set — a "viral item," not one key). Tomo is shown with
+its **EWMA hot‑shard auto‑reshard off / on**, plus the reshards it fired; competitors have no equivalent.*
+
+| Config | hot GET (off / on) | hot SET (off / on) | reshards fired |
+| :--- | :--- | :--- | :--- |
+| Tomo `io2ex6` | 4.46 / 4.38 | 4.19 / 4.00 | 6 |
+| Tomo `io3ex5` | 6.22 / 6.22 | 5.79 / 5.82 | 0 |
+| Tomo `io4ex4` | 7.81 / 7.20 | 7.20 / 7.22 | 3 |
+| Tomo `io5ex3` | 9.14 / 9.16 | 8.05 / 7.95 | 0 |
+| **Tomo `io6ex2`** | **9.64** / 8.20 | 5.62 / 5.94 | 1 |
+| Redis 8 | 3.94 | 2.78 | — |
+| Dragonfly | 6.15 | 5.30 | — |
+| Garnet | 9.52 | 7.91 | — |
+| Valkey | 3.36 | 2.52 | — |
+
+Two honest findings here. **(1)** A realistic hot‑key skew *does not bottleneck sharding for anyone*:
+because keys are hash‑distributed, even a tight Gaussian spreads across all shards, so every engine runs at
+~its balanced throughput and the ingress dial dominates (hot‑key GET is dispatch‑bound → `io6ex2` tops it at
+9.64, essentially tying Garnet's 9.52). Only a literal single hammered key — not a real workload — bottlenecks
+a shard‑per‑thread engine (there Dragonfly drops to ~2.8 M while Tomo's io/ex split holds ~8 M).
+**(2) The EWMA reshard is net‑negative on this box.** When it fires (see the reshards column) it *costs*
+a few percent (io6ex2 9.64 → 8.20); when it stays idle the two columns are identical. On a single‑CCD,
+hash‑sharded engine the hot set is already balanced, so the controller is chasing transient noise and paying
+migration cost with no real hot *shard* to relieve. Its value is genuine sustained imbalance — the
+multi‑CCD / skewed‑population case — which is why it is a knob (`tomokv-reshard-min-ops`), default‑on but
+trivially disabled.
+
+### 5 · Non‑standard commands
+
+*Method: `BITCOUNT` on 16 KB strings (50 k keys), `HGETALL` on 80‑field hashes (10 k keys), `ZRANGE 0 -1`
+on 80‑member sorted sets (10 k keys), **pipeline = 16**, `-t8 -c25`.*
+
+| Config | `BITCOUNT` 16 KB | `HGETALL` (80 f) | `ZRANGE` (80 m) |
+| :--- | :--- | :--- | :--- |
+| **Tomo `io2ex6`** | 2.08 | **0.51** | **0.96** |
+| Tomo `io3ex5` | **2.16** | 0.50 | 0.95 |
+| Tomo `io4ex4` | 1.98 | 0.50 | 0.94 |
+| Tomo `io5ex3` | 1.68 | 0.47 | 0.83 |
+| Tomo `io6ex2` | 1.27 | 0.37 | 0.65 |
+| Redis 8 | 2.18 | 0.22 | 0.41 |
+| Dragonfly | 0.72 | 0.49 | 0.87 |
+| Garnet | **3.31** | *n/a* | *n/a* |
+| Valkey | 1.73 | 0.105 | 0.30 |
+
+This is the **mirror image of table 1**: compute‑ and reassembly‑heavy commands are *execution‑bound*, so
+the **worker‑leaning splits win** (`io2ex6`/`io3ex5` top every column) — exactly the opposite of dispatch‑bound
+GET wanting ingress. That is the dial's whole point. Tomo beats Redis **~2.3×** on `HGETALL` and `ZRANGE`
+(the worker does the field/member reassembly in parallel) and matches it on `BITCOUNT` (a single‑integer
+reply, so dispatch‑bound). Garnet tops `BITCOUNT` but **does not implement hashes or sorted sets** (n/a).
+
+### Honest scope
+
+All numbers are single‑node **loopback on one CCD**. The de‑contention machinery, the worker‑heavy end of
+the dial, and the EWMA‑reshard knobs are designed to pay on **multi‑CCD / real‑NIC** hardware
+(cross‑CCD transfers cost ~100–200 cycles vs cheap shared‑L3 here); that evaluation is pending on a
+Threadripper‑class box. Validation before every number: correctness round‑trips + a reconnect‑storm churn
+stress + (for structural changes) an AddressSanitizer pass. Results inconsistent with the mechanism or with
+neighbouring measurements are investigated and re‑run, never reported.
+
+---
+
+## Under the hood
+
+Every optimization is an independent, runtime‑gated knob (see [Configuration](#configuration)). They fall
+into a few families:
+
+- **Out‑of‑order core.** Per‑worker keyspace partitioning, lock‑free SPSC dispatch queues with producer‑side
+  index caching, single‑writer shards, and the CDB reply‑reorder protocol — the foundation everything else
+  sits on.
+- **Software‑pipelined prefetch.** A multi‑pass, gem5‑style prefetch engine runs on the worker just ahead of
+  execution: it warms the command's fake‑client struct, argv, command descriptor, and key object, then
+  chases the dict bucket → entry → value across a tunable window, plus an execution‑adjacent *next‑op*
+  look‑ahead. A DB‑size‑adaptive gate turns it off for cache‑resident shards and on when the working set
+  spills to DRAM. Hash‑carry computes each key's hash once and reuses it through dispatch and lookup.
+- **Dispatch & reply de‑contention.** Staged batch‑push with **eager per‑batch publish** (keeps cross‑CCD
+  store‑batching without starving idle workers), per‑parent reply‑signal coalescing, a multi‑bus CDB to
+  spread reply signaling across cache lines, batched mask clears, cache‑line‑isolated per‑thread counters to
+  kill false sharing, and an **adaptive reply‑drain spin** that removes the non‑pipelined latency floor.
+- **Self‑tuning ingress/reply controllers** *(merged, all default `-1`=auto).* Five continuous controllers on
+  the ingress and fake‑ring path, each with a strict override: a **userspace CDB drain‑spin**
+  (`tomokv-io-drain-userpoll`, replaces the epoll‑syscall reply‑wait with EWMA‑gated userspace re‑checks), a
+  **drain tail‑skip** (`tomokv-drain-tail-skip`), an **express‑slim** state‑move for GET/SET keyed on the
+  live hit‑rate (`tomokv-express-slim`), a **per‑connection fake‑ring depth** demand‑grow/decay
+  (`tomokv-fake-ring-depth`), and a **per‑connection fake‑buf width** auto‑sizer (`tomokv-fake-buf`). Measured
+  neutral on single‑CCD loopback (P1 there is io‑thread‑bound, not reply‑poll‑bound — turn the dial instead);
+  designed to pay on the multi‑CCD / real‑NIC eval.
+- **Zero‑copy & large values.** Value objects can be forwarded to the ingress thread without a copy above a
+  size threshold, with ownership returned to the owning worker via a free‑back ring so refcounts are only
+  ever touched by the shard's owner.
+- **Multi‑key & cross‑shard.** Every multi‑key command is split into per‑shard sub‑commands, dispatched in
+  parallel, and reassembled — driven by a **per‑command registry** (one table stamps classification,
+  scatter geometry and reply shape) rather than a hand‑maintained list. Reads (`MGET`/`EXISTS`/`TOUCH`/
+  `SINTER`/`SUNION`/`SDIFF`) gather in a single hop; writes run a **two‑hop phase machine** (gather → coordinator
+  compute → single‑writer destination write) that preserves single‑writer‑per‑shard and never lets a live
+  object cross a thread — values cross as private serialized bytes. Served cross‑shard: `MSET`/`DEL`/`UNLINK`,
+  conditional moves (`RENAME`/`RENAMENX`/`COPY`/`SMOVE`), read‑then‑store (`SINTERSTORE`/`SUNIONSTORE`/
+  `SDIFFSTORE`/`SINTERCARD`, `ZUNION`/`ZINTER`/`ZDIFF` ±`STORE`, `ZINTERCARD`), byte/HLL ops (`BITOP`,
+  multi‑key `PFCOUNT`, `PFMERGE`), list moves (`LMOVE`/`RPOPLPUSH`, `MSETNX`) and ordered pops
+  (`LMPOP`/`ZMPOP`); blocking variants (`BLMOVE`/`BLMPOP`/…) reply the immediate result when data is
+  available and the timed‑out form when they would block (no cross‑shard client parking). A **SAFE‑GATE**
+  (`tomokv-xshard-guard`, default on) rejects any remaining unported multi‑key command with a clear error
+  instead of letting it run against the empty decoy DB. `FLUSHALL`/`FLUSHDB` are handled by queue‑ordered
+  flush sentinels.
+- **Kernel integration.** `SO_REUSEPORT` connection load‑balancing, `TCP_NODELAY`, taskset‑aware core pinning
+  with shared‑L3/CCD awareness, and NUMA‑local worker binding.
+- **Online resharding.** Live bucket‑**ownership** migration — a drain‑fence cutover with **no key copy** —
+  driven by a dual‑rate‑EWMA hot‑shard auto‑tuner, for rebalancing genuinely skewed keyspaces without
+  downtime (see table 4 for its workload‑dependence). Source and destination are two workers of one node
+  and therefore share one physical flat kvstore, so the range's keys already sit in the slots the new owner
+  is about to serve: a cutover is a per‑range drain fence plus an epoch‑gated flip of `ex_bucket_table`, and
+  a pair on different physical dbs is refused at arm time. Opt‑in trigger hardening (sustain window, Schmitt
+  hysteresis, cool‑margin) suppresses spurious ping‑pong on marginal imbalance. The cross‑shard writes above
+  stay correct across a live cutover: in‑range writes are held at the drain fence exactly like every
+  single‑key write.
+
+---
+
+## Configuration
+
+Tomo KV follows one convention across its whole config surface, borrowed from CPU micro‑architecture:
+**every adaptive quantity has a hardware‑style AUTO mode (a continuous controller — saturating counters,
+leaky/EWMA integrators, multiplicative grow‑decay — driven only by *current* signals, so a workload that
+shifts on a dime re‑tunes within batches) and a STRICT number mode** (you pin the value, adaptation off).
+KV workloads are unpredictable at runtime; nothing calibrates‑then‑locks, and no controller accumulates
+history that makes it slow to change its mind.
+
+Value conventions: **mandatory** = you must set it (fatal at boot if unset) · **`-1` = AUTO** where `0`
+means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
+
+### Threading & topology (set these — they are the deliberate choices)
+
+| Knob | Values | Meaning |
+| :--- | :--- | :--- |
+| `tomokv-nodes` | `1` (default) · ≤ 16 | Node count. A “node” is a **CCD** under `tomokv-pin-mode ccd` and a **NUMA node** under `numa` — which partitioning is better on a given box is a measurement, not an assumption. Total real cores = nodes × cores‑per‑node. |
+| `tomokv-cores-per-node` | `0` derive (= io+ex) · N | Cores per node. Set it above `thread-io + thread-ex` to reserve cores. |
+| `tomokv-thread-io` | **mandatory** ≥ 1, **per node** | Ingress threads (parse/dispatch/reply) per node, and the STARTING split. No default — the io/ex split is the most consequential decision you make (see the performance section). With `tomokv-nodes 1` this is the total count. |
+| `tomokv-thread-ex` | **mandatory** ≥ 1, **any count**, **per node** | Execution workers (one shard each) per node, and the STARTING split. Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
+| `tomokv-thread-mode` | `auto` (default) · `static` | Whether the flip controller may move the io/ex split away from the boot values. `static` holds it for the whole run — use it for reproducible measurement, since a run that starts at a different split spends its window converging. |
+| `tomokv-pin-mode` | `float` · `ccd` (default) · `numa` · `static` | `float`: no pinning, the scheduler decides. `ccd`: pack threads onto shared‑L3 (CCD) groups. `numa`: pack them per NUMA node. `static`: exact placement from `tomokv-pin-io` / `tomokv-pin-ex`. Every pinning mode also binds a worker's shard memory to its core's NUMA node; all of them respect taskset/cgroup affinity. |
+| `tomokv-pin-io` / `tomokv-pin-ex` | e.g. `"node0=0-3 node1=8,9,10,11"` | Per‑role‑per‑node cpu specs, used **only** with `tomokv-pin-mode static`. Grammar: whitespace‑separated `node<N>=<cpu-list>` tokens; a cpu list is comma‑separated ids and/or `lo-hi` ranges. A malformed token is rejected at boot with the offending token named; setting these with any other pin‑mode, or `static` without them, is also fatal — they are never silently ignored. |
+| `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
+| `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
+
+### Batching, spin & prefetch — no knobs, by design
+
+**This section has no configuration table because it has no knobs left.** Every controller here
+resolved its own value from something the server measures, and the "strict override" arms were an
+operator restating a number the box already reports — which is then wrong on the next machine.
+The last five (the prefetch widths) were retired 2026-07-28. The MACHINERY is untouched and under
+active development; only the operator-facing names are gone.
+
+What runs, and what it derives itself:
+
+| Mechanism | Self-derived behaviour |
+| :--- | :--- |
+| Worker pop batch | Saturating up/down controller (full batch ⇒ double the cap; sparse pass ⇒ halve), capped at `WORKER_POP_BATCH`. |
+| Worker idle spin | Multiplicative budget — spin that paid grows ×1.5, a wasted window halves. |
+| Prefetch residency gate | Opens once a worker's estimated footprint (its share of `dbSize` × (96 B + EWMA value size)) exceeds 8× its share of the machine's detected L3 — L3 read from sysfs, divided by the workers that actually share that L3 domain. Prefetching a cache-resident shard measurably hurts (−4–5%), so the gate exists to stay SHUT in that regime. `INFO tomo_prefetch_batches / _gated / _issued` shows whether it is opening. |
+| Per-stage prefetch widths | Width = the *current* batch occupancy — i.e. group prefetching with prefetch distance = group size. Zero history, so a workload shift re-tunes on the very next batch. |
+| Value-chase width | Cache-budget controller: (L3 / 2·workers) / EWMA(value size), clamped to a structural [4, 256]. Big values go shallow (they flood the line-fill buffers), small values keep the full window. |
+| Next-op look-ahead | Selected but **still does not fire**. `tomokv-pf-w-nextop` shipped at `0` = off and was hardwired to AUTO on 2026-07-28, which was intended to turn it on. AUTO resolves the look-ahead *distance* to the batch occupancy `n`, so the exec loop computes `la = j + n` with `j` in `[0,n)` and the `la < n` guard is false every time — the body is unreachable, and AUTO is behaviourally identical to `0`. Verified by PMU: `ls_pref_instr_disp.all` per prefetch batch is 193.9/195.1 on AUTO vs 207.7 on a strict distance of 4 (+7.1%), at io7/ex1 with the gate open. Enabling it for real needs a distance that is a small constant or a fraction of `n`, plus its own A/B in that regime. See `TOMO_PF_W_NEXTOP` in `server.h`. |
+
+On AMAC: the stage set is a round-robin scoreboard, not AMAC's per-slot state machine with refill.
+AMAC pays when chains have *variable* depth, because a plain group prefetcher stalls on the
+longest one. The flat table's probe chain is *constant* depth — a 15-bit tag in the slot gates the
+kvobj dereference, so a hit is ~2 dependent steps — so AMAC's refill would never fire and only its
+bookkeeping would remain. See the note beside `WORKER_POP_BATCH` in `server.h`.
+
+> **Doc debt (pre-existing, not introduced here):** other sections of this table still list knobs
+> retired in earlier passes — `tomokv-ex-queue-depth`, `-num-cdb`, `-reshard-min-ops`,
+> `-rob-threads`, `-worker-direct-send`, `-opt-operand-pool`, `-xshard-guard`. They do not exist in
+> `config.c` and will not boot. Verify against `CONFIG GET 'tomokv-*'` on a running server.
+
+### Load balancing (self‑driving reshard controller)
+
+| Knob | Values | Meaning |
+| :--- | :--- | :--- |
+| `tomokv-key-lb` | `0` off · N ops/s (default 20000) | Significance floor + master switch. `0` means no machinery runs and nothing is allocated. Was `tomokv-reshard-min-ops`. |
+| `tomokv-key-lb-sustain` | `-1` auto (default) · `0` debounce off · N ticks | How many CONSECUTIVE 1 Hz ticks the hot shard must be a statistical outlier before a migration fires. Auto: one EWMA time constant, floored at 3 ticks. `0` fires on the first violating tick — the pre‑2026‑07‑28 trigger, kept as the A/B arm. |
+| `tomokv-key-lb-fine` | `-1` auto (default) · `0` off · N pct | Resolution of the load profile the hot‑**key** veto decides on. See below. |
+
+Everything else in the detector self‑derives from the signal and is not an operator
+decision: a dual‑rate EWMA of each shard's op rate (alpha from the workload's own
+throughput, clamped so the filter always filters), an outlier bar at mean + max(k·σ,
+0.25·mean), a Schmitt release bar halfway back to the mean, a cooldown of one EWMA time
+constant, a 15 %‑peak‑drop progress guard, and a split point chosen from the measured
+load profile. A move is only made if it strictly improves the predicted maximum — when it
+cannot, the hotspot is a hot **key** rather than a hot **bucket** (a bucket flip relocates
+load, it never divides it) and the balancer holds and logs `reshard HOLD` instead of
+thrashing. `DEBUG RESHARD TRIGGER` counts every gate; `DEBUG RESHARD LBGROUPS <w>` dumps
+the balancer's own smoothed per‑group view.
+
+**Two levels of load profile, because the veto needs resolution the cheap signal cannot
+give.** Level 1 counts ops per 64‑bucket **group** (256 counters = 1 KB per worker,
+L1‑resident, on an increment the exec path already performed — free). It is the right
+granularity for "which part of this shard is warm" and the wrong one for the veto: a hot
+key is one **bucket**, and averaged across its 64 group‑mates it looks exactly like 64
+mildly‑warm buckets, i.e. like something a bucket flip could divide. With group counters
+alone the veto is unreachable and measurably never fired — the wasted migration was
+stopped one step later by the no‑progress guard instead.
+
+Level 2 (`tomokv-key-lb-fine`) is a **64‑counter window** the 1 Hz balancer points at each
+worker's hottest group, armed only when that group is genuinely concentrated (auto:
+≥ 4× the uniform per‑group share **and** ≥ 5 % of the shard's rate). Full per‑bucket
+counters would be 64 KB per worker — the same single instruction, but a 64× growth of the
+always‑on working set, and always‑on load‑balancing machinery here has a **≤ 3 % throughput
+budget**. The question the veto asks is local to one group, and level 1 already names which
+group that is, so only one needs resolution. `0` turns level 2 off entirely: nothing is
+allocated, every window is disarmed, the exec path is back to one never‑taken branch, and
+the planner is back to group resolution — which is also the A/B arm for both the budget and
+for proving a refusal came from the finer level. `DEBUG RESHARD LBFINE <w>` dumps the
+window; `DEBUG RESHARD TRIGGER` reports `unbal_fine`, which counts only refusals that
+group resolution would **not** have reached.
+
+The former `tomokv-reshard-imbalance-pct` / `-chunk` / `-progress-ratio` /
+`-cool-margin-pct` knobs are retired. Their fields keep full `-1`/`0`/N semantics and are
+hardwired to the self‑deriving arm, so any of them can be re‑exposed without touching the
+controller.
+
+### Reply path & memory
+
+| Knob | Values | Meaning |
+| :--- | :--- | :--- |
+| `tomokv-num-cdb` | `0` auto (default) · N strict | Reply‑bus count. Auto: one bus per worker on multi‑CCD machines (de‑contention), a single bus on one CCD (nothing to de‑contend). Topology is machine identity, read once. |
+| `tomokv-zerocopy-min-value` | `0` off · N bytes (default 1024) | Zero‑copy reply threshold — strict by design: the copy‑vs‑bookkeeping crossover is a machine property, not a workload signal (measured ~1 KB here). |
+| `tomokv-reply-buffer-transfer` | bool (default off) | At ordered EX→IO completion, exchange equal‑capacity scratch buffers for plain replies ≥ 8 KiB instead of copying. The equal‑capacity/empty‑destination gates preserve reply accounting and buffer sizing; `off` is the fast-path A/B arm. |
+| `tomokv-reply-iovec` | bool (default off) | Retain eligible large owned reply values and send framing/payload as scatter/gather. `tomokv-zerocopy-min-value` supplies the threshold; references retire only after `writev` returns or the terminal io_uring CQE/zero-copy notification. |
+| `tomokv-opt-operand-pool` | bool (default off) | Argv‑operand recycling pool (tiered, demand‑grow, op‑clocked decay — the same controller style). Hardwired ON in the 3‑Stage edition; gated here pending 2‑Stage validation. |
+| `tomokv-mset-move` | bool (**default off**) | Cross‑shard MSET hands each value object to the owning worker (the `argv_released_mask` ownership handoff) instead of giving the sub a private copy. Off is not a placeholder: no gain has ever been measured **or claimed** for it, and the regime where a copy could matter (large values, cross‑NUMA) is not one this box can answer. Kept as an experiment lever. Turning it on is an ownership change, not a tuning parameter — `csAppendMsetValue` documents the three‑step contract that keeps exactly one owner of the value at every instant. `INFO tomokv_xshard_mset_moved` counts entries into the arm, so a clean run with it on is only evidence if that counter moved. |
+
+### Kernel / OS tuning (experimental, default off)
+
+`tomokv-os-opts` (`TCP_QUICKACK` on client sockets + `MADV_HUGEPAGE` on hot allocations) and
+`tomokv-os-busypoll` (`SO_BUSY_POLL`) — immutable booleans, both default off. Loopback‑neutral; they
+exist for real‑NIC evaluation.
+
+---
+
+## Building & running
 
 ```sh
-cd src
-./redis-cli
+# Standard build
+make -j
+
+# Run a 2-stage instance: 6 ingress threads, 4 workers
+./src/redis-server --tomokv-thread-io 6 --tomokv-thread-ex 4 \
+                   --tomokv-pipeline-depth 32 --tomokv-ex-queue-depth 2048
+
+# Talk to it with any Redis client
+./src/redis-cli set hello world
+./src/redis-cli get hello
 ```
 
-```text
-redis> ping
-PONG
-redis> set foo bar
-OK
-redis> get foo
-"bar"
-redis> incr mycounter
-(integer) 1
-redis> incr mycounter
-(integer) 2
-redis>
-```
+Tomo KV builds and runs like stock Redis and speaks unmodified RESP2/RESP3, so existing clients,
+`redis-cli`, and `memtier_benchmark` work as‑is. jemalloc is the recommended allocator (bundled).
 
-### Using Redis with Redis Insight
+---
 
-For a more visual and user-friendly experience, use [Redis Insight](https://redis.io/docs/latest/develop/tools/insight/) - a tool that lets you explore data, design, develop, and optimize your applications while also serving as a platform for Redis education and onboarding. Redis Insight integrates [Redis Copilot](https://redis.io/chat), a natural language AI assistant that improves the experience when working with data and commands.
+## Compatibility & scope
 
-- [**Redis Insight documentation**](https://redis.io/docs/latest/develop/tools/insight/)
-- [**Redis Insight GitHub repository**](https://github.com/RedisInsight/RedisInsight)
+Tomo KV targets the **sharded, high‑throughput data‑plane** use case. The full string/hash/list/set/zset
+command set runs on the worker path, and the multi‑key surface (moves, read‑then‑store set/zset ops, byte/HLL
+ops, list moves, ordered pops) is served **cross‑shard** through the scatter‑gather registry described above.
+Blocking commands are served non‑blocking (immediate result, or the timed‑out form rather than parking a
+client across shards). Features that assume a single global keyspace or a serial main thread — cluster mode,
+replication/AOF propagation, pub/sub, keyed scripting, and multi‑key `SCAN` — remain outside scope. Every
+multi‑key command that has **no** correct cross‑shard implementation is rejected loudly by the SAFE‑GATE
+(`tomokv-xshard-guard`) rather than served incorrectly against the decoy keyspace. This is a research engine
+focused on the parallel‑execution thesis, not a drop‑in replacement for every Redis deployment.
 
-## Redis data types, processing engines, and capabilities
+---
 
-Redis provides a variety of data types, processing engines, and capabilities to support a wide range of use cases:
+## The Tomo KV family
 
-**Important:** Features marked with an asterisk (\*) require Redis to be compiled with the `BUILD_WITH_MODULES=yes` flag when [building Redis from source](#build-redis-from-source)
+| Edition | Pipeline | Best for |
+| :--- | :--- | :--- |
+| **Tomo KV · 2‑Stage** (this) | ingress → execute (replies on the ingress thread) | Low latency, small values, dispatch‑bound traffic. |
+| **Tomo KV · 3‑Stage** | ingress → execute → **write‑back / ROB** (dedicated reply stage) | High throughput, larger / send‑bound values. |
 
-- [**String:**](https://redis.io/docs/latest/develop/data-types/strings) Sequences of bytes, including text, serialized objects, and binary arrays used for caching, counters, and bitwise operations.
-- [**JSON:**](https://redis.io/docs/latest/develop/data-types/json/) Nested JSON documents that are indexed and searchable using JSONPath expressions and with [Redis Query Engine](https://redis.io/docs/latest/develop/interact/search-and-query/)
-- [**Hash:**](https://redis.io/docs/latest/develop/data-types/hashes/) Field-value maps used to represent basic objects and store groupings of key-value pairs with support for [hash field expiration (TTL)](https://redis.io/docs/latest/develop/data-types/hashes/#field-expiration)
-- [**Redis Query Engine:**](https://redis.io/docs/latest/develop/interact/search-and-query/) Use Redis as a document database, a vector database, a secondary index, and a search engine. Define indexes for hash and JSON documents and then use a rich query language for vector search, full-text search, geospatial queries, and aggregations.
-- [**List:**](https://redis.io/docs/latest/develop/data-types/lists/) Linked lists of string values used as stacks, queues, and for queue management.
-- [**Set:**](https://redis.io/docs/latest/develop/data-types/sets/) Unordered collection of unique strings used for tracking unique items, relations, and common set operations (intersections, unions, differences).
-- [**Sorted set:**](https://redis.io/docs/latest/develop/data-types/sorted-sets/) Collection of unique strings ordered by an associated score used for leaderboards and rate limiters.
-- [**Vector set (beta):**](https://redis.io/docs/latest/develop/data-types/vector-sets/) Collection of vector embeddings used for semantic similarity search, semantic caching, semantic routing, and Retrieval Augmented Generation (RAG).
-- [**Geospatial indexes:**](https://redis.io/docs/latest/develop/data-types/geospatial/) Coordinates used for finding nearby points within a given radius or bounding box.
-- [**Bitmap:**](https://redis.io/docs/latest/develop/data-types/bitmaps/) A set of bit-oriented operations defined on the string type used for efficient set representations and object permissions.
-- [**Bitfield:**](https://redis.io/docs/latest/develop/data-types/bitfields/) Binary-encoded strings that let you set, increment, and get integer values of arbitrary bit length used for limited-range counters, numeric values, and multi-level object permissions such as role-based access control (RBAC)
-- [**Hyperloglog:**](https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/) A probabilistic data structure for approximating the cardinality of a set used for analytics such as counting unique visits, form fills, etc.
-- \*[**Bloom filter:**](https://redis.io/docs/latest/develop/data-types/probabilistic/bloom-filter/) A probabilistic data structure to check if a given value is present in a set. Used for fraud detection, ad placement, and unique column (i.e. username/email/slug) checks.
-- \*[**Cuckoo filter:**](https://redis.io/docs/latest/develop/data-types/probabilistic/cuckoo-filter/) A probabilistic data structure for checking if a given value is present in a set while also allowing limited counting and deletions used in targeted advertising and coupon code validation.
-- \*[**t-digest:**](https://redis.io/docs/latest/develop/data-types/probabilistic/t-digest/) A probabilistic data structure used for estimating the percentile of a large dataset without having to store and order all the data points. Used for hardware/software monitoring, online gaming, network traffic monitoring, and predictive maintenance.
-- \*[**Top-k:**](https://redis.io/docs/latest/develop/data-types/probabilistic/top-k/) A probabilistic data structure for finding the most frequent values in a data stream used for trend discovery.
-- \*[**Count-min sketch:**](https://redis.io/docs/latest/develop/data-types/probabilistic/count-min-sketch/) A probabilistic data structure for estimating how many times a given value appears in a data stream used for sales volume calculations.
-- [**Time series:**](https://redis.io/docs/latest/develop/data-types/timeseries/) Data points indexed in time order used for monitoring sensor data, asset
-  tracking, and predictive analytics
-- [**Pub/sub**:](https://redis.io/docs/latest/develop/interact/pubsub/) A lightweight messaging capability. Publishers send messages to a channel, and subscribers receive messages from that channel.
-- [**Stream**:](https://redis.io/docs/latest/develop/data-types/streams/) An append-only log with random access capabilities and complex consumption strategies such as consumer groups. Used for event sourcing, sensor monitoring, and notifications.
-- [**Transaction:**](https://redis.io/docs/latest/develop/interact/transactions/) Allows the execution of a group of commands in a single step. A request sent by another client will never be served in the middle of the execution of a transaction. This guarantees that the commands are executed as a single isolated operation.
-- [**Programmability:**](https://redis.io/docs/latest/develop/interact/programmability/eval-intro/) Upload and execute Lua scripts on the server. Scripts can employ programmatic control structures and use most of the commands while executing to access the database. Because scripts are executed on the server, reading and writing data from scripts is very efficient.
+Both share the same out‑of‑order core, optimization set, and RESP surface; they differ only in whether reply
+commit runs on the ingress thread (2‑Stage) or on a dedicated reorder‑buffer thread (3‑Stage).
 
-## Cloud hosted Redis
+**Tomo KV · NUMA** builds on the 2‑Stage core with **one shared keyspace per NUMA node** (bucket‑granular
+worker ownership, O(1) ownership‑flip resharding — no data ever moves), a fixed pool of *role‑flipping*
+cores (any core ⇄ ingress/worker under a self‑tuning per‑node controller), strictly within‑node load
+balancing, and lock‑coordinated multi‑key execution — see **[`README-NUMA.md`](README-NUMA.md)**.
 
-Fully-managed Redis with real-time performance at scale.
+---
 
-[**Redis Cloud**](https://redis.io/cloud/)
+## Credits
 
-## Community
-
-[**Redis Community Resources**](https://redis.io/community/)
-
-## Build Redis from source
-
-This section refers to building Redis from source. If you want to get up and running with Redis quickly without needing to build from source see the [Getting started section](#getting-started).
-
-### Build and run Redis with all data structures - Ubuntu 20.04 (Focal)
-
-Tested with the following Docker image:
-
-- ubuntu:20.04
-
-1. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   apt-get update
-   apt-get install -y sudo
-   sudo apt-get install -y --no-install-recommends ca-certificates wget dpkg-dev gcc g++ libc6-dev libssl-dev make git python3 python3-pip python3-venv python3-dev unzip rsync clang automake autoconf gcc-10 g++-10 libtool
-   ```
-
-2. Use GCC 10 as the default compiler
-
-   Update the system's default compiler to GCC 10:
-
-   ```sh
-   sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
-   ```
-
-3. Install CMake
-
-   Install CMake using `pip3` and link it for system-wide access:
-
-   ```sh
-   pip3 install cmake==3.31.6
-   sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake
-   cmake --version
-   ```
-
-   Note: CMake version 3.31.6 is the latest supported version. Newer versions cannot be used.
-
-4. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-5. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-6. Build Redis
-
-   Set the necessary environment variables and compile Redis:
-
-   ```sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-7. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - Ubuntu 22.04 (Jammy)
-
-Tested with the following Docker image:
-
-- ubuntu:22.04
-
-1. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   apt-get update
-   apt-get install -y sudo
-   sudo apt-get install -y --no-install-recommends ca-certificates wget dpkg-dev gcc g++ libc6-dev libssl-dev make git cmake python3 python3-pip python3-venv python3-dev unzip rsync clang automake autoconf libtool
-   ```
-
-2. Install CMake
-
-   Install CMake using `pip3` and link it for system-wide access:
-
-   ```sh
-   pip3 install cmake==3.31.6
-   sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake
-   cmake --version
-   ```
-
-   Note: CMake version 3.31.6 is the latest supported version. Newer versions cannot be used.
-
-3. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-4. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-5. Build Redis
-
-   Set the necessary environment variables and build Redis:
-
-   ```sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-6. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - Ubuntu 24.04 (Noble)
-
-Tested with the following Docker image:
-
-- ubuntu:24.04
-
-1. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   apt-get update
-   apt-get install -y sudo
-   sudo apt-get install -y --no-install-recommends ca-certificates wget dpkg-dev gcc g++ libc6-dev libssl-dev make git cmake python3 python3-pip python3-venv python3-dev unzip rsync clang automake autoconf libtool
-   ```
-
-2. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-3. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-4. Build Redis
-
-   Set the necessary environment variables and build Redis:
-
-   ```sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-5. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - Debian 11 (Bullseye) / 12 (Bookworm)
-
-Tested with the following Docker images:
-
-- debian:bullseye
-- debian:bullseye-slim
-- debian:bookworm
-- debian:bookworm-slim
-
-1. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   apt-get update
-   apt-get install -y sudo
-   sudo apt-get install -y --no-install-recommends ca-certificates wget dpkg-dev gcc g++ libc6-dev libssl-dev make git cmake python3 python3-pip python3-venv python3-dev unzip rsync clang automake autoconf libtool
-   ```
-
-2. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-3. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-4. Build Redis
-
-   Set the necessary environment variables and build Redis:
-
-   ```sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-5. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - AlmaLinux 8.10 / Rocky Linux 8.10
-
-Tested with the following Docker images:
-
-- almalinux:8.10
-- almalinux:8.10-minimal
-- rockylinux/rockylinux:8.10
-- rockylinux/rockylinux:8.10-minimal
-
-1. Prepare the system
-
-   For 8.10-minimal, install `sudo` and `dnf` as follows:
-
-   ```sh
-   microdnf install dnf sudo -y
-   ```
-
-   For 8.10 (regular), install sudo as follows:
-
-   ```sh
-   dnf install sudo -y
-   ```
-
-   Clean the package metadata, enable required repositories, and install development tools:
-
-   ```sh
-   sudo dnf clean all
-   sudo tee /etc/yum.repos.d/goreleaser.repo > /dev/null <<EOF
-   [goreleaser]
-   name=GoReleaser
-   baseurl=https://repo.goreleaser.com/yum/
-   enabled=1
-   gpgcheck=0
-   EOF
-   sudo dnf update -y
-   sudo dnf groupinstall "Development Tools" -y
-   sudo dnf config-manager --set-enabled powertools
-   sudo dnf install -y epel-release
-   ```
-
-2. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   sudo dnf install -y --nobest --skip-broken pkg-config wget gcc-toolset-13-gcc gcc-toolset-13-gcc-c++ git make openssl openssl-devel python3.11 python3.11-pip python3.11-devel unzip rsync clang curl libtool automake autoconf jq systemd-devel
-   ```
-
-   Create a Python virtual environment:
-
-   ```sh
-   python3.11 -m venv /opt/venv
-   ```
-
-   Enable the GCC toolset:
-
-   ```sh
-   sudo cp /opt/rh/gcc-toolset-13/enable /etc/profile.d/gcc-toolset-13.sh
-   echo "source /etc/profile.d/gcc-toolset-13.sh" | sudo tee -a /etc/bashrc
-   ```
-
-3. Install CMake
-
-   Install CMake 3.25.1 manually:
-
-   ```sh
-   CMAKE_VERSION=3.25.1
-   ARCH=$(uname -m)
-   if [ "$ARCH" = "x86_64" ]; then
-     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh
-   else
-     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-aarch64.sh
-   fi
-   wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_FILE}
-   chmod +x ${CMAKE_FILE}
-   ./${CMAKE_FILE} --skip-license --prefix=/usr/local --exclude-subdir
-   rm ${CMAKE_FILE}
-   cmake --version
-   ```
-
-4. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-5. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-6. Build Redis
-
-   Enable the GCC toolset, set the necessary environment variables, and build Redis:
-
-   ```sh
-   source /etc/profile.d/gcc-toolset-13.sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-7. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - AlmaLinux 9.5 / Rocky Linux 9.5
-
-Tested with the following Docker images:
-
-- almalinux:9.5
-- almalinux:9.5-minimal
-- rockylinux/rockylinux:9.5
-- rockylinux/rockylinux:9.5-minimal
-
-1. Prepare the system
-
-   For 9.5-minimal, install `sudo` and `dnf` as follows:
-
-   ```sh
-   microdnf install dnf sudo -y
-   ```
-
-   For 9.5 (regular), install sudo as follows:
-
-   ```sh
-   dnf install sudo -y
-   ```
-
-   Clean the package metadata, enable required repositories, and install development tools:
-
-   ```sh
-   sudo tee /etc/yum.repos.d/goreleaser.repo > /dev/null <<EOF
-   [goreleaser]
-   name=GoReleaser
-   baseurl=https://repo.goreleaser.com/yum/
-   enabled=1
-   gpgcheck=0
-   EOF
-   sudo dnf clean all
-   sudo dnf makecache
-   sudo dnf update -y
-   ```
-
-2. Install required dependencies
-
-   Update your package lists and install the necessary development tools and libraries:
-
-   ```sh
-   sudo dnf install -y --nobest --skip-broken pkg-config xz wget which gcc-toolset-13-gcc gcc-toolset-13-gcc-c++ git make openssl openssl-devel python3 python3-pip python3-devel unzip rsync clang curl libtool automake autoconf jq systemd-devel
-   ```
-
-   Create a Python virtual environment:
-
-   ```sh
-   python3 -m venv /opt/venv
-   ```
-
-   Enable the GCC toolset:
-
-   ```sh
-   sudo cp /opt/rh/gcc-toolset-13/enable /etc/profile.d/gcc-toolset-13.sh
-   echo "source /etc/profile.d/gcc-toolset-13.sh" | sudo tee -a /etc/bashrc
-   ```
-
-3. Install CMake
-
-   Install CMake 3.25.1 manually:
-
-   ```sh
-   CMAKE_VERSION=3.25.1
-   ARCH=$(uname -m)
-   if [ "$ARCH" = "x86_64" ]; then
-     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh
-   else
-     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-aarch64.sh
-   fi
-   wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_FILE}
-   chmod +x ${CMAKE_FILE}
-   ./${CMAKE_FILE} --skip-license --prefix=/usr/local --exclude-subdir
-   rm ${CMAKE_FILE}
-   cmake --version
-   ```
-
-4. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd /usr/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-5. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd /usr/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-6. Build Redis
-
-   Enable the GCC toolset, set the necessary environment variables, and build Redis:
-
-   ```sh
-   source /etc/profile.d/gcc-toolset-13.sh
-   cd /usr/src/redis-<version>
-   export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
-   make -j "$(nproc)" all
-   ```
-
-7. Run Redis
-
-   ```sh
-   cd /usr/src/redis-<version>
-   ./src/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - macOS 13 (Ventura) and macOS 14 (Sonoma)
-
-1. Install Homebrew
-
-   If Homebrew is not already installed, follow the installation instructions on the [Homebrew home page](https://brew.sh/).
-
-2. Install required packages
-
-   ```sh
-   export HOMEBREW_NO_AUTO_UPDATE=1
-   brew update
-   brew install coreutils
-   brew install make
-   brew install openssl
-   brew install llvm@18
-   brew install cmake
-   brew install gnu-sed
-   brew install automake
-   brew install libtool
-   brew install wget
-   ```
-
-3. Install Rust
-
-   Rust is required to build the JSON package.
-
-   ```sh
-   RUST_INSTALLER=rust-1.80.1-$(if [ "$(uname -m)" = "arm64" ]; then echo "aarch64"; else echo "x86_64"; fi)-apple-darwin
-   wget --quiet -O ${RUST_INSTALLER}.tar.xz https://static.rust-lang.org/dist/${RUST_INSTALLER}.tar.xz
-   tar -xf ${RUST_INSTALLER}.tar.xz
-   (cd ${RUST_INSTALLER} && sudo ./install.sh)
-   ```
-
-4. Download the Redis source
-
-   Download a specific version of the Redis source code archive from GitHub.
-
-   Replace `<version>` with the Redis version, for example: `8.0.0`.
-
-   ```sh
-   cd ~/src
-   wget -O redis-<version>.tar.gz https://github.com/redis/redis/archive/refs/tags/<version>.tar.gz
-   ```
-
-5. Extract the source archive
-
-   Create a directory for the source code and extract the contents into it:
-
-   ```sh
-   cd ~/src
-   tar xvf redis-<version>.tar.gz
-   rm redis-<version>.tar.gz
-   ```
-
-6. Build Redis
-
-   ```sh
-   cd ~/src/redis-<version>
-   export HOMEBREW_PREFIX="$(brew --prefix)"
-   export BUILD_WITH_MODULES=yes
-   export BUILD_TLS=yes
-   export DISABLE_WERRORS=yes
-   PATH="$HOMEBREW_PREFIX/opt/libtool/libexec/gnubin:$HOMEBREW_PREFIX/opt/llvm@18/bin:$HOMEBREW_PREFIX/opt/make/libexec/gnubin:$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin:$PATH"
-   export LDFLAGS="-L$HOMEBREW_PREFIX/opt/llvm@18/lib"
-   export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/llvm@18/include"
-   mkdir -p build_dir/etc
-   make -C redis-8.0 -j "$(nproc)" all OS=macos
-   make -C redis-8.0 install PREFIX=$(pwd)/build_dir OS=macos
-   ```
-
-7. Run Redis
-
-   ```sh
-   export LC_ALL=en_US.UTF-8
-   export LANG=en_US.UTF-8
-   build_dir/bin/redis-server redis-full.conf
-   ```
-
-### Build and run Redis with all data structures - macOS 15 (Sequoia)
-
-Support and instructions will be provided at a later date.
-
-### Building Redis - flags and general notes
-
-Redis can be compiled and used on Linux, OSX, OpenBSD, NetBSD, FreeBSD.
-We support big endian and little endian architectures, and both 32 bit and 64-bit systems.
-
-It may compile on Solaris derived systems (for instance SmartOS) but our support for this platform is _best effort_ and Redis is not guaranteed to work as well as on Linux, OSX, and \*BSD.
-
-To build Redis with all the data structures (including JSON, time series, Bloom filter, cuckoo filter, count-min sketch, top-k, and t-digest) and with Redis Query Engine, make sure first that all the prerequisites are installed (see build instructions above, per operating system). You need to use the following flag in the make command:
-
-```sh
-make BUILD_WITH_MODULES=yes
-```
-
-Note: `BUILD_WITH_MODULES=yes` is not supported on 32 bit systems.
-
-To build Redis with just the core data structures, use:
-
-```sh
-make
-```
-
-To build with TLS support, you need OpenSSL development libraries (e.g. libssl-dev on Debian/Ubuntu) and the following flag in the make command:
-
-```sh
-make BUILD_TLS=yes
-```
-
-To build with systemd support, you need systemd development libraries (such as libsystemd-dev on Debian/Ubuntu or systemd-devel on CentOS), and the following flag:
-
-```sh
-make USE_SYSTEMD=yes
-```
-
-To append a suffix to Redis program names, add the following flag:
-
-```sh
-make PROG_SUFFIX="-alt"
-```
-
-You can build a 32 bit Redis binary using:
-
-```sh
-make 32bit
-```
-
-After building Redis, it is a good idea to test it using:
-
-```sh
-make test
-```
-
-If TLS is built, running the tests with TLS enabled (you will need `tcl-tls` installed):
-
-```sh
-./utils/gen-test-certs.sh
-./runtest --tls
-```
-
-### Fixing build problems with dependencies or cached build options
-
-Redis has some dependencies which are included in the `deps` directory. `make` does not automatically rebuild dependencies even if something in the source code of dependencies changes.
-
-When you update the source code with `git pull` or when code inside the dependencies tree is modified in any other way, make sure to use the following command in order to really clean everything and rebuild from scratch:
-
-```sh
-make distclean
-```
-
-This will clean: jemalloc, lua, hiredis, linenoise and other dependencies.
-
-Also, if you force certain build options like 32bit target, no C compiler optimizations (for debugging purposes), and other similar build time options, those options are cached indefinitely until you issue a `make distclean`
-command.
-
-### Fixing problems building 32 bit binaries
-
-If after building Redis with a 32 bit target you need to rebuild it
-with a 64 bit target, or the other way around, you need to perform a `make distclean` in the root directory of the Redis distribution.
-
-In case of build errors when trying to build a 32 bit binary of Redis, try the following steps:
-
-- Install the package libc6-dev-i386 (also try g++-multilib).
-- Try using the following command line instead of `make 32bit`:
-  `make CFLAGS="-m32 -march=native" LDFLAGS="-m32"`
-
-### Allocator
-
-Selecting a non-default memory allocator when building Redis is done by setting the `MALLOC` environment variable. Redis is compiled and linked against libc malloc by default, except for jemalloc being the default on Linux systems. This default was picked because jemalloc has proven to have fewer fragmentation problems than libc malloc.
-
-To force compiling against libc malloc, use:
-
-```sh
-make MALLOC=libc
-```
-
-To compile against jemalloc on Mac OS X systems, use:
-
-```sh
-make MALLOC=jemalloc
-```
-
-### Monotonic clock
-
-By default, Redis will build using the POSIX clock_gettime function as the monotonic clock source. On most modern systems, the internal processor clock can be used to improve performance. Cautions can be found here: http://oliveryang.net/2015/09/pitfalls-of-TSC-usage/
-
-On ARM aarch64 systems, the hardware clock is enabled by default because the ARM Generic Timer is architecturally guaranteed to be available and monotonic on all ARMv8-A processors (see the *“The Generic Timer in AArch64 state”* section of the *Arm Architecture Reference Manual for Armv8-A*).
-
-To build with support for the processor's internal instruction clock on other architectures, use:
-
-```sh
-make CFLAGS="-DUSE_PROCESSOR_CLOCK"
-```
-
-### Verbose build
-
-Redis will build with a user-friendly colorized output by default.
-If you want to see a more verbose output, use the following:
-
-```sh
-make V=1
-```
-
-### Running Redis with TLS
-
-Please consult the [TLS.md](TLS.md) file for more information on how to use Redis with TLS.
-
-### Running Redis with the Query Engine and optional proprietary Intel SVS-VAMANA optimisations
-
-**License Disclaimer**
-If you are using Redis Open Source under AGPLv3 or SSPLv1, you cannot use it together with the Intel Optimizations (Leanvec and LVQ binaries). The reason is that the Intel SVS license is not compatible with those licenses.
-The Leanvec and LVQ techniques are closed source and are only available for use with Redis Open Source when distributed under the RSALv2 license.
-For more details, please refer to the information provided by Intel [here](https://github.com/intel/ScalableVectorSearch).
-
-By default, Redis with the Redis Query Engine supports SVS-VAMANA index with global 8-bit quantisation. To compile Redis with the Intel SVS-VAMANA optimisations, LeanVec and LVQ, use the following:
-
-```sh
-make BUILD_INTEL_SVS_OPT=yes
-```
-
-Alternatively, you can export the variable before running the build step for your platform:
-
-```sh
-export BUILD_INTEL_SVS_OPT=yes
-make
-```
-
-
-## Code contributions
-
-By contributing code to the Redis project in any form, including sending a pull request via GitHub, a code fragment or patch via private email or public discussion groups, you agree to release your code under the terms of the Redis Software Grant and Contributor License Agreement. Please see the CONTRIBUTING.md file in this source distribution for more information. For security bugs and vulnerabilities, please see SECURITY.md and the description of the ability of users to backport security patches under Redis Open Source 7.4+ under BSDv3. Open Source Redis releases are subject to the following licenses:
-
-1. Version 7.2.x and prior releases are subject to BSDv3. These contributions to the original Redis core project are owned by their contributors and licensed under the 3BSDv3 license as referenced in the REDISCONTRIBUTIONS.txt file. Any copy of that license in this repository applies only to those contributions;
-
-2. Versions 7.4.x to 7.8.x are subject to your choice of RSALv2 or SSPLv1; and
-
-3. Version 8.0.x and subsequent releases are subject to the tri-license RSALv2/SSPLv1/AGPLv3 at your option as referenced in the LICENSE.txt file.
-
-## Redis Trademarks
-
-The purpose of a trademark is to identify the goods and services of a person or company without causing confusion. As the registered owner of its name and logo, Redis accepts certain limited uses of its trademarks, but it has requirements that must be followed as described in its Trademark Guidelines available at: https://redis.io/legal/trademark-policy/.
+Tomo KV is a research fork of **[Redis](https://github.com/redis/redis)** (8.x) and inherits its data
+structures, protocol, and BSD‑3‑Clause license. The out‑of‑order architecture is inspired by
+**Tomasulo's algorithm** (R. M. Tomasulo, *"An Efficient Algorithm for Exploiting Multiple Arithmetic
+Units,"* IBM Journal, 1967). Original Redis © Redis Ltd.; Tomo KV modifications retain the upstream license.

@@ -477,8 +477,8 @@ static int isSafeToPerformEvictions(void) {
     /* Disable eviction during slot migration import to avoid delays and errors
      * caused by failed evictions. A special client is created for data import,
      * identified by the CLIENT_MASTER and CLIENT_ASM_IMPORTING flags. */
-    if (server.current_client && server.current_client->flags & CLIENT_MASTER &&
-        server.current_client->flags & CLIENT_ASM_IMPORTING)
+    if (server.current_client[iotid].p && server.current_client[iotid].p->flags & CLIENT_MASTER &&
+        server.current_client[iotid].p->flags & CLIENT_ASM_IMPORTING)
         return 0;
 
     /* If 'evict' action is paused, for whatever reason, then return false */
@@ -585,6 +585,7 @@ int performEvictions(void) {
                  * every DB. */
                 for (i = 0; i < server.dbnum; i++) {
                     db = server.db+i;
+                    if (!dbIsInitialized(db)) continue;
                     kvstore *kvs;
                     if (server.maxmemory_policy & MAXMEMORY_FLAG_ALLKEYS) {
                         kvs = db->keys;
@@ -658,6 +659,7 @@ int performEvictions(void) {
             for (i = 0; i < server.dbnum; i++) {
                 j = (++next_db) % server.dbnum;
                 db = server.db+j;
+                if (!dbIsInitialized(db)) continue;
                 kvstore *kvs;
                 if (server.maxmemory_policy == MAXMEMORY_ALLKEYS_RANDOM) {
                     kvs = db->keys;

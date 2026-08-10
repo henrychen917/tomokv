@@ -70,16 +70,16 @@ static int reqresShouldLog(client *c) {
 }
 
 static size_t reqresAppendBuffer(client *c, void *buf, size_t len) {
-    if (!c->reqres.buf) {
-        c->reqres.capacity = max(len, 1024);
-        c->reqres.buf = zmalloc(c->reqres.capacity);
-    } else if (c->reqres.capacity - c->reqres.used < len) {
-        c->reqres.capacity += len;
-        c->reqres.buf = zrealloc(c->reqres.buf, c->reqres.capacity);
+    if (!clientTail(c)->reqres.buf) {
+        clientTail(c)->reqres.capacity = max(len, 1024);
+        clientTail(c)->reqres.buf = zmalloc(clientTail(c)->reqres.capacity);
+    } else if (clientTail(c)->reqres.capacity - clientTail(c)->reqres.used < len) {
+        clientTail(c)->reqres.capacity += len;
+        clientTail(c)->reqres.buf = zrealloc(clientTail(c)->reqres.buf, clientTail(c)->reqres.capacity);
     }
 
-    memcpy(c->reqres.buf + c->reqres.used, buf, len);
-    c->reqres.used += len;
+    memcpy(clientTail(c)->reqres.buf + clientTail(c)->reqres.used, buf, len);
+    clientTail(c)->reqres.used += len;
     return len;
 }
 
@@ -132,21 +132,21 @@ static size_t reqresAppendEncodedBuffer(client *c, char *buf, size_t len) {
 /* Zero out the clientReqResInfo struct inside the client,
  * and free the buffer if needed */
 void reqresReset(client *c, int free_buf) {
-    if (free_buf && c->reqres.buf)
-        zfree(c->reqres.buf);
-    memset(&c->reqres, 0, sizeof(c->reqres));
+    if (free_buf && clientTail(c)->reqres.buf)
+        zfree(clientTail(c)->reqres.buf);
+    memset(&clientTail(c)->reqres, 0, sizeof(clientTail(c)->reqres));
 }
 
 /* Save the offset of the reply buffer (or the reply list).
  * Should be called when adding a reply (but it will only save the offset
- * on the very first time it's called, because of c->reqres.offset.saved)
+ * on the very first time it's called, because of clientTail(c)->reqres.offset.saved)
  * The idea is:
  * 1. When a client is executing a command, we save the reply offset.
  * 2. During the execution, the reply offset may grow, as addReply* functions are called.
  * 3. When client is done with the command (commandProcessed), reqresAppendResponse
  *    is called.
  * 4. reqresAppendResponse will append the diff between the current offset and the one from step (1)
- * 5. When client is reset before the next command, we clear c->reqres.offset.saved and start again
+ * 5. When client is reset before the next command, we clear clientTail(c)->reqres.offset.saved and start again
  *
  * We cannot reply on c->sentlen to keep track because it depends on the network
  * (reqresAppendResponse will always write the whole buffer, unlike writeToClient)
@@ -171,18 +171,18 @@ void reqresSaveClientReplyOffset(client *c) {
     if (!reqresShouldLog(c))
         return;
 
-    if (c->reqres.offset.saved)
+    if (clientTail(c)->reqres.offset.saved)
         return;
 
-    c->reqres.offset.saved = 1;
+    clientTail(c)->reqres.offset.saved = 1;
 
-    c->reqres.offset.bufpos = c->bufpos;
+    clientTail(c)->reqres.offset.bufpos = c->bufpos;
     if (listLength(c->reply) && listNodeValue(listLast(c->reply))) {
-        c->reqres.offset.last_node.index = listLength(c->reply) - 1;
-        c->reqres.offset.last_node.used = ((clientReplyBlock *)listNodeValue(listLast(c->reply)))->used;
+        clientTail(c)->reqres.offset.last_node.index = listLength(c->reply) - 1;
+        clientTail(c)->reqres.offset.last_node.used = ((clientReplyBlock *)listNodeValue(listLast(c->reply)))->used;
     } else {
-        c->reqres.offset.last_node.index = 0;
-        c->reqres.offset.last_node.used = 0;
+        clientTail(c)->reqres.offset.last_node.index = 0;
+        clientTail(c)->reqres.offset.last_node.used = 0;
     }
 }
 
@@ -211,7 +211,7 @@ size_t reqresAppendRequest(client *c) {
         return 0;
     }
 
-    c->reqres.argv_logged = 1;
+    clientTail(c)->reqres.argv_logged = 1;
 
     size_t ret = 0;
     for (int i = 0; i < argc; i++) {
@@ -234,21 +234,21 @@ size_t reqresAppendResponse(client *c) {
     if (!reqresShouldLog(c))
         return 0;
 
-    if (!c->reqres.argv_logged) /* Example: UNSUBSCRIBE */
+    if (!clientTail(c)->reqres.argv_logged) /* Example: UNSUBSCRIBE */
         return 0;
 
-    if (!c->reqres.offset.saved) /* Example: module client blocked on keys + CLIENT KILL */
+    if (!clientTail(c)->reqres.offset.saved) /* Example: module client blocked on keys + CLIENT KILL */
         return 0;
 
     /* First append the static reply buffer */
-    if (c->bufpos > c->reqres.offset.bufpos) {
+    if (c->bufpos > clientTail(c)->reqres.offset.bufpos) {
         size_t written;
         if (!c->buf_encoded) {
             /* Plain buffer - copy directly */
-            written = reqresAppendBuffer(c, c->buf + c->reqres.offset.bufpos, c->bufpos - c->reqres.offset.bufpos);
+            written = reqresAppendBuffer(c, c->buf + clientTail(c)->reqres.offset.bufpos, c->bufpos - clientTail(c)->reqres.offset.bufpos);
         } else {
             /* Decode and append encoded buffer */
-            written = reqresAppendEncodedBuffer(c, c->buf + c->reqres.offset.bufpos, c->bufpos - c->reqres.offset.bufpos);
+            written = reqresAppendEncodedBuffer(c, c->buf + clientTail(c)->reqres.offset.bufpos, c->bufpos - clientTail(c)->reqres.offset.bufpos);
         }
         ret += written;
     }
@@ -261,8 +261,8 @@ size_t reqresAppendResponse(client *c) {
     }
 
     /* Now, append reply bytes from the reply list */
-    if (curr_index > c->reqres.offset.last_node.index ||
-        curr_used > c->reqres.offset.last_node.used)
+    if (curr_index > clientTail(c)->reqres.offset.last_node.index ||
+        curr_used > clientTail(c)->reqres.offset.last_node.used)
     {
         int i = 0;
         listIter iter;
@@ -273,7 +273,7 @@ size_t reqresAppendResponse(client *c) {
             size_t written = 0;
 
             /* Skip nodes we had already processed */
-            if (i < c->reqres.offset.last_node.index) {
+            if (i < clientTail(c)->reqres.offset.last_node.index) {
                 i++;
                 continue;
             }
@@ -284,22 +284,22 @@ size_t reqresAppendResponse(client *c) {
             }
 
             if (!o->buf_encoded) {
-                if (i == c->reqres.offset.last_node.index) {
+                if (i == clientTail(c)->reqres.offset.last_node.index) {
                     /* Write the potentially incomplete node, which had data from
                      * before the current command started */
-                    written = reqresAppendBuffer(c, o->buf + c->reqres.offset.last_node.used,
-                                                 o->used - c->reqres.offset.last_node.used);
+                    written = reqresAppendBuffer(c, o->buf + clientTail(c)->reqres.offset.last_node.used,
+                                                 o->used - clientTail(c)->reqres.offset.last_node.used);
                 } else {
                     /* New node */
                     written = reqresAppendBuffer(c, o->buf, o->used);
                 }
             } else {
                 /* Encoded buffer - decode and append */
-                if (i == c->reqres.offset.last_node.index) {
+                if (i == clientTail(c)->reqres.offset.last_node.index) {
                     /* Write the potentially incomplete node, which had data from
                      * before the current command started */
-                    written = reqresAppendEncodedBuffer(c, o->buf + c->reqres.offset.last_node.used,
-                                                        o->used - c->reqres.offset.last_node.used);
+                    written = reqresAppendEncodedBuffer(c, o->buf + clientTail(c)->reqres.offset.last_node.used,
+                                                        o->used - clientTail(c)->reqres.offset.last_node.used);
                 } else {
                     /* New node */
                     written = reqresAppendEncodedBuffer(c, o->buf, o->used);
@@ -315,7 +315,7 @@ size_t reqresAppendResponse(client *c) {
     /* Flush both request and response to file */
     FILE *fp = fopen(server.req_res_logfile, "a");
     serverAssert(fp);
-    fwrite(c->reqres.buf, c->reqres.used, 1, fp);
+    fwrite(clientTail(c)->reqres.buf, clientTail(c)->reqres.used, 1, fp);
     fclose(fp);
 
     return ret;

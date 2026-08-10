@@ -16,6 +16,29 @@
 
 zskiplistNode* zslGetElementByRank(zskiplist *zsl, unsigned long rank);
 
+static __thread int t_sort_desc, t_sort_alpha, t_sort_bypattern, t_sort_store;
+
+/* Refcount-free continuation carried by the cross-shard SORT BY/GET pipeline. Source values,
+ * patterns, and dereference results are private sds copies, so the source worker may publish the
+ * context to the IO-thread coordinator without sharing a live keyspace object. */
+struct sortXShardCtx {
+    int desc;
+    int alpha;
+    int store;
+    int needs_by;
+    long start;
+    long end;
+    int elem_count;
+    sds *elems;
+    sds by_pattern;
+    int get_count;
+    sds *get_patterns;
+    sds *get_values;             /* selected-element-major projection cells; NULL = nil */
+    int *get_map;                /* external dereference position -> projection cell */
+    int get_deref_count;
+    unsigned int outputlen;
+};
+
 redisSortOperation *createSortOperation(int type, robj *pattern) {
     redisSortOperation *so = zmalloc(sizeof(*so));
     so->type = type;
@@ -123,12 +146,12 @@ noobj:
 
 /* sortCompare() is used by qsort in sortCommand(). Given that qsort_r with
  * the additional parameter is not standard but a BSD-specific we have to
- * pass sorting parameters via the global 'server' structure */
+ * pass sorting parameters via thread-local state. */
 int sortCompare(const void *s1, const void *s2) {
     const redisSortObject *so1 = s1, *so2 = s2;
     int cmp;
 
-    if (!server.sort_alpha) {
+    if (!t_sort_alpha) {
         /* Numeric sorting. Here it's trivial as we precomputed scores */
         if (so1->u.score > so2->u.score) {
             cmp = 1;
@@ -142,7 +165,7 @@ int sortCompare(const void *s1, const void *s2) {
         }
     } else {
         /* Alphanumeric sorting */
-        if (server.sort_bypattern) {
+        if (t_sort_bypattern) {
             if (!so1->u.cmpobj || !so2->u.cmpobj) {
                 /* At least one compare object is NULL */
                 if (so1->u.cmpobj == so2->u.cmpobj)
@@ -153,7 +176,7 @@ int sortCompare(const void *s1, const void *s2) {
                     cmp = 1;
             } else {
                 /* We have both the objects, compare them. */
-                if (server.sort_store) {
+                if (t_sort_store) {
                     cmp = compareStringObjects(so1->u.cmpobj,so2->u.cmpobj);
                 } else {
                     /* Here we can use strcoll() directly as we are sure that
@@ -163,19 +186,65 @@ int sortCompare(const void *s1, const void *s2) {
             }
         } else {
             /* Compare elements directly. */
-            if (server.sort_store) {
+            if (t_sort_store) {
                 cmp = compareStringObjects(so1->obj,so2->obj);
             } else {
                 cmp = collateStringObjects(so1->obj,so2->obj);
             }
         }
     }
-    return server.sort_desc ? -cmp : cmp;
+    return t_sort_desc ? -cmp : cmp;
+}
+
+static sds sortObjectCopySds(robj *o) {
+    return sdsEncodedObject(o) ? sdsdup(o->ptr) : sdsfromlonglong((long)o->ptr);
+}
+
+/* Capture either the whole unsorted vector (external BY still pending) or only the selected
+ * post-LIMIT window (ordering is already final). GET patterns are copied in request order. */
+static struct sortXShardCtx *sortXShardCapture(redisSortObject *vector, int vectorlen,
+                                                long start, long end, int capture_all,
+                                                int desc, int alpha, robj *sortby,
+                                                robj *storekey, list *operations, int getop) {
+    struct sortXShardCtx *ctx = zcalloc(sizeof(*ctx));
+    int selected = end >= start ? (int)(end - start + 1) : 0;
+    ctx->desc = desc;
+    ctx->alpha = alpha;
+    ctx->store = storekey != NULL;
+    ctx->needs_by = capture_all && vectorlen > 0;
+    ctx->start = start;
+    ctx->end = end;
+    ctx->elem_count = capture_all ? vectorlen : selected;
+    if (ctx->elem_count) {
+        ctx->elems = zmalloc(sizeof(sds) * (size_t)ctx->elem_count);
+        int first = capture_all ? 0 : (int)start;
+        for (int i = 0; i < ctx->elem_count; i++)
+            ctx->elems[i] = sortObjectCopySds(vector[first + i].obj);
+    }
+    if (capture_all && sortby) ctx->by_pattern = sdsdup(sortby->ptr);
+    ctx->get_count = getop;
+    if (getop) {
+        ctx->get_patterns = zmalloc(sizeof(sds) * (size_t)getop);
+        listIter li;
+        listNode *ln;
+        int i = 0;
+        listRewind(operations, &li);
+        while ((ln = listNext(&li)) != NULL) {
+            redisSortOperation *sop = ln->value;
+            serverAssert(sop->type == SORT_OP_GET && i < getop);
+            ctx->get_patterns[i++] = sdsdup(sop->pattern->ptr);
+        }
+        serverAssert(i == getop);
+    }
+    ctx->outputlen = getop ? (unsigned int)getop * (unsigned int)selected
+                           : (unsigned int)selected;
+    return ctx;
 }
 
 /* The SORT command is the most complex command in Redis. Warning: this code
  * is optimized for speed and a bit less for readability */
-void sortCommandGeneric(client *c, int readonly) {
+static robj *sortCommandGeneric(client *c, int readonly, int detached,
+                                struct sortXShardCtx **xshard) {
     list *operations;
     unsigned int outputlen = 0;
     int desc = 0, alpha = 0;
@@ -184,7 +253,7 @@ void sortCommandGeneric(client *c, int readonly) {
     int getop = 0; /* GET operation counter */
     int int_conversion_error = 0;
     int syntax_error = 0;
-    robj *sortval, *sortby = NULL, *storekey = NULL;
+    robj *sortval, *sortby = NULL, *storekey = NULL, *detached_result = NULL;
     size_t oldsize = 0;
     redisSortObject *vector; /* Resulting vector to sort */
     int user_has_full_key_access = 0; /* ACL - used in order to verify 'get' and 'by' options can be used */
@@ -192,6 +261,7 @@ void sortCommandGeneric(client *c, int readonly) {
      * Operations can be GET */
     operations = listCreate();
     listSetFreeMethod(operations,zfree);
+    if (xshard) *xshard = NULL;
     j = 2; /* options start at argv[2] */
 
     user_has_full_key_access = ACLUserCheckCmdWithUnrestrictedKeyAccess(c->user, c->cmd, c->argv, c->argc, CMD_KEY_ACCESS);
@@ -300,7 +370,7 @@ void sortCommandGeneric(client *c, int readonly) {
     /* Handle syntax errors set during options parsing. */
     if (syntax_error) {
         listRelease(operations);
-        return;
+        return NULL;
     }
 
     /* Lookup the key to sort. It must be of the right types */
@@ -311,7 +381,7 @@ void sortCommandGeneric(client *c, int readonly) {
     {
         listRelease(operations);
         addReplyErrorObject(c,shared.wrongtypeerr);
-        return;
+        return NULL;
     }
 
     /* Now we need to protect sortval incrementing its count, in the future
@@ -501,6 +571,14 @@ void sortCommandGeneric(client *c, int readonly) {
     }
     serverAssertWithInfo(c,sortval,j == vectorlen);
 
+    /* External BY values belong to arbitrary owners. Stop after the source-owner extraction and
+     * let the coordinator gather those values before running the exact comparator below. */
+    if (xshard && sortby && !dontsort) {
+        *xshard = sortXShardCapture(vector,vectorlen,start,end,1,desc,alpha,sortby,
+                                    storekey,operations,getop);
+        goto sort_cleanup;
+    }
+
     /* Now it's time to load the right scores in the sorting vector */
     if (!dontsort) {
         for (j = 0; j < vectorlen; j++) {
@@ -543,11 +621,11 @@ void sortCommandGeneric(client *c, int readonly) {
             }
         }
 
-        server.sort_desc = desc;
-        server.sort_alpha = alpha;
-        server.sort_bypattern = sortby ? 1 : 0;
-        server.sort_store = storekey ? 1 : 0;
-        if (sortby && (start != 0 || end != vectorlen-1))
+        t_sort_desc = desc;
+        t_sort_alpha = alpha;
+        t_sort_bypattern = sortby ? 1 : 0;
+        t_sort_store = storekey ? 1 : 0;
+        if (start != 0 || end != vectorlen-1)
             pqsort(vector,vectorlen,sizeof(redisSortObject),sortCompare, start,end);
         else
             qsort(vector,vectorlen,sizeof(redisSortObject),sortCompare);
@@ -556,7 +634,15 @@ void sortCommandGeneric(client *c, int readonly) {
     /* Send command output to the output buffer, performing the specified
      * GET/DEL/INCR/DECR operations if any. */
     outputlen = getop ? getop*(end-start+1) : end-start+1;
-    if (int_conversion_error) {
+    if (xshard) {
+        if (int_conversion_error) {
+            addReplyError(c,"One or more scores can't be converted into double");
+        } else {
+            *xshard = sortXShardCapture(vector,vectorlen,start,end,0,desc,alpha,sortby,
+                                        storekey,operations,getop);
+        }
+        goto sort_cleanup;
+    } else if (int_conversion_error) {
         addReplyError(c,"One or more scores can't be converted into double");
     } else if (storekey == NULL) {
         /* STORE option not specified, sent the sorting result to client */
@@ -620,7 +706,11 @@ void sortCommandGeneric(client *c, int readonly) {
             }
         }
         
-        if (outputlen) {
+        if (detached) {
+            if (outputlen)
+                listTypeTryConversion(sobj,LIST_CONV_AUTO,NULL,NULL);
+            detached_result = sobj;
+        } else if (outputlen) {
             listTypeTryConversion(sobj,LIST_CONV_AUTO,NULL,NULL);
             setKey(c, c->db, storekey, &sobj, 0);
             /* Ownership of sobj transferred to the db. Set to NULL to prevent
@@ -628,20 +718,21 @@ void sortCommandGeneric(client *c, int readonly) {
             sobj = NULL;
             notifyKeyspaceEvent(NOTIFY_LIST,"sortstore",storekey,
                                 c->db->id);
-            server.dirty += outputlen;
+            markDirty(outputlen);
             /* Ownership of sobj transferred to the db. No need to free it. */
         } else {
             if (dbDelete(c->db, storekey)) {
                 keyModified(c, c->db, storekey, NULL, 1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", storekey, c->db->id);
-                server.dirty++;
+                markDirty(1);
             }
             decrRefCount(sobj);
         }
 
-        addReplyLongLong(c,outputlen);
+        if (!detached) addReplyLongLong(c,outputlen);
     }
 
+sort_cleanup:
     /* Cleanup */
     for (j = 0; j < vectorlen; j++)
         decrRefCount(vector[j].obj);
@@ -653,13 +744,241 @@ void sortCommandGeneric(client *c, int readonly) {
             decrRefCount(vector[j].u.cmpobj);
     }
     zfree(vector);
+    return detached_result;
 }
 
 /* SORT wrapper function for read-only mode. */
 void sortroCommand(client *c) {
-    sortCommandGeneric(c, 1);
+    sortCommandGeneric(c, 1, 0, NULL);
 }
 
 void sortCommand(client *c) {
-    sortCommandGeneric(c, 0);
+    sortCommandGeneric(c, 0, 0, NULL);
+}
+
+/* Cross-shard SORT STORE uses the stock parser, selection, LIMIT top-k, and list builder on
+ * the source worker, but detaches the result instead of touching the destination there.
+ * A valid empty selection returns an owned empty list; NULL means the stock path already
+ * emitted a parse, WRONGTYPE, or numeric-conversion error on c. */
+robj *sortStoreResultObject(client *c) {
+    return sortCommandGeneric(c, 0, 1, NULL);
+}
+
+struct sortXShardCtx *sortXShardPrepare(client *c, int readonly) {
+    struct sortXShardCtx *ctx = NULL;
+    sortCommandGeneric(c, readonly, 0, &ctx);
+    return ctx;
+}
+
+static int sortXShardIdentityPattern(sds pattern) {
+    return pattern[0] == '#' && pattern[1] == '\0';
+}
+
+/* Expand the first '*' and split a hash-field suffix exactly like lookupKeyByPattern. The caller
+ * owns both the returned key object and *field (when non-NULL). A pattern without '*' produces no
+ * dereference, which is stock's constant-pattern behavior. */
+static robj *sortXShardExpandPattern(sds pattern, sds subst, sds *field) {
+    char *p = strchr(pattern, '*');
+    char *f;
+    size_t fieldlen = 0;
+    *field = NULL;
+    if (!p) return NULL;
+    if ((f = strstr(p + 1, "->")) != NULL && *(f + 2) != '\0') {
+        fieldlen = sdslen(pattern) - (size_t)(f - pattern) - 2;
+        *field = sdsnewlen(f + 2, fieldlen);
+    }
+    size_t prefixlen = (size_t)(p - pattern);
+    size_t postfixlen = sdslen(pattern) - prefixlen - 1 - (fieldlen ? fieldlen + 2 : 0);
+    robj *key = createStringObject(NULL, prefixlen + sdslen(subst) + postfixlen);
+    char *k = key->ptr;
+    memcpy(k, pattern, prefixlen);
+    memcpy(k + prefixlen, subst, sdslen(subst));
+    memcpy(k + prefixlen + sdslen(subst), p + 1, postfixlen);
+    return key;
+}
+
+int sortXShardNeedsBy(const struct sortXShardCtx *ctx) {
+    return ctx->needs_by;
+}
+
+int sortXShardBuildByDeref(struct sortXShardCtx *ctx, robj ***keys, sds **fields) {
+    int n = ctx->needs_by ? ctx->elem_count : 0;
+    *keys = NULL;
+    *fields = NULL;
+    if (!n) return 0;
+    robj **kv = zmalloc(sizeof(*kv) * (size_t)n);
+    sds *fv = zcalloc(sizeof(*fv) * (size_t)n);
+    for (int i = 0; i < n; i++) {
+        kv[i] = sortXShardExpandPattern(ctx->by_pattern, ctx->elems[i], &fv[i]);
+        serverAssert(kv[i] != NULL);
+    }
+    *keys = kv;
+    *fields = fv;
+    return n;
+}
+
+int sortXShardApplyBy(struct sortXShardCtx *ctx, sds *values) {
+    int n = ctx->elem_count;
+    serverAssert(ctx->needs_by && n > 0);
+    redisSortObject *vector = zmalloc(sizeof(*vector) * (size_t)n);
+    int conversion_error = 0;
+    for (int i = 0; i < n; i++) {
+        vector[i].obj = createStringObject(ctx->elems[i], sdslen(ctx->elems[i]));
+        vector[i].u.score = 0;
+        vector[i].u.cmpobj = NULL;
+        if (!values[i]) continue;
+        robj *byval = createStringObject(values[i], sdslen(values[i]));
+        if (ctx->alpha) {
+            vector[i].u.cmpobj = getDecodedObject(byval);
+        } else {
+            char *eptr;
+            vector[i].u.score = fast_float_strtod(byval->ptr, &eptr);
+            if (eptr[0] != '\0' || errno == ERANGE || isnan(vector[i].u.score))
+                conversion_error = 1;
+        }
+        decrRefCount(byval);
+    }
+
+    t_sort_desc = ctx->desc;
+    t_sort_alpha = ctx->alpha;
+    t_sort_bypattern = 1;
+    t_sort_store = ctx->store;
+    if (ctx->start != 0 || ctx->end != n - 1)
+        pqsort(vector,n,sizeof(*vector),sortCompare,ctx->start,ctx->end);
+    else
+        qsort(vector,n,sizeof(*vector),sortCompare);
+
+    int selected = ctx->end >= ctx->start ? (int)(ctx->end - ctx->start + 1) : 0;
+    sds *out = selected ? zmalloc(sizeof(*out) * (size_t)selected) : NULL;
+    for (int i = 0; i < selected; i++)
+        out[i] = sortObjectCopySds(vector[ctx->start + i].obj);
+    for (int i = 0; i < n; i++) {
+        if (ctx->alpha && vector[i].u.cmpobj) decrRefCount(vector[i].u.cmpobj);
+        decrRefCount(vector[i].obj);
+        sdsfree(ctx->elems[i]);
+    }
+    zfree(vector);
+    zfree(ctx->elems);
+    ctx->elems = out;
+    ctx->elem_count = selected;
+    ctx->start = 0;
+    ctx->end = selected - 1;
+    ctx->needs_by = 0;
+    return conversion_error ? C_ERR : C_OK;
+}
+
+int sortXShardBuildGetDeref(struct sortXShardCtx *ctx, robj ***keys, sds **fields) {
+    *keys = NULL;
+    *fields = NULL;
+    size_t cells = (size_t)ctx->elem_count * (size_t)ctx->get_count;
+    if (cells) ctx->get_values = zcalloc(sizeof(sds) * cells);
+    if (!cells) return 0;
+
+    robj **kv = zmalloc(sizeof(*kv) * cells);
+    sds *fv = zcalloc(sizeof(*fv) * cells);
+    ctx->get_map = zmalloc(sizeof(*ctx->get_map) * cells);
+    int n = 0;
+    for (int i = 0; i < ctx->elem_count; i++) {
+        for (int j = 0; j < ctx->get_count; j++) {
+            sds pattern = ctx->get_patterns[j];
+            if (sortXShardIdentityPattern(pattern) || strchr(pattern, '*') == NULL) continue;
+            kv[n] = sortXShardExpandPattern(pattern, ctx->elems[i], &fv[n]);
+            serverAssert(kv[n] != NULL);
+            ctx->get_map[n] = i * ctx->get_count + j;
+            n++;
+        }
+    }
+    ctx->get_deref_count = n;
+    if (!n) {
+        zfree(kv);
+        zfree(fv);
+        zfree(ctx->get_map);
+        ctx->get_map = NULL;
+        return 0;
+    }
+    *keys = kv;
+    *fields = fv;
+    return n;
+}
+
+void sortXShardApplyGet(struct sortXShardCtx *ctx, sds *values) {
+    for (int i = 0; i < ctx->get_deref_count; i++) {
+        int cell = ctx->get_map[i];
+        ctx->get_values[cell] = values[i];
+        values[i] = NULL;
+    }
+    zfree(ctx->get_map);
+    ctx->get_map = NULL;
+    ctx->get_deref_count = 0;
+}
+
+int sortXShardHasStore(const struct sortXShardCtx *ctx) {
+    return ctx->store;
+}
+
+unsigned int sortXShardOutputLen(const struct sortXShardCtx *ctx) {
+    return ctx->outputlen;
+}
+
+static robj *sortXShardProjectedObject(const struct sortXShardCtx *ctx, int elem, int get) {
+    sds value = NULL;
+    if (sortXShardIdentityPattern(ctx->get_patterns[get])) {
+        value = ctx->elems[elem];
+    } else if (ctx->get_values) {
+        value = ctx->get_values[(size_t)elem * (size_t)ctx->get_count + (size_t)get];
+    }
+    return value ? createStringObject(value, sdslen(value)) : createStringObject("", 0);
+}
+
+robj *sortXShardStoreResultObject(const struct sortXShardCtx *ctx) {
+    robj *res = createQuicklistObject(server.list_max_listpack_size, server.list_compress_depth);
+    for (int i = 0; i < ctx->elem_count; i++) {
+        if (!ctx->get_count) {
+            robj *v = createStringObject(ctx->elems[i], sdslen(ctx->elems[i]));
+            listTypePush(res,v,LIST_TAIL);
+            decrRefCount(v);
+        } else {
+            for (int j = 0; j < ctx->get_count; j++) {
+                robj *v = sortXShardProjectedObject(ctx,i,j);
+                listTypePush(res,v,LIST_TAIL);
+                decrRefCount(v);
+            }
+        }
+    }
+    if (ctx->outputlen) listTypeTryConversion(res,LIST_CONV_AUTO,NULL,NULL);
+    return res;
+}
+
+void sortXShardReply(client *c, const struct sortXShardCtx *ctx) {
+    addReplyArrayLen(c,ctx->outputlen);
+    for (int i = 0; i < ctx->elem_count; i++) {
+        if (!ctx->get_count) {
+            addReplyBulkCBuffer(c,ctx->elems[i],sdslen(ctx->elems[i]));
+            continue;
+        }
+        for (int j = 0; j < ctx->get_count; j++) {
+            sds pattern = ctx->get_patterns[j];
+            sds value = sortXShardIdentityPattern(pattern) ? ctx->elems[i] :
+                        ctx->get_values ?
+                            ctx->get_values[(size_t)i * (size_t)ctx->get_count + (size_t)j] : NULL;
+            if (value) addReplyBulkCBuffer(c,value,sdslen(value));
+            else addReplyNull(c);
+        }
+    }
+}
+
+void sortXShardFree(struct sortXShardCtx *ctx) {
+    if (!ctx) return;
+    for (int i = 0; i < ctx->elem_count; i++) sdsfree(ctx->elems[i]);
+    zfree(ctx->elems);
+    sdsfree(ctx->by_pattern);
+    for (int i = 0; i < ctx->get_count; i++) sdsfree(ctx->get_patterns[i]);
+    zfree(ctx->get_patterns);
+    if (ctx->get_values) {
+        size_t cells = (size_t)ctx->elem_count * (size_t)ctx->get_count;
+        for (size_t i = 0; i < cells; i++) sdsfree(ctx->get_values[i]);
+        zfree(ctx->get_values);
+    }
+    zfree(ctx->get_map);
+    zfree(ctx);
 }

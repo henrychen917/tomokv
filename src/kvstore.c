@@ -13,6 +13,17 @@
  */
 
 #include "fmacros.h"
+#include "flatstore.h"
+#include "sds.h"
+/* ee451 FLATSTORE: server-level bits used by the flat branch, forward-declared to keep kvstore.c
+ * below server.h in the layering. kvobj = struct redisObject; the stored slot ptr is tag-masked
+ * (ENTRY_PTR_MASK low 3 bits), decoded by masking them off. */
+typedef struct redisObject kvobj;
+struct _kvstore;
+sds kvobjGetKey(const kvobj *kv);
+uint64_t tomoKeyHash(const void *key, size_t len);
+void tomoRetireDetachedBag(struct _kvstore *kvs, kvobj *head);
+#define flatDecodeKV(de) ((kvobj *)((uintptr_t)(void *)(de) & ~(uintptr_t)7))
 
 #include <string.h>
 #include <stddef.h>
@@ -27,6 +38,7 @@
 
 struct _kvstore {
     int flags;
+    _Atomic(flatTable *) flat; /* release-published at resize; acquired by lock-free readers */
     kvstoreType *type;
     dictType dtype;
     dict **dicts;
@@ -40,8 +52,59 @@ struct _kvstore {
     unsigned long long bucket_count;       /* Total number of buckets in this kvstore across dictionaries. */
     fenwickTree *dict_sizes;               /* Binary indexed tree (BIT) that describes cumulative key frequencies up until given dict-index. */
     size_t overhead_hashtable_rehashing;   /* The overhead of dictionaries rehashing. */
+    volatile unsigned char mt_lock;        /* ee451 (S0.2b KVSTORE_SHARED_MT): spinlock for the rehashing list (rare: rehash start/finish) */
     void *metadata[];                      /* conditionally allocated based on "flags" */
 };
+
+/* ee451 (S0.2b): SHARED_MT helpers. GCC/Clang __atomic builtins on the plain fields so the
+ * single-writer path (flag off) keeps plain loads/stores with zero codegen change. */
+static inline int kvstoreSharedMT(kvstore *kvs) { return kvs->flags & KVSTORE_SHARED_MT; }
+int kvstoreIsSharedMT(kvstore *kvs) { return kvstoreSharedMT(kvs); }   /* public (db.c histogram gate) */
+static inline void kvstoreMtLock(kvstore *kvs) {
+    while (__atomic_test_and_set(&kvs->mt_lock, __ATOMIC_ACQUIRE)) { /* rare + short hold */ }
+}
+static inline void kvstoreMtUnlock(kvstore *kvs) {
+    __atomic_clear(&kvs->mt_lock, __ATOMIC_RELEASE);
+}
+
+/* ee451 FLATSTORE: a flat "link" is &slot->w; recover the slot index. */
+static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
+    return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, w)) - t->slots);
+}
+static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
+    return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
+}
+int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
+static inline flatTable *flatCurrent(kvstore *kvs) {
+    return atomic_load_explicit(&kvs->flat, memory_order_acquire);
+}
+flatTable *kvstoreFlatTable(kvstore *kvs) {
+    return (kvs->flags & KVSTORE_FLAT) ? flatCurrent(kvs) : NULL;
+}
+void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw) {
+    atomic_store_explicit(&kvs->flat, nw, memory_order_release);
+}
+void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (unmasked) kvobj */
+    flatTable *t = flatCurrent(kvs);
+    if (t && rawkv) flatRetire(t, flatKvMask(kvs, rawkv));
+}
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv) {
+    flatTable *t = flatCurrent(kvs);
+    if (t && rawkv) flatRetireVersionPrune(t, rawkv);
+}
+void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta) {
+    flatTable *t = flatCurrent(kvs);
+    if (t && vmeta) flatRetireVmeta(t, vmeta);
+}
+void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv) {
+    flatTable *t = flatCurrent(kvs);
+    if (t) flatIterRange(t, blo, bhi, cb, priv);
+}
+void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi) {
+    flatTable *t = flatCurrent(kvs);
+    dictEntry *mk = t ? flatRandomKeyInRange(t, blo, bhi) : NULL;
+    return mk ? (void *)flatDecodeKV(mk) : NULL;
+}
 
 /**********************************/
 /*** Helpers **********************/
@@ -81,13 +144,24 @@ static int getAndClearDictIndexFromCursor(kvstore *kvs, unsigned long long *curs
 
 /* Updates binary index tree (Fenwick tree), updates key count for a given dict */
 static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
-    kvs->key_count += delta;
-
     dict *d = kvstoreGetDict(kvs, didx);
     size_t dsize = dictSize(d);
     /* Increment if dsize is 1 and delta is positive (first element inserted, dict becomes non-empty).
      * Decrement if dsize is 0 (dict becomes empty). */
     int non_empty_dicts_delta = (dsize == 1 && delta > 0) ? 1 : (dsize == 0) ? -1 : 0;
+
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): multiple owner-threads add/delete in disjoint dicts of this kvstore.
+         * Aggregates via relaxed atomics (node-local line); the Fenwick tree is SKIPPED — a
+         * multi-writer log-n tree walk per op is the one hot-path cost sharing would add, and
+         * its consumers (non-empty iteration / fair random) have linear fallbacks. */
+        __atomic_fetch_add(&kvs->key_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        if (non_empty_dicts_delta)
+            __atomic_fetch_add(&kvs->non_empty_dicts, non_empty_dicts_delta, __ATOMIC_RELAXED);
+        return;
+    }
+
+    kvs->key_count += delta;
     kvs->non_empty_dicts += non_empty_dicts_delta;
 
     /* BIT does not need to be calculated when there's only one dict. */
@@ -102,6 +176,16 @@ static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
 static dict *createDictIfNeeded(kvstore *kvs, int didx) {
     dict *d = kvstoreGetDict(kvs, didx);
     if (d) return d;
+
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): didx has ONE owner thread (only it creates this dict), but other
+         * threads read dicts[didx] (cross-owner prefetch peeks, iteration). Release-publish
+         * the fully-built dict; count via atomic (owners of different didx race the counter). */
+        d = dictCreate(&kvs->dtype);
+        __atomic_store_n(&kvs->dicts[didx], d, __ATOMIC_RELEASE);
+        __atomic_fetch_add(&kvs->allocated_dicts, 1, __ATOMIC_RELAXED);
+        return d;
+    }
 
     kvs->dicts[didx] = dictCreate(&kvs->dtype);
     kvs->allocated_dicts++;
@@ -148,6 +232,18 @@ void kvstoreFreeDictIfNeeded(kvstore *kvs, int didx) {
 static void kvstoreDictRehashingStarted(dict *d) {
     kvstore *kvs = d->type->userdata;
     kvstoreDictMetaBase *metadata = (kvstoreDictMetaBase *)dictMetadata(d);
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): rehash starts on any owner thread — the shared list needs the lock
+         * (rare event: a dict grow/shrink boundary, not per-op). */
+        kvstoreMtLock(kvs);
+        listAddNodeTail(kvs->rehashing, d);
+        metadata->rehashing_node = listLast(kvs->rehashing);
+        kvstoreMtUnlock(kvs);
+        unsigned long long from, to;
+        dictRehashingInfo(d, &from, &to);
+        __atomic_fetch_add(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        return;
+    }
     listAddNodeTail(kvs->rehashing, d);
     metadata->rehashing_node = listLast(kvs->rehashing);
 
@@ -163,6 +259,18 @@ static void kvstoreDictRehashingStarted(dict *d) {
 static void kvstoreDictRehashingCompleted(dict *d) {
     kvstore *kvs = d->type->userdata;
     kvstoreDictMetaBase *metadata = (kvstoreDictMetaBase *)dictMetadata(d);
+    if (kvstoreSharedMT(kvs)) {
+        kvstoreMtLock(kvs);
+        if (metadata->rehashing_node) {
+            listDelNode(kvs->rehashing, metadata->rehashing_node);
+            metadata->rehashing_node = NULL;
+        }
+        kvstoreMtUnlock(kvs);
+        unsigned long long from, to;
+        dictRehashingInfo(d, &from, &to);
+        __atomic_fetch_sub(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        return;
+    }
     if (metadata->rehashing_node) {
         listDelNode(kvs->rehashing, metadata->rehashing_node);
         metadata->rehashing_node = NULL;
@@ -178,6 +286,10 @@ static void kvstoreDictRehashingCompleted(dict *d) {
  * sum of buckets for a DB. */
 static void kvstoreDictBucketChanged(dict *d, long long delta) {
     kvstore *kvs = d->type->userdata;
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): table-size changes on any owner thread */
+        __atomic_fetch_add(&kvs->bucket_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        return;
+    }
     kvs->bucket_count += delta;
 }
 
@@ -232,6 +344,11 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
             createDictIfNeeded(kvs, i);
     }
 
+    kvs->flat = NULL;
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* ee451 FLATSTORE: start small (256K slots * 8B = 2MB) and grow online (Stage 2). */
+        kvs->flat = flatTableNew(FLAT_MIN_SIZE);
+    }
     kvs->rehashing = listCreate();
     kvs->key_count = 0;
     kvs->non_empty_dicts = 0;
@@ -243,6 +360,23 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
 }
 
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* holistic-review fix: FLUSHDB/FLUSHALL was a silent no-op on a flat kvstore (its dicts are
+         * unused), so keys survived the flush, leaked, and key_count desynced. Tombstone every live
+         * slot via the single-store flatDelete and QSBR-retire its value — cross-node MGET does
+         * lock-free BORROW reads of this table, so the free MUST be grace-deferred (mirrors DEL). The
+         * count resets at the tail of this function zero key_count. */
+        flatTable *t = flatCurrent(kvs);
+        if (t) for (uint64_t i = 0; i < t->size; i++) {
+            uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
+            if (FLAT_IS_LIVE(w)) {
+                dictEntry *old = flatDelete(t, i);
+                if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+            }
+        }
+        UNUSED(callback);
+        /* fall through: the dict loop is a no-op (dicts NULL under flat); the tail resets counts. */
+    }
     for (int didx = 0; didx < kvs->num_dicts; didx++) {
         dict *d = kvstoreGetDict(kvs, didx);
         if (!d)
@@ -269,6 +403,14 @@ void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
 }
 
 void kvstoreRelease(kvstore *kvs) {
+    if (kvs->flags & KVSTORE_FLAT) {   /* holistic-review fix: free the flat table + its live kvobjs (dicts are unused) */
+        flatTableDestroy(flatCurrent(kvs));
+        zfree(kvs->dicts);
+        listRelease(kvs->rehashing);
+        if (kvs->dict_sizes) fwTreeDestroy(kvs->dict_sizes);
+        zfree(kvs);
+        return;
+    }
     for (int didx = 0; didx < kvs->num_dicts; didx++) {
         dict *d = kvstoreGetDict(kvs, didx);
         if (!d)
@@ -384,6 +526,23 @@ unsigned long long kvstoreScan(kvstore *kvs, unsigned long long cursor,
  * `dictTryExpand` call and in case of `dictExpand` call it signifies no expansion was performed.
  */
 int kvstoreExpand(kvstore *kvs, uint64_t newsize, int try_expand, kvstoreExpandShouldSkipDictIndex *skip_cb) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        /* ee451 FLATSTORE: pre-size the flat table to hold `newsize` keys at <=1/3 load. Only called
+         * during RDB load, which is single-threaded and runs before clients connect (workers idle),
+         * so a straight rebuild + swap is race-free. Prevents the mid-load table-full panic (the
+         * beforeSleep resize coordinator never runs inside the tight load loop). */
+        flatTable *t = flatCurrent(kvs);
+        uint64_t want = newsize ? newsize * 3 : 0;
+        if (t && want > t->size) {
+            flatTable *nw = flatTableNew(want);
+            uint64_t cursor = 0;
+            flatTableCopyChunk(t, nw, &cursor, t->size);   /* copy any existing live keys in one shot */
+            kvs->flat = nw;
+            flatTableFree(t);
+        }
+        (void)try_expand; (void)skip_cb;
+        return 1;
+    }
     for (int i = 0; i < kvs->num_dicts; i++) {
         if (skip_cb && skip_cb(i)) continue;
         dict *d = createDictIfNeeded(kvs, i);
@@ -520,6 +679,21 @@ int kvstoreFindDictIndexByKeyIndex(kvstore *kvs, unsigned long target) {
         return 0;
     assert(target <= kvstoreSize(kvs));
 
+    if (kvstoreSharedMT(kvs)) {
+        /* ee451 (S0.2b): Fenwick is not maintained under sharing — linear accumulate. Racy
+         * dictSize reads make this an approximate fair-random under concurrent writes (fine:
+         * random is random); exact-target overrun falls back to the last non-empty dict. */
+        unsigned long acc = 0; int last = 0;
+        for (int i = 0; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (!d) continue;
+            size_t s = dictSize(d);
+            if (!s) continue;
+            last = i; acc += s;
+            if (acc >= target) return i;
+        }
+        return last;
+    }
     return fwTreeFindIndex(kvs->dict_sizes, target);
 }
 
@@ -529,6 +703,13 @@ int kvstoreGetFirstNonEmptyDictIndex(kvstore *kvs) {
         return -1;
     if (kvs->num_dicts == 1)
         return 0;
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): linear scan (iteration users are cold) */
+        for (int i = 0; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (d && dictSize(d)) return i;
+        }
+        return -1;
+    }
     return fwTreeFindFirstNonEmpty(kvs->dict_sizes);
 }
 
@@ -536,6 +717,13 @@ int kvstoreGetFirstNonEmptyDictIndex(kvstore *kvs) {
 int kvstoreGetNextNonEmptyDictIndex(kvstore *kvs, int didx) {
     if (kvs->num_dicts == 1) {
         assert(didx == 0);
+        return -1;
+    }
+    if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): linear scan (iteration users are cold) */
+        for (int i = didx + 1; i < kvs->num_dicts; i++) {
+            dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
+            if (d && dictSize(d)) return i;
+        }
         return -1;
     }
     return fwTreeFindNextNonEmpty(kvs->dict_sizes, didx);
@@ -590,6 +778,12 @@ void kvstoreMoveDict(kvstore *kvs, kvstore *dst, int didx) {
 void kvstoreIteratorInit(kvstoreIterator *kvs_it, kvstore *kvs) {
     kvs_it->kvs = kvs;
     kvs_it->didx = -1;
+    if (kvs->flags & KVSTORE_FLAT) {   /* ee451 FLATSTORE: walk the flat table by slot cursor, no dicts */
+        kvs_it->flat_cursor = 0;
+        kvs_it->next_didx = -1;
+        dictInitSafeIterator(&kvs_it->di, NULL);
+        return;
+    }
     kvs_it->next_didx = kvstoreGetFirstNonEmptyDictIndex(kvs_it->kvs); /* Finds first non-empty dict index. */
     dictInitSafeIterator(&kvs_it->di, NULL);
 }
@@ -626,12 +820,15 @@ dict *kvstoreIteratorNextDict(kvstoreIterator *kvs_it) {
 }
 
 int kvstoreIteratorGetCurrentDictIndex(kvstoreIterator *kvs_it) {
+    if (kvs_it->kvs->flags & KVSTORE_FLAT) return 0;   /* ee451 FLATSTORE: single logical shard */
     assert(kvs_it->didx >= 0 && kvs_it->didx < kvs_it->kvs->num_dicts);
     return kvs_it->didx;
 }
 
 /* Returns next entry. */
 dictEntry *kvstoreIteratorNext(kvstoreIterator *kvs_it) {
+    if (kvs_it->kvs->flags & KVSTORE_FLAT)   /* ee451 FLATSTORE: resumable slot walk */
+        return flatIterNext(flatCurrent(kvs_it->kvs), &kvs_it->flat_cursor);
     dictEntry *de = kvs_it->di.d ? dictNext(&kvs_it->di) : NULL;
     if (!de) { /* No current dict or reached the end of the dictionary. */
 
@@ -826,6 +1023,10 @@ void *kvstoreDictFetchValue(kvstore *kvs, int didx, const void *key)
 }
 
 dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        size_t len = sdslen((sds)key);
+        return flatGet(flatCurrent(kvs), tomoKeyHash(key, len), key, len);   /* masked; caller decodes */
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return NULL;
@@ -856,8 +1057,27 @@ dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
  *      else
  *          kvstoreDictSetAtLink(kvs, didx, kv, &bucket, 1); // Insert new entry
  */
+static dictEntryLink flatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key,
+                                          size_t len, dictEntryLink *bucket) {
+    if (bucket) *bucket = NULL;
+    flatTable *t = flatCurrent(kvs);
+    uint64_t slot; int found = flatFindForWrite(t, hash, key, len, &slot);
+    dictEntryLink link = (dictEntryLink)&t->slots[slot].w;
+    if (bucket) *bucket = link;               /* insert-or-found position */
+    return found ? link : NULL;
+}
+
+dictEntryLink kvstoreFlatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key,
+                                          dictEntryLink *bucket) {
+    return flatFindLinkWithHash(kvs, hash, key, sdslen((sds)key), bucket);
+}
+
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket) {
-    if (bucket) *bucket = NULL;    
+    if (kvs->flags & KVSTORE_FLAT) {
+        size_t len = sdslen((sds)key);
+        return flatFindLinkWithHash(kvs, tomoKeyHash(key, len), key, len, bucket);
+    }
+    if (bucket) *bucket = NULL;
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d) return NULL;
     return dictFindLink(d, key, bucket);
@@ -877,6 +1097,31 @@ dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLi
  *          - If not set, update the key of an existing dictEntry.
  */
 void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = flatCurrent(kvs);
+        if (newItem) {
+            dictEntry *masked = flatKvMask(kvs, kv);       /* raw kvobj -> tag-masked stored ptr */
+            sds k = kvobjGetKey((kvobj *)kv);              /* kv is the RAW (unmasked) kvobj */
+            uint64_t h = tomoKeyHash(k, sdslen(k));
+            uint64_t slot;
+            if (link && *link) slot = flatSlotOf(t, *link);
+            else flatFindForWrite(t, h, k, sdslen(k), &slot);
+            flatInsert(t, h, masked, slot);
+            __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        } else if (kv == NULL) {
+            /* ee451 FLATSTORE (8B-slot review fix): preclearing a slot to FLAT_TOMB here is UNSAFE —
+             * FLAT_TOMB is immediately reusable, so a concurrent cross-key insert could claim the slot
+             * before the follow-up flatDelete blindly clobbers it (key loss + UAF). dbGenericDelete no
+             * longer takes the preclear path for a flat store (it routes every delete through the
+             * single-store flatDelete in TwoPhaseUnlinkFree), so this must be unreachable. Guard it. */
+            assert(0 && "FLATSTORE: SetAtLink(NULL) preclear forbidden on a flat store — "
+                        "delete must route through the single-store flatDelete path");
+        } else {
+            dictEntry *masked = flatKvMask(kvs, kv);
+            flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */
+        }
+        return;
+    }
     dict *d;
     if (newItem) {
         d = createDictIfNeeded(kvs, didx);
@@ -908,6 +1153,13 @@ void kvstoreDictSetVal(kvstore *kvs, int didx, dictEntry *de, void *val) {
 }
 
 dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *key, int *table_index) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = flatCurrent(kvs);
+        size_t len = sdslen((sds)key);
+        uint64_t slot; int found = flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot);
+        if (table_index) *table_index = 0;
+        return found ? (dictEntryLink)&t->slots[slot].w : NULL;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return NULL;
@@ -915,6 +1167,14 @@ dictEntryLink kvstoreDictTwoPhaseUnlinkFind(kvstore *kvs, int didx, const void *
 }
 
 void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, int table_index) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = flatCurrent(kvs);
+        dictEntry *old = flatDelete(t, flatSlotOf(t, link));
+        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        (void)table_index;
+        return;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     dictTwoPhaseUnlinkFree(d, link, table_index);
     cumulativeKeyCountAdd(kvs, didx, -1);
@@ -922,6 +1182,15 @@ void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, i
 }
 
 int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = flatCurrent(kvs);
+        size_t len = sdslen((sds)key);
+        uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
+        dictEntry *old = flatDelete(t, slot);
+        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        return DICT_OK;
+    }
     dict *d = kvstoreGetDict(kvs, didx);
     if (!d)
         return DICT_ERR;

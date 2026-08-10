@@ -37,6 +37,7 @@ typedef struct _kvstoreIterator {
     long long didx;
     long long next_didx;
     dictIterator di;
+    unsigned long long flat_cursor;   /* ee451 FLATSTORE: next slot index when kvs is flat */
 } kvstoreIterator;
 
 /* Structure for kvstore dict iterator that allows iterating the corresponding dict. */
@@ -84,6 +85,27 @@ typedef struct {
 
 #define KVSTORE_ALLOCATE_DICTS_ON_DEMAND (1<<0)
 #define KVSTORE_FREE_EMPTY_DICTS (1<<1)
+/* ee451 (shared-kv S0.2b): this kvstore is shared by MULTIPLE writer threads, each owning a
+ * DISJOINT set of dict indexes (tomo node-db: one owner-worker per bucket-dict; dict content
+ * itself is never touched cross-owner). Aggregate bookkeeping adapts:
+ *   - key_count / non_empty_dicts / bucket_count / allocated_dicts / rehash overhead: relaxed
+ *     atomics (node-local cache line, rare-to-per-op writers)
+ *   - Fenwick dict_sizes: SKIPPED (multi-writer log-n tree walk on every add/delete); the
+ *     non-empty-dict queries it served fall back to a linear dicts[] scan (iteration users are
+ *     cold: KEYS / checksums / empty), and fair-random callers are rerouted by the server
+ *   - rehashing list: guarded by a per-kvstore spinlock (rehash start/finish only — rare)
+ * Single-writer kvstores (flag off) are bit-for-bit unchanged. */
+#define KVSTORE_SHARED_MT (1<<2)
+#define KVSTORE_FLAT (1<<3)   /* ee451 FLATSTORE: one lock-free open-addressing table replaces the dicts[] */
+int kvstoreIsFlat(kvstore *kvs);
+void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv);
+void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
+struct flatTable *kvstoreFlatTable(kvstore *kvs);
+void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta);
+void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw);
+int kvstoreIsSharedMT(kvstore *kvs);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));
 void kvstoreRelease(kvstore *kvs);
@@ -146,6 +168,8 @@ void *kvstoreGetDictMeta(kvstore *kvs, int didx, int createIfNeeded);
 void *kvstoreGetMetadata(kvstore *kvs);
 
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket);
+/* FLAT-only form; hash must be the full tomo key hash for this exact key. */
+dictEntryLink kvstoreFlatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key, dictEntryLink *bucket);
 void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem);
 
 /* dict with distinct key & value (no_value=1) currently is used only by pubsub. */

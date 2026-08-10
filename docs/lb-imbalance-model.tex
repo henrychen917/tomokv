@@ -1,0 +1,245 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\newcommand{\meas}{\textcolor{blue}{\textsc{measured}}}
+\newcommand{\derv}{\textcolor{teal}{\textsc{derived}}}
+\newcommand{\infr}{\textcolor{orange}{\textsc{inferred}}}
+
+\title{Load-Balance Imbalance Model for TomoKV/THredis}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A closed-form model for the three load balancers in TomoKV (client LB, key LB, flip LB):
+when each has anything to correct, how large the imbalance is, and when balance is
+\emph{structurally impossible}. Architecture claims are verified against source at
+\texttt{22713766a}. Quantities are tagged \meas{} (from measurement artifacts),
+\derv{} (arithmetic on measured inputs), or \infr{} (model prediction, untested).
+\end{abstract}
+
+\section{Notation}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Symbol & Meaning \\
+\midrule
+$N$ & NUMA nodes \\
+$W$ & worker (ex) threads \emph{per node} \\
+$I,E,T$ & IO threads, ex threads, $T=I+E$ \\
+$B=16384$ & buckets (\texttt{TOMO\_BUCKETS}, \texttt{server.h:1474}) \\
+$K$ & keys; $f_k$ rate of key $k$; $R=\sum_k f_k$ \\
+$C$ & clients; $g_c$ rate of client $c$ \\
+$p$ & pipeline depth \\
+$L_w$ & load of worker $w$, $L_w=\sum_{k\in w} f_k$ \\
+$c_f=\sigma_f/\mu_f$ & CV of per-\emph{key} access rate \\
+$c_g=\sigma_g/\mu_g$ & CV of per-\emph{client} request rate \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Core result}
+A key reaches a worker via $\text{bucket}=\texttt{xxh64}(key)\,\&\,16383$ then
+$\text{worker}=\texttt{ex\_bucket\_table[bucket]}$ (\texttt{server.h:2781}). The hash makes
+assignment effectively independent with probability $1/W$:
+\[
+\mathbb{E}[L_w]=\frac{R}{W},\qquad
+\operatorname{Var}(L_w)=\frac{1}{W}\Big(1-\frac{1}{W}\Big)\sum_k f_k^2 .
+\]
+Define the \emph{effective key count} (inverse Simpson index):
+\[
+\boxed{\;K_{\mathrm{eff}}=\frac{R^2}{\sum_k f_k^2}\;}
+\qquad\Longrightarrow\qquad
+\boxed{\;\mathrm{CV}_{\mathrm{load}}\approx\sqrt{\frac{W}{K_{\mathrm{eff}}}}\;}
+\]
+Imbalance is governed by the \emph{effective} key count, not the raw key count; this single
+substitution absorbs all skew.
+
+\subsection{Effective key count by distribution}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Distribution & $K_{\mathrm{eff}}$ & $\mathrm{CV}_{\mathrm{load}}$ \\
+\midrule
+Uniform & $K$ & $\sqrt{W/K}$ \\
+Gaussian rates, CV $c_f$ & $K/(1+c_f^2)$ & $\sqrt{W(1+c_f^2)/K}$ \\
+One hot key, fraction $h$ & $\to 1/h^2$ & $\approx h\sqrt{W}$ \\
+Zipf($\alpha\gtrsim1$) & $O(1)$ in the head & head-dominated \\
+\bottomrule
+\end{tabular}
+\end{center}
+Real KV workloads are Zipf, not Gaussian; \textbf{Gaussian is the optimistic case} and its
+predictions are a lower bound on imbalance.
+
+\section{Probability of imbalance}
+With $K_{\mathrm{eff}}/W\gg1$ the CLT applies. With $\bar\Phi$ the standard normal tail,
+\[
+\boxed{\;P\!\left(\max_w L_w>(1+\tau)\frac{R}{W}\right)\approx
+W\,\bar\Phi\!\left(\tau\sqrt{\frac{K_{\mathrm{eff}}}{W}}\right)}
+\]
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Case ($K=2\mathrm{M}$) & $\mathrm{CV}$ & $P(>10\%)$ \\
+\midrule
+uniform, $W=4$ & $0.14\%$ & $\approx0$ \\
+Gaussian $c_f=1$, $W=4$ & $0.20\%$ & $\approx0$ \\
+hot key $h=5\%$, $W=4$ & $10\%$ & $\approx0.5$ \\
+hot key $h=5\%$, $W=24$ & $24\%$ & $\approx1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent\textbf{Statistical imbalance is negligible at our key counts.} All real imbalance is
+head-of-distribution.
+
+\section{When balance is impossible}
+The LB relocates \emph{buckets}; a key is atomic. Hence
+\[
+\boxed{\;h>\frac{1}{W}\;\Longrightarrow\;\text{unbalanceable},\qquad
+\text{residual}\ \ge hW-1\;}
+\]
+$W=4\Rightarrow h>25\%$; $W=8\Rightarrow12.5\%$; $W=24\Rightarrow\mathbf{4.2\%}$.
+This becomes \emph{harder} with more workers. It is the quantitative form of
+\emph{hot key $\neq$ hot bucket}: a flip \textbf{relocates} load, never \textbf{divides} it.
+
+Additional floors: bucket granularity ($\max_b q_b\cdot W$) and cross-node imbalance
+$\mathrm{CV}_{\text{node}}=\sqrt{N(1+c_f^2)/K}$, which is \emph{uncorrectable} because LB is
+in-node only.
+
+\section{Client axis}
+With $C_{\mathrm{eff}}=(\sum_c g_c)^2/\sum_c g_c^2$ and Gaussian rates,
+\[
+\mathrm{CV}_{\mathrm{io}}=\sqrt{\frac{I}{C_{\mathrm{eff}}}},\qquad
+C_{\mathrm{eff}}=\frac{C}{1+c_g^2}
+\;\Longrightarrow\;
+\boxed{\;\mathrm{CV}_{\mathrm{io}}=\sqrt{\frac{I(1+c_g^2)}{C}}\;}
+\]
+Assignment policy changes the exponent, not merely the constant:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Policy & $\mathrm{CV}_{\mathrm{io}}$ \\
+\midrule
+Random assignment & $\sqrt{I(1+c_g^2)/C}$ \\
+\textbf{Count-balanced} (current) & $c_g\sqrt{I/C}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Count-balancing is \emph{exact} at $c_g=0$ and buys nothing as $c_g$ grows; improving on it
+requires balancing by \textbf{load}, not connections.
+
+\subsection{Client versus key imbalance}
+$C\sim10^2$ while $K\sim10^6$: the same formula, four orders of magnitude apart.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Axis & Config & $\mathrm{CV}$ \\
+\midrule
+\textbf{client} & $I=4,C=200,c_g=1$ & $\mathbf{14.1\%}$ \\
+client & $I=4,C=200,c_g=0.5$ & $7.9\%$ \\
+key/worker & $W=4,K=2\mathrm{M},c_f=1$ & $\mathbf{0.20\%}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Client imbalance is $\sim70\times$ larger}, purely because there are far fewer clients
+than keys. Connections are atomic, so $h_c>1/I$ is again unbalanceable, with a count-balancing
+floor $\approx I/(2C)$: $1\%$ at $C=200$, but $\mathbf{25\%}$ at $C=8$.
+
+\section{Front/back split (flip LB)}
+Front cost per command $a+s/p$; back cost $b$. With $c=b/a$ and $\sigma_s=s/a$,
+\[
+\boxed{\;\beta(p)=\frac{c}{c+1+\sigma_s/p}\;}
+\]
+increasing in $p$: \textbf{pipelining is back-heavier}. Optimum $E/T=\beta(p)$, with integer
+quantisation error $\le 1/(2T)$.
+
+\subsection{Calibration}
+From two \meas{} optima ($p=1$ near io7/ex1--io6/ex2, $E/T\approx0.15$; $p=32$ io4/ex4,
+$E/T=0.5$):
+\[
+c\approx1.18,\qquad \sigma_s\approx5.7
+\]
+i.e.\ execution $\approx1.2\times$ per-command front work, and a syscall $\approx5.7$
+commands' worth of front work. Predictions (\infr):
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+$p$ & $\beta$ & $E$ at $T=8$ & measured \\
+\midrule
+1 & 0.15 & 1 & io7/ex1 \checkmark \\
+8 & 0.41 & 3 & --- \\
+16 & 0.47 & 4 & --- \\
+32 & 0.50 & 4 & io4/ex4 \checkmark \\
+\bottomrule
+\end{tabular}
+\end{center}
+Two parameters fitted to two points: this \emph{fits}, it is not yet \emph{validated};
+$p=8,16$ are the falsifiable predictions.
+
+\section{Composite}
+Throughput is capped by the busiest thread on either axis, so by union bound
+\[
+P(\text{imbalance}>\tau)\approx
+I\,\bar\Phi\!\left(\tau\sqrt{\tfrac{C_{\mathrm{eff}}}{I}}\right)
++W\,\bar\Phi\!\left(\tau\sqrt{\tfrac{K_{\mathrm{eff}}}{W}}\right),
+\]
+plus the flip-axis quantisation $\le1/(2T)$ about $\beta(p)$.
+
+\section{Architectural constraints (verified in source)}
+\paragraph{The bucket table permits arbitrary mapping, but contiguity is assumed.}
+\texttt{ex\_bucket\_table[TOMO\_BUCKETS]} is a full \texttt{uint8\_t} table
+(\texttt{server.h:2781}), so arbitrary mappings are representable. However
+\texttt{ex\_bucket\_end[]} is maintained alongside (\texttt{server.h:2779}) and consumers
+compute a worker's span as $\texttt{ex\_bucket\_end}[w]-\texttt{ex\_bucket\_end}[w-1]$:
+RANDOMKEY weighting (\texttt{server.c:6846,6857}), the CS\_KEYS sub
+(\texttt{server.c:7878--7879}), migration (\texttt{server.c:10011--10020}), and the prefetch
+gate. \textbf{Buckets therefore cannot currently be balanced without neighbours.}
+
+\paragraph{The balancer shifts adjacent boundaries.}
+\texttt{server.c:10877} compares \texttt{mig\_load\_ewma[w]} with \texttt{mig\_load\_ewma[w+1]}
+and moves the boundary between them. An isolated hot bucket can only be relocated by
+cascading; the tree records a $[8k,4k,2k,2k]$ layout running uniform load at \textbf{75\% of
+even-split capacity} (\texttt{server.c:10790}).
+
+\paragraph{EWMA is still live.} \texttt{mig\_load\_ewma[]} and \texttt{mig\_load\_ewma\_fast[]}
+drive auto-reshard (\texttt{server.c:10679,10877,10895,10900,10960}). A \emph{different} EWMA
+bucket balancer was previously deleted for breaching the $\le3\%$ budget.
+
+\paragraph{Auto-reshard is on by default.} \texttt{tomokv-reshard-min-ops} defaults to 20000
+(\texttt{config.c:3305}); \texttt{reshardAutoTune} runs at 1\,Hz from \texttt{serverCron}
+(\texttt{server.c:2117}).
+
+\section{Consequences}
+\begin{enumerate}
+\item \textbf{The key LB should be near-silent.} At $\mathrm{CV}=0.2\%$ it should essentially
+never fire; firing on statistical noise spends the $\le3\%$ always-on budget for nothing. Its
+trigger belongs on head-of-distribution skew, with $h>1/W$ as an explicit \emph{give up}
+cutoff.
+\item \textbf{The client LB deserves the budget} and needs a load-weighted variant, since
+count-balancing is provably exact only at $c_g=0$.
+\item \textbf{Our benchmarks cannot observe client imbalance.} \texttt{memtier -t8 -c25}
+creates 200 \emph{identical} round-robin connections, i.e.\ $c_g\approx0$ --- the one regime
+where count-balancing is optimal by construction. Every client-LB number we hold was taken
+where the mechanism cannot fail.
+\item \textbf{Client LB may go cross-node; key LB may not.} A client's keys are spread over all
+buckets, hence all nodes, by the hash, so no client$\to$IO placement avoids cross-node
+dispatch: client placement is \emph{not} locality-constrained the way bucket placement is.
+Cross-node client rebalancing enlarges the pool from $C/N$ to $C$, reducing
+$\mathrm{CV}_{\mathrm{io}}$ by $\sqrt{N}$.
+\item \textbf{The flip LB has a closed form:} $\beta(p)$ gives the target split from measured
+pipeline depth, so the controller can jump to it rather than hill-climb, with $1/(2T)$ as the
+irreducible error.
+\end{enumerate}
+
+\section{Open items}
+Validate $\beta(p)$ at $p=8,16$; measure $c_f,c_g$ from a real trace (all present values are
+assumed); decide whether non-contiguous bucket ownership justifies the consumer fixes required
+to relocate an isolated hot bucket without cascading.
+
+\end{document}

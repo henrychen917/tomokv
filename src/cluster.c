@@ -281,7 +281,7 @@ void restoreCommand(client *c) {
             rewriteClientCommandVector(c, 2, aux, key);
             keyModified(c,c->db,key,NULL,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"del",key,c->db->id);
-            server.dirty++;
+            markDirty(1);
         }
         /* If the expiration time is already elapsed, we skip adding
          * it to the DB, but we still increment the stats. */
@@ -292,8 +292,11 @@ void restoreCommand(client *c) {
         return;
     }
 
-    /* Create the key and set the TTL if any */
-    kvobj *kv = dbAddInternal(c->db, key, &obj, NULL, &keymeta);
+    /* Create the key and set the TTL if any.
+     * embedRawOk=1: RESTORE payloads come from rdbLoadObject() and are final
+     * (same provenance as dbAddRDBLoad; nothing below mutates a string value,
+     * only HASH/STREAM registration reads). See kvobjSetEx(). */
+    kvobj *kv = dbAddInternal(c->db, key, &obj, NULL, &keymeta, 1);
 
     /* If minExpiredField was set, then the object is hash with expiration
      * on fields and need to register it in global HFE DS */
@@ -333,7 +336,7 @@ void restoreCommand(client *c) {
         }
     }
     addReply(c,shared.ok);
-    server.dirty++;
+    markDirty(1);
 }
 /* MIGRATE socket cache implementation.
  *
@@ -696,7 +699,7 @@ void migrateCommand(client *c) {
                 dbDelete(c->db,keyArray[j]);
                 keyModified(c,c->db,keyArray[j],NULL,1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC,"del",keyArray[j],c->db->id);
-                server.dirty++;
+                markDirty(1);
 
                 /* Populate the argument vector to replace the old one. */
                 newargv[del_idx++] = keyArray[j];
@@ -840,12 +843,12 @@ void clusterCommandMyShardId(client *c) {
 /* When a cluster command is called, we need to decide whether to return TLS info or
  * non-TLS info by the client's connection type. However if the command is called by
  * a Lua script or RM_call, there is no connection in the fake client, so we use
- * server.current_client here to get the real client if available. And if it is not
+ * server.current_client[iotid].p here to get the real client if available. And if it is not
  * available (modules may call commands without a real client), we return the default
  * info, which is determined by server.tls_cluster. */
 static int shouldReturnTlsInfo(void) {
-    if (server.current_client && server.current_client->conn) {
-        return connIsTLS(server.current_client->conn);
+    if (server.current_client[iotid].p && server.current_client[iotid].p->conn) {
+        return connIsTLS(server.current_client[iotid].p->conn);
     } else {
         return server.tls_cluster;
     }
@@ -1219,7 +1222,8 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
         /* If CLIENT_MULTI flag is not set EXEC is just going to return an
          * error. */
         if (!(c->flags & CLIENT_MULTI)) return myself;
-        ms = &c->mstate;
+        ms = clientMultiState(c);
+        serverAssert(ms != NULL);
     } else {
         /* In order to have a single codepath create a fake Multi State
          * structure if the client is not in MULTI/EXEC state, this way
@@ -1417,8 +1421,9 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
     /* Handle the read-only client case reading from a slave: if this
      * node is a slave and the request is about a hash slot our master
      * is serving, we can reply without redirection. */
+    multiState *client_ms = c->cmd->proc == execCommand ? clientMultiState(c) : NULL;
     int is_write_command = (cmd_flags & CMD_WRITE) ||
-                           (c->cmd->proc == execCommand && (c->mstate.cmd_flags & CMD_WRITE));
+                           (c->cmd->proc == execCommand && client_ms && (client_ms->cmd_flags & CMD_WRITE));
     if (((c->flags & CLIENT_READONLY) || pubsubshard_included) &&
         !is_write_command &&
         clusterNodeIsSlave(myself) &&
@@ -1482,10 +1487,10 @@ void clusterRedirectClient(client *c, clusterNode *n, int hashslot, int error_co
 int clusterRedirectBlockedClientIfNeeded(client *c) {
     clusterNode *myself = getMyClusterNode();
     if (c->flags & CLIENT_BLOCKED &&
-        (c->bstate.btype == BLOCKED_LIST ||
-         c->bstate.btype == BLOCKED_ZSET ||
-         c->bstate.btype == BLOCKED_STREAM ||
-         c->bstate.btype == BLOCKED_MODULE))
+        (clientBlockingState(c)->btype == BLOCKED_LIST ||
+         clientBlockingState(c)->btype == BLOCKED_ZSET ||
+         clientBlockingState(c)->btype == BLOCKED_STREAM ||
+         clientBlockingState(c)->btype == BLOCKED_MODULE))
     {
         dictEntry *de;
         dictIterator di;
@@ -1501,11 +1506,11 @@ int clusterRedirectBlockedClientIfNeeded(client *c) {
 
         /* If the client is blocked on module, but not on a specific key,
          * don't unblock it (except for the CLUSTER_FAIL case above). */
-        if (c->bstate.btype == BLOCKED_MODULE && !moduleClientIsBlockedOnKeys(c))
+        if (clientBlockingState(c)->btype == BLOCKED_MODULE && !moduleClientIsBlockedOnKeys(c))
             return 0;
 
         /* All keys must belong to the same slot, so check first key only. */
-        dictInitIterator(&di, c->bstate.keys);
+        dictInitIterator(&di, clientBlockingState(c)->keys);
         if ((de = dictNext(&di)) != NULL) {
             robj *key = dictGetKey(de);
             int slot = keyHashSlot((char*)key->ptr, sdslen(key->ptr));
@@ -1514,7 +1519,7 @@ int clusterRedirectBlockedClientIfNeeded(client *c) {
             /* if the client is read-only and attempting to access key that our
              * replica can handle, allow it. */
             if ((c->flags & CLIENT_READONLY) &&
-                !(c->lastcmd->flags & CMD_WRITE) &&
+                !(clientTail(c)->lastcmd->flags & CMD_WRITE) &&
                 clusterNodeIsSlave(myself) && clusterNodeGetSlaveof(myself) == node)
             {
                 node = myself;
@@ -1734,7 +1739,7 @@ unsigned int clusterDelKeysInSlot(unsigned int hashslot, int by_command) {
         postExecutionUnitOperations();
         decrRefCount(key);
         j++;
-        server.dirty++;
+        markDirty(1);
     }
     kvstoreResetDictIterator(&kvs_di);
     return j;
@@ -2263,6 +2268,7 @@ int verifyClusterConfigWithData(void) {
 
     /* Make sure we only have keys in DB0. */
     for (int i = 1; i < server.dbnum; i++) {
+        if (!dbIsInitialized(&server.db[i])) continue;
         if (kvstoreSize(server.db[i].keys)) return C_ERR;
     }
 

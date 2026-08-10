@@ -158,12 +158,24 @@ static inline dictEntry *encodeMaskedPtr(const void *ptr, unsigned int bits) {
 }
 
 static inline void *decodeMaskedPtr(const dictEntry *de) {
-    return (void *)((uintptr_t)(void *)de & ~ENTRY_PTR_MASK);
+    /* ee451 FLATSTORE: also strip the high 16 bits [63:48]. A flat-store 8B slot word carries a
+     * 15-bit hash tag there, and its masked kv pointer is decoded generically via this path
+     * (dictGetKV(*link) on &slot->w). Canonical x86-64 user pointers have bits [63:48] == 0, so this
+     * mask is a no-op for every real dict entry and only clears the flat tag. */
+    return (void *)((uintptr_t)(void *)de & ~(uintptr_t)ENTRY_PTR_MASK & 0x0000FFFFFFFFFFFFULL);
 }
 
 /* Encode a key pointer for storage in a no_value dict bucket.
  * For odd keys (like SDS strings), the key can be stored directly.
  * For even keys, we need to tag it with ENTRY_PTR_IS_EVEN_KEY. */
+/* ee451 FLATSTORE: encode a raw key/kvobj into a no_value stored pointer, given the dictType
+ * directly (the flat kvstore has no dict struct). keyDup applies if the type defines it. */
+dictEntry *dictEncodeStoredKey(const dictType *dt, dict *dup_owner, void *key) {
+    void *added = dt->keyDup ? dt->keyDup(dup_owner, key) : key;
+    if (dt->keys_are_odd) return (dictEntry *)added;
+    return encodeMaskedPtr(added, ENTRY_PTR_IS_EVEN_KEY);
+}
+
 static inline dictEntry *encodeEntryKey(dict *d, void *key) {
     if (d->type->keys_are_odd) {
         debugAssert(((uintptr_t)key & ENTRY_PTR_IS_ODD_KEY) == ENTRY_PTR_IS_ODD_KEY);
@@ -1789,8 +1801,32 @@ void dictSetResizeEnabled(dictResizeEnable enable) {
     dict_can_resize = enable;
 }
 
+/* ee451: one-shot per-thread hash hint (see dictArmHashHint in dict.h).
+ * Only the owning thread reads/writes its own thread-local copy, so no
+ * synchronization is needed. dictHashHintKey == NULL means "not armed". */
+static __thread const void *dictHashHintKey = NULL;
+static __thread uint64_t dictHashHintVal = 0;
+
+void dictArmHashHint(const void *key, uint64_t hash) {
+    dictHashHintKey = key;
+    dictHashHintVal = hash;
+}
+
+void dictDisarmHashHint(void) {
+    dictHashHintKey = NULL;
+}
+
 /* Compiler inlines this for internal calls within dict.c (verified with -O3). */
 uint64_t dictGetHash(dict *d, const void *key) {
+    /* ee451: if a hint is armed for exactly this key pointer, reuse the
+     * precomputed hash and consume the hint. The value equals
+     * d->type->hashFunction(key) because the hint was produced by the same
+     * hash function over the same key bytes; matching by pointer + one-shot
+     * consumption bounds the effect to the single intended lookup. */
+    if (dictHashHintKey != NULL && key == dictHashHintKey) {
+        dictHashHintKey = NULL;
+        return dictHashHintVal;
+    }
     return d->type->hashFunction(key);
 }
 

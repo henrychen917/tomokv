@@ -205,7 +205,7 @@ void freeObjAsync(robj *key, robj *obj, int dbid) {
  * create independent copies of the string objects to avoid concurrent access. */
 static void protectClientReplyObjects(void) {
     /* If there are no clients with pending ref replies, exit ASAP. */
-    if (!listLength(server.clients_with_pending_ref_reply))
+    if (!listLength(server.clients_with_pending_ref_reply[iotid]))
         return;
 
     /* Pause all IO threads to safely duplicate string objects. */
@@ -218,7 +218,7 @@ static void protectClientReplyObjects(void) {
 
     listNode *ln;
     listIter li;
-    listRewind(server.clients_with_pending_ref_reply, &li);
+    listRewind(server.clients_with_pending_ref_reply[iotid], &li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
 
@@ -231,7 +231,13 @@ static void protectClientReplyObjects(void) {
 
                 if (header->payload_type == BULK_STR_REF) {
                     bulkStrRef *str_ref = (bulkStrRef *)ptr;
-                    if (str_ref->obj != NULL) {
+                    /* Worker-owned reply pins are published to IO as immutable
+                     * and must be retired through their owner_ex free-back ring.
+                     * A client can be on this list because of a different,
+                     * main-thread-owned reference appended behind that pin; do
+                     * not rewrite/decref the worker object while a send may
+                     * still reference its payload. */
+                    if (str_ref->obj != NULL && str_ref->owner_ex < 0) {
                         /* Duplicate the string object */
                         robj *new_obj = dupStringObject(str_ref->obj);
                         decrRefCount(str_ref->obj);
@@ -257,7 +263,7 @@ static void protectClientReplyObjects(void) {
 
                         if (header->payload_type == BULK_STR_REF) {
                             bulkStrRef *str_ref = (bulkStrRef *)ptr;
-                            if (str_ref->obj != NULL) {
+                            if (str_ref->obj != NULL && str_ref->owner_ex < 0) {
                                 /* Duplicate the string object */
                                 robj *new_obj = dupStringObject(str_ref->obj);
                                 decrRefCount(str_ref->obj);

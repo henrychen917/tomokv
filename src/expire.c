@@ -144,11 +144,240 @@ static inline int expirySamplingShouldSkipDict(dict *d, int didx) {
     return 0;
 }
 
+/* ===========================================================================================
+ * ee451 (bug #42): THE WORKER-SIDE ACTIVE EXPIRE CYCLE
+ * ===========================================================================================
+ *
+ * WHY THIS EXISTS. activeExpireCycle() below walks `server.db`. Under tomokv sharding that array
+ * is the empty DECOY (initServer: "Keep server.db allocated so legacy code paths don't crash.
+ * These dbs are empty - real data lives in ex_dbs"): selectDb() hands every client the decoy, and
+ * only a worker-routed command swaps in the real per-node db. So on a sharded server the upstream
+ * cycle sampled an empty kvstore forever — `kvstoreSize(db->expires)` was 0 on every pass — and
+ * NOTHING was ever actively expired. A key that got a TTL and was then never touched again was
+ * retained for the life of the process.
+ *
+ * Lazy expiry hid it completely: every *observable* read still returned the right answer, because
+ * expireIfNeeded() deletes on access. Only the memory of the keys nobody reads leaked. Measured on
+ * the pre-fix binary (tools/preflight/active_expiry_probe.sh, 100k keys, 10s TTL, zero traffic
+ * after the load): dbsize stayed at 100000 for 60s and expired_keys_active stayed 0 at BOTH
+ * tomokv-thread-ex 1 (dict-backed keyspace) and tomokv-thread-ex 4 (FLATSTORE) — the regime split
+ * made no difference because the defect is upstream of it, in which db array gets walked.
+ *
+ * WHY IT RUNS ON THE WORKER. Expiring a key DELETES it from the node kvstore. That kvstore's
+ * single-writer invariant is per bucket-dict and the writer is the bucket's OWNING worker. Having
+ * main reach into a worker's range would trade a memory leak for a data race — a strictly worse
+ * bug. So main publishes only the CADENCE (server.tomo_expire_gen, bumped once per serverCron
+ * tick) and each worker expires its OWN buckets from its own exSlice, holding its own worker lock,
+ * exactly as RANDOMKEY's expire-delete (db.c dbRandomKey) and the reshard scan/cleanup already do.
+ *
+ * WHAT IT DELIBERATELY DOES NOT DO, and why:
+ *  - It does not call activeExpireCycleTryExpire(). That helper wraps the delete in
+ *    enterExecutionUnit()/postExecutionUnitOperations(), which mutate main-thread-global execution
+ *    -unit state (server.execution_nesting, the pending-push/tracking queues). Driving that from N
+ *    workers is a race. The worker's LAZY expire path (expireIfNeeded -> deleteExpiredKeyAndPropagate)
+ *    does not use it either; this cycle deletes through the identical call, so it introduces no new
+ *    class of cross-thread access — it only makes an already-exercised worker path run without a
+ *    client touching the key first.
+ *  - It does not update db->avg_ttl. That field lives on the db struct SHARED by a node's workers,
+ *    and INFO reads the decoy's copy anyway, so writing it would be N-writer traffic for a number
+ *    nothing reads.
+ *  - It does not touch server.stat_expired_stale_perc (main's FAST-cycle gate) for the same reason.
+ */
+
+/* Data used by the worker cycle's scan callback. Deliberately NOT expireScanData: this callback
+ * deletes through the worker path, and carrying the ttl/avg-ttl accumulators would invite someone
+ * to fold them into the shared db struct (see above). */
+typedef struct {
+    redisDb *db;
+    long long now;
+    unsigned long sampled;
+    unsigned long expired;
+} exExpireScanData;
+
+/* dictScan callback. Deleting the visited entry from inside a scan callback is the same thing
+ * upstream's expireScanCallback does, and dictScanDefragBucket() explicitly supports it (it
+ * re-checks `*plink == de` before advancing). */
+static void exActiveExpireScanCb(void *privdata, const dictEntry *de, dictEntryLink plink) {
+    UNUSED(plink);
+    exExpireScanData *data = privdata;
+    kvobj *kv = dictGetKV(de);
+
+    data->sampled++;
+    if (data->now < kvobjGetExpire(kv)) return;
+
+    /* W6-E2 mid-cutover DRAINING fence — the SAME call the lazy path makes in expireIfNeeded(),
+     * for the same reason: on the src worker an in-range delete during the drain could land after
+     * s_final and clobber a post-flip write on B. Not a second guard bolted on to make the first
+     * one safe: the cycle's own migration check (below) decides which BUCKETS we may walk, this
+     * decides whether a given KEY may be deleted right now, and lazy expiry needs it either way. */
+    sds key = kvobjGetKey(kv);
+    if (migSuppressLazyExpire(data->db, key)) return;
+
+    robj *keyobj = createStringObject(key, sdslen(key));
+    deleteExpiredKeyAndPropagate(data->db, keyobj);
+    decrRefCount(keyobj);
+    data->expired++;
+}
+
+/* Max % of a WORKER's CPU one tick of this cycle may spend. Upstream gives the main-thread cycle
+ * 25% (ACTIVE_EXPIRE_CYCLE_SLOW_TIME_PERC) because under sharding the main thread is off the
+ * request path; a worker IS the request path, and this project's standing rule is that always-on
+ * background machinery costs <= 3% of throughput. 2% of a tick still reclaims on the order of 20k
+ * keys/s per worker (a delete is ~1us), far more expiring-and-never-touched keys than a real
+ * workload creates. active-expire-effort scales it exactly as it scales the upstream cycle, so an
+ * operator who explicitly asks for more reclaim still gets it. */
+#define ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC 2
+
+static uint64_t exActiveSubexpiresCycle(exThread *worker, int blo, int bhi,
+                                        long long start, long long timelimit);
+
+/* One bounded active-expire pass over THIS worker's own bucket range. Called from exSlice on the
+ * worker thread, inside its flat section (so a FLATSTORE resize cannot move the table underneath)
+ * and after flat_local_sink is armed (so retired kvobjs land on this worker's own QSBR list, in
+ * the arena they were allocated from). Callers must have already edge-detected the cadence tick. */
+void exActiveExpireCycle(exThread *worker) {
+    /* Preconditions, checked once per tick rather than per key. iAmMaster()/cluster/loading are
+     * structurally true under sharding (replicaof, AOF and cluster-enabled are all refused at
+     * boot) but are checked anyway so this stays correct if that ever changes. */
+    if (!server.active_expire_enabled || server.loading || !iAmMaster()) return;
+    if (server.cluster_enabled) return;
+    if (isPausedActions(PAUSE_ACTION_EXPIRE)) return;   /* read-only: the ...WithUpdate() form mutates
+                                                         * main-owned pause state and is not ours to call */
+
+    /* RESHARD INTERLOCK. server.ex_bucket_table / ex_bucket_end are rewritten ONLY at the reshard
+     * cutover (server.c C.4 FLIP), which happens strictly inside a live migration. Skipping the
+     * cycle while one is active is therefore what makes the range we read below STABLE for the
+     * duration of the pass — without it a bucket could change owner mid-sweep and we would delete
+     * from another worker's shard. Deferring reclaim across a migration (which is bounded and rare)
+     * costs nothing. Re-checked per bucket below, because a migration can arm mid-pass. */
+    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return;
+
+    int wid = worker->id;
+    int blo = wid ? server.ex_bucket_end[wid - 1] : 0;
+    int bhi = server.ex_bucket_end[wid];
+    if (blo >= bhi) return;                              /* owns nothing (dormant spare / parked slot) */
+
+    unsigned long effort = server.active_expire_effort - 1;  /* rescale 1..10 -> 0..9 */
+    unsigned long config_keys_per_loop = ACTIVE_EXPIRE_CYCLE_KEYS_PER_LOOP +
+                                         ACTIVE_EXPIRE_CYCLE_KEYS_PER_LOOP / 4 * effort;
+    unsigned long config_cycle_acceptable_stale = ACTIVE_EXPIRE_CYCLE_ACCEPTABLE_STALE - effort;
+    unsigned long config_worker_time_perc = ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC + effort;
+
+    /* Cadence is one tick per serverCron, i.e. server.hz ticks/second, so a per-tick budget of
+     * config_worker_time_perc% of (1/hz) is that same percentage of the worker's wall clock. */
+    long long start = ustime();
+    long long timelimit = (long long)config_worker_time_perc * 1000000 / server.hz / 100;
+    if (timelimit <= 0) timelimit = 1;
+
+    int dbid = worker->aexp_dbid;
+    if (dbid < 0 || dbid >= server.dbnum) dbid = 0;
+    int b = worker->aexp_bucket;
+    if (b < blo || b >= bhi) { b = blo; worker->aexp_cursor = 0; }
+
+    /* Hash-field TTLs live in the same real worker dbs and were missed for the same reason as
+     * whole-key TTLs: activeSubexpiresCycle() walks the empty server.db decoy. Run their worker
+     * half first, but charge it to this SAME deadline; this must not create a second 2% budget. */
+    uint64_t total_subexpired =
+        exActiveSubexpiresCycle(worker, blo, bhi, start, timelimit);
+
+    unsigned long total_expired = 0;
+    unsigned long round_sampled = 0, round_expired = 0, round_buckets = 0;
+    long max_buckets = (long)config_keys_per_loop * 20;   /* same sparse-table bound as upstream */
+    int iteration = 0;
+
+    if (ustime() - start > timelimit ||
+        atomic_load_explicit(&server.migration_active, memory_order_relaxed))
+        goto update_stats;
+
+    /* The delete mutates this node's shared kvstore, so it must exclude the paths that reach this
+     * node db from OFF this worker: an HFE command on a sibling worker (which holds ALL the node's
+     * worker locks across its estore walk) and the reshard apply/scan. Held across the whole pass
+     * rather than per key — the pass is time-bounded, and this is the same shape migServiceScanA
+     * uses for its bounded scan. We take only our OWN lock, so no lock cycle is possible.
+     * DO NOT move the exActiveSubexpiresCycle() call above inside this lock. tomo_wkr_lock is a
+     * NON-RECURSIVE CAS spinlock and that pass takes the whole node's lock set (which includes
+     * OUR lock) — nesting it here is an instant self-deadlock, not a contention problem. It runs
+     * before this acquire and fully releases before returning, which is what keeps the two
+     * halves' lock disciplines independent. */
+    tomoWkrLockPub(wid);
+
+    for (;;) {
+        /* A migration that arms mid-pass invalidates the range we are sweeping — stop immediately.
+         * One relaxed load of the always-0 hot byte, i.e. the cost the command path already pays. */
+        if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) break;
+
+        redisDb *db = &worker->db[dbid];
+        round_buckets++;
+
+        /* WHOLE-DB early-out. Stepping one bucket at a time through a db with no TTLs at all costs
+         * (bhi-blo) empty visits — 16384 of them at tomokv-thread-ex 1. At the per-round bucket
+         * budget that is ~4s of wall clock PER EMPTY DB, so with the default dbnum=16 a finished
+         * sweep took ~60s to come back round to db 0. Measured exactly that: a run stalled at
+         * dbsize=83234 for 60s before resuming. Skip the db, don't walk it.
+         * kvstoreSize is an O(1) aggregate (atomic under SHARED_MT), not a walk. */
+        if (!dbIsInitialized(db) || kvstoreSize(db->expires) == 0) {
+            worker->aexp_cursor = 0;
+            b = blo;
+            if (++dbid >= server.dbnum) dbid = 0;
+        } else {
+            dict *d = kvstoreGetDict(db->expires, b);     /* expires is NEVER flat (initServer masks
+                                                           * KVSTORE_FLAT off it), so this is valid */
+            unsigned long expired_here = 0;
+            if (d && dictSize(d) && !expirySamplingShouldSkipDict(d, b)) {
+                exExpireScanData data = { .db = db, .now = mstime(), .sampled = 0, .expired = 0 };
+                worker->aexp_cursor = dictScan(d, worker->aexp_cursor, exActiveExpireScanCb, &data);
+                round_sampled += data.sampled;
+                round_expired += data.expired;
+                total_expired += data.expired;
+                expired_here = data.expired;
+            } else {
+                worker->aexp_cursor = 0;                  /* nothing to walk here */
+            }
+
+            /* A cursor of 0 is NOT proof this bucket-dict was fully swept WHEN WE DELETED FROM IT:
+             * dictDelete shrinks the table, and a shrink can wrap dictScan's reverse cursor early.
+             * Measured on the first version of this loop: a sweep expired exactly one key per
+             * bucket-dict (16766 of 100000) and moved on, leaving the rest for the next sweep.
+             * So a bucket is DONE only when a cursor cycle that expired NOTHING ends at 0; if it
+             * expired something we restart the same dict at cursor 0. Each restart strictly shrinks
+             * the dict, so this terminates — and the round/time budgets bound it regardless. */
+            if (worker->aexp_cursor == 0 && expired_here == 0) {
+                /* Advance the sweep. Wrapping the range moves to the next db, so every db gets
+                 * swept even though one tick usually stays inside one bucket. */
+                if (++b >= bhi) {
+                    b = blo;
+                    if (++dbid >= server.dbnum) dbid = 0;
+                }
+            }
+        }
+
+        /* End of a round: keep going only while the sampled keys are stale enough to be worth more
+         * CPU (upstream's rule), and only inside the time budget. */
+        if (round_sampled >= config_keys_per_loop || round_buckets >= (unsigned long)max_buckets) {
+            int stale_high = round_sampled &&
+                             (round_expired * 100 / round_sampled) > config_cycle_acceptable_stale;
+            round_sampled = round_expired = round_buckets = 0;
+            if (!stale_high) break;
+        }
+        if ((++iteration & 0xf) == 0 && ustime() - start > timelimit) break;
+    }
+
+    tomoWkrUnlockPub(wid);
+
+update_stats:
+    worker->aexp_dbid = dbid;
+    worker->aexp_bucket = b;
+    worker->aexp_active += total_expired;
+    worker->asubexp_active += total_subexpired;
+}
+
 /* SubexpireCtx passed to activeSubexpiresCb() */
 typedef struct SubexpireCtx {
     uint32_t fieldsToExpireQuota;
     redisDb *db;
     int slot;
+    int activeEx;       /* 1 = main cycle; 2 = worker cycle with a worker-private stat */
+    int workerCycle;    /* worker cycle must stop if a migration arms mid-bucket */
 } SubexpireCtx;
 
 /*
@@ -176,9 +405,21 @@ static ExpireAction activeSubexpiresCb(eItem item, void *ctx) {
 
     kvobj *kv = (kvobj *) item;
 
+    /* The worker range is stable only while no reshard is active. This is the subexpiry
+     * counterpart of exActiveExpireScanCb's per-key migration fence.
+     * WHY NOT migSuppressLazyExpire() HERE, when the whole-key half calls it per key: this check
+     * is STRICTLY STRONGER, so that call would be dead code. migSuppressLazyExpire returns 1 only
+     * when migration_active is already 1 (its first line), and we stop outright on that. The key
+     * half needs the finer fence because its migration check is per BUCKET — one dictScan visits
+     * many keys between checks — whereas this callback re-checks on EVERY hash it is handed. */
+    if (subexCtx->workerCycle &&
+        atomic_load_explicit(&server.migration_active, memory_order_relaxed))
+        return ACT_STOP_ACTIVE_EXP;
+
     /* currently we only support hash type sub-expire */
     assert(kv->type == OBJ_HASH);
-    uint64_t nextExpTime = hashTypeExpire(subexCtx->db, kv, &subexCtx->fieldsToExpireQuota, 0, 1);
+    uint64_t nextExpTime =
+        hashTypeExpire(subexCtx->db, kv, &subexCtx->fieldsToExpireQuota, 0, subexCtx->activeEx);
 
     /* If hash has no more fields to expire or got deleted, indicate
      * to remove it from HFE DB to the caller ebExpire() */
@@ -205,8 +446,15 @@ static ExpireAction activeSubexpiresCb(eItem item, void *ctx) {
  *
  * Returns number of fields active-expired.
  */
-uint64_t activeSubexpires(redisDb *db, int slot, uint32_t maxFieldsToExpire) {
-    SubexpireCtx ctx = { .db = db, .fieldsToExpireQuota = maxFieldsToExpire, .slot = slot };
+static uint64_t activeSubexpiresWithMode(redisDb *db, int slot, uint32_t maxFieldsToExpire,
+                                         int activeEx, int workerCycle) {
+    SubexpireCtx ctx = {
+        .db = db,
+        .fieldsToExpireQuota = maxFieldsToExpire,
+        .slot = slot,
+        .activeEx = activeEx,
+        .workerCycle = workerCycle
+    };
     ExpireInfo info = {
             .maxToExpire = UINT64_MAX, /* Only maxFieldsToExpire play a role */
             .onExpireItem = activeSubexpiresCb,
@@ -218,6 +466,151 @@ uint64_t activeSubexpires(redisDb *db, int slot, uint32_t maxFieldsToExpire) {
 
     /* Return number of fields active-expired */
     return maxFieldsToExpire - ctx.fieldsToExpireQuota;
+}
+
+uint64_t activeSubexpires(redisDb *db, int slot, uint32_t maxFieldsToExpire) {
+    return activeSubexpiresWithMode(db, slot, maxFieldsToExpire, 1, 0);
+}
+
+/* Return the first/next non-empty subexpiry bucket inside one worker's ownership range.
+ * The estore Fenwick index spans the whole node, so range-clamp every result. Callers hold all
+ * of the node's worker locks, which makes the estore's single-writer aggregates stable. */
+static int exSubexpiresFirstInRange(estore *es, int blo, int bhi) {
+    int b = blo ? estoreGetNextNonEmptyBucket(es, blo - 1)
+                : estoreGetFirstNonEmptyBucket(es);
+    return (b >= blo && b < bhi) ? b : -1;
+}
+
+static int exSubexpiresNextInRange(estore *es, int b, int bhi) {
+    b = estoreGetNextNonEmptyBucket(es, b);
+    return (b >= 0 && b < bhi) ? b : -1;
+}
+
+/* Worker half of activeSubexpiresCycle(). Main still publishes only tomo_expire_gen; this pass
+ * runs from the owning worker's exSlice, walks only [blo,bhi), and shares exActiveExpireCycle's
+ * 2%-of-a-tick deadline. The node db's estore has single-writer count/Fenwick aggregates even
+ * though its buckets are ownership-sharded, so take the existing HFE lock set (all worker locks
+ * of this node, ascending). That includes this worker's own lock and is the same exclusion HFE
+ * commands already use; taking only the owner lock would let sibling worker cycles race the
+ * shared aggregates. */
+static uint64_t exActiveSubexpiresCycle(exThread *worker, int blo, int bhi,
+                                        long long start, long long timelimit) {
+    if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) return 0;
+
+    int wid = worker->id;
+    int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+    int node = wpn > 0 ? wid / wpn : 0;
+    int wlo = node * wpn;
+    int whi = wlo + wpn;
+    if (whi > server.num_workers) whi = server.num_workers;
+
+    for (int w = wlo; w < whi; w++) tomoWkrLockPub(w);
+
+    uint64_t totalExpired = 0;
+
+    /* The lock can wait behind a request. Background reclaim yields its turn if that wait
+     * consumed the shared deadline, and migration is rechecked after the range is excluded. */
+    if (ustime() - start > timelimit ||
+        atomic_load_explicit(&server.migration_active, memory_order_relaxed))
+        goto done;
+
+    int dbid = worker->asubexp_dbid;
+    if (dbid < 0 || dbid >= server.dbnum) dbid = 0;
+    int b = worker->asubexp_bucket;
+
+    /* Find one non-empty bucket in this worker's range, carrying db/bucket progress across ticks.
+     * At most dbnum Fenwick lookups are needed when this worker has no HFE in any database. */
+    int dbs = 0;
+    while (dbs < server.dbnum) {
+        redisDb *db = &worker->db[dbid];
+        if (!dbIsInitialized(db) || estoreIsEmpty(db->subexpires)) {
+            b = -1;
+        } else if (b < blo || b >= bhi) {
+            b = exSubexpiresFirstInRange(db->subexpires, blo, bhi);
+        } else if (ebIsEmpty(*estoreGetBuckets(db->subexpires, b))) {
+            b = exSubexpiresNextInRange(db->subexpires, b, bhi);
+        }
+
+        if (b >= blo && b < bhi) break;
+        worker->asubexp_sequence = 0;
+        if (++dbid >= server.dbnum) dbid = 0;
+        b = -1;
+        dbs++;
+    }
+
+    if (dbs == server.dbnum) {
+        worker->asubexp_dbid = dbid;
+        worker->asubexp_bucket = -1;
+        goto done;
+    }
+
+    /* Preserve upstream's per-tick field quota and backlog ramp, but expire in small quanta so
+     * the common worker deadline is observed even when one hash contains many expired fields. */
+    const uint64_t expiredFieldsThreshold = 1000000;
+    uint32_t maxToExpire = HFE_DB_BASE_ACTIVE_EXPIRE_FIELDS_PER_SEC / server.hz;
+    if (worker->asubexp_sequence > expiredFieldsThreshold) {
+        uint64_t factor = worker->asubexp_sequence / expiredFieldsThreshold;
+        maxToExpire *= (factor < 32) ? factor : 32;
+    }
+
+    redisDb *db = &worker->db[dbid];
+    int iteration = 0;
+    while (totalExpired < maxToExpire) {
+        if (atomic_load_explicit(&server.migration_active, memory_order_relaxed)) break;
+
+        uint32_t quantum = maxToExpire - (uint32_t)totalExpired;
+        if (quantum > ACTIVE_EXPIRE_CYCLE_KEYS_PER_LOOP)
+            quantum = ACTIVE_EXPIRE_CYCLE_KEYS_PER_LOOP;
+
+        uint64_t n = activeSubexpiresWithMode(db, b, quantum, 2, 1);
+        totalExpired += n;
+        if (atomic_load_explicit(&server.migration_active, memory_order_relaxed))
+            break;  /* callback stopped without exhausting this bucket; keep the cursor here */
+
+        if (n < quantum) {
+            /* This bucket is drained (or had nothing due). ADVANCE AND KEEP GOING inside the
+             * shared deadline — do NOT end the tick here.
+             * MEASURED, and the reason this loop is shaped like exActiveExpireCycle's rather than
+             * like upstream's one-slot-per-cron-call activeSubexpiresCycle(): ending the tick on
+             * the first drained bucket caps the whole cycle at ONE bucket per tick. The keyspace
+             * has TOMO_BUCKETS (16384) buckets, so at 100k hashes a bucket holds ~6 of them and a
+             * worker reclaimed ~6 fields per tick = ~60 fields/s, against a 2%-of-a-tick budget
+             * that affords ~20k/s. That is 300x under budget: the probe showed dbsize falling
+             * 100000 -> 96944 in 60s where it should have drained, i.e. still an unbounded leak
+             * under any real write rate, just a slower one. The budget must be what stops this
+             * loop, not the bucket boundary. */
+            int next = exSubexpiresNextInRange(db->subexpires, b, bhi);
+            if (next >= 0) {
+                b = next;
+            } else {
+                /* Range drained for this db. Hand the db advance to the next tick's search loop,
+                 * which already skips empty dbs in one pass — doing it here would need another
+                 * dbnum-bounded scan inside the deadline for no gain. */
+                if (++dbid >= server.dbnum) dbid = 0;
+                b = -1;
+                break;
+            }
+        }
+        /* Same 1-in-16 sampling exActiveExpireCycle uses: one ustime() per bucket would be a
+         * clock read per ~6 deletions. */
+        if ((++iteration & 0xf) == 0 && ustime() - start > timelimit) break;
+    }
+
+    /* Backlog ramp (upstream's rule, restated for this loop): we are BEHIND iff the tick consumed
+     * its whole FIELD QUOTA, and only then should the next ticks get a bigger one. Draining the
+     * range, or running out of deadline with quota to spare, both mean the quota is not the binding
+     * constraint — reset. Keying this off the quota rather than off "did the last bucket drain"
+     * also keeps the signal meaningful now that one tick spans many buckets. */
+    if (maxToExpire && totalExpired >= maxToExpire)
+        worker->asubexp_sequence += totalExpired;
+    else
+        worker->asubexp_sequence = 0;
+    worker->asubexp_dbid = dbid;
+    worker->asubexp_bucket = b;
+
+done:
+    for (int w = whi - 1; w >= wlo; w--) tomoWkrUnlockPub(w);
+    return totalExpired;
 }
 
 /* Active expiration Cycle for hash-fields.
@@ -241,8 +634,9 @@ static inline void activeSubexpiresCycle(int type) {
     redisDb *db = server.db + currentDb;
 
     /* If db is empty, move to next db and return */
-    if (estoreIsEmpty(db->subexpires)) {
+    if (!dbIsInitialized(db) || estoreIsEmpty(db->subexpires)) {
         activeExpirySequence = 0;
+        currentSlot = -1;
         currentDb = (currentDb + 1) % server.dbnum;
         return;
     }
@@ -385,6 +779,8 @@ void activeExpireCycle(int type) {
         /* Interleaving sub-expiration with key expiration. Better call it before
          * handling expired keys because ebuckets is optimized for active expiration */
         activeSubexpiresCycle(type);
+
+        if (!dbIsInitialized(db)) continue;
 
         if (kvstoreSize(db->expires))
             dbs_performed++;
@@ -563,7 +959,7 @@ void expireSlaveKeys(void) {
         while(dbids && dbid < server.dbnum) {
             if ((dbids & 1) != 0) {
                 redisDb *db = server.db+dbid;
-                kvobj *kv = dbFindExpires(db, keyname);
+                kvobj *kv = dbIsInitialized(db) ? dbFindExpires(db, keyname) : NULL;
                 int expired = kv && activeExpireCycleTryExpire(server.db+dbid, kv, start);
 
                 /* If the key was not expired in this DB, we need to set the
@@ -656,7 +1052,7 @@ int checkAlreadyExpired(long long when) {
      *
      * Instead we add the already expired key to the database with expire time
      * (possibly in the past) and wait for an explicit DEL from the master. */
-    if (server.current_client && server.current_client->flags & CLIENT_MASTER) return 0;
+    if (server.current_client[iotid].p && server.current_client[iotid].p->flags & CLIENT_MASTER) return 0;
     return (when <= commandTimeSnapshot() && !server.loading && !server.masterhost);
 }
 
@@ -809,7 +1205,7 @@ void expireGenericCommand(client *c, long long basetime, int unit) {
 
         int deleted = dbGenericDelete(c->db,key,server.lazyfree_lazy_expire,DB_FLAG_KEY_EXPIRED);
         serverAssertWithInfo(c,key,deleted);
-        server.dirty++;
+        markDirty(1);
 
         /* Replicate/AOF this as an explicit DEL or UNLINK. */
         aux = server.lazyfree_lazy_expire ? shared.unlink : shared.del;
@@ -836,7 +1232,7 @@ void expireGenericCommand(client *c, long long basetime, int unit) {
 
         keyModified(c,c->db,key,kv,1);
         notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",key,c->db->id);
-        server.dirty++;
+        markDirty(1);
         return;
     }
 }
@@ -914,7 +1310,7 @@ void persistCommand(client *c) {
             keyModified(c,c->db,c->argv[1],kv,1);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"persist",c->argv[1],c->db->id);
             addReply(c,shared.cone);
-            server.dirty++;
+            markDirty(1);
         } else {
             addReply(c,shared.czero);
         }

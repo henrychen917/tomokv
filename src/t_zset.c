@@ -216,6 +216,7 @@ zskiplist *zslCreate(void) {
     zsl->header = zslCreateHeaderNode(zsl);
     zsl->header->backward = NULL;
     zsl->tail = NULL;
+    memset(zsl->level_tail, 0, sizeof(zsl->level_tail));
     return zsl;
 }
 
@@ -303,6 +304,9 @@ static void zslInsertNode(zskiplist *zsl, zskiplistNode *node) {
         /* update span covered by update[i] as node is inserted here */
         zslSetNodeSpanAtLevel(node, i, zslGetNodeSpanAtLevel(update[i], i) - (rank[0] - rank[i]));
         zslSetNodeSpanAtLevel(update[i], i, (rank[0] - rank[i]) + 1);
+
+        if (node->level[i].forward == NULL)
+            zsl->level_tail[i] = node;
     }
 
     /* increment span for untouched levels */
@@ -317,6 +321,57 @@ static void zslInsertNode(zskiplist *zsl, zskiplistNode *node) {
     else
         zsl->tail = node;
 
+    zsl->length++;
+}
+
+/* Insert a node known to sort after the current tail. The per-level tail
+ * cache supplies update[] directly, so this preserves all span invariants
+ * without doing the normal score/member search. */
+static void zslInsertNodeAtTail(zskiplist *zsl, zskiplistNode *node) {
+    int i;
+    int level = zslGetNodeInfo(node)->levels;
+    int oldlevel = zsl->level;
+    zskiplistNode *oldtail = zsl->tail;
+
+    serverAssert(!isnan(node->score));
+    debugServerAssert(oldtail == NULL ||
+                      zslCompareWithNode(node->score, zslGetNodeElement(node), oldtail) > 0);
+
+    for (i = 0; i < level; i++) {
+        node->level[i].forward = NULL;
+        zslSetNodeSpanAtLevel(node, i, 0);
+    }
+
+    /* Existing levels already have a terminal node (except level 0 in an
+     * empty list). It either points to the new node or has its terminal span
+     * extended by one. */
+    for (i = 0; i < oldlevel; i++) {
+        zskiplistNode *update = zsl->level_tail[i];
+        if (update == NULL) {
+            serverAssert(zsl->length == 0 && i == 0);
+            update = zsl->header;
+        }
+
+        zslIncrNodeSpanAtLevel(update, i, 1);
+        if (i < level) {
+            update->level[i].forward = node;
+            zsl->level_tail[i] = node;
+        }
+    }
+
+    /* New levels jump from the header directly to the new last element. */
+    for (i = oldlevel; i < level; i++) {
+        zsl->header->level[i].forward = node;
+        zslSetNodeSpanAtLevel(zsl->header, i, zsl->length + 1);
+        zsl->level_tail[i] = node;
+    }
+    if (level > oldlevel) {
+        zsl->level = level;
+        zslGetNodeInfo(zsl->header)->levels = level;
+    }
+
+    node->backward = oldtail;
+    zsl->tail = node;
     zsl->length++;
 }
 
@@ -338,6 +393,18 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {
     return node;
 }
 
+/* Insert a new element that is known to sort after the current tail. */
+static zskiplistNode *zslInsertAtTail(zskiplist *zsl, double score, sds ele) {
+    int level;
+
+    serverAssert(!isnan(score));
+
+    level = zslRandomLevel();
+    zskiplistNode *node = zslCreateNode(zsl, level, score, ele);
+    zslInsertNodeAtTail(zsl, node);
+    return node;
+}
+
 /* Internal function used by zslDelete, zslDeleteRangeByScore and
  * zslDeleteRangeByRank.
  * This function only unlinks the node from the skiplist structure but does NOT free it.
@@ -348,6 +415,8 @@ static void zslUnlinkNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **upda
         if (update[i]->level[i].forward == x) {
             zslIncrNodeSpanAtLevel(update[i], i, zslGetNodeSpanAtLevel(x, i) - 1);
             update[i]->level[i].forward = x->level[i].forward;
+            if (zsl->level_tail[i] == x)
+                zsl->level_tail[i] = (update[i] == zsl->header) ? NULL : update[i];
         } else {
             zslDecrNodeSpanAtLevel(update[i], i, 1);
         }
@@ -360,6 +429,7 @@ static void zslUnlinkNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **upda
     /* Decrease skiplist level if top levels are empty, and clear their spans */
     while(zsl->level > 1 && zsl->header->level[zsl->level-1].forward == NULL) {
         zsl->header->level[zsl->level-1].span = 0;
+        zsl->level_tail[zsl->level-1] = NULL;
         zsl->level--;
     }
     zsl->length--;
@@ -1726,7 +1796,14 @@ int zsetAdd(robj *zobj, double score, sds ele, int in_flags, int *out_flags, dou
             return 1;
         } else if (!xx) {
             /* Element doesn't exist - create node with embedded sds and add to skiplist */
-            znode = zslInsert(zs->zsl, score, ele);
+            zskiplistNode *tail = zs->zsl->tail;
+            if (tail == NULL || score > tail->score ||
+                (score == tail->score && sdscmp(ele, zslGetNodeElement(tail)) > 0))
+            {
+                znode = zslInsertAtTail(zs->zsl, score, ele);
+            } else {
+                znode = zslInsert(zs->zsl, score, ele);
+            }
 
             /* Add node pointer to dict using the bucket we already found */
             dictSetKeyAtLink(zs->dict, znode, &bucket, 1);
@@ -2075,7 +2152,7 @@ void zaddGenericCommand(client *c, int flags) {
         if (!(retflags & ZADD_OUT_NOP)) processed++;
         score = newscore;
     }
-    server.dirty += (added+updated);
+    markDirty((added+updated));
     if (server.memory_tracking_enabled)
         updateSlotAllocSize(c->db, getKeySlot(key->ptr), zobj, oldsize, kvobjAllocSize(zobj));
     updateKeysizesHist(c->db, getKeySlot(key->ptr), OBJ_ZSET, llen, llen+added);
@@ -2118,6 +2195,8 @@ void zremCommand(client *c) {
     int64_t oldlen = (int64_t) zsetLength(zobj);
     if (server.memory_tracking_enabled)
         oldsize = kvobjAllocSize(zobj);
+    if (zobj->encoding == OBJ_ENCODING_SKIPLIST)
+        dictPauseAutoResize(((zset *)zobj->ptr)->dict);
     for (j = 2; j < c->argc; j++) {
         if (zsetDel(zobj, c->argv[j]->ptr)) deleted++;
         if (zsetLength(zobj) == 0) {
@@ -2128,6 +2207,10 @@ void zremCommand(client *c) {
             keyremoved = 1;
             break;
         }
+    }
+    if (!keyremoved && zobj->encoding == OBJ_ENCODING_SKIPLIST) {
+        dictResumeAutoResize(((zset *)zobj->ptr)->dict);
+        dictShrinkIfNeeded(((zset *)zobj->ptr)->dict);
     }
 
     if (server.memory_tracking_enabled && !keyremoved)
@@ -2142,7 +2225,7 @@ void zremCommand(client *c) {
 
         updateKeysizesHist(c->db, getKeySlot(key->ptr), OBJ_ZSET, oldlen, newlen);
         keyModified(c, c->db, key, keyremoved ? NULL : zobj, 1);
-        server.dirty += deleted;
+        markDirty(deleted);
     }
     addReplyLongLong(c,deleted);
 }
@@ -2274,7 +2357,7 @@ void zremrangeGenericCommand(client *c, zrange_type rangetype) {
         }
         updateKeysizesHist(c->db, getKeySlot(key->ptr), OBJ_ZSET, oldlen, newlen);
     }
-    server.dirty += deleted;
+    markDirty(deleted);
     addReplyLongLong(c,deleted);
 
 cleanup:
@@ -2335,20 +2418,14 @@ typedef struct {
 } zsetopsrc;
 
 
-/* Use dirty flags for pointers that need to be cleaned up in the next
- * iteration over the zsetopval. The dirty flag for the long long value is
- * special, since long long values don't need cleanup. Instead, it means that
- * we already checked that "ell" holds a long long, or tried to convert another
- * representation into a long long value. When this was successful,
- * OPVAL_VALID_LL is set as well. */
+/* Use a dirty flag for pointers that need to be cleaned up in the next
+ * iteration over the zsetopval. */
 #define OPVAL_DIRTY_SDS 1
-#define OPVAL_DIRTY_LL 2
-#define OPVAL_VALID_LL 4
 
 /* Store value retrieved from the iterator. */
 typedef struct {
     int flags;
-    unsigned char _buf[32]; /* Private buffer. */
+    unsigned char _reserved[32]; /* Preserve the iteration-state layout. */
     sds ele;
     unsigned char *estr;
     unsigned int elen;
@@ -2528,24 +2605,6 @@ int zuiNext(zsetopsrc *op, zsetopval *val) {
     return 1;
 }
 
-int zuiLongLongFromValue(zsetopval *val) {
-    if (!(val->flags & OPVAL_DIRTY_LL)) {
-        val->flags |= OPVAL_DIRTY_LL;
-
-        if (val->ele != NULL) {
-            if (string2ll(val->ele,sdslen(val->ele),&val->ell))
-                val->flags |= OPVAL_VALID_LL;
-        } else if (val->estr != NULL) {
-            if (string2ll((char*)val->estr,val->elen,&val->ell))
-                val->flags |= OPVAL_VALID_LL;
-        } else {
-            /* The long long was already set, flag as valid. */
-            val->flags |= OPVAL_VALID_LL;
-        }
-    }
-    return val->flags & OPVAL_VALID_LL;
-}
-
 sds zuiSdsFromValue(zsetopval *val) {
     if (val->ele == NULL) {
         if (val->estr != NULL) {
@@ -2574,19 +2633,6 @@ sds zuiNewSdsFromValue(zsetopval *val) {
     } else {
         return sdsfromlonglong(val->ell);
     }
-}
-
-int zuiBufferFromValue(zsetopval *val) {
-    if (val->estr == NULL) {
-        if (val->ele != NULL) {
-            val->elen = sdslen(val->ele);
-            val->estr = (unsigned char*)val->ele;
-        } else {
-            val->elen = ll2string((char*)val->_buf,sizeof(val->_buf),val->ell);
-            val->estr = val->_buf;
-        }
-    }
-    return 1;
 }
 
 /* Find value pointed to by val in the source pointer to by op. When found,
@@ -3130,13 +3176,13 @@ void zunionInterDiffGenericCommand(client *c, robj *dstkey, int numkeysIndex, in
                                 (op == SET_OP_UNION) ? "zunionstore" :
                                     (op == SET_OP_INTER ? "zinterstore" : "zdiffstore"),
                                 dstkey, c->db->id);
-            server.dirty++;
+            markDirty(1);
         } else {
             addReply(c, shared.czero);
             if (dbDelete(c->db, dstkey)) {
                 keyModified(c, c->db, dstkey, NULL, 1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", dstkey, c->db->id);
-                server.dirty++;
+                markDirty(1);
             }
             decrRefCount(dstobj);
         }
@@ -3339,16 +3385,24 @@ static void zrangeResultFinalizeStore(zrange_result_handler *handler, size_t res
         setKey(handler->client, handler->client->db, handler->dstkey, &handler->dstobj, 0);
         addReplyLongLong(handler->client, result_count);
         notifyKeyspaceEvent(NOTIFY_ZSET, "zrangestore", handler->dstkey, handler->client->db->id);
-        server.dirty++;
+        markDirty(1);
     } else {
         addReply(handler->client, shared.czero);
         if (dbDelete(handler->client->db, handler->dstkey)) {
             keyModified(handler->client, handler->client->db, handler->dstkey, NULL, 1);
             notifyKeyspaceEvent(NOTIFY_GENERIC, "del", handler->dstkey, handler->client->db->id);
-            server.dirty++;
+            markDirty(1);
         }
         decrRefCount(handler->dstobj);
     }
+}
+
+/* Cross-shard ZRANGESTORE HOP1 uses the stock parser and selection callbacks, but must not
+ * mutate the destination on the source worker. Keep the freshly-built result object owned by
+ * the caller; a NULL result means parsing or type checking already emitted the stock error. */
+static void zrangeResultFinalizeDetached(zrange_result_handler *handler, size_t result_count) {
+    UNUSED(handler);
+    UNUSED(result_count);
 }
 
 /* Initialize the consumer interface type with the requested type. */
@@ -3486,6 +3540,17 @@ void zrangestoreCommand (client *c) {
     zrangeResultHandlerInit(&handler, c, ZRANGE_CONSUMER_TYPE_INTERNAL);
     zrangeResultHandlerDestinationKeySet(&handler, dstkey);
     zrangeGenericCommand(&handler, 2, 1, ZRANGE_AUTO, ZRANGE_DIRECTION_AUTO);
+}
+
+/* Select ZRANGESTORE's result without storing it. The returned refcount-1 zset is owned by
+ * the caller. Valid missing/empty sources return an empty zset; NULL is reserved for a stock
+ * parse/WRONGTYPE error already serialized on c. */
+robj *zrangestoreResultObject(client *c) {
+    zrange_result_handler handler;
+    zrangeResultHandlerInit(&handler, c, ZRANGE_CONSUMER_TYPE_INTERNAL);
+    handler.finalizeResultEmission = zrangeResultFinalizeDetached;
+    zrangeGenericCommand(&handler, 2, 1, ZRANGE_AUTO, ZRANGE_DIRECTION_AUTO);
+    return handler.dstobj;
 }
 
 /* ZRANGE <key> <min> <max> [BYSCORE | BYLEX] [REV] [WITHSCORES] [LIMIT offset count] */
@@ -4306,7 +4371,7 @@ void genericZpopCommand(client *c, robj **keyv, int keyc, int where, int emitkey
         }
 
         serverAssertWithInfo(c,zobj,zsetDel(zobj,ele));
-        server.dirty++;
+        markDirty(1);
 
         if (result_count == 0) { /* Do this only for the first iteration. */
             char *events[2] = {"zpopmin","zpopmax"};
@@ -4831,6 +4896,7 @@ static void zslDebugVerifyStruct(zskiplist *zsl) {
     for (i = zsl->level; i < ZSKIPLIST_MAXLEVEL; i++) {
         serverAssert(zsl->header->level[i].forward == NULL);
         serverAssert(zsl->header->level[i].span == 0);
+        serverAssert(zsl->level_tail[i] == NULL);
     }
 
     /* Verify that level zsl->level-1 has at least one node (if list is not empty) */
@@ -4899,6 +4965,15 @@ static void zslDebugVerifyStruct(zskiplist *zsl) {
     } else {
         serverAssert(zsl->tail == prev);
         serverAssert(zsl->tail->level[0].forward == NULL);
+    }
+    serverAssert(zsl->level_tail[0] == zsl->tail);
+
+    /* Verify the cached terminal node at every active level. */
+    for (i = 1; i < zsl->level; i++) {
+        x = zsl->header;
+        while (x->level[i].forward)
+            x = x->level[i].forward;
+        serverAssert(zsl->level_tail[i] == x);
     }
 
     /* Verify that the sum of spans at each level is consistent.

@@ -150,6 +150,11 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
     /* When expire is not NULL, we avoid deleting the TTL so it can be updated later instead of being deleted and then created again. */
     setkey_flags |= ((flags & OBJ_KEEPTTL) || expire) ? SETKEY_KEEPTTL : 0;
     setkey_flags |= found ? SETKEY_ALREADY_EXIST : SETKEY_DOESNT_EXIST;
+    /* CANDIDATE (census rank-3): the SET family stores a final value -- nothing
+     * mutates it in place through *valref afterwards -- so a small RAW value
+     * (45B+, which parsing never makes EMBSTR) may be embedded into the kvobj
+     * allocation. See kvobjSetEx(). */
+    setkey_flags |= SETKEY_EMBED_RAW;
 
     setKeyByLink(c, c->db, key, valref, setkey_flags, &link);
     /* If there's an expiration, setExpireByLink may reallocate the object.
@@ -160,13 +165,18 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
      * from 1 to 2 to ensure both DB and client have valid references. */
     incrRefCount(*valref); /* 1->2 */
 
-    server.dirty++;
+    markDirty(1);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",key,c->db->id);
 
     if (expire) {
         /* Propagate as SET Key Value PXAT millisecond-timestamp if there is
-         * EX/PX/EXAT flag. */
-        if (!(flags & OBJ_PXAT)) {
+         * EX/PX/EXAT flag.
+         * ee451 (EX fix): SKIP this command-vector rewrite for worker fakes. It is
+         * purely for AOF/replication determinism (both Tomo KV non-goals), and
+         * rewriting a fake's argv desyncs it from current_pending_cmd->argv (the
+         * worker drains the pending argv) and touches the rewrite/MULTI machinery
+         * fakes don't fully own. The expire itself is already applied above. */
+        if (!(flags & OBJ_PXAT) && !c->isFake) {
             robj *milliseconds_obj = createStringObjectFromLongLong(milliseconds);
             /* If command is exactly "SET key value EX/PX/EXAT ttl", we can just
              * replace the expire type and value in-place. Otherwise, we need to
@@ -509,7 +519,7 @@ void getexCommand(client *c) {
         rewriteClientCommandVector(c,2,aux,c->argv[1]);
         keyModified(c, c->db, c->argv[1], NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", c->argv[1], c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else if (args.expire) {
         o = setExpire(c,c->db,c->argv[1],milliseconds);
         /* Propagate as PXEXPIREAT millisecond-timestamp if there is
@@ -519,13 +529,13 @@ void getexCommand(client *c) {
         decrRefCount(milliseconds_obj);
         keyModified(c, c->db, c->argv[1], o, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
     } else if (args.flags & OBJ_PERSIST) {
         if (removeExpire(c->db, c->argv[1])) {
             keyModified(c, c->db, c->argv[1], o, 1);
             rewriteClientCommandVector(c, 2, shared.persist, c->argv[1]);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"persist",c->argv[1],c->db->id);
-            server.dirty++;
+            markDirty(1);
         }
     }
 }
@@ -537,17 +547,17 @@ void getdelCommand(client *c) {
         rewriteClientCommandVector(c,2,shared.del,c->argv[1]);
         keyModified(c, c->db, c->argv[1], NULL, 1);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", c->argv[1], c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 }
 
 void getsetCommand(client *c) {
     if (getGenericCommand(c) == C_ERR) return;
     c->argv[2] = tryObjectEncoding(c->argv[2]);
-    setKey(c, c->db, c->argv[1], &c->argv[2], 0);
+    setKey(c, c->db, c->argv[1], &c->argv[2], SETKEY_EMBED_RAW);
     incrRefCount(c->argv[2]);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     /* Propagate as SET command */
     rewriteClientCommandArgument(c,0,shared.set);
@@ -611,13 +621,13 @@ void setrangeCommand(client *c) {
         if (server.memory_tracking_enabled)
             oldsize = kvobjAllocSize(kv);
         kv->ptr = sdsgrowzero(kv->ptr,offset+value_len);
+        memcpy((char*)kv->ptr+offset,value,value_len);
         if (server.memory_tracking_enabled)
             updateSlotAllocSize(c->db, getKeySlot(c->argv[1]->ptr), kv, oldsize, kvobjAllocSize(kv));
-        memcpy((char*)kv->ptr+offset,value,value_len);
         keyModified(c,c->db,c->argv[1],kv,1);
         notifyKeyspaceEvent(NOTIFY_STRING,
             "setrange",c->argv[1],c->db->id);
-        server.dirty++;
+        markDirty(1);
     }
 
     addReplyLongLong(c,newLen);
@@ -703,12 +713,13 @@ void msetGenericCommand(client *c, int nx) {
 
     for (j = 1; j < c->argc; j += 2) {
         c->argv[j+1] = tryObjectEncoding(c->argv[j+1]);
-        /* if 'NX', no need set flags SETKEY_DOESNT_EXIST. Already verified earlier! */
-        setKey(c, c->db, c->argv[j], &(c->argv[j+1]) , 0 /*flags*/);
+        /* if 'NX', no need set flags SETKEY_DOESNT_EXIST. Already verified earlier!
+         * SETKEY_EMBED_RAW: MSET values are final, see kvobjSetEx(). */
+        setKey(c, c->db, c->argv[j], &(c->argv[j+1]) , SETKEY_EMBED_RAW);
         incrRefCount(c->argv[j+1]);  /* refcnt not incr by setKey() */
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
     }
-    server.dirty += (c->argc-1)/2;
+    markDirty((c->argc-1)/2);
     addReply(c, nx ? shared.cone : shared.ok);
 }
 
@@ -769,8 +780,9 @@ void msetexCommand(client *c) {
 
         c->argv[val_idx] = tryObjectEncoding(c->argv[val_idx]);
 
-        /* Handle KEEPTTL - preserve existing TTL */
-        int setkey_flags = 0;
+        /* Handle KEEPTTL - preserve existing TTL.
+         * SETKEY_EMBED_RAW: MSETEX values are final, see kvobjSetEx(). */
+        int setkey_flags = SETKEY_EMBED_RAW;
         if (args.flags & OBJ_KEEPTTL) {
             setkey_flags |= SETKEY_KEEPTTL;
         }
@@ -795,7 +807,7 @@ void msetexCommand(client *c) {
         decrRefCount(milliseconds_obj);
     }
 
-    server.dirty += kv_count;
+    markDirty(kv_count);
     addReply(c, shared.cone);
 }
 
@@ -819,7 +831,11 @@ void incrDecrCommand(client *c, long long incr) {
         value >= LONG_MIN && value <= LONG_MAX)
     {
         new = o;
-        o->ptr = (void*)((long)value);
+        /* FLAT-NATIVE M-reads: lock-free INT readers load ->ptr with a relaxed atomic; publish
+         * with the matching relaxed atomic store (identical single mov on x86-64 — zero cost,
+         * kept unconditional). The word IS the value, not a pointer to freeable memory, so no
+         * lock is needed on either side. */
+        __atomic_store_n(&o->ptr, (void*)((long)value), __ATOMIC_RELAXED);
         updateKeysizesHist(c->db, getKeySlot(c->argv[1]->ptr),
                            OBJ_STRING,
                            (int64_t) sdigits10(oldvalue),
@@ -837,7 +853,7 @@ void incrDecrCommand(client *c, long long incr) {
     addReplyLongLongFromStr(c,new);
     keyModified(c,c->db,c->argv[1],new,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"incrby",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 }
 
 void incrCommand(client *c) {
@@ -889,7 +905,7 @@ void incrbyfloatCommand(client *c) {
         dbAddByLink(c->db, c->argv[1], &new, &link);
     keyModified(c,c->db,c->argv[1],new,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"incrbyfloat",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
     addReplyBulk(c,new);
 
     /* Always replicate INCRBYFLOAT as a SET command with the final value
@@ -938,7 +954,7 @@ void appendCommand(client *c) {
     }
     keyModified(c,c->db,c->argv[1],o,1);
     notifyKeyspaceEvent(NOTIFY_STRING,"append",c->argv[1],c->db->id);
-    server.dirty++;
+    markDirty(1);
 
     addReplyLongLong(c,totlen);
 }
@@ -951,14 +967,12 @@ void strlenCommand(client *c) {
 }
 
 /* LCS key1 key2 [LEN] [IDX] [MINMATCHLEN <len>] [WITHMATCHLEN] */
-void lcsCommand(client *c) {
+void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc) {
     uint32_t i, j;
     long long minmatchlen = 0;
     sds a = NULL, b = NULL;
     int getlen = 0, getidx = 0, withmatchlen = 0;
 
-    kvobj *obja = lookupKeyRead(c->db, c->argv[1]);
-    kvobj *objb = lookupKeyRead(c->db, c->argv[2]);
     if ((obja && obja->type != OBJ_STRING) ||
         (objb && objb->type != OBJ_STRING))
     {
@@ -975,9 +989,9 @@ void lcsCommand(client *c) {
     a = obja->ptr;
     b = objb->ptr;
 
-    for (j = 3; j < (uint32_t)c->argc; j++) {
-        char *opt = c->argv[j]->ptr;
-        int moreargs = (c->argc-1) - j;
+    for (j = 3; j < (uint32_t)argc; j++) {
+        char *opt = argv[j]->ptr;
+        int moreargs = (argc-1) - j;
 
         if (!strcasecmp(opt,"IDX")) {
             getidx = 1;
@@ -986,7 +1000,7 @@ void lcsCommand(client *c) {
         } else if (!strcasecmp(opt,"WITHMATCHLEN")) {
             withmatchlen = 1;
         } else if (!strcasecmp(opt,"MINMATCHLEN") && moreargs) {
-            if (getLongLongFromObjectOrReply(c,c->argv[j+1],&minmatchlen,NULL)
+            if (getLongLongFromObjectOrReply(c,argv[j+1],&minmatchlen,NULL)
                 != C_OK) goto cleanup;
             if (minmatchlen < 0) minmatchlen = 0;
             j++;
@@ -1165,6 +1179,12 @@ cleanup:
     return;
 }
 
+void lcsCommand(client *c) {
+    kvobj *obja = lookupKeyRead(c->db, c->argv[1]);
+    kvobj *objb = lookupKeyRead(c->db, c->argv[2]);
+    lcsCommandGeneric(c,obja,objb,c->argv,c->argc);
+}
+
 /* Validate that a digest string has the correct length (DIGEST_HEX_LENGTH characters).
  * Note: This only validates length, not whether characters are valid hex digits.
  * Invalid hex characters will simply fail to match during comparison.
@@ -1214,4 +1234,3 @@ void digestCommand(client *c) {
 
     addReplyBulkSds(c, stringDigest(o));
 }
-
